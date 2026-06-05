@@ -154,7 +154,7 @@ targets:
         # though the provisioning profile grants it.
         CODE_SIGN_ENTITLEMENTS: Sources/LaughTrackApp/LaughTrack.entitlements
         MARKETING_VERSION: "2.1"
-        CURRENT_PROJECT_VERSION: "14"
+        CURRENT_PROJECT_VERSION: "15"
         SWIFT_EMIT_LOC_STRINGS: "YES"
         # iPhone-only (TARGETED_DEVICE_FAMILY "1"). Without this xcodegen defaults
         # to "1,2" (iPhone + iPad), which makes App Store Connect require iPad

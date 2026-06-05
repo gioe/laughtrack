@@ -30,7 +30,6 @@
 		1D29846232BE8B601CF6C991 /* SharedKit in Frameworks */ = {isa = PBXBuildFile; productRef = 4BE52EFE6EC3A2B61C652F82 /* SharedKit */; };
 		1D2E87B73739EA1A7023E9E2 /* LaughTrackApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 281FB22CC5183EF10EE60C01 /* LaughTrackApp.swift */; };
 		1E02A267A51AA495C1E0D807 /* SearchRootViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90B6537DBFBB91D1848405D7 /* SearchRootViewTests.swift */; };
-		2664A1B1F50C0A6E0FE03F01 /* TabBarBottomSpacingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2664A1B0F50C0A6E0FE03F00 /* TabBarBottomSpacingTests.swift */; };
 		1F1CC060B9835682FC9C8177 /* ClubRowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7E9ADC24243532EC17C6E17 /* ClubRowTests.swift */; };
 		1F3762B55535AF3F76F3B19E /* PushPermissionPromptCadenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6B5183BF82B4315C125512B /* PushPermissionPromptCadenceTests.swift */; };
 		1FDB4B4BA0CCBABE3BEE1021 /* LaughTrackBrowseComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50E74EE4E67E5475B4FDB8BA /* LaughTrackBrowseComponents.swift */; };
@@ -133,6 +132,7 @@
 		92F47B2CCCE1D1296F3AE7BD /* AppRoute.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C6A228D912DFFE3A74A36BB /* AppRoute.swift */; };
 		9314C728FF270BBC8A8A78CF /* TonightNearYouLoaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BBD09ADC94EBB567760C0A4 /* TonightNearYouLoaderTests.swift */; };
 		94487F196E7F1E52967A3AB0 /* LaughTrackCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8EA13D0C5CA2F5439E19E122 /* LaughTrackCore.framework */; };
+		944ED15226713D49D69F17EE /* SearchFavoriteRowLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71CC048190FA9153D454C974 /* SearchFavoriteRowLayoutTests.swift */; };
 		97A64E347CF2AF2280EFA9A2 /* ShowFormatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E967C8A3F78A8A5226D2AA /* ShowFormatting.swift */; };
 		9B927C16B4B51ABF7EA9ED87 /* NotificationPreferenceStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 008683977BC9D75F1F750482 /* NotificationPreferenceStoreTests.swift */; };
 		9DF9E44E3C545330B35C49C1 /* PillSheetTrigger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00935250DBF700278E692D7F /* PillSheetTrigger.swift */; };
@@ -221,6 +221,7 @@
 		FD91BCAFAF2FCF3D8030242E /* ExternalLinkRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77FB1D59ADDFE8101352E823 /* ExternalLinkRouter.swift */; };
 		FDB334A4E9D26AA5BB986002 /* MiddlewareIntegrationTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEB123B3A5E6AEA324B240A1 /* MiddlewareIntegrationTestSupport.swift */; };
 		FEA7B9F292F79DD9E58A7F6A /* LaughTrackBridge.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20552640F544D4395DE585B7 /* LaughTrackBridge.framework */; };
+		FED5872D13A1F92A8D3A2EF8 /* TabBarBottomSpacingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11277FC3FADF5A9B05C97C0C /* TabBarBottomSpacingTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -342,6 +343,7 @@
 		0F4233943B1264FC9441BD6C /* DetailFetchSupportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailFetchSupportTests.swift; sourceTree = "<group>"; };
 		101043A96572AEFE6E8C364A /* PinnedShowsList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinnedShowsList.swift; sourceTree = "<group>"; };
 		10BDD51643814940674250AA /* ContentViewNavigationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentViewNavigationTests.swift; sourceTree = "<group>"; };
+		11277FC3FADF5A9B05C97C0C /* TabBarBottomSpacingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarBottomSpacingTests.swift; sourceTree = "<group>"; };
 		11D1764946AE444ED9B200C5 /* ClubsDiscoveryModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClubsDiscoveryModel.swift; sourceTree = "<group>"; };
 		1384478A2C1BDEDDA8C64200 /* DetailModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailModels.swift; sourceTree = "<group>"; };
 		150E1D468A29CD313C7AD85B /* DateRangeDensityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateRangeDensityTests.swift; sourceTree = "<group>"; };
@@ -404,6 +406,7 @@
 		6740344931ABD2D8276582D0 /* PodcastTonightNearYouCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastTonightNearYouCard.swift; sourceTree = "<group>"; };
 		69FADA6CF6C175F11DC3FF04 /* PushPermissionPromptCadence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushPermissionPromptCadence.swift; sourceTree = "<group>"; };
 		6BBD09ADC94EBB567760C0A4 /* TonightNearYouLoaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TonightNearYouLoaderTests.swift; sourceTree = "<group>"; };
+		71CC048190FA9153D454C974 /* SearchFavoriteRowLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchFavoriteRowLayoutTests.swift; sourceTree = "<group>"; };
 		72C538B76724132F4A26DCE0 /* TunedForChromeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunedForChromeTests.swift; sourceTree = "<group>"; };
 		7436912FD34C53C36498E5EF /* LibraryFavoritesViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryFavoritesViewTests.swift; sourceTree = "<group>"; };
 		74568165A0CA8A0DB5CD35AF /* PodcastFavoriteStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastFavoriteStore.swift; sourceTree = "<group>"; };
@@ -426,7 +429,6 @@
 		8EA13D0C5CA2F5439E19E122 /* LaughTrackCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LaughTrackCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		8F13D45B524D9F3E3A29C75C /* PodcastDetailViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastDetailViewTests.swift; sourceTree = "<group>"; };
 		90B6537DBFBB91D1848405D7 /* SearchRootViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchRootViewTests.swift; sourceTree = "<group>"; };
-		2664A1B0F50C0A6E0FE03F00 /* TabBarBottomSpacingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarBottomSpacingTests.swift; sourceTree = "<group>"; };
 		9170739BCDBB962D8D115F8B /* StubClientTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StubClientTransport.swift; sourceTree = "<group>"; };
 		92337F6B1144FEF54810C74C /* UnauthorizedResponseMiddleware.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnauthorizedResponseMiddleware.swift; sourceTree = "<group>"; };
 		92A8166F55F78405CB41E328 /* NearbyPreferenceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NearbyPreferenceStore.swift; sourceTree = "<group>"; };
@@ -642,8 +644,8 @@
 				D6B5183BF82B4315C125512B /* PushPermissionPromptCadenceTests.swift */,
 				F8028E5CE6757E7382895D1F /* PushPermissionStateStoreTests.swift */,
 				7A6667B928C06BDF139513D4 /* PushPermissionTestSupport.swift */,
+				71CC048190FA9153D454C974 /* SearchFavoriteRowLayoutTests.swift */,
 				90B6537DBFBB91D1848405D7 /* SearchRootViewTests.swift */,
-				2664A1B0F50C0A6E0FE03F00 /* TabBarBottomSpacingTests.swift */,
 				EE6ED3B8ED09F12D8A03111F /* ServiceRegistrationTests.swift */,
 				ECED0A3A8EEF5B333E588DB8 /* SettingsViewStateTests.swift */,
 				B4E1670E2DC2AFEA73AB1A3E /* ShowDetailViewTests.swift */,
@@ -654,6 +656,7 @@
 				9170739BCDBB962D8D115F8B /* StubClientTransport.swift */,
 				B790E6CA653AB5CC278F718D /* StubLocationResolvers.swift */,
 				7593C96779BA48EAD4AC7E16 /* StubURLProtocolSupport.swift */,
+				11277FC3FADF5A9B05C97C0C /* TabBarBottomSpacingTests.swift */,
 				B77565DFAF90D74AC5F8DECF /* TestResolverStubs.swift */,
 				3700564FAB149798B936D4CC /* TokenRefreshMiddlewareIntegrationTests.swift */,
 				6BBD09ADC94EBB567760C0A4 /* TonightNearYouLoaderTests.swift */,
@@ -1397,8 +1400,8 @@
 				1F3762B55535AF3F76F3B19E /* PushPermissionPromptCadenceTests.swift in Sources */,
 				527B0FC890A60821C39FDFE8 /* PushPermissionStateStoreTests.swift in Sources */,
 				2EEB4E6277F031284C171AC2 /* PushPermissionTestSupport.swift in Sources */,
+				944ED15226713D49D69F17EE /* SearchFavoriteRowLayoutTests.swift in Sources */,
 				1E02A267A51AA495C1E0D807 /* SearchRootViewTests.swift in Sources */,
-				2664A1B1F50C0A6E0FE03F01 /* TabBarBottomSpacingTests.swift in Sources */,
 				8327AF474D76C38707EE0262 /* ServiceRegistrationTests.swift in Sources */,
 				4E555BF23B469378A967859A /* SettingsViewStateTests.swift in Sources */,
 				81438189E9144731336F4867 /* ShowDetailViewTests.swift in Sources */,
@@ -1409,6 +1412,7 @@
 				F5512524B05FB4BDF6E3F33B /* StubClientTransport.swift in Sources */,
 				D53DDEF7B72376F2B46B2FF6 /* StubLocationResolvers.swift in Sources */,
 				25B01A08ED99159630E955F2 /* StubURLProtocolSupport.swift in Sources */,
+				FED5872D13A1F92A8D3A2EF8 /* TabBarBottomSpacingTests.swift in Sources */,
 				F6A2A20C8459B6D3D685D19C /* TestResolverStubs.swift in Sources */,
 				E566D7C39CD2A4613F1625A2 /* TokenRefreshMiddlewareIntegrationTests.swift in Sources */,
 				9314C728FF270BBC8A8A78CF /* TonightNearYouLoaderTests.swift in Sources */,
@@ -1514,7 +1518,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Sources/LaughTrackApp/LaughTrack.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 15;
 				DEVELOPMENT_TEAM = 4HDNC3V5Q6;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Sources/LaughTrackApp/Info.plist;
@@ -1640,7 +1644,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Sources/LaughTrackApp/LaughTrack.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 15;
 				DEVELOPMENT_TEAM = 4HDNC3V5Q6;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Sources/LaughTrackApp/Info.plist;
