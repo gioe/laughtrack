@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up scraper Python environment
         uses: ./.github/actions/scraper-setup
@@ -218,7 +218,7 @@ jobs:
           python -m laughtrack.app.cli notify-comedian-arrivals --radius 50 --days-ahead 30
 
       - name: Upload scraper logs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: scraper-logs-${{ github.run_id }}
@@ -226,7 +226,7 @@ jobs:
           retention-days: 30
 
       - name: Upload scraper dashboard and metrics
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: scraper-dashboard-${{ github.run_id }}

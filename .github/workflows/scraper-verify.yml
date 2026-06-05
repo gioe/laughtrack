@@ -18,7 +18,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up scraper Python environment
         uses: ./.github/actions/scraper-setup
@@ -53,7 +53,7 @@ jobs:
           tail -5 scrape-output.log
 
       - name: Upload scrape output and dashboard
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: scraper-verify-club-${{ inputs.club_id }}-${{ github.run_id }}

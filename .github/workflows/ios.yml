@@ -58,7 +58,7 @@ jobs:
       bundle_version: ${{ steps.filter.outputs.bundle_version }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Compute changed iOS sub-areas
         uses: dorny/paths-filter@v3
         id: filter
@@ -102,7 +102,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Compile-gate LaughTrackTests against the current API surface
         run: cd ios && swift build --build-tests
@@ -122,7 +122,7 @@ jobs:
     if: needs.changes.outputs.build == 'true'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Show available iOS simulator runtimes
         run: xcrun simctl list runtimes
@@ -149,7 +149,7 @@ jobs:
     continue-on-error: true
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install fastlane dependencies
         run: cd ios && bundle install
@@ -164,7 +164,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Swift
         uses: swift-actions/setup-swift@v2
@@ -204,7 +204,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Verify ios-libs revision matches across project.yml and both Package.resolved files
         run: ios/bin/check-ios-libs-pin.sh
@@ -228,7 +228,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Regenerate LaughTrackAPIClient into a temp directory and diff
         run: ios/bin/check-openapi-regen-drift.sh
@@ -240,7 +240,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           # Need full history (or at least the merge base) so the script can read
           # ios/project.yml at the base ref via `git show`.

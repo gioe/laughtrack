@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up scraper Python environment
         uses: ./.github/actions/scraper-setup
@@ -57,7 +57,7 @@ jobs:
           python -m scripts.core.discover_clubs_from_comedian_show_pages --create-clubs -v
 
       - name: Upload logs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: discover-clubs-logs-${{ github.run_id }}
