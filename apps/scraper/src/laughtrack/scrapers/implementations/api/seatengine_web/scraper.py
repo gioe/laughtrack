@@ -18,6 +18,7 @@ import json
 import re
 from typing import List, Optional
 
+from laughtrack.core.clients.seatengine.price import coerce_inventory_price_cents
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.event.event import Offer
 from laughtrack.foundation.infrastructure.logger.logger import Logger
@@ -111,8 +112,19 @@ class SeatEngineWebScraper(JsonLdScraper):
             if not isinstance(inventory, dict):
                 continue
 
+            # Sentinel-price guard: drop inventories priced above the ceiling
+            # (e.g. a $1M "Closed for holiday" placeholder) before they overflow
+            # tickets.price Decimal(7,2) and abort the whole batch insert.
+            raw_price = inventory.get("price")
+            _, reject_reason = coerce_inventory_price_cents(raw_price)
+            if reject_reason is not None:
+                Logger.warn(
+                    f"SeatEngine web extractor: dropped inventory at {event_url}: {reject_reason}"
+                )
+                continue
+
             available = int(inventory.get("available") or 0)
-            price_cents = int(inventory.get("price") or 0)
+            price_cents = int(raw_price or 0)
             service_charge_cents = int(inventory.get("service_charge") or 0)
             all_in_price = (price_cents + service_charge_cents) / 100
             availability = "https://schema.org/SoldOut" if sold_out or available <= 0 else "https://schema.org/InStock"

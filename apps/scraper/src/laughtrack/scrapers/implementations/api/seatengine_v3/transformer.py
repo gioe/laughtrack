@@ -7,6 +7,7 @@ into a Show domain object.
 
 from typing import List, Optional
 
+from laughtrack.core.clients.seatengine.price import coerce_inventory_price_cents
 from laughtrack.core.entities.comedian.model import Comedian
 from laughtrack.core.entities.show.model import Show
 from laughtrack.core.entities.ticket.model import Ticket
@@ -65,6 +66,15 @@ class SeatEngineV3EventTransformer(DataTransformer[JSONDict]):
             if not inv.get("active"):
                 continue
             raw_price = inv.get("price")
+            # Sentinel-price guard: drop inventories priced above the ceiling
+            # (e.g. a $1M "Closed for holiday" placeholder) before they overflow
+            # tickets.price Decimal(7,2) and abort the whole batch insert.
+            _, reject_reason = coerce_inventory_price_cents(raw_price)
+            if reject_reason is not None:
+                Logger.warn(
+                    f"{self._log_prefix}: dropped inventory {inv.get('uuid')}: {reject_reason}"
+                )
+                continue
             # SeatEngine v3 API returns prices in integer cents (e.g. 2000 = $20.00)
             price = float(raw_price) / 100.0 if raw_price is not None else 0.0
             title = inv.get("title") or inv.get("name") or "General Admission"
