@@ -937,6 +937,12 @@ visualize-metrics:
 	@echo "📈 Printing metrics trend summary (last 10 runs)..."
 	$(activate_venv) $(PYTHON) scripts/utils/visualize_metrics.py
 
+# Download a GitHub Actions scraper-dashboard artifact and print its metrics JSON path
+fetch-dashboard-artifact:
+	@if [ -z "$(RUN_ID)" ]; then echo "Usage: make fetch-dashboard-artifact RUN_ID=<github-actions-run-id>"; exit 1; fi
+	@echo "📥 Downloading scraper dashboard artifact for run $(RUN_ID)..."
+	$(activate_venv) $(PYTHON) scripts/utils/fetch_scraper_dashboard_artifact.py "$(RUN_ID)" $(if $(OUTPUT_DIR),--output-dir "$(OUTPUT_DIR)")
+
 # Show current scraper health and status - system health monitoring
 scraper-status:
 	@echo "🔍 Checking scraper system health and status..."

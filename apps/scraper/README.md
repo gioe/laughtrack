@@ -57,6 +57,7 @@ make update-popularity
 # Analytics
 make dashboard               # Generate HTML dashboard
 make visualize-metrics       # Optional deps required
+make fetch-dashboard-artifact RUN_ID=<github-actions-run-id>
 make scraper-status
 ```
 
