@@ -1161,90 +1161,78 @@ describe("AdminComedianManager", () => {
     // the worst observed 10.2s wall time. If a fourth test in this file ever
     // shows the same shape, file a follow-up to widen the override rather than
     // bumping the global config.
-    it(
-        "reviews podcast host candidates from the comedian row",
-        async () => {
-            vi.mocked(global.fetch).mockResolvedValueOnce({
+    it("reviews podcast host candidates from the comedian row", async () => {
+        vi.mocked(global.fetch).mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
                 ok: true,
-                json: async () => ({
-                    ok: true,
-                    comedian: {
-                        ...comedians[0],
-                        podcastCandidateReviews: [],
-                    },
-                }),
-            } as never);
-            render(<AdminComedianManager comedians={comedians} />);
-            expandAllRows();
+                comedian: {
+                    ...comedians[0],
+                    podcastCandidateReviews: [],
+                },
+            }),
+        } as never);
+        render(<AdminComedianManager comedians={comedians} />);
+        expandAllRows();
 
-            expect(screen.getByText("Podcast host reviews")).toBeTruthy();
-            expect(screen.getByText("Candidate Podcast")).toBeTruthy();
-            expect(
-                screen.getByRole("link", {
-                    name: /RSS: https:\/\/feeds\.example\.com\/candidate\.xml/,
-                }),
-            ).toBeTruthy();
-            fireEvent.click(
-                screen.getByRole("button", { name: "Accept as host" }),
-            );
+        expect(screen.getByText("Podcast host reviews")).toBeTruthy();
+        expect(screen.getByText("Candidate Podcast")).toBeTruthy();
+        expect(
+            screen.getByRole("link", {
+                name: /RSS: https:\/\/feeds\.example\.com\/candidate\.xml/,
+            }),
+        ).toBeTruthy();
+        fireEvent.click(screen.getByRole("button", { name: "Accept as host" }));
 
-            await waitFor(() => {
-                expect(global.fetch).toHaveBeenCalledWith(
-                    "/api/admin/comedians",
-                    expect.objectContaining({
-                        method: "PATCH",
-                        body: JSON.stringify({
-                            action: "podcast-review-accept-host",
-                            comedianId: 1,
-                            candidateReviewId: 1001,
-                        }),
+        await waitFor(() => {
+            expect(global.fetch).toHaveBeenCalledWith(
+                "/api/admin/comedians",
+                expect.objectContaining({
+                    method: "PATCH",
+                    body: JSON.stringify({
+                        action: "podcast-review-accept-host",
+                        comedianId: 1,
+                        candidateReviewId: 1001,
                     }),
-                );
-            });
-            await waitFor(() => {
-                expect(screen.queryByText("Podcast host reviews")).toBeNull();
-                expect(screen.queryByText("Candidate Podcast")).toBeNull();
-            });
-        },
-        15000,
-    );
+                }),
+            );
+        });
+        await waitFor(() => {
+            expect(screen.queryByText("Podcast host reviews")).toBeNull();
+            expect(screen.queryByText("Candidate Podcast")).toBeNull();
+        });
+    }, 15000);
 
     // 15s timeout: see TASK-2658 rationale block above "reviews podcast host
     // candidates from the comedian row" — parallel-suite CPU starvation.
-    it(
-        "removes a host candidate after rejection",
-        async () => {
-            const rejectedComedian = {
-                ...comedians[0],
-                podcastCandidateReviews: [],
-            };
-            vi.mocked(global.fetch).mockResolvedValueOnce({
+    it("removes a host candidate after rejection", async () => {
+        const rejectedComedian = {
+            ...comedians[0],
+            podcastCandidateReviews: [],
+        };
+        vi.mocked(global.fetch).mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
                 ok: true,
-                json: async () => ({
-                    ok: true,
-                    comedian: rejectedComedian,
-                }),
-            } as never);
-            render(<AdminComedianManager comedians={comedians} />);
-            expandAllRows();
+                comedian: rejectedComedian,
+            }),
+        } as never);
+        render(<AdminComedianManager comedians={comedians} />);
+        expandAllRows();
 
-            expect(
-                screen.queryByRole("button", { name: "Block podcast" }),
-            ).toBeNull();
-            fireEvent.click(
-                screen.getByRole("button", { name: "Reject as host" }),
-            );
+        expect(
+            screen.queryByRole("button", { name: "Block podcast" }),
+        ).toBeNull();
+        fireEvent.click(screen.getByRole("button", { name: "Reject as host" }));
 
-            await waitFor(() => {
-                expect(screen.queryByText("Podcast host reviews")).toBeNull();
-            });
-            expect(screen.queryByText("Candidate Podcast")).toBeNull();
-            expect(
-                screen.queryByRole("button", { name: "Block podcast" }),
-            ).toBeNull();
-        },
-        15000,
-    );
+        await waitFor(() => {
+            expect(screen.queryByText("Podcast host reviews")).toBeNull();
+        });
+        expect(screen.queryByText("Candidate Podcast")).toBeNull();
+        expect(
+            screen.queryByRole("button", { name: "Block podcast" }),
+        ).toBeNull();
+    }, 15000);
 
     it("links to the latest ticket purchase url", () => {
         render(<AdminComedianManager comedians={comedians} />);
@@ -1262,51 +1250,50 @@ describe("AdminComedianManager", () => {
 
     // 15s timeout: see TASK-2658 rationale block above "reviews podcast host
     // candidates from the comedian row" — parallel-suite CPU starvation.
-    it(
-        "adds a comedian to the blocklist",
-        async () => {
-            vi.mocked(global.fetch).mockResolvedValueOnce({
+    it("blocks a comedian with the row toggle and default reason", async () => {
+        vi.mocked(global.fetch).mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
                 ok: true,
-                json: async () => ({
-                    ok: true,
-                    comedian: {
-                        ...comedians[0],
-                        isBlocked: true,
-                        blockReason: "Venue, not a person",
-                        blockAddedBy: "profile-1",
-                        blockAddedAt: "2026-05-19T12:00:00.000Z",
-                    },
-                }),
-            } as never);
-            render(<AdminComedianManager comedians={comedians} />);
-            expandAllRows();
+                comedian: {
+                    ...comedians[0],
+                    isBlocked: true,
+                    blockReason: "not a comic",
+                    blockAddedBy: "profile-1",
+                    blockAddedAt: "2026-05-19T12:00:00.000Z",
+                },
+            }),
+        } as never);
+        render(<AdminComedianManager comedians={comedians} />);
+        expandAllRows();
 
-            const reasonInputs = screen.getAllByLabelText("Blocklist reason");
-            fireEvent.change(reasonInputs[0], {
-                target: { value: "Venue, not a person" },
-            });
-            fireEvent.click(
-                screen.getAllByRole("button", { name: "Add to blocklist" })[0],
-            );
+        expect(screen.queryByLabelText("Blocklist reason")).toBeNull();
+        expect(
+            screen.queryByRole("button", { name: "Add to blocklist" }),
+        ).toBeNull();
 
-            await waitFor(() => {
-                expect(global.fetch).toHaveBeenCalledWith(
-                    "/api/admin/comedians",
-                    expect.objectContaining({
-                        method: "PATCH",
-                        body: JSON.stringify({
-                            action: "blocklist-add",
-                            comedianId: 2,
-                            reason: "Venue, not a person",
-                        }),
+        fireEvent.click(
+            screen.getByRole("checkbox", {
+                name: "Blocked status for Alias Comic",
+            }),
+        );
+
+        await waitFor(() => {
+            expect(global.fetch).toHaveBeenCalledWith(
+                "/api/admin/comedians",
+                expect.objectContaining({
+                    method: "PATCH",
+                    body: JSON.stringify({
+                        action: "blocklist-add",
+                        comedianId: 2,
+                        reason: "not a comic",
                     }),
-                );
-            });
-        },
-        15000,
-    );
+                }),
+            );
+        });
+    }, 15000);
 
-    it("removes a comedian from the blocklist", async () => {
+    it("unblocks a comedian with the row toggle", async () => {
         vi.mocked(global.fetch).mockResolvedValueOnce({
             ok: true,
             json: async () => ({
@@ -1339,7 +1326,9 @@ describe("AdminComedianManager", () => {
         expandAllRows();
 
         fireEvent.click(
-            screen.getByRole("button", { name: "Remove from blocklist" }),
+            screen.getByRole("checkbox", {
+                name: "Blocked status for Alias Comic",
+            }),
         );
 
         await waitFor(() => {
@@ -1380,8 +1369,15 @@ describe("AdminComedianManager", () => {
         expect(screen.getAllByText("Blocked").length).toBeGreaterThan(1);
         expect(screen.getByText("Venue, not a person")).toBeTruthy();
         expect(
-            screen.getByRole("button", { name: "Remove from blocklist" }),
-        ).toBeTruthy();
+            (
+                screen.getByRole("checkbox", {
+                    name: "Blocked status for Alias Comic",
+                }) as HTMLInputElement
+            ).checked,
+        ).toBe(true);
+        expect(
+            screen.queryByRole("button", { name: "Remove from blocklist" }),
+        ).toBeNull();
         expect(screen.queryByLabelText("Comedian name")).toBeNull();
         expect(screen.queryByLabelText("Comedian website")).toBeNull();
         expect(screen.queryByPlaceholderText("Search parent name")).toBeNull();

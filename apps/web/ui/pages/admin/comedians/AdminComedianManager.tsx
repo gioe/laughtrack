@@ -11,12 +11,10 @@ import {
     clampAdminPage,
 } from "@/ui/pages/admin/shared/AdminControls";
 import {
-    Ban,
     ChevronDown,
     ChevronRight,
     ExternalLink,
     Save,
-    ShieldCheck,
     Trash2,
     Upload,
     X,
@@ -62,6 +60,8 @@ type ManualImageUrls = {
 type AttributedPodcast = AdminComedianListItem["attributedPodcasts"][number];
 type PodcastCandidateReview =
     AdminComedianListItem["podcastCandidateReviews"][number];
+
+const DEFAULT_BLOCK_REASON = "not a comic";
 
 function acceptedAttributedPodcasts(row: AdminComedianListItem) {
     return row.attributedPodcasts.filter(
@@ -177,9 +177,6 @@ export default function AdminComedianManager({ comedians }: Props) {
     const [selectedParents, setSelectedParents] = useState<
         Record<number, AdminComedianListItem["parent"]>
     >({});
-    const [blockReasons, setBlockReasons] = useState<Record<number, string>>(
-        {},
-    );
     const [nameEdits, setNameEdits] = useState<Record<number, string>>({});
     const [profileEdits, setProfileEdits] = useState<
         Record<number, ProfileEdit>
@@ -498,9 +495,6 @@ export default function AdminComedianManager({ comedians }: Props) {
     }
 
     async function blockComedian(row: AdminComedianListItem) {
-        const reason = blockReasons[row.id]?.trim() ?? "";
-        if (!reason) return;
-
         setStatus({ kind: "idle" });
         setPendingId(row.id);
 
@@ -512,7 +506,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                 body: JSON.stringify({
                     action: "blocklist-add",
                     comedianId: row.id,
-                    reason,
+                    reason: DEFAULT_BLOCK_REASON,
                 }),
             });
         } catch (error) {
@@ -541,7 +535,6 @@ export default function AdminComedianManager({ comedians }: Props) {
                 currentRow.id === row.id ? body.comedian : currentRow,
             ),
         );
-        setBlockReasons((current) => ({ ...current, [row.id]: "" }));
         setStatus({ kind: "ok", message: `${row.name} added to blocklist.` });
         startTransition(() => router.refresh());
     }
@@ -1294,20 +1287,22 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                     : ""}
                                             </div>
                                         </div>
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            className="w-fit gap-2 border-green-800/40 bg-white text-green-950 hover:bg-green-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                                            disabled={
-                                                disabled || pendingId === row.id
-                                            }
-                                            onClick={() =>
-                                                void unblockComedian(row)
-                                            }
-                                        >
-                                            <ShieldCheck className="h-4 w-4" />
-                                            Remove from blocklist
-                                        </Button>
+                                        <label className="inline-flex w-fit items-center gap-2 rounded-md border border-red-800/35 bg-white px-3 py-2 font-dmSans text-body font-semibold text-red-950">
+                                            <input
+                                                type="checkbox"
+                                                checked
+                                                disabled={
+                                                    disabled ||
+                                                    pendingId === row.id
+                                                }
+                                                onChange={() =>
+                                                    void unblockComedian(row)
+                                                }
+                                                aria-label={`Blocked status for ${row.name}`}
+                                                className="h-4 w-4 accent-red-800 disabled:accent-soft-charcoal"
+                                            />
+                                            Blocked
+                                        </label>
                                     </div>
                                 </li>
                             );
@@ -1360,44 +1355,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                             {acceptedPodcasts.length.toLocaleString()}{" "}
                                             podcasts
                                         </span>
-                                        {row.isBlocked ? (
-                                            <span className="inline-flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 font-semibold text-red-900">
-                                                <span>Blocked</span>
-                                                {row.blockReason ? (
-                                                    <span className="font-normal text-red-950">
-                                                        {row.blockReason}
-                                                    </span>
-                                                ) : null}
-                                                {row.blockAddedBy ||
-                                                row.blockAddedAt ? (
-                                                    <span className="font-normal text-red-900">
-                                                        {row.blockAddedBy}
-                                                        {row.blockAddedAt
-                                                            ? `${row.blockAddedBy ? " · " : ""}${formatDate(row.blockAddedAt)}`
-                                                            : ""}
-                                                    </span>
-                                                ) : null}
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    className="h-7 gap-1 border-green-800/40 bg-white px-2 py-1 text-caption text-green-950 hover:bg-green-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                                                    disabled={
-                                                        disabled ||
-                                                        pendingId === row.id
-                                                    }
-                                                    onClick={() =>
-                                                        void unblockComedian(
-                                                            row,
-                                                        )
-                                                    }
-                                                >
-                                                    <ShieldCheck className="h-3.5 w-3.5" />
-                                                    Remove from blocklist
-                                                </Button>
-                                            </span>
-                                        ) : (
-                                            <span>Not blocked</span>
-                                        )}
+                                        <span>Not blocked</span>
                                         {row.latestTicketPurchase ? (
                                             <span className="inline-flex min-w-0 items-center gap-1">
                                                 <a
@@ -1744,62 +1702,27 @@ export default function AdminComedianManager({ comedians }: Props) {
                                             </div>
                                         </div>
 
-                                        {!row.isBlocked && (
-                                            <div className="mt-5 border-t border-copper/15 pt-4">
-                                                <div className="mb-3 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                    Blocklist state
-                                                </div>
-                                                <div className="flex flex-wrap items-end gap-2 sm:flex-nowrap">
-                                                    <label className="grid min-w-[220px] flex-1 gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                        Blocklist reason
-                                                        <input
-                                                            type="text"
-                                                            value={
-                                                                blockReasons[
-                                                                    row.id
-                                                                ] ?? ""
-                                                            }
-                                                            onChange={(event) =>
-                                                                setBlockReasons(
-                                                                    (
-                                                                        current,
-                                                                    ) => ({
-                                                                        ...current,
-                                                                        [row.id]:
-                                                                            event
-                                                                                .target
-                                                                                .value,
-                                                                    }),
-                                                                )
-                                                            }
-                                                            className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
-                                                            maxLength={1000}
-                                                        />
-                                                    </label>
-                                                    <Button
-                                                        type="button"
-                                                        variant="outline"
-                                                        className="shrink-0 gap-2 border-red-800/40 bg-white text-red-950 hover:bg-red-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                                                        disabled={
-                                                            disabled ||
-                                                            pendingId ===
-                                                                row.id ||
-                                                            !blockReasons[
-                                                                row.id
-                                                            ]?.trim()
-                                                        }
-                                                        onClick={() =>
-                                                            void blockComedian(
-                                                                row,
-                                                            )
-                                                        }
-                                                    >
-                                                        <Ban className="h-4 w-4" />
-                                                        Add to blocklist
-                                                    </Button>
-                                                </div>
+                                        <div className="mt-5 border-t border-copper/15 pt-4">
+                                            <div className="mb-3 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                Blocklist state
                                             </div>
-                                        )}
+                                            <label className="inline-flex w-fit items-center gap-2 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body font-semibold text-cedar">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={false}
+                                                    disabled={
+                                                        disabled ||
+                                                        pendingId === row.id
+                                                    }
+                                                    onChange={() =>
+                                                        void blockComedian(row)
+                                                    }
+                                                    aria-label={`Blocked status for ${row.name}`}
+                                                    className="h-4 w-4 accent-red-800 disabled:accent-soft-charcoal"
+                                                />
+                                                Blocked
+                                            </label>
+                                        </div>
 
                                         <div className="mt-5 border-t border-copper/15 pt-4">
                                             <div className="mb-3 text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
