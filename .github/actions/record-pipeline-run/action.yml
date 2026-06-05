@@ -2,14 +2,14 @@ name: Record pipeline run
 description: >-
   Record the calling job's outcome to the pipeline_runs table via
   apps/scraper's scripts.core.record_pipeline_run module. Composite
-  actions cannot reference ${{ secrets.* }} directly, so the five
+  actions cannot reference the secrets context directly, so the five
   DATABASE_* secrets must be threaded through inputs from the caller.
   Wrap the calling step in `if: always()` and `continue-on-error: true`
   so the record attempt runs regardless of upstream failures and never
   fails the job itself.
 inputs:
   job-status:
-    description: The calling job's status (typically `${{ job.status }}`).
+    description: The calling job's status, typically forwarded from the job.status context.
     required: true
   database-name:
     description: DATABASE_NAME secret value.
