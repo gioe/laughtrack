@@ -54,6 +54,15 @@ async def test_collect_scraping_targets_returns_url(monkeypatch):
     assert any(SCRAPING_URL in u for u in urls), f"Expected scraping URL in targets, got: {urls}"
 
 
+def test_broadway_tessera_enrichment_uses_api_batch_preset():
+    """Broadway's large Tessera catalog must not use the generic conservative batch preset."""
+    scraper = BroadwayComedyClubScraper(_club())
+    config = scraper._tickets._batch.config
+
+    assert config.max_concurrent == 3
+    assert config.delay_between_requests == 0.3
+
+
 @pytest.mark.asyncio
 async def test_get_data_returns_events_from_fixture_html(monkeypatch):
     """get_data() extracts at least one event from the eventObjects.push() fixture."""

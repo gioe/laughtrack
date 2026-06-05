@@ -2,6 +2,7 @@ from typing import Any, Callable, Dict, List, Optional
 
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.utilities.infrastructure.scraper import BatchScraper
+from laughtrack.utilities.infrastructure.scraper.config import BatchScrapingConfig
 from laughtrack.foundation.utilities.url import URLUtils
 from laughtrack.scrapers.utils.ticket_enrichment import (
     BaseTicketBatchEnricher,
@@ -12,10 +13,19 @@ from laughtrack.scrapers.utils.ticket_enrichment import (
 class TesseraTicketBatchEnricher(BaseTicketBatchEnricher):
     """Batch-enrich events with Tessera ticket data, applying a URL override policy."""
 
-    def __init__(self, tessera_client: Any, logger_context: Optional[dict] = None, base_url: Optional[str] = None):
+    def __init__(
+        self,
+        tessera_client: Any,
+        logger_context: Optional[dict] = None,
+        base_url: Optional[str] = None,
+        batch_config: Optional[BatchScrapingConfig] = None,
+    ):
         super().__init__(logger_context)
         self._client = tessera_client
-        self._batch = BatchScraper(logger_context={**self._logger_context, "client": "tessera"})
+        self._batch = BatchScraper(
+            logger_context={**self._logger_context, "client": "tessera"},
+            config=batch_config,
+        )
         self._base_url = URLUtils.get_base_domain_with_protocol(URLUtils.normalize_url(base_url)) if base_url else None
 
     async def enrich(

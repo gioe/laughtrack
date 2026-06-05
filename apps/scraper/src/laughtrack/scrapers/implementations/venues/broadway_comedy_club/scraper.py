@@ -20,6 +20,7 @@ from laughtrack.core.clients.tessera.instances.broadway import BroadwayTesseraCl
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.event.broadway import BroadwayEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+from laughtrack.infrastructure.config.presets import BatchConfigPresets
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.foundation.utilities.url import URLUtils
 from laughtrack.utilities.infrastructure.scraper import log_filter_breakdown
@@ -65,6 +66,7 @@ class BroadwayComedyClubScraper(BaseScraper):
             self.tessera_client,
             logger_context=self.logger_context,
             base_url=self.club.scraping_url,
+            batch_config=BatchConfigPresets.get_api_endpoint_config(),
         )
 
     async def get_data(self, url: str) -> Optional[BroadwayEventData]:
