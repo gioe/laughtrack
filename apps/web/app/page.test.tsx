@@ -62,8 +62,24 @@ vi.mock("@/ui/pages/home/clubs", () => ({
     default: () => <section data-testid="trending-clubs" />,
 }));
 vi.mock("@/ui/pages/home/shows", () => ({
-    default: ({ title, testId }: { title: string; testId?: string }) => (
-        <section data-testid={testId ?? title}>{title}</section>
+    default: ({
+        title,
+        testId,
+        seeAllHref,
+        shows,
+    }: {
+        title: string;
+        testId?: string;
+        seeAllHref: string;
+        shows: unknown[];
+    }) => (
+        <section
+            data-testid={testId ?? title}
+            data-href={seeAllHref}
+            data-count={shows.length}
+        >
+            {title}
+        </section>
     ),
 }));
 vi.mock("@/ui/pages/home/footer", () => ({
@@ -83,6 +99,15 @@ import HomePage from "./page";
 
 function renderHomePage() {
     return HomePage().then((element) => renderToStaticMarkup(element));
+}
+
+function makeShow(id: number) {
+    return {
+        id,
+        name: `Show ${id}`,
+        date: new Date("2026-06-01T20:00:00.000Z"),
+        imageUrl: `https://cdn.example.com/show-${id}.jpg`,
+    };
 }
 
 beforeEach(() => {
@@ -139,6 +164,29 @@ describe("HomePage favorite comedian rail", () => {
         expect(mocks.getComediansByZip).toHaveBeenCalledWith("10801", 25, {
             sortBy: "upcomingShows",
         });
+    });
+
+    it("renders extra nearby shows in one Nearby Shows rail instead of More Near You", async () => {
+        mocks.auth.mockResolvedValue({
+            profile: { id: "profile-1", zipCode: "10801" },
+        });
+        mocks.getHeroContext.mockResolvedValue({
+            city: "New Rochelle",
+            state: "NY",
+            zipCode: "10801",
+        });
+        mocks.getShowsNearZip.mockResolvedValue(
+            Array.from({ length: 8 }, (_, index) => makeShow(index + 1)),
+        );
+
+        const markup = await renderHomePage();
+
+        expect(markup).toContain("Nearby Shows");
+        expect(markup).toContain('data-count="8"');
+        expect(markup).toContain(
+            'data-href="/show/search?zip=10801&amp;distance=25"',
+        );
+        expect(markup).not.toContain("More Near You");
     });
 
     it("renders the personalized rail above trending comedians for signed-in users with favorite shows", async () => {

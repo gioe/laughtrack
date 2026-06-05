@@ -336,62 +336,84 @@ describe("findShowsForHome", () => {
             );
         });
 
-        it("sorts ZIP-scoped home shows by proximity and lineup popularity", async () => {
-            const farPopular = makeShowRow({
+        it("sorts ZIP-scoped home shows by time, show popularity, and lineup popularity", async () => {
+            const laterPopular = makeShowRow({
                 id: 1,
+                date: new Date("2026-06-02T20:00:00Z"),
+                popularity: 500,
                 club: {
-                    name: "Far Club",
-                    address: "123 Far St",
+                    name: "Later Club",
+                    address: "123 Later St",
                     zipCode: "10001",
                 },
                 lineupItems: [
                     makeLineupItem({
-                        name: "Far Headliner",
+                        name: "Later Headliner",
                         showCount: 500,
                     }),
                 ],
             });
-            const nearLessPopular = makeShowRow({
+            const earlyLessPopular = makeShowRow({
                 id: 2,
+                date: new Date("2026-06-01T20:00:00Z"),
+                popularity: 10,
                 club: {
-                    name: "Near Club",
-                    address: "123 Near St",
+                    name: "Early Club",
+                    address: "123 Early St",
                     zipCode: "10003",
                 },
                 lineupItems: [
                     makeLineupItem({
-                        name: "Near Opener",
+                        name: "Early Opener",
                         showCount: 5,
                     }),
                 ],
             });
-            const nearMorePopular = makeShowRow({
+            const earlyMorePopular = makeShowRow({
                 id: 3,
+                date: new Date("2026-06-01T20:00:00Z"),
+                popularity: 20,
                 club: {
-                    name: "Nearer Club",
-                    address: "456 Near St",
+                    name: "Early Popular Club",
+                    address: "456 Early St",
                     zipCode: "10011",
                 },
                 lineupItems: [
                     makeLineupItem({
-                        name: "Near Headliner",
+                        name: "Early Popular Opener",
+                        showCount: 5,
+                    }),
+                ],
+            });
+            const earlySameShowMoreLineup = makeShowRow({
+                id: 4,
+                date: new Date("2026-06-01T20:00:00Z"),
+                popularity: 20,
+                club: {
+                    name: "Early Lineup Club",
+                    address: "789 Early St",
+                    zipCode: "10003",
+                },
+                lineupItems: [
+                    makeLineupItem({
+                        name: "Early Lineup Headliner",
                         showCount: 50,
                     }),
                 ],
             });
             mockFindMany.mockResolvedValue([
-                farPopular,
-                nearLessPopular,
-                nearMorePopular,
+                laterPopular,
+                earlyLessPopular,
+                earlyMorePopular,
+                earlySameShowMoreLineup,
             ] as never);
 
-            const result = await findShowsForHome({}, { date: "asc" }, 2, {
+            const result = await findShowsForHome({}, { date: "asc" }, 3, {
                 zipCode: "10801",
                 sortByHomeRelevance: true,
             });
 
-            expect(result.map((show) => show.id)).toEqual([3, 2]);
-            expect(result.map((show) => show.distanceMiles)).toEqual([4, 4]);
+            expect(result.map((show) => show.id)).toEqual([4, 3, 2]);
         });
 
         it("passes tickets through mapTickets", async () => {

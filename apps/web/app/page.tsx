@@ -123,7 +123,6 @@ export default async function HomePage() {
     const heroShows = (
         hasLocalShows ? showsNearYou : trendingShowsThisWeek
     ).slice(0, 6);
-    const remainingNearYou = showsNearYou.slice(6);
 
     // Single "on the rise" comedian rail: scoped to the viewer's area when we
     // have local results, otherwise the global on-the-rise list.
@@ -167,12 +166,12 @@ export default async function HomePage() {
                     />
                 </section>
             )}
-            {zipCode && remainingNearYou.length > 0 && (
+            {zipCode && showsNearYou.length > 0 && (
                 <section className="w-full bg-coconut-cream">
                     <ShowDiscoverySection
-                        title="More Near You"
+                        title="Nearby Shows"
                         subtitle="Upcoming shows at clubs in your area"
-                        shows={remainingNearYou}
+                        shows={showsNearYou}
                         seeAllHref={`/show/search?zip=${zipCode}&distance=${DEFAULT_HOME_RADIUS_MILES}`}
                     />
                 </section>

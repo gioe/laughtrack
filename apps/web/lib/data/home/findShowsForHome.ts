@@ -21,6 +21,7 @@ const HOME_SHOW_SELECT = {
     id: true,
     name: true,
     date: true,
+    popularity: true,
     room: true,
     tickets: {
         select: {
@@ -149,6 +150,7 @@ export async function findShowsForHome(
                     )
                     .map((tag) => ({ slug: tag.slug, name: tag.name })),
             },
+            showPopularity: show.popularity,
             lineupPopularity: getLineupPopularity(lineup),
         };
     });
@@ -186,19 +188,23 @@ function getLineupItemPopularity(comedian: ComedianLineupDTO): number {
 }
 
 function compareHomeShowRelevance(
-    a: { dto: ShowDTO; lineupPopularity: number },
-    b: { dto: ShowDTO; lineupPopularity: number },
+    a: { dto: ShowDTO; showPopularity: number; lineupPopularity: number },
+    b: { dto: ShowDTO; showPopularity: number; lineupPopularity: number },
 ): number {
-    const aDistance = a.dto.distanceMiles ?? Number.POSITIVE_INFINITY;
-    const bDistance = b.dto.distanceMiles ?? Number.POSITIVE_INFINITY;
-    if (aDistance !== bDistance) return aDistance - bDistance;
+    const dateDelta = a.dto.date.getTime() - b.dto.date.getTime();
+    if (dateDelta !== 0) return dateDelta;
+
+    if (a.showPopularity !== b.showPopularity) {
+        return b.showPopularity - a.showPopularity;
+    }
 
     if (a.lineupPopularity !== b.lineupPopularity) {
         return b.lineupPopularity - a.lineupPopularity;
     }
 
-    const dateDelta = a.dto.date.getTime() - b.dto.date.getTime();
-    if (dateDelta !== 0) return dateDelta;
+    const aDistance = a.dto.distanceMiles ?? Number.POSITIVE_INFINITY;
+    const bDistance = b.dto.distanceMiles ?? Number.POSITIVE_INFINITY;
+    if (aDistance !== bDistance) return aDistance - bDistance;
 
     return a.dto.id - b.dto.id;
 }

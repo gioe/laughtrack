@@ -43,12 +43,12 @@ describe("getShowsNearZip", () => {
         expect(where.date).toEqual({ gte: new Date("2026-04-30T12:00:00Z") });
     });
 
-    it("asks the shared home query to rank ZIP-scoped shows by home relevance", async () => {
+    it("asks the shared home query to rank ZIP-scoped shows by time then popularity", async () => {
         await getShowsNearZip("10801", 25);
 
         expect(mockFindShowsForHome).toHaveBeenCalledWith(
             expect.any(Object),
-            { date: "asc" },
+            [{ date: "asc" }, { popularity: "desc" }],
             8,
             { zipCode: "10801", sortByHomeRelevance: true },
         );
