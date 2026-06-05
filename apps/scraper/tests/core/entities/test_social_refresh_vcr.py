@@ -21,7 +21,15 @@ from unittest.mock import MagicMock
 
 import pytest
 import vcr as _vcr_module
+import vcr.patch as _vcr_patch
 from _entities_test_helpers import _load_module
+
+# aiohttp >= 3.14 removed `aiohttp.streams.AsyncStreamReaderMixin`, which
+# vcrpy 8.x's aiohttp stub references at module-import time. Importing the
+# stub explodes with AttributeError the moment any cassette is opened, even
+# though these cassettes only replay `requests` traffic. Stub out vcrpy's
+# aiohttp patcher so the broken stub is never imported.
+_vcr_patch.CassettePatcherBuilder._aiohttp = lambda self: ()
 
 # ---------------------------------------------------------------------------
 # Module loading (shared helpers and stubs are set up in conftest.py)
