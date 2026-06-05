@@ -59,8 +59,9 @@ class Comedian(DatabaseEntity):
         Calculate comedian popularity based on social media followers and performance metrics.
 
         Delegates to PopularityScorer utility for consistent scoring across the application.
-        When recency_score is set by the popularity update pipeline, it replaces the stale
-        sold_out_shows/total_shows performance component.
+        The performance component is a weighted blend of recency_score and the historical
+        sold_out_shows/total_shows track record, so touring comedians keep credit for their
+        sell-out history rather than having it replaced by recency alone.
 
         Returns:
             float: Popularity score between 0 and 1

@@ -20,6 +20,11 @@ class PopularityScorer:
     SHOW_PERFORMANCE_WEIGHT = 0.6
     SOCIAL_MEDIA_WEIGHT = 0.4
 
+    # Inner blend weights for performance_score — recency activity vs historical sold-out track record.
+    # Must sum to 1.0. Tunable.
+    RECENCY_BLEND_WEIGHT = 0.6
+    HISTORICAL_BLEND_WEIGHT = 0.4
+
     # Follower count thresholds for normalization
     MAX_INSTAGRAM_FOLLOWERS = 10_000_000  # 10M followers = max score
     MAX_TIKTOK_FOLLOWERS = 50_000_000  # 50M followers = max score
@@ -36,38 +41,56 @@ class PopularityScorer:
         recency_score: float = 0.0,
     ) -> float:
         """
-        Calculate comedian popularity based on social media followers and performance metrics.
+        Calculate comedian popularity from social reach and show performance.
 
-        When recency_score > 0, it is used as the performance component instead of the
-        sold_out_shows/total_shows ratio. This produces a recency-weighted score that
-        rewards comedians with upcoming or recent shows over those with stale historical data.
+        The performance component is a weighted blend of recency (current/upcoming
+        activity) and historical track record (sold-out rate + experience bonus),
+        so a touring comedian with strong prior sell-outs is not stripped of
+        their historical signal just because they have a show booked.
 
         Args:
             instagram_followers: Number of Instagram followers
             tiktok_followers: Number of TikTok followers
             youtube_followers: Number of YouTube subscribers
-            sold_out_shows: Number of sold out shows (used only when recency_score == 0)
-            total_shows: Total number of shows performed (used only when recency_score == 0)
-            recency_score: Pre-normalized (0-1) recency-weighted show activity score.
-                           When provided, replaces the sold_out/total_shows performance score.
+            sold_out_shows: Number of sold out shows
+            total_shows: Total number of shows performed
+            recency_score: Pre-normalized (0-1) recency-weighted show activity score
 
         Returns:
             float: Popularity score between 0 and 1
         """
-        # Calculate social media score (0-1)
         social_score = cls._calculate_social_media_score(instagram_followers, tiktok_followers, youtube_followers)
 
-        # Use recency score when available; fall back to historical sold-out ratio.
-        # Clamp to [0.0, 1.0] to guarantee popularity stays within its stated contract.
-        if recency_score > 0.0:
-            performance_score = min(recency_score, 1.0)
-        else:
-            performance_score = cls._calculate_performance_score(sold_out_shows, total_shows)
+        performance_score = cls._calculate_blended_performance_score(
+            sold_out_shows=sold_out_shows,
+            total_shows=total_shows,
+            recency_score=recency_score,
+        )
 
-        # Weighted combination
         popularity = social_score * cls.SOCIAL_MEDIA_WEIGHT + performance_score * cls.SHOW_PERFORMANCE_WEIGHT
 
         return round(popularity, 4)
+
+    @classmethod
+    def _calculate_blended_performance_score(
+        cls, sold_out_shows: int, total_shows: int, recency_score: float
+    ) -> float:
+        """
+        Blend recency activity and historical sold-out track record into a single
+        performance score in [0.0, 1.0].
+
+        Cold-start case (recency_score == 0) collapses to HISTORICAL_BLEND_WEIGHT *
+        historical_component — pure-historical comedians intentionally do not
+        outrank active touring ones with the same sell-out rate.
+        """
+        recency_component = min(max(recency_score, 0.0), 1.0)
+        historical_component = cls._calculate_performance_score(sold_out_shows, total_shows)
+
+        blended = (
+            cls.RECENCY_BLEND_WEIGHT * recency_component
+            + cls.HISTORICAL_BLEND_WEIGHT * historical_component
+        )
+        return min(blended, 1.0)
 
     @classmethod
     def _calculate_social_media_score(
