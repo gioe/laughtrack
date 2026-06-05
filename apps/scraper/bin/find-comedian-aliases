@@ -1,0 +1,299 @@
+#!/usr/bin/env python3
+"""
+Surface candidate parent->child comedian pairs across multiple signals so
+they can be triaged and merged via comedians.parent_comedian_id.
+
+Signals queried (in order of confidence):
+    bandsintown_id      Two comedians share the same Bandsintown artist id.
+    instagram_account   Two comedians share the same Instagram handle.
+    youtube_account     Two comedians share the same YouTube account.
+    name_normalized     Names collapse to the same lowercase+stripped form.
+    website             Two comedians share the same website URL.
+    name_substring      One comedian's full name is a word-boundary substring
+                        of another comedian's name.
+
+For each signal, only "unresolved" groups are emitted by default (no row in the
+group has parent_comedian_id set). The row with the most total_shows in each
+group is treated as the canonical parent; remaining rows are emitted as
+candidate children. Results are merged across signals and de-duplicated on
+(parent_id, child_id) with the matching sources collapsed into a comma-
+separated list — pairs corroborated by multiple signals are higher confidence.
+
+Usage:
+    python bin/find-comedian-aliases
+    python bin/find-comedian-aliases --source bandsintown_id
+    python bin/find-comedian-aliases --min-sources 2 --format csv
+    python bin/find-comedian-aliases --include-aliased --limit 50
+    make find-aliases
+    make find-aliases SOURCE=instagram_account FORMAT=csv
+
+Reads DATABASE_URL from apps/scraper/.env (same fallback as bin/query).
+"""
+import argparse
+import csv
+import io
+import json
+import os
+import sys
+from pathlib import Path
+from urllib.parse import quote
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+SCRAPER_ROOT = SCRIPT_DIR.parent
+ENV_FILE = SCRAPER_ROOT / ".env"
+
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    print("Error: python-dotenv is not installed. Run: pip install python-dotenv", file=sys.stderr)
+    sys.exit(1)
+
+if not ENV_FILE.exists():
+    print(f"Warning: .env not found at {ENV_FILE} — falling back to environment variables", file=sys.stderr)
+
+load_dotenv(ENV_FILE)
+
+
+SOURCES = (
+    "bandsintown_id",
+    "instagram_account",
+    "youtube_account",
+    "name_normalized",
+    "website",
+    "name_substring",
+)
+
+
+def _resolve_database_url() -> str:
+    url = os.environ.get("DATABASE_URL")
+    if url:
+        return url
+
+    host = os.environ.get("DATABASE_HOST")
+    user = os.environ.get("DATABASE_USER")
+    password = os.environ.get("DATABASE_PASSWORD")
+    name = os.environ.get("DATABASE_NAME")
+    port = os.environ.get("DATABASE_PORT", "5432")
+
+    missing = [
+        var
+        for var, val in (
+            ("DATABASE_HOST", host),
+            ("DATABASE_USER", user),
+            ("DATABASE_PASSWORD", password),
+            ("DATABASE_NAME", name),
+        )
+        if not val
+    ]
+    if missing:
+        print(
+            "Error: DATABASE_URL not set, and could not compose one from "
+            f"DATABASE_HOST/USER/PASSWORD/NAME/PORT — missing: {', '.join(missing)}. "
+            f"Set DATABASE_URL or the host-family vars in {ENV_FILE}",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    return (
+        f"postgresql://{quote(user, safe='')}:{quote(password, safe='')}"
+        f"@{host}:{port}/{name}?sslmode=require"
+    )
+
+
+def _shared_field_sql(source_name: str, column_expr: str, include_aliased: bool) -> str:
+    # Shared-key signal: comedians where `column_expr` matches another row.
+    # When include_aliased=False, restrict to groups where NO member is aliased
+    # and emit only un-parented rows.
+    unresolved_filter = (
+        "AND SUM(CASE WHEN parent_comedian_id IS NOT NULL THEN 1 ELSE 0 END) = 0"
+        if not include_aliased
+        else ""
+    )
+    row_filter = (
+        "AND parent_comedian_id IS NULL"
+        if not include_aliased
+        else ""
+    )
+    return f"""
+        WITH grp_{source_name} AS (
+            SELECT
+                {column_expr} AS k,
+                id, name, total_shows,
+                ROW_NUMBER() OVER (
+                    PARTITION BY {column_expr}
+                    ORDER BY total_shows DESC, id
+                ) AS rn
+            FROM comedians
+            WHERE {column_expr} IS NOT NULL
+              AND {column_expr}::text <> ''
+              {row_filter}
+              AND {column_expr} IN (
+                  SELECT {column_expr}
+                  FROM comedians
+                  WHERE {column_expr} IS NOT NULL AND {column_expr}::text <> ''
+                  GROUP BY {column_expr}
+                  HAVING COUNT(*) > 1 {unresolved_filter}
+              )
+        )
+        SELECT
+            '{source_name}'::text AS source,
+            p.k::text AS match_key,
+            p.id AS parent_id, p.name AS parent_name, p.total_shows AS parent_shows,
+            c.id AS child_id, c.name AS child_name, c.total_shows AS child_shows
+        FROM grp_{source_name} p
+        JOIN grp_{source_name} c ON p.k = c.k
+        WHERE p.rn = 1 AND c.rn > 1
+    """
+
+
+def _name_substring_sql(include_aliased: bool) -> str:
+    row_filter = (
+        "AND c_short.parent_comedian_id IS NULL AND c_long.parent_comedian_id IS NULL"
+        if not include_aliased
+        else ""
+    )
+    return f"""
+        SELECT
+            'name_substring'::text AS source,
+            NULL::text AS match_key,
+            c_short.id AS parent_id, c_short.name AS parent_name, c_short.total_shows AS parent_shows,
+            c_long.id AS child_id, c_long.name AS child_name, c_long.total_shows AS child_shows
+        FROM comedians c_short
+        JOIN comedians c_long
+          ON position(
+               lower(' ' || c_short.name || ' ')
+               IN lower(' ' || c_long.name || ' ')
+             ) > 0
+        WHERE c_short.id <> c_long.id
+          AND length(c_short.name) < length(c_long.name)
+          AND c_short.name LIKE '% %'
+          {row_filter}
+    """
+
+
+def _build_sql(sources: list, min_sources: int, limit: int, include_aliased: bool) -> str:
+    fragments = []
+    for s in sources:
+        if s == "bandsintown_id":
+            fragments.append(_shared_field_sql("bandsintown_id", "bandsintown_id", include_aliased))
+        elif s == "instagram_account":
+            fragments.append(_shared_field_sql("instagram_account", "lower(instagram_account)", include_aliased))
+        elif s == "youtube_account":
+            fragments.append(_shared_field_sql("youtube_account", "lower(youtube_account)", include_aliased))
+        elif s == "website":
+            fragments.append(_shared_field_sql("website", "lower(website)", include_aliased))
+        elif s == "name_normalized":
+            fragments.append(_shared_field_sql(
+                "name_normalized",
+                "regexp_replace(lower(trim(name)), '[^a-z0-9 ]', '', 'g')",
+                include_aliased,
+            ))
+        elif s == "name_substring":
+            fragments.append(_name_substring_sql(include_aliased))
+        else:
+            raise ValueError(f"unknown source: {s}")
+
+    union_sql = "\n            UNION ALL\n".join(f"({frag})" for frag in fragments)
+
+    limit_clause = f"LIMIT {int(limit)}" if limit and limit > 0 else ""
+
+    return f"""
+        WITH all_pairs AS (
+            {union_sql}
+        ),
+        merged AS (
+            SELECT
+                string_agg(DISTINCT source, ',' ORDER BY source) AS sources,
+                string_agg(DISTINCT match_key, '|') FILTER (WHERE match_key IS NOT NULL) AS match_keys,
+                COUNT(DISTINCT source) AS source_count,
+                parent_id, parent_name, parent_shows,
+                child_id, child_name, child_shows
+            FROM all_pairs
+            GROUP BY parent_id, parent_name, parent_shows, child_id, child_name, child_shows
+        )
+        SELECT sources, COALESCE(match_keys, '') AS match_keys,
+               source_count,
+               parent_id, parent_name, parent_shows,
+               child_id, child_name, child_shows
+        FROM merged
+        WHERE source_count >= {int(min_sources)}
+        ORDER BY source_count DESC, parent_shows DESC NULLS LAST, parent_name
+        {limit_clause}
+    """
+
+
+def _format_csv(rows: list) -> str:
+    buf = io.StringIO()
+    fieldnames = [
+        "sources", "match_keys", "source_count",
+        "parent_id", "parent_name", "parent_shows",
+        "child_id", "child_name", "child_shows",
+    ]
+    w = csv.DictWriter(buf, fieldnames=fieldnames)
+    w.writeheader()
+    w.writerows(rows)
+    return buf.getvalue()
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        prog="find-comedian-aliases",
+        description="Surface candidate parent->child comedian pairs across multiple signals.",
+    )
+    parser.add_argument(
+        "--source", action="append", choices=SOURCES,
+        help=f"Restrict to one signal (repeatable). Default: all of {', '.join(SOURCES)}.",
+    )
+    parser.add_argument(
+        "--min-sources", type=int, default=1,
+        help="Only show pairs corroborated by >=N signals (default: 1).",
+    )
+    parser.add_argument(
+        "--format", choices=("json", "csv"), default="json",
+        help="Output format (default: json).",
+    )
+    parser.add_argument(
+        "--limit", type=int, default=0,
+        help="Cap output rows (default: no limit).",
+    )
+    parser.add_argument(
+        "--include-aliased", action="store_true",
+        help="Include pairs where one side already has parent_comedian_id set "
+             "(default: only show fully unresolved groups).",
+    )
+    args = parser.parse_args()
+
+    sources = args.source if args.source else list(SOURCES)
+
+    try:
+        import psycopg2  # noqa: F401
+    except ImportError:
+        print("Error: psycopg2 is not installed. Run: pip install psycopg2-binary", file=sys.stderr)
+        sys.exit(1)
+
+    sys.path.insert(0, str(SCRAPER_ROOT / "src"))
+    from laughtrack.foundation.db_util import connect_with_retry  # noqa: E402
+
+    sql = _build_sql(sources, args.min_sources, args.limit, args.include_aliased)
+
+    dsn = _resolve_database_url()
+    conn = connect_with_retry(dsn)
+    try:
+        conn.autocommit = True
+        with conn.cursor() as cur:
+            cur.execute(sql)
+            cols = [d[0] for d in cur.description]
+            rows = [dict(zip(cols, row)) for row in cur.fetchall()]
+
+        if args.format == "csv":
+            sys.stdout.write(_format_csv(rows))
+        else:
+            print(json.dumps(rows, indent=2, default=str))
+
+        print(f"{len(rows)} candidate pair(s) — sources: {','.join(sources)}; min_sources={args.min_sources}", file=sys.stderr)
+    finally:
+        conn.close()
+
+
+if __name__ == "__main__":
+    main()

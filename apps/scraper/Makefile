@@ -813,6 +813,23 @@ else
 	@$(activate_venv) $(PYTHON) bin/query "$(SQL)"
 endif
 
+# Surface candidate parent->child comedian pairs across multiple signals
+# (bandsintown_id, instagram_account, youtube_account, name_normalized,
+# website, name_substring). Use this to triage which comedians should be
+# linked via comedians.parent_comedian_id.
+#
+# Usage: make find-aliases
+#        make find-aliases SOURCE=bandsintown_id
+#        make find-aliases MIN_SOURCES=2 FORMAT=csv
+#        make find-aliases ARGS="--include-aliased --limit 50"
+find-aliases: check-env
+	@$(activate_venv) $(PYTHON) bin/find-comedian-aliases \
+		$(if $(SOURCE),--source $(SOURCE),) \
+		$(if $(MIN_SOURCES),--min-sources $(MIN_SOURCES),) \
+		$(if $(FORMAT),--format $(FORMAT),) \
+		$(if $(LIMIT),--limit $(LIMIT),) \
+		$(ARGS)
+
 # Probe the live Tixr group-events API and dump raw JSON for fixture creation.
 # Runs through the real TixrClient transport (curl-cffi direct → tixr decodo
 # proxy fallback) so the output preserves live field shapes — copy from it

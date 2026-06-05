@@ -1,1 +1,8 @@
-• Show details: the Lineup card no longer appears on shows without an announced lineup (was previously an empty placeholder).
+New Features
+• Podcast detail now highlights the actual host comedian — a circular avatar with a "Host" label sits in the hero, replacing the "Hosted by …" RSS-author pill. Tap to open the comedian's profile.
+• Home: nearby shows are consolidated into a single time-ranked rail so the lineup you can still catch tonight surfaces first.
+• Search: favorite (heart) controls are now built into result cards, so you can save a comedian, club, or podcast without leaving the result.
+
+Improvements
+• Discover home feed loads more efficiently — rails coalesce their fetches, so the screen settles faster on slow networks.
+• Layout polish: the last row of scrollable pages no longer hides behind the player or tab bar.

@@ -353,7 +353,7 @@ them, but tests built on top of it inherit the constraints.
 ### CI Simulator Pin: iOS 18.x (TASK-2339)
 
 The fastlane `test` lane and the `sim-tests-ios-18` job in
-`.github/workflows/ios-build.yml` are pinned to an **iOS 18.x** simulator
+`.github/workflows/ios.yml` are pinned to an **iOS 18.x** simulator
 runtime (`iPhone 16 Pro`) to dodge the iOS 26.x HostedView accessibility-tree
 wiring regression described in the next section. Same source revision fails
 ~18 tests across 16 HostedView suites on iOS 26.1 / 26.2 and passes cleanly on
@@ -487,7 +487,7 @@ suites can drive otherwise-untestable flows. The current seam surface:
 The canonical list lives in
 `ios/Sources/LaughTrackApp/UITestLaunchArgs.swift` as typed constants
 (`UITestLaunchArgs.resetState`, `.guestBrowsing`,
-`.simulatePostOnboardingFavoriteCount`). The file is given **dual target
+`.simulatePostOnboardingFavoriteCount`, `.forceComedianOnboarding`). The file is given **dual target
 membership** in `ios/LaughTrack.xcodeproj/project.pbxproj` — both the
 `LaughTrack` app target and the `LaughTrackUITests` target compile it into
 their own binary as an internal-scoped enum (the UI-test bundle runs in a
@@ -536,6 +536,37 @@ never compile it in. Two gotchas:
   queued route renders immediately under the shell.
 - Mock-mode launches don't need the env var (and shouldn't set it) —
   screenshot lanes use the seeded nearby preference instead.
+
+### Forcing The Comedian-Onboarding Flow (DEBUG)
+
+After a dev account completes the post-auth comedian-onboarding screen,
+`comedianOnboardingCompleted` flips `true` server-side via `PATCH /v1/me` and
+the flow never renders again — repeated UX iteration on that screen would
+otherwise require `PATCH`-ing the field back to `false` before each relaunch.
+Set `FORCE_COMEDIAN_ONBOARDING=1` on the launch environment instead:
+
+```
+launch_app_sim({ env: { "FORCE_COMEDIAN_ONBOARDING": "1" } })
+```
+
+The hook lives in `ContentView.shouldPresentComedianOnboarding(...)` under
+`#if DEBUG` and short-circuits the completion-flag read; the key is
+centralised as `UITestLaunchArgs.forceComedianOnboarding`. Release builds
+never compile the check in. Unsetting the env var (or setting it to any
+value other than `"1"`) restores the once-only behavior — the gate falls
+through to `!currentUser.comedianOnboardingCompleted` as before.
+
+If there is no auth session on the simulator and you only need to pull up the
+screen, use the stronger DEBUG-only screen seam instead:
+
+```
+launch_app_sim({ env: { "FORCE_COMEDIAN_ONBOARDING_SCREEN": "1" } })
+```
+
+This bypasses auth and first-entry routing entirely in `ContentView.rootSurface`
+and renders `ComedianOnboardingView` directly. It is intended for visual/screen
+iteration; favorite/continue actions that require a real bearer token may still
+fail while signed out.
 
 ## Launch Screen Iteration
 
@@ -618,7 +649,7 @@ regenerated files compile.
 argument lists where older versions wrote single-line ones. As of TASK-2568
 the committed `Client.swift` / `Types.swift` match a clean regen against the
 pinned 1.9.0 generator (the default in `ios/bin/check-openapi-regen-drift.sh`),
-and `.github/workflows/ios-openapi-drift.yml` runs that script as a blocking
+and `.github/workflows/ios.yml` (the `check-openapi-regen-drift` job) runs that script as a blocking
 gate on every change to the spec, config, or generated files. If you bump the
 pinned generator version and the regen diff is dominated by formatting noise
 from the new version's emit style, use **surgical extraction** instead: revert the wholesale copy-back
