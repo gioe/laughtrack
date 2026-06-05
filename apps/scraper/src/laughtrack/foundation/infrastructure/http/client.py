@@ -221,10 +221,18 @@ def _maybe_warn_cross_host_redirect(
 
     Same-host redirects (trailing slash, path rewrite, http->https on the
     same host) are silent because the host comparison ignores scheme and
-    path. Surfaces uncanonical ``scraping_sources.source_url`` rows that
-    quietly pay a redirect tax on every fan-out fetch (TASK-2559 incident:
-    OTH source_url stored bare-host, 302-redirected to www on 315+
-    price-detail fetches per nightly scrape).
+    path. Surfaces uncanonical source URLs that quietly pay a redirect tax
+    on every fan-out fetch (TASK-2559 incident: OTH source_url stored
+    bare-host, 302-redirected to www on 315+ price-detail fetches per
+    nightly scrape).
+
+    The warning names ``scraping_sources.source_url`` by default — the
+    common case where a scraper fetches its configured source URL. Pass
+    ``logger_context["url_source_field"]`` with a different table.column
+    string (e.g. ``"clubs.website"``) when the fetched URL came from a
+    different DB column, so maintainers aren't misdirected at the wrong
+    row (TASK-2679: the TASK-2673 enrichment fetch reads ``clubs.website``,
+    not ``scraping_sources.source_url``).
     """
     final_url = getattr(response, "url", None)
     if final_url is None:
@@ -249,14 +257,18 @@ def _maybe_warn_cross_host_redirect(
         _cross_host_redirects_warned_no_diag.add(key)
 
     club_hint = ""
+    url_source_field = "scraping_sources.source_url"
     if logger_context:
         club_id = logger_context.get("club_id")
         if club_id is not None:
             club_hint = f" for club_id={club_id}"
+        ctx_source = logger_context.get("url_source_field")
+        if ctx_source:
+            url_source_field = str(ctx_source)
     Logger.warn(
         f"[HttpClient] Cross-host redirect: {original_url!r} -> "
         f"{final_url_str!r}; consider canonicalizing "
-        f"scraping_sources.source_url{club_hint} to host={final_host!r}",
+        f"{url_source_field}{club_hint} to host={final_host!r}",
         logger_context or {},
     )
 

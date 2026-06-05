@@ -223,7 +223,15 @@ async def _process_club(
     ``--force``), and (b) a usable ``city`` for query disambiguation.
     """
     club_id, name, website = target.id, target.name, target.website
-    context = {"club_id": club_id, "club_name": name}
+    # url_source_field tells HttpClient's cross-host redirect WARN which DB
+    # column the fetched URL came from — this script reads clubs.website,
+    # not scraping_sources.source_url, so the default scraper-source wording
+    # would misdirect maintainers (TASK-2679).
+    context = {
+        "club_id": club_id,
+        "club_name": name,
+        "url_source_field": "clubs.website",
+    }
     async with semaphore:
         html: Optional[str] = None
         try:
