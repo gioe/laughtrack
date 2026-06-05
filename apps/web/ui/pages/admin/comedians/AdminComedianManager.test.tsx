@@ -1272,8 +1272,12 @@ describe("AdminComedianManager", () => {
             screen.queryByRole("button", { name: "Add to blocklist" }),
         ).toBeNull();
 
+        const parentBlocklistGroup = screen.getByRole("group", {
+            name: "Parent and blocklist for Alias Comic",
+        });
+
         fireEvent.click(
-            screen.getByRole("checkbox", {
+            within(parentBlocklistGroup).getByRole("checkbox", {
                 name: "Blocked status for Alias Comic",
             }),
         );

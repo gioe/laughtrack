@@ -1592,7 +1592,11 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                 </div>
                                             </div>
 
-                                            <div className="min-w-0 space-y-3 border-t border-copper/15 pt-4 xl:border-l xl:border-t-0 xl:pl-5 xl:pt-0">
+                                            <div
+                                                role="group"
+                                                aria-label={`Parent and blocklist for ${row.name}`}
+                                                className="min-w-0 space-y-3 border-t border-copper/15 pt-4 xl:border-l xl:border-t-0 xl:pl-5 xl:pt-0"
+                                            >
                                                 <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
                                                     Current parent
                                                 </div>
@@ -1699,29 +1703,31 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                     <Save className="h-4 w-4" />
                                                     Save relationship
                                                 </Button>
+                                                <div className="border-t border-copper/15 pt-4">
+                                                    <div className="mb-3 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                        Blocklist state
+                                                    </div>
+                                                    <label className="inline-flex w-fit items-center gap-2 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body font-semibold text-cedar">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={false}
+                                                            disabled={
+                                                                disabled ||
+                                                                pendingId ===
+                                                                    row.id
+                                                            }
+                                                            onChange={() =>
+                                                                void blockComedian(
+                                                                    row,
+                                                                )
+                                                            }
+                                                            aria-label={`Blocked status for ${row.name}`}
+                                                            className="h-4 w-4 accent-red-800 disabled:accent-soft-charcoal"
+                                                        />
+                                                        Blocked
+                                                    </label>
+                                                </div>
                                             </div>
-                                        </div>
-
-                                        <div className="mt-5 border-t border-copper/15 pt-4">
-                                            <div className="mb-3 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                Blocklist state
-                                            </div>
-                                            <label className="inline-flex w-fit items-center gap-2 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body font-semibold text-cedar">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={false}
-                                                    disabled={
-                                                        disabled ||
-                                                        pendingId === row.id
-                                                    }
-                                                    onChange={() =>
-                                                        void blockComedian(row)
-                                                    }
-                                                    aria-label={`Blocked status for ${row.name}`}
-                                                    className="h-4 w-4 accent-red-800 disabled:accent-soft-charcoal"
-                                                />
-                                                Blocked
-                                            </label>
                                         </div>
 
                                         <div className="mt-5 border-t border-copper/15 pt-4">
