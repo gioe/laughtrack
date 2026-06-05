@@ -15,6 +15,8 @@ HTML/JSON → price helpers and do no I/O.
 import json
 from typing import List, Optional
 
+from laughtrack.core.clients.seatengine.price import coerce_inventory_price_cents
+from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.models.types import JSONDict
 
 
@@ -41,20 +43,24 @@ def cheapest_price(inventories: List[JSONDict]) -> Optional[float]:
     """Return the cheapest positive price in dollars across the inventory list.
 
     Inventory ``price`` fields are integer cents; values <= 0 are treated as
-    extraction-failure signals and ignored. Returns ``None`` when no inventory
-    exposes a positive price — callers should persist NULL rather than 0.
+    extraction-failure signals and ignored, and values over the sentinel
+    ceiling (see ``core.clients.seatengine.price``) are dropped with a
+    warning — sentinel placeholders like 100_000_000¢ ($1M "Closed for
+    holiday" markers) otherwise overflow ``tickets.price`` Decimal(7,2) and
+    abort the whole batch insert. Returns ``None`` when no inventory exposes a
+    real positive price — callers should persist NULL rather than 0.
     """
     prices: List[float] = []
     for inv in inventories:
-        raw = inv.get("price")
-        if raw is None:
+        price, reject_reason = coerce_inventory_price_cents(inv.get("price"))
+        if reject_reason is not None:
+            Logger.warn(
+                f"SeatEngine classic price extractor: dropped inventory "
+                f"{inv.get('id')}: {reject_reason}"
+            )
             continue
-        try:
-            cents = int(raw)
-        except (TypeError, ValueError):
-            continue
-        if cents > 0:
-            prices.append(cents / 100.0)
+        if price is not None:
+            prices.append(price)
     if not prices:
         return None
     return min(prices)

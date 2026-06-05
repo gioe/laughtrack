@@ -114,6 +114,18 @@ class TestCheapestPrice:
     def test_accepts_numeric_strings(self):
         assert cheapest_price([{"price": "3500"}, {"price": 9000}]) == 35.0
 
+    def test_drops_sentinel_priced_inventories_over_ceiling(self):
+        # 100_000_000¢ ($1M) sentinel on a "Closed for holiday" placeholder is
+        # the real-world failure that motivated this guard; it overflows
+        # tickets.price Decimal(7,2) and aborts the whole batch insert.
+        # The other tier's $35 price is what should land downstream.
+        assert cheapest_price([{"id": 1, "price": 100_000_000}, {"id": 2, "price": 3500}]) == 35.0
+
+    def test_returns_none_when_only_inventory_is_sentinel(self):
+        # All-sentinel set must persist NULL, not silently fall back to the
+        # sentinel value or to $0.
+        assert cheapest_price([{"id": 1, "price": 100_000_000}]) is None
+
 
 class TestTransformerNullFallback:
     """Guard the silent default-to-zero regression at the transformer boundary."""

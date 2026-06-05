@@ -13,6 +13,7 @@ from laughtrack.foundation.infrastructure.http.base_headers import BaseHeaders
 from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 from laughtrack.core.clients.base import BaseApiClient
 from laughtrack.core.clients.seatengine.circuit_breaker import SeatEngineCircuitBreaker
+from laughtrack.core.clients.seatengine.price import coerce_inventory_price_cents
 from laughtrack.foundation.utilities.datetime import DateTimeUtils
 from laughtrack.foundation.utilities.url import URLUtils
 from laughtrack.infrastructure.config.config_manager import ConfigManager
@@ -218,10 +219,19 @@ class SeatEngineClient(BaseApiClient):
             if inventory.get("active") is False and not show_sold_out:
                 continue
 
-            raw_price = inventory.get("price")
             # Inventory price arrives in cents. None means the tier omitted a
             # price — keep that as unknown rather than collapsing to free.
-            price = raw_price / 100 if raw_price is not None else None
+            # Values over the sentinel ceiling are dropped (see price.py): they
+            # overflow tickets.price Decimal(7,2) and would otherwise abort the
+            # whole batch insert.
+            price, reject_reason = coerce_inventory_price_cents(inventory.get("price"))
+            if reject_reason is not None:
+                show_id = show_dict.get("id")
+                self.log_warning(
+                    f"Dropped SeatEngine inventory {inventory.get('id')} for show "
+                    f"{show_id}: {reject_reason}"
+                )
+                continue
             ticket_type = inventory.get("title") or inventory.get("name") or "General Admission"
             inventory_sold_out = (
                 show_sold_out
