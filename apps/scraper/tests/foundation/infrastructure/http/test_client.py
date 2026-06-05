@@ -1530,3 +1530,62 @@ class TestCrossHostRedirectWarn:
         ]
         assert len(cross_host_warns) == 1
         assert "club_id=1234" in cross_host_warns[0].args[0]
+
+    @pytest.mark.asyncio
+    async def test_url_source_field_overrides_scraping_sources_default(self):
+        """When the caller flags the URL as coming from a different DB column
+        (e.g. clubs.website for the TASK-2673 enrichment fetch), the warning
+        must name that column and NOT the scraping_sources.source_url default,
+        so maintainers aren't sent to the wrong row to canonicalize."""
+        session = AsyncMock()
+        session.get.return_value = _make_response_with_url(
+            200, text="<html/>", final_url="https://www.example.com/page",
+        )
+
+        with _NO_FALLBACK:
+            with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn") as mock_warn:
+                await HttpClient.fetch_html(
+                    session,
+                    "https://example.com/page",
+                    logger_context={
+                        "club_id": 1234,
+                        "url_source_field": "clubs.website",
+                    },
+                )
+
+        cross_host_warns = [
+            c for c in mock_warn.call_args_list
+            if "Cross-host redirect" in c.args[0]
+        ]
+        assert len(cross_host_warns) == 1
+        msg = cross_host_warns[0].args[0]
+        assert "clubs.website" in msg
+        assert "scraping_sources.source_url" not in msg
+        # club_id hint is preserved alongside the overridden source field.
+        assert "club_id=1234" in msg
+
+    @pytest.mark.asyncio
+    async def test_missing_url_source_field_falls_back_to_scraping_sources(self):
+        """Scraper source_url fetches don't set url_source_field — the warning
+        must continue to point maintainers at scraping_sources.source_url so
+        the TASK-2559/TASK-2562 audit signal is preserved."""
+        session = AsyncMock()
+        session.get.return_value = _make_response_with_url(
+            200, text="<html/>", final_url="https://www.example.com/page",
+        )
+
+        with _NO_FALLBACK:
+            with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn") as mock_warn:
+                # logger_context with only club_id — no url_source_field key.
+                await HttpClient.fetch_html(
+                    session,
+                    "https://example.com/page",
+                    logger_context={"club_id": 1234},
+                )
+
+        cross_host_warns = [
+            c for c in mock_warn.call_args_list
+            if "Cross-host redirect" in c.args[0]
+        ]
+        assert len(cross_host_warns) == 1
+        assert "scraping_sources.source_url" in cross_host_warns[0].args[0]
