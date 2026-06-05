@@ -3,6 +3,7 @@ import { CAROUSEL_TEST_IDS } from "@/lib/data/home/homeFixtures";
 
 const CAROUSEL_IDS = [
     CAROUSEL_TEST_IDS.showsTonight,
+    CAROUSEL_TEST_IDS.nearbyShows,
     CAROUSEL_TEST_IDS.trendingThisWeek,
 ] as const;
 

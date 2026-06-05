@@ -6,6 +6,7 @@ import { ShowDTO } from "@/objects/class/show/show.interface";
 // transitively via ShowDiscoverySection, which the test runner can't resolve.
 export const CAROUSEL_TEST_IDS = {
     showsTonight: "carousel-shows-tonight",
+    nearbyShows: "carousel-nearby-shows",
     trendingThisWeek: "carousel-trending-this-week",
 } as const;
 
@@ -72,6 +73,33 @@ export const FIXTURE_SHOWS_TONIGHT: ShowDTO[] = [
         "Late Show",
         ["Alex Comic", "Pat Funny"],
         "3175 N Broadway, Chicago, IL",
+    ),
+];
+
+export const FIXTURE_SHOWS_NEARBY: ShowDTO[] = [
+    buildFixtureShow(
+        9051,
+        "Broadway Comedy Club",
+        "America/New_York",
+        "Nearby Showcase",
+        ["Jamie Local", "Drew Borough"],
+        "318 W 53rd St, New York, NY",
+    ),
+    buildFixtureShow(
+        9052,
+        "West Side Comedy Club",
+        "America/New_York",
+        "Neighborhood Laughs",
+        ["Sam Uptown", "Lee Downtown"],
+        "201 W 75th St, New York, NY",
+    ),
+    buildFixtureShow(
+        9053,
+        "The Stand",
+        "America/New_York",
+        "Union Square Set",
+        ["Robin Square", "Ari Village"],
+        "116 E 16th St, New York, NY",
     ),
 ];
 
