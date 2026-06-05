@@ -85,12 +85,12 @@ def main(argv: list[str] | None = None) -> int:
         "--output-dir",
         type=Path,
         default=None,
-        help="Download directory, default: /tmp/laughtrack-scraper-dashboard-<run_id>",
+        help="Download directory, default: fresh /tmp/laughtrack-scraper-dashboard-<run_id>-*",
     )
     args = parser.parse_args(argv)
 
     run_id = str(args.run_id)
-    download_dir = args.output_dir or Path(tempfile.gettempdir()) / f"laughtrack-scraper-dashboard-{run_id}"
+    download_dir = args.output_dir or Path(tempfile.mkdtemp(prefix=f"laughtrack-scraper-dashboard-{run_id}-"))
 
     try:
         artifacts = fetch_artifacts(args.repo, run_id)

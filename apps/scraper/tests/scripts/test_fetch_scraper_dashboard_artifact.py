@@ -61,6 +61,29 @@ def test_main_downloads_matching_artifact_and_prints_metrics_path(monkeypatch, t
     assert f"Metrics JSON: {tmp_path / 'metrics' / 'metrics_20260605_010203.json'}" in captured.out
 
 
+def test_main_uses_fresh_tmp_dir_by_default(monkeypatch, tmp_path, capsys):
+    mod = _load_module()
+    fresh_dir = tmp_path / "laughtrack-scraper-dashboard-123-abc"
+
+    def fake_run_gh(args):
+        if args[0] == "api":
+            return _completed(json.dumps({"artifacts": [{"name": "scraper-dashboard-123"}]}))
+        assert args[-1] == str(fresh_dir)
+        metrics_dir = fresh_dir / "metrics"
+        metrics_dir.mkdir(parents=True)
+        (metrics_dir / "metrics_20260605_010203.json").write_text("{}", encoding="utf-8")
+        return _completed()
+
+    monkeypatch.setattr(mod.tempfile, "mkdtemp", lambda prefix: str(fresh_dir))
+    monkeypatch.setattr(mod, "_run_gh", fake_run_gh)
+
+    rc = mod.main(["123"])
+
+    assert rc == 0
+    captured = capsys.readouterr()
+    assert f"Download directory: {fresh_dir}" in captured.out
+
+
 def test_main_lists_available_artifacts_when_dashboard_is_absent(monkeypatch, tmp_path, capsys):
     mod = _load_module()
     payload = {"artifacts": [{"name": "scraper-logs-123"}, {"name": "web-report"}]}
