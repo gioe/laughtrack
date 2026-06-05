@@ -169,6 +169,11 @@ class SeatEngineClient(BaseApiClient):
     def create_show(self, show_dict: JSONDict) -> Optional[Show]:
         """Create a Show object from the SeatEngine response data."""
         show_info = self._extract_basic_show_info(show_dict)
+        if not show_info.get("tickets"):
+            self.log_warning(
+                f"Dropped SeatEngine show {show_dict.get('id')}: no real-priced inventory survived"
+            )
+            return None
 
         # Extract performers from the event's talents array
         event_data = show_dict.get("event", {})
@@ -213,11 +218,14 @@ class SeatEngineClient(BaseApiClient):
         show_sold_out = bool(show_dict.get("sold_out", False))
         inventories = show_dict.get("inventories", [])
         tickets = []
+        eligible_inventory_count = 0
+        rejected_inventory_count = 0
         for inventory in inventories if isinstance(inventories, list) else []:
             if not isinstance(inventory, dict):
                 continue
             if inventory.get("active") is False and not show_sold_out:
                 continue
+            eligible_inventory_count += 1
 
             # Inventory price arrives in cents. None means the tier omitted a
             # price — keep that as unknown rather than collapsing to free.
@@ -230,6 +238,7 @@ class SeatEngineClient(BaseApiClient):
                     f"Dropped SeatEngine inventory {inventory.get('id')} for show "
                     f"{show_id}: {reject_reason}"
                 )
+                rejected_inventory_count += 1
                 continue
             ticket_type = inventory.get("title") or inventory.get("name") or "General Admission"
             inventory_sold_out = (
@@ -248,6 +257,9 @@ class SeatEngineClient(BaseApiClient):
 
         if tickets:
             return tickets
+
+        if eligible_inventory_count > 0 and rejected_inventory_count == eligible_inventory_count:
+            return []
 
         return [Ticket(
             price=0.0,

@@ -136,17 +136,12 @@ class TestSeatEngineClientTicketPricing:
         # Warning names the inventory id and the raw cents value.
         assert any("806277" in w and "100000000" in w for w in warnings)
 
-    def test_all_sentinel_inventories_fall_back_to_synthetic_general_admission(
+    def test_all_sentinel_inventories_drop_placeholder_show(
         self,
         monkeypatch,
         stub_base_init,
     ):
-        """When every inventory is dropped, the existing zero-fallback path takes over.
-
-        The current "no tickets → synthetic GA at $0" fallback is unchanged by this
-        fix — a future task can revisit whether it should persist NULL instead, but
-        the immediate goal is to stop the overflow without changing fallback shape.
-        """
+        """When every inventory is dropped, skip the placeholder show."""
         client = _make_client(monkeypatch)
         client.venue_website = "https://example.com"
         _stub_datetime(monkeypatch)
@@ -159,10 +154,7 @@ class TestSeatEngineClientTicketPricing:
 
         show = client.create_show(show_dict)
 
-        assert show is not None
-        assert len(show.tickets) == 1
-        assert show.tickets[0].price == 0.0
-        assert show.tickets[0].type == "General Admission"
+        assert show is None
 
     def test_valid_high_tier_under_ceiling_is_preserved(
         self,
