@@ -25,7 +25,6 @@ export interface ComedianDTO {
     isAlias?: boolean;
     parentComedian?: ComedianDTO;
     lineupItems?: ComedianLineupItemDTO[];
-    bio?: string | null;
     podcastAppearances?: PodcastAppearanceDTO[];
 }
 

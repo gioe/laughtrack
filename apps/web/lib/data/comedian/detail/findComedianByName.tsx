@@ -12,7 +12,6 @@ function buildComedianSelect() {
         id: true,
         uuid: true,
         name: true,
-        bio: true,
         linktree: true,
         instagramAccount: true,
         instagramFollowers: true,
@@ -213,7 +212,6 @@ export async function findComedianByName(
                     comedianData.hasImage,
                 ),
             })),
-            bio: comedianData.bio,
             socialData: {
                 id: comedianData.id,
                 linktree: comedianData.linktree,

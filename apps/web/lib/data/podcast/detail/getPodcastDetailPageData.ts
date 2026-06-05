@@ -99,7 +99,6 @@ async function getPodcastDetailPageDataByWhere(
                                     uuid: true,
                                     name: true,
                                     hasImage: true,
-                                    bio: true,
                                     linktree: true,
                                     instagramAccount: true,
                                     instagramFollowers: true,
@@ -137,7 +136,6 @@ async function getPodcastDetailPageDataByWhere(
                             uuid: true,
                             name: true,
                             hasImage: true,
-                            bio: true,
                             linktree: true,
                             instagramAccount: true,
                             instagramFollowers: true,
@@ -225,7 +223,6 @@ async function getPodcastDetailPageDataByWhere(
                 hasImage: false,
                 imageUrl: "",
                 socialData,
-                bio: comedian.bio,
                 showCount: comedian._count.lineupItems,
             };
         });

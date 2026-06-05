@@ -337,21 +337,6 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
                         </motion.div>
                     )}
 
-                    {/* Bio */}
-                    {comedian.bio && (
-                        <motion.p
-                            initial={{ opacity: 0, y: mv(10) }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={mt({
-                                duration: 0.3,
-                                delay: mv(0.15),
-                            })}
-                            className="mt-4 text-lead font-dmSans text-white/90 whitespace-pre-line max-w-2xl mx-auto md:mx-0 lg:mx-0 drop-shadow"
-                        >
-                            {comedian.bio}
-                        </motion.p>
-                    )}
-
                     {/* Social row */}
                     {socialLinks.length > 0 && (
                         <motion.ul

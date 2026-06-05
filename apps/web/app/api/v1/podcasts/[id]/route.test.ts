@@ -99,7 +99,6 @@ describe("GET /api/v1/podcasts/[id]", () => {
                         website: null,
                         popularity: null,
                     },
-                    bio: null,
                     showCount: 0,
                 },
             ],
