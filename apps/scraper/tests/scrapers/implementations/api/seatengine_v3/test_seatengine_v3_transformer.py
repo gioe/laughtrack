@@ -201,3 +201,31 @@ class TestBuildTickets:
         assert show is not None
         assert len(show.tickets) == 1
         assert show.tickets[0].sold_out is True
+
+    def test_sentinel_priced_inventory_dropped(self):
+        """A $1M sentinel placeholder (100_000_000¢) must be dropped, not persisted —
+        the catalog stores tickets.price as Decimal(7,2) (cap $99,999.99) and a
+        sentinel-priced batch would otherwise abort the whole batch insert.
+        With every inventory dropped, fall back to the synthesized $0 GA ticket."""
+        transformer = SeatEngineV3EventTransformer(_make_club())
+        record = _make_record(inventories=[_make_inventory(price=100_000_000)])
+        show = transformer.transform_to_show(record)
+        assert show is not None
+        # Sole sentinel inventory dropped → synthesized fallback ticket
+        assert len(show.tickets) == 1
+        assert show.tickets[0].price == pytest.approx(0.0)
+        assert show.tickets[0].type == "General Admission"
+
+    def test_sentinel_inventory_dropped_real_tier_kept(self):
+        """A sentinel-priced tier sitting alongside a real $20 tier drops the
+        sentinel and persists only the real tier."""
+        transformer = SeatEngineV3EventTransformer(_make_club())
+        inventories = [
+            _make_inventory(title="Sentinel", price=100_000_000),
+            _make_inventory(title="GA", price=2000),
+        ]
+        show = transformer.transform_to_show(_make_record(inventories=inventories))
+        assert show is not None
+        assert len(show.tickets) == 1
+        assert show.tickets[0].type == "GA"
+        assert show.tickets[0].price == pytest.approx(20.0)

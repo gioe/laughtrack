@@ -137,6 +137,59 @@ def test_offer_name_becomes_ticket_type_for_json_ld_tickets():
     assert tickets[0].sold_out is False
 
 
+def test_sentinel_priced_inventory_dropped():
+    """A $1M sentinel placeholder (100_000_000¢) must be dropped, not emitted as an
+    Offer — the catalog stores tickets.price as Decimal(7,2) (cap $99,999.99) and a
+    sentinel-priced batch would otherwise abort the whole batch insert."""
+    html = _config_html(
+        """
+        {
+          "showtime": {
+            "sold_out": false,
+            "inventories": [
+              {"available": 1, "name": "Sentinel", "title": "Sentinel", "price": 100000000, "service_charge": 0}
+            ]
+          }
+        }
+        """
+    )
+
+    offers = SeatEngineWebScraper._extract_offers_from_app_config(
+        html,
+        "https://www.bananascomedyclub.com/shows/sentinel",
+    )
+
+    # Sole sentinel inventory dropped; no sold-out fallback emitted (showtime not sold_out).
+    assert offers == []
+
+
+def test_sentinel_inventory_dropped_real_tier_kept():
+    """A sentinel-priced tier sitting alongside a real $25.87 tier drops the
+    sentinel and emits only the real Offer."""
+    html = _config_html(
+        """
+        {
+          "showtime": {
+            "sold_out": false,
+            "inventories": [
+              {"available": 1, "name": "Sentinel", "title": "Sentinel", "price": 100000000, "service_charge": 0},
+              {"available": 193, "name": "General Admission", "title": "General Admission", "price": 2587, "service_charge": 599}
+            ]
+          }
+        }
+        """
+    )
+
+    offers = SeatEngineWebScraper._extract_offers_from_app_config(
+        html,
+        "https://www.bananascomedyclub.com/shows/sentinel-plus-real",
+    )
+
+    assert [(offer.name, offer.price, offer.availability) for offer in offers] == [
+        ("General Admission", "31.86", "https://schema.org/InStock"),
+    ]
+
+
 def test_seatengine_web_pipeline_persists_enriched_ticket_types():
     scraper = SeatEngineWebScraper(_club())
     html = _config_html(
