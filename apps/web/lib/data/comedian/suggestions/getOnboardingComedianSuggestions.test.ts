@@ -79,6 +79,17 @@ describe("getOnboardingComedianSuggestions", () => {
         expect(sqlValues(arg)).toContain(ONBOARDING_POPULARITY_FLOOR);
     });
 
+    it("samples only comedians with headshot images", async () => {
+        mockQueryRaw.mockResolvedValue([{ id: 1 }] as never);
+        mockFindMany.mockResolvedValue([makeRow(1)] as never);
+
+        await getOnboardingComedianSuggestions();
+
+        expect(sqlText(mockQueryRaw.mock.calls[0][0])).toMatch(
+            /c\."?has_image"?\s*=\s*true/i,
+        );
+    });
+
     it("orders by the Efraimidis–Spirakis weighted-random key and bounds the result", async () => {
         mockQueryRaw.mockResolvedValue([] as never);
 

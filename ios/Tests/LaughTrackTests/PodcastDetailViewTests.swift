@@ -66,6 +66,18 @@ struct PodcastDetailViewTests {
         )
     }
 
+    @Test("podcast detail episode lineup hides podcast hosts")
+    func podcastDetailEpisodeLineupHidesPodcastHosts() {
+        let response = PodcastDetailViewTests.makeResponseWithGuestAppearance()
+        let lineup = PodcastDetailPresentation.episodeLineup(
+            for: response.episodes[0],
+            podcast: response.podcast
+        )
+
+        #expect(lineup.map(\.id) == [202])
+        #expect(lineup.map(\.name) == ["Aparna Nancherla"])
+    }
+
     @Test("podcast detail hero exposes website and RSS actions")
     func podcastDetailHeroActionsExposeExternalLinks() {
         let podcast = PodcastDetailViewTests.makeResponse().podcast
@@ -183,6 +195,39 @@ struct PodcastDetailViewTests {
                     imageUrl: "https://cdn.example.com/mark.jpg"
                 )
             ]
+        )
+    }
+
+    private static func makeResponseWithGuestAppearance() -> PodcastDetailResponse {
+        let base = makeResponse()
+        return PodcastDetailResponse(
+            podcast: base.podcast,
+            episodes: [
+                PodcastDetailEpisode(
+                    id: 502,
+                    title: "Host and Guest",
+                    description: nil,
+                    releaseDate: "2026-03-02T00:00:00.000Z",
+                    durationSeconds: 3_000,
+                    episodeUrl: "https://podcasts.example.com/guest",
+                    audioUrl: "https://cdn.example.com/guest.mp3",
+                    appearances: [
+                        PodcastDetailEpisodeAppearance(
+                            id: 101,
+                            uuid: "demo-comedian-101",
+                            name: "Mark Normand",
+                            imageUrl: "https://cdn.example.com/mark.jpg"
+                        ),
+                        PodcastDetailEpisodeAppearance(
+                            id: 202,
+                            uuid: "demo-comedian-202",
+                            name: "Aparna Nancherla",
+                            imageUrl: "https://cdn.example.com/aparna.jpg"
+                        )
+                    ]
+                )
+            ],
+            relatedComedians: base.relatedComedians
         )
     }
 }

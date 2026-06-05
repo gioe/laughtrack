@@ -350,7 +350,10 @@ struct ContentView: View {
         .safeAreaInset(edge: .bottom) {
             PodcastMiniPlayerView(player: podcastPlayer, apiClient: apiClient)
                 .padding(.horizontal, theme.spacing.md)
-                .padding(.bottom, theme.spacing.md)
+                .padding(.bottom, PodcastMiniPlayerLayout.bottomPadding(
+                    theme: theme,
+                    clearsRootTabBar: coordinator.path.isEmpty
+                ))
         }
         .environmentObject(favorites)
         .environmentObject(podcastFavorites)
@@ -367,6 +370,15 @@ struct ContentView: View {
 
     private var nearbyLocationController: NearbyLocationController {
         serviceContainer.resolve(NearbyLocationController.self)
+    }
+}
+
+enum PodcastMiniPlayerLayout {
+    static let rootTabBarClearance: CGFloat = 68
+
+    static func bottomPadding(theme: AppThemeProtocol, clearsRootTabBar: Bool) -> CGFloat {
+        theme.spacing.md +
+            (clearsRootTabBar ? rootTabBarClearance : 0)
     }
 }
 

@@ -41,6 +41,7 @@ export async function getOnboardingComedianSuggestions(
                 SELECT c.id
                 FROM "comedians" c
                 WHERE c.popularity > ${ONBOARDING_POPULARITY_FLOOR}
+                  AND c."has_image" = true
                   AND c.visible = true
                   AND c."parent_comedian_id" IS NULL
                   AND NOT EXISTS (

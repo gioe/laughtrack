@@ -21,4 +21,15 @@ struct TabBarBottomSpacingTests {
         #expect(withMiniPlayer > base)
         #expect(withMiniPlayer - base >= RootScrollBottomSpacing.podcastMiniPlayerClearance)
     }
+
+    @Test("root shell mini player clears the floating tab bar")
+    func rootShellMiniPlayerClearsFloatingTabBar() {
+        let theme = LaughTrackTheme()
+        let rootPadding = PodcastMiniPlayerLayout.bottomPadding(theme: theme, clearsRootTabBar: true)
+        let detailPadding = PodcastMiniPlayerLayout.bottomPadding(theme: theme, clearsRootTabBar: false)
+
+        #expect(rootPadding > detailPadding)
+        #expect(rootPadding - detailPadding == PodcastMiniPlayerLayout.rootTabBarClearance)
+        #expect(PodcastMiniPlayerLayout.rootTabBarClearance < RootScrollBottomSpacing.floatingTabBarClearance)
+    }
 }

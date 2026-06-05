@@ -269,6 +269,20 @@ enum PodcastDetailPresentation {
         ]
     }
 
+    static func episodeLineup(
+        for episode: PodcastDetailEpisode,
+        podcast: PodcastDetail
+    ) -> [LineupAvatarItem] {
+        let hostIDs = Set(podcast.hosts.map(\.id))
+        let hostUUIDs = Set(podcast.hosts.map(\.uuid))
+
+        return episode.appearances
+            .filter { appearance in
+                !hostIDs.contains(appearance.id) && !hostUUIDs.contains(appearance.uuid)
+            }
+            .map(LineupAvatarItem.init(appearance:))
+    }
+
     static func playbackItem(
         podcast: PodcastDetail,
         episode: PodcastDetailEpisode
@@ -354,7 +368,7 @@ private struct PodcastEpisodeListSection: View {
             return (
                 item,
                 PodcastDetailPresentation.episodeMetadata(for: episode),
-                episode.appearances.map(LineupAvatarItem.init(appearance:))
+                PodcastDetailPresentation.episodeLineup(for: episode, podcast: podcast)
             )
         }
 
