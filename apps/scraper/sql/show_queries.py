@@ -100,21 +100,64 @@ class ShowQueries:
           )
     '''
     
+    # Show popularity ∈ [0, 1], blended from lineup, venue, and ticket-sales
+    # signals and multiplied by a piecewise time-decay on s.date so upcoming
+    # shows score highest and past shows fade. Component weights mirror
+    # PopularityScorer.calculate_show_popularity (the docstring contract this
+    # SQL must honor):
+    #   - lineup (0.5): AVG of comedians.popularity over the show's lineup.
+    #     comedian popularity is already in [0, 1] from update_comedian_popularity.
+    #   - venue  (0.2): clubs.popularity, already in [0, 1] from
+    #     BATCH_UPDATE_CLUB_POPULARITY's outer LEAST clamp.
+    #   - sales  (0.3): 1.0 if any ticket for the show is sold_out, else 0.0.
+    # Each component ∈ [0, 1] and weights sum to 1.0, so the blend is bounded.
+    # Time-decay ∈ [0.1, 1.0]; the product is therefore already in [0, 1].
+    # Outer LEAST(..., 1.0) is a belt-and-suspenders clamp that pins the
+    # docstring contract regardless of upstream drift — the previous SQL had
+    # no clamp and produced values up to 3.76 in production (TASK-2697).
+    #
+    # The LATERAL aggregation for tickets mirrors BATCH_UPDATE_COMEDIAN_SHOW_COUNTS:
+    # BOOL_OR per show via the tickets(show_id, type) unique index, so work
+    # scales with len(shows in batch) instead of len(tickets) and the query
+    # stays inside Neon's statement_timeout under live load.
     BATCH_GET_LINEUP_POPULARITY = '''
-        WITH lineup_details AS (
-            SELECT 
-                li.show_id, li.comedian_id, c.popularity
-            FROM lineup_items li
-            JOIN comedians c ON c.uuid = li.comedian_id
-            WHERE li.show_id = ANY(%s)
+        WITH show_lineup AS (
+            SELECT
+                s.id AS show_id,
+                s.club_id,
+                s.date,
+                AVG(c.popularity) AS avg_lineup_popularity
+            FROM shows s
+            LEFT JOIN lineup_items li ON li.show_id = s.id
+            LEFT JOIN comedians c ON c.uuid = li.comedian_id
+            WHERE s.id = ANY(%s)
+            GROUP BY s.id, s.club_id, s.date
         )
-        SELECT 
-            show_id,
-            (
-                SUM(popularity) * (1 + LEAST(ln(COUNT(comedian_id)), ln(5))) / 5.0
-            ) as modified_popularity
-        FROM lineup_details
-        GROUP BY show_id
+        SELECT
+            sl.show_id,
+            LEAST(
+                (
+                    COALESCE(sl.avg_lineup_popularity, 0) * 0.5
+                    + COALESCE(cl.popularity, 0) * 0.2
+                    + CASE WHEN sales.any_sold_out THEN 1.0 ELSE 0.0 END * 0.3
+                ) * (
+                    CASE
+                        WHEN sl.date >= CURRENT_DATE THEN 1.0
+                        WHEN sl.date >= CURRENT_DATE - INTERVAL '30 days' THEN 0.75
+                        WHEN sl.date >= CURRENT_DATE - INTERVAL '90 days' THEN 0.5
+                        WHEN sl.date >= CURRENT_DATE - INTERVAL '180 days' THEN 0.25
+                        ELSE 0.1
+                    END
+                ),
+                1.0
+            ) AS modified_popularity
+        FROM show_lineup sl
+        LEFT JOIN clubs cl ON cl.id = sl.club_id
+        LEFT JOIN LATERAL (
+            SELECT BOOL_OR(t.sold_out) AS any_sold_out
+            FROM tickets t
+            WHERE t.show_id = sl.show_id
+        ) sales ON true
     '''
     
     BATCH_UPDATE_SHOW_POPULARITY = '''
