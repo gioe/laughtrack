@@ -21,6 +21,7 @@ _LOUNGE_ROOM_ID = 3131060
 _MAIN_HALL_ROOM_ID = 3131059
 _SOURCE_URL = "https://worldstage.live/shows"
 _API_URL = "https://www.myciright.com/Ciright/api/worldcafelive/m3203760"
+_ETIX_VENUE_URL = "https://www.etix.com/ticket/v/1599/music-hall-at-world-stage"
 
 
 def _club(
@@ -318,5 +319,26 @@ async def test_get_data_enriches_lounge_events_from_matching_etix_rows(monkeypat
 
     assert all(s.name != "Lets Keep It 100 Podcast" for s in shows)
     unplugged = next(s for s in shows if s.name == "Unplugged Series: R&B Dinner Party 1")
-    assert unplugged.show_page_url == _SOURCE_URL
+    assert unplugged.show_page_url == _ETIX_VENUE_URL
+    assert unplugged.tickets[0].purchase_url == _ETIX_VENUE_URL
     assert unplugged.tickets[0].price is None
+
+
+@pytest.mark.asyncio
+async def test_get_data_uses_etix_venue_url_when_etix_enrichment_finds_no_events(monkeypatch):
+    scraper = WorldStageScraper(_club(etix_enrichment_enabled=True))
+
+    async def fake_post_json(self, url, data, **kwargs):
+        return _ciright_response()
+
+    async def fake_fetch_etix_events(self):
+        return []
+
+    monkeypatch.setattr(WorldStageScraper, "post_json", fake_post_json)
+    monkeypatch.setattr(WorldStageScraper, "_fetch_etix_events", fake_fetch_etix_events)
+
+    result = await scraper.get_data(_API_URL)
+    shows = scraper.transformation_pipeline.transform(result)
+
+    assert shows
+    assert {ticket.purchase_url for show in shows for ticket in show.tickets} == {_ETIX_VENUE_URL}

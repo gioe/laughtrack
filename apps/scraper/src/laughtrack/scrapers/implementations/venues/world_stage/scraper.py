@@ -184,6 +184,7 @@ class WorldStageScraper(BaseScraper):
 
         etix_events = await self._fetch_etix_events()
         if not etix_events:
+            self._apply_etix_venue_fallback(events)
             Logger.warn(
                 f"{self._log_prefix}: Etix enrichment found no usable events for {self._etix_venue_url()}",
                 self.logger_context,
@@ -205,11 +206,18 @@ class WorldStageScraper(BaseScraper):
             event.ticket_price = match.ticket_price
             enriched += 1
 
+        self._apply_etix_venue_fallback(events)
         Logger.info(
             f"{self._log_prefix}: Etix enrichment matched {enriched}/{len(events)} "
             f"Ciright event(s)",
             self.logger_context,
         )
+
+    def _apply_etix_venue_fallback(self, events: List[WorldStageEvent]) -> None:
+        fallback_url = self._etix_venue_url()
+        for event in events:
+            if not event.ticket_url:
+                event.ticket_url = fallback_url
 
     async def _fetch_etix_events(self) -> List[EtixEvent]:
         source = ScrapingSource(
