@@ -336,6 +336,35 @@ def test_show_blend_weights_sum_to_one():
     )
 
 
+class TestBatchUpdateComedianShowCountsSql:
+    """Contract tests for comedian sold-out denominator filtering."""
+
+    def setup_method(self):
+        self.ComedianQueries = _load_module(
+            "sql/comedian_queries.py", "sql.comedian_queries_direct"
+        ).ComedianQueries
+
+    def test_query_uses_reports_sold_out_flag_for_denominator(self):
+        sql = self.ComedianQueries.BATCH_UPDATE_COMEDIAN_SHOW_COUNTS
+        assert "reports_sold_out" in sql
+        assert "last_scraped_by" in sql
+        assert "scraping_sources" in sql
+
+    def test_query_counts_confirmed_sellouts_even_from_unreliable_sources(self):
+        sql = self.ComedianQueries.BATCH_UPDATE_COMEDIAN_SHOW_COUNTS.lower()
+        assert "ta.all_sold_out" in sql
+        assert re.search(
+            r"count\(distinct\s+li\.show_id\)\s+filter\s*\([^)]*ta\.all_sold_out",
+            sql,
+            re.DOTALL,
+        )
+        assert re.search(
+            r"count\(distinct\s+li\.show_id\)\s+filter\s*\([^)]*reports_sold_out",
+            sql,
+            re.DOTALL,
+        )
+
+
 class TestBatchGetShowPopularitySql:
     """Contract tests for the BATCH_GET_LINEUP_POPULARITY SQL query — pins the
     signals (lineup popularity, clubs.popularity, ticket sold_out, click demand, time-decay)

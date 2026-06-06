@@ -60,7 +60,9 @@ class ComedianQueries:
     # Recomputes sold_out_shows and total_shows for each comedian across ALL shows
     # (no show_id filter).  A show is sold out when every ticket for that show has
     # sold_out = TRUE and at least one ticket exists; shows with no tickets are not
-    # counted as sold out.
+    # counted as sold out. total_shows is the sold-out-rate denominator: it includes
+    # confirmed sellouts from any source plus non-sold-out shows only when the
+    # scraper reports sold_out reliably.
     #
     # The LATERAL subquery is load-bearing: a previous version used a top-level
     # `(SELECT show_id, BOOL_AND(sold_out) FROM tickets GROUP BY show_id)` LEFT
@@ -72,6 +74,44 @@ class ComedianQueries:
     # so the work scales with len(lineup_items for target comedians) instead of
     # len(tickets).
     BATCH_UPDATE_COMEDIAN_SHOW_COUNTS = '''
+        WITH source_sold_out_capabilities AS (
+            SELECT
+                resolved.scraper_key,
+                CASE
+                    WHEN resolved.metadata ? 'reports_sold_out' THEN
+                        lower(resolved.metadata->>'reports_sold_out') IN ('1', 'true', 'yes')
+                    ELSE
+                        resolved.platform IN ('eventbrite', 'seatengine', 'seatengine_v3', 'tixr')
+                        OR resolved.scraper_key IN (
+                            'eventbrite',
+                            'seatengine',
+                            'seatengine_classic',
+                            'seatengine_v3',
+                            'tixr'
+                        )
+                END AS reports_sold_out
+            FROM scraping_sources ss
+            JOIN clubs cl ON cl.id = ss.club_id
+            LEFT JOIN chain_scraping_defaults csd
+              ON csd.chain_id = cl.chain_id
+             AND csd.platform = ss.platform
+             AND csd.priority = ss.priority
+             AND NULLIF(ss.scraper_key, '') IS NULL
+             AND csd.enabled = TRUE
+            CROSS JOIN LATERAL (
+                SELECT
+                    COALESCE(NULLIF(ss.scraper_key, ''), csd.scraper_key, ss.scraper_key) AS scraper_key,
+                    COALESCE(NULLIF(ss.platform, ''), csd.platform, ss.platform) AS platform,
+                    COALESCE(csd.metadata, '{}'::jsonb) || COALESCE(ss.metadata, '{}'::jsonb) AS metadata
+            ) resolved
+            WHERE ss.enabled = TRUE
+              AND NULLIF(resolved.scraper_key, '') IS NOT NULL
+        ),
+        reliable_sold_out_scrapers AS (
+            SELECT scraper_key, BOOL_OR(reports_sold_out) AS reports_sold_out
+            FROM source_sold_out_capabilities
+            GROUP BY scraper_key
+        )
         UPDATE comedians AS c
         SET
             total_shows    = v.total_shows,
@@ -79,10 +119,15 @@ class ComedianQueries:
         FROM (
             SELECT
                 li.comedian_id,
-                COUNT(DISTINCT li.show_id) AS total_shows,
+                COUNT(DISTINCT li.show_id) FILTER (
+                    WHERE ta.all_sold_out OR COALESCE(ros.reports_sold_out, FALSE)
+                ) AS total_shows,
                 COUNT(DISTINCT li.show_id) FILTER (WHERE ta.all_sold_out)
                     AS sold_out_shows
             FROM lineup_items li
+            JOIN shows s ON s.id = li.show_id
+            LEFT JOIN reliable_sold_out_scrapers ros
+              ON ros.scraper_key = s.last_scraped_by
             LEFT JOIN LATERAL (
                 SELECT BOOL_AND(t.sold_out) AS all_sold_out
                 FROM tickets t

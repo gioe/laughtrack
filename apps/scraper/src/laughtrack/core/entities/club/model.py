@@ -1,6 +1,6 @@
 import json
 from dataclasses import dataclass, field, replace
-from typing import Any, Optional
+from typing import Any, ClassVar, Optional
 from urllib.parse import urlparse
 
 from psycopg2.extras import DictRow
@@ -12,6 +12,13 @@ from laughtrack.foundation.protocols.database_entity import DatabaseEntity
 @dataclass
 class ScrapingSource:
     """Per-club scraping configuration loaded from scraping_sources."""
+
+    REPORTS_SOLD_OUT_PLATFORMS: ClassVar[frozenset[str]] = frozenset(
+        {"eventbrite", "seatengine", "seatengine_v3", "tixr"}
+    )
+    REPORTS_SOLD_OUT_SCRAPER_KEYS: ClassVar[frozenset[str]] = frozenset(
+        {"eventbrite", "seatengine", "seatengine_classic", "seatengine_v3", "tixr"}
+    )
 
     platform: str
     scraper_key: str
@@ -111,6 +118,17 @@ class ScrapingSource:
             value = None
 
         return str(value) if value is not None else None
+
+    @property
+    def reports_sold_out(self) -> bool:
+        raw = self.metadata.get("reports_sold_out")
+        if raw is not None:
+            return str(raw).strip().lower() in {"1", "true", "yes"}
+
+        return (
+            self.platform in self.REPORTS_SOLD_OUT_PLATFORMS
+            or self.scraper_key in self.REPORTS_SOLD_OUT_SCRAPER_KEYS
+        )
 
 
 @dataclass
