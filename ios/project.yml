@@ -50,7 +50,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.laughtrack.core
         GENERATE_INFOPLIST_FILE: "YES"
-        MARKETING_VERSION: "2.1"
+        MARKETING_VERSION: "2.2"
   LaughTrackBridge:
     type: framework
     platform: iOS
@@ -63,7 +63,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.laughtrack.bridge
         GENERATE_INFOPLIST_FILE: "YES"
-        MARKETING_VERSION: "2.1"
+        MARKETING_VERSION: "2.2"
   LaughTrackAPIClient:
     type: framework
     platform: iOS
@@ -83,7 +83,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.laughtrack.apiclient
         GENERATE_INFOPLIST_FILE: "YES"
-        MARKETING_VERSION: "2.1"
+        MARKETING_VERSION: "2.2"
   LaughTrack:
     type: application
     platform: iOS
@@ -153,8 +153,8 @@ targets:
         # on device (didFailToRegister fires; no token is ever delivered), even
         # though the provisioning profile grants it.
         CODE_SIGN_ENTITLEMENTS: Sources/LaughTrackApp/LaughTrack.entitlements
-        MARKETING_VERSION: "2.1"
-        CURRENT_PROJECT_VERSION: "15"
+        MARKETING_VERSION: "2.2"
+        CURRENT_PROJECT_VERSION: "16"
         SWIFT_EMIT_LOC_STRINGS: "YES"
         # iPhone-only (TARGETED_DEVICE_FAMILY "1"). Without this xcodegen defaults
         # to "1,2" (iPhone + iPad), which makes App Store Connect require iPad
@@ -195,7 +195,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.laughtrack.tests
         GENERATE_INFOPLIST_FILE: "YES"
-        MARKETING_VERSION: "2.1"
+        MARKETING_VERSION: "2.2"
   LaughTrackUITests:
     type: bundle.ui-testing
     platform: iOS
@@ -218,5 +218,5 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.laughtrack.uitests
         GENERATE_INFOPLIST_FILE: "YES"
-        MARKETING_VERSION: "2.1"
+        MARKETING_VERSION: "2.2"
         TEST_TARGET_NAME: LaughTrack
