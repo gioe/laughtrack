@@ -101,7 +101,10 @@ class ComedianQueries:
             CROSS JOIN LATERAL (
                 SELECT
                     COALESCE(NULLIF(ss.scraper_key, ''), csd.scraper_key, ss.scraper_key) AS scraper_key,
-                    COALESCE(NULLIF(ss.platform, ''), csd.platform, ss.platform) AS platform,
+                    -- ss.platform is the ScrapingPlatform enum; NULLIF(enum, '') fails
+                    -- on Postgres because '' cannot be cast to the enum domain. The text
+                    -- NULLIF pattern works on scraper_key (text column) but NOT here.
+                    COALESCE(ss.platform, csd.platform) AS platform,
                     COALESCE(csd.metadata, '{}'::jsonb) || COALESCE(ss.metadata, '{}'::jsonb) AS metadata
             ) resolved
             WHERE ss.enabled = TRUE
