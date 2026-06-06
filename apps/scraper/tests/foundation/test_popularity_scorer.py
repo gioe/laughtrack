@@ -495,3 +495,30 @@ class TestBatchGetClubPopularitySql:
         assert "click_demand_rate" in sql
         assert "30 days" in sql
         assert "/ 20.0" in sql
+
+    def test_query_applies_dormant_decay(self):
+        """Dormant clubs (no shows in last 180 days) get their stored popularity halved.
+
+        Regression for TASK-2702 — before this change, BATCH_GET_CLUB_POPULARITY
+        only emitted rows for clubs with shows in the ±90d window, so clubs
+        dormant for years kept their last-active popularity in search results.
+        """
+        sql = self.ClubQueries.BATCH_GET_CLUB_POPULARITY.lower()
+        # Dormant branch must reference both the 180-day cutoff and the halving factor.
+        assert "180 days" in sql
+        assert "* 0.5" in sql
+        # The dormant branch reads stored popularity off the clubs table and
+        # filters out clubs that already appear in the active branch — guard
+        # against a regression that drops either condition.
+        assert "clubs.popularity" in sql
+        assert "not in (select club_id from active_popularity)" in sql
+
+    def test_query_takes_target_ids_twice(self):
+        """Query references the target-id list twice (active branch + dormant branch).
+
+        The handler passes ``(target_ids, target_ids)`` to satisfy both
+        ``%s::int[]`` placeholders; if this contract changes, the handler
+        binding has to change in lockstep.
+        """
+        sql = self.ClubQueries.BATCH_GET_CLUB_POPULARITY
+        assert sql.count("%s::int[]") == 2
