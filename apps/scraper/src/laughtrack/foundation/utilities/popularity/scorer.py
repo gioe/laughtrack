@@ -5,6 +5,7 @@ This module provides consistent popularity calculation algorithms specific to
 the comedy show domain.
 """
 
+import math
 from typing import Optional
 
 
@@ -19,6 +20,13 @@ class PopularityScorer:
     # Performance metric weights
     SHOW_PERFORMANCE_WEIGHT = 0.6
     SOCIAL_MEDIA_WEIGHT = 0.4
+
+    # Podcast appearances are a corroborated off-platform signal. Keep this
+    # additive and small so it lifts verified podcast-only comedians above the
+    # no-signal floor without overwhelming social reach or show performance.
+    PODCAST_APPEARANCE_WEIGHT = 0.08
+    MIN_PODCAST_APPEARANCE_SCORE = 0.75
+    MAX_PODCAST_APPEARANCES_FOR_SCORE = 10
 
     # Inner blend weights for performance_score — recency activity vs historical sold-out track record.
     # Must sum to 1.0. Tunable.
@@ -53,6 +61,7 @@ class PopularityScorer:
         recency_score: float = 0.0,
         has_image: bool = False,
         has_podcast_appearance: bool = False,
+        appearance_count: int = 0,
     ) -> float:
         """
         Calculate comedian popularity from social reach and show performance.
@@ -79,16 +88,21 @@ class PopularityScorer:
             has_image: True when an image has been sourced for the comedian
             has_podcast_appearance: True when at least one comedian_podcasts or
                 episode_appearances row is in review_status='accepted'
+            appearance_count: Verified podcast episode appearance count, when available
 
         Returns:
             float: Popularity score between 0 and 1
         """
         social_score = cls._calculate_social_media_score(instagram_followers, tiktok_followers, youtube_followers)
+        podcast_score = cls._calculate_podcast_appearance_score(
+            has_podcast_appearance=has_podcast_appearance,
+            appearance_count=appearance_count,
+        )
 
         low_confidence = not cls._passes_confidence_gate(
             total_shows=total_shows,
             has_image=has_image,
-            has_podcast_appearance=has_podcast_appearance,
+            has_podcast_appearance=has_podcast_appearance or appearance_count > 0,
         )
 
         performance_score = cls._calculate_blended_performance_score(
@@ -98,14 +112,28 @@ class PopularityScorer:
             low_confidence=low_confidence,
         )
 
-        popularity = social_score * cls.SOCIAL_MEDIA_WEIGHT + performance_score * cls.SHOW_PERFORMANCE_WEIGHT
+        popularity = (
+            social_score * cls.SOCIAL_MEDIA_WEIGHT
+            + performance_score * cls.SHOW_PERFORMANCE_WEIGHT
+            + podcast_score * cls.PODCAST_APPEARANCE_WEIGHT
+        )
 
-        return round(popularity, 4)
+        return round(min(popularity, 1.0), 4)
 
     @classmethod
-    def _passes_confidence_gate(
-        cls, total_shows: int, has_image: bool, has_podcast_appearance: bool
-    ) -> bool:
+    def _calculate_podcast_appearance_score(cls, has_podcast_appearance: bool, appearance_count: int) -> float:
+        """Calculate a small verified-podcast presence score in [0.0, 1.0]."""
+        if not has_podcast_appearance and appearance_count <= 0:
+            return 0.0
+
+        if appearance_count <= 0:
+            return 1.0
+
+        normalized = math.log1p(appearance_count) / math.log1p(cls.MAX_PODCAST_APPEARANCES_FOR_SCORE)
+        return min(max(normalized, cls.MIN_PODCAST_APPEARANCE_SCORE), 1.0)
+
+    @classmethod
+    def _passes_confidence_gate(cls, total_shows: int, has_image: bool, has_podcast_appearance: bool) -> bool:
         """Return True when at least one confidence signal vouches for the comedian.
 
         Any one of: a real track record (total_shows >= MIN_CONFIDENT_TOTAL_SHOWS),
@@ -114,11 +142,7 @@ class PopularityScorer:
         comedian is treated as low-confidence and performance_score is capped at
         LOW_CONFIDENCE_PERFORMANCE_CAP downstream.
         """
-        return (
-            total_shows >= cls.MIN_CONFIDENT_TOTAL_SHOWS
-            or has_image
-            or has_podcast_appearance
-        )
+        return total_shows >= cls.MIN_CONFIDENT_TOTAL_SHOWS or has_image or has_podcast_appearance
 
     @classmethod
     def _calculate_blended_performance_score(
@@ -151,10 +175,7 @@ class PopularityScorer:
             recency_component = min(recency_score, 1.0)
             # Weights sum to 1.0 (enforced by test) and both components are in [0, 1],
             # so the result is already bounded — no outer clamp needed.
-            blended = (
-                cls.RECENCY_BLEND_WEIGHT * recency_component
-                + cls.HISTORICAL_BLEND_WEIGHT * historical_component
-            )
+            blended = cls.RECENCY_BLEND_WEIGHT * recency_component + cls.HISTORICAL_BLEND_WEIGHT * historical_component
 
         if low_confidence:
             return min(blended, cls.LOW_CONFIDENCE_PERFORMANCE_CAP)

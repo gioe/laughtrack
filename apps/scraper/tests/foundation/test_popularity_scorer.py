@@ -57,17 +57,12 @@ class TestCalculateComedianPopularityRecencyScore:
             recency_score=0.5,
             has_image=True,
         )
-        expected_perf = (
-            PopularityScorer.RECENCY_BLEND_WEIGHT * 0.5
-            + PopularityScorer.HISTORICAL_BLEND_WEIGHT * 0.0
-        )
+        expected_perf = PopularityScorer.RECENCY_BLEND_WEIGHT * 0.5 + PopularityScorer.HISTORICAL_BLEND_WEIGHT * 0.0
         assert score == round(1.0 * 0.4 + expected_perf * 0.6, 4)
 
     def test_recency_score_above_1_is_clamped(self):
         """recency_score > 1.0 is clamped to 1.0 before blending; popularity stays in [0, 1]."""
-        score = PopularityScorer.calculate_comedian_popularity(
-            recency_score=2.0, has_image=True
-        )
+        score = PopularityScorer.calculate_comedian_popularity(recency_score=2.0, has_image=True)
         # clamped recency=1.0, no sold_out → performance = 0.6*1.0 + 0.4*0.0 = 0.6
         # popularity = 0.0*0.4 + 0.6*0.6 = 0.36
         expected_perf = PopularityScorer.RECENCY_BLEND_WEIGHT * 1.0
@@ -100,18 +95,11 @@ def test_performance_score_blends_recency_and_sold_out():
     # recency=0.9 + 2/10 sold_out → historical = 0.2 + min(10/100, 0.2) = 0.3
     # blended performance = 0.6*0.9 + 0.4*0.3 = 0.66
     # popularity (no social) = 0.0*0.4 + 0.66*0.6 = 0.396
-    blended = PopularityScorer.calculate_comedian_popularity(
-        sold_out_shows=2, total_shows=10, recency_score=0.9
-    )
+    blended = PopularityScorer.calculate_comedian_popularity(sold_out_shows=2, total_shows=10, recency_score=0.9)
     recency_only = PopularityScorer.calculate_comedian_popularity(recency_score=0.9)
-    sold_out_only = PopularityScorer.calculate_comedian_popularity(
-        sold_out_shows=2, total_shows=10, recency_score=0.0
-    )
+    sold_out_only = PopularityScorer.calculate_comedian_popularity(sold_out_shows=2, total_shows=10, recency_score=0.0)
 
-    expected_perf = (
-        PopularityScorer.RECENCY_BLEND_WEIGHT * 0.9
-        + PopularityScorer.HISTORICAL_BLEND_WEIGHT * 0.3
-    )
+    expected_perf = PopularityScorer.RECENCY_BLEND_WEIGHT * 0.9 + PopularityScorer.HISTORICAL_BLEND_WEIGHT * 0.3
     assert blended == round(0.0 * 0.4 + expected_perf * 0.6, 4)
     assert blended > recency_only  # historical contributes — bug-fix proof
     assert blended > sold_out_only  # recency contributes too
@@ -127,15 +115,11 @@ def test_performance_score_cold_start_historical_fallback():
     # 10/10 sold_out → historical_component = min(1.0 + 0.1, 1.0) = 1.0
     # cold-start performance = 1.0 (historical only; no blend penalty)
     # popularity (no social) = 0.0*0.4 + 1.0*0.6 = 0.6
-    score = PopularityScorer.calculate_comedian_popularity(
-        sold_out_shows=10, total_shows=10, recency_score=0.0
-    )
+    score = PopularityScorer.calculate_comedian_popularity(sold_out_shows=10, total_shows=10, recency_score=0.0)
     assert score == round(0.0 * 0.4 + 1.0 * 0.6, 4)
 
     # default (omitted recency_score) matches explicit 0.0 — shape parity check
-    default_recency = PopularityScorer.calculate_comedian_popularity(
-        sold_out_shows=10, total_shows=10
-    )
+    default_recency = PopularityScorer.calculate_comedian_popularity(sold_out_shows=10, total_shows=10)
     assert default_recency == score
 
 
@@ -146,11 +130,7 @@ def test_blend_weights_sum_to_one():
     future tuner from editing one constant without the other and silently
     pushing performance_score out of bounds.
     """
-    assert (
-        PopularityScorer.RECENCY_BLEND_WEIGHT
-        + PopularityScorer.HISTORICAL_BLEND_WEIGHT
-        == 1.0
-    )
+    assert PopularityScorer.RECENCY_BLEND_WEIGHT + PopularityScorer.HISTORICAL_BLEND_WEIGHT == 1.0
 
 
 class TestConfidenceGate:
@@ -162,9 +142,7 @@ class TestConfidenceGate:
         """The exact bug: no social data + 1-of-1 sold_out used to produce
         popularity=0.6 (Rising Star). With the gate, performance is capped at
         LOW_CONFIDENCE_PERFORMANCE_CAP and popularity falls below the cliff."""
-        score = PopularityScorer.calculate_comedian_popularity(
-            sold_out_shows=1, total_shows=1
-        )
+        score = PopularityScorer.calculate_comedian_popularity(sold_out_shows=1, total_shows=1)
         # historical = 1/1 + min(1/100, 0.2) = 1.0, capped at LOW_CONFIDENCE_PERFORMANCE_CAP (0.5)
         # popularity = 0.0*0.4 + 0.5*0.6 = 0.3
         expected = round(
@@ -189,12 +167,9 @@ class TestConfidenceGate:
     def test_total_shows_one_below_threshold_is_capped(self):
         """Boundary: MIN_CONFIDENT_TOTAL_SHOWS - 1 is still low-confidence."""
         below = PopularityScorer.MIN_CONFIDENT_TOTAL_SHOWS - 1
-        score = PopularityScorer.calculate_comedian_popularity(
-            sold_out_shows=below, total_shows=below
-        )
+        score = PopularityScorer.calculate_comedian_popularity(sold_out_shows=below, total_shows=below)
         expected = round(
-            PopularityScorer.LOW_CONFIDENCE_PERFORMANCE_CAP
-            * PopularityScorer.SHOW_PERFORMANCE_WEIGHT,
+            PopularityScorer.LOW_CONFIDENCE_PERFORMANCE_CAP * PopularityScorer.SHOW_PERFORMANCE_WEIGHT,
             4,
         )
         assert score == expected
@@ -202,19 +177,21 @@ class TestConfidenceGate:
     def test_has_image_signal_passes_gate(self):
         """A sourced image (Wikidata/TMDb hit) is itself a confidence signal —
         a real comedian whose only show data is 1-of-1 sold_out still saturates."""
-        score = PopularityScorer.calculate_comedian_popularity(
-            sold_out_shows=1, total_shows=1, has_image=True
-        )
+        score = PopularityScorer.calculate_comedian_popularity(sold_out_shows=1, total_shows=1, has_image=True)
         # gate passes via has_image → historical=1.0 → popularity=0.6
         assert score == round(0.0 * 0.4 + 1.0 * 0.6, 4)
 
     def test_verified_podcast_appearance_signal_passes_gate(self):
         """A verified podcast appearance (accepted comedian_podcasts or
-        episode_appearances row) also passes the gate by itself."""
+        episode_appearances row) also passes the gate by itself and receives
+        the additive podcast component."""
         score = PopularityScorer.calculate_comedian_popularity(
             sold_out_shows=1, total_shows=1, has_podcast_appearance=True
         )
-        assert score == round(0.0 * 0.4 + 1.0 * 0.6, 4)
+        assert score == round(
+            0.0 * 0.4 + 1.0 * 0.6 + 1.0 * PopularityScorer.PODCAST_APPEARANCE_WEIGHT,
+            4,
+        )
 
     def test_low_confidence_with_recency_is_also_capped(self):
         """The cap applies to the blended performance score too, so a
@@ -222,12 +199,9 @@ class TestConfidenceGate:
         saturate above the cap."""
         # recency=1.0 → blended perf = 0.6*1.0 + 0.4*0.0 = 0.6, capped at 0.5
         # popularity = 0.0*0.4 + 0.5*0.6 = 0.3
-        score = PopularityScorer.calculate_comedian_popularity(
-            sold_out_shows=0, total_shows=0, recency_score=1.0
-        )
+        score = PopularityScorer.calculate_comedian_popularity(sold_out_shows=0, total_shows=0, recency_score=1.0)
         expected = round(
-            PopularityScorer.LOW_CONFIDENCE_PERFORMANCE_CAP
-            * PopularityScorer.SHOW_PERFORMANCE_WEIGHT,
+            PopularityScorer.LOW_CONFIDENCE_PERFORMANCE_CAP * PopularityScorer.SHOW_PERFORMANCE_WEIGHT,
             4,
         )
         assert score == expected
@@ -239,8 +213,7 @@ class TestConfidenceGate:
         # popularity = 0.0*0.4 + 0.3*0.6 = 0.18
         score = PopularityScorer.calculate_comedian_popularity(recency_score=0.5)
         expected = round(
-            0.0 * 0.4
-            + (PopularityScorer.RECENCY_BLEND_WEIGHT * 0.5) * 0.6,
+            0.0 * 0.4 + (PopularityScorer.RECENCY_BLEND_WEIGHT * 0.5) * 0.6,
             4,
         )
         assert score == expected
@@ -253,6 +226,45 @@ class TestConfidenceGate:
         assert PopularityScorer.MIN_CONFIDENT_TOTAL_SHOWS >= 1
 
 
+class TestPodcastAppearanceComponent:
+    """Verified podcast appearances add a small positive popularity signal."""
+
+    def test_verified_podcast_only_comedian_scores_above_no_signal_floor(self):
+        """A verified podcast appearance is enough to escape popularity=0."""
+        score = PopularityScorer.calculate_comedian_popularity(has_podcast_appearance=True)
+        assert score == round(PopularityScorer.PODCAST_APPEARANCE_WEIGHT, 4)
+        assert score > PopularityScorer.calculate_comedian_popularity()
+
+    def test_appearance_count_is_log_normalized_with_positive_floor(self):
+        """When a verified episode count is available, repeated appearances
+        can add more signal while one appearance still gets a meaningful bump."""
+        single = PopularityScorer.calculate_comedian_popularity(appearance_count=1)
+        many = PopularityScorer.calculate_comedian_popularity(appearance_count=10)
+
+        expected_single = round(
+            PopularityScorer.MIN_PODCAST_APPEARANCE_SCORE * PopularityScorer.PODCAST_APPEARANCE_WEIGHT,
+            4,
+        )
+        assert single == expected_single
+        assert many == round(PopularityScorer.PODCAST_APPEARANCE_WEIGHT, 4)
+        assert many > single > 0.0
+
+    def test_podcast_component_clamps_total_popularity_to_one(self):
+        """The additive component must not push maxed-out popularity above 1."""
+        score = PopularityScorer.calculate_comedian_popularity(
+            instagram_followers=10_000_000,
+            sold_out_shows=10,
+            total_shows=10,
+            has_podcast_appearance=True,
+        )
+        assert score == 1.0
+
+    def test_podcast_component_constants_in_sensible_ranges(self):
+        assert 0.05 <= PopularityScorer.PODCAST_APPEARANCE_WEIGHT <= 0.10
+        assert 0.0 < PopularityScorer.MIN_PODCAST_APPEARANCE_SCORE <= 1.0
+        assert PopularityScorer.MAX_PODCAST_APPEARANCES_FOR_SCORE >= 1
+
+
 def test_performance_score_touring_only_recency_contribution():
     """
     Touring-only: zero sold_out history but high recency. The comedian still
@@ -262,9 +274,7 @@ def test_performance_score_touring_only_recency_contribution():
     # recency=0.8, sold_out=0, total=0 → historical_component=0.0
     # blended performance = 0.6*0.8 + 0.4*0.0 = 0.48
     # popularity (no social) = 0.0*0.4 + 0.48*0.6 = 0.288
-    score = PopularityScorer.calculate_comedian_popularity(
-        sold_out_shows=0, total_shows=0, recency_score=0.8
-    )
+    score = PopularityScorer.calculate_comedian_popularity(sold_out_shows=0, total_shows=0, recency_score=0.8)
     expected_perf = PopularityScorer.RECENCY_BLEND_WEIGHT * 0.8
     assert score == round(0.0 * 0.4 + expected_perf * 0.6, 4)
     assert score > 0.0
@@ -340,9 +350,7 @@ class TestBatchUpdateComedianShowCountsSql:
     """Contract tests for comedian sold-out denominator filtering."""
 
     def setup_method(self):
-        self.ComedianQueries = _load_module(
-            "sql/comedian_queries.py", "sql.comedian_queries_direct"
-        ).ComedianQueries
+        self.ComedianQueries = _load_module("sql/comedian_queries.py", "sql.comedian_queries_direct").ComedianQueries
 
     def test_query_uses_reports_sold_out_flag_for_denominator(self):
         sql = self.ComedianQueries.BATCH_UPDATE_COMEDIAN_SHOW_COUNTS
@@ -372,9 +380,7 @@ class TestBatchGetShowPopularitySql:
     the unclamped lineup-only formula that produced prod max=3.76 (TASK-2697)."""
 
     def setup_method(self):
-        self.ShowQueries = _load_module(
-            "sql/show_queries.py", "sql.show_queries_direct"
-        ).ShowQueries
+        self.ShowQueries = _load_module("sql/show_queries.py", "sql.show_queries_direct").ShowQueries
 
     def test_query_exists(self):
         assert hasattr(self.ShowQueries, "BATCH_GET_LINEUP_POPULARITY")
@@ -426,6 +432,7 @@ class TestGetComedianRecencyScoresSql:
         import sys
         from pathlib import Path
         import importlib.util
+
         root = Path(__file__).parents[2]
         spec = importlib.util.spec_from_file_location(
             "sql.comedian_queries_direct2",
@@ -470,9 +477,7 @@ class TestBatchGetClubPopularitySql:
     """Contract tests for the BATCH_GET_CLUB_POPULARITY SQL query."""
 
     def setup_method(self):
-        self.ClubQueries = _load_module(
-            "sql/club_queries.py", "sql.club_queries_direct"
-        ).ClubQueries
+        self.ClubQueries = _load_module("sql/club_queries.py", "sql.club_queries_direct").ClubQueries
 
     def test_query_exists(self):
         assert hasattr(self.ClubQueries, "BATCH_GET_CLUB_POPULARITY")
