@@ -118,6 +118,44 @@ For Gmail, create an **App Password** at [myaccount.google.com/apppasswords](htt
 |---|---|---|
 | `DIRECTORY_PATH` | No | Absolute path to a local directory for file storage (e.g. `/tmp/laughtrack`). Not required in Cloud Run or Vercel deployments where this path is unused. |
 
+### Affiliate Ticket Routing (Optional)
+
+Outbound ticket CTAs route through `/api/v1/tickets/out`, which records click
+metadata and then redirects to the ticket seller. Every affiliate program is
+disabled by default: if the relevant env vars are absent or empty, users are sent
+to the original ticket URL and no visible error is shown.
+
+| Program | Network / source | Env vars | Launch status |
+|---|---|---|---|
+| Ticketmaster / TicketWeb / Live Nation | Impact via Ticketmaster Global Affiliate Program | `TICKETMASTER_AFFILIATE_CAMEFROM` | Enabled when the `camefrom` value is present. Impact publisher approval is still required before using production values. |
+| Eventbrite | Eventbrite Affiliates or network-issued Eventbrite affiliate link | `EVENTBRITE_AFFILIATE_CODE` | Requires affiliate approval and a publisher-specific code. |
+| SeatGeek | Impact | `SEATGEEK_AFFILIATE_REDIRECT_BASE_URL` | Requires SeatGeek approval and the network-generated deep-link wrapper. |
+| TickPick | Direct / network-issued affiliate link | `TICKPICK_AFFILIATE_REDIRECT_BASE_URL` | Requires TickPick approval and the approved tracking wrapper. |
+| Vivid Seats | Direct standard affiliate program / FlexOffers-style network-issued link | `VIVID_SEATS_AFFILIATE_REDIRECT_BASE_URL` | Requires Vivid Seats approval and the approved tracking wrapper. |
+| StubHub / viagogo | Awin | `STUBHUB_AFFILIATE_REDIRECT_BASE_URL` | Requires Awin program approval and the approved tracking wrapper. |
+| TicketNetwork | Direct affiliate program | `TICKETNETWORK_AFFILIATE_REDIRECT_BASE_URL` | Requires TicketNetwork approval and the approved tracking wrapper. |
+| Fever | Fever Affiliate Program | `FEVER_AFFILIATE_REDIRECT_BASE_URL` | Requires Fever approval and the approved tracking wrapper. |
+| Gametime | FlexOffers / Impact-style network-issued link | `GAMETIME_AFFILIATE_REDIRECT_BASE_URL` | Requires program approval and the approved tracking wrapper. |
+| Viator | Viator Partner Program | `VIATOR_AFFILIATE_PID`, `VIATOR_AFFILIATE_MCID` | Requires Viator partner approval and both publisher IDs. |
+
+Tracking strategies:
+- `TICKETMASTER_AFFILIATE_CAMEFROM` appends `camefrom=<value>` to Ticketmaster, TicketWeb, and Live Nation URLs.
+- `EVENTBRITE_AFFILIATE_CODE` appends `aff=<value>` to Eventbrite URLs.
+- Viator appends `pid=<VIATOR_AFFILIATE_PID>` and `mcid=<VIATOR_AFFILIATE_MCID>`. Viator states these parameters tie bookings to the partner account, so do not rename or strip them.
+- Redirect-wrapper vars must contain the approved network tracking URL, for example `https://network.example/click?campaign=laughtrack`. LaughTrack appends `u=<encoded original URL>` to that wrapper at click time. If a network requires a different destination parameter name, update the corresponding affiliate rule in `apps/web/lib/affiliate/affiliateRouting.ts` and add a focused transform test before enabling the var in production.
+
+Program setup references:
+- Ticketmaster: https://developer.ticketmaster.com/partners/distribution-partners/affiliate-sign-up/
+- Eventbrite: https://www.eventbrite.com/help/en-us/articles/328394/eventbrite-affiliate-program-terms-and-conditions/
+- SeatGeek: https://seatgeek.com/blog/seatgeek-partner-program-instructions-info
+- TickPick: https://www.tickpick.com/affiliates/
+- Vivid Seats: https://www.vividseats.com/affiliates
+- StubHub / viagogo: https://my.stubhub.com/affiliates
+- TicketNetwork: https://www.ticketnetwork.com/en/affiliate-program
+- Fever: https://business.feverup.com/affiliates/
+- Gametime: https://www.flexoffers.com/affiliate-programs/gametime-affiliate-program/
+- Viator: https://partnerresources.viator.com/travel-content/links/create-links/
+
 ### Cloud Run (Auto-Set)
 
 | Variable | Required | Description |
