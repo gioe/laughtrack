@@ -89,6 +89,12 @@ class IceHouseScraper(BaseScraper):
                     if page_count == 1:
                         self._warn_empty_extraction(current_url, subject="data", payload=response)
                         return None
+                    Logger.warn(
+                        f"{self._log_prefix}: empty/None response on page {page_count} of "
+                        f"{current_url}; returning {len(all_events)} event(s) collected so far "
+                        f"(possible partial truncation)",
+                        self.logger_context,
+                    )
                     break
 
                 events = IceHouseExtractor.extract_events(response, api_url=current_url)

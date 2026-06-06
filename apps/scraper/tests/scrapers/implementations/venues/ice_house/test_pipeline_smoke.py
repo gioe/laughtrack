@@ -475,6 +475,39 @@ async def test_get_data_paginates_when_has_next_true(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_get_data_stops_at_safety_page_cap(monkeypatch, caplog):
+    """get_data() stops at _TOCKIFY_MAX_PAGES even when hasNext stays true.
+
+    Guards the safety cap against a server that always reports more pages —
+    the loop must terminate, the warn must fire, and accumulated events from
+    every page must still be returned.
+    """
+    import logging
+    from laughtrack.scrapers.implementations.venues.ice_house import scraper as scraper_mod
+
+    scraper = IceHouseScraper(_club())
+    call_count = {"n": 0}
+
+    async def fake_fetch_json(self, url: str, **kwargs):
+        call_count["n"] += 1
+        return _api_response(
+            [_raw_event(uid=str(call_count["n"]), title=f"Show P{call_count['n']}", start_ms=1775000000000 + call_count["n"])],
+            has_next=True,
+        )
+
+    monkeypatch.setattr(IceHouseScraper, "fetch_json", fake_fetch_json)
+    monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", lambda url: __import__("asyncio").sleep(0))
+
+    with caplog.at_level(logging.WARNING):
+        result = await scraper.get_data("https://tockify.com/api/ngevent?calname=theicehouse&max=200&startms=0")
+
+    assert call_count["n"] == scraper_mod._TOCKIFY_MAX_PAGES
+    assert isinstance(result, IceHousePageData)
+    assert len(result.event_list) == scraper_mod._TOCKIFY_MAX_PAGES
+    assert any("page cap" in r.getMessage() for r in caplog.records), "expected warn about hitting page cap"
+
+
+@pytest.mark.asyncio
 async def test_get_data_stops_pagination_when_has_next_true_but_no_events(monkeypatch):
     """get_data() does not loop forever if hasNext=true but the page parsed zero events.
 
