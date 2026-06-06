@@ -10,7 +10,7 @@ import { Ticket } from "@/objects/class/ticket/Ticket";
 import { TicketDTO } from "@/objects/class/ticket/ticket.interface";
 import { Button } from "@/ui/components/ui/button";
 import PriceUnavailableInfo from "@/ui/components/tickets/PriceUnavailableInfo";
-import { trackTicketClick } from "@/util/ticketClickTracking";
+import { buildTicketOutboundHref } from "@/util/ticketOutboundLink";
 
 interface ShowTicketCtaProps {
     show: ShowDetailDTO;
@@ -78,24 +78,22 @@ const ShowTicketCta: React.FC<ShowTicketCtaProps> = ({
         : show.name
           ? `Get tickets for ${show.name}`
           : `Get tickets for comedy show at ${show.clubName ?? "this venue"}`;
+    const outboundHref = buildTicketOutboundHref({
+        showId: show.id,
+        clubId: show.clubId,
+        destinationUrl: url,
+        sourceSurface: "show_detail",
+    });
 
     return (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 mt-8 mb-10">
             <div className="flex flex-wrap items-center gap-2">
                 <Button asChild variant="roundedShimmer" className="gap-2">
                     <Link
-                        href={url}
+                        href={outboundHref}
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label={ctaLabel}
-                        onClick={() => {
-                            void trackTicketClick({
-                                showId: show.id,
-                                clubId: show.clubId,
-                                destinationUrl: url,
-                                sourceSurface: "show_detail",
-                            });
-                        }}
                     >
                         {ctaCopy}
                         {priceLabel && (

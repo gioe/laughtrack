@@ -194,7 +194,7 @@ describe("ShowCard", () => {
         ).toContain("The venue has not made this ticket price available yet.");
     });
 
-    it("records card ticket clicks without blocking the outbound link", () => {
+    it("routes card ticket clicks through the outbound link without client-side duplicate tracking", () => {
         render(
             <ShowCard
                 show={{
@@ -217,12 +217,15 @@ describe("ShowCard", () => {
         link.addEventListener("click", (event) => event.preventDefault());
         fireEvent.click(link);
 
-        expect(link.getAttribute("href")).toBe("https://tickets.example.com");
-        expect(trackTicketClick).toHaveBeenCalledWith({
-            showId: 42,
-            clubId: 24,
-            destinationUrl: "https://tickets.example.com",
-            sourceSurface: "show_card",
-        });
+        const href = link.getAttribute("href");
+        expect(href).toContain("/api/v1/tickets/out?");
+        const outbound = new URL(href ?? "", "http://localhost");
+        expect(outbound.searchParams.get("showId")).toBe("42");
+        expect(outbound.searchParams.get("clubId")).toBe("24");
+        expect(outbound.searchParams.get("surface")).toBe("show_card");
+        expect(outbound.searchParams.get("url")).toBe(
+            "https://tickets.example.com",
+        );
+        expect(trackTicketClick).not.toHaveBeenCalled();
     });
 });

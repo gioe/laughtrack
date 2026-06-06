@@ -14,7 +14,7 @@ import EntityCard from "../entity";
 import { formatShowDate } from "@/util/dateUtil";
 import { hasUnknownAvailableTicketPrice } from "@/util/ticket/ticketUtil";
 import PriceUnavailableInfo from "@/ui/components/tickets/PriceUnavailableInfo";
-import { trackTicketClick } from "@/util/ticketClickTracking";
+import { buildTicketOutboundHref } from "@/util/ticketOutboundLink";
 
 // NOTE: Responsive classes in this file use project-custom Tailwind breakpoints
 // (not Tailwind defaults). See tailwind.config.ts `theme.screens` for definitions:
@@ -192,6 +192,14 @@ const ShowCard: React.FC<ShowCardProps> = ({
                                     parsedShow.tickets[0].purchaseUrl;
                                 const canPurchase =
                                     stillOnSale && !!purchaseUrl;
+                                const outboundHref = purchaseUrl
+                                    ? buildTicketOutboundHref({
+                                          showId: show.id,
+                                          clubId: show.clubId,
+                                          destinationUrl: purchaseUrl,
+                                          sourceSurface: "show_card",
+                                      })
+                                    : "";
                                 const hasUnknownPrice =
                                     hasUnknownAvailableTicketPrice(
                                         parsedShow.tickets,
@@ -204,20 +212,10 @@ const ShowCard: React.FC<ShowCardProps> = ({
                                                 variant="roundedShimmer"
                                             >
                                                 <Link
-                                                    href={purchaseUrl}
+                                                    href={outboundHref}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     aria-label={ticketLabel}
-                                                    onClick={() => {
-                                                        void trackTicketClick({
-                                                            showId: show.id,
-                                                            clubId: show.clubId,
-                                                            destinationUrl:
-                                                                purchaseUrl,
-                                                            sourceSurface:
-                                                                "show_card",
-                                                        });
-                                                    }}
                                                 >
                                                     Get Tickets
                                                 </Link>

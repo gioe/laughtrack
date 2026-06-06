@@ -89,7 +89,7 @@ describe("ShowTicketCta", () => {
         ).toContain("The venue has not made this ticket price available yet.");
     });
 
-    it("renders the RSVP variant for open-mic shows: no price, RSVP copy, link target preserved", () => {
+    it("renders the RSVP variant for open-mic shows: no price, RSVP copy, original target preserved in outbound URL", () => {
         render(
             <ShowTicketCta
                 isPast={false}
@@ -114,7 +114,12 @@ describe("ShowTicketCta", () => {
         expect(link.textContent).toContain("RSVP");
         expect(link.textContent).not.toContain("Free");
         expect(link.textContent).not.toContain("$");
-        expect(link.getAttribute("href")).toBe(
+        const outbound = new URL(
+            link.getAttribute("href") ?? "",
+            "http://localhost",
+        );
+        expect(outbound.pathname).toBe("/api/v1/tickets/out");
+        expect(outbound.searchParams.get("url")).toBe(
             "https://example.com/openmic",
         );
         expect(
@@ -124,7 +129,7 @@ describe("ShowTicketCta", () => {
         ).toBeNull();
     });
 
-    it("records detail CTA ticket clicks without preventing the outbound link", () => {
+    it("routes detail CTA ticket clicks through the outbound link without client-side duplicate tracking", () => {
         render(
             <ShowTicketCta
                 isPast={false}
@@ -148,12 +153,15 @@ describe("ShowTicketCta", () => {
         link.addEventListener("click", (event) => event.preventDefault());
         fireEvent.click(link);
 
-        expect(link.getAttribute("href")).toBe("https://example.com/tickets");
-        expect(trackTicketClick).toHaveBeenCalledWith({
-            showId: 42,
-            clubId: 24,
-            destinationUrl: "https://example.com/tickets",
-            sourceSurface: "show_detail",
-        });
+        const href = link.getAttribute("href");
+        expect(href).toContain("/api/v1/tickets/out?");
+        const outbound = new URL(href ?? "", "http://localhost");
+        expect(outbound.searchParams.get("showId")).toBe("42");
+        expect(outbound.searchParams.get("clubId")).toBe("24");
+        expect(outbound.searchParams.get("surface")).toBe("show_detail");
+        expect(outbound.searchParams.get("url")).toBe(
+            "https://example.com/tickets",
+        );
+        expect(trackTicketClick).not.toHaveBeenCalled();
     });
 });

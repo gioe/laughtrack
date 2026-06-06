@@ -147,7 +147,7 @@ describe("CompactShowCard", () => {
         ).toContain("The venue has not made this ticket price available yet.");
     });
 
-    it("records compact-card ticket clicks without blocking the outbound link", () => {
+    it("routes compact-card ticket clicks through the outbound link without client-side duplicate tracking", () => {
         render(<CompactShowCard show={baseShow} />);
 
         const link = screen.getByRole("link", {
@@ -156,12 +156,15 @@ describe("CompactShowCard", () => {
         link.addEventListener("click", (event) => event.preventDefault());
         fireEvent.click(link);
 
-        expect(link.getAttribute("href")).toBe("https://example.com/tickets");
-        expect(trackTicketClick).toHaveBeenCalledWith({
-            showId: 42,
-            clubId: 24,
-            destinationUrl: "https://example.com/tickets",
-            sourceSurface: "compact_show_card",
-        });
+        const href = link.getAttribute("href");
+        expect(href).toContain("/api/v1/tickets/out?");
+        const outbound = new URL(href ?? "", "http://localhost");
+        expect(outbound.searchParams.get("showId")).toBe("42");
+        expect(outbound.searchParams.get("clubId")).toBe("24");
+        expect(outbound.searchParams.get("surface")).toBe("compact_show_card");
+        expect(outbound.searchParams.get("url")).toBe(
+            "https://example.com/tickets",
+        );
+        expect(trackTicketClick).not.toHaveBeenCalled();
     });
 });
