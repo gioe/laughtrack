@@ -453,7 +453,7 @@ GET https://tockify.com/api/ngevent?calname=<calname>&max=200&startms=<now_ms>
 **Key implementation details:**
 - Timestamps are in **milliseconds** (not seconds)
 - Ticket URLs: normalize `embed.showclix.com/event/{slug}` → `www.showclix.com/event/{slug}`
-- Paginate via `metaData.hasNext` + `startms`
+- Paginate via `metaData.hasNext` + `startms`: the scraper loops in `get_data()` while `metaData.hasNext` is true, re-fetching with `startms` set to `max(event.start_ms) + 1` from the previous page. A 20-page safety cap (4000 events) prevents a server that always returns `hasNext=true` from spinning forever; if the cap fires, `Logger.warn` flags possible truncation.
 - `when.start.tzid` gives the timezone string
 
 **To onboard a new Tockify venue:**
