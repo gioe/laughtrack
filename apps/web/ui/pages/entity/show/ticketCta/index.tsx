@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { ShowDetailDTO } from "@/lib/data/show/detail/interface";
 import {
     formatTicketString,
@@ -89,7 +88,7 @@ const ShowTicketCta: React.FC<ShowTicketCtaProps> = ({
         <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 mt-8 mb-10">
             <div className="flex flex-wrap items-center gap-2">
                 <Button asChild variant="roundedShimmer" className="gap-2">
-                    <Link
+                    <a
                         href={outboundHref}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -101,7 +100,7 @@ const ShowTicketCta: React.FC<ShowTicketCtaProps> = ({
                                 · {priceLabel}
                             </span>
                         )}
-                    </Link>
+                    </a>
                 </Button>
                 {hasUnknownPrice && <PriceUnavailableInfo />}
             </div>

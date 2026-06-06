@@ -211,14 +211,14 @@ const ShowCard: React.FC<ShowCardProps> = ({
                                                 asChild
                                                 variant="roundedShimmer"
                                             >
-                                                <Link
+                                                <a
                                                     href={outboundHref}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     aria-label={ticketLabel}
                                                 >
                                                     Get Tickets
-                                                </Link>
+                                                </a>
                                             </Button>
                                         ) : (
                                             <Button

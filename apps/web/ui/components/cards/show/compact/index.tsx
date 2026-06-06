@@ -155,7 +155,7 @@ const CompactShowCard: React.FC<CompactShowCardProps> = ({ show }) => {
                     <div className="mt-auto pt-1 relative z-[2]">
                         {buyUrl ? (
                             <div className="flex flex-wrap items-center gap-2">
-                                <Link
+                                <a
                                     href={outboundHref}
                                     target="_blank"
                                     rel="noopener noreferrer"
@@ -163,7 +163,7 @@ const CompactShowCard: React.FC<CompactShowCardProps> = ({ show }) => {
                                     className="inline-block text-caption font-semibold text-copper-bright font-dmSans hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper"
                                 >
                                     {ticketLabel || "Get Tickets"}
-                                </Link>
+                                </a>
                                 {hasUnknownPrice && (
                                     <PriceUnavailableInfo className="h-7 w-7" />
                                 )}
