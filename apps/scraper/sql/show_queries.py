@@ -120,8 +120,11 @@ class ShowQueries:
     # time-decay on s.date so upcoming shows score highest and past shows fade.
     # Component weights mirror PopularityScorer.calculate_show_popularity (the
     # docstring contract this SQL must honor):
-    #   - lineup (0.45): AVG of comedians.popularity over the show's lineup.
-    #     comedian popularity is already in [0, 1] from update_comedian_popularity.
+    #   - lineup (0.45): headliner-concentrated weighted average of comedian
+    #     popularity over the show's lineup: 0.7 * top headliner + 0.3 * rest
+    #     average. For one-comedian shows, rest average falls back to the top
+    #     headliner, so a solo touring headliner keeps the full lineup signal.
+    #     Comedian popularity is already in [0, 1] from update_comedian_popularity.
     #   - venue  (0.20): clubs.popularity, already in [0, 1] from
     #     BATCH_UPDATE_CLUB_POPULARITY's outer LEAST clamp.
     #   - sales  (0.25): 1.0 if any ticket for the show is sold_out, else 0.0.
@@ -148,23 +151,39 @@ class ShowQueries:
     # but is wrong now that other signals matter. The downside is one extra
     # BATCH_UPDATE_SHOW_POPULARITY row per empty-lineup show per nightly run.
     BATCH_GET_LINEUP_POPULARITY = '''
-        WITH show_lineup AS (
+        WITH lineup_ranked AS (
             SELECT
                 s.id AS show_id,
                 s.club_id,
                 s.date,
-                AVG(c.popularity) AS avg_lineup_popularity
+                c.popularity,
+                ROW_NUMBER() OVER (
+                    PARTITION BY s.id
+                    ORDER BY c.popularity DESC NULLS LAST
+                ) AS lineup_rank
             FROM shows s
             LEFT JOIN lineup_items li ON li.show_id = s.id
             LEFT JOIN comedians c ON c.uuid = li.comedian_id
             WHERE s.id = ANY(%s)
-            GROUP BY s.id, s.club_id, s.date
+        ),
+        show_lineup AS (
+            SELECT
+                show_id,
+                club_id,
+                date,
+                MAX(popularity) FILTER (WHERE lineup_rank = 1) AS top_headliner_popularity,
+                AVG(popularity) FILTER (WHERE lineup_rank > 1) AS rest_lineup_popularity
+            FROM lineup_ranked
+            GROUP BY show_id, club_id, date
         )
         SELECT
             sl.show_id,
             LEAST(
                 (
-                    COALESCE(sl.avg_lineup_popularity, 0) * 0.45
+                    (
+                        COALESCE(sl.top_headliner_popularity, 0) * 0.7
+                        + COALESCE(sl.rest_lineup_popularity, sl.top_headliner_popularity, 0) * 0.3
+                    ) * 0.45
                     + COALESCE(cl.popularity, 0) * 0.2
                     + CASE WHEN sales.any_sold_out THEN 1.0 ELSE 0.0 END * 0.25
                     + COALESCE(clicks.click_demand_rate, 0) * 0.1

@@ -424,6 +424,30 @@ class TestBatchGetShowPopularitySql:
         sql = self.ShowQueries.BATCH_GET_LINEUP_POPULARITY
         assert re.search(r"LEAST\(.*?,\s*1\.0\s*\)", sql, re.DOTALL) is not None
 
+    def test_query_uses_headliner_concentration_not_raw_lineup_average(self):
+        """Lineup signal favors the strongest headliner instead of raw lineup size."""
+        sql = self.ShowQueries.BATCH_GET_LINEUP_POPULARITY.lower()
+
+        assert "top_headliner_popularity" in sql
+        assert "rest_lineup_popularity" in sql
+        assert "* 0.7" in sql
+        assert "* 0.3" in sql
+        assert "avg_lineup_popularity" not in sql
+
+    def test_bill_burr_headliner_concentration_beats_unknown_open_mic_lineup(self):
+        """A single Bill Burr headliner should outrank a 10-person unknown open mic lineup."""
+
+        def headliner_concentration(comedian_popularities):
+            max_popularity = max(comedian_popularities)
+            rest_popularity = [p for p in comedian_popularities if p != max_popularity]
+            rest_average = sum(rest_popularity) / len(rest_popularity) if rest_popularity else max_popularity
+            return min(0.7 * max_popularity + 0.3 * rest_average, 1.0)
+
+        bill_burr_show = headliner_concentration([1.0])
+        unknown_open_mic = headliner_concentration([0.05] * 10)
+
+        assert bill_burr_show > unknown_open_mic
+
 
 class TestGetComedianRecencyScoresSql:
     """Contract tests for the GET_COMEDIAN_RECENCY_SCORES SQL query."""
