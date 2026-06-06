@@ -13,7 +13,7 @@ from laughtrack.scrapers.implementations.venues.comedy_works_common.extractor im
 from laughtrack.shared.types import ScrapingTarget
 from laughtrack.utilities.infrastructure.transformer.base import DataTransformer
 
-_BASE_URL = "https://www.comedyworks.com"
+_BASE_URL = "https://comedyworks.com"
 
 
 @dataclass(frozen=True)

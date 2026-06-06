@@ -93,7 +93,7 @@ async def test_discovers_location_specific_slugs_from_config():
     slugs = await scraper.collect_scraping_targets()
 
     assert slugs == ["test-comic"]
-    assert scraper.fetched_urls == ["https://www.comedyworks.com/events?test=1"]
+    assert scraper.fetched_urls == ["https://comedyworks.com/events?test=1"]
 
 
 async def test_filters_detail_showtimes_by_location_class():
@@ -105,4 +105,4 @@ async def test_filters_detail_showtimes_by_location_class():
     assert [event.showtime.datetime_str for event in page_data.event_list] == [
         "Friday, Jan 2 2099  9:30PM"
     ]
-    assert scraper.fetched_urls == ["https://www.comedyworks.com/comedians/test-comic"]
+    assert scraper.fetched_urls == ["https://comedyworks.com/comedians/test-comic"]
