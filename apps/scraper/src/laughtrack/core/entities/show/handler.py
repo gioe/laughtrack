@@ -602,7 +602,10 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             # Update shows with new popularity values
             self.execute_with_cursor(ShowQueries.BATCH_UPDATE_SHOW_POPULARITY, (result_show_ids, popularity_values))
 
-            Logger.info(f"Successfully updated popularity for {len(results)} shows")
+            Logger.info(
+                f"Successfully updated popularity for {len(results)} shows, "
+                f"max={max(popularity_values):.4f}"
+            )
 
         except Exception as e:
             Logger.error(f"Error calculating and updating show popularity: {str(e)}")
