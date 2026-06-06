@@ -25,6 +25,18 @@ class PopularityScorer:
     RECENCY_BLEND_WEIGHT = 0.6
     HISTORICAL_BLEND_WEIGHT = 0.4
 
+    # Confidence gate for performance_score saturation. A 1-of-1 sold-out
+    # attribution drives sellout_rate to 1.0, which (with no social data) lands
+    # exactly on popularity=0.6 — the Rising Star tier — and stacks lineup-extraction
+    # noise on top of real comedians. Below the gate, performance_score is capped
+    # so the popularity contribution cannot saturate above LOW_CONFIDENCE_PERFORMANCE_CAP.
+    # A comedian passes the gate when ANY confidence signal holds:
+    #   - total_shows >= MIN_CONFIDENT_TOTAL_SHOWS (track record)
+    #   - has_image (Wikidata/TMDb sourcing succeeded — a real person)
+    #   - verified podcast appearance (accepted comedian_podcasts/episode_appearances row)
+    MIN_CONFIDENT_TOTAL_SHOWS = 3
+    LOW_CONFIDENCE_PERFORMANCE_CAP = 0.5
+
     # Follower count thresholds for normalization
     MAX_INSTAGRAM_FOLLOWERS = 10_000_000  # 10M followers = max score
     MAX_TIKTOK_FOLLOWERS = 50_000_000  # 50M followers = max score
@@ -39,6 +51,8 @@ class PopularityScorer:
         sold_out_shows: int = 0,
         total_shows: int = 0,
         recency_score: float = 0.0,
+        has_image: bool = False,
+        has_podcast_appearance: bool = False,
     ) -> float:
         """
         Calculate comedian popularity from social reach and show performance.
@@ -48,6 +62,13 @@ class PopularityScorer:
         so a touring comedian with strong prior sell-outs is not stripped of
         their historical signal just because they have a show booked.
 
+        Performance saturation is gated by confidence signals (has_image,
+        verified podcast appearance, or total_shows >= MIN_CONFIDENT_TOTAL_SHOWS).
+        Without any signal, the performance contribution is capped at
+        LOW_CONFIDENCE_PERFORMANCE_CAP — this kills the 0.6 popularity cliff that
+        a 1-of-1 sold-out attribution otherwise produces and demotes
+        lineup-extraction-noise rows below the Rising Star tier.
+
         Args:
             instagram_followers: Number of Instagram followers
             tiktok_followers: Number of TikTok followers
@@ -55,16 +76,26 @@ class PopularityScorer:
             sold_out_shows: Number of sold out shows
             total_shows: Total number of shows performed
             recency_score: Pre-normalized (0-1) recency-weighted show activity score
+            has_image: True when an image has been sourced for the comedian
+            has_podcast_appearance: True when at least one comedian_podcasts or
+                episode_appearances row is in review_status='accepted'
 
         Returns:
             float: Popularity score between 0 and 1
         """
         social_score = cls._calculate_social_media_score(instagram_followers, tiktok_followers, youtube_followers)
 
+        low_confidence = not cls._passes_confidence_gate(
+            total_shows=total_shows,
+            has_image=has_image,
+            has_podcast_appearance=has_podcast_appearance,
+        )
+
         performance_score = cls._calculate_blended_performance_score(
             sold_out_shows=sold_out_shows,
             total_shows=total_shows,
             recency_score=recency_score,
+            low_confidence=low_confidence,
         )
 
         popularity = social_score * cls.SOCIAL_MEDIA_WEIGHT + performance_score * cls.SHOW_PERFORMANCE_WEIGHT
@@ -72,8 +103,30 @@ class PopularityScorer:
         return round(popularity, 4)
 
     @classmethod
+    def _passes_confidence_gate(
+        cls, total_shows: int, has_image: bool, has_podcast_appearance: bool
+    ) -> bool:
+        """Return True when at least one confidence signal vouches for the comedian.
+
+        Any one of: a real track record (total_shows >= MIN_CONFIDENT_TOTAL_SHOWS),
+        a sourced image (Wikidata/TMDb resolved to a real person), or a verified
+        podcast appearance (human-reviewed accepted row). When none hold, the
+        comedian is treated as low-confidence and performance_score is capped at
+        LOW_CONFIDENCE_PERFORMANCE_CAP downstream.
+        """
+        return (
+            total_shows >= cls.MIN_CONFIDENT_TOTAL_SHOWS
+            or has_image
+            or has_podcast_appearance
+        )
+
+    @classmethod
     def _calculate_blended_performance_score(
-        cls, sold_out_shows: int, total_shows: int, recency_score: float
+        cls,
+        sold_out_shows: int,
+        total_shows: int,
+        recency_score: float,
+        low_confidence: bool = False,
     ) -> float:
         """
         Combine recency activity and historical sold-out track record into a single
@@ -85,19 +138,27 @@ class PopularityScorer:
         recency_score == 0 (no shows in the window), the score falls back to
         historical-only — a dormant headliner is not demoted across tiers just
         because they happen to be between tours.
+
+        When ``low_confidence`` is True, the blended result is capped at
+        LOW_CONFIDENCE_PERFORMANCE_CAP so a single 1-of-1 sold-out attribution
+        with no corroborating signals cannot drive popularity onto the 0.6 cliff.
         """
         historical_component = cls._calculate_performance_score(sold_out_shows, total_shows)
 
         if recency_score <= 0.0:
-            return historical_component
+            blended = historical_component
+        else:
+            recency_component = min(recency_score, 1.0)
+            # Weights sum to 1.0 (enforced by test) and both components are in [0, 1],
+            # so the result is already bounded — no outer clamp needed.
+            blended = (
+                cls.RECENCY_BLEND_WEIGHT * recency_component
+                + cls.HISTORICAL_BLEND_WEIGHT * historical_component
+            )
 
-        recency_component = min(recency_score, 1.0)
-        # Weights sum to 1.0 (enforced by test) and both components are in [0, 1],
-        # so the result is already bounded — no outer clamp needed.
-        return (
-            cls.RECENCY_BLEND_WEIGHT * recency_component
-            + cls.HISTORICAL_BLEND_WEIGHT * historical_component
-        )
+        if low_confidence:
+            return min(blended, cls.LOW_CONFIDENCE_PERFORMANCE_CAP)
+        return blended
 
     @classmethod
     def _calculate_social_media_score(

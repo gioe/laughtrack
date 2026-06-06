@@ -4,12 +4,32 @@
 class ComedianQueries:
     """SQL queries for comedian operations."""
     
+    # has_image and has_podcast_appearance feed PopularityScorer's confidence
+    # gate so a 1-of-1 sold-out attribution on a lineup-extraction-noise row
+    # cannot saturate performance_score onto the 0.6 popularity cliff. The
+    # podcast EXISTS clauses use review_status='accepted' (the human-verified
+    # state used by review_podcast_*_candidates / backfill_podcast_appearances)
+    # so an "accepted" appearance counts via either comedian_podcasts or
+    # episode_appearances — matching the discovery → review → publish pipeline.
     BATCH_GET_COMEDIAN_DETAILS = '''
-        SELECT 
-            uuid, name, instagram_followers, tiktok_followers, youtube_followers,
-            sold_out_shows, total_shows
-        FROM comedians
-        WHERE uuid = ANY(%s)
+        SELECT
+            c.uuid, c.name, c.instagram_followers, c.tiktok_followers, c.youtube_followers,
+            c.sold_out_shows, c.total_shows,
+            c.has_image,
+            (
+                EXISTS (
+                    SELECT 1 FROM comedian_podcasts cp
+                    WHERE cp.comedian_id = c.id
+                      AND cp.review_status = 'accepted'
+                )
+                OR EXISTS (
+                    SELECT 1 FROM episode_appearances ea
+                    WHERE ea.comedian_id = c.id
+                      AND ea.review_status = 'accepted'
+                )
+            ) AS has_podcast_appearance
+        FROM comedians c
+        WHERE c.uuid = ANY(%s)
     '''
     
     BATCH_UPDATE_COMEDIAN_POPULARITY = '''

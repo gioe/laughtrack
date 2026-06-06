@@ -35,6 +35,11 @@ class Comedian(DatabaseEntity):
     # Recency score: set by the popularity update pipeline, not persisted in DB.
     # Represents normalized recent/upcoming show activity (0.0 = no recent shows, 1.0 = max).
     recency_score: float = 0.0
+    # Confidence signals consumed by PopularityScorer's saturation gate. has_image is
+    # persisted; has_podcast_appearance is derived per-update from accepted
+    # comedian_podcasts/episode_appearances rows.
+    has_image: bool = False
+    has_podcast_appearance: bool = False
 
     def __eq__(self, other):
         if not isinstance(other, Comedian):
@@ -73,6 +78,8 @@ class Comedian(DatabaseEntity):
             sold_out_shows=self.sold_out_shows,
             total_shows=self.total_shows,
             recency_score=self.recency_score,
+            has_image=self.has_image,
+            has_podcast_appearance=self.has_podcast_appearance,
         )
 
     @classmethod
@@ -96,6 +103,8 @@ class Comedian(DatabaseEntity):
             website_discovery_source=row.get("website_discovery_source"),
             website_last_scraped=row.get("website_last_scraped"),
             website_scrape_strategy=row.get("website_scrape_strategy"),
+            has_image=bool(row.get("has_image", False)),
+            has_podcast_appearance=bool(row.get("has_podcast_appearance", False)),
         )
 
     @classmethod

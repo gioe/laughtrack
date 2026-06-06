@@ -42,13 +42,20 @@ class TestCalculateComedianPopularityRecencyScore:
         assert score == 0.0
 
     def test_recency_score_combined_with_social(self):
-        """Recency + social produce additive weighted score (no sold_out history)."""
+        """Recency + social produce additive weighted score (no sold_out history).
+
+        Passes has_image=True so the confidence gate doesn't cap the performance
+        contribution — this case is about verifying the recency/social additive
+        shape, not the gate. (Without a gate signal, total_shows=0 would trip the
+        low-confidence cap; the gate behavior is exercised in TestConfidenceGate.)
+        """
         # instagram=10M → social_score=1.0
         # performance = RECENCY_BLEND_WEIGHT*0.5 + HISTORICAL_BLEND_WEIGHT*0.0 = 0.6*0.5 = 0.3
         # popularity = 1.0*0.4 + 0.3*0.6 = 0.58
         score = PopularityScorer.calculate_comedian_popularity(
             instagram_followers=10_000_000,
             recency_score=0.5,
+            has_image=True,
         )
         expected_perf = (
             PopularityScorer.RECENCY_BLEND_WEIGHT * 0.5
@@ -58,7 +65,9 @@ class TestCalculateComedianPopularityRecencyScore:
 
     def test_recency_score_above_1_is_clamped(self):
         """recency_score > 1.0 is clamped to 1.0 before blending; popularity stays in [0, 1]."""
-        score = PopularityScorer.calculate_comedian_popularity(recency_score=2.0)
+        score = PopularityScorer.calculate_comedian_popularity(
+            recency_score=2.0, has_image=True
+        )
         # clamped recency=1.0, no sold_out → performance = 0.6*1.0 + 0.4*0.0 = 0.6
         # popularity = 0.0*0.4 + 0.6*0.6 = 0.36
         expected_perf = PopularityScorer.RECENCY_BLEND_WEIGHT * 1.0
@@ -73,6 +82,7 @@ class TestCalculateComedianPopularityRecencyScore:
         score = PopularityScorer.calculate_comedian_popularity(
             tiktok_followers=50_000_000,
             recency_score=0.3,
+            has_image=True,
         )
         expected_perf = PopularityScorer.RECENCY_BLEND_WEIGHT * 0.3
         assert score == round(1.0 * 0.4 + expected_perf * 0.6, 4)
@@ -141,6 +151,106 @@ def test_blend_weights_sum_to_one():
         + PopularityScorer.HISTORICAL_BLEND_WEIGHT
         == 1.0
     )
+
+
+class TestConfidenceGate:
+    """Performance saturation is gated behind confidence signals so a 1-of-1
+    sold-out attribution on lineup-extraction noise cannot land on the 0.6
+    popularity cliff."""
+
+    def test_low_confidence_caps_the_0_6_popularity_cliff(self):
+        """The exact bug: no social data + 1-of-1 sold_out used to produce
+        popularity=0.6 (Rising Star). With the gate, performance is capped at
+        LOW_CONFIDENCE_PERFORMANCE_CAP and popularity falls below the cliff."""
+        score = PopularityScorer.calculate_comedian_popularity(
+            sold_out_shows=1, total_shows=1
+        )
+        # historical = 1/1 + min(1/100, 0.2) = 1.0, capped at LOW_CONFIDENCE_PERFORMANCE_CAP (0.5)
+        # popularity = 0.0*0.4 + 0.5*0.6 = 0.3
+        expected = round(
+            0.0 * PopularityScorer.SOCIAL_MEDIA_WEIGHT
+            + PopularityScorer.LOW_CONFIDENCE_PERFORMANCE_CAP * PopularityScorer.SHOW_PERFORMANCE_WEIGHT,
+            4,
+        )
+        assert score == expected
+        assert score < 0.6  # off the cliff
+
+    def test_total_shows_threshold_passes_gate(self):
+        """total_shows >= MIN_CONFIDENT_TOTAL_SHOWS satisfies the gate by
+        itself — a real track record needs no other corroboration."""
+        # MIN_CONFIDENT_TOTAL_SHOWS=3, sold_out=3/3 → historical=1.0
+        # popularity = 0.0*0.4 + 1.0*0.6 = 0.6 (gate passes, no cap)
+        score = PopularityScorer.calculate_comedian_popularity(
+            sold_out_shows=PopularityScorer.MIN_CONFIDENT_TOTAL_SHOWS,
+            total_shows=PopularityScorer.MIN_CONFIDENT_TOTAL_SHOWS,
+        )
+        assert score == round(0.0 * 0.4 + 1.0 * 0.6, 4)
+
+    def test_total_shows_one_below_threshold_is_capped(self):
+        """Boundary: MIN_CONFIDENT_TOTAL_SHOWS - 1 is still low-confidence."""
+        below = PopularityScorer.MIN_CONFIDENT_TOTAL_SHOWS - 1
+        score = PopularityScorer.calculate_comedian_popularity(
+            sold_out_shows=below, total_shows=below
+        )
+        expected = round(
+            PopularityScorer.LOW_CONFIDENCE_PERFORMANCE_CAP
+            * PopularityScorer.SHOW_PERFORMANCE_WEIGHT,
+            4,
+        )
+        assert score == expected
+
+    def test_has_image_signal_passes_gate(self):
+        """A sourced image (Wikidata/TMDb hit) is itself a confidence signal —
+        a real comedian whose only show data is 1-of-1 sold_out still saturates."""
+        score = PopularityScorer.calculate_comedian_popularity(
+            sold_out_shows=1, total_shows=1, has_image=True
+        )
+        # gate passes via has_image → historical=1.0 → popularity=0.6
+        assert score == round(0.0 * 0.4 + 1.0 * 0.6, 4)
+
+    def test_verified_podcast_appearance_signal_passes_gate(self):
+        """A verified podcast appearance (accepted comedian_podcasts or
+        episode_appearances row) also passes the gate by itself."""
+        score = PopularityScorer.calculate_comedian_popularity(
+            sold_out_shows=1, total_shows=1, has_podcast_appearance=True
+        )
+        assert score == round(0.0 * 0.4 + 1.0 * 0.6, 4)
+
+    def test_low_confidence_with_recency_is_also_capped(self):
+        """The cap applies to the blended performance score too, so a
+        low-confidence comedian with high recency activity still cannot
+        saturate above the cap."""
+        # recency=1.0 → blended perf = 0.6*1.0 + 0.4*0.0 = 0.6, capped at 0.5
+        # popularity = 0.0*0.4 + 0.5*0.6 = 0.3
+        score = PopularityScorer.calculate_comedian_popularity(
+            sold_out_shows=0, total_shows=0, recency_score=1.0
+        )
+        expected = round(
+            PopularityScorer.LOW_CONFIDENCE_PERFORMANCE_CAP
+            * PopularityScorer.SHOW_PERFORMANCE_WEIGHT,
+            4,
+        )
+        assert score == expected
+
+    def test_low_confidence_below_cap_unaffected(self):
+        """When the unblended performance score is already below the cap, the
+        gate does not change the outcome — capping is a ceiling, not a floor."""
+        # recency=0.5, no historical → blended perf = 0.6*0.5 + 0.0 = 0.3, below 0.5 cap
+        # popularity = 0.0*0.4 + 0.3*0.6 = 0.18
+        score = PopularityScorer.calculate_comedian_popularity(recency_score=0.5)
+        expected = round(
+            0.0 * 0.4
+            + (PopularityScorer.RECENCY_BLEND_WEIGHT * 0.5) * 0.6,
+            4,
+        )
+        assert score == expected
+
+    def test_confidence_gate_constants_in_sensible_ranges(self):
+        """Pin the gate constants against accidental retuning: the cap must be
+        in (0, 1) and the threshold must be a positive integer."""
+        assert 0.0 < PopularityScorer.LOW_CONFIDENCE_PERFORMANCE_CAP < 1.0
+        assert isinstance(PopularityScorer.MIN_CONFIDENT_TOTAL_SHOWS, int)
+        assert PopularityScorer.MIN_CONFIDENT_TOTAL_SHOWS >= 1
 
 
 def test_performance_score_touring_only_recency_contribution():
