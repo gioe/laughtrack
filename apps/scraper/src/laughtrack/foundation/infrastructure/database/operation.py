@@ -47,7 +47,12 @@ class DatabaseOperationLogger:
             Logger.debug(f"Show {show_id}: club_id={club_id}, date={date}, operation={operation}")
 
     @staticmethod
-    def log_simple_batch_operation(operation: str, items_count: int, entity_type: str) -> None:
+    def log_simple_batch_operation(
+        operation: str,
+        items_count: int,
+        entity_type: str,
+        input_count: Optional[int] = None,
+    ) -> None:
         """
         Log a simple batch operation result.
 
@@ -55,8 +60,13 @@ class DatabaseOperationLogger:
             operation: Type of operation (INSERT, UPDATE, DELETE)
             items_count: Number of items affected
             entity_type: Type of entity being operated on
+            input_count: Optional number of input items attempted before
+                database processing. When explicitly zero, suppress the
+                zero-processed warning because there was no work to do.
         """
         if items_count > 0:
             Logger.info(f"{operation} operation: {items_count} {entity_type} processed")
+        elif input_count == 0:
+            return
         else:
             Logger.warn(f"{operation} operation: No {entity_type} were processed")

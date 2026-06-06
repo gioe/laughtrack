@@ -112,6 +112,13 @@ _base_handler_mod.Logger = _mock_logger
 _base_handler_mod.DatabaseOperationLogger = _mock_db_op_logger
 BaseDatabaseHandler = _base_handler_mod.BaseDatabaseHandler
 
+_operation_mod = _load_module(
+    "src/laughtrack/foundation/infrastructure/database/operation.py",
+    "laughtrack.foundation.infrastructure.database.operation_test_isolated",
+)
+_operation_mod.Logger = _mock_logger
+DatabaseOperationLogger = _operation_mod.DatabaseOperationLogger
+
 
 # ---------------------------------------------------------------------------
 # Concrete subclass for testing
@@ -189,7 +196,7 @@ class TestExecuteBatchOperationLogging:
         self._run(return_results=True, execute_values_return=rows)
 
         _mock_db_op_logger.log_simple_batch_operation.assert_called_once_with(
-            operation="insert", items_count=2, entity_type="widget"
+            operation="insert", items_count=2, entity_type="widget", input_count=2
         )
         _mock_logger.warn.assert_not_called()
 
@@ -217,7 +224,7 @@ class TestExecuteBatchOperationLogging:
         self._run(return_results=False, execute_values_return=None, rowcount=3)
 
         _mock_db_op_logger.log_simple_batch_operation.assert_called_once_with(
-            operation="insert", items_count=3, entity_type="widget"
+            operation="insert", items_count=3, entity_type="widget", input_count=2
         )
 
     def test_non_returning_zero_rowcount_still_warns(self):
@@ -225,7 +232,7 @@ class TestExecuteBatchOperationLogging:
         self._run(return_results=False, execute_values_return=None, rowcount=0)
 
         _mock_db_op_logger.log_simple_batch_operation.assert_called_once_with(
-            operation="insert", items_count=0, entity_type="widget"
+            operation="insert", items_count=0, entity_type="widget", input_count=2
         )
 
     # --- Case 2b: RETURNING query, execute_values returns None ---------------
@@ -239,6 +246,35 @@ class TestExecuteBatchOperationLogging:
         _mock_logger.info.assert_called_once_with(
             "insert operation: 0 new widget processed — all already existed"
         )
+
+
+class TestDatabaseOperationLogger:
+    """Direct coverage for zero-processed warning suppression."""
+
+    def setup_method(self):
+        """Reset mocks before each test."""
+        _mock_logger.reset_mock()
+
+    def test_empty_input_zero_processed_suppresses_warning(self):
+        DatabaseOperationLogger.log_simple_batch_operation(
+            operation="insert",
+            items_count=0,
+            entity_type="tag",
+            input_count=0,
+        )
+
+        _mock_logger.warn.assert_not_called()
+        _mock_logger.info.assert_not_called()
+
+    def test_non_empty_input_zero_processed_still_warns(self):
+        DatabaseOperationLogger.log_simple_batch_operation(
+            operation="insert",
+            items_count=0,
+            entity_type="tag",
+            input_count=4,
+        )
+
+        _mock_logger.warn.assert_called_once_with("insert operation: No tag were processed")
 
 
 class TestAcquireConnectionFallbackClose:

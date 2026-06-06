@@ -180,7 +180,10 @@ class BaseDatabaseHandler(Generic[T], ABC):
                             processed_count = len(results) if results else 0
                             if processed_count > 0:
                                 DatabaseOperationLogger.log_simple_batch_operation(
-                                    operation=operation_type, items_count=processed_count, entity_type=entity_name
+                                    operation=operation_type,
+                                    items_count=processed_count,
+                                    entity_type=entity_name,
+                                    input_count=original_count,
                                 )
                             else:
                                 Logger.info(
@@ -190,7 +193,10 @@ class BaseDatabaseHandler(Generic[T], ABC):
                             # UPDATE/DELETE — use cursor.rowcount (no RETURNING clause)
                             affected_rows = cursor.rowcount
                             DatabaseOperationLogger.log_simple_batch_operation(
-                                operation=operation_type, items_count=affected_rows, entity_type=entity_name
+                                operation=operation_type,
+                                items_count=affected_rows,
+                                entity_type=entity_name,
+                                input_count=original_count,
                             )
 
                     return results if return_results else None
