@@ -110,6 +110,9 @@ class EtixScraper(BaseScraper):
             return []
 
         page1_url = _ETIX_VENUE_URL.format(venue_id=self._venue_id, page=1)
+        if self._uses_laugh_patriot_place_fallback(page1_url):
+            return [page1_url]
+
         try:
             html = await self._fetch_etix_html(page1_url)
         except Exception as e:
@@ -151,6 +154,16 @@ class EtixScraper(BaseScraper):
             if self._is_rockhouse_public_url(url):
                 return await self._get_rockhouse_public_data(url)
 
+            if self._uses_laugh_patriot_place_fallback(url):
+                fallback_data = await self._get_laugh_patriot_place_fallback_data()
+                if fallback_data and fallback_data.event_list:
+                    return fallback_data
+                Logger.info(
+                    f"{self._log_prefix}: Laugh Patriot Place fallback found no events for {url}",
+                    self.logger_context,
+                )
+                return None
+
             html = await self._fetch_etix_html(url)
             if not html:
                 Logger.warn(
@@ -161,10 +174,6 @@ class EtixScraper(BaseScraper):
 
             events = EtixExtractor.extract_events(html)
             if not events:
-                if self._uses_laugh_patriot_place_fallback(url):
-                    fallback_data = await self._get_laugh_patriot_place_fallback_data()
-                    if fallback_data and fallback_data.event_list:
-                        return fallback_data
                 if self._uses_funny_bone_fallback(url):
                     fallback_data = await self._get_funny_bone_fallback_data()
                     if fallback_data and fallback_data.event_list:

@@ -756,7 +756,7 @@ async def test_get_data_uses_improv_asylum_pixl_fallback_when_tixr_group_is_bloc
     scraper = TixrScraper(_improv_asylum_club())
 
     async def fake_fetch_calendar_html(url):
-        return "<html><title>tixr.com</title><body>DataDome challenge</body></html>"
+        raise AssertionError(f"Improv Asylum should not fetch blocked Tixr group page: {url}")
 
     async def fake_fetch_json(url, **kwargs):
         assert url == "https://calendar.improvasylum.com/api/events/improv-asylum"
@@ -783,29 +783,15 @@ async def test_get_data_uses_improv_asylum_pixl_fallback_when_tixr_group_is_bloc
 
 
 @pytest.mark.asyncio
-async def test_get_data_uses_improv_asylum_pixl_fallback_when_tixr_group_fetch_returns_none(monkeypatch):
-    """Improv Asylum still falls back when DataDome/CAPTCHA makes the Tixr group fetch unrecoverable."""
+async def test_collect_scraping_targets_skips_improv_asylum_tixr_group_discovery(monkeypatch):
     scraper = TixrScraper(_improv_asylum_club())
 
     async def fake_fetch_calendar_html(url):
-        return None
-
-    async def fake_fetch_json(url, **kwargs):
-        assert url == "https://calendar.improvasylum.com/api/events/improv-asylum"
-        return _improv_asylum_pixl_response()
+        raise AssertionError(f"Improv Asylum should not fetch blocked Tixr group discovery page: {url}")
 
     monkeypatch.setattr(scraper, "_fetch_calendar_html", fake_fetch_calendar_html)
-    monkeypatch.setattr(scraper, "fetch_json", fake_fetch_json)
-    scraper.tixr_client.get_event_detail_from_url = AsyncMock()
 
-    result = await scraper.get_data(IMPROV_ASYLUM_TIXR_URL)
-
-    assert isinstance(result, TixrPageData)
-    assert len(result.event_list) == 1
-    event = result.event_list[0]
-    assert event.title == "Improv Asylum's Main Stage Show"
-    assert event.event_id == "169028"
-    scraper.tixr_client.get_event_detail_from_url.assert_not_called()
+    assert await scraper.collect_scraping_targets() == [IMPROV_ASYLUM_TIXR_URL]
 
 
 @pytest.mark.asyncio
@@ -854,7 +840,7 @@ async def test_get_data_uses_group_events_api_fallback_when_enabled_and_group_pa
     event = _make_tixr_event("189028", "Comedy Night")
 
     async def fake_fetch_calendar_html(url):
-        return None
+        raise AssertionError(f"Known DataDome Tixr group should use group API before page fetch: {url}")
 
     monkeypatch.setattr(scraper, "_fetch_calendar_html", fake_fetch_calendar_html)
     scraper.tixr_client.fetch_group_events = AsyncMock(return_value=[event])
@@ -866,6 +852,19 @@ async def test_get_data_uses_group_events_api_fallback_when_enabled_and_group_pa
     assert [e.event_id for e in result.event_list] == ["189028"]
     scraper.tixr_client.fetch_group_events.assert_awaited_once_with("1613")
     scraper.tixr_client.get_event_detail_from_url.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_collect_scraping_targets_skips_tixr_group_discovery_when_api_fallback_enabled(monkeypatch):
+    monkeypatch.setenv("TIXR_GROUP_EVENTS_API_FALLBACK", "1")
+    scraper = TixrScraper(_tixr_group_api_club())
+
+    async def fake_fetch_calendar_html(url):
+        raise AssertionError(f"Known DataDome Tixr group should not fetch discovery page: {url}")
+
+    monkeypatch.setattr(scraper, "_fetch_calendar_html", fake_fetch_calendar_html)
+
+    assert await scraper.collect_scraping_targets() == ["https://www.tixr.com/groups/laughfactorycovina"]
 
 
 @pytest.mark.asyncio

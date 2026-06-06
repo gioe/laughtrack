@@ -90,8 +90,6 @@ async def test_laugh_patriot_place_fallback_uses_public_calendar(monkeypatch):
 
     async def fake_fetch_html(self, url: str, **kwargs) -> str:
         calls.append(url)
-        if url == ETIX_URL:
-            return "<html><title>DataDome</title></html>"
         if url == CALENDAR_URL:
             return _calendar_html(today.day)
         if url == next_month_url:
@@ -109,7 +107,8 @@ async def test_laugh_patriot_place_fallback_uses_public_calendar(monkeypatch):
     result = await scraper.get_data(ETIX_URL)
 
     assert isinstance(result, EtixPageData)
-    assert calls[:3] == [ETIX_URL, CALENDAR_URL, next_month_url]
+    assert ETIX_URL not in calls
+    assert calls[:2] == [CALENDAR_URL, next_month_url]
     assert DETAIL_URL in calls
     assert NEXT_MONTH_DETAIL_URL in calls
     assert len(result.event_list) == 2
@@ -120,6 +119,20 @@ async def test_laugh_patriot_place_fallback_uses_public_calendar(monkeypatch):
     assert events_by_title["Mike Hanley"].event_url == NEXT_MONTH_DETAIL_URL
     assert events_by_title["Mike Hanley"].ticket_url == NEXT_MONTH_TICKET_URL
     assert events_by_title["Mike Hanley"].start_date == date(next_year, next_month, 4).isoformat()
+
+
+@pytest.mark.asyncio
+async def test_laugh_patriot_place_collect_targets_skips_etix_discovery(monkeypatch):
+    from laughtrack.scrapers.implementations.api.etix.scraper import EtixScraper
+
+    scraper = EtixScraper(_club())
+
+    async def fail_fetch_etix_html(url: str):
+        raise AssertionError(f"Laugh Patriot Place should not fetch blocked Etix discovery URL: {url}")
+
+    monkeypatch.setattr(scraper, "_fetch_etix_html", fail_fetch_etix_html)
+
+    assert await scraper.collect_scraping_targets() == [ETIX_URL]
 
 
 def test_etix_event_can_use_public_event_page_for_show_page_url():

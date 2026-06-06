@@ -98,6 +98,9 @@ class TixrScraper(BaseScraper):
         if self._is_pixl_calendar_api_url(url):
             return [URLUtils.normalize_url(url)]
 
+        if self._uses_known_blocked_fallback(url):
+            return [URLUtils.normalize_url(url)]
+
         pending = [url]
         seen: set[str] = set()
         targets: List[ScrapingTarget] = []
@@ -158,6 +161,16 @@ class TixrScraper(BaseScraper):
                     )
                     return TixrPageData(event_list=pixl_events)
                 Logger.info(f"{self._log_prefix}: No events parsed from Pixl Calendar API {url}", self.logger_context)
+                return None
+
+            if self._uses_known_blocked_fallback(url):
+                fallback_events = await self._fetch_known_blocked_fallback_events(url)
+                if fallback_events:
+                    return TixrPageData(event_list=fallback_events)
+                Logger.info(
+                    f"{self._log_prefix}: Known DataDome-blocked Tixr source had no fallback events for {url}",
+                    self.logger_context,
+                )
                 return None
 
             html_content = await self._fetch_calendar_html(url)
@@ -299,6 +312,33 @@ class TixrScraper(BaseScraper):
             return []
 
         return await self.tixr_client.fetch_group_events(group_id)
+
+    def _uses_known_blocked_fallback(self, url: str) -> bool:
+        normalized = URLUtils.normalize_url(url).lower()
+        if "tixr.com/groups/" not in normalized:
+            return False
+        return self._is_improv_asylum_tixr_source(url) or self._group_events_api_fallback_enabled()
+
+    async def _fetch_known_blocked_fallback_events(self, url: str) -> List[TixrEvent]:
+        pixl_events = await self._fetch_pixl_calendar_events(url)
+        if pixl_events:
+            Logger.info(
+                f"{self._log_prefix}: Parsed {len(pixl_events)} events from Pixl Calendar "
+                "fallback for known DataDome-blocked Tixr group source",
+                self.logger_context,
+            )
+            return pixl_events
+
+        group_events = await self._fetch_group_api_events_if_enabled(url)
+        if group_events:
+            Logger.info(
+                f"{self._log_prefix}: Parsed {len(group_events)} events from Tixr group-events API "
+                "fallback for known DataDome-blocked Tixr group source",
+                self.logger_context,
+            )
+            return group_events
+
+        return []
 
     def _group_events_api_fallback_enabled(self) -> bool:
         metadata_value = (self.club.source_metadata or {}).get("tixr_group_events_api_fallback")
