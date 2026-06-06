@@ -450,7 +450,7 @@ class TestUpdateComedianPopularity:
 # ---------------------------------------------------------------------------
 
 class TestGetComedianUuids:
-    """Tests for _get_comedian_uuids, covering duplicate deduplication and missing-UUID warnings."""
+    """Tests for _get_comedian_uuids, covering duplicate deduplication and missing UUID filtering."""
 
     def _make_handler_with_db(self, db_uuids: list) -> ComedianHandler:
         """Return a handler whose execute_with_cursor simulates GET_TARGET_COMEDIAN_IDS."""
@@ -477,8 +477,8 @@ class TestGetComedianUuids:
         assert set(result) == {"uuid-A", "uuid-B"}
         mock_logger.warn.assert_not_called()
 
-    def test_genuine_missing_uuid_warns_with_details(self):
-        """When a UUID genuinely doesn't exist in the DB, warn with the missing UUID(s) listed."""
+    def test_genuine_missing_uuid_is_silently_filtered(self):
+        """When a UUID genuinely doesn't exist in the DB, return only the DB-backed UUIDs."""
         comedian_ids = ["uuid-exists", "uuid-missing"]
         handler = self._make_handler_with_db(["uuid-exists"])  # uuid-missing not in DB
 
@@ -487,15 +487,10 @@ class TestGetComedianUuids:
 
         # Only the found UUID is returned
         assert result == ["uuid-exists"]
+        mock_logger.warn.assert_not_called()
 
-        # Warning was emitted and includes the missing UUID
-        mock_logger.warn.assert_called_once()
-        warn_msg = mock_logger.warn.call_args[0][0]
-        assert "uuid-missing" in warn_msg, f"Expected missing UUID in warning, got: {warn_msg}"
-        assert "1" in warn_msg  # count of missing UUIDs
-
-    def test_duplicate_with_genuine_missing_warns_only_once(self):
-        """Duplicate input + 1 missing UUID should produce exactly one warning for the missing one."""
+    def test_duplicate_with_genuine_missing_filters_missing_without_warning(self):
+        """Duplicate input + 1 missing UUID should return existing UUIDs without warning noise."""
         # uuid-A duplicated, uuid-ghost is genuinely absent from DB
         comedian_ids = ["uuid-A", "uuid-A", "uuid-ghost"]
         handler = self._make_handler_with_db(["uuid-A"])  # uuid-ghost not in DB
@@ -504,11 +499,7 @@ class TestGetComedianUuids:
             result = handler._get_comedian_uuids(comedian_ids)
 
         assert result == ["uuid-A"]
-        mock_logger.warn.assert_called_once()
-        warn_msg = mock_logger.warn.call_args[0][0]
-        assert "uuid-ghost" in warn_msg
-        # uuid-A must NOT appear in the warning — it's not missing
-        assert "uuid-A" not in warn_msg
+        mock_logger.warn.assert_not_called()
 
     def test_no_comedian_ids_returns_all_from_db(self):
         """Passing None (no IDs) delegates to get_all_comedian_uuids path."""
@@ -520,8 +511,8 @@ class TestGetComedianUuids:
         assert result == ["uuid-X", "uuid-Y"]
         handler.execute_with_cursor.assert_not_called()
 
-    def test_warning_message_mentions_popularity_not_lineup(self):
-        """Warning message should clarify that lineup data is safe — only popularity update is affected."""
+    def test_all_missing_uuids_still_raise_without_warning(self):
+        """When all UUIDs are absent, preserve the hard failure but do not emit warning noise."""
         comedian_ids = ["uuid-absent"]
         handler = self._make_handler_with_db([])  # no UUIDs in DB
 

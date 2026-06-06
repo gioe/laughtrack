@@ -1055,12 +1055,6 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
 
             found_uuids = [row.get("uuid") for row in results]
 
-            if len(found_uuids) != len(unique_ids):
-                missing_uuids = set(unique_ids) - set(found_uuids)
-                Logger.warn(
-                    f"Warning: {len(missing_uuids)} comedian UUIDs not found in database "
-                    f"(popularity update only — lineup data was already saved): {missing_uuids}"
-                )
             return found_uuids
         else:
             # Use the extracted reusable function
