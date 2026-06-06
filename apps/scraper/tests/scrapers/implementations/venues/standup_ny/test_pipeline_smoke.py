@@ -23,9 +23,11 @@ from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.standup_ny import StandupNYEvent
 from laughtrack.scrapers.implementations.venues.standup_ny.scraper import StandupNYScraper
 from laughtrack.scrapers.implementations.venues.standup_ny.data import StandupNYPageData
+from laughtrack.scrapers.implementations.venues.standup_ny.extractor import StandupNYEventExtractor
 
 
 VENUEPILOT_URL = "https://tickets.venuepilot.com/e/standup-night-1"
+LEGACY_VENUEPILOT_URL = "https://t.venuepilot.com/e/standup-night-1"
 
 
 def _club() -> Club:
@@ -44,6 +46,17 @@ def _fake_event() -> StandupNYEvent:
         ticket_url=VENUEPILOT_URL,
         promoter="Test Comedian",
     )
+
+
+def _fake_graphql_event(ticket_url: str = VENUEPILOT_URL) -> dict:
+    return {
+        "id": "sny-evt-1",
+        "name": "StandUp NY Comedy Night",
+        "date": "2026-04-15",
+        "startTime": "20:00",
+        "ticketsUrl": ticket_url,
+        "promoter": "Test Comedian",
+    }
 
 
 def _fake_page_data() -> StandupNYPageData:
@@ -67,6 +80,19 @@ async def test_discover_urls_returns_venuepilot_urls(monkeypatch):
         "check extractor.extract_events() mock returned a StandupNYPageData with a venuepilot ticket_url"
     )
     assert urls[0] == VENUEPILOT_URL
+
+
+def test_graphql_conversion_canonicalizes_legacy_venuepilot_ticket_host():
+    """GraphQL ticketsUrl from t.venuepilot.com is fetched from the canonical host."""
+    extractor = StandupNYEventExtractor({"club": "StandUp NY"})
+
+    page_data = extractor._convert_graphql_to_events(
+        [_fake_graphql_event(LEGACY_VENUEPILOT_URL)],
+        "https://www.venuepilot.co/graphql",
+    )
+
+    assert len(page_data) == 1
+    assert page_data[0].ticket_url == VENUEPILOT_URL
 
 
 @pytest.mark.asyncio

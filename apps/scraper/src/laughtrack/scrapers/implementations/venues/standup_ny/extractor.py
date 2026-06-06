@@ -12,6 +12,7 @@ import json
 import re
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
+from urllib.parse import urlparse, urlunparse
 
 from laughtrack.utilities.infrastructure.html.scraper import HtmlScraper
 
@@ -314,6 +315,10 @@ class StandupNYEventExtractor:
                 continue
 
             try:
+                event_data = {
+                    **event_data,
+                    "ticketsUrl": self._canonicalize_ticket_url(event_data["ticketsUrl"]),
+                }
                 event = StandupNYEvent.from_graphql_event(event_data, source)
                 events.append(event)
             except Exception as e:
@@ -321,6 +326,14 @@ class StandupNYEventExtractor:
                 continue
 
         return events
+
+    @staticmethod
+    def _canonicalize_ticket_url(ticket_url: str) -> str:
+        """Canonicalize known ticketing hosts that 302 before enhancement fetches."""
+        parsed = urlparse(ticket_url)
+        if parsed.hostname == "t.venuepilot.com":
+            return urlunparse(parsed._replace(netloc="tickets.venuepilot.com"))
+        return ticket_url
 
     def _determine_graphql_source(self, endpoint_url: str) -> str:
         """Determine the GraphQL source type from endpoint URL."""
