@@ -55,6 +55,23 @@ describe("resolveAffiliateDestination", () => {
         });
     });
 
+    it.each([
+        "https://theannoyance.thundertix.com/orders/new?performance_id=314159",
+        "https://tickets.chanhassendt.com/Online/default.asp?BOparam::WScontent::loadArticle::permalink=stevierays",
+        "https://www.flapperscomedy.com/site/shows.php?shid=123456",
+    ])("keeps direct venue query-string identity intact for %s", (url) => {
+        const result = resolveAffiliateDestination({ destinationUrl: url });
+
+        expect(result).toEqual({
+            ok: true,
+            provider: "direct_venue",
+            originalUrl: url,
+            routedUrl: url,
+            affiliateApplied: false,
+            fallbackReason: "direct_venue",
+        });
+    });
+
     it("rejects malformed and non-http destinations", () => {
         expect(
             resolveAffiliateDestination({ destinationUrl: "not a url" }),

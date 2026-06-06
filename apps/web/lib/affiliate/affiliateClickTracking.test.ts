@@ -93,6 +93,38 @@ describe("affiliate outbound click tracking", () => {
         expect(res.headers.get("set-cookie")).toContain("lt_anon_visitor_id=");
     });
 
+    it.each([
+        [
+            "ThunderTix",
+            "https://theannoyance.thundertix.com/orders/new?performance_id=314159",
+        ],
+        [
+            "Chanhassen",
+            "https://tickets.chanhassendt.com/Online/default.asp?BOparam::WScontent::loadArticle::permalink=stevierays",
+        ],
+        [
+            "Flappers",
+            "https://www.flapperscomedy.com/site/shows.php?shid=123456",
+        ],
+    ])(
+        "redirects and stores full query-string destination for %s",
+        async (_name, destinationUrl) => {
+            const res = await GET(makeOutboundRequest(destinationUrl));
+
+            expect(res.status).toBe(302);
+            expect(res.headers.get("location")).toBe(destinationUrl);
+            expect(mockClickCreate).toHaveBeenCalledWith({
+                data: expect.objectContaining({
+                    destinationUrl,
+                    routedDestinationUrl: destinationUrl,
+                    destinationProvider: "direct_venue",
+                    affiliateApplied: false,
+                    fallbackReason: "direct_venue",
+                }),
+            });
+        },
+    );
+
     it("rejects malformed destinations before writing attribution", async () => {
         const res = await GET(makeOutboundRequest("javascript:alert(1)"));
         const body = await res.json();
