@@ -58,7 +58,7 @@ def _raw_event(
     }
 
 
-def _api_response(events: list) -> dict:
+def _api_response(events: list, has_next: bool = False) -> dict:
     return {
         "events": events,
         "metaData": {
@@ -66,7 +66,7 @@ def _api_response(events: list) -> dict:
             "to": len(events),
             "start": 0,
             "end": len(events),
-            "hasNext": False,
+            "hasNext": has_next,
             "hasPrev": False,
         },
     }
@@ -426,3 +426,79 @@ async def test_get_data_returns_none_on_null_response(monkeypatch):
 
     result = await scraper.get_data("https://tockify.com/api/ngevent?calname=theicehouse&max=200&startms=0")
     assert result is None
+
+
+@pytest.mark.asyncio
+async def test_get_data_paginates_when_has_next_true(monkeypatch):
+    """get_data() loops while metaData.hasNext is true, accumulating events
+    across pages and advancing startms past the latest event seen.
+
+    Mocks two pages: first page returns hasNext=true plus three events; second
+    page returns hasNext=false plus two events. The aggregated result must
+    contain all five events, and the second fetch must use a startms greater
+    than the max start_ms of page 1.
+    """
+    scraper = IceHouseScraper(_club())
+    page1_max_ms = 1775097000000
+    page1_events = [
+        _raw_event(uid="1", title="Show A", start_ms=1775000000000),
+        _raw_event(uid="2", title="Show B", start_ms=1775010000000),
+        _raw_event(uid="3", title="Show C", start_ms=page1_max_ms),
+    ]
+    page2_events = [
+        _raw_event(uid="4", title="Show D", start_ms=1775200000000),
+        _raw_event(uid="5", title="Show E", start_ms=1775300000000),
+    ]
+    fetched_urls: list = []
+
+    async def fake_fetch_json(self, url: str, **kwargs):
+        fetched_urls.append(url)
+        if len(fetched_urls) == 1:
+            return _api_response(page1_events, has_next=True)
+        return _api_response(page2_events, has_next=False)
+
+    monkeypatch.setattr(IceHouseScraper, "fetch_json", fake_fetch_json)
+    monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", lambda url: __import__("asyncio").sleep(0))
+
+    initial_url = "https://tockify.com/api/ngevent?calname=theicehouse&max=200&startms=0"
+    result = await scraper.get_data(initial_url)
+
+    assert isinstance(result, IceHousePageData)
+    assert len(result.event_list) == 5
+    assert {e.title for e in result.event_list} == {"Show A", "Show B", "Show C", "Show D", "Show E"}
+
+    assert len(fetched_urls) == 2
+    assert fetched_urls[0] == initial_url
+    # Second fetch must advance startms past the max start_ms of page 1.
+    assert f"startms={page1_max_ms + 1}" in fetched_urls[1]
+    assert "calname=theicehouse" in fetched_urls[1]
+
+
+@pytest.mark.asyncio
+async def test_get_data_stops_pagination_when_has_next_true_but_no_events(monkeypatch):
+    """get_data() does not loop forever if hasNext=true but the page parsed zero events.
+
+    This guards the corner case where Tockify reports more pages but the cursor
+    cannot advance (no extractable start_ms). The scraper must return whatever
+    has already been collected rather than spinning.
+    """
+    scraper = IceHouseScraper(_club())
+    page1_events = [_raw_event(uid="1", title="Real Show", start_ms=1775000000000)]
+    call_count = {"n": 0}
+
+    async def fake_fetch_json(self, url: str, **kwargs):
+        call_count["n"] += 1
+        if call_count["n"] == 1:
+            return _api_response(page1_events, has_next=True)
+        # Second page: hasNext still true but zero parseable events.
+        return _api_response([], has_next=True)
+
+    monkeypatch.setattr(IceHouseScraper, "fetch_json", fake_fetch_json)
+    monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", lambda url: __import__("asyncio").sleep(0))
+
+    result = await scraper.get_data("https://tockify.com/api/ngevent?calname=theicehouse&max=200&startms=0")
+
+    assert isinstance(result, IceHousePageData)
+    assert len(result.event_list) == 1
+    assert result.event_list[0].title == "Real Show"
+    assert call_count["n"] == 2
