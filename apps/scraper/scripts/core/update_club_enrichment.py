@@ -66,12 +66,17 @@ _KNOWN_DATADOME_DESCRIPTION_BY_HOST = {
         "Comedy Mothership is an Austin comedy club featuring stand-up shows, "
         "open mics, podcasts, and special events."
     ),
+    "laughfactory.com": (
+        "Laugh Factory is a comedy club featuring stand-up shows, touring "
+        "comedians, showcases, and special events."
+    ),
 }
 _KNOWN_DATADOME_HOST_SUFFIXES = (
     ".funnybone.com",
     "funnybone.com",
     "comedymothership.com",
     "www.comedymothership.com",
+    "laughfactory.com",
 )
 
 

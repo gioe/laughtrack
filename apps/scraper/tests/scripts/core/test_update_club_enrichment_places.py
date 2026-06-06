@@ -284,3 +284,28 @@ def test_known_datadome_existing_description_is_not_overwritten(monkeypatch):
     assert summary["hours_hits"] == 1
     assert summary["hours_from_places"] == 1
     assert summary["extracted"] == 1
+
+
+def test_known_datadome_laugh_factory_skips_website_fetch(monkeypatch):
+    target = _target(
+        171,
+        "Laugh Factory Covina",
+        city="Covina",
+        state="CA",
+        website="https://www.laughfactory.com/covina",
+    )
+    places_client = _places_query_returns({})
+
+    async def fail_fetch_html(*args, **kwargs):
+        raise AssertionError("known DataDome host should not fetch website HTML")
+
+    monkeypatch.setattr(mod.HttpClient, "fetch_html", fail_fetch_html)
+    monkeypatch.setattr(mod, "close_js_browser", lambda: _noop_async())
+
+    summary = _run_enrich([target], places_client)
+
+    assert places_client.fetch_hours.call_count == 1
+    assert summary["description_hits"] == 1
+    assert summary["hours_hits"] == 0
+    assert summary["bot_blocked"] == 0
+    assert summary["extracted"] == 1
