@@ -168,6 +168,15 @@ class PopularityScorer:
         else:
             return "New Talent"
 
+    # Show popularity blend weights. Must sum to 1.0 so the weighted sum of
+    # in-range components stays in [0, 1]. Pinned as constants (rather than
+    # function-local) so the SQL contract test and SHOW_*_WEIGHT consumers
+    # share one source of truth — the SQL in BATCH_GET_LINEUP_POPULARITY uses
+    # the same 0.5/0.2/0.3 split.
+    SHOW_LINEUP_WEIGHT = 0.5
+    SHOW_VENUE_WEIGHT = 0.2
+    SHOW_SALES_WEIGHT = 0.3
+
     @classmethod
     def calculate_show_popularity(
         cls, lineup_popularity: float = 0.0, venue_popularity: float = 0.0, ticket_sales_rate: float = 0.0
@@ -183,13 +192,15 @@ class PopularityScorer:
         Returns:
             float: Show popularity score between 0 and 1
         """
-        # Weights for different factors
-        LINEUP_WEIGHT = 0.5
-        VENUE_WEIGHT = 0.2
-        SALES_WEIGHT = 0.3
-
         popularity = (
-            lineup_popularity * LINEUP_WEIGHT + venue_popularity * VENUE_WEIGHT + ticket_sales_rate * SALES_WEIGHT
+            lineup_popularity * cls.SHOW_LINEUP_WEIGHT
+            + venue_popularity * cls.SHOW_VENUE_WEIGHT
+            + ticket_sales_rate * cls.SHOW_SALES_WEIGHT
         )
 
-        return round(popularity, 4)
+        # Defensive clamp matches the docstring's [0, 1] contract: callers
+        # may pass out-of-range inputs (legacy unclamped lineup popularity,
+        # ticket_sales_rate accidentally >1 from a buggy sales-rate calc),
+        # but the score must stay bounded because it drives downstream tier
+        # classification (get_popularity_tier) and UI sort order.
+        return round(min(max(popularity, 0.0), 1.0), 4)

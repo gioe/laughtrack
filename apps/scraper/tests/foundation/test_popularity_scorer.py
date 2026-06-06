@@ -159,6 +159,102 @@ def test_performance_score_touring_only_recency_contribution():
     assert score > 0.0
 
 
+class TestCalculateShowPopularity:
+    """calculate_show_popularity blends lineup/venue/sales and clamps to [0, 1]."""
+
+    def test_zero_inputs_returns_zero(self):
+        assert PopularityScorer.calculate_show_popularity() == 0.0
+
+    def test_blends_three_signals_weighted(self):
+        # lineup=0.8 → 0.4, venue=0.5 → 0.1, sales=1.0 → 0.3 ⇒ 0.8
+        score = PopularityScorer.calculate_show_popularity(
+            lineup_popularity=0.8, venue_popularity=0.5, ticket_sales_rate=1.0
+        )
+        expected = (
+            0.8 * PopularityScorer.SHOW_LINEUP_WEIGHT
+            + 0.5 * PopularityScorer.SHOW_VENUE_WEIGHT
+            + 1.0 * PopularityScorer.SHOW_SALES_WEIGHT
+        )
+        assert score == round(expected, 4)
+
+    def test_all_max_inputs_returns_one(self):
+        score = PopularityScorer.calculate_show_popularity(
+            lineup_popularity=1.0, venue_popularity=1.0, ticket_sales_rate=1.0
+        )
+        assert score == 1.0
+
+    def test_out_of_range_inputs_are_clamped_to_one(self):
+        """Defensive clamp pins the [0, 1] docstring contract — guards against
+        legacy unclamped lineup popularity (prod max=3.76 before TASK-2697)
+        and any future buggy upstream signal."""
+        score = PopularityScorer.calculate_show_popularity(
+            lineup_popularity=3.76,
+            venue_popularity=1.0,
+            ticket_sales_rate=1.0,
+        )
+        assert score == 1.0
+
+    def test_negative_inputs_are_clamped_to_zero(self):
+        score = PopularityScorer.calculate_show_popularity(
+            lineup_popularity=-0.5, venue_popularity=-1.0, ticket_sales_rate=-0.2
+        )
+        assert score == 0.0
+
+
+def test_show_blend_weights_sum_to_one():
+    """SHOW_*_WEIGHTs must sum to 1.0 — the [0, 1] contract relies on it.
+    Pinning the invariant here keeps a future tuner from editing one constant
+    without the others and silently pushing show popularity out of bounds."""
+    assert (
+        PopularityScorer.SHOW_LINEUP_WEIGHT
+        + PopularityScorer.SHOW_VENUE_WEIGHT
+        + PopularityScorer.SHOW_SALES_WEIGHT
+        == 1.0
+    )
+
+
+class TestBatchGetShowPopularitySql:
+    """Contract tests for the BATCH_GET_LINEUP_POPULARITY SQL query — pins the
+    signals (lineup popularity, clubs.popularity, ticket sold_out, time-decay)
+    and the [0, 1] clamp so a future SQL refactor cannot silently revert to
+    the unclamped lineup-only formula that produced prod max=3.76 (TASK-2697)."""
+
+    def setup_method(self):
+        root = Path(__file__).parents[2]
+        spec = importlib.util.spec_from_file_location(
+            "sql.show_queries_direct",
+            root / "sql/show_queries.py",
+        )
+        mod = importlib.util.module_from_spec(spec)
+        sys.modules["sql.show_queries_direct"] = mod
+        spec.loader.exec_module(mod)
+        self.ShowQueries = mod.ShowQueries
+
+    def test_query_exists(self):
+        assert hasattr(self.ShowQueries, "BATCH_GET_LINEUP_POPULARITY")
+
+    def test_query_reads_clubs_popularity(self):
+        sql = self.ShowQueries.BATCH_GET_LINEUP_POPULARITY
+        assert "cl.popularity" in sql or "clubs.popularity" in sql
+
+    def test_query_reads_ticket_sold_out(self):
+        sql = self.ShowQueries.BATCH_GET_LINEUP_POPULARITY.lower()
+        assert "tickets" in sql
+        assert "sold_out" in sql
+        assert "bool_or" in sql
+
+    def test_query_applies_time_decay(self):
+        sql = self.ShowQueries.BATCH_GET_LINEUP_POPULARITY
+        # piecewise decay on s.date — at least one cut point present
+        assert "CURRENT_DATE" in sql
+        assert "INTERVAL" in sql
+
+    def test_query_clamps_to_one(self):
+        sql = self.ShowQueries.BATCH_GET_LINEUP_POPULARITY
+        assert "LEAST(" in sql
+        assert "1.0" in sql
+
+
 class TestGetComedianRecencyScoresSql:
     """Contract tests for the GET_COMEDIAN_RECENCY_SCORES SQL query."""
 
