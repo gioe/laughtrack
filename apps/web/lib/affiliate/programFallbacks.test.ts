@@ -19,6 +19,8 @@ describe("priority affiliate program fallbacks", () => {
         ["fever", "https://feverup.com/m/12345"],
         ["gametime", "https://gametime.co/comedy/123"],
         ["viator", "https://www.viator.com/tours/New-York-City/d687-123"],
+        ["tixr", "https://www.tixr.com/groups/supernova/events"],
+        ["seatengine", "https://venue.seatengine.com/events"],
     ] satisfies Array<[AffiliateProvider, string]>)(
         "keeps the original %s destination when no rule is active",
         (provider, destinationUrl) => {

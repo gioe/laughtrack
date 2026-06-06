@@ -9,6 +9,8 @@ export type AffiliateProvider =
     | "fever"
     | "gametime"
     | "viator"
+    | "tixr"
+    | "seatengine"
     | "direct_venue"
     | "malformed";
 
@@ -19,10 +21,17 @@ export type AffiliateFallbackReason =
     | "unsupported_protocol"
     | "invalid_affiliate_rule";
 
-export type PriorityAffiliateProvider = Exclude<
-    AffiliateProvider,
-    "direct_venue" | "malformed"
->;
+export type PriorityAffiliateProvider =
+    | "ticketmaster"
+    | "eventbrite"
+    | "seatgeek"
+    | "tickpick"
+    | "vivid_seats"
+    | "stubhub"
+    | "ticketnetwork"
+    | "fever"
+    | "gametime"
+    | "viator";
 
 export const PRIORITY_AFFILIATE_PROVIDERS: PriorityAffiliateProvider[] = [
     "ticketmaster",
@@ -61,7 +70,10 @@ export type AffiliateRule =
     | LegacyAffiliateQueryRule;
 
 export type AffiliateRules = Partial<
-    Record<PriorityAffiliateProvider, AffiliateRule>
+    Record<
+        Exclude<AffiliateProvider, "direct_venue" | "malformed">,
+        AffiliateRule
+    >
 >;
 
 export interface PriorityAffiliateProgram {
@@ -93,7 +105,7 @@ export type AffiliateDestination =
     | (AffiliateDestinationBase & { ok: false });
 
 const PROVIDER_HOSTS: Array<{
-    provider: PriorityAffiliateProvider;
+    provider: Exclude<AffiliateProvider, "direct_venue" | "malformed">;
     hosts: string[];
 }> = [
     {
@@ -109,6 +121,16 @@ const PROVIDER_HOSTS: Array<{
     { provider: "fever", hosts: ["feverup.com"] },
     { provider: "gametime", hosts: ["gametime.co"] },
     { provider: "viator", hosts: ["viator.com"] },
+    { provider: "tixr", hosts: ["tixr.com"] },
+    {
+        provider: "seatengine",
+        hosts: [
+            "seatengine.com",
+            "seatengine.net",
+            "seatengine-sites.com",
+            "seatengine.cloud",
+        ],
+    },
 ];
 
 const PRIORITY_PROGRAMS: PriorityAffiliateProgram[] = [
