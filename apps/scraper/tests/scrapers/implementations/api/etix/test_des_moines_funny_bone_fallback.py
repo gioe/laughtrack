@@ -95,9 +95,7 @@ async def test_des_moines_funny_bone_fallback_uses_public_listing(monkeypatch):
     fetch_bare_calls: list[str] = []
 
     async def fake_fetch_html(self, url: str, **kwargs) -> str:
-        if url == ETIX_URL:
-            return "<html><title>DataDome</title></html>"
-        raise AssertionError(f"unexpected fetch_html: {url}")
+        raise AssertionError(f"Des Moines Funny Bone should not fetch blocked Etix URL: {url}")
 
     async def fake_fetch_html_bare(self, url: str) -> str:
         fetch_bare_calls.append(url)
@@ -128,6 +126,20 @@ async def test_des_moines_funny_bone_fallback_uses_public_listing(monkeypatch):
     assert series_monday.ticket_url == SERIES_TICKET_URL_2
 
 
+@pytest.mark.asyncio
+async def test_des_moines_funny_bone_collect_targets_skips_etix_discovery(monkeypatch):
+    from laughtrack.scrapers.implementations.api.etix.scraper import EtixScraper
+
+    scraper = EtixScraper(_club())
+
+    async def fail_fetch_etix_html(url: str):
+        raise AssertionError(f"Des Moines Funny Bone should not fetch blocked Etix discovery URL: {url}")
+
+    monkeypatch.setattr(scraper, "_fetch_etix_html", fail_fetch_etix_html)
+
+    assert await scraper.collect_scraping_targets() == [ETIX_URL]
+
+
 def test_funny_bone_registry_contains_des_moines():
     from laughtrack.scrapers.implementations.api.etix.scraper import _FUNNY_BONE_FALLBACKS
 
@@ -141,9 +153,7 @@ async def test_des_moines_funny_bone_fallback_does_not_mark_unknown_prices_free(
     scraper = EtixScraper(_club())
 
     async def fake_fetch_html(self, url: str, **kwargs) -> str:
-        if url == ETIX_URL:
-            return "<html><title>DataDome</title></html>"
-        raise AssertionError(f"unexpected fetch_html: {url}")
+        raise AssertionError(f"Des Moines Funny Bone should not fetch blocked Etix URL: {url}")
 
     async def fake_fetch_html_bare(self, url: str) -> str:
         if url == SHOWS_URL:

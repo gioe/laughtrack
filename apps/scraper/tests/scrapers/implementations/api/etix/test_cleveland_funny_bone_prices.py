@@ -95,9 +95,7 @@ async def test_public_listing_extracts_visible_price_ranges(monkeypatch):
     scraper = EtixScraper(_club())
 
     async def fake_fetch_html(self, url: str, **kwargs) -> str:
-        if url == ETIX_URL:
-            return "<html><title>DataDome</title></html>"
-        raise AssertionError(f"unexpected fetch_html: {url}")
+        raise AssertionError(f"Cleveland Funny Bone should not fetch blocked Etix URL: {url}")
 
     async def fake_fetch_html_bare(self, url: str) -> str:
         if url == SHOWS_URL:

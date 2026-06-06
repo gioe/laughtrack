@@ -120,10 +120,7 @@ async def test_tampa_funny_bone_fallback_uses_public_listing(monkeypatch):
 
     async def fake_fetch_html(self, url: str, **kwargs) -> str:
         fetch_html_calls.append(url)
-        if url == ETIX_URL:
-            # DataDome interstitial — Etix returns no events.
-            return "<html><title>DataDome</title></html>"
-        raise AssertionError(f"unexpected fetch_html: {url}")
+        raise AssertionError(f"Tampa Funny Bone should not fetch blocked Etix URL: {url}")
 
     async def fake_fetch_html_bare(self, url: str) -> str:
         fetch_bare_calls.append(url)
@@ -137,6 +134,7 @@ async def test_tampa_funny_bone_fallback_uses_public_listing(monkeypatch):
     result = await scraper.get_data(ETIX_URL)
 
     assert isinstance(result, EtixPageData)
+    assert fetch_html_calls == []
     assert fetch_bare_calls == [SHOWS_URL]
 
     # Three rows: 1 solo + 2 in-stock series dates. The "Unavailable" row is skipped.
@@ -158,14 +156,13 @@ async def test_tampa_funny_bone_fallback_uses_public_listing(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_tampa_funny_bone_fallback_returns_none_when_listing_empty(monkeypatch):
-    """When the venue page is unreachable, the fallback returns None and the
-    primary 'no events found' path runs."""
+    """When the public fallback page is unreachable, the scraper returns None."""
     from laughtrack.scrapers.implementations.api.etix.scraper import EtixScraper
 
     scraper = EtixScraper(_club())
 
     async def fake_fetch_html(self, url: str, **kwargs) -> str:
-        return "<html><title>DataDome</title></html>"
+        raise AssertionError(f"Tampa Funny Bone should not fetch blocked Etix URL: {url}")
 
     async def fake_fetch_html_bare(self, url: str) -> str:
         raise RuntimeError("403")
