@@ -74,26 +74,47 @@ class ComedianQueries:
         WHERE c.uuid = v.comedian_id
     '''
 
+    # Comedian recency blends date-decayed show activity with first-party click
+    # demand inherited through lineup_items. All ticket-purchase clicks count,
+    # including clicks without confirmed purchases: this is an intent signal
+    # until conversion tracking exists.
     GET_COMEDIAN_RECENCY_SCORES = '''
+        WITH comedian_metrics AS (
+            SELECT
+                li.comedian_id,
+                LEAST(
+                    SUM(
+                        CASE
+                            WHEN s.date >= CURRENT_DATE               THEN 4.0
+                            WHEN s.date >= CURRENT_DATE - INTERVAL '30 days'  THEN 3.0
+                            WHEN s.date >= CURRENT_DATE - INTERVAL '90 days'  THEN 2.0
+                            WHEN s.date >= CURRENT_DATE - INTERVAL '180 days' THEN 1.0
+                            ELSE 0.0
+                        END
+                    ) / 20.0,
+                    1.0
+                ) AS activity_recency_score,
+                LEAST(SUM(show_clicks.click_count)::float / 20.0, 1.0) AS click_demand_rate
+            FROM lineup_items li
+            JOIN shows s ON s.id = li.show_id
+            LEFT JOIN LATERAL (
+                SELECT COUNT(*) AS click_count
+                FROM ticket_purchase_click_events tpce
+                WHERE tpce.show_id = s.id
+                  AND tpce.created_at >= NOW() - INTERVAL '30 days'
+            ) show_clicks ON true
+            WHERE li.comedian_id = ANY(%s)
+              AND s.date >= CURRENT_DATE - INTERVAL '180 days'
+            GROUP BY li.comedian_id
+        )
         SELECT
-            li.comedian_id,
+            comedian_id,
             LEAST(
-                SUM(
-                    CASE
-                        WHEN s.date >= CURRENT_DATE               THEN 4.0
-                        WHEN s.date >= CURRENT_DATE - INTERVAL '30 days'  THEN 3.0
-                        WHEN s.date >= CURRENT_DATE - INTERVAL '90 days'  THEN 2.0
-                        WHEN s.date >= CURRENT_DATE - INTERVAL '180 days' THEN 1.0
-                        ELSE 0.0
-                    END
-                ) / 20.0,
+                activity_recency_score * 0.85
+                + click_demand_rate * 0.15,
                 1.0
             ) AS recency_score
-        FROM lineup_items li
-        JOIN shows s ON s.id = li.show_id
-        WHERE li.comedian_id = ANY(%s)
-          AND s.date >= CURRENT_DATE - INTERVAL '180 days'
-        GROUP BY li.comedian_id
+        FROM comedian_metrics
     '''
 
     GET_COMEDIANS_WITH_TOUR_IDS = '''

@@ -171,23 +171,29 @@ class PopularityScorer:
     # Show popularity blend weights. Must sum to 1.0 so the weighted sum of
     # in-range components stays in [0, 1]. Pinned as constants (rather than
     # function-local) so the SQL contract test and SHOW_*_WEIGHT consumers
-    # share one source of truth — the SQL in BATCH_GET_LINEUP_POPULARITY uses
-    # the same 0.5/0.2/0.3 split.
-    SHOW_LINEUP_WEIGHT = 0.5
+    # share one source of truth. The SQL in BATCH_GET_LINEUP_POPULARITY uses
+    # the same lineup/venue/sales/click split.
+    SHOW_LINEUP_WEIGHT = 0.45
     SHOW_VENUE_WEIGHT = 0.2
-    SHOW_SALES_WEIGHT = 0.3
+    SHOW_SALES_WEIGHT = 0.25
+    SHOW_CLICK_DEMAND_WEIGHT = 0.1
 
     @classmethod
     def calculate_show_popularity(
-        cls, lineup_popularity: float = 0.0, venue_popularity: float = 0.0, ticket_sales_rate: float = 0.0
+        cls,
+        lineup_popularity: float = 0.0,
+        venue_popularity: float = 0.0,
+        ticket_sales_rate: float = 0.0,
+        click_demand_rate: float = 0.0,
     ) -> float:
         """
-        Calculate show popularity based on lineup, venue, and ticket sales.
+        Calculate show popularity based on lineup, venue, ticket sales, and click demand.
 
         Args:
             lineup_popularity: Average popularity of comedians in lineup (0-1)
             venue_popularity: Popularity of the venue (0-1)
             ticket_sales_rate: Percentage of tickets sold (0-1)
+            click_demand_rate: Recent ticket-purchase click demand (0-1)
 
         Returns:
             float: Show popularity score between 0 and 1
@@ -196,6 +202,7 @@ class PopularityScorer:
             lineup_popularity * cls.SHOW_LINEUP_WEIGHT
             + venue_popularity * cls.SHOW_VENUE_WEIGHT
             + ticket_sales_rate * cls.SHOW_SALES_WEIGHT
+            + click_demand_rate * cls.SHOW_CLICK_DEMAND_WEIGHT
         )
 
         # Defensive clamp matches the docstring's [0, 1] contract: callers

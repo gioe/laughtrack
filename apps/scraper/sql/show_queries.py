@@ -100,16 +100,34 @@ class ShowQueries:
           )
     '''
     
-    # Show popularity ∈ [0, 1], blended from lineup, venue, and ticket-sales
-    # signals and multiplied by a piecewise time-decay on s.date so upcoming
-    # shows score highest and past shows fade. Component weights mirror
-    # PopularityScorer.calculate_show_popularity (the docstring contract this
-    # SQL must honor):
-    #   - lineup (0.5): AVG of comedians.popularity over the show's lineup.
+    # Recent ticket-purchase click counts per show. All clicks count, including
+    # clicks without confirmed purchases: this is an intent signal until the app
+    # has conversion tracking. The 30-day window matches the freshest first-party
+    # demand signal used by BATCH_GET_LINEUP_POPULARITY.
+    BATCH_GET_SHOW_CLICK_DEMAND = '''
+        SELECT
+            show_id,
+            COUNT(*) AS click_count,
+            LEAST(COUNT(*)::float / 5.0, 1.0) AS click_demand_rate
+        FROM ticket_purchase_click_events
+        WHERE show_id = ANY(%s::int[])
+          AND created_at >= NOW() - INTERVAL '30 days'
+        GROUP BY show_id
+    '''
+
+    # Show popularity ∈ [0, 1], blended from lineup, venue, ticket-sales, and
+    # recent ticket-purchase click demand signals and multiplied by a piecewise
+    # time-decay on s.date so upcoming shows score highest and past shows fade.
+    # Component weights mirror PopularityScorer.calculate_show_popularity (the
+    # docstring contract this SQL must honor):
+    #   - lineup (0.45): AVG of comedians.popularity over the show's lineup.
     #     comedian popularity is already in [0, 1] from update_comedian_popularity.
-    #   - venue  (0.2): clubs.popularity, already in [0, 1] from
+    #   - venue  (0.20): clubs.popularity, already in [0, 1] from
     #     BATCH_UPDATE_CLUB_POPULARITY's outer LEAST clamp.
-    #   - sales  (0.3): 1.0 if any ticket for the show is sold_out, else 0.0.
+    #   - sales  (0.25): 1.0 if any ticket for the show is sold_out, else 0.0.
+    #   - click demand (0.10): all ticket-purchase clicks in the last 30 days,
+    #     saturated at 5 clicks per show. These are intent clicks; they do not
+    #     require confirmed purchases until conversion tracking exists.
     # Each component ∈ [0, 1] and weights sum to 1.0, so the blend is bounded.
     # Time-decay ∈ [0.1, 1.0]; the product is therefore already in [0, 1].
     # Outer LEAST(..., 1.0) is a belt-and-suspenders clamp that pins the
@@ -146,9 +164,10 @@ class ShowQueries:
             sl.show_id,
             LEAST(
                 (
-                    COALESCE(sl.avg_lineup_popularity, 0) * 0.5
+                    COALESCE(sl.avg_lineup_popularity, 0) * 0.45
                     + COALESCE(cl.popularity, 0) * 0.2
-                    + CASE WHEN sales.any_sold_out THEN 1.0 ELSE 0.0 END * 0.3
+                    + CASE WHEN sales.any_sold_out THEN 1.0 ELSE 0.0 END * 0.25
+                    + COALESCE(clicks.click_demand_rate, 0) * 0.1
                 ) * (
                     CASE
                         WHEN sl.date >= CURRENT_DATE THEN 1.0
@@ -167,6 +186,12 @@ class ShowQueries:
             FROM tickets t
             WHERE t.show_id = sl.show_id
         ) sales ON true
+        LEFT JOIN LATERAL (
+            SELECT LEAST(COUNT(*)::float / 5.0, 1.0) AS click_demand_rate
+            FROM ticket_purchase_click_events tpce
+            WHERE tpce.show_id = sl.show_id
+              AND tpce.created_at >= NOW() - INTERVAL '30 days'
+        ) clicks ON true
     '''
     
     BATCH_UPDATE_SHOW_POPULARITY = '''

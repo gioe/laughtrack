@@ -470,7 +470,22 @@ class ClubQueries:
         SELECT id FROM clubs WHERE visible = TRUE AND status = 'active' ORDER BY id
     """
 
-    # Computes popularity per club from two signals over the +/-90-day window:
+    # Recent ticket-purchase click counts per club. All clicks count, including
+    # clicks without confirmed purchases: this is an intent signal until the app
+    # has conversion tracking. The 30-day window keeps the demand signal fresh
+    # relative to the +/-90-day supply/quality window below.
+    BATCH_GET_CLUB_CLICK_DEMAND = """
+        SELECT
+            club_id,
+            COUNT(*) AS click_count,
+            LEAST(COUNT(*)::float / 20.0, 1.0) AS click_demand_rate
+        FROM ticket_purchase_click_events
+        WHERE club_id = ANY(%s::int[])
+          AND created_at >= NOW() - INTERVAL '30 days'
+        GROUP BY club_id
+    """
+
+    # Computes popularity per club from three signals:
     #   - Activity: count of shows in the past 90 days + next 90 days,
     #     saturated at 60 shows (approx one show every three days on average).
     #   - Quality: booking-weighted average comedian popularity - the LEFT JOIN
@@ -479,9 +494,12 @@ class ClubQueries:
     #     more. This intentionally rewards clubs that book popular comedians
     #     repeatedly, not just once. Values are already normalized to 0-1
     #     by update_comedian_popularity.
-    # Activity gets 60% weight, quality 40%, mirroring the comedian scorer's
-    # performance-over-social split. Clubs with no shows in the window are
-    # absent from the result set and keep their existing popularity untouched.
+    #   - Click demand: all ticket-purchase clicks in the last 30 days,
+    #     saturated at 20 clicks per club. These are intent clicks; they do not
+    #     require confirmed purchases until conversion tracking exists.
+    # Activity gets 50% weight, quality 35%, and click demand 15%. Clubs with no
+    # shows in the window are absent from the result set and keep their existing
+    # popularity untouched, even if they have stale click rows.
     BATCH_GET_CLUB_POPULARITY = """
         WITH club_metrics AS (
             SELECT
@@ -509,11 +527,18 @@ class ClubQueries:
         SELECT
             club_id,
             LEAST(
-                LEAST((upcoming_shows + recent_shows)::float / 60.0, 1.0) * 0.6 +
-                COALESCE(avg_comedian_popularity, 0) * 0.4,
+                LEAST((upcoming_shows + recent_shows)::float / 60.0, 1.0) * 0.5 +
+                COALESCE(avg_comedian_popularity, 0) * 0.35 +
+                COALESCE(clicks.click_demand_rate, 0) * 0.15,
                 1.0
             ) AS popularity
         FROM club_metrics
+        LEFT JOIN LATERAL (
+            SELECT LEAST(COUNT(*)::float / 20.0, 1.0) AS click_demand_rate
+            FROM ticket_purchase_click_events tpce
+            WHERE tpce.club_id = club_metrics.club_id
+              AND tpce.created_at >= NOW() - INTERVAL '30 days'
+        ) clicks ON true
         WHERE upcoming_shows + recent_shows > 0
     """
 

@@ -161,26 +161,33 @@ def test_performance_score_touring_only_recency_contribution():
 
 
 class TestCalculateShowPopularity:
-    """calculate_show_popularity blends lineup/venue/sales and clamps to [0, 1]."""
+    """calculate_show_popularity blends lineup/venue/sales/click demand and clamps to [0, 1]."""
 
     def test_zero_inputs_returns_zero(self):
         assert PopularityScorer.calculate_show_popularity() == 0.0
 
     def test_blends_three_signals_weighted(self):
-        # lineup=0.8 → 0.4, venue=0.5 → 0.1, sales=1.0 → 0.3 ⇒ 0.8
+        # lineup=0.8 -> 0.36, venue=0.5 -> 0.1, sales=1.0 -> 0.25, clicks=0.5 -> 0.05 => 0.76
         score = PopularityScorer.calculate_show_popularity(
-            lineup_popularity=0.8, venue_popularity=0.5, ticket_sales_rate=1.0
+            lineup_popularity=0.8,
+            venue_popularity=0.5,
+            ticket_sales_rate=1.0,
+            click_demand_rate=0.5,
         )
         expected = (
             0.8 * PopularityScorer.SHOW_LINEUP_WEIGHT
             + 0.5 * PopularityScorer.SHOW_VENUE_WEIGHT
             + 1.0 * PopularityScorer.SHOW_SALES_WEIGHT
+            + 0.5 * PopularityScorer.SHOW_CLICK_DEMAND_WEIGHT
         )
         assert score == round(expected, 4)
 
     def test_all_max_inputs_returns_one(self):
         score = PopularityScorer.calculate_show_popularity(
-            lineup_popularity=1.0, venue_popularity=1.0, ticket_sales_rate=1.0
+            lineup_popularity=1.0,
+            venue_popularity=1.0,
+            ticket_sales_rate=1.0,
+            click_demand_rate=1.0,
         )
         assert score == 1.0
 
@@ -192,12 +199,16 @@ class TestCalculateShowPopularity:
             lineup_popularity=3.76,
             venue_popularity=1.0,
             ticket_sales_rate=1.0,
+            click_demand_rate=1.0,
         )
         assert score == 1.0
 
     def test_negative_inputs_are_clamped_to_zero(self):
         score = PopularityScorer.calculate_show_popularity(
-            lineup_popularity=-0.5, venue_popularity=-1.0, ticket_sales_rate=-0.2
+            lineup_popularity=-0.5,
+            venue_popularity=-1.0,
+            ticket_sales_rate=-0.2,
+            click_demand_rate=-0.4,
         )
         assert score == 0.0
 
@@ -210,13 +221,14 @@ def test_show_blend_weights_sum_to_one():
         PopularityScorer.SHOW_LINEUP_WEIGHT
         + PopularityScorer.SHOW_VENUE_WEIGHT
         + PopularityScorer.SHOW_SALES_WEIGHT
+        + PopularityScorer.SHOW_CLICK_DEMAND_WEIGHT
         == 1.0
     )
 
 
 class TestBatchGetShowPopularitySql:
     """Contract tests for the BATCH_GET_LINEUP_POPULARITY SQL query — pins the
-    signals (lineup popularity, clubs.popularity, ticket sold_out, time-decay)
+    signals (lineup popularity, clubs.popularity, ticket sold_out, click demand, time-decay)
     and the [0, 1] clamp so a future SQL refactor cannot silently revert to
     the unclamped lineup-only formula that produced prod max=3.76 (TASK-2697)."""
 
@@ -237,6 +249,20 @@ class TestBatchGetShowPopularitySql:
         assert "tickets" in sql
         assert "sold_out" in sql
         assert "bool_or" in sql
+
+    def test_click_demand_helper_exists(self):
+        assert hasattr(self.ShowQueries, "BATCH_GET_SHOW_CLICK_DEMAND")
+        sql = self.ShowQueries.BATCH_GET_SHOW_CLICK_DEMAND.lower()
+        assert "ticket_purchase_click_events" in sql
+        assert "click_count" in sql
+        assert "30 days" in sql
+
+    def test_query_reads_ticket_purchase_click_events(self):
+        sql = self.ShowQueries.BATCH_GET_LINEUP_POPULARITY.lower()
+        assert "ticket_purchase_click_events" in sql
+        assert "click_demand_rate" in sql
+        assert "30 days" in sql
+        assert "/ 5.0" in sql
 
     def test_query_applies_time_decay(self):
         sql = self.ShowQueries.BATCH_GET_LINEUP_POPULARITY
@@ -292,3 +318,36 @@ class TestGetComedianRecencyScoresSql:
         """Normalization constant: 5 upcoming shows (4 pts each) = max score."""
         sql = self.ComedianQueries.GET_COMEDIAN_RECENCY_SCORES
         assert "20.0" in sql or "/ 20" in sql
+
+    def test_query_reads_click_demand_through_lineup_shows(self):
+        sql = self.ComedianQueries.GET_COMEDIAN_RECENCY_SCORES.lower()
+        assert "lineup_items" in sql
+        assert "ticket_purchase_click_events" in sql
+        assert "click_demand_rate" in sql
+        assert "30 days" in sql
+
+
+class TestBatchGetClubPopularitySql:
+    """Contract tests for the BATCH_GET_CLUB_POPULARITY SQL query."""
+
+    def setup_method(self):
+        self.ClubQueries = _load_module(
+            "sql/club_queries.py", "sql.club_queries_direct"
+        ).ClubQueries
+
+    def test_query_exists(self):
+        assert hasattr(self.ClubQueries, "BATCH_GET_CLUB_POPULARITY")
+
+    def test_click_demand_helper_exists(self):
+        assert hasattr(self.ClubQueries, "BATCH_GET_CLUB_CLICK_DEMAND")
+        sql = self.ClubQueries.BATCH_GET_CLUB_CLICK_DEMAND.lower()
+        assert "ticket_purchase_click_events" in sql
+        assert "click_count" in sql
+        assert "30 days" in sql
+
+    def test_query_reads_ticket_purchase_click_events(self):
+        sql = self.ClubQueries.BATCH_GET_CLUB_POPULARITY.lower()
+        assert "ticket_purchase_click_events" in sql
+        assert "click_demand_rate" in sql
+        assert "30 days" in sql
+        assert "/ 20.0" in sql
