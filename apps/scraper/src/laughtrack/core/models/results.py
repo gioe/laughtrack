@@ -56,6 +56,12 @@ class ClubScrapingResult:
     # summary can aggregate uncanonical scraping_sources.source_url tuples
     # across all clubs and surface them in the nightly Discord summary.
     cross_host_redirects: Set[Tuple[str, str]] = field(default_factory=set)
+    # Carried from Club.is_synthetic / Club.production_company_id so the metrics
+    # pipeline can distinguish a per-company organizer scrape from a real-venue
+    # scrape without inspecting club_id sign. Replaces the older negative-club-id
+    # encoding (TASK-2552, TASK-2565).
+    is_synthetic: bool = False
+    production_company_id: Optional[int] = None
 
     @property
     def num_shows(self) -> int:

@@ -1,12 +1,15 @@
 import json
 from dataclasses import dataclass, field, replace
-from typing import Any, ClassVar, Optional
+from typing import TYPE_CHECKING, Any, ClassVar, Optional
 from urllib.parse import urlparse
 
 from psycopg2.extras import DictRow
 
 from laughtrack.foundation.models.types import JSONDict
 from laughtrack.foundation.protocols.database_entity import DatabaseEntity
+
+if TYPE_CHECKING:
+    from laughtrack.core.entities.production_company.model import ProductionCompany
 
 
 @dataclass
@@ -154,6 +157,29 @@ class Club(DatabaseEntity):
     scraping_sources: list[ScrapingSource] = field(default_factory=list)
     active_scraping_source: Optional[ScrapingSource] = None
     chain_id: Optional[int] = None
+    # Discriminator for in-memory proxies built by the scraping service when a
+    # ProductionCompany has no `production_company_venues` row. The proxy is
+    # never persisted; treat ``id`` as meaningless when ``is_synthetic`` is True
+    # (it carries SYNTHETIC_PROXY_PLACEHOLDER_ID to satisfy the non-Optional
+    # int field). Real clubs loaded from the DB always have is_synthetic=False.
+    # Replaces the older implicit negative-company-id encoding (TASK-2552, TASK-2565).
+    is_synthetic: bool = False
+    # ProductionCompany.id this club is acting as a scrape proxy for. Non-None on
+    # both the synthetic-proxy path (no venue mapping, is_synthetic=True) and
+    # the venue-clone proxy path (real venue id reused, is_synthetic=False).
+    # Replaces the older _production_company_id setattr/getattr hack.
+    production_company_id: Optional[int] = None
+    # Optional ProductionCompany handle preserved for downstream consumers that
+    # need keyword-matching (matches_show_name) during per-show stamping. Not
+    # persisted; not part of from_db_row. Forward-typed to avoid a circular
+    # import with production_company.model.
+    production_company: Optional["ProductionCompany"] = None
+
+    # Sentinel used for ``id`` on synthetic proxies. clubs.id is a Postgres
+    # SERIAL starting at 1, so 0 cannot collide with a real club row. The real
+    # discriminator is ``is_synthetic``; this value should never be read as a
+    # club id by any consumer.
+    SYNTHETIC_PROXY_PLACEHOLDER_ID: ClassVar[int] = 0
 
     @property
     def primary_scraping_source(self) -> Optional[ScrapingSource]:

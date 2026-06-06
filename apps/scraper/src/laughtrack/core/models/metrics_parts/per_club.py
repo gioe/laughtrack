@@ -25,3 +25,11 @@ class PerClubStat:
     bot_block_stage: Optional[str] = None
     playwright_fallback_used: bool = False
     items_before_filter: Optional[int] = None
+    # Synthetic-proxy discriminator carried from ClubScrapingResult so dashboards
+    # and the postgres snapshot can attribute a per-company organizer scrape to
+    # its ProductionCompany without inspecting club_id sign. Replaces the older
+    # negative-club-id encoding (TASK-2552, TASK-2565). For synthetic rows,
+    # club_id is typically the SYNTHETIC_PROXY_PLACEHOLDER_ID sentinel
+    # which the postgres FK-membership check nulls before INSERT.
+    is_synthetic: bool = False
+    production_company_id: Optional[int] = None

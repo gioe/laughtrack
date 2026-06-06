@@ -14,7 +14,8 @@ Covers the full Encore Comedy flow:
   fake aggregator club.
 - ScrapingService.scrape_one's existing production_company_id stamping path
   applies on top of these per-venue Shows because the stamp comes from the
-  proxy Club (carries _production_company_id), not from each Show's own club_id.
+  proxy Club (carries Club.production_company_id), not from each Show's own
+  club_id.
 """
 
 import importlib.util
@@ -157,11 +158,15 @@ def test_extract_organizer_id_returns_none_for_non_eventbrite_urls():
 
 
 def test_synthetic_proxy_carries_eventbrite_source_and_pc_metadata():
+    from laughtrack.core.entities.club.model import Club
+
     company = _encore_company()
     proxy = _build_synthetic_proxy_for_company(company)
     assert proxy is not None
-    # Negative id ensures the synthetic Club is never persisted by ShowService.
-    assert proxy.id == -company.id
+    # Synthetic proxies are flagged via is_synthetic and carry the placeholder
+    # sentinel id (TASK-2565). The proxy is never persisted by ShowService.
+    assert proxy.is_synthetic is True
+    assert proxy.id == Club.SYNTHETIC_PROXY_PLACEHOLDER_ID
     # Single Eventbrite scraping_source with the parsed organizer id.
     assert len(proxy.scraping_sources) == 1
     source = proxy.scraping_sources[0]
@@ -172,8 +177,8 @@ def test_synthetic_proxy_carries_eventbrite_source_and_pc_metadata():
     # eventbrite_id property resolves through scraping_sources.
     assert proxy.eventbrite_id == "72313162423"
     # production_company_id and ref are tagged so scrape_one can stamp shows.
-    assert getattr(proxy, "_production_company_id") == company.id
-    assert getattr(proxy, "_production_company") is company
+    assert proxy.production_company_id == company.id
+    assert proxy.production_company is company
 
 
 def test_synthetic_proxy_returns_none_when_url_unsupported():
@@ -790,7 +795,7 @@ async def test_single_venue_mode_falls_through_to_standard_pipeline():
 
 def test_production_company_stamp_applies_to_per_venue_shows():
     """ScrapingService.scrape_one stamps production_company_id on every show in
-    a result based on the proxy Club's _production_company_id, regardless of
+    a result based on the proxy Club's production_company_id, regardless of
     each Show's own club_id. Verifying that here without the orchestrator
     machinery: a synthetic proxy carries the tag, per-venue Shows carry their
     venue club_id, and the stamp is applied uniformly."""
@@ -806,8 +811,8 @@ def test_production_company_stamp_applies_to_per_venue_shows():
         Show(name="Silver Diner show", club_id=silver_club.id, date=show_date, show_page_url="", lineup=[], tickets=[]),
     ]
 
-    pc_id = getattr(proxy, "_production_company_id", None)
-    pc = getattr(proxy, "_production_company", None)
+    pc_id = proxy.production_company_id
+    pc = proxy.production_company
     assert pc_id == company.id
     assert pc is company
 

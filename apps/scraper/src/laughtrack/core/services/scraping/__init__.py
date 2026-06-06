@@ -165,9 +165,9 @@ def _build_proxy_club(venue_club: Club, company: ProductionCompany) -> Club:
     """
     proxy = copy.copy(venue_club)
     proxy.scraping_url = company.scraping_url or ""
-    # Tag so scrape_one can stamp production_company_id before persistence
-    proxy._production_company_id = company.id  # type: ignore[attr-defined]
-    proxy._production_company = company  # type: ignore[attr-defined]
+    # Typed handle so scrape_one can stamp production_company_id before persistence.
+    proxy.production_company_id = company.id
+    proxy.production_company = company
     return proxy
 
 
@@ -219,7 +219,11 @@ def _build_synthetic_proxy_for_company(company: ProductionCompany) -> Optional[C
         enabled=True,
     )
     proxy = Club(
-        id=-company.id,  # negative ids are never persisted by ShowService
+        # Synthetic proxies have no clubs.id; the SYNTHETIC_PROXY_PLACEHOLDER_ID
+        # sentinel is a noop value for downstream code paths that read club.id
+        # as a plain int (logging, DomainRequestMetrics). is_synthetic is the
+        # real discriminator and production_company_id carries the linkage.
+        id=Club.SYNTHETIC_PROXY_PLACEHOLDER_ID,
         name=f"{company.name} (organizer)",
         address="",
         website=company.website or "",
@@ -228,9 +232,10 @@ def _build_synthetic_proxy_for_company(company: ProductionCompany) -> Optional[C
         phone_number="",
         visible=False,
         scraping_sources=[source],
+        is_synthetic=True,
+        production_company_id=company.id,
+        production_company=company,
     )
-    proxy._production_company_id = company.id  # type: ignore[attr-defined]
-    proxy._production_company = company  # type: ignore[attr-defined]
     return proxy
 
 
@@ -487,7 +492,7 @@ class ScrapingService:
 
         # Scrape using the same concurrent infrastructure as regular clubs.
         # production_company_id is stamped on shows inside scrape_one via the
-        # _production_company_id attribute on the proxy Club, before persistence.
+        # typed Club.production_company_id field, before persistence.
         proxies_only = [pc[0] for pc in proxy_clubs]
         results, pc_summary, db_result = self._scrape_clubs_with_metrics(proxies_only)
 
@@ -607,6 +612,8 @@ class ScrapingService:
                                 execution_time=float(per_club_timeout),
                                 error=f"timed out after {per_club_timeout}s",
                                 club_id=club.id,
+                                is_synthetic=club.is_synthetic,
+                                production_company_id=club.production_company_id,
                             )
                             continue
 
@@ -622,9 +629,9 @@ class ScrapingService:
                         # when scraping via a production company proxy club.
                         # If the company has show_name_keywords configured, only shows
                         # whose name matches at least one keyword get stamped.
-                        pc_id = getattr(club, "_production_company_id", None)
+                        pc_id = club.production_company_id
                         if pc_id is not None:
-                            pc: Optional[ProductionCompany] = getattr(club, "_production_company", None)
+                            pc: Optional[ProductionCompany] = club.production_company
                             stamped = 0
                             for show in result.shows:
                                 if pc is None or pc.matches_show_name(show.name):
@@ -713,6 +720,8 @@ class ScrapingService:
                             execution_time=0.0,
                             error=str(e),
                             club_id=club.id,
+                            is_synthetic=club.is_synthetic,
+                            production_company_id=club.production_company_id,
                         )
                         if index == len(sources) - 1:
                             break
@@ -738,6 +747,8 @@ class ScrapingService:
                             error=error_msg,
                             club_id=club.id,
                             config_error=True,
+                            is_synthetic=club.is_synthetic,
+                            production_company_id=club.production_company_id,
                         ), metrics
                     return ClubScrapingResult(
                         club_name=club.name,
@@ -745,6 +756,8 @@ class ScrapingService:
                         execution_time=0.0,
                         error="no enabled scraping source could be resolved",
                         club_id=club.id,
+                        is_synthetic=club.is_synthetic,
+                        production_company_id=club.production_company_id,
                     ), metrics
                 if last_result.error:
                     metrics.error += 1

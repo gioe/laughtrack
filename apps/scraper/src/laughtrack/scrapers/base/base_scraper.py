@@ -596,6 +596,8 @@ class BaseScraper(HttpConvenienceMixin, ABC):
                     fetches_ok=diagnostics.fetches_ok,
                     fetches_failed=diagnostics.fetches_failed,
                     cross_host_redirects=set(diagnostics.cross_host_redirects_warned),
+                    is_synthetic=getattr(self.club, 'is_synthetic', False),
+                    production_company_id=getattr(self.club, 'production_company_id', None),
                 )
             except Exception as e:
                 execution_time = (datetime.now() - start_time).total_seconds()
@@ -621,6 +623,8 @@ class BaseScraper(HttpConvenienceMixin, ABC):
                     playwright_fallback_used=diagnostics.playwright_fallback_used,
                     items_before_filter=diagnostics.items_before_filter,
                     cross_host_redirects=set(diagnostics.cross_host_redirects_warned),
+                    is_synthetic=getattr(self.club, 'is_synthetic', False),
+                    production_company_id=getattr(self.club, 'production_company_id', None),
                 )
             finally:
                 reset_diagnostics(token)

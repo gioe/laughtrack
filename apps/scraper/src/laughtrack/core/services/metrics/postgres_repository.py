@@ -159,14 +159,15 @@ class PostgresMetricsRepository:
     def _fetch_valid_club_ids(cur, stats: Iterable[PerClubStat]) -> set[int]:
         """Return the subset of stats' club_ids that exist in `clubs`.
 
-        Synthetic production_company proxies use ``id = -company.id`` (negative)
-        and would FK-violate against ``scraper_run_clubs.club_id REFERENCES
-        clubs(id)`` because those ids were never inserted into ``clubs``;
-        hard-deleted real clubs would FK-violate at INSERT for the same reason.
-        The column is nullable, so substituting NULL for any unknown id keeps
-        the INSERT valid. (``ON DELETE SET NULL`` only fires when a club is
-        deleted after the FK row exists, so it cannot rescue these never-existed
-        ids — the nulling has to happen pre-INSERT.)
+        Synthetic production_company proxies use
+        ``Club.SYNTHETIC_PROXY_PLACEHOLDER_ID`` and ``is_synthetic=True`` because
+        no backing ``clubs`` row exists; hard-deleted real clubs can also leave
+        stale positive ids in historical stats. Either case would FK-violate
+        against ``scraper_run_clubs.club_id REFERENCES clubs(id)`` at INSERT
+        time. The column is nullable, so substituting NULL for any unknown id
+        keeps the INSERT valid. (``ON DELETE SET NULL`` only fires when a club
+        is deleted after the FK row exists, so it cannot rescue these
+        never-existed ids; the nulling has to happen pre-INSERT.)
         """
         candidates = {stat.club_id for stat in stats if stat.club_id is not None}
         if not candidates:

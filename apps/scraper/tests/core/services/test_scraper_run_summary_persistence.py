@@ -138,10 +138,12 @@ def test_scraper_run_summary_persistence_upserts_run_and_replaces_child_rows():
 
 
 def test_scraper_run_summary_nullifies_unknown_club_ids_to_satisfy_fk():
-    """Synthetic production_company proxies emit negative club_ids; deleted
-    clubs leave stale positive ids in per_club_stats. Both must be nulled
-    before INSERT or scraper_run_clubs_club_id_fkey raises and aborts the
-    transaction (run 26762966336 incident)."""
+    """Synthetic production_company proxies carry the SYNTHETIC_PROXY_PLACEHOLDER_ID
+    sentinel (0) plus is_synthetic=True; deleted clubs leave stale positive ids in
+    per_club_stats. Both must be nulled before INSERT or scraper_run_clubs_club_id_fkey
+    raises and aborts the transaction (run 26762966336 incident, TASK-2552/2565)."""
+    from laughtrack.core.entities.club.model import Club
+
     dt = datetime(2026, 5, 18, 12, 30, tzinfo=timezone.utc)
     snapshot = ScrapingMetricsSnapshot(
         timestamp=dt.isoformat(),
@@ -154,13 +156,22 @@ def test_scraper_run_summary_nullifies_unknown_club_ids_to_satisfy_fk():
         execution_times=[],
         per_club_stats=[
             PerClubStat(club="Real Club", club_id=7, num_shows=0, execution_time=0.0, success=True),
-            PerClubStat(club="Improbable Comedy (organizer)", club_id=-2, num_shows=0, execution_time=0.0, success=True),
+            PerClubStat(
+                club="Improbable Comedy (organizer)",
+                club_id=Club.SYNTHETIC_PROXY_PLACEHOLDER_ID,
+                num_shows=0,
+                execution_time=0.0,
+                success=True,
+                is_synthetic=True,
+                production_company_id=2,
+            ),
             PerClubStat(club="Deleted Club", club_id=999, num_shows=0, execution_time=0.0, success=False),
             PerClubStat(club="Unknown ID Club", club_id=None, num_shows=0, execution_time=0.0, success=False),
         ],
         error_details=[],
     )
-    cursor = _Cursor(valid_club_ids=[7])  # only club 7 exists; -2 and 999 must be nulled
+    # Only club 7 exists; the synthetic placeholder (0) and stale 999 must be nulled.
+    cursor = _Cursor(valid_club_ids=[7])
     captured_batches = []
 
     def fake_execute_values(cur, sql, rows):
@@ -181,7 +192,7 @@ def test_scraper_run_summary_nullifies_unknown_club_ids_to_satisfy_fk():
     assert result is True
     select_sql, select_params = cursor.executed[3]
     assert "SELECT id FROM clubs WHERE id = ANY" in select_sql
-    assert sorted(select_params[0]) == [-2, 7, 999]
+    assert sorted(select_params[0]) == [0, 7, 999]
 
     _, club_rows = captured_batches[0]
     by_name = {row[2]: row[3] for row in club_rows}
