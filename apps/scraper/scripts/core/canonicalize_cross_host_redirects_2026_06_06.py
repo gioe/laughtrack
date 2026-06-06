@@ -111,7 +111,7 @@ _SOURCE_TARGETS: list[tuple[int, str, int, str, str, str]] = [
 # clubs.website updates.
 # (club_id, expected_name, before_url, after_url, redirect_observed, note)
 # note is "" for plain cosmetic (www-flip / scheme-upgrade), or a short rationale
-# for the ~5 non-cosmetic moves (seatengine-→-venue restorations, rebrand domains).
+# for the non-cosmetic moves (seatengine-→-venue restorations, rebrand domains).
 _CLUB_TARGETS: list[tuple[int, str, str, str, str, str]] = [
     # --- seatengine widget URL -> actual venue homepage (8 venues) ---
     (68, "The Comedy Chateau",
@@ -316,8 +316,15 @@ def _load_metadata(raw) -> dict:
     return dict(raw)
 
 
-def _apply_source_targets(cur, dry_run: bool) -> tuple[int, int, list[str]]:
-    updated = 0
+def _plan_source_targets(cur) -> tuple[list[dict], int, list[str]]:
+    """Read-only pre-flight for scraping_sources rows.
+
+    Returns (pending_updates, skipped_idempotent_count, problems). Each pending
+    update is a dict with the data the write pass needs — populated only after
+    every row in _SOURCE_TARGETS has been validated, so a single problem
+    aborts the entire run before any UPDATE fires.
+    """
+    pending: list[dict] = []
     skipped_idempotent = 0
     problems: list[str] = []
 
@@ -349,39 +356,25 @@ def _apply_source_targets(cur, dry_run: bool) -> tuple[int, int, list[str]]:
             )
             continue
 
-        if dry_run:
-            print(f"  ss   ssid={ssid:>4} cid={club_id:>4} {before_url!r} -> {after_url!r}")
-            continue
-
-        metadata = _load_metadata(raw_meta)
-        metadata[_METADATA_KEY] = {
-            "previous_source_url": before_url,
+        pending.append({
+            "ssid": ssid,
+            "club_id": club_id,
+            "before_url": before_url,
+            "after_url": after_url,
             "redirect_observed": redirect_obs,
-            "probed_at": _PROBED_AT,
-            "gha_run_id": _GHA_RUN_ID,
-        }
-        cur.execute(
-            """
-            UPDATE scraping_sources
-            SET source_url = %s,
-                metadata = %s,
-                updated_at = NOW()
-            WHERE id = %s
-            """,
-            (after_url, json.dumps(metadata, sort_keys=True), ssid),
-        )
-        updated += 1
-        print(f"  ss   ssid={ssid:>4} cid={club_id:>4} {before_url!r} -> {after_url!r}")
+            "raw_meta": raw_meta,
+        })
 
-    return updated, skipped_idempotent, problems
+    return pending, skipped_idempotent, problems
 
 
-def _apply_club_targets(cur, dry_run: bool) -> tuple[int, int, list[str]]:
-    updated = 0
+def _plan_club_targets(cur) -> tuple[list[dict], int, list[str]]:
+    """Read-only pre-flight for clubs rows. See _plan_source_targets."""
+    pending: list[dict] = []
     skipped_idempotent = 0
     problems: list[str] = []
 
-    for club_id, expected_name, before_url, after_url, redirect_obs, note in _CLUB_TARGETS:
+    for club_id, expected_name, before_url, after_url, _redirect_obs, note in _CLUB_TARGETS:
         cur.execute("SELECT name, website FROM clubs WHERE id = %s", (club_id,))
         row = cur.fetchone()
         if row is None:
@@ -403,19 +396,72 @@ def _apply_club_targets(cur, dry_run: bool) -> tuple[int, int, list[str]]:
             )
             continue
 
-        suffix = f"  [{note}]" if note else ""
-        if dry_run:
-            print(f"  club cid={club_id:>4} {before_url!r} -> {after_url!r}{suffix}")
-            continue
+        pending.append({
+            "club_id": club_id,
+            "before_url": before_url,
+            "after_url": after_url,
+            "note": note,
+        })
 
+    return pending, skipped_idempotent, problems
+
+
+def _write_source_targets(cur, pending: list[dict]) -> int:
+    for item in pending:
+        metadata = _load_metadata(item["raw_meta"])
+        metadata[_METADATA_KEY] = {
+            "previous_source_url": item["before_url"],
+            "redirect_observed": item["redirect_observed"],
+            "probed_at": _PROBED_AT,
+            "gha_run_id": _GHA_RUN_ID,
+        }
+        cur.execute(
+            """
+            UPDATE scraping_sources
+            SET source_url = %s,
+                metadata = %s,
+                updated_at = NOW()
+            WHERE id = %s
+            """,
+            (item["after_url"], json.dumps(metadata, sort_keys=True), item["ssid"]),
+        )
+        print(f"  ss   ssid={item['ssid']:>4} cid={item['club_id']:>4} "
+              f"{item['before_url']!r} -> {item['after_url']!r}")
+    return len(pending)
+
+
+def _write_club_targets(cur, pending: list[dict]) -> int:
+    for item in pending:
         cur.execute(
             "UPDATE clubs SET website = %s WHERE id = %s",
-            (after_url, club_id),
+            (item["after_url"], item["club_id"]),
         )
-        updated += 1
-        print(f"  club cid={club_id:>4} {before_url!r} -> {after_url!r}{suffix}")
+        suffix = f"  [{item['note']}]" if item["note"] else ""
+        print(f"  club cid={item['club_id']:>4} "
+              f"{item['before_url']!r} -> {item['after_url']!r}{suffix}")
+    return len(pending)
 
-    return updated, skipped_idempotent, problems
+
+def _print_pending(pending_ss: list[dict], pending_c: list[dict]) -> None:
+    for item in pending_ss:
+        print(f"  ss   ssid={item['ssid']:>4} cid={item['club_id']:>4} "
+              f"{item['before_url']!r} -> {item['after_url']!r}")
+    for item in pending_c:
+        suffix = f"  [{item['note']}]" if item["note"] else ""
+        print(f"  club cid={item['club_id']:>4} "
+              f"{item['before_url']!r} -> {item['after_url']!r}{suffix}")
+
+
+def _print_skip_catalog() -> None:
+    by_kind: dict[str, list[tuple[str, int, str, str, str]]] = {}
+    for kind, scope, club_id, before, after, reason in _SKIPS:
+        by_kind.setdefault(kind, []).append((scope, club_id, before, after, reason))
+    print(f"=== Intentional skips ({len(_SKIPS)} entries) ===")
+    for kind, entries in by_kind.items():
+        print(f"\n[{kind}] {len(entries)} entries")
+        for scope, club_id, before, after, reason in entries:
+            print(f"  {scope} cid={club_id} {before} -> {after}")
+            print(f"    {reason}")
 
 
 def main() -> int:
@@ -423,33 +469,54 @@ def main() -> int:
         description="Canonicalize cross-host redirects from GHA run 27061765104 (TASK-2693)."
     )
     parser.add_argument("--dry-run", action="store_true", help="Preview changes without writing")
+    parser.add_argument(
+        "--show-skips",
+        action="store_true",
+        help="Print the catalog of intentional skips (with per-entry rationale) and exit",
+    )
     args = parser.parse_args()
+
+    if args.show_skips:
+        _print_skip_catalog()
+        return 0
 
     print(f"=== TASK-2693: canonicalize cross-host redirects (GHA run {_GHA_RUN_ID}) ===")
     print(f"scraping_sources targets: {len(_SOURCE_TARGETS)}")
     print(f"clubs targets:            {len(_CLUB_TARGETS)}")
-    print(f"intentional skips:        {len(_SKIPS)} (see _SKIPS in source)")
+    print(f"intentional skips:        {len(_SKIPS)} (run with --show-skips for details)")
     print()
 
     with get_transaction() as conn:
         with conn.cursor() as cur:
-            print("--- scraping_sources.source_url ---")
-            ss_updated, ss_skipped, ss_problems = _apply_source_targets(cur, args.dry_run)
+            print("--- scraping_sources.source_url (pre-flight) ---")
+            pending_ss, ss_skipped, ss_problems = _plan_source_targets(cur)
             print()
-            print("--- clubs.website ---")
-            c_updated, c_skipped, c_problems = _apply_club_targets(cur, args.dry_run)
+            print("--- clubs.website (pre-flight) ---")
+            pending_c, c_skipped, c_problems = _plan_club_targets(cur)
             print()
 
             problems = ss_problems + c_problems
             if problems:
-                print("ABORT: shape mismatch / unexpected state:", file=sys.stderr)
-                for p in problems:
-                    print(f"  {p}", file=sys.stderr)
-                return 1
+                # Raise so the get_transaction context manager rolls back any
+                # SELECTs (read-only here, but the contract is clear) before
+                # exit; printing + return 1 would commit on normal exit.
+                msg = ["ABORT: shape mismatch / unexpected state:"]
+                msg.extend(f"  {p}" for p in problems)
+                raise RuntimeError("\n".join(msg))
 
             if args.dry_run:
+                print("--- pending UPDATEs (would apply) ---")
+                _print_pending(pending_ss, pending_c)
+                print()
                 print("--dry-run: no DB write performed.")
                 return 0
+
+            print("--- applying scraping_sources.source_url ---")
+            ss_updated = _write_source_targets(cur, pending_ss)
+            print()
+            print("--- applying clubs.website ---")
+            c_updated = _write_club_targets(cur, pending_c)
+            print()
 
             print(f"Updated: scraping_sources={ss_updated}, clubs={c_updated}")
             print(f"Skipped (already canonical): scraping_sources={ss_skipped}, clubs={c_skipped}")
