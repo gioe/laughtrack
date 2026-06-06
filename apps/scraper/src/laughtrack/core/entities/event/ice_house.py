@@ -31,7 +31,11 @@ class IceHouseEvent(ShowConvertible):
       uid        ← eid.uid (unique event identifier)
       title      ← content.summary.text
       start_ms   ← when.start.millis (Unix milliseconds)
-      ticket_url ← content.customButtonLink (ShowClix embed URL, normalized to www)
+      ticket_url ← content.customButtonLink (ShowClix embed URL, normalized to www).
+                   Empty when the venue hasn't set a ticket button (e.g. walk-in
+                   events like "Social Hour"); use detail_url as the fallback.
+      detail_url ← public Tockify event page (https://tockify.com/<calname>/detail/<uid>/<tid>).
+                   Always populated by the extractor when calname is known.
       timezone   ← when.start.tzid
       room       ← content.tagset.tags.default[0] (e.g. 'California-Room')
     """
@@ -39,9 +43,10 @@ class IceHouseEvent(ShowConvertible):
     uid: str
     title: str
     start_ms: int          # Unix milliseconds
-    ticket_url: str        # ShowClix URL (may need embed → www normalization)
+    ticket_url: str        # ShowClix URL (may need embed → www normalization); "" when absent
     timezone: str = "America/Los_Angeles"
     room: str = ""
+    detail_url: str = ""   # Public Tockify event page, used when ticket_url is empty
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None) -> Optional[Show]:
         """Convert an IceHouseEvent to a Show domain object."""
@@ -52,7 +57,8 @@ class IceHouseEvent(ShowConvertible):
         except Exception:
             return None
 
-        ticket_url = _normalize_showclix_url(url or self.ticket_url)
+        raw_ticket_url = url or self.ticket_url or self.detail_url
+        ticket_url = _normalize_showclix_url(raw_ticket_url)
         tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url)]
 
         return ShowFactoryUtils.create_enhanced_show_base(

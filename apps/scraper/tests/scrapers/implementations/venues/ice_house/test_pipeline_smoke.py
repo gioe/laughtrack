@@ -154,6 +154,49 @@ def test_extract_events_preserves_ticket_url():
     assert events[0].ticket_url == "https://www.showclix.com/event/test-show"
 
 
+def test_extract_events_populates_detail_url_from_api_url():
+    """extract_events() builds the Tockify public detail URL from api_url + uid + tid."""
+    raw = _api_response([_raw_event(uid="980", start_ms=1770773400000)])
+    events = IceHouseExtractor.extract_events(
+        raw,
+        api_url="https://tockify.com/api/ngevent?calname=theicehouse&max=200&startms=0",
+    )
+
+    assert len(events) == 1
+    assert events[0].detail_url == "https://tockify.com/theicehouse/detail/980/1770773400000"
+
+
+def test_extract_events_detail_url_empty_without_api_url():
+    """extract_events() leaves detail_url empty when api_url isn't supplied."""
+    raw = _api_response([_raw_event(uid="1")])
+    events = IceHouseExtractor.extract_events(raw)
+
+    assert len(events) == 1
+    assert events[0].detail_url == ""
+
+
+def test_extract_events_handles_missing_custom_button_link():
+    """extract_events() returns events even when content.customButtonLink is absent.
+
+    Walk-in / informational Tockify events (e.g. "Social Hour") publish no
+    ticket button. The extractor stores ticket_url="" and relies on detail_url
+    as the fallback for downstream URL construction.
+    """
+    base = _raw_event(uid="980", title="Social Hour", start_ms=1770773400000)
+    content = dict(base["content"])
+    content.pop("customButtonLink", None)
+    raw = _api_response([{**base, "content": content}])
+
+    events = IceHouseExtractor.extract_events(
+        raw,
+        api_url="https://tockify.com/api/ngevent?calname=theicehouse&max=200&startms=0",
+    )
+
+    assert len(events) == 1
+    assert events[0].ticket_url == ""
+    assert events[0].detail_url == "https://tockify.com/theicehouse/detail/980/1770773400000"
+
+
 def test_extract_events_preserves_start_ms():
     """extract_events() correctly captures the start timestamp in milliseconds."""
     raw = _api_response([_raw_event(uid="1", start_ms=1775097000000)])
@@ -247,6 +290,29 @@ def test_to_show_normalizes_embed_ticket_url():
     assert show is not None
     assert "www.showclix.com" in show.show_page_url
     assert "embed.showclix.com" not in show.show_page_url
+
+
+def test_to_show_falls_back_to_detail_url_when_ticket_url_empty():
+    """When ticket_url is empty, to_show() uses detail_url for both show_page_url and ticket purchase URL.
+
+    Mirrors the Tockify "Social Hour" case: customButtonLink is absent, so the
+    extractor leaves ticket_url="" but populates detail_url with the canonical
+    Tockify event page. Both validator-required URL fields must be non-empty.
+    """
+    event = IceHouseEvent(
+        uid="980",
+        title="Social Hour",
+        start_ms=1770773400000,
+        ticket_url="",
+        timezone="America/Los_Angeles",
+        detail_url="https://tockify.com/theicehouse/detail/980/1770773400000",
+    )
+    show = event.to_show(_club())
+
+    assert show is not None
+    assert show.show_page_url == "https://tockify.com/theicehouse/detail/980/1770773400000"
+    assert len(show.tickets) == 1
+    assert show.tickets[0].purchase_url == "https://tockify.com/theicehouse/detail/980/1770773400000"
 
 
 def test_to_show_returns_none_for_invalid_timezone():

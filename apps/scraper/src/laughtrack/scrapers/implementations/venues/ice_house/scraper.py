@@ -68,7 +68,7 @@ class IceHouseScraper(BaseScraper):
                 self._warn_empty_extraction(url, subject="data", payload=response)
                 return None
 
-            events = IceHouseExtractor.extract_events(response)
+            events = IceHouseExtractor.extract_events(response, api_url=url)
 
             if not events:
                 self._warn_empty_extraction(url, payload=response)
