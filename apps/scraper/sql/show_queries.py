@@ -67,6 +67,20 @@ class ShowQueries:
         ORDER BY id
     '''
 
+    # SeatEngine Classic performance pages have stable /shows/<id> URLs. Fetch
+    # existing rows for affected clubs so the handler can move a rescheduled or
+    # corrected row in place before the (club_id, date, room) upsert. Includes
+    # legacy NULL-attributed rows so a current scrape can overwrite old multi-tier
+    # ticket rows through the normal stale-ticket sweep.
+    GET_SEATENGINE_CLASSIC_SHOWS_BY_CLUB = '''
+        SELECT id, club_id, date, room, show_page_url, last_scraped_by
+        FROM shows
+        WHERE club_id = ANY(%s)
+          AND show_page_url LIKE '%%/shows/%%'
+          AND (last_scraped_by = 'seatengine_classic' OR last_scraped_by IS NULL)
+        ORDER BY id
+    '''
+
     # Move an existing show to a new (rescheduled) date in place, keyed by id, so the
     # downstream ON CONFLICT (club_id, date, room) upsert updates the same row instead
     # of inserting a near-duplicate. The NOT EXISTS guard prevents a unique-constraint

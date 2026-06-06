@@ -220,3 +220,41 @@ def test_patronticket_no_move_when_no_room_compatible_row_exists():
     h._process_single_batch([_show(date=_NEW_DATE, room="", url=_PT_URL)])
 
     assert _update_calls(h) == []
+
+
+# --- SeatEngine Classic stable show URL reconciliation (TASK-2694) ----------
+
+_SEATENGINE_CLASSIC_URL = "https://newbrunswick.stressfactory.com/shows/374462"
+
+
+def test_seatengine_classic_reschedule_moves_existing_row_in_place():
+    """A SeatEngine Classic start-time correction moves the stable /shows/id row."""
+    h = _handler()
+
+    def fake_exec(query, params=None, return_results=False):
+        query_text = str(query)
+        if "show_page_url LIKE '%%/shows/%%'" in query_text:
+            return [
+                {
+                    "id": 2125402,
+                    "club_id": 1,
+                    "date": _OLD_DATE,
+                    "room": "",
+                    "show_page_url": _SEATENGINE_CLASSIC_URL,
+                }
+            ]
+        return []
+
+    h.execute_with_cursor = MagicMock(side_effect=fake_exec)
+
+    incoming = _show(
+        name="Corey B",
+        date=_NEW_DATE,
+        url=_SEATENGINE_CLASSIC_URL,
+    )
+    incoming.last_scraped_by = "seatengine_classic"
+    h._process_single_batch([incoming])
+
+    update_calls = _update_calls(h)
+    assert len(update_calls) == 1
+    assert update_calls[0].args[1] == (_NEW_DATE, 2125402, _NEW_DATE)

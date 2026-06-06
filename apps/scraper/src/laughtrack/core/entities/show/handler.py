@@ -35,6 +35,8 @@ _HEADLINER_FRIENDS_SUFFIX_RE = re.compile(r"\s+(?:&|and)\s+friends\s*$", re.IGNO
 # generic patron_ticket venues). Anchoring on the fragment keeps the matcher faithful to that
 # format so an unrelated URL that merely contains "/instances/" is not treated as an instance.
 _PATRONTICKET_INSTANCE_RE = re.compile(r"#/instances/([A-Za-z0-9]+)")
+_SEATENGINE_CLASSIC_SCRAPER_KEY = "seatengine_classic"
+_SEATENGINE_CLASSIC_SHOW_RE = re.compile(r"/shows/([0-9]+)(?:[/?#]|$)")
 
 
 class ShowHandler(BaseDatabaseHandler[Show]):
@@ -258,6 +260,14 @@ class ShowHandler(BaseDatabaseHandler[Show]):
         match = _PATRONTICKET_INSTANCE_RE.search(url)
         return match.group(1) if match else None
 
+    @staticmethod
+    def _extract_seatengine_classic_show_id(url: Optional[str]) -> Optional[str]:
+        """Extract the stable numeric SeatEngine Classic /shows/<id> identifier."""
+        if not isinstance(url, str) or not url:
+            return None
+        match = _SEATENGINE_CLASSIC_SHOW_RE.search(url)
+        return match.group(1) if match else None
+
     def _reconcile_patronticket_instances(self, batch: List[Show]) -> int:
         """Move existing PatronTicket rows to a rescheduled date before the upsert.
 
@@ -337,6 +347,79 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             )
         return reconciled
 
+    def _reconcile_seatengine_classic_show_urls(self, batch: List[Show]) -> int:
+        """Move existing SeatEngine Classic rows by stable /shows/<id> URL.
+
+        SeatEngine Classic event pages expose a stable performance URL like
+        ``https://newbrunswick.stressfactory.com/shows/374462``. If the source
+        adjusts that performance's displayed start time, the database upsert key
+        ``(club_id, date, room)`` misses the existing row and inserts a duplicate.
+
+        Matching by ``(club_id, /shows/<id>)`` before the upsert lets the incoming
+        scrape update the canonical row in place. Legacy NULL-attributed rows are
+        considered so the downstream ticket stale-sweep can collapse old multi-tier
+        inventory into the current SeatEngine Classic ticket shape when that
+        performance is scraped again.
+        """
+        incoming_by_show_id: dict[tuple, Show] = {}
+        club_ids: set[int] = set()
+        for show in batch:
+            if show.last_scraped_by != _SEATENGINE_CLASSIC_SCRAPER_KEY:
+                continue
+            show_id = self._extract_seatengine_classic_show_id(show.show_page_url)
+            if not show_id or show.date is None:
+                continue
+            club_ids.add(show.club_id)
+            incoming_by_show_id[(show.club_id, show_id)] = show
+
+        if not incoming_by_show_id:
+            return 0
+
+        existing_rows = self.execute_with_cursor(
+            ShowQueries.GET_SEATENGINE_CLASSIC_SHOWS_BY_CLUB,
+            (sorted(club_ids),),
+            return_results=True,
+        ) or []
+
+        existing_by_show_id: dict[tuple, list[DictRow]] = {}
+        for row in existing_rows:
+            show_id = self._extract_seatengine_classic_show_id(row.get("show_page_url"))
+            if show_id:
+                existing_by_show_id.setdefault((row.get("club_id"), show_id), []).append(row)
+
+        reconciled = 0
+        for key, show in incoming_by_show_id.items():
+            rows = existing_by_show_id.get(key)
+            if not rows:
+                continue
+            incoming_date = self._normalize_cross_batch_key_date(show.date)
+            incoming_room = show.room or ""
+            if any(
+                self._normalize_cross_batch_key_date(row.get("date")) == incoming_date
+                and (row.get("room") or "") == incoming_room
+                for row in rows
+            ):
+                continue
+
+            candidates = [row for row in rows if (row.get("room") or "") == incoming_room]
+            if not candidates:
+                continue
+            seatengine_candidates = [
+                row for row in candidates if row.get("last_scraped_by") == _SEATENGINE_CLASSIC_SCRAPER_KEY
+            ]
+            target = (seatengine_candidates or candidates)[-1]
+            self.execute_with_cursor(
+                ShowQueries.UPDATE_SHOW_DATE_BY_ID,
+                (show.date, target.get("id"), show.date),
+            )
+            reconciled += 1
+
+        if reconciled:
+            Logger.info(
+                f"Reconciled {reconciled} SeatEngine Classic show(s) to a corrected date by show URL"
+            )
+        return reconciled
+
     def _update_shows_and_related(
         self, batch: List[Show], results: List[DictRow]
     ) -> Tuple[List[Show], int, int]:
@@ -389,6 +472,7 @@ class ShowHandler(BaseDatabaseHandler[Show]):
 
         batch, duplicate_details = ShowUtils.deduplicate_shows_with_details(batch)
         self._reconcile_patronticket_instances(batch)
+        self._reconcile_seatengine_classic_show_urls(batch)
         self._collapse_cross_batch_duplicates(batch)
 
         # Insert shows and get results
