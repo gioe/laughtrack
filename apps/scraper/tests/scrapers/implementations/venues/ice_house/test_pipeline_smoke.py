@@ -315,6 +315,21 @@ def test_to_show_falls_back_to_detail_url_when_ticket_url_empty():
     assert show.tickets[0].purchase_url == "https://tockify.com/theicehouse/detail/980/1770773400000"
 
 
+def test_to_show_returns_none_when_no_url_sources():
+    """to_show() returns None when ticket_url, detail_url, and the url override are all empty."""
+    event = IceHouseEvent(
+        uid="980",
+        title="Social Hour",
+        start_ms=1770773400000,
+        ticket_url="",
+        timezone="America/Los_Angeles",
+        detail_url="",
+    )
+    show = event.to_show(_club())
+
+    assert show is None
+
+
 def test_to_show_returns_none_for_invalid_timezone():
     """to_show() returns None when the timezone cannot be parsed."""
     event = _make_event(timezone="Not/A/Timezone")

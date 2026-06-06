@@ -58,6 +58,8 @@ class IceHouseEvent(ShowConvertible):
             return None
 
         raw_ticket_url = url or self.ticket_url or self.detail_url
+        if not raw_ticket_url:
+            return None
         ticket_url = _normalize_showclix_url(raw_ticket_url)
         tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url)]
 
