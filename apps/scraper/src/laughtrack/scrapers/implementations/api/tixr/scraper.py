@@ -311,7 +311,17 @@ class TixrScraper(BaseScraper):
             )
             return []
 
-        return await self.tixr_client.fetch_group_events(group_id)
+        max_pages = 1 if self._uses_known_datadome_group_events_proxy_only(group_id) else 12
+        return await self.tixr_client.fetch_group_events(
+            group_id,
+            max_pages=max_pages,
+            skip_direct=self._uses_known_datadome_group_events_proxy_only(group_id),
+        )
+
+    def _uses_known_datadome_group_events_proxy_only(self, group_id: str) -> bool:
+        normalized_group_id = str(group_id or "").strip().lower()
+        normalized_url = URLUtils.normalize_url(self.club.scraping_url or "").lower()
+        return normalized_group_id == "1613" or "tixr.com/groups/laughfactorycovina" in normalized_url
 
     def _uses_known_blocked_fallback(self, url: str) -> bool:
         normalized = URLUtils.normalize_url(url).lower()

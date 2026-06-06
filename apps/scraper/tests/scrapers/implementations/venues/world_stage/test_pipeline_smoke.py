@@ -27,7 +27,7 @@ _ETIX_VENUE_URL = "https://www.etix.com/ticket/v/1599/music-hall-at-world-stage"
 def _club(
     *,
     room_ids: List[int] = (_LOUNGE_ROOM_ID,),
-    etix_enrichment_enabled: bool = False,
+    etix_enrichment_enabled: bool | None = False,
 ) -> Club:
     club = Club(
         id=1353,
@@ -40,6 +40,19 @@ def _club(
         visible=True,
         timezone="America/New_York",
     )
+    metadata: Dict[str, Any] = {
+        "subscription_id": 8990189,
+        "vertical_id": 2851,
+        "type_id": 1662515,
+        "app_id": 2949,
+        "status_id": 1851385,
+        "room_ids": list(room_ids),
+        "lookahead_days": 90,
+        "api_url": _API_URL,
+    }
+    if etix_enrichment_enabled is not None:
+        metadata["etix_enrichment_enabled"] = etix_enrichment_enabled
+
     club.active_scraping_source = ScrapingSource(
         id=1,
         club_id=club.id,
@@ -47,17 +60,7 @@ def _club(
         scraper_key="world_stage",
         source_url=_SOURCE_URL,
         external_id=None,
-        metadata={
-            "subscription_id": 8990189,
-            "vertical_id": 2851,
-            "type_id": 1662515,
-            "app_id": 2949,
-            "status_id": 1851385,
-            "room_ids": list(room_ids),
-            "lookahead_days": 90,
-            "api_url": _API_URL,
-            "etix_enrichment_enabled": etix_enrichment_enabled,
-        },
+        metadata=metadata,
     )
     club.scraping_sources = [club.active_scraping_source]
     return club
@@ -336,6 +339,26 @@ async def test_get_data_uses_etix_venue_url_when_etix_enrichment_finds_no_events
 
     monkeypatch.setattr(WorldStageScraper, "post_json", fake_post_json)
     monkeypatch.setattr(WorldStageScraper, "_fetch_etix_events", fake_fetch_etix_events)
+
+    result = await scraper.get_data(_API_URL)
+    shows = scraper.transformation_pipeline.transform(result)
+
+    assert shows
+    assert {ticket.purchase_url for show in shows for ticket in show.tickets} == {_ETIX_VENUE_URL}
+
+
+@pytest.mark.asyncio
+async def test_get_data_skips_default_datadome_blocked_etix_enrichment(monkeypatch):
+    scraper = WorldStageScraper(_club(etix_enrichment_enabled=None))
+
+    async def fake_post_json(self, url, data, **kwargs):
+        return _ciright_response()
+
+    async def fail_fetch_etix_events(self):
+        raise AssertionError("default World Stage Etix enrichment should be skipped")
+
+    monkeypatch.setattr(WorldStageScraper, "post_json", fake_post_json)
+    monkeypatch.setattr(WorldStageScraper, "_fetch_etix_events", fail_fetch_etix_events)
 
     result = await scraper.get_data(_API_URL)
     shows = scraper.transformation_pipeline.transform(result)

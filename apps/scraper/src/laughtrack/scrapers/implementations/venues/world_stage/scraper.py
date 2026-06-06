@@ -182,6 +182,15 @@ class WorldStageScraper(BaseScraper):
         if not events or not self._etix_enrichment_enabled():
             return
 
+        if self._uses_known_blocked_default_etix_enrichment():
+            self._apply_etix_venue_fallback(events)
+            Logger.info(
+                f"{self._log_prefix}: Skipping known DataDome-blocked default Etix enrichment "
+                f"for {self._etix_venue_url()}",
+                self.logger_context,
+            )
+            return
+
         etix_events = await self._fetch_etix_events()
         if not etix_events:
             self._apply_etix_venue_fallback(events)
@@ -218,6 +227,14 @@ class WorldStageScraper(BaseScraper):
         for event in events:
             if not event.ticket_url:
                 event.ticket_url = fallback_url
+
+    def _uses_known_blocked_default_etix_enrichment(self) -> bool:
+        config = self._config()
+        return (
+            "etix_enrichment_enabled" not in config
+            and "etix_venue_url" not in config
+            and self._etix_venue_url() == _DEFAULT_ETIX_VENUE_URL
+        )
 
     async def _fetch_etix_events(self) -> List[EtixEvent]:
         source = ScrapingSource(

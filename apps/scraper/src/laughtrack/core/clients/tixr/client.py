@@ -204,7 +204,11 @@ class TixrClient(BaseApiClient):
         return []
 
     async def fetch_group_events(
-        self, group_id: str, page: int = 1, max_pages: int = 12
+        self,
+        group_id: str,
+        page: int = 1,
+        max_pages: int = 12,
+        skip_direct: bool = False,
     ) -> List[TixrEvent]:
         """Fetch Tixr events from the browser-consumed group events API."""
         normalized_group_id = str(group_id or "").strip()
@@ -228,6 +232,7 @@ class TixrClient(BaseApiClient):
                         "group_id": normalized_group_id,
                         "page": current_page,
                     },
+                    skip_direct=skip_direct,
                 )
             except Exception as exc:
                 self.log_warning(
@@ -268,7 +273,11 @@ class TixrClient(BaseApiClient):
         return parsed
 
     async def _fetch_group_events_json(
-        self, api_url: str, logger_context: JSONDict
+        self,
+        api_url: str,
+        logger_context: JSONDict,
+        *,
+        skip_direct: bool = False,
     ) -> Optional[Any]:
         """Fetch group-events JSON direct first, then with the Tixr proxy key.
 
@@ -276,9 +285,10 @@ class TixrClient(BaseApiClient):
         even when the rendered group page is DataDome-blocked. The residential
         proxy remains the fallback for GHA-class egress where direct is blocked.
         """
-        data = await self._fetch_group_events_json_direct(api_url, logger_context)
-        if data is not None:
-            return data
+        if not skip_direct:
+            data = await self._fetch_group_events_json_direct(api_url, logger_context)
+            if data is not None:
+                return data
 
         return await self._fetch_group_events_json_proxy(api_url, logger_context)
 
