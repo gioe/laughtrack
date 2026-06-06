@@ -10,6 +10,7 @@ Covers:
 """
 
 import importlib.util
+import re
 import sys
 from pathlib import Path
 
@@ -220,15 +221,9 @@ class TestBatchGetShowPopularitySql:
     the unclamped lineup-only formula that produced prod max=3.76 (TASK-2697)."""
 
     def setup_method(self):
-        root = Path(__file__).parents[2]
-        spec = importlib.util.spec_from_file_location(
-            "sql.show_queries_direct",
-            root / "sql/show_queries.py",
-        )
-        mod = importlib.util.module_from_spec(spec)
-        sys.modules["sql.show_queries_direct"] = mod
-        spec.loader.exec_module(mod)
-        self.ShowQueries = mod.ShowQueries
+        self.ShowQueries = _load_module(
+            "sql/show_queries.py", "sql.show_queries_direct"
+        ).ShowQueries
 
     def test_query_exists(self):
         assert hasattr(self.ShowQueries, "BATCH_GET_LINEUP_POPULARITY")
@@ -250,9 +245,13 @@ class TestBatchGetShowPopularitySql:
         assert "INTERVAL" in sql
 
     def test_query_clamps_to_one(self):
+        """LEAST(...) must use 1.0 as its upper bound — the docstring contract.
+        Substring 'LEAST(' + '1.0' is too loose: '1.0' also appears in the
+        time-decay CASE WHEN, so a refactor to LEAST(x, 2.0) would slip through.
+        Anchor on the full `LEAST(..., 1.0)` shape (with the comma + optional
+        whitespace) so an upper-bound regression cannot pass."""
         sql = self.ShowQueries.BATCH_GET_LINEUP_POPULARITY
-        assert "LEAST(" in sql
-        assert "1.0" in sql
+        assert re.search(r"LEAST\(.*?,\s*1\.0\s*\)", sql, re.DOTALL) is not None
 
 
 class TestGetComedianRecencyScoresSql:

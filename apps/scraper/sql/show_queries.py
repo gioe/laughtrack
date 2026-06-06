@@ -120,6 +120,15 @@ class ShowQueries:
     # BOOL_OR per show via the tickets(show_id, type) unique index, so work
     # scales with len(shows in batch) instead of len(tickets) and the query
     # stays inside Neon's statement_timeout under live load.
+    #
+    # Coverage note: this CTE returns one row per input show_id (LEFT JOIN from
+    # shows, not from lineup_items), so shows with empty lineups are no longer
+    # silently skipped — they get popularity computed from venue + sales +
+    # time-decay alone (lineup component → 0 via COALESCE). Previously such
+    # shows kept whatever popularity was last written (often stale), which
+    # was harmless when the formula was lineup-only and 0 was the right floor,
+    # but is wrong now that other signals matter. The downside is one extra
+    # BATCH_UPDATE_SHOW_POPULARITY row per empty-lineup show per nightly run.
     BATCH_GET_LINEUP_POPULARITY = '''
         WITH show_lineup AS (
             SELECT
