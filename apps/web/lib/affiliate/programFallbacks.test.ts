@@ -71,4 +71,28 @@ describe("priority affiliate program fallbacks", () => {
             fallbackReason: "invalid_affiliate_rule",
         });
     });
+
+    it("falls back to the original URL when a configured redirect uses a non-http protocol", () => {
+        const destinationUrl = "https://seatgeek.com/comedy/123";
+
+        expect(
+            resolveAffiliateDestination({
+                destinationUrl,
+                rules: {
+                    seatgeek: {
+                        type: "redirect",
+                        baseUrl: "javascript:alert(1)",
+                        urlParam: "u",
+                    },
+                },
+            }),
+        ).toEqual({
+            ok: true,
+            provider: "seatgeek",
+            originalUrl: destinationUrl,
+            routedUrl: destinationUrl,
+            affiliateApplied: false,
+            fallbackReason: "invalid_affiliate_rule",
+        });
+    });
 });

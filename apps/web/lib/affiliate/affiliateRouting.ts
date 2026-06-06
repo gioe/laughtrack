@@ -240,6 +240,9 @@ function applyAffiliateRule(
     } catch {
         return null;
     }
+    if (redirectUrl.protocol !== "http:" && redirectUrl.protocol !== "https:") {
+        return null;
+    }
     redirectUrl.searchParams.set(rule.urlParam, destination.toString());
     return redirectUrl.toString();
 }
