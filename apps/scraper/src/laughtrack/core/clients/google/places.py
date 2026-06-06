@@ -54,6 +54,14 @@ _TIME_RANGE_12H_RE = re.compile(
     re.IGNORECASE,
 )
 
+# "6:00 – 9:30 PM" — Google sometimes omits AM/PM on the opening
+# side when both endpoints are in the same half-day.
+_TIME_RANGE_12H_INFER_OPEN_RE = re.compile(
+    r"^\s*(\d{1,2})(?::(\d{2}))?\s*[\u2013\u2014\-]\s*"
+    r"(\d{1,2})(?::(\d{2}))?\s*([AP]M)\s*$",
+    re.IGNORECASE,
+)
+
 # "17:00 – 23:00" — 24-hour locale format returned by non-US place listings.
 # Hours must be zero-padded so an AM/PM-less 12-hour string like "5:00 - 7:00"
 # (where Google omitted the meridiem) doesn't get silently relabeled as 5am.
@@ -150,6 +158,17 @@ def _format_24h(hour: int, minutes: int) -> str:
     return f"{h12}{suffix}"
 
 
+def _infer_open_meridiem(open_hour: int, close_hour: int, close_ampm: str) -> str:
+    close_suffix = close_ampm.upper()
+    if close_suffix == "AM":
+        # Overnight venue ranges commonly appear as "9:00 – 1:00 AM".
+        return "PM" if open_hour > close_hour else "AM"
+    # Same-day afternoon/evening ranges commonly appear as "6:00 – 9:30 PM".
+    # If the opening hour is numerically after the close, treat it as a
+    # morning-to-afternoon span such as "10:00 – 2:00 PM".
+    return "AM" if open_hour > close_hour and open_hour != 12 else "PM"
+
+
 def _parse_time_range(segment: str) -> Optional[str]:
     """Parse one open-close range into the compact project format.
 
@@ -170,6 +189,19 @@ def _parse_time_range(segment: str) -> Optional[str]:
             return None
         open_str = _format_12h(open_h, open_m, match.group(3))
         close_str = _format_12h(close_h, close_m, match.group(6))
+        return f"{open_str}-{close_str}"
+    match = _TIME_RANGE_12H_INFER_OPEN_RE.match(segment)
+    if match:
+        open_h, open_m = int(match.group(1)), int(match.group(2) or 0)
+        close_h, close_m = int(match.group(3)), int(match.group(4) or 0)
+        close_ampm = match.group(5)
+        if not (1 <= open_h <= 12 and 1 <= close_h <= 12):
+            return None
+        if not (0 <= open_m <= 59 and 0 <= close_m <= 59):
+            return None
+        open_ampm = _infer_open_meridiem(open_h, close_h, close_ampm)
+        open_str = _format_12h(open_h, open_m, open_ampm)
+        close_str = _format_12h(close_h, close_m, close_ampm)
         return f"{open_str}-{close_str}"
     match = _TIME_RANGE_24H_RE.match(segment)
     if match:

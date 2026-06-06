@@ -44,6 +44,21 @@ def test_parse_tolerates_narrow_nbsp_before_ampm():
     assert parse_weekday_descriptions(descs) == {"wednesday": "7pm-9pm"}
 
 
+def test_parse_infers_opening_meridiem_when_google_omits_it():
+    descs = [
+        "Monday: 6:00\u2009\u2013\u20099:30\u202fPM",
+        "Tuesday: 12:00\u2009\u2013\u20094:00\u202fPM",
+        "Friday: 9:00\u2009\u2013\u20091:30\u202fAM",
+        "Saturday: 10:00\u2009\u2013\u20092:00\u202fPM",
+    ]
+    assert parse_weekday_descriptions(descs) == {
+        "monday": "6pm-9:30pm",
+        "tuesday": "12pm-4pm",
+        "friday": "9pm-1:30am",
+        "saturday": "10am-2pm",
+    }
+
+
 def test_parse_handles_hyphen_fallback():
     descs = ["Thursday: 8:00 PM - 10:00 PM"]
     assert parse_weekday_descriptions(descs) == {"thursday": "8pm-10pm"}

@@ -32,14 +32,17 @@ def _target(
     name: str,
     city: str | None = "New York",
     state: str | None = "NY",
+    website: str | None = None,
+    has_description: bool = False,
     has_hours: bool = False,
 ) -> mod._ClubTarget:
     return mod._ClubTarget(
         id=club_id,
         name=name,
-        website=f"https://{name.lower().replace(' ', '')}.example.com",
+        website=website or f"https://{name.lower().replace(' ', '')}.example.com",
         city=city,
         state=state,
+        has_description=has_description,
         has_hours=has_hours,
     )
 
@@ -224,4 +227,60 @@ def test_places_recovers_hours_when_bot_blocked(patch_fetch_html):
     # bot_blocked must NOT be incremented when Places recovered the data —
     # otherwise a bot-block alarm fires for a club whose data is intact.
     assert summary["bot_blocked"] == 0
+    assert summary["extracted"] == 1
+
+
+def test_known_datadome_funny_bone_skips_website_fetch_and_uses_places(monkeypatch):
+    target = _target(
+        1030,
+        "Des Moines Funny Bone",
+        city="West Des Moines",
+        state="IA",
+        website="https://desmoines.funnybone.com",
+    )
+    places_client = _places_query_returns({
+        "Des Moines Funny Bone, West Des Moines, IA": {"friday": "7pm-11pm"},
+    })
+
+    async def fail_fetch_html(*args, **kwargs):
+        raise AssertionError("known DataDome host should not fetch website HTML")
+
+    monkeypatch.setattr(mod.HttpClient, "fetch_html", fail_fetch_html)
+    monkeypatch.setattr(mod, "close_js_browser", lambda: _noop_async())
+
+    summary = _run_enrich([target], places_client)
+
+    assert places_client.fetch_hours.call_count == 1
+    assert summary["description_hits"] == 1
+    assert summary["hours_hits"] == 1
+    assert summary["hours_from_places"] == 1
+    assert summary["bot_blocked"] == 0
+    assert summary["extracted"] == 1
+
+
+def test_known_datadome_existing_description_is_not_overwritten(monkeypatch):
+    target = _target(
+        174,
+        "Comedy Mothership",
+        city="Austin",
+        state="TX",
+        website="https://comedymothership.com",
+        has_description=True,
+    )
+    places_client = _places_query_returns({
+        "Comedy Mothership, Austin, TX": {"saturday": "6pm-2am"},
+    })
+
+    async def fail_fetch_html(*args, **kwargs):
+        raise AssertionError("known DataDome host should not fetch website HTML")
+
+    monkeypatch.setattr(mod.HttpClient, "fetch_html", fail_fetch_html)
+    monkeypatch.setattr(mod, "close_js_browser", lambda: _noop_async())
+
+    summary = _run_enrich([target], places_client, force=True)
+
+    assert places_client.fetch_hours.call_count == 1
+    assert summary["description_hits"] == 0
+    assert summary["hours_hits"] == 1
+    assert summary["hours_from_places"] == 1
     assert summary["extracted"] == 1

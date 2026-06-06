@@ -57,6 +57,22 @@ from laughtrack.utilities.domain.club.enrichment import (
 
 _CONCURRENCY = 8
 _TIMEOUT_SECONDS = 25
+_FUNNY_BONE_DESCRIPTION = (
+    "Funny Bone Comedy Club is a comedy venue featuring touring stand-up "
+    "comedians, local showcases, and special events."
+)
+_KNOWN_DATADOME_DESCRIPTION_BY_HOST = {
+    "comedymothership.com": (
+        "Comedy Mothership is an Austin comedy club featuring stand-up shows, "
+        "open mics, podcasts, and special events."
+    ),
+}
+_KNOWN_DATADOME_HOST_SUFFIXES = (
+    ".funnybone.com",
+    "funnybone.com",
+    "comedymothership.com",
+    "www.comedymothership.com",
+)
 
 
 @dataclass
@@ -81,7 +97,7 @@ class _ClubFetchResult:
 
 
 _GET_CLUBS_SQL = """
-    SELECT id, name, website, city, state, hours
+    SELECT id, name, website, city, state, description, hours
     FROM clubs
     WHERE visible = TRUE
       AND status = 'active'
@@ -125,6 +141,7 @@ class _ClubTarget:
     website: str
     city: Optional[str]
     state: Optional[str]
+    has_description: bool
     has_hours: bool
 
 
@@ -155,7 +172,8 @@ def _load_target_clubs(
             website=r[2],
             city=r[3],
             state=r[4],
-            has_hours=r[5] is not None,
+            has_description=r[5] is not None,
+            has_hours=r[6] is not None,
         )
         for r in rows
     ]
@@ -177,6 +195,31 @@ def _places_query(name: str, city: Optional[str], state: Optional[str]) -> Optio
     if state:
         return f"{name}, {city}, {state}"
     return f"{name}, {city}"
+
+
+def _normalized_host(url: str) -> str:
+    return (urlparse(url).hostname or "").lower().removeprefix("www.")
+
+
+def _known_datadome_description(target: _ClubTarget) -> Optional[str]:
+    """Return cached metadata for website hosts we intentionally do not fetch.
+
+    These hosts repeatedly serve DataDome interactive CAPTCHA pages to GitHub
+    Actions. Since club enrichment only needs slow-changing venue metadata, the
+    nightly job bypasses the website fetch and lets Places fill hours instead
+    of burning a Playwright attempt that cannot solve without CAPSOLVER_API_KEY.
+    """
+    host = _normalized_host(target.website)
+    if not host:
+        return None
+    if host.endswith(".funnybone.com") or host == "funnybone.com":
+        return _FUNNY_BONE_DESCRIPTION
+    return _KNOWN_DATADOME_DESCRIPTION_BY_HOST.get(host)
+
+
+def _should_skip_known_datadome_fetch(target: _ClubTarget) -> bool:
+    host = _normalized_host(target.website)
+    return any(host == suffix or host.endswith(suffix) for suffix in _KNOWN_DATADOME_HOST_SUFFIXES)
 
 
 async def _fetch_with_playwright(url: str, context: dict) -> Optional[str]:
@@ -233,39 +276,51 @@ async def _process_club(
         "url_source_field": "clubs.website",
     }
     async with semaphore:
-        html: Optional[str] = None
-        try:
-            html = await HttpClient.fetch_html(session, website, logger_context=context)
-        except Exception as exc:
-            Logger.warn(
-                f"[club-enrichment] curl fetch failed for club {club_id} '{name}' "
-                f"({website}): {exc} — retrying with Playwright",
-                context,
-            )
-            html = await _fetch_with_playwright(website, context)
-
         status = "extracted"
         description: Optional[str] = None
         hours: Optional[Dict[str, str]] = None
         hours_source: Optional[str] = None
 
-        if not html:
-            status = "fetch_failed"
+        if _should_skip_known_datadome_fetch(target):
+            cached_description = _known_datadome_description(target)
+            if cached_description and not target.has_description:
+                description = cached_description
+            host = _normalized_host(website) or website
+            Logger.info(
+                f"[club-enrichment] skipping website fetch for known DataDome "
+                f"host {host} (club {club_id} '{name}'); using cached metadata "
+                f"and Places fallback",
+                context,
+            )
         else:
-            bot_sig = _bot_block_reason(html)
-            if bot_sig is not None:
-                host = urlparse(website).hostname or website
+            html: Optional[str] = None
+            try:
+                html = await HttpClient.fetch_html(session, website, logger_context=context)
+            except Exception as exc:
                 Logger.warn(
-                    f"[club-enrichment] bot-blocked: {host} (club {club_id} "
-                    f"'{name}', signature {bot_sig!r})",
+                    f"[club-enrichment] curl fetch failed for club {club_id} '{name}' "
+                    f"({website}): {exc} — retrying with Playwright",
                     context,
                 )
-                status = "bot_blocked"
+                html = await _fetch_with_playwright(website, context)
+
+            if not html:
+                status = "fetch_failed"
             else:
-                description = extract_description(html)
-                hours = extract_hours(html)
-                if hours is not None:
-                    hours_source = "ldjson"
+                bot_sig = _bot_block_reason(html)
+                if bot_sig is not None:
+                    host = urlparse(website).hostname or website
+                    Logger.warn(
+                        f"[club-enrichment] bot-blocked: {host} (club {club_id} "
+                        f"'{name}', signature {bot_sig!r})",
+                        context,
+                    )
+                    status = "bot_blocked"
+                else:
+                    description = extract_description(html)
+                    hours = extract_hours(html)
+                    if hours is not None:
+                        hours_source = "ldjson"
 
         # Places fallback — only when LD-JSON didn't already fill hours.
         # Gated on: client configured, club doesn't already have DB hours
