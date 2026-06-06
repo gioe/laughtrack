@@ -204,10 +204,39 @@ def _reset_bot_block_shortcircuit() -> None:
 # pair instead of flooding logs.
 _cross_host_redirects_warned_no_diag: set[tuple[str, str]] = set()
 
+_KNOWN_TICKETING_HANDOFF_FINAL_HOST_SUFFIXES: tuple[str, ...] = (
+    "laff2nite.com",
+    "livenation.com",
+    "punchup.live",
+    "seatengine.com",
+    "seatengine-sites.com",
+    "tixr.com",
+    "zeffy.com",
+    "leapevents.com",
+    "leap.events",
+)
+
 
 def _reset_cross_host_redirect_dedup() -> None:
     """Test helper to clear the unbound cross-host redirect dedup set."""
     _cross_host_redirects_warned_no_diag.clear()
+
+
+def _host_matches_suffix(host: str, suffix: str) -> bool:
+    return host == suffix or host.endswith(f".{suffix}")
+
+
+def _is_known_benign_cross_host_redirect(original_host: str, final_host: str) -> bool:
+    """Return True for intentional handoffs that should not inflate redirect diagnostics."""
+    if original_host == "docs.google.com" and _host_matches_suffix(final_host, "googleusercontent.com"):
+        # Google Sheets published CSV URLs redirect to per-request signed temp
+        # hosts. Canonicalizing to that target is impossible and unactionable.
+        return True
+
+    return any(
+        _host_matches_suffix(final_host, suffix)
+        for suffix in _KNOWN_TICKETING_HANDOFF_FINAL_HOST_SUFFIXES
+    )
 
 
 def _maybe_warn_cross_host_redirect(
@@ -244,6 +273,8 @@ def _maybe_warn_cross_host_redirect(
     original_host = _host_of(original_url)
     final_host = _host_of(final_url_str)
     if not original_host or not final_host or original_host == final_host:
+        return
+    if _is_known_benign_cross_host_redirect(original_host, final_host):
         return
 
     diagnostics = current_diagnostics()

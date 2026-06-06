@@ -1510,6 +1510,45 @@ class TestCrossHostRedirectWarn:
         assert len(cross_host_warns) == 2
 
     @pytest.mark.asyncio
+    async def test_google_sheets_signed_temp_redirect_is_suppressed(self):
+        session = AsyncMock()
+        session.get.return_value = _make_response_with_url(
+            200,
+            text="show,date\nA,2099-01-01\n",
+            final_url="https://doc-0k-94-sheets.googleusercontent.com/pub/download",
+        )
+
+        with _NO_FALLBACK:
+            with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn") as mock_warn:
+                await HttpClient.fetch_html(
+                    session,
+                    "https://docs.google.com/spreadsheets/d/e/test/pub?output=csv",
+                )
+
+        assert not any(
+            "Cross-host redirect" in c.args[0] for c in mock_warn.call_args_list
+        )
+        assert self._diag.cross_host_redirects_warned == set()
+
+    @pytest.mark.asyncio
+    async def test_known_ticketing_handoff_redirect_is_suppressed(self):
+        session = AsyncMock()
+        session.get.return_value = _make_response_with_url(
+            200,
+            text="<html/>",
+            final_url="https://yardbird.seatengine-sites.com/events",
+        )
+
+        with _NO_FALLBACK:
+            with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn") as mock_warn:
+                await HttpClient.fetch_html(session, "https://www.yardbird.com/events")
+
+        assert not any(
+            "Cross-host redirect" in c.args[0] for c in mock_warn.call_args_list
+        )
+        assert self._diag.cross_host_redirects_warned == set()
+
+    @pytest.mark.asyncio
     async def test_club_id_from_logger_context_appears_in_warn(self):
         session = AsyncMock()
         session.get.return_value = _make_response_with_url(
