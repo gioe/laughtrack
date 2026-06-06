@@ -731,10 +731,15 @@ class ClubHandler(BaseDatabaseHandler[Club]):
         Recompute and persist popularity for clubs.
 
         Aggregates show activity and lineup quality over a ±90-day window per
-        club (see ``ClubQueries.BATCH_GET_CLUB_POPULARITY``).  Clubs with no
-        shows in that window are absent from the result set and keep their
-        current popularity value — the signal is "this club is active right
-        now", not "this club has ever been active".
+        club (see ``ClubQueries.BATCH_GET_CLUB_POPULARITY``).  Active clubs
+        (shows in the ±90-day window) get a freshly computed popularity from
+        the activity/quality/click-demand blend.  Dormant clubs (no shows at
+        all in the last 180 days) have their stored popularity halved so a
+        venue that has gone quiet for >6 months stops freezing at its last
+        active value.  Clubs whose most recent show is between 90 and 180
+        days ago are absent from the result set and keep their prior
+        popularity untouched — the decay only fires past the canonical
+        ±90-day activity window so slow seasons don't trigger it.
 
         Args:
             club_ids: Optional list of specific club IDs to update.  When
@@ -745,14 +750,20 @@ class ClubHandler(BaseDatabaseHandler[Club]):
             # database, so target_ids is guaranteed non-empty past this line.
             target_ids = club_ids if club_ids else self.get_all_club_ids()
 
+            # BATCH_GET_CLUB_POPULARITY references the target-id list twice
+            # (once to filter the shows scan for the active branch, once to
+            # filter the clubs scan for the dormant-decay branch), so the
+            # parameter tuple has two entries.
             results = self.execute_with_cursor(
-                ClubQueries.BATCH_GET_CLUB_POPULARITY, (target_ids,), return_results=True
+                ClubQueries.BATCH_GET_CLUB_POPULARITY,
+                (target_ids, target_ids),
+                return_results=True,
             )
 
             if not results:
                 Logger.info(
-                    f"update_club_popularity: no clubs with show activity in the ±90d window "
-                    f"(examined {len(target_ids)} clubs)"
+                    f"update_club_popularity: no active clubs in the ±90d window and "
+                    f"no dormant clubs needing decay (examined {len(target_ids)} clubs)"
                 )
                 return
 
@@ -766,7 +777,7 @@ class ClubHandler(BaseDatabaseHandler[Club]):
 
             Logger.info(
                 f"update_club_popularity: updated {len(results)}/{len(target_ids)} clubs "
-                f"(clubs without recent/upcoming shows keep their prior value)"
+                f"(active clubs recomputed, dormant >180d halved, quiet 90-180d kept)"
             )
 
         except Exception as e:

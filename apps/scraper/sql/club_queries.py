@@ -497,9 +497,17 @@ class ClubQueries:
     #   - Click demand: all ticket-purchase clicks in the last 30 days,
     #     saturated at 20 clicks per club. These are intent clicks; they do not
     #     require confirmed purchases until conversion tracking exists.
-    # Activity gets 50% weight, quality 35%, and click demand 15%. Clubs with no
-    # shows in the window are absent from the result set and keep their existing
-    # popularity untouched, even if they have stale click rows.
+    # Activity gets 50% weight, quality 35%, and click demand 15%.
+    #
+    # Dormant-club decay (TASK-2702): clubs with no shows at all in the last
+    # 180 days are emitted with popularity = clubs.popularity * 0.5 so a venue
+    # that has gone quiet for >6 months stops freezing at its last-active value
+    # in search results. Each nightly run halves again, so a permanently
+    # dormant club converges to 0 within a couple of weeks. A club whose most
+    # recent show is between 90 and 180 days old is still treated as
+    # absent (keeps its prior popularity untouched) — the decay only fires once
+    # the club has been quiet for longer than the canonical ±90d activity
+    # window, which avoids penalizing slow seasons.
     BATCH_GET_CLUB_POPULARITY = """
         WITH club_metrics AS (
             SELECT
@@ -523,23 +531,42 @@ class ClubQueries:
               AND s.date >= CURRENT_DATE - INTERVAL '90 days'
               AND s.date <= CURRENT_DATE + INTERVAL '90 days'
             GROUP BY s.club_id
+        ),
+        active_popularity AS (
+            SELECT
+                club_metrics.club_id,
+                LEAST(
+                    LEAST((upcoming_shows + recent_shows)::float / 60.0, 1.0) * 0.5 +
+                    COALESCE(avg_comedian_popularity, 0) * 0.35 +
+                    COALESCE(clicks.click_demand_rate, 0) * 0.15,
+                    1.0
+                ) AS popularity
+            FROM club_metrics
+            LEFT JOIN LATERAL (
+                SELECT LEAST(COUNT(*)::float / 20.0, 1.0) AS click_demand_rate
+                FROM ticket_purchase_click_events tpce
+                WHERE tpce.club_id = club_metrics.club_id
+                  AND tpce.created_at >= NOW() - INTERVAL '30 days'
+            ) clicks ON true
+            WHERE upcoming_shows + recent_shows > 0
+        ),
+        dormant_popularity AS (
+            SELECT
+                clubs.id AS club_id,
+                clubs.popularity * 0.5 AS popularity
+            FROM clubs
+            WHERE clubs.id = ANY(%s::int[])
+              AND clubs.popularity > 0
+              AND clubs.id NOT IN (SELECT club_id FROM active_popularity)
+              AND NOT EXISTS (
+                  SELECT 1 FROM shows
+                  WHERE shows.club_id = clubs.id
+                    AND shows.date >= CURRENT_DATE - INTERVAL '180 days'
+              )
         )
-        SELECT
-            club_id,
-            LEAST(
-                LEAST((upcoming_shows + recent_shows)::float / 60.0, 1.0) * 0.5 +
-                COALESCE(avg_comedian_popularity, 0) * 0.35 +
-                COALESCE(clicks.click_demand_rate, 0) * 0.15,
-                1.0
-            ) AS popularity
-        FROM club_metrics
-        LEFT JOIN LATERAL (
-            SELECT LEAST(COUNT(*)::float / 20.0, 1.0) AS click_demand_rate
-            FROM ticket_purchase_click_events tpce
-            WHERE tpce.club_id = club_metrics.club_id
-              AND tpce.created_at >= NOW() - INTERVAL '30 days'
-        ) clicks ON true
-        WHERE upcoming_shows + recent_shows > 0
+        SELECT club_id, popularity FROM active_popularity
+        UNION ALL
+        SELECT club_id, popularity FROM dormant_popularity
     """
 
     BATCH_UPDATE_CLUB_POPULARITY = """
