@@ -192,12 +192,17 @@ class BaseDatabaseHandler(Generic[T], ABC):
                         else:
                             # UPDATE/DELETE — use cursor.rowcount (no RETURNING clause)
                             affected_rows = cursor.rowcount
-                            DatabaseOperationLogger.log_simple_batch_operation(
-                                operation=operation_type,
-                                items_count=affected_rows,
-                                entity_type=entity_name,
-                                input_count=original_count,
-                            )
+                            if affected_rows == 0 and self._is_insert_on_conflict_do_nothing(query):
+                                Logger.info(
+                                    f"{operation_type} operation: 0 new {entity_name} processed — all already existed"
+                                )
+                            else:
+                                DatabaseOperationLogger.log_simple_batch_operation(
+                                    operation=operation_type,
+                                    items_count=affected_rows,
+                                    entity_type=entity_name,
+                                    input_count=original_count,
+                                )
 
                     return results if return_results else None
 
@@ -221,3 +226,12 @@ class BaseDatabaseHandler(Generic[T], ABC):
             return "delete"
         else:
             return "operation"
+
+    def _is_insert_on_conflict_do_nothing(self, query: str) -> bool:
+        """Return True for duplicate-tolerant insert batches with no RETURNING rows."""
+        normalized_query = " ".join(query.upper().split())
+        return (
+            normalized_query.startswith("INSERT")
+            and " ON CONFLICT" in normalized_query
+            and " DO NOTHING" in normalized_query
+        )

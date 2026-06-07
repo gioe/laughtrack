@@ -167,6 +167,14 @@ class TestExecuteBatchOperationLogging:
         _mock_db_op_logger.reset_mock()
 
     def _run(self, return_results, execute_values_return, rowcount=0):
+        return self._run_query(
+            "INSERT INTO widgets VALUES %s RETURNING id",
+            return_results=return_results,
+            execute_values_return=execute_values_return,
+            rowcount=rowcount,
+        )
+
+    def _run_query(self, query, return_results, execute_values_return, rowcount=0):
         handler = _ConcreteHandler()
         conn, cursor = _make_mock_conn(execute_values_return, rowcount)
 
@@ -182,7 +190,7 @@ class TestExecuteBatchOperationLogging:
             ),
         ):
             result = handler.execute_batch_operation(
-                "INSERT INTO widgets VALUES %s RETURNING id",
+                query,
                 [("a",), ("b",)],
                 return_results=return_results,
             )
@@ -233,6 +241,21 @@ class TestExecuteBatchOperationLogging:
 
         _mock_db_op_logger.log_simple_batch_operation.assert_called_once_with(
             operation="insert", items_count=0, entity_type="widget", input_count=2
+        )
+
+    def test_insert_on_conflict_do_nothing_zero_rowcount_logs_info_not_warning(self):
+        """A duplicate-only INSERT ... DO NOTHING batch is a normal no-op, not a warning."""
+        self._run_query(
+            "INSERT INTO widgets VALUES %s ON CONFLICT DO NOTHING",
+            return_results=False,
+            execute_values_return=None,
+            rowcount=0,
+        )
+
+        _mock_db_op_logger.log_simple_batch_operation.assert_not_called()
+        _mock_logger.warn.assert_not_called()
+        _mock_logger.info.assert_called_once_with(
+            "insert operation: 0 new widget processed — all already existed"
         )
 
     # --- Case 2b: RETURNING query, execute_values returns None ---------------
