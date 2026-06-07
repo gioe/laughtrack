@@ -155,6 +155,33 @@ beforeEach(() => {
 });
 
 describe("findShowsForHome", () => {
+    const availableShowWhere = {
+        AND: [
+            {
+                NOT: [
+                    {
+                        name: {
+                            contains: "sold out",
+                            mode: "insensitive",
+                        },
+                    },
+                    {
+                        name: {
+                            contains: "sold-out",
+                            mode: "insensitive",
+                        },
+                    },
+                ],
+            },
+            {
+                OR: [
+                    { tickets: { none: {} } },
+                    { tickets: { some: { soldOut: false } } },
+                ],
+            },
+        ],
+    };
+
     describe("soldOut computation", () => {
         it("returns soldOut=true when all tickets are soldOut", async () => {
             const row = makeShowRow({
@@ -529,7 +556,29 @@ describe("findShowsForHome", () => {
             await findShowsForHome(where, orderBy);
 
             expect(mockFindMany).toHaveBeenCalledWith(
-                expect.objectContaining({ where, orderBy }),
+                expect.objectContaining({
+                    where: { AND: [where, availableShowWhere] },
+                    orderBy,
+                }),
+            );
+        });
+
+        it("excludes rows computed as sold out from every home show query", async () => {
+            mockFindMany.mockResolvedValue([] as never);
+            const where = {
+                date: { gte: new Date("2026-06-07T00:00:00Z") },
+                club: { visible: true },
+            };
+
+            await findShowsForHome(where, [
+                { popularity: "desc" },
+                { date: "asc" },
+            ]);
+
+            expect(mockFindMany).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    where: { AND: [where, availableShowWhere] },
+                }),
             );
         });
     });

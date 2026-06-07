@@ -84,6 +84,23 @@ const HOME_SHOW_SELECT = {
     },
 } satisfies Prisma.ShowSelect;
 
+const AVAILABLE_HOME_SHOW_WHERE: Prisma.ShowWhereInput = {
+    AND: [
+        {
+            NOT: [
+                { name: { contains: "sold out", mode: "insensitive" } },
+                { name: { contains: "sold-out", mode: "insensitive" } },
+            ],
+        },
+        {
+            OR: [
+                { tickets: { none: {} } },
+                { tickets: { some: { soldOut: false } } },
+            ],
+        },
+    ],
+};
+
 /**
  * Shared query + mapper for home-page show sections.
  * Callers are responsible for including `club: { visible: true }` in `where`.
@@ -107,7 +124,7 @@ export async function findShowsForHome(
         ? Math.max(take, HOME_RELEVANCE_CANDIDATE_TAKE)
         : take;
     const shows = await db.show.findMany({
-        where,
+        where: { AND: [where, AVAILABLE_HOME_SHOW_WHERE] },
         select: HOME_SHOW_SELECT,
         orderBy,
         take: queryTake,
