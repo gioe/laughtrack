@@ -127,16 +127,17 @@ def _parse_parent_aliases(sql: str) -> Dict[str, str]:
 def _infer_alias_col_type(
     sql: str,
     parent_aliases: Dict[str, str],
+    alias: str,
     col: str,
     schema_columns: Dict[str, Dict[str, str]],
 ) -> str:
-    """Best-effort type inference for ``v.<col>`` from surrounding SQL context.
+    """Best-effort type inference for ``<alias>.<col>`` from surrounding SQL context.
 
     Tries five strategies in order:
 
-    1. ``SET <X> = v.<col>`` (in an UPDATE) — ``v.<col>`` should match parent.<X>.
-    2. ``<table_alias>.<X> = v.<col>`` (WHERE/JOIN) — look up via parent_aliases.
-    3. ``v.<col>::TYPE`` — the cast tells us the expected type.
+    1. ``SET <X> = <alias>.<col>`` (in an UPDATE) — should match parent.<X>.
+    2. ``<table_alias>.<X> = <alias>.<col>`` (WHERE/JOIN) — look up via parent_aliases.
+    3. ``<alias>.<col>::TYPE`` — the cast tells us the expected type.
     4. Direct match: parent_table has a column named exactly ``<col>``.
     5. Fallback to ``text`` — Postgres can coerce text→other-types when the
        column is bare ``%s`` and the surrounding SQL casts it explicitly.
@@ -145,9 +146,12 @@ def _infer_alias_col_type(
     ``'double precision'``, ``'timestamptz'``.
     """
     col_re = re.escape(col)
+    alias_re = re.escape(alias)
 
-    # Strategy 1 + 2 combined: any "<word> = v.<col>" or "<word>.<word2> = v.<col>"
-    for m in re.finditer(rf"(\w+)(?:\.(\w+))?\s*=\s*v\.{col_re}\b", sql, re.IGNORECASE):
+    # Strategy 1 + 2: any "<word> = <alias>.<col>" or "<word>.<word2> = <alias>.<col>"
+    for m in re.finditer(
+        rf"(\w+)(?:\.(\w+))?\s*=\s*{alias_re}\.{col_re}\b", sql, re.IGNORECASE
+    ):
         first, second = m.group(1).lower(), (m.group(2) or "").lower()
         if second:
             table = parent_aliases.get(first)
@@ -160,9 +164,9 @@ def _infer_alias_col_type(
                 if first in schema_columns.get(table, {}):
                     return schema_columns[table][first]
 
-    # Strategy 3: explicit cast on v.col
+    # Strategy 3: explicit cast on <alias>.<col>
     cast_re = re.compile(
-        rf"\bv\.{col_re}\s*::\s*([a-zA-Z_][\w\s]*?(?:\[\])?)\s*(?=[,\s)]|$)",
+        rf"\b{alias_re}\.{col_re}\s*::\s*([a-zA-Z_][\w\s]*?(?:\[\])?)\s*(?=[,\s)]|$)",
         re.IGNORECASE,
     )
     m = cast_re.search(sql)
@@ -205,7 +209,10 @@ def _to_prepare_sql(sql: str, schema_columns: Dict[str, Dict[str, str]]) -> str:
         alias = match.group(1)
         cols_csv = match.group(2)
         cols = [c.strip() for c in cols_csv.split(",")]
-        types = [_infer_alias_col_type(sql, parent_aliases, c, schema_columns) for c in cols]
+        types = [
+            _infer_alias_col_type(sql, parent_aliases, alias, c, schema_columns)
+            for c in cols
+        ]
         return f"VALUES ({_build_typed_values(cols, types)})) AS {alias}({cols_csv})"
 
     sql = re.sub(
@@ -248,10 +255,23 @@ def _load_schema_columns(conn) -> Dict[str, Dict[str, str]]:
 
     ``data_type`` is the textual ``information_schema`` type (e.g. ``'integer'``,
     ``'text'``, ``'jsonb'``, ``'double precision'``, ``'timestamp with time zone'``).
-    Enum columns appear as ``'USER-DEFINED'`` in ``information_schema``; we
-    swap those for the actual enum name from ``pg_type`` so VALUES-row casts
-    against an enum column emit the right ``::<enum_name>`` cast.
+    Two cases need special handling because ``information_schema.data_type``
+    erases element-level type info:
+
+    - ``USER-DEFINED`` (enums and other custom types): use ``udt_name``, which
+      carries the actual enum name so VALUES-row casts emit ``::<enum_name>``.
+    - ``ARRAY``: ``udt_name`` carries the element type as ``_text``/``_int4``/
+      ``_varchar``. Strip the leading underscore, normalize the pg internal
+      name to its SQL form, and append ``[]`` so casts emit ``::text[]`` etc.
     """
+    _PG_ARRAY_ELEMENT_ALIASES = {
+        "int2": "smallint",
+        "int4": "integer",
+        "int8": "bigint",
+        "float4": "real",
+        "float8": "double precision",
+        "bool": "boolean",
+    }
     rows: Dict[str, Dict[str, str]] = {}
     with conn.cursor() as cur:
         cur.execute(
@@ -263,9 +283,14 @@ def _load_schema_columns(conn) -> Dict[str, Dict[str, str]]:
         )
         for table, column, data_type, udt_name in cur.fetchall():
             t = table.lower()
-            resolved = udt_name if data_type == "USER-DEFINED" else data_type
-            # information_schema reports 'timestamp with time zone'; pg accepts that
-            # but the shorter 'timestamptz' is also fine. Keep the canonical form.
+            if data_type == "USER-DEFINED":
+                resolved = udt_name
+            elif data_type == "ARRAY":
+                element = udt_name.lstrip("_")
+                element = _PG_ARRAY_ELEMENT_ALIASES.get(element, element)
+                resolved = f"{element}[]"
+            else:
+                resolved = data_type
             rows.setdefault(t, {})[column.lower()] = resolved
     return rows
 
@@ -299,11 +324,34 @@ def schema_columns(pg_conn) -> Dict[str, Dict[str, str]]:
     return _load_schema_columns(pg_conn)
 
 
-@pytest.mark.parametrize(
-    "constant_name,sql_text",
-    SQL_CONSTANTS,
-    ids=[name for name, _ in SQL_CONSTANTS] or ["no-sql-constants-discovered"],
-)
+def _parametrize_args() -> List:
+    """Build the parametrize list, wrapping known-unresolved constants in xfail.
+
+    ``strict=True`` is the audit anchor: when the backing migration for a
+    forward-looking table finally lands, the test will PREPARE successfully,
+    producing an XPASS that pytest reports as a hard failure. That forces the
+    operator to remove the corresponding ``KNOWN_UNRESOLVED_TABLES`` entry
+    instead of letting the escape hatch rot silently into perpetual XFAIL.
+    """
+    args = []
+    for name, sql in SQL_CONSTANTS:
+        if name in KNOWN_UNRESOLVED_TABLES:
+            args.append(
+                pytest.param(
+                    name,
+                    sql,
+                    id=name,
+                    marks=pytest.mark.xfail(
+                        strict=True, reason=KNOWN_UNRESOLVED_TABLES[name]
+                    ),
+                )
+            )
+        else:
+            args.append(pytest.param(name, sql, id=name))
+    return args or [pytest.param("", "", id="no-sql-constants-discovered")]
+
+
+@pytest.mark.parametrize("constant_name,sql_text", _parametrize_args())
 def test_sql_constant_parses(
     pg_conn,
     schema_columns: Dict[str, Dict[str, str]],
@@ -317,9 +365,6 @@ def test_sql_constant_parses(
     statement. A regression like TASK-2700 (NULLIF on an enum) surfaces as
     ``psycopg2.errors.InvalidTextRepresentation`` here.
     """
-    if constant_name in KNOWN_UNRESOLVED_TABLES:
-        pytest.xfail(KNOWN_UNRESOLVED_TABLES[constant_name])
-
     prepared_sql = _to_prepare_sql(sql_text, schema_columns)
     stmt = "sql_parse_check"
 
