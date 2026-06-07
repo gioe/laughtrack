@@ -51,6 +51,13 @@ class PopularityScorer:
     MIN_CONFIDENT_TOTAL_SHOWS = 3
     LOW_CONFIDENCE_PERFORMANCE_CAP = 0.5
 
+    # Historical sell-out rate smoothing. A raw 1-of-1 sell-out record should
+    # be a positive signal, but not stronger than a larger sample such as 5/10.
+    # Treat each comedian as starting from a modest 2-for-6 prior before adding
+    # observed sell-out data.
+    SELLOUT_PRIOR_SOLD_OUTS = 2
+    SELLOUT_PRIOR_TOTAL_SHOWS = 6
+
     # Follower count thresholds for normalization
     MAX_INSTAGRAM_FOLLOWERS = 10_000_000  # 10M followers = max score
     MAX_TIKTOK_FOLLOWERS = 50_000_000  # 50M followers = max score
@@ -234,8 +241,12 @@ class PopularityScorer:
         if total_shows == 0:
             return 0.0
 
-        # Base sellout rate (0-1)
-        sellout_rate = sold_out_shows / total_shows
+        # Smoothed sellout rate (0-1). This preserves sell-out signal while
+        # damping tiny denominators like 1-of-1.
+        sellout_rate = (
+            (sold_out_shows + cls.SELLOUT_PRIOR_SOLD_OUTS)
+            / (total_shows + cls.SELLOUT_PRIOR_TOTAL_SHOWS)
+        )
 
         # Bonus for having more shows (experience factor)
         experience_bonus = min(total_shows / 100, 0.2)  # Up to 20% bonus for 100+ shows

@@ -93,14 +93,19 @@ def test_performance_score_blends_recency_and_sold_out():
     fallback at recency=0 returns historical-only, so to beat sold_out_only
     the recency contribution must exceed the historical one).
     """
-    # recency=0.9 + 2/10 sold_out → historical = 0.2 + min(10/100, 0.2) = 0.3
-    # blended performance = 0.6*0.9 + 0.4*0.3 = 0.66
-    # popularity (no social) = 0.0*0.4 + 0.66*0.6 = 0.396
+    # recency=0.9 + 2/10 sold_out → historical = (2+2)/(10+6) + min(10/100, 0.2) = 0.35
+    # blended performance = 0.6*0.9 + 0.4*0.35 = 0.68
+    # popularity (no social) = 0.0*0.4 + 0.68*0.6 = 0.408
     blended = PopularityScorer.calculate_comedian_popularity(sold_out_shows=2, total_shows=10, recency_score=0.9)
     recency_only = PopularityScorer.calculate_comedian_popularity(recency_score=0.9)
     sold_out_only = PopularityScorer.calculate_comedian_popularity(sold_out_shows=2, total_shows=10, recency_score=0.0)
 
-    expected_perf = PopularityScorer.RECENCY_BLEND_WEIGHT * 0.9 + PopularityScorer.HISTORICAL_BLEND_WEIGHT * 0.3
+    expected_hist = (
+        (2 + PopularityScorer.SELLOUT_PRIOR_SOLD_OUTS)
+        / (10 + PopularityScorer.SELLOUT_PRIOR_TOTAL_SHOWS)
+        + min(10 / 100, 0.2)
+    )
+    expected_perf = PopularityScorer.RECENCY_BLEND_WEIGHT * 0.9 + PopularityScorer.HISTORICAL_BLEND_WEIGHT * expected_hist
     assert blended == round(0.0 * 0.4 + expected_perf * 0.6, 4)
     assert blended > recency_only  # historical contributes — bug-fix proof
     assert blended > sold_out_only  # recency contributes too
@@ -111,13 +116,18 @@ def test_performance_score_cold_start_historical_fallback():
     Cold start: when recency_score=0 (no shows in the recency window),
     performance falls back to historical-only. A dormant headliner is neither
     rewarded nor penalized for the missing recency signal — they keep the
-    score they would have had under the pre-blend formula.
+    smoothed historical score.
     """
-    # 10/10 sold_out → historical_component = min(1.0 + 0.1, 1.0) = 1.0
-    # cold-start performance = 1.0 (historical only; no blend penalty)
-    # popularity (no social) = 0.0*0.4 + 1.0*0.6 = 0.6
+    # 10/10 sold_out → historical_component = (10+2)/(10+6) + 0.1 = 0.85
+    # cold-start performance = 0.85 (historical only; no blend penalty)
+    # popularity (no social) = 0.0*0.4 + 0.85*0.6 = 0.51
     score = PopularityScorer.calculate_comedian_popularity(sold_out_shows=10, total_shows=10, recency_score=0.0)
-    assert score == round(0.0 * 0.4 + 1.0 * 0.6, 4)
+    expected_hist = (
+        (10 + PopularityScorer.SELLOUT_PRIOR_SOLD_OUTS)
+        / (10 + PopularityScorer.SELLOUT_PRIOR_TOTAL_SHOWS)
+        + min(10 / 100, 0.2)
+    )
+    assert score == round(0.0 * 0.4 + expected_hist * 0.6, 4)
 
     # default (omitted recency_score) matches explicit 0.0 — shape parity check
     default_recency = PopularityScorer.calculate_comedian_popularity(sold_out_shows=10, total_shows=10)
@@ -144,11 +154,17 @@ class TestConfidenceGate:
         popularity=0.6 (Rising Star). With the gate, performance is capped at
         LOW_CONFIDENCE_PERFORMANCE_CAP and popularity falls below the cliff."""
         score = PopularityScorer.calculate_comedian_popularity(sold_out_shows=1, total_shows=1)
-        # historical = 1/1 + min(1/100, 0.2) = 1.0, capped at LOW_CONFIDENCE_PERFORMANCE_CAP (0.5)
-        # popularity = 0.0*0.4 + 0.5*0.6 = 0.3
+        # historical = (1+2)/(1+6) + min(1/100, 0.2) = 0.4386,
+        # already below LOW_CONFIDENCE_PERFORMANCE_CAP (0.5).
+        # popularity = 0.0*0.4 + 0.4386*0.6 = 0.2631
         expected = round(
             0.0 * PopularityScorer.SOCIAL_MEDIA_WEIGHT
-            + PopularityScorer.LOW_CONFIDENCE_PERFORMANCE_CAP * PopularityScorer.SHOW_PERFORMANCE_WEIGHT,
+            + (
+                (1 + PopularityScorer.SELLOUT_PRIOR_SOLD_OUTS)
+                / (1 + PopularityScorer.SELLOUT_PRIOR_TOTAL_SHOWS)
+                + min(1 / 100, 0.2)
+            )
+            * PopularityScorer.SHOW_PERFORMANCE_WEIGHT,
             4,
         )
         assert score == expected
@@ -157,13 +173,18 @@ class TestConfidenceGate:
     def test_total_shows_threshold_passes_gate(self):
         """total_shows >= MIN_CONFIDENT_TOTAL_SHOWS satisfies the gate by
         itself — a real track record needs no other corroboration."""
-        # MIN_CONFIDENT_TOTAL_SHOWS=3, sold_out=3/3 → historical=1.0
-        # popularity = 0.0*0.4 + 1.0*0.6 = 0.6 (gate passes, no cap)
+        # MIN_CONFIDENT_TOTAL_SHOWS=3, sold_out=3/3 → historical=(3+2)/(3+6)+0.03=0.5856
+        # popularity = 0.0*0.4 + 0.5856*0.6 = 0.3513 (gate passes, no cap)
         score = PopularityScorer.calculate_comedian_popularity(
             sold_out_shows=PopularityScorer.MIN_CONFIDENT_TOTAL_SHOWS,
             total_shows=PopularityScorer.MIN_CONFIDENT_TOTAL_SHOWS,
         )
-        assert score == round(0.0 * 0.4 + 1.0 * 0.6, 4)
+        expected_hist = (
+            (PopularityScorer.MIN_CONFIDENT_TOTAL_SHOWS + PopularityScorer.SELLOUT_PRIOR_SOLD_OUTS)
+            / (PopularityScorer.MIN_CONFIDENT_TOTAL_SHOWS + PopularityScorer.SELLOUT_PRIOR_TOTAL_SHOWS)
+            + min(PopularityScorer.MIN_CONFIDENT_TOTAL_SHOWS / 100, 0.2)
+        )
+        assert score == round(0.0 * 0.4 + expected_hist * 0.6, 4)
 
     def test_total_shows_one_below_threshold_is_capped(self):
         """Boundary: MIN_CONFIDENT_TOTAL_SHOWS - 1 is still low-confidence."""
@@ -177,10 +198,15 @@ class TestConfidenceGate:
 
     def test_has_image_signal_passes_gate(self):
         """A sourced image (Wikidata/TMDb hit) is itself a confidence signal —
-        a real comedian whose only show data is 1-of-1 sold_out still saturates."""
+        a real comedian whose only show data is 1-of-1 sold_out is not capped,
+        but the smoothed sell-out rate prevents saturation."""
         score = PopularityScorer.calculate_comedian_popularity(sold_out_shows=1, total_shows=1, has_image=True)
-        # gate passes via has_image → historical=1.0 → popularity=0.6
-        assert score == round(0.0 * 0.4 + 1.0 * 0.6, 4)
+        expected_hist = (
+            (1 + PopularityScorer.SELLOUT_PRIOR_SOLD_OUTS)
+            / (1 + PopularityScorer.SELLOUT_PRIOR_TOTAL_SHOWS)
+            + min(1 / 100, 0.2)
+        )
+        assert score == round(0.0 * 0.4 + expected_hist * 0.6, 4)
 
     def test_verified_podcast_appearance_signal_passes_gate(self):
         """A verified podcast appearance (accepted comedian_podcasts or
@@ -189,10 +215,32 @@ class TestConfidenceGate:
         score = PopularityScorer.calculate_comedian_popularity(
             sold_out_shows=1, total_shows=1, has_podcast_appearance=True
         )
+        expected_hist = (
+            (1 + PopularityScorer.SELLOUT_PRIOR_SOLD_OUTS)
+            / (1 + PopularityScorer.SELLOUT_PRIOR_TOTAL_SHOWS)
+            + min(1 / 100, 0.2)
+        )
         assert score == round(
-            0.0 * 0.4 + 1.0 * 0.6 + 1.0 * PopularityScorer.PODCAST_APPEARANCE_WEIGHT,
+            0.0 * 0.4
+            + expected_hist * 0.6
+            + 1.0 * PopularityScorer.PODCAST_APPEARANCE_WEIGHT,
             4,
         )
+
+    def test_smoothed_sellout_rate_prefers_larger_track_record(self):
+        """A 1-of-1 sell-out record should not outrank 5 sell-outs across 10 shows."""
+        one_for_one = PopularityScorer.calculate_comedian_popularity(
+            sold_out_shows=1,
+            total_shows=1,
+            has_image=True,
+        )
+        five_for_ten = PopularityScorer.calculate_comedian_popularity(
+            sold_out_shows=5,
+            total_shows=10,
+            has_image=True,
+        )
+
+        assert five_for_ten > one_for_one
 
     def test_low_confidence_with_recency_is_also_capped(self):
         """The cap applies to the blended performance score too, so a
@@ -225,6 +273,8 @@ class TestConfidenceGate:
         assert 0.0 < PopularityScorer.LOW_CONFIDENCE_PERFORMANCE_CAP < 1.0
         assert isinstance(PopularityScorer.MIN_CONFIDENT_TOTAL_SHOWS, int)
         assert PopularityScorer.MIN_CONFIDENT_TOTAL_SHOWS >= 1
+        assert 0 <= PopularityScorer.SELLOUT_PRIOR_SOLD_OUTS <= PopularityScorer.SELLOUT_PRIOR_TOTAL_SHOWS
+        assert PopularityScorer.SELLOUT_PRIOR_TOTAL_SHOWS > 0
 
 
 class TestPodcastAppearanceComponent:
@@ -254,8 +304,8 @@ class TestPodcastAppearanceComponent:
         """The additive component must not push maxed-out popularity above 1."""
         score = PopularityScorer.calculate_comedian_popularity(
             instagram_followers=10_000_000,
-            sold_out_shows=10,
-            total_shows=10,
+            sold_out_shows=100,
+            total_shows=100,
             has_podcast_appearance=True,
         )
         assert score == 1.0

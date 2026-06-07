@@ -112,6 +112,14 @@ check rather than blocking ingestion entirely.
 
 These patterns apply whenever writing or modifying test files in `apps/scraper/tests/`.
 
+### SQL Parse-Time Guard
+
+`tests/sql/test_sql_parse_time.py` runs `PREPARE` against a real Postgres for every SQL constant exported from `apps/scraper/sql/`. It catches the TASK-2700 class of regression — parse-time errors like `NULLIF(enum_column, '')` that look fine as Python strings but fail at plan time because Postgres can't coerce `''` into the enum domain. Substring assertions in `tests/foundation/test_popularity_scorer.py` cannot detect this; only a real planner can.
+
+The CI job lives in `.github/workflows/scraper-ci.yml` (`sql-parse-test`) and uses a `postgres:16-alpine` service plus `npx prisma migrate diff --from-empty --to-schema-datamodel apps/web/prisma/schema.prisma --script` to load the schema. Local runs are skipped unless `TEST_DATABASE_URL` is set — see the module docstring for the one-shot `createdb` + `prisma migrate diff` + `psql` recipe.
+
+When a query references a table that doesn't exist yet (forward-looking infrastructure), add an entry to `KNOWN_UNRESOLVED_TABLES`. The xfail uses `strict=True`, so the test will fail the moment the table actually lands — forcing the escape-hatch entry to be removed instead of silently rotting.
+
 ### Smoke Tests
 
 #### Ticketmaster Venues — Patch TicketmasterClient in Sync Pipeline Tests

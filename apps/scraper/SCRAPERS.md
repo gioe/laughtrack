@@ -459,7 +459,11 @@ GET https://tockify.com/api/ngevent?calname=<calname>&max=200&startms=<now_ms>
 **To onboard a new Tockify venue:**
 1. Use Playwright to find the `calname` in network requests
 2. Create a new scraper directory (copy `ice_house/`) and replace `theicehouse` with the new calname
-3. Verify the `customButtonLink` ticket URL format
+3. Verify the `customButtonLink` ticket URL format. Events without
+   `customButtonLink` (walk-in / recurring socials like Ice House's
+   "Social Hour") fall back to the public Tockify detail URL
+   `https://tockify.com/<calname>/detail/<uid>/<tid>`, derived by the
+   extractor from the API URL. No per-venue work required.
 4. Set `scraping_url` in the DB (optional — only needed if overriding the hardcoded URL)
 
 ---
