@@ -40,6 +40,7 @@ class Comedian(DatabaseEntity):
     # comedian_podcasts/episode_appearances rows.
     has_image: bool = False
     has_podcast_appearance: bool = False
+    favorite_count: int = 0
 
     def __eq__(self, other):
         if not isinstance(other, Comedian):
@@ -80,6 +81,7 @@ class Comedian(DatabaseEntity):
             recency_score=self.recency_score,
             has_image=self.has_image,
             has_podcast_appearance=self.has_podcast_appearance,
+            favorite_count=self.favorite_count,
         )
 
     @classmethod
@@ -105,6 +107,7 @@ class Comedian(DatabaseEntity):
             website_scrape_strategy=row.get("website_scrape_strategy"),
             has_image=bool(row.get("has_image", False)),
             has_podcast_appearance=bool(row.get("has_podcast_appearance", False)),
+            favorite_count=int(row.get("favorite_count") or 0),
         )
 
     @classmethod
