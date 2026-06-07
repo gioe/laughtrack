@@ -10,6 +10,7 @@ Covers:
 """
 
 import importlib.util
+import math
 import re
 import sys
 from pathlib import Path
@@ -265,6 +266,48 @@ class TestPodcastAppearanceComponent:
         assert PopularityScorer.MAX_PODCAST_APPEARANCES_FOR_SCORE >= 1
 
 
+class TestFavoriteCountComponent:
+    """User favorites add a deliberately small first-party popularity signal."""
+
+    def test_favorite_only_comedian_gets_small_nudge(self):
+        score = PopularityScorer.calculate_comedian_popularity(favorite_count=1)
+        expected = round(
+            (math.log1p(1) / math.log1p(PopularityScorer.MAX_FAVORITES_FOR_SCORE))
+            * PopularityScorer.FAVORITE_COUNT_WEIGHT,
+            4,
+        )
+        assert score == expected
+        assert 0.0 < score < PopularityScorer.PODCAST_APPEARANCE_WEIGHT
+
+    def test_favorite_count_is_capped_at_lightweight_contribution(self):
+        capped = PopularityScorer.calculate_comedian_popularity(
+            favorite_count=PopularityScorer.MAX_FAVORITES_FOR_SCORE
+        )
+        beyond_cap = PopularityScorer.calculate_comedian_popularity(
+            favorite_count=PopularityScorer.MAX_FAVORITES_FOR_SCORE * 10
+        )
+
+        assert capped == round(PopularityScorer.FAVORITE_COUNT_WEIGHT, 4)
+        assert beyond_cap == capped
+
+    def test_favorite_component_cannot_dominate_existing_signals(self):
+        favorite_only = PopularityScorer.calculate_comedian_popularity(
+            favorite_count=PopularityScorer.MAX_FAVORITES_FOR_SCORE
+        )
+        modest_social = PopularityScorer.calculate_comedian_popularity(instagram_followers=2_000_000)
+        modest_performance = PopularityScorer.calculate_comedian_popularity(
+            sold_out_shows=1,
+            total_shows=PopularityScorer.MIN_CONFIDENT_TOTAL_SHOWS,
+        )
+
+        assert favorite_only < modest_social
+        assert favorite_only < modest_performance
+
+    def test_favorite_component_constants_in_sensible_ranges(self):
+        assert 0.0 < PopularityScorer.FAVORITE_COUNT_WEIGHT <= 0.05
+        assert PopularityScorer.MAX_FAVORITES_FOR_SCORE >= 10
+
+
 def test_performance_score_touring_only_recency_contribution():
     """
     Touring-only: zero sold_out history but high recency. The comedian still
@@ -371,6 +414,19 @@ class TestBatchUpdateComedianShowCountsSql:
             sql,
             re.DOTALL,
         )
+
+
+class TestBatchGetComedianDetailsSql:
+    """Contract tests for comedian popularity refresh inputs."""
+
+    def setup_method(self):
+        self.ComedianQueries = _load_module("sql/comedian_queries.py", "sql.comedian_queries_details").ComedianQueries
+
+    def test_query_reads_favorite_count(self):
+        sql = self.ComedianQueries.BATCH_GET_COMEDIAN_DETAILS.lower()
+        assert "favorite_comedians" in sql
+        assert "favorite_count" in sql
+        assert "fc.comedian_id = c.uuid" in sql
 
 
 class TestBatchGetShowPopularitySql:

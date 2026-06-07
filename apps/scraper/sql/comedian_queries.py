@@ -11,6 +11,7 @@ class ComedianQueries:
     # state used by review_podcast_*_candidates / backfill_podcast_appearances)
     # so an "accepted" appearance counts via either comedian_podcasts or
     # episode_appearances — matching the discovery → review → publish pipeline.
+    # favorite_count is a lightly weighted first-party signal in PopularityScorer.
     BATCH_GET_COMEDIAN_DETAILS = '''
         SELECT
             c.uuid, c.name, c.instagram_followers, c.tiktok_followers, c.youtube_followers,
@@ -27,7 +28,12 @@ class ComedianQueries:
                     WHERE ea.comedian_id = c.id
                       AND ea.review_status = 'accepted'
                 )
-            ) AS has_podcast_appearance
+            ) AS has_podcast_appearance,
+            (
+                SELECT COUNT(*)
+                FROM favorite_comedians fc
+                WHERE fc.comedian_id = c.uuid
+            ) AS favorite_count
         FROM comedians c
         WHERE c.uuid = ANY(%s)
     '''

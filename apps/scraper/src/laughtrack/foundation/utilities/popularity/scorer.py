@@ -28,6 +28,12 @@ class PopularityScorer:
     MIN_PODCAST_APPEARANCE_SCORE = 0.75
     MAX_PODCAST_APPEARANCES_FOR_SCORE = 10
 
+    # First-party favorites are intentionally a small additive signal while
+    # user volume is low. Log normalization lets early favorites nudge similar
+    # comedians without allowing a small cohort to dominate established signals.
+    FAVORITE_COUNT_WEIGHT = 0.04
+    MAX_FAVORITES_FOR_SCORE = 25
+
     # Inner blend weights for performance_score — recency activity vs historical sold-out track record.
     # Must sum to 1.0. Tunable.
     RECENCY_BLEND_WEIGHT = 0.6
@@ -62,6 +68,7 @@ class PopularityScorer:
         has_image: bool = False,
         has_podcast_appearance: bool = False,
         appearance_count: int = 0,
+        favorite_count: int = 0,
     ) -> float:
         """
         Calculate comedian popularity from social reach and show performance.
@@ -89,6 +96,7 @@ class PopularityScorer:
             has_podcast_appearance: True when at least one comedian_podcasts or
                 episode_appearances row is in review_status='accepted'
             appearance_count: Verified podcast episode appearance count, when available
+            favorite_count: Number of user profiles that favorited this comedian
 
         Returns:
             float: Popularity score between 0 and 1
@@ -98,6 +106,7 @@ class PopularityScorer:
             has_podcast_appearance=has_podcast_appearance,
             appearance_count=appearance_count,
         )
+        favorite_score = cls._calculate_favorite_count_score(favorite_count)
 
         low_confidence = not cls._passes_confidence_gate(
             total_shows=total_shows,
@@ -116,9 +125,19 @@ class PopularityScorer:
             social_score * cls.SOCIAL_MEDIA_WEIGHT
             + performance_score * cls.SHOW_PERFORMANCE_WEIGHT
             + podcast_score * cls.PODCAST_APPEARANCE_WEIGHT
+            + favorite_score * cls.FAVORITE_COUNT_WEIGHT
         )
 
         return round(min(popularity, 1.0), 4)
+
+    @classmethod
+    def _calculate_favorite_count_score(cls, favorite_count: int) -> float:
+        """Calculate a capped first-party favorite signal in [0.0, 1.0]."""
+        if favorite_count <= 0:
+            return 0.0
+
+        normalized = math.log1p(favorite_count) / math.log1p(cls.MAX_FAVORITES_FOR_SCORE)
+        return min(max(normalized, 0.0), 1.0)
 
     @classmethod
     def _calculate_podcast_appearance_score(cls, has_podcast_appearance: bool, appearance_count: int) -> float:
