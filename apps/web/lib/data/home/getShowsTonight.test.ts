@@ -72,7 +72,7 @@ describe("getShowsTonight", () => {
 
         expect(mockFindShowsForHome).toHaveBeenCalledWith(
             expect.any(Object),
-            { date: "asc" },
+            [{ popularity: "desc" }, { date: "asc" }],
             8,
             { zipCode: "10801", sortByHomeRelevance: true },
         );

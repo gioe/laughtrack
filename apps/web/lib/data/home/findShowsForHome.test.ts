@@ -336,7 +336,7 @@ describe("findShowsForHome", () => {
             );
         });
 
-        it("sorts ZIP-scoped home shows by time, show popularity, and lineup popularity", async () => {
+        it("sorts ZIP-scoped home shows by show popularity, lineup popularity, distance, then time", async () => {
             const laterPopular = makeShowRow({
                 id: 1,
                 date: new Date("2026-06-02T20:00:00Z"),
@@ -413,7 +413,7 @@ describe("findShowsForHome", () => {
                 sortByHomeRelevance: true,
             });
 
-            expect(result.map((show) => show.id)).toEqual([4, 3, 2]);
+            expect(result.map((show) => show.id)).toEqual([1, 4, 3]);
         });
 
         it("passes tickets through mapTickets", async () => {
@@ -609,6 +609,40 @@ describe("findShowsForHome", () => {
     });
 
     describe("skip + sortByHomeRelevance guard", () => {
+        it("sorts home relevance rows by show popularity before date", async () => {
+            mockFindMany.mockResolvedValue([
+                makeShowRow({
+                    id: 1,
+                    date: new Date("2026-06-01T19:00:00Z"),
+                    popularity: 10,
+                }),
+                makeShowRow({
+                    id: 2,
+                    date: new Date("2026-06-01T23:00:00Z"),
+                    popularity: 50,
+                }),
+                makeShowRow({
+                    id: 3,
+                    date: new Date("2026-06-01T20:00:00Z"),
+                    popularity: 50,
+                    club: {
+                        name: "Near Club",
+                        address: "123 Near St",
+                        zipCode: "10003",
+                    },
+                }),
+            ] as never);
+
+            const result = await findShowsForHome(
+                {},
+                [{ popularity: "desc" }, { date: "asc" }],
+                3,
+                { zipCode: "10012", sortByHomeRelevance: true },
+            );
+
+            expect(result.map((show) => show.id)).toEqual([3, 2, 1]);
+        });
+
         it("throws when skip>0 is combined with sortByHomeRelevance=true", async () => {
             await expect(
                 findShowsForHome(
@@ -618,7 +652,9 @@ describe("findShowsForHome", () => {
                     { sortByHomeRelevance: true },
                     20,
                 ),
-            ).rejects.toThrow(/skip>0 is incompatible with sortByHomeRelevance/);
+            ).rejects.toThrow(
+                /skip>0 is incompatible with sortByHomeRelevance/,
+            );
             expect(mockFindMany).not.toHaveBeenCalled();
         });
 

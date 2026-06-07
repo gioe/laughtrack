@@ -9,8 +9,7 @@ struct HomeContentSectionTests {
     func unfilteredHomeLeadsWithShowRailsBeforeComediansAndClubs() {
         #expect(HomeContentSection.sections(for: nil) == [
             .showsTonight,
-            .moreNearYou,
-            .trendingThisWeek,
+            .thisWeek,
             .favoriteShows,
             .comedians,
             .clubs,
@@ -22,8 +21,7 @@ struct HomeContentSectionTests {
     func homePrimitiveFiltersRenderOnlyMatchingContentSection() {
         #expect(HomeContentSection.sections(for: .shows) == [
             .showsTonight,
-            .moreNearYou,
-            .trendingThisWeek,
+            .thisWeek,
             .favoriteShows,
         ])
         #expect(HomeContentSection.sections(for: .comedians) == [.comedians])
@@ -53,6 +51,28 @@ struct HomeContentSectionTests {
         #expect(HomeShowsTonightHeroPresentation.shouldShowFooter(for: show) == false)
     }
 
+    @Test("home carousel claims horizontal swipes without treating vertical scrolls as paging")
+    func homeCarouselClaimsHorizontalSwipesWithoutTreatingVerticalScrollsAsPaging() {
+        #expect(HomeHorizontalPagerDrag.nextIndex(
+            currentIndex: 0,
+            itemCount: 3,
+            pageWidth: 300,
+            translation: CGSize(width: -90, height: 8)
+        ) == 1)
+        #expect(HomeHorizontalPagerDrag.nextIndex(
+            currentIndex: 1,
+            itemCount: 3,
+            pageWidth: 300,
+            translation: CGSize(width: 90, height: 8)
+        ) == 0)
+        #expect(HomeHorizontalPagerDrag.nextIndex(
+            currentIndex: 1,
+            itemCount: 3,
+            pageWidth: 300,
+            translation: CGSize(width: 40, height: 120)
+        ) == 1)
+    }
+
     @Test("home cards use cached async images")
     func homeCardsUseCachedAsyncImages() throws {
         let source = try String(contentsOf: homeViewSourceURL(), encoding: .utf8)
@@ -74,6 +94,21 @@ struct HomeContentSectionTests {
         #expect(!block.contains(".scaledToFill()"))
     }
 
+    @Test("home podcast cards show podcast title without owner subtitle")
+    func homePodcastCardsShowPodcastTitleWithoutOwnerSubtitle() throws {
+        let source = try String(contentsOf: homeViewSourceURL(), encoding: .utf8)
+        let block = try sourceBlock(
+            in: source,
+            from: "private struct HomeTrendingPodcastCard",
+            to: "@MainActor\nfinal class HomeTrendingPodcastsModel"
+        )
+
+        #expect(block.contains("Text(podcast.title)"))
+        #expect(!block.contains("Text(subtitleText)"))
+        #expect(!block.contains("podcast.authorName"))
+        #expect(!block.contains("accessibilityLabel(\"\\(podcast.title),"))
+    }
+
     @Test("home source uses fixed-width carousel hero grid entity rails and lifted rail copy")
     func homeSourceUsesFixedWidthCarouselHeroGridEntityRailsAndLiftedRailCopy() throws {
         let source = try String(contentsOf: homeViewSourceURL(), encoding: .utf8)
@@ -92,14 +127,21 @@ struct HomeContentSectionTests {
         #expect(carouselBlock.contains("UIScreen.main.bounds.width - 64"))
         #expect(carouselBlock.contains(".frame(width: pageWidth"))
         #expect(carouselBlock.contains(".clipped()"))
-        #expect(carouselBlock.contains("pagerDragGesture(pageWidth: pageWidth)"))
+        #expect(carouselBlock.contains(".highPriorityGesture(pagerDragGesture(pageWidth: pageWidth))"))
         #expect(heroBlock.contains(".scaledToFit()"))
         #expect(source.contains("HomeDiscoverHeader("))
         #expect(source.contains("nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self)"))
+        #expect(source.contains("profileLocationPreferenceSyncClient: serviceContainer.resolveOptional((any ProfileLocationPreferenceSyncing).self)"))
+        #expect(source.contains("currentUser: authManager.currentUser"))
         #expect(source.contains("SettingsNearbyPreferenceModel("))
+        #expect(source.contains("syncClient: profileLocationPreferenceSyncClient"))
+        #expect(source.contains("refreshProfileLocation(from: currentUser)"))
         #expect(source.contains("HomeLocationPrompt("))
         #expect(source.contains("HomeLocationEditorSheet("))
         #expect(source.contains("LazyVGrid"))
+        #expect(source.contains("Best shows later this week"))
+        #expect(!source.contains("Upcoming shows at clubs in your area."))
+        #expect(!source.contains("The most popular shows happening in the next 7 days."))
         #expect(source.contains("Comics on the rise this week"))
         #expect(!source.contains("eyebrow: \"Trending comedians\""))
     }

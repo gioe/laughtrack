@@ -39,7 +39,7 @@ export async function getShowsTonight(
                 ...(nearbyZips ? { zipCode: { in: nearbyZips } } : {}),
             },
         },
-        { date: "asc" },
+        [{ popularity: "desc" }, { date: "asc" }],
         8,
         nearbyZips
             ? { zipCode, sortByHomeRelevance: true }

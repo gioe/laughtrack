@@ -47,16 +47,24 @@ public actor PersistentMainPageCache {
         }
     }
 
-    public func setHomeFeed(_ feed: Components.Schemas.HomeFeed, zipCode: String?, ttl: TimeInterval) {
-        set(feed, fileName: "home-feed-\(fileNameComponent(zipCode ?? "default"))", ttl: ttl)
+    public func setHomeFeed(
+        _ feed: Components.Schemas.HomeFeed,
+        zipCode: String?,
+        distanceMiles: Int? = nil,
+        ttl: TimeInterval
+    ) {
+        set(feed, fileName: homeFeedFileName(zipCode: zipCode, distanceMiles: distanceMiles), ttl: ttl)
     }
 
-    public func getHomeFeed(zipCode: String?) -> Components.Schemas.HomeFeed? {
-        getCachedHomeFeed(zipCode: zipCode)?.value
+    public func getHomeFeed(zipCode: String?, distanceMiles: Int? = nil) -> Components.Schemas.HomeFeed? {
+        getCachedHomeFeed(zipCode: zipCode, distanceMiles: distanceMiles)?.value
     }
 
-    public func getCachedHomeFeed(zipCode: String?) -> CachedValue<Components.Schemas.HomeFeed>? {
-        get(fileName: "home-feed-\(fileNameComponent(zipCode ?? "default"))")
+    public func getCachedHomeFeed(
+        zipCode: String?,
+        distanceMiles: Int? = nil
+    ) -> CachedValue<Components.Schemas.HomeFeed>? {
+        get(fileName: homeFeedFileName(zipCode: zipCode, distanceMiles: distanceMiles))
     }
 
     public func setFavoriteShows(_ shows: [Components.Schemas.Show], requestKey: String, ttl: TimeInterval) {
@@ -69,6 +77,14 @@ public actor PersistentMainPageCache {
 
     public func getCachedFavoriteShows(requestKey: String) -> CachedValue<[Components.Schemas.Show]>? {
         get(fileName: "favorite-shows-\(fileNameComponent(requestKey))")
+    }
+
+    private func homeFeedFileName(zipCode: String?, distanceMiles: Int?) -> String {
+        let zipComponent = zipCode ?? "default"
+        guard let distanceMiles else {
+            return "home-feed-\(fileNameComponent(zipComponent))"
+        }
+        return "home-feed-\(fileNameComponent("\(zipComponent)-\(distanceMiles)mi"))"
     }
 
     private func set<Value: Codable & Sendable>(_ value: Value, fileName: String, ttl: TimeInterval) {

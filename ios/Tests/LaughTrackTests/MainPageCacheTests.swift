@@ -14,7 +14,7 @@ struct MainPageCacheTests {
     func homeRailUsesCachedFeedBeforeNetwork() async {
         let zipCode = uniqueCacheKey("test-cache-before-network")
         let cache = DataCache<LaughTrackCacheKey>()
-        await cache.set(homeFeed(showID: 701), forKey: .homeFeed(zipCode: zipCode))
+        await cache.set(homeFeed(showID: 701), forKey: .homeFeed(zipCode: zipCode, distanceMiles: nil))
         let transport = CountingHomeFeedTransport(result: .success(homeFeed(showID: 999)))
         let model = HomeShowsTonightModel()
 
@@ -47,7 +47,7 @@ struct MainPageCacheTests {
             persistentCache: nil
         )
 
-        let cached: Components.Schemas.HomeFeed? = await cache.get(forKey: .homeFeed(zipCode: zipCode))
+        let cached: Components.Schemas.HomeFeed? = await cache.get(forKey: .homeFeed(zipCode: zipCode, distanceMiles: nil))
         #expect(cached?.showsTonight.map(\.id) == [702])
         #expect(transport.requestCount == 1)
     }
@@ -88,7 +88,7 @@ struct MainPageCacheTests {
     func homeRailFallsBackToValidCacheOnRefreshFailure() async {
         let zipCode = uniqueCacheKey("test-cache-fallback")
         let cache = DataCache<LaughTrackCacheKey>()
-        await cache.set(homeFeed(showID: 705), forKey: .homeFeed(zipCode: zipCode))
+        await cache.set(homeFeed(showID: 705), forKey: .homeFeed(zipCode: zipCode, distanceMiles: nil))
         let transport = CountingHomeFeedTransport(result: .failure(URLError(.notConnectedToInternet)))
         let model = HomeShowsTonightModel()
 
@@ -127,7 +127,7 @@ struct MainPageCacheTests {
 
         let cache = DataCache<LaughTrackCacheKey>()
         let cached: Components.Schemas.HomeFeed? = await MainPageCache.get(
-            .homeFeed(zipCode: "10801"),
+            .homeFeed(zipCode: "10801", distanceMiles: nil),
             from: cache,
             persistentCache: persistentCache
         )

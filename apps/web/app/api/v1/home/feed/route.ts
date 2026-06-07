@@ -15,6 +15,8 @@ import { readTimezoneHeader } from "@/util/timezone";
 
 const ZIP_RE = /^\d{5}$/;
 const HERO_SHOW_COUNT = 3;
+const MIN_DISTANCE_MILES = 1;
+const MAX_DISTANCE_MILES = 500;
 // Personalized by session zipCode + Vercel geo-IP, so we opt out of shared
 // CDN caching. Short browser cache still absorbs rapid back-button refetches.
 const PRIVATE_CACHE_CONTROL = "private, max-age=60";
@@ -31,9 +33,25 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     if (rl instanceof NextResponse) return rl;
 
     const zipParam = req.nextUrl.searchParams.get("zip");
+    const distanceParam = req.nextUrl.searchParams.get("distance");
     if (zipParam !== null && !ZIP_RE.test(zipParam)) {
         return NextResponse.json(
             { error: "zip must be a 5-digit US zip code" },
+            { status: 400, headers: rateLimitHeaders(rl) },
+        );
+    }
+    const distanceMiles =
+        distanceParam === null
+            ? DEFAULT_HOME_RADIUS_MILES
+            : Number(distanceParam);
+    if (
+        !Number.isFinite(distanceMiles) ||
+        !Number.isInteger(distanceMiles) ||
+        distanceMiles < MIN_DISTANCE_MILES ||
+        distanceMiles > MAX_DISTANCE_MILES
+    ) {
+        return NextResponse.json(
+            { error: "distance must be a number between 1 and 500 miles" },
             { status: 400, headers: rateLimitHeaders(rl) },
         );
     }
@@ -77,21 +95,19 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                 logSectionError("getClubs"),
             ),
             zipCode
-                ? getComediansByZip(zipCode, DEFAULT_HOME_RADIUS_MILES).catch(
+                ? getComediansByZip(zipCode, distanceMiles).catch(
                       logSectionError("getComediansByZip"),
                   )
                 : Promise.resolve([]),
             zipCode
-                ? getShowsTonight(
-                      timezone,
-                      zipCode,
-                      DEFAULT_HOME_RADIUS_MILES,
-                  ).catch(logSectionError("getShowsTonight"))
+                ? getShowsTonight(timezone, zipCode, distanceMiles).catch(
+                      logSectionError("getShowsTonight"),
+                  )
                 : getShowsTonight(timezone).catch(
                       logSectionError("getShowsTonight"),
                   ),
             zipCode
-                ? getShowsNearZip(zipCode, DEFAULT_HOME_RADIUS_MILES).catch(
+                ? getShowsNearZip(zipCode, distanceMiles).catch(
                       logSectionError("getShowsNearZip"),
                   )
                 : Promise.resolve([]),
@@ -99,12 +115,12 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                 ? getTrendingShowsThisWeek(
                       timezone,
                       zipCode,
-                      DEFAULT_HOME_RADIUS_MILES,
+                      distanceMiles,
                   ).catch(logSectionError("getTrendingShowsThisWeek"))
                 : getTrendingShowsThisWeek(timezone).catch(
                       logSectionError("getTrendingShowsThisWeek"),
                   ),
-            getTrendingPodcasts(zipCode).catch(
+            getTrendingPodcasts(zipCode, undefined, distanceMiles).catch(
                 logSectionError("getTrendingPodcasts"),
             ),
         ]);

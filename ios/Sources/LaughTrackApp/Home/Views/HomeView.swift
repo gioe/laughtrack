@@ -8,8 +8,7 @@ import LaughTrackCore
 
 enum HomeContentSection: Equatable {
     case showsTonight
-    case moreNearYou
-    case trendingThisWeek
+    case thisWeek
     case favoriteShows
     case comedians
     case clubs
@@ -18,7 +17,7 @@ enum HomeContentSection: Equatable {
     static func sections(for primitive: SearchRootModel.Pivot?) -> [HomeContentSection] {
         switch primitive {
         case .shows:
-            return [.showsTonight, .moreNearYou, .trendingThisWeek, .favoriteShows]
+            return [.showsTonight, .thisWeek, .favoriteShows]
         case .comedians:
             return [.comedians]
         case .clubs:
@@ -26,24 +25,21 @@ enum HomeContentSection: Equatable {
         case .podcasts:
             return [.podcasts]
         default:
-            return [.showsTonight, .moreNearYou, .trendingThisWeek, .favoriteShows, .comedians, .clubs, .podcasts]
+            return [.showsTonight, .thisWeek, .favoriteShows, .comedians, .clubs, .podcasts]
         }
     }
 }
 
 enum HomeShowRailKind: Equatable {
     case showsTonight
-    case moreNearYou
-    case trendingThisWeek
+    case thisWeek
 
     var eyebrow: String {
         switch self {
         case .showsTonight:
             return "Tonight"
-        case .moreNearYou:
-            return "More near you"
-        case .trendingThisWeek:
-            return "Trending this week"
+        case .thisWeek:
+            return "This week"
         }
     }
 
@@ -54,21 +50,15 @@ enum HomeShowRailKind: Equatable {
                 return "Shows tonight near \(cityTitle)"
             }
             return "Shows tonight"
-        case .moreNearYou:
-            return "More near you"
-        case .trendingThisWeek:
-            return "Trending this week"
+        case .thisWeek:
+            return "Best shows later this week"
         }
     }
 
     var subtitle: String? {
         switch self {
-        case .showsTonight:
+        case .showsTonight, .thisWeek:
             return nil
-        case .moreNearYou:
-            return "Upcoming shows at clubs in your area."
-        case .trendingThisWeek:
-            return "The most popular shows happening in the next 7 days."
         }
     }
 
@@ -76,10 +66,8 @@ enum HomeShowRailKind: Equatable {
         switch self {
         case .showsTonight:
             return "No shows are listed for tonight yet."
-        case .moreNearYou:
-            return "No nearby shows are listed yet."
-        case .trendingThisWeek:
-            return "No trending shows are listed for this week yet."
+        case .thisWeek:
+            return "No upcoming shows are listed near you this week."
         }
     }
 
@@ -87,9 +75,7 @@ enum HomeShowRailKind: Equatable {
         switch self {
         case .showsTonight:
             return "Tonight"
-        case .moreNearYou:
-            return "Near Me"
-        case .trendingThisWeek:
+        case .thisWeek:
             return "This Week"
         }
     }
@@ -98,10 +84,8 @@ enum HomeShowRailKind: Equatable {
         switch self {
         case .showsTonight:
             return LaughTrackViewTestID.homeShowsTonightRail
-        case .moreNearYou:
-            return "laughtrack.home.more-near-you-rail"
-        case .trendingThisWeek:
-            return "laughtrack.home.trending-this-week-rail"
+        case .thisWeek:
+            return "laughtrack.home.this-week-rail"
         }
     }
 
@@ -109,10 +93,8 @@ enum HomeShowRailKind: Equatable {
         switch self {
         case .showsTonight:
             return LaughTrackViewTestID.homeShowsTonightSeeMoreButton
-        case .moreNearYou:
-            return "laughtrack.home.more-near-you-see-more-button"
-        case .trendingThisWeek:
-            return "laughtrack.home.trending-this-week-see-more-button"
+        case .thisWeek:
+            return "laughtrack.home.this-week-see-more-button"
         }
     }
 }
@@ -147,7 +129,9 @@ struct HomeView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: laughTrack.browseDensity.shelfGap) {
                 HomeDiscoverHeader(
-                    nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self)
+                    nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self),
+                    profileLocationPreferenceSyncClient: serviceContainer.resolveOptional((any ProfileLocationPreferenceSyncing).self),
+                    currentUser: authManager.currentUser
                 )
 
                 contentSections
@@ -197,10 +181,8 @@ struct HomeView: View {
             switch section {
             case .showsTonight:
                 showsSection(.showsTonight)
-            case .moreNearYou:
-                showsSection(.moreNearYou)
-            case .trendingThisWeek:
-                showsSection(.trendingThisWeek)
+            case .thisWeek:
+                showsSection(.thisWeek)
             case .favoriteShows:
                 HomeFavoriteShowsRail(
                     apiClient: apiClient,
@@ -260,14 +242,21 @@ private struct HomeDiscoverHeader: View {
     @ObservedObject private var nearbyLocationController: NearbyLocationController
     @StateObject private var locationModel: SettingsNearbyPreferenceModel
     @State private var isLocationEditorPresented = false
+    private let currentUser: AuthenticatedUser?
 
     @Environment(\.appTheme) private var theme
 
-    init(nearbyLocationController: NearbyLocationController) {
+    init(
+        nearbyLocationController: NearbyLocationController,
+        profileLocationPreferenceSyncClient: (any ProfileLocationPreferenceSyncing)?,
+        currentUser: AuthenticatedUser?
+    ) {
         self.nearbyLocationController = nearbyLocationController
+        self.currentUser = currentUser
         _locationModel = StateObject(
             wrappedValue: SettingsNearbyPreferenceModel(
-                nearbyLocationController: nearbyLocationController
+                nearbyLocationController: nearbyLocationController,
+                syncClient: profileLocationPreferenceSyncClient
             )
         )
     }
@@ -299,6 +288,17 @@ private struct HomeDiscoverHeader: View {
             )
             .environment(\.appTheme, theme)
         }
+        .onAppear {
+            refreshProfileLocation(from: currentUser)
+        }
+        .onChange(of: currentUser) { user in
+            refreshProfileLocation(from: user)
+        }
+    }
+
+    private func refreshProfileLocation(from user: AuthenticatedUser?) {
+        guard let user else { return }
+        locationModel.replaceServerBackedPreference(from: user)
     }
 }
 
@@ -528,6 +528,10 @@ private struct HomeShowsTonightRail: View {
         nearbyPreferenceStore.preference?.zipCode
     }
 
+    private var distanceMiles: Int? {
+        nearbyPreferenceStore.preference?.distanceMiles
+    }
+
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
@@ -554,6 +558,7 @@ private struct HomeShowsTonightRail: View {
                             railKind: railKind,
                             apiClient: apiClient,
                             zipCode: zipCode,
+                            distanceMiles: distanceMiles,
                             cache: cache,
                             persistentCache: persistentCache
                         )
@@ -568,11 +573,12 @@ private struct HomeShowsTonightRail: View {
                 }
             }
         }
-        .task(id: model.requestKey(for: zipCode, railKind: railKind)) {
+        .task(id: model.requestKey(for: zipCode, distanceMiles: distanceMiles, railKind: railKind)) {
             await model.refresh(
                 railKind: railKind,
                 apiClient: apiClient,
                 zipCode: zipCode,
+                distanceMiles: distanceMiles,
                 cache: cache,
                 persistentCache: persistentCache
             )
@@ -645,7 +651,7 @@ private struct HomeShowsTonightCarousel: View {
                 .animation(.snappy(duration: 0.25), value: selectedShowIndex)
                 .frame(width: pageWidth, alignment: .leading)
                 .clipped()
-                .gesture(pagerDragGesture(pageWidth: pageWidth))
+                .highPriorityGesture(pagerDragGesture(pageWidth: pageWidth))
             }
             .frame(height: 292)
 
@@ -693,20 +699,38 @@ private struct HomeShowsTonightCarousel: View {
     private func pagerDragGesture(pageWidth: CGFloat) -> some Gesture {
         DragGesture(minimumDistance: 20)
             .onEnded { value in
-                let threshold = pageWidth * 0.2
-                let currentIndex = selectedShowIndex
-                let nextIndex: Int
-
-                if value.translation.width < -threshold {
-                    nextIndex = min(shows.count - 1, currentIndex + 1)
-                } else if value.translation.width > threshold {
-                    nextIndex = max(0, currentIndex - 1)
-                } else {
-                    nextIndex = currentIndex
-                }
-
+                let nextIndex = HomeHorizontalPagerDrag.nextIndex(
+                    currentIndex: selectedShowIndex,
+                    itemCount: shows.count,
+                    pageWidth: pageWidth,
+                    translation: value.translation
+                )
                 selectedShowID = shows[nextIndex].id
             }
+    }
+}
+
+enum HomeHorizontalPagerDrag {
+    static func nextIndex(
+        currentIndex: Int,
+        itemCount: Int,
+        pageWidth: CGFloat,
+        translation: CGSize
+    ) -> Int {
+        guard itemCount > 0 else { return 0 }
+        let safeCurrentIndex = max(0, min(currentIndex, itemCount - 1))
+        guard abs(translation.width) > abs(translation.height) else {
+            return safeCurrentIndex
+        }
+
+        let threshold = pageWidth * 0.2
+        if translation.width < -threshold {
+            return min(itemCount - 1, safeCurrentIndex + 1)
+        }
+        if translation.width > threshold {
+            return max(0, safeCurrentIndex - 1)
+        }
+        return safeCurrentIndex
     }
 }
 
@@ -864,25 +888,30 @@ final class HomeShowsTonightModel: ObservableObject {
     private var loadedRequestKey: String?
     private var loadedAt: Date?
 
-    func requestKey(for zipCode: String?, railKind: HomeShowRailKind? = nil) -> String {
-        "\(railKind.map(String.init(describing:)) ?? "showsTonight")|\(zipCode ?? "")"
+    func requestKey(
+        for zipCode: String?,
+        distanceMiles: Int? = nil,
+        railKind: HomeShowRailKind? = nil
+    ) -> String {
+        "\(railKind.map(String.init(describing:)) ?? "showsTonight")|\(HomeFeedRequest.requestKey(zipCode: zipCode, distanceMiles: distanceMiles))"
     }
 
     func refresh(
         railKind: HomeShowRailKind = .showsTonight,
         apiClient: Client,
         zipCode: String?,
+        distanceMiles: Int? = nil,
         cache: DataCache<LaughTrackCacheKey>? = nil,
         cacheTTL: TimeInterval = MainPageCache.defaultTTL,
         persistentCache: PersistentMainPageCache?
     ) async {
-        let requestKey = requestKey(for: zipCode, railKind: railKind)
+        let requestKey = requestKey(for: zipCode, distanceMiles: distanceMiles, railKind: railKind)
         if loadedRequestKey == requestKey, case .success = phase, isLoadedValueFresh(cacheTTL: cacheTTL) {
             return
         }
 
         if let cachedFeed: Components.Schemas.HomeFeed = await MainPageCache.get(
-            .homeFeed(zipCode: zipCode),
+            .homeFeed(zipCode: zipCode, distanceMiles: distanceMiles),
             from: cache,
             persistentCache: persistentCache
         ) {
@@ -895,6 +924,7 @@ final class HomeShowsTonightModel: ObservableObject {
         let result = await HomeFeedRequest.load(
             apiClient: apiClient,
             zipCode: zipCode,
+            distanceMiles: distanceMiles,
             cache: cache,
             cacheTTL: cacheTTL,
             badParamsMessage: "LaughTrack could not load tonight's shows.",
@@ -932,10 +962,11 @@ final class HomeShowsTonightModel: ObservableObject {
         switch railKind {
         case .showsTonight:
             sourceShows = feed.showsTonight + feed.hero.shows + feed.trendingThisWeek
-        case .moreNearYou:
-            sourceShows = feed.moreNearYou + feed.hero.shows + feed.showsTonight
-        case .trendingThisWeek:
-            sourceShows = feed.trendingThisWeek + feed.showsTonight + feed.moreNearYou
+        case .thisWeek:
+            let tonightIDs = Set((feed.showsTonight + feed.hero.shows).map(\.id))
+            sourceShows = (feed.trendingThisWeek + feed.moreNearYou).filter { show in
+                !tonightIDs.contains(show.id)
+            }
         }
 
         var seenIDs: Set<Int> = []
@@ -1161,6 +1192,10 @@ private struct HomeTrendingComediansRail: View {
         nearbyPreferenceStore.preference?.zipCode
     }
 
+    private var distanceMiles: Int? {
+        nearbyPreferenceStore.preference?.distanceMiles
+    }
+
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
@@ -1186,6 +1221,7 @@ private struct HomeTrendingComediansRail: View {
                         await model.refresh(
                             apiClient: apiClient,
                             zipCode: zipCode,
+                            distanceMiles: distanceMiles,
                             cache: cache,
                             persistentCache: persistentCache
                         )
@@ -1210,10 +1246,11 @@ private struct HomeTrendingComediansRail: View {
                 }
             }
         }
-        .task(id: model.requestKey(for: zipCode)) {
+        .task(id: model.requestKey(for: zipCode, distanceMiles: distanceMiles)) {
             await model.refresh(
                 apiClient: apiClient,
                 zipCode: zipCode,
+                distanceMiles: distanceMiles,
                 cache: cache,
                 persistentCache: persistentCache
             )
@@ -1358,24 +1395,25 @@ final class HomeTrendingComediansModel: ObservableObject {
     private var loadedRequestKey: String?
     private var loadedAt: Date?
 
-    func requestKey(for zipCode: String?) -> String {
-        zipCode ?? ""
+    func requestKey(for zipCode: String?, distanceMiles: Int? = nil) -> String {
+        HomeFeedRequest.requestKey(zipCode: zipCode, distanceMiles: distanceMiles)
     }
 
     func refresh(
         apiClient: Client,
         zipCode: String?,
+        distanceMiles: Int? = nil,
         cache: DataCache<LaughTrackCacheKey>? = nil,
         cacheTTL: TimeInterval = MainPageCache.defaultTTL,
         persistentCache: PersistentMainPageCache?
     ) async {
-        let requestKey = requestKey(for: zipCode)
+        let requestKey = requestKey(for: zipCode, distanceMiles: distanceMiles)
         if loadedRequestKey == requestKey, case .success = phase, isLoadedValueFresh(cacheTTL: cacheTTL) {
             return
         }
 
         if let cachedFeed: Components.Schemas.HomeFeed = await MainPageCache.get(
-            .homeFeed(zipCode: zipCode),
+            .homeFeed(zipCode: zipCode, distanceMiles: distanceMiles),
             from: cache,
             persistentCache: persistentCache
         ) {
@@ -1388,6 +1426,7 @@ final class HomeTrendingComediansModel: ObservableObject {
         let result = await HomeFeedRequest.load(
             apiClient: apiClient,
             zipCode: zipCode,
+            distanceMiles: distanceMiles,
             cache: cache,
             cacheTTL: cacheTTL,
             badParamsMessage: "LaughTrack could not load trending comedians.",
@@ -1450,6 +1489,10 @@ private struct HomePopularClubsRail: View {
         nearbyPreferenceStore.preference?.zipCode
     }
 
+    private var distanceMiles: Int? {
+        nearbyPreferenceStore.preference?.distanceMiles
+    }
+
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
@@ -1475,6 +1518,7 @@ private struct HomePopularClubsRail: View {
                         await model.refresh(
                             apiClient: apiClient,
                             zipCode: zipCode,
+                            distanceMiles: distanceMiles,
                             cache: cache,
                             persistentCache: persistentCache
                         )
@@ -1498,10 +1542,11 @@ private struct HomePopularClubsRail: View {
                 }
             }
         }
-        .task(id: model.requestKey(for: zipCode)) {
+        .task(id: model.requestKey(for: zipCode, distanceMiles: distanceMiles)) {
             await model.refresh(
                 apiClient: apiClient,
                 zipCode: zipCode,
+                distanceMiles: distanceMiles,
                 cache: cache,
                 persistentCache: persistentCache
             )
@@ -1602,24 +1647,25 @@ final class HomePopularClubsModel: ObservableObject {
     private var loadedRequestKey: String?
     private var loadedAt: Date?
 
-    func requestKey(for zipCode: String?) -> String {
-        zipCode ?? ""
+    func requestKey(for zipCode: String?, distanceMiles: Int? = nil) -> String {
+        HomeFeedRequest.requestKey(zipCode: zipCode, distanceMiles: distanceMiles)
     }
 
     func refresh(
         apiClient: Client,
         zipCode: String?,
+        distanceMiles: Int? = nil,
         cache: DataCache<LaughTrackCacheKey>? = nil,
         cacheTTL: TimeInterval = MainPageCache.defaultTTL,
         persistentCache: PersistentMainPageCache?
     ) async {
-        let requestKey = requestKey(for: zipCode)
+        let requestKey = requestKey(for: zipCode, distanceMiles: distanceMiles)
         if loadedRequestKey == requestKey, case .success = phase, isLoadedValueFresh(cacheTTL: cacheTTL) {
             return
         }
 
         if let cachedFeed: Components.Schemas.HomeFeed = await MainPageCache.get(
-            .homeFeed(zipCode: zipCode),
+            .homeFeed(zipCode: zipCode, distanceMiles: distanceMiles),
             from: cache,
             persistentCache: persistentCache
         ) {
@@ -1632,6 +1678,7 @@ final class HomePopularClubsModel: ObservableObject {
         let result = await HomeFeedRequest.load(
             apiClient: apiClient,
             zipCode: zipCode,
+            distanceMiles: distanceMiles,
             cache: cache,
             cacheTTL: cacheTTL,
             badParamsMessage: "LaughTrack could not load clubs.",
@@ -1680,8 +1727,11 @@ enum MainPageCache {
         }
 
         switch key {
-        case .homeFeed(let zipCode) where Value.self == Components.Schemas.HomeFeed.self:
-            guard let cached = await persistentCache.getCachedHomeFeed(zipCode: zipCode) else { return nil }
+        case .homeFeed(let zipCode, let distanceMiles) where Value.self == Components.Schemas.HomeFeed.self:
+            guard let cached = await persistentCache.getCachedHomeFeed(
+                zipCode: zipCode,
+                distanceMiles: distanceMiles
+            ) else { return nil }
             await hydrateMemoryCache(cached.value, key: key, expiresAt: cached.expiresAt, cache: cache)
             return cached.value as? Value
         case .favoriteShows(let requestKey) where Value.self == [Components.Schemas.Show].self:
@@ -1703,9 +1753,14 @@ enum MainPageCache {
         await cache?.set(value, forKey: key, ttl: ttl)
 
         switch key {
-        case .homeFeed(let zipCode):
+        case .homeFeed(let zipCode, let distanceMiles):
             guard let homeFeed = value as? Components.Schemas.HomeFeed else { return }
-            await persistentCache?.setHomeFeed(homeFeed, zipCode: zipCode, ttl: ttl)
+            await persistentCache?.setHomeFeed(
+                homeFeed,
+                zipCode: zipCode,
+                distanceMiles: distanceMiles,
+                ttl: ttl
+            )
         case .favoriteShows(let requestKey):
             guard let shows = value as? [Components.Schemas.Show] else { return }
             await persistentCache?.setFavoriteShows(shows, requestKey: requestKey, ttl: ttl)
@@ -1748,9 +1803,14 @@ private actor HomeFeedRequestCoalescer {
 }
 
 private enum HomeFeedRequest {
+    static func requestKey(zipCode: String?, distanceMiles: Int?) -> String {
+        "\(zipCode ?? "")|\(distanceMiles.map(String.init) ?? "")"
+    }
+
     static func load(
         apiClient: Client,
         zipCode: String?,
+        distanceMiles: Int?,
         cache: DataCache<LaughTrackCacheKey>?,
         cacheTTL: TimeInterval,
         badParamsMessage: String,
@@ -1760,10 +1820,11 @@ private enum HomeFeedRequest {
         networkMessage: String,
         persistentCache: PersistentMainPageCache?
     ) async -> Result<Components.Schemas.HomeFeed, LoadFailure> {
-        await HomeFeedRequestCoalescer.shared.load(requestKey: zipCode ?? "") {
+        await HomeFeedRequestCoalescer.shared.load(requestKey: requestKey(zipCode: zipCode, distanceMiles: distanceMiles)) {
             await fetch(
                 apiClient: apiClient,
                 zipCode: zipCode,
+                distanceMiles: distanceMiles,
                 cache: cache,
                 cacheTTL: cacheTTL,
                 badParamsMessage: badParamsMessage,
@@ -1779,6 +1840,7 @@ private enum HomeFeedRequest {
     private static func fetch(
         apiClient: Client,
         zipCode: String?,
+        distanceMiles: Int?,
         cache: DataCache<LaughTrackCacheKey>?,
         cacheTTL: TimeInterval,
         badParamsMessage: String,
@@ -1791,7 +1853,7 @@ private enum HomeFeedRequest {
         do {
             let output = try await apiClient.getHomeFeed(
                 .init(
-                    query: .init(zip: zipCode),
+                    query: .init(zip: zipCode, distance: zipCode == nil ? nil : distanceMiles),
                     headers: .init(xTimezone: TimeZone.autoupdatingCurrent.identifier)
                 )
             )
@@ -1801,7 +1863,7 @@ private enum HomeFeedRequest {
                 let response = try ok.body.json
                 await MainPageCache.set(
                     response.data,
-                    forKey: .homeFeed(zipCode: zipCode),
+                    forKey: .homeFeed(zipCode: zipCode, distanceMiles: distanceMiles),
                     in: cache,
                     ttl: cacheTTL,
                     persistentCache: persistentCache
@@ -1846,6 +1908,10 @@ struct HomeTrendingPodcastsRail: View {
         nearbyPreferenceStore.preference?.zipCode
     }
 
+    private var distanceMiles: Int? {
+        nearbyPreferenceStore.preference?.distanceMiles
+    }
+
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
@@ -1871,6 +1937,7 @@ struct HomeTrendingPodcastsRail: View {
                         await model.refresh(
                             apiClient: apiClient,
                             zipCode: zipCode,
+                            distanceMiles: distanceMiles,
                             cache: cache,
                             persistentCache: persistentCache
                         )
@@ -1895,10 +1962,11 @@ struct HomeTrendingPodcastsRail: View {
                 }
             }
         }
-        .task(id: model.requestKey(for: zipCode)) {
+        .task(id: model.requestKey(for: zipCode, distanceMiles: distanceMiles)) {
             await model.refresh(
                 apiClient: apiClient,
                 zipCode: zipCode,
+                distanceMiles: distanceMiles,
                 cache: cache,
                 persistentCache: persistentCache
             )
@@ -1932,19 +2000,12 @@ private struct HomeTrendingPodcastCard: View {
         VStack(alignment: .leading, spacing: theme.spacing.sm) {
             artwork
 
-            VStack(alignment: .leading, spacing: 3) {
-                Text(podcast.title)
-                    .font(laughTrack.typography.body.weight(.semibold))
-                    .foregroundStyle(laughTrack.colors.textPrimary)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.leading)
-
-                Text(subtitleText)
-                    .font(laughTrack.typography.metadata)
-                    .foregroundStyle(laughTrack.colors.textSecondary)
-                    .lineLimit(1)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            Text(podcast.title)
+                .font(laughTrack.typography.body.weight(.semibold))
+                .foregroundStyle(laughTrack.colors.textPrimary)
+                .lineLimit(2)
+                .multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(theme.spacing.sm)
         .frame(maxWidth: .infinity, minHeight: 172, alignment: .topLeading)
@@ -1952,7 +2013,7 @@ private struct HomeTrendingPodcastCard: View {
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(podcast.title), \(subtitleText)")
+        .accessibilityLabel(podcast.title)
     }
 
     @ViewBuilder
@@ -1996,14 +2057,6 @@ private struct HomeTrendingPodcastCard: View {
             .frame(maxWidth: .infinity)
             .frame(height: 112)
     }
-
-    private var subtitleText: String {
-        if let author = podcast.authorName?.trimmingCharacters(in: .whitespacesAndNewlines), !author.isEmpty {
-            return author
-        }
-        let count = podcast.episodeCount
-        return "\(count) episode\(count == 1 ? "" : "s")"
-    }
 }
 
 @MainActor
@@ -2013,24 +2066,25 @@ final class HomeTrendingPodcastsModel: ObservableObject {
     private var loadedRequestKey: String?
     private var loadedAt: Date?
 
-    func requestKey(for zipCode: String?) -> String {
-        zipCode ?? ""
+    func requestKey(for zipCode: String?, distanceMiles: Int? = nil) -> String {
+        HomeFeedRequest.requestKey(zipCode: zipCode, distanceMiles: distanceMiles)
     }
 
     func refresh(
         apiClient: Client,
         zipCode: String?,
+        distanceMiles: Int? = nil,
         cache: DataCache<LaughTrackCacheKey>? = nil,
         cacheTTL: TimeInterval = MainPageCache.defaultTTL,
         persistentCache: PersistentMainPageCache?
     ) async {
-        let requestKey = requestKey(for: zipCode)
+        let requestKey = requestKey(for: zipCode, distanceMiles: distanceMiles)
         if loadedRequestKey == requestKey, case .success = phase, isLoadedValueFresh(cacheTTL: cacheTTL) {
             return
         }
 
         if let cachedFeed: Components.Schemas.HomeFeed = await MainPageCache.get(
-            .homeFeed(zipCode: zipCode),
+            .homeFeed(zipCode: zipCode, distanceMiles: distanceMiles),
             from: cache,
             persistentCache: persistentCache
         ) {
@@ -2043,6 +2097,7 @@ final class HomeTrendingPodcastsModel: ObservableObject {
         let result = await HomeFeedRequest.load(
             apiClient: apiClient,
             zipCode: zipCode,
+            distanceMiles: distanceMiles,
             cache: cache,
             cacheTTL: cacheTTL,
             badParamsMessage: "LaughTrack could not load trending podcasts.",

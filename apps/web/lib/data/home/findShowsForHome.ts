@@ -142,9 +142,7 @@ export async function findShowsForHome(
                 tags: (show.taggedShows ?? [])
                     .map((tt) => tt.tag)
                     .filter(
-                        (
-                            tag,
-                        ): tag is { slug: string; name: string } =>
+                        (tag): tag is { slug: string; name: string } =>
                             typeof tag?.slug === "string" &&
                             typeof tag?.name === "string",
                     )
@@ -191,9 +189,6 @@ function compareHomeShowRelevance(
     a: { dto: ShowDTO; showPopularity: number; lineupPopularity: number },
     b: { dto: ShowDTO; showPopularity: number; lineupPopularity: number },
 ): number {
-    const dateDelta = a.dto.date.getTime() - b.dto.date.getTime();
-    if (dateDelta !== 0) return dateDelta;
-
     if (a.showPopularity !== b.showPopularity) {
         return b.showPopularity - a.showPopularity;
     }
@@ -205,6 +200,9 @@ function compareHomeShowRelevance(
     const aDistance = a.dto.distanceMiles ?? Number.POSITIVE_INFINITY;
     const bDistance = b.dto.distanceMiles ?? Number.POSITIVE_INFINITY;
     if (aDistance !== bDistance) return aDistance - bDistance;
+
+    const dateDelta = a.dto.date.getTime() - b.dto.date.getTime();
+    if (dateDelta !== 0) return dateDelta;
 
     return a.dto.id - b.dto.id;
 }

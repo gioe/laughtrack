@@ -49,6 +49,35 @@ struct HomeShowsTonightModelTests {
         #expect(shows.map(\.id) == [801, 802, 803])
     }
 
+    @Test("home feed requests include the saved San Francisco zip override")
+    func homeFeedRequestsIncludeSavedSanFranciscoZipOverride() async throws {
+        let transport = StubClientTransport { _, _, _, operationID in
+            #expect(operationID == "getHomeFeed")
+            return (
+                HTTPResponse(status: .ok, headerFields: [.contentType: "application/json"]),
+                HTTPBody(makeHomeFeedJSON())
+            )
+        }
+        let apiClient = Client(
+            serverURL: URL(string: "https://example.com")!,
+            configuration: .laughTrack,
+            transport: transport
+        )
+        let model = HomeShowsTonightModel()
+
+        await model.refresh(
+            apiClient: apiClient,
+            zipCode: "94108",
+            distanceMiles: 50,
+            cache: DataCache<LaughTrackCacheKey>(),
+            persistentCache: nil
+        )
+
+        let request = try #require(transport.capturedRequests.first)
+        #expect(queryValue("zip", from: request.path) == "94108")
+        #expect(queryValue("distance", from: request.path) == "50")
+    }
+
     @Test("limits shows tonight to five unique shows")
     func limitsShowsTonightToFiveUniqueShows() async {
         let model = HomeShowsTonightModel()
@@ -68,8 +97,8 @@ struct HomeShowsTonightModelTests {
         #expect(shows.map(\.id) == [801, 802, 803, 804, 805])
     }
 
-    @Test("see more seed opens the shows near me search")
-    func seeMoreSeedOpensShowsNearMeSearch() async {
+    @Test("see more seed opens the this-week shows search")
+    func seeMoreSeedOpensThisWeekShowsSearch() async {
         let preference = NearbyPreference(
             zipCode: "10012",
             source: .manual,
@@ -79,14 +108,34 @@ struct HomeShowsTonightModelTests {
         )
 
         #expect(HomeShowsTonightModel.seeMoreSearchSeed(
-            railKind: .moreNearYou,
+            railKind: .thisWeek,
             nearbyPreference: preference
         ) == SearchRootModel.Seed(
             pivot: .shows,
             query: "",
-            shortcut: "Near Me",
+            shortcut: "This Week",
             nearbyPreference: preference
         ))
+    }
+
+    @Test("this week rail combines trending shows with nearby fill-ins")
+    func thisWeekRailCombinesTrendingShowsWithNearbyFillIns() async {
+        let model = HomeShowsTonightModel()
+
+        await model.refresh(
+            railKind: .thisWeek,
+            apiClient: makeThisWeekHomeFeedClient(),
+            zipCode: "11238",
+            cache: DataCache<LaughTrackCacheKey>(),
+            persistentCache: nil
+        )
+
+        guard case .success(let shows) = model.phase else {
+            Issue.record("Expected this-week success phase")
+            return
+        }
+
+        #expect(shows.map(\.id) == [901, 902, 903, 904])
     }
 
     @Test("loads nearby preference from the home feed hero")
@@ -116,6 +165,38 @@ private func makeHomeShowsTonightClient(showIDs: [Int] = [801, 802, 803]) -> Cli
         configuration: .laughTrack,
         transport: MockHomeShowsTonightTransport(showIDs: showIDs)
     )
+}
+
+private func makeThisWeekHomeFeedClient() -> Client {
+    Client(
+        serverURL: URL(string: "https://example.com")!,
+        configuration: .laughTrack,
+        transport: MockThisWeekHomeFeedTransport()
+    )
+}
+
+private func makeHomeFeedJSON() -> String {
+    let feed = Components.Schemas.HomeFeed(
+        hero: .init(zipCode: "94108", city: "San Francisco", state: "CA", shows: []),
+        trendingComedians: [],
+        comediansNearYou: [],
+        showsTonight: [],
+        moreNearYou: [],
+        trendingThisWeek: [],
+        trendingPodcasts: [],
+        popularClubs: []
+    )
+    let envelope = Components.Schemas.HomeFeedResponse(data: feed)
+    let data = try! APIMockEncoder.make().encode(envelope)
+    return String(decoding: data, as: UTF8.self)
+}
+
+private func queryValue(_ name: String, from path: String?) -> String? {
+    guard let path else { return nil }
+    var components = URLComponents()
+    components.path = "/"
+    components.percentEncodedQuery = path.split(separator: "?", maxSplits: 1).dropFirst().first.map(String.init)
+    return components.queryItems?.first(where: { $0.name == name })?.value
 }
 
 private struct MockHomeShowsTonightTransport: ClientTransport {
@@ -165,6 +246,62 @@ private struct MockHomeShowsTonightTransport: ClientTransport {
             date: Date().addingTimeInterval(TimeInterval(id - 800) * 60 * 60),
             tickets: [.init(price: 24, purchaseUrl: "https://example.com/tickets/\(id)", soldOut: false, _type: "General admission")],
             name: "Tonight Show \(id)",
+            socialData: nil,
+            lineup: [],
+            description: nil,
+            address: "117 MacDougal St, New York, NY",
+            room: "Main Room",
+            imageUrl: "https://example.com/show-\(id).png",
+            soldOut: false,
+            distanceMiles: nil
+        )
+    }
+}
+
+private struct MockThisWeekHomeFeedTransport: ClientTransport {
+    func send(
+        _ request: HTTPRequest,
+        body: HTTPBody?,
+        baseURL: URL,
+        operationID: String
+    ) async throws -> (HTTPResponse, HTTPBody?) {
+        let encoder = APIMockEncoder.make()
+
+        switch operationID {
+        case "getHomeFeed":
+            return (
+                HTTPResponse(status: .ok, headerFields: [.contentType: "application/json"]),
+                HTTPBody(try encoder.encode(Components.Schemas.HomeFeedResponse(data: homeFeed)))
+            )
+        default:
+            return (
+                HTTPResponse(status: .internalServerError, headerFields: [.contentType: "application/json"]),
+                HTTPBody(#"{"error":"unexpected operation"}"#)
+            )
+        }
+    }
+
+    private var homeFeed: Components.Schemas.HomeFeed {
+        .init(
+            hero: .init(zipCode: "10012", city: "New York", state: "NY", shows: []),
+            trendingComedians: [],
+            comediansNearYou: [],
+            showsTonight: [show(id: 900)],
+            moreNearYou: [show(id: 902), show(id: 904), show(id: 900)],
+            trendingThisWeek: [show(id: 900), show(id: 901), show(id: 902), show(id: 903)],
+            trendingPodcasts: [],
+            popularClubs: []
+        )
+    }
+
+    private func show(id: Int) -> Components.Schemas.Show {
+        .init(
+            id: id,
+            clubId: 201,
+            clubName: "Comedy Cellar",
+            date: Calendar.current.date(byAdding: .day, value: id - 899, to: Date()) ?? Date(),
+            tickets: [.init(price: 24, purchaseUrl: "https://example.com/tickets/\(id)", soldOut: false, _type: "General admission")],
+            name: "Week Show \(id)",
             socialData: nil,
             lineup: [],
             description: nil,

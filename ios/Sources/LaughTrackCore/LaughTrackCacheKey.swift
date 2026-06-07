@@ -2,7 +2,7 @@ import Foundation
 
 /// App-specific cache key type for DataCache.
 public enum LaughTrackCacheKey: Hashable, Sendable {
-    case homeFeed(zipCode: String?)
+    case homeFeed(zipCode: String?, distanceMiles: Int?)
     case favoriteShows(requestKey: String)
     case showsSearch(requestKey: String, page: Int)
     case clubsSearch(query: String, page: Int)

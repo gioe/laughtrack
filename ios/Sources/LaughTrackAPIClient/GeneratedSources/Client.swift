@@ -3152,6 +3152,13 @@ public struct Client: APIProtocol {
                     name: "zip",
                     value: input.query.zip
                 )
+                try converter.setQueryItemAsURI(
+                    in: &request,
+                    style: .form,
+                    explode: true,
+                    name: "distance",
+                    value: input.query.distance
+                )
                 try converter.setHeaderFieldAsURI(
                     in: &request.headerFields,
                     name: "X-Timezone",

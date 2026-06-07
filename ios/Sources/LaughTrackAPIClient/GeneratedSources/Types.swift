@@ -9557,12 +9557,21 @@ public enum Operations {
                 ///
                 /// - Remark: Generated from `#/paths/home/feed/GET/query/zip`.
                 public var zip: Swift.String?
+                /// Radius in miles for zip-scoped recommendations (1-500, default 25).
+                ///
+                /// - Remark: Generated from `#/paths/home/feed/GET/query/distance`.
+                public var distance: Swift.Int?
                 /// Creates a new `Query`.
                 ///
                 /// - Parameters:
                 ///   - zip: Optional 5-digit US zip override. When supplied, beats the signed-in user's profile zipCode for this request — used for anonymous callers or profile-preview.
-                public init(zip: Swift.String? = nil) {
+                ///   - distance: Radius in miles for zip-scoped recommendations (1-500, default 25).
+                public init(
+                    zip: Swift.String? = nil,
+                    distance: Swift.Int? = nil
+                ) {
                     self.zip = zip
+                    self.distance = distance
                 }
             }
             public var query: Operations.GetHomeFeed.Input.Query

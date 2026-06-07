@@ -49,7 +49,7 @@ describe("getFavoriteComedianShows", () => {
                     },
                 },
             },
-            [{ date: "asc" }, { popularity: "desc" }],
+            [{ popularity: "desc" }, { date: "asc" }],
             8,
         );
     });

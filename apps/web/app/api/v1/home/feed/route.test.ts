@@ -135,6 +135,46 @@ describe("GET /api/v1/home/feed", () => {
             expect(res.status).toBe(200);
             expect(mockGetHeroContext).toHaveBeenCalledWith("10001");
         });
+
+        it("passes ?distance= to zip-scoped recommendation fetches", async () => {
+            mockGetHeroContext.mockResolvedValue({
+                zipCode: "94108",
+                city: "San Francisco",
+                state: "CA",
+            });
+
+            const res = await GET(
+                makeRequest({ zip: "94108", distance: "50" }),
+            );
+
+            expect(res.status).toBe(200);
+            expect(mockGetComediansByZip).toHaveBeenCalledWith("94108", 50);
+            expect(mockGetShowsTonight).toHaveBeenCalledWith(
+                "UTC",
+                "94108",
+                50,
+            );
+            expect(mockGetShowsNearZip).toHaveBeenCalledWith("94108", 50);
+            expect(mockGetTrendingShowsThisWeek).toHaveBeenCalledWith(
+                "UTC",
+                "94108",
+                50,
+            );
+            expect(mockGetTrendingPodcasts).toHaveBeenCalledWith(
+                "94108",
+                undefined,
+                50,
+            );
+        });
+
+        it("returns 400 when distance is outside the supported range", async () => {
+            const res = await GET(makeRequest({ zip: "94108", distance: "0" }));
+            const body = await res.json();
+
+            expect(res.status).toBe(400);
+            expect(body.error).toMatch(/distance/i);
+            expect(mockGetHeroContext).not.toHaveBeenCalled();
+        });
     });
 
     describe("zipCode resolution precedence", () => {
@@ -275,7 +315,11 @@ describe("GET /api/v1/home/feed", () => {
                     hosts: [],
                 },
             ]);
-            expect(mockGetTrendingPodcasts).toHaveBeenCalledWith(null);
+            expect(mockGetTrendingPodcasts).toHaveBeenCalledWith(
+                null,
+                undefined,
+                25,
+            );
         });
     });
 

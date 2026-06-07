@@ -23,7 +23,7 @@ export async function getFavoriteComedianShows(
                 },
             },
         },
-        [{ date: "asc" }, { popularity: "desc" }],
+        [{ popularity: "desc" }, { date: "asc" }],
         8,
     );
 }
