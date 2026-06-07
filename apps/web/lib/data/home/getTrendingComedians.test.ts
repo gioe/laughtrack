@@ -64,6 +64,76 @@ describe("getTrendingComedians", () => {
         });
     });
 
+    describe("zip-scoped crowd counts", () => {
+        it("adds club zip filters when a zipCode option is provided", async () => {
+            mockQueryRaw.mockResolvedValue([]);
+
+            await getTrendingComedians(8, 0, {
+                zipCode: "94108",
+                distanceMiles: 25,
+            });
+
+            const [strings, ...values] = mockQueryRaw.mock.calls[0] as [
+                TemplateStringsArray,
+                ...unknown[],
+            ];
+            const sql = Array.from(strings).join("?");
+            const nestedSql = values
+                .flatMap((value) =>
+                    typeof value === "object" &&
+                    value !== null &&
+                    "strings" in value
+                        ? Array.from(
+                              (value as { strings: readonly string[] }).strings,
+                          )
+                        : [],
+                )
+                .join(" ");
+            const nestedValues = values.flatMap((value) =>
+                typeof value === "object" && value !== null && "values" in value
+                    ? Array.from(
+                          (value as { values: readonly unknown[] }).values,
+                      )
+                    : [],
+            );
+            expect(`${sql} ${nestedSql}`).toContain(
+                "JOIN clubs cl ON cl.id = s.club_id",
+            );
+            expect(`${sql} ${nestedSql}`).toContain("cl.zip_code IN");
+            expect(nestedValues).toContain("94108");
+        });
+
+        it("does not add club zip filters for generic trending comedians", async () => {
+            mockQueryRaw.mockResolvedValue([]);
+
+            await getTrendingComedians();
+
+            const [strings] = mockQueryRaw.mock.calls[0] as [
+                TemplateStringsArray,
+                ...unknown[],
+            ];
+            const sql = Array.from(strings).join("?");
+            expect(sql).not.toContain("JOIN clubs cl ON cl.id = s.club_id");
+            expect(sql).not.toContain("cl.zip_code IN");
+        });
+    });
+
+    describe("popularity cutoff", () => {
+        it("limits the candidate pool to comedians above 0.4 popularity", async () => {
+            mockQueryRaw.mockResolvedValue([]);
+
+            await getTrendingComedians();
+
+            const [strings, ...values] = mockQueryRaw.mock.calls[0] as [
+                TemplateStringsArray,
+                ...unknown[],
+            ];
+            const sql = Array.from(strings).join("?");
+            expect(sql).toContain("c.popularity >");
+            expect(values).toContain(0.4);
+        });
+    });
+
     describe("limit enforcement", () => {
         it("returns at most `limit` comedians when the pool is larger", async () => {
             const limit = 4;
@@ -289,7 +359,8 @@ describe("getTrendingComedians", () => {
             result.forEach((c) => expect(inputIds.has(c.id!)).toBe(true));
         });
 
-        it("selects photo-backed comedians before monogram fallbacks on the first page", async () => {
+        it("does not regroup randomized first-page rows by image availability", async () => {
+            const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.99);
             const rows = [
                 ...Array.from({ length: 4 }, (_, i) =>
                     makeRow({
@@ -313,7 +384,10 @@ describe("getTrendingComedians", () => {
             const result = await getTrendingComedians(8, 0);
 
             expect(result).toHaveLength(8);
-            expect(result.every((comedian) => comedian.hasImage)).toBe(true);
+            expect(result.map((comedian) => comedian.id)).toEqual([
+                1, 2, 3, 4, 10, 11, 12, 13,
+            ]);
+            randomSpy.mockRestore();
         });
 
         it("skips shuffle and fetches exact offset slice for paginated requests", async () => {

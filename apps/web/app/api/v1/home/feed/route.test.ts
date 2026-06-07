@@ -148,6 +148,10 @@ describe("GET /api/v1/home/feed", () => {
             );
 
             expect(res.status).toBe(200);
+            expect(mockGetTrendingComedians).toHaveBeenCalledWith(8, 0, {
+                zipCode: "94108",
+                distanceMiles: 50,
+            });
             expect(mockGetComediansByZip).toHaveBeenCalledWith("94108", 50);
             expect(mockGetShowsTonight).toHaveBeenCalledWith(
                 "UTC",
@@ -202,6 +206,12 @@ describe("GET /api/v1/home/feed", () => {
             await GET(makeRequest());
 
             expect(mockGetHeroContext).toHaveBeenCalledWith(null);
+        });
+
+        it("keeps trending comedians generic when no zip can be resolved", async () => {
+            await GET(makeRequest());
+
+            expect(mockGetTrendingComedians).toHaveBeenCalledWith();
         });
     });
 

@@ -88,9 +88,14 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
             trendingThisWeek,
             trendingPodcasts,
         ] = await Promise.all([
-            getTrendingComedians().catch(
-                logSectionError("getTrendingComedians"),
-            ),
+            zipCode
+                ? getTrendingComedians(8, 0, {
+                      zipCode,
+                      distanceMiles,
+                  }).catch(logSectionError("getTrendingComedians"))
+                : getTrendingComedians().catch(
+                      logSectionError("getTrendingComedians"),
+                  ),
             getClubs(8, 0, { requireImage: true }).catch(
                 logSectionError("getClubs"),
             ),

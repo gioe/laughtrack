@@ -1,3 +1,5 @@
+import { Prisma } from "@prisma/client";
+import zipcodes from "zipcodes";
 import { db } from "@/lib/db";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { buildComedianImageUrl } from "@/util/imageUtil";
@@ -19,19 +21,49 @@ type TrendingComedianRow = {
     show_count: number;
 };
 
+type TrendingComedianOptions = {
+    zipCode?: string;
+    distanceMiles?: number;
+};
+
 const MAX_COMEDIANS_LIMIT = 100;
 // Fetch 4× the requested limit from DB (capped at 50) so the app-layer shuffle
 // has enough variety without pulling an unbounded result set.
 const POOL_MULTIPLIER = 4;
 const MAX_POOL_SIZE = 50;
 const MIN_UPCOMING_SHOWS = 3;
+const MIN_POPULARITY = 0.4;
+
+function resolveZipCodes(zipCode: string, radius?: number): string[] {
+    if (!radius || radius < 1 || radius > 500) return [zipCode];
+    try {
+        const results = zipcodes.radius(zipCode, radius);
+        if (!results || results.length === 0) return [zipCode];
+        return results.map((z: string | zipcodes.ZipCode) =>
+            typeof z === "string" ? z : z.zip,
+        );
+    } catch {
+        return [zipCode];
+    }
+}
 
 export async function getTrendingComedians(
     limit = 8,
     offset = 0,
+    options: TrendingComedianOptions = {},
 ): Promise<ComedianDTO[]> {
     const safeLimit = Math.min(Math.max(1, limit), MAX_COMEDIANS_LIMIT);
     const now = new Date();
+    const nearbyZips =
+        options.zipCode && /^\d{5}(-\d{4})?$/.test(options.zipCode)
+            ? resolveZipCodes(options.zipCode, options.distanceMiles)
+            : null;
+    const zipJoin = nearbyZips
+        ? Prisma.sql`JOIN clubs cl ON cl.id = s.club_id`
+        : Prisma.empty;
+    const zipFilter = nearbyZips
+        ? Prisma.sql`AND cl.zip_code IN (${Prisma.join(nearbyZips)})`
+        : Prisma.empty;
 
     // Table/column mappings: comedians@@map, lineup_items@@map, shows@@map,
     // tagged_comedians@@map, tags@@map. Comedian.uuid=comedians.uuid,
@@ -59,22 +91,28 @@ export async function getTrendingComedians(
                         SELECT COUNT(*)
                         FROM lineup_items li
                         JOIN shows s ON s.id = li.show_id
-                        WHERE li.comedian_id = c.uuid AND s.date > ${now}
+                        ${zipJoin}
+                        WHERE li.comedian_id = c.uuid
+                          AND s.date > ${now}
+                          ${zipFilter}
                     ) + COALESCE((
                         SELECT SUM(cnt) FROM (
                             SELECT COUNT(*) AS cnt
                             FROM comedians alt
                             JOIN lineup_items li ON li.comedian_id = alt.uuid
                             JOIN shows s ON s.id = li.show_id
+                            ${zipJoin}
                             WHERE alt.parent_comedian_id = c.id
                               AND alt.visible = true
                               AND s.date > ${now}
+                              ${zipFilter}
                         ) t
                     ), 0)
                 )::int AS show_count
             FROM comedians c
             WHERE
                 c.visible = true
+                AND c.popularity > ${MIN_POPULARITY}
                 AND c.parent_comedian_id IS NULL
                 AND NOT EXISTS (
                     SELECT 1 FROM tagged_comedians tc
@@ -90,14 +128,19 @@ export async function getTrendingComedians(
                     EXISTS (
                         SELECT 1 FROM lineup_items li
                         JOIN shows s ON s.id = li.show_id
-                        WHERE li.comedian_id = c.uuid AND s.date > ${now}
+                        ${zipJoin}
+                        WHERE li.comedian_id = c.uuid
+                          AND s.date > ${now}
+                          ${zipFilter}
                     ) OR EXISTS (
                         SELECT 1 FROM comedians alt
                         JOIN lineup_items li ON li.comedian_id = alt.uuid
                         JOIN shows s ON s.id = li.show_id
+                        ${zipJoin}
                         WHERE alt.parent_comedian_id = c.id
                           AND alt.visible = true
                           AND s.date > ${now}
+                          ${zipFilter}
                     )
                 )
         )
@@ -123,12 +166,7 @@ export async function getTrendingComedians(
                 const j = Math.floor(Math.random() * (i + 1));
                 [rows[i], rows[j]] = [rows[j], rows[i]];
             }
-            const rowsWithImages = rows.filter((row) => row.has_image);
-            const rowsWithoutImages = rows.filter((row) => !row.has_image);
-            selected = [...rowsWithImages, ...rowsWithoutImages].slice(
-                0,
-                safeLimit,
-            );
+            selected = rows.slice(0, safeLimit);
         } else {
             // For paginated requests the shuffle is incompatible with stable paging,
             // so fetch exactly what the caller asked for at the given offset.
