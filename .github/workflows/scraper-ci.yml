@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - "apps/scraper/**"
+      # schema.prisma drives the test Postgres for the SQL parse-time guard
+      - "apps/web/prisma/schema.prisma"
   pull_request:
     branches: [main, master]
     types: [opened, synchronize, reopened]
@@ -67,6 +69,90 @@ jobs:
             exit 0
           fi
           MSG="[scraper-ci] Failed on main. View run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          curl -fsS --retry 3 --max-time 10 -X POST "$DISCORD_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -nc --arg c "$MSG" '{content: $c}')"
+
+  # Parse-time validation for every SQL constant in apps/scraper/sql/. Runs
+  # PREPARE against a real Postgres loaded with the Prisma-generated schema,
+  # so regressions like TASK-2700 (NULLIF on a ScrapingPlatform enum) fail in
+  # PR instead of on the prod nightly. See apps/scraper/tests/sql/.
+  sql-parse-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/scraper
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: laughtrack_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up scraper Python environment
+        uses: ./.github/actions/scraper-setup
+        with:
+          python-version: "3.13"
+          install-dev: "true"
+
+      - name: Set up Node.js (for Prisma schema generation)
+        uses: actions/setup-node@v6
+        with:
+          node-version: "20"
+
+      - name: Generate schema SQL from schema.prisma
+        working-directory: ${{ github.workspace }}
+        run: |
+          npx -y prisma@6.5.0 migrate diff \
+            --from-empty \
+            --to-schema-datamodel apps/web/prisma/schema.prisma \
+            --script > /tmp/schema.sql
+          wc -l /tmp/schema.sql
+
+      - name: Apply schema to test Postgres
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d laughtrack_test -v ON_ERROR_STOP=1 -f /tmp/schema.sql
+
+      - name: Run SQL parse-time guard
+        env:
+          TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/laughtrack_test
+          PLAYWRIGHT_FALLBACK: "0"
+        run: |
+          python -m pytest tests/sql/ -v --tb=short --disable-warnings --no-cov \
+            --junitxml=sql-parse-results.xml
+
+      - name: Upload SQL parse-time results
+        uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: sql-parse-results
+          path: apps/scraper/sql-parse-results.xml
+          retention-days: 30
+
+      - name: Notify Discord on failure
+        if: ${{ failure() && (github.event_name == 'push' || github.event_name == 'schedule') && github.ref == 'refs/heads/main' }}
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          if [ -z "$DISCORD_WEBHOOK_URL" ]; then
+            echo "DISCORD_WEBHOOK_URL not set; skipping Discord failure alert"
+            exit 0
+          fi
+          MSG="[scraper-ci] SQL parse-time guard failed on main. View run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           curl -fsS --retry 3 --max-time 10 -X POST "$DISCORD_WEBHOOK_URL" \
             -H "Content-Type: application/json" \
             -d "$(jq -nc --arg c "$MSG" '{content: $c}')"
