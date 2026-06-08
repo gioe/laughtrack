@@ -73,7 +73,7 @@ jobs:
             --cov-report=term
 
       - name: Upload test results
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: test-results
@@ -162,7 +162,7 @@ jobs:
             --junitxml=sql-parse-results.xml
 
       - name: Upload SQL parse-time results
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: sql-parse-results
