@@ -12,6 +12,13 @@ the surplus rows are deleted. Appearance rows that would violate the
 absorbed instead — the duplicate appearance is deleted on the assumption that
 the canonical episode's existing row already covers that (comedian, source)
 slot.
+
+**Operator runbook:** the full run executes inside a single transaction so a
+partial-progress mid-failure rolls back cleanly. With ~29k groups that holds
+row locks on podcast_episodes / episode_appearances / episode_appearance_reviews
+for the duration of the run. Either (a) pause the nightly scraper before
+running --confirm, or (b) chunk the run with --limit so each invocation holds
+locks for only a subset of groups.
 """
 
 from __future__ import annotations
@@ -72,19 +79,33 @@ _FIND_DUPE_GROUPS_SQL = """
 """
 
 # Re-point appearance rows whose episode_id points at a non-canonical sibling
-# onto the canonical id, but ONLY where doing so would not collide with an
-# existing (comedian_id, canonical_id, source) row. The colliders are left in
-# place for the follow-up DELETE step.
+# onto the canonical id. Two collision shapes must both be handled atomically:
+#
+#   (a) Canonical-vs-non-canonical: a row already exists on the canonical with
+#       the same (comedian_id, source). NOT EXISTS filters it out.
+#   (b) Intra-non-canonical: two siblings each carry the same (comedian_id,
+#       source) and the canonical carries no such row. A naive UPDATE ... ANY
+#       evaluates NOT EXISTS against the pre-statement snapshot, lets BOTH
+#       rows pass, and the second write trips the (comedian_id, episode_id,
+#       source) unique constraint. The DISTINCT ON inside the IN-SELECT picks
+#       exactly one row per (comedian_id, source) tuple ordered by id, so only
+#       the lowest-id row of each colliding sibling-group is re-pointed; the
+#       rest fall through to the DELETE step below.
 _REPOINT_APPEARANCES_SQL = """
-    UPDATE episode_appearances ea
+    UPDATE episode_appearances
     SET episode_id = %s
-    WHERE ea.episode_id = ANY(%s)
-      AND NOT EXISTS (
-          SELECT 1 FROM episode_appearances ea2
-          WHERE ea2.episode_id = %s
-            AND ea2.comedian_id = ea.comedian_id
-            AND ea2.source = ea.source
-      )
+    WHERE id IN (
+        SELECT DISTINCT ON (comedian_id, source) id
+        FROM episode_appearances ea
+        WHERE ea.episode_id = ANY(%s)
+          AND NOT EXISTS (
+              SELECT 1 FROM episode_appearances ea2
+              WHERE ea2.episode_id = %s
+                AND ea2.comedian_id = ea.comedian_id
+                AND ea2.source = ea.source
+          )
+        ORDER BY comedian_id, source, id
+    )
 """
 
 # Drop any appearance rows that the UPDATE above left behind. These are the
@@ -109,6 +130,34 @@ _REPOINT_REVIEWS_SQL = """
 _DELETE_NON_CANONICAL_EPISODES_SQL = """
     DELETE FROM podcast_episodes
     WHERE id = ANY(%s)
+"""
+
+# Dry-run preview: mirrors the UPDATE/DELETE counts the confirm path would
+# produce so --dry-run can give operators an accurate impact estimate before
+# they pause scrapers and run --confirm.
+_PREVIEW_REPOINTABLE_APPEARANCES_SQL = """
+    SELECT COUNT(*) FROM (
+        SELECT DISTINCT ON (comedian_id, source) id
+        FROM episode_appearances ea
+        WHERE ea.episode_id = ANY(%s)
+          AND NOT EXISTS (
+              SELECT 1 FROM episode_appearances ea2
+              WHERE ea2.episode_id = %s
+                AND ea2.comedian_id = ea.comedian_id
+                AND ea2.source = ea.source
+          )
+        ORDER BY comedian_id, source, id
+    ) AS preview
+"""
+
+_PREVIEW_ALL_APPEARANCES_ON_NON_CANONICAL_SQL = """
+    SELECT COUNT(*) FROM episode_appearances
+    WHERE episode_id = ANY(%s)
+"""
+
+_PREVIEW_REVIEWS_SQL = """
+    SELECT COUNT(*) FROM episode_appearance_reviews
+    WHERE episode_id = ANY(%s)
 """
 
 
@@ -154,6 +203,29 @@ def _reconcile_group(conn: Any, group: DupeGroup) -> tuple[int, int, int]:
     return repointed, absorbed, reviews
 
 
+def _preview_group(conn: Any, group: DupeGroup) -> tuple[int, int, int]:
+    """Read-only counts that mirror what _reconcile_group would write. Returns
+    (appearances_repointed, appearances_absorbed, reviews_repointed)."""
+    non_canonical = list(group.non_canonical_ids)
+    with conn.cursor() as cur:
+        cur.execute(
+            _PREVIEW_REPOINTABLE_APPEARANCES_SQL,
+            (non_canonical, group.canonical_id),
+        )
+        row = cur.fetchone()
+        repointable = int(row[0]) if row else 0
+        cur.execute(_PREVIEW_ALL_APPEARANCES_ON_NON_CANONICAL_SQL, (non_canonical,))
+        row = cur.fetchone()
+        total_on_non_canonical = int(row[0]) if row else 0
+        cur.execute(_PREVIEW_REVIEWS_SQL, (non_canonical,))
+        row = cur.fetchone()
+        reviews = int(row[0]) if row else 0
+    # absorbed = the rows that the UPDATE skipped (either canonical-vs-non-
+    # canonical or intra-non-canonical) — they all fall through to the DELETE.
+    absorbed = total_on_non_canonical - repointable
+    return repointable, absorbed, reviews
+
+
 def dedupe_podcast_episodes(
     *,
     dry_run: bool,
@@ -171,6 +243,10 @@ def dedupe_podcast_episodes(
         if dry_run:
             for group in groups:
                 summary.episodes_deleted += len(group.non_canonical_ids)
+                repointable, absorbed, reviews = _preview_group(conn, group)
+                summary.appearances_repointed += repointable
+                summary.appearances_absorbed += absorbed
+                summary.reviews_repointed += reviews
             return
         for group in groups:
             try:

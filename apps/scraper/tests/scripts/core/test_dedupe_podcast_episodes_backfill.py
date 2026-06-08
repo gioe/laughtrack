@@ -38,23 +38,27 @@ class _FakeCursor:
             self._last_result = [
                 (k[0], k[1], k[2], sorted(ids)) for k, ids in groups.items() if len(ids) > 1
             ]
+        elif normalized.startswith("SELECT COUNT(*) FROM ( SELECT DISTINCT ON"):
+            non_canonical_ids, canonical_id = params
+            self._last_result = [(self._compute_repointable(canonical_id, non_canonical_ids),)]
+        elif normalized.startswith("SELECT COUNT(*) FROM episode_appearances"):
+            (non_canonical_ids,) = params
+            target_ids = set(non_canonical_ids)
+            count = sum(1 for a in self._conn.appearances if a["episode_id"] in target_ids)
+            self._last_result = [(count,)]
+        elif normalized.startswith("SELECT COUNT(*) FROM episode_appearance_reviews"):
+            (non_canonical_ids,) = params
+            target_ids = set(non_canonical_ids)
+            count = sum(1 for r in self._conn.reviews if r["episode_id"] in target_ids)
+            self._last_result = [(count,)]
         elif normalized.startswith("UPDATE episode_appearances"):
             canonical_id, non_canonical_ids, canonical_id_check = params
             assert canonical_id == canonical_id_check
-            target_ids = set(non_canonical_ids)
-            already_on_canonical = {
-                (a["comedian_id"], a["source"])
-                for a in self._conn.appearances
-                if a["episode_id"] == canonical_id
-            }
+            ids_to_repoint = self._compute_repointable_ids(canonical_id, non_canonical_ids)
             updated = 0
             for appearance in self._conn.appearances:
-                if appearance["episode_id"] in target_ids and (
-                    appearance["comedian_id"],
-                    appearance["source"],
-                ) not in already_on_canonical:
+                if appearance["id"] in ids_to_repoint:
                     appearance["episode_id"] = canonical_id
-                    already_on_canonical.add((appearance["comedian_id"], appearance["source"]))
                     updated += 1
             self.rowcount = updated
         elif normalized.startswith("DELETE FROM episode_appearances"):
@@ -88,6 +92,33 @@ class _FakeCursor:
 
     def fetchone(self) -> Any:
         return self._last_result[0] if self._last_result else None
+
+    def _compute_repointable_ids(self, canonical_id: int, non_canonical_ids: list[int]) -> set[int]:
+        """Mirror the production DISTINCT ON (comedian_id, source) ORDER BY id semantics.
+
+        Picks the lowest-id appearance row per (comedian_id, source) tuple,
+        excluding rows that would collide with an existing appearance on the
+        canonical episode. Other rows on non-canonical episodes fall through
+        to the DELETE step.
+        """
+        target_ids = set(non_canonical_ids)
+        already_on_canonical = {
+            (a["comedian_id"], a["source"])
+            for a in self._conn.appearances
+            if a["episode_id"] == canonical_id
+        }
+        chosen: dict[tuple[int, str], int] = {}
+        for appearance in sorted(self._conn.appearances, key=lambda a: a["id"]):
+            if appearance["episode_id"] not in target_ids:
+                continue
+            slot = (appearance["comedian_id"], appearance["source"])
+            if slot in already_on_canonical or slot in chosen:
+                continue
+            chosen[slot] = appearance["id"]
+        return set(chosen.values())
+
+    def _compute_repointable(self, canonical_id: int, non_canonical_ids: list[int]) -> int:
+        return len(self._compute_repointable_ids(canonical_id, non_canonical_ids))
 
 
 class _FakeConn:
@@ -158,13 +189,14 @@ def test_dry_run_reports_planned_deletes_without_mutating(monkeypatch):
     assert summary.groups_scanned == 2
     assert summary.episodes_deleted == 3  # 1 from group A + 2 from group B
 
-    # Dry-run never re-points or deletes
-    assert summary.appearances_repointed == 0
+    # Preview reports the appearance-level impact (criterion 8882 — canonical
+    # row choice + re-point plan exercised against the fixture without writes)
+    assert summary.appearances_repointed == 2  # 1 on ep 101 + 1 on ep 202
     assert summary.appearances_absorbed == 0
     assert summary.reviews_repointed == 0
     assert summary.groups_failed == 0
 
-    # State must be untouched: no UPDATEs, no DELETEs ran
+    # State must be untouched: only SELECTs executed, no UPDATEs/DELETEs
     assert len(conn.episodes) == 6
     assert len(conn.appearances) == 3
     assert {a["episode_id"] for a in conn.appearances} == {100, 101, 202}
@@ -280,6 +312,90 @@ def test_confirm_absorbs_appearance_collisions_and_preserves_podcast_comedian_pa
 
     # Surviving rows all live on the canonical episode
     assert {a["episode_id"] for a in conn.appearances} == {100}
+
+
+def test_confirm_handles_intra_non_canonical_collision_without_constraint_violation(
+    monkeypatch,
+):
+    """Reviewer finding #2897 / #2899: when 3+ siblings carry the same
+    (comedian_id, source) tuple on the non-canonical side AND no such row
+    exists on the canonical, the script must absorb all but one without
+    tripping the (comedian_id, episode_id, source) unique constraint."""
+    conn = _FakeConn(
+        episodes=[
+            {"id": 100, "podcast_id": 1, "release_date": "2025-01-01", "title": "Ep One"},
+            {"id": 101, "podcast_id": 1, "release_date": "2025-01-01", "title": "Ep One"},
+            {"id": 102, "podcast_id": 1, "release_date": "2025-01-01", "title": "Ep One"},
+        ],
+        appearances=[
+            # Three sibling rows for the same (comedian, source), canonical has none
+            {"id": 1, "episode_id": 101, "comedian_id": 7, "source": "rss"},
+            {"id": 2, "episode_id": 102, "comedian_id": 7, "source": "rss"},
+            # A non-colliding row that should still re-point cleanly
+            {"id": 3, "episode_id": 102, "comedian_id": 8, "source": "rss"},
+        ],
+    )
+    _install_conn(monkeypatch, conn)
+
+    summary = mod.dedupe_podcast_episodes(dry_run=False, confirm=True)
+
+    # Exactly one row per (comedian, source) on the canonical, no constraint violation
+    canonical_slots = {
+        (a["comedian_id"], a["source"]) for a in conn.appearances if a["episode_id"] == 100
+    }
+    assert canonical_slots == {(7, "rss"), (8, "rss")}
+    assert all(a["episode_id"] == 100 for a in conn.appearances)
+
+    # The duplicate sibling for comedian 7 was absorbed, the unique row re-pointed
+    assert summary.appearances_repointed == 2  # one (c=7) + one (c=8)
+    assert summary.appearances_absorbed == 1  # the duplicate (c=7, e=102)
+    assert summary.episodes_deleted == 2
+    assert summary.groups_failed == 0
+    assert conn.commits == 1
+    assert conn.rollbacks == 0
+
+
+def test_dry_run_preview_counts_match_confirm_outcome(monkeypatch):
+    """Reviewer finding #2900: dry-run must populate the full preview, not
+    just episodes_deleted, so operators can estimate impact before --confirm."""
+
+    def _fresh_fixture() -> _FakeConn:
+        return _FakeConn(
+            episodes=[
+                {"id": 100, "podcast_id": 1, "release_date": "2025-01-01", "title": "Ep One"},
+                {"id": 101, "podcast_id": 1, "release_date": "2025-01-01", "title": "Ep One"},
+                {"id": 102, "podcast_id": 1, "release_date": "2025-01-01", "title": "Ep One"},
+            ],
+            appearances=[
+                {"id": 1, "episode_id": 101, "comedian_id": 7, "source": "rss"},
+                {"id": 2, "episode_id": 102, "comedian_id": 7, "source": "rss"},
+                {"id": 3, "episode_id": 102, "comedian_id": 8, "source": "rss"},
+            ],
+            reviews=[
+                {"id": 1, "episode_id": 101, "status": "pending"},
+                {"id": 2, "episode_id": 102, "status": "approved"},
+            ],
+        )
+
+    dry_conn = _fresh_fixture()
+    _install_conn(monkeypatch, dry_conn)
+    dry_summary = mod.dedupe_podcast_episodes(dry_run=True, confirm=False)
+
+    confirm_conn = _fresh_fixture()
+    _install_conn(monkeypatch, confirm_conn)
+    confirm_summary = mod.dedupe_podcast_episodes(dry_run=False, confirm=True)
+
+    assert dry_summary.groups_scanned == confirm_summary.groups_scanned
+    assert dry_summary.episodes_deleted == confirm_summary.episodes_deleted
+    assert dry_summary.appearances_repointed == confirm_summary.appearances_repointed
+    assert dry_summary.appearances_absorbed == confirm_summary.appearances_absorbed
+    assert dry_summary.reviews_repointed == confirm_summary.reviews_repointed
+
+    # Dry-run does not mutate
+    assert dry_conn.commits == 0
+    assert dry_conn.rollbacks == 0
+    assert len(dry_conn.episodes) == 3
+    assert len(dry_conn.appearances) == 3
 
 
 def test_limit_caps_groups_processed(monkeypatch):
