@@ -55,6 +55,25 @@ def update_project_yml_setting(key, new_value)
   File.write(PROJECT_YML_PATH, updated)
 end
 
+# Bump MARKETING_VERSION by semantic component. kind may be :major, :minor, :patch
+# (or string equivalents); defaults to :patch. Bumping a higher component zeroes the
+# lower ones (2.5.3 + minor → 2.6.0). Three segments required — raise otherwise so a
+# legacy two-segment value can't silently produce the wrong semantics.
+def bump_marketing_version(current, kind)
+  parts = current.to_s.split(".")
+  if parts.length != 3
+    raise "MARKETING_VERSION must be MAJOR.MINOR.PATCH (got #{current.inspect}). " \
+          "Edit #{PROJECT_YML_PATH} to a three-segment value before bumping."
+  end
+  major, minor, patch = parts.map(&:to_i)
+  case (kind || :patch).to_sym
+  when :major then [major + 1, 0, 0].join(".")
+  when :minor then [major, minor + 1, 0].join(".")
+  when :patch then [major, minor, patch + 1].join(".")
+  else raise "Unknown bump: #{kind.inspect}. Expected :major, :minor, or :patch."
+  end
+end
+
 platform :ios do
   before_all do
     setup_ci if ENV["CI"]
@@ -109,7 +128,7 @@ platform :ios do
     )
   end
 
-  desc "Increment build number (latest from ASC) and bump the marketing version's last segment. Pass skip_marketing_bump:true to bump build only (used when MARKETING_VERSION was pre-bumped manually, e.g. for a major release)."
+  desc "Increment build number (latest from ASC) and bump MARKETING_VERSION semantically. Pass bump: :major | :minor | :patch (default :patch), or skip_marketing_bump:true to bump build only (e.g. for a TestFlight-only hotfix)."
   lane :bump_build_number do |options|
     load_asc_api_key
 
@@ -124,9 +143,7 @@ platform :ios do
       new_version = current_version
       UI.message("Skipping marketing version bump (already at #{current_version})")
     else
-      version_parts = current_version.to_s.split(".")
-      version_parts[-1] = (version_parts[-1].to_i + 1).to_s
-      new_version = version_parts.join(".")
+      new_version = bump_marketing_version(current_version, options[:bump])
       update_project_yml_setting("MARKETING_VERSION", new_version)
     end
 
@@ -320,24 +337,24 @@ platform :ios do
     )
   end
 
-  desc "Full pipeline: release notes, screenshots, bump build, build, upload, and submit for review"
+  desc "Full pipeline: release notes, screenshots, bump build, build, upload, and submit for review. Pass bump: :major | :minor | :patch (default :patch)."
   # See screenshots_and_upload comment: `frames` produces App-Store-incompatible
   # 1470x3000 PNGs, so it's excluded from this pipeline too. The framed images
   # remain available via the standalone `frames` lane for marketing exports.
-  lane :release do
+  lane :release do |options|
     generate_release_notes
     screenshots
-    bump_build_number
+    bump_build_number(bump: options[:bump], skip_marketing_bump: options[:skip_marketing_bump])
     build
     upload_testflight
     submit_review
     tag_release
   end
 
-  desc "Build and upload to App Store Connect (creates version, uploads metadata + screenshots, pushes to TestFlight). Pass skip_marketing_bump:true when MARKETING_VERSION was pre-bumped manually (major release)."
+  desc "Build and upload to App Store Connect (creates version, uploads metadata + screenshots, pushes to TestFlight). Pass bump: :major | :minor | :patch (default :patch), or skip_marketing_bump:true to reuse the current MARKETING_VERSION (TestFlight-only hotfix)."
   lane :beta do |options|
     generate_release_notes
-    bump_build_number(skip_marketing_bump: options[:skip_marketing_bump])
+    bump_build_number(bump: options[:bump], skip_marketing_bump: options[:skip_marketing_bump])
     build
     upload_app_store
     tag_release
