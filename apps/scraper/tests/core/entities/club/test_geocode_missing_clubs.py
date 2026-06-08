@@ -80,3 +80,38 @@ def test_geocode_missing_clubs_resolves_coords_and_updates_only_null_rows():
     assert "SET latitude = %s, longitude = %s" in update_sql
     assert "AND (latitude IS NULL OR longitude IS NULL)" in update_sql
     assert update_params == (40.75, -73.99, 10)
+
+
+def test_geocode_missing_clubs_accepts_default_tuple_cursor_rows():
+    rows = [
+        (
+            12,
+            "Tuple Club",
+            "3 Main St",
+            "Brooklyn",
+            "NY",
+            "11201",
+        )
+    ]
+    cursor = _Cursor(rows)
+    resolver = MagicMock(return_value=(40.69, -73.99))
+
+    with patch(
+        "laughtrack.utilities.domain.club.coordinates.get_connection",
+        return_value=_Connection(cursor),
+    ):
+        result = geocode_missing_clubs(limit=30, resolver=resolver, sleep=MagicMock())
+
+    assert result == ClubGeocodingResult(attempted=1, resolved=1, unresolved=0)
+    resolver.assert_called_once()
+    club = resolver.call_args.args[0]
+    assert club.id == 12
+    assert club.name == "Tuple Club"
+    assert club.address == "3 Main St"
+    assert club.city == "Brooklyn"
+    assert club.state == "NY"
+    assert club.zip_code == "11201"
+
+    updates = [stmt for stmt in cursor.statements if stmt[0].strip().startswith("UPDATE")]
+    assert len(updates) == 1
+    assert updates[0][1] == (40.69, -73.99, 12)

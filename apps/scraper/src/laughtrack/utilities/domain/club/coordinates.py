@@ -32,14 +32,29 @@ class ClubGeocodingResult:
     unresolved: int = 0
 
 
+_CLUB_COORDINATE_SELECT_COLUMNS = ("id", "name", "address", "city", "state", "zip_code")
+
+
+def _row_value(row, key: str, default=None):
+    if hasattr(row, "get"):
+        return row.get(key, default)
+    try:
+        index = _CLUB_COORDINATE_SELECT_COLUMNS.index(key)
+    except ValueError:
+        return default
+    if index >= len(row):
+        return default
+    return row[index]
+
+
 def _candidate_from_row(row) -> ClubCoordinateCandidate:
     return ClubCoordinateCandidate(
-        id=int(row["id"]),
-        name=row.get("name", ""),
-        address=row.get("address", ""),
-        city=row.get("city"),
-        state=row.get("state"),
-        zip_code=row.get("zip_code"),
+        id=int(_row_value(row, "id")),
+        name=_row_value(row, "name", ""),
+        address=_row_value(row, "address", ""),
+        city=_row_value(row, "city"),
+        state=_row_value(row, "state"),
+        zip_code=_row_value(row, "zip_code"),
     )
 
 
