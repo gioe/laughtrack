@@ -89,12 +89,14 @@ function makeComedianRow(
             id: number;
             appearanceRole: string;
             episode: {
+                id: number;
                 title: string;
                 releaseDate: Date | null;
                 episodeUrl: string | null;
                 audioUrl: string | null;
                 durationSeconds: number | null;
                 podcast: {
+                    id: number;
                     title: string;
                     imageUrl: string | null;
                     authorName: string | null;
@@ -344,7 +346,9 @@ describe("findComedianByName", () => {
                         id: 1,
                         appearanceRole: "guest",
                         episode: {
+                            id: 1001,
                             podcast: {
+                                id: 501,
                                 title: "Older Pod",
                                 imageUrl: "https://cdn.example.com/older.jpg",
                                 authorName: "Older Network",
@@ -361,7 +365,9 @@ describe("findComedianByName", () => {
                         id: 2,
                         appearanceRole: "host",
                         episode: {
+                            id: 1002,
                             podcast: {
+                                id: 502,
                                 title: "Newer Pod",
                                 imageUrl: "https://cdn.example.com/newer.jpg",
                                 authorName: "Newer Network",
@@ -378,7 +384,9 @@ describe("findComedianByName", () => {
                         id: 3,
                         appearanceRole: "guest",
                         episode: {
+                            id: 1003,
                             podcast: {
+                                id: 503,
                                 title: "Undated Pod",
                                 imageUrl: null,
                                 authorName: null,
@@ -493,6 +501,278 @@ describe("findComedianByName", () => {
                     }),
                 }),
             );
+        });
+    });
+
+    describe("podcastAppearances dedupe", () => {
+        // Scraper writes the same logical podcast episode to multiple
+        // `podcast_episodes` rows (different feeds, prefix variants), each
+        // joined by its own episode_appearance. The data layer collapses these
+        // by (podcast.id, episode.releaseDate.getTime()) so the iOS Podcasts tab
+        // sees one row per logical episode.
+
+        it("collapses duplicate episodes that share the same podcast and release timestamp", async () => {
+            const releaseDate = new Date("2026-05-12T01:00:00.000Z");
+            const row = makeComedianRow({
+                episodeAppearances: [
+                    // Tuesdays with Stories! "#655 Fart In My Mouth..." — two
+                    // podcast_episodes rows for the exact same logical episode.
+                    {
+                        id: 715587,
+                        appearanceRole: "host",
+                        episode: {
+                            id: 392861,
+                            podcast: {
+                                id: 5660,
+                                title: "Tuesdays with Stories!",
+                                imageUrl: null,
+                                authorName: null,
+                                websiteUrl: null,
+                            },
+                            title: "#655 Fart In My Mouth and Call It a Love Story",
+                            releaseDate,
+                            episodeUrl: "https://example.com/655-a",
+                            audioUrl: "https://cdn.example.com/655-a.mp3",
+                            durationSeconds: 3600,
+                        },
+                    },
+                    {
+                        id: 92841,
+                        appearanceRole: "host",
+                        episode: {
+                            id: 58823,
+                            podcast: {
+                                id: 5660,
+                                title: "Tuesdays with Stories!",
+                                imageUrl: null,
+                                authorName: null,
+                                websiteUrl: null,
+                            },
+                            title: "#655 Fart In My Mouth and Call It a Love Story",
+                            releaseDate,
+                            episodeUrl: "https://example.com/655-b",
+                            audioUrl: "https://cdn.example.com/655-b.mp3",
+                            durationSeconds: 3600,
+                        },
+                    },
+                ],
+            });
+            mockFindFirst.mockResolvedValue(row);
+
+            const result = await findComedianByName(makeHelper());
+
+            expect(result.podcastAppearances).toHaveLength(1);
+            // The higher appearance.id wins the tiebreak (most recent scrape).
+            expect(result.podcastAppearances?.[0]?.id).toBe(715587);
+        });
+
+        it("collapses prefix-variant duplicates that share the same podcast and release timestamp", async () => {
+            // "67: Wife Got Fat..." and "Wife Got Fat..." — different prefix,
+            // same logical episode. Same podcast + identical releaseDate
+            // timestamp collapses them.
+            const releaseDate = new Date("2026-04-07T13:28:00.000Z");
+            const row = makeComedianRow({
+                episodeAppearances: [
+                    {
+                        id: 1,
+                        appearanceRole: "guest",
+                        episode: {
+                            id: 49592,
+                            podcast: {
+                                id: 700,
+                                title: "Jim Norton Can't Save You",
+                                imageUrl: null,
+                                authorName: null,
+                                websiteUrl: null,
+                            },
+                            title: "Wife Got Fat with Mark Normand & Shaun Murphy | Jim Norton Can't Save You EP 65",
+                            releaseDate,
+                            episodeUrl: "https://example.com/no-prefix",
+                            audioUrl: "https://cdn.example.com/no-prefix.mp3",
+                            durationSeconds: 4000,
+                        },
+                    },
+                    {
+                        id: 2,
+                        appearanceRole: "guest",
+                        episode: {
+                            id: 183845,
+                            podcast: {
+                                id: 700,
+                                title: "Jim Norton Can't Save You",
+                                imageUrl: null,
+                                authorName: null,
+                                websiteUrl: null,
+                            },
+                            title: "67: Wife Got Fat with Mark Normand & Shaun Murphy | Jim Norton Can't Save You EP 65",
+                            releaseDate,
+                            episodeUrl: "https://example.com/prefix",
+                            audioUrl: "https://cdn.example.com/prefix.mp3",
+                            durationSeconds: 4000,
+                        },
+                    },
+                ],
+            });
+            mockFindFirst.mockResolvedValue(row);
+
+            const result = await findComedianByName(makeHelper());
+
+            expect(result.podcastAppearances).toHaveLength(1);
+        });
+
+        it("prefers the host role over guest when collapsing duplicates", async () => {
+            const releaseDate = new Date("2026-03-01T00:00:00.000Z");
+            const row = makeComedianRow({
+                episodeAppearances: [
+                    {
+                        id: 10,
+                        appearanceRole: "guest",
+                        episode: {
+                            id: 200,
+                            podcast: {
+                                id: 800,
+                                title: "Mixed Roles Pod",
+                                imageUrl: null,
+                                authorName: null,
+                                websiteUrl: null,
+                            },
+                            title: "Episode 1",
+                            releaseDate,
+                            episodeUrl: "https://example.com/guest",
+                            audioUrl: "https://cdn.example.com/guest.mp3",
+                            durationSeconds: 3000,
+                        },
+                    },
+                    {
+                        id: 11,
+                        appearanceRole: "host",
+                        episode: {
+                            id: 201,
+                            podcast: {
+                                id: 800,
+                                title: "Mixed Roles Pod",
+                                imageUrl: null,
+                                authorName: null,
+                                websiteUrl: null,
+                            },
+                            title: "Episode 1",
+                            releaseDate,
+                            episodeUrl: "https://example.com/host",
+                            audioUrl: "https://cdn.example.com/host.mp3",
+                            durationSeconds: 3000,
+                        },
+                    },
+                ],
+            });
+            mockFindFirst.mockResolvedValue(row);
+
+            const result = await findComedianByName(makeHelper());
+
+            expect(result.podcastAppearances).toHaveLength(1);
+            expect(result.podcastAppearances?.[0]?.appearanceRole).toBe("host");
+        });
+
+        it("keeps different podcasts that happen to publish on the same timestamp", async () => {
+            // Two distinct podcasts releasing at the same moment are NOT
+            // duplicates — the dedup key includes podcast.id.
+            const releaseDate = new Date("2026-02-14T12:00:00.000Z");
+            const row = makeComedianRow({
+                episodeAppearances: [
+                    {
+                        id: 20,
+                        appearanceRole: "guest",
+                        episode: {
+                            id: 300,
+                            podcast: {
+                                id: 900,
+                                title: "Pod A",
+                                imageUrl: null,
+                                authorName: null,
+                                websiteUrl: null,
+                            },
+                            title: "Shared Day Episode",
+                            releaseDate,
+                            episodeUrl: "https://example.com/a",
+                            audioUrl: "https://cdn.example.com/a.mp3",
+                            durationSeconds: 1800,
+                        },
+                    },
+                    {
+                        id: 21,
+                        appearanceRole: "guest",
+                        episode: {
+                            id: 301,
+                            podcast: {
+                                id: 901,
+                                title: "Pod B",
+                                imageUrl: null,
+                                authorName: null,
+                                websiteUrl: null,
+                            },
+                            title: "Shared Day Episode",
+                            releaseDate,
+                            episodeUrl: "https://example.com/b",
+                            audioUrl: "https://cdn.example.com/b.mp3",
+                            durationSeconds: 1800,
+                        },
+                    },
+                ],
+            });
+            mockFindFirst.mockResolvedValue(row);
+
+            const result = await findComedianByName(makeHelper());
+
+            expect(result.podcastAppearances).toHaveLength(2);
+        });
+
+        it("falls back to (podcastId, title) when releaseDate is null on both copies", async () => {
+            const row = makeComedianRow({
+                episodeAppearances: [
+                    {
+                        id: 30,
+                        appearanceRole: "guest",
+                        episode: {
+                            id: 400,
+                            podcast: {
+                                id: 1000,
+                                title: "Undated Pod",
+                                imageUrl: null,
+                                authorName: null,
+                                websiteUrl: null,
+                            },
+                            title: "Same Title",
+                            releaseDate: null,
+                            episodeUrl: "https://example.com/u1",
+                            audioUrl: "https://cdn.example.com/u1.mp3",
+                            durationSeconds: 2400,
+                        },
+                    },
+                    {
+                        id: 31,
+                        appearanceRole: "guest",
+                        episode: {
+                            id: 401,
+                            podcast: {
+                                id: 1000,
+                                title: "Undated Pod",
+                                imageUrl: null,
+                                authorName: null,
+                                websiteUrl: null,
+                            },
+                            title: "Same Title",
+                            releaseDate: null,
+                            episodeUrl: "https://example.com/u2",
+                            audioUrl: "https://cdn.example.com/u2.mp3",
+                            durationSeconds: 2400,
+                        },
+                    },
+                ],
+            });
+            mockFindFirst.mockResolvedValue(row);
+
+            const result = await findComedianByName(makeHelper());
+
+            expect(result.podcastAppearances).toHaveLength(1);
         });
     });
 
