@@ -517,7 +517,10 @@ def upsert_episode_with_result(conn: Any, episode: RssEpisodeRow) -> EpisodeUpse
         # insert that was not visible to this statement's snapshot. If the
         # conflict path then returns no target row, issue a fresh lookup so the
         # caller still gets the canonical id after the winner commits.
-        episode_id = find_episode_id_by_source(conn, episode) or find_logical_episode_id(conn, episode)
+        episode_id = find_episode_id_by_source(conn, episode) or find_logical_episode_id(
+            conn,
+            episode,
+        )
         return EpisodeUpsertResult(episode_id=episode_id, inserted=False, changed=False)
     return EpisodeUpsertResult(episode_id=int(row[0]), inserted=bool(row[1]), changed=True)
 

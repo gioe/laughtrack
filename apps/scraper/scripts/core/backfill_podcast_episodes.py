@@ -23,7 +23,10 @@ from curl_cffi import requests
 from dotenv import dotenv_values
 
 from laughtrack.adapters.db import get_connection
-from laughtrack.core.rss_episode_reader import find_episode_id_by_source, find_logical_episode_id
+from laughtrack.core.rss_episode_reader import (
+    find_episode_id_by_source,
+    find_logical_episode_id,
+)
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
 _SOURCE = "podcast_index"
@@ -559,7 +562,10 @@ def upsert_episode_with_result(conn: Any, episode: PodcastEpisodeRow) -> Episode
         )
         row = cur.fetchone()
         if not row:
-            episode_id = find_episode_id_by_source(conn, episode) or find_logical_episode_id(conn, episode)
+            episode_id = find_episode_id_by_source(conn, episode) or find_logical_episode_id(
+                conn,
+                episode,
+            )
             return EpisodeUpsertResult(episode_id=episode_id, inserted=False, changed=False)
         if len(row) == 1:
             return EpisodeUpsertResult(episode_id=None, inserted=bool(row[0]), changed=True)
