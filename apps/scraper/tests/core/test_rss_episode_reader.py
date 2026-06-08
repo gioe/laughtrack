@@ -46,9 +46,43 @@ class _FakeCursor:
     def execute(self, sql: str, params: Any = None) -> None:
         self.conn.executed.append((sql, params))
         normalized = " ".join(sql.split())
-        if normalized.startswith("INSERT INTO podcast_episodes"):
+        if normalized.startswith("SELECT id FROM podcast_episodes"):
+            # (podcast_id, release_date, source, source_episode_id) lookup; exclude
+            # the row whose (source, source_episode_id) matches the params, then
+            # return the first row that shares (podcast_id, release_date).
+            podcast_id, release_date, source, source_episode_id = params
+            self._last_result = [
+                (row["id"],)
+                for row in self.conn.rows
+                if row["podcast_id"] == podcast_id
+                and row["release_date"] == release_date
+                and (row["source"], row["source_episode_id"]) != (source, source_episode_id)
+            ][:1]
+        elif normalized.startswith("SELECT id, title FROM podcast_episodes"):
+            # NULL release_date fallback: return all candidate rows and let the
+            # caller apply title normalization in Python.
+            podcast_id, source, source_episode_id = params
+            self._last_result = [
+                (row["id"], row["title"])
+                for row in self.conn.rows
+                if row["podcast_id"] == podcast_id
+                and row["release_date"] is None
+                and (row["source"], row["source_episode_id"]) != (source, source_episode_id)
+            ]
+        elif normalized.startswith("INSERT INTO podcast_episodes"):
             self.conn.upserts.append(params)
-            self._last_result = [(1000 + len(self.conn.upserts), len(self.conn.upserts) == 1)]
+            new_id = 1000 + len(self.conn.upserts)
+            self.conn.rows.append(
+                {
+                    "id": new_id,
+                    "podcast_id": params[0],
+                    "source": params[1],
+                    "source_episode_id": params[2],
+                    "title": params[4],
+                    "release_date": params[6],
+                }
+            )
+            self._last_result = [(new_id, len(self.conn.upserts) == 1)]
         elif normalized.startswith("UPDATE podcasts"):
             self.conn.podcast_updates.append(params)
             self._last_result = []
@@ -58,12 +92,16 @@ class _FakeCursor:
     def fetchone(self) -> Any:
         return self._last_result[0] if self._last_result else None
 
+    def fetchall(self) -> Any:
+        return list(self._last_result)
+
 
 class _FakeConn:
     def __init__(self) -> None:
         self.executed: list[tuple[str, Any]] = []
         self.upserts: list[Any] = []
         self.podcast_updates: list[Any] = []
+        self.rows: list[dict[str, Any]] = []
 
     def cursor(self) -> _FakeCursor:
         return _FakeCursor(self)
@@ -213,13 +251,133 @@ def test_sync_upserts_deduped_guid_rows_with_parent_source(monkeypatch):
     assert summary.episodes_inserted == 1
     assert summary.episodes_skipped == 1
     assert len(conn.upserts) == 1
-    upsert_sql = conn.executed[0][0]
+    upsert_sql = next(sql for sql, _ in conn.executed if "INSERT INTO podcast_episodes" in sql)
     assert "ON CONFLICT (source, source_episode_id) DO UPDATE" in upsert_sql
     upsert_params = conn.upserts[0]
     assert upsert_params[0:5] == (42, "itunes", "rss-guid-1", "rss-guid-1", "Stored")
     assert json.loads(upsert_params[10]) == {"rss_guid": "rss-guid-1"}
     assert conn.podcast_updates
     assert json.loads(conn.podcast_updates[0][0])["rss_episode_reader"]["etag"] == '"fresh"'
+
+
+def test_logical_duplicate_with_different_source_id_collapses_to_single_row(monkeypatch):
+    """Two RSS rows with the same (podcast_id, release_date) but different
+    (source, source_episode_id) — the second arrives via a re-poll of a different
+    feed for the same podcast — must collapse to a single podcast_episodes row.
+    """
+    conn = _FakeConn()
+    release_date = datetime(2024, 5, 1, 12, 0, tzinfo=timezone.utc).isoformat()
+    canonical = mod.RssEpisodeRow(
+        podcast_id=42,
+        source="itunes",
+        source_episode_id="rss-guid-canonical",
+        guid="rss-guid-canonical",
+        title="Episode One",
+        description=None,
+        release_date=release_date,
+        duration_seconds=None,
+        episode_url="https://podcast.example/1",
+        audio_url=None,
+        external_ids={"rss_guid": "rss-guid-canonical"},
+        evidence={"provider": "rss"},
+        source_payload={"id": "rss-guid-canonical"},
+    )
+    prefix_variant = mod.RssEpisodeRow(
+        podcast_id=42,
+        # Different RSS feed (different source-podcast-id chain) gave this row
+        # a different source_episode_id, and the publisher swapped in a "67:"
+        # prefix on the title — same logical episode.
+        source="itunes",
+        source_episode_id="rss-guid-prefix-variant",
+        guid="rss-guid-prefix-variant",
+        title="67: Episode One",
+        description=None,
+        release_date=release_date,
+        duration_seconds=None,
+        episode_url="https://podcast.example/1",
+        audio_url=None,
+        external_ids={"rss_guid": "rss-guid-prefix-variant"},
+        evidence={"provider": "rss"},
+        source_payload={"id": "rss-guid-prefix-variant"},
+    )
+    fetched = mod.RssFetchResult(
+        episodes=[canonical, prefix_variant],
+        etag='"fresh"',
+        last_modified="Thu, 02 May 2024 00:00:00 GMT",
+        not_modified=False,
+    )
+    monkeypatch.setattr(mod, "fetch_rss_episodes", lambda _podcast: fetched)
+
+    summary = mod.sync_podcast_episodes_from_rss(conn, _podcast(), dry_run=False)
+
+    assert summary.episodes_seen == 2
+    assert summary.episodes_inserted == 1
+    # Exactly one INSERT reached the DB — the second row's logical lookup hit
+    # the canonical row and short-circuited the upsert.
+    assert len(conn.upserts) == 1
+    assert conn.upserts[0][2] == "rss-guid-canonical"
+    # And the lookup query was actually run for the prefix-variant row.
+    select_sqls = [sql for sql, _ in conn.executed if "SELECT id FROM podcast_episodes" in sql]
+    assert len(select_sqls) == 2
+    assert "release_date = %s::timestamptz" in select_sqls[1]
+
+
+def test_normalize_title_strips_episode_number_prefixes():
+    assert mod._normalize_title("67: Foo") == "foo"
+    assert mod._normalize_title("EP67: Foo") == "foo"
+    assert mod._normalize_title("Episode 67 - Foo") == "foo"
+    assert mod._normalize_title("#67 Foo") == "foo"
+    assert mod._normalize_title("67. Foo") == "foo"
+    # Bare title with no prefix lowercases but is otherwise unchanged.
+    assert mod._normalize_title("Foo") == "foo"
+    # Empty / None input return empty string.
+    assert mod._normalize_title(None) == ""
+    assert mod._normalize_title("") == ""
+
+
+def test_logical_duplicate_with_null_release_date_matches_normalized_title(monkeypatch):
+    """When release_date is NULL on both rows, prefix-variant titles within the
+    same podcast still collapse via _normalize_title.
+    """
+    conn = _FakeConn()
+    canonical = mod.RssEpisodeRow(
+        podcast_id=42,
+        source="itunes",
+        source_episode_id="canonical",
+        guid="canonical",
+        title="Foo",
+        description=None,
+        release_date=None,
+        duration_seconds=None,
+        episode_url=None,
+        audio_url=None,
+        external_ids={"rss_guid": "canonical"},
+        evidence={},
+        source_payload={"id": "canonical"},
+    )
+    prefix_variant = mod.RssEpisodeRow(
+        podcast_id=42,
+        source="itunes",
+        source_episode_id="prefix-variant",
+        guid="prefix-variant",
+        title="67: Foo",
+        description=None,
+        release_date=None,
+        duration_seconds=None,
+        episode_url=None,
+        audio_url=None,
+        external_ids={"rss_guid": "prefix-variant"},
+        evidence={},
+        source_payload={"id": "prefix-variant"},
+    )
+    fetched = mod.RssFetchResult(episodes=[canonical, prefix_variant])
+    monkeypatch.setattr(mod, "fetch_rss_episodes", lambda _podcast: fetched)
+
+    summary = mod.sync_podcast_episodes_from_rss(conn, _podcast(), dry_run=False)
+
+    assert summary.episodes_inserted == 1
+    assert len(conn.upserts) == 1
+    assert conn.upserts[0][2] == "canonical"
 
 
 def test_record_fetch_failure_increments_counter_and_stamps_timestamp():
