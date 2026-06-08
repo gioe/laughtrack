@@ -56,4 +56,11 @@ enum UITestLaunchArgs {
     /// for visual/screen iteration when no auth session exists on the
     /// simulator. Release builds never read it.
     static let forceComedianOnboardingScreen = "FORCE_COMEDIAN_ONBOARDING_SCREEN"
+
+    /// Launch-environment key (NOT a launch argument): DEBUG-only developer
+    /// seam. When set to `"1"`, `AppShellView` presents the existing soft
+    /// push-permission prompt sheet after the shell mounts, ignoring the
+    /// simulator's persisted cadence and in-app notification preference state.
+    /// Release builds never read it.
+    static let forceSoftPushPrompt = "FORCE_SOFT_PUSH_PROMPT"
 }

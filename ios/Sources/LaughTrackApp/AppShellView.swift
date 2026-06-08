@@ -184,6 +184,11 @@ struct AppShellView: View {
             didApplyInitialTab = true
             shellState.selectTab(initialTab)
         }
+#if DEBUG
+        .task {
+            DebugSoftPushPromptLaunch.fireIfRequested(coordinator: softPushPromptCoordinator)
+        }
+#endif
         .task(id: authManager.currentSession == nil) {
             if authManager.currentSession == nil {
                 favorites.resetSavedFavorites()

@@ -180,6 +180,30 @@ enum DebugComedianOnboardingLaunch {
         processInfo.environment[environmentKey] == "1"
     }
 }
+
+/// DEBUG-only hard presentation of the soft push-permission prompt. This is
+/// for visual iteration on the custom sheet, independent of the simulator's
+/// persisted cadence, notification preference, and authorization state.
+@MainActor
+enum DebugSoftPushPromptLaunch {
+    static let environmentKey = UITestLaunchArgs.forceSoftPushPrompt
+
+    private static var hasFired = false
+
+    static func shouldForcePrompt(environment: [String: String] = ProcessInfo.processInfo.environment) -> Bool {
+        environment[environmentKey] == "1"
+    }
+
+    static func fireIfRequested(
+        coordinator: SoftPushPromptCoordinator,
+        environment: [String: String] = ProcessInfo.processInfo.environment
+    ) {
+        guard !hasFired else { return }
+        guard shouldForcePrompt(environment: environment) else { return }
+        hasFired = true
+        coordinator.forcePresentPromptForDebug()
+    }
+}
 #endif
 
 #if canImport(UIKit)

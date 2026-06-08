@@ -288,6 +288,15 @@ public final class SoftPushPromptCoordinator: ObservableObject {
         systemSettingsOpener.openAppSystemSettings()
     }
 
+#if DEBUG
+    public func forcePresentPromptForDebug() {
+        hasPresentedThisSession = true
+        hasRespondedExplicitly = true
+        pendingDeniedAlertAfterDismiss = false
+        presentation = .promptingSheet
+    }
+#endif
+
     private func applyPushPreferenceEnabled() {
         notificationPreferenceStore.setFavoriteComedianPushAlertsEnabled(true)
         if let notificationSyncClient {

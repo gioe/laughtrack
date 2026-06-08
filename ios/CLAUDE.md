@@ -568,6 +568,31 @@ and renders `ComedianOnboardingView` directly. It is intended for visual/screen
 iteration; favorite/continue actions that require a real bearer token may still
 fail while signed out.
 
+### Forcing The Soft Push Prompt (DEBUG)
+
+The custom soft push-permission prompt sheet only renders once cadence,
+notification-preference, and system-authorization state all line up — by
+default that takes a fresh install plus the right number of post-onboarding
+favorite signals to clear the deferral. Set `FORCE_SOFT_PUSH_PROMPT=1` on the
+launch environment to skip all of that and present the sheet at app-shell
+mount:
+
+```
+launch_app_sim({ env: { "FORCE_SOFT_PUSH_PROMPT": "1" } })
+```
+
+The hook lives in `DebugSoftPushPromptLaunch.fireIfRequested(coordinator:)`
+under `#if DEBUG`, fires once per process from `AppShellView.task`, and calls
+`SoftPushPromptCoordinator.forcePresentPromptForDebug()` to flip
+`presentation = .promptingSheet` directly — bypassing cadence, the
+in-app notification-preference toggle, and the system authorization status.
+The key is centralised as `UITestLaunchArgs.forceSoftPushPrompt`. Release
+builds never compile the seam in.
+
+Use this for visual iteration on the prompt sheet's copy, layout, and
+button states without standing up a signed-in user or replaying the
+favorite-tap cadence required by the production presentation path.
+
 ## Launch Screen Iteration
 
 iOS caches the launch screen on the simulator (and on devices). After editing

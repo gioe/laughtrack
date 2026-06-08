@@ -34,6 +34,26 @@ struct AppShellViewTests {
         #expect(AppTab.allCases.map(\.title) == ["Discover", "Search", "Favorites"])
     }
 
+    @Test("debug soft-push launch override presents the prompt sheet")
+    func debugSoftPushLaunchOverridePresentsPromptSheet() async throws {
+        let coordinator = LaughTrackHostedViewTestSupport.makeSoftPushPromptCoordinator(
+            name: "debug-soft-push-launch"
+        )
+
+        #expect(DebugSoftPushPromptLaunch.shouldForcePrompt(environment: [:]) == false)
+        #expect(DebugSoftPushPromptLaunch.shouldForcePrompt(environment: [
+            UITestLaunchArgs.forceSoftPushPrompt: "1",
+        ]))
+
+        DebugSoftPushPromptLaunch.fireIfRequested(
+            coordinator: coordinator,
+            environment: [UITestLaunchArgs.forceSoftPushPrompt: "1"]
+        )
+
+        #expect(coordinator.presentation == .promptingSheet)
+        #expect(coordinator.hasPresentedThisSession)
+    }
+
     @Test("near me tab keeps the real home affordances inside shell chrome")
     func nearMeTabKeepsRealHomeAffordances() async throws {
         let shellState = AppShellState()
