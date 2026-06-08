@@ -10,6 +10,10 @@ on:
   pull_request:
     branches: [main, master]
     types: [opened, synchronize, reopened]
+    paths:
+      - "apps/scraper/**"
+      # schema.prisma drives the test Postgres for the SQL parse-time guard
+      - "apps/web/prisma/schema.prisma"
 
 jobs:
   # Per-job path gating: the workflow triggers on the union of scraper sources
