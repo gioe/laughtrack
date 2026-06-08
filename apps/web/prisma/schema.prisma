@@ -273,6 +273,15 @@ model Comedian {
   @@map("comedians")
 }
 
+model ComedianDenyList {
+  name      String   @id
+  reason    String   @default("")
+  deletedAt DateTime @default(now()) @map("deleted_at") @db.Timestamptz
+  addedBy   String   @default("audit_script") @map("added_by")
+
+  @@map("comedian_deny_list")
+}
+
 model ComedianPodcastDiscoveryAttempt {
   id              Int      @id @default(autoincrement())
   comedianId      Int      @map("comedian_id")

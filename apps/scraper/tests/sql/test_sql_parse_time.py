@@ -50,19 +50,11 @@ _CONSTANT_NAME_RE = re.compile(r"[A-Z][A-Z0-9_]*")
 
 # SQL constants that reference tables not yet present in the canonical Prisma
 # schema. Each caller already wraps these in try/except with a log-and-skip
-# fallback (see ``comedian/handler.py::_filter_denied_comedians``), so the
-# parse-time error is expected until the backing migration lands. Listing them
-# here keeps the guard's signal-to-noise high without silently dropping them
-# from the run — when the table is added, removing the entry re-enables strict
-# parse-time validation.
-KNOWN_UNRESOLVED_TABLES: Dict[str, str] = {
-    "comedian_queries.ComedianQueries.UPSERT_DENY_LIST_NAMES": (
-        "comedian_deny_list table is forward-looking; caller wraps in try/except"
-    ),
-    "comedian_queries.ComedianQueries.GET_DENIED_NAMES": (
-        "comedian_deny_list table is forward-looking; caller wraps in try/except"
-    ),
-}
+# fallback, so the parse-time error is expected until the backing migration
+# lands. Listing them here keeps the guard's signal-to-noise high without
+# silently dropping them from the run — when the table is added, removing the
+# entry re-enables strict parse-time validation.
+KNOWN_UNRESOLVED_TABLES: Dict[str, str] = {}
 
 
 def _discover_sql_constants() -> List[Tuple[str, str]]:
