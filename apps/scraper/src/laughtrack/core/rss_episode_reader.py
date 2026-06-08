@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import calendar
 import json
+import re
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -16,6 +17,23 @@ _TIMEOUT_SECONDS = 30
 _MAX_RETRIES = 3
 _BASE_RETRY_DELAY_S = 2.0
 _CACHE_KEY = "rss_episode_reader"
+
+# Episode-number prefix stripped from titles before logical-dup matching.
+# Matches "EP67:" / "Episode 67 -" / "#67 " / "67." / "67:" / "67)" patterns
+# that publishers swap in and out across feed revisions, causing the same
+# logical episode to ingest as multiple rows when sourced via different RSS
+# feeds. Two branches: when a marker word (EP/Episode/#) is present, a trailing
+# whitespace is sufficient as the boundary; when the prefix is a bare digit,
+# require an explicit separator so legitimate titles like "67 Wines" aren't
+# stripped. Strips at most one prefix from the start of the title.
+_TITLE_PREFIX_RE = re.compile(
+    r"^\s*(?:"
+    r"(?:ep(?:isode)?|#)\s*\d+(?:\s*[:.\-\)\]]|\s+)\s*"
+    r"|"
+    r"\d+\s*[:.\-\)\]]\s*"
+    r")",
+    re.IGNORECASE,
+)
 
 # Per-feed reachability backoff. A feed that fails to fetch
 # UNREACHABLE_FAILURE_THRESHOLD runs in a row is benched (skipped by the load
@@ -133,6 +151,74 @@ _UPDATE_PODCAST_CACHE_SQL = """
         updated_at = NOW()
     WHERE id = %s
 """
+
+# Logical-dup lookup. The unique constraint on (source, source_episode_id)
+# catches re-ingests of the exact same row, but the same logical episode often
+# arrives under different (source, source_episode_id) keys when a podcast is
+# polled via multiple feeds (e.g. iTunes vs PodcastIndex vs the publisher's
+# own RSS). Match by (podcast_id, release_date) — same podcast at the same
+# second is essentially never two different episodes.
+_LOOKUP_LOGICAL_BY_RELEASE_DATE_SQL = """
+    SELECT id FROM podcast_episodes
+    WHERE podcast_id = %s
+      AND release_date = %s::timestamptz
+      AND (source, source_episode_id) IS DISTINCT FROM (%s, %s)
+    ORDER BY id
+    LIMIT 1
+"""
+
+# Fallback for episodes with no release_date — match within podcast on
+# title with episode-number prefixes stripped, so "67: Foo" and "Foo" collapse.
+_LOOKUP_LOGICAL_BY_NULL_DATE_SQL = """
+    SELECT id, title FROM podcast_episodes
+    WHERE podcast_id = %s
+      AND release_date IS NULL
+      AND (source, source_episode_id) IS DISTINCT FROM (%s, %s)
+"""
+
+
+def _normalize_title(title: Optional[str]) -> str:
+    """Strip a leading episode-number prefix and lowercase for logical-dup matching."""
+    if not title:
+        return ""
+    return _TITLE_PREFIX_RE.sub("", title.strip(), count=1).strip().lower()
+
+
+def _find_logical_episode_id(conn: Any, episode: "RssEpisodeRow") -> Optional[int]:
+    """Return the id of an existing logical-duplicate row, or None.
+
+    A logical duplicate is one already in podcast_episodes for the same
+    (podcast_id, release_date) under a *different* (source, source_episode_id)
+    pair. When release_date is NULL, match instead by normalized title within
+    the podcast (handles prefix-variant titles like "67: Foo" vs "Foo").
+    """
+    if episode.release_date:
+        with conn.cursor() as cur:
+            cur.execute(
+                _LOOKUP_LOGICAL_BY_RELEASE_DATE_SQL,
+                (
+                    episode.podcast_id,
+                    episode.release_date,
+                    episode.source,
+                    episode.source_episode_id,
+                ),
+            )
+            row = cur.fetchone()
+        return int(row[0]) if row else None
+
+    normalized = _normalize_title(episode.title)
+    if not normalized:
+        return None
+    with conn.cursor() as cur:
+        cur.execute(
+            _LOOKUP_LOGICAL_BY_NULL_DATE_SQL,
+            (episode.podcast_id, episode.source, episode.source_episode_id),
+        )
+        rows = cur.fetchall() or []
+    for row in rows:
+        if _normalize_title(row[1]) == normalized:
+            return int(row[0])
+    return None
 
 
 def _string_or_none(value: Any) -> Optional[str]:
@@ -294,6 +380,15 @@ def fetch_rss_episodes(podcast: PodcastRssFeed) -> RssFetchResult:
 
 
 def upsert_episode_with_result(conn: Any, episode: RssEpisodeRow) -> EpisodeUpsertResult:
+    # Collapse logical duplicates (same podcast at the same release_date, but
+    # arriving under a different source/source_episode_id pair from another
+    # feed). Preserve the existing canonical row; do not rewrite its
+    # source/source_episode_id, since downstream evidence chains and the
+    # episode_appearances FK already point at it.
+    existing_id = _find_logical_episode_id(conn, episode)
+    if existing_id is not None:
+        return EpisodeUpsertResult(episode_id=existing_id, inserted=False, changed=False)
+
     with conn.cursor() as cur:
         cur.execute(
             _UPSERT_EPISODE_SQL,
