@@ -176,6 +176,8 @@ _UPSERT_EPISODE_SQL = """
                 input_values.release_date IS NOT NULL
                 AND podcast_episodes.podcast_id = input_values.podcast_id
                 AND podcast_episodes.release_date = input_values.release_date
+                AND LOWER(REGEXP_REPLACE(BTRIM(podcast_episodes.title), '^\\s*(?:(?:ep(?:isode)?|#)\\s*[0-9]+(?:\\s*[:.\\-\\)\\]]|\\s+)\\s*|[0-9]+\\s*[:.\\-\\)\\]]\\s*)', '', 'i'))
+                    = LOWER(REGEXP_REPLACE(BTRIM(input_values.title), '^\\s*(?:(?:ep(?:isode)?|#)\\s*[0-9]+(?:\\s*[:.\\-\\)\\]]|\\s+)\\s*|[0-9]+\\s*[:.\\-\\)\\]]\\s*)', '', 'i'))
             )
           )
         ORDER BY
@@ -533,10 +535,11 @@ def episode_from_payload(
 
 def upsert_episode_with_result(conn: Any, episode: PodcastEpisodeRow) -> EpisodeUpsertResult:
     # Collapse logical duplicates before insert — same podcast at the same
-    # release_date arriving under a different (source, source_episode_id) is
-    # the same logical episode, just sourced from a second feed. Preserve the
-    # canonical row so episode_appearances FK targets stay stable; metadata
-    # divergence between feeds is locked to first-seen.
+    # release_date and normalized title arriving under a different
+    # (source, source_episode_id) is the same logical episode, just sourced from
+    # a second feed. Preserve the canonical row so episode_appearances FK
+    # targets stay stable; metadata divergence between feeds is locked to
+    # first-seen.
     existing_id = find_logical_episode_id(conn, episode)
     if existing_id is not None:
         return EpisodeUpsertResult(episode_id=existing_id, inserted=False, changed=False)

@@ -167,6 +167,8 @@ _UPSERT_EPISODE_SQL = """
                 input_values.release_date IS NOT NULL
                 AND podcast_episodes.podcast_id = input_values.podcast_id
                 AND podcast_episodes.release_date = input_values.release_date
+                AND LOWER(REGEXP_REPLACE(BTRIM(podcast_episodes.title), '^\\s*(?:(?:ep(?:isode)?|#)\\s*[0-9]+(?:\\s*[:.\\-\\)\\]]|\\s+)\\s*|[0-9]+\\s*[:.\\-\\)\\]]\\s*)', '', 'i'))
+                    = LOWER(REGEXP_REPLACE(BTRIM(input_values.title), '^\\s*(?:(?:ep(?:isode)?|#)\\s*[0-9]+(?:\\s*[:.\\-\\)\\]]|\\s+)\\s*|[0-9]+\\s*[:.\\-\\)\\]]\\s*)', '', 'i'))
             )
           )
         ORDER BY
@@ -234,12 +236,15 @@ _UPDATE_PODCAST_CACHE_SQL = """
 # catches re-ingests of the exact same row, but the same logical episode often
 # arrives under different (source, source_episode_id) keys when a podcast is
 # polled via multiple feeds (e.g. iTunes vs PodcastIndex vs the publisher's
-# own RSS). Match by (podcast_id, release_date) — same podcast at the same
-# second is essentially never two different episodes.
+# own RSS). Match by (podcast_id, release_date, normalized title) so feeds
+# that stamp batches of distinct episodes with the same timestamp still keep
+# separate rows.
 _LOOKUP_LOGICAL_BY_RELEASE_DATE_SQL = """
     SELECT id FROM podcast_episodes
     WHERE podcast_id = %s
       AND release_date = %s::timestamptz
+      AND LOWER(REGEXP_REPLACE(BTRIM(title), '^\\s*(?:(?:ep(?:isode)?|#)\\s*[0-9]+(?:\\s*[:.\\-\\)\\]]|\\s+)\\s*|[0-9]+\\s*[:.\\-\\)\\]]\\s*)', '', 'i'))
+          = LOWER(REGEXP_REPLACE(BTRIM(%s), '^\\s*(?:(?:ep(?:isode)?|#)\\s*[0-9]+(?:\\s*[:.\\-\\)\\]]|\\s+)\\s*|[0-9]+\\s*[:.\\-\\)\\]]\\s*)', '', 'i'))
       AND (source, source_episode_id) IS DISTINCT FROM (%s, %s)
     ORDER BY id
     LIMIT 1
@@ -273,9 +278,9 @@ def find_logical_episode_id(conn: Any, episode: "RssEpisodeRow") -> Optional[int
     """Return the id of an existing logical-duplicate row, or None.
 
     A logical duplicate is one already in podcast_episodes for the same
-    (podcast_id, release_date) under a *different* (source, source_episode_id)
-    pair. When release_date is NULL, match instead by normalized title within
-    the podcast (handles prefix-variant titles like "67: Foo" vs "Foo").
+    (podcast_id, release_date, normalized title) under a *different*
+    (source, source_episode_id) pair. When release_date is NULL, match instead
+    by normalized title within the podcast.
 
     Imported by backfill_podcast_episodes.py so the RSS-reader and PodcastIndex
     write paths share one definition of "same logical episode".
@@ -287,6 +292,7 @@ def find_logical_episode_id(conn: Any, episode: "RssEpisodeRow") -> Optional[int
                 (
                     episode.podcast_id,
                     episode.release_date,
+                    episode.title,
                     episode.source,
                     episode.source_episode_id,
                 ),
@@ -479,8 +485,8 @@ def fetch_rss_episodes(podcast: PodcastRssFeed) -> RssFetchResult:
 
 
 def upsert_episode_with_result(conn: Any, episode: RssEpisodeRow) -> EpisodeUpsertResult:
-    # Collapse logical duplicates: same podcast at the same release_date but
-    # arriving under a different (source, source_episode_id) from another feed.
+    # Collapse logical duplicates: same podcast at the same release_date and
+    # normalized title but arriving under a different (source, source_episode_id).
     # Lock to first-seen — preserve the existing canonical row's id AND its
     # metadata (title/description/audio_url/etc.). Episode_appearances are
     # FK-bound to podcast_episodes.id, so the id must not change; metadata

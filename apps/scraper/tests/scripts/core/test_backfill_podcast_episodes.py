@@ -14,6 +14,7 @@ for _p in (str(_src_path), str(_repo_root)):
         sys.path.insert(0, _p)
 
 from scripts.core import backfill_podcast_episodes as mod  # noqa: E402
+from laughtrack.core import rss_episode_reader as rss_mod  # noqa: E402
 
 
 class _FakeCursor:
@@ -52,12 +53,13 @@ class _FakeCursor:
                 if (row["source"], row["source_episode_id"]) == (source, source_episode_id)
             ][:1]
         elif normalized.startswith("SELECT id FROM podcast_episodes"):
-            podcast_id, release_date, source, source_episode_id = params
+            podcast_id, release_date, title, source, source_episode_id = params
             self._last_result = [
                 (row["id"],)
                 for row in self._conn.existing_episode_rows
                 if row["podcast_id"] == podcast_id
                 and row["release_date"] == release_date
+                and rss_mod._normalize_title(row["title"]) == rss_mod._normalize_title(title)
                 and (row["source"], row["source_episode_id"]) != (source, source_episode_id)
             ][:1]
         elif normalized.startswith("SELECT id, title FROM podcast_episodes"):

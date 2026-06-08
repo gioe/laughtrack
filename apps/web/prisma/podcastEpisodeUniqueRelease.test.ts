@@ -82,7 +82,13 @@ const UPSERT_SQL = `
         WHERE NOT EXISTS (SELECT 1 FROM inserted)
           AND (
             (source = $2 AND source_episode_id = $3)
-            OR ($7::timestamptz IS NOT NULL AND podcast_id = $1 AND release_date = $7::timestamptz)
+            OR (
+                $7::timestamptz IS NOT NULL
+                AND podcast_id = $1
+                AND release_date = $7::timestamptz
+                AND LOWER(REGEXP_REPLACE(BTRIM(title), '^\\s*(?:(?:ep(?:isode)?|#)\\s*[0-9]+(?:\\s*[:.\\-\\)\\]]|\\s+)\\s*|[0-9]+\\s*[:.\\-\\)\\]]\\s*)', '', 'i'))
+                    = LOWER(REGEXP_REPLACE(BTRIM($5), '^\\s*(?:(?:ep(?:isode)?|#)\\s*[0-9]+(?:\\s*[:.\\-\\)\\]]|\\s+)\\s*|[0-9]+\\s*[:.\\-\\)\\]]\\s*)', '', 'i'))
+            )
           )
         ORDER BY CASE WHEN source = $2 AND source_episode_id = $3 THEN 0 ELSE 1 END, id
         LIMIT 1
@@ -133,6 +139,7 @@ const UPSERT_SQL = `
 async function upsertEpisode(
     db: PGlite,
     sourceEpisodeId: string,
+    title = `Episode ${sourceEpisodeId}`,
 ): Promise<{ id: number; inserted: boolean; changed: boolean }> {
     const res = await db.query<{
         id: number;
@@ -143,7 +150,7 @@ async function upsertEpisode(
         "rss",
         sourceEpisodeId,
         sourceEpisodeId,
-        `Episode ${sourceEpisodeId}`,
+        title,
         null,
         "2026-06-08T12:00:00+00:00",
         null,
@@ -176,10 +183,10 @@ describe("podcast episode unique release migration", () => {
         await db.query("INSERT INTO podcasts DEFAULT VALUES");
     });
 
-    it("collapses concurrent logical inserts for the same podcast release into one row", async () => {
+    it("collapses concurrent logical inserts for the same podcast release and normalized title into one row", async () => {
         const [first, second] = await Promise.all([
-            upsertEpisode(db, "source-a"),
-            upsertEpisode(db, "source-b"),
+            upsertEpisode(db, "source-a", "Episode One"),
+            upsertEpisode(db, "source-b", "67: Episode One"),
         ]);
 
         const count = await db.query<{ count: number }>(
@@ -191,6 +198,25 @@ describe("podcast episode unique release migration", () => {
         expect([first.inserted, second.inserted].filter(Boolean)).toHaveLength(
             1,
         );
+    });
+
+    it("allows distinct titles on the same podcast release timestamp", async () => {
+        const [first, second] = await Promise.all([
+            upsertEpisode(db, "source-a", "THAT in THIS!"),
+            upsertEpisode(db, "source-b", "Let's do this!"),
+        ]);
+
+        const rows = await db.query<{ title: string }>(
+            "SELECT title FROM podcast_episodes ORDER BY id",
+        );
+
+        expect(rows.rows.map((row) => row.title)).toEqual([
+            "THAT in THIS!",
+            "Let's do this!",
+        ]);
+        expect(first.id).not.toBe(second.id);
+        expect(first.inserted).toBe(true);
+        expect(second.inserted).toBe(true);
     });
 
     it("does not treat NULL release dates as logical duplicates", async () => {

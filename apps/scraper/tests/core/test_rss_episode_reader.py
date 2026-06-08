@@ -57,12 +57,13 @@ class _FakeCursor:
             # (podcast_id, release_date, source, source_episode_id) lookup; exclude
             # the row whose (source, source_episode_id) matches the params, then
             # return the first row that shares (podcast_id, release_date).
-            podcast_id, release_date, source, source_episode_id = params
+            podcast_id, release_date, title, source, source_episode_id = params
             self._last_result = [
                 (row["id"],)
                 for row in self.conn.rows
                 if row["podcast_id"] == podcast_id
                 and row["release_date"] == release_date
+                and mod._normalize_title(row["title"]) == mod._normalize_title(title)
                 and (row["source"], row["source_episode_id"]) != (source, source_episode_id)
             ][:1]
         elif normalized.startswith("SELECT id, title FROM podcast_episodes"):
@@ -94,7 +95,7 @@ class _FakeCursor:
                     "release_date": params[6],
                 }
             )
-            self._last_result = [(new_id, len(self.conn.upserts) == 1)]
+            self._last_result = [(new_id, True)]
         elif normalized.startswith("UPDATE podcasts"):
             self.conn.podcast_updates.append(params)
             self._last_result = []
@@ -334,6 +335,51 @@ def test_logical_duplicate_with_different_source_id_collapses_to_single_row(monk
     select_sqls = [sql for sql, _ in conn.executed if "SELECT id FROM podcast_episodes" in sql]
     assert len(select_sqls) == 2
     assert "release_date = %s::timestamptz" in select_sqls[1]
+
+
+def test_same_release_date_with_different_title_is_not_a_logical_duplicate(monkeypatch):
+    conn = _FakeConn()
+    release_date = datetime(2024, 5, 1, 12, 0, tzinfo=timezone.utc).isoformat()
+    fetched = mod.RssFetchResult(
+        episodes=[
+            mod.RssEpisodeRow(
+                podcast_id=42,
+                source="itunes",
+                source_episode_id="rss-guid-a",
+                guid="rss-guid-a",
+                title="THAT in THIS!",
+                description=None,
+                release_date=release_date,
+                duration_seconds=None,
+                episode_url=None,
+                audio_url=None,
+                external_ids={"rss_guid": "rss-guid-a"},
+                evidence={},
+                source_payload={"id": "rss-guid-a"},
+            ),
+            mod.RssEpisodeRow(
+                podcast_id=42,
+                source="itunes",
+                source_episode_id="rss-guid-b",
+                guid="rss-guid-b",
+                title="Let's do this!",
+                description=None,
+                release_date=release_date,
+                duration_seconds=None,
+                episode_url=None,
+                audio_url=None,
+                external_ids={"rss_guid": "rss-guid-b"},
+                evidence={},
+                source_payload={"id": "rss-guid-b"},
+            ),
+        ]
+    )
+    monkeypatch.setattr(mod, "fetch_rss_episodes", lambda _podcast: fetched)
+
+    summary = mod.sync_podcast_episodes_from_rss(conn, _podcast(), dry_run=False)
+
+    assert summary.episodes_inserted == 2
+    assert [params[2] for params in conn.upserts] == ["rss-guid-a", "rss-guid-b"]
 
 
 def test_upsert_returns_existing_id_when_release_conflict_becomes_visible_after_insert():
