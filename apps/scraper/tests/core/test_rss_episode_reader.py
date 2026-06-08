@@ -69,7 +69,7 @@ class _FakeCursor:
                 and row["release_date"] is None
                 and (row["source"], row["source_episode_id"]) != (source, source_episode_id)
             ]
-        elif normalized.startswith("INSERT INTO podcast_episodes"):
+        elif "INSERT INTO podcast_episodes" in normalized:
             self.conn.upserts.append(params)
             new_id = 1000 + len(self.conn.upserts)
             self.conn.rows.append(
@@ -252,7 +252,8 @@ def test_sync_upserts_deduped_guid_rows_with_parent_source(monkeypatch):
     assert summary.episodes_skipped == 1
     assert len(conn.upserts) == 1
     upsert_sql = next(sql for sql, _ in conn.executed if "INSERT INTO podcast_episodes" in sql)
-    assert "ON CONFLICT (source, source_episode_id) DO UPDATE" in upsert_sql
+    assert "ON CONFLICT DO NOTHING" in upsert_sql
+    assert "podcast_episodes.release_date = input_values.release_date" in upsert_sql
     upsert_params = conn.upserts[0]
     assert upsert_params[0:5] == (42, "itunes", "rss-guid-1", "rss-guid-1", "Stored")
     assert json.loads(upsert_params[10]) == {"rss_guid": "rss-guid-1"}

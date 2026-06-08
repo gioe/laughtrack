@@ -62,9 +62,10 @@ class _FakeCursor:
                 and row["release_date"] is None
                 and (row["source"], row["source_episode_id"]) != (source, source_episode_id)
             ]
-        elif normalized.startswith("INSERT INTO podcast_episodes"):
+        elif "INSERT INTO podcast_episodes" in normalized:
             self._conn.upserts.append(params)
-            self._last_result = [(len(self._conn.upserts) % 2 == 1,)]
+            new_id = 1000 + len(self._conn.upserts)
+            self._last_result = [(new_id, len(self._conn.upserts) % 2 == 1, True)]
         else:
             self._last_result = []
 

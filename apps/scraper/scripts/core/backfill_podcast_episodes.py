@@ -108,47 +108,125 @@ _LOAD_ACCEPTED_FEEDS_SQL = """
 """
 
 _UPSERT_EPISODE_SQL = """
-    INSERT INTO podcast_episodes (
-        podcast_id,
-        source,
-        source_episode_id,
-        guid,
-        title,
-        description,
-        release_date,
-        duration_seconds,
-        episode_url,
-        audio_url,
-        external_ids,
-        evidence,
-        source_payload
+    WITH input_values AS (
+        SELECT
+            %s::integer AS podcast_id,
+            %s::text AS source,
+            %s::text AS source_episode_id,
+            %s::text AS guid,
+            %s::text AS title,
+            %s::text AS description,
+            %s::timestamptz AS release_date,
+            %s::integer AS duration_seconds,
+            %s::text AS episode_url,
+            %s::text AS audio_url,
+            %s::jsonb AS external_ids,
+            %s::jsonb AS evidence,
+            %s::jsonb AS source_payload
+    ),
+    inserted AS (
+        INSERT INTO podcast_episodes (
+            podcast_id,
+            source,
+            source_episode_id,
+            guid,
+            title,
+            description,
+            release_date,
+            duration_seconds,
+            episode_url,
+            audio_url,
+            external_ids,
+            evidence,
+            source_payload
+        )
+        SELECT
+            podcast_id,
+            source,
+            source_episode_id,
+            guid,
+            title,
+            description,
+            release_date,
+            duration_seconds,
+            episode_url,
+            audio_url,
+            external_ids,
+            evidence,
+            source_payload
+        FROM input_values
+        ON CONFLICT DO NOTHING
+        RETURNING id, true AS inserted, true AS changed
+    ),
+    target AS (
+        SELECT
+            podcast_episodes.id,
+            (podcast_episodes.source = input_values.source
+                AND podcast_episodes.source_episode_id = input_values.source_episode_id) AS same_source
+        FROM podcast_episodes
+        CROSS JOIN input_values
+        WHERE NOT EXISTS (SELECT 1 FROM inserted)
+          AND (
+            (podcast_episodes.source, podcast_episodes.source_episode_id)
+                = (input_values.source, input_values.source_episode_id)
+            OR (
+                input_values.release_date IS NOT NULL
+                AND podcast_episodes.podcast_id = input_values.podcast_id
+                AND podcast_episodes.release_date = input_values.release_date
+            )
+          )
+        ORDER BY
+            CASE
+                WHEN (podcast_episodes.source, podcast_episodes.source_episode_id)
+                    = (input_values.source, input_values.source_episode_id)
+                THEN 0
+                ELSE 1
+            END,
+            podcast_episodes.id
+        LIMIT 1
+    ),
+    updated AS (
+        UPDATE podcast_episodes
+        SET podcast_id = input_values.podcast_id,
+            guid = COALESCE(input_values.guid, podcast_episodes.guid),
+            title = input_values.title,
+            description = input_values.description,
+            release_date = input_values.release_date,
+            duration_seconds = input_values.duration_seconds,
+            episode_url = input_values.episode_url,
+            audio_url = input_values.audio_url,
+            external_ids = input_values.external_ids,
+            evidence = input_values.evidence,
+            source_payload = input_values.source_payload,
+            updated_at = NOW()
+        FROM input_values
+        WHERE podcast_episodes.id = (SELECT id FROM target WHERE same_source)
+          AND (
+            podcast_episodes.podcast_id IS DISTINCT FROM input_values.podcast_id
+            OR podcast_episodes.guid IS DISTINCT FROM COALESCE(input_values.guid, podcast_episodes.guid)
+            OR podcast_episodes.title IS DISTINCT FROM input_values.title
+            OR podcast_episodes.description IS DISTINCT FROM input_values.description
+            OR podcast_episodes.release_date IS DISTINCT FROM input_values.release_date
+            OR podcast_episodes.duration_seconds IS DISTINCT FROM input_values.duration_seconds
+            OR podcast_episodes.episode_url IS DISTINCT FROM input_values.episode_url
+            OR podcast_episodes.audio_url IS DISTINCT FROM input_values.audio_url
+            OR podcast_episodes.external_ids IS DISTINCT FROM input_values.external_ids
+            OR podcast_episodes.evidence IS DISTINCT FROM input_values.evidence
+            OR podcast_episodes.source_payload IS DISTINCT FROM input_values.source_payload
+          )
+        RETURNING podcast_episodes.id, false AS inserted, true AS changed
+    ),
+    unchanged AS (
+        SELECT id, false AS inserted, false AS changed
+        FROM target
+        WHERE NOT EXISTS (SELECT 1 FROM updated)
     )
-    VALUES (%s, %s, %s, %s, %s, %s, %s::timestamptz, %s, %s, %s, %s::jsonb, %s::jsonb, %s::jsonb)
-    ON CONFLICT (source, source_episode_id) DO UPDATE SET
-        podcast_id = EXCLUDED.podcast_id,
-        guid = COALESCE(EXCLUDED.guid, podcast_episodes.guid),
-        title = EXCLUDED.title,
-        description = EXCLUDED.description,
-        release_date = EXCLUDED.release_date,
-        duration_seconds = EXCLUDED.duration_seconds,
-        episode_url = EXCLUDED.episode_url,
-        audio_url = EXCLUDED.audio_url,
-        external_ids = EXCLUDED.external_ids,
-        evidence = EXCLUDED.evidence,
-        source_payload = EXCLUDED.source_payload,
-        updated_at = NOW()
-    WHERE podcast_episodes.podcast_id IS DISTINCT FROM EXCLUDED.podcast_id
-       OR podcast_episodes.guid IS DISTINCT FROM COALESCE(EXCLUDED.guid, podcast_episodes.guid)
-       OR podcast_episodes.title IS DISTINCT FROM EXCLUDED.title
-       OR podcast_episodes.description IS DISTINCT FROM EXCLUDED.description
-       OR podcast_episodes.release_date IS DISTINCT FROM EXCLUDED.release_date
-       OR podcast_episodes.duration_seconds IS DISTINCT FROM EXCLUDED.duration_seconds
-       OR podcast_episodes.episode_url IS DISTINCT FROM EXCLUDED.episode_url
-       OR podcast_episodes.audio_url IS DISTINCT FROM EXCLUDED.audio_url
-       OR podcast_episodes.external_ids IS DISTINCT FROM EXCLUDED.external_ids
-       OR podcast_episodes.evidence IS DISTINCT FROM EXCLUDED.evidence
-       OR podcast_episodes.source_payload IS DISTINCT FROM EXCLUDED.source_payload
-    RETURNING id, (xmax = 0) AS inserted
+    SELECT id, inserted, changed FROM inserted
+    UNION ALL
+    SELECT id, inserted, changed FROM updated
+    UNION ALL
+    SELECT id, inserted, changed FROM unchanged
+    LIMIT 1
 """
 
 
