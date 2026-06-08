@@ -260,16 +260,16 @@ public struct LaughTrackTheme: AppThemeProtocol {
         )
 
         let semanticTypography = LaughTrackSemanticTypographyTokens(
-            hero: .system(size: 34, weight: .heavy, design: .rounded),
-            screenTitle: .system(size: 28, weight: .bold, design: .rounded),
-            sectionTitle: .system(size: 22, weight: .bold, design: .rounded),
-            cardTitle: .system(size: 20, weight: .semibold, design: .rounded),
-            body: .system(size: 17, weight: .regular, design: .default),
-            bodyEmphasis: .system(size: 17, weight: .medium, design: .default),
-            metadata: .system(size: 13, weight: .medium, design: .default),
-            eyebrow: .system(size: 12, weight: .semibold, design: .rounded),
-            action: .system(size: 16, weight: .semibold, design: .rounded),
-            numericHighlight: .system(size: 26, weight: .bold, design: .rounded)
+            hero: .custom("Chivo-Black", size: 34),
+            screenTitle: .custom("Gilroy-Bold", size: 28),
+            sectionTitle: .custom("Gilroy-Bold", size: 22),
+            cardTitle: .custom("Gilroy-Bold", size: 20),
+            body: .custom("DMSans-Regular", size: 17),
+            bodyEmphasis: .custom("DMSans-Medium", size: 17),
+            metadata: .custom("DMSans-Medium", size: 13),
+            eyebrow: .custom("DMSans-SemiBold", size: 12),
+            action: .custom("DMSans-SemiBold", size: 16),
+            numericHighlight: .custom("Gilroy-Bold", size: 26)
         )
 
         let semanticSpacing = LaughTrackSemanticSpacingTokens(
