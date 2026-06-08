@@ -203,11 +203,13 @@ unchanged; only the user-facing labels and the filter option value moved.
 
 ### Application changes that ship with the migration
 
-- `apps/web/app/api/admin/comedians/route.ts`: derive `isHidden` from
-  `comedians.visible=false` instead of `Boolean(denyListEntry)`.
-  `denyListEntry` continues to be checked **in addition**, so admin UI still
-  surfaces the orphan-name blocks correctly under whatever new admin surface
-  TASK-2640 chooses for them.
+- `apps/web/app/api/admin/comedians/route.ts`: **unchanged from the pre-ADR
+  state** — the admin serializer continues to expose `isBlocked: Boolean(denyListEntry)`
+  and the actions remain `blocklist-add`/`blocklist-remove` (see Decision 2's
+  inverted scope). The new `comedians.visible` column is **not** read on the
+  admin path; the deny-list remains the suppression source of truth for the
+  admin UI. Setting `comedians.visible=false` is performed by the migration's
+  backfill statement, not by an admin action.
 - `apps/web/app/api/admin/deny-list/route.ts`: continues to manage the
   residual orphan table; admin docs note that the table is now
   orphan-only.
