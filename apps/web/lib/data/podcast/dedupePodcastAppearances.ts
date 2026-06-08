@@ -21,28 +21,23 @@ const APPEARANCE_ROLE_PRIORITY: Record<string, number> = {
     guest: 1,
 };
 
-// The scraper occasionally writes the same logical podcast episode to multiple
-// `podcast_episodes` rows — different RSS feeds re-publishing the same content,
-// or one feed adding a numeric prefix to a title that another feed omits. Each
-// row gets its own `episode_appearances` join, so a comedian's appearances list
-// returns the same episode 2-4× from the API's perspective.
-//
-// Investigation (2026-06-08): 29,314 dupe groups in podcast_episodes covering
-// 29,435 surplus rows. The appearance table itself is unique on
-// (episode_id, comedian_id) — the duplication is upstream.
+// Defense-in-depth dedupe for podcast appearances. The primary fix lives at the
+// DB layer (uniqueness constraint + backfill on `podcast_episodes`); this
+// collapse is a frontend safety net for any future scraper regression that
+// slips multiple `podcast_episodes` rows through for one logical episode.
 //
 // Dedup key: (podcastId, releaseDate.getTime()) when releaseDate is present.
 // Same podcast emitting two episodes at the same second is implausible —
-// observed dupes always share the timestamp because they come from the same
-// upstream feed entry rescraped under different prefix variants. Falls back to
-// (podcastId, title) when releaseDate is null so legacy rows still dedupe.
+// historical dupes always shared the timestamp because they came from the
+// same upstream feed entry rescraped under different title-prefix variants.
+// Falls back to (podcastId, title) when releaseDate is null so legacy rows
+// still collapse.
 //
 // Tiebreaker: prefer host > cohost > guest, then higher `appearance.id` so the
 // most-recently-scraped row wins (likely to carry the freshest audio_url).
-//
-// Used by both the slug-route comedian detail (`findComedianByName`) and the
-// v1 numeric-ID route (`/api/v1/comedians/[id]`) so the iOS app — which hits
-// the v1 endpoint — sees the same deduped list as the web client.
+// Note this is intentionally distinct from the backfill script's "lowest id
+// wins" rule — the two only need to agree when dupes exist, which the DB
+// constraint now prevents.
 export function dedupePodcastAppearances<T extends DedupableEpisodeAppearance>(
     appearances: T[],
 ): T[] {
