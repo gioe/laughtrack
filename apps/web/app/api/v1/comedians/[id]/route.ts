@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { buildComedianImageUrl } from "@/util/imageUtil";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { normalizePodcastAppearanceRole } from "@/lib/data/podcast/appearanceRole";
+import { dedupePodcastAppearances } from "@/lib/data/podcast/dedupePodcastAppearances";
 import { withRequestMetrics } from "@/lib/metrics";
 
 type PodcastEpisodeAppearance = {
@@ -235,7 +236,7 @@ export const GET = withRequestMetrics(async function GET(
                         popularity: comedian.popularity,
                     },
                     podcastAppearances: mapPodcastAppearances(
-                        comedian.episodeAppearances,
+                        dedupePodcastAppearances(comedian.episodeAppearances),
                     ),
                 },
             },

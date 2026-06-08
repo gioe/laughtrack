@@ -672,6 +672,115 @@ describe("findComedianByName", () => {
             expect(result.podcastAppearances?.[0]?.appearanceRole).toBe("host");
         });
 
+        it("picks the host role even when the host appearance has the lower id (role priority dominates the id tiebreaker)", async () => {
+            // Mirror of the test above with appearance.id ordering inverted.
+            // If role priority were absent, the id tiebreaker alone would keep
+            // the guest (higher id wins). The host must still win.
+            const releaseDate = new Date("2026-03-02T00:00:00.000Z");
+            const row = makeComedianRow({
+                episodeAppearances: [
+                    {
+                        id: 50,
+                        appearanceRole: "host",
+                        episode: {
+                            id: 210,
+                            podcast: {
+                                id: 810,
+                                title: "Inverted IDs Pod",
+                                imageUrl: null,
+                                authorName: null,
+                                websiteUrl: null,
+                            },
+                            title: "Episode A",
+                            releaseDate,
+                            episodeUrl: "https://example.com/host-low-id",
+                            audioUrl: "https://cdn.example.com/host-low-id.mp3",
+                            durationSeconds: 3000,
+                        },
+                    },
+                    {
+                        id: 99,
+                        appearanceRole: "guest",
+                        episode: {
+                            id: 211,
+                            podcast: {
+                                id: 810,
+                                title: "Inverted IDs Pod",
+                                imageUrl: null,
+                                authorName: null,
+                                websiteUrl: null,
+                            },
+                            title: "Episode A",
+                            releaseDate,
+                            episodeUrl: "https://example.com/guest-high-id",
+                            audioUrl: "https://cdn.example.com/guest-high-id.mp3",
+                            durationSeconds: 3000,
+                        },
+                    },
+                ],
+            });
+            mockFindFirst.mockResolvedValue(row);
+
+            const result = await findComedianByName(makeHelper());
+
+            expect(result.podcastAppearances).toHaveLength(1);
+            expect(result.podcastAppearances?.[0]?.appearanceRole).toBe("host");
+        });
+
+        it("picks the cohost role over guest when collapsing duplicates", async () => {
+            const releaseDate = new Date("2026-03-03T00:00:00.000Z");
+            const row = makeComedianRow({
+                episodeAppearances: [
+                    {
+                        id: 60,
+                        appearanceRole: "guest",
+                        episode: {
+                            id: 220,
+                            podcast: {
+                                id: 820,
+                                title: "Cohost Pod",
+                                imageUrl: null,
+                                authorName: null,
+                                websiteUrl: null,
+                            },
+                            title: "Episode B",
+                            releaseDate,
+                            episodeUrl: "https://example.com/guest",
+                            audioUrl: "https://cdn.example.com/guest.mp3",
+                            durationSeconds: 2700,
+                        },
+                    },
+                    {
+                        id: 61,
+                        appearanceRole: "cohost",
+                        episode: {
+                            id: 221,
+                            podcast: {
+                                id: 820,
+                                title: "Cohost Pod",
+                                imageUrl: null,
+                                authorName: null,
+                                websiteUrl: null,
+                            },
+                            title: "Episode B",
+                            releaseDate,
+                            episodeUrl: "https://example.com/cohost",
+                            audioUrl: "https://cdn.example.com/cohost.mp3",
+                            durationSeconds: 2700,
+                        },
+                    },
+                ],
+            });
+            mockFindFirst.mockResolvedValue(row);
+
+            const result = await findComedianByName(makeHelper());
+
+            expect(result.podcastAppearances).toHaveLength(1);
+            expect(result.podcastAppearances?.[0]?.appearanceRole).toBe(
+                "cohost",
+            );
+        });
+
         it("keeps different podcasts that happen to publish on the same timestamp", async () => {
             // Two distinct podcasts releasing at the same moment are NOT
             // duplicates — the dedup key includes podcast.id.

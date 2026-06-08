@@ -237,6 +237,95 @@ describe("GET /api/v1/comedians/[id]", () => {
         ]);
     });
 
+    it("collapses duplicate podcast appearances that share the same (podcastId, releaseDate)", async () => {
+        // Repro of the iOS Podcasts-tab bug: same logical episode lives in
+        // podcast_episodes as multiple rows (different feeds or prefix
+        // variants), each generating its own episode_appearance for the same
+        // comedian. The v1 route must dedupe before returning to iOS.
+        const releaseDate = new Date("2026-05-12T01:00:00.000Z");
+        mockFindUnique.mockResolvedValue({
+            id: 874,
+            uuid: "mark-normand-uuid",
+            name: "Mark Normand",
+            visible: true,
+            totalShows: 0,
+            soldOutShows: 0,
+            linktree: null,
+            instagramAccount: null,
+            instagramFollowers: null,
+            tiktokAccount: null,
+            tiktokFollowers: null,
+            youtubeAccount: null,
+            youtubeFollowers: null,
+            website: null,
+            popularity: 0.9,
+            hasImage: true,
+            ...defaultComedianWebsiteHealthFields,
+            episodeAppearances: [
+                {
+                    id: 715587,
+                    appearanceRole: "host",
+                    episode: {
+                        id: 392861,
+                        source: "podcast_index",
+                        sourceEpisodeId: "tws-655-a",
+                        title: "#655 Fart In My Mouth and Call It a Love Story",
+                        releaseDate,
+                        durationSeconds: 3600,
+                        episodeUrl: "https://example.com/655-a",
+                        audioUrl: "https://cdn.example.com/655-a.mp3",
+                        podcast: {
+                            id: 5660,
+                            source: "podcast_index",
+                            sourcePodcastId: "tws-feed",
+                            title: "Tuesdays with Stories!",
+                            imageUrl: null,
+                            websiteUrl: null,
+                            feedUrl: null,
+                            authorName: null,
+                        },
+                        appearances: [],
+                    },
+                },
+                {
+                    id: 92841,
+                    appearanceRole: "host",
+                    episode: {
+                        id: 58823,
+                        source: "podcast_index",
+                        sourceEpisodeId: "tws-655-b",
+                        title: "#655 Fart In My Mouth and Call It a Love Story",
+                        releaseDate,
+                        durationSeconds: 3600,
+                        episodeUrl: "https://example.com/655-b",
+                        audioUrl: "https://cdn.example.com/655-b.mp3",
+                        podcast: {
+                            id: 5660,
+                            source: "podcast_index",
+                            sourcePodcastId: "tws-feed",
+                            title: "Tuesdays with Stories!",
+                            imageUrl: null,
+                            websiteUrl: null,
+                            feedUrl: null,
+                            authorName: null,
+                        },
+                        appearances: [],
+                    },
+                },
+            ],
+        } as never);
+
+        const res = await GET(makeRequest(), {
+            params: Promise.resolve({ id: "874" }),
+        });
+        const body = await res.json();
+
+        expect(res.status).toBe(200);
+        expect(body.data.podcastAppearances).toHaveLength(1);
+        // Higher appearance.id wins the same-role tiebreaker (most recent scrape).
+        expect(body.data.podcastAppearances[0].id).toBe(715587);
+    });
+
     it("fails the OpenAPI contract when required social data id is omitted", async () => {
         const body = {
             data: {
