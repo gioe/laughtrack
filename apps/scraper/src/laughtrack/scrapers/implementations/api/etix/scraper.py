@@ -110,8 +110,28 @@ class EtixScraper(BaseScraper):
             return []
 
         page1_url = _ETIX_VENUE_URL.format(venue_id=self._venue_id, page=1)
-        html = await self._fetch_etix_html(page1_url)
+        try:
+            html = await self._fetch_etix_html(page1_url)
+        except Exception as e:
+            fallback_url = self._funny_bone_fallback_url_for(page1_url)
+            if fallback_url:
+                Logger.warn(
+                    f"{self._log_prefix}: Etix target discovery fetch failed for {page1_url}; "
+                    f"using Funny Bone fallback {fallback_url}: {e}",
+                    self.logger_context,
+                )
+                return [fallback_url]
+            raise
+
         if not html:
+            fallback_url = self._funny_bone_fallback_url_for(page1_url)
+            if fallback_url:
+                Logger.warn(
+                    f"{self._log_prefix}: Etix target discovery returned no HTML for {page1_url}; "
+                    f"using Funny Bone fallback {fallback_url}",
+                    self.logger_context,
+                )
+                return [fallback_url]
             return [page1_url]
 
         max_page = min(EtixExtractor.extract_max_page(html), _MAX_PAGES)
@@ -308,6 +328,11 @@ class EtixScraper(BaseScraper):
             self._venue_id in _FUNNY_BONE_FALLBACKS
             and "etix.com/ticket/mvc/online/upcomingEvents/venue" in url
         )
+
+    def _funny_bone_fallback_url_for(self, url: str) -> Optional[str]:
+        if not self._uses_funny_bone_fallback(url):
+            return None
+        return _FUNNY_BONE_FALLBACKS.get(self._venue_id)
 
     def _uses_rockhouse_public_source(self) -> bool:
         return self._is_rockhouse_public_url(self.club.scraping_url)
