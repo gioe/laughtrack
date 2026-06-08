@@ -225,6 +225,114 @@ class TestChainScrapingDefaultQueries:
         assert "CHAIN_SCRAPING_DEFAULTS CSD" in sql
         assert "NULLIF(SS.SCRAPER_KEY, '') IS NULL" in sql
 
+    def test_get_club_by_eventbrite_venue_id_uses_enabled_source_match(self):
+        sql = self._normalized(ClubQueries.GET_CLUB_BY_EVENTBRITE_VENUE_ID)
+
+        assert "JOIN SCRAPING_SOURCES MATCHED_SOURCE" in sql
+        assert "MATCHED_SOURCE.PLATFORM = 'EVENTBRITE'" in sql
+        assert "MATCHED_SOURCE.ENABLED = TRUE" in sql
+        assert "MATCHED_SOURCE.EVENTBRITE_ID = %S" in sql
+        assert "C.VISIBLE = TRUE" in sql
+        assert "C.STATUS = 'ACTIVE'" in sql
+
+
+class TestGetClubByEventbriteVenueId:
+    def test_returns_existing_visible_active_club_for_enabled_eventbrite_source(self):
+        handler = ClubHandler()
+        row = _make_club_row(
+            id=3356,
+            name="The Alpine Goat Brewery",
+            city="Weyers Cave",
+            state="VA",
+            eventbrite_id="289027973",
+        )
+
+        with patch.object(handler, "execute_with_cursor", return_value=[row]) as mock_exec:
+            result = handler.get_club_by_eventbrite_venue_id("289027973")
+
+        mock_exec.assert_called_once_with(
+            ClubQueries.GET_CLUB_BY_EVENTBRITE_VENUE_ID,
+            ("289027973",),
+            return_results=True,
+        )
+        assert result is not None
+        assert result.id == 3356
+        assert result.eventbrite_id == "289027973"
+
+    def test_empty_eventbrite_venue_id_returns_none_without_query(self):
+        handler = ClubHandler()
+
+        with patch.object(handler, "execute_with_cursor") as mock_exec:
+            result = handler.get_club_by_eventbrite_venue_id("")
+
+        assert result is None
+        mock_exec.assert_not_called()
+
+
+class TestResolveExistingEventbriteVenueClub:
+    def test_reuses_existing_club_when_eventbrite_id_changed_but_name_city_state_match(self):
+        handler = ClubHandler()
+        venue = _FakeVenue(
+            id="297808541",
+            name="Elixir Brew Co",
+            address=_FakeAddress(city="Buford", region="GA"),
+        )
+        row = _make_club_row(
+            id=2315,
+            name="Elixir Brew Co",
+            city="Buford",
+            state="GA",
+            eventbrite_id="297054154",
+        )
+
+        with patch.object(
+            handler,
+            "get_club_by_eventbrite_venue_id",
+            return_value=None,
+        ) as source_lookup, patch.object(
+            handler,
+            "execute_with_cursor",
+            return_value=[row],
+        ) as mock_exec:
+            result = handler.resolve_existing_eventbrite_venue_club(venue)
+
+        source_lookup.assert_called_once_with("297808541")
+        mock_exec.assert_called_once_with(
+            ClubQueries.GET_CLUBS_BY_LOCATION,
+            ("Buford", "GA"),
+            return_results=True,
+        )
+        assert result is not None
+        assert result.id == 2315
+        assert result.eventbrite_id == "297054154"
+
+    def test_returns_id_match_before_location_lookup(self):
+        handler = ClubHandler()
+        venue = _FakeVenue(
+            id="289027973",
+            name="The Alpine Goat Brewery",
+            address=_FakeAddress(city="Weyers Cave", region="VA"),
+        )
+        club = Club.from_db_row(
+            _make_club_row(
+                id=3356,
+                name="The Alpine Goat Brewery",
+                city="Weyers Cave",
+                state="VA",
+                eventbrite_id="289027973",
+            )
+        )
+
+        with patch.object(
+            handler,
+            "get_club_by_eventbrite_venue_id",
+            return_value=club,
+        ), patch.object(handler, "execute_with_cursor") as mock_exec:
+            result = handler.resolve_existing_eventbrite_venue_club(venue)
+
+        assert result is club
+        mock_exec.assert_not_called()
+
 
 class TestClubAliasResolution:
     def test_eventbrite_alias_hit_returns_canonical_club_before_fuzzy_match(self):

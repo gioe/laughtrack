@@ -509,6 +509,48 @@ async def test_organizer_mode_routes_per_venue_upserts_through_serialized_db_cal
 
 
 @pytest.mark.asyncio
+async def test_organizer_mode_reuses_existing_eventbrite_venue_source_without_write_lock():
+    """Encore's recurring venues are already registered with enabled
+    scraping_sources.eventbrite_id rows. Organizer mode should resolve those
+    venues by Eventbrite id and skip the write-lock-protected UPSERT entirely;
+    otherwise every nightly run pays N unnecessary DB writes and can drop
+    venues when sibling upserts contend on the process-wide write lock."""
+    proxy = _build_synthetic_proxy_for_company(_encore_company())
+    assert proxy is not None
+
+    alpine_goat = _api_venue(
+        venue_id="289027973",
+        name="The Alpine Goat Brewery",
+        city="Weyers Cave",
+        region="VA",
+    )
+    api_events = [
+        _domain_event("Alpine Goat show", "https://www.eventbrite.com/e/1", alpine_goat),
+    ]
+    alpine_goat_club = _fake_venue_club(3356, "The Alpine Goat Brewery", "Weyers Cave", "VA")
+
+    scraper = EventbriteScraper(proxy)
+    with patch.object(
+        scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=api_events)
+    ), patch.object(
+        scraper._club_handler,
+        "resolve_existing_eventbrite_venue_club",
+        return_value=alpine_goat_club,
+    ) as lookup_mock, patch.object(
+        scraper._club_handler, "upsert_for_eventbrite_venue"
+    ) as upsert_mock, patch(
+        "laughtrack.scrapers.implementations.api.eventbrite.scraper.serialized_db_call"
+    ) as serialized_mock:
+        shows = await scraper.scrape_async()
+
+    lookup_mock.assert_called_once_with(alpine_goat)
+    upsert_mock.assert_not_called()
+    serialized_mock.assert_not_called()
+    assert len(shows) == 1
+    assert shows[0].club_id == alpine_goat_club.id
+
+
+@pytest.mark.asyncio
 async def test_organizer_mode_bounded_upsert_completes_when_venue_hangs(monkeypatch):
     """A hung ``upsert_for_eventbrite_venue`` must not pin ``asyncio.gather``
     open forever — ``_upsert_one`` wraps its ``loop.run_in_executor`` await

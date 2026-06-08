@@ -161,6 +161,101 @@ class ClubHandler(BaseDatabaseHandler[Club]):
         clubs = self.get_clubs_by_ids([club_id])
         return clubs[0] if clubs else None
 
+    def get_club_by_eventbrite_venue_id(self, eventbrite_venue_id: str) -> Optional[Club]:
+        """Fetch an active visible club already registered for an Eventbrite venue id."""
+        if not eventbrite_venue_id:
+            return None
+
+        try:
+            results = self.execute_with_cursor(
+                ClubQueries.GET_CLUB_BY_EVENTBRITE_VENUE_ID,
+                (eventbrite_venue_id,),
+                return_results=True,
+            )
+            if not results:
+                return None
+            return Club.from_db_row(results[0])
+        except Exception as e:
+            Logger.warn(
+                f"Error fetching club for Eventbrite venue {eventbrite_venue_id}: {e}"
+            )
+            return None
+
+    def resolve_existing_eventbrite_venue_club(self, venue) -> Optional[Club]:
+        """Read-only resolver for Eventbrite organizer venues already known to the DB.
+
+        Eventbrite occasionally emits a new venue.id for an existing physical
+        venue. Resolve by the stored source id first, then by active visible
+        same-location exact/alias/fuzzy name match, so recurring organizer
+        venues do not pay a write-lock-protected UPSERT on every scrape.
+        """
+        if not venue or not getattr(venue, "id", None) or not getattr(venue, "name", None):
+            return None
+
+        by_source_id = self.get_club_by_eventbrite_venue_id(str(venue.id))
+        if by_source_id is not None:
+            return by_source_id
+
+        address = getattr(venue, "address", None)
+        city = getattr(address, "city", None) if address is not None else None
+        state = getattr(address, "region", None) if address is not None else None
+        if not city or not state:
+            return None
+
+        norm_alias = _normalize_venue_text_for_match(venue.name)
+        norm_city = _normalize_venue_text_for_match(city)
+        norm_state = _normalize_venue_text_for_match(state)
+        norm_target = _normalize_venue_name_for_match(venue.name, city, state)
+        if not norm_alias or not norm_city or not norm_state or not norm_target:
+            return None
+
+        try:
+            results = self.execute_with_cursor(
+                ClubQueries.GET_CLUBS_BY_LOCATION,
+                (city, state),
+                return_results=True,
+            ) or []
+        except Exception as e:
+            Logger.warn(
+                f"existing Eventbrite venue lookup failed for ({city}, {state}): {e}"
+            )
+            return None
+
+        for row in results:
+            if (row.get("name") or "").strip().lower() == venue.name.strip().lower():
+                return Club.from_db_row(row)
+
+        for row in results:
+            aliases = row.get("aliases") or []
+            if isinstance(aliases, str):
+                try:
+                    aliases = json.loads(aliases)
+                except json.JSONDecodeError:
+                    aliases = []
+            if not isinstance(aliases, list):
+                continue
+            for alias in aliases:
+                if not isinstance(alias, dict):
+                    continue
+                if (
+                    alias.get("normalized_alias_name") == norm_alias
+                    and alias.get("normalized_city") == norm_city
+                    and alias.get("normalized_state") == norm_state
+                ):
+                    return Club.from_db_row(row)
+
+        for row in results:
+            existing_name = row.get("name") or ""
+            if not existing_name:
+                continue
+            norm_existing = _normalize_venue_name_for_match(
+                existing_name, row.get("city") or "", row.get("state") or ""
+            )
+            if norm_existing and norm_existing == norm_target:
+                return Club.from_db_row(row)
+
+        return None
+
     def get_specific_clubs(self, club_ids: List[int]) -> List[Club]:
         """
         Fetch specific clubs by their IDs.

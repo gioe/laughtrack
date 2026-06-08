@@ -111,6 +111,19 @@ class ClubQueries:
         ORDER BY c.id
     """
 
+    GET_CLUB_BY_EVENTBRITE_VENUE_ID = f"""
+        { _BASE_CLUB_SELECT }
+        JOIN scraping_sources matched_source
+          ON matched_source.club_id = c.id
+         AND matched_source.platform = 'eventbrite'
+         AND matched_source.enabled = TRUE
+         AND matched_source.eventbrite_id = %s
+        WHERE c.visible = TRUE
+          AND c.status = 'active'
+        ORDER BY c.id
+        LIMIT 1
+    """
+
     # Backward compatibility alias
     GET_SPECIFIC_CLUBS = GET_CLUB_BY_IDS
 

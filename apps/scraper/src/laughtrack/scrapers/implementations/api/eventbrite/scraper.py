@@ -292,83 +292,39 @@ class EventbriteScraper(BaseScraper):
                 timeout=_EB_UPSERT_TIMEOUT,
             )
 
+        async def _await_existing_venue_club(api_venue) -> Optional[Club]:
+            venue_id = getattr(api_venue, "id", None)
+            if not venue_id:
+                return None
+            try:
+                return await asyncio.wait_for(
+                    loop.run_in_executor(
+                        None,
+                        self._club_handler.resolve_existing_eventbrite_venue_club,
+                        api_venue,
+                    ),
+                    timeout=_EB_UPSERT_TIMEOUT,
+                )
+            except Exception as exc:
+                Logger.warn(
+                    f"{self._log_prefix}: existing Eventbrite venue lookup failed for "
+                    f"'{venue_id}' — falling back to upsert: {exc}",
+                    self.logger_context,
+                )
+                return None
+
         async def _upsert_one(venue_key, group) -> List[Show]:
             api_venue = group[0]._api_venue
             venue_label = getattr(api_venue, "name", None) or str(venue_key)
-            try:
-                venue_club = await _await_upsert(api_venue)
-            except LockHeldError as exc:
-                # TASK-2626: retry once after a brief backoff. A stuck prior
-                # writer is usually held by a hung DB call whose outermost
-                # timeout (asyncio.wait_for at 300s, or the platform's
-                # statement_timeout) eventually fires; sleeping
-                # _lock_timeout_retry_backoff() seconds gives that cleanup a
-                # chance to release the lock before we conclude the events
-                # are lost. We retry exactly once — if the second attempt
-                # also fails, the holder is stuck for the run.
-                Logger.warn(
-                    f"{self._log_prefix}: upsert for venue '{venue_label}' hit "
-                    f"LockHeldError ({exc}) — retrying once after backoff",
+            venue_club = await _await_existing_venue_club(api_venue)
+            if venue_club is not None:
+                Logger.info(
+                    f"{self._log_prefix}: reused existing Eventbrite venue club "
+                    f"'{venue_label}' (club_id={venue_club.id})",
                     self.logger_context,
                 )
-                await asyncio.sleep(_lock_timeout_retry_backoff())
-                try:
-                    venue_club = await _await_upsert(api_venue)
-                except LockHeldError as retry_exc:
-                    _record_lock_timeout(venue_label, len(group))
-                    Logger.error(
-                        f"{self._log_prefix}: upsert for venue '{venue_label}' hit "
-                        f"LockHeldError on retry ({retry_exc}) — venue skipped "
-                        f"({len(group)} event(s) lost)",
-                        self.logger_context,
-                    )
-                    return []
-                except asyncio.TimeoutError:
-                    _record_lock_timeout(venue_label, len(group))
-                    Logger.error(
-                        f"{self._log_prefix}: upsert for venue '{venue_label}' timed out "
-                        f"after {_EB_UPSERT_TIMEOUT}s on retry — venue skipped "
-                        f"({len(group)} event(s) lost)",
-                        self.logger_context,
-                    )
-                    return []
-                except Exception as retry_exc:
-                    # Intentionally NOT recorded as a lock_timeout incident
-                    # — the lock-class branches (LockHeldError, TimeoutError)
-                    # above do record, but a generic exception on retry is a
-                    # different failure class (transient DB error, malformed
-                    # venue payload, etc.) that surfaces as a per-venue ERROR
-                    # log and is the same shape as the outer 'failed to upsert
-                    # club' branch below. Recording it under lock_timeout:
-                    # would attribute the wrong incident class to the Grafana
-                    # alert and dilute the signal the prefix is meant to carry.
-                    Logger.error(
-                        f"{self._log_prefix}: failed to upsert club for venue "
-                        f"'{venue_label}' on retry: {retry_exc}",
-                        self.logger_context,
-                    )
-                    return []
-            except asyncio.TimeoutError:
-                # The await is cancelled but the executor thread keeps running
-                # and may still hold _DB_WRITE_LOCK — see _EB_UPSERT_TIMEOUT's
-                # module-level note. Record the venue to diagnostics so the
-                # silent drop surfaces on ClubScrapingResult.error (TASK-2626);
-                # the aggregate "yielded 0 shows from N event(s)" WARN below
-                # the gather() still fires, but operators now also see the
-                # incident on the metric row's error field.
-                _record_lock_timeout(venue_label, len(group))
-                Logger.error(
-                    f"{self._log_prefix}: upsert for venue '{venue_label}' timed out after "
-                    f"{_EB_UPSERT_TIMEOUT}s — venue skipped ({len(group)} event(s) lost)",
-                    self.logger_context,
-                )
-                return []
-            except Exception as exc:
-                Logger.error(
-                    f"{self._log_prefix}: failed to upsert club for venue '{venue_label}': {exc}",
-                    self.logger_context,
-                )
-                return []
+            else:
+                venue_club = await _upsert_venue_club(api_venue, venue_label, len(group))
 
             if venue_club is None:
                 Logger.warn(
@@ -396,6 +352,82 @@ class EventbriteScraper(BaseScraper):
                 if show:
                     group_shows.append(show)
             return group_shows
+
+        async def _upsert_venue_club(api_venue, venue_label: str, group_size: int) -> Optional[Club]:
+            try:
+                return await _await_upsert(api_venue)
+            except LockHeldError as exc:
+                # TASK-2626: retry once after a brief backoff. A stuck prior
+                # writer is usually held by a hung DB call whose outermost
+                # timeout (asyncio.wait_for at 300s, or the platform's
+                # statement_timeout) eventually fires; sleeping
+                # _lock_timeout_retry_backoff() seconds gives that cleanup a
+                # chance to release the lock before we conclude the events
+                # are lost. We retry exactly once — if the second attempt
+                # also fails, the holder is stuck for the run.
+                Logger.warn(
+                    f"{self._log_prefix}: upsert for venue '{venue_label}' hit "
+                    f"LockHeldError ({exc}) — retrying once after backoff",
+                    self.logger_context,
+                )
+                await asyncio.sleep(_lock_timeout_retry_backoff())
+                try:
+                    return await _await_upsert(api_venue)
+                except LockHeldError as retry_exc:
+                    _record_lock_timeout(venue_label, group_size)
+                    Logger.error(
+                        f"{self._log_prefix}: upsert for venue '{venue_label}' hit "
+                        f"LockHeldError on retry ({retry_exc}) — venue skipped "
+                        f"({group_size} event(s) lost)",
+                        self.logger_context,
+                    )
+                    return None
+                except asyncio.TimeoutError:
+                    _record_lock_timeout(venue_label, group_size)
+                    Logger.error(
+                        f"{self._log_prefix}: upsert for venue '{venue_label}' timed out "
+                        f"after {_EB_UPSERT_TIMEOUT}s on retry — venue skipped "
+                        f"({group_size} event(s) lost)",
+                        self.logger_context,
+                    )
+                    return None
+                except Exception as retry_exc:
+                    # Intentionally NOT recorded as a lock_timeout incident
+                    # — the lock-class branches (LockHeldError, TimeoutError)
+                    # above do record, but a generic exception on retry is a
+                    # different failure class (transient DB error, malformed
+                    # venue payload, etc.) that surfaces as a per-venue ERROR
+                    # log and is the same shape as the outer 'failed to upsert
+                    # club' branch below. Recording it under lock_timeout:
+                    # would attribute the wrong incident class to the Grafana
+                    # alert and dilute the signal the prefix is meant to carry.
+                    Logger.error(
+                        f"{self._log_prefix}: failed to upsert club for venue "
+                        f"'{venue_label}' on retry: {retry_exc}",
+                        self.logger_context,
+                    )
+                    return None
+            except asyncio.TimeoutError:
+                # The await is cancelled but the executor thread keeps running
+                # and may still hold _DB_WRITE_LOCK — see _EB_UPSERT_TIMEOUT's
+                # module-level note. Record the venue to diagnostics so the
+                # silent drop surfaces on ClubScrapingResult.error (TASK-2626);
+                # the aggregate "yielded 0 shows from N event(s)" WARN below
+                # the gather() still fires, but operators now also see the
+                # incident on the metric row's error field.
+                _record_lock_timeout(venue_label, group_size)
+                Logger.error(
+                    f"{self._log_prefix}: upsert for venue '{venue_label}' timed out after "
+                    f"{_EB_UPSERT_TIMEOUT}s — venue skipped ({group_size} event(s) lost)",
+                    self.logger_context,
+                )
+                return None
+            except Exception as exc:
+                Logger.error(
+                    f"{self._log_prefix}: failed to upsert club for venue '{venue_label}': {exc}",
+                    self.logger_context,
+                )
+                return None
 
         # Run per-venue upserts concurrently. serialized_db_call still serializes
         # the actual writes through the process-wide DB lock, so concurrency
