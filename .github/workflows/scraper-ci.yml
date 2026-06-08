@@ -12,7 +12,31 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
+  # Per-job path gating: the workflow triggers on the union of scraper sources
+  # and the Prisma schema, then this filter decides which sub-area actually
+  # changed so a schema-only push doesn't re-run the full pytest suite.
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      scraper: ${{ steps.filter.outputs.scraper }}
+      schema: ${{ steps.filter.outputs.schema }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+      - name: Compute changed scraper sub-areas
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            scraper:
+              - 'apps/scraper/**'
+              - '.github/workflows/scraper-ci.yml'
+            schema:
+              - 'apps/web/prisma/schema.prisma'
+
   test:
+    needs: changes
+    if: needs.changes.outputs.scraper == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -78,6 +102,8 @@ jobs:
   # so regressions like TASK-2700 (NULLIF on a ScrapingPlatform enum) fail in
   # PR instead of on the prod nightly. See apps/scraper/tests/sql/.
   sql-parse-test:
+    needs: changes
+    if: needs.changes.outputs.scraper == 'true' || needs.changes.outputs.schema == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
