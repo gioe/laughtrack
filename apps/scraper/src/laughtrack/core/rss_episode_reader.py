@@ -254,6 +254,13 @@ _LOOKUP_LOGICAL_BY_NULL_DATE_SQL = """
       AND (source, source_episode_id) IS DISTINCT FROM (%s, %s)
 """
 
+_LOOKUP_BY_SOURCE_EPISODE_ID_SQL = """
+    SELECT id FROM podcast_episodes
+    WHERE source = %s
+      AND source_episode_id = %s
+    LIMIT 1
+"""
+
 
 def _normalize_title(title: Optional[str]) -> str:
     """Strip a leading episode-number prefix and lowercase for logical-dup matching."""
@@ -300,6 +307,17 @@ def find_logical_episode_id(conn: Any, episode: "RssEpisodeRow") -> Optional[int
         if _normalize_title(row[1]) == normalized:
             return int(row[0])
     return None
+
+
+def find_episode_id_by_source(conn: Any, episode: "RssEpisodeRow") -> Optional[int]:
+    """Return the row id for an exact source episode key, or None."""
+    with conn.cursor() as cur:
+        cur.execute(
+            _LOOKUP_BY_SOURCE_EPISODE_ID_SQL,
+            (episode.source, episode.source_episode_id),
+        )
+        row = cur.fetchone()
+    return int(row[0]) if row else None
 
 
 def _string_or_none(value: Any) -> Optional[str]:
@@ -495,7 +513,12 @@ def upsert_episode_with_result(conn: Any, episode: RssEpisodeRow) -> EpisodeUpse
         )
         row = cur.fetchone()
     if not row:
-        return EpisodeUpsertResult(episode_id=None, inserted=False, changed=False)
+        # Under READ COMMITTED, INSERT ... ON CONFLICT can wait on a concurrent
+        # insert that was not visible to this statement's snapshot. If the
+        # conflict path then returns no target row, issue a fresh lookup so the
+        # caller still gets the canonical id after the winner commits.
+        episode_id = find_episode_id_by_source(conn, episode) or find_logical_episode_id(conn, episode)
+        return EpisodeUpsertResult(episode_id=episode_id, inserted=False, changed=False)
     return EpisodeUpsertResult(episode_id=int(row[0]), inserted=bool(row[1]), changed=True)
 
 

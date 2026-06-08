@@ -44,6 +44,13 @@ class _FakeCursor:
             if params and len(params) > 7 and params[7] is not None:
                 rows = rows[: int(params[7])]
             self._last_result = rows
+        elif normalized.startswith("SELECT id FROM podcast_episodes") and "WHERE source = %s" in normalized:
+            source, source_episode_id = params
+            self._last_result = [
+                (row["id"],)
+                for row in self._conn.existing_episode_rows
+                if (row["source"], row["source_episode_id"]) == (source, source_episode_id)
+            ][:1]
         elif normalized.startswith("SELECT id FROM podcast_episodes"):
             podcast_id, release_date, source, source_episode_id = params
             self._last_result = [

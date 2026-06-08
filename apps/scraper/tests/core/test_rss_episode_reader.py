@@ -46,7 +46,14 @@ class _FakeCursor:
     def execute(self, sql: str, params: Any = None) -> None:
         self.conn.executed.append((sql, params))
         normalized = " ".join(sql.split())
-        if normalized.startswith("SELECT id FROM podcast_episodes"):
+        if normalized.startswith("SELECT id FROM podcast_episodes") and "WHERE source = %s" in normalized:
+            source, source_episode_id = params
+            self._last_result = [
+                (row["id"],)
+                for row in self.conn.rows
+                if (row["source"], row["source_episode_id"]) == (source, source_episode_id)
+            ][:1]
+        elif normalized.startswith("SELECT id FROM podcast_episodes"):
             # (podcast_id, release_date, source, source_episode_id) lookup; exclude
             # the row whose (source, source_episode_id) matches the params, then
             # return the first row that shares (podcast_id, release_date).
@@ -71,6 +78,11 @@ class _FakeCursor:
             ]
         elif "INSERT INTO podcast_episodes" in normalized:
             self.conn.upserts.append(params)
+            if self.conn.conflict_row_after_insert is not None:
+                self.conn.rows.append(self.conn.conflict_row_after_insert)
+                self.conn.conflict_row_after_insert = None
+                self._last_result = []
+                return
             new_id = 1000 + len(self.conn.upserts)
             self.conn.rows.append(
                 {
@@ -97,11 +109,12 @@ class _FakeCursor:
 
 
 class _FakeConn:
-    def __init__(self) -> None:
+    def __init__(self, *, conflict_row_after_insert: dict[str, Any] | None = None) -> None:
         self.executed: list[tuple[str, Any]] = []
         self.upserts: list[Any] = []
         self.podcast_updates: list[Any] = []
         self.rows: list[dict[str, Any]] = []
+        self.conflict_row_after_insert = conflict_row_after_insert
 
     def cursor(self) -> _FakeCursor:
         return _FakeCursor(self)
@@ -321,6 +334,40 @@ def test_logical_duplicate_with_different_source_id_collapses_to_single_row(monk
     select_sqls = [sql for sql, _ in conn.executed if "SELECT id FROM podcast_episodes" in sql]
     assert len(select_sqls) == 2
     assert "release_date = %s::timestamptz" in select_sqls[1]
+
+
+def test_upsert_returns_existing_id_when_release_conflict_becomes_visible_after_insert():
+    release_date = datetime(2024, 5, 1, 12, 0, tzinfo=timezone.utc).isoformat()
+    conn = _FakeConn(
+        conflict_row_after_insert={
+            "id": 777,
+            "podcast_id": 42,
+            "source": "itunes",
+            "source_episode_id": "winner",
+            "title": "Episode One",
+            "release_date": release_date,
+        }
+    )
+    episode = mod.RssEpisodeRow(
+        podcast_id=42,
+        source="itunes",
+        source_episode_id="loser",
+        guid="loser",
+        title="Episode One",
+        description=None,
+        release_date=release_date,
+        duration_seconds=None,
+        episode_url=None,
+        audio_url=None,
+        external_ids={"rss_guid": "loser"},
+        evidence={},
+        source_payload={"id": "loser"},
+    )
+
+    result = mod.upsert_episode_with_result(conn, episode)
+
+    assert result == mod.EpisodeUpsertResult(episode_id=777, inserted=False, changed=False)
+    assert len(conn.upserts) == 1
 
 
 def test_normalize_title_strips_episode_number_prefixes():
