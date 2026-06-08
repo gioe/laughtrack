@@ -184,13 +184,16 @@ def _normalize_title(title: Optional[str]) -> str:
     return _TITLE_PREFIX_RE.sub("", title.strip(), count=1).strip().lower()
 
 
-def _find_logical_episode_id(conn: Any, episode: "RssEpisodeRow") -> Optional[int]:
+def find_logical_episode_id(conn: Any, episode: "RssEpisodeRow") -> Optional[int]:
     """Return the id of an existing logical-duplicate row, or None.
 
     A logical duplicate is one already in podcast_episodes for the same
     (podcast_id, release_date) under a *different* (source, source_episode_id)
     pair. When release_date is NULL, match instead by normalized title within
     the podcast (handles prefix-variant titles like "67: Foo" vs "Foo").
+
+    Imported by backfill_podcast_episodes.py so the RSS-reader and PodcastIndex
+    write paths share one definition of "same logical episode".
     """
     if episode.release_date:
         with conn.cursor() as cur:
@@ -380,12 +383,16 @@ def fetch_rss_episodes(podcast: PodcastRssFeed) -> RssFetchResult:
 
 
 def upsert_episode_with_result(conn: Any, episode: RssEpisodeRow) -> EpisodeUpsertResult:
-    # Collapse logical duplicates (same podcast at the same release_date, but
-    # arriving under a different source/source_episode_id pair from another
-    # feed). Preserve the existing canonical row; do not rewrite its
-    # source/source_episode_id, since downstream evidence chains and the
-    # episode_appearances FK already point at it.
-    existing_id = _find_logical_episode_id(conn, episode)
+    # Collapse logical duplicates: same podcast at the same release_date but
+    # arriving under a different (source, source_episode_id) from another feed.
+    # Lock to first-seen — preserve the existing canonical row's id AND its
+    # metadata (title/description/audio_url/etc.). Episode_appearances are
+    # FK-bound to podcast_episodes.id, so the id must not change; metadata
+    # divergence between feeds is intentionally locked to the first feed that
+    # ingested the episode. Same-source re-ingests are excluded from this
+    # branch and still flow through the normal ON CONFLICT upsert below, which
+    # does refresh metadata.
+    existing_id = find_logical_episode_id(conn, episode)
     if existing_id is not None:
         return EpisodeUpsertResult(episode_id=existing_id, inserted=False, changed=False)
 

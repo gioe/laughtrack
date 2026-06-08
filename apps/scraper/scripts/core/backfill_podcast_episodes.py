@@ -23,7 +23,7 @@ from curl_cffi import requests
 from dotenv import dotenv_values
 
 from laughtrack.adapters.db import get_connection
-from laughtrack.core.rss_episode_reader import _find_logical_episode_id
+from laughtrack.core.rss_episode_reader import find_logical_episode_id
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
 _SOURCE = "podcast_index"
@@ -454,8 +454,9 @@ def upsert_episode_with_result(conn: Any, episode: PodcastEpisodeRow) -> Episode
     # Collapse logical duplicates before insert — same podcast at the same
     # release_date arriving under a different (source, source_episode_id) is
     # the same logical episode, just sourced from a second feed. Preserve the
-    # canonical row so episode_appearances FK targets stay stable.
-    existing_id = _find_logical_episode_id(conn, episode)
+    # canonical row so episode_appearances FK targets stay stable; metadata
+    # divergence between feeds is locked to first-seen.
+    existing_id = find_logical_episode_id(conn, episode)
     if existing_id is not None:
         return EpisodeUpsertResult(episode_id=existing_id, inserted=False, changed=False)
 

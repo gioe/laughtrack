@@ -44,6 +44,24 @@ class _FakeCursor:
             if params and len(params) > 7 and params[7] is not None:
                 rows = rows[: int(params[7])]
             self._last_result = rows
+        elif normalized.startswith("SELECT id FROM podcast_episodes"):
+            podcast_id, release_date, source, source_episode_id = params
+            self._last_result = [
+                (row["id"],)
+                for row in self._conn.existing_episode_rows
+                if row["podcast_id"] == podcast_id
+                and row["release_date"] == release_date
+                and (row["source"], row["source_episode_id"]) != (source, source_episode_id)
+            ][:1]
+        elif normalized.startswith("SELECT id, title FROM podcast_episodes"):
+            podcast_id, source, source_episode_id = params
+            self._last_result = [
+                (row["id"], row["title"])
+                for row in self._conn.existing_episode_rows
+                if row["podcast_id"] == podcast_id
+                and row["release_date"] is None
+                and (row["source"], row["source_episode_id"]) != (source, source_episode_id)
+            ]
         elif normalized.startswith("INSERT INTO podcast_episodes"):
             self._conn.upserts.append(params)
             self._last_result = [(len(self._conn.upserts) % 2 == 1,)]
@@ -58,8 +76,13 @@ class _FakeCursor:
 
 
 class _FakeConn:
-    def __init__(self, feed_rows: list[tuple[Any, ...]] | None = None) -> None:
+    def __init__(
+        self,
+        feed_rows: list[tuple[Any, ...]] | None = None,
+        existing_episode_rows: list[dict[str, Any]] | None = None,
+    ) -> None:
         self.feed_rows = feed_rows or []
+        self.existing_episode_rows = existing_episode_rows or []
         self.executed: list[tuple[str, Any]] = []
         self.upserts: list[Any] = []
         self.commits = 0
@@ -291,6 +314,76 @@ def test_backfill_confirm_upserts_rows_and_reports_insert_update_skip(monkeypatc
     assert json.loads(insert_params[10])["podcast_index_episode_id"] == 987
     assert json.loads(insert_params[11])["source_podcast_id"] == "1001"
     assert json.loads(insert_params[12])["id"] == 987
+
+
+def test_upsert_short_circuits_when_logical_duplicate_already_exists():
+    """The backfill upsert path must collapse logical duplicates the same way
+    rss_episode_reader does — same (podcast_id, release_date) under a different
+    (source, source_episode_id) returns the existing id with no INSERT.
+
+    Guards against future divergence between the two write paths now that they
+    share find_logical_episode_id but each owns its own upsert wrapper.
+    """
+    conn = _FakeConn(
+        existing_episode_rows=[
+            {
+                "id": 4242,
+                "podcast_id": 42,
+                "release_date": "2099-05-01T12:00:00+00:00",
+                "source": "rss_itunes",
+                "source_episode_id": "canonical-guid",
+                "title": "Foo",
+            }
+        ]
+    )
+    episode = mod.PodcastEpisodeRow(
+        podcast_id=42,
+        source=mod._SOURCE,
+        source_episode_id="podcastindex-987",
+        guid="podcastindex-987",
+        title="Foo",
+        description=None,
+        release_date="2099-05-01T12:00:00+00:00",
+        duration_seconds=None,
+        episode_url=None,
+        audio_url=None,
+        external_ids={},
+        evidence={},
+        source_payload={},
+    )
+
+    result = mod.upsert_episode_with_result(conn, episode)
+
+    assert result.episode_id == 4242
+    assert result.inserted is False
+    assert result.changed is False
+    assert conn.upserts == []
+    assert any("SELECT id FROM podcast_episodes" in sql for sql, _ in conn.executed)
+
+
+def test_upsert_falls_through_to_insert_when_no_logical_duplicate():
+    """Sanity check: with no pre-existing row, the upsert path still runs INSERT."""
+    conn = _FakeConn()
+    episode = mod.PodcastEpisodeRow(
+        podcast_id=42,
+        source=mod._SOURCE,
+        source_episode_id="podcastindex-987",
+        guid="podcastindex-987",
+        title="Foo",
+        description=None,
+        release_date="2099-05-01T12:00:00+00:00",
+        duration_seconds=None,
+        episode_url=None,
+        audio_url=None,
+        external_ids={},
+        evidence={},
+        source_payload={},
+    )
+
+    result = mod.upsert_episode_with_result(conn, episode)
+
+    assert result.inserted is True
+    assert len(conn.upserts) == 1
 
 
 def test_cli_requires_dry_run_or_confirm_and_passes_filters(monkeypatch, capsys):
