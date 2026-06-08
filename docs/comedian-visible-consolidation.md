@@ -87,15 +87,22 @@ un-ingested name. The two facilities serve different population subsets:
 hide them"; `comedian_deny_list` covers "this name must never be ingested in
 the first place". They are complementary, not redundant.
 
-## Decision 2: Rename `isBlocked` → `isHidden`, no alias, lockstep
+## Decision 2: Keep `isBlocked` on the comedian admin; align club vocabulary instead
 
-Rename the admin serializer field from `isBlocked` to `isHidden`. **Do not
-keep `isBlocked` as a deprecated alias.** Rename the admin actions from
-`block`/`unblock` (`blocklist-add`/`blocklist-remove`) to `hide`/`unhide`.
+Keep the admin serializer field as `isBlocked` and the admin actions as
+`block`/`unblock` (`blocklist-add`/`blocklist-remove`). Instead of renaming
+the comedian admin to "Hidden", rename the **club admin** UI vocabulary from
+"Hidden" to "Blocked" so both entities share one suppression label.
 
-### Why no alias is needed
+This is the inverse of the direction originally explored under this heading.
+The implementation route is recorded here as the as-built decision; the prior
+draft (rename comedian's `isBlocked` → `isHidden`) is preserved only in this
+document's git history.
 
-The exploration for this ADR confirmed three facts:
+### Why we kept `isBlocked` rather than renaming
+
+The exploration for this ADR confirmed three facts that justified leaving the
+comedian admin's field name in place:
 
 - `isBlocked` is **not on the `/api/v1` public surface**. It appears only in
   `apps/web/app/api/admin/comedians/route.ts` — an auth-gated admin endpoint.
@@ -104,26 +111,28 @@ The exploration for this ADR confirmed three facts:
 - The Swift client and tests under `ios/Sources/` and `ios/Tests/` reference
   neither field on any comedian-shaped object.
 
-There is no cross-client lockstep cost to absorb. The "iOS regeneration" risk
-in the original framing of this question is empty — there is nothing on the
-iOS side to regenerate. An alias would protect zero callers.
+There is no cross-client lockstep cost to absorb in either direction. The
+field name is internal to the admin surface, so the label choice is purely a
+vocabulary decision. The implementation took the cheaper path: rename the
+club admin's "Hidden" badge/filter/chip to "Blocked" to match the comedian
+admin's pre-existing wording, instead of touching the comedian admin
+serializer at all.
 
 ### Effect on TASK-2642
 
-The contingent task TASK-2642 ("Regenerate iOS LaughTrackAPIClient and update
-call sites if `isBlocked` is renamed without an alias") should be closed as
-`wont_do` at pickup. The iOS client does not consume `isBlocked` and does not
-need to be regenerated for this rename. The task's own description authorizes
-this disposition ("If the ADR chooses to keep the alias, mark this task
-wont_do at pickup") — the present ADR reaches the same outcome by the inverse
-route: the rename does not need an alias **because** there are no consumers,
-which makes the iOS regen unnecessary either way.
+TASK-2642 ("Regenerate iOS LaughTrackAPIClient and update call sites if
+`isBlocked` is renamed without an alias") was closed `wont_do` at pickup. The
+iOS client does not consume `isBlocked` and no rename ever happened on the
+comedian admin, so there is nothing to regenerate.
 
 ### Effect on TASK-2640
 
-TASK-2640 ("Rename comedian admin Blocked state to Hidden and switch admin
-actions to `comedian.hide/unhide`") proceeds as filed: it is the
-implementation of this decision on the admin surface.
+TASK-2640 ("Rename club admin Hidden vocabulary to Blocked to match comedian
+admin") shipped as the inverted scope of this decision. It updates the
+`apps/web/ui/pages/admin/clubs/AdminClubManager.tsx` visibility filter,
+per-row badge, and the `app/admin/clubs/page.tsx` summary chip from "Hidden"
+to "Blocked". The underlying `clubs.visible` Prisma column and DTO field are
+unchanged; only the user-facing labels and the filter option value moved.
 
 ## Decision 3: Migration plan and rollback
 
@@ -255,9 +264,10 @@ agreed period (e.g., one quarter).
 
 | Surface | Touched by this consolidation? | Action |
 | --- | --- | --- |
-| `apps/web` admin API | Yes — serializer rename, action rename | In TASK-2640 |
-| `apps/web` `/api/v1` public read paths | Yes — add `visible: true` filter to comedian queries | In TASK-2640 (or a sibling task) |
-| `apps/scraper` ingest filter | Yes — two-stage check | In TASK-2640 |
+| `apps/web` comedian admin API | **No** — `isBlocked` field and `blocklist-add`/`blocklist-remove` actions kept (Decision 2 inverted) | n/a |
+| `apps/web` club admin UI | Yes — "Hidden" label/filter/chip renamed to "Blocked" | TASK-2640 |
+| `apps/web` `/api/v1` public read paths | Yes — `visible: true` filter added to comedian queries | shipped with the `comedians.visible` migration |
+| `apps/scraper` ingest filter | Yes — two-stage check | shipped in `apps/scraper/src/laughtrack/core/entities/comedian/handler.py` |
 | `ios/Sources/LaughTrackAPIClient` (OpenAPI client) | **No** — no `isBlocked`/`isHidden` in `openapi.json` or Swift today | TASK-2642 → `wont_do` |
 | `ios/` Swift call sites | **No** — no `.isBlocked` references | TASK-2642 → `wont_do` |
 
@@ -274,8 +284,7 @@ reason recorded here.
 | Backfilled `visible=false` rows | Reversible from the archive snapshot. |
 | Deny-list rows promoted into `comedians.visible=false` | Reversible from the archive snapshot. |
 | Orphan name-only deny-list rows | Untouched by migration; reversibility N/A. |
-| `isBlocked` → `isHidden` rename | Reversible by git revert; no consumers depend on either name. |
-| Admin `block`/`unblock` → `hide`/`unhide` action rename | Reversible by git revert; admin operators are the only callers. |
+| Club admin "Hidden" → "Blocked" vocabulary rename (TASK-2640) | Reversible by git revert; UI labels only, no schema or DTO change. |
 
 ## Open items deliberately out of scope
 
