@@ -1484,7 +1484,7 @@ private struct HomeTrendingComediansGridSkeleton: View {
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
-        let block = laughTrack.colors.surfaceMuted
+        let block = laughTrack.colors.surfaceSkeleton
 
         LazyVGrid(columns: gridColumns, spacing: theme.spacing.sm) {
             ForEach(0..<4, id: \.self) { _ in
@@ -1834,7 +1834,7 @@ private struct HomePopularClubsGridSkeleton: View {
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
-        let block = laughTrack.colors.surfaceMuted
+        let block = laughTrack.colors.surfaceSkeleton
 
         LazyVGrid(columns: gridColumns, spacing: theme.spacing.sm) {
             ForEach(0..<4, id: \.self) { _ in
@@ -2363,7 +2363,7 @@ private struct HomeTrendingPodcastsGridSkeleton: View {
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
-        let block = laughTrack.colors.surfaceMuted
+        let block = laughTrack.colors.surfaceSkeleton
 
         LazyVGrid(columns: gridColumns, spacing: theme.spacing.sm) {
             ForEach(0..<4, id: \.self) { _ in

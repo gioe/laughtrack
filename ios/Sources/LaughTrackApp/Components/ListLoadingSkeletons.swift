@@ -8,7 +8,7 @@ struct ShowsListSkeleton: View {
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
-        let block = laughTrack.colors.surfaceMuted
+        let block = laughTrack.colors.surfaceSkeleton
 
         VStack(alignment: .leading, spacing: theme.spacing.md) {
             if includesHero {
@@ -124,7 +124,7 @@ private struct EntityRowsSkeleton: View {
 
     private var entityRowsSkeleton: some View {
         let laughTrack = theme.laughTrackTokens
-        let block = laughTrack.colors.surfaceMuted
+        let block = laughTrack.colors.surfaceSkeleton
 
         return VStack(spacing: 10) {
             ForEach(0..<5, id: \.self) { _ in

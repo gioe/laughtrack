@@ -1,17 +1,20 @@
 import SwiftUI
 
 private struct ShimmerModifier: ViewModifier {
+    @Environment(\.appTheme) private var theme
     @State private var phase: CGFloat = -1.0
 
     func body(content: Content) -> some View {
-        content
+        // Copper-tinged sweep (brand accent) rather than a cool white flash.
+        let highlight = theme.laughTrackTokens.colors.accent
+        return content
             .overlay(
                 GeometryReader { proxy in
                     LinearGradient(
                         gradient: Gradient(stops: [
-                            .init(color: .white.opacity(0), location: 0.0),
-                            .init(color: .white.opacity(0.55), location: 0.5),
-                            .init(color: .white.opacity(0), location: 1.0)
+                            .init(color: highlight.opacity(0), location: 0.0),
+                            .init(color: highlight.opacity(0.55), location: 0.5),
+                            .init(color: highlight.opacity(0), location: 1.0)
                         ]),
                         startPoint: .leading,
                         endPoint: .trailing
@@ -60,7 +63,7 @@ private struct DetailHeroContentSkeleton: View {
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
-        let block = laughTrack.colors.surfaceMuted
+        let block = laughTrack.colors.surfaceSkeleton
 
         VStack(alignment: .leading, spacing: 0) {
             ZStack(alignment: .bottomLeading) {

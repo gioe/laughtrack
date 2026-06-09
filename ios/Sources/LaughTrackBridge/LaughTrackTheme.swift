@@ -6,6 +6,7 @@ public struct LaughTrackSemanticColorTokens {
     public let surface: Color
     public let surfaceMuted: Color
     public let surfaceElevated: Color
+    public let surfaceSkeleton: Color
     public let borderSubtle: Color
     public let borderStrong: Color
     public let textPrimary: Color
@@ -26,6 +27,7 @@ public struct LaughTrackSemanticColorTokens {
         surface: Color,
         surfaceMuted: Color,
         surfaceElevated: Color,
+        surfaceSkeleton: Color,
         borderSubtle: Color,
         borderStrong: Color,
         textPrimary: Color,
@@ -45,6 +47,7 @@ public struct LaughTrackSemanticColorTokens {
         self.surface = surface
         self.surfaceMuted = surfaceMuted
         self.surfaceElevated = surfaceElevated
+        self.surfaceSkeleton = surfaceSkeleton
         self.borderSubtle = borderSubtle
         self.borderStrong = borderStrong
         self.textPrimary = textPrimary
@@ -243,6 +246,9 @@ public struct LaughTrackTheme: AppThemeProtocol {
             surface: Color(light: Color(hex: "#181818") ?? .black, dark: Color(hex: "#181818") ?? .black),
             surfaceMuted: Color(light: Color(hex: "#1F1F1F") ?? .black, dark: Color(hex: "#1F1F1F") ?? .black),
             surfaceElevated: Color(light: Color(hex: "#282828") ?? .black, dark: Color(hex: "#282828") ?? .black),
+            // surfaceMuted pulled 25% toward accentMuted so loading placeholders
+            // sit in the espresso/copper family instead of neutral gray.
+            surfaceSkeleton: Color(light: Color(hex: "#322921") ?? .black, dark: Color(hex: "#322921") ?? .black),
             borderSubtle: Color(light: Color(hex: "#2A2A2A") ?? .gray, dark: Color(hex: "#2A2A2A") ?? .gray),
             borderStrong: Color(light: Color(hex: "#3A3A3A") ?? .gray, dark: Color(hex: "#3A3A3A") ?? .gray),
             textPrimary: Color(light: Color(hex: "#FAF1E8") ?? .white, dark: Color(hex: "#FAF1E8") ?? .white),
