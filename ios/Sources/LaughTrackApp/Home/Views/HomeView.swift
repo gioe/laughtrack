@@ -34,10 +34,12 @@ enum HomeShowRailKind: Equatable {
     case showsTonight
     case thisWeek
 
-    var eyebrow: String {
+    var eyebrow: String? {
         switch self {
         case .showsTonight:
-            return "Tonight"
+            // The Tonight hero cards already lead with a big "TONIGHT!"
+            // marquee banner, so the shelf eyebrow would just duplicate it.
+            return nil
         case .thisWeek:
             return "This week"
         }
@@ -744,7 +746,7 @@ private struct HomeShowsTonightCarousel: View {
                 .clipped()
                 .highPriorityGesture(pagerDragGesture(pageWidth: pageWidth))
             }
-            .frame(height: 292)
+            .frame(height: 400)
 
             HomeShowsTonightPageIndicator(
                 count: shows.count,
@@ -858,29 +860,56 @@ private struct HomeShowsTonightHeroCard: View {
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
-        VStack(alignment: .leading, spacing: theme.spacing.md) {
+        VStack(alignment: .center, spacing: theme.spacing.md) {
+            Text("TONIGHT!")
+                .font(.system(size: 22, weight: .heavy, design: .rounded))
+                .tracking(2.4)
+                .textCase(.uppercase)
+                .foregroundStyle(laughTrack.colors.accentStrong)
+                .shadow(color: laughTrack.colors.accentStrong.opacity(0.4), radius: 6)
+
             artwork
 
-            VStack(alignment: .leading, spacing: theme.spacing.xs) {
+            VStack(alignment: .center, spacing: 10) {
+                Text(timeLabel)
+                    .font(.system(size: 34, weight: .heavy, design: .rounded))
+                    .tracking(0.5)
+                    .foregroundStyle(laughTrack.colors.textPrimary)
+                    .lineLimit(1)
+                    .shadow(color: .black.opacity(0.35), radius: 2, y: 1)
+
                 Text(ShowTitlePresentation.title(for: show))
-                    .font(laughTrack.typography.cardTitle)
+                    .font(.system(size: 18, weight: .heavy, design: .rounded))
+                    .tracking(0.4)
+                    .textCase(.uppercase)
+                    .multilineTextAlignment(.center)
                     .foregroundStyle(laughTrack.colors.textPrimary)
                     .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
 
-                Text(show.clubName ?? "Unknown club")
-                    .font(laughTrack.typography.body)
-                    .foregroundStyle(laughTrack.colors.textSecondary)
-                    .lineLimit(1)
-
-                Text(metadata.joined(separator: " • "))
-                    .font(laughTrack.typography.metadata)
-                    .foregroundStyle(laughTrack.colors.textSecondary)
+                Text(venueLine)
+                    .font(.system(size: 10, weight: .semibold, design: .rounded))
+                    .tracking(2)
+                    .textCase(.uppercase)
+                    .foregroundStyle(laughTrack.colors.accentStrong)
+                    .multilineTextAlignment(.center)
                     .lineLimit(2)
-            }
+                    .minimumScaleFactor(0.8)
+                    .fixedSize(horizontal: false, vertical: true)
 
-            if HomeShowsTonightHeroPresentation.shouldShowFooter(for: show) {
-                EmptyView()
+                if let priceLabel {
+                    Text(priceLabel)
+                        .font(laughTrack.typography.body.weight(.heavy))
+                        .foregroundStyle(Color.white)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 6)
+                        .background(laughTrack.colors.accentStrong)
+                        .clipShape(Capsule(style: .continuous))
+                        .shadow(color: laughTrack.colors.accentStrong.opacity(0.45), radius: 6, y: 2)
+                        .padding(.top, 4)
+                }
             }
+            .frame(maxWidth: .infinity)
         }
         .padding(laughTrack.browseDensity.compactCardPadding)
         .frame(width: width, alignment: .leading)
@@ -892,7 +921,7 @@ private struct HomeShowsTonightHeroCard: View {
         .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(ShowTitlePresentation.title(for: show)), \(show.clubName ?? "Unknown club"), \(metadata.joined(separator: ", "))")
+        .accessibilityLabel("\(ShowTitlePresentation.title(for: show)), \(show.clubName ?? "Unknown club"), \(accessibilityMetadata.joined(separator: ", "))")
     }
 
     private static let posterSize: CGFloat = 128
@@ -1006,15 +1035,30 @@ private struct HomeShowsTonightHeroCard: View {
             }
     }
 
-    private var metadata: [String] {
-        [
-            ShowFormatting.listDate(show.date, timezoneID: show.timezone),
-            show.room,
-            ShowRow.priceLabel(for: show),
-        ].compactMap { value in
-            guard let value, !value.isEmpty else { return nil }
-            return value
-        }
+    private var timeLabel: String {
+        ShowFormatting.dateStack(show.date, timezoneID: show.timezone).time
+    }
+
+    private var roomLabel: String? {
+        let trimmed = show.room?.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let trimmed, !trimmed.isEmpty else { return nil }
+        return trimmed
+    }
+
+    private var venueLine: String {
+        let venue = show.clubName ?? "Unknown club"
+        guard let roomLabel else { return "At \(venue)" }
+        return "At \(venue) • \(roomLabel)"
+    }
+
+    private var priceLabel: String? {
+        let trimmed = ShowRow.priceLabel(for: show)?.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let trimmed, !trimmed.isEmpty else { return nil }
+        return trimmed
+    }
+
+    private var accessibilityMetadata: [String] {
+        [timeLabel, roomLabel, priceLabel].compactMap { $0 }
     }
 
 }
@@ -1361,7 +1405,7 @@ private struct HomeTrendingComediansRail: View {
 
         VStack(alignment: .leading, spacing: theme.spacing.md) {
             LaughTrackShelfHeader(
-                eyebrow: "Comics on the rise this week",
+                eyebrow: "Trending",
                 title: "Comedians drawing crowds",
                 subtitle: nil
             )
@@ -1445,16 +1489,21 @@ private struct HomeTrendingComediansGridSkeleton: View {
         LazyVGrid(columns: gridColumns, spacing: theme.spacing.sm) {
             ForEach(0..<4, id: \.self) { _ in
                 VStack(alignment: .leading, spacing: theme.spacing.sm) {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(block)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 112)
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .fill(laughTrack.colors.heroStart)
 
-                    VStack(alignment: .leading, spacing: 3) {
-                        RoundedRectangle(cornerRadius: 4).fill(block).frame(height: 14)
-                        RoundedRectangle(cornerRadius: 4).fill(block).frame(width: 84, height: 11)
+                        RoundedRectangle(cornerRadius: 7, style: .continuous)
+                            .fill(block)
+                            .frame(width: 86, height: 86)
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 116)
+
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(block)
+                        .frame(height: 14)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .padding(theme.spacing.sm)
                 .frame(maxWidth: .infinity, minHeight: 172, alignment: .topLeading)
@@ -1479,19 +1528,12 @@ private struct HomeTrendingComedianCard: View {
         VStack(alignment: .leading, spacing: theme.spacing.sm) {
             artwork
 
-            VStack(alignment: .leading, spacing: 3) {
-                Text(comedian.name)
-                    .font(laughTrack.typography.body.weight(.semibold))
-                    .foregroundStyle(laughTrack.colors.textPrimary)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.leading)
-
-                Text(upcomingShowsText)
-                    .font(laughTrack.typography.metadata)
-                    .foregroundStyle(laughTrack.colors.textSecondary)
-                    .lineLimit(1)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            Text(comedian.name)
+                .font(laughTrack.typography.body.weight(.semibold))
+                .foregroundStyle(laughTrack.colors.textPrimary)
+                .lineLimit(2)
+                .multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(theme.spacing.sm)
         .frame(maxWidth: .infinity, minHeight: 172, alignment: .topLeading)
@@ -1499,11 +1541,85 @@ private struct HomeTrendingComedianCard: View {
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(comedian.name), \(upcomingShowsText)")
+        .accessibilityLabel(comedian.name)
+    }
+
+    private static let posterSize: CGFloat = 86
+    private static let posterFrameInset: CGFloat = 6
+    private static let stageHeight: CGFloat = 116
+
+    private var artwork: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return ZStack {
+            marqueeStageBackground
+
+            ZStack {
+                posterImage
+                    .frame(width: Self.posterSize, height: Self.posterSize)
+                    .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 7, style: .continuous)
+                            .stroke(Color.black.opacity(0.55), lineWidth: 1)
+                    )
+
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .strokeBorder(
+                        laughTrack.colors.accentStrong,
+                        style: StrokeStyle(
+                            lineWidth: 2,
+                            lineCap: .round,
+                            lineJoin: .round,
+                            dash: [0.5, 6]
+                        )
+                    )
+                    .frame(
+                        width: Self.posterSize + Self.posterFrameInset,
+                        height: Self.posterSize + Self.posterFrameInset
+                    )
+                    .shadow(color: laughTrack.colors.accentStrong.opacity(0.65), radius: 4)
+                    .shadow(color: laughTrack.colors.accentStrong.opacity(0.3), radius: 9)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: Self.stageHeight)
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+    }
+
+    private var marqueeStageBackground: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return ZStack {
+            laughTrack.colors.heroStart
+
+            RadialGradient(
+                colors: [
+                    laughTrack.colors.accent.opacity(0.22),
+                    laughTrack.colors.accent.opacity(0.0)
+                ],
+                center: .center,
+                startRadius: 12,
+                endRadius: 140
+            )
+        }
+        .mask(
+            LinearGradient(
+                stops: [
+                    .init(color: .black.opacity(0), location: 0),
+                    .init(color: .black.opacity(0.5), location: 0.06),
+                    .init(color: .black, location: 0.16),
+                    .init(color: .black, location: 0.84),
+                    .init(color: .black.opacity(0.5), location: 0.94),
+                    .init(color: .black.opacity(0), location: 1)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
     }
 
     @ViewBuilder
-    private var artwork: some View {
+    private var posterImage: some View {
         let laughTrack = theme.laughTrackTokens
 
         if let url = URL.normalizedExternalURL(comedian.imageUrl.trimmingCharacters(in: .whitespacesAndNewlines)) {
@@ -1512,40 +1628,32 @@ private struct HomeTrendingComedianCard: View {
                     .resizable()
                     .scaledToFill()
             } placeholder: {
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                Rectangle()
                     .fill(laughTrack.colors.surfaceMuted)
                     .overlay {
                         ProgressView()
                             .tint(laughTrack.colors.accent)
                     }
             } error: { _ in
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(laughTrack.colors.surfaceMuted)
-                    .overlay {
-                        Image(systemName: "photo")
-                            .font(.system(size: theme.iconSizes.lg, weight: .semibold))
-                            .foregroundStyle(laughTrack.colors.textSecondary)
-                    }
+                posterFallback
             }
-            .frame(maxWidth: .infinity)
-            .frame(height: 112)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         } else {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(laughTrack.colors.surfaceMuted)
-                .overlay {
-                    Image(systemName: "music.mic")
-                        .font(.system(size: theme.iconSizes.lg, weight: .semibold))
-                        .foregroundStyle(laughTrack.colors.accentStrong)
-                }
-                .frame(maxWidth: .infinity)
-                .frame(height: 112)
+            posterFallback
         }
     }
 
-    private var upcomingShowsText: String {
-        "\(comedian.showCount) show\(comedian.showCount == 1 ? "" : "s") upcoming"
+    private var posterFallback: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return Rectangle()
+            .fill(laughTrack.colors.surfaceMuted)
+            .overlay {
+                Image(systemName: "music.mic")
+                    .font(.system(size: theme.iconSizes.lg, weight: .semibold))
+                    .foregroundStyle(laughTrack.colors.accentStrong)
+            }
     }
+
 }
 
 @MainActor
@@ -1657,20 +1765,9 @@ private struct HomePopularClubsRail: View {
         let laughTrack = theme.laughTrackTokens
 
         VStack(alignment: .leading, spacing: theme.spacing.md) {
-            LaughTrackShelfHeader(
-                eyebrow: "Popular local clubs",
-                title: "Go where the crowds are",
-                subtitle: nil
-            )
-            // Anchoring the rail's test identifier on the shelf header — not the
-            // inner VStack — keeps it from propagating to the combined-children
-            // accessibility nodes produced by HomePopularClubCard under iOS 26,
-            // which would otherwise mask the inner Button identifiers.
-            .accessibilityIdentifier(LaughTrackViewTestID.homePopularClubsRail)
-
             switch model.phase {
             case .idle, .loading:
-                ClubsListSkeleton()
+                HomePopularClubsGridSkeleton(gridColumns: gridColumns)
             case .failure(let failure):
                 FailureCard(
                     failure: failure,
@@ -1719,6 +1816,7 @@ private struct HomePopularClubsRail: View {
         )
         .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
         .shadowStyle(laughTrack.shadows.card)
+        .accessibilityIdentifier(LaughTrackViewTestID.homePopularClubsRail)
     }
 
     private var gridColumns: [GridItem] {
@@ -1726,6 +1824,46 @@ private struct HomePopularClubsRail: View {
             GridItem(.flexible(), spacing: theme.spacing.sm),
             GridItem(.flexible(), spacing: theme.spacing.sm),
         ]
+    }
+}
+
+private struct HomePopularClubsGridSkeleton: View {
+    @Environment(\.appTheme) private var theme
+
+    let gridColumns: [GridItem]
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+        let block = laughTrack.colors.surfaceMuted
+
+        LazyVGrid(columns: gridColumns, spacing: theme.spacing.sm) {
+            ForEach(0..<4, id: \.self) { _ in
+                VStack(alignment: .leading, spacing: theme.spacing.sm) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .fill(laughTrack.colors.heroStart)
+
+                        Circle()
+                            .fill(block)
+                            .frame(width: 86, height: 86)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 116)
+
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(block)
+                        .frame(height: 14)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .padding(theme.spacing.sm)
+                .frame(maxWidth: .infinity, minHeight: 172, alignment: .topLeading)
+                .background(laughTrack.colors.surface)
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            }
+        }
+        .detailSkeletonShimmer()
+        .accessibilityLabel("Loading popular clubs")
+        .accessibilityAddTraits(.isImage)
     }
 }
 
@@ -1748,7 +1886,7 @@ private struct HomePopularClubCard: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(theme.spacing.sm)
-        .frame(maxWidth: .infinity, minHeight: 150, alignment: .topLeading)
+        .frame(maxWidth: .infinity, minHeight: 172, alignment: .topLeading)
         .background(laughTrack.colors.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .contentShape(Rectangle())
@@ -1756,8 +1894,82 @@ private struct HomePopularClubCard: View {
         .accessibilityLabel(club.name)
     }
 
-    @ViewBuilder
+    private static let posterSize: CGFloat = 86
+    private static let posterFrameInset: CGFloat = 6
+    private static let stageHeight: CGFloat = 116
+
     private var artwork: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return ZStack {
+            marqueeStageBackground
+
+            ZStack {
+                posterImage
+                    .frame(width: Self.posterSize, height: Self.posterSize)
+                    .clipShape(Circle())
+                    .overlay(
+                        Circle()
+                            .stroke(Color.black.opacity(0.55), lineWidth: 1)
+                    )
+
+                Circle()
+                    .strokeBorder(
+                        laughTrack.colors.accentStrong,
+                        style: StrokeStyle(
+                            lineWidth: 2,
+                            lineCap: .round,
+                            lineJoin: .round,
+                            dash: [0.5, 6]
+                        )
+                    )
+                    .frame(
+                        width: Self.posterSize + Self.posterFrameInset,
+                        height: Self.posterSize + Self.posterFrameInset
+                    )
+                    .shadow(color: laughTrack.colors.accentStrong.opacity(0.65), radius: 4)
+                    .shadow(color: laughTrack.colors.accentStrong.opacity(0.3), radius: 9)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: Self.stageHeight)
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+    }
+
+    private var marqueeStageBackground: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return ZStack {
+            laughTrack.colors.heroStart
+
+            RadialGradient(
+                colors: [
+                    laughTrack.colors.accent.opacity(0.22),
+                    laughTrack.colors.accent.opacity(0.0)
+                ],
+                center: .center,
+                startRadius: 12,
+                endRadius: 140
+            )
+        }
+        .mask(
+            LinearGradient(
+                stops: [
+                    .init(color: .black.opacity(0), location: 0),
+                    .init(color: .black.opacity(0.5), location: 0.06),
+                    .init(color: .black, location: 0.16),
+                    .init(color: .black, location: 0.84),
+                    .init(color: .black.opacity(0.5), location: 0.94),
+                    .init(color: .black.opacity(0), location: 1)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
+    }
+
+    @ViewBuilder
+    private var posterImage: some View {
         let laughTrack = theme.laughTrackTokens
 
         if let url = URL.normalizedExternalURL(club.imageUrl.trimmingCharacters(in: .whitespacesAndNewlines)) {
@@ -1765,39 +1977,34 @@ private struct HomePopularClubCard: View {
                 image
                     .resizable()
                     .scaledToFit()
+                    .frame(width: Self.posterSize, height: Self.posterSize)
+                    .background(laughTrack.colors.surfaceMuted)
             } placeholder: {
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                Rectangle()
                     .fill(laughTrack.colors.surfaceMuted)
                     .overlay {
                         ProgressView()
                             .tint(laughTrack.colors.accent)
                     }
             } error: { _ in
-                fallbackArtwork
+                posterFallback
             }
-            .frame(maxWidth: .infinity)
-            .frame(height: 104)
-            .background(laughTrack.colors.surfaceMuted)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         } else {
-            fallbackArtwork
+            posterFallback
         }
     }
 
-    private var fallbackArtwork: some View {
+    private var posterFallback: some View {
         let laughTrack = theme.laughTrackTokens
 
-        return RoundedRectangle(cornerRadius: 14, style: .continuous)
+        return Rectangle()
             .fill(laughTrack.colors.surfaceMuted)
             .overlay {
                 Image(systemName: "building.2.fill")
                     .font(.system(size: theme.iconSizes.lg, weight: .semibold))
                     .foregroundStyle(laughTrack.colors.accentStrong)
             }
-            .frame(maxWidth: .infinity)
-            .frame(height: 104)
     }
-
 }
 
 @MainActor
@@ -2089,7 +2296,7 @@ struct HomeTrendingPodcastsRail: View {
 
             switch model.phase {
             case .idle, .loading:
-                PodcastsListSkeleton()
+                HomeTrendingPodcastsGridSkeleton(gridColumns: gridColumns)
             case .failure(let failure):
                 FailureCard(
                     failure: failure,
@@ -2149,6 +2356,46 @@ struct HomeTrendingPodcastsRail: View {
     }
 }
 
+private struct HomeTrendingPodcastsGridSkeleton: View {
+    @Environment(\.appTheme) private var theme
+
+    let gridColumns: [GridItem]
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+        let block = laughTrack.colors.surfaceMuted
+
+        LazyVGrid(columns: gridColumns, spacing: theme.spacing.sm) {
+            ForEach(0..<4, id: \.self) { _ in
+                VStack(alignment: .leading, spacing: theme.spacing.sm) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .fill(laughTrack.colors.heroStart)
+
+                        RoundedRectangle(cornerRadius: 7, style: .continuous)
+                            .fill(block)
+                            .frame(width: 86, height: 86)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 116)
+
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(block)
+                        .frame(height: 14)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .padding(theme.spacing.sm)
+                .frame(maxWidth: .infinity, minHeight: 172, alignment: .topLeading)
+                .background(laughTrack.colors.surface)
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            }
+        }
+        .detailSkeletonShimmer()
+        .accessibilityLabel("Loading trending podcasts")
+        .accessibilityAddTraits(.isImage)
+    }
+}
+
 private struct HomeTrendingPodcastCard: View {
     let podcast: Components.Schemas.HomeFeedPodcast
 
@@ -2176,8 +2423,82 @@ private struct HomeTrendingPodcastCard: View {
         .accessibilityLabel(podcast.title)
     }
 
-    @ViewBuilder
+    private static let posterSize: CGFloat = 86
+    private static let posterFrameInset: CGFloat = 6
+    private static let stageHeight: CGFloat = 116
+
     private var artwork: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return ZStack {
+            marqueeStageBackground
+
+            ZStack {
+                posterImage
+                    .frame(width: Self.posterSize, height: Self.posterSize)
+                    .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 7, style: .continuous)
+                            .stroke(Color.black.opacity(0.55), lineWidth: 1)
+                    )
+
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .strokeBorder(
+                        laughTrack.colors.accentStrong,
+                        style: StrokeStyle(
+                            lineWidth: 2,
+                            lineCap: .round,
+                            lineJoin: .round,
+                            dash: [0.5, 6]
+                        )
+                    )
+                    .frame(
+                        width: Self.posterSize + Self.posterFrameInset,
+                        height: Self.posterSize + Self.posterFrameInset
+                    )
+                    .shadow(color: laughTrack.colors.accentStrong.opacity(0.65), radius: 4)
+                    .shadow(color: laughTrack.colors.accentStrong.opacity(0.3), radius: 9)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: Self.stageHeight)
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+    }
+
+    private var marqueeStageBackground: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return ZStack {
+            laughTrack.colors.heroStart
+
+            RadialGradient(
+                colors: [
+                    laughTrack.colors.accent.opacity(0.22),
+                    laughTrack.colors.accent.opacity(0.0)
+                ],
+                center: .center,
+                startRadius: 12,
+                endRadius: 140
+            )
+        }
+        .mask(
+            LinearGradient(
+                stops: [
+                    .init(color: .black.opacity(0), location: 0),
+                    .init(color: .black.opacity(0.5), location: 0.06),
+                    .init(color: .black, location: 0.16),
+                    .init(color: .black, location: 0.84),
+                    .init(color: .black.opacity(0.5), location: 0.94),
+                    .init(color: .black.opacity(0), location: 1)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
+    }
+
+    @ViewBuilder
+    private var posterImage: some View {
         let laughTrack = theme.laughTrackTokens
         let trimmed = podcast.imageUrl?.trimmingCharacters(in: .whitespacesAndNewlines)
 
@@ -2187,35 +2508,30 @@ private struct HomeTrendingPodcastCard: View {
                     .resizable()
                     .scaledToFill()
             } placeholder: {
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                Rectangle()
                     .fill(laughTrack.colors.surfaceMuted)
                     .overlay {
                         ProgressView()
                             .tint(laughTrack.colors.accent)
                     }
             } error: { _ in
-                fallbackArtwork
+                posterFallback
             }
-            .frame(maxWidth: .infinity)
-            .frame(height: 112)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         } else {
-            fallbackArtwork
+            posterFallback
         }
     }
 
-    private var fallbackArtwork: some View {
+    private var posterFallback: some View {
         let laughTrack = theme.laughTrackTokens
 
-        return RoundedRectangle(cornerRadius: 14, style: .continuous)
+        return Rectangle()
             .fill(laughTrack.colors.surfaceMuted)
             .overlay {
                 Image(systemName: "headphones")
                     .font(.system(size: theme.iconSizes.lg, weight: .semibold))
                     .foregroundStyle(laughTrack.colors.accentStrong)
             }
-            .frame(maxWidth: .infinity)
-            .frame(height: 112)
     }
 }
 

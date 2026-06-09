@@ -64,9 +64,8 @@ struct ShowDetailView: View {
                         MarqueeHero(
                             title: ShowTitlePresentation.title(for: show),
                             eyebrow: show.club.name,
-                            imageURL: show.imageUrl,
+                            imageURL: ShowDetailPresentation.heroImageURL(for: show),
                             badges: ShowDetailPresentation.heroBadges(for: show, now: countdownTick),
-                            onBack: { coordinator.pop() },
                             fallbackSystemImage: "ticket.fill"
                         )
 
@@ -117,6 +116,12 @@ struct ShowDetailView: View {
         .ignoresSafeArea(.container, edges: .top)
         .accessibilityIdentifier(LaughTrackViewTestID.showDetailScreen)
         .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
+        .overlay(alignment: .top) {
+            DetailChromeBar(
+                onBack: { coordinator.pop() },
+                favoriteState: nil
+            )
+        }
         .modifier(EntityDetailNavigationChrome(entity: .show, title: navigationTitle))
         .task {
             await model.loadIfNeeded(apiClient: apiClient, favorites: favorites)
@@ -257,6 +262,37 @@ enum ShowDetailPresentation {
         false
     }
 
+    /// The lineup item we treat as the headliner. The API has no role field on
+    /// lineup, so we approximate: highest `socialData.popularity`, breaking
+    /// ties by `showCount` then list position. Returns nil for empty lineups
+    /// and open mics.
+    static func headliner(in show: Components.Schemas.ShowDetail) -> Components.Schemas.ComedianLineup? {
+        guard !isOpenMic(show), let lineup = show.lineup, !lineup.isEmpty else {
+            return nil
+        }
+        return lineup.enumerated().sorted { lhs, rhs in
+            let lhsPop = lhs.element.socialData?.popularity ?? -1
+            let rhsPop = rhs.element.socialData?.popularity ?? -1
+            if lhsPop != rhsPop { return lhsPop > rhsPop }
+            let lhsCount = lhs.element.showCount ?? 0
+            let rhsCount = rhs.element.showCount ?? 0
+            if lhsCount != rhsCount { return lhsCount > rhsCount }
+            return lhs.offset < rhs.offset
+        }.first?.element
+    }
+
+    /// Hero image URL: prefer the inferred headliner's headshot when present,
+    /// fall back to the show's own image (venue photo / show poster) otherwise.
+    static func heroImageURL(for show: Components.Schemas.ShowDetail) -> String {
+        if
+            let headshot = headliner(in: show)?.imageUrl.trimmingCharacters(in: .whitespacesAndNewlines),
+            !headshot.isEmpty
+        {
+            return headshot
+        }
+        return show.imageUrl
+    }
+
     private static func optionalFact(label: String, value: String?) -> ShowDetailFact? {
         guard let value, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             return nil
@@ -273,69 +309,197 @@ private struct ShowSummarySection: View {
     let openTicketURL: (URL) -> Void
     let addToCalendar: () -> Void
 
+    @State private var perforationY: CGFloat = 0
+
     var body: some View {
         let facts = ShowDetailPresentation.summaryFacts(for: show)
         let ticketURL = ShowDetailPresentation.primaryTicketURL(for: show)
+        // The perforation replaces the divider BEFORE the last fact row
+        // (Tickets), turning that row into the ticket's stub.
+        let perforationIndex = facts.count - 2
+        let shape = TicketShape(perforationY: perforationY)
 
-        LaughTrackCard(density: .tight) {
-            VStack(spacing: 0) {
-                ForEach(Array(facts.enumerated()), id: \.element.label) { index, fact in
-                    Group {
-                        if fact.label == "When" {
-                            Button(action: addToCalendar) {
+        VStack(spacing: 0) {
+            ForEach(Array(facts.enumerated()), id: \.element.label) { index, fact in
+                Group {
+                    if fact.label == "When" {
+                        Button(action: addToCalendar) {
+                            ShowSummaryFactTile(
+                                fact: fact,
+                                action: .init(systemImage: "calendar.badge.plus", label: "Add to calendar")
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityHint("Adds this show to your phone calendar")
+                    } else if fact.label == "Tickets" {
+                        let infoMessage = isOpenMic
+                            ? nil
+                            : (ShowPricePresentation.detailTicketPriceUnavailable(fact.value)
+                                ? ShowPricePresentation.priceUnavailableExplanation
+                                : nil)
+                        let ctaLabel = isOpenMic ? "RSVP" : "Buy tickets"
+                        let ctaHint = isOpenMic
+                            ? "Opens the RSVP page"
+                            : "Opens the ticket purchase page"
+                        if let ticketURL {
+                            Button {
+                                openTicketURL(ticketURL)
+                            } label: {
                                 ShowSummaryFactTile(
                                     fact: fact,
-                                    action: .init(systemImage: "calendar.badge.plus", label: "Add to calendar")
+                                    action: .init(
+                                        systemImage: "arrow.up.right",
+                                        label: ctaLabel,
+                                        style: .pill
+                                    ),
+                                    infoMessage: infoMessage
                                 )
                             }
                             .buttonStyle(.plain)
-                            .accessibilityHint("Adds this show to your phone calendar")
-                        } else if fact.label == "Tickets" {
-                            let infoMessage = isOpenMic
-                                ? nil
-                                : (ShowPricePresentation.detailTicketPriceUnavailable(fact.value)
-                                    ? ShowPricePresentation.priceUnavailableExplanation
-                                    : nil)
-                            let ctaLabel = isOpenMic ? "RSVP" : "Buy tickets"
-                            let ctaHint = isOpenMic
-                                ? "Opens the RSVP page"
-                                : "Opens the ticket purchase page"
-                            if let ticketURL {
-                                Button {
-                                    openTicketURL(ticketURL)
-                                } label: {
-                                    ShowSummaryFactTile(
-                                        fact: fact,
-                                        action: .init(systemImage: "arrow.up.right", label: ctaLabel),
-                                        infoMessage: infoMessage
+                            .accessibilityHint(ctaHint)
+                        } else {
+                            ShowSummaryFactTile(fact: fact, infoMessage: infoMessage)
+                        }
+                    } else if fact.label == "Venue" {
+                        Button(action: openClub) {
+                            ShowSummaryFactTile(
+                                fact: fact,
+                                action: .init(systemImage: "building.2.fill", label: "Open venue")
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityHint("Opens the venue detail page")
+                    } else {
+                        ShowSummaryFactTile(fact: fact)
+                    }
+                }
+
+                if index < facts.count - 1 {
+                    if index == perforationIndex {
+                        TicketPerforation()
+                            .background(
+                                GeometryReader { geo in
+                                    Color.clear.preference(
+                                        key: PerforationYPreferenceKey.self,
+                                        value: geo.frame(in: .named("ticket")).midY
                                     )
                                 }
-                                .buttonStyle(.plain)
-                                .accessibilityHint(ctaHint)
-                            } else {
-                                ShowSummaryFactTile(fact: fact, infoMessage: infoMessage)
-                            }
-                        } else if fact.label == "Venue" {
-                            Button(action: openClub) {
-                                ShowSummaryFactTile(
-                                    fact: fact,
-                                    action: .init(systemImage: "building.2.fill", label: "Open venue")
-                                )
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityHint("Opens the venue detail page")
-                        } else {
-                            ShowSummaryFactTile(fact: fact)
-                        }
-                    }
-
-                    if index < facts.count - 1 {
-                        Divider()
+                            )
+                    } else {
+                        Rectangle()
+                            .fill(TicketTheme.inkMuted.opacity(0.22))
+                            .frame(height: 1)
                             .padding(.leading, 50)
                     }
                 }
             }
+
         }
+        .padding(8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(TicketTheme.paper)
+        .clipShape(shape)
+        .overlay {
+            shape.stroke(TicketTheme.inkBorder.opacity(0.45), lineWidth: 1)
+        }
+        .coordinateSpace(name: "ticket")
+        .onPreferenceChange(PerforationYPreferenceKey.self) { perforationY = $0 }
+    }
+}
+
+/// Warm paper-and-ink palette used inside the show-summary ticket card. Kept
+/// local to the show-detail file because it intentionally diverges from the
+/// surrounding dark-themed canvas.
+enum TicketTheme {
+    static let paper = Color(red: 0.93, green: 0.87, blue: 0.74)
+    static let paperShade = Color(red: 0.85, green: 0.77, blue: 0.62)
+    static let ink = Color(red: 0.13, green: 0.09, blue: 0.04)
+    static let inkMuted = Color(red: 0.42, green: 0.32, blue: 0.20)
+    static let inkBorder = Color(red: 0.55, green: 0.44, blue: 0.30)
+}
+
+
+/// Rounded-rectangle card silhouette with two semicircular notches carved into
+/// the left and right edges at `perforationY`. Combined with a dashed line
+/// between the notches it reads as a paper ticket with a tear stub.
+private struct TicketShape: Shape {
+    let perforationY: CGFloat
+    var notchRadius: CGFloat = 9
+    var cornerRadius: CGFloat = 18
+
+    func path(in rect: CGRect) -> Path {
+        let w = rect.width
+        let h = rect.height
+        let r = min(cornerRadius, min(w, h) / 2)
+        let py = perforationY
+        let nr = notchRadius
+
+        // While we wait for the perforationY preference to settle, fall back
+        // to a regular rounded rect so the very first frame doesn't render
+        // half-drawn.
+        guard py > r + nr, py < h - r - nr else {
+            return Path(roundedRect: rect, cornerRadius: r, style: .continuous)
+        }
+
+        var path = Path()
+        // top edge, starting after top-left corner radius
+        path.move(to: CGPoint(x: r, y: 0))
+        path.addLine(to: CGPoint(x: w - r, y: 0))
+        // top-right corner
+        path.addArc(center: CGPoint(x: w - r, y: r), radius: r,
+                    startAngle: .degrees(-90), endAngle: .degrees(0), clockwise: false)
+        // right edge down to top of right notch
+        path.addLine(to: CGPoint(x: w, y: py - nr))
+        // right notch — semicircle bulging into the card
+        path.addArc(center: CGPoint(x: w, y: py), radius: nr,
+                    startAngle: .degrees(-90), endAngle: .degrees(90), clockwise: true)
+        // right edge to bottom-right corner
+        path.addLine(to: CGPoint(x: w, y: h - r))
+        // bottom-right corner
+        path.addArc(center: CGPoint(x: w - r, y: h - r), radius: r,
+                    startAngle: .degrees(0), endAngle: .degrees(90), clockwise: false)
+        // bottom edge
+        path.addLine(to: CGPoint(x: r, y: h))
+        // bottom-left corner
+        path.addArc(center: CGPoint(x: r, y: h - r), radius: r,
+                    startAngle: .degrees(90), endAngle: .degrees(180), clockwise: false)
+        // left edge up to bottom of left notch
+        path.addLine(to: CGPoint(x: 0, y: py + nr))
+        // left notch — semicircle bulging into the card
+        path.addArc(center: CGPoint(x: 0, y: py), radius: nr,
+                    startAngle: .degrees(90), endAngle: .degrees(-90), clockwise: true)
+        // left edge up to top-left corner
+        path.addLine(to: CGPoint(x: 0, y: r))
+        // top-left corner
+        path.addArc(center: CGPoint(x: r, y: r), radius: r,
+                    startAngle: .degrees(180), endAngle: .degrees(-90), clockwise: false)
+        path.closeSubpath()
+        return path
+    }
+}
+
+private struct PerforationYPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        let next = nextValue()
+        if next > 0 { value = next }
+    }
+}
+
+private struct TicketPerforation: View {
+    var body: some View {
+        GeometryReader { geo in
+            Path { path in
+                let y = geo.size.height / 2
+                path.move(to: CGPoint(x: 14, y: y))
+                path.addLine(to: CGPoint(x: geo.size.width - 14, y: y))
+            }
+            .stroke(
+                TicketTheme.inkMuted.opacity(0.55),
+                style: StrokeStyle(lineWidth: 1, dash: [4, 4])
+            )
+        }
+        .frame(height: 18)
     }
 }
 
@@ -343,6 +507,12 @@ private struct ShowSummaryFactTile: View {
     struct ActionAffordance {
         let systemImage: String
         let label: String
+        var style: Style = .chevron
+
+        enum Style {
+            case chevron
+            case pill
+        }
     }
 
     @Environment(\.appTheme) private var theme
@@ -355,12 +525,11 @@ private struct ShowSummaryFactTile: View {
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
-        let isActionable = action != nil
 
         HStack(spacing: 14) {
             ZStack {
                 Circle()
-                    .fill(laughTrack.colors.surfaceMuted)
+                    .fill(TicketTheme.paperShade)
                 Image(systemName: leadingSymbol)
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(laughTrack.colors.accentStrong)
@@ -370,12 +539,12 @@ private struct ShowSummaryFactTile: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(fact.label)
                     .font(laughTrack.typography.metadata)
-                    .foregroundStyle(laughTrack.colors.textSecondary)
+                    .foregroundStyle(TicketTheme.inkMuted)
                     .textCase(.uppercase)
                 HStack(spacing: 6) {
                     Text(fact.value)
-                        .font(laughTrack.typography.body.weight(.semibold))
-                        .foregroundStyle(laughTrack.colors.textPrimary)
+                        .font(.system(.body, design: .monospaced).weight(.semibold))
+                        .foregroundStyle(TicketTheme.ink)
                         .fixedSize(horizontal: false, vertical: true)
                     if infoMessage != nil {
                         Button {
@@ -383,7 +552,7 @@ private struct ShowSummaryFactTile: View {
                         } label: {
                             Image(systemName: "info.circle")
                                 .font(.system(size: 14, weight: .semibold))
-                                .foregroundStyle(laughTrack.colors.textSecondary)
+                                .foregroundStyle(TicketTheme.inkMuted)
                                 .padding(4)
                                 .contentShape(Rectangle())
                         }
@@ -395,10 +564,27 @@ private struct ShowSummaryFactTile: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            if isActionable {
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(laughTrack.colors.textSecondary)
+            if let action {
+                switch action.style {
+                case .chevron:
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(TicketTheme.inkMuted)
+                case .pill:
+                    HStack(spacing: 5) {
+                        Text(action.label.uppercased())
+                            .font(.system(size: 11, weight: .heavy, design: .rounded))
+                            .tracking(0.6)
+                        Image(systemName: action.systemImage)
+                            .font(.system(size: 10, weight: .bold))
+                    }
+                    .foregroundStyle(Color.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(laughTrack.colors.accentStrong)
+                    .clipShape(Capsule())
+                    .shadow(color: laughTrack.colors.accentStrong.opacity(0.4), radius: 6, y: 2)
+                }
             }
         }
         .padding(.vertical, 12)
@@ -564,19 +750,43 @@ private struct ComedianLineupTile: View {
     @Environment(\.appTheme) private var theme
 
     private static let tileWidth: CGFloat = 96
-    private static let photoSize: CGFloat = 88
+    private static let posterSize: CGFloat = 80
+    private static let posterFrameInset: CGFloat = 6
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
         VStack(spacing: 8) {
-            photo
-                .frame(width: Self.photoSize, height: Self.photoSize)
-                .clipShape(Circle())
-                .overlay(
-                    Circle()
-                        .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
-                )
+            ZStack {
+                photo
+                    .frame(width: Self.posterSize, height: Self.posterSize)
+                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                            .stroke(Color.black.opacity(0.55), lineWidth: 1)
+                    )
+
+                RoundedRectangle(cornerRadius: 9, style: .continuous)
+                    .strokeBorder(
+                        laughTrack.colors.accentStrong,
+                        style: StrokeStyle(
+                            lineWidth: 1.8,
+                            lineCap: .round,
+                            lineJoin: .round,
+                            dash: [0.5, 5.5]
+                        )
+                    )
+                    .frame(
+                        width: Self.posterSize + Self.posterFrameInset,
+                        height: Self.posterSize + Self.posterFrameInset
+                    )
+                    .shadow(color: laughTrack.colors.accentStrong.opacity(0.6), radius: 3.5)
+                    .shadow(color: laughTrack.colors.accentStrong.opacity(0.28), radius: 8)
+            }
+            .frame(
+                width: Self.posterSize + Self.posterFrameInset,
+                height: Self.posterSize + Self.posterFrameInset
+            )
 
             Text(comedian.name)
                 .font(laughTrack.typography.metadata.weight(.semibold))
@@ -609,7 +819,7 @@ private struct ComedianLineupTile: View {
                     .resizable()
                     .scaledToFill()
             } placeholder: {
-                Circle()
+                Rectangle()
                     .fill(laughTrack.colors.surfaceMuted)
                     .overlay {
                         ProgressView()
@@ -626,7 +836,7 @@ private struct ComedianLineupTile: View {
     private var fallbackPhoto: some View {
         let laughTrack = theme.laughTrackTokens
 
-        return Circle()
+        return Rectangle()
             .fill(laughTrack.colors.surfaceMuted)
             .overlay {
                 Image(systemName: "music.mic")

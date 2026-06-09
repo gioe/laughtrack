@@ -49,8 +49,6 @@ struct ComedianDetailView: View {
                             imageURL: comedian.imageUrl,
                             actions: comedianHeroActions(socialData: comedian.socialData),
                             openURL: { url in openURL(url) },
-                            onBack: { coordinator.pop() },
-                            favoriteState: comedianFavoriteState,
                             fallbackSystemImage: "music.mic"
                         )
 
@@ -105,6 +103,12 @@ struct ComedianDetailView: View {
         .ignoresSafeArea(.container, edges: .top)
         .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
         .accessibilityIdentifier(LaughTrackViewTestID.comedianDetailScreen)
+        .overlay(alignment: .top) {
+            DetailChromeBar(
+                onBack: { coordinator.pop() },
+                favoriteState: comedianFavoriteState
+            )
+        }
         .modifier(EntityDetailNavigationChrome(
             entity: .comedian,
             title: navigationTitle,

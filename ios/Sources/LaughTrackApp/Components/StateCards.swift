@@ -21,17 +21,28 @@ struct LoadingCard: View {
 struct EmptyCard: View {
     let title: String
     let message: String
+    let actionTitle: String?
+    let action: (() -> Void)?
 
-    init(title: String = "Nothing here yet", message: String) {
+    init(
+        title: String = "Nothing here yet",
+        message: String,
+        actionTitle: String? = nil,
+        action: (() -> Void)? = nil
+    ) {
         self.title = title
         self.message = message
+        self.actionTitle = actionTitle
+        self.action = action
     }
 
     var body: some View {
         LaughTrackInlineStateCard(
             tone: .empty,
             title: title,
-            message: message
+            message: message,
+            actionTitle: actionTitle,
+            action: action
         )
     }
 }

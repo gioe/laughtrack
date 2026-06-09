@@ -83,15 +83,35 @@ struct PodcastDetailViewTests {
         let podcast = PodcastDetailViewTests.makeResponse().podcast
         let actions = PodcastDetailPresentation.heroActions(for: podcast)
 
-        #expect(
-            PodcastDetailPresentation.heroBadges(for: podcast).map(\.title)
-                == ["12 episodes"]
-        )
+        #expect(PodcastDetailPresentation.heroBadges(for: podcast).isEmpty)
         #expect(actions.map(\.title) == ["Website", "RSS"])
         #expect(actions.compactMap(\.url).map(\.absoluteString) == [
             "https://podcasts.example.com",
             "https://podcasts.example.com/feed.xml",
         ])
+    }
+
+    @Test("frequent guests keeps comedians with 2+ appearances, drops hosts, caps at 3")
+    func podcastDetailFrequentGuestsFilters() {
+        let response = PodcastDetailViewTests.makeResponseForFrequentGuests()
+        let guests = PodcastDetailPresentation.frequentGuests(
+            for: response,
+            cap: 3,
+            randomizer: { $0.sorted(by: { $0.id < $1.id }) }
+        )
+
+        // Mark Normand (id 101) is the host → excluded even with 3 appearances.
+        // One-shot Guest (id 305) has only 1 appearance → excluded.
+        // Aparna (202), Sam (303), Joe (304) each have 2+ → all retained, capped at 3.
+        #expect(guests.map(\.id) == [202, 303, 304])
+        #expect(guests.map(\.name) == ["Aparna Nancherla", "Sam Morril", "Joe Comedian"])
+    }
+
+    @Test("frequent guests returns empty when no comedian has multiple appearances")
+    func podcastDetailFrequentGuestsEmptyWhenNoRepeat() {
+        let response = PodcastDetailViewTests.makeResponseWithGuestAppearance()
+        let guests = PodcastDetailPresentation.frequentGuests(for: response)
+        #expect(guests.isEmpty)
     }
 
     @Test("podcast detail hero exposes internal host comedians, ignoring RSS author")
@@ -195,6 +215,47 @@ struct PodcastDetailViewTests {
                     imageUrl: "https://cdn.example.com/mark.jpg"
                 )
             ]
+        )
+    }
+
+    private static func makeResponseForFrequentGuests() -> PodcastDetailResponse {
+        let base = makeResponse()
+        func makeAppearance(_ id: Int, _ name: String) -> PodcastDetailEpisodeAppearance {
+            PodcastDetailEpisodeAppearance(
+                id: id,
+                uuid: "demo-comedian-\(id)",
+                name: name,
+                imageUrl: "https://cdn.example.com/\(id).jpg"
+            )
+        }
+        let host = makeAppearance(101, "Mark Normand")
+        let aparna = makeAppearance(202, "Aparna Nancherla")
+        let sam = makeAppearance(303, "Sam Morril")
+        let joe = makeAppearance(304, "Joe Comedian")
+        let oneShot = makeAppearance(305, "One-shot Guest")
+
+        func episode(_ id: Int, _ appearances: [PodcastDetailEpisodeAppearance]) -> PodcastDetailEpisode {
+            PodcastDetailEpisode(
+                id: id,
+                title: "Ep \(id)",
+                description: nil,
+                releaseDate: nil,
+                durationSeconds: 0,
+                episodeUrl: nil,
+                audioUrl: nil,
+                appearances: appearances
+            )
+        }
+
+        return PodcastDetailResponse(
+            podcast: base.podcast,
+            episodes: [
+                episode(1, [host, aparna, sam]),
+                episode(2, [host, aparna, joe]),
+                episode(3, [host, sam, joe]),
+                episode(4, [host, oneShot])
+            ],
+            relatedComedians: base.relatedComedians
         )
     }
 

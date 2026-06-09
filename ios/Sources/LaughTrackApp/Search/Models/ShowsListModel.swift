@@ -145,6 +145,18 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
         activeNearbyPreference = nil
     }
 
+    /// Resets every user-controllable query knob — location, date range,
+    /// distance, and any selected filter facets — so the next fetch returns
+    /// the unfiltered list for the current pinned scope (or all shows when
+    /// nothing is pinned). Useful from the empty-state action when a user
+    /// believes filters are hiding results.
+    func clearAllFilters() {
+        clearLocation()
+        dateRange.isActive = false
+        distance = .city
+        selectedFilterSlugs = []
+    }
+
     func applyManualZip() -> Bool {
         guard !zipCodeDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             clearLocation()

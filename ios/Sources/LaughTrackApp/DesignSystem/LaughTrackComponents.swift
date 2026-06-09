@@ -418,6 +418,7 @@ struct LaughTrackSectionHeader: View {
                 )
             }
         }
+        .padding(.top, theme.spacing.md)
     }
 
     private var horizontalSpacing: CGFloat {
@@ -434,7 +435,7 @@ struct LaughTrackSectionHeader: View {
         case .standard:
             return theme.laughTrackTokens.spacing.tight
         case .compact:
-            return theme.spacing.xxs
+            return theme.spacing.xs
         }
     }
 

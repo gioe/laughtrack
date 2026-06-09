@@ -162,15 +162,12 @@ struct PodcastDetailView: View {
                     VStack(alignment: .leading, spacing: 0) {
                         MarqueeHero(
                             title: response.podcast.title,
-                            eyebrow: "Podcast",
                             imageURL: response.podcast.imageUrl ?? "",
                             badges: PodcastDetailPresentation.heroBadges(for: response.podcast),
                             actions: PodcastDetailPresentation.heroActions(for: response.podcast),
                             hosts: PodcastDetailPresentation.heroHosts(for: response.podcast),
                             openURL: { url in openURL(url) },
                             openComedian: { coordinator.open(.comedian($0)) },
-                            onBack: { coordinator.pop() },
-                            favoriteState: podcastFavoriteState,
                             fallbackSystemImage: "headphones"
                         )
 
@@ -186,7 +183,7 @@ struct PodcastDetailView: View {
                             )
 
                             PodcastRelatedComediansSection(
-                                comedians: response.relatedComedians,
+                                comedians: PodcastDetailPresentation.frequentGuests(for: response),
                                 openComedian: { coordinator.open(.comedian($0)) }
                             )
                         }
@@ -199,6 +196,12 @@ struct PodcastDetailView: View {
         .ignoresSafeArea(.container, edges: .top)
         .accessibilityIdentifier("laughtrack.podcast-detail-screen")
         .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
+        .overlay(alignment: .top) {
+            DetailChromeBar(
+                onBack: { coordinator.pop() },
+                favoriteState: podcastFavoriteState
+            )
+        }
         .modifier(EntityDetailNavigationChrome(
             entity: .podcast,
             title: navigationTitle,
@@ -237,13 +240,59 @@ struct PodcastDetailView: View {
 
 enum PodcastDetailPresentation {
     static func heroBadges(for podcast: PodcastDetail) -> [DetailHeroBadge] {
-        [
-            DetailHeroBadge(
-                title: "\(podcast.episodeCount) episodes",
-                systemImage: "headphones",
-                tone: .accent
-            )
-        ]
+        []
+    }
+
+    /// "Frequent guests" — comedians who appear in 2+ episodes of the podcast,
+    /// excluding the podcast's hosts. Capped at 3 and shuffled per render so
+    /// the user sees a rotating sample rather than the same alphabetical slice.
+    static func frequentGuests(
+        for response: PodcastDetailResponse,
+        cap: Int = 3
+    ) -> [PodcastRelatedComedian] {
+        frequentGuests(
+            for: response,
+            cap: cap,
+            randomizer: { $0.shuffled() }
+        )
+    }
+
+    static func frequentGuests(
+        for response: PodcastDetailResponse,
+        cap: Int,
+        randomizer: ([PodcastRelatedComedian]) -> [PodcastRelatedComedian]
+    ) -> [PodcastRelatedComedian] {
+        let hostIDs = Set(response.podcast.hosts.map(\.id))
+        let hostUUIDs = Set(response.podcast.hosts.map(\.uuid))
+
+        var episodesByComedian: [Int: Set<Int>] = [:]
+        var firstAppearance: [Int: PodcastDetailEpisodeAppearance] = [:]
+
+        for episode in response.episodes {
+            for appearance in episode.appearances {
+                guard !hostIDs.contains(appearance.id), !hostUUIDs.contains(appearance.uuid) else {
+                    continue
+                }
+                episodesByComedian[appearance.id, default: []].insert(episode.id)
+                if firstAppearance[appearance.id] == nil {
+                    firstAppearance[appearance.id] = appearance
+                }
+            }
+        }
+
+        let eligible = episodesByComedian
+            .filter { $0.value.count >= 2 }
+            .compactMap { firstAppearance[$0.key] }
+            .map { appearance in
+                PodcastRelatedComedian(
+                    id: appearance.id,
+                    uuid: appearance.uuid,
+                    name: appearance.name,
+                    imageUrl: appearance.imageUrl
+                )
+            }
+
+        return Array(randomizer(eligible).prefix(cap))
     }
 
     static func heroHosts(for podcast: PodcastDetail) -> [DetailHeroHost] {
@@ -474,15 +523,10 @@ private struct PodcastRelatedComediansSection: View {
     @Environment(\.appTheme) private var theme
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            LaughTrackSectionHeader(title: "Related comedians")
+        if !comedians.isEmpty {
+            VStack(alignment: .leading, spacing: 12) {
+                LaughTrackSectionHeader(title: "Frequent guests")
 
-            if comedians.isEmpty {
-                EmptyCard(
-                    title: "No related comedians yet",
-                    message: "LaughTrack has not matched comedians to this podcast yet."
-                )
-            } else {
                 LazyVStack(alignment: .leading, spacing: theme.spacing.sm) {
                     ForEach(comedians) { comedian in
                         Button {

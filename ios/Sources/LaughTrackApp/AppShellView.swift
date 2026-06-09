@@ -381,61 +381,41 @@ struct AppShellView: View {
         }
     }
 
-    // Search pills act as a mode switcher (one is always active) → bold solid
-    // capsule with accent-orange selected state. Home/Favorites pills act as
-    // optional filters on top of the rails already on screen → outlined
-    // chip-style so they don't read as the same control as Search's pills.
+    // Marquee-themed primitive filter pills. The same component renders in
+    // both Search (mode switcher) and Home/Favorites (optional category filter)
+    // contexts — clear fill, dashed bulb-ring border that echoes the poster
+    // frames on the home rails. Selected state lights up the ring + glow.
     private func primitiveFilterLabel(for primitive: SearchRootModel.Pivot) -> some View {
         let tokens = theme.laughTrackTokens
-        let isSearchMode = shellState.selectedTab == .search
         let isSelected = primitive == shellState.selectedPrimitive
 
         return Text(primitive.title)
-            .font(tokens.typography.metadata)
-            .foregroundStyle(primitiveFilterForeground(isSearchMode: isSearchMode, isSelected: isSelected))
-            .padding(.horizontal, 12)
+            .font(.system(size: 12, weight: .heavy, design: .rounded))
+            .tracking(1.4)
+            .textCase(.uppercase)
+            .foregroundStyle(isSelected ? tokens.colors.accentStrong : tokens.colors.textSecondary)
+            .padding(.horizontal, 14)
             .frame(height: 34)
-            .background {
-                Capsule()
-                    .fill(primitiveFilterFill(isSearchMode: isSearchMode, isSelected: isSelected))
-                    .shadow(
-                        color: .black.opacity(isSearchMode ? 0.08 : 0),
-                        radius: isSearchMode ? 10 : 0,
-                        x: 0,
-                        y: isSearchMode ? 5 : 0
-                    )
-            }
             .overlay {
                 Capsule()
-                    .stroke(
-                        primitiveFilterBorder(isSearchMode: isSearchMode, isSelected: isSelected),
-                        lineWidth: isSearchMode ? 1 : (isSelected ? 1.5 : 1)
+                    .strokeBorder(
+                        isSelected ? tokens.colors.accentStrong : tokens.colors.accentMuted,
+                        style: StrokeStyle(
+                            lineWidth: isSelected ? 1.8 : 1.4,
+                            lineCap: .round,
+                            lineJoin: .round,
+                            dash: [0.5, 5]
+                        )
+                    )
+                    .shadow(
+                        color: tokens.colors.accentStrong.opacity(isSelected ? 0.55 : 0.25),
+                        radius: isSelected ? 4 : 3
+                    )
+                    .shadow(
+                        color: tokens.colors.accentStrong.opacity(isSelected ? 0.3 : 0),
+                        radius: isSelected ? 9 : 0
                     )
             }
-    }
-
-    private func primitiveFilterForeground(isSearchMode: Bool, isSelected: Bool) -> Color {
-        let tokens = theme.laughTrackTokens
-        if isSearchMode {
-            return isSelected ? tokens.colors.textInverse : tokens.colors.textPrimary
-        }
-        return isSelected ? tokens.colors.accentStrong : tokens.colors.textSecondary
-    }
-
-    private func primitiveFilterFill(isSearchMode: Bool, isSelected: Bool) -> Color {
-        let tokens = theme.laughTrackTokens
-        if isSearchMode {
-            return isSelected ? tokens.colors.accentStrong : tokens.colors.surfaceElevated.opacity(0.94)
-        }
-        return .clear
-    }
-
-    private func primitiveFilterBorder(isSearchMode: Bool, isSelected: Bool) -> Color {
-        let tokens = theme.laughTrackTokens
-        if isSearchMode {
-            return tokens.colors.borderSubtle
-        }
-        return isSelected ? tokens.colors.accentStrong : tokens.colors.borderSubtle
     }
 
     private var primitiveFilterScroller: some View {

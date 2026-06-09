@@ -18,8 +18,6 @@ struct MarqueeHero: View {
     var hosts: [DetailHeroHost] = []
     var openURL: ((URL) -> Void)? = nil
     var openComedian: ((Int) -> Void)? = nil
-    var onBack: (() -> Void)? = nil
-    var favoriteState: DetailFavoriteState? = nil
     var fallbackSystemImage: String = "ticket.fill"
 
     private static let posterSize: CGFloat = 196
@@ -29,7 +27,10 @@ struct MarqueeHero: View {
         let laughTrack = theme.laughTrackTokens
 
         VStack(spacing: 14) {
-            chromeBar
+            // Spacer that preserves the title's y-position now that the
+            // back/favorite chrome lives in a sticky overlay outside the
+            // ScrollView. Same height as the original chromeBar (36pt).
+            Color.clear.frame(height: 36)
 
             if let eyebrow, !eyebrow.isEmpty {
                 Text(eyebrow)
@@ -103,26 +104,6 @@ struct MarqueeHero: View {
     /// also collapses the top safe-area inset to zero in the ScrollView, so
     /// the marquee content has to manually offset past the status bar.
     private static let statusBarOffset: CGFloat = 60
-
-    @ViewBuilder
-    private var chromeBar: some View {
-        HStack(alignment: .center) {
-            if let onBack {
-                DetailBackButton(action: onBack)
-            } else {
-                Color.clear.frame(width: 36, height: 36)
-            }
-
-            Spacer()
-
-            if let favoriteState {
-                DetailFavoriteToolbarButton(state: favoriteState)
-            } else {
-                Color.clear.frame(width: 36, height: 36)
-            }
-        }
-        .padding(.horizontal, 12)
-    }
 
     private var marqueeBackground: some View {
         let laughTrack = theme.laughTrackTokens

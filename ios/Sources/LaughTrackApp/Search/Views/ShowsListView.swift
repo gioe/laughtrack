@@ -105,7 +105,14 @@ struct ShowsListView: View {
                     )
                 case .success(let result):
                     if result.items.isEmpty {
-                        EmptyCard(title: "No shows yet", message: emptyMessage)
+                        EmptyCard(
+                            title: emptyState.title,
+                            message: emptyState.message,
+                            actionTitle: emptyState.actionTitle,
+                            action: emptyState.actionTitle.map { _ in
+                                { model.clearAllFilters() }
+                            }
+                        )
                     } else {
                         VStack(alignment: .leading, spacing: theme.spacing.md) {
                             SearchResultsSummary(count: result.items.count, total: result.total)
@@ -202,7 +209,7 @@ struct ShowsListView: View {
         return "Showing nationwide results for \(name). Clear search to use your nearby radius."
     }
 
-    private var emptyMessage: String {
+    private var emptyState: ShowsListEmptyMessage.Resolution {
         ShowsListEmptyMessage.resolve(
             comedianSearchText: model.comedianSearchText,
             clubSearchText: model.clubSearchText,
@@ -218,28 +225,57 @@ struct ShowsListView: View {
 /// covered without hosting the view — HostedView's accessibility-tree wiring
 /// is broken on iOS 26.x simulators (see `ios/CLAUDE.md`).
 enum ShowsListEmptyMessage {
+    struct Resolution: Equatable {
+        let title: String
+        let message: String
+        let actionTitle: String?
+
+        init(title: String, message: String, actionTitle: String? = nil) {
+            self.title = title
+            self.message = message
+            self.actionTitle = actionTitle
+        }
+    }
+
     static func resolve(
         comedianSearchText: String,
         clubSearchText: String,
         hasActiveNearbyPreference: Bool,
         pinnedComedianName: String?,
         pinnedClubName: String?
-    ) -> String {
+    ) -> Resolution {
         if !comedianSearchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
             !clubSearchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            return "No shows matched this search. Try another comedian, club, or a broader date range."
+            return Resolution(
+                title: "No shows yet",
+                message: "No shows matched this search. Try another comedian, club, or a broader date range."
+            )
         }
 
         if hasActiveNearbyPreference {
-            return "No shows matched this ZIP code yet. Broaden the radius or clear location filters."
+            return Resolution(
+                title: "No shows yet",
+                message: "No shows matched this ZIP code yet. Broaden the radius or clear location filters."
+            )
         }
 
         if let pinnedName = (pinnedComedianName ?? pinnedClubName)?
             .trimmingCharacters(in: .whitespacesAndNewlines), !pinnedName.isEmpty {
-            return "\(pinnedName) has no upcoming shows on LaughTrack yet."
+            // The pinned-entity branch used to assert the comedian/club had no
+            // upcoming shows at all, but the underlying query is filtered by
+            // distance + date — a fact users see one row above. The softer
+            // copy stays honest about what we actually know.
+            return Resolution(
+                title: "No matching shows",
+                message: "Try broadening your location or date range to see more shows from \(pinnedName).",
+                actionTitle: "Clear filters"
+            )
         }
 
-        return "No shows are available right now."
+        return Resolution(
+            title: "No shows yet",
+            message: "No shows are available right now."
+        )
     }
 }
 
@@ -261,6 +297,10 @@ private struct ShowFiltersPanel: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: theme.spacing.sm) {
+            if compactMode {
+                LaughTrackSectionHeader(title: "Search Shows")
+            }
+
             ChipFlowLayout(spacing: theme.spacing.sm, rowSpacing: theme.spacing.sm) {
                 if model.allowsLocationFiltering {
                     PillDropdownTrigger(

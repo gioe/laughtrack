@@ -48,8 +48,6 @@ struct ClubDetailView: View {
                         openURL: { url in
                             openURL(url)
                         },
-                        onBack: { coordinator.pop() },
-                        favoriteState: clubFavoriteState,
                         fallbackSystemImage: "building.2.fill"
                     )
 
@@ -69,6 +67,12 @@ struct ClubDetailView: View {
         .ignoresSafeArea(.container, edges: .top)
         .accessibilityIdentifier(LaughTrackViewTestID.clubDetailScreen)
         .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
+        .overlay(alignment: .top) {
+            DetailChromeBar(
+                onBack: { coordinator.pop() },
+                favoriteState: clubFavoriteState
+            )
+        }
         .modifier(EntityDetailNavigationChrome(
             entity: .club,
             title: navigationTitle,

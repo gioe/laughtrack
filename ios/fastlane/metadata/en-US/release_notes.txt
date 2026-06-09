@@ -1,1 +1,8 @@
-• Bug fixes and performance improvements
+Improvements
+• iOS: marquee styling for Discover surface + location modal
+• iOS: extract MarqueeHero as a shared detail-hero component
+• iOS: marquee-style detail hero with bulb-framed square poster
+• [TASK-2729] Track Gilroy TTFs referenced by the font rollout's UIAppFonts list
+• [TASK-2729] Register static fonts and retarget typography tokens to clean PostScript names
+• [TASK-2729] Swap variable Chivo and DMSans TTFs for static-weight files
+• [TASK-2731] Ship DebugSoftPushPromptLaunch debug seam

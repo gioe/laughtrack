@@ -11,6 +11,14 @@ enum DetailNavigationChrome {
 
     static let extendsHeroBehindTopSafeArea = true
 
+    /// Vertical offset from the top of the screen for the sticky chrome bar.
+    /// The detail chrome hides the system nav bar, which collapses the
+    /// container's top safe-area inset to zero, so we manually clear the
+    /// status bar with a fixed offset. Sits intentionally above the marquee
+    /// hero's content padding so the back/favorite chrome reads as
+    /// status-bar-adjacent rather than crowding the title row.
+    static let stickyChromeTopOffset: CGFloat = 16
+
     static func title(for entity: Entity) -> String {
         switch entity {
         case .club:
@@ -79,6 +87,30 @@ private struct DetailNavigationTitle: View {
                 .frame(maxWidth: 240, minHeight: 38)
                 .accessibilityAddTraits(.isHeader)
         }
+    }
+}
+
+/// Sticky chrome bar overlaid at the top of every detail screen. Hosts the
+/// back button (always present) and, when supplied, the favorite toggle.
+/// Designed to be applied via `.overlay(alignment: .top)` on the outer
+/// detail container so the back button remains tappable regardless of
+/// scroll position or load phase.
+struct DetailChromeBar: View {
+    let onBack: () -> Void
+    let favoriteState: DetailFavoriteState?
+
+    var body: some View {
+        HStack(alignment: .center) {
+            DetailBackButton(action: onBack)
+
+            Spacer()
+
+            if let favoriteState {
+                DetailFavoriteToolbarButton(state: favoriteState)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.top, DetailNavigationChrome.stickyChromeTopOffset)
     }
 }
 
