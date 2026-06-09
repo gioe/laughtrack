@@ -247,7 +247,6 @@ _LOOKUP_LOGICAL_BY_RELEASE_DATE_SQL = """
           = LOWER(REGEXP_REPLACE(BTRIM(%s), '^\\s*(?:(?:ep(?:isode)?|#)\\s*[0-9]+(?:\\s*[:.\\-\\)\\]]|\\s+)\\s*|[0-9]+\\s*[:.\\-\\)\\]]\\s*)', '', 'i'))
       AND (source, source_episode_id) IS DISTINCT FROM (%s, %s)
     ORDER BY id
-    LIMIT 1
 """
 
 # Fallback for episodes with no release_date — match within podcast on

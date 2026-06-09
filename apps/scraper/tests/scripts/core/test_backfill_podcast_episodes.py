@@ -61,7 +61,7 @@ class _FakeCursor:
                 and row["release_date"] == release_date
                 and rss_mod._normalize_title(row["title"]) == rss_mod._normalize_title(title)
                 and (row["source"], row["source_episode_id"]) != (source, source_episode_id)
-            ][:1]
+            ]
         elif normalized.startswith("SELECT id, title FROM podcast_episodes"):
             podcast_id, source, source_episode_id = params
             self._last_result = [

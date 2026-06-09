@@ -65,7 +65,7 @@ class _FakeCursor:
                 and row["release_date"] == release_date
                 and mod._normalize_title(row["title"]) == mod._normalize_title(title)
                 and (row["source"], row["source_episode_id"]) != (source, source_episode_id)
-            ][:1]
+            ]
         elif normalized.startswith("SELECT id, title FROM podcast_episodes"):
             # NULL release_date fallback: return all candidate rows and let the
             # caller apply title normalization in Python.
@@ -425,6 +425,48 @@ def test_same_release_date_and_normalized_title_with_different_episode_numbers_i
 
     assert summary.episodes_inserted == 2
     assert [params[2] for params in conn.upserts] == ["ymh-104", "ymh-106"]
+
+
+def test_logical_duplicate_scan_skips_different_episode_number_before_matching_same_number():
+    release_date = datetime(2016, 10, 17, tzinfo=timezone.utc).isoformat()
+    conn = _FakeConn()
+    conn.rows.extend(
+        [
+            {
+                "id": 104,
+                "podcast_id": 5407,
+                "source": "podcast_index",
+                "source_episode_id": "ymh-104",
+                "title": "104-Your Mom's House with Christina Pazsitzky and Tom Segura",
+                "release_date": release_date,
+            },
+            {
+                "id": 106,
+                "podcast_id": 5407,
+                "source": "podcast_index",
+                "source_episode_id": "ymh-106",
+                "title": "106 - Your Mom's House with Christina Pazsitzky and Tom Segura",
+                "release_date": release_date,
+            },
+        ]
+    )
+    incoming = mod.RssEpisodeRow(
+        podcast_id=5407,
+        source="itunes",
+        source_episode_id="itunes-106",
+        guid="itunes-106",
+        title="Episode 106 Your Mom's House with Christina Pazsitzky and Tom Segura",
+        description=None,
+        release_date=release_date,
+        duration_seconds=None,
+        episode_url=None,
+        audio_url=None,
+        external_ids={},
+        evidence={},
+        source_payload={},
+    )
+
+    assert mod.find_logical_episode_id(conn, incoming) == 106
 
 
 def test_upsert_returns_existing_id_when_release_conflict_becomes_visible_after_insert():
