@@ -19,6 +19,7 @@ struct ShowDetailView: View {
     @StateObject private var calendarWriter = ShowCalendarWriter()
     @State private var feedbackMessage: String?
     @State private var safariURL: URL?
+    @State private var countdownTick: Date = Date()
 
     init(showID: Int, apiClient: Client) {
         self.showID = showID
@@ -51,19 +52,23 @@ struct ShowDetailView: View {
                 let isOpenMic = ShowDetailPresentation.isOpenMic(show)
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
-                        // TimelineView pulses every 60s so the countdown badge
-                        // re-derives without waiting for a navigation push or
-                        // pull-to-refresh — the future→live→past transition
-                        // fires while the user is sitting on the screen.
-                        TimelineView(.periodic(from: .now, by: 60)) { context in
-                            MarqueeHero(
-                                title: ShowTitlePresentation.title(for: show),
-                                eyebrow: show.club.name,
-                                imageURL: show.imageUrl,
-                                badges: ShowDetailPresentation.heroBadges(for: show, now: context.date),
-                                fallbackSystemImage: "ticket.fill"
-                            )
-                        }
+                        // countdownTick pulses every 60s via the .task below
+                        // so the countdown badge re-derives without waiting
+                        // for a navigation push or pull-to-refresh — the
+                        // future→live→past transition fires while the user is
+                        // sitting on the screen. Done in @State instead of
+                        // wrapping the marquee in TimelineView so the marquee
+                        // sits at the same layout level as the other detail
+                        // views (TimelineView wrapping changes safe-area
+                        // propagation enough to misalign the hero).
+                        MarqueeHero(
+                            title: ShowTitlePresentation.title(for: show),
+                            eyebrow: show.club.name,
+                            imageURL: show.imageUrl,
+                            badges: ShowDetailPresentation.heroBadges(for: show, now: countdownTick),
+                            onBack: { coordinator.pop() },
+                            fallbackSystemImage: "ticket.fill"
+                        )
 
                         VStack(alignment: .leading, spacing: 20) {
                             ShowSummarySection(show: show, isOpenMic: isOpenMic, openClub: {
@@ -109,11 +114,20 @@ struct ShowDetailView: View {
                 .safariSheet(url: $safariURL)
             }
         }
+        .ignoresSafeArea(.container, edges: .top)
         .accessibilityIdentifier(LaughTrackViewTestID.showDetailScreen)
         .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
         .modifier(EntityDetailNavigationChrome(entity: .show, title: navigationTitle))
         .task {
             await model.loadIfNeeded(apiClient: apiClient, favorites: favorites)
+        }
+        .task {
+            // Drive the countdown badge transitions while the screen is open.
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 60 * 1_000_000_000)
+                if Task.isCancelled { break }
+                countdownTick = Date()
+            }
         }
         .task(id: showID) {
             // Show-detail open counts as an engagement signal for the push

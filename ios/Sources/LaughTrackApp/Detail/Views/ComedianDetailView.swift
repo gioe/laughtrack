@@ -42,23 +42,19 @@ struct ComedianDetailView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             case .success(let content):
                 let comedian = content.comedian
-                let stats = ComedianStatsPresentation.stats(for: comedian, runs: content.upcomingRuns)
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
                         MarqueeHero(
                             title: comedian.name,
-                            eyebrow: "Comedian",
                             imageURL: comedian.imageUrl,
                             actions: comedianHeroActions(socialData: comedian.socialData),
                             openURL: { url in openURL(url) },
+                            onBack: { coordinator.pop() },
+                            favoriteState: comedianFavoriteState,
                             fallbackSystemImage: "music.mic"
                         )
 
                         VStack(alignment: .leading, spacing: 20) {
-                            if !stats.isEmpty {
-                                ComedianStatsBar(stats: stats)
-                            }
-
                             if let relatedContentMessage = content.relatedContentMessage {
                                 InlineStatusMessage(message: relatedContentMessage)
                             }
@@ -589,44 +585,96 @@ struct ComedianPodcastPanel: View {
         let segments = ComedianPodcastPresentation.segmentedPlaybackItems(for: appearances)
 
         VStack(alignment: .leading, spacing: theme.spacing.lg) {
-            podcastSubsection(
-                title: "Comedian's Podcast",
-                emptyTitle: "No hosted podcasts found for \(comedianName)",
-                emptyMessage: "",
-                items: segments.comedianPodcast
-            )
+            if !segments.comedianPodcast.isEmpty {
+                hostedPodcastSpotlight(items: segments.comedianPodcast)
+            }
 
             appearancesSubsection(items: segments.appearances)
         }
     }
 
     @ViewBuilder
-    private func podcastSubsection(
-        title: String,
-        emptyTitle: String,
-        emptyMessage: String,
-        items: [PodcastPlaybackItem]
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            LaughTrackSectionHeader(title: title)
+    private func hostedPodcastSpotlight(items: [PodcastPlaybackItem]) -> some View {
+        let groups = ComedianPodcastPresentation.groupedByPodcast(items)
 
-            if items.isEmpty {
-                EmptyCard(title: emptyTitle, message: emptyMessage)
-            } else {
-                ForEach(items) { item in
-                    PodcastAppearanceRow(
-                        item: item,
-                        isCurrent: podcastPlayer.currentItem?.id == item.id
-                    ) {
-                        podcastPlayer.start(item)
-                    } onOpenPodcast: {
-                        if let podcastID = item.podcastID {
-                            coordinator.open(.podcast(podcastID))
-                        }
+        VStack(alignment: .leading, spacing: 12) {
+            LaughTrackSectionHeader(
+                eyebrow: "Hosts",
+                title: groups.count == 1 ? "Their podcast" : "Their podcasts"
+            )
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(alignment: .top, spacing: theme.spacing.md) {
+                    ForEach(groups) { group in
+                        hostedPodcastTile(group: group)
                     }
                 }
+                .padding(.horizontal, 4)
+                .padding(.vertical, 4)
             }
         }
+    }
+
+    @ViewBuilder
+    private func hostedPodcastTile(group: ComedianPodcastPresentation.PodcastGroup) -> some View {
+        let laughTrack = theme.laughTrackTokens
+        let tileWidth: CGFloat = 132
+
+        Button {
+            if let podcastID = group.podcastID {
+                coordinator.open(.podcast(podcastID))
+            }
+        } label: {
+            VStack(alignment: .leading, spacing: 8) {
+                hostedPodcastArtwork(imageURL: group.podcastImageURL, size: tileWidth)
+
+                Text(group.podcastName)
+                    .font(laughTrack.typography.metadata.weight(.semibold))
+                    .foregroundStyle(laughTrack.colors.textPrimary)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(width: tileWidth, alignment: .leading)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Open \(group.podcastName)")
+    }
+
+    @ViewBuilder
+    private func hostedPodcastArtwork(imageURL: String?, size: CGFloat) -> some View {
+        let laughTrack = theme.laughTrackTokens
+        let trimmed = imageURL?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let normalized = (trimmed?.isEmpty ?? true) ? nil : trimmed
+        let fallback = RoundedRectangle(cornerRadius: 12, style: .continuous)
+            .fill(laughTrack.colors.surfaceElevated)
+            .overlay {
+                Image(systemName: "headphones")
+                    .font(.system(size: 28, weight: .semibold))
+                    .foregroundStyle(laughTrack.colors.accentStrong)
+            }
+
+        Group {
+            if let url = URL.normalizedExternalURL(normalized) {
+                CachedAsyncImage(url: url) { image in
+                    image.resizable().scaledToFill()
+                } placeholder: {
+                    fallback
+                } error: { _ in
+                    fallback
+                }
+            } else {
+                fallback
+            }
+        }
+        .frame(width: size, height: size)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+        )
+        .shadow(color: .black.opacity(0.3), radius: 6, y: 2)
     }
 
     @ViewBuilder
@@ -640,7 +688,10 @@ struct ComedianPodcastPanel: View {
         let pageGroups = groups.isEmpty ? [] : Array(groups[start..<end])
 
         VStack(alignment: .leading, spacing: 12) {
-            LaughTrackSectionHeader(title: "Podcast Appearances")
+            LaughTrackSectionHeader(
+                eyebrow: "Guest Appearances",
+                title: "On other podcasts"
+            )
 
             if groups.isEmpty {
                 EmptyCard(

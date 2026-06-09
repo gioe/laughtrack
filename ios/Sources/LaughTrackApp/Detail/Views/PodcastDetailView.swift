@@ -169,6 +169,8 @@ struct PodcastDetailView: View {
                             hosts: PodcastDetailPresentation.heroHosts(for: response.podcast),
                             openURL: { url in openURL(url) },
                             openComedian: { coordinator.open(.comedian($0)) },
+                            onBack: { coordinator.pop() },
+                            favoriteState: podcastFavoriteState,
                             fallbackSystemImage: "headphones"
                         )
 

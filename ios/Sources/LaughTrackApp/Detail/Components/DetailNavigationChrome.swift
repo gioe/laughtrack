@@ -52,19 +52,7 @@ struct EntityDetailNavigationChrome: ViewModifier {
         #if os(iOS)
         content
             .navigationTitle("")
-            .navigationBarTitleDisplayMode(.inline)
-            .navigationBarBackButtonHidden(true)
-            .toolbarBackground(.hidden, for: .navigationBar)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    DetailBackButton { coordinator.pop() }
-                }
-                if let favoriteState {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        DetailFavoriteToolbarButton(state: favoriteState)
-                    }
-                }
-            }
+            .navigationBarHidden(true)
         #else
         content
             .navigationTitle(title ?? DetailNavigationChrome.title(for: entity))
@@ -122,7 +110,7 @@ struct DetailBackButton: View {
     }
 }
 
-private struct DetailFavoriteToolbarButton: View {
+struct DetailFavoriteToolbarButton: View {
     @Environment(\.appTheme) private var theme
 
     let state: DetailFavoriteState

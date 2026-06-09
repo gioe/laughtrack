@@ -41,18 +41,17 @@ struct ClubDetailView: View {
                 let club = content.club
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
-                    if let heroImageURL = ClubDetailHeroPresentation.imageURL(for: club) {
-                        MarqueeHero(
-                            title: club.name,
-                            eyebrow: "Venue",
-                            imageURL: heroImageURL,
-                            actions: clubHeroActions(club: club),
-                            openURL: { url in
-                                openURL(url)
-                            },
-                            fallbackSystemImage: "building.2.fill"
-                        )
-                    }
+                    MarqueeHero(
+                        title: club.name,
+                        imageURL: ClubDetailHeroPresentation.imageURL(for: club) ?? "",
+                        actions: clubHeroActions(club: club),
+                        openURL: { url in
+                            openURL(url)
+                        },
+                        onBack: { coordinator.pop() },
+                        favoriteState: clubFavoriteState,
+                        fallbackSystemImage: "building.2.fill"
+                    )
 
                     VStack(alignment: .leading, spacing: 20) {
                         PinnedShowsList(

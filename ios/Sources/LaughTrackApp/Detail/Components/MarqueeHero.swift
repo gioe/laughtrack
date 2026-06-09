@@ -18,6 +18,8 @@ struct MarqueeHero: View {
     var hosts: [DetailHeroHost] = []
     var openURL: ((URL) -> Void)? = nil
     var openComedian: ((Int) -> Void)? = nil
+    var onBack: (() -> Void)? = nil
+    var favoriteState: DetailFavoriteState? = nil
     var fallbackSystemImage: String = "ticket.fill"
 
     private static let posterSize: CGFloat = 196
@@ -26,76 +28,100 @@ struct MarqueeHero: View {
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
-        ZStack(alignment: .top) {
-            marqueeBackground
-                .ignoresSafeArea(.container, edges: .top)
+        VStack(spacing: 14) {
+            chromeBar
 
-            VStack(spacing: 14) {
-                if let eyebrow, !eyebrow.isEmpty {
-                    Text(eyebrow)
-                        .font(.system(size: 11, weight: .semibold, design: .rounded))
-                        .tracking(2.2)
-                        .textCase(.uppercase)
-                        .foregroundStyle(laughTrack.colors.accentStrong)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
-                        .padding(.horizontal, 24)
-                }
-
-                Text(title)
-                    .font(.system(size: 24, weight: .heavy, design: .rounded))
-                    .tracking(0.4)
+            if let eyebrow, !eyebrow.isEmpty {
+                Text(eyebrow)
+                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    .tracking(2.2)
                     .textCase(.uppercase)
-                    .multilineTextAlignment(.center)
-                    .foregroundStyle(.white)
-                    .lineLimit(3)
-                    .minimumScaleFactor(0.7)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .shadow(color: .black.opacity(0.6), radius: 4, x: 0, y: 2)
+                    .foregroundStyle(laughTrack.colors.accentStrong)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
                     .padding(.horizontal, 24)
+            }
 
-                posterWithFrame
+            Text(title)
+                .font(.system(size: 24, weight: .heavy, design: .rounded))
+                .tracking(0.4)
+                .textCase(.uppercase)
+                .multilineTextAlignment(.center)
+                .foregroundStyle(.white)
+                .lineLimit(3)
+                .minimumScaleFactor(0.7)
+                .fixedSize(horizontal: false, vertical: true)
+                .shadow(color: .black.opacity(0.6), radius: 4, x: 0, y: 2)
+                .padding(.horizontal, 24)
 
-                if !badges.isEmpty {
-                    HStack(spacing: theme.spacing.sm) {
-                        ForEach(Array(badges.enumerated()), id: \.offset) { _, badge in
-                            if badge.isLive {
-                                LiveRecordingBadge(label: badge.title)
-                            } else {
-                                LaughTrackBadge(
-                                    badge.title,
-                                    systemImage: badge.systemImage,
-                                    tone: badge.tone
-                                )
-                            }
-                        }
-                    }
-                }
+            posterWithFrame
 
-                if let openURL, !actions.isEmpty {
-                    let visibleActions = actions.filter { $0.url != nil }
-                    if !visibleActions.isEmpty {
-                        HStack(spacing: theme.spacing.md) {
-                            ForEach(Array(visibleActions.enumerated()), id: \.offset) { _, action in
-                                if let url = action.url {
-                                    actionButton(action: action, url: url, openURL: openURL)
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if let openComedian, !hosts.isEmpty {
-                    HStack(spacing: theme.spacing.md) {
-                        ForEach(hosts, id: \.id) { host in
-                            hostChip(host: host, openComedian: openComedian)
+            if !badges.isEmpty {
+                HStack(spacing: theme.spacing.sm) {
+                    ForEach(Array(badges.enumerated()), id: \.offset) { _, badge in
+                        if badge.isLive {
+                            LiveRecordingBadge(label: badge.title)
+                        } else {
+                            LaughTrackBadge(
+                                badge.title,
+                                systemImage: badge.systemImage,
+                                tone: badge.tone
+                            )
                         }
                     }
                 }
             }
-            .padding(.vertical, theme.spacing.lg)
-            .frame(maxWidth: .infinity)
+
+            if let openURL, !actions.isEmpty {
+                let visibleActions = actions.filter { $0.url != nil }
+                if !visibleActions.isEmpty {
+                    HStack(spacing: theme.spacing.md) {
+                        ForEach(Array(visibleActions.enumerated()), id: \.offset) { _, action in
+                            if let url = action.url {
+                                actionButton(action: action, url: url, openURL: openURL)
+                            }
+                        }
+                    }
+                }
+            }
+
+            if let openComedian, !hosts.isEmpty {
+                HStack(spacing: theme.spacing.md) {
+                    ForEach(hosts, id: \.id) { host in
+                        hostChip(host: host, openComedian: openComedian)
+                    }
+                }
+            }
         }
+        .padding(.top, Self.statusBarOffset)
+        .padding(.bottom, theme.spacing.lg)
+        .frame(maxWidth: .infinity)
+        .background(marqueeBackground)
+    }
+
+    /// Status-bar clearance. The detail chrome hides the system nav bar, which
+    /// also collapses the top safe-area inset to zero in the ScrollView, so
+    /// the marquee content has to manually offset past the status bar.
+    private static let statusBarOffset: CGFloat = 60
+
+    @ViewBuilder
+    private var chromeBar: some View {
+        HStack(alignment: .center) {
+            if let onBack {
+                DetailBackButton(action: onBack)
+            } else {
+                Color.clear.frame(width: 36, height: 36)
+            }
+
+            Spacer()
+
+            if let favoriteState {
+                DetailFavoriteToolbarButton(state: favoriteState)
+            } else {
+                Color.clear.frame(width: 36, height: 36)
+            }
+        }
+        .padding(.horizontal, 12)
     }
 
     private var marqueeBackground: some View {
@@ -114,6 +140,20 @@ struct MarqueeHero: View {
                 endRadius: 260
             )
         }
+        .mask(
+            LinearGradient(
+                stops: [
+                    .init(color: .black.opacity(0), location: 0),
+                    .init(color: .black.opacity(0.5), location: 0.06),
+                    .init(color: .black, location: 0.16),
+                    .init(color: .black, location: 0.84),
+                    .init(color: .black.opacity(0.5), location: 0.94),
+                    .init(color: .black.opacity(0), location: 1)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
     }
 
     private var posterWithFrame: some View {
