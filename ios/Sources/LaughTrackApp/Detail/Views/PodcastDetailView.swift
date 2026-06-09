@@ -160,8 +160,9 @@ struct PodcastDetailView: View {
             case .success(let response):
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
-                        DetailHero(
+                        MarqueeHero(
                             title: response.podcast.title,
+                            eyebrow: "Podcast",
                             imageURL: response.podcast.imageUrl ?? "",
                             badges: PodcastDetailPresentation.heroBadges(for: response.podcast),
                             actions: PodcastDetailPresentation.heroActions(for: response.podcast),
@@ -170,7 +171,6 @@ struct PodcastDetailView: View {
                             openComedian: { coordinator.open(.comedian($0)) },
                             fallbackSystemImage: "headphones"
                         )
-                        .ignoresSafeArea(.container, edges: .top)
 
                         VStack(alignment: .leading, spacing: 20) {
                             if let description = response.podcast.description?.nonEmpty {

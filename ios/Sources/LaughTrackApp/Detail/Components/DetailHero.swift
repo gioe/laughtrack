@@ -5,6 +5,7 @@ struct DetailHeroBadge {
     let title: String
     let systemImage: String?
     let tone: LaughTrackBadgeTone
+    var isLive: Bool = false
 }
 
 struct DetailHeroAction {

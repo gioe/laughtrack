@@ -12,147 +12,293 @@ struct ShowRow: View {
     var body: some View {
         let laughTrack = theme.laughTrackTokens
         let isOpenMic = Self.isOpenMic(show)
-        let isSoldOut = show.soldOut == true
-        let artworkComedian = isOpenMic ? nil : Self.artworkComedian(for: show)
-        let lineup = isOpenMic ? [] : Self.topLineup(for: show, limit: 3, excluding: artworkComedian)
-        let metadata = Self.metadata(for: show)
 
-        return VStack(alignment: .leading, spacing: theme.spacing.sm) {
-            HStack(alignment: .top, spacing: theme.spacing.md) {
-                artworkColumn(isSoldOut: isSoldOut, caption: artworkComedian?.name)
-
-                VStack(alignment: .leading, spacing: theme.spacing.xxs) {
-                    Text(Self.listTitle(for: show))
-                        .font(isOpenMic ? laughTrack.typography.metadata : laughTrack.typography.cardTitle)
-                        .fontWeight(isOpenMic ? .semibold : nil)
-                        .foregroundStyle(laughTrack.colors.textPrimary)
-                        .lineLimit(isOpenMic ? 1 : 2)
-                        .fixedSize(horizontal: false, vertical: true)
-
-                    if let clubName = show.clubName, !clubName.isEmpty {
-                        Text(clubName)
-                            .font(laughTrack.typography.metadata)
-                            .foregroundStyle(laughTrack.colors.textSecondary)
-                            .lineLimit(1)
-                    }
-
-                    if !metadata.isEmpty {
-                        Text(metadata.joined(separator: " • "))
-                            .font(laughTrack.typography.metadata)
-                            .foregroundStyle(laughTrack.colors.textSecondary)
-                            .lineLimit(2)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-
-                    if !isOpenMic {
-                        badgeRow(isSoldOut: isSoldOut)
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .layoutPriority(1)
-            }
-
-            if !lineup.isEmpty {
-                LineupAvatarStrip(
-                    comedians: lineup.map(LineupAvatarItem.init(comedian:)),
-                    isDimmed: isSoldOut,
-                    openComedian: { coordinator.open(.comedian($0)) }
-                )
+        return Group {
+            if isOpenMic {
+                openMicRow
+            } else {
+                ticketStubRow
             }
         }
-        .frame(maxWidth: .infinity, minHeight: isOpenMic ? 56 : 86, alignment: .leading)
-        .padding(.horizontal, laughTrack.browseDensity.compactCardPadding)
-        .padding(.vertical, isOpenMic ? theme.spacing.sm : laughTrack.browseDensity.compactCardPadding)
-        .background(laughTrack.colors.surfaceMuted)
+        .background(laughTrack.colors.surfaceElevated)
         .overlay(
             RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
-                .stroke(laughTrack.colors.borderStrong.opacity(0.55), lineWidth: 1)
+                .stroke(laughTrack.colors.borderStrong.opacity(0.9), lineWidth: 1)
         )
         .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
         .shadowStyle(laughTrack.shadows.card)
     }
 
-    @ViewBuilder
-    private func artworkColumn(isSoldOut: Bool, caption: String?) -> some View {
+    // MARK: - Open mic row (compact)
+
+    private var openMicRow: some View {
         let laughTrack = theme.laughTrackTokens
-        VStack(spacing: 4) {
-            rowArtwork(isSoldOut: isSoldOut)
-            if let caption, !caption.isEmpty {
-                Text(caption)
-                    .font(laughTrack.typography.metadata)
-                    .foregroundStyle(laughTrack.colors.textPrimary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.85)
-                    .frame(width: LaughTrackEntityRowDesign.searchCard.artworkSize)
-                    .opacity(isSoldOut ? 0.6 : 1)
-            }
-        }
-    }
+        let metadata = Self.metadata(for: show)
 
-    @ViewBuilder
-    private func rowArtwork(isSoldOut: Bool) -> some View {
-        let laughTrack = theme.laughTrackTokens
-        let rawImageURL = Self.artworkImageURL(for: show)
+        return VStack(alignment: .leading, spacing: theme.spacing.xxs) {
+            Text(Self.listTitle(for: show))
+                .font(laughTrack.typography.metadata)
+                .fontWeight(.semibold)
+                .foregroundStyle(laughTrack.colors.textPrimary)
+                .lineLimit(1)
 
-        Group {
-            if let url = URL.normalizedExternalURL(rawImageURL) {
-                CachedAsyncImage(url: url) { image in
-                    image
-                        .resizable()
-                        .scaledToFill()
-                } placeholder: {
-                    rowArtworkBackground
-                        .overlay {
-                            ProgressView()
-                                .tint(laughTrack.colors.accent)
-                        }
-                } error: { _ in
-                    rowArtworkFallback
-                }
-            } else {
-                rowArtworkFallback
-            }
-        }
-        .frame(
-            width: LaughTrackEntityRowDesign.searchCard.artworkSize,
-            height: LaughTrackEntityRowDesign.searchCard.artworkSize
-        )
-        .clipShape(Circle())
-        .saturation(isSoldOut ? 0 : 1)
-        .opacity(isSoldOut ? 0.6 : 1)
-        .accessibilityHidden(true)
-    }
-
-    private var rowArtworkBackground: some View {
-        Circle()
-            .fill(theme.laughTrackTokens.colors.surfaceMuted)
-    }
-
-    private var rowArtworkFallback: some View {
-        rowArtworkBackground
-            .overlay {
-                Image(systemName: "music.mic")
-                    .font(.system(size: theme.iconSizes.lg, weight: .semibold))
-                    .foregroundStyle(theme.laughTrackTokens.colors.accentStrong)
-            }
-    }
-
-    @ViewBuilder
-    private func badgeRow(isSoldOut: Bool) -> some View {
-        let laughTrack = theme.laughTrackTokens
-        let priceText = isSoldOut
-            ? Self.previousPriceLabel(for: show)
-            : Self.priceLabel(for: show)
-
-        HStack(spacing: theme.spacing.xs) {
-            if let priceText {
-                Text(priceText)
+            if let clubName = show.clubName, !clubName.isEmpty {
+                Text(clubName)
                     .font(laughTrack.typography.metadata)
                     .foregroundStyle(laughTrack.colors.textSecondary)
-                    .strikethrough(isSoldOut, color: laughTrack.colors.textSecondary)
                     .lineLimit(1)
             }
 
+            if !metadata.isEmpty {
+                Text(metadata.joined(separator: " • "))
+                    .font(laughTrack.typography.metadata)
+                    .foregroundStyle(laughTrack.colors.textSecondary)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)
+        .padding(.horizontal, laughTrack.browseDensity.compactCardPadding)
+        .padding(.vertical, theme.spacing.sm)
+    }
+
+    // MARK: - Ticket-stub row
+
+    private var ticketStubRow: some View {
+        HStack(spacing: 0) {
+            ticketBody
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+
+            DashedVerticalLine()
+                .stroke(
+                    theme.laughTrackTokens.colors.borderStrong.opacity(0.6),
+                    style: StrokeStyle(lineWidth: 1, dash: [3, 3])
+                )
+                .frame(width: 1)
+                .padding(.vertical, theme.spacing.sm)
+
+            ticketStub
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private var ticketBody: some View {
+        let laughTrack = theme.laughTrackTokens
+        let isSoldOut = show.soldOut == true
+        let headliner = Self.artworkComedian(for: show)
+        let supporting = Self.topLineup(for: show, limit: 3, excluding: headliner)
+
+        return VStack(alignment: .leading, spacing: theme.spacing.sm) {
+            if let headliner {
+                headlinerBlock(
+                    headliner: headliner,
+                    supporting: supporting,
+                    isSoldOut: isSoldOut
+                )
+            } else {
+                titleOnlyBlock
+            }
+
+            if isSoldOut || isWithinNearbyRadius {
+                ticketBodyBadges(isSoldOut: isSoldOut)
+            }
+        }
+        .padding(laughTrack.browseDensity.compactCardPadding)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(ticketBodyBackground)
+    }
+
+    private var titleOnlyBlock: some View {
+        let laughTrack = theme.laughTrackTokens
+        let clubName = show.clubName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let roomName = Self.roomLabel(for: show)
+
+        return VStack(alignment: .leading, spacing: theme.spacing.xxs) {
+            Text(Self.listTitle(for: show))
+                .font(laughTrack.typography.bodyEmphasis)
+                .foregroundStyle(laughTrack.colors.textPrimary)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
+
+            if !clubName.isEmpty {
+                Text(clubName)
+                    .font(laughTrack.typography.metadata)
+                    .foregroundStyle(laughTrack.colors.textSecondary)
+                    .lineLimit(1)
+            }
+
+            if let roomName {
+                Text(roomName)
+                    .font(laughTrack.typography.metadata)
+                    .foregroundStyle(laughTrack.colors.textSecondary)
+                    .lineLimit(1)
+            }
+        }
+    }
+
+    private var ticketBodyBackground: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return ZStack {
+            laughTrack.colors.surfaceElevated
+            laughTrack.colors.accent.opacity(0.035)
+        }
+    }
+
+    @ViewBuilder
+    private func headlinerBlock(
+        headliner: Components.Schemas.ComedianLineup,
+        supporting: [Components.Schemas.ComedianLineup],
+        isSoldOut: Bool
+    ) -> some View {
+        let laughTrack = theme.laughTrackTokens
+        let clubName = show.clubName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+
+        VStack(alignment: .leading, spacing: theme.spacing.xs) {
+            HStack(alignment: .center, spacing: theme.spacing.sm) {
+                headlinerAvatar(for: headliner)
+                    .frame(width: 60, height: 60)
+                    .clipShape(Circle())
+                    .overlay(
+                        Circle().stroke(
+                            laughTrack.colors.accent.opacity(0.35),
+                            lineWidth: 1.5
+                        )
+                    )
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(headliner.name)
+                        .font(laughTrack.typography.bodyEmphasis)
+                        .foregroundStyle(laughTrack.colors.textPrimary)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    if !clubName.isEmpty {
+                        Text(clubName)
+                            .font(laughTrack.typography.metadata)
+                            .foregroundStyle(laughTrack.colors.textSecondary)
+                            .lineLimit(1)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+
+            if !supporting.isEmpty {
+                supportingRow(supporting: supporting)
+            }
+        }
+        .saturation(isSoldOut ? 0 : 1)
+        .opacity(isSoldOut ? 0.6 : 1)
+    }
+
+    @ViewBuilder
+    private func headlinerAvatar(for comedian: Components.Schemas.ComedianLineup) -> some View {
+        let laughTrack = theme.laughTrackTokens
+        let trimmed = comedian.imageUrl.trimmingCharacters(in: .whitespacesAndNewlines)
+        let normalized = trimmed.isEmpty ? nil : trimmed
+
+        if let url = URL.normalizedExternalURL(normalized) {
+            CachedAsyncImage(url: url) { image in
+                image.resizable().scaledToFill()
+            } placeholder: {
+                Circle().fill(laughTrack.colors.surfaceMuted)
+            } error: { _ in
+                headlinerAvatarFallback
+            }
+        } else {
+            headlinerAvatarFallback
+        }
+    }
+
+    private var headlinerAvatarFallback: some View {
+        let laughTrack = theme.laughTrackTokens
+        return Circle()
+            .fill(laughTrack.colors.surfaceMuted)
+            .overlay {
+                Image(systemName: "person.fill")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundStyle(laughTrack.colors.accentStrong)
+            }
+    }
+
+    @ViewBuilder
+    private func supportingRow(supporting: [Components.Schemas.ComedianLineup]) -> some View {
+        let laughTrack = theme.laughTrackTokens
+        let stackedAvatars = Array(supporting.prefix(3))
+        let names = stackedAvatars.map(\.name).joined(separator: ", ")
+        let overflow = max(0, supporting.count - stackedAvatars.count)
+        let label = overflow > 0
+            ? "with \(names) +\(overflow) more"
+            : "with \(names)"
+
+        HStack(spacing: theme.spacing.xs) {
+            if !stackedAvatars.isEmpty {
+                ZStack(alignment: .leading) {
+                    ForEach(Array(stackedAvatars.enumerated()), id: \.element.id) { index, comedian in
+                        supportingAvatar(for: comedian)
+                            .overlay(
+                                Circle().stroke(laughTrack.colors.surfaceElevated, lineWidth: 2)
+                            )
+                            .offset(x: CGFloat(index) * 16)
+                            .zIndex(Double(stackedAvatars.count - index))
+                    }
+                }
+                .frame(
+                    width: 24 + CGFloat(max(0, stackedAvatars.count - 1)) * 16,
+                    height: 24,
+                    alignment: .leading
+                )
+            }
+
+            Text(label)
+                .font(laughTrack.typography.metadata)
+                .foregroundStyle(laughTrack.colors.textSecondary)
+                .lineLimit(3)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    @ViewBuilder
+    private func supportingAvatar(for comedian: Components.Schemas.ComedianLineup) -> some View {
+        let laughTrack = theme.laughTrackTokens
+        let trimmed = comedian.imageUrl.trimmingCharacters(in: .whitespacesAndNewlines)
+        let normalized = trimmed.isEmpty ? nil : trimmed
+
+        Group {
+            if let url = URL.normalizedExternalURL(normalized) {
+                CachedAsyncImage(url: url) { image in
+                    image.resizable().scaledToFill()
+                } placeholder: {
+                    Circle().fill(laughTrack.colors.surfaceMuted)
+                } error: { _ in
+                    supportingAvatarFallback
+                }
+            } else {
+                supportingAvatarFallback
+            }
+        }
+        .frame(width: 24, height: 24)
+        .clipShape(Circle())
+    }
+
+    private var supportingAvatarFallback: some View {
+        let laughTrack = theme.laughTrackTokens
+        return Circle()
+            .fill(laughTrack.colors.surfaceMuted)
+            .overlay {
+                Image(systemName: "person.fill")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(laughTrack.colors.accentStrong)
+            }
+    }
+
+    @ViewBuilder
+    private func ticketBodyBadges(isSoldOut: Bool) -> some View {
+        let laughTrack = theme.laughTrackTokens
+
+        HStack(spacing: theme.spacing.xs) {
             if isSoldOut {
                 Text("Sold out")
                     .font(laughTrack.typography.metadata)
@@ -177,6 +323,64 @@ struct ShowRow: View {
                     )
             }
         }
+    }
+
+    private var ticketStub: some View {
+        let laughTrack = theme.laughTrackTokens
+        let isSoldOut = show.soldOut == true
+        let stack = ShowFormatting.dateStack(show.date, timezoneID: show.timezone)
+        let monthText = Self.monthAbbreviation(show.date, timezoneID: show.timezone)
+        let priceText = isSoldOut
+            ? Self.previousPriceLabel(for: show)
+            : Self.priceLabel(for: show)
+
+        return VStack(spacing: 3) {
+            Text(stack.weekday)
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .tracking(1.4)
+                .foregroundStyle(laughTrack.colors.accentStrong)
+
+            Text(stack.day)
+                .font(.system(size: 26, weight: .heavy, design: .rounded))
+                .foregroundStyle(laughTrack.colors.textPrimary)
+                .monospacedDigit()
+
+            Text(monthText)
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .tracking(1.2)
+                .foregroundStyle(laughTrack.colors.textSecondary)
+
+            Text(stack.time)
+                .font(.system(size: 11, weight: .medium, design: .rounded))
+                .foregroundStyle(laughTrack.colors.textSecondary)
+                .monospacedDigit()
+                .padding(.top, 2)
+
+            if let priceText {
+                Text(priceText)
+                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .foregroundStyle(laughTrack.colors.accentStrong)
+                    .strikethrough(isSoldOut, color: laughTrack.colors.textSecondary)
+                    .monospacedDigit()
+            }
+        }
+        .frame(width: 88)
+        .frame(maxHeight: .infinity)
+        .padding(.vertical, theme.spacing.sm)
+        .background(laughTrack.colors.surfaceMuted)
+    }
+
+    private static let monthStackFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "MMM"
+        return formatter
+    }()
+
+    private static func monthAbbreviation(_ date: Date, timezoneID: String?) -> String {
+        let resolved = timezoneID.flatMap(TimeZone.init(identifier:)) ?? TimeZone.current
+        monthStackFormatter.timeZone = resolved
+        return monthStackFormatter.string(from: date).uppercased()
     }
 
     private var isWithinNearbyRadius: Bool {
@@ -274,6 +478,18 @@ struct ShowRow: View {
         comedian.parentComedian ?? comedian
     }
 
+}
+
+/// Simple vertical line used as the perforation between the show card body and
+/// the date/price stub. Stroke styles (color + dash pattern) are applied at the
+/// callsite so the same shape can serve other ticket-style splits later.
+private struct DashedVerticalLine: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.midX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.midX, y: rect.maxY))
+        return path
+    }
 }
 
 enum ShowTitlePresentation {

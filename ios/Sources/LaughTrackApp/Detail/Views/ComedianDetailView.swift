@@ -45,15 +45,14 @@ struct ComedianDetailView: View {
                 let stats = ComedianStatsPresentation.stats(for: comedian, runs: content.upcomingRuns)
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
-                        DetailHero(
+                        MarqueeHero(
                             title: comedian.name,
+                            eyebrow: "Comedian",
                             imageURL: comedian.imageUrl,
-                            badges: [],
                             actions: comedianHeroActions(socialData: comedian.socialData),
                             openURL: { url in openURL(url) },
                             fallbackSystemImage: "music.mic"
                         )
-                        .ignoresSafeArea(.container, edges: .top)
 
                         VStack(alignment: .leading, spacing: 20) {
                             if !stats.isEmpty {

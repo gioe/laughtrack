@@ -42,16 +42,16 @@ struct ClubDetailView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
                     if let heroImageURL = ClubDetailHeroPresentation.imageURL(for: club) {
-                        DetailHero(
+                        MarqueeHero(
                             title: club.name,
+                            eyebrow: "Venue",
                             imageURL: heroImageURL,
-                            badges: [],
                             actions: clubHeroActions(club: club),
                             openURL: { url in
                                 openURL(url)
-                            }
+                            },
+                            fallbackSystemImage: "building.2.fill"
                         )
-                        .ignoresSafeArea(.container, edges: .top)
                     }
 
                     VStack(alignment: .leading, spacing: 20) {

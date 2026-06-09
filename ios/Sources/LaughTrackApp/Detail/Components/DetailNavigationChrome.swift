@@ -49,7 +49,6 @@ struct EntityDetailNavigationChrome: ViewModifier {
     }
 
     func body(content: Content) -> some View {
-        let resolvedTitle = title ?? DetailNavigationChrome.title(for: entity)
         #if os(iOS)
         content
             .navigationTitle("")
@@ -60,9 +59,6 @@ struct EntityDetailNavigationChrome: ViewModifier {
                 ToolbarItem(placement: .topBarLeading) {
                     DetailBackButton { coordinator.pop() }
                 }
-                ToolbarItem(placement: .principal) {
-                    DetailNavigationTitle(text: resolvedTitle)
-                }
                 if let favoriteState {
                     ToolbarItem(placement: .topBarTrailing) {
                         DetailFavoriteToolbarButton(state: favoriteState)
@@ -71,7 +67,7 @@ struct EntityDetailNavigationChrome: ViewModifier {
             }
         #else
         content
-            .navigationTitle(resolvedTitle)
+            .navigationTitle(title ?? DetailNavigationChrome.title(for: entity))
         #endif
     }
 }

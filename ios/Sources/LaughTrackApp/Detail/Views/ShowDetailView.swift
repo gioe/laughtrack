@@ -56,14 +56,14 @@ struct ShowDetailView: View {
                         // pull-to-refresh — the future→live→past transition
                         // fires while the user is sitting on the screen.
                         TimelineView(.periodic(from: .now, by: 60)) { context in
-                            DetailHero(
-                                title: nil,
+                            MarqueeHero(
+                                title: ShowTitlePresentation.title(for: show),
+                                eyebrow: show.club.name,
                                 imageURL: show.imageUrl,
                                 badges: ShowDetailPresentation.heroBadges(for: show, now: context.date),
                                 fallbackSystemImage: "ticket.fill"
                             )
                         }
-                        .ignoresSafeArea(.container, edges: .top)
 
                         VStack(alignment: .leading, spacing: 20) {
                             ShowSummarySection(show: show, isOpenMic: isOpenMic, openClub: {
@@ -173,11 +173,13 @@ struct ShowDetailFact: Equatable {
 enum ShowDetailPresentation {
     static func heroBadges(for show: Components.Schemas.ShowDetail, now: Date = Date()) -> [DetailHeroBadge] {
         let countdown = ShowFormatting.countdown(for: show.date, now: now)
+        let isLive = countdown.tone == .live
         return [
             DetailHeroBadge(
-                title: countdown.label,
-                systemImage: countdownSymbol(countdown.tone),
-                tone: countdownBadgeTone(countdown.tone)
+                title: isLive ? "LIVE" : countdown.label,
+                systemImage: isLive ? nil : countdownSymbol(countdown.tone),
+                tone: countdownBadgeTone(countdown.tone),
+                isLive: isLive
             )
         ]
     }
