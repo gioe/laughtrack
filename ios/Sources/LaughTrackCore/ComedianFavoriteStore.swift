@@ -38,6 +38,14 @@ public final class ComedianFavoriteStore: ObservableObject {
         values[uuid] ?? fallback ?? false
     }
 
+    /// Count of comedians currently favorited in this store, across every
+    /// list that seeded or toggled it. Lets surfaces that swap their backing
+    /// list (e.g. onboarding suggestions vs. search results) report a stable
+    /// "N selected" without losing favorites made under the previous list.
+    public var favoritedCount: Int {
+        values.values.filter { $0 }.count
+    }
+
     public func storedValue(for uuid: String) -> Bool? {
         values[uuid]
     }
