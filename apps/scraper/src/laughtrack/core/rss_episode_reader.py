@@ -28,9 +28,9 @@ _CACHE_KEY = "rss_episode_reader"
 # stripped. Strips at most one prefix from the start of the title.
 _TITLE_PREFIX_RE = re.compile(
     r"^\s*(?:"
-    r"(?:ep(?:isode)?|#)\s*\d+(?:\s*[:.\-\)\]]|\s+)\s*"
+    r"(?:ep(?:isode)?|#)\s*(?P<marked>\d+)(?:\s*[:.\-\)\]]|\s+)\s*"
     r"|"
-    r"\d+\s*[:.\-\)\]]\s*"
+    r"(?P<bare>\d+)\s*[:.\-\)\]]\s*"
     r")",
     re.IGNORECASE,
 )
@@ -240,7 +240,7 @@ _UPDATE_PODCAST_CACHE_SQL = """
 # that stamp batches of distinct episodes with the same timestamp still keep
 # separate rows.
 _LOOKUP_LOGICAL_BY_RELEASE_DATE_SQL = """
-    SELECT id FROM podcast_episodes
+    SELECT id, title FROM podcast_episodes
     WHERE podcast_id = %s
       AND release_date = %s::timestamptz
       AND LOWER(REGEXP_REPLACE(BTRIM(title), '^\\s*(?:(?:ep(?:isode)?|#)\\s*[0-9]+(?:\\s*[:.\\-\\)\\]]|\\s+)\\s*|[0-9]+\\s*[:.\\-\\)\\]]\\s*)', '', 'i'))
@@ -274,6 +274,26 @@ def _normalize_title(title: Optional[str]) -> str:
     return _TITLE_PREFIX_RE.sub("", title.strip(), count=1).strip().lower()
 
 
+def _episode_number_prefix(title: Optional[str]) -> Optional[int]:
+    if not title:
+        return None
+    match = _TITLE_PREFIX_RE.match(title)
+    if not match:
+        return None
+    value = match.group("marked") or match.group("bare")
+    return int(value) if value is not None else None
+
+
+def _titles_are_logical_match(existing_title: Optional[str], incoming_title: Optional[str]) -> bool:
+    if _normalize_title(existing_title) != _normalize_title(incoming_title):
+        return False
+    existing_number = _episode_number_prefix(existing_title)
+    incoming_number = _episode_number_prefix(incoming_title)
+    if existing_number is not None and incoming_number is not None:
+        return existing_number == incoming_number
+    return True
+
+
 def find_logical_episode_id(conn: Any, episode: "RssEpisodeRow") -> Optional[int]:
     """Return the id of an existing logical-duplicate row, or None.
 
@@ -297,8 +317,11 @@ def find_logical_episode_id(conn: Any, episode: "RssEpisodeRow") -> Optional[int
                     episode.source_episode_id,
                 ),
             )
-            row = cur.fetchone()
-        return int(row[0]) if row else None
+            rows = cur.fetchall() or []
+        for row in rows:
+            if _titles_are_logical_match(row[1], episode.title):
+                return int(row[0])
+        return None
 
     normalized = _normalize_title(episode.title)
     if not normalized:
@@ -310,7 +333,7 @@ def find_logical_episode_id(conn: Any, episode: "RssEpisodeRow") -> Optional[int
         )
         rows = cur.fetchall() or []
     for row in rows:
-        if _normalize_title(row[1]) == normalized:
+        if _normalize_title(row[1]) == normalized and _titles_are_logical_match(row[1], episode.title):
             return int(row[0])
     return None
 

@@ -52,10 +52,10 @@ class _FakeCursor:
                 for row in self._conn.existing_episode_rows
                 if (row["source"], row["source_episode_id"]) == (source, source_episode_id)
             ][:1]
-        elif normalized.startswith("SELECT id FROM podcast_episodes"):
+        elif normalized.startswith("SELECT id, title FROM podcast_episodes") and "release_date = %s::timestamptz" in normalized:
             podcast_id, release_date, title, source, source_episode_id = params
             self._last_result = [
-                (row["id"],)
+                (row["id"], row["title"])
                 for row in self._conn.existing_episode_rows
                 if row["podcast_id"] == podcast_id
                 and row["release_date"] == release_date
@@ -368,7 +368,7 @@ def test_upsert_short_circuits_when_logical_duplicate_already_exists():
     assert result.inserted is False
     assert result.changed is False
     assert conn.upserts == []
-    assert any("SELECT id FROM podcast_episodes" in sql for sql, _ in conn.executed)
+    assert any("SELECT id, title FROM podcast_episodes" in sql for sql, _ in conn.executed)
 
 
 def test_upsert_falls_through_to_insert_when_no_logical_duplicate():

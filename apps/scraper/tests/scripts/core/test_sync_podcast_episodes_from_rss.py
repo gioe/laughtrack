@@ -195,7 +195,7 @@ def test_load_podcasts_query_skips_feeds_in_reachability_cooldown():
     mod.load_podcasts(conn, source=None, podcast_ids=None, limit=500)
 
     select_sql, select_params = next(
-        (sql, params) for sql, params in conn.executed if sql.lstrip().startswith("SELECT id, source")
+        (sql, params) for sql, params in conn.executed if "SELECT" in sql and "source_podcast_id" in sql
     )
     # The reachability predicate is ANDed into the load query and its bind params follow the filters.
     assert "consecutive_failures" in select_sql

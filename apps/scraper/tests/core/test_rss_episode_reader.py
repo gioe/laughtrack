@@ -53,13 +53,13 @@ class _FakeCursor:
                 for row in self.conn.rows
                 if (row["source"], row["source_episode_id"]) == (source, source_episode_id)
             ][:1]
-        elif normalized.startswith("SELECT id FROM podcast_episodes"):
+        elif normalized.startswith("SELECT id, title FROM podcast_episodes") and "release_date = %s::timestamptz" in normalized:
             # (podcast_id, release_date, source, source_episode_id) lookup; exclude
             # the row whose (source, source_episode_id) matches the params, then
             # return the first row that shares (podcast_id, release_date).
             podcast_id, release_date, title, source, source_episode_id = params
             self._last_result = [
-                (row["id"],)
+                (row["id"], row["title"])
                 for row in self.conn.rows
                 if row["podcast_id"] == podcast_id
                 and row["release_date"] == release_date
@@ -332,7 +332,7 @@ def test_logical_duplicate_with_different_source_id_collapses_to_single_row(monk
     assert len(conn.upserts) == 1
     assert conn.upserts[0][2] == "rss-guid-canonical"
     # And the lookup query was actually run for the prefix-variant row.
-    select_sqls = [sql for sql, _ in conn.executed if "SELECT id FROM podcast_episodes" in sql]
+    select_sqls = [sql for sql, _ in conn.executed if "SELECT id, title FROM podcast_episodes" in sql]
     assert len(select_sqls) == 2
     assert "release_date = %s::timestamptz" in select_sqls[1]
 
@@ -382,6 +382,51 @@ def test_same_release_date_with_different_title_is_not_a_logical_duplicate(monke
     assert [params[2] for params in conn.upserts] == ["rss-guid-a", "rss-guid-b"]
 
 
+def test_same_release_date_and_normalized_title_with_different_episode_numbers_is_not_duplicate(monkeypatch):
+    conn = _FakeConn()
+    release_date = datetime(2016, 10, 17, tzinfo=timezone.utc).isoformat()
+    fetched = mod.RssFetchResult(
+        episodes=[
+            mod.RssEpisodeRow(
+                podcast_id=5407,
+                source="podcast_index",
+                source_episode_id="ymh-104",
+                guid="ymh-104",
+                title="104-Your Mom's House with Christina Pazsitzky and Tom Segura",
+                description=None,
+                release_date=release_date,
+                duration_seconds=None,
+                episode_url=None,
+                audio_url="https://cdn.example/YMH104.mp3",
+                external_ids={"rss_guid": "ymh-104"},
+                evidence={},
+                source_payload={"id": "ymh-104"},
+            ),
+            mod.RssEpisodeRow(
+                podcast_id=5407,
+                source="podcast_index",
+                source_episode_id="ymh-106",
+                guid="ymh-106",
+                title="106 - Your Mom's House with Christina Pazsitzky and Tom Segura",
+                description=None,
+                release_date=release_date,
+                duration_seconds=None,
+                episode_url=None,
+                audio_url="https://cdn.example/YMH106.mp3",
+                external_ids={"rss_guid": "ymh-106"},
+                evidence={},
+                source_payload={"id": "ymh-106"},
+            ),
+        ]
+    )
+    monkeypatch.setattr(mod, "fetch_rss_episodes", lambda _podcast: fetched)
+
+    summary = mod.sync_podcast_episodes_from_rss(conn, _podcast(podcast_id=5407), dry_run=False)
+
+    assert summary.episodes_inserted == 2
+    assert [params[2] for params in conn.upserts] == ["ymh-104", "ymh-106"]
+
+
 def test_upsert_returns_existing_id_when_release_conflict_becomes_visible_after_insert():
     release_date = datetime(2024, 5, 1, 12, 0, tzinfo=timezone.utc).isoformat()
     conn = _FakeConn(
@@ -427,6 +472,14 @@ def test_normalize_title_strips_episode_number_prefixes():
     # Empty / None input return empty string.
     assert mod._normalize_title(None) == ""
     assert mod._normalize_title("") == ""
+
+
+def test_episode_number_prefix_extracts_supported_title_prefixes():
+    assert mod._episode_number_prefix("67: Foo") == 67
+    assert mod._episode_number_prefix("EP67: Foo") == 67
+    assert mod._episode_number_prefix("Episode 67 - Foo") == 67
+    assert mod._episode_number_prefix("#67 Foo") == 67
+    assert mod._episode_number_prefix("Foo") is None
 
 
 def test_logical_duplicate_with_null_release_date_matches_normalized_title(monkeypatch):

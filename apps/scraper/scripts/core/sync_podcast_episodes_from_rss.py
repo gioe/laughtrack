@@ -45,9 +45,15 @@ class DriverSummary:
 
 
 _LOAD_PODCASTS_SQL = """
-    SELECT id, source, source_podcast_id, feed_url, title, source_payload
+    SELECT
+        id,
+        source,
+        source_podcast_id,
+        COALESCE(feed_url, source_payload ->> 'feed_url') AS feed_url,
+        title,
+        source_payload
     FROM podcasts
-    WHERE feed_url IS NOT NULL
+    WHERE COALESCE(feed_url, source_payload ->> 'feed_url') IS NOT NULL
       AND (%s::text IS NULL OR source = %s)
       AND (%s::int[] IS NULL OR id = ANY(%s::int[]))
       AND {reachable}
@@ -61,7 +67,7 @@ _LOAD_PODCASTS_SQL = """
 _COUNT_UNREACHABLE_SQL = """
     SELECT COUNT(*)
     FROM podcasts
-    WHERE feed_url IS NOT NULL
+    WHERE COALESCE(feed_url, source_payload ->> 'feed_url') IS NOT NULL
       AND (%s::text IS NULL OR source = %s)
       AND (%s::int[] IS NULL OR id = ANY(%s::int[]))
       AND NOT {reachable}
