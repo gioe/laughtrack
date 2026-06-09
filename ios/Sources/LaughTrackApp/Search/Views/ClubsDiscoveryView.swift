@@ -55,18 +55,6 @@ struct ClubsDiscoveryView: View {
                     ) {
                         isFilterEditorPresented = true
                     }
-
-                    PillSheetTrigger(
-                        title: "Include all",
-                        systemImage: "eye",
-                        isActive: model.includeEmpty,
-                        accessibilityLabel: "Include clubs with no upcoming shows",
-                        accessibilityHint: model.includeEmpty
-                            ? "Currently showing clubs without upcoming shows."
-                            : "Currently hiding clubs without upcoming shows."
-                    ) {
-                        model.includeEmpty.toggle()
-                    }
                 }
 
                 switch model.phase {
@@ -168,14 +156,122 @@ struct ClubsDiscoveryView: View {
 struct ClubRow: View {
     let club: Components.Schemas.ClubSearchItem
 
+    @Environment(\.appTheme) private var theme
+
+    private static let posterSize: CGFloat = 64
+    private static let posterFrameInset: CGFloat = 5
+
     var body: some View {
-        LaughTrackEntityRow(
-            title: Self.title(for: club),
-            subtitle: Self.subtitle(for: club),
-            metadata: Self.metadata(for: club),
-            systemImage: "building.2.fill",
-            imageURL: club.imageUrl
+        let laughTrack = theme.laughTrackTokens
+
+        HStack(spacing: theme.spacing.md) {
+            poster
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(Self.title(for: club))
+                    .font(laughTrack.typography.cardTitle)
+                    .foregroundStyle(laughTrack.colors.textPrimary)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                Text(Self.subtitle(for: club))
+                    .font(laughTrack.typography.metadata)
+                    .foregroundStyle(laughTrack.colors.textSecondary)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+
+            Image(systemName: "chevron.right")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(laughTrack.colors.textSecondary)
+        }
+        .padding(laughTrack.browseDensity.compactCardPadding)
+        .background(laughTrack.colors.surfaceElevated)
+        .overlay(
+            RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
+                .stroke(laughTrack.colors.borderStrong.opacity(0.9), lineWidth: 1)
         )
+        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
+        .shadowStyle(laughTrack.shadows.card)
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(Self.title(for: club)), \(Self.subtitle(for: club))")
+    }
+
+    private var poster: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return ZStack {
+            posterImage
+                .frame(width: Self.posterSize, height: Self.posterSize)
+                .clipShape(Circle())
+                .overlay(
+                    Circle()
+                        .stroke(Color.black.opacity(0.55), lineWidth: 1)
+                )
+
+            Circle()
+                .strokeBorder(
+                    laughTrack.colors.accentStrong,
+                    style: StrokeStyle(
+                        lineWidth: 1.5,
+                        lineCap: .round,
+                        lineJoin: .round,
+                        dash: [0.5, 4.5]
+                    )
+                )
+                .frame(
+                    width: Self.posterSize + Self.posterFrameInset,
+                    height: Self.posterSize + Self.posterFrameInset
+                )
+                .shadow(color: laughTrack.colors.accentStrong.opacity(0.5), radius: 3)
+                .shadow(color: laughTrack.colors.accentStrong.opacity(0.25), radius: 7)
+        }
+        .frame(
+            width: Self.posterSize + Self.posterFrameInset,
+            height: Self.posterSize + Self.posterFrameInset
+        )
+    }
+
+    @ViewBuilder
+    private var posterImage: some View {
+        let laughTrack = theme.laughTrackTokens
+        let trimmed = club.imageUrl.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if let url = URL.normalizedExternalURL(trimmed) {
+            CachedAsyncImage(url: url) { image in
+                image
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: Self.posterSize, height: Self.posterSize)
+                    .background(laughTrack.colors.surfaceMuted)
+            } placeholder: {
+                Rectangle()
+                    .fill(laughTrack.colors.surfaceMuted)
+                    .overlay {
+                        ProgressView()
+                            .tint(laughTrack.colors.accent)
+                    }
+            } error: { _ in
+                posterFallback
+            }
+        } else {
+            posterFallback
+        }
+    }
+
+    private var posterFallback: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return Rectangle()
+            .fill(laughTrack.colors.surfaceMuted)
+            .overlay {
+                Image(systemName: "building.2.fill")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundStyle(laughTrack.colors.accentStrong)
+            }
     }
 
     static func title(for club: Components.Schemas.ClubSearchItem) -> String {
@@ -186,6 +282,9 @@ struct ClubRow: View {
         [club.city, club.state].compactMap { $0 }.joined(separator: ", ").nonEmpty ?? club.address ?? "Address unavailable"
     }
 
+    /// Retained for `ClubRowTests` (the metadata helper used to drive a
+    /// "N active comedians • N shows" line in the row that has since been
+    /// removed in favor of a cleaner subtitle-only treatment).
     static func metadata(for club: Components.Schemas.ClubSearchItem) -> [String] {
         [
             club.activeComedianCount.map { "\($0) active comedians" },

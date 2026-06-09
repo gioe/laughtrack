@@ -48,7 +48,7 @@ struct LibraryView: View {
                 }
             }
             .padding(.horizontal, theme.spacing.lg)
-            .padding(.top, -4)
+            .padding(.top, theme.spacing.sm)
             .padding(.bottom, tokens.browseDensity.heroPadding)
         }
         .rootScrollBottomClearance(

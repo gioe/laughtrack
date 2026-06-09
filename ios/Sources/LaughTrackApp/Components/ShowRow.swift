@@ -11,55 +11,20 @@ struct ShowRow: View {
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
-        let isOpenMic = Self.isOpenMic(show)
 
-        return Group {
-            if isOpenMic {
-                openMicRow
-            } else {
-                ticketStubRow
-            }
-        }
-        .background(laughTrack.colors.surfaceElevated)
-        .overlay(
-            RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
-                .stroke(laughTrack.colors.borderStrong.opacity(0.9), lineWidth: 1)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
-        .shadowStyle(laughTrack.shadows.card)
-    }
-
-    // MARK: - Open mic row (compact)
-
-    private var openMicRow: some View {
-        let laughTrack = theme.laughTrackTokens
-        let metadata = Self.metadata(for: show)
-
-        return VStack(alignment: .leading, spacing: theme.spacing.xxs) {
-            Text(Self.listTitle(for: show))
-                .font(laughTrack.typography.metadata)
-                .fontWeight(.semibold)
-                .foregroundStyle(laughTrack.colors.textPrimary)
-                .lineLimit(1)
-
-            if let clubName = show.clubName, !clubName.isEmpty {
-                Text(clubName)
-                    .font(laughTrack.typography.metadata)
-                    .foregroundStyle(laughTrack.colors.textSecondary)
-                    .lineLimit(1)
-            }
-
-            if !metadata.isEmpty {
-                Text(metadata.joined(separator: " • "))
-                    .font(laughTrack.typography.metadata)
-                    .foregroundStyle(laughTrack.colors.textSecondary)
-                    .lineLimit(2)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-        }
-        .frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)
-        .padding(.horizontal, laughTrack.browseDensity.compactCardPadding)
-        .padding(.vertical, theme.spacing.sm)
+        // Open mics used to render a separate compact variant, but the
+        // visual mismatch with the surrounding ticket-stub rows was the
+        // bigger problem than the extra height — the unified ticket-stub
+        // layout naturally falls through to titleOnlyBlock for shows
+        // without a headliner, which covers every open mic.
+        return ticketStubRow
+            .background(laughTrack.colors.surfaceElevated)
+            .overlay(
+                RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
+                    .stroke(laughTrack.colors.borderStrong.opacity(0.9), lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
+            .shadowStyle(laughTrack.shadows.card)
     }
 
     // MARK: - Ticket-stub row
@@ -86,6 +51,7 @@ struct ShowRow: View {
     private var ticketBody: some View {
         let laughTrack = theme.laughTrackTokens
         let isSoldOut = show.soldOut == true
+        let isOpenMic = Self.isOpenMic(show)
         let headliner = Self.artworkComedian(for: show)
         let supporting = Self.topLineup(for: show, limit: 3, excluding: headliner)
 
@@ -100,12 +66,15 @@ struct ShowRow: View {
                 titleOnlyBlock
             }
 
-            if isSoldOut || isWithinNearbyRadius {
-                ticketBodyBadges(isSoldOut: isSoldOut)
+            if isSoldOut || isWithinNearbyRadius || isOpenMic {
+                ticketBodyBadges(isSoldOut: isSoldOut, isOpenMic: isOpenMic)
             }
         }
         .padding(laughTrack.browseDensity.compactCardPadding)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        // Vertically center the body so short title-only rows (e.g. a venue-
+        // named show with no headliner) don't look top-stacked next to the
+        // taller date stub on the trailing edge.
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         .background(ticketBodyBackground)
     }
 
@@ -295,10 +264,30 @@ struct ShowRow: View {
     }
 
     @ViewBuilder
-    private func ticketBodyBadges(isSoldOut: Bool) -> some View {
+    private func ticketBodyBadges(isSoldOut: Bool, isOpenMic: Bool) -> some View {
         let laughTrack = theme.laughTrackTokens
 
         HStack(spacing: theme.spacing.xs) {
+            if isOpenMic {
+                HStack(spacing: 4) {
+                    Image(systemName: "music.mic")
+                        .font(.system(size: 10, weight: .bold))
+                    Text("Open mic")
+                        .font(laughTrack.typography.metadata.weight(.semibold))
+                }
+                .foregroundStyle(laughTrack.colors.accentStrong)
+                .padding(.horizontal, theme.spacing.xs)
+                .padding(.vertical, 2)
+                .background(
+                    Capsule(style: .continuous)
+                        .fill(laughTrack.colors.accentMuted.opacity(0.22))
+                )
+                .overlay(
+                    Capsule(style: .continuous)
+                        .stroke(laughTrack.colors.accentMuted.opacity(0.45), lineWidth: 1)
+                )
+            }
+
             if isSoldOut {
                 Text("Sold out")
                     .font(laughTrack.typography.metadata)

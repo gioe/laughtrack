@@ -33,8 +33,10 @@ enum ShowPricePresentation {
 
     static let priceUnavailableExplanation = "Price of these tickets was not made available to us by the venue."
 
-    // Rows stay compact for scannable lists and expose ranges/strikethrough
-    // context. Detail shows a single summary fact and preserves "Price unavailable".
+    // Rows stay compact for scannable lists and expose the lowest available
+    // tier as "From $X" rather than a "$X - $Y" range — the high end of the
+    // range is less useful at-a-glance than knowing the entry point. Detail
+    // shows a single summary fact and preserves "Price unavailable".
     private static func priceRangeLabel(
         from tickets: [Components.Schemas.Ticket]?,
         includeSoldOut: Bool
@@ -52,11 +54,14 @@ enum ShowPricePresentation {
             return formatPrice(lowestPrice)
         }
 
+        // Multiple tiers. Free entry available → "Free" reads cleaner than
+        // "From Free" and matches the user's mental model ("you can get in
+        // free"). Otherwise: "From $X".
         if lowestPrice == 0 {
-            return "Free - \(formatPrice(highestPrice))"
+            return "Free"
         }
 
-        return "\(formatPrice(lowestPrice)) - \(formatPrice(highestPrice))"
+        return "From \(formatPrice(lowestPrice))"
     }
 
     private static func formatPrice(_ price: Double) -> String {

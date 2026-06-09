@@ -6,10 +6,20 @@ struct SearchFilterModal: View {
     @Environment(\.appTheme) private var theme
 
     let filters: [Components.Schemas.Filter]
+    /// Live result count — comes from `model.phase.total` at the call site and
+    /// re-renders the modal each time the underlying search refetches.
     let total: Int
     @Binding var selectedSlugs: Set<String>
     @Binding var isPresented: Bool
-    @State private var draftSlugs: Set<String> = []
+
+    /// Snapshot of `selectedSlugs` taken when the sheet first appears, so
+    /// dismiss-without-commit (X tap or drag-down) can restore the user's
+    /// original selection. Toggling chips writes through to `selectedSlugs`
+    /// directly, which triggers the parent view's existing `.task(id:)` to
+    /// refetch and update `total` — that's what makes the "Show N results"
+    /// label live-update as the user experiments.
+    @State private var initialSlugs: Set<String> = []
+    @State private var didCommit = false
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
@@ -17,13 +27,19 @@ struct SearchFilterModal: View {
         VStack(alignment: .leading, spacing: theme.spacing.lg) {
             HStack(alignment: .top, spacing: theme.spacing.md) {
                 VStack(alignment: .leading, spacing: theme.spacing.xs) {
-                    Text("Filter Results")
-                        .font(laughTrack.typography.cardTitle)
+                    Text("REFINE SEARCH")
+                        .font(.system(size: 11, weight: .heavy, design: .rounded))
+                        .tracking(2.2)
+                        .foregroundStyle(laughTrack.colors.accentStrong)
+
+                    Text("Filter results")
+                        .font(laughTrack.typography.sectionTitle)
                         .foregroundStyle(laughTrack.colors.textPrimary)
 
-                    Text("Select options to refine search.")
-                        .font(laughTrack.typography.body)
+                    Text("Tap a tag to add or remove it. The result count updates live.")
+                        .font(laughTrack.typography.metadata)
                         .foregroundStyle(laughTrack.colors.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
 
                 Spacer(minLength: 0)
@@ -41,58 +57,172 @@ struct SearchFilterModal: View {
             }
 
             if filters.isEmpty {
-                LaughTrackContextRow(
-                    leading: "No filters available",
-                    trailing: ""
-                )
+                Text("No filters available for this search.")
+                    .font(laughTrack.typography.metadata)
+                    .foregroundStyle(laughTrack.colors.textSecondary)
+                    .padding(.vertical, theme.spacing.md)
             } else {
-                VStack(alignment: .leading, spacing: theme.spacing.md) {
-                    Text("Filter By")
-                        .font(laughTrack.typography.eyebrow)
-                        .foregroundStyle(laughTrack.colors.textSecondary)
-                        .textCase(.uppercase)
+                ScrollView(.vertical, showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: theme.spacing.md) {
+                        Text("Filter By")
+                            .font(.system(size: 11, weight: .heavy, design: .rounded))
+                            .tracking(2)
+                            .textCase(.uppercase)
+                            .foregroundStyle(laughTrack.colors.textSecondary)
 
-                    ChipFlowLayout(spacing: theme.spacing.sm, rowSpacing: theme.spacing.sm) {
-                        ForEach(filters, id: \.slug) { filter in
-                            Button {
-                                toggle(filter.slug)
-                            } label: {
-                                LaughTrackBrowseChip(
-                                    filter.name,
-                                    tone: draftSlugs.contains(filter.slug) ? .selected : .neutral
-                                )
+                        ChipFlowLayout(spacing: theme.spacing.sm, rowSpacing: theme.spacing.sm) {
+                            ForEach(filters, id: \.slug) { filter in
+                                FilterMarqueeChip(
+                                    title: filter.name,
+                                    isSelected: selectedSlugs.contains(filter.slug)
+                                ) {
+                                    toggle(filter.slug)
+                                }
                             }
-                            .buttonStyle(.plain)
                         }
                     }
+                    .padding(.vertical, 2)
                 }
             }
 
-            LaughTrackButton("Show \(total.formatted()) Results", systemImage: "checkmark", density: .compact) {
-                selectedSlugs = draftSlugs
-                isPresented = false
+            VStack(spacing: theme.spacing.sm) {
+                Button {
+                    didCommit = true
+                    isPresented = false
+                } label: {
+                    HStack(spacing: 8) {
+                        Text("Show \(total.formatted()) results".uppercased())
+                            .font(.system(size: 13, weight: .heavy, design: .rounded))
+                            .tracking(1.2)
+                            .contentTransition(.numericText())
+                            .animation(.easeOut(duration: 0.2), value: total)
+                        Image(systemName: "arrow.right")
+                            .font(.system(size: 12, weight: .bold))
+                    }
+                    .foregroundStyle(Color.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(laughTrack.colors.accentStrong)
+                    .clipShape(Capsule(style: .continuous))
+                    .shadow(color: laughTrack.colors.accentStrong.opacity(0.45), radius: 8, y: 3)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Show \(total.formatted()) results")
+
+                Button {
+                    selectedSlugs = []
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "arrow.counterclockwise")
+                            .font(.system(size: 12, weight: .bold))
+                        Text("Reset all filters")
+                            .font(laughTrack.typography.metadata.weight(.semibold))
+                    }
+                    .foregroundStyle(
+                        selectedSlugs.isEmpty
+                            ? laughTrack.colors.textSecondary.opacity(0.45)
+                            : laughTrack.colors.textSecondary
+                    )
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+                    .overlay(
+                        Capsule(style: .continuous)
+                            .strokeBorder(
+                                (selectedSlugs.isEmpty
+                                    ? laughTrack.colors.textSecondary.opacity(0.25)
+                                    : laughTrack.colors.textSecondary.opacity(0.6)),
+                                lineWidth: 1
+                            )
+                    )
+                }
+                .buttonStyle(.plain)
+                .disabled(selectedSlugs.isEmpty)
+                .accessibilityLabel("Reset all filters")
+                .accessibilityHint(selectedSlugs.isEmpty
+                    ? "No filters are currently applied."
+                    : "Clears the \(selectedSlugs.count) selected filter\(selectedSlugs.count == 1 ? "" : "s").")
             }
 
             Spacer(minLength: 0)
         }
-        .padding(theme.spacing.xl)
+        .padding(.horizontal, theme.spacing.xl)
+        .padding(.top, theme.spacing.xl)
+        .padding(.bottom, theme.spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
+        .background(theme.laughTrackTokens.colors.canvas)
         .onAppear {
-            draftSlugs = selectedSlugs
+            initialSlugs = selectedSlugs
+            didCommit = false
+        }
+        .onDisappear {
+            // Drag-to-dismiss bypasses `cancel()`, so re-apply the snapshot
+            // here whenever the sheet closes without an explicit commit. No-op
+            // when the user already confirmed via the action button.
+            if !didCommit && selectedSlugs != initialSlugs {
+                selectedSlugs = initialSlugs
+            }
         }
     }
 
     private func toggle(_ slug: String) {
-        if draftSlugs.contains(slug) {
-            draftSlugs.remove(slug)
+        if selectedSlugs.contains(slug) {
+            selectedSlugs.remove(slug)
         } else {
-            draftSlugs.insert(slug)
+            selectedSlugs.insert(slug)
         }
     }
 
     private func cancel() {
-        draftSlugs = selectedSlugs
+        selectedSlugs = initialSlugs
         isPresented = false
+    }
+}
+
+/// Marquee-themed filter chip — uppercase rounded heavy text wrapped in the
+/// same dashed bulb-ring border + accent glow we use on the primitive filter
+/// pills and marquee posters, so selection stands out without a solid fill.
+private struct FilterMarqueeChip: View {
+    @Environment(\.appTheme) private var theme
+
+    let title: String
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        Button(action: action) {
+            Text(title.uppercased())
+                .font(.system(size: 12, weight: .heavy, design: .rounded))
+                .tracking(1.2)
+                .foregroundStyle(isSelected ? laughTrack.colors.accentStrong : laughTrack.colors.textPrimary)
+                .padding(.horizontal, 14)
+                .frame(height: 34)
+                .background(
+                    Capsule(style: .continuous)
+                        .fill(isSelected ? laughTrack.colors.accentMuted.opacity(0.18) : Color.clear)
+                )
+                .overlay(
+                    Capsule(style: .continuous)
+                        .strokeBorder(
+                            isSelected ? laughTrack.colors.accentStrong : laughTrack.colors.accentMuted.opacity(0.7),
+                            style: StrokeStyle(
+                                lineWidth: isSelected ? 1.8 : 1.4,
+                                lineCap: .round,
+                                lineJoin: .round,
+                                dash: [0.5, 5]
+                            )
+                        )
+                        .shadow(
+                            color: laughTrack.colors.accentStrong.opacity(isSelected ? 0.55 : 0.18),
+                            radius: isSelected ? 4 : 2
+                        )
+                )
+                .contentShape(Capsule(style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(title)
+        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
     }
 }
 

@@ -172,10 +172,6 @@ struct PodcastDetailView: View {
                         )
 
                         VStack(alignment: .leading, spacing: 20) {
-                            if let description = response.podcast.description?.nonEmpty {
-                                DetailTextCard(eyebrow: "About", title: nil, text: description, isCollapsible: true)
-                            }
-
                             PodcastEpisodeListSection(
                                 podcast: response.podcast,
                                 episodes: response.episodes,

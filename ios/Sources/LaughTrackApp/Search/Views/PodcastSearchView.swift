@@ -37,18 +37,6 @@ struct PodcastSearchView: View {
                         accessibilityLabel: { "Sort \($0.title)" },
                         openDropdownID: $openDropdownID
                     )
-
-                    PillSheetTrigger(
-                        title: "Include all",
-                        systemImage: "eye",
-                        isActive: model.includeEmpty,
-                        accessibilityLabel: "Include podcasts with no linked comedians",
-                        accessibilityHint: model.includeEmpty
-                            ? "Currently showing podcasts without linked comedians."
-                            : "Currently hiding podcasts without linked comedians."
-                    ) {
-                        model.includeEmpty.toggle()
-                    }
                 }
 
                 switch model.phase {
@@ -133,34 +121,131 @@ struct PodcastSearchRow: View {
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var podcastFavorites: PodcastFavoriteStore
     @EnvironmentObject private var loginModalPresenter: LoginModalPresenter
+    @Environment(\.appTheme) private var theme
+
+    private static let posterSize: CGFloat = 64
+    private static let posterFrameInset: CGFloat = 5
 
     var body: some View {
+        let laughTrack = theme.laughTrackTokens
         let numericID = Self.numericID(for: podcast)
         let isFavorite = numericID.map { podcastFavorites.value(for: $0) } ?? false
+        let canOpenDetail = podcast.navigationTarget != nil
 
-        LaughTrackEntityRow(
-            title: podcast.title,
-            subtitle: podcast.subtitle?.nonEmpty,
-            systemImage: "headphones",
-            imageURL: podcast.imageUrl,
-            design: .savedEntity,
-            action: rowAction,
-            trailingAccessory: {
-                if let numericID {
-                    FavoriteButton(
-                        isFavorite: isFavorite,
-                        isPending: podcastFavorites.isPending(numericID)
-                    ) {
-                        await toggle(podcastID: numericID, currentValue: isFavorite)
+        HStack(spacing: theme.spacing.md) {
+            Button {
+                if canOpenDetail { openPodcastDetail() }
+            } label: {
+                HStack(spacing: theme.spacing.md) {
+                    poster
+
+                    Text(podcast.title)
+                        .font(laughTrack.typography.cardTitle)
+                        .foregroundStyle(laughTrack.colors.textPrimary)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                    if canOpenDetail {
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(laughTrack.colors.textSecondary)
                     }
                 }
+                .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
+            .disabled(!canOpenDetail)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityLabel(podcast.title)
+
+            if let numericID {
+                FavoriteButton(
+                    isFavorite: isFavorite,
+                    isPending: podcastFavorites.isPending(numericID)
+                ) {
+                    await toggle(podcastID: numericID, currentValue: isFavorite)
+                }
+            }
+        }
+        .padding(laughTrack.browseDensity.compactCardPadding)
+        .background(laughTrack.colors.surfaceElevated)
+        .overlay(
+            RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
+                .stroke(laughTrack.colors.borderStrong.opacity(0.9), lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
+        .shadowStyle(laughTrack.shadows.card)
+    }
+
+    private var poster: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return ZStack {
+            posterImage
+                .frame(width: Self.posterSize, height: Self.posterSize)
+                .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 5, style: .continuous)
+                        .stroke(Color.black.opacity(0.55), lineWidth: 1)
+                )
+
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .strokeBorder(
+                    laughTrack.colors.accentStrong,
+                    style: StrokeStyle(
+                        lineWidth: 1.5,
+                        lineCap: .round,
+                        lineJoin: .round,
+                        dash: [0.5, 4.5]
+                    )
+                )
+                .frame(
+                    width: Self.posterSize + Self.posterFrameInset,
+                    height: Self.posterSize + Self.posterFrameInset
+                )
+                .shadow(color: laughTrack.colors.accentStrong.opacity(0.5), radius: 3)
+                .shadow(color: laughTrack.colors.accentStrong.opacity(0.25), radius: 7)
+        }
+        .frame(
+            width: Self.posterSize + Self.posterFrameInset,
+            height: Self.posterSize + Self.posterFrameInset
         )
     }
 
-    private var rowAction: (() -> Void)? {
-        guard podcast.navigationTarget != nil else { return nil }
-        return openPodcastDetail
+    @ViewBuilder
+    private var posterImage: some View {
+        let laughTrack = theme.laughTrackTokens
+        let trimmed = podcast.imageUrl?.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if let raw = trimmed, let url = URL.normalizedExternalURL(raw) {
+            CachedAsyncImage(url: url) { image in
+                image.resizable().scaledToFill()
+            } placeholder: {
+                Rectangle()
+                    .fill(laughTrack.colors.surfaceMuted)
+                    .overlay {
+                        ProgressView()
+                            .tint(laughTrack.colors.accent)
+                    }
+            } error: { _ in
+                posterFallback
+            }
+        } else {
+            posterFallback
+        }
+    }
+
+    private var posterFallback: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return Rectangle()
+            .fill(laughTrack.colors.surfaceMuted)
+            .overlay {
+                Image(systemName: "headphones")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundStyle(laughTrack.colors.accentStrong)
+            }
     }
 
     private func openPodcastDetail() {

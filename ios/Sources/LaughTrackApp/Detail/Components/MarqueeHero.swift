@@ -236,37 +236,62 @@ struct MarqueeHero: View {
     @ViewBuilder
     private func hostChip(host: DetailHeroHost, openComedian: @escaping (Int) -> Void) -> some View {
         let laughTrack = theme.laughTrackTokens
-        let diameter: CGFloat = 44
+        let diameter: CGFloat = 64
+        let ringInset: CGFloat = 5
 
         Button {
             openComedian(host.id)
         } label: {
-            VStack(spacing: 2) {
-                Group {
-                    if
-                        let imageURL = host.imageURL,
-                        let url = URL.normalizedExternalURL(imageURL)
-                    {
-                        CachedAsyncImage(url: url) { image in
-                            image.resizable().scaledToFill()
-                        } placeholder: {
-                            hostFallback(diameter: diameter)
-                        } error: { _ in
+            VStack(spacing: 6) {
+                ZStack {
+                    Group {
+                        if
+                            let imageURL = host.imageURL,
+                            let url = URL.normalizedExternalURL(imageURL)
+                        {
+                            CachedAsyncImage(url: url) { image in
+                                image.resizable().scaledToFill()
+                            } placeholder: {
+                                hostFallback(diameter: diameter)
+                            } error: { _ in
+                                hostFallback(diameter: diameter)
+                            }
+                        } else {
                             hostFallback(diameter: diameter)
                         }
-                    } else {
-                        hostFallback(diameter: diameter)
                     }
-                }
-                .frame(width: diameter, height: diameter)
-                .clipShape(Circle())
-                .overlay(
-                    Circle().stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
-                )
+                    .frame(width: diameter, height: diameter)
+                    .clipShape(Circle())
+                    .overlay(
+                        Circle().stroke(Color.black.opacity(0.55), lineWidth: 1)
+                    )
 
-                Text("Host")
-                    .font(laughTrack.typography.metadata)
+                    // Dashed bulb-ring matches the comedian poster frames used
+                    // elsewhere (show lineup tiles, home rails) so hosts read
+                    // as "tap me, this is a person" instead of small generic
+                    // avatars.
+                    Circle()
+                        .strokeBorder(
+                            laughTrack.colors.accentStrong,
+                            style: StrokeStyle(
+                                lineWidth: 1.6,
+                                lineCap: .round,
+                                lineJoin: .round,
+                                dash: [0.5, 5]
+                            )
+                        )
+                        .frame(width: diameter + ringInset, height: diameter + ringInset)
+                        .shadow(color: laughTrack.colors.accentStrong.opacity(0.55), radius: 3)
+                        .shadow(color: laughTrack.colors.accentStrong.opacity(0.25), radius: 7)
+                }
+                .frame(width: diameter + ringInset, height: diameter + ringInset)
+
+                Text(host.name)
+                    .font(laughTrack.typography.metadata.weight(.semibold))
                     .foregroundStyle(.white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                    .frame(maxWidth: diameter + 24)
                     .shadow(color: .black.opacity(0.6), radius: 3, x: 0, y: 2)
             }
         }

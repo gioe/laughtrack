@@ -139,7 +139,7 @@ struct HomeView: View {
                 contentSections
             }
             .padding(.horizontal, theme.spacing.lg)
-            .padding(.top, -4)
+            .padding(.top, theme.spacing.sm)
             .padding(.bottom, laughTrack.browseDensity.heroPadding)
         }
         .rootScrollBottomClearance(
@@ -1525,18 +1525,18 @@ private struct HomeTrendingComedianCard: View {
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
-        VStack(alignment: .leading, spacing: theme.spacing.sm) {
+        VStack(alignment: .center, spacing: theme.spacing.sm) {
             artwork
 
             Text(comedian.name)
                 .font(laughTrack.typography.body.weight(.semibold))
                 .foregroundStyle(laughTrack.colors.textPrimary)
                 .lineLimit(2)
-                .multilineTextAlignment(.leading)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity, alignment: .center)
         }
         .padding(theme.spacing.sm)
-        .frame(maxWidth: .infinity, minHeight: 172, alignment: .topLeading)
+        .frame(maxWidth: .infinity, minHeight: 172, alignment: .top)
         .background(laughTrack.colors.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .contentShape(Rectangle())
