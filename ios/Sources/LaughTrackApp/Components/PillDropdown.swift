@@ -37,11 +37,15 @@ struct PillDropdownTrigger<Option: Hashable & Identifiable>: View {
                     .font(.system(size: 10, weight: .bold))
                     .rotationEffect(.degrees(isExpanded ? 180 : 0))
             }
-            .foregroundStyle(theme.laughTrackTokens.colors.textInverse)
+            .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
             .padding(.horizontal, theme.laughTrackTokens.browseDensity.chipHorizontalPadding)
             .frame(height: PillDropdownLayout.pillHeight)
             .background(
-                Capsule(style: .continuous).fill(theme.laughTrackTokens.colors.textPrimary)
+                Capsule(style: .continuous).fill(theme.laughTrackTokens.colors.surface)
+            )
+            .overlay(
+                Capsule(style: .continuous)
+                    .stroke(theme.laughTrackTokens.colors.borderSubtle, lineWidth: 1)
             )
             .opacity(isExpanded ? 0 : 1)
         }
@@ -91,11 +95,15 @@ struct PillDropdownOverlay<Option: Hashable & Identifiable>: View {
                                 .font(.system(size: 10, weight: .bold))
                                 .rotationEffect(.degrees(180))
                         }
-                        .foregroundStyle(theme.laughTrackTokens.colors.textInverse)
+                        .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
                         .padding(.horizontal, theme.laughTrackTokens.browseDensity.chipHorizontalPadding)
                         .frame(height: PillDropdownLayout.pillHeight)
                         .background(
-                            Capsule(style: .continuous).fill(theme.laughTrackTokens.colors.textPrimary)
+                            Capsule(style: .continuous).fill(theme.laughTrackTokens.colors.surface)
+                        )
+                        .overlay(
+                            Capsule(style: .continuous)
+                                .stroke(theme.laughTrackTokens.colors.borderSubtle, lineWidth: 1)
                         )
                     }
                     .buttonStyle(.plain)
