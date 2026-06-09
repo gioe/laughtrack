@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { buildComedianImageUrl } from "@/util/imageUtil";
+import { buildComedianImageUrls } from "@/lib/data/comedian/imageAssets";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { normalizePodcastAppearanceRole } from "@/lib/data/podcast/appearanceRole";
 import { dedupePodcastAppearances } from "@/lib/data/podcast/dedupePodcastAppearances";
@@ -36,6 +36,11 @@ type PodcastEpisodeAppearance = {
                 uuid: string;
                 name: string;
                 hasImage: boolean | null;
+                imageAssets: {
+                    avatarPath: string | null;
+                    heroPath: string | null;
+                    isActive: boolean;
+                }[];
             };
         }[];
     };
@@ -47,10 +52,11 @@ function mapPodcastAppearances(appearances: PodcastEpisodeAppearance[]) {
             id: lineupItem.comedian.id,
             uuid: lineupItem.comedian.uuid,
             name: lineupItem.comedian.name,
-            imageUrl: buildComedianImageUrl(
-                lineupItem.comedian.name,
-                Boolean(lineupItem.comedian.hasImage),
-            ),
+            imageUrl: buildComedianImageUrls({
+                name: lineupItem.comedian.name,
+                hasImage: lineupItem.comedian.hasImage,
+                activeAsset: lineupItem.comedian.imageAssets?.[0] ?? null,
+            }).imageUrl,
             hasImage: Boolean(lineupItem.comedian.hasImage),
             role: normalizePodcastAppearanceRole(lineupItem.appearanceRole),
         }));
@@ -127,6 +133,16 @@ export const GET = withRequestMetrics(async function GET(
                 website: true,
                 popularity: true,
                 hasImage: true,
+                imageAssets: {
+                    where: { isActive: true },
+                    orderBy: { publishedAt: "desc" },
+                    take: 1,
+                    select: {
+                        avatarPath: true,
+                        heroPath: true,
+                        isActive: true,
+                    },
+                },
                 episodeAppearances: {
                     select: {
                         id: true,
@@ -163,6 +179,18 @@ export const GET = withRequestMetrics(async function GET(
                                                 uuid: true,
                                                 name: true,
                                                 hasImage: true,
+                                                imageAssets: {
+                                                    where: { isActive: true },
+                                                    orderBy: {
+                                                        publishedAt: "desc",
+                                                    },
+                                                    take: 1,
+                                                    select: {
+                                                        avatarPath: true,
+                                                        heroPath: true,
+                                                        isActive: true,
+                                                    },
+                                                },
                                             },
                                         },
                                     },
@@ -218,10 +246,11 @@ export const GET = withRequestMetrics(async function GET(
                     id: comedian.id,
                     uuid: comedian.uuid,
                     name: comedian.name,
-                    imageUrl: buildComedianImageUrl(
-                        comedian.name,
-                        comedian.hasImage,
-                    ),
+                    imageUrl: buildComedianImageUrls({
+                        name: comedian.name,
+                        hasImage: comedian.hasImage,
+                        activeAsset: comedian.imageAssets?.[0] ?? null,
+                    }).imageUrl,
                     hasImage: Boolean(comedian.hasImage),
                     socialData: {
                         id: comedian.id,

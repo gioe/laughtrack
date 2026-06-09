@@ -8,7 +8,7 @@ import {
     containsAliasTag,
     getEffectiveComedian,
 } from "@/util/comedian/comedianUtil";
-import { buildComedianImageUrl } from "@/util/imageUtil";
+import { buildComedianImageUrls } from "@/lib/data/comedian/imageAssets";
 import { SortParamValue } from "@/objects/enum/sortParamValue";
 import { Prisma } from "@prisma/client";
 import { ComediansResponse } from "./interface";
@@ -48,6 +48,12 @@ export const COMEDIAN_SELECT = {
             tag: true,
         },
     },
+    imageAssets: {
+        where: { isActive: true },
+        orderBy: { publishedAt: "desc" },
+        take: 1,
+        select: { avatarPath: true, heroPath: true, isActive: true },
+    },
 } as const;
 
 // _count select is built fresh per request to avoid capturing a stale module-load Date
@@ -77,10 +83,11 @@ export function mapComedian(comedian: ComedianWithUpcomingCount) {
     return {
         id: effectiveComedian.id,
         name: effectiveComedian.name,
-        imageUrl: buildComedianImageUrl(
-            effectiveComedian.name,
-            effectiveComedian.hasImage,
-        ),
+        imageUrl: buildComedianImageUrls({
+            name: effectiveComedian.name,
+            hasImage: effectiveComedian.hasImage,
+            activeAsset: effectiveComedian.imageAssets?.[0] ?? null,
+        }).imageUrl,
         hasImage: Boolean(effectiveComedian.hasImage),
         isAlias,
         uuid: effectiveComedian.uuid,

@@ -15,4 +15,10 @@ export const PARENT_COMEDIAN_LINEUP_SELECT = {
     taggedComedians: {
         select: { tag: true },
     },
+    imageAssets: {
+        where: { isActive: true },
+        orderBy: { publishedAt: "desc" },
+        take: 1,
+        select: { avatarPath: true, heroPath: true, isActive: true },
+    },
 } satisfies Prisma.ComedianSelect;

@@ -2,7 +2,7 @@ import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { withRequestMetrics } from "@/lib/metrics";
 import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
-import { buildComedianImageUrl } from "@/util/imageUtil";
+import { buildComedianImageUrls } from "@/lib/data/comedian/imageAssets";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 
 const favoriteComedianSelect = {
@@ -19,6 +19,12 @@ const favoriteComedianSelect = {
     popularity: true,
     linktree: true,
     hasImage: true,
+    imageAssets: {
+        where: { isActive: true },
+        orderBy: { publishedAt: "desc" },
+        take: 1,
+        select: { avatarPath: true, heroPath: true, isActive: true },
+    },
     _count: {
         select: {
             lineupItems: true,
@@ -66,10 +72,11 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                     id: comedian.id,
                     uuid: comedian.uuid,
                     name: comedian.name,
-                    imageUrl: buildComedianImageUrl(
-                        comedian.name,
-                        comedian.hasImage,
-                    ),
+                    imageUrl: buildComedianImageUrls({
+                        name: comedian.name,
+                        hasImage: comedian.hasImage,
+                        activeAsset: comedian.imageAssets?.[0] ?? null,
+                    }).imageUrl,
                     socialData: {
                         id: comedian.id,
                         instagramAccount: comedian.instagramAccount,

@@ -1,5 +1,5 @@
 import type { ComedianLineupDTO } from "@/objects/class/comedian/comedianLineup.interface";
-import { buildComedianImageUrl } from "../imageUtil";
+import { buildComedianImageUrls } from "@/lib/data/comedian/imageAssets";
 
 type TaggedComedian = {
     tag?: {
@@ -15,6 +15,13 @@ type LineupComedian = {
     visible?: boolean | null;
     parentComedian?: (LineupComedian & { visible: boolean }) | null;
     taggedComedians?: TaggedComedian[] | null;
+    imageAssets?:
+        | {
+              avatarPath?: string | null;
+              heroPath?: string | null;
+              isActive?: boolean | null;
+          }[]
+        | null;
     favoriteComedians?: unknown[] | null;
     linktree?: string | null;
     instagramAccount?: string | null;
@@ -73,10 +80,11 @@ const mapLineupItem = (
         id: effectiveComedian.id,
         uuid: effectiveComedian.uuid,
         name: effectiveComedian.name,
-        imageUrl: buildComedianImageUrl(
-            effectiveComedian.name,
-            effectiveComedian.hasImage ?? undefined,
-        ),
+        imageUrl: buildComedianImageUrls({
+            name: effectiveComedian.name,
+            hasImage: effectiveComedian.hasImage ?? undefined,
+            activeAsset: effectiveComedian.imageAssets?.[0] ?? null,
+        }).imageUrl,
         hasImage: Boolean(effectiveComedian.hasImage),
         showCount: effectiveComedian._count?.lineupItems ?? undefined,
         ...(item.role ? { role: item.role } : {}),
