@@ -47,12 +47,26 @@ struct ClubDetailViewTests {
         #expect(ClubDetailHeroPresentation.imageURL(for: primaryClub) == "https://example.com/club-hero.png")
     }
 
-    @Test("club detail hides the hero when no hero image is present")
-    func clubDetailHidesHeroWhenNoHeroImageIsPresent() {
+    @Test("club detail falls back to the listing imageUrl when no hero image is present")
+    func clubDetailFallsBackToImageUrlWhenNoHeroImageIsPresent() {
         let club = Components.Schemas.ClubDetail(
             id: 202,
             name: "No Hero Club",
             imageUrl: "https://example.com/logo.png",
+            heroImageUrl: "",
+            website: "https://example.com",
+            address: "100 Main St"
+        )
+
+        #expect(ClubDetailHeroPresentation.imageURL(for: club) == "https://example.com/logo.png")
+    }
+
+    @Test("club detail returns nil when both hero and listing images are empty")
+    func clubDetailReturnsNilWhenBothImagesAreEmpty() {
+        let club = Components.Schemas.ClubDetail(
+            id: 203,
+            name: "No Artwork Club",
+            imageUrl: "",
             heroImageUrl: "",
             website: "https://example.com",
             address: "100 Main St"

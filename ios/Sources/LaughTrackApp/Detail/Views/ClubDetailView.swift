@@ -139,8 +139,10 @@ struct ClubDetailView: View {
 
 enum ClubDetailHeroPresentation {
     static func imageURL(for club: Components.Schemas.ClubDetail) -> String? {
-        let trimmed = club.heroImageUrl.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? nil : trimmed
+        let hero = club.heroImageUrl.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !hero.isEmpty { return hero }
+        let logo = club.imageUrl.trimmingCharacters(in: .whitespacesAndNewlines)
+        return logo.isEmpty ? nil : logo
     }
 
     static func actions(for club: Components.Schemas.ClubDetail) -> [DetailHeroAction] {
