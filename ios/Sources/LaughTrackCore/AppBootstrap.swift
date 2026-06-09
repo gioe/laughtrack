@@ -169,6 +169,7 @@ public struct AppBootstrap {
                 displayName: body.data.displayName,
                 email: body.data.email,
                 avatarURL: avatarURL,
+                isAdmin: body.data.isAdmin,
                 emailShowNotifications: body.data.emailShowNotifications,
                 pushShowNotifications: body.data.pushShowNotifications,
                 comedianOnboardingCompleted: body.data.comedianOnboardingCompleted,

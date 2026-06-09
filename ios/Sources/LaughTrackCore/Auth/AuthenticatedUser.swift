@@ -10,6 +10,12 @@ public struct AuthenticatedUser: Equatable, Sendable {
     public let displayName: String?
     public let email: String
     public let avatarURL: URL?
+    /// Whether the signed-in user has the admin role server-side
+    /// (`UserProfile.role === "admin"`). Surfaced through `/v1/me`. Used to
+    /// gate admin-only UI affordances (e.g. the show-ID badge on the
+    /// show-detail header). Defaults to `false` so non-API construction sites
+    /// (tests, signed-out fallbacks) stay unaffected.
+    public let isAdmin: Bool
     public let emailShowNotifications: Bool
     public let pushShowNotifications: Bool
     public let comedianOnboardingCompleted: Bool
@@ -21,6 +27,7 @@ public struct AuthenticatedUser: Equatable, Sendable {
         displayName: String?,
         email: String,
         avatarURL: URL?,
+        isAdmin: Bool = false,
         emailShowNotifications: Bool = false,
         pushShowNotifications: Bool = false,
         comedianOnboardingCompleted: Bool = false,
@@ -31,6 +38,7 @@ public struct AuthenticatedUser: Equatable, Sendable {
         self.displayName = displayName
         self.email = email
         self.avatarURL = avatarURL
+        self.isAdmin = isAdmin
         self.emailShowNotifications = emailShowNotifications
         self.pushShowNotifications = pushShowNotifications
         self.comedianOnboardingCompleted = comedianOnboardingCompleted
@@ -44,6 +52,7 @@ public struct AuthenticatedUser: Equatable, Sendable {
             displayName: displayName,
             email: email,
             avatarURL: avatarURL,
+            isAdmin: isAdmin,
             emailShowNotifications: emailShowNotifications,
             pushShowNotifications: pushShowNotifications,
             comedianOnboardingCompleted: completed,

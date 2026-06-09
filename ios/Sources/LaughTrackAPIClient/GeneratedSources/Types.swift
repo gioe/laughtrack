@@ -911,6 +911,10 @@ public enum Components {
             ///
             /// - Remark: Generated from `#/components/schemas/MeData/avatarUrl`.
             public var avatarUrl: Swift.String?
+            /// Whether the signed-in user has the admin role (UserProfile.role === "admin"). Drives admin-only UI surfaces such as the show-ID badge on the show-detail header.
+            ///
+            /// - Remark: Generated from `#/components/schemas/MeData/isAdmin`.
+            public var isAdmin: Swift.Bool
             /// Whether the signed-in user receives email notifications for new shows from saved comedians.
             ///
             /// - Remark: Generated from `#/components/schemas/MeData/emailShowNotifications`.
@@ -938,6 +942,7 @@ public enum Components {
             ///   - displayName: User-facing display name from OAuth (User.name). May be null if the provider didn't supply one.
             ///   - email: Unique email address (User.email).
             ///   - avatarUrl: Avatar/profile photo URL from OAuth (User.image). May be null.
+            ///   - isAdmin: Whether the signed-in user has the admin role (UserProfile.role === "admin"). Drives admin-only UI surfaces such as the show-ID badge on the show-detail header.
             ///   - emailShowNotifications: Whether the signed-in user receives email notifications for new shows from saved comedians.
             ///   - pushShowNotifications: Whether the signed-in user receives push notifications for new shows from saved comedians.
             ///   - comedianOnboardingCompleted: Whether comedian onboarding has been completed or skipped.
@@ -948,6 +953,7 @@ public enum Components {
                 displayName: Swift.String? = nil,
                 email: Swift.String,
                 avatarUrl: Swift.String? = nil,
+                isAdmin: Swift.Bool,
                 emailShowNotifications: Swift.Bool,
                 pushShowNotifications: Swift.Bool,
                 comedianOnboardingCompleted: Swift.Bool,
@@ -958,6 +964,7 @@ public enum Components {
                 self.displayName = displayName
                 self.email = email
                 self.avatarUrl = avatarUrl
+                self.isAdmin = isAdmin
                 self.emailShowNotifications = emailShowNotifications
                 self.pushShowNotifications = pushShowNotifications
                 self.comedianOnboardingCompleted = comedianOnboardingCompleted
@@ -969,6 +976,7 @@ public enum Components {
                 case displayName
                 case email
                 case avatarUrl
+                case isAdmin
                 case emailShowNotifications
                 case pushShowNotifications
                 case comedianOnboardingCompleted

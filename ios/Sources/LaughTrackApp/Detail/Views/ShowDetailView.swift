@@ -3,6 +3,9 @@ import EventKit
 import LaughTrackAPIClient
 import LaughTrackBridge
 import LaughTrackCore
+#if canImport(UIKit)
+import UIKit
+#endif
 
 struct ShowDetailView: View {
     let showID: Int
@@ -68,6 +71,12 @@ struct ShowDetailView: View {
                             badges: ShowDetailPresentation.heroBadges(for: show, now: countdownTick),
                             fallbackSystemImage: "ticket.fill"
                         )
+
+                        if authManager.currentUser?.isAdmin == true {
+                            AdminShowIDBadge(showID: show.id)
+                                .padding(.horizontal, 8)
+                                .padding(.top, theme.spacing.sm)
+                        }
 
                         VStack(alignment: .leading, spacing: 20) {
                             ShowSummarySection(show: show, isOpenMic: isOpenMic, openClub: {
@@ -872,5 +881,49 @@ private struct RelatedShowsSection: View {
                 }
             }
         }
+    }
+}
+
+/// Admin-only badge surfacing the underlying `show.id` on the show-detail
+/// screen so admin operators can grab the ID directly for triage. Tapping the
+/// badge copies the ID to the clipboard. Visibility is gated upstream by
+/// `authManager.currentUser?.isAdmin`; this view does not re-check the role.
+private struct AdminShowIDBadge: View {
+    let showID: Int
+
+    @Environment(\.appTheme) private var theme
+    @State private var copied = false
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        Button {
+            #if canImport(UIKit)
+            UIPasteboard.general.string = String(showID)
+            #endif
+            copied = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                copied = false
+            }
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: copied ? "checkmark" : "doc.on.doc")
+                    .font(.system(size: 11, weight: .semibold))
+                Text(copied ? "Copied" : "Show ID: \(showID)")
+                    .font(.system(.caption, design: .monospaced).weight(.semibold))
+            }
+            .foregroundStyle(laughTrack.colors.textSecondary)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(laughTrack.colors.surfaceMuted)
+            .clipShape(Capsule())
+            .overlay(
+                Capsule()
+                    .stroke(laughTrack.colors.textSecondary.opacity(0.25), lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Show ID \(showID)")
+        .accessibilityHint("Admin-only. Copies the show ID to the clipboard.")
     }
 }

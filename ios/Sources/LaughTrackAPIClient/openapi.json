@@ -2385,7 +2385,7 @@
       },
       "MeData": {
         "type": "object",
-        "required": ["email", "emailShowNotifications", "pushShowNotifications", "comedianOnboardingCompleted", "zipCode", "nearbyDistanceMiles"],
+        "required": ["email", "isAdmin", "emailShowNotifications", "pushShowNotifications", "comedianOnboardingCompleted", "zipCode", "nearbyDistanceMiles"],
         "properties": {
           "userId": {
             "type": "string",
@@ -2405,6 +2405,10 @@
             "type": "string",
             "nullable": true,
             "description": "Avatar/profile photo URL from OAuth (User.image). May be null."
+          },
+          "isAdmin": {
+            "type": "boolean",
+            "description": "Whether the signed-in user has the admin role (UserProfile.role === \"admin\"). Drives admin-only UI surfaces such as the show-ID badge on the show-detail header."
           },
           "emailShowNotifications": {
             "type": "boolean",
