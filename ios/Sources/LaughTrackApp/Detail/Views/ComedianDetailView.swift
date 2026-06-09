@@ -57,12 +57,22 @@ struct ComedianDetailView: View {
                                 InlineStatusMessage(message: relatedContentMessage)
                             }
 
-                            Picker("Section", selection: tabSelectionBinding) {
+                            HStack(spacing: theme.spacing.sm) {
                                 ForEach(ComedianDetailTab.allCases) { tab in
-                                    Text(tab.title).tag(tab)
+                                    Button {
+                                        activate(tab)
+                                    } label: {
+                                        LaughTrackBrowseChip(
+                                            tab.title,
+                                            tone: activeTab == tab ? .accent : .neutral
+                                        )
+                                    }
+                                    .buttonStyle(.plain)
+                                    .accessibilityAddTraits(activeTab == tab ? [.isSelected] : [])
                                 }
                             }
-                            .pickerStyle(.segmented)
+                            .accessibilityElement(children: .contain)
+                            .accessibilityLabel("Section")
                             .accessibilityIdentifier(LaughTrackViewTestID.comedianDetailTabPicker)
 
                             ZStack(alignment: .top) {
@@ -143,13 +153,6 @@ struct ComedianDetailView: View {
             action: {
                 await toggleFavorite(name: comedian.name, uuid: comedian.uuid, currentValue: isFavorite)
             }
-        )
-    }
-
-    private var tabSelectionBinding: Binding<ComedianDetailTab> {
-        Binding(
-            get: { activeTab },
-            set: { activate($0) }
         )
     }
 
