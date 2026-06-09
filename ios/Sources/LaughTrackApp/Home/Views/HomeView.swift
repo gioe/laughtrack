@@ -262,16 +262,7 @@ private struct HomeDiscoverHeader: View {
     }
 
     var body: some View {
-        let laughTrack = theme.laughTrackTokens
-
         VStack(alignment: .leading, spacing: theme.spacing.md) {
-            Text("Discover")
-                .font(laughTrack.typography.sectionTitle)
-                .foregroundStyle(laughTrack.colors.textPrimary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.85)
-                .accessibilityIdentifier(LaughTrackViewTestID.homeDiscoverHeader)
-
             Button {
                 isLocationEditorPresented = true
             } label: {
@@ -376,37 +367,136 @@ private struct HomeLocationEditorSheet: View {
     @Environment(\.appTheme) private var theme
 
     var body: some View {
+        VStack(spacing: 0) {
+            marqueeHeader
+            formBody
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(sheetBackground)
+        .presentationDetents([.medium, .large])
+    }
+
+    private var sheetBackground: some View {
         let laughTrack = theme.laughTrackTokens
 
-        VStack(alignment: .leading, spacing: theme.spacing.lg) {
-            HStack(alignment: .top, spacing: theme.spacing.md) {
-                VStack(alignment: .leading, spacing: theme.spacing.xs) {
-                    Text("Location")
-                        .font(laughTrack.typography.cardTitle)
-                        .foregroundStyle(laughTrack.colors.textPrimary)
-                        .accessibilityIdentifier(LaughTrackViewTestID.homeLocationSheet)
+        return ZStack {
+            laughTrack.colors.heroStart
 
-                    Text("Choose where Discover should look for nearby comedy.")
-                        .font(laughTrack.typography.body)
-                        .foregroundStyle(laughTrack.colors.textSecondary)
-                }
+            RadialGradient(
+                colors: [
+                    laughTrack.colors.accent.opacity(0.22),
+                    laughTrack.colors.accent.opacity(0.0)
+                ],
+                center: UnitPoint(x: 0.5, y: 0.18),
+                startRadius: 20,
+                endRadius: 260
+            )
+        }
+    }
 
-                Spacer(minLength: 0)
+    private static let pinIconSize: CGFloat = 72
+    private static let pinFrameInset: CGFloat = 8
 
-                Button {
-                    isPresented = false
-                } label: {
-                    Image(systemName: "xmark")
-                        .font(.system(size: theme.iconSizes.sm, weight: .bold))
-                        .foregroundStyle(laughTrack.colors.textPrimary)
-                        .frame(width: 36, height: 36)
-                        .background(laughTrack.colors.surfaceElevated)
-                        .clipShape(Circle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Close")
+    private var marqueeHeader: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return VStack(spacing: 10) {
+            chromeBar
+
+            Text("Nearby")
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .tracking(2.2)
+                .textCase(.uppercase)
+                .foregroundStyle(laughTrack.colors.accentStrong)
+
+            pinWithFrame
+                .padding(.vertical, 4)
+
+            Text("Set your location")
+                .font(.system(size: 24, weight: .heavy, design: .rounded))
+                .tracking(0.4)
+                .textCase(.uppercase)
+                .multilineTextAlignment(.center)
+                .foregroundStyle(.white)
+                .shadow(color: .black.opacity(0.6), radius: 4, x: 0, y: 2)
+                .accessibilityIdentifier(LaughTrackViewTestID.homeLocationSheet)
+
+            Text("Where should Discover scout for shows, clubs, and comedians?")
+                .font(laughTrack.typography.body)
+                .foregroundStyle(laughTrack.colors.textSecondary)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, theme.spacing.xl)
+        }
+        .padding(.bottom, theme.spacing.md)
+        .frame(maxWidth: .infinity)
+    }
+
+    private var chromeBar: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return HStack {
+            Spacer()
+
+            Button {
+                isPresented = false
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: theme.iconSizes.sm, weight: .bold))
+                    .foregroundStyle(laughTrack.colors.textPrimary)
+                    .frame(width: 36, height: 36)
+                    .background(laughTrack.colors.surfaceElevated.opacity(0.92))
+                    .clipShape(Circle())
+                    .overlay(Circle().stroke(laughTrack.colors.borderSubtle, lineWidth: 1))
             }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Close")
+        }
+        .padding(.top, theme.spacing.md)
+        .padding(.horizontal, theme.spacing.lg)
+    }
 
+    private var pinWithFrame: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return ZStack {
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .fill(laughTrack.colors.heroStart)
+                .frame(width: Self.pinIconSize, height: Self.pinIconSize)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .stroke(Color.black.opacity(0.55), lineWidth: 1)
+                )
+                .overlay(
+                    Image(systemName: "mappin.and.ellipse")
+                        .font(.system(size: 36, weight: .semibold))
+                        .foregroundStyle(laughTrack.colors.accentStrong)
+                        .shadow(color: laughTrack.colors.accentStrong.opacity(0.6), radius: 6)
+                )
+
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .strokeBorder(
+                    laughTrack.colors.accentStrong,
+                    style: StrokeStyle(
+                        lineWidth: 2.5,
+                        lineCap: .round,
+                        lineJoin: .round,
+                        dash: [0.5, 7]
+                    )
+                )
+                .frame(
+                    width: Self.pinIconSize + Self.pinFrameInset,
+                    height: Self.pinIconSize + Self.pinFrameInset
+                )
+                .shadow(color: laughTrack.colors.accentStrong.opacity(0.65), radius: 5)
+                .shadow(color: laughTrack.colors.accentStrong.opacity(0.3), radius: 11)
+        }
+    }
+
+    private var formBody: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return VStack(alignment: .leading, spacing: theme.spacing.lg) {
             LaughTrackSearchField(placeholder: "10012", text: $model.zipCodeDraft) {
                 Button {
                     applyZip()
@@ -492,9 +582,10 @@ private struct HomeLocationEditorSheet: View {
 
             Spacer(minLength: 0)
         }
-        .padding(theme.spacing.xl)
+        .padding(.horizontal, theme.spacing.xl)
+        .padding(.top, theme.spacing.lg)
+        .padding(.bottom, theme.spacing.xl)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .presentationDetents([.medium, .large])
     }
 
     private func applyZip() {
@@ -804,15 +895,90 @@ private struct HomeShowsTonightHeroCard: View {
         .accessibilityLabel("\(ShowTitlePresentation.title(for: show)), \(show.clubName ?? "Unknown club"), \(metadata.joined(separator: ", "))")
     }
 
+    private static let posterSize: CGFloat = 128
+    private static let posterFrameInset: CGFloat = 8
+    private static let stageHeight: CGFloat = 168
+
     @ViewBuilder
     private var artwork: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        ZStack {
+            marqueeStageBackground
+
+            ZStack {
+                artworkImage
+                    .frame(width: Self.posterSize, height: Self.posterSize)
+                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .stroke(Color.black.opacity(0.55), lineWidth: 1)
+                    )
+
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .strokeBorder(
+                        laughTrack.colors.accentStrong,
+                        style: StrokeStyle(
+                            lineWidth: 2.5,
+                            lineCap: .round,
+                            lineJoin: .round,
+                            dash: [0.5, 7]
+                        )
+                    )
+                    .frame(
+                        width: Self.posterSize + Self.posterFrameInset,
+                        height: Self.posterSize + Self.posterFrameInset
+                    )
+                    .shadow(color: laughTrack.colors.accentStrong.opacity(0.65), radius: 5)
+                    .shadow(color: laughTrack.colors.accentStrong.opacity(0.3), radius: 11)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: Self.stageHeight)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+
+    private var marqueeStageBackground: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return ZStack {
+            laughTrack.colors.heroStart
+
+            RadialGradient(
+                colors: [
+                    laughTrack.colors.accent.opacity(0.22),
+                    laughTrack.colors.accent.opacity(0.0)
+                ],
+                center: .center,
+                startRadius: 16,
+                endRadius: 200
+            )
+        }
+        .mask(
+            LinearGradient(
+                stops: [
+                    .init(color: .black.opacity(0), location: 0),
+                    .init(color: .black.opacity(0.5), location: 0.06),
+                    .init(color: .black, location: 0.16),
+                    .init(color: .black, location: 0.84),
+                    .init(color: .black.opacity(0.5), location: 0.94),
+                    .init(color: .black.opacity(0), location: 1)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
+    }
+
+    @ViewBuilder
+    private var artworkImage: some View {
         let laughTrack = theme.laughTrackTokens
 
         if let url = URL.normalizedExternalURL(show.imageUrl) {
             CachedAsyncImage(url: url) { image in
                 image
                     .resizable()
-                    .scaledToFit()
+                    .scaledToFill()
             } placeholder: {
                 Rectangle()
                     .fill(laughTrack.colors.surfaceMuted)
@@ -823,25 +989,19 @@ private struct HomeShowsTonightHeroCard: View {
             } error: { _ in
                 fallbackArtwork
             }
-            .frame(maxWidth: .infinity)
-            .frame(height: 144)
-            .clipped()
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         } else {
             fallbackArtwork
-                .frame(maxWidth: .infinity)
-                .frame(height: 144)
         }
     }
 
     private var fallbackArtwork: some View {
         let laughTrack = theme.laughTrackTokens
 
-        return RoundedRectangle(cornerRadius: 16, style: .continuous)
+        return Rectangle()
             .fill(laughTrack.colors.surfaceMuted)
             .overlay {
                 Image(systemName: "ticket.fill")
-                    .font(.system(size: 30, weight: .semibold))
+                    .font(.system(size: 28, weight: .semibold))
                     .foregroundStyle(laughTrack.colors.accentStrong)
             }
     }

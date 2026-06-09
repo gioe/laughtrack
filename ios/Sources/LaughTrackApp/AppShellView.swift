@@ -142,6 +142,13 @@ struct AppShellView: View {
         .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
     }
 
+    private var showFavoritesTab: Bool {
+        guard authManager.currentSession != nil else { return false }
+        return !favorites.savedFavoriteComedians.isEmpty
+            || !podcastFavorites.savedFavoritePodcasts.isEmpty
+            || !clubFavorites.savedFavoriteClubs.isEmpty
+    }
+
     private var tabContent: some View {
         TabView(selection: selectedTabBinding) {
             HomeView(
@@ -165,13 +172,20 @@ struct AppShellView: View {
                 .tabItem { Label("Search", systemImage: "magnifyingglass") }
                 .tag(AppTab.search)
 
-            LibraryView(
-                apiClient: apiClient,
-                selectedPrimitive: shellState.selectedPrimitive,
-                searchNavigationBridge: searchNavigationBridge
-            )
-                .tabItem { Label("Favorites", systemImage: "heart.fill") }
-                .tag(AppTab.favorites)
+            if showFavoritesTab {
+                LibraryView(
+                    apiClient: apiClient,
+                    selectedPrimitive: shellState.selectedPrimitive,
+                    searchNavigationBridge: searchNavigationBridge
+                )
+                    .tabItem { Label("Favorites", systemImage: "heart.fill") }
+                    .tag(AppTab.favorites)
+            }
+        }
+        .onChange(of: showFavoritesTab) { isVisible in
+            if !isVisible, shellState.selectedTab == .favorites {
+                shellState.selectTab(.nearMe)
+            }
         }
         .environmentObject(favorites)
         .tint(podcastPlayer.accentColorOverride ?? theme.colors.primary)

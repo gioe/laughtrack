@@ -47,8 +47,6 @@ struct SearchRootView: View {
 
         ScrollView {
             VStack(alignment: .leading, spacing: tokens.browseDensity.shelfGap) {
-                SearchHeader()
-
                 activeSearchScreenWithDependencies
             }
             .padding(.horizontal, theme.spacing.lg)
@@ -145,18 +143,3 @@ struct SearchRootView: View {
     }
 }
 
-private struct SearchHeader: View {
-    @Environment(\.appTheme) private var theme
-
-    var body: some View {
-        let tokens = theme.laughTrackTokens
-
-        Text("Search")
-            .font(tokens.typography.sectionTitle)
-            .foregroundStyle(tokens.colors.textPrimary)
-            .lineLimit(1)
-            .minimumScaleFactor(0.85)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .accessibilityIdentifier(LaughTrackViewTestID.searchHeader)
-    }
-}

@@ -68,21 +68,12 @@ private struct FavoritesHeader: View {
     var body: some View {
         let tokens = theme.laughTrackTokens
 
-        VStack(alignment: .leading, spacing: theme.spacing.xs) {
-            Text("Favorites")
-                .font(tokens.typography.sectionTitle)
-                .foregroundStyle(tokens.colors.textPrimary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.85)
-
-            Text("Saved comedians, podcasts, and the shows and clubs connected to them.")
-                .font(tokens.typography.body)
-                .foregroundStyle(tokens.colors.textSecondary)
-                .lineLimit(2)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .accessibilityElement(children: .combine)
-        .accessibilityIdentifier(LaughTrackViewTestID.favoritesHeader)
+        Text("Saved comedians, podcasts, and the shows and clubs connected to them.")
+            .font(tokens.typography.body)
+            .foregroundStyle(tokens.colors.textSecondary)
+            .lineLimit(2)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityIdentifier(LaughTrackViewTestID.favoritesHeader)
     }
 }
 
