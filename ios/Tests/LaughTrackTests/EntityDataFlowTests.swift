@@ -147,7 +147,12 @@ struct EntityDataFlowTests {
             transport: RawShowRailTransport()
         )
 
-        await model.refresh(apiClient: client, zipCode: nil, persistentCache: nil)
+        await model.refresh(
+            apiClient: client,
+            zipCode: nil,
+            persistentCache: nil,
+            coalescer: HomeFeedRequestCoalescer()
+        )
 
         guard case .success(let shows) = model.phase else {
             Issue.record("Expected home shows tonight to decode the 200 home feed")

@@ -18,7 +18,8 @@ struct HomeShowsTonightModelTests {
             apiClient: makeHomeShowsTonightClient(),
             zipCode: nil,
             cache: DataCache<LaughTrackCacheKey>(),
-            persistentCache: nil
+            persistentCache: nil,
+            coalescer: HomeFeedRequestCoalescer()
         )
 
         guard case .success(let shows) = model.phase else {
@@ -38,7 +39,8 @@ struct HomeShowsTonightModelTests {
             apiClient: makeHomeShowsTonightClient(),
             zipCode: "10012",
             cache: DataCache<LaughTrackCacheKey>(),
-            persistentCache: nil
+            persistentCache: nil,
+            coalescer: HomeFeedRequestCoalescer()
         )
 
         guard case .success(let shows) = model.phase else {
@@ -70,7 +72,8 @@ struct HomeShowsTonightModelTests {
             zipCode: "94108",
             distanceMiles: 50,
             cache: DataCache<LaughTrackCacheKey>(),
-            persistentCache: nil
+            persistentCache: nil,
+            coalescer: HomeFeedRequestCoalescer()
         )
 
         let request = try #require(transport.capturedRequests.first)
@@ -86,7 +89,8 @@ struct HomeShowsTonightModelTests {
             apiClient: makeHomeShowsTonightClient(showIDs: Array(801...808)),
             zipCode: "10013",
             cache: DataCache<LaughTrackCacheKey>(),
-            persistentCache: nil
+            persistentCache: nil,
+            coalescer: HomeFeedRequestCoalescer()
         )
 
         guard case .success(let shows) = model.phase else {
@@ -127,7 +131,8 @@ struct HomeShowsTonightModelTests {
             apiClient: makeThisWeekHomeFeedClient(),
             zipCode: "11238",
             cache: DataCache<LaughTrackCacheKey>(),
-            persistentCache: nil
+            persistentCache: nil,
+            coalescer: HomeFeedRequestCoalescer()
         )
 
         guard case .success(let shows) = model.phase else {
@@ -146,7 +151,8 @@ struct HomeShowsTonightModelTests {
             apiClient: makeHomeShowsTonightClient(),
             zipCode: nil,
             cache: DataCache<LaughTrackCacheKey>(),
-            persistentCache: nil
+            persistentCache: nil,
+            coalescer: HomeFeedRequestCoalescer()
         )
 
         #expect(model.feedNearbyPreference == NearbyPreference(

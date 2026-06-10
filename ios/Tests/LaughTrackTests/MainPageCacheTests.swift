@@ -17,12 +17,14 @@ struct MainPageCacheTests {
         await cache.set(homeFeed(showID: 701), forKey: .homeFeed(zipCode: zipCode, distanceMiles: nil))
         let transport = CountingHomeFeedTransport(result: .success(homeFeed(showID: 999)))
         let model = HomeShowsTonightModel()
+        let coalescer = HomeFeedRequestCoalescer()
 
         await model.refresh(
             apiClient: makeClient(transport),
             zipCode: zipCode,
             cache: cache,
-            persistentCache: nil
+            persistentCache: nil,
+            coalescer: coalescer
         )
 
         guard case .success(let shows) = model.phase else {
@@ -39,12 +41,14 @@ struct MainPageCacheTests {
         let cache = DataCache<LaughTrackCacheKey>()
         let transport = CountingHomeFeedTransport(result: .success(homeFeed(showID: 702)))
         let model = HomeShowsTonightModel()
+        let coalescer = HomeFeedRequestCoalescer()
 
         await model.refresh(
             apiClient: makeClient(transport),
             zipCode: zipCode,
             cache: cache,
-            persistentCache: nil
+            persistentCache: nil,
+            coalescer: coalescer
         )
 
         let cached: Components.Schemas.HomeFeed? = await cache.get(forKey: .homeFeed(zipCode: zipCode, distanceMiles: nil))
@@ -58,13 +62,15 @@ struct MainPageCacheTests {
         let cache = DataCache<LaughTrackCacheKey>()
         let transport = CountingHomeFeedTransport(result: .success(homeFeed(showID: 703)))
         let model = HomeShowsTonightModel()
+        let coalescer = HomeFeedRequestCoalescer()
 
         await model.refresh(
             apiClient: makeClient(transport),
             zipCode: zipCode,
             cache: cache,
             cacheTTL: 0.05,
-            persistentCache: nil
+            persistentCache: nil,
+            coalescer: coalescer
         )
         transport.result = .success(homeFeed(showID: 704))
         try await Task.sleep(for: .milliseconds(100))
@@ -73,7 +79,8 @@ struct MainPageCacheTests {
             zipCode: zipCode,
             cache: cache,
             cacheTTL: 0.05,
-            persistentCache: nil
+            persistentCache: nil,
+            coalescer: coalescer
         )
 
         guard case .success(let shows) = model.phase else {
@@ -91,12 +98,14 @@ struct MainPageCacheTests {
         await cache.set(homeFeed(showID: 705), forKey: .homeFeed(zipCode: zipCode, distanceMiles: nil))
         let transport = CountingHomeFeedTransport(result: .failure(URLError(.notConnectedToInternet)))
         let model = HomeShowsTonightModel()
+        let coalescer = HomeFeedRequestCoalescer()
 
         await model.refresh(
             apiClient: makeClient(transport),
             zipCode: zipCode,
             cache: cache,
-            persistentCache: nil
+            persistentCache: nil,
+            coalescer: coalescer
         )
 
         guard case .success(let shows) = model.phase else {
@@ -196,24 +205,31 @@ struct HomeFeedLoadCoalescingTests {
         let comediansModel = HomeTrendingComediansModel()
         let clubsModel = HomePopularClubsModel()
         let client = makeClient(transport)
+        // One fresh coalescer shared by the three concurrent rails: keeps the
+        // dedupe-to-one-request assertion meaningful while staying isolated
+        // from every other test in the process (TASK-2756).
+        let coalescer = HomeFeedRequestCoalescer()
 
         async let showsRefresh: Void = showsModel.refresh(
             apiClient: client,
             zipCode: zipCode,
             cache: cache,
-            persistentCache: nil
+            persistentCache: nil,
+            coalescer: coalescer
         )
         async let comediansRefresh: Void = comediansModel.refresh(
             apiClient: client,
             zipCode: zipCode,
             cache: cache,
-            persistentCache: nil
+            persistentCache: nil,
+            coalescer: coalescer
         )
         async let clubsRefresh: Void = clubsModel.refresh(
             apiClient: client,
             zipCode: zipCode,
             cache: cache,
-            persistentCache: nil
+            persistentCache: nil,
+            coalescer: coalescer
         )
 
         _ = await (showsRefresh, comediansRefresh, clubsRefresh)
