@@ -103,8 +103,36 @@ struct MarqueeHero: View {
     /// Status-bar clearance. Each detail view applies
     /// `.ignoresSafeArea(.container, edges: .top)` to its scroll container,
     /// so the marquee content is laid out from the physical top of the
-    /// screen and has to manually offset past the status bar.
-    private static let statusBarOffset: CGFloat = 60
+    /// screen and has to manually offset past the status bar. The inset is
+    /// read from the key window because `ignoresSafeArea` also zeroes the
+    /// inset SwiftUI propagates to descendants, so a local GeometryReader
+    /// would report 0 here. The -2 reproduces the previous fixed 60pt
+    /// clearance on the 62pt-inset iPhone 17-class Dynamic Island sims the
+    /// marquee's chrome/title spacing was designed against (the first 36pt
+    /// is the clear chrome spacer below, so no content renders inside the
+    /// status bar) — while notch and SE-class devices now track their real
+    /// status-bar inset instead of inheriting Dynamic Island clearance.
+    @MainActor
+    private static var statusBarOffset: CGFloat {
+        topSafeAreaInset - 2
+    }
+
+    /// Falls back to 62 (the iPhone 17-class Dynamic Island inset) when no
+    /// key window is available — e.g. previews before a window becomes key,
+    /// or the macOS `swift test` build — reproducing the previous fixed
+    /// 60pt total.
+    @MainActor
+    private static var topSafeAreaInset: CGFloat {
+        #if canImport(UIKit)
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap(\.windows)
+            .first(where: \.isKeyWindow)?
+            .safeAreaInsets.top ?? 62
+        #else
+        62
+        #endif
+    }
 
     private var marqueeBackground: some View {
         let laughTrack = theme.laughTrackTokens
