@@ -142,6 +142,7 @@ export default async function HomePage() {
             {favoriteComedianShows.length > 0 && (
                 <section className="w-full bg-coconut-cream">
                     <ShowDiscoverySection
+                        eyebrow="Favorites"
                         title="Your favorites are touring"
                         subtitle="Upcoming shows from comedians you follow"
                         shows={favoriteComedianShows}
@@ -159,7 +160,7 @@ export default async function HomePage() {
             {showsTonight.length > 0 && (
                 <section className="w-full bg-coconut-cream">
                     <ShowDiscoverySection
-                        title="Shows Tonight"
+                        title="Shows tonight"
                         subtitle="Live comedy happening right now, near you"
                         shows={showsTonight}
                         seeAllHref={`/show/search?fromDate=${todayStr}&toDate=${todayStr}`}
@@ -169,7 +170,7 @@ export default async function HomePage() {
             {zipCode && showsNearYou.length > 0 && (
                 <section className="w-full bg-coconut-cream">
                     <ShowDiscoverySection
-                        title="Nearby Shows"
+                        title="Nearby shows"
                         subtitle="Upcoming shows at clubs in your area"
                         shows={showsNearYou}
                         seeAllHref={`/show/search?zip=${zipCode}&distance=${DEFAULT_HOME_RADIUS_MILES}`}
@@ -179,7 +180,8 @@ export default async function HomePage() {
             {trendingShowsThisWeek.length > 0 && (
                 <section className="w-full bg-coconut-cream">
                     <ShowDiscoverySection
-                        title="Trending This Week"
+                        eyebrow="This week"
+                        title="Trending this week"
                         subtitle="The most popular shows happening in the next 7 days"
                         shows={trendingShowsThisWeek}
                         seeAllHref={`/show/search?fromDate=${todayStr}&toDate=${weekStr}&sort=popularity_desc`}

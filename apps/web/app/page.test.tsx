@@ -181,7 +181,7 @@ describe("HomePage favorite comedian rail", () => {
 
         const markup = await renderHomePage();
 
-        expect(markup).toContain("Nearby Shows");
+        expect(markup).toContain("Nearby shows");
         expect(markup).toContain('data-count="8"');
         expect(markup).toContain(
             'data-href="/show/search?zip=10801&amp;distance=25"',

@@ -31,7 +31,7 @@ describe("FixtureHomePage", () => {
     it("renders a deterministic Nearby Shows carousel for manual home verification", () => {
         const markup = renderToStaticMarkup(<FixtureHomePage />);
 
-        expect(markup).toContain("Nearby Shows");
+        expect(markup).toContain("Nearby shows");
         expect(markup).toContain(
             `data-testid="${CAROUSEL_TEST_IDS.nearbyShows}"`,
         );

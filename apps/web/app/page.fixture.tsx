@@ -15,7 +15,7 @@ export default function FixtureHomePage() {
             <h1 className="sr-only">LaughTrack</h1>
             <section className="w-full bg-white">
                 <ShowDiscoverySection
-                    title="Shows Tonight"
+                    title="Shows tonight"
                     subtitle="Live comedy happening right now, near you"
                     shows={FIXTURE_SHOWS_TONIGHT}
                     seeAllHref="/show/search"
@@ -24,7 +24,7 @@ export default function FixtureHomePage() {
             </section>
             <section className="w-full bg-white">
                 <ShowDiscoverySection
-                    title="Nearby Shows"
+                    title="Nearby shows"
                     subtitle="Upcoming shows at clubs in your area"
                     shows={FIXTURE_SHOWS_NEARBY}
                     seeAllHref={`/show/search?zip=${FIXTURE_ZIP}&distance=${DEFAULT_HOME_RADIUS_MILES}`}
@@ -33,7 +33,8 @@ export default function FixtureHomePage() {
             </section>
             <section className="w-full bg-white">
                 <ShowDiscoverySection
-                    title="Trending This Week"
+                    eyebrow="This week"
+                    title="Trending this week"
                     subtitle="The most popular shows happening in the next 7 days"
                     shows={FIXTURE_SHOWS_TRENDING}
                     seeAllHref="/show/search?sort=popularity_desc"

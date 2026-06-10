@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { ClubDTO } from "@/objects/class/club/club.interface";
 import PopularClubCard from "@/ui/components/cards/club/popular";
 import ScrollButtons from "@/ui/components/scroll";
+import SectionHeader from "@/ui/components/sectionHeader";
 
 interface TrendingClubsCarouselProps {
     clubs: ClubDTO[];
@@ -157,14 +158,13 @@ const TrendingClubsCarousel = ({ clubs }: TrendingClubsCarouselProps) => {
     return (
         <div className="max-w-7xl w-full mx-auto py-12 px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col sm:flex-row md:flex-row lg:flex-row justify-between items-start sm:items-center md:items-center lg:items-center mb-6">
-                <div>
-                    <h2 className="text-2xl sm:text-3xl md:text-display font-bold font-gilroy-bold text-foreground mb-2">
-                        Popular Clubs
-                    </h2>
-                    <p className="text-gray-600 font-dmSans text-sm md:text-base mb-4 sm:mb-0 md:mb-0 lg:mb-0">
-                        Check out our most popular comedy venues
-                    </p>
-                </div>
+                {/* No eyebrow: the iOS popular-clubs rail renders no header
+                    eyebrow, so web stays in lockstep (TASK-2751). */}
+                <SectionHeader
+                    title="Popular clubs"
+                    subtitle="Check out our most popular comedy venues"
+                    className="mb-4 sm:mb-0"
+                />
                 <div className="flex gap-2 self-end sm:self-auto md:self-auto lg:self-auto">
                     <ScrollButtons
                         leftOnClick={() => scroll("left")}

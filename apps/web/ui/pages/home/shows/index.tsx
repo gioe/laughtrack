@@ -5,12 +5,17 @@ import Link from "next/link";
 import { ShowDTO } from "@/objects/class/show/show.interface";
 import CompactShowCard from "@/ui/components/cards/show/compact";
 import ScrollButtons from "@/ui/components/scroll";
+import SectionHeader from "@/ui/components/sectionHeader";
 
 const CARD_WIDTH_SM = 260;
 const CARD_WIDTH_MD = 300;
 const CARD_GAP = 16;
 
 interface ShowDiscoverySectionProps {
+    // Copper uppercase kicker above the title, mirroring the iOS home-rail
+    // vocabulary (e.g. "Favorites", "This week"). Omit on rails where iOS
+    // renders no eyebrow either.
+    eyebrow?: string;
     title: string;
     subtitle: string;
     shows: ShowDTO[];
@@ -23,6 +28,7 @@ interface ShowDiscoverySectionProps {
 }
 
 const ShowDiscoverySection = ({
+    eyebrow,
     title,
     subtitle,
     shows,
@@ -97,14 +103,12 @@ const ShowDiscoverySection = ({
             className="max-w-7xl w-full mx-auto py-12 px-4 sm:px-6 lg:px-8"
         >
             <div className="flex flex-col sm:flex-row md:flex-row lg:flex-row justify-between items-start sm:items-center md:items-center lg:items-center mb-6">
-                <div>
-                    <h2 className="text-2xl sm:text-3xl md:text-display font-bold font-gilroy-bold text-foreground mb-2">
-                        {title}
-                    </h2>
-                    <p className="text-gray-600 font-dmSans text-sm md:text-base mb-4 sm:mb-0 md:mb-0 lg:mb-0">
-                        {subtitle}
-                    </p>
-                </div>
+                <SectionHeader
+                    eyebrow={eyebrow}
+                    title={title}
+                    subtitle={subtitle}
+                    className="mb-4 sm:mb-0"
+                />
                 <div className="flex items-center gap-4 self-end sm:self-auto md:self-auto lg:self-auto">
                     <Link
                         href={seeAllHref}

@@ -1,5 +1,6 @@
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import ComedianGrid from "@/ui/components/grid/comedian";
+import SectionHeader from "@/ui/components/sectionHeader";
 import { Button } from "@/ui/components/ui/button";
 import Link from "next/link";
 
@@ -20,14 +21,12 @@ const TrendingComedianGrid = ({
 
     return (
         <div className="max-w-7xl w-full mx-auto py-14 px-4 sm:px-6">
-            <div className="mb-8 animate-fadeIn">
-                <h2 className="text-3xl sm:text-4xl font-bold font-gilroy-bold mb-3 text-foreground">
-                    {title}
-                </h2>
-                <p className="text-gray-600 font-dmSans text-base sm:text-lg max-w-2xl">
-                    {subtitle}
-                </p>
-            </div>
+            <SectionHeader
+                eyebrow="Trending"
+                title={title}
+                subtitle={subtitle}
+                className="mb-8 animate-fadeIn"
+            />
 
             <div className="animate-slideUp">
                 <ComedianGrid
