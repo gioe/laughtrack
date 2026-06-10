@@ -59,7 +59,7 @@ const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({ show }) => {
                     iOS marquee's accent RadialGradient over heroStart. */}
                 <div
                     aria-hidden="true"
-                    className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(205,104,55,0.16),_transparent_65%)]"
+                    className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_theme(colors.accent-strong/16%),_transparent_65%)]"
                 />
 
                 <div className="relative flex flex-col items-center gap-4 text-center">
@@ -81,9 +81,9 @@ const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({ show }) => {
                     {/* Square poster framed by a dashed copper ring. */}
                     <div
                         data-testid="marquee-poster-frame"
-                        className="relative mt-2 rounded-[14px] border-2 border-dashed border-accent-strong p-[5px] shadow-[0_0_14px_rgba(205,104,55,0.45)]"
+                        className="relative mt-2 rounded-[14px] border-2 border-dashed border-accent-strong p-[5px] shadow-[0_0_14px_theme(colors.accent-strong/45%)]"
                     >
-                        <div className="relative h-40 w-40 sm:h-[196px] sm:w-[196px] md:h-[196px] md:w-[196px] lg:h-[196px] lg:w-[196px] overflow-hidden rounded-[10px]">
+                        <div className="relative size-40 sm:size-[196px] md:size-[196px] lg:size-[196px] overflow-hidden rounded-[10px]">
                             {showImage ? (
                                 <>
                                     <Image
