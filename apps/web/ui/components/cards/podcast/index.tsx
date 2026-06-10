@@ -69,7 +69,7 @@ export default function PodcastSearchCard({ podcast }: PodcastSearchCardProps) {
                         href={`/podcast/${podcast.slug}`}
                         className="block rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper"
                     >
-                        <h3 className="font-gilroy-bold text-h3 font-extrabold leading-tight text-foreground line-clamp-2">
+                        <h3 className="font-urbanist-bold text-h3 font-extrabold leading-tight text-foreground line-clamp-2">
                             {podcast.title}
                         </h3>
                     </Link>

@@ -90,7 +90,7 @@ export default async function NotFound() {
                         </p>
 
                         <h1
-                            className="font-gilroy-bold text-2xl font-bold text-foreground sm:text-3xl"
+                            className="font-urbanist-bold text-2xl font-bold text-foreground sm:text-3xl"
                             style={reveal(210)}
                         >
                             This page bombed.

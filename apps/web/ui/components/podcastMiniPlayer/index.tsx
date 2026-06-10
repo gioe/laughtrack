@@ -61,7 +61,7 @@ const PodcastMiniPlayer = () => {
                 </button>
 
                 <div className="min-w-0 flex-1">
-                    <p className="truncate font-gilroy-bold text-sm font-bold text-coconut-cream">
+                    <p className="truncate font-urbanist-bold text-sm font-bold text-coconut-cream">
                         {currentEpisode.episodeTitle}
                     </p>
                     <p className="truncate font-dmSans text-caption text-coconut-cream/75">

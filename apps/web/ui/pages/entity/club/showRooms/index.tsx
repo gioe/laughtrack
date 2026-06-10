@@ -74,7 +74,7 @@ export default function ClubShowRooms({
                     key={group.room ?? "unassigned-room"}
                     className="space-y-4"
                 >
-                    <h2 className="font-gilroy-bold text-2xl font-bold text-foreground">
+                    <h2 className="font-urbanist-bold text-2xl font-bold text-foreground">
                         {group.room ?? "Other shows"}
                     </h2>
                     <ShowTable shows={group.shows} hideClubName />

@@ -68,7 +68,7 @@ export default function UnsubscribePage() {
                 <div className="text-center">
                     {status === "loading" && (
                         <div
-                            className={`${pulsing ? "animate-pulse " : ""}font-gilroy-bold text-h1 font-bold`}
+                            className={`${pulsing ? "animate-pulse " : ""}font-urbanist-bold text-h1 font-bold`}
                         >
                             <p>{message}</p>
                         </div>

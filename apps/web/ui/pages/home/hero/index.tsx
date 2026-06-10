@@ -70,7 +70,7 @@ function HeroShowTile({ show }: { show: ShowDTO }) {
                 />
             </div>
             <div className="flex min-w-0 flex-col justify-center gap-1 px-2 py-2 sm:px-3">
-                <p className="line-clamp-2 font-gilroy-bold text-xs font-bold leading-tight text-white sm:text-sm">
+                <p className="line-clamp-2 font-urbanist-bold text-xs font-bold leading-tight text-white sm:text-sm">
                     {title}
                 </p>
                 {show.clubName && show.name && (

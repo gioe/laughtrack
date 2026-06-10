@@ -1,5 +1,4 @@
 import "./globals.css";
-import "./fonts.css";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Suspense } from "react";
@@ -13,6 +12,7 @@ import {
     DM_Sans,
     Chivo,
     Outfit,
+    Urbanist,
 } from "next/font/google";
 import type { Metadata } from "next";
 import ToasterProvider from "@/contexts/ToasterProvider";
@@ -24,6 +24,15 @@ import { TimezoneProvider } from "@/contexts/TimezoneProvider";
 import { ClientTimezone } from "@/contexts/TimezoneCookieProvider";
 import ErrorBoundary from "@/ui/components/errorBoundary";
 import PodcastMiniPlayer from "@/ui/components/podcastMiniPlayer";
+
+// Bold-only cut: heading font (replaced unlicensed Gilroy-Bold, TASK-2759).
+// Single 700 face per family mirrors the old per-weight Gilroy setup, so
+// font-urbanist-bold renders bold glyphs without needing font-bold in markup.
+const urbanist = Urbanist({
+    weight: "700",
+    subsets: ["latin"],
+    variable: "--font-urbanist",
+});
 
 const outfit = Outfit({
     weight: "400",
@@ -146,7 +155,7 @@ export default async function RootLayout({
         <SessionProvider>
             <html
                 lang="en"
-                className={`${bebas.variable} ${oswald.variable} ${inter.variable} ${fjalla.variable} ${chivo.variable} ${dmSams.variable} ${outfit.variable}`}
+                className={`${bebas.variable} ${oswald.variable} ${inter.variable} ${fjalla.variable} ${chivo.variable} ${dmSams.variable} ${outfit.variable} ${urbanist.variable}`}
             >
                 <body className="flex flex-col min-h-screen">
                     <a

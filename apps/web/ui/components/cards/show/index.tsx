@@ -306,7 +306,7 @@ const ShowCardArtwork = ({ show }: { show: Show }) => {
                 <p className="font-oswald text-sm font-medium uppercase tracking-[0.18em] text-copper-bright">
                     {formattedDate}
                 </p>
-                <p className="mt-1 font-gilroy-bold text-xl font-bold text-white sm:text-2xl">
+                <p className="mt-1 font-urbanist-bold text-xl font-bold text-white sm:text-2xl">
                     {show.clubName ?? "Comedy show"}
                 </p>
             </div>

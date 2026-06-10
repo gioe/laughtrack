@@ -161,7 +161,7 @@ function EpisodeRow({
                     )}
                 </span>
                 <span className="min-w-0">
-                    <span className="block font-gilroy-bold text-body font-bold leading-tight text-foreground line-clamp-2 group-hover:text-copper">
+                    <span className="block font-urbanist-bold text-body font-bold leading-tight text-foreground line-clamp-2 group-hover:text-copper">
                         {episode.title}
                     </span>
                     <span className="mt-1 block font-dmSans text-caption text-gray-600">
@@ -322,7 +322,7 @@ export default function PodcastDetail({
                     <p className="font-dmSans text-caption font-bold uppercase tracking-wider text-copper">
                         Podcast
                     </p>
-                    <h1 className="mt-2 font-gilroy-bold text-3xl font-bold leading-tight text-foreground sm:text-4xl md:text-h1">
+                    <h1 className="mt-2 font-urbanist-bold text-3xl font-bold leading-tight text-foreground sm:text-4xl md:text-h1">
                         {podcast.title}
                     </h1>
                     <PodcastHosts hosts={podcast.hosts} />

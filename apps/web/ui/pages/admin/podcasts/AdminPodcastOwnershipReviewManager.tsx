@@ -739,7 +739,7 @@ export default function AdminPodcastHostshipReviewManager({
                                   <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
                                       <div className="min-w-0">
                                           <div className="flex flex-wrap items-center gap-2">
-                                              <h2 className="font-gilroy-bold text-h3 leading-tight text-cedar">
+                                              <h2 className="font-urbanist-bold text-h3 leading-tight text-cedar">
                                                   {group.podcast.title}
                                               </h2>
                                               <span
@@ -1236,7 +1236,7 @@ export default function AdminPodcastHostshipReviewManager({
                               >
                                   <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
                                       <div>
-                                          <h2 className="font-gilroy-bold text-h3 leading-tight text-cedar">
+                                          <h2 className="font-urbanist-bold text-h3 leading-tight text-cedar">
                                               {comedianGroup.comedian.name}
                                           </h2>
                                           <p className="font-dmSans text-caption text-soft-charcoal">
@@ -1317,7 +1317,7 @@ export default function AdminPodcastHostshipReviewManager({
                                                   >
                                                       <div className="min-w-0">
                                                           <div className="flex flex-wrap items-center gap-2">
-                                                              <h3 className="font-gilroy-bold text-body text-cedar">
+                                                              <h3 className="font-urbanist-bold text-body text-cedar">
                                                                   {
                                                                       group
                                                                           .podcast
@@ -1561,7 +1561,7 @@ function ReviewGroupFrame({
                         )}
                     </span>
                     <span className="min-w-0">
-                        <span className="block font-gilroy-bold text-h3 leading-tight">
+                        <span className="block font-urbanist-bold text-h3 leading-tight">
                             {title}
                         </span>
                         <span className="mt-1 block font-dmSans text-caption text-white/85">

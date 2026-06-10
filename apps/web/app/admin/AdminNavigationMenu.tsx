@@ -125,7 +125,7 @@ export default function AdminNavigationMenu() {
                                     <Icon className="h-5 w-5" />
                                 </span>
                                 <span className="min-w-0">
-                                    <span className="block font-gilroy-bold text-body leading-tight text-cedar">
+                                    <span className="block font-urbanist-bold text-body leading-tight text-cedar">
                                         {item.label}
                                     </span>
                                     <span className="block truncate font-dmSans text-caption text-soft-charcoal">

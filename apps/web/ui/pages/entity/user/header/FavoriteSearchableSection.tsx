@@ -95,7 +95,7 @@ function FavoriteSearchableSection<T>({
     return (
         <section className="space-y-4">
             <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <h2 className="font-gilroy-bold text-h2 font-extrabold text-foreground">
+                <h2 className="font-urbanist-bold text-h2 font-extrabold text-foreground">
                     {title}
                 </h2>
                 {headerNote ? (

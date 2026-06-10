@@ -64,7 +64,7 @@ export function FormInput<TFieldValues extends FieldValues>({
             render={({ field }) => {
                 return (
                     <FormItem>
-                        <FormLabel className="text-foreground font-gilroy-bold font-bold">
+                        <FormLabel className="text-foreground font-urbanist-bold font-bold">
                             {label}
                         </FormLabel>
                         <FormControl className="rounded-lg">

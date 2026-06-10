@@ -82,7 +82,7 @@ const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({ show }) => {
                     >
                         {countdown.label}
                     </span>
-                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-gilroy-bold font-bold text-white drop-shadow-md">
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-urbanist-bold font-bold text-white drop-shadow-md">
                         {heading}
                     </h1>
                     {show.clubName && (

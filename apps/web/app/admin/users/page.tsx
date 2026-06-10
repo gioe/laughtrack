@@ -24,7 +24,7 @@ function SummaryCard({
                     <p className="font-dmSans text-caption font-semibold uppercase text-soft-charcoal">
                         {label}
                     </p>
-                    <p className="font-gilroy-bold text-h3 text-cedar">
+                    <p className="font-urbanist-bold text-h3 text-cedar">
                         {value}
                     </p>
                 </div>

@@ -199,7 +199,7 @@ export default function AdminUsersManager({
 
             <div className="overflow-hidden rounded-md border border-copper/20 bg-white">
                 <div className="border-b border-copper/15 bg-cedar px-4 py-3">
-                    <h2 className="font-gilroy-bold text-h3 text-coconut-cream">
+                    <h2 className="font-urbanist-bold text-h3 text-coconut-cream">
                         Users
                     </h2>
                 </div>
@@ -309,7 +309,7 @@ function UserRow({ user }: { user: AdminUserListItem }) {
         <li className="grid gap-5 px-4 py-5 xl:grid-cols-[minmax(260px,0.8fr)_minmax(260px,0.8fr)_minmax(360px,1fr)]">
             <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="break-words font-gilroy-bold text-h3 text-cedar">
+                    <h3 className="break-words font-urbanist-bold text-h3 text-cedar">
                         {currentName ?? "Unnamed user"}
                     </h3>
                     <span className="rounded-md border border-copper/25 bg-ecru-white px-2 py-1 font-dmSans text-caption font-semibold text-copper-dark">
@@ -385,7 +385,7 @@ function UserRow({ user }: { user: AdminUserListItem }) {
 
             <div className="space-y-3">
                 <div className="rounded-md border border-copper/20 bg-ecru-white p-3">
-                    <h4 className="font-gilroy-bold text-body text-cedar">
+                    <h4 className="font-urbanist-bold text-body text-cedar">
                         Edit user
                     </h4>
                     {!hasProfile && (

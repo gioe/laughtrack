@@ -48,7 +48,7 @@ const FooterComponent = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 sm:gap-12 mb-12 sm:mb-16">
                     <div className="lg:col-span-8">
                         <h2
-                            className="text-3xl sm:text-4xl font-bold text-white mb-4 sm:mb-6 font-gilroy-bold
+                            className="text-3xl sm:text-4xl font-bold text-white mb-4 sm:mb-6 font-urbanist-bold
                             transform transition-all duration-300 hover:scale-[1.02]"
                         >
                             Laughtrack

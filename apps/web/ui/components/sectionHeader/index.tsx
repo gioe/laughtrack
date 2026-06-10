@@ -39,7 +39,7 @@ const SectionHeader = ({
                 )}
                 <h2
                     id={titleId}
-                    className="font-gilroy-bold text-h2 font-bold text-foreground"
+                    className="font-urbanist-bold text-h2 font-bold text-foreground"
                 >
                     {title}
                 </h2>

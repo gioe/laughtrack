@@ -665,7 +665,7 @@ function ChainGroupSection({
                             )}
                         </span>
                         <span className="min-w-0">
-                            <span className="block font-gilroy-bold text-h3 leading-tight">
+                            <span className="block font-urbanist-bold text-h3 leading-tight">
                                 {groupName}
                             </span>
                             <span className="mt-1 block font-dmSans text-caption text-white/85">
@@ -821,7 +821,7 @@ function ChainGroupSection({
                                     <div className="flex flex-wrap items-center gap-2">
                                         <Link
                                             href={`/admin/clubs/${club.id}`}
-                                            className="font-gilroy-bold text-h3 text-cedar hover:underline"
+                                            className="font-urbanist-bold text-h3 text-cedar hover:underline"
                                         >
                                             {club.name}
                                         </Link>

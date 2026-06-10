@@ -57,7 +57,7 @@ const FilterModal = ({ filters, total, variant }: FilterModalProps) => {
 
             {filters.length > 0 && (
                 <div className="mb-6 pt-7 animate-slideUp">
-                    <h3 className="text-lead font-bold font-gilroy-bold text-gray-800 mb-3 pb-3 border-b border-gray-100">
+                    <h3 className="text-lead font-bold font-urbanist-bold text-gray-800 mb-3 pb-3 border-b border-gray-100">
                         Filter By
                     </h3>
                     <div className="flex flex-wrap gap-2">
@@ -95,7 +95,7 @@ function PodcastAdvancedFilters() {
 
     return (
         <div className="mb-6 pt-2 animate-slideUp">
-            <h3 className="text-lead font-bold font-gilroy-bold text-gray-800 mb-3 pb-3 border-b border-gray-100">
+            <h3 className="text-lead font-bold font-urbanist-bold text-gray-800 mb-3 pb-3 border-b border-gray-100">
                 Podcast Scope
             </h3>
             <label className="flex items-start gap-3 rounded-md border border-gray-200 p-3 cursor-pointer transition-colors hover:bg-gray-50">

@@ -1260,7 +1260,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                             <ChevronRight className="h-4 w-4 shrink-0 text-cedar" />
                                         )}
                                         <ComedianRowHeadshot row={row} />
-                                        <h2 className="min-w-0 flex-1 break-words font-gilroy-bold text-h3 text-cedar">
+                                        <h2 className="min-w-0 flex-1 break-words font-urbanist-bold text-h3 text-cedar">
                                             {row.name}
                                         </h2>
                                         <span className="shrink-0 rounded-full border border-red-700/30 bg-red-50 px-2 py-1 font-dmSans text-caption font-semibold text-red-900">
@@ -1323,7 +1323,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                         <ChevronRight className="h-4 w-4 shrink-0 text-cedar" />
                                     )}
                                     <ComedianRowHeadshot row={row} />
-                                    <h2 className="min-w-0 flex-1 break-words font-gilroy-bold text-h3 text-cedar">
+                                    <h2 className="min-w-0 flex-1 break-words font-urbanist-bold text-h3 text-cedar">
                                         {row.name}
                                     </h2>
                                     <span className="shrink-0 font-dmSans text-caption font-semibold text-soft-charcoal">
@@ -2120,7 +2120,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                                             child
                                                                         }
                                                                     />
-                                                                    <span className="min-w-0 flex-1 break-words font-gilroy-bold text-body text-cedar">
+                                                                    <span className="min-w-0 flex-1 break-words font-urbanist-bold text-body text-cedar">
                                                                         {
                                                                             child.name
                                                                         }

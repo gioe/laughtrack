@@ -24,7 +24,7 @@ const SearchDetailHeader = ({
     return (
         <header className={`text-center py-16 md:py-20 px-4 ${container}`}>
             <h1
-                className={`text-2xl sm:text-3xl md:text-h1 font-bold font-gilroy-bold mb-1 sm:mb-2 ${titleCls}`}
+                className={`text-2xl sm:text-3xl md:text-h1 font-bold font-urbanist-bold mb-1 sm:mb-2 ${titleCls}`}
             >
                 {title}
             </h1>

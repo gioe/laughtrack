@@ -50,7 +50,7 @@ const ComedianAvatarFallback = ({
                         y="54"
                         textAnchor="middle"
                         dominantBaseline="middle"
-                        fontFamily='"Gilroy-Bold", "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif'
+                        fontFamily='var(--font-urbanist), "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif'
                         fontWeight="700"
                         fontSize={initials.length === 1 ? 46 : 38}
                         fill="#FAF6E0"

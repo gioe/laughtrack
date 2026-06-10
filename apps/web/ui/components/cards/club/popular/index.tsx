@@ -39,7 +39,7 @@ const PopularClubCard: React.FC<PopularClubCardProps> = ({ entity }) => {
                                     aria-hidden="true"
                                 />
                             </span>
-                            <span className="text-sm font-bold font-gilroy-bold leading-tight">
+                            <span className="text-sm font-bold font-urbanist-bold leading-tight">
                                 {club.name}
                             </span>
                         </div>
@@ -59,7 +59,7 @@ const PopularClubCard: React.FC<PopularClubCardProps> = ({ entity }) => {
 
             {/* Text Content */}
             <div className="space-y-1">
-                <h2 className="text-h3 font-bold leading-tight font-gilroy-bold">
+                <h2 className="text-h3 font-bold leading-tight font-urbanist-bold">
                     {club.name}
                 </h2>
                 <p className="text-body text-gray-600 font-dmSans">

@@ -58,7 +58,7 @@ const UserHeroBanner = ({ name, email, image }: UserHeroBannerProps) => {
                     initial={{ opacity: 0, y: mv(20) }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={mt({ duration: 0.3, delay: mv(0.1) })}
-                    className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg font-gilroy-bold"
+                    className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg font-urbanist-bold"
                 >
                     {name || "Comedy Fan"}
                 </motion.h1>

@@ -127,7 +127,7 @@ const PodcastAppearancesSection = ({
             <header className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <h2
                     id="recent-podcast-appearances-heading"
-                    className="font-gilroy-bold text-h2 font-bold text-foreground"
+                    className="font-urbanist-bold text-h2 font-bold text-foreground"
                 >
                     Recent podcast appearances
                 </h2>
@@ -203,7 +203,7 @@ const PodcastAppearancesSection = ({
                                     <span className="min-w-0">
                                         <span
                                             data-testid="podcast-appearance-title"
-                                            className="block font-gilroy-bold text-body font-bold leading-tight text-foreground line-clamp-2 group-hover:text-copper"
+                                            className="block font-urbanist-bold text-body font-bold leading-tight text-foreground line-clamp-2 group-hover:text-copper"
                                         >
                                             {appearance.episodeTitle}
                                         </span>

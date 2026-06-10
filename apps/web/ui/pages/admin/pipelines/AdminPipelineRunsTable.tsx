@@ -119,7 +119,7 @@ export default function AdminPipelineRunsTable({
     return (
         <section className="overflow-hidden rounded-md border border-copper/20 bg-white">
             <div className="border-b border-copper/15 bg-cedar px-4 py-3">
-                <h2 className="font-gilroy-bold text-h3 text-coconut-cream">
+                <h2 className="font-urbanist-bold text-h3 text-coconut-cream">
                     Recent runs
                 </h2>
             </div>

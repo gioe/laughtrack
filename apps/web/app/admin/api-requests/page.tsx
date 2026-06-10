@@ -58,7 +58,7 @@ function SummaryCard({
                     <p className="font-dmSans text-caption font-semibold uppercase text-soft-charcoal">
                         {label}
                     </p>
-                    <p className="font-gilroy-bold text-h3 text-cedar">
+                    <p className="font-urbanist-bold text-h3 text-cedar">
                         {value}
                     </p>
                 </div>
@@ -80,7 +80,7 @@ function BreakdownBars({
 
     return (
         <div className="rounded-md border border-copper/20 bg-white p-4">
-            <h2 className="font-gilroy-bold text-h4 text-cedar">{title}</h2>
+            <h2 className="font-urbanist-bold text-h4 text-cedar">{title}</h2>
             {rows.length === 0 ? (
                 <p className="mt-3 font-dmSans text-caption text-soft-charcoal">
                     No data in this window.
@@ -134,7 +134,7 @@ function TopRoutesTable({
     return (
         <div className="overflow-hidden rounded-md border border-copper/20 bg-white">
             <div className="border-b border-copper/15 px-4 py-3">
-                <h2 className="font-gilroy-bold text-h4 text-cedar">
+                <h2 className="font-urbanist-bold text-h4 text-cedar">
                     Top routes by volume
                 </h2>
                 <p className="mt-1 font-dmSans text-caption text-soft-charcoal">
@@ -224,7 +224,7 @@ function RouteTrend({
 
     return (
         <div className="rounded-md border border-copper/20 bg-white p-4">
-            <h2 className="font-gilroy-bold text-h4 text-cedar">
+            <h2 className="font-urbanist-bold text-h4 text-cedar">
                 Per-route trend
             </h2>
             {selectedRoute ? (

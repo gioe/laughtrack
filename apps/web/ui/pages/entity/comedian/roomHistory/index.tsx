@@ -46,7 +46,7 @@ const RoomHistorySection = ({
             className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 pt-8 pb-2"
         >
             <header className="mb-4">
-                <h2 className="font-gilroy-bold text-h2 font-bold text-foreground">
+                <h2 className="font-urbanist-bold text-h2 font-bold text-foreground">
                     Where {comedianName} performs
                 </h2>
                 <p className="text-gray-600 font-dmSans text-body">

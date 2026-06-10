@@ -33,7 +33,7 @@ export default async function AdminLayout({
                             className="shrink-0"
                         />
                         <div className="min-w-0">
-                            <div className="font-gilroy-bold text-h2 leading-tight text-cedar">
+                            <div className="font-urbanist-bold text-h2 leading-tight text-cedar">
                                 LaughTrack Admin
                             </div>
                             <div className="font-dmSans text-caption text-soft-charcoal">
