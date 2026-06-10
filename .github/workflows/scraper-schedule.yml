@@ -55,6 +55,13 @@ jobs:
           # (the registry returns the URL as None, ScraperProxyRegistry never
           # blocks the run on a missing secret).
           RESIDENTIAL_PROXY_URL: ${{ secrets.RESIDENTIAL_PROXY_URL }}
+          # capsolver key for DataDome/AWS-WAF interactive CAPTCHA solves in
+          # the Playwright fallback. Unset secret = solver disabled, no run
+          # failure (build_default_solver returns None and the solve path is
+          # skipped). DataDome solves additionally require a proxy, so only
+          # proxy-enabled scrapers (tixr) can complete one — proxyless callers
+          # skip the solve up front.
+          CAPSOLVER_API_KEY: ${{ secrets.CAPSOLVER_API_KEY }}
         run: |
           python -m scripts.core.scrape_shows --all
 

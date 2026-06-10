@@ -47,6 +47,10 @@ jobs:
           # the same residential-proxy egress as nightly. Unset secret = direct
           # egress (ScraperProxyRegistry handles the missing-secret case).
           RESIDENTIAL_PROXY_URL: ${{ secrets.RESIDENTIAL_PROXY_URL }}
+          # Mirrors scraper-schedule.yml so single-club verification exercises
+          # the same DataDome/AWS-WAF capsolver solve path as nightly. Unset
+          # secret = solver disabled (build_default_solver returns None).
+          CAPSOLVER_API_KEY: ${{ secrets.CAPSOLVER_API_KEY }}
         run: |
           python -m scripts.core.scrape_shows --club-id ${{ inputs.club_id }} --verbose 2>&1 | tee scrape-output.log
           echo "--- tail summary ---"
