@@ -278,6 +278,22 @@ A passing test today is no guarantee under this contamination — it might
 fail on a colleague's machine with different cache contents and look
 flaky.
 
+The same bleed exists for in-memory request coalescing, not just disk
+caches: the four home-feed rail models (`HomeShowsTonightModel`,
+`HomeTrendingComediansModel`, `HomePopularClubsModel`,
+`HomeTrendingPodcastsModel`) coalesce their feed loads through
+`HomeFeedRequestCoalescer.shared` (HomeView.swift), keyed only by
+`zip|distance`. Test suites running concurrently with the same key (e.g.
+both with zip nil) join each other's in-flight request, and the loser
+receives the other suite's mock-transport feed — the TASK-2756 flake was
+`EntityDataFlowTests` (show [101]) racing `HomeHeroHeaderTests` (shows
+[801,802,803]). Each model's `refresh` takes a `coalescer:` param
+defaulting to `.shared`; any test that drives one of these models'
+refresh must pass a fresh `HomeFeedRequestCoalescer()` per test (or one
+local instance shared deliberately across rails, as
+`HomeFeedLoadCoalescingTests` does) — omitting the param silently
+reintroduces the cross-suite bleed.
+
 ### Debugging SwiftUI Rendering — Start With `dumpAccessibilityTree`
 
 When a `requireView` / `requireText` / `tapControl` assertion fails in a way
