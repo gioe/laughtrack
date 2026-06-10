@@ -163,6 +163,39 @@ describe("ShowTicketCta", () => {
         ).toBeNull();
     });
 
+    it("falls back to 'This venue' when clubName is missing and omits the VENUE row entirely when no venue data exists", () => {
+        const { unmount } = render(
+            <ShowTicketCta
+                isPast={false}
+                show={{ ...baseShow, clubName: undefined }}
+            />,
+        );
+
+        // Address alone keeps the row, with the non-link fallback value.
+        expect(screen.getByText("This venue")).toBeTruthy();
+        expect(screen.getByText("123 Main St")).toBeTruthy();
+        expect(screen.queryByRole("link", { name: "The Copper Room" })).toBeNull();
+        unmount();
+
+        render(
+            <ShowTicketCta
+                isPast={false}
+                show={{
+                    ...baseShow,
+                    clubName: undefined,
+                    address: undefined,
+                    room: undefined,
+                }}
+            />,
+        );
+
+        expect(screen.queryByText("Venue")).toBeNull();
+        expect(screen.queryByText("This venue")).toBeNull();
+        // The rest of the stub still renders.
+        expect(screen.getByText("When")).toBeTruthy();
+        expect(screen.getByText("Tickets")).toBeTruthy();
+    });
+
     it("renders the ended state inside the stub without a buy pill", () => {
         render(
             <ShowTicketCta
