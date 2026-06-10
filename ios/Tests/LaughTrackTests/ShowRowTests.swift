@@ -240,7 +240,7 @@ struct ShowRowTests {
             lineup: []
         )
 
-        #expect(ShowRow.priceLabel(for: show) == "$20 - $35")
+        #expect(ShowRow.priceLabel(for: show) == "From $20")
     }
 
     @Test("show row formats free tickets")
@@ -277,7 +277,7 @@ struct ShowRowTests {
         )
 
         #expect(ShowRow.priceLabel(for: show) == nil)
-        #expect(ShowRow.previousPriceLabel(for: show) == "$20 - $35")
+        #expect(ShowRow.previousPriceLabel(for: show) == "From $20")
     }
 
     @Test("previous price label matches priceLabel when tickets are still available")

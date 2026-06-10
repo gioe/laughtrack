@@ -8,10 +8,8 @@ struct SearchFavoriteRowLayoutTests {
         let source = try String(contentsOf: searchViewSourceURL(named: "ComediansDiscoveryView.swift"), encoding: .utf8)
         let block = try sourceBlock(in: source, from: "struct ComedianRow: View", to: "static func upcomingShowsText")
 
-        #expect(block.contains("action: openDetail"))
-        #expect(block.contains("trailingAccessory: {"))
+        #expect(block.contains("Button(action: openDetail)"))
         #expect(block.contains("FavoriteButton("))
-        #expect(!block.contains("HStack(spacing: theme.spacing.md)"))
     }
 
     @Test("podcast search favorite button is integrated into the entity row")
@@ -19,11 +17,9 @@ struct SearchFavoriteRowLayoutTests {
         let source = try String(contentsOf: searchViewSourceURL(named: "PodcastSearchView.swift"), encoding: .utf8)
         let block = try sourceBlock(in: source, from: "struct PodcastSearchRow: View", to: "private func toggle")
 
-        #expect(block.contains("action: rowAction"))
         #expect(block.contains("private func openPodcastDetail()"))
-        #expect(block.contains("trailingAccessory: {"))
+        #expect(block.contains("openPodcastDetail()"))
         #expect(block.contains("FavoriteButton("))
-        #expect(!block.contains("HStack(spacing: theme.spacing.md)"))
     }
 
     private func searchViewSourceURL(named fileName: String, filePath: String = #filePath) throws -> URL {

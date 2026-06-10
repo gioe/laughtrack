@@ -87,7 +87,7 @@ struct HomeContentSectionTests {
         let block = try sourceBlock(
             in: source,
             from: "private struct HomePopularClubCard",
-            to: "private var fallbackArtwork: some View"
+            to: "private var posterFallback: some View"
         )
 
         #expect(block.contains(".scaledToFit()"))
@@ -128,7 +128,7 @@ struct HomeContentSectionTests {
         #expect(carouselBlock.contains(".frame(width: pageWidth"))
         #expect(carouselBlock.contains(".clipped()"))
         #expect(carouselBlock.contains(".highPriorityGesture(pagerDragGesture(pageWidth: pageWidth))"))
-        #expect(heroBlock.contains(".scaledToFit()"))
+        #expect(heroBlock.contains(".scaledToFill()"))
         #expect(source.contains("HomeDiscoverHeader("))
         #expect(source.contains("nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self)"))
         #expect(source.contains("profileLocationPreferenceSyncClient: serviceContainer.resolveOptional((any ProfileLocationPreferenceSyncing).self)"))
@@ -142,7 +142,7 @@ struct HomeContentSectionTests {
         #expect(source.contains("Best shows later this week"))
         #expect(!source.contains("Upcoming shows at clubs in your area."))
         #expect(!source.contains("The most popular shows happening in the next 7 days."))
-        #expect(source.contains("Comics on the rise this week"))
+        #expect(source.contains("Comedians drawing crowds"))
         #expect(!source.contains("eyebrow: \"Trending comedians\""))
     }
 

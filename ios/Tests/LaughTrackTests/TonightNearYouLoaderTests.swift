@@ -204,7 +204,8 @@ private func makeDetailJSON(relatedComedians: [(id: Int, name: String)]) -> Stri
         "feedUrl": null,
         "imageUrl": null,
         "description": null,
-        "episodeCount": 0
+        "episodeCount": 0,
+        "hosts": []
       },
       "episodes": [],
       "relatedComedians": [\(comedians)]
