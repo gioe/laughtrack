@@ -2205,7 +2205,7 @@ private enum HomeFeedRequest {
         networkContext: String,
         networkMessage: String,
         persistentCache: PersistentMainPageCache?,
-        coalescer: HomeFeedRequestCoalescer = .shared
+        coalescer: HomeFeedRequestCoalescer
     ) async -> Result<Components.Schemas.HomeFeed, LoadFailure> {
         await coalescer.load(requestKey: requestKey(zipCode: zipCode, distanceMiles: distanceMiles)) {
             await fetch(
