@@ -66,8 +66,15 @@ const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({
           ? `${parsedClub.city}, ${parsedClub.state}`
           : parsedClub.city || parsedClub.address;
 
-    const showImage =
-        !error && !!parsedClub.heroUrl && parsedClub.heroUrl !== PLACEHOLDER;
+    // Parity with iOS ClubDetailHeroPresentation: fall back to imageUrl when
+    // heroUrl is empty so clubs with only a logo still render artwork.
+    const isUsableUrl = (url: string) => !!url && url !== PLACEHOLDER;
+    const heroSrc = isUsableUrl(parsedClub.heroUrl)
+        ? parsedClub.heroUrl
+        : isUsableUrl(parsedClub.imageUrl)
+          ? parsedClub.imageUrl
+          : "";
+    const showImage = !error && heroSrc !== "";
 
     return (
         <div className="max-w-7xl mx-auto">
@@ -85,7 +92,7 @@ const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({
                 {showImage && (
                     <>
                         <Image
-                            src={parsedClub.heroUrl}
+                            src={heroSrc}
                             alt={parsedClub.name}
                             fill
                             className={`object-contain object-center transition-opacity duration-500 ${

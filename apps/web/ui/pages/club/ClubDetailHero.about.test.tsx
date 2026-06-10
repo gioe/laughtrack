@@ -86,7 +86,7 @@ describe("ClubDetailHero About description", () => {
         expect(image.className).not.toContain("object-cover");
     });
 
-    it("keeps the square icon out of the detail banner when no hero URL exists", () => {
+    it("falls back to the square icon in the detail banner when no hero URL exists", () => {
         render(
             <ClubDetailHeader
                 club={{
@@ -97,7 +97,10 @@ describe("ClubDetailHero About description", () => {
             />,
         );
 
-        expect(screen.queryByRole("img", { name: "Comedy Cellar" })).toBeNull();
+        const image = screen.getByRole("img", { name: "Comedy Cellar" });
+        expect(image.getAttribute("src")).toBe(
+            "https://cdn.example.com/clubs/icon.png",
+        );
     });
 
     it("renders the club description paragraph inside the hero block", () => {
