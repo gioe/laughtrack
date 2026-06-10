@@ -173,44 +173,18 @@ enum LaughTrackHostedViewTestSupport {
     }
 }
 
-/// Decode the routes currently in a NavigationCoordinator's path, in push
-/// order. Returns an empty array when the path is empty or its codable
-/// representation is unavailable; throws when an element fails to decode (so
-/// fixture mistakes surface as test failures, not silent empties).
-///
-/// NavigationPath erases element types, so reading the pushed *routes* (not
-/// just the depth) requires round-tripping through NavigationPath.codable.
-/// NavigationCoordinator is not `open`, so subclassing for interception isn't
-/// an option.
+/// The routes currently on a TypedNavigationCoordinator's stack, in push
+/// order. The typed coordinator stores routes as a plain `[Route]`, so this
+/// is a direct read — kept as a helper so existing call sites don't churn.
+/// (Its predecessor had to reverse-engineer the opaque
+/// `NavigationPath.codable` representation; the typed stack makes that
+/// machinery unnecessary.)
 @MainActor
 func decodedRoutes<Route: Hashable & Codable>(
-    in coordinator: NavigationCoordinator<Route>,
+    in coordinator: TypedNavigationCoordinator<Route>,
     as type: Route.Type = Route.self
-) throws -> [Route] {
-    guard let codable = coordinator.path.codable else { return [] }
-    let data = try JSONEncoder().encode(codable)
-    // NavigationPath.CodableRepresentation encodes as a flat JSON array shaped
-    // [<typeName1>, <jsonElement1>, <typeName2>, <jsonElement2>, ...] in REVERSE
-    // push order. Each pair is one route encoded as a JSON string of its type
-    // followed by a JSON string of its Codable representation.
-    guard
-        let raw = try JSONSerialization.jsonObject(with: data) as? [String]
-    else { return [] }
-
-    let decoder = JSONDecoder()
-    var routes: [Route] = []
-    var index = raw.count - 1
-    while index > 0 {
-        let elementJSON = raw[index]
-        guard let elementData = elementJSON.data(using: .utf8) else {
-            index -= 2
-            continue
-        }
-        let route = try decoder.decode(Route.self, from: elementData)
-        routes.append(route)
-        index -= 2
-    }
-    return routes
+) -> [Route] {
+    coordinator.routes
 }
 
 private final class MockOAuthSessionRunner: OAuthSessionRunning {

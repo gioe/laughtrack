@@ -24,6 +24,8 @@ public typealias ServiceScope = SharedKit.ServiceScope
 
 public typealias NavigationCoordinator = SharedKit.NavigationCoordinator
 public typealias CoordinatedNavigationStack = SharedKit.CoordinatedNavigationStack
+public typealias TypedNavigationCoordinator = SharedKit.TypedNavigationCoordinator
+public typealias TypedCoordinatedNavigationStack = SharedKit.TypedCoordinatedNavigationStack
 public typealias ModalPresentation = SharedKit.ModalPresentation
 public typealias PresentationStyle = SharedKit.PresentationStyle
 

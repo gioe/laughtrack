@@ -8,7 +8,7 @@ let package = Package(
         .macOS(.v13)
     ],
     dependencies: [
-        .package(url: "https://github.com/gioe/ios-libs.git", from: "1.9.1"),
+        .package(url: "https://github.com/gioe/ios-libs.git", from: "1.13.0"),
         .package(url: "https://github.com/apple/swift-openapi-runtime", from: "1.9.0"),
         .package(url: "https://github.com/apple/swift-openapi-urlsession", from: "1.3.0"),
         .package(url: "https://github.com/apple/swift-http-types", from: "1.0.0"),

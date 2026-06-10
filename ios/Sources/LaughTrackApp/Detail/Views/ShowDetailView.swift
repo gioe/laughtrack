@@ -11,7 +11,7 @@ struct ShowDetailView: View {
     let showID: Int
     let apiClient: Client
 
-    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var favorites: ComedianFavoriteStore
     @EnvironmentObject private var softPushPromptCoordinator: SoftPushPromptCoordinator
@@ -128,6 +128,7 @@ struct ShowDetailView: View {
         .overlay(alignment: .top) {
             DetailChromeBar(
                 onBack: { coordinator.pop() },
+                onHome: coordinator.detailHomeAction,
                 favoriteState: nil
             )
         }

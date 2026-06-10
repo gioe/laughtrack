@@ -449,19 +449,21 @@ fixture can be pre-populated (e.g. an `@EnvironmentObject` store), prefer
 pre-loading: it both avoids the lifecycle dependency and makes the rendering
 assertion stand alone.
 
-### NavigationPath Route Inspection
+### Navigation Stack Route Inspection
 
-`NavigationPath` erases element types and has no `.last`. To assert *which*
-route was pushed (not just the depth), routes must be Codable and the
-pushed-by-coordinator path must round-trip through `NavigationPath.codable`.
+The app uses `TypedNavigationCoordinator<AppRoute>` (ios-libs ≥ 1.13.0),
+whose stack is a plain `[Route]` — read `coordinator.routes` directly to
+assert which routes were pushed. The `decodedRoutes(in:as:)` helper in
+`HostedViewTestSupport.swift` survives as a thin alias over it for older
+call sites; its NavigationPath.codable reverse-engineering is gone.
 
-Two gotchas:
-- `NavigationCoordinator.push(_:)` is constrained `Route: Hashable` (not
-  `Hashable & Codable`), so it routes to `NavigationPath.append`'s non-Codable
-  overload and `path.codable` returns nil. Tests verifying a destination must
-  call `coordinator.path.append(_:)` directly with a statically-Codable value.
-- The `decodedRoutes(in:as:)` helper in `HostedViewTestSupport.swift` reverses
-  the codable representation back into `[Route]` in push order.
+Behavioral invariants worth knowing when writing navigation tests:
+- `coordinator.open(_:)` (EntityNavigationTarget) deduplicates cycles: if
+  the target's route is already on the stack it pops back to that entry
+  instead of pushing a duplicate (`pushOrPopTo`).
+- `coordinator.detailHomeAction` is nil at stack depth ≤ 1 and a
+  popToRoot closure when deeper — that gates the detail chrome's home
+  button.
 
 ### UI-Test Launch-Arg Seams
 

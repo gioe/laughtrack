@@ -6,7 +6,7 @@ import LaughTrackCore
 struct SearchRootView: View {
     let apiClient: Client
     let favorites: ComedianFavoriteStore
-    let coordinator: NavigationCoordinator<AppRoute>
+    let coordinator: TypedNavigationCoordinator<AppRoute>
     let searchNavigationBridge: SearchNavigationBridge
     let isActive: Bool
     @Binding private var selectedPrimitive: SearchRootModel.Pivot
@@ -22,7 +22,7 @@ struct SearchRootView: View {
     init(
         apiClient: Client,
         favorites: ComedianFavoriteStore,
-        coordinator: NavigationCoordinator<AppRoute>,
+        coordinator: TypedNavigationCoordinator<AppRoute>,
         searchNavigationBridge: SearchNavigationBridge,
         nearbyLocationController: NearbyLocationController,
         isActive: Bool = true,

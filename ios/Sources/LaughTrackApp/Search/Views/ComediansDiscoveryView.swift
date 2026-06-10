@@ -13,7 +13,7 @@ struct ComediansDiscoveryView: View {
 
     @Environment(\.appTheme) private var theme
     @Environment(\.serviceContainer) private var serviceContainer
-    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
     @EnvironmentObject private var favorites: ComedianFavoriteStore
     @State private var feedbackMessage: String?
     @State private var isFilterEditorPresented = false

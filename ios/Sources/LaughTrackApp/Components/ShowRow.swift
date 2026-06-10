@@ -4,7 +4,7 @@ import LaughTrackBridge
 
 struct ShowRow: View {
     @Environment(\.appTheme) private var theme
-    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
 
     let show: Components.Schemas.Show
     var nearbyRadiusMiles: Double?

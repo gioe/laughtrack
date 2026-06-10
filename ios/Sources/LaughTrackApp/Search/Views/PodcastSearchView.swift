@@ -11,7 +11,7 @@ struct PodcastSearchView: View {
     var isActive = true
 
     @Environment(\.appTheme) private var theme
-    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var podcastFavorites: PodcastFavoriteStore
     @EnvironmentObject private var loginModalPresenter: LoginModalPresenter
@@ -117,7 +117,7 @@ struct PodcastSearchRow: View {
     let apiClient: Client
     @Binding var feedbackMessage: String?
 
-    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var podcastFavorites: PodcastFavoriteStore
     @EnvironmentObject private var loginModalPresenter: LoginModalPresenter

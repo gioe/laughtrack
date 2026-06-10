@@ -133,7 +133,7 @@ struct AppShellViewTests {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthenticatedAuthManager(
             name: "shell-favorites-load"
         )
-        let coordinator = NavigationCoordinator<AppRoute>()
+        let coordinator = TypedNavigationCoordinator<AppRoute>()
         let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "shell-favorites-load")
         let recorder = ShellFavoritesRequestRecorder()
         let apiClient = Client(
@@ -167,7 +167,7 @@ struct AppShellViewTests {
     @Test("podcast mini player chrome gates on the shared playback controller")
     func podcastMiniPlayerChromeGatesOnPlaybackController() async throws {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "shell-mini-player")
-        let coordinator = NavigationCoordinator<AppRoute>()
+        let coordinator = TypedNavigationCoordinator<AppRoute>()
         let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "shell-mini-player")
         let player = PodcastPlaybackController(audioEngine: ShellRecordingPodcastAudioEngine())
         player.start(PodcastPlaybackItem(

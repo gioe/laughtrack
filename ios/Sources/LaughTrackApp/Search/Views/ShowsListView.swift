@@ -33,7 +33,7 @@ struct ShowsListView: View {
 
     @Environment(\.appTheme) private var theme
     @Environment(\.serviceContainer) private var serviceContainer
-    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
     @State private var isZipEditorPresented = false
     @State private var isFilterEditorPresented = false
     @State private var isDateEditorPresented = false

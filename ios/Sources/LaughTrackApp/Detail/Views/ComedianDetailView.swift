@@ -7,7 +7,7 @@ struct ComedianDetailView: View {
     let comedianID: Int
     let apiClient: Client
 
-    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var favorites: ComedianFavoriteStore
     @EnvironmentObject private var loginModalPresenter: LoginModalPresenter
@@ -116,6 +116,7 @@ struct ComedianDetailView: View {
         .overlay(alignment: .top) {
             DetailChromeBar(
                 onBack: { coordinator.pop() },
+                onHome: coordinator.detailHomeAction,
                 favoriteState: comedianFavoriteState
             )
         }
@@ -585,7 +586,7 @@ struct ComedianPodcastPanel: View {
     @ObservedObject var podcastPlayer: PodcastPlaybackController
 
     @Environment(\.appTheme) private var theme
-    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
     @State private var appearancesPage: Int = 0
 
     var body: some View {
@@ -1122,5 +1123,5 @@ private struct PodcastAppearanceRoleBadge: View {
     }
     .background(LaughTrackTheme().laughTrackTokens.colors.canvas)
     .environment(\.appTheme, LaughTrackTheme())
-    .environmentObject(NavigationCoordinator<AppRoute>())
+    .environmentObject(TypedNavigationCoordinator<AppRoute>())
 }

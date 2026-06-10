@@ -216,14 +216,14 @@ struct ContentViewNavigationTests {
 
     @Test("Profile entry point from near me pushes the expected navigation intent")
     func nearMeProfileButtonPushesProfileRoute() async throws {
-        let coordinator = NavigationCoordinator<AppRoute>()
+        let coordinator = TypedNavigationCoordinator<AppRoute>()
 
         #expect(AppRoute.accountHeaderTarget() == .profile)
         #expect(AppRoute.nearMeToolbarTarget(isSignedIn: true) == .profile)
         #expect(AppRoute.nearMeToolbarTarget(isSignedIn: false) == .profile)
 
-        coordinator.path.append(AppRoute.nearMeToolbarTarget(isSignedIn: true))
-        let pushed = try decodedRoutes(in: coordinator, as: AppRoute.self)
+        coordinator.push(AppRoute.nearMeToolbarTarget(isSignedIn: true))
+        let pushed = decodedRoutes(in: coordinator, as: AppRoute.self)
         #expect(pushed == [.profile])
     }
 
@@ -232,10 +232,10 @@ struct ContentViewNavigationTests {
         #expect(AppRoute.nearMe.shellTab == .nearMe)
         #expect(AppRoute.profile.shellTab == nil)
 
-        let coordinator = NavigationCoordinator<AppRoute>()
-        coordinator.path.append(AppRoute.profile)
+        let coordinator = TypedNavigationCoordinator<AppRoute>()
+        coordinator.push(AppRoute.profile)
 
-        let pushed = try decodedRoutes(in: coordinator, as: AppRoute.self)
+        let pushed = decodedRoutes(in: coordinator, as: AppRoute.self)
         #expect(pushed == [.profile])
     }
 
@@ -266,19 +266,19 @@ struct ContentViewNavigationTests {
 
     @Test("ContentView renders the show detail route")
     func contentViewShowsShowDetailRoute() async throws {
-        try assertPushedRoutes([.showDetail(301)])
+        assertPushedRoutes([.showDetail(301)])
         #expect(AppRoute.showDetail(301).shellTab == nil)
     }
 
     @Test("ContentView renders the comedian detail route")
     func contentViewShowsComedianDetailRoute() async throws {
-        try assertPushedRoutes([.comedianDetail(101)])
+        assertPushedRoutes([.comedianDetail(101)])
         #expect(AppRoute.comedianDetail(101).shellTab == nil)
     }
 
     @Test("ContentView renders the club detail route")
     func contentViewShowsClubDetailRoute() async throws {
-        try assertPushedRoutes([.clubDetail(201)])
+        assertPushedRoutes([.clubDetail(201)])
         #expect(AppRoute.clubDetail(201).shellTab == nil)
     }
 
@@ -326,13 +326,31 @@ struct ContentViewNavigationTests {
 
     @Test("ContentView routes the profile route through the real profile surface")
     func contentViewShowsProfileShellRoute() async throws {
-        try assertPushedRoutes([.profile])
+        assertPushedRoutes([.profile])
         #expect(AppRoute.profile.shellTab == nil)
     }
 
-    private func assertPushedRoutes(_ routes: [AppRoute]) throws {
-        let coordinator = NavigationCoordinator<AppRoute>()
-        routes.forEach { coordinator.path.append($0) }
-        #expect(try decodedRoutes(in: coordinator, as: AppRoute.self) == routes)
+    @Test("detail chrome home action is absent at depth one and pops to root when deeper")
+    func detailHomeActionGatedByStackDepth() throws {
+        let coordinator = TypedNavigationCoordinator<AppRoute>()
+
+        // Empty stack and depth one: back already returns to the root, so
+        // the chrome must not offer a redundant home button.
+        #expect(coordinator.detailHomeAction == nil)
+        coordinator.open(.club(201))
+        #expect(coordinator.detailHomeAction == nil)
+
+        coordinator.open(.show(301))
+        coordinator.open(.comedian(101))
+        let homeAction = try #require(coordinator.detailHomeAction)
+
+        homeAction()
+        #expect(coordinator.routes.isEmpty)
+    }
+
+    private func assertPushedRoutes(_ routes: [AppRoute]) {
+        let coordinator = TypedNavigationCoordinator<AppRoute>()
+        routes.forEach { coordinator.push($0) }
+        #expect(decodedRoutes(in: coordinator, as: AppRoute.self) == routes)
     }
 }

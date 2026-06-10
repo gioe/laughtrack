@@ -97,7 +97,7 @@ struct PodcastDetailView: View {
     let podcastID: Int
     let apiClient: Client
 
-    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var podcastPlayer: PodcastPlaybackController
     @EnvironmentObject private var podcastFavorites: PodcastFavoriteStore
@@ -195,6 +195,7 @@ struct PodcastDetailView: View {
         .overlay(alignment: .top) {
             DetailChromeBar(
                 onBack: { coordinator.pop() },
+                onHome: coordinator.detailHomeAction,
                 favoriteState: podcastFavoriteState
             )
         }
@@ -404,7 +405,7 @@ private struct PodcastEpisodeListSection: View {
     @ObservedObject var podcastPlayer: PodcastPlaybackController
 
     @Environment(\.appTheme) private var theme
-    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
     @State private var currentPage = 0
 
     var body: some View {

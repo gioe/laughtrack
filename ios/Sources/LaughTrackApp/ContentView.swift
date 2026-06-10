@@ -134,7 +134,7 @@ struct ContentView: View {
 
     let apiClient: Client
 
-    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var loginModalPresenter: LoginModalPresenter
     @Environment(\.appTheme) private var theme
@@ -288,7 +288,7 @@ struct ContentView: View {
 
     @ViewBuilder
     private func appShell(signedOutMessage: String?) -> some View {
-        CoordinatedNavigationStack(coordinator: coordinator) { route in
+        TypedCoordinatedNavigationStack(coordinator: coordinator) { route in
             switch route {
             case .nearMe:
                 AppShellView(
@@ -352,7 +352,7 @@ struct ContentView: View {
                 .padding(.horizontal, theme.spacing.md)
                 .padding(.bottom, PodcastMiniPlayerLayout.bottomPadding(
                     theme: theme,
-                    clearsRootTabBar: coordinator.path.isEmpty
+                    clearsRootTabBar: coordinator.routes.isEmpty
                 ))
         }
         .environmentObject(favorites)

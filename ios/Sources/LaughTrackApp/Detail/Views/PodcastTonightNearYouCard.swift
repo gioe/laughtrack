@@ -19,7 +19,7 @@ struct PodcastTonightNearYouCard: View {
     let zipCode: String?
 
     @State private var match: TonightNearYouMatch?
-    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
     @Environment(\.appTheme) private var theme
 
     var body: some View {

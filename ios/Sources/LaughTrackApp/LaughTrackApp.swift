@@ -13,7 +13,7 @@ import UIKit
 #if !SWIFT_PACKAGE
 @main
 struct LaughTrackApp: App {
-    @StateObject private var coordinator = NavigationCoordinator<AppRoute>()
+    @StateObject private var coordinator = TypedNavigationCoordinator<AppRoute>()
     @StateObject private var authManager: AuthManager
     @StateObject private var loginModalPresenter = LoginModalPresenter()
     @StateObject private var clubFavorites = ClubFavoriteStore()

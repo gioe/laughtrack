@@ -123,7 +123,7 @@ struct ShowDetailViewTests {
         let show = response.data
         let firstComedian = try #require(show.lineup?.first)
         let firstRelated = try #require(response.relatedShows.first)
-        let coordinator = NavigationCoordinator<AppRoute>()
+        let coordinator = TypedNavigationCoordinator<AppRoute>()
         let targets: [EntityNavigationTarget] = [
             .club(show.club.id),
             .comedian(firstComedian.id),
@@ -139,7 +139,29 @@ struct ShowDetailViewTests {
 
         targets.forEach { coordinator.open($0) }
 
-        #expect(coordinator.path.count == expectedRoutes.count)
+        #expect(coordinator.routes == expectedRoutes)
+    }
+
+    @Test("re-opening an entity already on the stack pops back to it instead of duplicating")
+    func reopeningStackedEntityPopsBackInsteadOfDuplicating() {
+        let coordinator = TypedNavigationCoordinator<AppRoute>()
+
+        // club → show → comedian → the same club again: the cross-link cycle
+        // that previously grew the stack one screen per tap, forever.
+        coordinator.open(.club(201))
+        coordinator.open(.show(301))
+        coordinator.open(.comedian(101))
+        coordinator.open(.club(201))
+
+        #expect(coordinator.routes == [.clubDetail(201)])
+
+        // A *different* club still pushes.
+        coordinator.open(.club(202))
+        #expect(coordinator.routes == [.clubDetail(201), .clubDetail(202)])
+
+        // Re-opening the entity currently on top stays put.
+        coordinator.open(.club(202))
+        #expect(coordinator.routes == [.clubDetail(201), .clubDetail(202)])
     }
 
     @Test("show detail lineup derives explicit comedian role badges")

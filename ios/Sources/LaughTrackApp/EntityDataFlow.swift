@@ -24,9 +24,15 @@ enum EntityNavigationTarget: Hashable {
     }
 }
 
-extension NavigationCoordinator where Route == AppRoute {
+extension TypedNavigationCoordinator where Route == AppRoute {
+    /// Entity detail views cross-link in cycles (club → show → comedian →
+    /// the same club …), so a plain push grows the stack without bound and
+    /// the user has to tap back once per visited screen to get home.
+    /// Re-opening an entity already on the stack pops back to its existing
+    /// entry instead, keeping depth bounded by the set of distinct entities
+    /// visited.
     func open(_ target: EntityNavigationTarget) {
-        push(target.route)
+        pushOrPopTo(target.route)
     }
 }
 

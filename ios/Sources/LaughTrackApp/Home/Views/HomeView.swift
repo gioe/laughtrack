@@ -107,7 +107,7 @@ struct HomeView: View {
     let selectedPrimitive: SearchRootModel.Pivot?
     let searchNavigationBridge: SearchNavigationBridge
 
-    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var podcastPlayer: PodcastPlaybackController
     @Environment(\.appTheme) private var theme
@@ -623,7 +623,7 @@ private struct HomeShowsTonightRail: View {
     let persistentCache: PersistentMainPageCache
 
     @Environment(\.appTheme) private var theme
-    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
     @StateObject private var model = HomeShowsTonightModel()
 
     private var zipCode: String? {
@@ -736,7 +736,7 @@ private struct HomeShowsTonightRail: View {
 private struct HomeShowsTonightCarousel: View {
     let shows: [Components.Schemas.Show]
 
-    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
     @Environment(\.appTheme) private var theme
     @State private var selectedShowID: Int?
 
@@ -1217,7 +1217,7 @@ private struct HomeFavoriteShowsRail: View {
     let persistentCache: PersistentMainPageCache
 
     @Environment(\.appTheme) private var theme
-    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
     @EnvironmentObject private var favorites: ComedianFavoriteStore
     @StateObject private var model = HomeFavoriteShowsModel()
 
@@ -1398,7 +1398,7 @@ private struct HomeTrendingComediansRail: View {
     let persistentCache: PersistentMainPageCache
 
     @Environment(\.appTheme) private var theme
-    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
     @StateObject private var model = HomeTrendingComediansModel()
 
     private var zipCode: String? {
@@ -1759,7 +1759,7 @@ private struct HomePopularClubsRail: View {
     let persistentCache: PersistentMainPageCache
 
     @Environment(\.appTheme) private var theme
-    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
     @StateObject private var model = HomePopularClubsModel()
 
     private var zipCode: String? {
@@ -2277,7 +2277,7 @@ struct HomeTrendingPodcastsRail: View {
     let persistentCache: PersistentMainPageCache
 
     @Environment(\.appTheme) private var theme
-    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
     @StateObject private var model = HomeTrendingPodcastsModel()
 
     private var zipCode: String? {

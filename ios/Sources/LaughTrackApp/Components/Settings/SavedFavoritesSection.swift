@@ -7,7 +7,7 @@ struct SavedFavoritesSection: View {
     let apiClient: Client
 
     @EnvironmentObject private var authManager: AuthManager
-    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
     @EnvironmentObject private var favorites: ComedianFavoriteStore
     @Environment(\.appTheme) private var theme
 

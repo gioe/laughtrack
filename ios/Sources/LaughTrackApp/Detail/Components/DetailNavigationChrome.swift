@@ -54,7 +54,7 @@ struct DetailFavoriteState {
 }
 
 struct EntityDetailNavigationChrome: ViewModifier {
-    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
 
     let entity: DetailNavigationChrome.Entity
     let title: String?
@@ -105,17 +105,23 @@ private struct DetailNavigationTitle: View {
 }
 
 /// Sticky chrome bar overlaid at the top of every detail screen. Hosts the
-/// back button (always present) and, when supplied, the favorite toggle.
-/// Designed to be applied via `.overlay(alignment: .top)` on the outer
-/// detail container so the back button remains tappable regardless of
+/// back button (always present), the home button (when the stack is deep
+/// enough for back and home to differ), and, when supplied, the favorite
+/// toggle. Designed to be applied via `.overlay(alignment: .top)` on the
+/// outer detail container so the back button remains tappable regardless of
 /// scroll position or load phase.
 struct DetailChromeBar: View {
     let onBack: () -> Void
+    var onHome: (() -> Void)? = nil
     let favoriteState: DetailFavoriteState?
 
     var body: some View {
         HStack(alignment: .center) {
             DetailBackButton(action: onBack)
+
+            if let onHome {
+                DetailHomeButton(action: onHome)
+            }
 
             Spacer()
 
@@ -183,6 +189,46 @@ struct DetailBackButton: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Back")
+    }
+}
+
+/// Escape hatch for deep detail stacks: detail screens cover the tab bar,
+/// so without this the only way home is one back-tap per pushed screen.
+struct DetailHomeButton: View {
+    @Environment(\.appTheme) private var theme
+
+    let action: () -> Void
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        Button(action: action) {
+            ZStack {
+                Circle()
+                    .fill(laughTrack.colors.surface.opacity(0.94))
+                    .overlay(
+                        Circle()
+                            .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+                    )
+
+                Image(systemName: "house")
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(laughTrack.colors.textPrimary)
+            }
+            .frame(width: 36, height: 36)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Home")
+    }
+}
+
+extension TypedNavigationCoordinator where Route == AppRoute {
+    /// Pop-to-root action for the detail chrome's home button, or nil when
+    /// the stack is shallow enough that back already returns to the root —
+    /// a home button at depth one would duplicate the back button.
+    var detailHomeAction: (() -> Void)? {
+        guard routes.count > 1 else { return nil }
+        return { [weak self] in self?.popToRoot() }
     }
 }
 

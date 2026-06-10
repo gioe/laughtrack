@@ -155,7 +155,7 @@ private struct FavoriteShowsSection: View {
     let favoriteListIsEmpty: Bool
 
     @Environment(\.appTheme) private var theme
-    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
 
     var body: some View {
         FavoriteSectionCard(
@@ -221,7 +221,7 @@ private struct FavoriteClubsSection: View {
 
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var clubFavorites: ClubFavoriteStore
-    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
     @Environment(\.appTheme) private var theme
 
     var body: some View {
@@ -302,7 +302,7 @@ private struct FavoritePodcastsSection: View {
     let searchNavigationBridge: SearchNavigationBridge
 
     @EnvironmentObject private var authManager: AuthManager
-    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
     @EnvironmentObject private var podcastFavorites: PodcastFavoriteStore
     @Environment(\.appTheme) private var theme
 
