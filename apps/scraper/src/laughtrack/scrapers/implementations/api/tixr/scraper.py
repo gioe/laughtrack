@@ -255,6 +255,15 @@ class TixrScraper(BaseScraper):
             tixr_events = results
 
             if not tixr_events:
+                fallback_events = await self._fetch_group_api_events_if_enabled(url)
+                if fallback_events:
+                    Logger.info(
+                        f"{self._log_prefix}: Parsed {len(fallback_events)} events from Tixr group-events API "
+                        f"fallback after all {len(tixr_urls)} extracted detail URLs failed extraction",
+                        self.logger_context,
+                    )
+                    return TixrPageData(event_list=fallback_events)
+
                 Logger.info(
                     f"{self._log_prefix}: No TixrEvents returned from {len(tixr_urls)} URLs on {url}",
                     self.logger_context,
