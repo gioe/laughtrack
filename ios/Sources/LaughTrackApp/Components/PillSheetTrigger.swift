@@ -5,7 +5,7 @@ import SwiftUI
 /// which handles the other behavior class: inline dropdowns that blur the
 /// background and reveal options in place (Distance, Sort).
 ///
-/// Visually rendered as a `LaughTrackBrowseChip`. Tone shifts to `.selected`
+/// Visually rendered as a `LaughTrackBrowseChip`. Tone shifts to `.accent`
 /// when the filter is active so the user can see which constraints are
 /// currently applied.
 struct PillSheetTrigger: View {
