@@ -4,9 +4,9 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { MapPin, Ticket } from "lucide-react";
+import { Ticket } from "lucide-react";
 import { useMotionProps } from "@/hooks";
-import { formatShowCountdown, formatShowDate } from "@/util/dateUtil";
+import { formatShowCountdown } from "@/util/dateUtil";
 import { ShowDetailDTO } from "@/lib/data/show/detail/interface";
 
 const PLACEHOLDER = "/placeholders/club-placeholder.svg";
@@ -44,7 +44,6 @@ const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({ show }) => {
         show.name && show.name.trim()
             ? show.name
             : `Comedy at ${show.clubName ?? ""}`;
-    const dateLabel = formatShowDate(show.date.toString(), show.timezone);
     const countdown = formatShowCountdown(show.date.toString(), now);
 
     return (
@@ -129,19 +128,6 @@ const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({ show }) => {
                     </span>
                 </div>
             </motion.div>
-
-            <div className="mt-4 sm:mt-6 text-base sm:text-lg text-foreground font-dmSans">
-                <p>{dateLabel}</p>
-                {show.room && (
-                    <p className="text-sm text-gray-600 mt-1">{show.room}</p>
-                )}
-                {show.address && (
-                    <p className="flex items-center gap-1 text-sm text-gray-600 mt-1">
-                        <MapPin size={14} aria-hidden="true" />
-                        {show.address}
-                    </p>
-                )}
-            </div>
         </div>
     );
 };
