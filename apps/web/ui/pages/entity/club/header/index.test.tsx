@@ -82,6 +82,9 @@ describe("ClubDetailHeader hero image", () => {
         expect(image.getAttribute("src")).toBe(
             "https://cdn.example.com/hero.jpg",
         );
+        // Hero renders uncropped
+        expect(image.className).toContain("object-contain");
+        expect(image.className).not.toContain("object-cover");
     });
 
     it("falls back to imageUrl when heroUrl is empty", () => {
@@ -125,5 +128,37 @@ describe("ClubDetailHeader hero image", () => {
         expect(container.querySelector(".bg-gradient-to-br")).not.toBeNull();
         // Name overlay still renders on the gradient
         expect(screen.getByText("Comedy Cellar")).toBeTruthy();
+    });
+});
+
+describe("ClubDetailHeader description", () => {
+    afterEach(cleanup);
+
+    it("renders the club description paragraph inside the hero block", () => {
+        render(
+            <ClubDetailHeader
+                club={{
+                    ...baseClub,
+                    description:
+                        "Legendary West Village club hosting nightly stand-up showcases.",
+                }}
+            />,
+        );
+
+        expect(
+            screen.getByText(
+                "Legendary West Village club hosting nightly stand-up showcases.",
+            ),
+        ).toBeTruthy();
+    });
+
+    it("omits the description paragraph when the club has no description", () => {
+        render(<ClubDetailHeader club={{ ...baseClub, description: "" }} />);
+
+        expect(
+            screen.queryByText(
+                "Legendary West Village club hosting nightly stand-up showcases.",
+            ),
+        ).toBeNull();
     });
 });
