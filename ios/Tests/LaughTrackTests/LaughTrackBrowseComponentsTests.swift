@@ -1,3 +1,4 @@
+import SwiftUI
 import Testing
 import LaughTrackBridge
 @testable import LaughTrackApp
@@ -32,6 +33,26 @@ struct LaughTrackBrowseComponentsTests {
         #expect(row.subtitle == "New York, NY")
         #expect(row.metadata.joined(separator: " • ") == "14 shows • Open tonight")
         #expect(row.systemImage == "building.2")
+    }
+
+    @Test("chip picker maps the selected option to accent tone and updates through the binding")
+    func chipPickerMapsSelectionToAccentTone() {
+        var selection = 25
+        let picker = LaughTrackChipPicker(
+            options: [10, 25, 50],
+            selection: Binding(get: { selection }, set: { selection = $0 }),
+            accessibilityLabel: "Distance",
+            accessibilityIdentifier: "test.distance-picker"
+        ) { "\($0) mi" }
+
+        #expect(picker.tone(for: 25) == .accent)
+        #expect(picker.tone(for: 10) == .neutral)
+        #expect(picker.title(50) == "50 mi")
+
+        picker.selection = 50
+        #expect(selection == 50)
+        #expect(picker.tone(for: 50) == .accent)
+        #expect(picker.tone(for: 25) == .neutral)
     }
 
     @Test("inline state card keeps retry affordance in compact chrome")

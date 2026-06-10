@@ -227,6 +227,57 @@ struct LaughTrackBrowseChip: View {
     }
 }
 
+/// A horizontal row of selectable chips: the selected option renders as an
+/// accent-toned `LaughTrackBrowseChip` with the `.isSelected` trait, the rest
+/// as neutral. Shared by the comedian-detail tab picker and the two
+/// distance pickers so tone and accessibility changes happen in one spot.
+/// Selection side effects beyond assignment belong in the binding's setter
+/// (see ComedianDetailView, which routes through activate(_:)).
+struct LaughTrackChipPicker<Option: Hashable>: View {
+    @Environment(\.appTheme) private var theme
+
+    let options: [Option]
+    @Binding var selection: Option
+    let accessibilityLabel: String
+    let accessibilityIdentifier: String
+    let title: (Option) -> String
+
+    init(
+        options: [Option],
+        selection: Binding<Option>,
+        accessibilityLabel: String,
+        accessibilityIdentifier: String,
+        title: @escaping (Option) -> String
+    ) {
+        self.options = options
+        self._selection = selection
+        self.accessibilityLabel = accessibilityLabel
+        self.accessibilityIdentifier = accessibilityIdentifier
+        self.title = title
+    }
+
+    var body: some View {
+        HStack(spacing: theme.spacing.sm) {
+            ForEach(options, id: \.self) { option in
+                Button {
+                    selection = option
+                } label: {
+                    LaughTrackBrowseChip(title(option), tone: tone(for: option))
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(selection == option ? [.isSelected] : [])
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(accessibilityLabel)
+        .accessibilityIdentifier(accessibilityIdentifier)
+    }
+
+    func tone(for option: Option) -> LaughTrackBrowseChipTone {
+        selection == option ? .accent : .neutral
+    }
+}
+
 struct LaughTrackSearchField<TrailingAccessory: View>: View {
     @Environment(\.appTheme) private var theme
 
