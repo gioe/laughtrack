@@ -96,7 +96,7 @@
     "api": "cd apps/web && { [ -e node_modules ] || ln -s \"$(git rev-parse --git-common-dir)/../apps/web/node_modules\" node_modules; } && npm test && npm run type-check",
     "database": "cd apps/web && { [ -e node_modules ] || ln -s \"$(git rev-parse --git-common-dir)/../apps/web/node_modules\" node_modules; } && npm test",
     "scraper": "cd apps/scraper && \"$(git rev-parse --git-common-dir)/../apps/scraper/.venv/bin/python3\" -m pytest",
-    "ios": "cd ios && swift build --build-tests"
+    "ios": "cd ios && xcodebuild build-for-testing -project LaughTrack.xcodeproj -scheme LaughTrack -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO"
   },
   "issue_scoring": {
     "factors": {
@@ -142,10 +142,10 @@
     }
   },
   "workflows": [],
-  "test_command_timeout_sec": 240,
+  "test_command_timeout_sec": 600,
   "baseline_min_sample_size": 10,
   "path_test_commands": {
-    "ios/**": "cd ios && swift build --build-tests"
+    "ios/**": "cd ios && xcodebuild build-for-testing -project LaughTrack.xcodeproj -scheme LaughTrack -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO"
   },
   "retro": {
     "auto_apply": false,
