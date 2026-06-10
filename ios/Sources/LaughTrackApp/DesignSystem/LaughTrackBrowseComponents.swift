@@ -5,7 +5,6 @@ enum LaughTrackBrowseChipTone: Equatable {
     case neutral
     case subtle
     case accent
-    case selected
 }
 
 struct LaughTrackHeroModule: View {
@@ -198,8 +197,6 @@ struct LaughTrackBrowseChip: View {
             return laughTrack.colors.textSecondary
         case .accent:
             return laughTrack.colors.accentStrong
-        case .selected:
-            return laughTrack.colors.textInverse
         }
     }
 
@@ -213,8 +210,6 @@ struct LaughTrackBrowseChip: View {
             return laughTrack.colors.surfaceMuted.opacity(0.68)
         case .accent:
             return laughTrack.colors.highlight.opacity(0.92)
-        case .selected:
-            return laughTrack.colors.heroStart
         }
     }
 
@@ -228,8 +223,6 @@ struct LaughTrackBrowseChip: View {
             return laughTrack.colors.borderSubtle.opacity(0.5)
         case .accent:
             return laughTrack.colors.borderStrong.opacity(0.5)
-        case .selected:
-            return laughTrack.colors.heroEnd.opacity(0.42)
         }
     }
 }
