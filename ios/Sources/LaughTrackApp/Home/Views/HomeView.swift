@@ -1116,7 +1116,8 @@ final class HomeShowsTonightModel: ObservableObject {
         distanceMiles: Int? = nil,
         cache: DataCache<LaughTrackCacheKey>? = nil,
         cacheTTL: TimeInterval = MainPageCache.defaultTTL,
-        persistentCache: PersistentMainPageCache?
+        persistentCache: PersistentMainPageCache?,
+        coalescer: HomeFeedRequestCoalescer = .shared
     ) async {
         let requestKey = requestKey(for: zipCode, distanceMiles: distanceMiles, railKind: railKind)
         if loadedRequestKey == requestKey, case .success = phase, isLoadedValueFresh(cacheTTL: cacheTTL) {
@@ -1145,7 +1146,8 @@ final class HomeShowsTonightModel: ObservableObject {
             undocumentedContext: "tonight's shows",
             networkContext: "the home feed",
             networkMessage: "LaughTrack couldn't reach the home feed. Check your connection and try again.",
-            persistentCache: persistentCache
+            persistentCache: persistentCache,
+            coalescer: coalescer
         )
         guard !Task.isCancelled else { return }
 
@@ -1682,7 +1684,8 @@ final class HomeTrendingComediansModel: ObservableObject {
         distanceMiles: Int? = nil,
         cache: DataCache<LaughTrackCacheKey>? = nil,
         cacheTTL: TimeInterval = MainPageCache.defaultTTL,
-        persistentCache: PersistentMainPageCache?
+        persistentCache: PersistentMainPageCache?,
+        coalescer: HomeFeedRequestCoalescer = .shared
     ) async {
         let requestKey = requestKey(for: zipCode, distanceMiles: distanceMiles)
         if loadedRequestKey == requestKey, case .success = phase, isLoadedValueFresh(cacheTTL: cacheTTL) {
@@ -1711,7 +1714,8 @@ final class HomeTrendingComediansModel: ObservableObject {
             undocumentedContext: "trending comedians",
             networkContext: "the home feed",
             networkMessage: "LaughTrack couldn't reach the trending comedians service. Check your connection and try again.",
-            persistentCache: persistentCache
+            persistentCache: persistentCache,
+            coalescer: coalescer
         )
         guard !Task.isCancelled else { return }
 
@@ -2033,7 +2037,8 @@ final class HomePopularClubsModel: ObservableObject {
         distanceMiles: Int? = nil,
         cache: DataCache<LaughTrackCacheKey>? = nil,
         cacheTTL: TimeInterval = MainPageCache.defaultTTL,
-        persistentCache: PersistentMainPageCache?
+        persistentCache: PersistentMainPageCache?,
+        coalescer: HomeFeedRequestCoalescer = .shared
     ) async {
         let requestKey = requestKey(for: zipCode, distanceMiles: distanceMiles)
         if loadedRequestKey == requestKey, case .success = phase, isLoadedValueFresh(cacheTTL: cacheTTL) {
@@ -2062,7 +2067,8 @@ final class HomePopularClubsModel: ObservableObject {
             undocumentedContext: "clubs",
             networkContext: "the home feed",
             networkMessage: "LaughTrack couldn't reach the clubs service. Check your connection and try again.",
-            persistentCache: persistentCache
+            persistentCache: persistentCache,
+            coalescer: coalescer
         )
         guard !Task.isCancelled else { return }
 
@@ -2155,7 +2161,11 @@ enum MainPageCache {
     }
 }
 
-private actor HomeFeedRequestCoalescer {
+// Internal (not private) so tests can inject a fresh instance per test:
+// the process-wide .shared instance coalesces by zip|distance key only, so
+// concurrently-running test suites that refresh with the same key would
+// otherwise receive each other's mock-transport feeds (TASK-2756).
+actor HomeFeedRequestCoalescer {
     static let shared = HomeFeedRequestCoalescer()
 
     private var inFlight: [String: Task<Result<Components.Schemas.HomeFeed, LoadFailure>, Never>] = [:]
@@ -2194,9 +2204,10 @@ private enum HomeFeedRequest {
         undocumentedContext: String,
         networkContext: String,
         networkMessage: String,
-        persistentCache: PersistentMainPageCache?
+        persistentCache: PersistentMainPageCache?,
+        coalescer: HomeFeedRequestCoalescer = .shared
     ) async -> Result<Components.Schemas.HomeFeed, LoadFailure> {
-        await HomeFeedRequestCoalescer.shared.load(requestKey: requestKey(zipCode: zipCode, distanceMiles: distanceMiles)) {
+        await coalescer.load(requestKey: requestKey(zipCode: zipCode, distanceMiles: distanceMiles)) {
             await fetch(
                 apiClient: apiClient,
                 zipCode: zipCode,
@@ -2561,7 +2572,8 @@ final class HomeTrendingPodcastsModel: ObservableObject {
         distanceMiles: Int? = nil,
         cache: DataCache<LaughTrackCacheKey>? = nil,
         cacheTTL: TimeInterval = MainPageCache.defaultTTL,
-        persistentCache: PersistentMainPageCache?
+        persistentCache: PersistentMainPageCache?,
+        coalescer: HomeFeedRequestCoalescer = .shared
     ) async {
         let requestKey = requestKey(for: zipCode, distanceMiles: distanceMiles)
         if loadedRequestKey == requestKey, case .success = phase, isLoadedValueFresh(cacheTTL: cacheTTL) {
@@ -2590,7 +2602,8 @@ final class HomeTrendingPodcastsModel: ObservableObject {
             undocumentedContext: "trending podcasts",
             networkContext: "the home feed",
             networkMessage: "LaughTrack couldn't reach the trending podcasts service. Check your connection and try again.",
-            persistentCache: persistentCache
+            persistentCache: persistentCache,
+            coalescer: coalescer
         )
         guard !Task.isCancelled else { return }
 
