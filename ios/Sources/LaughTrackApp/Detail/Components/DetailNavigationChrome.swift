@@ -19,6 +19,18 @@ enum DetailNavigationChrome {
     /// status-bar-adjacent rather than crowding the title row.
     static let stickyChromeTopOffset: CGFloat = 16
 
+    /// Opacity/location stops for the top scrim that fades scrolled content
+    /// out before it reaches the status bar clock. The scrim spans from the
+    /// physical top of the screen to the bottom of the chrome bar: fully
+    /// opaque behind the status bar, fading to clear past the chrome buttons
+    /// so it reads as the same treatment as the marquee background's edge
+    /// fade.
+    static let statusBarScrimStops: [(opacity: Double, location: CGFloat)] = [
+        (opacity: 1.0, location: 0),
+        (opacity: 0.85, location: 0.55),
+        (opacity: 0.0, location: 1)
+    ]
+
     static func title(for entity: Entity) -> String {
         switch entity {
         case .club:
@@ -111,6 +123,36 @@ struct DetailChromeBar: View {
         }
         .padding(.horizontal, 12)
         .padding(.top, DetailNavigationChrome.stickyChromeTopOffset)
+        .background(alignment: .top) {
+            DetailStatusBarScrim()
+        }
+    }
+}
+
+/// Top fade behind the sticky chrome so scrolled detail content dims out
+/// before it reaches the status bar clock. Canvas and heroStart share the
+/// same espresso tone, so the scrim blends into the marquee at rest and
+/// into the canvas once content scrolls underneath.
+struct DetailStatusBarScrim: View {
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        let canvas = theme.laughTrackTokens.colors.canvas
+
+        LinearGradient(
+            stops: DetailNavigationChrome.statusBarScrimStops.map {
+                .init(color: canvas.opacity($0.opacity), location: $0.location)
+            },
+            startPoint: .top,
+            endPoint: .bottom
+        )
+        // The chrome bar overlay still receives the status-bar safe-area
+        // inset, so the gradient fills the bar's bounds and then escapes
+        // the inset to reach the physical top of the screen and cover the
+        // clock.
+        .ignoresSafeArea(.container, edges: .top)
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 }
 
