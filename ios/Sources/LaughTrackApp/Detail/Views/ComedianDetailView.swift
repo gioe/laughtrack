@@ -57,23 +57,15 @@ struct ComedianDetailView: View {
                                 InlineStatusMessage(message: relatedContentMessage)
                             }
 
-                            HStack(spacing: theme.spacing.sm) {
-                                ForEach(ComedianDetailTab.allCases) { tab in
-                                    Button {
-                                        activate(tab)
-                                    } label: {
-                                        LaughTrackBrowseChip(
-                                            tab.title,
-                                            tone: activeTab == tab ? .accent : .neutral
-                                        )
-                                    }
-                                    .buttonStyle(.plain)
-                                    .accessibilityAddTraits(activeTab == tab ? [.isSelected] : [])
-                                }
-                            }
-                            .accessibilityElement(children: .contain)
-                            .accessibilityLabel("Section")
-                            .accessibilityIdentifier(LaughTrackViewTestID.comedianDetailTabPicker)
+                            LaughTrackChipPicker(
+                                options: Array(ComedianDetailTab.allCases),
+                                selection: Binding(
+                                    get: { activeTab },
+                                    set: { activate($0) }
+                                ),
+                                accessibilityLabel: "Section",
+                                accessibilityIdentifier: LaughTrackViewTestID.comedianDetailTabPicker
+                            ) { $0.title }
 
                             ZStack(alignment: .top) {
                                 VStack(alignment: .leading, spacing: 20) {

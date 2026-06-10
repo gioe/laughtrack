@@ -524,23 +524,12 @@ private struct HomeLocationEditorSheet: View {
                     .foregroundStyle(laughTrack.colors.textSecondary)
                     .textCase(.uppercase)
 
-                HStack(spacing: theme.spacing.sm) {
-                    ForEach(SettingsNearbyPreferenceModel.distanceOptions, id: \.self) { distance in
-                        Button {
-                            model.distanceMiles = distance
-                        } label: {
-                            LaughTrackBrowseChip(
-                                "\(distance) mi",
-                                tone: model.distanceMiles == distance ? .accent : .neutral
-                            )
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityAddTraits(model.distanceMiles == distance ? [.isSelected] : [])
-                    }
-                }
-                .accessibilityElement(children: .contain)
-                .accessibilityLabel("Distance")
-                .accessibilityIdentifier(LaughTrackViewTestID.homeLocationDistancePicker)
+                LaughTrackChipPicker(
+                    options: SettingsNearbyPreferenceModel.distanceOptions,
+                    selection: $model.distanceMiles,
+                    accessibilityLabel: "Distance",
+                    accessibilityIdentifier: LaughTrackViewTestID.homeLocationDistancePicker
+                ) { "\($0) mi" }
             }
 
             VStack(spacing: theme.spacing.sm) {

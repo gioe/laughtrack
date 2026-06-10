@@ -382,23 +382,12 @@ private struct ProfileNearbyPreferencesSection: View {
     }
 
     private var distancePicker: some View {
-        HStack(spacing: theme.spacing.sm) {
-            ForEach(SettingsNearbyPreferenceModel.distanceOptions, id: \.self) { distance in
-                Button {
-                    model.distanceMiles = distance
-                } label: {
-                    LaughTrackBrowseChip(
-                        "\(distance) mi",
-                        tone: model.distanceMiles == distance ? .accent : .neutral
-                    )
-                }
-                .buttonStyle(.plain)
-                .accessibilityAddTraits(model.distanceMiles == distance ? [.isSelected] : [])
-            }
-        }
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel("Distance")
-        .accessibilityIdentifier(LaughTrackViewTestID.settingsDistancePicker)
+        LaughTrackChipPicker(
+            options: SettingsNearbyPreferenceModel.distanceOptions,
+            selection: $model.distanceMiles,
+            accessibilityLabel: "Distance",
+            accessibilityIdentifier: LaughTrackViewTestID.settingsDistancePicker
+        ) { "\($0) mi" }
     }
 
     private var locationSummary: String {
