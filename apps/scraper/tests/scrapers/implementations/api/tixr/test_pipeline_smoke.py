@@ -911,6 +911,40 @@ async def test_get_data_uses_group_events_api_fallback_from_metadata_flag_and_sl
 
 
 @pytest.mark.asyncio
+async def test_get_data_uses_group_events_api_fallback_when_all_detail_fetches_fail(monkeypatch):
+    """Extracted detail URLs that all fail extraction still consult the group API fallback.
+
+    Rose City incident (TASK-2763): the venue homepage fetch succeeds and Tixr
+    detail URLs are extracted, but every detail fetch is DataDome-blocked. The
+    zero-TixrEvents branch must consult the group-events API fallback instead
+    of returning None.
+    """
+    monkeypatch.delenv("TIXR_GROUP_EVENTS_API_FALLBACK", raising=False)
+    club = _rose_city_group_api_club()
+    club.active_scraping_source.metadata = {
+        "tixr_group_id": 2444,
+        "tixr_group_events_api_fallback": True,
+    }
+    scraper = TixrScraper(club)
+    event = _make_tixr_event("190002", "Rose City Late Show")
+    html = _calendar_html_short(["177558", "182870"])
+
+    async def fake_fetch_calendar_html(url):
+        return html
+
+    monkeypatch.setattr(scraper, "_fetch_calendar_html", fake_fetch_calendar_html)
+    scraper.tixr_client.fetch_group_events = AsyncMock(return_value=[event])
+    scraper.tixr_client.get_event_detail_from_url = AsyncMock(return_value=None)
+
+    result = await scraper.get_data("https://rosecitycomedy.club")
+
+    assert isinstance(result, TixrPageData)
+    assert [e.event_id for e in result.event_list] == ["190002"]
+    scraper.tixr_client.fetch_group_events.assert_awaited_once_with("2444")
+    assert scraper.tixr_client.get_event_detail_from_url.await_count == 2
+
+
+@pytest.mark.asyncio
 async def test_get_data_returns_none_when_tixr_client_returns_nothing(monkeypatch):
     """get_data() returns None when TixrClient returns None for all URLs."""
     scraper = TixrScraper(_club())
