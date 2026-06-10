@@ -92,7 +92,7 @@ const themeColors = {
 //   font-urbanist-bold → UI headings and entity names (card titles, section headings, stat values)
 //   font-dmSans     → all body text, descriptions, labels, metadata, navigation
 const fonts = {
-    sans: ['"PT Sans"', "sans-serif"],
+    sans: ["var(--font-dmSans)", "sans-serif"],
     "urbanist-bold": ["var(--font-urbanist)", "sans-serif"],
     bebas: "var(--font-bebas)",
     oswald: "var(--font-oswald)",
