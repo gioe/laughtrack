@@ -2,9 +2,10 @@
  * @vitest-environment happy-dom
  */
 import React from "react";
-import { describe, it, expect, afterEach, vi } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import PodcastDetail from "@/ui/pages/entity/podcast";
+import { useFavorite } from "@/hooks/useFavorite";
 import type {
     PodcastDTO,
     PodcastEpisodeDTO,
@@ -49,12 +50,10 @@ vi.mock("@/ui/components/cards/entity", () => ({
 }));
 
 vi.mock("@/hooks/useFavorite", () => ({
-    useFavorite: () => ({
-        isFavorite: false,
-        handleFavoriteClick: vi.fn(),
-        isAuthenticated: true,
-    }),
+    useFavorite: vi.fn(),
 }));
+
+const mockUseFavorite = vi.mocked(useFavorite);
 
 const basePodcast: PodcastDTO = {
     id: 1,
@@ -71,11 +70,64 @@ const basePodcast: PodcastDTO = {
 
 const noEpisodes: PodcastEpisodeDTO[] = [];
 
-describe("PodcastDetail primary CTA", () => {
-    afterEach(() => {
-        cleanup();
+beforeEach(() => {
+    mockUseFavorite.mockReturnValue({
+        isFavorite: false,
+        handleFavoriteClick: vi.fn(),
+        isAuthenticated: true,
     });
+});
 
+afterEach(() => {
+    cleanup();
+    vi.clearAllMocks();
+});
+
+describe("PodcastDetail hero favorite button", () => {
+    const podcast: PodcastDTO = {
+        ...basePodcast,
+        id: 42,
+        slug: "good-one",
+        title: "Good One",
+        authorName: "Vulture",
+        websiteUrl: "https://example.com/good-one",
+        description: "Comedy interviews.",
+        isFavorite: false,
+    };
+
+    it("renders an Add to favorites button wired to the podcast favorite hook", () => {
+        const handleFavoriteClick = vi.fn();
+        mockUseFavorite.mockReturnValue({
+            isFavorite: false,
+            handleFavoriteClick,
+            isAuthenticated: true,
+        });
+
+        render(
+            <PodcastDetail
+                podcast={podcast}
+                episodes={noEpisodes}
+                relatedComedians={[]}
+            />,
+        );
+
+        expect(mockUseFavorite).toHaveBeenCalledWith({
+            initialState: false,
+            entityId: "42",
+            entityType: "podcast",
+        });
+
+        const button = screen.getByRole("button", {
+            name: "Add to favorites",
+        });
+        expect(button.getAttribute("aria-pressed")).toBe("false");
+
+        fireEvent.click(button);
+        expect(handleFavoriteClick).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe("PodcastDetail primary CTA", () => {
     it("renders a prominent button-level CTA linking to the podcast host site", () => {
         render(
             <PodcastDetail
@@ -149,5 +201,41 @@ describe("PodcastDetail primary CTA", () => {
         expect(
             screen.queryByRole("link", { name: /open rss feed/i }),
         ).toBeNull();
+    });
+});
+
+describe("PodcastDetail page render", () => {
+    const podcast: PodcastDTO = {
+        ...basePodcast,
+        websiteUrl: "https://example.com",
+        feedUrl: "https://example.com/feed",
+        episodeCount: 2,
+    };
+
+    const episodes: PodcastEpisodeDTO[] = [
+        {
+            id: 10,
+            title: "Episode One",
+            description: "Pilot",
+            releaseDate: new Date("2026-04-01T00:00:00Z"),
+            durationSeconds: 1800,
+            episodeUrl: "https://example.com/ep/1",
+            audioUrl: "https://cdn.example.com/ep1.mp3",
+            appearances: [],
+        },
+    ];
+
+    it("contains exactly one <main> element when wrapped in the layout main", () => {
+        const { container } = render(
+            <main id="layout-main">
+                <PodcastDetail
+                    podcast={podcast}
+                    episodes={episodes}
+                    relatedComedians={[]}
+                />
+            </main>,
+        );
+
+        expect(container.querySelectorAll("main")).toHaveLength(1);
     });
 });
