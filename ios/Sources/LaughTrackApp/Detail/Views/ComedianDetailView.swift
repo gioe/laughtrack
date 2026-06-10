@@ -379,7 +379,7 @@ struct ComedianRelatedPanel: View {
 
         LaughTrackCard(tone: .muted, density: .tight) {
             VStack(alignment: .leading, spacing: 12) {
-                LaughTrackSectionHeader(title: "Often on the same bill")
+                LaughTrackSectionHeader(eyebrow: "Shared bills", title: "Often on the same bill")
 
                 if ranked.isEmpty {
                     EmptyCard(

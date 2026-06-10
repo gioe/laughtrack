@@ -298,7 +298,7 @@ private struct ShowFiltersPanel: View {
     var body: some View {
         VStack(alignment: .leading, spacing: theme.spacing.sm) {
             if compactMode {
-                LaughTrackSectionHeader(title: "Search Shows")
+                LaughTrackSectionHeader(eyebrow: "Calendar", title: "Search shows")
             }
 
             ChipFlowLayout(spacing: theme.spacing.sm, rowSpacing: theme.spacing.sm) {

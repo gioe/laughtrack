@@ -426,7 +426,7 @@ private struct PodcastEpisodeListSection: View {
         let visibleEntries = playableEntries.isEmpty ? [] : Array(playableEntries[startIndex..<endIndex])
 
         VStack(alignment: .leading, spacing: 12) {
-            LaughTrackSectionHeader(title: "Episodes")
+            LaughTrackSectionHeader(eyebrow: "Catalog", title: "Episodes")
 
             if episodes.isEmpty {
                 EmptyCard(
@@ -521,7 +521,7 @@ private struct PodcastRelatedComediansSection: View {
     var body: some View {
         if !comedians.isEmpty {
             VStack(alignment: .leading, spacing: 12) {
-                LaughTrackSectionHeader(title: "Frequent guests")
+                LaughTrackSectionHeader(eyebrow: "Regulars", title: "Frequent guests")
 
                 LazyVStack(alignment: .leading, spacing: theme.spacing.sm) {
                     ForEach(comedians) { comedian in

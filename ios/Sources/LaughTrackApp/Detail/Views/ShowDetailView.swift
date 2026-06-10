@@ -713,7 +713,7 @@ private struct ShowLineupSection: View {
     var body: some View {
         LaughTrackCard(density: .tight) {
             VStack(alignment: .leading, spacing: 12) {
-                LaughTrackSectionHeader(title: "Lineup")
+                LaughTrackSectionHeader(eyebrow: "On the bill", title: "Lineup")
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(alignment: .top, spacing: theme.spacing.md) {
@@ -863,7 +863,8 @@ private struct RelatedShowsSection: View {
         LaughTrackCard(tone: .muted, density: .tight) {
             VStack(alignment: .leading, spacing: 12) {
                 LaughTrackSectionHeader(
-                    title: "Can’t Make It?",
+                    eyebrow: "Alternates",
+                    title: "Can’t make it?",
                     subtitle: "Here are some more shows you might like"
                 )
 
