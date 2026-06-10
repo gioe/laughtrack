@@ -23,22 +23,6 @@ vi.mock("next/image", () => ({
     }) => <img alt={alt} src={src} className={className} />,
 }));
 
-vi.mock("@/hooks", () => ({
-    useMotionProps: () => ({
-        mv: (value: unknown) => value,
-        mp: (value: unknown) => value,
-        prefersReducedMotion: true,
-    }),
-}));
-
-vi.mock("@/hooks/useMotionProps", () => ({
-    useMotionProps: () => ({
-        mv: (value: unknown) => value,
-        mp: (value: unknown) => value,
-        prefersReducedMotion: true,
-    }),
-}));
-
 vi.mock("@/ui/components/grid/comedian", () => ({
     default: () => <div data-testid="comedian-grid" />,
 }));
