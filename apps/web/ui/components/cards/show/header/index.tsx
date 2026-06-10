@@ -6,7 +6,7 @@ import { MapPin } from "lucide-react";
 import { Show } from "@/objects/class/show/Show";
 import { formatShowDate } from "@/util/dateUtil";
 import { formatTicketString } from "@/util/ticket/ticketUtil";
-import { cn } from "@/lib/utils";
+import { cn } from "@/util/tailwindUtil";
 
 const PLACEHOLDER = "/placeholders/club-placeholder.svg";
 

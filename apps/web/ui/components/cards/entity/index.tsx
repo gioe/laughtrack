@@ -3,7 +3,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { useMotionProps } from "@/hooks";
-import { cn } from "@/lib/utils";
+import { cn } from "@/util/tailwindUtil";
 
 export type EntityCardChrome = "warm" | "coconut-hover" | "stage" | "none";
 
