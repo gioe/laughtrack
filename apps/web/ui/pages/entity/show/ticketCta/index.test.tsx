@@ -53,7 +53,40 @@ afterEach(() => {
 });
 
 describe("ShowTicketCta", () => {
-    it("keeps unknown-priced available tickets as Get Tickets and explains unavailable pricing", () => {
+    it("renders WHEN, VENUE, and TICKETS as rows of one stub card with the price and a venue link", () => {
+        render(
+            <ShowTicketCta
+                isPast={false}
+                show={{
+                    ...baseShow,
+                    room: "Main Room",
+                    tickets: [
+                        {
+                            price: 24,
+                            purchaseUrl: "https://example.com/tickets",
+                            soldOut: false,
+                            type: "General admission",
+                        },
+                    ],
+                }}
+            />,
+        );
+
+        expect(screen.getByText("When")).toBeTruthy();
+        expect(screen.getByText("Venue")).toBeTruthy();
+        expect(screen.getByText("Tickets")).toBeTruthy();
+        // 2026-04-28T20:00:00Z is April 28 in America/New_York.
+        expect(screen.getByText(/april 28/i)).toBeTruthy();
+        expect(screen.getByText("$24")).toBeTruthy();
+        expect(screen.getByText("Main Room · 123 Main St")).toBeTruthy();
+
+        const venueLink = screen.getByRole("link", {
+            name: "The Copper Room",
+        });
+        expect(venueLink.getAttribute("href")).toBe("/club/The Copper Room");
+    });
+
+    it("keeps unknown-priced available tickets buyable and explains unavailable pricing", () => {
         render(
             <ShowTicketCta
                 isPast={false}
@@ -72,9 +105,10 @@ describe("ShowTicketCta", () => {
         );
 
         expect(
-            screen.getByRole("link", { name: /get tickets for late show/i })
+            screen.getByRole("link", { name: /buy tickets for late show/i })
                 .textContent,
-        ).toContain("Get Tickets");
+        ).toContain("Buy tickets");
+        expect(screen.getByText("Price unavailable")).toBeTruthy();
         expect(screen.queryByText("Free")).toBeNull();
 
         fireEvent.click(
@@ -129,6 +163,56 @@ describe("ShowTicketCta", () => {
         ).toBeNull();
     });
 
+    it("renders the ended state inside the stub without a buy pill", () => {
+        render(
+            <ShowTicketCta
+                isPast
+                show={{
+                    ...baseShow,
+                    tickets: [
+                        {
+                            price: 24,
+                            purchaseUrl: "https://example.com/tickets",
+                            soldOut: false,
+                            type: "General admission",
+                        },
+                    ],
+                }}
+            />,
+        );
+
+        expect(screen.getByText("This show has ended.")).toBeTruthy();
+        // The stub rows still render, but no outbound CTA does.
+        expect(screen.getByText("When")).toBeTruthy();
+        expect(
+            screen.queryByRole("link", { name: /buy tickets/i }),
+        ).toBeNull();
+    });
+
+    it("renders Sold Out inside the stub when every ticket row is sold out", () => {
+        render(
+            <ShowTicketCta
+                isPast={false}
+                show={{
+                    ...baseShow,
+                    tickets: [
+                        {
+                            price: 24,
+                            purchaseUrl: "https://example.com/tickets",
+                            soldOut: true,
+                            type: "General admission",
+                        },
+                    ],
+                }}
+            />,
+        );
+
+        expect(screen.getByText("Sold Out")).toBeTruthy();
+        expect(
+            screen.queryByRole("link", { name: /buy tickets/i }),
+        ).toBeNull();
+    });
+
     it("routes detail CTA ticket clicks through the outbound link without client-side duplicate tracking", () => {
         render(
             <ShowTicketCta
@@ -148,7 +232,7 @@ describe("ShowTicketCta", () => {
         );
 
         const link = screen.getByRole("link", {
-            name: /get tickets for late show/i,
+            name: /buy tickets for late show/i,
         });
         link.addEventListener("click", (event) => event.preventDefault());
         fireEvent.click(link);
