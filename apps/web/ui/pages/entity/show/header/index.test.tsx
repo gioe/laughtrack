@@ -2,8 +2,8 @@
  * @vitest-environment happy-dom
  */
 import React from "react";
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import ShowDetailHeader from "./index";
 import type { ShowDetailDTO } from "@/lib/data/show/detail/interface";
 
@@ -68,12 +68,68 @@ const baseShow: ShowDetailDTO = {
     showPageUrl: "https://example.com/show",
 };
 
+afterEach(() => {
+    cleanup();
+});
+
 describe("ShowDetailHeader", () => {
-    it("contains club artwork so wide venue images are not cropped", () => {
+    it("renders the venue eyebrow as an uppercase copper link to the club page", () => {
         render(<ShowDetailHeader show={baseShow} />);
 
+        const eyebrow = screen.getByRole("link", {
+            name: "The Copper Room",
+        });
+        expect(eyebrow.getAttribute("href")).toBe("/club/The Copper Room");
+        expect(eyebrow.className).toContain("uppercase");
+        expect(eyebrow.className).toContain("text-accent-strong");
+    });
+
+    it("renders the title uppercase", () => {
+        render(<ShowDetailHeader show={baseShow} />);
+
+        const title = screen.getByRole("heading", { level: 1 });
+        expect(title.textContent).toBe("Late Show");
+        expect(title.className).toContain("uppercase");
+    });
+
+    it("frames the poster with a dashed copper ring and fills the square crop", () => {
+        render(<ShowDetailHeader show={baseShow} />);
+
+        const frame = screen.getByTestId("marquee-poster-frame");
+        expect(frame.className).toContain("border-dashed");
+        expect(frame.className).toContain("border-accent-strong");
+
+        // Square poster crops like the iOS scaledToFill poster — the old
+        // wide-banner object-contain treatment no longer applies.
         const image = screen.getByAltText("The Copper Room");
-        expect(image.className).toContain("object-contain");
-        expect(image.className).not.toContain("object-cover");
+        expect(image.className).toContain("object-cover");
+    });
+
+    it("renders the ticket-icon fallback inside the ring when the image is the placeholder", () => {
+        render(
+            <ShowDetailHeader
+                show={{
+                    ...baseShow,
+                    imageUrl: "/placeholders/club-placeholder.svg",
+                }}
+            />,
+        );
+
+        expect(screen.getByTestId("marquee-poster-fallback")).toBeTruthy();
+        expect(screen.queryByAltText("The Copper Room")).toBeNull();
+    });
+
+    it("falls back to a venue heading when the show has no name", () => {
+        render(<ShowDetailHeader show={{ ...baseShow, name: "" }} />);
+
+        const title = screen.getByRole("heading", { level: 1 });
+        expect(title.textContent).toBe("Comedy at The Copper Room");
+    });
+
+    it("still renders the countdown badge", () => {
+        render(<ShowDetailHeader show={baseShow} />);
+
+        // The base show date is in the past relative to the test run.
+        expect(screen.getByText(/^Ended .* ago$/)).toBeTruthy();
     });
 });
