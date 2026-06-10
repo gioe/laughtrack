@@ -20,6 +20,7 @@ const RelatedShowsSection: React.FC<RelatedShowsSectionProps> = ({
                 title={clubName ? `More shows at ${clubName}` : "More shows"}
                 actionHref={clubName ? `/club/${clubName}` : undefined}
                 actionLabel={clubName ? "See all" : undefined}
+                className="mb-6"
             />
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {shows.map((show) => (

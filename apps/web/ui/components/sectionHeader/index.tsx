@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cn } from "@/util/tailwindUtil";
 
 interface SectionHeaderProps {
     eyebrow?: string;
@@ -23,13 +24,12 @@ const SectionHeader = ({
 
     return (
         <header
-            className={
-                "flex flex-col gap-2 mb-4" +
-                (hasAction
-                    ? " sm:flex-row sm:items-baseline sm:justify-between sm:gap-4"
-                    : "") +
-                (className ? ` ${className}` : "")
-            }
+            className={cn(
+                "flex flex-col gap-2 mb-4",
+                hasAction &&
+                    "sm:flex-row sm:items-baseline sm:justify-between sm:gap-4",
+                className,
+            )}
         >
             <div className="flex flex-col gap-1">
                 {eyebrow && (
@@ -52,7 +52,7 @@ const SectionHeader = ({
             {hasAction && (
                 <Link
                     href={actionHref!}
-                    className="text-sm font-dmSans text-copper hover:underline whitespace-nowrap"
+                    className="font-dmSans text-sm font-semibold text-copper hover:underline whitespace-nowrap"
                 >
                     {actionLabel} →
                 </Link>
