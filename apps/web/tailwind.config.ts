@@ -15,6 +15,25 @@ const baseColors = {
     bermuda: "#78dcca",
 };
 
+// Surface + text tokens mirrored from the iOS design system
+// (ios/Sources/LaughTrackBridge/LaughTrackTheme.swift). Keep the two in sync:
+// canvas/surface scale, warm off-white text, copper accent family.
+// For text, use the existing theme tokens (they already match iOS):
+// text-foreground (#FAF1E8-equivalent warm cream) and text-muted-foreground
+// (70% gray = iOS textSecondary #B3B3B3).
+const systemColors = {
+    canvas: "#121212",
+    surface: {
+        DEFAULT: "#181818",
+        muted: "#1F1F1F",
+        elevated: "#282828",
+        skeleton: "#322921",
+    },
+    "accent-strong": "#CD6837",
+    "accent-muted": "#6C4527",
+    highlight: "#5F472F",
+};
+
 const brandColors = {
     "navy-blue": "#003366",
     "rose-gold": "#B76E79",
@@ -180,13 +199,33 @@ const config: Config = {
             fontFamily: fonts,
             colors: {
                 ...baseColors,
+                ...systemColors,
                 ...brandColors,
                 ...themeColors,
+            },
+            // border-subtle / border-strong — faint hairlines from the iOS
+            // border scale (#2A2A2A / #3A3A3A).
+            borderColor: {
+                subtle: "#2A2A2A",
+                strong: "#3A3A3A",
+            },
+            ringColor: {
+                subtle: "#2A2A2A",
+                strong: "#3A3A3A",
             },
             borderRadius: {
                 lg: "var(--radius)",
                 md: "calc(var(--radius) - 2px)",
                 sm: "calc(var(--radius) - 4px)",
+                card: "16px",
+                "hero-panel": "28px",
+            },
+            // Elevation scale mirrored from iOS LaughTrackTheme shadows
+            // (card / hero / floating). Prefer these over ad-hoc shadow-*.
+            boxShadow: {
+                card: "0 4px 10px rgb(0 0 0 / 0.08)",
+                floating: "0 6px 14px rgb(0 0 0 / 0.12)",
+                hero: "0 10px 18px rgb(0 0 0 / 0.18)",
             },
         },
     },

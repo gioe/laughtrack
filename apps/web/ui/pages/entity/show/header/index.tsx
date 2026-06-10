@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { MapPin } from "lucide-react";
+import { MapPin, Ticket } from "lucide-react";
 import { useMotionProps } from "@/hooks";
 import { formatShowCountdown, formatShowDate } from "@/util/dateUtil";
 import { ShowDetailDTO } from "@/lib/data/show/detail/interface";
@@ -22,6 +22,11 @@ const COUNTDOWN_TONE_CLASSES: Record<string, string> = {
     past: "bg-stone-600/90",
 };
 
+// Marquee hero ported from the iOS composition (ios MarqueeHero.swift):
+// copper venue eyebrow above an uppercase title above a square poster framed
+// by a dashed copper ring. iOS reference values — 11pt eyebrow with 2.2
+// tracking in accentStrong, 196pt poster, dashed accentStrong ring with a
+// copper glow, scaledToFill poster crop.
 const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({ show }) => {
     const { mt, prefersReducedMotion } = useMotionProps();
     const [error, setError] = useState(false);
@@ -48,54 +53,80 @@ const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({ show }) => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={mt({ duration: 0.4 })}
-                className="relative w-full h-52 sm:h-64 md:h-80 overflow-hidden rounded-xl"
+                className="relative w-full overflow-hidden rounded-xl bg-surface px-6 py-8 sm:py-10"
             >
-                <div className="absolute inset-0 bg-gradient-to-br from-stone-600 via-stone-800 to-stone-900" />
+                {/* Radial copper glow behind the poster, the web analogue of the
+                    iOS marquee's accent RadialGradient over heroStart. */}
+                <div
+                    aria-hidden="true"
+                    className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(205,104,55,0.16),_transparent_65%)]"
+                />
 
-                {showImage && (
-                    <>
-                        <Image
-                            src={show.imageUrl}
-                            alt={show.clubName ?? "Club"}
-                            fill
-                            className={`object-contain object-center transition-opacity duration-500 ${
-                                imageLoaded ? "opacity-100" : "opacity-0"
-                            }`}
-                            onError={() => setError(true)}
-                            onLoad={() => setImageLoaded(true)}
-                            priority
-                            sizes="(max-width: 768px) 100vw, 1280px"
-                        />
-                        {!imageLoaded && (
-                            <div
-                                className={`absolute inset-0 bg-stone-700${!prefersReducedMotion ? " animate-pulse" : ""}`}
-                            />
-                        )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
-                    </>
-                )}
+                <div className="relative flex flex-col items-center gap-4 text-center">
+                    {show.clubName && (
+                        <Link
+                            href={`/club/${show.clubName}`}
+                            className="text-[11px] font-semibold uppercase tracking-[0.2em] text-accent-strong font-dmSans underline-offset-4 hover:underline focus-visible:underline"
+                        >
+                            {show.clubName}
+                        </Link>
+                    )}
 
-                <div className="absolute bottom-0 left-0 right-0 p-6">
+                    {/* sm/md are bounded ranges in this config, so lg must be
+                        chained explicitly for the size to hold at ≥1200px. */}
+                    <h1 className="max-w-3xl text-2xl sm:text-3xl md:text-4xl lg:text-4xl font-urbanist-bold font-bold uppercase tracking-wide text-white drop-shadow-md">
+                        {heading}
+                    </h1>
+
+                    {/* Square poster framed by a dashed copper ring. */}
+                    <div
+                        data-testid="marquee-poster-frame"
+                        className="relative mt-2 rounded-[14px] border-2 border-dashed border-accent-strong p-[5px] shadow-[0_0_14px_rgba(205,104,55,0.45)]"
+                    >
+                        <div className="relative h-40 w-40 sm:h-[196px] sm:w-[196px] md:h-[196px] md:w-[196px] lg:h-[196px] lg:w-[196px] overflow-hidden rounded-[10px]">
+                            {showImage ? (
+                                <>
+                                    <Image
+                                        src={show.imageUrl}
+                                        alt={show.clubName ?? "Club"}
+                                        fill
+                                        className={`object-cover object-center transition-opacity duration-500 ${
+                                            imageLoaded
+                                                ? "opacity-100"
+                                                : "opacity-0"
+                                        }`}
+                                        onError={() => setError(true)}
+                                        onLoad={() => setImageLoaded(true)}
+                                        priority
+                                        sizes="196px"
+                                    />
+                                    {!imageLoaded && (
+                                        <div
+                                            className={`absolute inset-0 bg-surface-elevated${!prefersReducedMotion ? " animate-pulse" : ""}`}
+                                        />
+                                    )}
+                                </>
+                            ) : (
+                                <div
+                                    data-testid="marquee-poster-fallback"
+                                    className="flex h-full w-full items-center justify-center bg-surface-muted"
+                                >
+                                    <Ticket
+                                        size={64}
+                                        className="text-accent-strong"
+                                        aria-hidden="true"
+                                    />
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
                     <span
-                        className={`inline-block mb-3 text-caption font-bold uppercase tracking-wider text-white px-2.5 py-1 rounded-full font-dmSans ${COUNTDOWN_TONE_CLASSES[countdown.tone]}`}
+                        className={`inline-block text-caption font-bold uppercase tracking-wider text-white px-2.5 py-1 rounded-full font-dmSans ${COUNTDOWN_TONE_CLASSES[countdown.tone]}`}
                         aria-live={countdown.tone === "live" ? "polite" : "off"}
                     >
                         {countdown.label}
                     </span>
-                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-urbanist-bold font-bold text-white drop-shadow-md">
-                        {heading}
-                    </h1>
-                    {show.clubName && (
-                        <p className="mt-2 text-base sm:text-lg text-white/90 font-dmSans">
-                            at{" "}
-                            <Link
-                                href={`/club/${show.clubName}`}
-                                className="underline-offset-2 hover:underline focus-visible:underline"
-                            >
-                                {show.clubName}
-                            </Link>
-                        </p>
-                    )}
                 </div>
             </motion.div>
 
