@@ -109,17 +109,23 @@ Object.defineProperty(navigator, 'languages', {
 })();
 """
 
-# Realistic Chrome 124 Windows user-agent. Matches the canonical UA listed
-# in capsolver's DataDome documentation
-# (https://docs.capsolver.com/guide/captcha/Datadome.html), so the solver
-# accepts the request — capsolver rejects mac OS UAs with
-# ERROR_INVALID_TASK_DATA. DataDome binds the issued cookie to the UA used
-# during solve, so the browser context and the solver MUST send the same
-# value; keeping a single ``_USER_AGENT`` constant guarantees that.
+# Realistic Chrome 145 Windows user-agent. Chrome 145 matches the Chromium
+# build the installed Playwright actually runs (145.0.7632.6), so the claimed
+# UA and the real engine fingerprint agree, AND it falls inside capsolver's
+# supported DataDome userAgent window (Chrome 137–149, verified live
+# 2026-06-10 against https://docs.capsolver.com/en/guide/captcha/datadome/).
+# capsolver rejects UAs outside the window — and all mac OS UAs — with
+# ERROR_INVALID_TASK_DATA "unsupported userAgent"; the previous Chrome/124
+# pin aged out of the window and every DataDome solve failed that way
+# (TASK-2689 criterion 8977). When bumping Playwright, re-pin this to the
+# bundled Chromium major version, keeping it inside capsolver's window.
+# DataDome binds the issued cookie to the UA used during solve, so the
+# browser context and the solver MUST send the same value; keeping a single
+# ``_USER_AGENT`` constant guarantees that.
 _USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
     "AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/124.0.0.0 Safari/537.36"
+    "Chrome/145.0.0.0 Safari/537.36"
 )
 
 # Per-step shutdown timeout in close(): the outer close_js_browser() in the

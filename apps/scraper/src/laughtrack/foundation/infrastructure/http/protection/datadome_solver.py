@@ -12,6 +12,13 @@ Guardrail: when ``CAPSOLVER_API_KEY`` is unset, ``build_default_solver()``
 returns ``None`` and callers must skip the solver path entirely. This keeps
 non-DataDome scrapers and unconfigured environments unchanged.
 
+Second guardrail: capsolver's ``DatadomeSliderTask`` requires a
+caller-supplied proxy (``createTask`` rejects proxyless tasks with
+``ERROR_INVALID_TASK_DATA — proxy is required``), so :meth:`solve` skips
+the API call entirely when ``proxy_url`` is ``None``. In practice only
+proxy-enabled scrapers (``use_residential_proxy=true`` + a configured
+``RESIDENTIAL_PROXY_URL``) can complete a DataDome solve.
+
 Sibling module: ``datadome_handler.py`` is the *detection* surface used by
 the curl-cffi clients (Tixr today, more callers expected). This module is
 the *solving* surface used by the Playwright fallback.
@@ -143,15 +150,31 @@ class DataDomeSolver:
         Raises :class:`DataDomeSolverError` on capsolver-reported errors
         (auth, quota, bad payload, etc.) so the caller can distinguish a
         configuration problem from a slow solve.
+
+        ``proxy_url`` is effectively mandatory: capsolver's
+        ``DatadomeSliderTask`` requires a caller-supplied proxy — verified
+        live 2026-06-10, ``createTask`` rejects proxyless tasks with
+        ``ERROR_INVALID_TASK_DATA — proxy is required``. A proxyless call
+        is therefore skipped up front (warn + ``None``) instead of burning
+        the doomed API round-trip.
         """
+        if not proxy_url:
+            Logger.warn(
+                "[DataDomeSolver] capsolver's DatadomeSliderTask requires a "
+                "proxy but none was provided — skipping solve "
+                "(createTask would reject with ERROR_INVALID_TASK_DATA "
+                "'proxy is required')",
+                {"website_url": website_url},
+            )
+            return None
+
         task_payload: dict[str, Any] = {
             "type": "DatadomeSliderTask",
             "websiteURL": website_url,
             "captchaUrl": captcha_url,
             "userAgent": user_agent,
+            "proxy": proxy_url,
         }
-        if proxy_url:
-            task_payload["proxy"] = proxy_url
 
         create_data = await self._post_json(
             f"{_CAPSOLVER_BASE_URL}/createTask",

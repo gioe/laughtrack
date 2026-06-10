@@ -158,6 +158,7 @@ class TestDataDomeSolverSolve:
             captcha_url="https://geo.captcha-delivery.com/c/?cid=X",
             website_url="https://www.etix.com/foo",
             user_agent="Mozilla/5.0 …",
+            proxy_url="http://proxy:3128",
         )
         assert isinstance(result, SolvedCookie)
         assert result.cookie.startswith("datadome=ABC")
@@ -183,6 +184,7 @@ class TestDataDomeSolverSolve:
                 captcha_url="https://geo.captcha-delivery.com/c/",
                 website_url="https://www.etix.com/foo",
                 user_agent="bad-ua",
+                proxy_url="http://proxy:3128",
             )
         assert "unsupported userAgent" in str(excinfo.value)
 
@@ -203,6 +205,7 @@ class TestDataDomeSolverSolve:
                 captcha_url="x",
                 website_url="x",
                 user_agent="x",
+                proxy_url="http://proxy:3128",
             )
 
     @pytest.mark.asyncio
@@ -214,7 +217,10 @@ class TestDataDomeSolverSolve:
             + [{"errorId": 0, "status": "processing"}] * 100
         )
         result = await solver.solve(
-            captcha_url="x", website_url="x", user_agent="x"
+            captcha_url="x",
+            website_url="x",
+            user_agent="x",
+            proxy_url="http://proxy:3128",
         )
         assert result is None
 
@@ -244,10 +250,28 @@ class TestDataDomeSolverSolve:
         assert create_payload["task"]["type"] == "DatadomeSliderTask"
 
     @pytest.mark.asyncio
+    async def test_missing_proxy_skips_solve_without_api_call(self):
+        # capsolver's DatadomeSliderTask hard-requires a proxy — createTask
+        # rejects proxyless tasks with ERROR_INVALID_TASK_DATA "proxy is
+        # required" (verified live 2026-06-10). The solver must skip the
+        # doomed round-trip entirely rather than submit and fail.
+        solver = _FakeSolver(responses=[{"errorId": 0, "taskId": "t-1"}])
+        result = await solver.solve(
+            captcha_url="https://geo.captcha-delivery.com/c/?cid=X",
+            website_url="https://www.tixr.com/groups/foo",
+            user_agent="ua",
+        )
+        assert result is None
+        assert solver.calls == []
+
+    @pytest.mark.asyncio
     async def test_missing_task_id_returns_none(self):
         solver = _FakeSolver(responses=[{"errorId": 0}])
         result = await solver.solve(
-            captcha_url="x", website_url="x", user_agent="x"
+            captcha_url="x",
+            website_url="x",
+            user_agent="x",
+            proxy_url="http://proxy:3128",
         )
         assert result is None
 
@@ -260,7 +284,10 @@ class TestDataDomeSolverSolve:
             ]
         )
         result = await solver.solve(
-            captcha_url="x", website_url="x", user_agent="x"
+            captcha_url="x",
+            website_url="x",
+            user_agent="x",
+            proxy_url="http://proxy:3128",
         )
         assert result is None
 
