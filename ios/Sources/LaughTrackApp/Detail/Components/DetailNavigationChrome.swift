@@ -11,12 +11,14 @@ enum DetailNavigationChrome {
 
     static let extendsHeroBehindTopSafeArea = true
 
-    /// Vertical offset from the top of the screen for the sticky chrome bar.
-    /// The detail chrome hides the system nav bar, which collapses the
-    /// container's top safe-area inset to zero, so we manually clear the
-    /// status bar with a fixed offset. Sits intentionally above the marquee
-    /// hero's content padding so the back/favorite chrome reads as
-    /// status-bar-adjacent rather than crowding the title row.
+    /// Additional spacing below the status-bar safe-area inset for the
+    /// sticky chrome bar. Hiding the system nav bar does NOT collapse the
+    /// overlay's top inset — the chrome bar still receives the status-bar
+    /// inset and renders at inset + this offset (see DetailStatusBarScrim,
+    /// which relies on that inset to escape upward and cover the clock).
+    /// Sits intentionally above the marquee hero's content padding so the
+    /// back/favorite chrome reads as status-bar-adjacent rather than
+    /// crowding the title row.
     static let stickyChromeTopOffset: CGFloat = 16
 
     /// Opacity/location stops for the top scrim that fades scrolled content

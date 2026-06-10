@@ -100,9 +100,10 @@ struct MarqueeHero: View {
         .background(marqueeBackground)
     }
 
-    /// Status-bar clearance. The detail chrome hides the system nav bar, which
-    /// also collapses the top safe-area inset to zero in the ScrollView, so
-    /// the marquee content has to manually offset past the status bar.
+    /// Status-bar clearance. Each detail view applies
+    /// `.ignoresSafeArea(.container, edges: .top)` to its scroll container,
+    /// so the marquee content is laid out from the physical top of the
+    /// screen and has to manually offset past the status bar.
     private static let statusBarOffset: CGFloat = 60
 
     private var marqueeBackground: some View {
