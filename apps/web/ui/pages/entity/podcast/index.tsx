@@ -6,6 +6,7 @@ import { ExternalLink, Headphones, Heart, Podcast, Rss } from "lucide-react";
 import ComedianGrid from "@/ui/components/grid/comedian";
 import EntityCard from "@/ui/components/cards/entity";
 import EmptyState from "@/ui/components/emptyState";
+import SectionHeader from "@/ui/components/sectionHeader";
 import { Button } from "@/ui/components/ui/button";
 import { useFavorite } from "@/hooks/useFavorite";
 import {
@@ -243,12 +244,11 @@ function PodcastEpisodesSection({
 }) {
     return (
         <section className="mt-10" aria-labelledby="podcast-episodes-heading">
-            <h2
-                id="podcast-episodes-heading"
-                className="font-gilroy-bold text-h2 font-bold text-foreground"
-            >
-                Episodes
-            </h2>
+            <SectionHeader
+                eyebrow="Catalog"
+                title="Episodes"
+                titleId="podcast-episodes-heading"
+            />
             {episodes.length === 0 ? (
                 <div className="mt-4">
                     <EmptyState
@@ -279,20 +279,13 @@ function PodcastRelatedComediansSection({
 
     return (
         <section className="mt-10" aria-labelledby="related-comedians-heading">
-            <header className="mb-4 flex items-end justify-between gap-4">
-                <h2
-                    id="related-comedians-heading"
-                    className="font-gilroy-bold text-h2 font-bold text-foreground"
-                >
-                    Related comedians
-                </h2>
-                <Link
-                    href="/comedian/search"
-                    className="font-dmSans text-sm font-semibold text-copper hover:underline"
-                >
-                    Browse comedians
-                </Link>
-            </header>
+            <SectionHeader
+                eyebrow="Regulars"
+                title="Frequent guests"
+                titleId="related-comedians-heading"
+                actionHref="/comedian/search"
+                actionLabel="Browse comedians"
+            />
             <ComedianGrid
                 comedians={relatedComedians}
                 className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"

@@ -3,6 +3,7 @@
 import { Comedian } from "@/objects/class/comedian/Comedian";
 import { ComedianLineupDTO } from "@/objects/class/comedian/comedianLineup.interface";
 import LineupGrid from "@/ui/components/lineup";
+import SectionHeader from "@/ui/components/sectionHeader";
 
 interface ShowLineupSectionProps {
     lineup: ComedianLineupDTO[];
@@ -15,9 +16,7 @@ const ShowLineupSection: React.FC<ShowLineupSectionProps> = ({ lineup }) => {
 
     return (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 mt-10 mb-10">
-            <h2 className="font-gilroy-bold text-h2 font-bold text-foreground mb-4">
-                Lineup
-            </h2>
+            <SectionHeader eyebrow="On the bill" title="Lineup" />
             <LineupGrid lineup={parsed} />
         </section>
     );
