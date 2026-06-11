@@ -5,14 +5,16 @@ import { ClubDTO } from "@/objects/class/club/club.interface";
 import PopularClubCard from "@/ui/components/cards/club/popular";
 import ScrollButtons from "@/ui/components/scroll";
 import SectionHeader from "@/ui/components/sectionHeader";
+import {
+    RAIL_CARD_COMPACT_WIDTH_PX,
+    RAIL_CARD_STANDARD_WIDTH_PX,
+    RAIL_CARD_GAP_PX,
+    RAIL_CARD_STANDARD_MIN_VIEWPORT_PX,
+} from "@/util/constants/railCardConstants";
 
 interface TrendingClubsCarouselProps {
     clubs: ClubDTO[];
 }
-
-const CARD_WIDTH_SM = 280;
-const CARD_WIDTH_MD = 320;
-const CARD_GAP = 16;
 
 const TrendingClubsCarousel = ({ clubs }: TrendingClubsCarouselProps) => {
     const scrollContainerRef = useRef<HTMLDivElement | null>(null);
@@ -40,9 +42,9 @@ const TrendingClubsCarousel = ({ clubs }: TrendingClubsCarouselProps) => {
 
         // Get actual card width including gap
         const cardWidth =
-            window.innerWidth >= 640
-                ? CARD_WIDTH_MD + CARD_GAP
-                : CARD_WIDTH_SM + CARD_GAP;
+            window.innerWidth >= RAIL_CARD_STANDARD_MIN_VIEWPORT_PX
+                ? RAIL_CARD_STANDARD_WIDTH_PX + RAIL_CARD_GAP_PX
+                : RAIL_CARD_COMPACT_WIDTH_PX + RAIL_CARD_GAP_PX;
         const scrollPosition = Math.round(container.scrollLeft);
         const maxScroll = container.scrollWidth - container.clientWidth;
 
@@ -101,9 +103,9 @@ const TrendingClubsCarousel = ({ clubs }: TrendingClubsCarouselProps) => {
 
         // Use actual card width
         const cardWidth =
-            window.innerWidth >= 640
-                ? CARD_WIDTH_MD + CARD_GAP
-                : CARD_WIDTH_SM + CARD_GAP;
+            window.innerWidth >= RAIL_CARD_STANDARD_MIN_VIEWPORT_PX
+                ? RAIL_CARD_STANDARD_WIDTH_PX + RAIL_CARD_GAP_PX
+                : RAIL_CARD_COMPACT_WIDTH_PX + RAIL_CARD_GAP_PX;
         const visibleCards = 3;
         const scrollAmount = cardWidth * visibleCards;
 
@@ -138,9 +140,9 @@ const TrendingClubsCarousel = ({ clubs }: TrendingClubsCarouselProps) => {
         if (!container) return;
 
         const cardWidth =
-            window.innerWidth >= 640
-                ? CARD_WIDTH_MD + CARD_GAP
-                : CARD_WIDTH_SM + CARD_GAP;
+            window.innerWidth >= RAIL_CARD_STANDARD_MIN_VIEWPORT_PX
+                ? RAIL_CARD_STANDARD_WIDTH_PX + RAIL_CARD_GAP_PX
+                : RAIL_CARD_COMPACT_WIDTH_PX + RAIL_CARD_GAP_PX;
         const targetScroll = index * (cardWidth * 3);
 
         container.scrollTo({
@@ -177,13 +179,13 @@ const TrendingClubsCarousel = ({ clubs }: TrendingClubsCarouselProps) => {
 
             <div
                 ref={scrollContainerRef}
-                className="flex gap-4 md:gap-6 overflow-x-auto scrollbar-hide py-4 px-2 scroll-smooth"
+                className="flex gap-4 overflow-x-auto scrollbar-hide py-4 px-2 scroll-smooth"
                 style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
                 {sortedClubs.map((dto) => (
                     <div
                         key={dto.name}
-                        className="flex-none w-[280px] sm:w-[320px] md:w-[320px] lg:w-[320px] max-w-[calc(100vw-2rem)]"
+                        className="flex-none w-rail-card-compact sm:w-rail-card-standard md:w-rail-card-standard lg:w-rail-card-standard max-w-[calc(100vw-2rem)]"
                     >
                         <PopularClubCard entity={dto} />
                     </div>

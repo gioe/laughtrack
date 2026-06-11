@@ -1,5 +1,9 @@
 import type { Config } from "tailwindcss";
 import forms from "@tailwindcss/forms";
+import {
+    RAIL_CARD_COMPACT_WIDTH_PX,
+    RAIL_CARD_STANDARD_WIDTH_PX,
+} from "./util/constants/railCardConstants";
 
 // Color definitions
 const baseColors = {
@@ -171,6 +175,14 @@ const config: Config = {
                 "72": "18rem",
                 "84": "21rem",
                 "96": "24rem",
+            },
+            // Home-rail carousel card widths. compact applies on xs; standard
+            // from sm up (chain sm:/md:/lg: — the screens above are ranges).
+            // Values live in util/constants/railCardConstants.ts so the rails'
+            // JS scroll math reads the same source.
+            width: {
+                "rail-card-compact": `${RAIL_CARD_COMPACT_WIDTH_PX}px`,
+                "rail-card-standard": `${RAIL_CARD_STANDARD_WIDTH_PX}px`,
             },
             keyframes: {
                 pulse: {

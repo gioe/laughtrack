@@ -6,10 +6,12 @@ import { ShowDTO } from "@/objects/class/show/show.interface";
 import ShowCard from "@/ui/components/cards/show";
 import ScrollButtons from "@/ui/components/scroll";
 import SectionHeader from "@/ui/components/sectionHeader";
-
-const CARD_WIDTH_SM = 260;
-const CARD_WIDTH_MD = 300;
-const CARD_GAP = 16;
+import {
+    RAIL_CARD_COMPACT_WIDTH_PX,
+    RAIL_CARD_STANDARD_WIDTH_PX,
+    RAIL_CARD_GAP_PX,
+    RAIL_CARD_STANDARD_MIN_VIEWPORT_PX,
+} from "@/util/constants/railCardConstants";
 
 interface ShowDiscoverySectionProps {
     // Copper uppercase kicker above the title, mirroring the iOS home-rail
@@ -73,9 +75,9 @@ const ShowDiscoverySection = ({
         const container = scrollContainerRef.current;
         if (!container) return;
         const cardWidth =
-            window.innerWidth >= 640
-                ? CARD_WIDTH_MD + CARD_GAP
-                : CARD_WIDTH_SM + CARD_GAP;
+            window.innerWidth >= RAIL_CARD_STANDARD_MIN_VIEWPORT_PX
+                ? RAIL_CARD_STANDARD_WIDTH_PX + RAIL_CARD_GAP_PX
+                : RAIL_CARD_COMPACT_WIDTH_PX + RAIL_CARD_GAP_PX;
         const scrollAmount = cardWidth * 3;
         const currentScroll = container.scrollLeft;
         const maxScroll = container.scrollWidth - container.clientWidth;
@@ -134,7 +136,7 @@ const ShowDiscoverySection = ({
                 {shows.map((show) => (
                     <div
                         key={show.id}
-                        className="flex-none w-[260px] sm:w-[300px]"
+                        className="flex-none w-rail-card-compact sm:w-rail-card-standard md:w-rail-card-standard lg:w-rail-card-standard max-w-[calc(100vw-2rem)]"
                     >
                         <ShowCard show={show} density="compact" />
                     </div>
