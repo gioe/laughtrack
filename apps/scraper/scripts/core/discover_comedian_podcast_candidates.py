@@ -121,6 +121,22 @@ _UPSERT_PODCAST_SQL = """
     RETURNING id
 """
 
+_FIND_PODCAST_BY_TITLE_ACCEPTED_HOST_SQL = """
+    SELECT p.id
+    FROM podcasts p
+    JOIN comedian_podcasts cp ON cp.podcast_id = p.id
+    WHERE cp.comedian_id = %s
+      AND cp.association_type = 'host'
+      AND cp.review_status = 'accepted'
+      AND NOT (p.source = %s AND p.source_podcast_id = %s)
+      AND (
+          LOWER(BTRIM(p.title)) = LOWER(BTRIM(%s))
+          OR BTRIM(regexp_replace(LOWER(p.title), '[^a-z0-9]+', ' ', 'g')) = %s
+      )
+    ORDER BY p.id
+    LIMIT 1
+"""
+
 _UPSERT_REVIEW_SQL = """
     INSERT INTO podcast_candidate_reviews (
         comedian_id,
@@ -406,6 +422,24 @@ def _review_evidence(candidate: PodcastCandidate) -> dict[str, Any]:
     return evidence
 
 
+def _find_existing_podcast_by_title_accepted_host(cur: Any, candidate: PodcastCandidate) -> Optional[int]:
+    normalized_title = normalize_match_text(candidate.title)
+    if not normalized_title:
+        return None
+    cur.execute(
+        _FIND_PODCAST_BY_TITLE_ACCEPTED_HOST_SQL,
+        (
+            candidate.comedian_id,
+            candidate.source,
+            candidate.source_podcast_id,
+            candidate.title,
+            normalized_title,
+        ),
+    )
+    row = cur.fetchone()
+    return int(row[0]) if row else None
+
+
 def persist_candidates(candidates: list[PodcastCandidate], dry_run: bool) -> int:
     if dry_run:
         for candidate in candidates:
@@ -429,28 +463,30 @@ def persist_candidates(candidates: list[PodcastCandidate], dry_run: bool) -> int
                         f"feed_url={candidate.feed_url}"
                     )
                     continue
-                cur.execute(
-                    _UPSERT_PODCAST_SQL,
-                    (
-                        candidate.source,
-                        candidate.source_podcast_id,
-                        build_podcast_slug(
-                            candidate.title,
+                podcast_id = _find_existing_podcast_by_title_accepted_host(cur, candidate)
+                if podcast_id is None:
+                    cur.execute(
+                        _UPSERT_PODCAST_SQL,
+                        (
                             candidate.source,
                             candidate.source_podcast_id,
+                            build_podcast_slug(
+                                candidate.title,
+                                candidate.source,
+                                candidate.source_podcast_id,
+                            ),
+                            candidate.feed_url,
+                            candidate.title,
+                            candidate.author_name,
+                            candidate.website_url,
+                            candidate.image_url,
+                            candidate.description,
+                            json.dumps(_podcast_evidence(candidate), sort_keys=True),
+                            json.dumps(candidate.evidence.get("source_fields", {}), sort_keys=True),
                         ),
-                        candidate.feed_url,
-                        candidate.title,
-                        candidate.author_name,
-                        candidate.website_url,
-                        candidate.image_url,
-                        candidate.description,
-                        json.dumps(_podcast_evidence(candidate), sort_keys=True),
-                        json.dumps(candidate.evidence.get("source_fields", {}), sort_keys=True),
-                    ),
-                )
-                podcast_row = cur.fetchone()
-                podcast_id = int(podcast_row[0]) if podcast_row else None
+                    )
+                    podcast_row = cur.fetchone()
+                    podcast_id = int(podcast_row[0]) if podcast_row else None
                 cur.execute(
                     _UPSERT_REVIEW_SQL,
                     (

@@ -365,6 +365,25 @@ ORDER BY c.name;
 
 **When to use a custom scraper instead:** If the venue's Tixr group page triggers DataDome bot-detection (returns 403 or empty results when fetched via `fetch_html`), use a Covina-style venue scraper that calls `tixr_client._fetch_tixr_page(url)` instead — this uses a bare curl_cffi session with no application headers, bypassing DataDome.
 
+**Group-events API fallback (DataDome-blocked group pages):**
+When a Tixr group page is DataDome-blocked through every scraper fetch path, the
+generic `tixr` scraper falls back to the JSON API the page itself consumes —
+`GET https://www.tixr.com/api/groups/{numeric_group_id}/events?page=N` — via
+`TixrClient.fetch_group_events`. Enable per source:
+- `scraping_sources.metadata.tixr_group_events_api_fallback = true`
+- `scraping_sources.metadata.tixr_group_id = '<numeric id>'` (string)
+- `source_url` may be the Tixr group page or a venue-owned page that links Tixr
+  events: the fallback fires when the calendar page yields no HTML, when no Tixr
+  URLs are extracted, or when every extracted detail URL fails extraction
+  (TASK-2763). Pointing source_url at the Tixr group page (Covina/Rose City
+  pattern, TASK-2125) remains the most direct configuration.
+
+The API accepts only **numeric** group ids — slugs return 400. To discover the
+id: load `tixr.com/groups/<slug>` in a real headed browser (e.g. Playwright MCP)
+and watch network requests for `/api/groups/{id}/events` (Covina=1613, Rose
+City=2444). Bounded id scans don't work: every probe is DataDome-403'd from
+scraper egress, so hits are indistinguishable from misses.
+
 **When per-event Tixr fetches are blocked in CI:** Tixr's DataDome WAF can block GitHub Actions IP ranges even with curl_cffi impersonation. If a venue's calendar page already embeds all needed show data (name, date, time, performer, ticket URL), prefer `tixr_public_card` when the markup matches the shared public-card parser; otherwise build a custom scraper that extracts directly from the calendar HTML:
 - `haha_comedy_club`: Webflow calendar with JSON-LD Event blocks (name, date, performer, ticket URL) + time in `<div class="month day time">` — see `scrapers/implementations/venues/haha_comedy_club/`
 - `laugh_boston`: Pixl Calendar API response includes all show data (title, start, timezone, sales) — `LaughBostonEventExtractor.parse_events_from_pixl()` builds `TixrEvent` objects directly

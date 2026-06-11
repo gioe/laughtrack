@@ -50,12 +50,14 @@ class _FakeCursor:
         normalized = " ".join(sql.split())
         if normalized.startswith("SELECT id, external_ids FROM podcasts"):
             self._last = self.conn.feed_matches
+        elif normalized.startswith("SELECT p.id, p.external_ids FROM podcasts p"):
+            self._last = self.conn.title_host_matches
         elif normalized.startswith("INSERT INTO podcasts"):
             self.conn.podcast_upserts.append(params)
             self._last = [(self.conn.next_podcast_id,)]
         elif normalized.startswith("UPDATE podcasts"):
             self.conn.podcast_updates.append(params)
-            self._last = [(self.conn.existing_podcast_id,)]
+            self._last = [(params[1],)]
         elif normalized.startswith("INSERT INTO podcast_candidate_reviews"):
             self.conn.review_upserts.append(params)
             self._last = []
@@ -70,8 +72,13 @@ class _FakeCursor:
 
 
 class _FakeConn:
-    def __init__(self, feed_matches: list[tuple[Any, ...]] | None = None) -> None:
+    def __init__(
+        self,
+        feed_matches: list[tuple[Any, ...]] | None = None,
+        title_host_matches: list[tuple[Any, ...]] | None = None,
+    ) -> None:
         self.feed_matches = feed_matches or []
+        self.title_host_matches = title_host_matches or []
         self.existing_podcast_id = 77
         self.next_podcast_id = 42
         self.executed: list[tuple[str, tuple[Any, ...] | None]] = []
@@ -304,6 +311,37 @@ def test_upsert_candidate_merges_itunes_id_into_existing_feed_url_match() -> Non
     }
     assert len(conn.review_upserts) == 1
     assert conn.review_upserts[0][:6] == (12, 77, mod._SOURCE, "12345", "pending", "host")
+
+
+def test_upsert_candidate_reuses_existing_accepted_host_title_match_when_feed_differs() -> None:
+    conn = _FakeConn(
+        feed_matches=[],
+        title_host_matches=[(767, {"podcast_index_feed_id": 743501})],
+    )
+
+    result = mod.upsert_candidate_with_conn(
+        conn,
+        _candidate(
+            comedian_id=14676,
+            source_podcast_id="7411017",
+            title="The Bonfire with Big Jay Oakerson and Robert Kelly",
+            author_name="pangerang pettarani",
+            feed_url="https://www.spreaker.com/show/6206113/episodes/feed",
+        ),
+    )
+
+    assert result.podcast_id == 767
+    assert result.action == "matched_title_host"
+    assert conn.podcast_upserts == []
+    assert len(conn.podcast_updates) == 1
+    update_params = conn.podcast_updates[0]
+    assert update_params is not None
+    assert json.loads(update_params[0]) == {
+        "itunes_collection_id": "7411017",
+        "podcast_index_feed_id": 743501,
+    }
+    assert len(conn.review_upserts) == 1
+    assert conn.review_upserts[0][:6] == (14676, 767, mod._SOURCE, "7411017", "pending", "host")
 
 
 def test_upsert_candidate_inserts_when_no_feed_url_match() -> None:

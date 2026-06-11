@@ -185,7 +185,7 @@ def test_parse_search_payload_stores_source_fields_and_image_url():
 def test_persist_candidates_upserts_podcasts_and_candidate_reviews(monkeypatch):
     conn = _FakeConnection(
         fetchall_results=[[]],
-        fetchone_results=[(42,)],
+        fetchone_results=[None, (42,)],
     )
     candidate = mod.PodcastCandidate(
         comedian_id=12,
@@ -209,12 +209,15 @@ def test_persist_candidates_upserts_podcasts_and_candidate_reviews(monkeypatch):
 
     assert written == 1
     assert conn.commits == 1
-    assert len(conn.cursor_obj.executed) == 3
+    assert len(conn.cursor_obj.executed) == 4
     deny_query, _ = conn.cursor_obj.executed[0]
-    podcast_query, podcast_params = conn.cursor_obj.executed[1]
-    review_query, review_params = conn.cursor_obj.executed[2]
+    existing_query, existing_params = conn.cursor_obj.executed[1]
+    podcast_query, podcast_params = conn.cursor_obj.executed[2]
+    review_query, review_params = conn.cursor_obj.executed[3]
     assert "FROM podcast_deny_list" in deny_query
     assert "restored_at IS NULL" in deny_query
+    assert "JOIN comedian_podcasts" in existing_query
+    assert existing_params[:3] == (12, mod._SOURCE, "101")
     assert "INSERT INTO podcasts" in podcast_query
     assert "ON CONFLICT (source, source_podcast_id)" in podcast_query
     assert podcast_params[:7] == (
@@ -233,6 +236,40 @@ def test_persist_candidates_upserts_podcasts_and_candidate_reviews(monkeypatch):
     assert evidence["matched_name"] == "Steve-O"
     assert evidence["normalized_match"] == "steve o"
     assert evidence["confidence_band"] == "title_exact"
+
+
+def test_persist_candidates_reuses_existing_accepted_host_title_match(monkeypatch):
+    conn = _FakeConnection(
+        fetchall_results=[[]],
+        fetchone_results=[(767,)],
+    )
+    candidate = mod.PodcastCandidate(
+        comedian_id=14676,
+        source=mod._SOURCE,
+        source_podcast_id="7411017",
+        matched_name="Big Jay Oakerson",
+        normalized_match="big jay oakerson",
+        confidence=0.99,
+        title="The Bonfire with Big Jay Oakerson and Robert Kelly",
+        author_name="pangerang pettarani",
+        feed_url="https://www.spreaker.com/show/6206113/episodes/feed",
+        website_url="https://www.spreaker.com/show/6206113",
+        image_url=None,
+        description="Comedy talk show",
+        evidence={"confidence_band": "title_exact", "source_fields": {"podcast_index_feed_id": 7411017}},
+    )
+
+    monkeypatch.setattr(mod, "get_connection", lambda: conn)
+
+    written = mod.persist_candidates([candidate], dry_run=False)
+
+    assert written == 1
+    assert conn.commits == 1
+    queries = [query for query, _params in conn.cursor_obj.executed]
+    assert not any("INSERT INTO podcasts" in query for query in queries)
+    review_query, review_params = conn.cursor_obj.executed[-1]
+    assert "INSERT INTO podcast_candidate_reviews" in review_query
+    assert review_params[:6] == (14676, 767, mod._SOURCE, "7411017", "pending", "host")
 
 
 def _candidate(
@@ -341,7 +378,7 @@ def test_persist_candidates_skips_deny_listed_feed_url(monkeypatch):
 def test_persist_candidates_writes_allowed_candidate_alongside_denied_one(monkeypatch):
     conn = _FakeConnection(
         fetchall_results=[[(mod._SOURCE, "blocked-101", None)]],
-        fetchone_results=[(42,)],
+        fetchone_results=[None, (42,)],
     )
     monkeypatch.setattr(mod, "get_connection", lambda: conn)
 
@@ -370,7 +407,7 @@ def test_persist_candidates_does_not_treat_restored_entries_as_denied(monkeypatc
     # restore path proceeds with a normal write.
     conn = _FakeConnection(
         fetchall_results=[[]],
-        fetchone_results=[(42,)],
+        fetchone_results=[None, (42,)],
     )
     monkeypatch.setattr(mod, "get_connection", lambda: conn)
 
