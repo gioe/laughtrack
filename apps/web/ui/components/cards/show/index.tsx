@@ -128,7 +128,7 @@ const StandardShowCard: React.FC<StandardShowCardProps> = ({
         }
         return (
             <div
-                className="relative overflow-hidden rounded-lg border border-copper/15 px-4 pt-3 pb-1 shadow-inner sm:px-5 sm:pt-4"
+                className="relative overflow-hidden rounded-lg border border-copper/20 px-4 pt-3 pb-1 shadow-inner sm:px-5 sm:pt-4"
                 style={{ background: STAGE_BACKDROP }}
             >
                 <div className="mb-2 flex items-center gap-2">
@@ -208,7 +208,7 @@ const StandardShowCard: React.FC<StandardShowCardProps> = ({
                         </div>
 
                         {isPast ? (
-                            <p className="sm:self-start relative z-[2] rounded-full border border-copper/15 bg-black/30 px-3 py-1.5 text-sm font-dmSans text-foreground/60">
+                            <p className="sm:self-start relative z-[2] rounded-full border border-copper/20 bg-black/30 px-3 py-1.5 text-sm font-dmSans text-foreground/60">
                                 Performed on{" "}
                                 {formatShowDate(
                                     parsedShow.date.toString(),
@@ -398,7 +398,7 @@ const ShowCardArtwork = ({ show }: { show: Show }) => {
 
     return (
         <div
-            className={`pointer-events-none relative min-h-[176px] overflow-hidden rounded-lg border border-copper/15 shadow-inner sm:min-h-[220px] lg:min-h-[248px] ${isSoldOut ? "grayscale opacity-70" : ""}`}
+            className={`pointer-events-none relative min-h-[176px] overflow-hidden rounded-lg border border-copper/20 shadow-inner sm:min-h-[220px] lg:min-h-[248px] ${isSoldOut ? "grayscale opacity-70" : ""}`}
             style={showImage ? undefined : { background: STAGE_BACKDROP }}
         >
             {showImage ? (

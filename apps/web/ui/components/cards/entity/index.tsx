@@ -16,7 +16,7 @@ const CHROME_CLASSES: Record<EntityCardChrome, string> = {
         "rounded-card overflow-hidden shadow-card border border-subtle bg-surface-muted transition-all duration-300 hover:shadow-floating hover:border-copper/60",
     // "stage": warm near-black club-wall surface with a copper hairline. Decorative
     // brick + spotlight layers are composited inside the card by the consumer.
-    stage: "rounded-xl shadow-lg shadow-black/40 border border-copper/15 bg-[#181210] transition-shadow duration-300",
+    stage: "rounded-xl shadow-lg shadow-black/40 border border-copper/20 bg-[#181210] transition-shadow duration-300",
     none: "",
 };
 

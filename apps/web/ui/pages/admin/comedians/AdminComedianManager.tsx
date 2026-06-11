@@ -107,7 +107,7 @@ function ComedianRowHeadshot({ row }: { row: AdminComedianListItem }) {
         <img
             src={src}
             alt={`${row.name} headshot`}
-            className="h-10 w-10 shrink-0 rounded-full border border-copper/25 object-cover"
+            className="h-10 w-10 shrink-0 rounded-full border border-copper/20 object-cover"
         />
     );
 }
@@ -1222,7 +1222,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                 }
                 onPageSizeChange={setPageSize}
             />
-            <div className="rounded-md border border-copper/25 bg-white">
+            <div className="rounded-md border border-copper/20 bg-white">
                 <div className="border-b border-copper/20 bg-cedar px-4 py-3 font-dmSans text-caption font-semibold uppercase tracking-wide text-coconut-cream">
                     Comedians
                 </div>
@@ -1337,7 +1337,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                         rowOpen ? "" : "hidden"
                                     }`}
                                 >
-                                    <div className="col-span-full flex flex-wrap gap-x-6 gap-y-1 border-b border-copper/15 pb-4 font-dmSans text-body text-soft-charcoal">
+                                    <div className="col-span-full flex flex-wrap gap-x-6 gap-y-1 border-b border-copper/20 pb-4 font-dmSans text-body text-soft-charcoal">
                                         <span>ID {row.id}</span>
                                         <span>
                                             Popularity{" "}
@@ -1595,7 +1595,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                             <div
                                                 role="group"
                                                 aria-label={`Parent and blocklist for ${row.name}`}
-                                                className="min-w-0 space-y-3 border-t border-copper/15 pt-4 xl:border-l xl:border-t-0 xl:pl-5 xl:pt-0"
+                                                className="min-w-0 space-y-3 border-t border-copper/20 pt-4 xl:border-l xl:border-t-0 xl:pl-5 xl:pt-0"
                                             >
                                                 <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
                                                     Current parent
@@ -1703,7 +1703,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                     <Save className="h-4 w-4" />
                                                     Save relationship
                                                 </Button>
-                                                <div className="border-t border-copper/15 pt-4">
+                                                <div className="border-t border-copper/20 pt-4">
                                                     <div className="mb-3 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
                                                         Blocklist state
                                                     </div>
@@ -1730,7 +1730,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                             </div>
                                         </div>
 
-                                        <div className="mt-5 border-t border-copper/15 pt-4">
+                                        <div className="mt-5 border-t border-copper/20 pt-4">
                                             <div className="mb-3 text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
                                                 Podcast RSS
                                             </div>
@@ -1914,7 +1914,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                         </div>
                                         {pendingPodcastCandidateReviews.length >
                                             0 && (
-                                            <div className="mt-5 border-t border-copper/15 pt-4">
+                                            <div className="mt-5 border-t border-copper/20 pt-4">
                                                 <div className="mb-3 text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
                                                     Podcast host reviews
                                                 </div>
@@ -1932,7 +1932,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                                     key={
                                                                         review.id
                                                                     }
-                                                                    className="grid gap-3 rounded-md border border-copper/15 bg-white/80 p-3 lg:grid-cols-[minmax(0,1fr)_auto]"
+                                                                    className="grid gap-3 rounded-md border border-copper/20 bg-white/80 p-3 lg:grid-cols-[minmax(0,1fr)_auto]"
                                                                 >
                                                                     <div className="min-w-0">
                                                                         <div className="flex flex-wrap items-center gap-2">
@@ -2105,7 +2105,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                 {childrenOpen && (
                                                     <ul
                                                         id={`comedian-children-${row.id}`}
-                                                        className="mt-3 divide-y divide-copper/15 overflow-hidden rounded-md border border-copper/15 bg-white"
+                                                        className="mt-3 divide-y divide-copper/15 overflow-hidden rounded-md border border-copper/20 bg-white"
                                                     >
                                                         {children.map(
                                                             (child) => (
@@ -2177,7 +2177,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                             </div>
 
                                             <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-                                                <div className="min-w-0 space-y-3 rounded-md border border-copper/15 bg-white/80 p-3">
+                                                <div className="min-w-0 space-y-3 rounded-md border border-copper/20 bg-white/80 p-3">
                                                     <div className="flex items-center justify-between gap-2">
                                                         <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
                                                             Headshot
@@ -2420,7 +2420,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                     ) : null}
                                                 </div>
 
-                                                <div className="min-w-0 space-y-3 rounded-md border border-copper/15 bg-white/80 p-3">
+                                                <div className="min-w-0 space-y-3 rounded-md border border-copper/20 bg-white/80 p-3">
                                                     <div className="flex items-center justify-between gap-2">
                                                         <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
                                                             Hero

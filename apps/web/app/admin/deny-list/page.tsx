@@ -70,7 +70,7 @@ export default async function AdminDenyListPage(props: {
 
             <form
                 method="get"
-                className="grid gap-3 rounded-md border border-copper/25 bg-white p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end"
+                className="grid gap-3 rounded-md border border-copper/20 bg-white p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end"
             >
                 <label className="grid gap-1 font-dmSans text-body font-semibold text-cedar">
                     Search

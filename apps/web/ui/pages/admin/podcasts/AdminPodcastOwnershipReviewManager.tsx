@@ -627,7 +627,7 @@ export default function AdminPodcastHostshipReviewManager({
 
     if (groups.length === 0) {
         return (
-            <div className="rounded-md border border-copper/25 bg-white p-6 font-dmSans text-body text-soft-charcoal">
+            <div className="rounded-md border border-copper/20 bg-white p-6 font-dmSans text-body text-soft-charcoal">
                 No podcast hostship review records found.
             </div>
         );
@@ -1544,7 +1544,7 @@ function ReviewGroupFrame({
     const panelId = `podcast-review-group-${groupKey}`;
 
     return (
-        <section className="overflow-hidden rounded-md border border-copper/25 bg-white">
+        <section className="overflow-hidden rounded-md border border-copper/20 bg-white">
             <header className="border-b border-copper/20 bg-cedar px-4 py-3 text-white">
                 <button
                     type="button"

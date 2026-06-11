@@ -128,7 +128,7 @@ export default function AdminCreateButton() {
                         role="dialog"
                         aria-modal="true"
                         aria-label={title}
-                        className="w-full max-w-lg rounded-md border border-copper/25 bg-coconut-cream p-5 shadow-2xl outline-none"
+                        className="w-full max-w-lg rounded-md border border-copper/20 bg-coconut-cream p-5 shadow-2xl outline-none"
                     >
                         <div className="mb-4 flex items-center justify-between gap-3">
                             <h2 className="font-urbanist-bold text-h2 text-cedar">

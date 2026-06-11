@@ -224,12 +224,13 @@ const config: Config = {
             // translucent glass surfaces and rest→hover/selected state steps —
             // the TASK-2799 audit (333 uses, 89 distinct classes) found they
             // derive from theme tokens and encode state pairs, so they stay.
-            // Known smell deferred from that audit: rest-state copper
-            // hairlines split across /15, /20, /25 with no perceptible
-            // distinction; collapsing them is a visual change requiring a
-            // design pass plus Linux baseline regeneration, not a mechanical
-            // rename. Don't add new near-duplicate strengths — reuse an
-            // existing step from the file you're editing.
+            // The audit's one known smell — rest-state copper hairlines
+            // split across /15, /20, /25 with no perceptible distinction —
+            // was collapsed by TASK-2814: border-copper/20 is the canonical
+            // rest-state copper hairline. Deliberate emphasis (/30–/40) and
+            // hover steps (/60, /80) are separate; divide-copper/15 is its
+            // own uniform family. Don't add new near-duplicate strengths —
+            // reuse an existing step from the file you're editing.
             borderColor: {
                 subtle: "#2A2A2A",
                 strong: "#3A3A3A",

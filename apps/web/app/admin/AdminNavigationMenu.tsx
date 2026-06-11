@@ -110,7 +110,7 @@ export default function AdminNavigationMenu() {
                 <nav
                     id={MENU_ID}
                     aria-label="Admin navigation"
-                    className="absolute left-0 z-30 mt-2 w-72 overflow-hidden rounded-md border border-copper/25 bg-white shadow-xl"
+                    className="absolute left-0 z-30 mt-2 w-72 overflow-hidden rounded-md border border-copper/20 bg-white shadow-xl"
                 >
                     {ADMIN_NAV_ITEMS.map((item) => {
                         const Icon = item.icon;

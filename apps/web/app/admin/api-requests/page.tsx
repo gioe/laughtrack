@@ -133,7 +133,7 @@ function TopRoutesTable({
 
     return (
         <div className="overflow-hidden rounded-md border border-copper/20 bg-white">
-            <div className="border-b border-copper/15 px-4 py-3">
+            <div className="border-b border-copper/20 px-4 py-3">
                 <h2 className="font-urbanist-bold text-h4 text-cedar">
                     Top routes by volume
                 </h2>

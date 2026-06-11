@@ -41,7 +41,7 @@ export default async function AdminLayout({
                             </div>
                         </div>
                     </Link>
-                    <div className="flex shrink-0 items-center gap-2 rounded-md border border-copper/25 bg-white/70 px-3 py-2 font-dmSans text-caption text-soft-charcoal">
+                    <div className="flex shrink-0 items-center gap-2 rounded-md border border-copper/20 bg-white/70 px-3 py-2 font-dmSans text-caption text-soft-charcoal">
                         <BadgeCheck className="h-4 w-4 text-copper-dark" />
                         Admin access
                     </div>

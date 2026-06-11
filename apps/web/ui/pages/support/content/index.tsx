@@ -51,7 +51,7 @@ const SupportSection = () => {
                         </p>
                     </section>
 
-                    <section className="space-y-4 border-t border-copper/25 pt-8">
+                    <section className="space-y-4 border-t border-copper/20 pt-8">
                         <h2 className="font-chivo text-3xl font-bold text-foreground">
                             Keeping Laughtrack useful
                         </h2>

@@ -647,7 +647,7 @@ function ChainGroupSection({
     const groupName = group.title;
 
     return (
-        <section className="overflow-hidden rounded-md border border-copper/25 bg-white">
+        <section className="overflow-hidden rounded-md border border-copper/20 bg-white">
             <header className="border-b border-copper/20 bg-cedar px-4 py-3 text-white">
                 <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                     <button
@@ -699,7 +699,7 @@ function ChainGroupSection({
                 hidden={collapsed}
                 className={`${collapsed ? "hidden" : ""}`}
             >
-                <div className="border-b border-copper/15 bg-ecru-white/70 px-4 py-3">
+                <div className="border-b border-copper/20 bg-ecru-white/70 px-4 py-3">
                     <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_180px_150px_150px_150px] md:items-end">
                         <label className="grid gap-1 font-dmSans text-body font-semibold text-cedar">
                             Search within {groupName}

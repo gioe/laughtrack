@@ -198,7 +198,7 @@ export default function AdminUsersManager({
             />
 
             <div className="overflow-hidden rounded-md border border-copper/20 bg-white">
-                <div className="border-b border-copper/15 bg-cedar px-4 py-3">
+                <div className="border-b border-copper/20 bg-cedar px-4 py-3">
                     <h2 className="font-urbanist-bold text-h3 text-coconut-cream">
                         Users
                     </h2>
@@ -312,7 +312,7 @@ function UserRow({ user }: { user: AdminUserListItem }) {
                     <h3 className="break-words font-urbanist-bold text-h3 text-cedar">
                         {currentName ?? "Unnamed user"}
                     </h3>
-                    <span className="rounded-md border border-copper/25 bg-ecru-white px-2 py-1 font-dmSans text-caption font-semibold text-copper-dark">
+                    <span className="rounded-md border border-copper/20 bg-ecru-white px-2 py-1 font-dmSans text-caption font-semibold text-copper-dark">
                         {user.profile?.role ?? "no profile"}
                     </span>
                 </div>
@@ -575,7 +575,7 @@ function UserRow({ user }: { user: AdminUserListItem }) {
                             {user.pushTokens.map((token) => (
                                 <dl
                                     key={token.id}
-                                    className="rounded-md border border-copper/15 bg-white p-3 font-dmSans text-caption text-soft-charcoal"
+                                    className="rounded-md border border-copper/20 bg-white p-3 font-dmSans text-caption text-soft-charcoal"
                                 >
                                     <div>
                                         <dt className="inline font-semibold text-cedar">
@@ -646,7 +646,7 @@ function UserRow({ user }: { user: AdminUserListItem }) {
                                 <Link
                                     key={comedian.uuid}
                                     href={`/comedian/${encodeURIComponent(comedian.name)}`}
-                                    className="rounded-md border border-copper/25 bg-ecru-white px-2 py-1 font-dmSans text-caption font-semibold text-copper-dark hover:border-copper hover:bg-coconut-cream"
+                                    className="rounded-md border border-copper/20 bg-ecru-white px-2 py-1 font-dmSans text-caption font-semibold text-copper-dark hover:border-copper hover:bg-coconut-cream"
                                 >
                                     {comedian.name} ·{" "}
                                     {comedian.totalShows.toLocaleString()} shows

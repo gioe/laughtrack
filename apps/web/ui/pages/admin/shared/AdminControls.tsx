@@ -11,7 +11,7 @@ export function clampAdminPage(page: number, totalPages: number) {
 
 export function AdminToolbar({ children }: { children: React.ReactNode }) {
     return (
-        <div className="grid gap-3 rounded-md border border-copper/25 bg-white p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+        <div className="grid gap-3 rounded-md border border-copper/20 bg-white p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
             {children}
         </div>
     );
@@ -137,7 +137,7 @@ export function AdminPagination({
     const end = Math.min(page * pageSize, totalItems);
 
     return (
-        <div className="flex flex-col gap-3 rounded-md border border-copper/25 bg-white px-3 py-2 font-dmSans text-body text-cedar md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-3 rounded-md border border-copper/20 bg-white px-3 py-2 font-dmSans text-body text-cedar md:flex-row md:items-center md:justify-between">
             <div className="font-semibold">
                 {start}-{end} of {totalItems} {label}
             </div>

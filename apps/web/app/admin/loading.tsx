@@ -40,7 +40,7 @@ export default function AdminLoading() {
             </div>
 
             <div className="overflow-hidden rounded-md border border-copper/20 bg-white">
-                <div className="border-b border-copper/15 bg-cedar px-4 py-3">
+                <div className="border-b border-copper/20 bg-cedar px-4 py-3">
                     <SkeletonLine className="h-7 w-28 bg-coconut-cream/25" />
                 </div>
                 <div className="divide-y divide-copper/15">
