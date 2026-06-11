@@ -43,7 +43,8 @@ export const styleContexts: StyleContexts = [
     {
         key: StyleContextKey.Search,
         values: {
-            headerBackgroundColor: "bg-coconut-cream/95 backdrop-blur",
+            headerBackgroundColor:
+                "border-b border-subtle bg-canvas/95 backdrop-blur",
             inputTextColor: "text-white",
             logoTextColor: "text-white",
             buttonBgColor: "bg-copper",

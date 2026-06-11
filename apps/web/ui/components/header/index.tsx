@@ -65,7 +65,7 @@ export function Header({ currentUser }: HeaderProps) {
 
     return (
         <header
-            className={`relative px-4 py-4 ${styleConfig.headerBackgroundColor}`}
+            className={`sticky top-0 z-30 px-4 py-4 ${styleConfig.headerBackgroundColor}`}
         >
             <nav aria-label="Main navigation">
                 <div className="lg:hidden">

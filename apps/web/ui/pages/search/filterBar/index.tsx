@@ -119,7 +119,7 @@ const FilterBar = ({
     );
 
     return (
-        <div className="sticky top-0 z-20 w-full bg-coconut-cream border-b border-black/5">
+        <div className="sticky top-[8.375rem] z-20 w-full border-b border-black/5 bg-coconut-cream lg:top-[5.0625rem]">
             <div
                 className="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8"
                 role="search"

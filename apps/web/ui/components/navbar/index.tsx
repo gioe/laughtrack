@@ -8,11 +8,7 @@ interface NavbarProps {
 }
 
 const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
-    return (
-        <div className="w-full relative z-20">
-            <Header currentUser={currentUser} />
-        </div>
-    );
+    return <Header currentUser={currentUser} />;
 };
 
 export default Navbar;

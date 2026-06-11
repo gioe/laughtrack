@@ -62,7 +62,7 @@ function SearchFilterBarSkeleton({
     const hasExtraControl = variant !== "show";
 
     return (
-        <div className="sticky top-0 z-20 w-full border-b border-subtle bg-coconut-cream">
+        <div className="sticky top-[8.375rem] z-20 w-full border-b border-subtle bg-coconut-cream lg:top-[5.0625rem]">
             <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
                     <SkeletonBlock className="h-11 min-w-0 rounded-lg lg:flex-1" />

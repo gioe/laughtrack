@@ -58,7 +58,7 @@ export default function DetailTabs({
 
     return (
         <section className={className}>
-            <div className="sticky top-0 z-20 border-y border-subtle bg-canvas/95 backdrop-blur">
+            <div className="sticky top-[8.375rem] z-20 border-y border-subtle bg-canvas/95 backdrop-blur lg:top-[5.0625rem]">
                 <div
                     role="tablist"
                     aria-label={ariaLabel}
