@@ -1,59 +1,17 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
-import { useInfiniteSearch } from "@/hooks/useInfiniteSearch";
 import ComedianGrid from "@/ui/components/grid/comedian";
 import SearchClientShell from "@/ui/pages/search/SearchClientShell";
 
 interface ComedianSearchClientProps {
-    initialData: ComedianDTO[];
-    initialTotal: number;
+    data: ComedianDTO[];
+    total: number;
 }
 
-const ComedianSearchClient = ({
-    initialData,
-    initialTotal,
-}: ComedianSearchClientProps) => {
-    const searchParams = useSearchParams();
-
-    const params: Record<string, string | undefined> = {
-        comedian: searchParams.get("comedian") ?? undefined,
-        sort: searchParams.get("sort") ?? undefined,
-        filters: searchParams.get("filters") ?? undefined,
-        includeEmpty: searchParams.get("includeEmpty") ?? undefined,
-    };
-
-    const {
-        data,
-        total,
-        isLoading,
-        isError,
-        errorMessage,
-        hasMore,
-        sentinelRef,
-        loadMore,
-        retry,
-    } = useInfiniteSearch<ComedianDTO>({
-        endpoint: "/api/v1/comedians/search",
-        params,
-        initialData,
-        initialTotal,
-        getItemKey: (c) => c.id,
-    });
-
+const ComedianSearchClient = ({ data, total }: ComedianSearchClientProps) => {
     return (
-        <SearchClientShell
-            isLoading={isLoading}
-            isError={isError}
-            errorMessage={errorMessage}
-            hasMore={hasMore}
-            dataLength={data.length}
-            total={total}
-            loadMore={loadMore}
-            retry={retry}
-            sentinelRef={sentinelRef}
-        >
+        <SearchClientShell total={total}>
             <ComedianGrid
                 comedians={data}
                 className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6"

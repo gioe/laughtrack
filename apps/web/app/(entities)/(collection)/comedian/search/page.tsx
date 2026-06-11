@@ -135,7 +135,7 @@ export default async function ComedianSearchPage(
             />
 
             <Suspense>
-                <ComedianSearchClient initialData={data} initialTotal={total} />
+                <ComedianSearchClient data={data} total={total} />
             </Suspense>
         </>
     );

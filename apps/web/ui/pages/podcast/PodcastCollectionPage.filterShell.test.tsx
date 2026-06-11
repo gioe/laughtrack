@@ -141,7 +141,20 @@ describe("PodcastsPage filter shell integration", () => {
             sort: "name_asc",
             includeEmpty: "true",
             profileId: undefined,
+            page: "0",
+            size: undefined,
         });
+    });
+
+    it("converts the 1-based page URL param to the fetcher's 0-based page", async () => {
+        const tree = await PodcastsPage({
+            searchParams: Promise.resolve({ page: "3", size: "10" }),
+        });
+        render(tree);
+
+        expect(mockGetSearchedPodcasts).toHaveBeenCalledWith(
+            expect.objectContaining({ page: "2", size: "10" }),
+        );
     });
 
     it("does not render the legacy standalone Search button", async () => {

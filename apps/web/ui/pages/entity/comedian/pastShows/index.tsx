@@ -3,7 +3,6 @@
 import { ShowDTO } from "@/objects/class/show/show.interface";
 import { useInfiniteSearch } from "@/hooks/useInfiniteSearch";
 import ShowCard, { ShowCardContext } from "@/ui/components/cards/show";
-import SearchClientShell from "@/ui/pages/search/SearchClientShell";
 
 interface PastShowsSectionProps {
     shows?: ShowDTO[];
@@ -49,26 +48,53 @@ const PastShowsSection = ({
             <p className="text-muted-foreground font-dmSans text-body mb-8">
                 {liveTotal} past {liveTotal === 1 ? "show" : "shows"}
             </p>
-            <SearchClientShell
-                isLoading={isLoading}
-                isError={isError}
-                errorMessage={errorMessage}
-                hasMore={hasMore}
-                dataLength={data.length}
-                retry={retry}
-                sentinelRef={sentinelRef}
-            >
-                <div className="grid grid-cols-1 gap-y-6 sm:gap-y-8 md:gap-y-10">
-                    {data.map((show) => (
-                        <ShowCard
-                            key={show.id}
-                            show={show}
-                            variant="past"
-                            context={showCardContext}
-                        />
-                    ))}
+            <div className="grid grid-cols-1 gap-y-6 sm:gap-y-8 md:gap-y-10">
+                {data.map((show) => (
+                    <ShowCard
+                        key={show.id}
+                        show={show}
+                        variant="past"
+                        context={showCardContext}
+                    />
+                ))}
+            </div>
+
+            {isLoading && (
+                <div className="flex justify-center py-6">
+                    <span
+                        role="status"
+                        aria-label="Loading"
+                        className="inline-block w-6 h-6 border-2 border-copper border-t-transparent rounded-full animate-spin"
+                    />
                 </div>
-            </SearchClientShell>
+            )}
+
+            {isError && (
+                <div className="flex flex-col items-center gap-2 py-6">
+                    <p className="text-sm text-red-600 font-dmSans">
+                        {errorMessage ?? "Failed to load results"}
+                    </p>
+                    <button
+                        onClick={retry}
+                        className="inline-flex items-center justify-center px-3 py-1 text-xs border border-copper text-copper rounded-md hover:bg-copper hover:text-white transition-colors"
+                    >
+                        Retry
+                    </button>
+                </div>
+            )}
+
+            {!hasMore && data.length > 0 && (
+                <p className="text-center text-sm text-copper/60 py-4 font-dmSans">
+                    All results loaded
+                </p>
+            )}
+
+            {/* Sentinel div — IntersectionObserver triggers next page load */}
+            <div
+                ref={sentinelRef as (el: HTMLDivElement | null) => void}
+                className="h-4"
+                aria-hidden="true"
+            />
         </section>
     );
 };

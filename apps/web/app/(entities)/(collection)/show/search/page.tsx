@@ -155,9 +155,9 @@ export default async function ShowSearchPage(props: SearchPageProps) {
             />
             <Suspense>
                 <ShowSearchClient
-                    initialData={data}
-                    initialTotal={total}
-                    initialZipCapTriggered={zipCapTriggered}
+                    data={data}
+                    total={total}
+                    zipCapTriggered={zipCapTriggered}
                 />
             </Suspense>
         </>

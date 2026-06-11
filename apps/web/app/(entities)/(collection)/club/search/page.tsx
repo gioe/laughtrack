@@ -118,7 +118,7 @@ export default async function ClubSearchPage(props: ClubSearchPageProps) {
                 chainFilters={chainFilters}
             />
             <Suspense>
-                <ClubSearchClient initialData={data} initialTotal={total} />
+                <ClubSearchClient data={data} total={total} />
             </Suspense>
         </>
     );

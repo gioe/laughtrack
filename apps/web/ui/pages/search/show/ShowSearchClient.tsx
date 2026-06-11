@@ -3,73 +3,41 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ShowDTO } from "@/objects/class/show/show.interface";
-import { useInfiniteSearch } from "@/hooks/useInfiniteSearch";
 import ShowTable from "@/ui/pages/search/table";
 import SearchClientShell from "@/ui/pages/search/SearchClientShell";
 
 interface ShowSearchClientProps {
-    initialData: ShowDTO[];
-    initialTotal: number;
-    initialZipCapTriggered?: boolean;
+    data: ShowDTO[];
+    total: number;
+    zipCapTriggered?: boolean;
 }
 
 const ShowSearchClient = ({
-    initialData,
-    initialTotal,
-    initialZipCapTriggered,
+    data,
+    total,
+    zipCapTriggered,
 }: ShowSearchClientProps) => {
     const searchParams = useSearchParams();
     const zip = searchParams.get("zip") ?? undefined;
-
-    const params: Record<string, string | undefined> = {
-        zip,
-        distance: searchParams.get("distance") ?? undefined,
-        from: searchParams.get("fromDate") ?? undefined,
-        to: searchParams.get("toDate") ?? undefined,
-        comedian: searchParams.get("comedian") ?? undefined,
-        club: searchParams.get("club") ?? undefined,
-        filters: searchParams.get("filters") ?? undefined,
-        sort: searchParams.get("sort") ?? undefined,
-    };
-
-    const {
-        data,
-        total,
-        isLoading,
-        isError,
-        errorMessage,
-        hasMore,
-        zipCapTriggered,
-        sentinelRef,
-        loadMore,
-        retry,
-    } = useInfiniteSearch<ShowDTO>({
-        endpoint: "/api/v1/shows/search",
-        params,
-        initialData,
-        initialTotal,
-        initialZipCapTriggered,
-        getItemKey: (s) => s.id,
-    });
 
     const broadenHref = (() => {
         if (!zip) return null;
         const next = new URLSearchParams(searchParams.toString());
         next.delete("zip");
         next.delete("distance");
+        next.delete("page");
         const qs = next.toString();
         return qs ? `/show/search?${qs}` : "/show/search";
     })();
 
-    const emptyAction =
-        broadenHref && !isLoading ? (
-            <Link
-                href={broadenHref}
-                className="inline-block bg-cedar text-white font-dmSans font-semibold px-6 py-3 rounded-full hover:bg-copper transition-colors"
-            >
-                Browse all shows
-            </Link>
-        ) : undefined;
+    const emptyAction = broadenHref ? (
+        <Link
+            href={broadenHref}
+            className="inline-block bg-cedar text-white font-dmSans font-semibold px-6 py-3 rounded-full hover:bg-copper transition-colors"
+        >
+            Browse all shows
+        </Link>
+    ) : undefined;
 
     return (
         <>
@@ -79,17 +47,7 @@ const ShowSearchClient = ({
                     <strong>&quot;City, ST&quot;</strong> for better results.
                 </p>
             )}
-            <SearchClientShell
-                isLoading={isLoading}
-                isError={isError}
-                errorMessage={errorMessage}
-                hasMore={hasMore}
-                dataLength={data.length}
-                total={total}
-                loadMore={loadMore}
-                retry={retry}
-                sentinelRef={sentinelRef}
-            >
+            <SearchClientShell total={total}>
                 <ShowTable shows={data} emptyAction={emptyAction} />
             </SearchClientShell>
         </>

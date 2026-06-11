@@ -6,6 +6,11 @@ import { useCallback } from "react";
 export type ParamKeys = keyof typeof paramConfigs;
 type ParamTypes = ParamTypeMap;
 
+// Changing any filter/sort/search param invalidates the current pagination
+// position, so the page param is dropped unless the update itself is paging.
+const isPaginationKey = (key: string) =>
+    key === paramConfigs.page.key || key === paramConfigs.size.key;
+
 export function useUrlParams() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -36,6 +41,9 @@ export function useUrlParams() {
             } else {
                 current.set(config.key, stringified);
             }
+            if (!isPaginationKey(config.key)) {
+                current.delete(paramConfigs.page.key);
+            }
             router.replace(`?${current.toString()}`);
         },
         [router, searchParams],
@@ -60,6 +68,13 @@ export function useUrlParams() {
             (Object.keys(updates) as ParamKeys[]).forEach((key) => {
                 applyUpdate(key, updates[key] as ParamTypeMap[typeof key]);
             });
+            if (
+                (Object.keys(updates) as ParamKeys[]).some(
+                    (key) => !isPaginationKey(paramConfigs[key].key),
+                )
+            ) {
+                current.delete(paramConfigs.page.key);
+            }
             if (providedPath) {
                 router.push(`/${providedPath}?${current.toString()}`);
             } else {

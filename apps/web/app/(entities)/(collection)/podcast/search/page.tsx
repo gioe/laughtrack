@@ -43,10 +43,22 @@ export default async function PodcastsPage(props: PodcastsPageProps) {
     const q = firstParam(searchParams.q);
     const sort = firstParam(searchParams.sort);
     const includeEmpty = firstParam(searchParams.includeEmpty);
+    const size = firstParam(searchParams.size);
+    // The URL page param is 1-based (PagedControls), getSearchedPodcasts is 0-based.
+    const currentPage = Math.max(1, Number(firstParam(searchParams.page)) || 1);
+    const page = String(currentPage - 1);
     const profileId = session?.profile?.id;
-    const cacheKey = JSON.stringify({ q, sort, includeEmpty, profileId });
+    const cacheKey = JSON.stringify({
+        q,
+        sort,
+        includeEmpty,
+        profileId,
+        page,
+        size,
+    });
     const getCached = unstable_cache(
-        async () => getSearchedPodcasts({ q, sort, includeEmpty, profileId }),
+        async () =>
+            getSearchedPodcasts({ q, sort, includeEmpty, profileId, page, size }),
         ["podcasts-search-page-data-v3", cacheKey],
         {
             revalidate: CACHE.search,
@@ -76,10 +88,7 @@ export default async function PodcastsPage(props: PodcastsPageProps) {
                 filterData={filters}
             />
             <Suspense>
-                <PodcastSearchClient
-                    initialData={data}
-                    initialTotal={total}
-                />
+                <PodcastSearchClient data={data} total={total} />
             </Suspense>
         </>
     );
