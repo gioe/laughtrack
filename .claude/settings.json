@@ -1,5 +1,8 @@
 {
   "permissions": {
+    "additionalDirectories": [
+      "/Users/mattgioe/.tusk/worktrees/laughtrack"
+    ],
     "allow": [
       "Bash(git diff:*)",
       "Bash(git remote:*)",
