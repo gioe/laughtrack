@@ -92,6 +92,7 @@
 		6345F1EA9EAEA2507D01175F /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 427388AED0335B0C7AC80040 /* AuthManager.swift */; };
 		6377EC201CBBF6EB676926B7 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A8E6CBF78B8826E53BA50BFF /* PrivacyInfo.xcprivacy */; };
 		66513EAB557802277ACF3E78 /* SoftPushPromptCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBE512D16DCA065F42F4D755 /* SoftPushPromptCoordinatorTests.swift */; };
+		67C5E1EF2908C6CEFABC1691 /* MarqueeHeroLetterboxTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2C7FA012A0D0A87051A85B0 /* MarqueeHeroLetterboxTests.swift */; };
 		69B7A099BA643750CFE54512 /* EntityDataFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A9A2BE7EB1ACA27F65E10C5 /* EntityDataFlowTests.swift */; };
 		6ABEE832F9DD11A82D34B73C /* SearchRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22E3FEC26FAACA575C943CBF /* SearchRootView.swift */; };
 		6E26430B88F35A8B1BB17F31 /* ProfileViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF110C4D6F9495746B88F926 /* ProfileViewTests.swift */; };
@@ -159,7 +160,6 @@
 		AB486FE01B540C9BB81E1410 /* PersistentMainPageCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 039D68E0AF3A931C7C2455F6 /* PersistentMainPageCache.swift */; };
 		ABDEA32E11841DE7E6497603 /* DiscoveryCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = C64E7D37B825D2EB605C8EB2 /* DiscoveryCard.swift */; };
 		AC32C21C506F3FC4D3F24D7F /* PodcastDetailViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F13D45B524D9F3E3A29C75C /* PodcastDetailViewTests.swift */; };
-		FAB0C0DE0000000000000002 /* PodcastFavoriteStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAB0C0DE0000000000000001 /* PodcastFavoriteStoreTests.swift */; };
 		ACB625DE407CD851AAC711F3 /* ComedianRowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 822BF17F198A98B4106613C1 /* ComedianRowTests.swift */; };
 		AD5A4B33897A9BDF49530E6F /* APIClient in Frameworks */ = {isa = PBXBuildFile; productRef = 362B635800535696613C37C8 /* APIClient */; };
 		ADFA9E4F6B385378DA3B9C17 /* DetailLoadingSkeleton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C5B02BA69766ED2849455A9 /* DetailLoadingSkeleton.swift */; };
@@ -179,7 +179,6 @@
 		C385816EB40B0E60FD8350AD /* HTTPTypes in Frameworks */ = {isa = PBXBuildFile; productRef = F840714F147704B940EFAC06 /* HTTPTypes */; };
 		C4D575BB4C744D954DBDE5C6 /* PushDeviceTokenManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E115819A3E8E7A9D194E204 /* PushDeviceTokenManager.swift */; };
 		C6716683C773C258B4689242 /* MainPageCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64FD81FFE1F92583390A721E /* MainPageCacheTests.swift */; };
-		2811A1B1F50C0A6E0FE03F01 /* MarqueeHeroLetterboxTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2811A1B0F50C0A6E0FE03F00 /* MarqueeHeroLetterboxTests.swift */; };
 		C6BDC552CA2E02C18B2C5F2E /* ShowDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F507D3C7B4E507D8FA307075 /* ShowDetailView.swift */; };
 		C6FB9B34A0F4D1A23A580E19 /* LaughTrackAPIClient.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = DE90DE11FF14510C06890AB7 /* LaughTrackAPIClient.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		C843E624627FED8F6B6195FC /* LaughTrackBridge.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20552640F544D4395DE585B7 /* LaughTrackBridge.framework */; };
@@ -216,6 +215,7 @@
 		E93AC12CEAD43C483B38B4F5 /* LoginModalPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05DDCB75107CBE67C0FD9CEB /* LoginModalPresenter.swift */; };
 		EC250092710CB355D3BF3A08 /* NearbyPreferenceStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F7744758B0F2196DFF05F32 /* NearbyPreferenceStoreTests.swift */; };
 		EC2616E7697A9933371331FE /* FirebaseAnalyticsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5D7ED3DC56ACA59D33F3645 /* FirebaseAnalyticsProvider.swift */; };
+		ED015256507320354154752E /* PodcastFavoriteStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5D2206C94967F8A0FCA7906 /* PodcastFavoriteStoreTests.swift */; };
 		EE218D2A45B07D5449EC7E61 /* DetailModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1384478A2C1BDEDDA8C64200 /* DetailModels.swift */; };
 		F07B8BFA93C29AAB9929748A /* LaughTrackComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = F97636A6D9A525F2A93EEBBD /* LaughTrackComponents.swift */; };
 		F2F81216C8A86112F5D53B3D /* AuthManagerSignOutIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD9FBF9E6CD8A67F17A979D0 /* AuthManagerSignOutIntegrationTests.swift */; };
@@ -420,7 +420,6 @@
 		62A614797CE26BEE8EE86818 /* SocialLinkSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocialLinkSection.swift; sourceTree = "<group>"; };
 		63EDE38E061B529E52A38C3F /* DetailHeroLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailHeroLayoutTests.swift; sourceTree = "<group>"; };
 		64FD81FFE1F92583390A721E /* MainPageCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainPageCacheTests.swift; sourceTree = "<group>"; };
-		2811A1B0F50C0A6E0FE03F00 /* MarqueeHeroLetterboxTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarqueeHeroLetterboxTests.swift; sourceTree = "<group>"; };
 		65D2E66D33F5650FDBC687BD /* LaughTrackAPIConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackAPIConfiguration.swift; sourceTree = "<group>"; };
 		6740344931ABD2D8276582D0 /* PodcastTonightNearYouCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastTonightNearYouCard.swift; sourceTree = "<group>"; };
 		69FADA6CF6C175F11DC3FF04 /* PushPermissionPromptCadence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushPermissionPromptCadence.swift; sourceTree = "<group>"; };
@@ -448,7 +447,6 @@
 		8E0F869A9A6680470A122B0B /* AuthLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthLoadingView.swift; sourceTree = "<group>"; };
 		8EA13D0C5CA2F5439E19E122 /* LaughTrackCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LaughTrackCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		8F13D45B524D9F3E3A29C75C /* PodcastDetailViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastDetailViewTests.swift; sourceTree = "<group>"; };
-		FAB0C0DE0000000000000001 /* PodcastFavoriteStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastFavoriteStoreTests.swift; sourceTree = "<group>"; };
 		90B6537DBFBB91D1848405D7 /* SearchRootViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchRootViewTests.swift; sourceTree = "<group>"; };
 		9170739BCDBB962D8D115F8B /* StubClientTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StubClientTransport.swift; sourceTree = "<group>"; };
 		92337F6B1144FEF54810C74C /* UnauthorizedResponseMiddleware.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnauthorizedResponseMiddleware.swift; sourceTree = "<group>"; };
@@ -512,6 +510,7 @@
 		DFD6F86573233BBC5DAFD03B /* Types.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Types.swift; sourceTree = "<group>"; };
 		E27D8B351C495E6EB3CBA696 /* Gilroy-Light.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Gilroy-Light.ttf"; sourceTree = "<group>"; };
 		E34F7E79132A5EA5AA3552B4 /* AppTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTab.swift; sourceTree = "<group>"; };
+		E5D2206C94967F8A0FCA7906 /* PodcastFavoriteStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastFavoriteStoreTests.swift; sourceTree = "<group>"; };
 		E6B2075FA65F8D0AEAF5531A /* URLHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLHelpers.swift; sourceTree = "<group>"; };
 		E72E7220A41EC66002D83923 /* NowPlayingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingView.swift; sourceTree = "<group>"; };
 		E7E9ADC24243532EC17C6E17 /* ClubRowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClubRowTests.swift; sourceTree = "<group>"; };
@@ -526,6 +525,7 @@
 		EEB123B3A5E6AEA324B240A1 /* MiddlewareIntegrationTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiddlewareIntegrationTestSupport.swift; sourceTree = "<group>"; };
 		F1FCFA6135148D9C41CD49A8 /* SearchFieldInputBehavior.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchFieldInputBehavior.swift; sourceTree = "<group>"; };
 		F2A090D0A39069956E88CB02 /* HostedViewTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostedViewTestSupport.swift; sourceTree = "<group>"; };
+		F2C7FA012A0D0A87051A85B0 /* MarqueeHeroLetterboxTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarqueeHeroLetterboxTests.swift; sourceTree = "<group>"; };
 		F507D3C7B4E507D8FA307075 /* ShowDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShowDetailView.swift; sourceTree = "<group>"; };
 		F68855886251A28240961B91 /* PodcastPlayback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastPlayback.swift; sourceTree = "<group>"; };
 		F6C46BD00ADB099FBA8460B7 /* ShowsListModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShowsListModel.swift; sourceTree = "<group>"; };
@@ -659,7 +659,7 @@
 				7436912FD34C53C36498E5EF /* LibraryFavoritesViewTests.swift */,
 				9DCCCE4F2A5D080DC2574451 /* LibraryViewTests.swift */,
 				64FD81FFE1F92583390A721E /* MainPageCacheTests.swift */,
-				2811A1B0F50C0A6E0FE03F00 /* MarqueeHeroLetterboxTests.swift */,
+				F2C7FA012A0D0A87051A85B0 /* MarqueeHeroLetterboxTests.swift */,
 				EEB123B3A5E6AEA324B240A1 /* MiddlewareIntegrationTestSupport.swift */,
 				B2537988FDEE64029B75C0C6 /* MonthCalendarViewTests.swift */,
 				C2BF672FCBD4D1FC71AC695A /* NearbyLocationControllerTests.swift */,
@@ -667,7 +667,7 @@
 				008683977BC9D75F1F750482 /* NotificationPreferenceStoreTests.swift */,
 				15A4C4CDF0A65612934098BF /* OnboardingTests.swift */,
 				8F13D45B524D9F3E3A29C75C /* PodcastDetailViewTests.swift */,
-				FAB0C0DE0000000000000001 /* PodcastFavoriteStoreTests.swift */,
+				E5D2206C94967F8A0FCA7906 /* PodcastFavoriteStoreTests.swift */,
 				AF110C4D6F9495746B88F926 /* ProfileViewTests.swift */,
 				D6B5183BF82B4315C125512B /* PushPermissionPromptCadenceTests.swift */,
 				F8028E5CE6757E7382895D1F /* PushPermissionStateStoreTests.swift */,
@@ -1446,7 +1446,7 @@
 				497B1B88853BE206736ADEFC /* LibraryFavoritesViewTests.swift in Sources */,
 				50B7B8939830138B1D3D7FDF /* LibraryViewTests.swift in Sources */,
 				C6716683C773C258B4689242 /* MainPageCacheTests.swift in Sources */,
-				2811A1B1F50C0A6E0FE03F01 /* MarqueeHeroLetterboxTests.swift in Sources */,
+				67C5E1EF2908C6CEFABC1691 /* MarqueeHeroLetterboxTests.swift in Sources */,
 				FDB334A4E9D26AA5BB986002 /* MiddlewareIntegrationTestSupport.swift in Sources */,
 				BBD55C6563601DE4850554F5 /* MonthCalendarViewTests.swift in Sources */,
 				87A52A26C28E621FFF07B848 /* NearbyLocationControllerTests.swift in Sources */,
@@ -1454,7 +1454,7 @@
 				9B927C16B4B51ABF7EA9ED87 /* NotificationPreferenceStoreTests.swift in Sources */,
 				D3F21EAB1809543C8A52B948 /* OnboardingTests.swift in Sources */,
 				AC32C21C506F3FC4D3F24D7F /* PodcastDetailViewTests.swift in Sources */,
-				FAB0C0DE0000000000000002 /* PodcastFavoriteStoreTests.swift in Sources */,
+				ED015256507320354154752E /* PodcastFavoriteStoreTests.swift in Sources */,
 				6E26430B88F35A8B1BB17F31 /* ProfileViewTests.swift in Sources */,
 				1F3762B55535AF3F76F3B19E /* PushPermissionPromptCadenceTests.swift in Sources */,
 				527B0FC890A60821C39FDFE8 /* PushPermissionStateStoreTests.swift in Sources */,
@@ -1562,7 +1562,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.5.2;
+				MARKETING_VERSION = 2.5.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.laughtrack.apiclient;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1578,7 +1578,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Sources/LaughTrackApp/LaughTrack.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 23;
+				CURRENT_PROJECT_VERSION = 24;
 				DEVELOPMENT_TEAM = 4HDNC3V5Q6;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Sources/LaughTrackApp/Info.plist;
@@ -1586,7 +1586,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.5.2;
+				MARKETING_VERSION = 2.5.3;
 				PRODUCT_BUNDLE_IDENTIFIER = app.laughtrack.ios;
 				PRODUCT_MODULE_NAME = LaughTrackApp;
 				SDKROOT = iphoneos;
@@ -1610,7 +1610,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.5.2;
+				MARKETING_VERSION = 2.5.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.laughtrack.apiclient;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1629,7 +1629,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.5.2;
+				MARKETING_VERSION = 2.5.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.laughtrack.tests;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1647,7 +1647,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.5.2;
+				MARKETING_VERSION = 2.5.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.laughtrack.uitests;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1670,7 +1670,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.5.2;
+				MARKETING_VERSION = 2.5.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.laughtrack.core;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1689,7 +1689,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.5.2;
+				MARKETING_VERSION = 2.5.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.laughtrack.tests;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1704,7 +1704,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Sources/LaughTrackApp/LaughTrack.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 23;
+				CURRENT_PROJECT_VERSION = 24;
 				DEVELOPMENT_TEAM = 4HDNC3V5Q6;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Sources/LaughTrackApp/Info.plist;
@@ -1712,7 +1712,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.5.2;
+				MARKETING_VERSION = 2.5.3;
 				PRODUCT_BUNDLE_IDENTIFIER = app.laughtrack.ios;
 				PRODUCT_MODULE_NAME = LaughTrackApp;
 				SDKROOT = iphoneos;
@@ -1736,7 +1736,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.5.2;
+				MARKETING_VERSION = 2.5.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.laughtrack.core;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1760,7 +1760,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.5.2;
+				MARKETING_VERSION = 2.5.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.laughtrack.bridge;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1779,7 +1779,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.5.2;
+				MARKETING_VERSION = 2.5.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.laughtrack.uitests;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1802,7 +1802,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.5.2;
+				MARKETING_VERSION = 2.5.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.laughtrack.bridge;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
