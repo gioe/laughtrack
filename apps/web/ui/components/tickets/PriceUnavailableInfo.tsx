@@ -5,7 +5,7 @@ import { Info } from "lucide-react";
 import { Modal } from "@/ui/components/modals/basic";
 
 export const PRICE_UNAVAILABLE_COPY =
-    "The venue has not made this ticket price available yet. Use Get Tickets to check current pricing on the venue's ticketing page.";
+    "The venue has not made this ticket price available yet. Use the ticket link to check current pricing on the venue's ticketing page.";
 
 interface PriceUnavailableInfoProps {
     className?: string;
