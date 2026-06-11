@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import ComedianGridCard from "../../cards/comedian";
-import { useMotionProps } from "@/hooks/useMotionProps";
+import { useMotionProps, MOTION_SPRINGS } from "@/hooks/useMotionProps";
 
 interface ComedianGridProps {
     comedians: ComedianDTO[];
@@ -20,7 +20,11 @@ const containerVariants = {
 
 const cardVariants = {
     hidden: { opacity: 0, y: 8 },
-    visible: { opacity: 1, y: 0 },
+    visible: {
+        opacity: 1,
+        y: 0,
+        transition: MOTION_SPRINGS.contentEntrance,
+    },
 };
 
 const ComedianGrid = ({

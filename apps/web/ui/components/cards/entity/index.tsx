@@ -41,11 +41,11 @@ const EntityCard: React.FC<EntityCardProps> = ({
     alreadySeen,
     disableHover,
 }) => {
-    const { mv, mp } = useMotionProps();
+    const { mv, mp, springs } = useMotionProps();
 
     const hoverProps = disableHover
         ? {}
-        : { whileHover: mp({ y: -4, transition: { duration: 0.15 } }) };
+        : { whileHover: mp({ y: -4, transition: springs.tapFeedback }) };
 
     const entryProps =
         animateEntryY != null
@@ -54,7 +54,7 @@ const EntityCard: React.FC<EntityCardProps> = ({
                       ? (false as const)
                       : { opacity: 0, y: mv(animateEntryY) },
                   animate: { opacity: 1, y: 0 },
-                  transition: { duration: mv(0.5), ease: "easeOut" as const },
+                  transition: springs.contentEntrance,
               }
             : {};
 

@@ -55,7 +55,7 @@ const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({
                   })),
               ].sort((a, b) => a.name.localeCompare(b.name))
             : [];
-    const { mv, mt, prefersReducedMotion } = useMotionProps();
+    const { mv, springs, prefersReducedMotion } = useMotionProps();
     const [error, setError] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
     const isFestival = parsedClub.clubType === "festival";
@@ -83,7 +83,7 @@ const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={mt({ duration: 0.4 })}
+                transition={springs.contentEntrance}
                 className="relative w-full h-52 sm:h-64 md:h-80 overflow-hidden rounded-xl"
             >
                 {/* Gradient fallback background */}
@@ -121,7 +121,7 @@ const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({
                         <motion.div
                             initial={{ opacity: 0, y: mv(10) }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={mt({ duration: 0.3 })}
+                            transition={springs.contentEntrance}
                             className="mb-2"
                         >
                             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/90 text-white text-xs font-semibold uppercase tracking-wide">
@@ -133,7 +133,10 @@ const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({
                     <motion.h1
                         initial={{ opacity: 0, y: mv(20) }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={mt({ duration: 0.3, delay: mv(0.1) })}
+                        transition={{
+                            ...springs.contentEntrance,
+                            delay: mv(0.1),
+                        }}
                         className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg mb-1"
                     >
                         {parsedClub.name}
@@ -142,10 +145,10 @@ const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({
                         <motion.p
                             initial={{ opacity: 0, y: mv(10) }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={mt({
-                                duration: 0.3,
+                            transition={{
+                                ...springs.contentEntrance,
                                 delay: mv(0.15),
-                            })}
+                            }}
                             className="text-sm text-white/60 italic mb-1"
                         >
                             Part of the {club.chainName} family
@@ -154,7 +157,10 @@ const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({
                     <motion.div
                         initial={{ opacity: 0, y: mv(10) }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={mt({ duration: 0.3, delay: mv(0.2) })}
+                        transition={{
+                            ...springs.contentEntrance,
+                            delay: mv(0.2),
+                        }}
                         className="flex items-center gap-2 text-white/80"
                     >
                         <MapPin aria-hidden="true" className="w-4 h-4" />
@@ -176,7 +182,7 @@ const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({
                 <motion.p
                     initial={{ opacity: 0, y: mv(10) }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={mt({ duration: 0.3, delay: mv(0.25) })}
+                    transition={{ ...springs.contentEntrance, delay: mv(0.25) }}
                     className="px-6 pt-6 max-w-3xl font-dmSans text-body leading-relaxed text-foreground whitespace-pre-line"
                 >
                     {stripHtmlTags(parsedClub.description)}

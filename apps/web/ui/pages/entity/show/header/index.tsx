@@ -36,7 +36,7 @@ const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({
     show,
     isAdmin = false,
 }) => {
-    const { mt, prefersReducedMotion } = useMotionProps();
+    const { springs, prefersReducedMotion } = useMotionProps();
     const [error, setError] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
     // Re-derive the countdown every minute so future→live→past transitions
@@ -59,7 +59,7 @@ const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={mt({ duration: 0.4 })}
+                transition={springs.contentEntrance}
                 className="relative w-full overflow-hidden rounded-xl bg-surface px-6 py-8 sm:py-10"
             >
                 {/* Radial copper glow behind the poster, the web analogue of the

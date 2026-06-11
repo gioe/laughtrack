@@ -12,7 +12,7 @@ interface UserHeroBannerProps {
 }
 
 const UserHeroBanner = ({ name, email, image }: UserHeroBannerProps) => {
-    const { mv, mt, prefersReducedMotion } = useMotionProps();
+    const { mv, springs, prefersReducedMotion } = useMotionProps();
     const [imageLoaded, setImageLoaded] = useState(false);
     const [imageError, setImageError] = useState(false);
 
@@ -20,7 +20,7 @@ const UserHeroBanner = ({ name, email, image }: UserHeroBannerProps) => {
         <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={mt({ duration: 0.4 })}
+            transition={springs.contentEntrance}
             className="relative w-full h-48 md:h-64 overflow-hidden rounded-xl"
         >
             {/* Gradient fallback background */}
@@ -57,7 +57,7 @@ const UserHeroBanner = ({ name, email, image }: UserHeroBannerProps) => {
                 <motion.h1
                     initial={{ opacity: 0, y: mv(20) }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={mt({ duration: 0.3, delay: mv(0.1) })}
+                    transition={{ ...springs.contentEntrance, delay: mv(0.1) }}
                     className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg font-urbanist-bold"
                 >
                     {name || "Comedy Fan"}
@@ -65,7 +65,7 @@ const UserHeroBanner = ({ name, email, image }: UserHeroBannerProps) => {
                 <motion.p
                     initial={{ opacity: 0, y: mv(10) }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={mt({ duration: 0.3, delay: mv(0.2) })}
+                    transition={{ ...springs.contentEntrance, delay: mv(0.2) }}
                     className="text-white/80"
                 >
                     {email}

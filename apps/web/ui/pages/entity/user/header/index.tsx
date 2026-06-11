@@ -29,7 +29,7 @@ const parseTab = (value: string | null): TabType =>
     VALID_TABS.includes(value as TabType) ? (value as TabType) : "favorites";
 
 const UserDetailHeader = ({ profile }: UserDetailHeaderProps) => {
-    const { mv } = useMotionProps();
+    const { mv, springs } = useMotionProps();
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -67,6 +67,7 @@ const UserDetailHeader = ({ profile }: UserDetailHeaderProps) => {
                             initial={{ opacity: 0, y: mv(20) }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: mv(-20) }}
+                            transition={springs.contentEntrance}
                         >
                             <FavoritesTab />
                         </motion.div>
@@ -78,6 +79,7 @@ const UserDetailHeader = ({ profile }: UserDetailHeaderProps) => {
                             initial={{ opacity: 0, y: mv(20) }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: mv(-20) }}
+                            transition={springs.contentEntrance}
                             className="max-w-2xl"
                         >
                             <NotificationsTab
@@ -98,6 +100,7 @@ const UserDetailHeader = ({ profile }: UserDetailHeaderProps) => {
                             initial={{ opacity: 0, y: mv(20) }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: mv(-20) }}
+                            transition={springs.contentEntrance}
                             className="max-w-2xl"
                         >
                             <AccountSettingsTab

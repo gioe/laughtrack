@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ClubDTO } from "@/objects/class/club/club.interface";
 import ClubSearchCard from "../../cards/club/search";
-import { useMotionProps } from "@/hooks/useMotionProps";
+import { useMotionProps, MOTION_SPRINGS } from "@/hooks/useMotionProps";
 
 interface ClubGridProps {
     clubs: ClubDTO[];
@@ -17,7 +17,11 @@ const containerVariants = {
 
 const cardVariants = {
     hidden: { opacity: 0, y: 8 },
-    visible: { opacity: 1, y: 0 },
+    visible: {
+        opacity: 1,
+        y: 0,
+        transition: MOTION_SPRINGS.contentEntrance,
+    },
 };
 
 const ClubGrid = ({ clubs }: ClubGridProps) => {

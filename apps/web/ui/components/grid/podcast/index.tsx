@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { useMotionProps } from "@/hooks/useMotionProps";
+import { useMotionProps, MOTION_SPRINGS } from "@/hooks/useMotionProps";
 import PodcastSearchCard from "@/ui/components/cards/podcast";
 import type { PodcastDTO } from "@/lib/data/podcast/interface";
 
@@ -17,7 +17,11 @@ const containerVariants = {
 
 const cardVariants = {
     hidden: { opacity: 0, y: 8 },
-    visible: { opacity: 1, y: 0 },
+    visible: {
+        opacity: 1,
+        y: 0,
+        transition: MOTION_SPRINGS.contentEntrance,
+    },
 };
 
 export default function PodcastGrid({ podcasts }: PodcastGridProps) {

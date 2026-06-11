@@ -7,6 +7,7 @@ import { Comedian } from "@/objects/class/comedian/Comedian";
 import { useFavorite } from "@/hooks/useFavorite";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMotionProps } from "@/hooks";
+import { MOTION_TAP_SCALE } from "@/hooks/useMotionProps";
 import Image from "next/image";
 import ComedianAvatarFallback from "@/ui/components/image/comedian/fallback";
 import InstagramIcon from "@/ui/components/icons/InstagramIcon";
@@ -54,7 +55,7 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
     comedian,
     heroPalette,
 }) => {
-    const { mv, mp, mt, prefersReducedMotion } = useMotionProps();
+    const { mv, mp, springs, prefersReducedMotion } = useMotionProps();
     const [error, setError] = useState(false);
     const [showConfetti, setShowConfetti] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
@@ -212,7 +213,7 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: imageLoaded ? 1 : 0 }}
-                    transition={mt({ duration: 0.5 })}
+                    transition={springs.emphasis}
                     className="absolute inset-0 z-0"
                 >
                     <Image
@@ -245,13 +246,19 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={mt({ duration: 0.4 })}
+                transition={springs.contentEntrance}
                 className="relative z-10 max-w-7xl mx-auto min-h-[30rem] md:min-h-[34rem] lg:min-h-[38rem] px-4 sm:px-6 lg:px-8 py-8 sm:py-10 md:py-12 lg:py-14 flex flex-col justify-end"
             >
                 {/* Favorite button — pinned to top-right of the hero */}
                 <motion.div
-                    whileHover={mp({ scale: 1.1 })}
-                    whileTap={mp({ scale: 0.9 })}
+                    whileHover={mp({
+                        scale: 1.1,
+                        transition: springs.tapFeedback,
+                    })}
+                    whileTap={mp({
+                        scale: MOTION_TAP_SCALE,
+                        transition: springs.tapFeedback,
+                    })}
                     className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20"
                 >
                     <button
@@ -289,7 +296,10 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
                     <motion.div
                         initial={{ opacity: 0, y: mv(20) }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={mt({ duration: 0.3, delay: mv(0.05) })}
+                        transition={{
+                            ...springs.contentEntrance,
+                            delay: mv(0.05),
+                        }}
                         className="max-w-4xl"
                     >
                         <h1 className="text-h1 sm:text-display md:text-display lg:text-hero font-chivo font-bold text-white drop-shadow-md leading-tight">
@@ -301,10 +311,10 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
                         <motion.p
                             initial={{ opacity: 0, y: mv(10) }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={mt({
-                                duration: 0.3,
+                            transition={{
+                                ...springs.contentEntrance,
                                 delay: mv(0.1),
-                            })}
+                            }}
                             className="mt-3 text-lead font-dmSans text-white/75 drop-shadow"
                         >
                             {upcomingShowsLabel}
@@ -315,10 +325,10 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
                         <motion.div
                             initial={{ opacity: 0, y: mv(10) }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={mt({
-                                duration: 0.3,
+                            transition={{
+                                ...springs.contentEntrance,
                                 delay: mv(0.15),
-                            })}
+                            }}
                             className="mt-5 flex justify-center md:justify-start lg:justify-start"
                         >
                             <Button
@@ -342,10 +352,10 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
                         <motion.ul
                             initial={{ opacity: 0, y: mv(10) }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={mt({
-                                duration: 0.3,
+                            transition={{
+                                ...springs.contentEntrance,
                                 delay: mv(0.2),
-                            })}
+                            }}
                             className="mt-5 flex flex-wrap justify-center md:justify-start lg:justify-start gap-2"
                         >
                             {socialLinks.map((link) => {
