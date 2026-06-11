@@ -381,12 +381,15 @@ class TicketmasterClient(BaseApiClient):
         return " | ".join(description_parts) if description_parts else ""
 
     def _extract_room_info(self, event_data: JSONDict) -> str:
-        """Extract room/venue information from API data."""
-        venues = event_data.get("_embedded", {}).get("venues", [])
-        if venues:
-            venue = venues[0]
-            # Look for specific room/hall information
-            return venue.get("name", "")
+        """Return the room for a Ticketmaster event — always empty.
+
+        The Discovery API exposes no room/hall field; venues[0].name is the
+        venue (our club), and emitting it as room either duplicates the club
+        name or, when TM spells the venue differently than clubs.name
+        ("Punch Line San Francisco" vs "Punch Line SF"), slips past the
+        handler's room-equals-club-name suppression and pollutes the
+        (club_id, date, room) unique key with duplicate listings.
+        """
         return ""
 
     def _initialize_headers(self) -> dict:

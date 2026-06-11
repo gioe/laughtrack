@@ -178,3 +178,18 @@ def test_extract_ticket_data_null_price_ranges_produces_price_none(client):
 
     assert len(tickets) == 1
     assert tickets[0].price is None, f"Expected price=None, got price={tickets[0].price}"
+
+
+def test_extract_room_info_never_returns_the_tm_venue_name(client):
+    """TASK-2806: the Discovery API exposes no room field; venues[0].name is
+    the venue itself. Emitting it as room duplicates the club name or, when
+    TM spells the venue differently than clubs.name, pollutes the
+    (club_id, date, room) unique key with duplicate listings.
+    """
+    event_data = {
+        "_embedded": {
+            "venues": [{"name": "Punch Line San Francisco"}],
+        }
+    }
+
+    assert client._extract_room_info(event_data) == ""
