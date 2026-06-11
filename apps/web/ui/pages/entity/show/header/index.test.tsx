@@ -132,4 +132,47 @@ describe("ShowDetailHeader", () => {
         // The base show date is in the past relative to the test run.
         expect(screen.getByText(/^Ended .* ago$/)).toBeTruthy();
     });
+
+    it("maps countdown tones to the iOS badge recipes: live → accent, future → highlight, past → neutral", () => {
+        const { unmount: unmountLive } = render(
+            <ShowDetailHeader
+                show={{
+                    ...baseShow,
+                    // 10 minutes ago — inside the live window.
+                    date: new Date(
+                        Date.now() - 10 * 60 * 1000,
+                    ).toISOString() as never as Date,
+                }}
+            />,
+        );
+        const liveBadge = screen.getByText("Happening now");
+        expect(liveBadge.className).toContain("bg-accent-muted/45");
+        expect(liveBadge.className).toContain("text-accent-strong");
+        expect(liveBadge.className).toContain("border-accent-strong/35");
+        expect(liveBadge.className).not.toContain("emerald");
+        expect(liveBadge.className).not.toContain("text-white");
+        unmountLive();
+
+        const { unmount: unmountFuture } = render(
+            <ShowDetailHeader
+                show={{
+                    ...baseShow,
+                    date: new Date(
+                        Date.now() + 24 * 60 * 60 * 1000,
+                    ).toISOString() as never as Date,
+                }}
+            />,
+        );
+        const futureBadge = screen.getByText(/^Show in /);
+        expect(futureBadge.className).toContain("bg-highlight/85");
+        expect(futureBadge.className).toContain("text-foreground");
+        expect(futureBadge.className).toContain("border-strong/50");
+        unmountFuture();
+
+        render(<ShowDetailHeader show={baseShow} />);
+        const pastBadge = screen.getByText(/^Ended .* ago$/);
+        expect(pastBadge.className).toContain("bg-canvas");
+        expect(pastBadge.className).toContain("text-foreground");
+        expect(pastBadge.className).toContain("border-subtle");
+    });
 });
