@@ -143,6 +143,7 @@
   },
   "workflows": [],
   "test_command_timeout_sec": 600,
+  "lint_timeout_sec": 240,
   "baseline_min_sample_size": 10,
   "path_test_commands": {
     "ios/**": "cd ios && xcodebuild build-for-testing -project LaughTrack.xcodeproj -scheme LaughTrack -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO"
