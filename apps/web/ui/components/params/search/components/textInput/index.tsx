@@ -50,7 +50,7 @@ const TextInputComponent = ({
     };
 
     return (
-        <div className="flex items-center gap-2 px-3 py-1.5 border border-gray-300 rounded-lg bg-transparent transition-colors hover:border-gray-400 focus-within:border-gray-400 focus-within:ring-2 focus-within:ring-blue-500 focus-within:outline-none">
+        <div className="flex w-full items-center gap-2 rounded-full border border-strong bg-white/5 px-4 py-2 transition-colors hover:border-copper/60 focus-within:border-copper focus-within:ring-2 focus-within:ring-copper/40 focus-within:outline-none">
             {icon}
             <Input
                 type="text"

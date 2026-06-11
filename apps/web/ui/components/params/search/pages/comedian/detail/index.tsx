@@ -8,7 +8,7 @@ import ShowLocationComponent from "../../../components/area";
 import CalendarComponent from "../../../components/calendar";
 import TextInputComponent from "../../../components/textInput";
 import { useUrlParams } from "@/hooks/useUrlParams";
-import SearchBarLayout, { SearchBarSection } from "../../../components/layout";
+import SearchBarLayout, { SearchChipRow } from "../../../components/layout";
 import { DateRange, DistanceData } from "@/objects/interface";
 
 export default function ComedianDetailSearchBar() {
@@ -49,54 +49,31 @@ export default function ComedianDetailSearchBar() {
 
     return (
         <SearchBarLayout>
-            <SearchBarSection first>
-                <div>
-                    <label
-                        htmlFor="comedian-detail-zip"
-                        className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1 block"
-                    >
-                        Where
-                    </label>
-                    <ShowLocationComponent
-                        variant={ComponentVariant.Standalone}
-                        value={state.distance}
-                        onDistanceSelection={handleDistanceSelection}
-                        onZipcodeInput={handleZipCodeInput}
-                        inputId="comedian-detail-zip"
+            <TextInputComponent
+                icon={
+                    <Theater
+                        className={`w-5 h-5 ${styleConfig.iconTextColor}`}
                     />
-                </div>
-            </SearchBarSection>
-
-            <SearchBarSection>
-                <div>
-                    <p
-                        id="comedian-detail-dates-label"
-                        className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1"
-                    >
-                        When
-                    </p>
-                    <CalendarComponent
-                        variant={ComponentVariant.Standalone}
-                        value={state.dateRange}
-                        onValueChange={handleDateRangeSelection}
-                        inputId="comedian-detail-dates-label"
-                    />
-                </div>
-            </SearchBarSection>
-
-            <SearchBarSection last>
-                <TextInputComponent
-                    icon={
-                        <Theater
-                            className={`w-5 h-5 ${styleConfig.iconTextColor}`}
-                        />
-                    }
-                    placeholder="Search clubs"
-                    value={state.club ?? ""}
-                    onChange={handleClubSearch}
-                    className={styleConfig.inputTextColor}
+                }
+                placeholder="Search clubs"
+                value={state.club ?? ""}
+                onChange={handleClubSearch}
+                className={styleConfig.inputTextColor}
+            />
+            <SearchChipRow ariaLabel="Show search filters">
+                <ShowLocationComponent
+                    variant={ComponentVariant.Standalone}
+                    value={state.distance}
+                    onDistanceSelection={handleDistanceSelection}
+                    onZipcodeInput={handleZipCodeInput}
+                    inputId="comedian-detail-zip"
                 />
-            </SearchBarSection>
+                <CalendarComponent
+                    variant={ComponentVariant.Standalone}
+                    value={state.dateRange}
+                    onValueChange={handleDateRangeSelection}
+                />
+            </SearchChipRow>
         </SearchBarLayout>
     );
 }

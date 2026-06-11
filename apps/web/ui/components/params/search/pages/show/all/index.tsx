@@ -9,13 +9,14 @@ import { getDateRangeFromParams } from "@/util/search/util";
 import CalendarComponent from "../../../components/calendar";
 import TextInputComponent from "../../../components/textInput";
 import ShowLocationComponent from "../../../components/area";
+import DateShortcutChips from "../../../components/dateShortcuts";
 import { useUrlParams } from "@/hooks/useUrlParams";
-import SearchBarLayout, { SearchBarSection } from "../../../components/layout";
+import SearchBarLayout, { SearchChipRow } from "../../../components/layout";
 import { DateRange, DistanceData } from "@/objects/interface";
 
 // Per-entity composers remain separate: each has a distinct filter set
 // (show: location + calendar + comedian; club: location + club; comedian: name only).
-// The structural wrapper is already extracted as SearchBarLayout/SearchBarSection.
+// The structural wrapper is already extracted as SearchBarLayout/SearchChipRow.
 // A shared HOC would add indirection without reducing the per-entity JSX sections.
 //
 // Shows intentionally exposes ONLY a comedian search input, not a club input.
@@ -89,54 +90,30 @@ export default function ShowSearchBar() {
 
     return (
         <SearchBarLayout>
-            <SearchBarSection first>
-                <div>
-                    <label
-                        htmlFor="show-all-zip"
-                        className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1 block"
-                    >
-                        Where
-                    </label>
-                    <ShowLocationComponent
-                        variant={ComponentVariant.Standalone}
-                        value={state.distance}
-                        onDistanceSelection={handleDistanceSelection}
-                        onZipcodeInput={handleZipCodeInput}
-                        inputId="show-all-zip"
-                    />
-                </div>
-            </SearchBarSection>
-
-            <SearchBarSection>
-                <div>
-                    <p
-                        id="show-all-dates-label"
-                        className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1"
-                    >
-                        When
-                    </p>
-                    <CalendarComponent
-                        variant={ComponentVariant.Standalone}
-                        value={state.dateRange}
-                        onValueChange={handleDateRangeSelection}
-                        inputId="show-all-dates-label"
-                    />
-                </div>
-            </SearchBarSection>
-
-            <SearchBarSection last>
-                <TextInputComponent
-                    icon={
-                        <Users
-                            className={`w-5 h-5 ${styleConfig.iconTextColor}`}
-                        />
-                    }
-                    placeholder="Search comedians"
-                    value={state.comedian ?? ""}
-                    onChange={handleComedianSearch}
-                    className={styleConfig.inputTextColor}
+            <TextInputComponent
+                icon={
+                    <Users className={`w-5 h-5 ${styleConfig.iconTextColor}`} />
+                }
+                placeholder="Search comedians"
+                value={state.comedian ?? ""}
+                onChange={handleComedianSearch}
+                className={styleConfig.inputTextColor}
+            />
+            <SearchChipRow ariaLabel="Show search filters">
+                <ShowLocationComponent
+                    variant={ComponentVariant.Standalone}
+                    value={state.distance}
+                    onDistanceSelection={handleDistanceSelection}
+                    onZipcodeInput={handleZipCodeInput}
+                    inputId="show-all-zip"
                 />
-            </SearchBarSection>
+                <CalendarComponent
+                    variant={ComponentVariant.Standalone}
+                    value={state.dateRange}
+                    onValueChange={handleDateRangeSelection}
+                />
+                <DateShortcutChips />
+            </SearchChipRow>
         </SearchBarLayout>
     );
 }

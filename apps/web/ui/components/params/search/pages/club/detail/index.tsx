@@ -7,7 +7,7 @@ import { useStyleContext } from "@/contexts/StyleProvider";
 import { ComponentVariant, QueryProperty } from "@/objects/enum";
 import { getDateRangeFromParams } from "@/util/search/util";
 import { useUrlParams } from "@/hooks/useUrlParams";
-import SearchBarLayout, { SearchBarSection } from "../../../components/layout";
+import SearchBarLayout, { SearchChipRow } from "../../../components/layout";
 import { DateRange } from "@/objects/interface";
 
 export default function ClubDetailSearchBar() {
@@ -25,8 +25,6 @@ export default function ClubDetailSearchBar() {
         }),
     };
 
-    // Combined state management
-
     const handleComedianSearch = (value: string) =>
         setTypedParam(QueryProperty.Comedian, value);
 
@@ -39,36 +37,22 @@ export default function ClubDetailSearchBar() {
 
     return (
         <SearchBarLayout>
-            <SearchBarSection first>
-                <div>
-                    <p
-                        id="club-detail-dates-label"
-                        className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1"
-                    >
-                        When
-                    </p>
-                    <CalendarComponent
-                        variant={ComponentVariant.Standalone}
-                        value={state.dateRange}
-                        onValueChange={handleDateRangeSelection}
-                        inputId="club-detail-dates-label"
-                    />
-                </div>
-            </SearchBarSection>
-
-            <SearchBarSection last>
-                <TextInputComponent
-                    icon={
-                        <Users
-                            className={`w-5 h-5 ${styleConfig.iconTextColor}`}
-                        />
-                    }
-                    placeholder="Search comedians"
-                    value={state.comedian ?? ""}
-                    onChange={handleComedianSearch}
-                    className={styleConfig.inputTextColor}
+            <TextInputComponent
+                icon={
+                    <Users className={`w-5 h-5 ${styleConfig.iconTextColor}`} />
+                }
+                placeholder="Search comedians"
+                value={state.comedian ?? ""}
+                onChange={handleComedianSearch}
+                className={styleConfig.inputTextColor}
+            />
+            <SearchChipRow ariaLabel="Show search filters">
+                <CalendarComponent
+                    variant={ComponentVariant.Standalone}
+                    value={state.dateRange}
+                    onValueChange={handleDateRangeSelection}
                 />
-            </SearchBarSection>
+            </SearchChipRow>
         </SearchBarLayout>
     );
 }

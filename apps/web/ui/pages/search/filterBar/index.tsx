@@ -21,7 +21,6 @@ import {
     searchFilterChipClassName,
     searchFilterChipCompactClassName,
 } from "@/ui/components/params/search/filterChipStyles";
-import DateShortcutChips from "./DateShortcutChips";
 
 // Variants that use infinite scroll — no pagination controls needed
 const INFINITE_SCROLL_VARIANTS = new Set([
@@ -78,7 +77,6 @@ const FilterBar = ({
     const { getTypedParam, setTypedParam } = useUrlParams();
     const isClubSearch = variant === SearchVariant.AllClubs;
     const isComedianSearch = variant === SearchVariant.AllComedians;
-    const isShowSearch = variant === SearchVariant.AllShows;
     const isPodcastSearch = variant === SearchVariant.AllPodcasts;
     const includeEmptyApplies =
         isClubSearch || isComedianSearch || isPodcastSearch;
@@ -127,15 +125,9 @@ const FilterBar = ({
                 role="search"
                 aria-label="Search and filter results"
             >
-                {/* Date shortcut row — Shows only. Surfaces Tonight/This
-                    Weekend/This Week as one-tap chips so users don't have to
-                    open the WHEN calendar for the common cases (mirrors iOS
-                    Search's selectedShortcut row). */}
-                {isShowSearch && (
-                    <div className="mb-3">
-                        <DateShortcutChips />
-                    </div>
-                )}
+                {/* Date shortcuts (Tonight/This Weekend/This Week) live inside
+                    ShowSearchBar's chip row now, alongside location and the
+                    calendar pill (mirrors iOS Search's chip row). */}
                 <div className="flex flex-col lg:flex-row lg:items-center gap-3">
                     {/* Search input — full-width until lg; flex-1 above so tablet keeps the input full-width instead of getting squeezed by the controls cluster */}
                     <div className="min-w-0 lg:flex-1">

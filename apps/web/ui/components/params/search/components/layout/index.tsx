@@ -5,48 +5,37 @@ interface SearchBarLayoutProps {
     maxWidth?: string;
 }
 
-interface SearchBarSectionProps {
+interface SearchChipRowProps {
     children: ReactNode;
-    first?: boolean;
-    last?: boolean;
+    ariaLabel: string;
 }
 
-export function SearchBarSection({
-    children,
-    first,
-    last,
-}: SearchBarSectionProps) {
-    const both = first && last;
-    const padding = both
-        ? ""
-        : first
-          ? "lg:pr-6"
-          : last
-            ? "lg:pl-6"
-            : "lg:pl-6 lg:pr-6";
-    const margin = last ? "" : "mb-6 lg:mb-0";
+// Horizontal pill-chip row rendered under the search field — the web analogue
+// of iOS's chip row (LaughTrackChipPicker / ChipFlowLayout). Wraps at narrow
+// widths so chips reflow instead of truncating.
+export function SearchChipRow({ children, ariaLabel }: SearchChipRowProps) {
     return (
         <div
-            className={["w-full lg:w-auto", margin, padding]
-                .filter(Boolean)
-                .join(" ")}
+            className="flex flex-wrap items-center gap-2"
+            role="group"
+            aria-label={ariaLabel}
         >
             {children}
         </div>
     );
 }
 
+// Unboxed vertical stack: pill search field on top, chip row below — mirrors
+// iOS's LaughTrackSearchField + chip row composition. The boxed WHERE/WHEN
+// panel this replaced (border + shadow + section dividers) is intentionally
+// gone; location and date controls live in the chip row instead.
 export default function SearchBarLayout({
     children,
     maxWidth = "max-w-7xl",
 }: SearchBarLayoutProps) {
     return (
-        <div
-            className={`w-full mx-auto ${maxWidth} flex flex-col p-3 md:p-4 rounded-2xl transition-all duration-200 shadow-md hover:shadow-lg backdrop-blur-sm bg-white/5 border border-white/10`}
-        >
-            <div className="flex flex-col lg:flex-row items-center lg:divide-x divide-white/10">
-                {children}
-            </div>
+        <div className={`w-full mx-auto ${maxWidth} flex flex-col gap-3`}>
+            {children}
         </div>
     );
 }

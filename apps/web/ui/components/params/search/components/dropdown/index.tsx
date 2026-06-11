@@ -14,6 +14,7 @@ interface BaseDropdownProps {
     placeholder?: string;
     items: Selectable[];
     contentId?: string;
+    triggerClassName?: string;
 }
 
 // Props for the form variant
@@ -53,6 +54,7 @@ export function DropdownComponent<TFieldValues extends FieldValues>(
                                 onChange={field.onChange}
                                 items={props.items}
                                 contentId={props.contentId}
+                                triggerClassName={props.triggerClassName}
                             />
                         </FormControl>
                         <FormMessage />
@@ -69,6 +71,7 @@ export function DropdownComponent<TFieldValues extends FieldValues>(
             onChange={props.onChange}
             items={props.items}
             contentId={props.contentId}
+            triggerClassName={props.triggerClassName}
         />
     );
 }

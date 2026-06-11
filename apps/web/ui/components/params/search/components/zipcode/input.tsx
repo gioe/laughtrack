@@ -51,8 +51,15 @@ const ZipCodeInput = <TFieldValues extends FieldValues>(
         tracking-normal
         bg-transparent`;
 
+    // Standalone renders as a chip-row pill (iOS LaughTrackChipPicker pattern);
+    // Form keeps the boxed-input look used by the home hero search form.
+    const wrapperClassName =
+        props.variant === ComponentVariant.Standalone
+            ? "flex h-9 items-center rounded-full border border-strong bg-white/5 px-3 transition-colors hover:border-copper/60 focus-within:border-copper focus-within:ring-2 focus-within:ring-copper/40 focus-within:outline-none"
+            : "flex items-center px-3 py-1.5 border border-strong rounded-lg bg-transparent transition-colors hover:border-copper/60 focus-within:border-copper focus-within:ring-2 focus-within:ring-copper/40 focus-within:outline-none";
+
     const renderInput = (value: string, onChange: (value: string) => void) => (
-        <div className="flex items-center px-3 py-1.5 border border-strong rounded-lg bg-transparent transition-colors hover:border-copper/60 focus-within:border-copper focus-within:ring-2 focus-within:ring-copper/40 focus-within:outline-none">
+        <div className={wrapperClassName}>
             <Input
                 type="text"
                 maxLength={60}
@@ -60,6 +67,7 @@ const ZipCodeInput = <TFieldValues extends FieldValues>(
                 value={value}
                 onChange={handleInputChange(onChange)}
                 placeholder={props.placeholder}
+                aria-label={props.placeholder}
                 className={inputClassName}
                 disabled={props.disabled}
             />

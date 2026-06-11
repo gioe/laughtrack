@@ -3,7 +3,7 @@
 import { Podcast } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useStyleContext } from "@/contexts/StyleProvider";
-import SearchBarLayout, { SearchBarSection } from "../../../components/layout";
+import SearchBarLayout from "../../../components/layout";
 import TextInputComponent from "../../../components/textInput";
 
 export default function PodcastSearchBar() {
@@ -28,20 +28,18 @@ export default function PodcastSearchBar() {
 
     return (
         <SearchBarLayout>
-            <SearchBarSection first last>
-                <TextInputComponent
-                    icon={
-                        <Podcast
-                            className={`w-5 h-5 ${styleConfig.iconTextColor}`}
-                        />
-                    }
-                    placeholder="Search podcasts or hosts"
-                    value={query}
-                    onChange={handlePodcastSearch}
-                    className={styleConfig.inputTextColor}
-                    ariaLabel="Search podcasts"
-                />
-            </SearchBarSection>
+            <TextInputComponent
+                icon={
+                    <Podcast
+                        className={`w-5 h-5 ${styleConfig.iconTextColor}`}
+                    />
+                }
+                placeholder="Search podcasts or hosts"
+                value={query}
+                onChange={handlePodcastSearch}
+                className={styleConfig.inputTextColor}
+                ariaLabel="Search podcasts"
+            />
         </SearchBarLayout>
     );
 }

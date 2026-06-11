@@ -96,10 +96,10 @@ export default function DateShortcutChips() {
                         type="button"
                         onClick={() => apply(s.from, s.to, isActive)}
                         aria-pressed={isActive}
-                        className={`rounded-full px-3 py-1.5 font-dmSans text-xs font-semibold transition ${
+                        className={`inline-flex h-9 items-center rounded-full px-3 font-dmSans text-sm font-semibold shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-copper ${
                             isActive
-                                ? "bg-copper text-white"
-                                : "bg-white/5 text-copper border border-copper/20 hover:bg-copper/10"
+                                ? "border border-copper bg-copper text-white"
+                                : "border border-copper/20 bg-white/5 text-copper hover:bg-copper/10"
                         }`}
                     >
                         {s.label}

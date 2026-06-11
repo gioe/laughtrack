@@ -5,7 +5,7 @@ import { Users } from "lucide-react";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import { QueryProperty } from "@/objects/enum";
 import { useUrlParams } from "@/hooks/useUrlParams";
-import SearchBarLayout, { SearchBarSection } from "../../../components/layout";
+import SearchBarLayout from "../../../components/layout";
 
 // Per-entity composers remain separate: each has a distinct filter set
 // (show: location + calendar + comedian + club; club: location + club; comedian: name only).
@@ -24,18 +24,14 @@ export default function ComedianSearchBar() {
         setTypedParam(QueryProperty.Comedian, value);
     return (
         <SearchBarLayout>
-            <SearchBarSection first last>
-                <TextInputComponent
-                    icon={
-                        <Users
-                            className={`w-5 h-5 ${styleConfig.iconTextColor}`}
-                        />
-                    }
-                    placeholder="Search comedians"
-                    value={state.comedian ?? ""}
-                    onChange={handleComedianSearch}
-                />
-            </SearchBarSection>
+            <TextInputComponent
+                icon={
+                    <Users className={`w-5 h-5 ${styleConfig.iconTextColor}`} />
+                }
+                placeholder="Search comedians"
+                value={state.comedian ?? ""}
+                onChange={handleComedianSearch}
+            />
         </SearchBarLayout>
     );
 }

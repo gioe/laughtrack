@@ -1,5 +1,10 @@
 import React from "react";
-import { FieldPath, FieldValues, FormState, UseFormReturn } from "react-hook-form";
+import {
+    FieldPath,
+    FieldValues,
+    FormState,
+    UseFormReturn,
+} from "react-hook-form";
 import { CalendarDisplay } from "./display";
 import { ComponentVariant } from "@/objects/enum";
 import { FormControl, FormField, FormItem } from "@/ui/components/ui/form";
@@ -71,11 +76,14 @@ const CalendarComponent = <TFieldValues extends FieldValues>(
         );
     }
 
+    // Standalone hosts are chip rows (search pages, filter modal) — render the
+    // trigger as a pill. The Form variant (home hero) keeps the plain trigger.
     return (
         <CalendarDisplay
             selectedRange={props.value ?? { from: undefined, to: undefined }}
             onSelect={props.onValueChange}
             ariaLabelledBy={props.inputId}
+            pill
         />
     );
 };

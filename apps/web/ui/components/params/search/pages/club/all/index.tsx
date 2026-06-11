@@ -4,14 +4,14 @@ import { Theater } from "lucide-react";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import { ComponentVariant, QueryProperty } from "@/objects/enum";
 import { useUrlParams } from "@/hooks/useUrlParams";
-import SearchBarLayout, { SearchBarSection } from "../../../components/layout";
+import SearchBarLayout, { SearchChipRow } from "../../../components/layout";
 import ShowLocationComponent from "../../../components/area";
 import TextInputComponent from "../../../components/textInput";
 import { DistanceData } from "@/objects/interface";
 
 // Per-entity composers remain separate: each has a distinct filter set
 // (show: location + calendar + comedian + club; club: location + club; comedian: name only).
-// The structural wrapper is already extracted as SearchBarLayout/SearchBarSection.
+// The structural wrapper is already extracted as SearchBarLayout/SearchChipRow.
 // A shared HOC would add indirection without reducing the per-entity JSX sections.
 export default function ClubSearchBar() {
     const { getCurrentStyles } = useStyleContext();
@@ -37,38 +37,27 @@ export default function ClubSearchBar() {
 
     return (
         <SearchBarLayout>
-            <SearchBarSection first>
-                <div>
-                    <label
-                        htmlFor="club-all-zip"
-                        className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1 block"
-                    >
-                        Where
-                    </label>
-                    <ShowLocationComponent
-                        variant={ComponentVariant.Standalone}
-                        value={state.distance}
-                        onDistanceSelection={handleDistanceSelection}
-                        onZipcodeInput={handleZipCodeInput}
-                        inputId="club-all-zip"
-                        dropdownId="club-all-distance-listbox"
+            <TextInputComponent
+                icon={
+                    <Theater
+                        className={`w-5 h-5 ${styleConfig.iconTextColor}`}
                     />
-                </div>
-            </SearchBarSection>
-
-            <SearchBarSection last>
-                <TextInputComponent
-                    icon={
-                        <Theater
-                            className={`w-5 h-5 ${styleConfig.iconTextColor}`}
-                        />
-                    }
-                    placeholder="Search clubs"
-                    value={state.club ?? ""}
-                    onChange={handleClubSearch}
-                    className={styleConfig.inputTextColor}
+                }
+                placeholder="Search clubs"
+                value={state.club ?? ""}
+                onChange={handleClubSearch}
+                className={styleConfig.inputTextColor}
+            />
+            <SearchChipRow ariaLabel="Club search filters">
+                <ShowLocationComponent
+                    variant={ComponentVariant.Standalone}
+                    value={state.distance}
+                    onDistanceSelection={handleDistanceSelection}
+                    onZipcodeInput={handleZipCodeInput}
+                    inputId="club-all-zip"
+                    dropdownId="club-all-distance-listbox"
                 />
-            </SearchBarSection>
+            </SearchChipRow>
         </SearchBarLayout>
     );
 }

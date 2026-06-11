@@ -7,6 +7,7 @@ import {
 } from "../../../../../ui/select";
 import { Selectable } from "@/objects/interface";
 import { useStyleContext } from "@/contexts/StyleProvider";
+import { cn } from "@/util/tailwindUtil";
 
 // Props for the standalone variant
 interface DropdownDisplayProps {
@@ -18,6 +19,9 @@ interface DropdownDisplayProps {
     // Radix's internal useId which can drift across SSR/hydration. Callers
     // must ensure uniqueness when multiple instances render on the same page.
     contentId?: string;
+    // Appended to the SelectTrigger classes (twMerge resolves conflicts) so a
+    // host pill can strip the trigger's own border/background.
+    triggerClassName?: string;
 }
 
 export function DropdownDisplay(props: DropdownDisplayProps) {
@@ -28,7 +32,10 @@ export function DropdownDisplay(props: DropdownDisplayProps) {
         <div className="flex items-center">
             <Select onValueChange={props.onChange} value={props.value}>
                 <SelectTrigger
-                    className={`text-lead ${styleConfig.inputTextColor} font-dmSans h-9 border-white/15 shadow-none hover:border-white/30 focus:border-copper focus-visible:ring-copper`}
+                    className={cn(
+                        `text-lead ${styleConfig.inputTextColor} font-dmSans h-9 border-white/15 shadow-none hover:border-white/30 focus:border-copper focus-visible:ring-copper`,
+                        props.triggerClassName,
+                    )}
                     {...(props.contentId
                         ? { "aria-controls": props.contentId }
                         : {})}
