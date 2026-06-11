@@ -1,8 +1,10 @@
 import CoreText
 import Foundation
 import Testing
-import UIKit
 import LaughTrackBridge
+#if canImport(UIKit)
+import UIKit
+#endif
 
 @Suite("LaughTrackTheme")
 struct LaughTrackThemeTests {
@@ -36,6 +38,11 @@ struct LaughTrackThemeTests {
         #expect(theme.laughTrackTokens.browseDensity.heroPadding == theme.laughTrack.browseDensity.heroPadding)
     }
 
+    // UIFont(name:size:) is the iOS-authentic resolution check, so the font
+    // guard only compiles where UIKit exists (test_sim / Xcode test plan).
+    // The host-side `swift build --build-tests` CI step builds this file
+    // without it — same canImport(UIKit) pattern as AppShellViewTests etc.
+    #if canImport(UIKit)
     @Test("theme custom font tokens resolve to bundled font PostScript names")
     func themeCustomFontTokensResolveToBundledFonts() throws {
         let iosRoot = URL(fileURLWithPath: #filePath)
@@ -88,6 +95,7 @@ struct LaughTrackThemeTests {
 
         return postScriptNames
     }
+    #endif
 
     private func postScriptName(for fontURL: URL) throws -> String {
         guard
