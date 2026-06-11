@@ -4,6 +4,10 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { useMotionProps } from "@/hooks";
 
+// Deliberate divergence from the shared MOTION_SPRINGS curves (convention #152):
+// this sidebar is a one-time cinematic reveal on a marketing-style surface, so it
+// keeps long staggered easeOut durations (1.2/0.8/0.6s) rather than the snappier
+// contentEntrance spring used for in-app content.
 export default function AuthImageContent() {
     const { mv } = useMotionProps();
 
