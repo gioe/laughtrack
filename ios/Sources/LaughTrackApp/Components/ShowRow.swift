@@ -418,7 +418,14 @@ struct ShowRow: View {
 
     static func roomLabel(for show: Components.Schemas.Show) -> String? {
         let room = show.room?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        return room.isEmpty ? nil : room
+        guard !room.isEmpty else { return nil }
+        // Some scrapers copy the club name into room (e.g. ticketmaster,
+        // show 1779237 "Punch Line Philly"), which would repeat the club
+        // name rendered alongside this label. Mirrors the web guard from
+        // TASK-2789.
+        let clubName = show.clubName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if room.caseInsensitiveCompare(clubName) == .orderedSame { return nil }
+        return room
     }
 
     static func isOpenMic(_ show: Components.Schemas.Show) -> Bool {

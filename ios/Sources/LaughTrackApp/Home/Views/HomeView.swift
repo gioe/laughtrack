@@ -1038,9 +1038,9 @@ private struct HomeShowsTonightHeroCard: View {
     }
 
     private var roomLabel: String? {
-        let trimmed = show.room?.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard let trimmed, !trimmed.isEmpty else { return nil }
-        return trimmed
+        // Delegates so the club-name-duplicate suppression in
+        // ShowRow.roomLabel applies to the hero venue line too.
+        ShowRow.roomLabel(for: show)
     }
 
     private var venueLine: String {
