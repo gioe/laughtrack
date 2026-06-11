@@ -254,7 +254,10 @@ struct MarqueeHero: View {
             }
         }
         .task(id: url) {
-            guard posterLetterbox == nil else { return }
+            // Recompute unconditionally: the query is a guaranteed memory
+            // hit, and an id-change re-fire (the hero URL swapped in place
+            // under a persisting view identity) must repair the decision
+            // rather than keep the previous image's treatment.
             let cached = await ImageCache.shared.image(for: url)
             posterLetterbox = cached.map {
                 MarqueePosterLayout.shouldLetterbox(imageSize: $0.size)
