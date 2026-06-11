@@ -8,16 +8,16 @@ import EntityCard from "../entity";
 interface ComedianGridCardProps {
     entity: ComedianDTO;
     isTrending?: boolean;
-    variant?: "default" | "compact";
+    density?: "standard" | "compact";
 }
 
 const ComedianGridCard: React.FC<ComedianGridCardProps> = ({
     entity,
     isTrending,
-    variant = "default",
+    density = "standard",
 }) => {
     const comedian = new Comedian(entity);
-    const isCompact = variant === "compact";
+    const isCompact = density === "compact";
 
     return (
         <EntityCard
@@ -36,7 +36,7 @@ const ComedianGridCard: React.FC<ComedianGridCardProps> = ({
                         ? "(max-width: 640px) 80px, (max-width: 768px) 96px, 112px"
                         : "(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                 }
-                variant={isCompact ? "compactGrid" : "grid"}
+                density={density}
             />
 
             <div

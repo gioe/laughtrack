@@ -293,7 +293,7 @@ function PodcastRelatedComediansSection({
             <ComedianGrid
                 comedians={relatedComedians}
                 className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"
-                cardVariant="compact"
+                density="compact"
             />
         </section>
     );

@@ -11,11 +11,12 @@ import ComedianAvatarFallback from "./fallback";
 interface ComedianHeadshotProps {
     comedian: Comedian;
     sizes?: string;
-    variant?: "grid" | "compactGrid" | "lineup";
+    variant?: "grid" | "lineup";
+    density?: "standard" | "compact";
     className?: string;
 }
 
-const variantStyles = {
+const headshotStyles = {
     grid: {
         container: "relative w-full aspect-square",
         link: "block w-full h-full relative rounded-full overflow-hidden",
@@ -24,7 +25,7 @@ const variantStyles = {
         favoriteButtonPadding: "p-2.5",
         favoriteIcon: "w-6 h-6",
     },
-    compactGrid: {
+    compact: {
         container: "relative w-full aspect-square",
         link: "block w-full h-full relative rounded-full overflow-hidden",
         image: "object-cover object-center",
@@ -46,6 +47,7 @@ const ComedianHeadshot = ({
     comedian,
     sizes,
     variant = "grid",
+    density = "standard",
     className = "",
 }: ComedianHeadshotProps) => {
     const [error, setError] = useState(false);
@@ -56,7 +58,12 @@ const ComedianHeadshot = ({
         entityId: comedian.uuid,
     });
 
-    const styles = variantStyles[variant];
+    const styles =
+        variant === "lineup"
+            ? headshotStyles.lineup
+            : density === "compact"
+              ? headshotStyles.compact
+              : headshotStyles.grid;
     const showFallback = !comedian.hasImage || !comedian.imageUrl || error;
 
     const buttonBaseClasses = `${styles.favoriteButton} ${styles.favoriteButtonPadding} bg-black/20 hover:bg-black/30 rounded-full transition-all duration-200 z-10 shadow-md`;
@@ -78,7 +85,7 @@ const ComedianHeadshot = ({
                 {showFallback ? (
                     <ComedianAvatarFallback
                         name={comedian.name}
-                        variant={variant === "compactGrid" ? "grid" : variant}
+                        variant={variant}
                     />
                 ) : (
                     <Image

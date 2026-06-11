@@ -10,7 +10,7 @@ interface ComedianGridProps {
     comedians: ComedianDTO[];
     className: string;
     isTrending?: boolean;
-    cardVariant?: "default" | "compact";
+    density?: "standard" | "compact";
 }
 
 const containerVariants = {
@@ -31,7 +31,7 @@ const ComedianGrid = ({
     comedians,
     className,
     isTrending,
-    cardVariant = "default",
+    density = "standard",
 }: ComedianGridProps) => {
     const { prefersReducedMotion } = useMotionProps();
     const [hasAnimated, setHasAnimated] = useState(false);
@@ -59,7 +59,7 @@ const ComedianGrid = ({
                             <ComedianGridCard
                                 entity={dto}
                                 isTrending={isTrending}
-                                variant={cardVariant}
+                                density={density}
                             />
                         </motion.div>
                     ))}
