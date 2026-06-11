@@ -7,6 +7,8 @@ import { useMediaQuery } from "./useMediaQuery";
 import { useMotionProps } from "./useMotionProps";
 import { useDialogKeyboard } from "./useDialogKeyboard";
 
+export { MOTION_SPRINGS, MOTION_TAP_SCALE } from "./useMotionProps";
+
 import useLoginModal from "./useLoginModal";
 import useFilterModal from "./useFilterModal";
 
