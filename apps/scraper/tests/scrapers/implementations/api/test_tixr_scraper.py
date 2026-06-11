@@ -15,9 +15,11 @@ behavior:
 """
 
 import importlib.util
+from datetime import datetime, timedelta
 from unittest.mock import AsyncMock
 
 import pytest
+import pytz
 
 pytestmark = pytest.mark.skipif(
     importlib.util.find_spec("curl_cffi") is None,
@@ -89,18 +91,32 @@ def _improv_asylum_club() -> Club:
     return club
 
 
+def _st_marks_card_date() -> datetime:
+    """Tomorrow in the club's timezone. The card carries no year, and
+    ``_parse_public_card_datetime`` resolves month/day against the real
+    current date — rolling past dates to next year and rejecting anything
+    beyond ``_MAX_YEAR_ROLLOVER_DAYS``. A hardcoded month/day therefore
+    becomes unparseable the moment the card's own showtime passes (the
+    original 'Jun 10' fixture started failing at 7:30 pm ET on June 10),
+    so the fixture must always render a future date.
+    """
+    tz = pytz.timezone("America/New_York")
+    return datetime.now(tz) + timedelta(days=1)
+
+
 def _st_marks_card_html() -> str:
     """Webflow-style card from St. Marks' /calendar page with full event data."""
+    card_date = _st_marks_card_date()
     return f"""<html><body>
 <div class="event-item w-dyn-item" role="listitem">
   <a class="ticket-links grid w-inline-block" href="{ST_MARKS_TIXR_URL}">
     <div class="text-block-35">St. Marks Comedy Night</div>
     <div class="event-card grid">
       <div class="date-info grid">
-        <div class="month grid date">Wed</div>
-        <div class="month grid">Jun</div>
-        <div class="month grid custom-filter">Jun</div>
-        <div class="month day grid">10</div>
+        <div class="month grid date">{card_date.strftime("%a")}</div>
+        <div class="month grid">{card_date.strftime("%b")}</div>
+        <div class="month grid custom-filter">{card_date.strftime("%b")}</div>
+        <div class="month day grid">{card_date.day}</div>
         <div class="month day time">7:30 pm</div>
       </div>
     </div>
@@ -115,6 +131,7 @@ def _st_marks_card_html_with_jsonld_offer(
     price: str | None = "25.00",
 ) -> str:
     price_field = "" if price is None else f'"price": "{price}",'
+    card_date = _st_marks_card_date()
     return f"""<html><head>
 <script type="application/ld+json">
 {{
@@ -135,10 +152,10 @@ def _st_marks_card_html_with_jsonld_offer(
     <div class="text-block-35">St. Marks Comedy Night</div>
     <div class="event-card grid">
       <div class="date-info grid">
-        <div class="month grid date">Wed</div>
-        <div class="month grid">Jun</div>
-        <div class="month grid custom-filter">Jun</div>
-        <div class="month day grid">10</div>
+        <div class="month grid date">{card_date.strftime("%a")}</div>
+        <div class="month grid">{card_date.strftime("%b")}</div>
+        <div class="month grid custom-filter">{card_date.strftime("%b")}</div>
+        <div class="month day grid">{card_date.day}</div>
         <div class="month day time">7:30 pm</div>
       </div>
     </div>
