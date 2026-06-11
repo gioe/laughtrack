@@ -2,6 +2,10 @@
 
 import * as React from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+// Direct module import (not the @/hooks barrel): the barrel transitively
+// pulls next-auth via sibling hooks, which breaks node-environment unit
+// tests that import this file for buildPageWindow.
+import { useMotionProps } from "@/hooks/useMotionProps";
 import {
     Pagination,
     PaginationContent,
@@ -17,6 +21,11 @@ interface PagedControlsProps {
     totalPages: number;
     queryKey: string;
     className?: string;
+    // Opt-in: scroll this element to the top of the viewport after page
+    // navigation. Consumers that paginate mid-page (e.g. the profile's
+    // FavoriteSearchableSection) omit it to stay in place instead of
+    // jumping past their surrounding content.
+    scrollTargetRef?: React.RefObject<HTMLElement | null>;
 }
 
 const PagedControls: React.FC<PagedControlsProps> = ({
@@ -24,10 +33,12 @@ const PagedControls: React.FC<PagedControlsProps> = ({
     totalPages,
     queryKey,
     className,
+    scrollTargetRef,
 }) => {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
+    const { prefersReducedMotion } = useMotionProps();
 
     if (totalPages <= 1) return null;
 
@@ -48,6 +59,14 @@ const PagedControls: React.FC<PagedControlsProps> = ({
             e.preventDefault();
             if (disabled) return;
             router.push(buildHref(page), { scroll: false });
+            // Re-clicking the active page replaces the URL with itself; the
+            // content doesn't change, so don't yank the viewport around.
+            if (page !== currentPage) {
+                scrollTargetRef?.current?.scrollIntoView({
+                    behavior: prefersReducedMotion ? "auto" : "smooth",
+                    block: "start",
+                });
+            }
         };
 
     const pages = buildPageWindow(currentPage, totalPages);

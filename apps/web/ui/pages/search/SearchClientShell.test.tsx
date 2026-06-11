@@ -17,6 +17,12 @@ vi.mock("next/navigation", () => ({
     useSearchParams: () => new URLSearchParams(searchState.value),
 }));
 
+vi.mock("@/hooks/useMotionProps", () => ({
+    useMotionProps: () => ({
+        prefersReducedMotion: true,
+    }),
+}));
+
 const renderShell = (total: number, search = "") => {
     searchState.value = search;
     render(
@@ -88,7 +94,7 @@ describe("SearchClientShell", () => {
         ).toBe("true");
     });
 
-    it("navigates by setting the page query param without scrolling", () => {
+    it("navigates by setting the page query param without router scroll", () => {
         renderShell(414);
 
         fireEvent.click(screen.getByRole("link", { name: "Go to page 2" }));
@@ -96,6 +102,30 @@ describe("SearchClientShell", () => {
         expect(pushMock).toHaveBeenCalledWith("/show/search?page=2", {
             scroll: false,
         });
+    });
+
+    it("scrolls the results wrapper into view after page navigation", () => {
+        const scrollSpy =
+            vi.fn<(arg?: boolean | ScrollIntoViewOptions) => void>();
+        window.HTMLElement.prototype.scrollIntoView = scrollSpy;
+        renderShell(414);
+
+        fireEvent.click(screen.getByRole("link", { name: "Go to page 2" }));
+
+        expect(scrollSpy).toHaveBeenCalledTimes(1);
+        const wrapper = scrollSpy.mock.contexts[0] as HTMLElement;
+        expect(wrapper.contains(screen.getByText("Result list"))).toBe(true);
+    });
+
+    it("does not scroll when re-clicking the active page", () => {
+        const scrollSpy =
+            vi.fn<(arg?: boolean | ScrollIntoViewOptions) => void>();
+        window.HTMLElement.prototype.scrollIntoView = scrollSpy;
+        renderShell(414, "page=2");
+
+        fireEvent.click(screen.getByRole("link", { name: "Go to page 2" }));
+
+        expect(scrollSpy).not.toHaveBeenCalled();
     });
 
     it("announces the page count on the pagination landmark", () => {

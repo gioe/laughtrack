@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import PagedControls from "@/ui/components/ui/pagedControls";
 
@@ -15,6 +16,7 @@ interface SearchClientShellProps {
 
 const SearchClientShell = ({ total, children }: SearchClientShellProps) => {
     const searchParams = useSearchParams();
+    const resultsRef = useRef<HTMLDivElement>(null);
 
     const pageSize = Math.max(
         1,
@@ -30,7 +32,7 @@ const SearchClientShell = ({ total, children }: SearchClientShellProps) => {
 
     return (
         <>
-            {children}
+            <div ref={resultsRef}>{children}</div>
 
             {totalPages > 1 && (
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-6">
@@ -38,6 +40,7 @@ const SearchClientShell = ({ total, children }: SearchClientShellProps) => {
                         currentPage={currentPage}
                         totalPages={totalPages}
                         queryKey="page"
+                        scrollTargetRef={resultsRef}
                     />
                 </div>
             )}
