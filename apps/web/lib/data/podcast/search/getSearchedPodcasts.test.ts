@@ -232,12 +232,28 @@ describe("getSearchedPodcasts", () => {
     });
 
     it("uses zero-indexed API pagination and caps page size", async () => {
+        mockCount.mockResolvedValue(500);
+
         await getSearchedPodcasts({ page: "2", size: "100" });
 
         expect(mockFindMany).toHaveBeenCalledWith(
             expect.objectContaining({
                 take: 50,
                 skip: 100,
+            }),
+        );
+    });
+
+    it("clamps an out-of-range page to the last page of results", async () => {
+        // 45 podcasts at the default size of 20 → pages 0..2; page 99 serves page 2.
+        mockCount.mockResolvedValue(45);
+
+        await getSearchedPodcasts({ page: "99" });
+
+        expect(mockFindMany).toHaveBeenCalledWith(
+            expect.objectContaining({
+                take: 20,
+                skip: 40,
             }),
         );
     });

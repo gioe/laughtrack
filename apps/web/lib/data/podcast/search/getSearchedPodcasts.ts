@@ -120,38 +120,42 @@ export async function getSearchedPodcasts(params: {
         ? { AND: [ownershipWhere, queryWhere] }
         : ownershipWhere;
 
-    const [total, podcasts] = await Promise.all([
-        db.podcast.count({ where }),
-        db.podcast.findMany({
-            where,
-            select: {
-                id: true,
-                slug: true,
-                title: true,
-                authorName: true,
-                websiteUrl: true,
-                feedUrl: true,
-                imageUrl: true,
-                description: true,
-                _count: {
-                    select: {
-                        episodes: true,
-                    },
+    const total = await db.podcast.count({ where });
+    // Clamp to the last page like QueryHelper does for shows/clubs/comedians,
+    // so a stale ?page= deep link serves the final page instead of an empty
+    // grid while the pagination highlights the last page as current.
+    const lastPage = Math.max(1, Math.ceil(total / size)) - 1;
+    const clampedPage = Math.min(page, lastPage);
+
+    const podcasts = await db.podcast.findMany({
+        where,
+        select: {
+            id: true,
+            slug: true,
+            title: true,
+            authorName: true,
+            websiteUrl: true,
+            feedUrl: true,
+            imageUrl: true,
+            description: true,
+            _count: {
+                select: {
+                    episodes: true,
                 },
-                ...(params.profileId
-                    ? {
-                          favorites: {
-                              where: { profileId: params.profileId },
-                              select: { id: true },
-                          },
-                      }
-                    : {}),
             },
-            orderBy: orderByFor(sort),
-            take: size,
-            skip: page * size,
-        }),
-    ]);
+            ...(params.profileId
+                ? {
+                      favorites: {
+                          where: { profileId: params.profileId },
+                          select: { id: true },
+                      },
+                  }
+                : {}),
+        },
+        orderBy: orderByFor(sort),
+        take: size,
+        skip: clampedPage * size,
+    });
 
     return {
         total,

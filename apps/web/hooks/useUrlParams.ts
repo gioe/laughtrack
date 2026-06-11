@@ -6,10 +6,10 @@ import { useCallback } from "react";
 export type ParamKeys = keyof typeof paramConfigs;
 type ParamTypes = ParamTypeMap;
 
-// Changing any filter/sort/search param invalidates the current pagination
-// position, so the page param is dropped unless the update itself is paging.
-const isPaginationKey = (key: string) =>
-    key === paramConfigs.page.key || key === paramConfigs.size.key;
+// Changing any other param (filters, sort, search text, even page size)
+// invalidates the current pagination position, so the page param is dropped
+// unless the update itself explicitly sets the page.
+const isPageKey = (key: string) => key === paramConfigs.page.key;
 
 export function useUrlParams() {
     const router = useRouter();
@@ -41,7 +41,7 @@ export function useUrlParams() {
             } else {
                 current.set(config.key, stringified);
             }
-            if (!isPaginationKey(config.key)) {
+            if (!isPageKey(config.key)) {
                 current.delete(paramConfigs.page.key);
             }
             router.replace(`?${current.toString()}`);
@@ -52,6 +52,7 @@ export function useUrlParams() {
     const setMultipleTypedParams = useCallback(
         (updates: Partial<ParamTypes>, providedPath?: string): void => {
             const current = new URLSearchParams(searchParams.toString());
+            let appliedNonPageUpdate = false;
             function applyUpdate<K extends ParamKeys>(
                 k: K,
                 v: ParamTypeMap[K],
@@ -64,15 +65,16 @@ export function useUrlParams() {
                 } else {
                     current.set(config.key, stringified);
                 }
+                if (!isPageKey(config.key)) {
+                    appliedNonPageUpdate = true;
+                }
             }
             (Object.keys(updates) as ParamKeys[]).forEach((key) => {
                 applyUpdate(key, updates[key] as ParamTypeMap[typeof key]);
             });
-            if (
-                (Object.keys(updates) as ParamKeys[]).some(
-                    (key) => !isPaginationKey(paramConfigs[key].key),
-                )
-            ) {
+            // Only an update that actually applied resets pagination, and an
+            // explicitly batched page value is the caller's intent — keep it.
+            if (appliedNonPageUpdate && !("page" in updates)) {
                 current.delete(paramConfigs.page.key);
             }
             if (providedPath) {

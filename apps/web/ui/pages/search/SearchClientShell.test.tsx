@@ -130,6 +130,17 @@ describe("SearchClientShell", () => {
         expect(pushMock).not.toHaveBeenCalled();
     });
 
+    it("preserves existing filter params when navigating", () => {
+        renderShell(414, "zip=10001&page=2");
+
+        fireEvent.click(screen.getByRole("link", { name: /next/i }));
+
+        expect(pushMock).toHaveBeenCalledWith(
+            "/show/search?zip=10001&page=3",
+            { scroll: false },
+        );
+    });
+
     it("drops the page param when navigating back to page 1", () => {
         renderShell(414, "page=2");
 

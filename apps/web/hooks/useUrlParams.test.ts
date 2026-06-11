@@ -59,4 +59,41 @@ describe("useUrlParams page reset", () => {
             "?zip=60601&comedian=mulaney",
         );
     });
+
+    it("drops the page param when the page size changes", () => {
+        searchState.value = "page=3";
+        const { result } = renderHook(() => useUrlParams());
+
+        act(() => {
+            result.current.setTypedParam("size", 20);
+        });
+
+        expect(replaceMock).toHaveBeenCalledWith("?size=20");
+    });
+
+    it("keeps an explicitly batched page value", () => {
+        searchState.value = "";
+        const { result } = renderHook(() => useUrlParams());
+
+        act(() => {
+            result.current.setMultipleTypedParams({
+                comedian: "mulaney",
+                page: 4,
+            });
+        });
+
+        expect(replaceMock).toHaveBeenCalledWith("?comedian=mulaney&page=4");
+    });
+
+    it("keeps the page param when the only batched update fails validation", () => {
+        searchState.value = "page=3";
+        const { result } = renderHook(() => useUrlParams());
+
+        act(() => {
+            // distance only accepts the predefined radius options
+            result.current.setMultipleTypedParams({ distance: "999" });
+        });
+
+        expect(replaceMock).toHaveBeenCalledWith("?page=3");
+    });
 });
