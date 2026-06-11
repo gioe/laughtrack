@@ -13,6 +13,17 @@
 # exporting it here before invoking `next dev`, the real Neon connection wins
 # over any stale value in .env.local (process.env takes precedence over
 # .env* files in Next.js).
+#
+# This is the supported way to boot the dev server against real data for
+# pre-merge visual verification: `npm run dev` from apps/web/. No OAuth env
+# vars are needed — lib/env/startup.ts treats AUTH_GOOGLE_* as optional when
+# NODE_ENV=development (local sign-in is intentionally disabled since the
+# TASK-2334 rotation; a boot-time warning notes it).
+#
+# Note: the `set -a` below exports EVERY var in scraper/.env into the dev
+# server's environment, not just the DATABASE_* components. Don't park
+# web-only secrets in scraper/.env to influence the dev server — fix the
+# startup contract instead.
 
 set -euo pipefail
 
