@@ -28,7 +28,7 @@ interface LoginFormProps {
 export default function LoginForm({ onSubmit }: LoginFormProps) {
     const [isSocialLoading, setIsSocialLoading] = useState(false);
     const searchParams = useSearchParams();
-    const { mv } = useMotionProps();
+    const { mv, springs } = useMotionProps();
 
     const form = useForm<LoginFormValues>({
         resolver: zodResolver(loginSchema),
@@ -96,7 +96,7 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
         <motion.div
             initial={{ opacity: 0, y: mv(20) }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: mv(0.4) }}
+            transition={springs.contentEntrance}
             className="relative space-y-6"
         >
             <SocialAuthButtons
