@@ -216,7 +216,20 @@ const config: Config = {
                 ...themeColors,
             },
             // border-subtle / border-strong — faint hairlines from the iOS
-            // border scale (#2A2A2A / #3A3A3A).
+            // border scale (#2A2A2A / #3A3A3A). These opaque tokens are for
+            // hairlines sitting directly on canvas/surface.
+            //
+            // Alpha modifiers of named tokens (border-white/15, bg-copper/10,
+            // hover:border-white/30, ...) are the deliberate idiom for
+            // translucent glass surfaces and rest→hover/selected state steps —
+            // the TASK-2799 audit (333 uses, 89 distinct classes) found they
+            // derive from theme tokens and encode state pairs, so they stay.
+            // Known smell deferred from that audit: rest-state copper
+            // hairlines split across /15, /20, /25 with no perceptible
+            // distinction; collapsing them is a visual change requiring a
+            // design pass plus Linux baseline regeneration, not a mechanical
+            // rename. Don't add new near-duplicate strengths — reuse an
+            // existing step from the file you're editing.
             borderColor: {
                 subtle: "#2A2A2A",
                 strong: "#3A3A3A",
