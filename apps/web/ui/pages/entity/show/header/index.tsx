@@ -32,6 +32,16 @@ const COUNTDOWN_TONE_CLASSES: Record<string, string> = {
 // by a dashed copper ring. iOS reference values — 11pt eyebrow with 2.2
 // tracking in accentStrong, 196pt poster, dashed accentStrong ring with a
 // copper glow, scaledToFill poster crop.
+
+// Wide-wordmark exception to the square cover crop (TASK-2787): club images
+// at or beyond this width:height ratio letterbox with object-contain on
+// surface-muted instead of cover-cropping. A 2026-06 survey of all 192 club
+// CDN PNGs found 34% are ≥2:1 and visually those are wordmark logos
+// (Goodnights 3.8:1 cover-crops to an illegible "ODNIG / MEDY C"), while the
+// 1.5–2:1 band is venue photos that center-crop fine — so aspect ratio alone
+// separates the populations and no background heuristic is needed. Below the
+// threshold the iOS-matching cover crop (TASK-2767) still applies.
+const LOGO_ASPECT_THRESHOLD = 2;
 const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({
     show,
     isAdmin = false,
@@ -39,6 +49,7 @@ const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({
     const { springs, prefersReducedMotion } = useMotionProps();
     const [error, setError] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
+    const [letterbox, setLetterbox] = useState(false);
     // Re-derive the countdown every minute so future→live→past transitions
     // fire without a page reload (a user who lands 4 minutes before showtime
     // otherwise sees the label frozen as the show starts).
@@ -90,20 +101,40 @@ const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({
                         data-testid="marquee-poster-frame"
                         className="relative mt-2 rounded-[14px] border-2 border-dashed border-accent-strong p-[5px] shadow-[0_0_14px_theme(colors.accent-strong/45%)]"
                     >
-                        <div className="relative size-40 sm:size-[196px] md:size-[196px] lg:size-[196px] overflow-hidden rounded-[10px]">
+                        <div
+                            className={`relative size-40 sm:size-[196px] md:size-[196px] lg:size-[196px] overflow-hidden rounded-[10px]${
+                                letterbox ? " bg-surface-muted" : ""
+                            }`}
+                        >
                             {showImage ? (
                                 <>
                                     <Image
                                         src={show.imageUrl}
                                         alt={show.clubName ?? "Club"}
                                         fill
-                                        className={`object-cover object-center transition-opacity duration-500 ${
+                                        className={`${
+                                            letterbox
+                                                ? "object-contain p-3"
+                                                : "object-cover"
+                                        } object-center transition-opacity duration-500 ${
                                             imageLoaded
                                                 ? "opacity-100"
                                                 : "opacity-0"
                                         }`}
                                         onError={() => setError(true)}
-                                        onLoad={() => setImageLoaded(true)}
+                                        onLoad={(e) => {
+                                            const {
+                                                naturalWidth,
+                                                naturalHeight,
+                                            } = e.currentTarget;
+                                            setLetterbox(
+                                                naturalHeight > 0 &&
+                                                    naturalWidth /
+                                                        naturalHeight >=
+                                                        LOGO_ASPECT_THRESHOLD,
+                                            );
+                                            setImageLoaded(true);
+                                        }}
                                         priority
                                         sizes="196px"
                                     />

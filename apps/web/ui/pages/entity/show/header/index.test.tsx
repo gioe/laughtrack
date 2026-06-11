@@ -2,7 +2,7 @@
  * @vitest-environment happy-dom
  */
 import React from "react";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import ShowDetailHeader from "./index";
 import type { ShowDetailDTO } from "@/lib/data/show/detail/interface";
@@ -28,12 +28,37 @@ vi.mock("next/image", () => ({
         alt,
         src,
         className,
+        onLoad,
+        onError,
     }: {
         alt: string;
         src: string;
         className?: string;
-    }) => <img alt={alt} src={src} className={className} />,
+        onLoad?: React.ReactEventHandler<HTMLImageElement>;
+        onError?: React.ReactEventHandler<HTMLImageElement>;
+    }) => (
+        <img
+            alt={alt}
+            src={src}
+            className={className}
+            onLoad={onLoad}
+            onError={onError}
+        />
+    ),
 }));
+
+// Simulates the image finishing its load with the given intrinsic size —
+// happy-dom never fetches, so naturalWidth/naturalHeight must be stubbed
+// before firing the load event the component's letterbox detection reads.
+const fireLoadWithSize = (
+    image: HTMLElement,
+    naturalWidth: number,
+    naturalHeight: number,
+) => {
+    Object.defineProperty(image, "naturalWidth", { value: naturalWidth });
+    Object.defineProperty(image, "naturalHeight", { value: naturalHeight });
+    fireEvent.load(image);
+};
 
 vi.mock("framer-motion", () => ({
     motion: {
@@ -104,10 +129,40 @@ describe("ShowDetailHeader", () => {
         expect(frame.className).toContain("border-dashed");
         expect(frame.className).toContain("border-accent-strong");
 
-        // Square poster crops like the iOS scaledToFill poster — the old
-        // wide-banner object-contain treatment no longer applies.
+        // Square poster crops like the iOS scaledToFill poster by default
+        // (before load, and for anything below the wordmark threshold).
         const image = screen.getByAltText("The Copper Room");
         expect(image.className).toContain("object-cover");
+    });
+
+    it("keeps the cover crop for venue photos below the 2:1 wordmark threshold", () => {
+        render(<ShowDetailHeader show={baseShow} />);
+
+        // 500x281 — the 16:9 venue-photo shape (e.g. Cobb's at 1.78:1).
+        const image = screen.getByAltText("The Copper Room");
+        fireLoadWithSize(image, 500, 281);
+
+        expect(image.className).toContain("object-cover");
+        expect(image.className).not.toContain("object-contain");
+        expect(image.parentElement?.className).not.toContain(
+            "bg-surface-muted",
+        );
+    });
+
+    it("letterboxes wide wordmark logos at or beyond 2:1 on surface-muted", () => {
+        render(<ShowDetailHeader show={baseShow} />);
+
+        // 475x125 — Goodnights' 3.8:1 wordmark, the TASK-2787 repro.
+        const image = screen.getByAltText("The Copper Room");
+        fireLoadWithSize(image, 475, 125);
+
+        expect(image.className).toContain("object-contain");
+        expect(image.className).not.toContain("object-cover");
+        // Letterbox gutters get the muted backing inside the unchanged ring.
+        expect(image.parentElement?.className).toContain("bg-surface-muted");
+        expect(
+            screen.getByTestId("marquee-poster-frame").className,
+        ).toContain("border-dashed");
     });
 
     it("renders the ticket-icon fallback inside the ring when the image is the placeholder", () => {
