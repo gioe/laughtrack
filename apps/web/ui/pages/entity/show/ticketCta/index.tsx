@@ -57,9 +57,7 @@ const ShowTicketCta: React.FC<ShowTicketCtaProps> = ({
     const isLive = !isPast && !isSoldOut && !!url;
 
     const dateLabel = formatShowDate(show.date.toString(), show.timezone);
-    const venueDetail = [show.room, show.address]
-        .filter(Boolean)
-        .join(" · ");
+    const venueDetail = [show.room, show.address].filter(Boolean).join(" · ");
 
     let ticketsValue: React.ReactNode;
     if (isPast) {
@@ -154,7 +152,7 @@ const ShowTicketCta: React.FC<ShowTicketCtaProps> = ({
                     )}
                 </TicketStub>
                 {isLive && (
-                    <p className="mt-2 text-xs text-gray-500 font-dmSans">
+                    <p className="mt-2 text-xs text-muted-foreground font-dmSans">
                         Opens the venue&apos;s{" "}
                         {isOpenMic ? "signup" : "ticketing"} page in a new tab.
                     </p>

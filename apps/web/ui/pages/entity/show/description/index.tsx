@@ -15,7 +15,7 @@ const ShowDescription: React.FC<ShowDescriptionProps> = ({ description }) => {
             <h2 className="font-urbanist-bold text-h3 font-bold text-foreground mb-3">
                 About this show
             </h2>
-            <p className="text-base text-gray-700 font-dmSans whitespace-pre-line leading-relaxed">
+            <p className="text-base text-foreground/90 font-dmSans whitespace-pre-line leading-relaxed">
                 {cleanDescription}
             </p>
         </section>

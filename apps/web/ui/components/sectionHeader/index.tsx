@@ -44,7 +44,7 @@ const SectionHeader = ({
                     {title}
                 </h2>
                 {subtitle && (
-                    <p className="text-gray-600 font-dmSans text-body">
+                    <p className="text-muted-foreground font-dmSans text-body">
                         {subtitle}
                     </p>
                 )}

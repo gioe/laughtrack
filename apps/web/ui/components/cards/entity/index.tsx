@@ -8,9 +8,12 @@ import { cn } from "@/util/tailwindUtil";
 export type EntityCardChrome = "warm" | "coconut-hover" | "stage" | "none";
 
 const CHROME_CLASSES: Record<EntityCardChrome, string> = {
-    warm: "rounded-xl shadow-md border border-white/20 bg-gradient-to-br from-white to-coconut-cream",
+    // "warm": standard elevated dark card — mirrors iOS LaughTrackCard
+    // standard tone (surface-elevated bg, subtle border, card shadow).
+    warm: "rounded-card shadow-card border border-subtle bg-surface-elevated",
+    // "coconut-hover": muted card that lifts to a copper hairline on hover.
     "coconut-hover":
-        "rounded-xl overflow-hidden shadow-sm border-b-2 border-transparent bg-gradient-to-b from-white to-coconut-cream/60 transition-all duration-300 hover:shadow-lg hover:border-copper",
+        "rounded-card overflow-hidden shadow-card border border-subtle bg-surface-muted transition-all duration-300 hover:shadow-floating hover:border-copper/60",
     // "stage": warm near-black club-wall surface with a copper hairline. Decorative
     // brick + spotlight layers are composited inside the card by the consumer.
     stage: "rounded-xl shadow-lg shadow-black/40 border border-copper/15 bg-[#181210] transition-shadow duration-300",

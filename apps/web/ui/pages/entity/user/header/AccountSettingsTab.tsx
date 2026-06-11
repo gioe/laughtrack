@@ -21,14 +21,14 @@ const AccountSettingsTab = ({
     onSave,
 }: AccountSettingsTabProps) => {
     return (
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-elevated border border-subtle rounded-card p-6 shadow-card">
             <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold">Account Settings</h3>
                 {isDirty && (
                     <button
                         onClick={onSave}
                         disabled={isLoading}
-                        className="flex items-center gap-2 px-3 py-1.5 text-sm text-copper font-dmSans bg-white rounded-lg shadow-sm hover:shadow-md transition-all border border-copper"
+                        className="flex items-center gap-2 px-3 py-1.5 text-copper font-dmSans bg-surface-muted rounded-lg shadow-card hover:shadow-floating transition-all border border-copper text-sm"
                     >
                         <Save className="w-4 h-4" />
                         Save Changes
@@ -37,18 +37,18 @@ const AccountSettingsTab = ({
             </div>
             <div className="space-y-4">
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-foreground/85 mb-1">
                         Email address
                     </label>
                     <input
                         type="email"
                         value={email ?? ""}
                         disabled={true}
-                        className="w-full px-3 py-2 border rounded-md disabled:bg-gray-50 disabled:text-gray-500"
+                        className="w-full px-3 py-2 border rounded-md disabled:bg-surface-muted disabled:text-muted-foreground"
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-foreground/85 mb-1">
                         Zip Code
                     </label>
                     <input

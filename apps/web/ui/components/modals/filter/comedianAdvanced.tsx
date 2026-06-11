@@ -90,7 +90,7 @@ function Section({
             <label
                 {...(htmlFor ? { htmlFor } : {})}
                 {...(labelId ? { id: labelId } : {})}
-                className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-2 block"
+                className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-2 block"
             >
                 {label}
             </label>
@@ -117,7 +117,7 @@ function Stepper({
                 onClick={() => onChange(value - 1)}
                 disabled={atMin}
                 aria-label="Decrement minimum shows"
-                className="p-2 rounded-md border border-gray-200 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="p-2 rounded-md border border-subtle hover:bg-surface-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
                 <Minus className="w-4 h-4" />
             </button>
@@ -138,7 +138,7 @@ function Stepper({
                 onClick={() => onChange(value + 1)}
                 disabled={atMax}
                 aria-label="Increment minimum shows"
-                className="p-2 rounded-md border border-gray-200 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="p-2 rounded-md border border-subtle hover:bg-surface-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
                 <Plus className="w-4 h-4" />
             </button>

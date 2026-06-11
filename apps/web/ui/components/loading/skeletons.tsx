@@ -1,7 +1,9 @@
 type SearchSkeletonVariant = "club" | "comedian" | "show";
 
+// Copper-tinged placeholder sweep mirroring the iOS surfaceSkeleton /
+// shimmer treatment (#322921 base with a warm highlight pass).
 const shimmer =
-    "bg-gradient-to-r from-stone-200 via-stone-100 to-stone-200 bg-[length:400%_100%] animate-shimmer";
+    "bg-gradient-to-r from-surface-skeleton via-highlight/70 to-surface-skeleton bg-[length:400%_100%] animate-shimmer";
 const darkShimmer =
     "bg-gradient-to-r from-white/12 via-white/24 to-white/12 bg-[length:400%_100%] animate-shimmer";
 
@@ -26,7 +28,7 @@ export function SearchPageSkeleton({
 }) {
     return (
         <main className="min-h-screen w-full bg-coconut-cream">
-            <SearchHeaderSkeleton variant={variant} />
+            <SearchHeaderSkeleton />
             <SearchFilterBarSkeleton variant={variant} />
             {variant === "show" ? (
                 <ShowResultsSkeleton />
@@ -37,14 +39,9 @@ export function SearchPageSkeleton({
     );
 }
 
-function SearchHeaderSkeleton({ variant }: { variant: SearchSkeletonVariant }) {
-    const container =
-        variant === "club"
-            ? "bg-gradient-to-r from-cedar to-copper"
-            : "bg-gradient-to-br from-cedar to-copper";
-
+function SearchHeaderSkeleton() {
     return (
-        <header className={`px-4 py-16 text-center md:py-20 ${container}`}>
+        <header className="px-4 py-16 text-center md:py-20 bg-gradient-to-br from-canvas via-cedar to-copper">
             <SkeletonBlock
                 dark
                 className="mx-auto mb-3 h-9 w-56 rounded-md sm:h-10 md:h-12"
@@ -63,7 +60,7 @@ function SearchFilterBarSkeleton({
     const hasExtraControl = variant !== "show";
 
     return (
-        <div className="sticky top-0 z-20 w-full border-b border-black/5 bg-coconut-cream">
+        <div className="sticky top-0 z-20 w-full border-b border-subtle bg-coconut-cream">
             <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
                     <SkeletonBlock className="h-11 min-w-0 rounded-lg lg:flex-1" />
@@ -88,7 +85,7 @@ function EntityGridSkeleton({ variant }: { variant: "club" | "comedian" }) {
                 {Array.from({ length: 10 }).map((_, index) => (
                     <article
                         key={index}
-                        className="h-full rounded-xl border border-black/5 bg-white/70 p-4 shadow-sm"
+                        className="h-full rounded-card border border-subtle bg-surface-muted p-4 shadow-card"
                     >
                         <SkeletonBlock
                             className={
@@ -113,7 +110,7 @@ function ShowResultsSkeleton() {
             {Array.from({ length: 4 }).map((_, index) => (
                 <article
                     key={index}
-                    className="relative w-full overflow-hidden rounded-xl border border-copper/10 bg-gradient-to-br from-stone-50 to-coconut-cream/45 p-4 shadow-sm sm:p-6"
+                    className="relative w-full overflow-hidden rounded-card border border-copper/10 bg-surface-muted p-4 shadow-card sm:p-6"
                 >
                     <div className="relative flex flex-col gap-4 lg:flex-row">
                         <div className="flex flex-1 flex-col gap-4 lg:w-[35%]">
@@ -247,7 +244,7 @@ function HomeShowRailSkeleton() {
                 {Array.from({ length: 4 }).map((_, index) => (
                     <article
                         key={index}
-                        className="flex h-56 w-[260px] flex-none flex-col gap-3 rounded-xl border border-copper/10 bg-white/70 p-4 sm:w-[300px]"
+                        className="flex h-56 w-[260px] flex-none flex-col gap-3 rounded-card border border-copper/10 bg-surface-muted p-4 sm:w-[300px]"
                     >
                         <div className="flex items-center gap-3">
                             <SkeletonBlock className="h-10 w-10 rounded-full" />
@@ -283,7 +280,7 @@ function HomeClubRailSkeleton() {
                 {Array.from({ length: 4 }).map((_, index) => (
                     <article
                         key={index}
-                        className="w-[280px] max-w-[calc(100vw-2rem)] flex-none rounded-xl border border-black/5 bg-white/70 p-4 shadow-sm sm:w-[320px]"
+                        className="w-[280px] max-w-[calc(100vw-2rem)] flex-none rounded-card border border-subtle bg-surface-muted p-4 shadow-card sm:w-[320px]"
                     >
                         <SkeletonBlock className="mb-4 aspect-video w-full rounded-xl" />
                         <SkeletonBlock className="mx-auto mb-3 h-6 w-3/4 rounded-md" />

@@ -59,10 +59,10 @@ const ClubSearchCard: React.FC<ClubSearchCardProps> = ({ club }) => {
                         onClick={handleFavoriteClick}
                         aria-label={favoriteLabel}
                         aria-pressed={isAuthenticated ? isFavorite : undefined}
-                        className={`absolute right-2 top-2 z-10 rounded-full bg-white/90 p-2 text-gray-700 shadow-sm transition hover:bg-white hover:text-red-500 focus:outline-none focus:ring-2 focus:ring-copper ${
+                        className={`absolute right-2 top-2 z-10 rounded-full bg-surface-elevated/90 p-2 text-foreground shadow-card transition hover:bg-surface-elevated hover:text-red-400 focus:outline-none focus:ring-2 focus:ring-copper ${
                             isAuthenticated
                                 ? ""
-                                : "border border-dashed border-gray-400"
+                                : "border border-dashed border-strong"
                         }`}
                     >
                         <Heart
@@ -79,12 +79,12 @@ const ClubSearchCard: React.FC<ClubSearchCardProps> = ({ club }) => {
                     {parsedClub.name}
                 </h3>
 
-                <p className="text-body text-gray-600 text-center font-dmSans">
+                <p className="text-body text-muted-foreground text-center font-dmSans">
                     {locationLabel}
                 </p>
 
                 {club.chainName && (
-                    <p className="text-xs text-gray-500 text-center font-dmSans">
+                    <p className="text-xs text-muted-foreground text-center font-dmSans">
                         {club.chainName}
                     </p>
                 )}
@@ -102,7 +102,7 @@ const ClubSearchCard: React.FC<ClubSearchCardProps> = ({ club }) => {
                     </span>
                 </div>
                 {club.distanceMiles != null && (
-                    <p className="flex items-center justify-center gap-1 text-xs text-gray-500 font-dmSans">
+                    <p className="flex items-center justify-center gap-1 text-xs text-muted-foreground font-dmSans">
                         <MapPin size={11} aria-hidden="true" />
                         {club.distanceMiles < 1
                             ? "< 1 mile away"

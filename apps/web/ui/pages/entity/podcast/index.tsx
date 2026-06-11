@@ -90,7 +90,7 @@ function PodcastHosts({ hosts }: { hosts: PodcastHostDTO[] }) {
                     aria-label={`${host.name}, Host`}
                     className="group flex flex-col items-center gap-1.5 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper"
                 >
-                    <span className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-copper/10 text-sm font-bold text-copper ring-1 ring-gray-200">
+                    <span className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-copper/10 text-sm font-bold text-copper ring-1 ring-strong">
                         {host.imageUrl ? (
                             <Image
                                 src={host.imageUrl}
@@ -105,8 +105,10 @@ function PodcastHosts({ hosts }: { hosts: PodcastHostDTO[] }) {
                     </span>
                     <span
                         aria-hidden="true"
-                        className="font-dmSans text-xs font-semibold uppercase tracking-wider text-gray-600 group-hover:text-copper"
-                    >Host</span>
+                        className="font-dmSans text-xs font-semibold uppercase tracking-wider text-muted-foreground group-hover:text-copper"
+                    >
+                        Host
+                    </span>
                 </Link>
             ))}
         </div>
@@ -164,11 +166,11 @@ function EpisodeRow({
                     <span className="block font-urbanist-bold text-body font-bold leading-tight text-foreground line-clamp-2 group-hover:text-copper">
                         {episode.title}
                     </span>
-                    <span className="mt-1 block font-dmSans text-caption text-gray-600">
+                    <span className="mt-1 block font-dmSans text-caption text-muted-foreground">
                         {details.join(" · ")}
                     </span>
                     {episode.description ? (
-                        <span className="mt-1 block font-dmSans text-xs leading-snug text-gray-500 line-clamp-2">
+                        <span className="mt-1 block font-dmSans text-xs leading-snug text-muted-foreground line-clamp-2">
                             {episode.description}
                         </span>
                     ) : null}
@@ -190,7 +192,7 @@ function EpisodeRow({
                             audioUrl,
                         })
                     }
-                    className="inline-flex h-10 flex-none items-center gap-2 rounded-md border border-gray-300 px-3 font-dmSans text-caption font-semibold text-foreground transition-colors hover:border-copper hover:text-copper focus:outline-none focus:ring-2 focus:ring-copper"
+                    className="inline-flex h-10 flex-none items-center gap-2 rounded-md border border-strong px-3 font-dmSans text-caption font-semibold text-foreground transition-colors hover:border-copper hover:text-copper focus:outline-none focus:ring-2 focus:ring-copper"
                 >
                     <Headphones size={16} aria-hidden="true" />
                     <span aria-hidden="true">
@@ -230,7 +232,9 @@ function PodcastPrimaryCta({ podcast }: { podcast: PodcastDTO }) {
                     <ExternalLink size={16} aria-hidden="true" />
                 </a>
             </Button>
-            <p className="mt-2 font-dmSans text-xs text-gray-500">{helper}</p>
+            <p className="mt-2 font-dmSans text-xs text-muted-foreground">
+                {helper}
+            </p>
         </div>
     );
 }
@@ -327,7 +331,7 @@ export default function PodcastDetail({
                     </h1>
                     <PodcastHosts hosts={podcast.hosts} />
                     {podcast.description ? (
-                        <p className="mt-4 max-w-3xl font-dmSans text-body leading-relaxed text-gray-700 line-clamp-4">
+                        <p className="mt-4 max-w-3xl font-dmSans text-body leading-relaxed text-foreground/90 line-clamp-4">
                             {podcast.description}
                         </p>
                     ) : null}
@@ -361,7 +365,7 @@ export default function PodcastDetail({
                                 href={podcast.feedUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 rounded-md border border-gray-300 px-4 py-2 font-dmSans text-sm font-semibold text-foreground transition-colors hover:border-copper hover:text-copper focus:outline-none focus:ring-2 focus:ring-copper"
+                                className="inline-flex items-center gap-2 rounded-md border border-strong px-4 py-2 font-dmSans text-sm font-semibold text-foreground transition-colors hover:border-copper hover:text-copper focus:outline-none focus:ring-2 focus:ring-copper"
                             >
                                 RSS
                                 <Rss size={16} aria-hidden="true" />

@@ -198,7 +198,7 @@ const TrendingClubsCarousel = ({ clubs }: TrendingClubsCarouselProps) => {
                             className={`h-1.5 rounded-full transition-all duration-300 ${
                                 index === activeIndicator
                                     ? "w-8 bg-cedar"
-                                    : "w-2 bg-gray-300"
+                                    : "w-2 bg-white/25"
                             }`}
                             onClick={() => scrollToIndicator(index)}
                             aria-label={`Go to slide set ${index + 1}`}

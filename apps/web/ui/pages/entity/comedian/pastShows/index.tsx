@@ -46,7 +46,7 @@ const PastShowsSection = ({
             <h2 className="font-urbanist-bold text-h2 font-bold text-foreground">
                 Past Shows
             </h2>
-            <p className="text-gray-600 font-dmSans text-body mb-8">
+            <p className="text-muted-foreground font-dmSans text-body mb-8">
                 {liveTotal} past {liveTotal === 1 ? "show" : "shows"}
             </p>
             <SearchClientShell

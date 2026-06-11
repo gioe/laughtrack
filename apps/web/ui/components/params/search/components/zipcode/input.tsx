@@ -47,12 +47,12 @@ const ZipCodeInput = <TFieldValues extends FieldValues>(
 
     const inputClassName = `border-0 px-0 focus:ring-0 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0
         ${styleConfig.inputTextColor} text-sm sm:text-base
-        placeholder:text-sm sm:placeholder:text-base placeholder:text-gray-400
+        placeholder:text-sm sm:placeholder:text-base placeholder:text-muted-foreground/80
         tracking-normal
         bg-transparent`;
 
     const renderInput = (value: string, onChange: (value: string) => void) => (
-        <div className="flex items-center px-3 py-1.5 border border-gray-300 rounded-lg bg-transparent transition-colors hover:border-gray-400 focus-within:border-gray-400 focus-within:ring-2 focus-within:ring-blue-500 focus-within:outline-none">
+        <div className="flex items-center px-3 py-1.5 border border-strong rounded-lg bg-transparent transition-colors hover:border-copper/60 focus-within:border-copper focus-within:ring-2 focus-within:ring-copper/40 focus-within:outline-none">
             <Input
                 type="text"
                 maxLength={60}

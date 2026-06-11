@@ -65,7 +65,7 @@ const ComedianGrid = ({
                     <h3 className="font-bold font-dmSans text-hero text-center text-foreground mb-4">
                         No results found
                     </h3>
-                    <p className="text-gray-600 text-center text-lg font-dmSans">
+                    <p className="text-muted-foreground text-center text-lg font-dmSans">
                         That person must not be funny enough.
                     </p>
                 </div>

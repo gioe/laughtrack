@@ -21,7 +21,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                     focus:ring-blue-500 focus:outline-none
                     disabled:cursor-not-allowed disabled:opacity-50
                     placeholder:text-sm sm:placeholder:text-base
-                    placeholder:text-gray-400`,
+                    placeholder:text-muted-foreground/80`,
                     inputTextColor,
                     className,
                 )}

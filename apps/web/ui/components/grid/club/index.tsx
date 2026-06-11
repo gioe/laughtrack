@@ -53,7 +53,7 @@ const ClubGrid = ({ clubs }: ClubGridProps) => {
                     <h2 className="font-bold font-dmSans text-hero text-center text-foreground mb-4">
                         No results found
                     </h2>
-                    <p className="text-gray-600 text-center text-lg font-dmSans">
+                    <p className="text-muted-foreground text-center text-lg font-dmSans">
                         Does that place even exist?
                     </p>
                 </div>

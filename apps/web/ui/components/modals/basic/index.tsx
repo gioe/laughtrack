@@ -23,16 +23,16 @@ export const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
                 aria-modal="true"
                 aria-label={title}
                 tabIndex={-1}
-                className="w-[calc(100%-2rem)] max-w-md bg-coconut-cream rounded-lg p-4 sm:p-6 m-4 outline-none"
+                className="w-[calc(100%-2rem)] max-w-md bg-surface-elevated border border-subtle shadow-floating rounded-card p-4 sm:p-6 m-4 outline-none"
             >
                 <div className="flex justify-between items-center mb-2">
-                    <h2 className="text-h2 font-bold font-urbanist-bold text-gray-800">
+                    <h2 className="text-h2 font-bold font-urbanist-bold text-foreground">
                         {title}
                     </h2>
                     <button
                         onClick={onClose}
                         aria-label="Close dialog"
-                        className="text-gray-500 hover:text-gray-700"
+                        className="text-muted-foreground hover:text-foreground"
                     >
                         <X size={20} />
                     </button>

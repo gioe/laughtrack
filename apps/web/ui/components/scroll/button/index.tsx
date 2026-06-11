@@ -39,7 +39,8 @@ const NavButton = ({
         "rounded-full flex items-center justify-center transition-all duration-200";
     const activeClasses =
         "bg-cedar text-white hover:bg-cedar/90 focus:ring-2 focus:ring-cedar/50 focus:outline-none";
-    const disabledClasses = "bg-gray-200 text-gray-400 cursor-not-allowed";
+    const disabledClasses =
+        "bg-surface-muted text-muted-foreground/50 cursor-not-allowed";
 
     // Accessibility
     const defaultAriaLabel =

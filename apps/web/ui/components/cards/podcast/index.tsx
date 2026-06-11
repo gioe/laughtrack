@@ -50,10 +50,10 @@ export default function PodcastSearchCard({ podcast }: PodcastSearchCardProps) {
                         onClick={handleFavoriteClick}
                         aria-label={favoriteLabel}
                         aria-pressed={isAuthenticated ? isFavorite : undefined}
-                        className={`absolute right-2 top-2 z-10 rounded-full bg-white/90 p-2 text-gray-700 shadow-sm transition hover:bg-white hover:text-red-500 focus:outline-none focus:ring-2 focus:ring-copper ${
+                        className={`absolute right-2 top-2 z-10 rounded-full bg-surface-elevated/90 p-2 text-foreground shadow-card transition hover:bg-surface-elevated hover:text-red-400 focus:outline-none focus:ring-2 focus:ring-copper ${
                             isAuthenticated
                                 ? ""
-                                : "border border-dashed border-gray-400"
+                                : "border border-dashed border-strong"
                         }`}
                     >
                         <Heart
@@ -74,7 +74,7 @@ export default function PodcastSearchCard({ podcast }: PodcastSearchCardProps) {
                         </h3>
                     </Link>
                     {podcast.authorName ? (
-                        <span className="mt-1 block font-dmSans text-sm text-gray-600 line-clamp-1">
+                        <span className="mt-1 block font-dmSans text-sm text-muted-foreground line-clamp-1">
                             {podcast.authorName}
                         </span>
                     ) : null}

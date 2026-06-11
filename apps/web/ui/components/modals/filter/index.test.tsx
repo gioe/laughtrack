@@ -112,10 +112,8 @@ describe("FilterModal", () => {
         const { container } = render(
             <FilterModal filters={[aliasFilter]} total={42} />,
         );
-        // The Modal's close button is the first non-copper button in the
-        // dialog header — scope to it via its lucide <svg> icon.
         const closeButton = container.querySelector(
-            "button.text-gray-500",
+            'button[aria-label="Close dialog"]',
         ) as HTMLButtonElement;
         fireEvent.click(closeButton);
         expect(mockHandleClose).toHaveBeenCalledTimes(1);

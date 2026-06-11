@@ -19,7 +19,7 @@ const PriceUnavailableInfo = ({ className }: PriceUnavailableInfoProps) => {
             <button
                 type="button"
                 aria-label="Why is the price unavailable?"
-                className={`inline-flex h-8 w-8 items-center justify-center rounded-full border border-copper/25 bg-white/85 text-copper shadow-sm transition hover:bg-coconut-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper ${className ?? ""}`}
+                className={`inline-flex h-8 w-8 items-center justify-center rounded-full border border-copper/25 bg-surface-elevated/90 text-copper shadow-card transition hover:bg-surface-elevated focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper ${className ?? ""}`}
                 onClick={() => setIsOpen(true)}
             >
                 <Info size={16} aria-hidden="true" />
@@ -29,7 +29,7 @@ const PriceUnavailableInfo = ({ className }: PriceUnavailableInfoProps) => {
                 onClose={() => setIsOpen(false)}
                 title="Price unavailable"
             >
-                <p className="font-dmSans text-sm leading-6 text-gray-700">
+                <p className="font-dmSans text-sm leading-6 text-foreground/85">
                     {PRICE_UNAVAILABLE_COPY}
                 </p>
             </Modal>

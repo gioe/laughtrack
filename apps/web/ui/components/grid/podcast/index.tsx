@@ -36,7 +36,7 @@ export default function PodcastGrid({ podcasts }: PodcastGridProps) {
                 <h2 className="mb-4 text-center font-dmSans text-hero font-bold text-foreground">
                     No results found
                 </h2>
-                <p className="text-center font-dmSans text-lg text-gray-600">
+                <p className="text-center font-dmSans text-lg text-muted-foreground">
                     Try another podcast or host name.
                 </p>
             </div>

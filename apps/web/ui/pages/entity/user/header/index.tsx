@@ -19,7 +19,11 @@ interface UserDetailHeaderProps {
 
 type TabType = "favorites" | "notifications" | "account";
 
-const VALID_TABS: readonly TabType[] = ["favorites", "notifications", "account"];
+const VALID_TABS: readonly TabType[] = [
+    "favorites",
+    "notifications",
+    "account",
+];
 
 const parseTab = (value: string | null): TabType =>
     VALID_TABS.includes(value as TabType) ? (value as TabType) : "favorites";
@@ -112,7 +116,7 @@ const UserDetailHeader = ({ profile }: UserDetailHeaderProps) => {
             </div>
 
             {isLoading && (
-                <div className="z-10 absolute inset-0 flex items-center justify-center bg-white/50 rounded-lg">
+                <div className="z-10 absolute inset-0 flex items-center justify-center bg-black/50 rounded-lg">
                     <Loader2 className="w-8 h-8 text-copper animate-spin" />
                 </div>
             )}

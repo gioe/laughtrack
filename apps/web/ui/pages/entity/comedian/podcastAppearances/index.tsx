@@ -133,7 +133,7 @@ const PodcastAppearancesSection = ({
                 </h2>
                 {showSegments ? (
                     <div
-                        className="inline-flex w-fit rounded-md border border-gray-200 bg-white p-1"
+                        className="inline-flex w-fit rounded-md border border-subtle bg-surface-muted p-1"
                         aria-label="Podcast segment"
                     >
                         {segmentTabs.map((tab) => {
@@ -147,7 +147,7 @@ const PodcastAppearancesSection = ({
                                     className={`rounded px-3 py-1.5 font-dmSans text-caption font-semibold transition-colors ${
                                         selected
                                             ? "bg-copper text-white"
-                                            : "text-gray-600 hover:text-foreground"
+                                            : "text-muted-foreground hover:text-foreground"
                                     }`}
                                 >
                                     {tab.label}
@@ -209,11 +209,11 @@ const PodcastAppearancesSection = ({
                                         </span>
                                         <span
                                             data-testid="podcast-appearance-name"
-                                            className="mt-0.5 block font-dmSans text-xs leading-snug text-gray-500 line-clamp-2"
+                                            className="mt-0.5 block font-dmSans text-xs leading-snug text-muted-foreground line-clamp-2"
                                         >
                                             {appearance.podcastName}
                                         </span>
-                                        <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 font-dmSans text-caption text-gray-600">
+                                        <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 font-dmSans text-caption text-muted-foreground">
                                             <span>{details.join(" · ")}</span>
                                             {role ? (
                                                 <span className="inline-flex items-center rounded-full bg-copper/10 px-2 py-0.5 font-dmSans text-caption font-semibold text-copper">
@@ -246,7 +246,7 @@ const PodcastAppearancesSection = ({
                                             audioUrl: appearance.audioUrl,
                                         })
                                     }
-                                    className="inline-flex h-10 flex-none items-center gap-2 rounded-md border border-gray-300 px-3 font-dmSans text-caption font-semibold text-foreground transition-colors hover:border-copper hover:text-copper focus:outline-none focus:ring-2 focus:ring-copper"
+                                    className="inline-flex h-10 flex-none items-center gap-2 rounded-md border border-strong px-3 font-dmSans text-caption font-semibold text-foreground transition-colors hover:border-copper hover:text-copper focus:outline-none focus:ring-2 focus:ring-copper"
                                 >
                                     <Play size={16} aria-hidden="true" />
                                     <span aria-hidden="true">Play</span>
@@ -271,12 +271,12 @@ const PodcastAppearancesSection = ({
                             setGuestPage((page) => Math.max(0, page - 1))
                         }
                         disabled={safeGuestPage === 0}
-                        className="inline-flex items-center rounded-md border border-gray-300 px-3 py-1.5 font-dmSans text-caption font-semibold text-foreground transition-colors hover:border-copper hover:text-copper disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-gray-300 disabled:hover:text-foreground"
+                        className="inline-flex items-center rounded-md border border-strong px-3 py-1.5 font-dmSans text-caption font-semibold text-foreground transition-colors hover:border-copper hover:text-copper disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-strong disabled:hover:text-foreground"
                     >
                         Previous
                     </button>
 
-                    <span className="font-dmSans text-caption text-gray-600">
+                    <span className="font-dmSans text-caption text-muted-foreground">
                         Page {safeGuestPage + 1} of {guestPageCount}
                     </span>
 
@@ -288,7 +288,7 @@ const PodcastAppearancesSection = ({
                             )
                         }
                         disabled={safeGuestPage === guestPageCount - 1}
-                        className="inline-flex items-center rounded-md border border-gray-300 px-3 py-1.5 font-dmSans text-caption font-semibold text-foreground transition-colors hover:border-copper hover:text-copper disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-gray-300 disabled:hover:text-foreground"
+                        className="inline-flex items-center rounded-md border border-strong px-3 py-1.5 font-dmSans text-caption font-semibold text-foreground transition-colors hover:border-copper hover:text-copper disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-strong disabled:hover:text-foreground"
                     >
                         Next
                     </button>

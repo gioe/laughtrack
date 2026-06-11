@@ -99,7 +99,7 @@ function FavoriteSearchableSection<T>({
                     {title}
                 </h2>
                 {headerNote ? (
-                    <div className="font-dmSans text-xs text-gray-500">
+                    <div className="font-dmSans text-xs text-muted-foreground">
                         {headerNote}
                     </div>
                 ) : null}
@@ -108,7 +108,7 @@ function FavoriteSearchableSection<T>({
             <div className="relative">
                 <Search
                     aria-hidden="true"
-                    className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                    className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
                 />
                 <input
                     type="search"
@@ -116,11 +116,11 @@ function FavoriteSearchableSection<T>({
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder={searchPlaceholder}
                     aria-label={`Search ${title}`}
-                    className="w-full rounded-full border border-gray-200 bg-white py-2 pl-9 pr-3 font-dmSans text-sm text-foreground placeholder:text-gray-400 focus:border-copper focus:outline-none focus:ring-1 focus:ring-copper"
+                    className="w-full rounded-full border border-strong bg-surface-muted py-2 pl-9 pr-3 font-dmSans text-sm text-foreground placeholder:text-muted-foreground/80 focus:border-copper focus:outline-none focus:ring-1 focus:ring-copper"
                 />
             </div>
             {serverSearchScopeNote ? (
-                <p className="font-dmSans text-xs text-gray-500">
+                <p className="font-dmSans text-xs text-muted-foreground">
                     {serverSearchScopeNote}
                 </p>
             ) : null}
@@ -134,11 +134,11 @@ function FavoriteSearchableSection<T>({
                     {loadError}
                 </p>
             ) : items.length === 0 ? (
-                <p className="py-12 text-center font-dmSans text-sm text-gray-500">
+                <p className="py-12 text-center font-dmSans text-sm text-muted-foreground">
                     {emptyMessage}
                 </p>
             ) : filtered.length === 0 ? (
-                <p className="py-12 text-center font-dmSans text-sm text-gray-500">
+                <p className="py-12 text-center font-dmSans text-sm text-muted-foreground">
                     No matches for &ldquo;{search.trim()}&rdquo;.
                 </p>
             ) : (

@@ -262,14 +262,14 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
                                 : "Add to favorites"
                         }
                         aria-pressed={isFavorite}
-                        className="p-2.5 bg-[#FAF6E0]/95 text-[#24160f] backdrop-blur-sm rounded-full shadow-md ring-1 ring-black/10 hover:bg-white hover:shadow-lg transition"
+                        className="p-2.5 bg-surface/95 backdrop-blur-sm rounded-full shadow-card ring-1 ring-subtle hover:bg-surface-elevated hover:shadow-floating transition"
                     >
                         <Heart
                             aria-hidden="true"
                             className={`w-5 h-5 ${
                                 isFavorite
-                                    ? "text-red-500 fill-current"
-                                    : "text-gray-700"
+                                    ? "text-accent-strong fill-current"
+                                    : "text-muted-foreground"
                             }`}
                         />
                     </button>
@@ -327,7 +327,7 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
                                 onClick={handleNotifyClick}
                                 disabled={isFavorite}
                                 aria-pressed={isFavorite}
-                                className="min-h-12 gap-2 rounded-full border border-white/20 bg-[#FAF6E0] px-7 py-3 text-base text-[#24160f] shadow-lg shadow-black/25 hover:bg-white"
+                                className="min-h-12 gap-2 rounded-full border border-white/10 px-7 py-3 text-base shadow-floating"
                             >
                                 <Bell className="h-5 w-5" aria-hidden="true" />
                                 {isFavorite
@@ -357,7 +357,7 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             aria-label={`${parsedComedian.name} on ${platform}`}
-                                            className="inline-flex items-center gap-2 rounded-full bg-[#FAF6E0]/95 hover:bg-white text-[#24160f] px-3 py-1.5 text-caption font-dmSans font-semibold shadow-sm shadow-black/20 ring-1 ring-black/10 transition-colors"
+                                            className="inline-flex items-center gap-2 rounded-full bg-surface/95 hover:bg-surface-elevated text-foreground px-3 py-1.5 text-caption font-dmSans font-semibold shadow-card ring-1 ring-subtle transition-colors"
                                         >
                                             <Icon
                                                 className="w-4 h-4"

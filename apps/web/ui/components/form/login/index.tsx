@@ -105,9 +105,11 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
             />
 
             <div className="relative flex items-center gap-3">
-                <div className="flex-1 border-t border-gray-200" />
-                <span className="text-sm text-gray-400 font-dmSans">or</span>
-                <div className="flex-1 border-t border-gray-200" />
+                <div className="flex-1 border-t border-subtle" />
+                <span className="text-sm text-muted-foreground font-dmSans">
+                    or
+                </span>
+                <div className="flex-1 border-t border-subtle" />
             </div>
 
             <Form {...form}>
@@ -156,7 +158,7 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
                 >
                     <div className="flex flex-col items-center gap-2">
                         <Loader2 className="w-8 h-8 text-copper animate-spin" />
-                        <p className="text-sm text-gray-600 font-dmSans">
+                        <p className="text-sm text-muted-foreground font-dmSans">
                             Connecting to your account...
                         </p>
                     </div>

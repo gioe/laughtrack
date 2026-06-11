@@ -18,7 +18,7 @@ const NavbarPopoverItem: React.FC<NavbarPopoverItemProps> = ({ items }) => {
             <PopoverPanel
                 transition
                 className="absolute -left-8 top-full z-10 mt-3 w-screen max-w-md overflow-hidden rounded-2xl
-                 bg-white shadow-xl ring-1 ring-black/10 transition
+                 bg-surface-elevated shadow-floating ring-1 ring-subtle transition
                  data-[closed]:translate-y-2 data-[closed]:scale-95 data-[closed]:opacity-0
                  data-[enter]:duration-300 data-[leave]:duration-200
                  data-[enter]:ease-out data-[leave]:ease-in"
@@ -33,24 +33,24 @@ const NavbarPopoverItem: React.FC<NavbarPopoverItemProps> = ({ items }) => {
                         >
                             <div
                                 className="flex h-11 w-11 flex-none items-center justify-center
-                            rounded-xl bg-gray-50 transition-colors duration-150 group-hover:bg-copper/10"
+                            rounded-xl bg-surface-muted transition-colors duration-150 group-hover:bg-copper/10"
                             >
                                 <item.icon
                                     aria-hidden="true"
-                                    className="h-6 w-6 text-gray-500 transition-colors duration-150
+                                    className="h-6 w-6 text-muted-foreground transition-colors duration-150
                                     group-hover:text-copper"
                                 />
                             </div>
                             <div className="flex-auto">
                                 <a
                                     href={item.href}
-                                    className="block font-semibold text-gray-900 transition-colors duration-150
+                                    className="block font-semibold text-foreground transition-colors duration-150
                                     group-hover:text-copper"
                                 >
                                     {item.name}
                                     <span className="absolute inset-0" />
                                 </a>
-                                <p className="mt-1 text-gray-500">
+                                <p className="mt-1 text-muted-foreground">
                                     {item.description}
                                 </p>
                             </div>

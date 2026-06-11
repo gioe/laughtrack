@@ -58,7 +58,7 @@ export default function DetailTabs({
 
     return (
         <section className={className}>
-            <div className="sticky top-0 z-20 border-y border-gray-200 bg-white/95 backdrop-blur">
+            <div className="sticky top-0 z-20 border-y border-subtle bg-canvas/95 backdrop-blur">
                 <div
                     role="tablist"
                     aria-label={ariaLabel}
@@ -78,7 +78,7 @@ export default function DetailTabs({
                                 className={`whitespace-nowrap border-b-2 px-4 py-3 font-dmSans text-sm font-medium transition-colors ${
                                     selected
                                         ? "border-copper text-copper"
-                                        : "border-transparent text-gray-600 hover:border-gray-300 hover:text-foreground"
+                                        : "border-transparent text-muted-foreground hover:border-strong hover:text-foreground"
                                 }`}
                             >
                                 {tab.props.label}

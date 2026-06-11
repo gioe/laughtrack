@@ -68,7 +68,7 @@ export function SortParamComponent({
                           data-[enter]:duration-100 data-[leave]:duration-75
                           data-[enter]:ease-out data-[leave]:ease-in"
             >
-                <div className="py-1 bg-white rounded-lg">
+                <div className="py-1 bg-surface-elevated rounded-lg">
                     {sortOptions.map((option) => (
                         <MenuItem key={option.name}>
                             <button
@@ -76,8 +76,8 @@ export function SortParamComponent({
                                 className={cn(
                                     isSelected(option)
                                         ? "font-dmSans text-gray-900"
-                                        : "font-dmSans text-gray-500",
-                                    "block w-full text-left px-4 py-2 text-sm data-[focus]:bg-gray-100 cursor-pointer",
+                                        : "font-dmSans text-muted-foreground",
+                                    "block w-full text-left px-4 py-2 text-sm data-[focus]:bg-surface-muted cursor-pointer",
                                 )}
                             >
                                 {option.name}

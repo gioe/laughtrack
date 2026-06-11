@@ -93,7 +93,7 @@ export default function ShowSearchBar() {
                 <div>
                     <label
                         htmlFor="show-all-zip"
-                        className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1 block"
+                        className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1 block"
                     >
                         Where
                     </label>
@@ -111,7 +111,7 @@ export default function ShowSearchBar() {
                 <div>
                     <p
                         id="show-all-dates-label"
-                        className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1"
+                        className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1"
                     >
                         When
                     </p>

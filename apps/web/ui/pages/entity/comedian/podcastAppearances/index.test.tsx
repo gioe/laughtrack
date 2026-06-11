@@ -271,8 +271,8 @@ describe("PodcastAppearancesSection", () => {
 
         expect(queryByRole("img", { name: "Good Podcast" })).toBeNull();
         const rowCard = container.querySelector("article");
-        expect(rowCard?.className).toContain("rounded-xl");
-        expect(rowCard?.className).toContain("shadow-md");
+        expect(rowCard?.className).toContain("rounded-card");
+        expect(rowCard?.className).toContain("shadow-card");
         expect(rowCard?.querySelector(".bg-muted svg")).not.toBeNull();
     });
 

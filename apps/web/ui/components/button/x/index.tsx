@@ -10,7 +10,7 @@ export function XButton({ handleClick }: FunnelButtonProps) {
         <button
             type="button"
             onClick={() => handleClick(true)}
-            className="text-gray-400 hover:text-gray-500"
+            className="text-muted-foreground hover:text-foreground"
         >
             <span className="sr-only">Close</span>
             <XMarkIcon aria-hidden="true" className="h-6 w-6" />

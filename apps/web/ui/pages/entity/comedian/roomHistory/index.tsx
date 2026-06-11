@@ -49,7 +49,7 @@ const RoomHistorySection = ({
                 <h2 className="font-urbanist-bold text-h2 font-bold text-foreground">
                     Where {comedianName} performs
                 </h2>
-                <p className="text-gray-600 font-dmSans text-body">
+                <p className="text-muted-foreground font-dmSans text-body">
                     Counts of past sets across every venue with show history.
                 </p>
             </header>
@@ -78,7 +78,7 @@ const RoomTile = ({ room }: { room: RoomHistoryDTO }) => {
         <Link
             href={`/club/${room.clubName}`}
             data-testid={`room-history-tile-${room.clubId}`}
-            className="flex-shrink-0 w-64 md:w-auto flex-1 bg-gradient-to-b from-white to-coconut-cream/60 rounded-xl overflow-hidden shadow-sm border-b-2 border-transparent transition-all duration-300 hover:shadow-lg hover:border-copper"
+            className="flex-shrink-0 w-64 md:w-auto flex-1 bg-surface-muted rounded-card overflow-hidden shadow-card border border-subtle transition-all duration-300 hover:shadow-floating hover:border-copper/60"
         >
             <div className="relative w-full aspect-video bg-coconut-cream/40">
                 <Image
@@ -93,12 +93,12 @@ const RoomTile = ({ room }: { room: RoomHistoryDTO }) => {
                 <h3 className="font-bold text-foreground text-sm line-clamp-1">
                     {room.clubName}
                 </h3>
-                <p className="text-xs text-gray-700 font-dmSans">
+                <p className="text-xs text-foreground/85 font-dmSans">
                     Played {formatPlayCount(room.playCount)} · last set{" "}
                     {formatLastPlayed(room.lastPlayedDate)}
                 </p>
                 {locationLabel && (
-                    <p className="flex items-center gap-1 text-xs text-gray-500">
+                    <p className="flex items-center gap-1 text-xs text-muted-foreground">
                         <MapPin size={11} aria-hidden="true" />
                         {locationLabel}
                     </p>

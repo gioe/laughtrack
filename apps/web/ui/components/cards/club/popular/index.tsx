@@ -22,7 +22,7 @@ const PopularClubCard: React.FC<PopularClubCardProps> = ({ entity }) => {
 
     return (
         <EntityCard chrome="none" className="w-full">
-            <div className="relative w-full aspect-square rounded-xl overflow-hidden mb-4 hover:cursor-pointer bg-coconut-cream">
+            <div className="relative w-full aspect-square rounded-xl overflow-hidden mb-4 hover:cursor-pointer bg-white">
                 <Link
                     href={`/club/${club.name}`}
                     className="block w-full h-full relative"
@@ -30,9 +30,9 @@ const PopularClubCard: React.FC<PopularClubCardProps> = ({ entity }) => {
                     {showFallback ? (
                         <div
                             data-testid="club-image-fallback"
-                            className="flex h-full w-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-coconut-cream via-white to-copper/20 p-6 text-center text-foreground"
+                            className="flex h-full w-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-surface-muted via-surface-elevated to-copper/20 p-6 text-center text-foreground"
                         >
-                            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-white/85 text-copper shadow-sm">
+                            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-surface-elevated text-copper shadow-card">
                                 <Building2
                                     size={32}
                                     strokeWidth={1.8}
@@ -62,7 +62,7 @@ const PopularClubCard: React.FC<PopularClubCardProps> = ({ entity }) => {
                 <h2 className="text-h3 font-bold leading-tight font-urbanist-bold">
                     {club.name}
                 </h2>
-                <p className="text-body text-gray-600 font-dmSans">
+                <p className="text-body text-muted-foreground font-dmSans">
                     {club.activeComedianCount} active comedians
                 </p>
             </div>

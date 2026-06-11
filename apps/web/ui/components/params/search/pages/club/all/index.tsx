@@ -41,7 +41,7 @@ export default function ClubSearchBar() {
                 <div>
                     <label
                         htmlFor="club-all-zip"
-                        className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1 block"
+                        className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1 block"
                     >
                         Where
                     </label>

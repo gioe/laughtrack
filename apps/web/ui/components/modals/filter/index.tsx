@@ -45,7 +45,7 @@ const FilterModal = ({ filters, total, variant }: FilterModalProps) => {
             onClose={onCancel}
             title="Filter Results"
         >
-            <p className="text-gray-600 mb-4 font-dmSans text-body animate-fadeIn">
+            <p className="text-muted-foreground mb-4 font-dmSans text-body animate-fadeIn">
                 Select options to refine search
             </p>
 
@@ -57,7 +57,7 @@ const FilterModal = ({ filters, total, variant }: FilterModalProps) => {
 
             {filters.length > 0 && (
                 <div className="mb-6 pt-7 animate-slideUp">
-                    <h3 className="text-lead font-bold font-urbanist-bold text-gray-800 mb-3 pb-3 border-b border-gray-100">
+                    <h3 className="text-lead font-bold font-urbanist-bold text-foreground mb-3 pb-3 border-b border-subtle">
                         Filter By
                     </h3>
                     <div className="flex flex-wrap gap-2">
@@ -95,10 +95,10 @@ function PodcastAdvancedFilters() {
 
     return (
         <div className="mb-6 pt-2 animate-slideUp">
-            <h3 className="text-lead font-bold font-urbanist-bold text-gray-800 mb-3 pb-3 border-b border-gray-100">
+            <h3 className="text-lead font-bold font-urbanist-bold text-foreground mb-3 pb-3 border-b border-subtle">
                 Podcast Scope
             </h3>
-            <label className="flex items-start gap-3 rounded-md border border-gray-200 p-3 cursor-pointer transition-colors hover:bg-gray-50">
+            <label className="flex items-start gap-3 rounded-md border border-subtle p-3 cursor-pointer transition-colors hover:bg-surface-muted">
                 <input
                     type="checkbox"
                     checked={includeAllPodcasts}
@@ -111,10 +111,10 @@ function PodcastAdvancedFilters() {
                     className="mt-1 accent-copper w-4 h-4"
                 />
                 <span>
-                    <span className="block font-dmSans text-sm font-semibold text-gray-800">
+                    <span className="block font-dmSans text-sm font-semibold text-foreground">
                         Include all podcasts
                     </span>
-                    <span className="block font-dmSans text-sm text-gray-600">
+                    <span className="block font-dmSans text-sm text-muted-foreground">
                         Show podcasts that do not yet have accepted public host
                         ownership.
                     </span>

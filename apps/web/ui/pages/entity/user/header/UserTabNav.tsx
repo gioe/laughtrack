@@ -18,7 +18,7 @@ const tabs = [
 
 const UserTabNav = ({ activeTab, onTabChange }: UserTabNavProps) => {
     return (
-        <div className="border-b border-gray-200 mt-6">
+        <div className="border-b border-subtle mt-6">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex space-x-8">
                     {tabs.map((tab) => {
@@ -32,7 +32,7 @@ const UserTabNav = ({ activeTab, onTabChange }: UserTabNavProps) => {
                                     ${
                                         activeTab === tab.id
                                             ? "border-copper text-copper"
-                                            : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                                            : "border-transparent text-muted-foreground hover:text-foreground hover:border-strong"
                                     }
                                 `}
                             >

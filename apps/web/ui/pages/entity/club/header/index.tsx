@@ -12,6 +12,7 @@ import ChainLocationDropdown, {
 } from "@/ui/pages/entity/club/chainLocations";
 import { useMotionProps } from "@/hooks";
 import { motion } from "framer-motion";
+import { stripHtmlTags } from "@/util/primatives/stringUtil";
 
 const PLACEHOLDER = "/placeholders/club-placeholder.svg";
 
@@ -171,14 +172,14 @@ const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({
                 </div>
             )}
 
-            {parsedClub.description !== "" && (
+            {stripHtmlTags(parsedClub.description) !== "" && (
                 <motion.p
                     initial={{ opacity: 0, y: mv(10) }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={mt({ duration: 0.3, delay: mv(0.25) })}
                     className="px-6 pt-6 max-w-3xl font-dmSans text-body leading-relaxed text-foreground whitespace-pre-line"
                 >
-                    {parsedClub.description}
+                    {stripHtmlTags(parsedClub.description)}
                 </motion.p>
             )}
 
