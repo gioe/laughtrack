@@ -257,13 +257,28 @@ export async function findComediansWithCount(
             };
         }
 
+        // `getComedianFiltersClause()` contributes its tag-slug match via an
+        // `AND` array. Spreading it and then setting `AND: nameFilters` below
+        // would clobber the tag filter (object spread: later keys win), so we
+        // pull the helper's AND out and merge it with nameFilters explicitly.
+        const filtersClause =
+            helper.getComedianFiltersClause() as Prisma.ComedianWhereInput;
+        const filtersClauseAnd = filtersClause.AND;
+        const filtersAndArray: Prisma.ComedianWhereInput[] = Array.isArray(
+            filtersClauseAnd,
+        )
+            ? filtersClauseAnd
+            : filtersClauseAnd
+              ? [filtersClauseAnd]
+              : [];
+
         const whereClause: Prisma.ComedianWhereInput = {
-            ...helper.getComedianFiltersClause(),
+            ...filtersClause,
             visible: true,
             parentComedian: {
                 is: null,
             },
-            AND: nameFilters,
+            AND: [...nameFilters, ...filtersAndArray],
             ...lineupItemsClause,
             ...minUpcomingShowsClause,
         };

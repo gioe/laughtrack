@@ -129,6 +129,60 @@ describe("findComediansWithCount", () => {
 
             expect(result.comedians[0].showCount).toBe(5);
         });
+
+        it("merges the helper's filter AND clause into the where AND so the tag filter survives", async () => {
+            // Regression: the comedian search wherClause used to spread the
+            // filter clause and then assign `AND: nameFilters` a few lines
+            // later, silently clobbering the tag-slug match contributed by
+            // `getComedianFiltersClause`. Default sort (popularity_desc) takes
+            // the Prisma findMany path, where this clobber was load-bearing.
+            mockCount.mockResolvedValue(0);
+            mockFindMany.mockResolvedValue([] as never);
+
+            const tagFilterClause = {
+                taggedComedians: {
+                    some: {
+                        tag: {
+                            slug: { in: ["alias"] },
+                            type: "comedian",
+                        },
+                    },
+                },
+            };
+            const filtersHelperClause = {
+                taggedComedians: {
+                    none: { tag: { restrictContent: true } },
+                },
+                AND: [tagFilterClause],
+            };
+
+            const helper = makeHelper(
+                SortParamValue.PopularityDesc,
+                undefined,
+                "alias",
+            );
+            helper.getComedianFiltersClause = (() =>
+                filtersHelperClause) as never as typeof helper.getComedianFiltersClause;
+
+            await findComediansWithCount(helper);
+
+            expect(mockCount).toHaveBeenCalledOnce();
+            const countWhere = mockCount.mock.calls[0]?.[0]?.where as {
+                AND?: unknown[];
+            };
+            expect(Array.isArray(countWhere.AND)).toBe(true);
+            expect(countWhere.AND).toEqual(
+                expect.arrayContaining([tagFilterClause]),
+            );
+
+            expect(mockFindMany).toHaveBeenCalledOnce();
+            const findManyWhere = mockFindMany.mock.calls[0]?.[0]?.where as {
+                AND?: unknown[];
+            };
+            expect(findManyWhere.AND).toEqual(
+                expect.arrayContaining([tagFilterClause]),
+            );
+        });
     });
 
     describe("show_count_asc sort", () => {
