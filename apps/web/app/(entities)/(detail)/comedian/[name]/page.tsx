@@ -17,7 +17,6 @@ import { buildComedianImageUrl } from "@/util/imageUtil";
 import JsonLd from "@/ui/components/JsonLd";
 import { buildComedianJsonLd, buildShowJsonLd } from "@/util/jsonLd";
 import { readTimezoneCookie } from "@/util/timezone";
-import { getComedianHeroPalette } from "@/lib/data/comedian/detail/getComedianHeroPalette";
 
 type DetailSearchParams = Record<string, string | string[] | undefined>;
 
@@ -130,12 +129,6 @@ export default async function ComedianDetailsPage(props: {
         podcastAppearances,
         filters,
     } = result;
-    const heroPalette = await getComedianHeroPalette({
-        comedianId: data.id,
-        imageUrl: data.imageUrl,
-        hasImage: data.hasImage,
-    });
-
     const jsonLdData = [
         buildComedianJsonLd(data),
         ...shows.map(buildShowJsonLd),
@@ -161,7 +154,7 @@ export default async function ComedianDetailsPage(props: {
         <>
             <JsonLd data={jsonLdData} />
             <FilterModal filters={filters} total={total} />
-            <ComedianDetailHeader comedian={data} heroPalette={heroPalette} />
+            <ComedianDetailHeader comedian={data} />
             <RoomHistorySection comedianName={data.name} rooms={roomHistory} />
             <ComedianDetailTabs
                 shows={shows}

@@ -23,6 +23,27 @@ vi.mock("next/image", () => ({
     }) => <img alt={alt} src={src} className={className} />,
 }));
 
+vi.mock("framer-motion", () => ({
+    motion: {
+        div: ({
+            children,
+            className,
+        }: {
+            children?: React.ReactNode;
+            className?: string;
+        }) => <div className={className}>{children}</div>,
+    },
+}));
+
+vi.mock("@/hooks", () => ({
+    useMotionProps: () => ({
+        springs: {
+            contentEntrance: { duration: 0 },
+        },
+        prefersReducedMotion: true,
+    }),
+}));
+
 vi.mock("@/ui/components/grid/comedian", () => ({
     default: () => <div data-testid="comedian-grid" />,
 }));
@@ -221,5 +242,44 @@ describe("PodcastDetail page render", () => {
         );
 
         expect(container.querySelectorAll("main")).toHaveLength(1);
+    });
+
+    it("renders the podcast hero as a square marquee poster", () => {
+        render(
+            <PodcastDetail
+                podcast={{
+                    ...podcast,
+                    authorName: "Earwolf",
+                    imageUrl: "https://cdn.example.com/podcast.jpg",
+                }}
+                episodes={episodes}
+                relatedComedians={[]}
+            />,
+        );
+
+        expect(screen.getByText("Podcast")).toBeTruthy();
+        expect(screen.queryByText("Earwolf")).toBeNull();
+        const title = screen.getByRole("heading", { level: 1 });
+        expect(title.textContent).toBe("The Good Podcast");
+        expect(title.className).toContain("uppercase");
+        expect(screen.getByTestId("marquee-poster-frame").className).toContain(
+            "border-dashed",
+        );
+        expect(screen.getByAltText("The Good Podcast").className).toContain(
+            "object-cover",
+        );
+    });
+
+    it("renders a podcast-icon fallback inside the marquee ring without artwork", () => {
+        render(
+            <PodcastDetail
+                podcast={{ ...podcast, imageUrl: null }}
+                episodes={episodes}
+                relatedComedians={[]}
+            />,
+        );
+
+        expect(screen.getByTestId("marquee-poster-fallback")).toBeTruthy();
+        expect(screen.queryByAltText("The Good Podcast")).toBeNull();
     });
 });

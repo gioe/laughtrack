@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { MapPin, CalendarDays } from "lucide-react";
-import Image from "next/image";
+import React from "react";
+import { Building2, CalendarDays } from "lucide-react";
 import { Club } from "@/objects/class/club/Club";
 import { ClubDTO } from "@/objects/class/club/club.interface";
 import type { SiblingClubDTO } from "@/lib/data/club/detail/findSiblingClubs";
@@ -13,6 +12,7 @@ import ChainLocationDropdown, {
 import { useMotionProps } from "@/hooks";
 import { motion } from "framer-motion";
 import { stripHtmlTags } from "@/util/primatives/stringUtil";
+import MarqueeHero from "@/ui/pages/entity/MarqueeHero";
 
 const PLACEHOLDER = "/placeholders/club-placeholder.svg";
 
@@ -55,9 +55,7 @@ const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({
                   })),
               ].sort((a, b) => a.name.localeCompare(b.name))
             : [];
-    const { mv, springs, prefersReducedMotion } = useMotionProps();
-    const [error, setError] = useState(false);
-    const [imageLoaded, setImageLoaded] = useState(false);
+    const { mv, springs } = useMotionProps();
     const isFestival = parsedClub.clubType === "festival";
     const locationLabel = isFestival
         ? parsedClub.city && parsedClub.state
@@ -69,105 +67,44 @@ const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({
 
     // Parity with iOS ClubDetailHeroPresentation: fall back to imageUrl when
     // heroUrl is empty so clubs with only a logo still render artwork.
-    const isUsableUrl = (url: string) => !!url && url !== PLACEHOLDER;
+    const isUsableUrl = (url?: string | null) => !!url && url !== PLACEHOLDER;
     const heroSrc = isUsableUrl(parsedClub.heroUrl)
         ? parsedClub.heroUrl
         : isUsableUrl(parsedClub.imageUrl)
           ? parsedClub.imageUrl
-          : "";
-    const showImage = !error && heroSrc !== "";
+          : null;
 
     return (
         <div className="max-w-7xl mx-auto">
-            {/* Hero Image Section */}
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={springs.contentEntrance}
-                className="relative w-full h-52 sm:h-64 md:h-80 overflow-hidden rounded-xl"
-            >
-                {/* Gradient fallback background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-stone-600 via-stone-800 to-stone-900" />
-
-                {/* Hero image */}
-                {showImage && (
-                    <>
-                        <Image
-                            src={heroSrc}
-                            alt={parsedClub.name}
-                            fill
-                            className={`object-contain object-center transition-opacity duration-500 ${
-                                imageLoaded ? "opacity-100" : "opacity-0"
-                            }`}
-                            onError={() => setError(true)}
-                            onLoad={() => setImageLoaded(true)}
-                            priority
-                            sizes="(max-width: 768px) 100vw, 1280px"
+            <MarqueeHero
+                title={parsedClub.name}
+                eyebrow={locationLabel}
+                imageSrc={heroSrc}
+                imageAlt={parsedClub.name}
+                fallback={
+                    <div className="flex h-full w-full items-center justify-center bg-surface-muted">
+                        <Building2
+                            size={64}
+                            className="text-accent-strong"
+                            aria-hidden="true"
                         />
-                        {/* Skeleton pulse during image load */}
-                        {!imageLoaded && (
-                            <div
-                                className={`absolute inset-0 bg-stone-700${!prefersReducedMotion ? " animate-pulse" : ""}`}
-                            />
-                        )}
-                        {/* Overlay gradient — only when image is present */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
-                    </>
-                )}
-
-                {/* Name + Address overlaid at bottom */}
-                <div className="absolute bottom-0 left-0 right-0 p-6">
+                    </div>
+                }
+            >
+                <div className="flex flex-col items-center gap-3">
                     {isFestival && (
-                        <motion.div
-                            initial={{ opacity: 0, y: mv(10) }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={springs.contentEntrance}
-                            className="mb-2"
-                        >
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/90 text-white text-xs font-semibold uppercase tracking-wide">
-                                <CalendarDays className="w-3.5 h-3.5" />
-                                Festival
-                            </span>
-                        </motion.div>
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-highlight/85 text-foreground text-xs font-semibold uppercase tracking-wide">
+                            <CalendarDays className="w-3.5 h-3.5" />
+                            Festival
+                        </span>
                     )}
-                    <motion.h1
-                        initial={{ opacity: 0, y: mv(20) }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{
-                            ...springs.contentEntrance,
-                            delay: mv(0.1),
-                        }}
-                        className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg mb-1"
-                    >
-                        {parsedClub.name}
-                    </motion.h1>
                     {club.chainName && (
-                        <motion.p
-                            initial={{ opacity: 0, y: mv(10) }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{
-                                ...springs.contentEntrance,
-                                delay: mv(0.15),
-                            }}
-                            className="text-sm text-white/60 italic mb-1"
-                        >
+                        <p className="text-sm text-white/65 italic">
                             Part of the {club.chainName} family
-                        </motion.p>
+                        </p>
                     )}
-                    <motion.div
-                        initial={{ opacity: 0, y: mv(10) }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{
-                            ...springs.contentEntrance,
-                            delay: mv(0.2),
-                        }}
-                        className="flex items-center gap-2 text-white/80"
-                    >
-                        <MapPin aria-hidden="true" className="w-4 h-4" />
-                        <span>{locationLabel}</span>
-                    </motion.div>
                 </div>
-            </motion.div>
+            </MarqueeHero>
 
             {chainLocations.length > 1 && club.chainName && (
                 <div className="px-6 pt-6">

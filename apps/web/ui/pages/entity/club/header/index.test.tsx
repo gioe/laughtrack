@@ -2,7 +2,13 @@
  * @vitest-environment happy-dom
  */
 import React from "react";
-import { cleanup, render, screen } from "@testing-library/react";
+import {
+    cleanup,
+    fireEvent,
+    render,
+    screen,
+    waitFor,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import ClubDetailHeader from "./index";
 import type { ClubDTO } from "@/objects/class/club/club.interface";
@@ -12,11 +18,13 @@ vi.mock("next/image", () => ({
         alt,
         src,
         className,
+        onLoad,
     }: {
         alt: string;
         src: string;
         className?: string;
-    }) => <img alt={alt} src={src} className={className} />,
+        onLoad?: React.ReactEventHandler<HTMLImageElement>;
+    }) => <img alt={alt} src={src} className={className} onLoad={onLoad} />,
 }));
 
 vi.mock("framer-motion", () => ({
@@ -79,9 +87,36 @@ describe("ClubDetailHeader hero image", () => {
         expect(image.getAttribute("src")).toBe(
             "https://cdn.example.com/hero.jpg",
         );
-        // Hero renders uncropped
-        expect(image.className).toContain("object-contain");
-        expect(image.className).not.toContain("object-cover");
+        // Detail heroes now use the iOS marquee square-poster crop.
+        expect(image.className).toContain("object-cover");
+    });
+
+    it("letterboxes very wide images inside the square marquee poster", async () => {
+        render(
+            <ClubDetailHeader
+                club={{
+                    ...baseClub,
+                    heroUrl: "https://cdn.example.com/wide-logo.jpg",
+                }}
+            />,
+        );
+
+        const image = screen.getByAltText("Comedy Cellar");
+        Object.defineProperty(image, "naturalWidth", {
+            configurable: true,
+            value: 1200,
+        });
+        Object.defineProperty(image, "naturalHeight", {
+            configurable: true,
+            value: 500,
+        });
+        fireEvent.load(image);
+
+        await waitFor(() => {
+            const loadedImage = screen.getByAltText("Comedy Cellar");
+            expect(loadedImage.className).toContain("object-contain");
+            expect(loadedImage.className).not.toContain("object-cover");
+        });
     });
 
     it("falls back to imageUrl when heroUrl is empty", () => {
@@ -118,13 +153,17 @@ describe("ClubDetailHeader hero image", () => {
         );
     });
 
-    it("renders the gradient fallback without an image when both are empty", () => {
+    it("renders the marquee fallback without an image when both are empty", () => {
         const { container } = render(<ClubDetailHeader club={baseClub} />);
 
         expect(screen.queryByAltText("Comedy Cellar")).toBeNull();
-        expect(container.querySelector(".bg-gradient-to-br")).not.toBeNull();
-        // Name overlay still renders on the gradient
+        expect(screen.getByTestId("marquee-poster-fallback")).toBeTruthy();
+        expect(screen.getByTestId("marquee-poster-frame").className).toContain(
+            "border-dashed",
+        );
+        // Name still renders above the square poster.
         expect(screen.getByText("Comedy Cellar")).toBeTruthy();
+        expect(container.textContent).toContain("New York, NY");
     });
 });
 

@@ -1,26 +1,21 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Heart, Sparkles, Bell, Globe } from "lucide-react";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { Comedian } from "@/objects/class/comedian/Comedian";
 import { useFavorite } from "@/hooks/useFavorite";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMotionProps, MOTION_TAP_SCALE } from "@/hooks";
-import Image from "next/image";
 import ComedianAvatarFallback from "@/ui/components/image/comedian/fallback";
 import InstagramIcon from "@/ui/components/icons/InstagramIcon";
 import TikTokIcon from "@/ui/components/icons/TikTokIcon";
 import YouTubeIcon from "@/ui/components/icons/YouTubeIcon";
 import { Button } from "@/ui/components/ui/button";
-import {
-    COMEDIAN_HERO_DEFAULTS,
-    ComedianHeroPalette,
-} from "@/lib/data/comedian/detail/heroPalette";
+import MarqueeHero from "@/ui/pages/entity/MarqueeHero";
 
 interface ComedianDetailHeaderProps {
     comedian: ComedianDTO;
-    heroPalette?: ComedianHeroPalette | null;
 }
 
 function getUpcomingCityCount(comedian: ComedianDTO) {
@@ -52,21 +47,9 @@ function formatUpcomingShowsStat(showCount: number, cityCount: number) {
 
 const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
     comedian,
-    heroPalette,
 }) => {
     const { mv, mp, springs, prefersReducedMotion } = useMotionProps();
-    const [error, setError] = useState(false);
     const [showConfetti, setShowConfetti] = useState(false);
-    const [imageLoaded, setImageLoaded] = useState(false);
-    const imageRef = useRef<HTMLImageElement | null>(null);
-    const showImage = !error && !!comedian.imageUrl;
-
-    useEffect(() => {
-        setImageLoaded(false);
-        if (imageRef.current?.complete && showImage) {
-            setImageLoaded(true);
-        }
-    }, [comedian.imageUrl, showImage]);
 
     const parsedComedian = new Comedian(comedian);
     const social = parsedComedian.socialData;
@@ -138,116 +121,9 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
         ].filter((link) => Boolean(link.account));
     }, [social]);
 
-    const palette = heroPalette ?? COMEDIAN_HERO_DEFAULTS;
-    const heroStyle = {
-        "--comedian-hero-accent": palette.accent,
-        "--comedian-hero-accent-soft": palette.accentSoft,
-        "--comedian-hero-cta": palette.cta,
-        "--comedian-hero-cta-hover": palette.ctaHover,
-    } as React.CSSProperties;
-
-    const backdropGradient = {
-        backgroundImage:
-            "linear-gradient(135deg, rgba(30, 18, 12, 0.92) 0%, rgba(54, 30, 20, 0.74) 44%, var(--comedian-hero-accent-soft) 100%)",
-    } as React.CSSProperties;
-
-    const fallbackGradient = {
-        backgroundImage:
-            "linear-gradient(135deg, #1f120c 0%, #361E14 42%, var(--comedian-hero-accent-soft) 100%)",
-    } as React.CSSProperties;
-
-    const imageBottomGradient = {
-        backgroundImage:
-            "linear-gradient(to top, rgba(18, 12, 8, 0.52) 0%, rgba(18, 12, 8, 0.18) 38%, transparent 72%)",
-    } as React.CSSProperties;
-
-    const imageLeftGradient = {
-        backgroundImage:
-            "linear-gradient(to right, #1f120c 0%, rgba(31, 18, 12, 0.92) 28%, rgba(31, 18, 12, 0.48) 56%, transparent 82%)",
-    } as React.CSSProperties;
-
-    const imageTopGradient = {
-        backgroundImage:
-            "linear-gradient(to bottom, rgba(18, 12, 8, 0.32) 0%, transparent 42%)",
-    } as React.CSSProperties;
-
-    const portraitGlow = {
-        backgroundImage:
-            "radial-gradient(circle at 74% 44%, rgba(255, 236, 205, 0.18) 0%, rgba(255, 236, 205, 0.08) 28%, transparent 58%)",
-    } as React.CSSProperties;
-
     return (
-        <section
-            className="relative w-full overflow-hidden bg-cedar"
-            style={heroStyle}
-        >
-            {/* Blurred backdrop (uses headshot when present, else warm gradient) */}
-            <div className="absolute inset-0">
-                {showImage ? (
-                    <>
-                        <Image
-                            src={comedian.imageUrl}
-                            alt=""
-                            aria-hidden="true"
-                            fill
-                            className="object-cover object-center scale-110 blur-2xl opacity-45"
-                            sizes="100vw"
-                            priority
-                        />
-                        <div
-                            className="absolute inset-0"
-                            style={backdropGradient}
-                        />
-                    </>
-                ) : (
-                    <div
-                        className="absolute inset-0"
-                        style={fallbackGradient}
-                    />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
-            </div>
-
-            {showImage && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: imageLoaded ? 1 : 0 }}
-                    transition={springs.emphasis}
-                    className="absolute inset-0 z-0"
-                >
-                    <Image
-                        ref={imageRef}
-                        src={comedian.imageUrl}
-                        alt={parsedComedian.name}
-                        fill
-                        className="object-contain object-top md:object-right-top lg:object-right"
-                        onError={() => setError(true)}
-                        onLoad={() => setImageLoaded(true)}
-                        priority
-                        sizes="100vw"
-                    />
-                    <div className="absolute inset-0" style={portraitGlow} />
-                    <div
-                        className="absolute inset-0"
-                        style={imageBottomGradient}
-                    />
-                    <div
-                        className="absolute inset-0"
-                        style={imageLeftGradient}
-                    />
-                    <div
-                        className="absolute inset-0"
-                        style={imageTopGradient}
-                    />
-                </motion.div>
-            )}
-
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={springs.contentEntrance}
-                className="relative z-10 max-w-7xl mx-auto min-h-[30rem] md:min-h-[34rem] lg:min-h-[38rem] px-4 sm:px-6 lg:px-8 py-8 sm:py-10 md:py-12 lg:py-14 flex flex-col justify-end"
-            >
+        <section className="relative w-full">
+            <div className="pointer-events-none absolute inset-x-0 top-0 z-20 mx-auto max-w-7xl">
                 {/* Favorite button — pinned to top-right of the hero */}
                 <motion.div
                     whileHover={mp({
@@ -258,7 +134,7 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
                         scale: MOTION_TAP_SCALE,
                         transition: springs.tapFeedback,
                     })}
-                    className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20"
+                    className="pointer-events-auto absolute top-4 right-4 sm:top-6 sm:right-6"
                 >
                     <button
                         onClick={handleFavoriteWithAnimation}
@@ -280,32 +156,20 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
                         />
                     </button>
                 </motion.div>
+            </div>
 
-                <div className="w-full max-w-3xl text-center md:text-left lg:text-left">
-                    {!showImage && (
-                        /* Fallback remains contained only when no usable hero headshot exists. */
-                        <div className="mx-auto md:mx-0 mb-6 relative h-44 w-44 sm:h-56 sm:w-56 rounded-2xl overflow-hidden ring-4 ring-white/20 shadow-2xl">
-                            <ComedianAvatarFallback
-                                name={parsedComedian.name}
-                                variant="hero"
-                            />
-                        </div>
-                    )}
-
-                    <motion.div
-                        initial={{ opacity: 0, y: mv(20) }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{
-                            ...springs.contentEntrance,
-                            delay: mv(0.05),
-                        }}
-                        className="max-w-4xl"
-                    >
-                        <h1 className="text-h1 sm:text-display md:text-display lg:text-hero font-chivo font-bold text-white drop-shadow-md leading-tight">
-                            {parsedComedian.name}
-                        </h1>
-                    </motion.div>
-
+            <MarqueeHero
+                title={parsedComedian.name}
+                imageSrc={comedian.imageUrl}
+                imageAlt={parsedComedian.name}
+                fallback={
+                    <ComedianAvatarFallback
+                        name={parsedComedian.name}
+                        variant="hero"
+                    />
+                }
+            >
+                <div className="flex max-w-3xl flex-col items-center">
                     {upcomingShowsLabel && (
                         <motion.p
                             initial={{ opacity: 0, y: mv(10) }}
@@ -314,7 +178,7 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
                                 ...springs.contentEntrance,
                                 delay: mv(0.1),
                             }}
-                            className="mt-3 text-lead font-dmSans text-white/75 drop-shadow"
+                            className="text-lead font-dmSans text-white/75 drop-shadow"
                         >
                             {upcomingShowsLabel}
                         </motion.p>
@@ -355,7 +219,7 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
                                 ...springs.contentEntrance,
                                 delay: mv(0.2),
                             }}
-                            className="mt-5 flex flex-wrap justify-center md:justify-start lg:justify-start gap-2"
+                            className="mt-5 flex flex-wrap justify-center gap-2"
                         >
                             {socialLinks.map((link) => {
                                 const { Icon, platform, account, href } = link;
@@ -384,35 +248,27 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
                         </motion.ul>
                     )}
                 </div>
+            </MarqueeHero>
 
-                {showImage && !imageLoaded && (
-                    <div
-                        className={`absolute inset-0 -z-10 bg-cedar${!prefersReducedMotion ? " animate-pulse" : ""}`}
-                    />
+            {/* Confetti burst */}
+            <AnimatePresence>
+                {showConfetti && (
+                    <motion.div
+                        initial={{ opacity: mv(0, 1), scale: mv(0, 1) }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: mv(0, 1), scale: mv(0, 1) }}
+                        transition={
+                            prefersReducedMotion ? { duration: 0 } : undefined
+                        }
+                        className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center"
+                    >
+                        <Sparkles
+                            aria-hidden="true"
+                            className="w-12 h-12 text-yellow-400"
+                        />
+                    </motion.div>
                 )}
-
-                {/* Confetti burst */}
-                <AnimatePresence>
-                    {showConfetti && (
-                        <motion.div
-                            initial={{ opacity: mv(0, 1), scale: mv(0, 1) }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: mv(0, 1), scale: mv(0, 1) }}
-                            transition={
-                                prefersReducedMotion
-                                    ? { duration: 0 }
-                                    : undefined
-                            }
-                            className="absolute inset-0 flex items-center justify-center pointer-events-none"
-                        >
-                            <Sparkles
-                                aria-hidden="true"
-                                className="w-12 h-12 text-yellow-400"
-                            />
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-            </motion.div>
+            </AnimatePresence>
         </section>
     );
 };

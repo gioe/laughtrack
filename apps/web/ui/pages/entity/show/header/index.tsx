@@ -1,13 +1,11 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { Ticket } from "lucide-react";
-import { useMotionProps } from "@/hooks";
 import { formatShowCountdown } from "@/util/dateUtil";
 import { ShowDetailDTO } from "@/lib/data/show/detail/interface";
+import MarqueeHero from "@/ui/pages/entity/MarqueeHero";
 
 const PLACEHOLDER = "/placeholders/club-placeholder.svg";
 
@@ -27,29 +25,10 @@ const COUNTDOWN_TONE_CLASSES: Record<string, string> = {
     past: "bg-canvas text-foreground border border-subtle",
 };
 
-// Marquee hero ported from the iOS composition (ios MarqueeHero.swift):
-// copper venue eyebrow above an uppercase title above a square poster framed
-// by a dashed copper ring. iOS reference values — 11pt eyebrow with 2.2
-// tracking in accentStrong, 196pt poster, dashed accentStrong ring with a
-// copper glow, scaledToFill poster crop.
-
-// Wide-wordmark exception to the square cover crop (TASK-2787): club images
-// at or beyond this width:height ratio letterbox with object-contain on
-// surface-muted instead of cover-cropping. A 2026-06 survey of all 192 club
-// CDN PNGs found 34% are ≥2:1 and visually those are wordmark logos
-// (Goodnights 3.8:1 cover-crops to an illegible "ODNIG / MEDY C"), while the
-// 1.5–2:1 band is venue photos that center-crop fine — so aspect ratio alone
-// separates the populations and no background heuristic is needed. Below the
-// threshold the iOS-matching cover crop (TASK-2767) still applies.
-const LOGO_ASPECT_THRESHOLD = 2;
 const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({
     show,
     isAdmin = false,
 }) => {
-    const { springs, prefersReducedMotion } = useMotionProps();
-    const [error, setError] = useState(false);
-    const [imageLoaded, setImageLoaded] = useState(false);
-    const [letterbox, setLetterbox] = useState(false);
     // Re-derive the countdown every minute so future→live→past transitions
     // fire without a page reload (a user who lands 4 minutes before showtime
     // otherwise sees the label frozen as the show starts).
@@ -58,128 +37,57 @@ const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({
         const interval = setInterval(() => setNow(new Date()), 60_000);
         return () => clearInterval(interval);
     }, []);
-    const showImage = !error && show.imageUrl && show.imageUrl !== PLACEHOLDER;
     const heading =
         show.name && show.name.trim()
             ? show.name
             : `Comedy at ${show.clubName ?? ""}`;
     const countdown = formatShowCountdown(show.date.toString(), now);
+    const imageSrc =
+        show.imageUrl && show.imageUrl !== PLACEHOLDER ? show.imageUrl : null;
 
     return (
-        <div className="max-w-7xl mx-auto">
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={springs.contentEntrance}
-                className="relative w-full overflow-hidden rounded-xl bg-surface px-6 py-8 sm:py-10"
-            >
-                {/* Radial copper glow behind the poster, the web analogue of the
-                    iOS marquee's accent RadialGradient over heroStart. */}
-                <div
-                    aria-hidden="true"
-                    className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_theme(colors.accent-strong/16%),_transparent_65%)]"
-                />
-
-                <div className="relative flex flex-col items-center gap-4 text-center">
-                    {show.clubName && (
-                        <Link
-                            href={`/club/${show.clubName}`}
-                            className="text-caption font-semibold uppercase tracking-[0.2em] text-accent-strong font-dmSans underline-offset-4 hover:underline focus-visible:underline"
-                        >
-                            {show.clubName}
-                        </Link>
-                    )}
-
-                    {/* sm/md are bounded ranges in this config, so lg must be
-                        chained explicitly for the size to hold at ≥1200px. */}
-                    <h1 className="max-w-3xl text-2xl sm:text-3xl md:text-4xl lg:text-4xl font-urbanist-bold font-bold uppercase tracking-wide text-white drop-shadow-md">
-                        {heading}
-                    </h1>
-
-                    {/* Square poster framed by a dashed copper ring. */}
-                    <div
-                        data-testid="marquee-poster-frame"
-                        className="relative mt-2 rounded-[14px] border-2 border-dashed border-accent-strong p-[5px] shadow-[0_0_14px_theme(colors.accent-strong/45%)]"
+        <MarqueeHero
+            title={heading}
+            eyebrow={
+                show.clubName ? (
+                    <Link
+                        href={`/club/${show.clubName}`}
+                        className="text-caption font-semibold uppercase tracking-[0.2em] text-accent-strong font-dmSans underline-offset-4 hover:underline focus-visible:underline"
                     >
-                        <div
-                            className={`relative size-40 sm:size-[196px] md:size-[196px] lg:size-[196px] overflow-hidden rounded-[10px]${
-                                letterbox ? " bg-surface-muted" : ""
-                            }`}
-                        >
-                            {showImage ? (
-                                <>
-                                    <Image
-                                        src={show.imageUrl}
-                                        alt={show.clubName ?? "Club"}
-                                        fill
-                                        className={`${
-                                            letterbox
-                                                ? "object-contain p-3"
-                                                : "object-cover"
-                                        } object-center transition-opacity duration-500 ${
-                                            imageLoaded
-                                                ? "opacity-100"
-                                                : "opacity-0"
-                                        }`}
-                                        onError={() => setError(true)}
-                                        onLoad={(e) => {
-                                            const {
-                                                naturalWidth,
-                                                naturalHeight,
-                                            } = e.currentTarget;
-                                            setLetterbox(
-                                                naturalHeight > 0 &&
-                                                    naturalWidth /
-                                                        naturalHeight >=
-                                                        LOGO_ASPECT_THRESHOLD,
-                                            );
-                                            setImageLoaded(true);
-                                        }}
-                                        priority
-                                        sizes="196px"
-                                    />
-                                    {!imageLoaded && (
-                                        <div
-                                            className={`absolute inset-0 bg-surface-elevated${!prefersReducedMotion ? " animate-pulse" : ""}`}
-                                        />
-                                    )}
-                                </>
-                            ) : (
-                                <div
-                                    data-testid="marquee-poster-fallback"
-                                    className="flex h-full w-full items-center justify-center bg-surface-muted"
-                                >
-                                    <Ticket
-                                        size={64}
-                                        className="text-accent-strong"
-                                        aria-hidden="true"
-                                    />
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    <span
-                        className={`inline-block text-caption font-bold uppercase tracking-wider px-2.5 py-1 rounded-full font-dmSans ${COUNTDOWN_TONE_CLASSES[countdown.tone]}`}
-                        aria-live={countdown.tone === "live" ? "polite" : "off"}
-                    >
-                        {countdown.label}
-                    </span>
-
-                    {/* Admin-only debug affordance — re-homed from the removed
-                        date/room/address block (the ticket stub owns that data
-                        now). */}
-                    {isAdmin && (
-                        <p
-                            className="mt-2 inline-block text-xs font-mono text-gray-600 bg-stone-200 px-2 py-0.5 rounded"
-                            data-testid="show-detail-admin-id"
-                        >
-                            Show ID: {show.id}
-                        </p>
-                    )}
+                        {show.clubName}
+                    </Link>
+                ) : null
+            }
+            imageSrc={imageSrc}
+            imageAlt={show.clubName ?? "Club"}
+            fallback={
+                <div className="flex h-full w-full items-center justify-center bg-surface-muted">
+                    <Ticket
+                        size={64}
+                        className="text-accent-strong"
+                        aria-hidden="true"
+                    />
                 </div>
-            </motion.div>
-        </div>
+            }
+        >
+            <span
+                className={`inline-block text-caption font-bold uppercase tracking-wider px-2.5 py-1 rounded-full font-dmSans ${COUNTDOWN_TONE_CLASSES[countdown.tone]}`}
+                aria-live={countdown.tone === "live" ? "polite" : "off"}
+            >
+                {countdown.label}
+            </span>
+
+            {/* Admin-only debug affordance — re-homed from the removed
+                date/room/address block (the ticket stub owns that data now). */}
+            {isAdmin && (
+                <p
+                    className="mt-2 inline-block text-xs font-mono text-gray-600 bg-stone-200 px-2 py-0.5 rounded"
+                    data-testid="show-detail-admin-id"
+                >
+                    Show ID: {show.id}
+                </p>
+            )}
+        </MarqueeHero>
     );
 };
 

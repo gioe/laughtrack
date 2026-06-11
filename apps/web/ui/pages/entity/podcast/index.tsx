@@ -20,6 +20,7 @@ import type {
 } from "@/lib/data/podcast/interface";
 import type { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import DetailTabs, { DetailTab } from "@/ui/pages/entity/detailTabs";
+import MarqueeHero from "@/ui/pages/entity/MarqueeHero";
 
 interface PodcastDetailProps {
     podcast: PodcastDTO;
@@ -49,33 +50,6 @@ function formatDuration(durationSeconds: number | null): string | null {
     if (hours > 0) parts.push(`${hours} hr`);
     if (minutes > 0) parts.push(`${minutes} min`);
     return parts.join(" ");
-}
-
-function PodcastArtwork({
-    podcast,
-    sizeClassName,
-}: {
-    podcast: PodcastDTO;
-    sizeClassName: string;
-}) {
-    return (
-        <span
-            className={`relative flex shrink-0 items-center justify-center overflow-hidden rounded-xl bg-copper/10 text-copper ${sizeClassName}`}
-        >
-            {podcast.imageUrl ? (
-                <Image
-                    src={podcast.imageUrl}
-                    alt={podcast.title}
-                    fill
-                    sizes="(max-width: 768px) 160px, 224px"
-                    className="object-cover"
-                    priority
-                />
-            ) : (
-                <Podcast size={42} aria-hidden="true" />
-            )}
-        </span>
-    );
 }
 
 function PodcastHosts({ hosts }: { hosts: PodcastHostDTO[] }) {
@@ -317,21 +291,25 @@ export default function PodcastDetail({
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-8 sm:py-10">
-            <section className="grid gap-6 md:grid-cols-[224px_minmax(0,1fr)] md:items-end">
-                <PodcastArtwork
-                    podcast={podcast}
-                    sizeClassName="h-40 w-40 sm:h-48 sm:w-48 md:h-56 md:w-56"
-                />
-                <div className="min-w-0">
-                    <p className="font-dmSans text-caption font-bold uppercase tracking-wider text-copper">
-                        Podcast
-                    </p>
-                    <h1 className="mt-2 font-urbanist-bold text-3xl font-bold leading-tight text-foreground sm:text-4xl md:text-h1">
-                        {podcast.title}
-                    </h1>
+            <MarqueeHero
+                title={podcast.title}
+                eyebrow="Podcast"
+                imageSrc={podcast.imageUrl}
+                imageAlt={podcast.title}
+                fallback={
+                    <div className="flex h-full w-full items-center justify-center bg-surface-muted">
+                        <Podcast
+                            size={64}
+                            className="text-accent-strong"
+                            aria-hidden="true"
+                        />
+                    </div>
+                }
+            >
+                <div className="flex max-w-3xl flex-col items-center">
                     <PodcastHosts hosts={podcast.hosts} />
                     {podcast.description ? (
-                        <p className="mt-4 max-w-3xl font-dmSans text-body leading-relaxed text-foreground/90 line-clamp-4">
+                        <p className="mt-4 max-w-3xl font-dmSans text-body leading-relaxed text-white/80 line-clamp-4">
                             {podcast.description}
                         </p>
                     ) : null}
@@ -373,7 +351,7 @@ export default function PodcastDetail({
                         </div>
                     ) : null}
                 </div>
-            </section>
+            </MarqueeHero>
 
             {relatedComedians.length > 0 ? (
                 <DetailTabs
