@@ -9,6 +9,7 @@ import JsonLd from "@/ui/components/JsonLd";
 import PodcastDetail from "@/ui/pages/entity/podcast";
 import { getPodcastDetailPageData } from "@/lib/data/podcast/detail/getPodcastDetailPageData";
 import { buildPodcastJsonLd } from "@/util/jsonLd";
+import { stripHtmlTags } from "@/util/primatives/stringUtil";
 import { PUBLIC_PODCAST_ACCEPTED_ATTRIBUTION_WHERE } from "@/lib/data/podcast/publicWhere";
 
 export async function generateMetadata(props: {
@@ -37,8 +38,10 @@ export async function generateMetadata(props: {
     if (!podcast) return { title: "Podcast not found" };
 
     const title = podcast.title;
+    // This query bypasses the DTO layer's sanitization, so strip here:
+    // RSS-sourced descriptions are HTML-rich and meta/OG must be plain text.
     const description =
-        podcast.description?.trim() ||
+        (podcast.description ? stripHtmlTags(podcast.description) : "") ||
         `Listen to ${podcast.title}${podcast.authorName ? ` from ${podcast.authorName}` : ""} on LaughTrack.`;
     const baseUrl = process.env.NEXT_PUBLIC_WEBSITE_URL;
     const url = baseUrl ? `${baseUrl}/podcast/${slug}` : undefined;
