@@ -2,7 +2,7 @@ import React from "react";
 import GoogleGLogo from "../../icons/GoogleIcon";
 import AppleLogo from "../../icons/AppleIcon";
 import { motion } from "framer-motion";
-import { useMotionProps } from "@/hooks";
+import { useMotionProps, MOTION_TAP_SCALE } from "@/hooks";
 
 interface SocialButtonProps {
     provider: "google" | "apple";
@@ -11,7 +11,7 @@ interface SocialButtonProps {
 }
 
 const SocialButton = ({ provider, onClick, children }: SocialButtonProps) => {
-    const { mp } = useMotionProps();
+    const { mp, springs } = useMotionProps();
 
     const logos = {
         google: <GoogleGLogo />,
@@ -22,8 +22,11 @@ const SocialButton = ({ provider, onClick, children }: SocialButtonProps) => {
         <motion.button
             type="button"
             onClick={onClick}
-            whileHover={mp({ scale: 1.02 })}
-            whileTap={mp({ scale: 0.98 })}
+            whileHover={mp({ scale: 1.02, transition: springs.tapFeedback })}
+            whileTap={mp({
+                scale: MOTION_TAP_SCALE,
+                transition: springs.tapFeedback,
+            })}
             className="w-full flex items-center justify-center gap-3 px-6 py-3
                 border border-gray-200 rounded-xl text-caption text-gray-700 font-dmSans
                 bg-white hover:bg-gray-50 transition-colors duration-200
