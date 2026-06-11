@@ -41,13 +41,15 @@ export function SearchPageSkeleton({
 
 function SearchHeaderSkeleton() {
     return (
-        <header className="px-4 py-16 text-center md:py-20 bg-gradient-to-br from-canvas via-cedar to-copper">
-            <SkeletonBlock
-                dark
-                className="mx-auto mb-3 h-9 w-56 rounded-md sm:h-10 md:h-12"
-            />
-            <SkeletonBlock dark className="mx-auto mb-2 h-5 w-72 rounded-md" />
-            <SkeletonBlock dark className="mx-auto h-5 w-28 rounded-md" />
+        <header className="px-4 pt-6 pb-6 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-7xl rounded-hero-panel border border-highlight/20 shadow-hero px-6 py-10 sm:px-10 md:py-14 bg-gradient-to-br from-canvas via-cedar to-copper">
+                <SkeletonBlock dark className="mb-2 h-4 w-44 rounded-md" />
+                <SkeletonBlock
+                    dark
+                    className="mb-2 h-9 w-56 rounded-md sm:h-10 md:h-12"
+                />
+                <SkeletonBlock dark className="h-5 w-28 rounded-md" />
+            </div>
         </header>
     );
 }

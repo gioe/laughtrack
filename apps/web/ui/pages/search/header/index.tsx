@@ -22,24 +22,28 @@ const SearchDetailHeader = ({
     } = getSearchThemeClasses(variant, theme);
 
     return (
-        <header className={`text-center py-16 md:py-20 px-4 ${container}`}>
-            <h1
-                className={`text-2xl sm:text-3xl md:text-h1 font-bold font-urbanist-bold mb-1 sm:mb-2 ${titleCls}`}
+        <header className="px-4 pt-6 pb-6 sm:px-6 lg:px-8">
+            <div
+                className={`mx-auto max-w-7xl rounded-hero-panel border border-highlight/20 shadow-hero px-6 py-10 sm:px-10 md:py-14 ${container}`}
             >
-                {title}
-            </h1>
-            {tagline && (
-                <p
-                    className={`text-sm sm:text-base mb-1 font-dmSans ${subtitleCls}`}
+                {tagline && (
+                    <p
+                        className={`text-xs sm:text-sm font-semibold uppercase tracking-widest mb-2 font-dmSans ${subtitleCls}`}
+                    >
+                        {tagline}
+                    </p>
+                )}
+                <h1
+                    className={`text-2xl sm:text-3xl md:text-h1 font-bold font-urbanist-bold mb-1 sm:mb-2 ${titleCls}`}
                 >
-                    {tagline}
+                    {title}
+                </h1>
+                <p
+                    className={`text-sm sm:text-base md:text-body font-dmSans ${subtitleCls}`}
+                >
+                    {subTitle}
                 </p>
-            )}
-            <p
-                className={`text-sm sm:text-base md:text-body font-dmSans ${subtitleCls}`}
-            >
-                {subTitle}
-            </p>
+            </div>
         </header>
     );
 };
