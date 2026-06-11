@@ -163,6 +163,36 @@ describe("ShowTicketCta", () => {
         ).toBeNull();
     });
 
+    it("omits room from the venue sub-line when it duplicates the club name, keeping the address", () => {
+        const { unmount } = render(
+            <ShowTicketCta
+                isPast={false}
+                show={{
+                    ...baseShow,
+                    room: "the copper room",
+                }}
+            />,
+        );
+
+        // Case-insensitive match against clubName: only the address renders.
+        expect(screen.getByText("123 Main St")).toBeTruthy();
+        expect(screen.queryByText(/the copper room ·/i)).toBeNull();
+        // The club-name link above the sub-line is unaffected.
+        expect(
+            screen.getByRole("link", { name: "The Copper Room" }),
+        ).toBeTruthy();
+        unmount();
+
+        // A genuinely distinct room still renders alongside the address.
+        render(
+            <ShowTicketCta
+                isPast={false}
+                show={{ ...baseShow, room: "Main Room" }}
+            />,
+        );
+        expect(screen.getByText("Main Room · 123 Main St")).toBeTruthy();
+    });
+
     it("falls back to 'This venue' when clubName is missing and omits the VENUE row entirely when no venue data exists", () => {
         const { unmount } = render(
             <ShowTicketCta
