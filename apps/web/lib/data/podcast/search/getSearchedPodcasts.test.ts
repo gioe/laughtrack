@@ -216,6 +216,27 @@ describe("getSearchedPodcasts", () => {
         });
     });
 
+    it("decodes HTML entities in descriptions via the canonical sanitizer", async () => {
+        mockCount.mockResolvedValue(1);
+        mockFindMany.mockResolvedValue([
+            {
+                id: 12,
+                slug: "good-one",
+                title: "Good One",
+                authorName: "Vulture",
+                websiteUrl: "https://example.com",
+                feedUrl: "https://example.com/feed.xml",
+                imageUrl: null,
+                description: "<p>Comedy interviews &amp; stories</p>",
+                _count: { episodes: 42 },
+            },
+        ]);
+
+        const result = await getSearchedPodcasts({ q: "good" });
+
+        expect(result.data[0].description).toBe("Comedy interviews & stories");
+    });
+
     it("includes favorite rows when a profile id is provided", async () => {
         await getSearchedPodcasts({ profileId: "profile-123" });
 

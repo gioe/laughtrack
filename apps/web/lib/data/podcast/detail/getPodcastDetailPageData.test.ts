@@ -208,6 +208,38 @@ describe("getPodcastDetailPageData", () => {
         ]);
     });
 
+    it("strips HTML tags and decodes entities in podcast and episode descriptions", async () => {
+        mockFindFirst.mockResolvedValue({
+            id: 42,
+            slug: "jane-show",
+            title: "The Jane Show",
+            authorName: "Jane Comic",
+            websiteUrl: "https://pod.example",
+            feedUrl: "https://pod.example/feed.xml",
+            imageUrl: null,
+            description: "<p>Comedy interviews &amp; stories.</p>",
+            episodes: [
+                {
+                    id: 501,
+                    title: "Comedy Cellar Stories",
+                    description: "<p>A set recap &amp; debrief.</p>",
+                    releaseDate: new Date("2026-03-01T00:00:00.000Z"),
+                    durationSeconds: 3_720,
+                    episodeUrl: "https://pod.example/cellar",
+                    audioUrl: "https://cdn.example.com/cellar.mp3",
+                    appearances: [],
+                },
+            ],
+            comedianPodcasts: [],
+            _count: { episodes: 1 },
+        });
+
+        const result = await getPodcastDetailPageData("jane-show");
+
+        expect(result.podcast.description).toBe("Comedy interviews & stories.");
+        expect(result.episodes[0].description).toBe("A set recap & debrief.");
+    });
+
     it("attaches hosts ahead of co-hosts on detail pages", async () => {
         mockFindFirst.mockResolvedValue({
             id: 42,

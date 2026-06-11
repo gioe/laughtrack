@@ -6,16 +6,15 @@ import {
     PUBLIC_PODCAST_DENY_LIST_WHERE,
     PUBLIC_PODCAST_HOST_ROLE_WHERE,
 } from "@/lib/data/podcast/publicWhere";
+import { stripHtmlTags } from "@/util/primatives/stringUtil";
 
 const DEFAULT_PAGE_SIZE = 20;
 
+// Delegates to the canonical sanitizer so entity references (&amp; etc.)
+// decode instead of rendering literally (TASK-2808).
 function plainText(value: string | null): string | null {
     if (!value) return null;
-    const text = value
-        .replace(/<[^>]*>/g, " ")
-        .replace(/\s+/g, " ")
-        .trim();
-    return text || null;
+    return stripHtmlTags(value) || null;
 }
 
 function containsQuery(query: string) {
