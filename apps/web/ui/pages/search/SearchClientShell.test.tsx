@@ -32,11 +32,14 @@ const renderShell = (total: number, search = "") => {
     );
 };
 
+const originalScrollIntoView = window.HTMLElement.prototype.scrollIntoView;
+
 beforeEach(() => {
     vi.clearAllMocks();
 });
 
 afterEach(() => {
+    window.HTMLElement.prototype.scrollIntoView = originalScrollIntoView;
     cleanup();
 });
 
@@ -113,6 +116,12 @@ describe("SearchClientShell", () => {
         fireEvent.click(screen.getByRole("link", { name: "Go to page 2" }));
 
         expect(scrollSpy).toHaveBeenCalledTimes(1);
+        // The hooks mock above sets prefersReducedMotion: true, so the
+        // a11y branch must downgrade smooth scrolling to an instant jump.
+        expect(scrollSpy).toHaveBeenCalledWith({
+            behavior: "auto",
+            block: "start",
+        });
         const wrapper = scrollSpy.mock.contexts[0] as HTMLElement;
         expect(wrapper.contains(screen.getByText("Result list"))).toBe(true);
     });

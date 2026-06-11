@@ -25,6 +25,8 @@ vi.mock("@/hooks/useMotionProps", () => ({
 type ScrollIntoView = (arg?: boolean | ScrollIntoViewOptions) => void;
 
 describe("PagedControls scroll opt-in", () => {
+    const originalScrollIntoView =
+        window.HTMLElement.prototype.scrollIntoView;
     let scrollSpy: ReturnType<typeof vi.fn<ScrollIntoView>>;
 
     beforeEach(() => {
@@ -34,6 +36,7 @@ describe("PagedControls scroll opt-in", () => {
     });
 
     afterEach(() => {
+        window.HTMLElement.prototype.scrollIntoView = originalScrollIntoView;
         cleanup();
     });
 

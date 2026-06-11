@@ -32,7 +32,12 @@ const SearchClientShell = ({ total, children }: SearchClientShellProps) => {
 
     return (
         <>
-            <div ref={resultsRef}>{children}</div>
+            {/* scroll-mt clears the sticky site header (sticky top-0 py-4,
+                ~72px) so post-navigation scrollIntoView doesn't tuck the
+                first row of results behind it. */}
+            <div ref={resultsRef} className="scroll-mt-20">
+                {children}
+            </div>
 
             {totalPages > 1 && (
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-6">
