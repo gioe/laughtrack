@@ -67,7 +67,11 @@ const ZipCodeInput = <TFieldValues extends FieldValues>(
                 value={value}
                 onChange={handleInputChange(onChange)}
                 placeholder={props.placeholder}
-                aria-label={props.placeholder}
+                // Standalone pills have no visible label; Form hosts keep
+                // their own label element, which aria-label would override.
+                {...(props.variant === ComponentVariant.Standalone
+                    ? { "aria-label": props.placeholder }
+                    : {})}
                 className={inputClassName}
                 disabled={props.disabled}
             />

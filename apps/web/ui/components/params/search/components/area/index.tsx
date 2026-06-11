@@ -264,10 +264,15 @@ const ShowLocationComponent = <TFieldValues extends FieldValues>(
         );
     }
 
+    // The flex wrapper matters for the one Standalone consumer that is not a
+    // SearchChipRow (the comedian advanced filter modal) — without it the
+    // pills stack full-width. gap-2 matches SearchChipRow so nesting is
+    // visually equivalent there.
     return (
-        <>
+        <div className="flex flex-wrap items-center gap-2">
             <div
                 className="flex h-9 items-center gap-1 rounded-full border border-white/15 bg-white/5 pl-3 shadow-sm transition-colors hover:border-white/30"
+                role="group"
                 aria-label="Search radius"
             >
                 <MapPin
@@ -310,7 +315,7 @@ const ShowLocationComponent = <TFieldValues extends FieldValues>(
                     </p>
                 )}
             </div>
-        </>
+        </div>
     );
 };
 
