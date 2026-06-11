@@ -5,6 +5,7 @@ import type {
     PodcastDTO,
     PodcastEpisodeDTO,
 } from "@/lib/data/podcast/interface";
+import { stripHtmlTags } from "@/util/primatives/stringUtil";
 
 const BASE_URL =
     process.env.NEXT_PUBLIC_WEBSITE_URL ?? "https://www.laugh-track.com";
@@ -41,11 +42,13 @@ export function buildClubJsonLd(club: ClubDTO): object {
         jsonLd.telephone = club.phoneNumber;
     }
 
-    if (
-        typeof club.description === "string" &&
-        club.description.trim() !== ""
-    ) {
-        jsonLd.description = club.description;
+    if (typeof club.description === "string") {
+        // Scraped descriptions are stored as rich HTML; structured data
+        // descriptions must be plain text (sanitize-at-render, TASK-2793).
+        const description = stripHtmlTags(club.description);
+        if (description !== "") {
+            jsonLd.description = description;
+        }
     }
 
     const openingHours = buildOpeningHoursSpecification(club.hours);
@@ -182,7 +185,10 @@ export function buildShowJsonLd(show: ShowDTO): object {
     };
 
     if (show.description) {
-        jsonLd.description = show.description;
+        const description = stripHtmlTags(show.description);
+        if (description !== "") {
+            jsonLd.description = description;
+        }
     }
 
     if (show.clubName) {
@@ -238,7 +244,9 @@ export function buildPodcastJsonLd(
         name: podcast.title,
         url: `${BASE_URL}/podcast/${encodeURIComponent(podcast.slug)}`,
         image: ensureAbsoluteUrl(podcast.imageUrl),
-        description: podcast.description ?? undefined,
+        description: podcast.description
+            ? stripHtmlTags(podcast.description) || undefined
+            : undefined,
     };
 
     if (podcast.authorName) {
