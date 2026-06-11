@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { ShowDTO } from "@/objects/class/show/show.interface";
-import CompactShowCard from "@/ui/components/cards/show/compact";
+import ShowCard from "@/ui/components/cards/show";
 import ScrollButtons from "@/ui/components/scroll";
 import SectionHeader from "@/ui/components/sectionHeader";
 
@@ -136,7 +136,7 @@ const ShowDiscoverySection = ({
                         key={show.id}
                         className="flex-none w-[260px] sm:w-[300px]"
                     >
-                        <CompactShowCard show={show} />
+                        <ShowCard show={show} density="compact" />
                     </div>
                 ))}
             </div>

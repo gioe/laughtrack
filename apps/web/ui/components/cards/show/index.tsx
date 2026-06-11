@@ -3,18 +3,21 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Mic } from "lucide-react";
+import { MapPin, Mic } from "lucide-react";
 import { Button } from "@/ui/components/ui/button";
 import { Show } from "@/objects/class/show/Show";
-import ShowCardHeader from "@/ui/components/cards/show/header";
 import LineupGrid from "@/ui/components/lineup";
 import { ShowDTO } from "@/objects/class/show/show.interface";
 import { Divider } from "../../divider";
 import EntityCard from "../entity";
 import { formatShowDate } from "@/util/dateUtil";
-import { hasUnknownAvailableTicketPrice } from "@/util/ticket/ticketUtil";
+import {
+    formatTicketString,
+    hasUnknownAvailableTicketPrice,
+} from "@/util/ticket/ticketUtil";
 import PriceUnavailableInfo from "@/ui/components/tickets/PriceUnavailableInfo";
 import { buildTicketOutboundHref } from "@/util/ticketOutboundLink";
+import { cn } from "@/util/tailwindUtil";
 
 // NOTE: Responsive classes in this file use project-custom Tailwind breakpoints
 // (not Tailwind defaults). See tailwind.config.ts `theme.screens` for definitions:
@@ -48,6 +51,11 @@ const BRICK_TEXTURE =
 const CARD_SPOTLIGHT =
     "radial-gradient(62% 70% at 80% -10%, rgba(247,231,206,0.12), rgba(184,115,51,0.05) 42%, transparent 72%)";
 
+// Subtle warm spotlight wash from the top edge — the compact echo of the
+// standard density's Brick & Spotlight stage treatment.
+const COMPACT_CARD_SPOTLIGHT =
+    "radial-gradient(85% 65% at 50% -12%, rgba(247,231,206,0.10), rgba(184,115,51,0.04) 45%, transparent 70%)";
+
 // Backdrop for the visual panel: a single spotlight cone from above + a copper
 // floor pool below over a warm near-black, evoking a comedy-club stage.
 const STAGE_BACKDROP =
@@ -56,20 +64,59 @@ const STAGE_BACKDROP =
     "linear-gradient(180deg, #1c140e 0%, #100b08 100%)";
 
 export type ShowCardContext = "default" | "comedian-detail";
+export type ShowCardDensity = "standard" | "compact";
 
 interface ShowCardProps {
     show: ShowDTO;
+    /**
+     * "standard" — full-width stage card with the brick + spotlight chrome
+     * (search results, favorites, past shows). "compact" — narrow card for
+     * rails and dense grids. Mirrors iOS LaughTrackCardDensity.
+     */
+    density?: ShowCardDensity;
+    /** Standard density only. */
     hideClubName?: boolean;
+    /** Standard density only. */
     variant?: "default" | "past";
+    /** Standard density only. */
     context?: ShowCardContext;
 }
 
+// Density dispatch happens across separate internal components so each
+// density keeps an unconditional hook set.
 const ShowCard: React.FC<ShowCardProps> = ({
     show,
+    density = "standard",
     hideClubName,
     variant = "default",
     context = "default",
 }: ShowCardProps) => {
+    if (density === "compact") {
+        return <CompactShowCard show={show} />;
+    }
+    return (
+        <StandardShowCard
+            show={show}
+            hideClubName={hideClubName}
+            variant={variant}
+            context={context}
+        />
+    );
+};
+
+interface StandardShowCardProps {
+    show: ShowDTO;
+    hideClubName?: boolean;
+    variant: "default" | "past";
+    context: ShowCardContext;
+}
+
+const StandardShowCard: React.FC<StandardShowCardProps> = ({
+    show,
+    hideClubName,
+    variant,
+    context,
+}: StandardShowCardProps) => {
     const distanceMiles = show.distanceMiles ?? null;
     const parsedShow = new Show(show);
     const isPast = variant === "past";
@@ -262,6 +309,100 @@ const ShowCard: React.FC<ShowCardProps> = ({
     );
 };
 
+interface ShowCardHeaderProps {
+    show: Show;
+    distanceMiles?: number | null;
+    hideClubName?: boolean;
+    variant?: "default" | "past";
+}
+
+const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
+    show,
+    distanceMiles,
+    hideClubName,
+    variant = "default",
+}: ShowCardHeaderProps) => {
+    const [error, setError] = useState(false);
+    const isPast = variant === "past";
+    const isSoldOut = show.soldOut === true;
+
+    return (
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div
+                className={cn(
+                    "relative aspect-square w-[12%] min-w-[48px] max-w-[64px] rounded-full overflow-hidden bg-[#241912] ring-1 ring-copper/25",
+                    isSoldOut && "grayscale opacity-60",
+                )}
+            >
+                <Image
+                    src={error ? CLUB_PLACEHOLDER : show.imageUrl}
+                    onError={() => setError(true)}
+                    alt={show.clubName ?? "Club logo"}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 48px) 48px, 64px"
+                />
+            </div>
+
+            <div>
+                {show.name ? (
+                    <h3
+                        className={cn(
+                            "text-xl sm:text-2xl md:text-h3 font-urbanist-bold text-foreground mb-1",
+                            isPast ? "font-semibold" : "font-bold",
+                        )}
+                    >
+                        {show.name}
+                    </h3>
+                ) : (
+                    <h3
+                        className={cn(
+                            "text-xl sm:text-2xl md:text-h3 font-urbanist-bold text-foreground mb-1",
+                            isPast && "font-normal",
+                        )}
+                    >
+                        Untitled show
+                    </h3>
+                )}
+                {!hideClubName && show.clubName && (
+                    <p className="text-base font-oswald font-medium uppercase tracking-[0.14em] text-foreground/85 mb-1">
+                        {show.clubName}
+                    </p>
+                )}
+                {show.room && (
+                    <p className="text-sm text-foreground/55 font-dmSans mb-1">
+                        {show.room}
+                    </p>
+                )}
+                <p className="text-base sm:text-lg md:text-lead text-foreground/65 font-dmSans">
+                    {formatShowDate(show.date.toString(), show.timezone)} ·{" "}
+                    {`${show.address}`}
+                </p>
+                {distanceMiles != null && (
+                    <p className="flex items-center gap-1 text-sm text-copper-bright font-dmSans mt-0.5">
+                        <MapPin size={13} aria-hidden="true" />
+                        {distanceMiles < 1
+                            ? "< 1 mile away"
+                            : `${Math.round(distanceMiles)} miles away`}
+                    </p>
+                )}
+                {!isPast && !isSoldOut && (
+                    <p className="text-lg sm:text-xl md:text-lead text-copper-bright font-semibold mt-1 font-dmSans">
+                        {formatTicketString(
+                            show.tickets.filter((ticket) => !ticket.soldOut),
+                        )}
+                    </p>
+                )}
+                {!isPast && isSoldOut && formatTicketString(show.tickets) && (
+                    <p className="text-lg sm:text-xl md:text-lead text-foreground/45 line-through font-semibold mt-1 font-dmSans">
+                        {formatTicketString(show.tickets)}
+                    </p>
+                )}
+            </div>
+        </div>
+    );
+};
+
 const ShowCardArtwork = ({ show }: { show: Show }) => {
     const [imageError, setImageError] = useState(false);
     const hasArtwork = !!show.imageUrl && show.imageUrl !== CLUB_PLACEHOLDER;
@@ -311,6 +452,172 @@ const ShowCardArtwork = ({ show }: { show: Show }) => {
                 </p>
             </div>
         </div>
+    );
+};
+
+const CompactShowCard: React.FC<{ show: ShowDTO }> = ({ show }) => {
+    const [imgError, setImgError] = useState(false);
+    const parsedShow = new Show(show);
+
+    const availableTickets = parsedShow.tickets.filter((t) => !t.soldOut);
+    const ticketLabel = formatTicketString(availableTickets);
+    const buyUrl =
+        availableTickets.length > 0
+            ? availableTickets[0].purchaseUrl
+            : undefined;
+    const isSoldOut =
+        parsedShow.soldOut === true ||
+        (parsedShow.tickets.length > 0 && availableTickets.length === 0);
+    const struckPriceLabel =
+        isSoldOut && parsedShow.tickets.length > 0
+            ? formatTicketString(parsedShow.tickets)
+            : "";
+
+    const lineupNames = parsedShow.lineup.map((c) => c.name).filter(Boolean);
+    const displayNames = lineupNames.slice(0, 2).join(", ");
+    const extraCount = lineupNames.length - 2;
+
+    const detailHref = `/show/${show.id}`;
+    const showDescriptor = parsedShow.name
+        ? parsedShow.name
+        : `show at ${parsedShow.clubName ?? "comedy club"}`;
+    const detailLabel = `View details for ${showDescriptor}`;
+    const ticketAriaLabel = buyUrl
+        ? `Get tickets for ${showDescriptor}`
+        : undefined;
+    const outboundHref = buyUrl
+        ? buildTicketOutboundHref({
+              showId: show.id,
+              clubId: show.clubId,
+              destinationUrl: buyUrl,
+              sourceSurface: "compact_show_card",
+          })
+        : "";
+    const hasUnknownPrice = hasUnknownAvailableTicketPrice(parsedShow.tickets);
+
+    return (
+        <EntityCard
+            as="article"
+            chrome="stage"
+            className="relative h-full overflow-hidden p-4"
+        >
+            {/* Warm spotlight wash behind the content (content sits in the
+                relative wrapper below so it paints above this layer). */}
+            <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0"
+                style={{ background: COMPACT_CARD_SPOTLIGHT }}
+            />
+
+            {/* Stretched-link overlay: whole card navigates to /show/[id].
+                The ticket link below uses `relative z-[2]` so it still opens
+                the external ticketing URL in a new tab. */}
+            <Link
+                href={detailHref}
+                aria-label={detailLabel}
+                className="absolute inset-0 z-[1] rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper"
+            >
+                <span className="sr-only">View show details</span>
+            </Link>
+
+            <div className="relative flex h-full flex-col gap-3">
+                {/* Club header */}
+                <div className="flex items-center gap-3">
+                    <div
+                        className={`relative h-10 w-10 flex-none overflow-hidden rounded-full bg-coconut-cream ring-1 ring-copper/25 ${isSoldOut ? "grayscale opacity-60" : ""}`}
+                    >
+                        <Image
+                            src={
+                                imgError
+                                    ? CLUB_PLACEHOLDER
+                                    : parsedShow.imageUrl
+                            }
+                            onError={() => setImgError(true)}
+                            alt={parsedShow.clubName ?? "Club"}
+                            fill
+                            className="object-contain"
+                            sizes="40px"
+                            aria-hidden="true"
+                        />
+                    </div>
+                    <div className="min-w-0">
+                        <p
+                            data-testid="compact-show-title"
+                            className="font-urbanist-bold font-bold text-foreground text-body leading-tight line-clamp-2"
+                        >
+                            {parsedShow.name || "Untitled show"}
+                        </p>
+                        {parsedShow.clubName && (
+                            <p
+                                data-testid="compact-show-club"
+                                className="font-oswald text-[11px] font-medium uppercase tracking-[0.08em] text-copper-bright leading-snug line-clamp-2"
+                            >
+                                {parsedShow.clubName}
+                            </p>
+                        )}
+                        {parsedShow.room && (
+                            <p className="text-[11px] text-foreground/50 font-dmSans truncate">
+                                {parsedShow.room}
+                            </p>
+                        )}
+                    </div>
+                </div>
+
+                {/* Date & address */}
+                <div className="text-caption text-foreground/65 font-dmSans space-y-0.5">
+                    <p>
+                        {formatShowDate(
+                            parsedShow.date.toString(),
+                            parsedShow.timezone,
+                        )}
+                    </p>
+                    {parsedShow.address && (
+                        <p className="truncate">{parsedShow.address}</p>
+                    )}
+                </div>
+
+                {/* Lineup */}
+                {lineupNames.length > 0 && (
+                    <p className="text-caption text-foreground/70 font-dmSans">
+                        w/ {displayNames}
+                        {extraCount > 0 && ` +${extraCount} more`}
+                    </p>
+                )}
+
+                {/* Ticket CTA */}
+                {parsedShow.tickets.length > 0 && (
+                    <div className="mt-auto pt-1 relative z-[2]">
+                        {buyUrl ? (
+                            <div className="flex flex-wrap items-center gap-2">
+                                <a
+                                    href={outboundHref}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    aria-label={ticketAriaLabel}
+                                    className="inline-block text-caption font-semibold text-copper-bright font-dmSans hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper"
+                                >
+                                    {ticketLabel || "Get Tickets"}
+                                </a>
+                                {hasUnknownPrice && (
+                                    <PriceUnavailableInfo className="h-7 w-7" />
+                                )}
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-2">
+                                {struckPriceLabel && (
+                                    <span className="text-caption text-foreground/45 line-through font-dmSans">
+                                        {struckPriceLabel}
+                                    </span>
+                                )}
+                                <span className="inline-block text-caption font-bold text-white bg-red-500 px-2.5 py-0.5 rounded-full font-dmSans">
+                                    Sold Out
+                                </span>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+        </EntityCard>
     );
 };
 

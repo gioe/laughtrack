@@ -1,5 +1,5 @@
 import { ShowDTO } from "@/objects/class/show/show.interface";
-import CompactShowCard from "@/ui/components/cards/show/compact";
+import ShowCard from "@/ui/components/cards/show";
 import SectionHeader from "@/ui/components/sectionHeader";
 
 interface RelatedShowsSectionProps {
@@ -24,7 +24,7 @@ const RelatedShowsSection: React.FC<RelatedShowsSectionProps> = ({
             />
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {shows.map((show) => (
-                    <CompactShowCard key={show.id} show={show} />
+                    <ShowCard key={show.id} show={show} density="compact" />
                 ))}
             </div>
         </section>

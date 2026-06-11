@@ -7,8 +7,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import ClubSearchCard from "./club/search";
 import ComedianGridCard from "./comedian";
 import PodcastSearchCard from "./podcast";
-import ShowCardHeader from "./show/header";
-import { Show } from "@/objects/class/show/Show";
+import ShowCard from "./show";
 import type { ClubDTO } from "@/objects/class/club/club.interface";
 import type { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import type { PodcastDTO } from "@/lib/data/podcast/interface";
@@ -146,7 +145,7 @@ describe("collection card heading levels", () => {
             <>
                 <ClubSearchCard club={club} />
                 <ComedianGridCard entity={comedian} />
-                <ShowCardHeader show={new Show(show)} />
+                <ShowCard show={show} />
                 <PodcastSearchCard podcast={podcast} />
             </>,
         );

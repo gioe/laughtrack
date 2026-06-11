@@ -71,10 +71,6 @@ vi.mock("@/hooks/useFavorite", () => ({
     }),
 }));
 
-vi.mock("@/ui/components/cards/show/header", () => ({
-    default: () => <div data-testid="show-card-header" />,
-}));
-
 const baseShow: ShowDTO = {
     id: 42,
     clubId: 24,

@@ -58,10 +58,6 @@ vi.mock("@/hooks", () => ({
     useDialogKeyboard: () => {},
 }));
 
-vi.mock("@/ui/components/cards/show/header", () => ({
-    default: () => <div data-testid="show-card-header" />,
-}));
-
 vi.mock("@/ui/components/lineup", () => ({
     default: () => <div data-testid="lineup-grid" />,
 }));
@@ -89,6 +85,37 @@ const baseShow: ShowDTO = {
 };
 
 describe("ShowCard", () => {
+    it("uses show name as the primary h3 heading and club as secondary text", () => {
+        render(<ShowCard show={baseShow} />);
+
+        expect(
+            screen.getByRole("heading", { level: 3, name: "Late Show" }),
+        ).toBeTruthy();
+        expect(
+            screen.getAllByText("The Copper Room").length,
+        ).toBeGreaterThanOrEqual(1);
+    });
+
+    it("shows available ticket price metadata in the header", () => {
+        render(
+            <ShowCard
+                show={{
+                    ...baseShow,
+                    tickets: [
+                        {
+                            price: 24,
+                            purchaseUrl: "https://example.com/tickets",
+                            type: "General admission",
+                            soldOut: false,
+                        },
+                    ],
+                }}
+            />,
+        );
+
+        expect(screen.getAllByText("$24")).toHaveLength(1);
+    });
+
     it("renders the lineup grid in the default context when lineup is non-empty", () => {
         const showWithLineup: ShowDTO = {
             ...baseShow,
@@ -225,6 +252,118 @@ describe("ShowCard", () => {
         expect(outbound.searchParams.get("surface")).toBe("show_card");
         expect(outbound.searchParams.get("url")).toBe(
             "https://tickets.example.com",
+        );
+        expect(trackTicketClick).not.toHaveBeenCalled();
+    });
+});
+
+const compactShow: ShowDTO = {
+    ...baseShow,
+    lineup: [
+        {
+            name: "Headliner",
+            uuid: "headliner",
+            id: 7,
+            imageUrl: "https://cdn.example.com/headliner.jpg",
+            showCount: 10,
+        },
+    ],
+    tickets: [
+        {
+            price: 24,
+            purchaseUrl: "https://example.com/tickets",
+            soldOut: false,
+            type: "General admission",
+        },
+    ],
+};
+
+describe("ShowCard (compact density)", () => {
+    it("contains the club thumbnail so wide venue artwork is not cropped", () => {
+        const { container } = render(
+            <ShowCard show={compactShow} density="compact" />,
+        );
+
+        const image = container.querySelector('img[alt="The Copper Room"]');
+        expect(image?.className).toContain("object-contain");
+        expect(image?.className).not.toContain("object-cover");
+    });
+
+    it("renders the show name before the club name", () => {
+        const { container } = render(
+            <ShowCard show={compactShow} density="compact" />,
+        );
+
+        const primary = container.querySelector(
+            '[data-testid="compact-show-title"]',
+        );
+        const secondary = container.querySelector(
+            '[data-testid="compact-show-club"]',
+        );
+
+        expect(primary?.textContent).toBe("Late Show");
+        expect(secondary?.textContent).toBe("The Copper Room");
+    });
+
+    it("shows available ticket price", () => {
+        render(<ShowCard show={compactShow} density="compact" />);
+
+        expect(screen.getAllByText("$24")).toHaveLength(1);
+    });
+
+    it("shows an info control for unknown-priced available tickets", () => {
+        render(
+            <ShowCard
+                density="compact"
+                show={{
+                    ...compactShow,
+                    tickets: [
+                        {
+                            price: null,
+                            purchaseUrl: "https://example.com/tickets",
+                            soldOut: false,
+                            type: "General admission",
+                        },
+                    ],
+                }}
+            />,
+        );
+
+        expect(
+            screen.getByRole("link", { name: /get tickets for late show/i })
+                .textContent,
+        ).toContain("Get Tickets");
+        expect(screen.queryByText("Free")).toBeNull();
+
+        fireEvent.click(
+            screen.getByRole("button", {
+                name: /why is the price unavailable/i,
+            }),
+        );
+
+        expect(
+            screen.getByRole("dialog", { name: "Price unavailable" })
+                .textContent,
+        ).toContain("The venue has not made this ticket price available yet.");
+    });
+
+    it("routes compact-card ticket clicks through the outbound link without client-side duplicate tracking", () => {
+        render(<ShowCard show={compactShow} density="compact" />);
+
+        const link = screen.getByRole("link", {
+            name: /get tickets for late show/i,
+        });
+        link.addEventListener("click", (event) => event.preventDefault());
+        fireEvent.click(link);
+
+        const href = link.getAttribute("href");
+        expect(href).toContain("/api/v1/tickets/out?");
+        const outbound = new URL(href ?? "", "http://localhost");
+        expect(outbound.searchParams.get("showId")).toBe("42");
+        expect(outbound.searchParams.get("clubId")).toBe("24");
+        expect(outbound.searchParams.get("surface")).toBe("compact_show_card");
+        expect(outbound.searchParams.get("url")).toBe(
+            "https://example.com/tickets",
         );
         expect(trackTicketClick).not.toHaveBeenCalled();
     });
