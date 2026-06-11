@@ -256,9 +256,9 @@ function PodcastEpisodesSection({
             {episodes.length === 0 ? (
                 <div className="mt-4">
                     <EmptyState
-                        title="No Episodes Found"
+                        tone="empty"
+                        title="No matches yet"
                         message={`${podcast.title} has no episodes on LaughTrack yet.`}
-                        icons={[Headphones, Podcast, Rss]}
                     />
                 </div>
             ) : (

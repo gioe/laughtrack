@@ -1,7 +1,6 @@
 import { ShowDTO } from "@/objects/class/show/show.interface";
 import ShowCard, { ShowCardContext } from "@/ui/components/cards/show";
 import EmptyState from "@/ui/components/emptyState";
-import { Calendar, MapPin, Ticket } from "lucide-react";
 import { ReactNode } from "react";
 
 interface ShowTableProps {
@@ -14,7 +13,7 @@ interface ShowTableProps {
 
 const ShowTable = ({
     shows,
-    errorMessage = "Try updating your search or check back later",
+    errorMessage = "Try broadening your search or removing a filter.",
     hideClubName,
     emptyAction,
     cardContext,
@@ -34,9 +33,9 @@ const ShowTable = ({
                 })
             ) : (
                 <EmptyState
-                    title="No Shows Found"
+                    tone="empty"
+                    title="No matches yet"
                     message={errorMessage}
-                    icons={[Calendar, MapPin, Ticket]}
                     action={emptyAction}
                 />
             )}

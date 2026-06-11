@@ -1,36 +1,96 @@
-import { LucideIcon } from "lucide-react";
+import {
+    LoaderCircle,
+    LucideIcon,
+    Sparkles,
+    WifiOff,
+} from "lucide-react";
 import { ReactNode } from "react";
 
+export type EmptyStateTone = "empty" | "error" | "loading";
+
 interface EmptyStateProps {
-    title: string;
-    message: string;
-    icons: LucideIcon[];
+    tone?: EmptyStateTone;
+    title?: string;
+    message?: string;
+    icons?: LucideIcon[];
     action?: ReactNode;
 }
 
-const EmptyState = ({ title, message, icons, action }: EmptyStateProps) => {
+const toneDefaults: Record<
+    EmptyStateTone,
+    {
+        title: string;
+        message: string;
+        icons: LucideIcon[];
+        iconToneClassName: string;
+    }
+> = {
+    empty: {
+        title: "No matches yet",
+        message: "Try broadening your search or removing a filter.",
+        icons: [Sparkles],
+        iconToneClassName: "text-copper",
+    },
+    error: {
+        title: "Couldn't refresh results",
+        message: "The latest update did not finish. Try again in a moment.",
+        icons: [WifiOff],
+        iconToneClassName: "text-destructive",
+    },
+    loading: {
+        title: "Fetching nearby shows",
+        message: "We're checking clubs, comedians, and upcoming dates.",
+        icons: [LoaderCircle],
+        iconToneClassName: "text-copper",
+    },
+};
+
+const EmptyState = ({
+    tone = "empty",
+    title,
+    message,
+    icons,
+    action,
+}: EmptyStateProps) => {
+    const defaults = toneDefaults[tone];
+    const resolvedTitle = title ?? defaults.title;
+    const resolvedMessage = message ?? defaults.message;
+    const resolvedIcons = icons ?? defaults.icons;
+    const isLoading = tone === "loading";
+
     return (
-        <div className="mx-auto flex w-full max-w-xl flex-col items-center justify-center px-4 py-16 text-center">
+        <div
+            className="mx-auto flex w-full max-w-xl flex-col items-center justify-center px-4 py-16 text-center"
+            role={tone === "error" ? "alert" : undefined}
+            aria-live={tone === "loading" ? "polite" : undefined}
+            aria-busy={isLoading || undefined}
+        >
             <div className="w-full rounded-lg border border-white/10 bg-white/[0.035] px-6 py-8 shadow-sm shadow-black/20 sm:px-8">
                 <div className="flex flex-col items-center gap-5">
                     <div className="flex items-center gap-3">
-                        {icons.map((Icon, index) => (
+                        {resolvedIcons.map((Icon, index) => (
                             <div
                                 key={index}
-                                className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-foreground/45"
+                                className={`flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] ${defaults.iconToneClassName}`}
                             >
-                                <Icon className="h-5 w-5" strokeWidth={1.7} />
+                                <Icon
+                                    className={`h-5 w-5 ${isLoading ? "animate-spin" : ""}`}
+                                    strokeWidth={1.7}
+                                    aria-hidden="true"
+                                />
                             </div>
                         ))}
                     </div>
                     <div className="space-y-3">
                         <h2 className="font-dmSans text-2xl font-semibold text-foreground sm:text-3xl">
-                            {title}
+                            {resolvedTitle}
                         </h2>
                         <p className="font-dmSans text-base text-foreground/55 sm:text-lg">
-                            {message}
+                            {resolvedMessage}
                         </p>
-                        {action && <div className="pt-2">{action}</div>}
+                        {action && !isLoading && (
+                            <div className="pt-2">{action}</div>
+                        )}
                     </div>
                 </div>
             </div>
