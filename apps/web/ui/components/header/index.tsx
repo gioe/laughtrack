@@ -42,11 +42,19 @@ function MobileNavLink({
             aria-current={highlighted ? "page" : undefined}
             className={`flex-1 text-center text-body font-semibold font-dmSans py-2 rounded-lg transition-all duration-200 ${
                 highlighted
-                    ? `${highlightedColor} bg-copper/20`
+                    ? highlightedColor
                     : `${baseColor} opacity-70 hover:opacity-100 hover:bg-copper/10`
             }`}
         >
-            {title}
+            {/* Text-width copper underline mirroring the desktop HeaderItem
+                active treatment (after: bar at bottom -4px, scale-x reveal). */}
+            <span
+                className={`relative inline-block after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-full after:h-[2px] after:bg-copper after:transform after:transition-transform after:duration-300 after:ease-out ${
+                    highlighted ? "after:scale-x-100" : "after:scale-x-0"
+                }`}
+            >
+                {title}
+            </span>
         </Link>
     );
 }
