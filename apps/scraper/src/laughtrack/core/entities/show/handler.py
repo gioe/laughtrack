@@ -201,6 +201,44 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             return existing_rows[0].get("room")
         return incoming_room or ""
 
+    def _suppress_room_matching_club_name(self, batch: List[Show]) -> int:
+        """Blank out room values that merely repeat the club's name.
+
+        Several scrapers (ticketmaster/live_nation, tixr PIXL) copy the venue
+        name into the room field, so the room duplicates the club name on every
+        row instead of naming an actual room. Runs before in-batch dedup so
+        shows that become key-identical after suppression collapse normally.
+        """
+        candidates = [
+            show for show in batch
+            if show.club_id is not None and isinstance(show.room, str) and show.room.strip()
+        ]
+        if not candidates:
+            return 0
+
+        club_ids = sorted({show.club_id for show in candidates})
+        rows = self.execute_with_cursor(
+            ShowQueries.GET_CLUB_NAMES_BY_IDS,
+            (club_ids,),
+            return_results=True,
+        ) or []
+        club_names = {
+            row["id"]: row["name"].strip().casefold()
+            for row in rows
+            if isinstance(row.get("name"), str) and row["name"].strip()
+        }
+
+        suppressed = 0
+        for show in candidates:
+            club_name = club_names.get(show.club_id)
+            if club_name and show.room.strip().casefold() == club_name:
+                show.room = ""
+                suppressed += 1
+
+        if suppressed:
+            Logger.info(f"Suppressed {suppressed} room values that duplicated the club name")
+        return suppressed
+
     def _collapse_cross_batch_duplicates(self, batch: List[Show]) -> int:
         """Align incoming shows with compatible existing rows before the upsert.
 
@@ -470,6 +508,7 @@ class ShowHandler(BaseDatabaseHandler[Show]):
         if not batch:
             return DatabaseOperationResult(validation_errors=len(validation_errors))
 
+        self._suppress_room_matching_club_name(batch)
         batch, duplicate_details = ShowUtils.deduplicate_shows_with_details(batch)
         self._reconcile_patronticket_instances(batch)
         self._reconcile_seatengine_classic_show_urls(batch)

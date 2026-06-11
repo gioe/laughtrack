@@ -54,6 +54,16 @@ class ShowQueries:
         ORDER BY id
     '''
 
+    # Club names for the room-equals-club-name suppression in
+    # _suppress_room_matching_club_name: scrapers (ticketmaster/live_nation,
+    # tixr PIXL) copy the venue name into room, which carries no information and
+    # duplicates the club name on every show row.
+    GET_CLUB_NAMES_BY_IDS = '''
+        SELECT id, name
+        FROM clubs
+        WHERE id = ANY(%s)
+    '''
+
     # PatronTicket-family shows (generic patron_ticket + bespoke up_comedy_club)
     # carry a stable Salesforce instance id in the #/instances/<id> fragment of
     # show_page_url. Fetch existing instance-bearing rows for the affected clubs so
