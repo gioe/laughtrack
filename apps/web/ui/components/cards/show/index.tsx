@@ -18,6 +18,12 @@ import {
 import PriceUnavailableInfo from "@/ui/components/tickets/PriceUnavailableInfo";
 import { buildTicketOutboundHref } from "@/util/ticketOutboundLink";
 import { cn } from "@/util/tailwindUtil";
+import {
+    BRICK_TEXTURE,
+    CARD_SPOTLIGHT,
+    COMPACT_CARD_SPOTLIGHT,
+    STAGE_BACKDROP,
+} from "@/ui/util/stageTheme";
 
 // NOTE: Responsive classes in this file use project-custom Tailwind breakpoints
 // (not Tailwind defaults). See tailwind.config.ts `theme.screens` for definitions:
@@ -39,29 +45,6 @@ import { cn } from "@/util/tailwindUtil";
 // is acceptable and consistent with common list animation patterns.
 const seenShowIds = new Set<number>();
 const CLUB_PLACEHOLDER = "/placeholders/club-placeholder.svg";
-
-// Faint exposed-brick texture for the card surface — two repeating-line layers
-// at low alpha read as masonry without competing with the content.
-const BRICK_TEXTURE =
-    "repeating-linear-gradient(0deg, rgba(255,255,255,0.045) 0px, rgba(255,255,255,0.045) 1px, transparent 1px, transparent 22px)," +
-    "repeating-linear-gradient(90deg, rgba(255,255,255,0.035) 0px, rgba(255,255,255,0.035) 1px, transparent 1px, transparent 46px)";
-
-// Warm spotlight wash falling across the card from the upper-right (toward the
-// visual panel), so the whole card reads as a lit stage rather than a flat box.
-const CARD_SPOTLIGHT =
-    "radial-gradient(62% 70% at 80% -10%, rgba(247,231,206,0.12), rgba(184,115,51,0.05) 42%, transparent 72%)";
-
-// Subtle warm spotlight wash from the top edge — the compact echo of the
-// standard density's Brick & Spotlight stage treatment.
-const COMPACT_CARD_SPOTLIGHT =
-    "radial-gradient(85% 65% at 50% -12%, rgba(247,231,206,0.10), rgba(184,115,51,0.04) 45%, transparent 70%)";
-
-// Backdrop for the visual panel: a single spotlight cone from above + a copper
-// floor pool below over a warm near-black, evoking a comedy-club stage.
-const STAGE_BACKDROP =
-    "radial-gradient(120% 82% at 50% -14%, rgba(247,231,206,0.20), rgba(247,231,206,0.05) 38%, transparent 66%)," +
-    "radial-gradient(72% 36% at 50% 106%, rgba(184,115,51,0.18), transparent 70%)," +
-    "linear-gradient(180deg, #1c140e 0%, #100b08 100%)";
 
 export type ShowCardContext = "default" | "comedian-detail";
 export type ShowCardDensity = "standard" | "compact";
@@ -154,7 +137,7 @@ const StandardShowCard: React.FC<StandardShowCardProps> = ({
                         aria-hidden="true"
                         className="text-copper-bright"
                     />
-                    <span className="font-oswald text-[11px] font-medium uppercase tracking-[0.22em] text-copper-bright">
+                    <span className="font-oswald text-caption font-medium uppercase tracking-[0.22em] text-copper-bright">
                         Lineup
                     </span>
                     <span className="h-px flex-1 bg-copper/20" />
@@ -550,13 +533,13 @@ const CompactShowCard: React.FC<{ show: ShowDTO }> = ({ show }) => {
                         {parsedShow.clubName && (
                             <p
                                 data-testid="compact-show-club"
-                                className="font-oswald text-[11px] font-medium uppercase tracking-[0.08em] text-copper-bright leading-snug line-clamp-2"
+                                className="font-oswald text-caption font-medium uppercase tracking-[0.08em] text-copper-bright leading-snug line-clamp-2"
                             >
                                 {parsedShow.clubName}
                             </p>
                         )}
                         {parsedShow.room && (
-                            <p className="text-[11px] text-foreground/50 font-dmSans truncate">
+                            <p className="text-caption text-foreground/50 font-dmSans truncate">
                                 {parsedShow.room}
                             </p>
                         )}
