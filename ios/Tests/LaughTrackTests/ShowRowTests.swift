@@ -313,6 +313,28 @@ struct ShowRowTests {
         #expect(ShowRow.roomLabel(for: show) == nil)
     }
 
+    @Test("show row omits room labels that duplicate the club name")
+    func showRowOmitsRoomDuplicatingClubName() {
+        let show = makeShow(
+            clubName: "Punch Line Philly",
+            room: "  punch line PHILLY ",
+            lineup: []
+        )
+
+        #expect(ShowRow.roomLabel(for: show) == nil)
+    }
+
+    @Test("show row keeps room labels distinct from the club name")
+    func showRowKeepsDistinctRoomLabels() {
+        let show = makeShow(
+            clubName: "Comedy Cellar",
+            room: "Village Underground",
+            lineup: []
+        )
+
+        #expect(ShowRow.roomLabel(for: show) == "Village Underground")
+    }
+
     @Test("show row metadata keeps the date visible after artwork leads the row")
     func showRowMetadataKeepsDateVisible() {
         let show = makeShow(room: "Main Room", lineup: [])
