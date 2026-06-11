@@ -49,19 +49,13 @@ vi.mock("framer-motion", () => ({
     },
 }));
 
-vi.mock("@/hooks", () => ({
-    useMotionProps: () => ({
-        springs: {
-            tapFeedback: { duration: 0 },
-            contentEntrance: { duration: 0 },
-            emphasis: { duration: 0 },
-        },
-        mv: (value: unknown) => value,
-        mp: (value: unknown) => value,
-        prefersReducedMotion: true,
-    }),
-    useDialogKeyboard: () => {},
-}));
+vi.mock("@/hooks", async () => {
+    const { mockUseMotionProps } = await import("@/test/motionProps");
+    return {
+        useMotionProps: mockUseMotionProps,
+        useDialogKeyboard: () => {},
+    };
+});
 
 vi.mock("@/ui/components/lineup", () => ({
     default: () => <div data-testid="lineup-grid" />,

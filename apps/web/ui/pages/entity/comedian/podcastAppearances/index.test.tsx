@@ -20,18 +20,10 @@ vi.mock("next/image", () => ({
     }) => <img alt={alt} src={src} className={className} />,
 }));
 
-vi.mock("@/hooks", () => ({
-    useMotionProps: () => ({
-        springs: {
-            tapFeedback: { duration: 0 },
-            contentEntrance: { duration: 0 },
-            emphasis: { duration: 0 },
-        },
-        mv: (value: unknown) => value,
-        mp: (value: unknown) => value,
-        prefersReducedMotion: true,
-    }),
-}));
+vi.mock("@/hooks", async () => {
+    const { mockUseMotionProps } = await import("@/test/motionProps");
+    return { useMotionProps: mockUseMotionProps };
+});
 
 function makeAppearance(
     over: Partial<PodcastAppearanceDTO> = {},

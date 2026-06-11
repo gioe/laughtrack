@@ -38,16 +38,10 @@ vi.mock("next/image", () => ({
     }) => <img alt={alt} src={src} className={className} />,
 }));
 
-vi.mock("@/hooks", () => ({
-    useMotionProps: () => ({
-        springs: {
-            tapFeedback: { duration: 0 },
-            contentEntrance: { duration: 0 },
-            emphasis: { duration: 0 },
-        },
-        prefersReducedMotion: true,
-    }),
-}));
+vi.mock("@/hooks", async () => {
+    const { mockUseMotionProps } = await import("@/test/motionProps");
+    return { useMotionProps: mockUseMotionProps };
+});
 
 vi.mock("@/hooks/useFavorite", () => ({
     useFavorite: () => ({

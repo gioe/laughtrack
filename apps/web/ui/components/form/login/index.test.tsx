@@ -34,18 +34,10 @@ vi.mock("react-hot-toast", () => ({
     },
 }));
 
-vi.mock("@/hooks", () => ({
-    useMotionProps: () => ({
-        springs: {
-            tapFeedback: { duration: 0 },
-            contentEntrance: { duration: 0 },
-            emphasis: { duration: 0 },
-        },
-        mv: <T,>(value: T) => value,
-        mp: <T,>(value: T) => value,
-        mt: <T,>(value: T) => value,
-    }),
-}));
+vi.mock("@/hooks", async () => {
+    const { mockUseMotionProps } = await import("@/test/motionProps");
+    return { useMotionProps: mockUseMotionProps };
+});
 
 vi.mock("../../auth/social", () => ({
     default: ({

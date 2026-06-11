@@ -37,18 +37,10 @@ vi.mock("framer-motion", () => ({
     ),
 }));
 
-vi.mock("@/hooks", () => ({
-    useMotionProps: () => ({
-        springs: {
-            tapFeedback: { duration: 0 },
-            contentEntrance: { duration: 0 },
-            emphasis: { duration: 0 },
-        },
-        mv: (value: unknown) => value,
-        mt: (value: unknown) => value,
-        prefersReducedMotion: true,
-    }),
-}));
+vi.mock("@/hooks", async () => {
+    const { mockUseMotionProps } = await import("@/test/motionProps");
+    return { useMotionProps: mockUseMotionProps };
+});
 
 vi.mock("../social", () => ({
     default: () => null,
