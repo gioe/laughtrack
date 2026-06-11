@@ -82,6 +82,49 @@ def test_insert_shows_dedups_cross_batch_when_existing_room_is_null():
     assert inserted_items[0][6] is None
 
 
+def test_incoming_empty_room_collapses_onto_existing_venue_name_room_row():
+    """TASK-2806: the Ticketmaster client no longer emits the TM venue name as
+    room, so incoming shows arrive with room='' while pre-fix rows may still
+    hold a venue-name room that differs from clubs.name ('Punch Line San
+    Francisco' vs 'Punch Line SF' - the TASK-2803 suppression only blanks
+    exact club-name matches). Cross-batch collapse must rewrite the incoming
+    empty room to the existing row's room so the upsert updates that row
+    instead of inserting a duplicate listing.
+    """
+    h = _handler()
+    h.execute_with_cursor = MagicMock(
+        return_value=[
+            {
+                "id": 10,
+                "club_id": 1,
+                "date": datetime(2026, 6, 1, 20, 0, 0),
+                "room": "Punch Line San Francisco",
+                "name": "Same Show",
+            }
+        ]
+    )
+    # The upsert hits the existing row's (club_id, date, room) key, so the
+    # returned row carries the venue-name room.
+    h.execute_batch_operation = MagicMock(
+        return_value=[
+            {
+                "id": 10,
+                "club_id": 1,
+                "date": datetime(2026, 6, 1, 20, 0, 0),
+                "room": "Punch Line San Francisco",
+                "operation_type": "updated",
+            }
+        ]
+    )
+
+    result = h._process_single_batch([_show(room="")])
+
+    inserted_items = h.execute_batch_operation.call_args.args[1]
+    assert len(inserted_items) == 1
+    assert inserted_items[0][6] == "Punch Line San Francisco"
+    assert result.updates == 1
+
+
 def test_insert_shows_preserves_distinct_rooms():
     h = _handler()
     h.execute_with_cursor = MagicMock(
