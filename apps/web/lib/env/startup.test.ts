@@ -29,7 +29,7 @@ describe("startup env validation", () => {
     });
 
     it("throws a distinguishable startup error and logs missing config", () => {
-        const logger = { error: vi.fn() };
+        const logger = { error: vi.fn(), warn: vi.fn() };
 
         expect(() =>
             validateWebStartupEnv({
@@ -46,8 +46,83 @@ describe("startup env validation", () => {
         );
     });
 
+    it("does not require Google OAuth vars in development mode", () => {
+        expect(
+            getMissingStartupEnv({
+                NODE_ENV: "development",
+                DATABASE_URL: "postgresql://example",
+                AUTH_SECRET: "auth-secret",
+            }),
+        ).toEqual([]);
+    });
+
+    it("warns (without throwing) when OAuth vars are absent in development", () => {
+        const logger = { error: vi.fn(), warn: vi.fn() };
+
+        expect(() =>
+            validateWebStartupEnv({
+                env: {
+                    NODE_ENV: "development",
+                    DATABASE_URL: "postgresql://example",
+                    AUTH_SECRET: "auth-secret",
+                },
+                logger,
+            }),
+        ).not.toThrow();
+
+        expect(logger.error).not.toHaveBeenCalled();
+        expect(logger.warn).toHaveBeenCalledWith(
+            "OAuth env vars missing (AUTH_GOOGLE_ID or GOOGLE_CLIENT_ID, AUTH_GOOGLE_SECRET or GOOGLE_CLIENT_SECRET) — sign-in is disabled in this dev server. Production startup still requires them.",
+        );
+    });
+
+    it("does not warn in development when OAuth vars are present", () => {
+        const logger = { error: vi.fn(), warn: vi.fn() };
+
+        expect(() =>
+            validateWebStartupEnv({
+                env: { NODE_ENV: "development", ...VALID_ENV },
+                logger,
+            }),
+        ).not.toThrow();
+
+        expect(logger.warn).not.toHaveBeenCalled();
+    });
+
+    it("still requires DATABASE_URL and AUTH_SECRET in development mode", () => {
+        expect(getMissingStartupEnv({ NODE_ENV: "development" })).toEqual([
+            "DATABASE_URL",
+            "AUTH_SECRET or NEXTAUTH_SECRET",
+        ]);
+    });
+
+    it("requires Google OAuth vars when NODE_ENV is production", () => {
+        expect(
+            getMissingStartupEnv({
+                NODE_ENV: "production",
+                DATABASE_URL: "postgresql://example",
+                AUTH_SECRET: "auth-secret",
+            }),
+        ).toEqual([
+            "AUTH_GOOGLE_ID or GOOGLE_CLIENT_ID",
+            "AUTH_GOOGLE_SECRET or GOOGLE_CLIENT_SECRET",
+        ]);
+    });
+
+    it("requires Google OAuth vars when NODE_ENV is unset (fail closed)", () => {
+        expect(
+            getMissingStartupEnv({
+                DATABASE_URL: "postgresql://example",
+                AUTH_SECRET: "auth-secret",
+            }),
+        ).toEqual([
+            "AUTH_GOOGLE_ID or GOOGLE_CLIENT_ID",
+            "AUTH_GOOGLE_SECRET or GOOGLE_CLIENT_SECRET",
+        ]);
+    });
+
     it("skips validation in fixture mode outside Vercel production", () => {
-        const logger = { error: vi.fn() };
+        const logger = { error: vi.fn(), warn: vi.fn() };
 
         expect(() =>
             validateWebStartupEnv({
@@ -59,7 +134,7 @@ describe("startup env validation", () => {
     });
 
     it("still validates in Vercel production even if fixture mode leaks in", () => {
-        const logger = { error: vi.fn() };
+        const logger = { error: vi.fn(), warn: vi.fn() };
 
         expect(() =>
             validateWebStartupEnv({
