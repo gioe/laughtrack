@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface NavButtonProps {
     direction: "left" | "right";
@@ -60,9 +60,9 @@ const NavButton = ({
             `}
         >
             {direction === "left" ? (
-                <ChevronLeftIcon className={iconSize[size]} />
+                <ChevronLeft className={iconSize[size]} />
             ) : (
-                <ChevronRightIcon className={iconSize[size]} />
+                <ChevronRight className={iconSize[size]} />
             )}
         </button>
     );

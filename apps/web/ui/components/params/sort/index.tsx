@@ -1,10 +1,9 @@
 "use client";
 
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
-import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { SortOptionInterface } from "@/objects/interface";
 import { cn } from "@/util/tailwindUtil";
-import { Menu as MenuIcon } from "lucide-react";
+import { ChevronDown, Menu as MenuIcon } from "lucide-react";
 import { useSortParams } from "./hooks/useSortParams";
 import { searchFilterChipClassName } from "../search/filterChipStyles";
 
@@ -50,7 +49,7 @@ export function SortParamComponent({
                         <span className="hidden sm:inline">
                             {selectedOption.name}
                         </span>
-                        <ChevronDownIcon
+                        <ChevronDown
                             aria-hidden="true"
                             className="h-5 w-5 flex-none text-white/70"
                         />

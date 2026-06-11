@@ -1,7 +1,6 @@
 "use client";
 import { useFilterModal } from "@/hooks";
-import { ChevronDownIcon } from "@heroicons/react/20/solid";
-import { Filter } from "lucide-react";
+import { ChevronDown, Filter } from "lucide-react";
 import { useCallback } from "react";
 import { searchFilterChipClassName } from "../search/filterChipStyles";
 
@@ -24,7 +23,7 @@ export function FilterModalButton({ filterCount }: FilterModalButtonProps) {
         >
             <Filter size={20} />
             <span>Filter</span>
-            <ChevronDownIcon
+            <ChevronDown
                 aria-hidden="true"
                 className="h-5 w-5 flex-none text-white/70"
             />

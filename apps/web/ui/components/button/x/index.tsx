@@ -1,5 +1,5 @@
 "use client";
-import { XMarkIcon } from "@heroicons/react/20/solid";
+import { X } from "lucide-react";
 
 interface FunnelButtonProps {
     handleClick: (open: boolean) => void;
@@ -13,7 +13,7 @@ export function XButton({ handleClick }: FunnelButtonProps) {
             className="text-muted-foreground hover:text-foreground"
         >
             <span className="sr-only">Close</span>
-            <XMarkIcon aria-hidden="true" className="h-6 w-6" />
+            <X aria-hidden="true" className="h-6 w-6" />
         </button>
     );
 }

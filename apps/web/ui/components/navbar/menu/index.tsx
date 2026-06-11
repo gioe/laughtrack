@@ -1,12 +1,7 @@
 import { PopoverGroup } from "@headlessui/react";
 import { HeaderItem } from "../headerItem";
 import NavigationDropdown from "../dropdown";
-import {
-    BuildingStorefrontIcon,
-    FaceSmileIcon,
-    MapPinIcon,
-    MusicalNoteIcon,
-} from "@heroicons/react/24/outline";
+import { Building2, MapPin, Music, Smile } from "lucide-react";
 
 // Navigation menu items. Each per-entity dropdown links to that entity's
 // search/browse page ("Browse all").
@@ -17,7 +12,7 @@ const MENU_ITEMS = {
             description:
                 "Browse comedians and filter by location, sort, and more",
             href: "/comedian/search",
-            icon: FaceSmileIcon,
+            icon: Smile,
         },
     ],
     club: [
@@ -26,7 +21,7 @@ const MENU_ITEMS = {
             description:
                 "Browse comedy clubs and filter by location, chain, and more",
             href: "/club/search",
-            icon: BuildingStorefrontIcon,
+            icon: Building2,
         },
     ],
     show: [
@@ -35,7 +30,7 @@ const MENU_ITEMS = {
             description:
                 "Browse upcoming shows with date, location, and lineup filters",
             href: "/show/search",
-            icon: MapPinIcon,
+            icon: MapPin,
         },
     ],
     podcast: [
@@ -43,7 +38,7 @@ const MENU_ITEMS = {
             name: "Browse all",
             description: "Browse comedy podcasts",
             href: "/podcast/search",
-            icon: MusicalNoteIcon,
+            icon: Music,
         },
     ],
 };

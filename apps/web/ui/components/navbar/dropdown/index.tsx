@@ -1,7 +1,7 @@
 import { Popover, PopoverButton } from "@headlessui/react";
 import { HeaderItem } from "../headerItem";
 import NavbarPopoverItem, { NavbarPopoverItemModel } from "../../popover/panel";
-import { ChevronDownIcon } from "@heroicons/react/24/solid";
+import { ChevronDown } from "lucide-react";
 
 interface NavigationDropdownProps {
     title: string;
@@ -18,7 +18,7 @@ export default function NavigationDropdown({
         <Popover className="relative">
             <PopoverButton className="flex items-center gap-x-1 leading-6 group">
                 <HeaderItem highlighted={isHighlighted} title={title} />
-                <ChevronDownIcon
+                <ChevronDown
                     aria-hidden="true"
                     className="h-5 w-5 flex-none text-soft-charcoal opacity-70
                     transition-all duration-300 ease-out transform group-hover:opacity-90

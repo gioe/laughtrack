@@ -3,8 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Comedian } from "@/objects/class/comedian/Comedian";
-import { HeartIcon as OutlineHeart } from "@heroicons/react/24/outline";
-import { HeartIcon as SolidHeart } from "@heroicons/react/24/solid";
+import { Heart } from "lucide-react";
 import { useState } from "react";
 import { useFavorite } from "@/hooks/useFavorite";
 import ComedianAvatarFallback from "./fallback";
@@ -72,7 +71,10 @@ const ComedianHeadshot = ({
 
     return (
         <div className={`${styles.container} ${className}`}>
-            <Link href={`/comedian/${encodeURIComponent(comedian.name)}`} className={styles.link}>
+            <Link
+                href={`/comedian/${encodeURIComponent(comedian.name)}`}
+                className={styles.link}
+            >
                 {showFallback ? (
                     <ComedianAvatarFallback
                         name={comedian.name}
@@ -100,11 +102,11 @@ const ComedianHeadshot = ({
                     className={buttonClasses}
                 >
                     {isFavorite ? (
-                        <SolidHeart
-                            className={`${styles.favoriteIcon} text-red-500 drop-shadow-sm`}
+                        <Heart
+                            className={`${styles.favoriteIcon} fill-current text-red-500 drop-shadow-sm`}
                         />
                     ) : (
-                        <OutlineHeart
+                        <Heart
                             className={`${styles.favoriteIcon} hover:text-red-500 drop-shadow-sm ${
                                 isAuthenticated ? "text-white" : "text-white/80"
                             }`}
