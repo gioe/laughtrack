@@ -28,14 +28,21 @@ import type { useMotionProps } from "@/hooks/useMotionProps";
  * barrel exports their component tree consumes (e.g. useDialogKeyboard) as
  * sibling keys in the returned object.
  */
+// Hoisted to module scope so every mock call hands back the same references,
+// matching the real hook's useCallback/useMemo contract — components that
+// list these helpers in effect dependency arrays must not re-run effects on
+// every render under test.
+const identity = <T,>(value: T) => value;
+const springs = {
+    tapFeedback: { duration: 0 },
+    contentEntrance: { duration: 0 },
+    emphasis: { duration: 0 },
+} as const;
+
 export const mockUseMotionProps = (): ReturnType<typeof useMotionProps> => ({
-    springs: {
-        tapFeedback: { duration: 0 },
-        contentEntrance: { duration: 0 },
-        emphasis: { duration: 0 },
-    },
-    mv: <T,>(value: T) => value,
-    mp: <T,>(value: T) => value,
-    mt: <T,>(value: T) => value,
+    springs,
+    mv: identity,
+    mp: identity,
+    mt: identity,
     prefersReducedMotion: true,
 });
