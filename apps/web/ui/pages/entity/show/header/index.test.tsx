@@ -149,6 +149,18 @@ describe("ShowDetailHeader", () => {
         );
     });
 
+    it("letterboxes exactly-2:1 images — the threshold is inclusive", () => {
+        render(<ShowDetailHeader show={baseShow} />);
+
+        // 250x125 — the BABS Comedy Club shape from the TASK-2787 survey;
+        // pins the >= comparison so a regression to > can't slip through.
+        const image = screen.getByAltText("The Copper Room");
+        fireLoadWithSize(image, 250, 125);
+
+        expect(image.className).toContain("object-contain");
+        expect(image.parentElement?.className).toContain("bg-surface-muted");
+    });
+
     it("letterboxes wide wordmark logos at or beyond 2:1 on surface-muted", () => {
         render(<ShowDetailHeader show={baseShow} />);
 
