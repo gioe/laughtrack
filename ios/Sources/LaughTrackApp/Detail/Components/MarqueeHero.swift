@@ -9,6 +9,11 @@ import LaughTrackBridge
 struct MarqueeHero: View {
     @Environment(\.appTheme) private var theme
     @State private var imageLoadFailed = false
+    /// Whether the loaded poster letterboxes (wide wordmark) or cover-crops.
+    /// nil until the bitmap's intrinsic size has been read back from
+    /// ImageCache — the poster shows the loading placeholder in that window
+    /// so a wordmark never flashes cover-cropped first.
+    @State private var posterLetterbox: Bool?
 
     let title: String
     var eyebrow: String? = nil
@@ -204,9 +209,7 @@ struct MarqueeHero: View {
 
         if let url, !imageLoadFailed {
             CachedAsyncImage(url: url) { image in
-                image
-                    .resizable()
-                    .scaledToFill()
+                posterContent(image: image, url: url)
             } placeholder: {
                 Rectangle().fill(laughTrack.colors.surfaceElevated)
             } error: { _ in
@@ -215,6 +218,47 @@ struct MarqueeHero: View {
             }
         } else {
             posterFallback
+        }
+    }
+
+    /// Treatment for a successfully loaded poster. Wide wordmark logos
+    /// (aspect ratio ≥ `MarqueePosterLayout.logoAspectThreshold`) letterbox
+    /// with scaledToFit plus padding on a surfaceMuted backing — mirroring
+    /// the web show header's TASK-2787 treatment (object-contain p-3 on
+    /// surface-muted) — while everything below the threshold keeps the
+    /// original scaledToFill cover crop. The decision needs the bitmap's
+    /// intrinsic size, which CachedAsyncImage's content closure doesn't
+    /// expose; the loaded image is guaranteed to already be in ImageCache by
+    /// the time this renders (the load path stores before flipping to
+    /// .loaded), so the .task query is a memory hit. Until it resolves,
+    /// render the same placeholder as the loading phase — the web hides the
+    /// image until onLoad for the same no-flash reason.
+    @ViewBuilder
+    private func posterContent(image: Image, url: URL) -> some View {
+        let laughTrack = theme.laughTrackTokens
+
+        ZStack {
+            switch posterLetterbox {
+            case nil:
+                Rectangle().fill(laughTrack.colors.surfaceElevated)
+            case true?:
+                laughTrack.colors.surfaceMuted
+                image
+                    .resizable()
+                    .scaledToFit()
+                    .padding(MarqueePosterLayout.letterboxPadding)
+            case false?:
+                image
+                    .resizable()
+                    .scaledToFill()
+            }
+        }
+        .task(id: url) {
+            guard posterLetterbox == nil else { return }
+            let cached = await ImageCache.shared.image(for: url)
+            posterLetterbox = cached.map {
+                MarqueePosterLayout.shouldLetterbox(imageSize: $0.size)
+            } ?? false
         }
     }
 
@@ -338,6 +382,36 @@ struct MarqueeHero: View {
                     .font(.system(size: theme.iconSizes.md, weight: .semibold))
                     .foregroundStyle(laughTrack.colors.accentStrong)
             }
+    }
+}
+
+// MARK: - Poster letterbox layout
+
+/// Wide-wordmark exception to the square poster cover crop, mirroring the
+/// web show header's LOGO_ASPECT_THRESHOLD treatment (TASK-2787): a 2026-06
+/// survey of all 192 club CDN PNGs found every image at or beyond 2:1 is a
+/// wordmark logo (Goodnights 3.8:1, Mic Drop 5.75:1) that cover-crops to an
+/// illegible strip, while the 1.5–2:1 band is venue photos that center-crop
+/// fine — so aspect ratio alone separates the populations and no background
+/// heuristic is needed. Kept as a pure helper so the threshold decision is
+/// unit-testable without rendering (TASK-2811).
+enum MarqueePosterLayout {
+    /// Width:height ratio at or beyond which the poster letterboxes. Must
+    /// match the web's LOGO_ASPECT_THRESHOLD
+    /// (apps/web/ui/pages/entity/show/header/index.tsx).
+    static let logoAspectThreshold: CGFloat = 2
+
+    /// Breathing room around a letterboxed wordmark — the pt mirror of the
+    /// web's `p-3` (12px).
+    static let letterboxPadding: CGFloat = 12
+
+    /// Whether a loaded poster bitmap should letterbox (scaledToFit on a
+    /// muted backing) instead of cover-cropping. Degenerate sizes (zero or
+    /// negative height) keep the cover crop. Ratio of points is identical to
+    /// ratio of pixels, so UIImage scale never skews the decision.
+    static func shouldLetterbox(imageSize: CGSize) -> Bool {
+        guard imageSize.height > 0 else { return false }
+        return imageSize.width / imageSize.height >= logoAspectThreshold
     }
 }
 

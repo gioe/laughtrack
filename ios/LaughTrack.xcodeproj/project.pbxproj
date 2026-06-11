@@ -179,6 +179,7 @@
 		C385816EB40B0E60FD8350AD /* HTTPTypes in Frameworks */ = {isa = PBXBuildFile; productRef = F840714F147704B940EFAC06 /* HTTPTypes */; };
 		C4D575BB4C744D954DBDE5C6 /* PushDeviceTokenManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E115819A3E8E7A9D194E204 /* PushDeviceTokenManager.swift */; };
 		C6716683C773C258B4689242 /* MainPageCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64FD81FFE1F92583390A721E /* MainPageCacheTests.swift */; };
+		2811A1B1F50C0A6E0FE03F01 /* MarqueeHeroLetterboxTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2811A1B0F50C0A6E0FE03F00 /* MarqueeHeroLetterboxTests.swift */; };
 		C6BDC552CA2E02C18B2C5F2E /* ShowDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F507D3C7B4E507D8FA307075 /* ShowDetailView.swift */; };
 		C6FB9B34A0F4D1A23A580E19 /* LaughTrackAPIClient.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = DE90DE11FF14510C06890AB7 /* LaughTrackAPIClient.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		C843E624627FED8F6B6195FC /* LaughTrackBridge.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20552640F544D4395DE585B7 /* LaughTrackBridge.framework */; };
@@ -419,6 +420,7 @@
 		62A614797CE26BEE8EE86818 /* SocialLinkSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocialLinkSection.swift; sourceTree = "<group>"; };
 		63EDE38E061B529E52A38C3F /* DetailHeroLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailHeroLayoutTests.swift; sourceTree = "<group>"; };
 		64FD81FFE1F92583390A721E /* MainPageCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainPageCacheTests.swift; sourceTree = "<group>"; };
+		2811A1B0F50C0A6E0FE03F00 /* MarqueeHeroLetterboxTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarqueeHeroLetterboxTests.swift; sourceTree = "<group>"; };
 		65D2E66D33F5650FDBC687BD /* LaughTrackAPIConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackAPIConfiguration.swift; sourceTree = "<group>"; };
 		6740344931ABD2D8276582D0 /* PodcastTonightNearYouCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastTonightNearYouCard.swift; sourceTree = "<group>"; };
 		69FADA6CF6C175F11DC3FF04 /* PushPermissionPromptCadence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushPermissionPromptCadence.swift; sourceTree = "<group>"; };
@@ -657,6 +659,7 @@
 				7436912FD34C53C36498E5EF /* LibraryFavoritesViewTests.swift */,
 				9DCCCE4F2A5D080DC2574451 /* LibraryViewTests.swift */,
 				64FD81FFE1F92583390A721E /* MainPageCacheTests.swift */,
+				2811A1B0F50C0A6E0FE03F00 /* MarqueeHeroLetterboxTests.swift */,
 				EEB123B3A5E6AEA324B240A1 /* MiddlewareIntegrationTestSupport.swift */,
 				B2537988FDEE64029B75C0C6 /* MonthCalendarViewTests.swift */,
 				C2BF672FCBD4D1FC71AC695A /* NearbyLocationControllerTests.swift */,
@@ -1443,6 +1446,7 @@
 				497B1B88853BE206736ADEFC /* LibraryFavoritesViewTests.swift in Sources */,
 				50B7B8939830138B1D3D7FDF /* LibraryViewTests.swift in Sources */,
 				C6716683C773C258B4689242 /* MainPageCacheTests.swift in Sources */,
+				2811A1B1F50C0A6E0FE03F01 /* MarqueeHeroLetterboxTests.swift in Sources */,
 				FDB334A4E9D26AA5BB986002 /* MiddlewareIntegrationTestSupport.swift in Sources */,
 				BBD55C6563601DE4850554F5 /* MonthCalendarViewTests.swift in Sources */,
 				87A52A26C28E621FFF07B848 /* NearbyLocationControllerTests.swift in Sources */,
