@@ -253,10 +253,14 @@ describe("AdminComedianManager", () => {
                 }),
             );
         });
+        // The fetch assertion above resolves as soon as the request fires;
+        // the row preview only updates after res.json() settles and React
+        // flushes the resulting setRows re-render. findBy gates on that
+        // render so the assertion can't race it under parallel-suite load.
         expect(
-            screen
-                .getByAltText("Alias Comic current headshot image")
-                .getAttribute("src"),
+            (
+                await screen.findByAltText("Alias Comic current headshot image")
+            ).getAttribute("src"),
         ).toBe("https://test.b-cdn.net/comedian-images/2/avatar.jpg");
         expect(
             screen.queryByAltText("Alias Comic current hero image"),
@@ -745,7 +749,10 @@ describe("AdminComedianManager", () => {
                 }),
             );
         });
-        expect(mocks.refresh).toHaveBeenCalled();
+        // router.refresh() fires only after res.json() settles — same
+        // post-response race class as the headshot-upload flake, so poll
+        // instead of asserting synchronously after the fetch waitFor.
+        await waitFor(() => expect(mocks.refresh).toHaveBeenCalled());
     });
 
     it("nests children under the parent's Children sub-dropdown instead of as top-level rows", () => {
