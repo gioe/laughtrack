@@ -1,7 +1,17 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+    afterEach,
+    beforeAll,
+    beforeEach,
+    describe,
+    expect,
+    it,
+    vi,
+} from "vitest";
 import { NextRequest, NextResponse } from "next/server";
 
-const mockCheckRateLimit = vi.fn();
+const { mockCheckRateLimit } = vi.hoisted(() => ({
+    mockCheckRateLimit: vi.fn(),
+}));
 
 vi.mock("@/lib/rateLimit", () => ({
     checkRateLimit: mockCheckRateLimit,
@@ -11,6 +21,17 @@ vi.mock("@/lib/rateLimit", () => ({
 }));
 
 describe("GET /api/v1/auth/native/callback", () => {
+    let GET: typeof import("./route").GET;
+
+    beforeAll(async () => {
+        // TASK-2805: the route handler is fast, but the first test used to pay
+        // the dynamic route import inside its 5s testTimeout. Under full-suite
+        // worker contention that setup/import work once took 5166ms and timed
+        // out. Import once in beforeAll so setup cost uses Vitest's 30s
+        // hookTimeout instead of the individual assertion budget.
+        ({ GET } = await import("./route"));
+    });
+
     beforeEach(() => {
         mockCheckRateLimit.mockReset();
         mockCheckRateLimit.mockResolvedValue({
@@ -49,7 +70,6 @@ describe("GET /api/v1/auth/native/callback", () => {
                 ),
         );
 
-        const { GET } = await import("./route");
         const response = await GET(
             new NextRequest(
                 "https://laughtrack.app/api/v1/auth/native/callback?provider=google",
@@ -93,7 +113,6 @@ describe("GET /api/v1/auth/native/callback", () => {
                 ),
         );
 
-        const { GET } = await import("./route");
         const response = await GET(
             new NextRequest(
                 "https://laughtrack.app/api/v1/auth/native/callback?provider=email",
@@ -120,7 +139,6 @@ describe("GET /api/v1/auth/native/callback", () => {
     it("rejects unsupported provider values before token exchange", async () => {
         const fetchSpy = vi.spyOn(global, "fetch");
 
-        const { GET } = await import("./route");
         const response = await GET(
             new NextRequest(
                 "https://laughtrack.app/api/v1/auth/native/callback?provider=evil",
@@ -135,7 +153,6 @@ describe("GET /api/v1/auth/native/callback", () => {
     });
 
     it("preserves upstream oauth errors", async () => {
-        const { GET } = await import("./route");
         const response = await GET(
             new NextRequest(
                 "https://laughtrack.app/api/v1/auth/native/callback?provider=apple&error=AccessDenied",
@@ -160,7 +177,6 @@ describe("GET /api/v1/auth/native/callback", () => {
                 }),
         );
 
-        const { GET } = await import("./route");
         const response = await GET(
             new NextRequest(
                 "https://laughtrack.app/api/v1/auth/native/callback?provider=google",
@@ -194,7 +210,6 @@ describe("GET /api/v1/auth/native/callback", () => {
                 }),
         );
 
-        const { GET } = await import("./route");
         const response = await GET(
             new NextRequest(
                 "https://laughtrack.app/api/v1/auth/native/callback?provider=google",
@@ -226,7 +241,6 @@ describe("GET /api/v1/auth/native/callback", () => {
             }),
         );
 
-        const { GET } = await import("./route");
         const response = await GET(
             new NextRequest(
                 "https://laughtrack.app/api/v1/auth/native/callback?provider=google",
@@ -268,7 +282,6 @@ describe("GET /api/v1/auth/native/callback", () => {
         });
         const fetchSpy = vi.spyOn(global, "fetch");
 
-        const { GET } = await import("./route");
         const response = await GET(
             new NextRequest(
                 "https://laughtrack.app/api/v1/auth/native/callback?provider=google",
@@ -295,7 +308,6 @@ describe("GET /api/v1/auth/native/callback", () => {
                 ),
         );
 
-        const { GET } = await import("./route");
         const response = await GET(
             new NextRequest(
                 "https://laughtrack.app/api/v1/auth/native/callback?provider=google&deep_link=laughtrack%3A%2F%2Fattacker-host%2Fexfil",
@@ -324,7 +336,6 @@ describe("GET /api/v1/auth/native/callback", () => {
                 ),
         );
 
-        const { GET } = await import("./route");
         const response = await GET(
             new NextRequest(
                 "https://laughtrack.app/api/v1/auth/native/callback?provider=google&callbackUrl=https%3A%2F%2Fattacker.example%2Fexfil",
@@ -369,7 +380,6 @@ describe("GET /api/v1/auth/native/callback", () => {
                 ),
         );
 
-        const { GET } = await import("./route");
         const response = await GET(
             new NextRequest(
                 `https://laughtrack.app/api/v1/auth/native/callback?provider=google&${queryFragment}`,
