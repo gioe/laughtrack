@@ -15,11 +15,15 @@ interface ShowDetailHeaderProps {
     show: ShowDetailDTO;
 }
 
-// Tailwind background for each countdown tone — kept literal so the JIT picks them up.
+// Badge classes per countdown tone — kept literal so the JIT picks them up.
+// Mirrors the iOS LaughTrackBadge tone recipes (LaughTrackComponents.swift):
+// live → accent (accent-strong text on accent-muted wash), future → highlight
+// (warm brown), past → neutral (canvas surface). Each tone owns its text and
+// border color, so the span carries no color classes of its own.
 const COUNTDOWN_TONE_CLASSES: Record<string, string> = {
-    future: "bg-copper/90",
-    live: "bg-emerald-600/90",
-    past: "bg-stone-600/90",
+    future: "bg-highlight/85 text-foreground border border-strong/50",
+    live: "bg-accent-muted/45 text-accent-strong border border-accent-strong/35",
+    past: "bg-canvas text-foreground border border-subtle",
 };
 
 // Marquee hero ported from the iOS composition (ios MarqueeHero.swift):
@@ -121,7 +125,7 @@ const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({ show }) => {
                     </div>
 
                     <span
-                        className={`inline-block text-caption font-bold uppercase tracking-wider text-white px-2.5 py-1 rounded-full font-dmSans ${COUNTDOWN_TONE_CLASSES[countdown.tone]}`}
+                        className={`inline-block text-caption font-bold uppercase tracking-wider px-2.5 py-1 rounded-full font-dmSans ${COUNTDOWN_TONE_CLASSES[countdown.tone]}`}
                         aria-live={countdown.tone === "live" ? "polite" : "off"}
                     >
                         {countdown.label}
