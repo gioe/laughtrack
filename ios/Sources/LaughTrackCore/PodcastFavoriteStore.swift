@@ -167,7 +167,14 @@ public final class PodcastFavoriteStore: ObservableObject {
 
             let nextValue = response.data.isFavorited
             values[podcastID] = nextValue
-            if !nextValue {
+            if nextValue {
+                if !savedFavoritePodcasts.contains(where: { $0.id == podcastID }) {
+                    // The toggle only has the podcast ID, not the full favorite
+                    // item, so re-fetch the list to keep surfaces gated on
+                    // savedFavoritePodcasts (e.g. the Favorites tab) in sync.
+                    await loadSavedFavorites(apiClient: apiClient, authManager: authManager, force: true)
+                }
+            } else {
                 savedFavoritePodcasts.removeAll { $0.id == podcastID }
                 if savedFavoritePodcasts.isEmpty, hasLoadedSavedFavorites {
                     savedFavoritesPhase = .empty

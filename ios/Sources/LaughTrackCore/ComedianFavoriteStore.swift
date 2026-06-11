@@ -186,6 +186,12 @@ public final class ComedianFavoriteStore: ObservableObject {
             if nextValue {
                 if let index = savedFavoriteComedians.firstIndex(where: { $0.uuid == uuid }) {
                     savedFavoriteComedians[index].isFavorite = true
+                } else {
+                    // First favorite (or one made from a surface that never seeded
+                    // the saved list): the toggle only has the UUID, not the full
+                    // search item, so re-fetch the list to keep surfaces gated on
+                    // savedFavoriteComedians (e.g. the Favorites tab) in sync.
+                    await loadSavedFavorites(apiClient: apiClient, authManager: authManager, force: true)
                 }
                 if wasAdd {
                     didAddFavoriteComedian.send(uuid)

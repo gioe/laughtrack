@@ -114,7 +114,9 @@ struct ShowDetailViewTests {
         let finalOperations = await recorder.operations
         #expect(nextValue == true)
         #expect(favorites.value(for: "demo-comedian-101") == true)
-        #expect(finalOperations == ["getShow", "addFavorite"])
+        // The trailing getFavorites is the first-add saved-list refresh that
+        // keeps the Favorites tab gate in sync.
+        #expect(finalOperations == ["getShow", "addFavorite", "getFavorites"])
     }
 
     @Test("show detail navigation actions push the expected route payloads")
@@ -366,6 +368,17 @@ private struct MockShowDetailTransport: ClientTransport {
                         )
                     )
                 )
+            )
+        }
+
+        // A first add-toggle force-refreshes the saved-favorites list so
+        // surfaces gated on it (the Favorites tab) update immediately.
+        if operationID == "getFavorites" {
+            let encoder = APIMockEncoder.make()
+
+            return (
+                HTTPResponse(status: .ok, headerFields: [.contentType: "application/json"]),
+                HTTPBody(try encoder.encode(Components.Schemas.FavoriteListResponse(data: [])))
             )
         }
 

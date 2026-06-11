@@ -102,6 +102,91 @@ struct ComedianFavoriteStoreTests {
         #expect(recorder.values == ["comedian-uuid-1", "comedian-uuid-2"])
     }
 
+    @Test("first add-toggle force-refreshes the saved list so the Favorites tab gate sees the new favorite")
+    func firstAddToggleRefreshesSavedFavorites() async throws {
+        let authManager = await LaughTrackHostedViewTestSupport.makeAuthenticatedAuthManager(
+            name: "comedian-fav-first-add-refresh"
+        )
+        let store = ComedianFavoriteStore()
+        let transport = FavoriteComedianMockTransport(
+            listResponses: [
+                .init(data: []),
+                .init(data: [
+                    .init(
+                        id: 101,
+                        uuid: "comedian-uuid-1",
+                        name: "Taylor Tomlinson",
+                        imageUrl: "https://example.com/taylor.png",
+                        socialData: .init(id: 101),
+                        showCount: 5,
+                        isFavorite: true
+                    ),
+                ]),
+            ]
+        )
+        let apiClient = makeClient(transport: transport)
+
+        // Fresh-user sign-in hydration: the server has no favorites yet.
+        await store.loadSavedFavorites(apiClient: apiClient, authManager: authManager)
+        #expect(store.savedFavoriteComedians.isEmpty)
+        #expect(store.savedFavoritesPhase == .empty)
+
+        let result = await store.toggle(
+            uuid: "comedian-uuid-1",
+            currentValue: false,
+            apiClient: apiClient,
+            authManager: authManager
+        )
+
+        guard case .updated(true) = result else {
+            Issue.record("Expected .updated(true), got \(result)")
+            return
+        }
+        #expect(store.savedFavoriteComedians.map(\.uuid) == ["comedian-uuid-1"])
+        #expect(store.savedFavoritesPhase == .loaded)
+        #expect(transport.listCallCount == 2)
+    }
+
+    @Test("add-toggle for a comedian already in the saved list updates in place without re-fetching")
+    func addToggleForAlreadySavedComedianDoesNotRefetch() async throws {
+        let authManager = await LaughTrackHostedViewTestSupport.makeAuthenticatedAuthManager(
+            name: "comedian-fav-in-place-add"
+        )
+        let store = ComedianFavoriteStore()
+        let transport = FavoriteComedianMockTransport(
+            listResponses: [
+                .init(data: [
+                    .init(
+                        id: 101,
+                        uuid: "comedian-uuid-1",
+                        name: "Taylor Tomlinson",
+                        imageUrl: "https://example.com/taylor.png",
+                        socialData: .init(id: 101),
+                        showCount: 5,
+                        isFavorite: false
+                    ),
+                ]),
+            ]
+        )
+        let apiClient = makeClient(transport: transport)
+
+        await store.loadSavedFavorites(apiClient: apiClient, authManager: authManager)
+
+        let result = await store.toggle(
+            uuid: "comedian-uuid-1",
+            currentValue: false,
+            apiClient: apiClient,
+            authManager: authManager
+        )
+
+        guard case .updated(true) = result else {
+            Issue.record("Expected .updated(true), got \(result)")
+            return
+        }
+        #expect(store.savedFavoriteComedians.map(\.isFavorite) == [true])
+        #expect(transport.listCallCount == 1)
+    }
+
     @Test("didAddFavoriteComedian does NOT fire during loadSavedFavorites hydration")
     func didAddFavoriteComedianDoesNotFireOnHydration() async throws {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthenticatedAuthManager(
@@ -110,7 +195,7 @@ struct ComedianFavoriteStoreTests {
         let store = ComedianFavoriteStore()
         let apiClient = makeClient(
             transport: FavoriteComedianMockTransport(
-                listResponse: .init(
+                listResponses: [.init(
                     data: [
                         .init(
                             id: 101,
@@ -131,7 +216,7 @@ struct ComedianFavoriteStoreTests {
                             isFavorite: true
                         ),
                     ]
-                )
+                )]
             )
         )
         let recorder = SubjectRecorder<String>()
@@ -166,23 +251,57 @@ private final class SubjectRecorder<Value> {
     }
 }
 
+/// Serves a fixed sequence of list responses (clamped to the last entry once
+/// exhausted) and counts how many were requested, so tests can model a server
+/// whose favorites list changes between fetches — e.g. empty at sign-in
+/// hydration, populated after an add — and assert on fetch counts. Lock-guarded
+/// because ClientTransport.send is nonisolated.
+private final class ListResponseSequencer<Response>: @unchecked Sendable {
+    private let lock = NSLock()
+    private let responses: [Response]
+    private var served = 0
+
+    init(_ responses: [Response]) {
+        precondition(!responses.isEmpty, "ListResponseSequencer needs at least one response")
+        self.responses = responses
+    }
+
+    func next() -> Response {
+        lock.lock()
+        defer { lock.unlock() }
+        let response = responses[min(served, responses.count - 1)]
+        served += 1
+        return response
+    }
+
+    var callCount: Int {
+        lock.lock()
+        defer { lock.unlock() }
+        return served
+    }
+}
+
 /// Mock transport for the three comedian-favorite operations (`getFavorites`,
 /// `addFavorite`, `removeFavorite`). Each test instantiates its own transport;
 /// behavior is fixed at init time so a test reading captured emissions never
 /// races against handler swaps.
 private struct FavoriteComedianMockTransport: ClientTransport {
-    let listResponse: Components.Schemas.FavoriteListResponse
+    private let listResponses: ListResponseSequencer<Components.Schemas.FavoriteListResponse>
     let isFavoritedForAdd: Bool
     let isFavoritedForRemove: Bool
 
     init(
-        listResponse: Components.Schemas.FavoriteListResponse = .init(data: []),
+        listResponses: [Components.Schemas.FavoriteListResponse] = [.init(data: [])],
         isFavoritedForAdd: Bool = true,
         isFavoritedForRemove: Bool = false
     ) {
-        self.listResponse = listResponse
+        self.listResponses = ListResponseSequencer(listResponses)
         self.isFavoritedForAdd = isFavoritedForAdd
         self.isFavoritedForRemove = isFavoritedForRemove
+    }
+
+    var listCallCount: Int {
+        listResponses.callCount
     }
 
     func send(
@@ -197,7 +316,7 @@ private struct FavoriteComedianMockTransport: ClientTransport {
         case "getFavorites":
             return (
                 HTTPResponse(status: .ok, headerFields: [.contentType: "application/json"]),
-                HTTPBody(try encoder.encode(listResponse))
+                HTTPBody(try encoder.encode(listResponses.next()))
             )
         case "addFavorite":
             return (

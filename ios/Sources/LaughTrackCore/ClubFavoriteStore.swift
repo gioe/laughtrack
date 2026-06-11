@@ -174,6 +174,12 @@ public final class ClubFavoriteStore: ObservableObject {
             let wasAdd = !currentValue && nextValue
             values[clubId] = nextValue
             if nextValue {
+                if !savedFavoriteClubs.contains(where: { $0.id == clubId }) {
+                    // The toggle only has the club ID, not the full favorite
+                    // item, so re-fetch the list to keep surfaces gated on
+                    // savedFavoriteClubs (e.g. the Favorites tab) in sync.
+                    await loadSavedFavorites(apiClient: apiClient, authManager: authManager, force: true)
+                }
                 if wasAdd {
                     didAddFavoriteClub.send(clubId)
                 }
