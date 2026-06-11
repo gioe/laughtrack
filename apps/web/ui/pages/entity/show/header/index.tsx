@@ -13,6 +13,7 @@ const PLACEHOLDER = "/placeholders/club-placeholder.svg";
 
 interface ShowDetailHeaderProps {
     show: ShowDetailDTO;
+    isAdmin?: boolean;
 }
 
 // Badge classes per countdown tone — kept literal so the JIT picks them up.
@@ -31,7 +32,10 @@ const COUNTDOWN_TONE_CLASSES: Record<string, string> = {
 // by a dashed copper ring. iOS reference values — 11pt eyebrow with 2.2
 // tracking in accentStrong, 196pt poster, dashed accentStrong ring with a
 // copper glow, scaledToFill poster crop.
-const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({ show }) => {
+const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({
+    show,
+    isAdmin = false,
+}) => {
     const { mt, prefersReducedMotion } = useMotionProps();
     const [error, setError] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
@@ -130,6 +134,18 @@ const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({ show }) => {
                     >
                         {countdown.label}
                     </span>
+
+                    {/* Admin-only debug affordance — re-homed from the removed
+                        date/room/address block (the ticket stub owns that data
+                        now). */}
+                    {isAdmin && (
+                        <p
+                            className="mt-2 inline-block text-xs font-mono text-gray-600 bg-stone-200 px-2 py-0.5 rounded"
+                            data-testid="show-detail-admin-id"
+                        >
+                            Show ID: {show.id}
+                        </p>
+                    )}
                 </div>
             </motion.div>
         </div>

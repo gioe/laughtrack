@@ -175,4 +175,15 @@ describe("ShowDetailHeader", () => {
         expect(pastBadge.className).toContain("text-foreground");
         expect(pastBadge.className).toContain("border-subtle");
     });
+
+    it("hides the show ID for non-admin viewers", () => {
+        render(<ShowDetailHeader show={baseShow} />);
+        expect(screen.queryByTestId("show-detail-admin-id")).toBeNull();
+    });
+
+    it("renders the show ID for admin viewers", () => {
+        render(<ShowDetailHeader show={baseShow} isAdmin />);
+        const badge = screen.getByTestId("show-detail-admin-id");
+        expect(badge.textContent).toBe("Show ID: 42");
+    });
 });

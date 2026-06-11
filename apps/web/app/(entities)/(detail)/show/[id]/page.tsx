@@ -14,6 +14,7 @@ import ShowTicketCta from "@/ui/pages/entity/show/ticketCta";
 import ShowDescription from "@/ui/pages/entity/show/description";
 import ShowDetailTabs from "@/ui/pages/entity/show/detailTabs";
 import { isOpenMicShow } from "@/util/show/isOpenMicShow";
+import { isAdminSession } from "@/lib/auth/requireAdmin";
 
 function parseShowId(raw: string): number | null {
     const id = Number(raw);
@@ -113,6 +114,7 @@ export default async function ShowDetailPage(props: {
     }
 
     const { show, relatedShows } = result;
+    const isAdmin = await isAdminSession();
     const jsonLdData = [buildShowJsonLd(show)];
     // Derive isPast at render time — computing it inside the cached fetcher
     // would freeze the value for the cache TTL and let the CTA drift after the
@@ -125,7 +127,7 @@ export default async function ShowDetailPage(props: {
     return (
         <>
             <JsonLd data={jsonLdData} />
-            <ShowDetailHeader show={show} />
+            <ShowDetailHeader show={show} isAdmin={isAdmin} />
             <ShowTicketCta show={show} isPast={isPast} isOpenMic={isOpenMic} />
             <ShowDescription description={show.description} />
             <ShowDetailTabs

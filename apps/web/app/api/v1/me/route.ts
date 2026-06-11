@@ -56,6 +56,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
             image: true,
             profile: {
                 select: {
+                    role: true,
                     emailShowNotifications: true,
                     pushShowNotifications: true,
                     comedianOnboardingCompleted: true,
@@ -79,6 +80,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                 displayName: user.name,
                 email: user.email,
                 avatarUrl: user.image,
+                isAdmin: user.profile?.role === "admin",
                 emailShowNotifications:
                     user.profile?.emailShowNotifications ?? false,
                 pushShowNotifications:

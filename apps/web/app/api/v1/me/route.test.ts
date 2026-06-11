@@ -167,6 +167,7 @@ describe("GET /api/v1/me", () => {
             email: "ada@example.com",
             image: "https://cdn.example.com/avatar.png",
             profile: {
+                role: "admin",
                 emailShowNotifications: true,
                 pushShowNotifications: true,
                 zipCode: "94108",
@@ -185,6 +186,7 @@ describe("GET /api/v1/me", () => {
                 displayName: "Ada Lovelace",
                 email: "ada@example.com",
                 avatarUrl: "https://cdn.example.com/avatar.png",
+                isAdmin: true,
                 emailShowNotifications: true,
                 pushShowNotifications: true,
                 zipCode: "94108",
@@ -202,6 +204,7 @@ describe("GET /api/v1/me", () => {
                 image: true,
                 profile: {
                     select: {
+                        role: true,
                         emailShowNotifications: true,
                         pushShowNotifications: true,
                         zipCode: true,
@@ -224,6 +227,7 @@ describe("GET /api/v1/me", () => {
             email: "anon@example.com",
             image: null,
             profile: {
+                role: "user",
                 emailShowNotifications: false,
                 pushShowNotifications: false,
                 zipCode: null,
@@ -242,6 +246,7 @@ describe("GET /api/v1/me", () => {
                 displayName: null,
                 email: "anon@example.com",
                 avatarUrl: null,
+                isAdmin: false,
                 emailShowNotifications: false,
                 pushShowNotifications: false,
                 zipCode: null,
@@ -262,6 +267,7 @@ describe("GET /api/v1/me", () => {
             email: "x@example.com",
             image: null,
             profile: {
+                role: "user",
                 emailShowNotifications: false,
                 pushShowNotifications: false,
                 zipCode: null,
