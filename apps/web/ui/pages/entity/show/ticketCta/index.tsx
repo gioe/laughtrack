@@ -99,7 +99,7 @@ const ShowTicketCta: React.FC<ShowTicketCtaProps> = ({
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={ctaLabel}
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-copper px-3.5 py-2 font-dmSans text-[11px] font-bold uppercase tracking-wider text-white shadow-md shadow-copper/40 transition hover:bg-copper-bright focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper"
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-copper px-3.5 py-2 font-dmSans text-caption font-bold uppercase tracking-wider text-white shadow-md shadow-copper/40 transition hover:bg-copper-bright focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper"
             >
                 {ctaCopy}
                 <ArrowUpRight size={12} strokeWidth={3} aria-hidden="true" />

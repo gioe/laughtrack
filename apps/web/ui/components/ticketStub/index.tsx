@@ -70,7 +70,7 @@ export const TicketStubRow: React.FC<TicketStubRowProps> = ({
             {icon}
         </span>
         <div className="min-w-0 flex-1">
-            <p className="font-dmSans text-[11px] font-bold uppercase tracking-wider text-copper-dark">
+            <p className="font-dmSans text-caption font-bold uppercase tracking-wider text-copper-dark">
                 {label}
             </p>
             <div className="font-dmSans text-sm font-semibold text-coconut-cream sm:text-base">

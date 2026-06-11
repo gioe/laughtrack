@@ -73,7 +73,7 @@ const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({
                     {show.clubName && (
                         <Link
                             href={`/club/${show.clubName}`}
-                            className="text-[11px] font-semibold uppercase tracking-[0.2em] text-accent-strong font-dmSans underline-offset-4 hover:underline focus-visible:underline"
+                            className="text-caption font-semibold uppercase tracking-[0.2em] text-accent-strong font-dmSans underline-offset-4 hover:underline focus-visible:underline"
                         >
                             {show.clubName}
                         </Link>
