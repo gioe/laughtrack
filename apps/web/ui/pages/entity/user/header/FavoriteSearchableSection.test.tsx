@@ -93,7 +93,9 @@ describe("FavoriteSearchableSection serverPageInfo branch", () => {
         );
 
         // ceil(137 / 20) = 7. The pagination should show the last page (7).
-        const lastPageLink = screen.getByRole("link", { name: /^7$/ });
+        const lastPageLink = screen.getByRole("link", {
+            name: "Go to page 7",
+        });
         expect(lastPageLink).toBeTruthy();
     });
 

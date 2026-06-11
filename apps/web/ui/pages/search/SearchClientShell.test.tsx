@@ -47,7 +47,9 @@ describe("SearchClientShell", () => {
         expect(screen.getByRole("link", { name: /next/i })).toBeTruthy();
         expect(screen.getByRole("link", { name: /previous/i })).toBeTruthy();
         // 414 results at 20 per page → 21 pages; last page link is rendered.
-        expect(screen.getByRole("link", { name: /21/ })).toBeTruthy();
+        expect(
+            screen.getByRole("link", { name: "Go to page 21" }),
+        ).toBeTruthy();
     });
 
     it("omits paged controls when all results fit on one page", () => {
@@ -59,21 +61,25 @@ describe("SearchClientShell", () => {
     it("marks the page from the URL as the current page", () => {
         renderShell(100, "page=3");
 
-        const current = screen.getByRole("link", { name: /^3$/ });
+        const current = screen.getByRole("link", { name: "Go to page 3" });
         expect(current.getAttribute("aria-current")).toBe("page");
     });
 
     it("respects a size override when computing the page count", () => {
         renderShell(100, "size=50");
 
-        expect(screen.getByRole("link", { name: /^2$/ })).toBeTruthy();
-        expect(screen.queryByRole("link", { name: /^3$/ })).toBeNull();
+        expect(
+            screen.getByRole("link", { name: "Go to page 2" }),
+        ).toBeTruthy();
+        expect(
+            screen.queryByRole("link", { name: "Go to page 3" }),
+        ).toBeNull();
     });
 
     it("clamps an out-of-range page param to the last page", () => {
         renderShell(40, "page=99");
 
-        const current = screen.getByRole("link", { name: /^2$/ });
+        const current = screen.getByRole("link", { name: "Go to page 2" });
         expect(current.getAttribute("aria-current")).toBe("page");
         expect(
             screen
@@ -85,11 +91,43 @@ describe("SearchClientShell", () => {
     it("navigates by setting the page query param without scrolling", () => {
         renderShell(414);
 
-        fireEvent.click(screen.getByRole("link", { name: /^2$/ }));
+        fireEvent.click(screen.getByRole("link", { name: "Go to page 2" }));
 
         expect(pushMock).toHaveBeenCalledWith("/show/search?page=2", {
             scroll: false,
         });
+    });
+
+    it("announces the page count on the pagination landmark", () => {
+        renderShell(414, "page=3");
+
+        expect(
+            screen.getByRole("navigation", {
+                name: "Pagination, page 3 of 21",
+            }),
+        ).toBeTruthy();
+    });
+
+    it("announces and disables the previous button on the first page", () => {
+        renderShell(414);
+
+        const prev = screen.getByRole("link", { name: /previous/i });
+        expect(prev.getAttribute("aria-disabled")).toBe("true");
+        expect(prev.getAttribute("tabindex")).toBe("-1");
+
+        fireEvent.click(prev);
+        expect(pushMock).not.toHaveBeenCalled();
+    });
+
+    it("announces and disables the next button on the last page", () => {
+        renderShell(414, "page=21");
+
+        const next = screen.getByRole("link", { name: /next/i });
+        expect(next.getAttribute("aria-disabled")).toBe("true");
+        expect(next.getAttribute("tabindex")).toBe("-1");
+
+        fireEvent.click(next);
+        expect(pushMock).not.toHaveBeenCalled();
     });
 
     it("drops the page param when navigating back to page 1", () => {

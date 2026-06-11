@@ -42,23 +42,35 @@ const PagedControls: React.FC<PagedControlsProps> = ({
         return qs ? `${pathname}?${qs}` : pathname;
     };
 
-    const navigate = (page: number) => (e: React.MouseEvent) => {
-        e.preventDefault();
-        router.push(buildHref(page), { scroll: false });
-    };
+    const navigate =
+        (page: number, disabled = false) =>
+        (e: React.MouseEvent) => {
+            e.preventDefault();
+            if (disabled) return;
+            router.push(buildHref(page), { scroll: false });
+        };
 
     const pages = buildPageWindow(currentPage, totalPages);
+    const prevDisabled = currentPage <= 1;
+    const nextDisabled = currentPage >= totalPages;
 
     return (
-        <Pagination className={className}>
+        <Pagination
+            className={className}
+            aria-label={`Pagination, page ${currentPage} of ${totalPages}`}
+        >
             <PaginationContent>
                 <PaginationItem>
                     <PaginationPrevious
                         href={buildHref(Math.max(1, currentPage - 1))}
-                        onClick={navigate(Math.max(1, currentPage - 1))}
-                        aria-disabled={currentPage <= 1}
+                        onClick={navigate(
+                            Math.max(1, currentPage - 1),
+                            prevDisabled,
+                        )}
+                        aria-disabled={prevDisabled}
+                        tabIndex={prevDisabled ? -1 : undefined}
                         className={
-                            currentPage <= 1
+                            prevDisabled
                                 ? "pointer-events-none opacity-50"
                                 : undefined
                         }
@@ -75,6 +87,7 @@ const PagedControls: React.FC<PagedControlsProps> = ({
                                 href={buildHref(entry)}
                                 onClick={navigate(entry)}
                                 isActive={entry === currentPage}
+                                aria-label={`Go to page ${entry}`}
                             >
                                 {entry}
                             </PaginationLink>
@@ -84,10 +97,14 @@ const PagedControls: React.FC<PagedControlsProps> = ({
                 <PaginationItem>
                     <PaginationNext
                         href={buildHref(Math.min(totalPages, currentPage + 1))}
-                        onClick={navigate(Math.min(totalPages, currentPage + 1))}
-                        aria-disabled={currentPage >= totalPages}
+                        onClick={navigate(
+                            Math.min(totalPages, currentPage + 1),
+                            nextDisabled,
+                        )}
+                        aria-disabled={nextDisabled}
+                        tabIndex={nextDisabled ? -1 : undefined}
                         className={
-                            currentPage >= totalPages
+                            nextDisabled
                                 ? "pointer-events-none opacity-50"
                                 : undefined
                         }
