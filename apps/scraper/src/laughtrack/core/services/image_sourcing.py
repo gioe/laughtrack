@@ -36,6 +36,7 @@ _TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500"
 
 # Bunny CDN
 _CDN_HOST = "laughtrack.b-cdn.net"
+_PURGE_API_URL = "https://api.bunny.net/purge"
 _MAX_IMAGE_WIDTH = 500
 
 # BunnyCDN storage zone slug rule: lowercase alphanumeric + hyphen.
@@ -278,6 +279,48 @@ def _resize_image(data: bytes, max_width: int = _MAX_IMAGE_WIDTH) -> bytes:
     return buf.getvalue()
 
 
+def _purge_cdn_cache(path: str) -> bool:
+    """Purge the pull-zone cache for a CDN path after (re)uploading the file.
+
+    Replacing a file in Bunny Edge Storage does NOT purge the connected pull
+    zone — laughtrack.b-cdn.net keeps serving the old bytes for up to 30 days
+    (cache-control max-age; surfaced in TASK-2813). Purging requires the
+    ACCOUNT API key (BUNNY_API_KEY); the zone-scoped
+    BUNNYCDN_STORAGE_PASSWORD gets 401 from api.bunny.net. Skips silently
+    when the key is absent: new-image uploads have nothing cached, so the
+    purge only matters when an existing image is replaced.
+
+    ``path`` is the storage path as passed to :func:`_upload_to_bunny_cdn`,
+    already percent-encoded (e.g. ``clubs/Comedy%20Cellar.png``). Passing the
+    assembled CDN URL through ``params`` applies exactly one more encoding
+    pass, which Bunny reverses when parsing the query — the purged key
+    matches the URL browsers actually request.
+
+    Returns True on HTTP 200. Failures are logged and never raised — a
+    failed purge must not fail the upload that preceded it.
+    """
+    api_key = os.environ.get("BUNNY_API_KEY", "")
+    if not api_key:
+        return False
+
+    cdn_url = f"https://{_CDN_HOST}/{path}"
+    try:
+        resp = requests.post(
+            _PURGE_API_URL,
+            params={"url": cdn_url},
+            headers={"AccessKey": api_key},
+            timeout=15,
+        )
+        if resp.status_code == 200:
+            Logger.info(f"image_sourcing: purged CDN cache for {path}")
+            return True
+        Logger.warn(f"image_sourcing: CDN purge failed for {path} — HTTP {resp.status_code}")
+        return False
+    except Exception as e:
+        Logger.warn(f"image_sourcing: CDN purge error for {path}: {e}")
+        return False
+
+
 def _upload_to_bunny_cdn(
     data: bytes,
     path: str,
@@ -316,6 +359,7 @@ def _upload_to_bunny_cdn(
         )
         if resp.status_code == 201:
             Logger.info(f"image_sourcing: uploaded {path} ({len(data)} bytes)")
+            _purge_cdn_cache(path)
             return True
         Logger.warn(f"image_sourcing: CDN upload failed for {path} — HTTP {resp.status_code}")
         return False

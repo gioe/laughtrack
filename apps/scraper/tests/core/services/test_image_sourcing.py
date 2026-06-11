@@ -389,6 +389,7 @@ def test_upload_comedian_image_png_resizes_and_puts_to_bunny(monkeypatch):
     monkeypatch.setenv("BUNNYCDN_STORAGE_PASSWORD", "secret")
     monkeypatch.setenv("BUNNYCDN_STORAGE_ZONE", "laughtrack-images")
     monkeypatch.setenv("BUNNYCDN_STORAGE_REGION", "ny")
+    monkeypatch.delenv("BUNNY_API_KEY", raising=False)
     monkeypatch.setattr(image_sourcing, "_resize_image", lambda data: b"resized:" + data)
     monkeypatch.setattr(image_sourcing.requests, "put", fake_put)
 
@@ -633,12 +634,71 @@ def test_upload_club_image_png_puts_to_clubs_path(monkeypatch):
     monkeypatch.setenv("BUNNYCDN_STORAGE_PASSWORD", "secret")
     monkeypatch.setenv("BUNNYCDN_STORAGE_ZONE", "laughtrack-images")
     monkeypatch.setenv("BUNNYCDN_STORAGE_REGION", "ny")
+    monkeypatch.delenv("BUNNY_API_KEY", raising=False)
     monkeypatch.setattr(image_sourcing, "_resize_image", lambda data: b"resized:" + data)
     monkeypatch.setattr(image_sourcing.requests, "put", fake_put)
 
     assert image_sourcing.upload_club_image_png("Comedy Cellar", b"raw-png") is True
     assert captured["url"] == "https://ny.storage.bunnycdn.com/laughtrack-images/clubs/Comedy%20Cellar.png"
     assert captured["data"] == b"resized:raw-png"
+
+
+def test_upload_purges_cdn_cache_when_api_key_set(monkeypatch):
+    purge: Dict[str, Any] = {}
+
+    def fake_post(url: str, **kwargs: Any) -> _FakePutResponse:
+        purge["url"] = url
+        purge["params"] = kwargs["params"]
+        purge["headers"] = kwargs["headers"]
+        return _FakePutResponse(status_code=200)
+
+    monkeypatch.setenv("BUNNYCDN_STORAGE_PASSWORD", "secret")
+    monkeypatch.setenv("BUNNYCDN_STORAGE_ZONE", "laughtrack-images")
+    monkeypatch.setenv("BUNNYCDN_STORAGE_REGION", "ny")
+    monkeypatch.setenv("BUNNY_API_KEY", "account-key")
+    monkeypatch.setattr(image_sourcing, "_resize_image", lambda data: data)
+    monkeypatch.setattr(image_sourcing.requests, "put", lambda url, **kw: _FakePutResponse(status_code=201))
+    monkeypatch.setattr(image_sourcing.requests, "post", fake_post)
+
+    assert image_sourcing.upload_club_image_png("Comedy Cellar", b"png") is True
+    assert purge["url"] == image_sourcing._PURGE_API_URL
+    # The storage path is already percent-encoded; requests applies exactly
+    # one more encoding pass via params, which Bunny reverses on parse.
+    assert purge["params"] == {"url": "https://laughtrack.b-cdn.net/clubs/Comedy%20Cellar.png"}
+    assert purge["headers"] == {"AccessKey": "account-key"}
+
+
+def test_upload_skips_purge_when_api_key_absent(monkeypatch):
+    def fail_post(url: str, **kwargs: Any) -> None:
+        raise AssertionError("purge must not be attempted without BUNNY_API_KEY")
+
+    monkeypatch.setenv("BUNNYCDN_STORAGE_PASSWORD", "secret")
+    monkeypatch.setenv("BUNNYCDN_STORAGE_ZONE", "laughtrack-images")
+    monkeypatch.setenv("BUNNYCDN_STORAGE_REGION", "ny")
+    monkeypatch.delenv("BUNNY_API_KEY", raising=False)
+    monkeypatch.setattr(image_sourcing, "_resize_image", lambda data: data)
+    monkeypatch.setattr(image_sourcing.requests, "put", lambda url, **kw: _FakePutResponse(status_code=201))
+    monkeypatch.setattr(image_sourcing.requests, "post", fail_post)
+
+    assert image_sourcing.upload_club_image_png("Comedy Cellar", b"png") is True
+
+
+@pytest.mark.parametrize("post_behavior", ["http_error", "exception"])
+def test_upload_succeeds_even_when_purge_fails(monkeypatch, post_behavior):
+    def fake_post(url: str, **kwargs: Any) -> _FakePutResponse:
+        if post_behavior == "exception":
+            raise RuntimeError("purge endpoint unreachable")
+        return _FakePutResponse(status_code=401)
+
+    monkeypatch.setenv("BUNNYCDN_STORAGE_PASSWORD", "secret")
+    monkeypatch.setenv("BUNNYCDN_STORAGE_ZONE", "laughtrack-images")
+    monkeypatch.setenv("BUNNYCDN_STORAGE_REGION", "ny")
+    monkeypatch.setenv("BUNNY_API_KEY", "account-key")
+    monkeypatch.setattr(image_sourcing, "_resize_image", lambda data: data)
+    monkeypatch.setattr(image_sourcing.requests, "put", lambda url, **kw: _FakePutResponse(status_code=201))
+    monkeypatch.setattr(image_sourcing.requests, "post", fake_post)
+
+    assert image_sourcing.upload_club_image_png("Comedy Cellar", b"png") is True
 
 
 def test_source_club_image_fetches_then_uploads(monkeypatch):
