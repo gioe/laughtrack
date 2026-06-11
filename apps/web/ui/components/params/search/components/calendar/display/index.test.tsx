@@ -50,16 +50,15 @@ describe("CalendarDisplay trigger", () => {
         expect(trigger?.hasAttribute("aria-label")).toBe(false);
     });
 
-    it("renders the trigger as a rounded pill when pill is set", () => {
-        const { container } = renderDisplay({ pill: true });
-        const trigger = container.querySelector("button");
-        expect(trigger?.className).toContain("rounded-full");
-    });
+    // NOTE: TASK-2810 removed a "rounded pill when pill is set" test that
+    // asserted a `pill` prop CalendarDisplay does not have — the trigger is
+    // unconditionally pill-shaped today. If TASK-2794 introduces a pill/plain
+    // variant API, reintroduce variant tests alongside that prop.
 
-    it("keeps the plain trigger and shows the placeholder by default", () => {
+    it("renders the pill trigger with the placeholder by default", () => {
         const { container } = renderDisplay();
         const trigger = container.querySelector("button");
-        expect(trigger?.className).not.toContain("rounded-full");
+        expect(trigger?.className).toContain("rounded-full");
         expect(trigger?.textContent).toContain("When");
     });
 });
