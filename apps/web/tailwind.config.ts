@@ -194,7 +194,7 @@ const config: Config = {
                 pulse: "pulse 2s ease-in-out infinite",
                 fadeIn: "fadeIn 0.3s ease-in-out",
                 slideUp: "slideUp 0.4s ease-out",
-                shimmer: "shimmer 1.5s infinite linear",
+                shimmer: "shimmer 1.4s infinite linear",
             },
             fontFamily: fonts,
             colors: {
