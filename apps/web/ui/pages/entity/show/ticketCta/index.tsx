@@ -57,7 +57,15 @@ const ShowTicketCta: React.FC<ShowTicketCtaProps> = ({
     const isLive = !isPast && !isSoldOut && !!url;
 
     const dateLabel = formatShowDate(show.date.toString(), show.timezone);
-    const venueDetail = [show.room, show.address].filter(Boolean).join(" · ");
+    // Some scrapers write the club name into room (e.g. show 1779237), which
+    // would repeat the club-name value rendered directly above this sub-line.
+    const room =
+        show.room &&
+        show.room.trim().toLowerCase() ===
+            show.clubName?.trim().toLowerCase()
+            ? null
+            : show.room;
+    const venueDetail = [room, show.address].filter(Boolean).join(" · ");
 
     let ticketsValue: React.ReactNode;
     if (isPast) {
