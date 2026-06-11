@@ -56,7 +56,7 @@ const CalendarComponent = <TFieldValues extends FieldValues>(
                 render={({ field, formState }) => {
                     const errorMessage = getDateErrors(formState);
                     return (
-                        <FormItem className="flex flex-col w-full">
+                        <FormItem className="relative flex flex-col w-auto">
                             <FormControl>
                                 <CalendarDisplay
                                     selectedRange={field.value}
@@ -65,7 +65,7 @@ const CalendarComponent = <TFieldValues extends FieldValues>(
                                 />
                             </FormControl>
                             {errorMessage && (
-                                <p className="text-sm font-medium text-destructive">
+                                <p className="absolute left-0 top-full mt-1 text-xs font-medium text-destructive whitespace-nowrap">
                                     {errorMessage}
                                 </p>
                             )}
@@ -76,14 +76,11 @@ const CalendarComponent = <TFieldValues extends FieldValues>(
         );
     }
 
-    // Standalone hosts are chip rows (search pages, filter modal) — render the
-    // trigger as a pill. The Form variant (home hero) keeps the plain trigger.
     return (
         <CalendarDisplay
             selectedRange={props.value ?? { from: undefined, to: undefined }}
             onSelect={props.onValueChange}
             ariaLabelledBy={props.inputId}
-            pill
         />
     );
 };

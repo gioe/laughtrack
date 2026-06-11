@@ -23,17 +23,6 @@ const selectableDistances = allDistanceOptions.map(
     (distance: string, index: number) => ({
         id: index + 1,
         slug: distance,
-        name: distance,
-    }),
-);
-
-// Chip-row (Standalone) options carry the unit in the label since the pill has
-// no surrounding "miles around" copy. Slugs stay identical so the URL param and
-// Form-variant values are interchangeable.
-const selectablePillDistances = allDistanceOptions.map(
-    (distance: string, index: number) => ({
-        id: index + 1,
-        slug: distance,
         name: `${distance} mi`,
     }),
 );
@@ -163,13 +152,14 @@ const ShowLocationComponent = <TFieldValues extends FieldValues>(
                     form={props.form}
                     variant={props.variant}
                     contentId={props.dropdownId}
+                    triggerClassName="h-8 w-auto border-0 bg-transparent px-1 text-sm shadow-none focus:ring-0 focus-visible:ring-0"
                 />
             );
         }
 
         return (
             <DropdownComponent
-                items={selectablePillDistances}
+                items={selectableDistances}
                 onChange={props.onDistanceSelection ?? updateDistance}
                 value={props.value?.distance ?? ""}
                 variant={props.variant}
@@ -211,63 +201,9 @@ const ShowLocationComponent = <TFieldValues extends FieldValues>(
     const isLoading = status === "loading";
     const styles = getCurrentStyles();
 
-    // Form variant (home hero search) keeps the labelled inline cluster; the
-    // Standalone variant renders as pill chips that flow into a SearchChipRow
-    // (iOS LaughTrackChipPicker pattern).
-    if (props.variant === ComponentVariant.Form) {
-        return (
-            <div className="flex flex-wrap items-center gap-4 sm:gap-6 w-full">
-                <div className="flex items-center min-w-[120px] max-w-[160px]">
-                    <MapPin
-                        className={`w-5 h-5 mr-2 flex-shrink-0 ${styles.iconTextColor}`}
-                    />
-                    <div className="w-full">
-                        {buildDropdownComponent(props)}
-                    </div>
-                </div>
-
-                <span
-                    className={`text-sm sm:text-base font-normal px-2 ${styles.inputTextColor} whitespace-nowrap`}
-                >
-                    miles around
-                </span>
-
-                <div className="w-full sm:w-auto flex-1 max-w-[200px] md:w-full md:flex-none md:max-w-none lg:w-full lg:flex-none lg:max-w-none relative">
-                    <div className="flex items-center gap-1">
-                        <div className="flex-1">
-                            {buildZipCodeComponent(props)}
-                        </div>
-                        <div className="relative flex-shrink-0">
-                            <button
-                                type="button"
-                                onClick={handleGeoClick}
-                                disabled={isLoading}
-                                aria-label="Use my location"
-                                title="Use my location"
-                                className={`p-1.5 rounded-md transition-colors ${styles.iconTextColor} hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed`}
-                            >
-                                {isLoading ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : (
-                                    <MapPin className="w-4 h-4" />
-                                )}
-                            </button>
-                            {showTooltip && error && (
-                                <div className="absolute right-0 top-full mt-1 z-50 w-52 rounded-md bg-gray-800 px-3 py-2 text-xs text-white shadow-lg">
-                                    {ERROR_MESSAGES[error]}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    // The flex wrapper matters for the one Standalone consumer that is not a
-    // SearchChipRow (the comedian advanced filter modal) — without it the
-    // pills stack full-width. gap-2 matches SearchChipRow so nesting is
-    // visually equivalent there.
+    // The flex wrapper matters for the one non-SearchChipRow consumer (the
+    // comedian advanced filter modal) — without it the pills stack full-width.
+    // gap-2 matches SearchChipRow so nesting is visually equivalent there.
     return (
         <div className="flex flex-wrap items-center gap-2">
             <div

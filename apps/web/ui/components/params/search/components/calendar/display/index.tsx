@@ -50,16 +50,12 @@ interface CalendarDisplayProps {
     selectedRange: DateRange;
     onSelect: (value: DateRange | undefined) => void;
     ariaLabelledBy?: string;
-    // Pill renders the trigger as a chip-row pill (iOS LaughTrackChipPicker
-    // pattern); the default keeps the plain trigger used by the home hero form.
-    pill?: boolean;
 }
 
 export const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
     selectedRange,
     onSelect,
     ariaLabelledBy,
-    pill = false,
 }) => {
     const { getCurrentStyles } = useStyleContext();
     const styleConfig = getCurrentStyles();
@@ -119,9 +115,8 @@ export const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
         };
     }, [isMobile, sheetOpen]);
 
-    const triggerClassName = pill
-        ? "inline-flex h-9 items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 shadow-sm transition-colors hover:border-white/30 hover:bg-white/10 focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-copper"
-        : "flex items-center focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-copper rounded";
+    const triggerClassName =
+        "inline-flex h-9 items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 shadow-sm transition-colors hover:border-white/30 hover:bg-white/10 focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-copper";
 
     // Fallback accessible name for triggers whose host no longer renders a
     // visible WHEN label (chip-row hosts pass no ariaLabelledBy).
@@ -131,18 +126,16 @@ export const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
 
     const triggerContent = (
         <>
-            {pill && (
-                <CalendarIcon
-                    className={`w-4 h-4 flex-shrink-0 ${styleConfig.iconTextColor}`}
-                />
-            )}
+            <CalendarIcon
+                className={`w-4 h-4 flex-shrink-0 ${styleConfig.iconTextColor}`}
+            />
             <div
-                className={`${pill ? "text-sm" : "text-sm sm:text-base"} ${styleConfig.inputTextColor} font-dmSans whitespace-nowrap`}
+                className={`text-sm ${styleConfig.inputTextColor} font-dmSans whitespace-nowrap`}
             >
                 {formatDateRange(PLACEHOLDER, selectedRange)}
             </div>
             <ChevronsUpDown
-                className={`w-4 h-4 ${pill ? "" : "ml-2"} opacity-50 ${styleConfig.iconTextColor}`}
+                className={`w-4 h-4 opacity-50 ${styleConfig.iconTextColor}`}
             />
         </>
     );
@@ -163,11 +156,6 @@ export const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
     return (
         <div className="flex items-center gap-3">
             <div className="flex items-center">
-                {!pill && (
-                    <CalendarIcon
-                        className={`w-5 h-5 mr-2 flex-shrink-0 ${styleConfig.iconTextColor}`}
-                    />
-                )}
                 {isMobile ? (
                     <>
                         <button
