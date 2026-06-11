@@ -4,7 +4,7 @@ import { NotFoundError } from "@/objects/NotFoundError";
 import { unstable_cache } from "next/cache";
 import { getShowDetailPageData } from "@/lib/data/show/detail/getShowDetailPageData";
 import { db } from "@/lib/db";
-import { formatShowDate } from "@/util/dateUtil";
+import { formatShowDate, isShowPast } from "@/util/dateUtil";
 import { buildClubImageUrl } from "@/util/imageUtil";
 import JsonLd from "@/ui/components/JsonLd";
 import { buildShowJsonLd } from "@/util/jsonLd";
@@ -118,10 +118,10 @@ export default async function ShowDetailPage(props: {
     const jsonLdData = [buildShowJsonLd(show)];
     // Derive isPast at render time — computing it inside the cached fetcher
     // would freeze the value for the cache TTL and let the CTA drift after the
-    // show crosses "now". This is a Server Component, so Date.now() resolves
-    // once per request.
+    // show crosses the live window. This is a Server Component, so Date.now()
+    // resolves once per request.
     // eslint-disable-next-line react-hooks/purity
-    const isPast = new Date(show.date).getTime() < Date.now();
+    const isPast = isShowPast(show.date.toString());
     const isOpenMic = isOpenMicShow(show);
 
     return (

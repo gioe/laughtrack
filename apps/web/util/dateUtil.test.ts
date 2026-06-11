@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { formatShowCountdown, formatShowDate } from "./dateUtil";
+import { formatShowCountdown, formatShowDate, isShowPast } from "./dateUtil";
 
 describe("formatShowDate", () => {
     it("renders a Pacific show at 9:30 pm PDT from its UTC instant", () => {
@@ -77,7 +77,9 @@ describe("formatShowCountdown", () => {
     });
 
     it("treats a show that started within the live window as happening now", () => {
-        const halfHourAgo = new Date(now.getTime() - 30 * 60 * 1000).toISOString();
+        const halfHourAgo = new Date(
+            now.getTime() - 30 * 60 * 1000,
+        ).toISOString();
         expect(formatShowCountdown(halfHourAgo, now)).toEqual({
             label: "Happening now",
             tone: "live",
@@ -119,6 +121,26 @@ describe("formatShowCountdown", () => {
         expect(formatShowCountdown(inFourteenMonths, now).label).toBe(
             "Show in 1 year",
         );
+    });
+});
+
+describe("isShowPast", () => {
+    const now = new Date("2026-05-14T18:00:00Z");
+
+    it("keeps a show that started within the live window out of the past state", () => {
+        const halfHourAgo = new Date(
+            now.getTime() - 30 * 60 * 1000,
+        ).toISOString();
+
+        expect(isShowPast(halfHourAgo, now)).toBe(false);
+    });
+
+    it("marks a show past only after the live window has elapsed", () => {
+        const threeHoursAgo = new Date(
+            now.getTime() - 3 * 60 * 60 * 1000,
+        ).toISOString();
+
+        expect(isShowPast(threeHoursAgo, now)).toBe(true);
     });
 });
 

@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import ShowTicketCta from "./index";
 import type { ShowDetailDTO } from "@/lib/data/show/detail/interface";
 import { trackTicketClick } from "@/util/ticketClickTracking";
+import { isShowPast } from "@/util/dateUtil";
 
 vi.mock("next/link", () => ({
     default: ({
@@ -204,7 +205,9 @@ describe("ShowTicketCta", () => {
         // Address alone keeps the row, with the non-link fallback value.
         expect(screen.getByText("This venue")).toBeTruthy();
         expect(screen.getByText("123 Main St")).toBeTruthy();
-        expect(screen.queryByRole("link", { name: "The Copper Room" })).toBeNull();
+        expect(
+            screen.queryByRole("link", { name: "The Copper Room" }),
+        ).toBeNull();
         unmount();
 
         render(
@@ -247,9 +250,36 @@ describe("ShowTicketCta", () => {
         expect(screen.getByText("This show has ended.")).toBeTruthy();
         // The stub rows still render, but no outbound CTA does.
         expect(screen.getByText("When")).toBeTruthy();
+        expect(screen.queryByRole("link", { name: /buy tickets/i })).toBeNull();
+    });
+
+    it("keeps a show inside the live window buyable instead of showing ended copy", () => {
+        const now = new Date("2026-05-14T18:00:00Z");
+        const halfHourAgo = new Date(now.getTime() - 30 * 60 * 1000);
+
+        render(
+            <ShowTicketCta
+                isPast={isShowPast(halfHourAgo.toISOString(), now)}
+                show={{
+                    ...baseShow,
+                    date: halfHourAgo.toISOString() as never as Date,
+                    tickets: [
+                        {
+                            price: 24,
+                            purchaseUrl: "https://example.com/tickets",
+                            soldOut: false,
+                            type: "General admission",
+                        },
+                    ],
+                }}
+            />,
+        );
+
+        expect(screen.queryByText("This show has ended.")).toBeNull();
+        expect(screen.getByText("$24")).toBeTruthy();
         expect(
-            screen.queryByRole("link", { name: /buy tickets/i }),
-        ).toBeNull();
+            screen.getByRole("link", { name: /buy tickets for late show/i }),
+        ).toBeTruthy();
     });
 
     it("renders Sold Out inside the stub when every ticket row is sold out", () => {
@@ -271,9 +301,7 @@ describe("ShowTicketCta", () => {
         );
 
         expect(screen.getByText("Sold Out")).toBeTruthy();
-        expect(
-            screen.queryByRole("link", { name: /buy tickets/i }),
-        ).toBeNull();
+        expect(screen.queryByRole("link", { name: /buy tickets/i })).toBeNull();
     });
 
     it("routes detail CTA ticket clicks through the outbound link without client-side duplicate tracking", () => {

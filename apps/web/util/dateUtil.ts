@@ -77,6 +77,13 @@ export function formatShowCountdown(
     return { label: `Ended ${relativePast(-diffMs)} ago`, tone: "past" };
 }
 
+export function isShowPast(
+    dateString: string,
+    now: Date = new Date(),
+): boolean {
+    return formatShowCountdown(dateString, now).tone === "past";
+}
+
 // Floor for both directions so the unit only flips when the boundary is crossed
 // (e.g. 119 min → "1 hour", 120 min → "2 hours") and so a 14-month-out show and
 // a 14-month-ago show render symmetrically.
