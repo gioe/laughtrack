@@ -22,6 +22,7 @@ from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.show.model import Show
 from laughtrack.core.models.domain_metrics import DomainRequestMetrics, ScrapeOutcome
 from laughtrack.core.models.results import ClubScrapingResult
+from laughtrack.core.services.scraping import _copy_diagnostics_into_metrics
 from laughtrack.scrapers.base.base_scraper import (
     BaseScraper,
     _format_zero_show_scrape_error,
@@ -41,9 +42,13 @@ def _disable_retries(scraper: BaseScraper) -> None:
 
 
 def _metrics_from_result(result: ClubScrapingResult) -> DomainRequestMetrics:
-    """Replicate the orchestrator's per-club metric ticks (scrape_one +
-    _copy_diagnostics_into_metrics in core/services/scraping) so the test can
-    pin the outcome classification the in-run alert path will see."""
+    """Build the per-club metric the orchestrator's scrape_one produces so the
+    test pins the outcome classification the in-run alert path will see.
+
+    The per-stage field copies go through the real
+    _copy_diagnostics_into_metrics; only the ok/none_resp/error tick is
+    replicated here because it is inline in scrape_one rather than a callable
+    helper. Keep this block in sync with scrape_one if its condition changes."""
     m = DomainRequestMetrics(club_name=result.club_name, club_id=result.club_id)
     m.total += 1
     if result.error:
@@ -52,11 +57,7 @@ def _metrics_from_result(result: ClubScrapingResult) -> DomainRequestMetrics:
         m.none_resp += 1
     else:
         m.ok += 1
-    m.targets_collected = result.targets_collected or 0
-    m.fetches_ok = result.fetches_ok or 0
-    m.fetches_failed = result.fetches_failed or 0
-    m.items_before_filter = result.items_before_filter or 0
-    m.bot_block_detected = bool(result.bot_block_detected)
+    _copy_diagnostics_into_metrics(result, m)
     return m
 
 

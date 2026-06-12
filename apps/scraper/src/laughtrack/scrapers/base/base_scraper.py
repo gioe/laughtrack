@@ -490,7 +490,11 @@ class BaseScraper(HttpConvenienceMixin, ABC):
             except Exception as e:
                 if diagnostics is not None:
                     diagnostics.record_fetch_failed()
-                    diagnostics.record_scrape_error(f"fetch failed for {target}: {e}")
+                    # type(e).__name__ keeps the message diagnosable when
+                    # str(e) is empty (CancelledError) or bare (KeyError).
+                    diagnostics.record_scrape_error(
+                        f"fetch failed for {target}: {type(e).__name__}: {e}"
+                    )
                 Logger.error(f"{self._log_prefix}: Failed to fetch data from {target}: {e}", self.logger_context)
                 return None, target
 
@@ -549,7 +553,9 @@ class BaseScraper(HttpConvenienceMixin, ABC):
                 Logger.debug(f"{self._log_prefix}: Transformed {len(shows)} shows from {target}", self.logger_context)
             except Exception as e:
                 if diagnostics is not None:
-                    diagnostics.record_scrape_error(f"transform failed for {target}: {e}")
+                    diagnostics.record_scrape_error(
+                        f"transform failed for {target}: {type(e).__name__}: {e}"
+                    )
                 Logger.error(f"{self._log_prefix}: Failed to transform data from {target}: {e}", self.logger_context)
                 continue
 
@@ -945,7 +951,9 @@ class BaseScraper(HttpConvenienceMixin, ABC):
                     except Exception as e:
                         diagnostics = current_diagnostics()
                         if diagnostics is not None:
-                            diagnostics.record_scrape_error(f"processing failed for {target}: {e}")
+                            diagnostics.record_scrape_error(
+                                f"processing failed for {target}: {type(e).__name__}: {e}"
+                            )
                         Logger.error(f"{self._log_prefix}: Error processing target {target}: {e}", self.logger_context)
                         return []
 
@@ -959,7 +967,9 @@ class BaseScraper(HttpConvenienceMixin, ABC):
                 if isinstance(result, Exception):
                     diagnostics = current_diagnostics()
                     if diagnostics is not None:
-                        diagnostics.record_scrape_error(f"batch processing failed: {result}")
+                        diagnostics.record_scrape_error(
+                            f"batch processing failed: {type(result).__name__}: {result}"
+                        )
                     Logger.error(f"{self._log_prefix}: Batch processing exception: {result}", self.logger_context)
                     continue
 
