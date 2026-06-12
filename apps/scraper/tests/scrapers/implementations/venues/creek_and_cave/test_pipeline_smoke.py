@@ -299,6 +299,37 @@ async def test_get_data_enrichment_preserves_vip_ticket_row(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_get_data_enrichment_skips_shows_without_tixologi_event_id(monkeypatch):
+    """Shows without a resolvable tixologi_event_id never trigger a client call."""
+    scraper = CreekAndCaveScraper(_club())
+
+    async def fake_fetch_html_bare(self, url: str) -> str:
+        # Non-tixologi ticket link and no explicit id → extractor leaves the id unset.
+        return _calendar_html([
+            _show_row(
+                tixologi_event_id=None,
+                ticket_link="https://www.eventbrite.com/e/some-show-12345",
+            )
+        ])
+
+    async def exploding_fetch_event_ticket_types(event_id: str):
+        raise AssertionError("client must not be called for shows without an event id")
+
+    monkeypatch.setattr(CreekAndCaveScraper, "fetch_html_bare", fake_fetch_html_bare)
+    monkeypatch.setattr(
+        scraper.tixologi_client,
+        "fetch_event_ticket_types",
+        exploding_fetch_event_ticket_types,
+    )
+
+    result = await scraper.get_data(_CALENDAR_URL)
+
+    assert isinstance(result, CreekAndCavePageData)
+    show = result.event_list[0].to_show(_club())
+    assert show.tickets[0].price is None
+
+
+@pytest.mark.asyncio
 async def test_get_data_enrichment_failure_keeps_show_with_fallback_ticket(monkeypatch):
     """A Tixologi outage degrades one show to the priceless fallback, not a dropped calendar."""
     scraper = CreekAndCaveScraper(_club())

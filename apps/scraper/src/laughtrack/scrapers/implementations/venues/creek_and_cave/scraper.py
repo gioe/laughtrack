@@ -38,6 +38,11 @@ from .transformer import CreekAndCaveEventTransformer
 # here), so the target is pinned the same way the old S3 base URL was.
 _CALENDAR_URL = "https://www.creekandcave.com/calendar"
 
+# Cap on concurrent Tixologi ticket-type fetches during enrichment — the
+# calendar embeds ~200 shows and the public API has no caller-side rate
+# limiting, so an unbounded gather would burst one request per show.
+_TIXOLOGI_MAX_CONCURRENT_FETCHES = 10
+
 
 class CreekAndCaveScraper(BaseScraper):
     """Scraper for The Creek and The Cave (Austin, TX) via Punchup calendar page."""
@@ -108,16 +113,20 @@ class CreekAndCaveScraper(BaseScraper):
         priced tickets from ticket_types[].initial_price. Unlike west_side,
         get_data here has no outer try/except, so a per-show failure is
         contained — an enrichment error degrades that show to the priceless
-        fallback ticket instead of dropping the whole calendar.
+        fallback ticket instead of dropping the whole calendar. The calendar
+        embeds ~200 shows, so in-flight requests are capped rather than
+        firing one concurrent call per show.
         """
+        semaphore = asyncio.Semaphore(_TIXOLOGI_MAX_CONCURRENT_FETCHES)
 
         async def enrich(show: CreekAndCaveShow) -> CreekAndCaveShow:
             if not show.tixologi_event_id:
                 return show
             try:
-                ticket_types = await self.tixologi_client.fetch_event_ticket_types(
-                    show.tixologi_event_id
-                )
+                async with semaphore:
+                    ticket_types = await self.tixologi_client.fetch_event_ticket_types(
+                        show.tixologi_event_id
+                    )
             except Exception as e:
                 Logger.warn(
                     f"{self._log_prefix}: tixologi enrichment failed for event "
@@ -129,4 +138,4 @@ class CreekAndCaveScraper(BaseScraper):
                 return show
             return show.with_tixologi_ticket_types(ticket_types)
 
-        return list(await asyncio.gather(*(enrich(show) for show in shows)))
+        return await asyncio.gather(*(enrich(show) for show in shows))
