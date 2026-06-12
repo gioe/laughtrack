@@ -82,6 +82,38 @@ def _format_lock_timeout_error(
     )
 
 
+# Cap on distinct per-target exception messages joined into result.error by
+# _format_zero_show_scrape_error. A fan-out scraper with hundreds of failing
+# detail pages would otherwise overflow the error_message column with
+# repetitive text; the first few distinct messages carry the diagnosis.
+_SCRAPE_ERROR_DETAIL_LIMIT = 3
+
+
+def _format_zero_show_scrape_error(
+    num_shows: int, scrape_errors: List[str]
+) -> Optional[str]:
+    """Build the result.error string when a scrape returned zero shows after
+    one or more per-target fetch/transform exceptions were swallowed by the
+    pipeline (TASK-2833).
+
+    Returns None when shows were produced or no exception was recorded.
+    Gating on zero shows is deliberate: a partial scrape (some targets
+    crashed, others yielded shows) still persists its shows and classifies
+    HEALTHY — flipping it to failed would fire the below-threshold alert on
+    every transiently flaky detail page. But when *nothing* came back and a
+    processing exception was seen, "empty calendar" is not a safe
+    conclusion: surface the exception so success=false / error_message land
+    in scraper_run_clubs and the outcome classifies DEGRADED.
+    """
+    if num_shows > 0 or not scrape_errors:
+        return None
+    distinct = list(dict.fromkeys(scrape_errors))
+    shown = distinct[:_SCRAPE_ERROR_DETAIL_LIMIT]
+    overflow = len(distinct) - len(shown)
+    suffix = f" (+{overflow} more)" if overflow > 0 else ""
+    return "; ".join(shown) + suffix
+
+
 class BaseScraper(HttpConvenienceMixin, ABC):
     """
     Abstract base class for all scrapers implementing the standardized scraping pipeline.
@@ -458,6 +490,7 @@ class BaseScraper(HttpConvenienceMixin, ABC):
             except Exception as e:
                 if diagnostics is not None:
                     diagnostics.record_fetch_failed()
+                    diagnostics.record_scrape_error(f"fetch failed for {target}: {e}")
                 Logger.error(f"{self._log_prefix}: Failed to fetch data from {target}: {e}", self.logger_context)
                 return None, target
 
@@ -515,6 +548,8 @@ class BaseScraper(HttpConvenienceMixin, ABC):
                 successful_transforms += 1
                 Logger.debug(f"{self._log_prefix}: Transformed {len(shows)} shows from {target}", self.logger_context)
             except Exception as e:
+                if diagnostics is not None:
+                    diagnostics.record_scrape_error(f"transform failed for {target}: {e}")
                 Logger.error(f"{self._log_prefix}: Failed to transform data from {target}: {e}", self.logger_context)
                 continue
 
@@ -576,11 +611,24 @@ class BaseScraper(HttpConvenienceMixin, ABC):
                     diagnostics.persist_lock_timeouts
                 )
 
+                # TASK-2833: a per-target get_data/transform exception is
+                # caught and logged inside the pipeline, so scrape() returns
+                # cleanly even when every target crashed. Surface the
+                # recorded exception text when the scrape produced zero
+                # shows, so the club persists success=false with the
+                # exception in error_message and the in-run outcome
+                # classifies DEGRADED instead of EMPTY_CALENDAR (the
+                # ImprovCity/TASK-2824 silent-miss).
+                scrape_error = _format_zero_show_scrape_error(
+                    len(shows), diagnostics.scrape_errors
+                )
+                error_parts = [p for p in (lock_timeout_error, scrape_error) if p]
+
                 return ClubScrapingResult(
                     club_name=self.club.name,
                     shows=shows,
                     execution_time=execution_time,
-                    error=lock_timeout_error,
+                    error="; ".join(error_parts) if error_parts else None,
                     club_id=getattr(self.club, 'id', None),
                     scraper_key=self.key,
                     http_status=diagnostics.http_status,
@@ -895,6 +943,9 @@ class BaseScraper(HttpConvenienceMixin, ABC):
                     try:
                         return await processor(target)
                     except Exception as e:
+                        diagnostics = current_diagnostics()
+                        if diagnostics is not None:
+                            diagnostics.record_scrape_error(f"processing failed for {target}: {e}")
                         Logger.error(f"{self._log_prefix}: Error processing target {target}: {e}", self.logger_context)
                         return []
 
@@ -906,6 +957,9 @@ class BaseScraper(HttpConvenienceMixin, ABC):
             # Aggregate results from this batch
             for result in batch_results:
                 if isinstance(result, Exception):
+                    diagnostics = current_diagnostics()
+                    if diagnostics is not None:
+                        diagnostics.record_scrape_error(f"batch processing failed: {result}")
                     Logger.error(f"{self._log_prefix}: Batch processing exception: {result}", self.logger_context)
                     continue
 

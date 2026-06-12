@@ -70,6 +70,17 @@ class ScrapeDiagnostics:
     # metric row's error field so Grafana can alert on lock-timeout
     # specifically rather than on the generic zero-show outcome.
     persist_lock_timeouts: List[Tuple[str, int]] = field(default_factory=list)
+    # Exception text from per-target fetch/transform failures that the base
+    # scraper pipeline catches and logs without re-raising. fetches_failed
+    # counts the fetch-stage exceptions but discards their text, and the
+    # transform stage records nothing at all — so a club whose every target
+    # crashed in processing still produced ClubScrapingResult.error=None,
+    # persisting success=true / error_message=null (TASK-2824's ImprovCity
+    # incident, fixed in TASK-2833). scrape_with_result surfaces this list
+    # to result.error when the scrape produced zero shows, which flips the
+    # scraper_run_clubs row to failed and classifies the in-run outcome as
+    # DEGRADED via the orchestrator's metrics.error tick.
+    scrape_errors: List[str] = field(default_factory=list)
 
     def record_response(self, status_code: int) -> None:
         if self.http_status is None:
@@ -142,6 +153,18 @@ class ScrapeDiagnostics:
         the original incident in TASK-2626).
         """
         self.persist_lock_timeouts.append((venue_label, dropped_events))
+
+    def record_scrape_error(self, message: str) -> None:
+        """Record the text of a per-target fetch/transform exception that the
+        pipeline catches without re-raising.
+
+        The caller's existing per-target ERROR log keeps the full context;
+        this carries the exception text to run-end so ``scrape_with_result``
+        can populate ``ClubScrapingResult.error`` for a zero-show scrape
+        instead of letting the crash persist as success=true /
+        error_message=null (TASK-2833).
+        """
+        self.scrape_errors.append(message)
 
 
 _current: ContextVar[Optional[ScrapeDiagnostics]] = ContextVar(

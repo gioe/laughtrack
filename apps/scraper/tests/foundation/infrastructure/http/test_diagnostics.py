@@ -291,3 +291,25 @@ class TestPersistLockTimeoutRecording:
             ("The Comedy Inn", 5),
             ("The Comedy Inn", 5),
         ]
+
+
+class TestScrapeErrorRecording:
+    """TASK-2833: per-target fetch/transform exception text must accumulate
+    on ScrapeDiagnostics so scrape_with_result can surface it to
+    ClubScrapingResult.error for a zero-show scrape, instead of the crash
+    persisting as success=true / error_message=null."""
+
+    def test_default_is_empty(self):
+        diagnostics = ScrapeDiagnostics()
+        assert diagnostics.scrape_errors == []
+
+    def test_recorder_appends_in_order(self):
+        """Append-only and ordered — the run-end formatter dedupes and caps;
+        the recorder must not drop or reorder incidents."""
+        diagnostics = ScrapeDiagnostics()
+        diagnostics.record_scrape_error("fetch failed for https://a: boom")
+        diagnostics.record_scrape_error("transform failed for https://b: bang")
+        assert diagnostics.scrape_errors == [
+            "fetch failed for https://a: boom",
+            "transform failed for https://b: bang",
+        ]
