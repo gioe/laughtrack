@@ -14,10 +14,11 @@ Pipeline:
 
 Ticket prices (TASK-2839): the listing page renders no price strings, but each
 card's detail page (event_url) embeds schema.org JSON-LD with offers.price.
-get_data fetches every distinct detail URL concurrently (asyncio.gather through
-the shared rate limiter) and memoizes results per run, so the ~143 extra
-fetches add roughly one rate-limited round-trip of wall clock rather than a
-serial crawl, and a get_data retry does not refetch successes.
+get_data dispatches every distinct detail URL via asyncio.gather; the shared
+rate limiter serializes app.opendate.io at its default 1 req/s, so the ~143
+extra fetches add about 2.5 minutes to this venue's scrape — acceptable for a
+nightly job, and memoization per run means a get_data retry refetches only
+failures, never successes.
 """
 
 import asyncio
