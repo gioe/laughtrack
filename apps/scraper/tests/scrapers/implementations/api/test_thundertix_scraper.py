@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from types import SimpleNamespace
 
 import pytest
 
@@ -66,6 +67,15 @@ def _performance_dict(
     }
 
 
+def _stub_detail_page_fetch(monkeypatch):
+    """Bypass detail-page price fetches in tests that don't exercise pricing."""
+
+    async def no_price(self, url: str):
+        return None
+
+    monkeypatch.setattr(ThunderTixCalendarScraper, "_fetch_detail_page_price", no_price)
+
+
 # ---------------------------------------------------------------------------
 # Engine-level tests (ThunderTixCalendarScraper) — exercised via a small
 # anonymous subclass so the config can be hard-coded from the test fixture.
@@ -118,6 +128,7 @@ async def test_engine_applies_publicly_available_and_title_skip_filters(monkeypa
         return api_fixture
 
     monkeypatch.setattr(ThunderTixCalendarScraper, "fetch_json_list", fake_fetch_json_list)
+    _stub_detail_page_fetch(monkeypatch)
 
     result = await _SkipPrefixScraper(_club()).get_data(
         "https://example.thundertix.com/reports/calendar?week=0&start=1743292800&end=1743897600"
@@ -204,6 +215,7 @@ async def test_generic_scraper_get_data_returns_thundertix_page_data(monkeypatch
         return api_fixture
 
     monkeypatch.setattr(ThunderTixCalendarScraper, "fetch_json_list", fake_fetch_json_list)
+    _stub_detail_page_fetch(monkeypatch)
 
     result = await scraper.get_data(
         "https://theannoyance.thundertix.com/reports/calendar?week=0&start=1743292800&end=1743897600"
@@ -234,6 +246,153 @@ async def test_generic_scraper_get_data_returns_none_on_empty_response(monkeypat
     )
 
     assert result is None
+
+
+# ---------------------------------------------------------------------------
+# Detail-page JSON-LD price extraction — the calendar API has no price field;
+# each event detail page embeds a schema.org AggregateOffer with lowPrice.
+# ---------------------------------------------------------------------------
+
+
+def _detail_page_html(low_price: str = "10.0") -> str:
+    """Trimmed copy of a live ThunderTix event page JSON-LD block."""
+    return (
+        '<html><head><script type="application/ld+json">'
+        '{"@context":"https://schema.org","@type":"Event","name":"Jury Duty",'
+        '"offers":{"@type":"AggregateOffer",'
+        '"url":"https://theannoyance.thundertix.com/events/1",'
+        '"priceCurrency":"USD","lowPrice":"' + low_price + '",'
+        '"highPrice":"' + low_price + '",'
+        '"availability":"https://schema.org/InStock"}}'
+        "</script></head><body></body></html>"
+    )
+
+
+def _scraper_with_detail_pages(monkeypatch, html_by_url: dict, fetched: list):
+    """Build a GenericThunderTixScraper whose detail-page fetches are stubbed."""
+    scraper = GenericThunderTixScraper(_club(source_url="https://theannoyance.thundertix.com"))
+
+    async def fake_fetch_html(self, url: str):
+        fetched.append(url)
+        result = html_by_url[url]
+        if isinstance(result, Exception):
+            raise result
+        return result
+
+    async def no_rate_limit(url):
+        return None
+
+    monkeypatch.setattr(ThunderTixCalendarScraper, "fetch_html", fake_fetch_html)
+    scraper.rate_limiter = SimpleNamespace(await_if_needed=no_rate_limit)
+    return scraper
+
+
+@pytest.mark.asyncio
+async def test_get_data_attaches_jsonld_price_one_fetch_per_distinct_event(monkeypatch):
+    """Performances carry the detail-page lowPrice; performances of one event share one fetch."""
+    api_fixture = [
+        _performance_dict(title="Early Show", event_id=1, performance_id=101),
+        _performance_dict(title="Late Show", event_id=1, performance_id=102),
+        _performance_dict(title="Other Show", event_id=2, performance_id=201),
+    ]
+
+    async def fake_fetch_json_list(self, url: str):
+        return api_fixture
+
+    monkeypatch.setattr(ThunderTixCalendarScraper, "fetch_json_list", fake_fetch_json_list)
+
+    fetched = []
+    scraper = _scraper_with_detail_pages(
+        monkeypatch,
+        {
+            "https://theannoyance.thundertix.com/events/1": _detail_page_html("15.0"),
+            "https://theannoyance.thundertix.com/events/2": _detail_page_html("40.0"),
+        },
+        fetched,
+    )
+
+    result = await scraper.get_data(
+        "https://theannoyance.thundertix.com/reports/calendar?week=0&start=1743292800&end=1743897600"
+    )
+
+    assert [event.price for event in result.event_list] == [15.0, 15.0, 40.0]
+    assert sorted(fetched) == [
+        "https://theannoyance.thundertix.com/events/1",
+        "https://theannoyance.thundertix.com/events/2",
+    ]
+
+
+@pytest.mark.asyncio
+async def test_detail_page_fetches_are_memoized_across_calendar_windows(monkeypatch):
+    """The same event recurring in a later weekly window does not refetch its detail page."""
+    api_fixture = [_performance_dict(title="Recurring Show", event_id=1, performance_id=101)]
+
+    async def fake_fetch_json_list(self, url: str):
+        return api_fixture
+
+    monkeypatch.setattr(ThunderTixCalendarScraper, "fetch_json_list", fake_fetch_json_list)
+
+    fetched = []
+    scraper = _scraper_with_detail_pages(
+        monkeypatch,
+        {"https://theannoyance.thundertix.com/events/1": _detail_page_html("15.0")},
+        fetched,
+    )
+
+    first = await scraper.get_data("https://theannoyance.thundertix.com/reports/calendar?week=0&start=1&end=2")
+    second = await scraper.get_data("https://theannoyance.thundertix.com/reports/calendar?week=0&start=2&end=3")
+
+    assert first.event_list[0].price == 15.0
+    assert second.event_list[0].price == 15.0
+    assert fetched == ["https://theannoyance.thundertix.com/events/1"]
+
+
+@pytest.mark.asyncio
+async def test_detail_page_fetch_failure_leaves_price_none(monkeypatch):
+    """A failed detail-page fetch degrades to price-unknown instead of dropping the window."""
+    api_fixture = [_performance_dict(title="Public Show", event_id=1, performance_id=101)]
+
+    async def fake_fetch_json_list(self, url: str):
+        return api_fixture
+
+    monkeypatch.setattr(ThunderTixCalendarScraper, "fetch_json_list", fake_fetch_json_list)
+
+    fetched = []
+    scraper = _scraper_with_detail_pages(
+        monkeypatch,
+        {"https://theannoyance.thundertix.com/events/1": Exception("Connection refused")},
+        fetched,
+    )
+
+    result = await scraper.get_data(
+        "https://theannoyance.thundertix.com/reports/calendar?week=0&start=1&end=2"
+    )
+
+    assert [event.title for event in result.event_list] == ["Public Show"]
+    assert result.event_list[0].price is None
+
+
+def test_to_show_carries_price_into_fallback_ticket():
+    """ThunderTixPerformance.price flows into the show's fallback ticket."""
+    performance = ThunderTixPerformance.from_api_response(
+        _performance_dict(), "https://theannoyance.thundertix.com"
+    )
+    performance.price = 15.0
+
+    show = performance.to_show(_club())
+
+    assert show.tickets[0].price == 15.0
+
+
+def test_to_show_defaults_to_price_unknown():
+    """Without a detail-page price the fallback ticket stays price-unknown (None, not 0)."""
+    performance = ThunderTixPerformance.from_api_response(
+        _performance_dict(), "https://theannoyance.thundertix.com"
+    )
+
+    show = performance.to_show(_club())
+
+    assert show.tickets[0].price is None
 
 
 @pytest.mark.asyncio

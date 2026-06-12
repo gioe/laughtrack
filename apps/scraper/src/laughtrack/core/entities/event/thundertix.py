@@ -33,6 +33,7 @@ class ThunderTixPerformance(ShowConvertible):
     ticket_url: str     # full URL: base_url + order_products_url
     show_page_url: str  # full URL: base_url + truncated_url
     is_sold_out: bool = False
+    price: Optional[float] = None  # detail-page JSON-LD AggregateOffer lowPrice
 
     @classmethod
     def from_api_response(cls, data: dict, base_url: str) -> "ThunderTixPerformance":
@@ -62,7 +63,11 @@ class ThunderTixPerformance(ShowConvertible):
             return None
 
         ticket_url = url or self.ticket_url
-        tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url, sold_out=self.is_sold_out)]
+        tickets = [
+            ShowFactoryUtils.create_fallback_ticket(
+                ticket_url, price=self.price, sold_out=self.is_sold_out
+            )
+        ]
 
         return ShowFactoryUtils.create_enhanced_show_base(
             name=self.title,
