@@ -73,21 +73,42 @@ class SimpleTixExtractor:
             except (json.JSONDecodeError, ValueError):
                 continue
 
-            offers = ld.get("offers")
-            if not offers:
+            # The JSON-LD block may be a single object or a top-level array
+            # of event objects (SimpleTix switched to the array form).
+            entries = ld if isinstance(ld, list) else [ld]
+
+            for entry in entries:
+                if not isinstance(entry, dict):
+                    continue
+
+                offers = entry.get("offers")
+                if not offers:
+                    continue
+
+                price = SimpleTixExtractor._lowest_offer_price(offers)
+                if price is not None:
+                    return price
+
+        return None
+
+    @staticmethod
+    def _lowest_offer_price(offers) -> Optional[float]:
+        """Return the first parseable lowPrice from a dict or list of offers."""
+        # offers can be a single dict or a list
+        if isinstance(offers, dict):
+            offers = [offers]
+        if not isinstance(offers, list):
+            return None
+
+        for offer in offers:
+            if not isinstance(offer, dict):
                 continue
-
-            # offers can be a single dict or a list
-            if isinstance(offers, dict):
-                offers = [offers]
-
-            for offer in offers:
-                low_price = offer.get("lowPrice")
-                if low_price is not None:
-                    try:
-                        return float(low_price)
-                    except (ValueError, TypeError):
-                        continue
+            low_price = offer.get("lowPrice")
+            if low_price is not None:
+                try:
+                    return float(low_price)
+                except (ValueError, TypeError):
+                    continue
 
         return None
 
