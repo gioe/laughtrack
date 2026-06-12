@@ -26,6 +26,14 @@ _TICKET_RE = re.compile(
 _PAGE_RE = re.compile(
     r'events/page/(\d+)/', re.IGNORECASE
 )
+# Cost text rendered by the rhp-events plugin (TASK-2842), e.g. "$27" or
+# "$27 - $37". Same markup family the Funny Bone Rockhouse parser reads
+# (_funny_bone_ticket_price in api/etix/scraper.py).
+_COST_RE = re.compile(
+    r'rhp-event__cost-text--(?:list|grid)[^>]*>\s*(.*?)\s*</span>',
+    re.DOTALL | re.IGNORECASE,
+)
+_PRICE_AMOUNT_RE = re.compile(r"\$\s*(\d+(?:\.\d{1,2})?)")
 
 
 class ComedyMagicClubExtractor:
@@ -91,4 +99,27 @@ class ComedyMagicClubExtractor:
             date_str=date_str,
             time_str=time_str,
             ticket_url=ticket_url,
+            price=ComedyMagicClubExtractor._parse_cost(card_html),
         )
+
+    @staticmethod
+    def _parse_cost(card_html: str) -> Optional[float]:
+        """Parse the card's rhp-event cost text into the lowest dollar amount.
+
+        Ranges like "$27 - $37" take the low end; a missing cost element or a
+        text without a parseable positive amount yields None (price unknown —
+        a $0 in marketing copy is not proof the show is free).
+        """
+        cost_m = _COST_RE.search(card_html)
+        if not cost_m:
+            return None
+
+        amounts = []
+        for raw in _PRICE_AMOUNT_RE.findall(HtmlUtils.strip_tags(cost_m.group(1))):
+            try:
+                amounts.append(float(raw))
+            except ValueError:
+                continue
+
+        positive = [a for a in amounts if a > 0]
+        return min(positive) if positive else None

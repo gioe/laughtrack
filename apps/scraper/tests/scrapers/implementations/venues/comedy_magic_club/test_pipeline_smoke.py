@@ -32,8 +32,17 @@ def _event_card(
     date_str: str = "Fri, Apr 10",
     time_str: str = "Doors: 6:30 pm Show: 8 pm",
     ticket_url: str = "https://www.etix.com/ticket/p/11111111/test-hermosa-beach-the-comedy-magic-club?partner_id=100",
+    cost_text: str = "",
 ) -> str:
     """Render a minimal rhp-events listing card, matching the live HTML structure."""
+    cost_html = (
+        f"""<div class="eventCost rhp-event__cost--list">
+          <span class="rhp-event__cost-text--list">
+{cost_text}          </span>
+        </div>"""
+        if cost_text
+        else ""
+    )
     return f"""<!-- Event List Wrapper -->
 <div class="col-12 eventWrapper rhpSingleEvent py-4 px-0 rhp-event__single-event--list">
   <div class="row g-0">
@@ -57,6 +66,7 @@ def _event_card(
         <div class="eventsColor eventDoorStartDate rhp-event__time--list">
           <span class="rhp-event__time-text--list">{time_str}</span>
         </div>
+        {cost_html}
       </div>
     </div>
     <div class="col-12 col-md-3 text-center">
@@ -291,3 +301,78 @@ def test_to_show_doors_no_show_marker_uses_door_time():
     show = event.to_show(_club())
     assert show is not None
     assert show.date.hour == 19
+
+
+# ---------------------------------------------------------------------------
+# Listing-page cost text (TASK-2842) — rhp-event__cost-text--list elements,
+# same plugin markup the Funny Bone Rockhouse parser reads.
+# ---------------------------------------------------------------------------
+
+
+def _extract_one(card_html: str) -> ComedyMagicClubEvent:
+    from laughtrack.scrapers.implementations.venues.comedy_magic_club.extractor import (
+        ComedyMagicClubExtractor,
+    )
+
+    events = ComedyMagicClubExtractor.extract_events(f"<html><body>{card_html}</body></html>")
+    assert len(events) == 1
+    return events[0]
+
+
+def test_extract_parses_single_cost():
+    """A plain '$27' cost text parses to 27.0."""
+    event = _extract_one(_event_card(cost_text="$27\n"))
+    assert event.price == 27.0
+
+
+def test_extract_price_range_takes_low_end():
+    """'$27 - $37' parses to the low end per the acceptance criterion."""
+    event = _extract_one(_event_card(cost_text="$27 - $37\n"))
+    assert event.price == 27.0
+
+
+def test_extract_decimal_cost():
+    """Decimal amounts like '$32.50' parse exactly."""
+    event = _extract_one(_event_card(cost_text="$32.50\n"))
+    assert event.price == 32.5
+
+
+def test_extract_missing_cost_element_yields_none():
+    """Cards without a cost element keep price=None (price unknown)."""
+    event = _extract_one(_event_card())
+    assert event.price is None
+
+
+def test_extract_zero_or_unparseable_cost_yields_none():
+    """'$0' marketing copy and dollar-less text are not proof of free — stay None."""
+    assert _extract_one(_event_card(cost_text="$0\n")).price is None
+    assert _extract_one(_event_card(cost_text="Call for pricing\n")).price is None
+
+
+def test_to_show_carries_price_into_fallback_ticket():
+    """ComedyMagicClubEvent.price flows into the show's fallback ticket."""
+    event = ComedyMagicClubEvent(
+        title="10 Comics Show at 8PM",
+        date_str="Fri, Apr 10",
+        time_str="Doors: 6:30 pm Show: 8 pm",
+        ticket_url="https://www.etix.com/ticket/p/11111111/test",
+        price=27.0,
+    )
+    show = event.to_show(_club())
+
+    assert show is not None
+    assert show.tickets[0].price == 27.0
+
+
+def test_to_show_defaults_to_price_unknown():
+    """Without a cost the fallback ticket stays price-unknown (None, not 0)."""
+    event = ComedyMagicClubEvent(
+        title="10 Comics Show at 8PM",
+        date_str="Fri, Apr 10",
+        time_str="Doors: 6:30 pm Show: 8 pm",
+        ticket_url="https://www.etix.com/ticket/p/11111111/test",
+    )
+    show = event.to_show(_club())
+
+    assert show is not None
+    assert show.tickets[0].price is None

@@ -106,6 +106,7 @@ class ComedyMagicClubEvent(ShowConvertible):
     date_str: str    # e.g. "Thu, Mar 26"  (no year)
     time_str: str    # e.g. "Doors: 6:30 pm Show: 8 pm"
     ticket_url: str  # e.g. "https://www.etix.com/ticket/p/98994469/..."
+    price: Optional[float] = None  # listing-page cost text, low end of ranges
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None):
         """Convert to a Show domain object."""
@@ -132,7 +133,7 @@ class ComedyMagicClubEvent(ShowConvertible):
             return None
 
         ticket_url = url or self.ticket_url
-        tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url)]
+        tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url, price=self.price)]
 
         return ShowFactoryUtils.create_enhanced_show_base(
             name=self.title,
