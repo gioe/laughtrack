@@ -1,9 +1,15 @@
 """
 Smoke tests for Laugh Factory Covina using TixrScraper.
 
-Laugh Factory Covina was migrated from a venue-specific laugh_factory_covina
-scraper to the generic tixr scraper. These tests verify the generic pipeline
-works correctly with Covina's Tixr group page URL.
+Covina's Tixr group page (tixr.com/groups/laughfactorycovina, group id 1613)
+is a known DataDome-blocked source: TixrScraper short-circuits the direct
+page scrape entirely and serves events from the Tixr group-events API
+fallback through the residential proxy (skip_direct=True, single page).
+These tests assert that short-circuit behavior — no direct Tixr page fetch
+ever happens for this venue. Full HTML-pipeline coverage (URL extraction,
+Org JSON-LD filtering) lives in
+tests/scrapers/implementations/api/tixr/test_pipeline_smoke.py against
+non-blocked fixtures.
 """
 
 import importlib.util
@@ -31,7 +37,15 @@ EVENT_URL = "https://www.tixr.com/groups/laughfactorycovina/events/comedy-night-
 
 def _club() -> Club:
     _c = Club(id=200, name='Laugh Factory Covina', address='104 N Citrus Ave', website='https://www.laughfactory.com/covina', popularity=0, zip_code='91723', phone_number='', visible=True, timezone='America/Los_Angeles')
-    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='tixr', scraper_key='tixr', source_url=GROUP_URL, external_id=None)
+    _c.active_scraping_source = ScrapingSource(
+        id=1,
+        club_id=_c.id,
+        platform='tixr',
+        scraper_key='tixr',
+        source_url=GROUP_URL,
+        external_id=None,
+        metadata={"tixr_group_id": 1613},
+    )
     _c.scraping_sources = [_c.active_scraping_source]
     return _c
 
@@ -52,11 +66,17 @@ def _tixr_event() -> TixrEvent:
     return TixrEvent.from_tixr_show(show=show, source_url=EVENT_URL, event_id="12345")
 
 
-def _group_page_html() -> str:
-    """Minimal Tixr group page HTML containing one event link."""
-    return f"""<html><body>
-<a href="{EVENT_URL}">Comedy Night - April 10</a>
-</body></html>"""
+def _blocked_fetch_mock() -> AsyncMock:
+    """
+    Direct-fetch mock that fails loudly if called. get_data() swallows
+    exceptions into a None return, so callers must ALSO assert_not_called()
+    on this mock after the call under test.
+    """
+    return AsyncMock(
+        side_effect=AssertionError(
+            "Known DataDome-blocked Tixr group must not fetch its page directly"
+        )
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -65,158 +85,88 @@ def _group_page_html() -> str:
 
 
 @pytest.mark.asyncio
-async def test_get_data_returns_page_data_with_events(monkeypatch):
+async def test_collect_scraping_targets_skips_group_page_discovery(monkeypatch):
     """
-    get_data() returns TixrPageData with at least one TixrEvent
-    when the group page HTML contains event URLs and TixrClient resolves them.
+    collect_scraping_targets() returns only the group URL without fetching the
+    DataDome-blocked group page for pagination discovery.
     """
     scraper = TixrScraper(_club())
+    fetch_mock = _blocked_fetch_mock()
+    monkeypatch.setattr(scraper, "_fetch_calendar_html", fetch_mock)
 
-    # Mock _fetch_tixr_page (not fetch_html) because tixr.com URLs use the
-    # DataDome-safe Tixr client path in TixrScraper.get_data()
-    monkeypatch.setattr(
-        scraper.tixr_client,
-        "_fetch_tixr_page",
-        AsyncMock(return_value=_group_page_html()),
-    )
-    monkeypatch.setattr(
-        scraper.tixr_client,
-        "get_event_detail_from_url",
-        AsyncMock(return_value=_tixr_event()),
-    )
+    assert await scraper.collect_scraping_targets() == [GROUP_URL]
+    fetch_mock.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_get_data_short_circuits_to_group_events_api_fallback(monkeypatch):
+    """
+    get_data() never fetches the blocked group page — it goes straight to the
+    Tixr group-events API through the residential proxy (skip_direct=True,
+    single page) and returns TixrPageData from the fallback events.
+    """
+    monkeypatch.setenv("TIXR_GROUP_EVENTS_API_FALLBACK", "1")
+    scraper = TixrScraper(_club())
+    event = _tixr_event()
+
+    fetch_mock = _blocked_fetch_mock()
+    monkeypatch.setattr(scraper, "_fetch_calendar_html", fetch_mock)
+    scraper.tixr_client.fetch_group_events = AsyncMock(return_value=[event])
+    scraper.tixr_client.get_event_detail_from_url = AsyncMock()
 
     result = await scraper.get_data(GROUP_URL)
 
     assert isinstance(result, TixrPageData), (
-        "get_data() did not return TixrPageData — check scraper pipeline"
+        "get_data() did not return TixrPageData from the group-events API fallback"
     )
-    assert result.get_event_count() > 0, (
-        "get_data() returned 0 events from valid group page HTML — "
-        "check TixrExtractor.extract_tixr_urls() or batch_scraper processing"
+    assert [e.event_id for e in result.event_list] == ["12345"]
+    scraper.tixr_client.fetch_group_events.assert_awaited_once_with(
+        "1613",
+        max_pages=1,
+        skip_direct=True,
     )
+    scraper.tixr_client.get_event_detail_from_url.assert_not_called()
+    fetch_mock.assert_not_called()
 
 
 @pytest.mark.asyncio
-async def test_get_data_returns_none_when_no_event_urls(monkeypatch):
-    """get_data() returns None when the group page contains no Tixr event URLs."""
+async def test_get_data_returns_none_when_fallback_has_no_events(monkeypatch):
+    """
+    get_data() returns None when the group-events API fallback yields no
+    events — still without ever attempting the blocked direct fetch.
+    """
+    monkeypatch.setenv("TIXR_GROUP_EVENTS_API_FALLBACK", "1")
     scraper = TixrScraper(_club())
 
-    monkeypatch.setattr(
-        scraper.tixr_client,
-        "_fetch_tixr_page",
-        AsyncMock(return_value="<html><body>No events here</body></html>"),
-    )
+    fetch_mock = _blocked_fetch_mock()
+    monkeypatch.setattr(scraper, "_fetch_calendar_html", fetch_mock)
+    scraper.tixr_client.fetch_group_events = AsyncMock(return_value=[])
 
     result = await scraper.get_data(GROUP_URL)
+
     assert result is None
+    scraper.tixr_client.fetch_group_events.assert_awaited_once()
+    fetch_mock.assert_not_called()
 
 
 @pytest.mark.asyncio
-async def test_get_data_returns_none_when_all_events_fail(monkeypatch):
-    """get_data() returns None when all TixrClient calls return None."""
+async def test_get_data_returns_none_when_fallback_disabled(monkeypatch):
+    """
+    With the group-events API fallback disabled, get_data() returns None and
+    skips both the blocked direct fetch and the group-events API call.
+    """
+    monkeypatch.delenv("TIXR_GROUP_EVENTS_API_FALLBACK", raising=False)
     scraper = TixrScraper(_club())
 
-    monkeypatch.setattr(
-        scraper.tixr_client,
-        "_fetch_tixr_page",
-        AsyncMock(return_value=_group_page_html()),
-    )
-    monkeypatch.setattr(
-        scraper.tixr_client,
-        "get_event_detail_from_url",
-        AsyncMock(return_value=None),
-    )
+    fetch_mock = _blocked_fetch_mock()
+    monkeypatch.setattr(scraper, "_fetch_calendar_html", fetch_mock)
+    scraper.tixr_client.fetch_group_events = AsyncMock(return_value=[_tixr_event()])
 
     result = await scraper.get_data(GROUP_URL)
+
     assert result is None
-
-
-@pytest.mark.asyncio
-async def test_get_data_filters_by_org_jsonld_when_present(monkeypatch):
-    """
-    get_data() uses TixrExtractor.extract_org_jsonld_event_urls() when an
-    Organization JSON-LD block is present — only events in the block are
-    processed; double-dash (client-side) URLs not in the block are skipped.
-    """
-    scraper = TixrScraper(_club())
-    dropped_url = "https://www.tixr.com/groups/laughfactorycovina/events/other--99999"
-
-    html_with_jsonld = f"""<html><head>
-<script type="application/ld+json">
-{{
-  "@type": "Organization",
-  "events": [{{"url": "{EVENT_URL}"}}]
-}}
-</script>
-</head><body>
-<a href="{EVENT_URL}">Comedy Night</a>
-<a href="{dropped_url}">Dropped Show</a>
-</body></html>"""
-
-    monkeypatch.setattr(
-        scraper.tixr_client,
-        "_fetch_tixr_page",
-        AsyncMock(return_value=html_with_jsonld),
-    )
-    monkeypatch.setattr(
-        scraper.tixr_client,
-        "get_event_detail_from_url",
-        AsyncMock(return_value=_tixr_event()),
-    )
-
-    result = await scraper.get_data(GROUP_URL)
-
-    assert isinstance(result, TixrPageData)
-    assert len(result.event_list) == 1
-    scraper.tixr_client.get_event_detail_from_url.assert_called_once_with(EVENT_URL)
-
-
-@pytest.mark.asyncio
-async def test_get_data_filters_by_event_id_when_url_forms_differ(monkeypatch):
-    """
-    get_data() matches JSON-LD URLs against HTML URLs by numeric event ID, not
-    by string equality.
-    """
-    scraper = TixrScraper(_club())
-
-    long_url_in_html = "https://www.tixr.com/groups/laughfactorycovina/events/comedy-night-12345"
-    short_url_in_jsonld = "https://www.tixr.com/e/12345"
-    dropped_url = "https://www.tixr.com/groups/laughfactorycovina/events/other--99999"
-
-    html_with_jsonld = f"""<html><head>
-<script type="application/ld+json">
-{{
-  "@type": "Organization",
-  "events": [{{"url": "{short_url_in_jsonld}"}}]
-}}
-</script>
-</head><body>
-<a href="{long_url_in_html}">Comedy Night</a>
-<a href="{dropped_url}">Dropped Show</a>
-</body></html>"""
-
-    monkeypatch.setattr(
-        scraper.tixr_client,
-        "_fetch_tixr_page",
-        AsyncMock(return_value=html_with_jsonld),
-    )
-    monkeypatch.setattr(
-        scraper.tixr_client,
-        "get_event_detail_from_url",
-        AsyncMock(return_value=_tixr_event()),
-    )
-
-    result = await scraper.get_data(GROUP_URL)
-
-    assert isinstance(result, TixrPageData)
-    assert len(result.event_list) == 1
-    # The generic TixrExtractor deduplicates by event ID and prefers
-    # short-form URLs — so when the JSON-LD contains a short-form URL
-    # and the HTML has a long-form URL for the same event, the short-form
-    # URL is used for the batch fetch (both resolve to the same event).
-    scraper.tixr_client.get_event_detail_from_url.assert_called_once_with(
-        "https://tixr.com/e/12345"
-    )
+    scraper.tixr_client.fetch_group_events.assert_not_called()
+    fetch_mock.assert_not_called()
 
 
 def test_can_transform_accepts_tixr_event():
