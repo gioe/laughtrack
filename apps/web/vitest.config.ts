@@ -16,6 +16,18 @@ export default defineConfig({
         // exceed vitest's 10s default and surface as misleading "hook timeout"
         // failures unrelated to the code under test.
         hookTimeout: 30000,
+        // Same contention class as hookTimeout, for test bodies (TASK-2821):
+        // render-heavy admin-manager tests run at 10-120ms in isolation but
+        // inflate 25-50x when the full suite's forks compete with concurrent
+        // workloads (parallel agent sessions each running their own commit
+        // gate) — measured 2.2s per test with just two simultaneous suites,
+        // and one AdminComedianManager test crossed vitest's 5s default
+        // during a three-workload night and failed the gate with no code
+        // defect (45ms isolated, passes on retry; no fake timers or
+        // unawaited promises in the path). 15s keeps ~7x headroom over the
+        // worst measured inflation while still failing genuine hangs fast
+        // enough for the commit gate.
+        testTimeout: 15000,
         // Route handlers log to console.error in their catch blocks, and many
         // route tests deliberately exercise those error paths. By default
         // vitest forwards every worker console call to the main process over
