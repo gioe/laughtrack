@@ -47,6 +47,7 @@ class IceHouseEvent(ShowConvertible):
     timezone: str = "America/Los_Angeles"
     room: str = ""
     detail_url: str = ""   # Public Tockify event page, used when ticket_url is empty
+    price: Optional[float] = None  # lowest ShowClix/Leap JSON-LD offer price
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None) -> Optional[Show]:
         """Convert an IceHouseEvent to a Show domain object."""
@@ -61,7 +62,7 @@ class IceHouseEvent(ShowConvertible):
         if not raw_ticket_url:
             return None
         ticket_url = _normalize_showclix_url(raw_ticket_url)
-        tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url)]
+        tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url, price=self.price)]
 
         return ShowFactoryUtils.create_enhanced_show_base(
             name=self.title or "Comedy Show",

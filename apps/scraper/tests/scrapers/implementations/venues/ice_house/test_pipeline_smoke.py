@@ -72,6 +72,37 @@ def _api_response(events: list, has_next: bool = False) -> dict:
     }
 
 
+def _leap_page_html(prices: list) -> str:
+    """Trimmed copy of a live events.leapevents.com page JSON-LD block.
+
+    ``prices`` are the per-tier Offer price strings (e.g. ["20.00", "20.00"]).
+    """
+    offers = ",".join(
+        '{"@type":"Offer","category":"primary","name":"Tbl ' + str(i + 1) + '",'
+        '"price":"' + p + '","priceCurrency":"USD","availability":"InStock",'
+        '"url":"https://events.leapevents.com/event/the-oil-rig"}'
+        for i, p in enumerate(prices)
+    )
+    return (
+        '<html><head><script type="application/ld+json">'
+        '{"@context":"http://schema.org","@type":"Event","name":"The Oil Rig",'
+        '"url":"https://events.leapevents.com/event/the-oil-rig",'
+        '"startDate":"2026-06-12T19:30:00-0700",'
+        '"location":{"@type":"Place","name":"Ice House"},'
+        '"offers":[' + offers + "]}"
+        "</script></head><body></body></html>"
+    )
+
+
+def _stub_price_fetch(monkeypatch):
+    """Bypass ticket-page price fetches in tests that don't exercise pricing."""
+
+    async def no_price(self, url: str):
+        return None
+
+    monkeypatch.setattr(IceHouseScraper, "_fetch_ticket_page_price", no_price)
+
+
 # ---------------------------------------------------------------------------
 # _normalize_showclix_url tests
 # ---------------------------------------------------------------------------
@@ -388,6 +419,7 @@ async def test_get_data_returns_page_data_with_events(monkeypatch):
 
     monkeypatch.setattr(IceHouseScraper, "fetch_json", fake_fetch_json)
     monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", lambda url: __import__("asyncio").sleep(0))
+    _stub_price_fetch(monkeypatch)
 
     result = await scraper.get_data("https://tockify.com/api/ngevent?calname=theicehouse&max=200&startms=0")
 
@@ -408,6 +440,7 @@ async def test_get_data_returns_none_on_empty_events(monkeypatch):
 
     monkeypatch.setattr(IceHouseScraper, "fetch_json", fake_fetch_json)
     monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", lambda url: __import__("asyncio").sleep(0))
+    _stub_price_fetch(monkeypatch)
 
     result = await scraper.get_data("https://tockify.com/api/ngevent?calname=theicehouse&max=200&startms=0")
     assert result is None
@@ -423,6 +456,7 @@ async def test_get_data_returns_none_on_null_response(monkeypatch):
 
     monkeypatch.setattr(IceHouseScraper, "fetch_json", fake_fetch_json)
     monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", lambda url: __import__("asyncio").sleep(0))
+    _stub_price_fetch(monkeypatch)
 
     result = await scraper.get_data("https://tockify.com/api/ngevent?calname=theicehouse&max=200&startms=0")
     assert result is None
@@ -459,6 +493,7 @@ async def test_get_data_paginates_when_has_next_true(monkeypatch):
 
     monkeypatch.setattr(IceHouseScraper, "fetch_json", fake_fetch_json)
     monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", lambda url: __import__("asyncio").sleep(0))
+    _stub_price_fetch(monkeypatch)
 
     initial_url = "https://tockify.com/api/ngevent?calname=theicehouse&max=200&startms=0"
     result = await scraper.get_data(initial_url)
@@ -497,6 +532,7 @@ async def test_get_data_stops_at_safety_page_cap(monkeypatch, caplog):
 
     monkeypatch.setattr(IceHouseScraper, "fetch_json", fake_fetch_json)
     monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", lambda url: __import__("asyncio").sleep(0))
+    _stub_price_fetch(monkeypatch)
 
     with caplog.at_level(logging.WARNING):
         result = await scraper.get_data("https://tockify.com/api/ngevent?calname=theicehouse&max=200&startms=0")
@@ -528,6 +564,7 @@ async def test_get_data_stops_pagination_when_has_next_true_but_no_events(monkey
 
     monkeypatch.setattr(IceHouseScraper, "fetch_json", fake_fetch_json)
     monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", lambda url: __import__("asyncio").sleep(0))
+    _stub_price_fetch(monkeypatch)
 
     result = await scraper.get_data("https://tockify.com/api/ngevent?calname=theicehouse&max=200&startms=0")
 
@@ -535,3 +572,162 @@ async def test_get_data_stops_pagination_when_has_next_true_but_no_events(monkey
     assert len(result.event_list) == 1
     assert result.event_list[0].title == "Real Show"
     assert call_count["n"] == 2
+
+
+# ---------------------------------------------------------------------------
+# Ticket-page JSON-LD price extraction — the Tockify payload has no price
+# keys; each ShowClix/Leap ticket page embeds Event.offers per-tier prices.
+# ---------------------------------------------------------------------------
+
+
+def test_extract_min_offer_price_returns_lowest_positive_tier():
+    """The lowest positive per-tier price wins across the offers list."""
+    html = _leap_page_html(["25.00", "20.00", "35.00"])
+    assert IceHouseExtractor.extract_min_offer_price(html) == 20.0
+
+
+def test_extract_min_offer_price_all_zero_offers_means_free():
+    """Explicit all-zero offers (open-mic RSVP pages) parse as proven-free 0.0."""
+    html = _leap_page_html(["0.00"])
+    assert IceHouseExtractor.extract_min_offer_price(html) == 0.0
+
+
+def test_extract_min_offer_price_ignores_zero_tier_alongside_paid():
+    """A zero tier next to paid tiers is a comp/placeholder, not the price."""
+    html = _leap_page_html(["0.00", "23.00", "23.00"])
+    assert IceHouseExtractor.extract_min_offer_price(html) == 23.0
+
+
+def test_extract_min_offer_price_returns_none_without_json_ld():
+    """Pages without a JSON-LD Event block (seated sales variant) yield None."""
+    html = "<html><head><title>Tickets</title></head><body>$23.00</body></html>"
+    assert IceHouseExtractor.extract_min_offer_price(html) is None
+
+
+def test_extract_min_offer_price_skips_unparseable_prices():
+    """Empty/garbage price strings are skipped rather than raising."""
+    html = _leap_page_html(["", "abc", "30.00"])
+    assert IceHouseExtractor.extract_min_offer_price(html) == 30.0
+
+
+def _scraper_with_ticket_pages(monkeypatch, api_events: list, html_by_url: dict, fetched: list) -> IceHouseScraper:
+    """Build an IceHouseScraper with the Tockify API and ticket pages stubbed."""
+    scraper = IceHouseScraper(_club())
+
+    async def fake_fetch_json(self, url: str, **kwargs):
+        return _api_response(api_events)
+
+    async def fake_fetch_html(self, url: str, **kwargs):
+        fetched.append(url)
+        result = html_by_url[url]
+        if isinstance(result, Exception):
+            raise result
+        return result
+
+    monkeypatch.setattr(IceHouseScraper, "fetch_json", fake_fetch_json)
+    monkeypatch.setattr(IceHouseScraper, "fetch_html", fake_fetch_html)
+    monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", lambda url: __import__("asyncio").sleep(0))
+    return scraper
+
+
+@pytest.mark.asyncio
+async def test_get_data_attaches_prices_one_fetch_per_distinct_ticket_url(monkeypatch):
+    """Events carry the page's lowest offer price; events sharing a page share one fetch."""
+    api_events = [
+        _raw_event(uid="1", title="Early Show", ticket_url="https://events.leapevents.com/event/show-a"),
+        _raw_event(uid="2", title="Late Show", ticket_url="https://events.leapevents.com/event/show-a"),
+        _raw_event(uid="3", title="Other Show", ticket_url="https://events.leapevents.com/event/show-b"),
+    ]
+    fetched: list = []
+    scraper = _scraper_with_ticket_pages(
+        monkeypatch,
+        api_events,
+        {
+            "https://events.leapevents.com/event/show-a": _leap_page_html(["20.00", "20.00"]),
+            "https://events.leapevents.com/event/show-b": _leap_page_html(["40.00"]),
+        },
+        fetched,
+    )
+
+    result = await scraper.get_data("https://tockify.com/api/ngevent?calname=theicehouse&max=200&startms=0")
+
+    assert [e.price for e in result.event_list] == [20.0, 20.0, 40.0]
+    assert sorted(fetched) == [
+        "https://events.leapevents.com/event/show-a",
+        "https://events.leapevents.com/event/show-b",
+    ]
+
+
+@pytest.mark.asyncio
+async def test_get_data_fetches_normalized_www_url_for_embed_links(monkeypatch):
+    """embed.showclix.com links are normalized to www before the price fetch."""
+    api_events = [
+        _raw_event(uid="1", ticket_url="https://embed.showclix.com/event/show-a"),
+    ]
+    fetched: list = []
+    scraper = _scraper_with_ticket_pages(
+        monkeypatch,
+        api_events,
+        {"https://www.showclix.com/event/show-a": _leap_page_html(["15.00"])},
+        fetched,
+    )
+
+    result = await scraper.get_data("https://tockify.com/api/ngevent?calname=theicehouse&max=200&startms=0")
+
+    assert fetched == ["https://www.showclix.com/event/show-a"]
+    assert result.event_list[0].price == 15.0
+
+
+@pytest.mark.asyncio
+async def test_get_data_skips_price_fetch_for_events_without_ticket_url(monkeypatch):
+    """Walk-in events (no customButtonLink) never trigger a page fetch; price stays None."""
+    base = _raw_event(uid="980", title="Social Hour", start_ms=1770773400000)
+    content = dict(base["content"])
+    content.pop("customButtonLink", None)
+    api_events = [{**base, "content": content}]
+
+    fetched: list = []
+    scraper = _scraper_with_ticket_pages(monkeypatch, api_events, {}, fetched)
+
+    result = await scraper.get_data("https://tockify.com/api/ngevent?calname=theicehouse&max=200&startms=0")
+
+    assert fetched == []
+    assert result.event_list[0].price is None
+
+
+@pytest.mark.asyncio
+async def test_get_data_price_fetch_failure_keeps_events_and_retries_later(monkeypatch):
+    """A failed page fetch degrades to price-unknown and is evicted for retry."""
+    api_events = [_raw_event(uid="1", title="Real Show", ticket_url="https://events.leapevents.com/event/show-a")]
+    fetched: list = []
+    scraper = _scraper_with_ticket_pages(
+        monkeypatch,
+        api_events,
+        {"https://events.leapevents.com/event/show-a": Exception("Connection refused")},
+        fetched,
+    )
+
+    result = await scraper.get_data("https://tockify.com/api/ngevent?calname=theicehouse&max=200&startms=0")
+
+    assert result.event_list[0].title == "Real Show"
+    assert result.event_list[0].price is None
+    # The failed fetch is evicted from the memo, so a retried get_data refetches.
+    await scraper.get_data("https://tockify.com/api/ngevent?calname=theicehouse&max=200&startms=0")
+    assert len(fetched) == 2
+
+
+def test_to_show_carries_price_into_fallback_ticket():
+    """IceHouseEvent.price flows into the show's fallback ticket."""
+    event = _make_event()
+    event.price = 20.0
+
+    show = event.to_show(_club())
+
+    assert show.tickets[0].price == 20.0
+
+
+def test_to_show_defaults_to_price_unknown():
+    """Without a ticket-page price the fallback ticket stays price-unknown (None, not 0)."""
+    show = _make_event().to_show(_club())
+
+    assert show.tickets[0].price is None
