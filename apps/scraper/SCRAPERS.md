@@ -1795,6 +1795,27 @@ Before implementing a second location, fetch one day's HTML from the new locatio
 
 ---
 
+### Comedy Store — ShowClix/Leap ticket pricing (TASK-2841)
+
+The calendar day pages render no price element. The `comedy_store` scraper
+resolves each distinct slug-style ticket page once per run (memoized,
+failure-evicting, 10-request cap) to the numeric ShowClix id embedded in an
+inline script — `var EVENT = {"event_id":"10341917", ...}` — then fetches
+per-level prices via the same `ShowclixAPIClient.get_event_data` seated API
+the Gotham scraper uses, taking `get_primary_price()` (0.00 levels are
+placeholder/comp tiers and stay `None`).
+
+**Leap host migration gotcha:** ShowClix migrated venue ticket hrefs from
+`www.showclix.com/event/<slug>` to `events.leapevents.com/event/<slug>`
+(observed live 2026-06-12). The extractor's anchor pattern
+(`SHOWCLIX_EVENT_URL_RE`, shared with the scraper's enrichment eligibility
+check) must match **both** hosts — when it only matched showclix.com, every
+ticketed show's `ticket_url` silently degraded to the venue show page. If
+Comedy Store prices/ticket links vanish again, re-check the calendar's anchor
+host first.
+
+---
+
 ### ShowSlinger
 
 | | |
