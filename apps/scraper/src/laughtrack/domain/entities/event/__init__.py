@@ -4,7 +4,6 @@ from laughtrack.core.entities.event.broadway import BroadwayEvent
 from laughtrack.core.entities.event.comedy_cellar import ComedyCellarEvent
 from laughtrack.core.entities.event.eventbrite import EventbriteEvent
 from laughtrack.core.entities.event.fox_tucson_theatre import FoxTucsonTheatreEvent
-from laughtrack.core.entities.event.gotham import GothamEvent
 from laughtrack.core.entities.event.grove34 import Grove34Event
 from laughtrack.core.entities.event.improv import ImprovEvent
 from laughtrack.core.entities.event.ovationtix import OvationTixEvent
@@ -23,7 +22,6 @@ __all__ = [
     "ComedyCellarEvent",
     "EventbriteEvent",
     "FoxTucsonTheatreEvent",
-    "GothamEvent",
     "Grove34Event",
     "ImprovEvent",
     "OvationTixEvent",

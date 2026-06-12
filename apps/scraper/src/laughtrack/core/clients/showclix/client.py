@@ -1,10 +1,4 @@
-"""
-Showclix API client for fetching event web pages and API data.
-
-This client handles interactions with Showclix event pages and API endpoints
-to fetch HTML content and structured event data for events hosted on the
-Showclix platform.
-"""
+"""Showclix API client for fetching structured event data."""
 
 from typing import Dict, Optional
 
@@ -13,18 +7,10 @@ from laughtrack.foundation.infrastructure.http.base_headers import BaseHeaders
 from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 from laughtrack.core.clients.base import BaseApiClient
 from laughtrack.core.clients.showclix.models import ShowclixEventData
-from laughtrack.foundation.infrastructure.logger.logger import Logger
 
 
 class ShowclixAPIClient(BaseApiClient):
-    """
-    Client for interacting with Showclix event pages.
-
-    This class handles:
-    - Fetching HTML content from Showclix event pages
-    - Proper headers for Showclix requests
-    - Error handling and logging
-    """
+    """Client for interacting with Showclix event API endpoints."""
 
     def __init__(self, club: Club, proxy_pool: Optional[ProxyPool] = None):
         """
@@ -55,81 +41,6 @@ class ShowclixAPIClient(BaseApiClient):
             Sec_Fetch_User="?1",
             Upgrade_Insecure_Requests="1",
         )
-
-    async def get_web_page_for_event(self, event_slug: str) -> Optional[str]:
-        """
-        Fetch the HTML content for a Showclix event page.
-
-        Args:
-            event_slug: The event slug/identifier from GothamEvent (e.g., "mixtape-comedy229eoyj9")
-
-        Returns:
-            HTML content as string, or None if fetch failed
-        """
-        if not event_slug:
-            self.log_warning("Event slug is empty or None")
-            return None
-
-        # Construct the Showclix event URL
-        event_url = f"https://www.showclix.com/event/{event_slug}"
-
-        try:
-            self.log_info(f"Fetching Showclix event page: {event_url}")
-
-            # Use the base class fetch_html method with proper error handling
-            html_content = await self.fetch_html(
-                url=event_url,
-                headers=self.headers,
-                timeout=30,
-                logger_context={"event_slug": event_slug, "service": "showclix"},
-            )
-
-            if html_content:
-                self.log_info(f"Successfully fetched {len(html_content)} characters from {event_url}")
-                return html_content
-            else:
-                self.log_warning(f"Failed to fetch content from {event_url}")
-                return None
-
-        except Exception as e:
-            self.log_error(f"Error fetching Showclix event page {event_url}: {e}")
-            return None
-
-    async def get_web_page_for_event_url(self, event_url: str) -> Optional[str]:
-        """
-        Fetch the HTML content for a complete Showclix event URL.
-
-        Args:
-            event_url: The complete Showclix event URL (e.g., "https://www.showclix.com/event/mixtape-comedy229eoyj9")
-
-        Returns:
-            HTML content as string, or None if fetch failed
-        """
-        if not event_url:
-            self.log_warning("Event URL is empty or None")
-            return None
-
-        try:
-            self.log_info(f"Fetching Showclix event page: {event_url}")
-
-            # Use the base class fetch_html method with proper error handling
-            html_content = await self.fetch_html(
-                url=event_url,
-                headers=self.headers,
-                timeout=30,
-                logger_context={"event_url": event_url, "service": "showclix"},
-            )
-
-            if html_content:
-                self.log_info(f"Successfully fetched {len(html_content)} characters from {event_url}")
-                return html_content
-            else:
-                self.log_warning(f"Failed to fetch content from {event_url}")
-                return None
-
-        except Exception as e:
-            self.log_error(f"Error fetching Showclix event page {event_url}: {e}")
-            return None
 
     async def get_event_data(self, event_id: str) -> Optional[ShowclixEventData]:
         """
