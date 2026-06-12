@@ -767,6 +767,49 @@ The `TixologiClient` fetches the CMS HTML page; `LaughFactoryRenoEventExtractor`
 
 ---
 
+### Gotham Comedy Club (Webflow CMS worker feed)
+
+| | |
+|---|---|
+| **Scraper key** | `gotham` |
+| **Generic?** | ❌ Venue-specific — the worker feed URL is hardcoded in the scraper |
+
+Gotham's site is a Webflow rebuild whose `/calendar` page fetches
+`https://square-mountain-7159.alex-cdc.workers.dev/items?limit=N&offset=M` —
+a Cloudflare Worker proxying the venue's Webflow CMS event collection
+(`{"items": [...], "pagination": {"total": N}}`; the worker hard-caps
+`limit` at 100). Each item is one showtime; `fieldData["event-id"]` is the
+**Showclix** event id, so ticket price/sold-out enrichment is a direct
+`ShowclixAPIClient.get_event_data(event_id)` call — no HTML scraping.
+Plain curl gets a Cloudflare 403; the shared curl_cffi-impersonated session
+is required.
+
+**History:** until June 2026 the venue published monthly JSONs at
+`gothamevents.s3.amazonaws.com/events/month/<YYYY-MM>.json` (venue-owned
+bucket, also served their site assets). The bucket was deleted outright
+(`NoSuchBucket`) when they rebuilt on Webflow — TASK-2822. Their
+`/calendar-old` page's SquadUp API (`squadup.com/api/v3/events?user_ids=9987142`)
+returns 0 events; dead end, do not readopt.
+
+---
+
+### Punchup venue sites (The Creek and The Cave, West Side, Comedy Key West)
+
+The Creek and The Cave (Austin) rebuilt on the **Punchup** platform in June
+2026 (previously a venue-owned S3 monthly-JSON feed at
+`creekandcaveevents.s3.amazonaws.com`, deleted outright — TASK-2822). Its
+`https://www.creekandcave.com/calendar` page (canonical;
+`thecreekandthecave.com` 301s there) is Next.js SSR: the full ~200-row
+upcoming list is embedded as a `"shows": [...]` RSC component prop inside
+`self.__next_f.push` chunks — NOT in the React Query dehydrated cache,
+which only holds the 20-row carousel. The shared `core/clients/rsc`
+primitives decode the chunks and `PunchupShow`/`PunchupExtractor` handle the
+row shape (`title`, naive-local `datetime`, Tixologi `ticket_link`,
+`is_sold_out`, `vip_ticket_link`, structured `show_comedians`). Tickets are
+Tixologi (`event.tixologi.com/event/<id>/tickets`).
+
+---
+
 ### Netlify Functions (East Austin Comedy)
 
 | | |
