@@ -762,3 +762,46 @@ def test_to_show_defaults_to_price_unknown():
     show = event.to_show(_club())
 
     assert show.tickets[0].price is None
+
+
+@pytest.mark.asyncio
+async def test_api_returning_none_degrades_to_priceless_ticket(monkeypatch):
+    """get_event_data returning None (fetch/parse miss) keeps the show priceless."""
+    day_html = _day_html([
+        {"slug": "2026-04-01t200000-0700-headliners", "title": "Headliners", "ticket": _TICKET_A},
+    ])
+    fetched: list = []
+    api_calls: list = []
+    scraper = _scraper_with_price_stack(
+        monkeypatch, day_html, {_TICKET_A: _ticket_page_html("10341917")}, {"10341917": None}, fetched, api_calls
+    )
+
+    result = await scraper.get_data(f"{CALENDAR_BASE}/2026-04-01")
+
+    assert result.event_list[0].price is None
+    assert api_calls == ["10341917"]
+
+
+@pytest.mark.asyncio
+async def test_unparseable_or_zero_primary_price_degrades_to_none(monkeypatch):
+    """A None/garbage primary price and an explicit 0.00 level both yield price-unknown."""
+    day_html = _day_html([
+        {"slug": "2026-04-01t200000-0700-a", "title": "No Levels", "ticket": _TICKET_A},
+        {"slug": "2026-04-01t210000-0700-b", "title": "Zero Level", "ticket": _TICKET_B},
+    ])
+    fetched: list = []
+    api_calls: list = []
+    scraper = _scraper_with_price_stack(
+        monkeypatch,
+        day_html,
+        {_TICKET_A: _ticket_page_html("111"), _TICKET_B: _ticket_page_html("222")},
+        {"111": _FakeEventData(None), "222": _FakeEventData("0.00")},
+        fetched,
+        api_calls,
+    )
+
+    result = await scraper.get_data(f"{CALENDAR_BASE}/2026-04-01")
+
+    prices = {e.title: e.price for e in result.event_list}
+    # 0.00 seated levels are placeholder/comp tiers, not proven-free — stays None.
+    assert prices == {"No Levels": None, "Zero Level": None}

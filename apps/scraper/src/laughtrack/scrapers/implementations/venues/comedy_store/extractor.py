@@ -23,7 +23,10 @@ from bs4 import BeautifulSoup
 from laughtrack.core.entities.event.comedy_store import ComedyStoreEvent
 
 
-_SHOWCLIX_RE = re.compile(
+# Public: the scraper's price enrichment reuses this to decide which
+# ticket_urls are slug-style event pages (vs venue show-page fallbacks),
+# keeping extraction and enrichment agreeing on what counts as a ticket page.
+SHOWCLIX_EVENT_URL_RE = re.compile(
     r"(?:showclix\.com|events\.leapevents\.com)/event/", re.IGNORECASE
 )
 _SHOW_HREF_RE = re.compile(r"^(?:/[^/]+)?/calendar/show/\d+/(.+)$")
@@ -95,7 +98,7 @@ class ComedyStoreEventExtractor:
                 room = room_h3.get_text(strip=True)
 
             # --- ticket URL ---
-            ticket_a = item.find("a", href=_SHOWCLIX_RE)
+            ticket_a = item.find("a", href=SHOWCLIX_EVENT_URL_RE)
             if ticket_a:
                 ticket_url = ticket_a["href"].rstrip('"').strip()
             else:

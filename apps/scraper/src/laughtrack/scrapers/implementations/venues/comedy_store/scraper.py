@@ -33,19 +33,11 @@ from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 
 from .data import ComedyStorePageData
-from .extractor import ComedyStoreEventExtractor
+from .extractor import SHOWCLIX_EVENT_URL_RE, ComedyStoreEventExtractor
 from .transformer import ComedyStoreEventTransformer
 
 # Number of days ahead to scrape (inclusive of today)
 _SCRAPE_WINDOW_DAYS = 60
-
-# Ticket pages eligible for price enrichment: slug-style event URLs on either
-# the legacy showclix.com host or the post-migration Leap host. Venue
-# show-page fallbacks (thecomedystore.com/...) never match.
-_TICKET_PAGE_RE = re.compile(
-    r"https?://(?:www\.)?(?:showclix\.com|events\.leapevents\.com)/event/",
-    re.IGNORECASE,
-)
 
 # The ticket page embeds the numeric ShowClix id in an inline script:
 #   var EVENT = {"event_id":"10341917","event":"..."}
@@ -117,10 +109,12 @@ class ComedyStoreScraper(BaseScraper):
         Only slug-style ticket pages are eligible; sold-out/free shows whose
         ticket_url fell back to the venue show page keep price=None.
         """
+        # Same pattern the extractor uses to pick ticket anchors, so
+        # extraction and enrichment can never disagree on eligibility.
         urls = list(dict.fromkeys(
             event.ticket_url
             for event in events
-            if event.ticket_url and _TICKET_PAGE_RE.match(event.ticket_url)
+            if event.ticket_url and SHOWCLIX_EVENT_URL_RE.search(event.ticket_url)
         ))
         prices = await asyncio.gather(*(self._ticket_page_price(u) for u in urls))
         price_by_url = dict(zip(urls, prices))
@@ -181,6 +175,10 @@ class ComedyStoreScraper(BaseScraper):
             return None
 
         try:
-            return float(event_data.get_primary_price())
+            price = float(event_data.get_primary_price())
         except (TypeError, ValueError):
             return None
+        # A 0.00 seated price level is a placeholder/comp tier, not proof the
+        # show is free — keep price-unknown per the tickets-are-access-records
+        # convention (TASK-2827).
+        return price if price > 0 else None
