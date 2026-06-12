@@ -35,7 +35,7 @@ GROUP_URL = "https://www.tixr.com/groups/laughfactorycovina"
 EVENT_URL = "https://www.tixr.com/groups/laughfactorycovina/events/comedy-night-12345"
 
 
-def _club() -> Club:
+def _club(metadata: dict | None = {"tixr_group_id": 1613}) -> Club:
     _c = Club(id=200, name='Laugh Factory Covina', address='104 N Citrus Ave', website='https://www.laughfactory.com/covina', popularity=0, zip_code='91723', phone_number='', visible=True, timezone='America/Los_Angeles')
     _c.active_scraping_source = ScrapingSource(
         id=1,
@@ -44,7 +44,7 @@ def _club() -> Club:
         scraper_key='tixr',
         source_url=GROUP_URL,
         external_id=None,
-        metadata={"tixr_group_id": 1613},
+        metadata=metadata,
     )
     _c.scraping_sources = [_c.active_scraping_source]
     return _c
@@ -54,7 +54,8 @@ def _tixr_event() -> TixrEvent:
     show = Show(
         name="Comedy Night at Laugh Factory Covina",
         club_id=200,
-        date=datetime(2026, 4, 10, 19, 30, tzinfo=timezone.utc),
+        # Far-future date per the no-time-bomb test convention
+        date=datetime(2099, 4, 10, 19, 30, tzinfo=timezone.utc),
         show_page_url=EVENT_URL,
         lineup=[],
         tickets=[Ticket(price=20.0, purchase_url=EVENT_URL, sold_out=False, type="General Admission")],
@@ -122,6 +123,35 @@ async def test_get_data_short_circuits_to_group_events_api_fallback(monkeypatch)
     assert [e.event_id for e in result.event_list] == ["12345"]
     scraper.tixr_client.fetch_group_events.assert_awaited_once_with(
         "1613",
+        max_pages=1,
+        skip_direct=True,
+    )
+    scraper.tixr_client.get_event_detail_from_url.assert_not_called()
+    fetch_mock.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_get_data_short_circuits_via_url_fragment_when_metadata_missing(monkeypatch):
+    """
+    The URL-fragment safety net (_KNOWN_DATADOME_GROUP_URL_FRAGMENTS) still
+    short-circuits when the scraping source has no tixr_group_id metadata —
+    group-id resolution falls back to the URL slug.
+    """
+    monkeypatch.setenv("TIXR_GROUP_EVENTS_API_FALLBACK", "1")
+    scraper = TixrScraper(_club(metadata={}))
+    event = _tixr_event()
+
+    fetch_mock = _blocked_fetch_mock()
+    monkeypatch.setattr(scraper, "_fetch_calendar_html", fetch_mock)
+    scraper.tixr_client.fetch_group_events = AsyncMock(return_value=[event])
+    scraper.tixr_client.get_event_detail_from_url = AsyncMock()
+
+    result = await scraper.get_data(GROUP_URL)
+
+    assert isinstance(result, TixrPageData)
+    assert [e.event_id for e in result.event_list] == ["12345"]
+    scraper.tixr_client.fetch_group_events.assert_awaited_once_with(
+        "laughfactorycovina",
         max_pages=1,
         skip_direct=True,
     )
