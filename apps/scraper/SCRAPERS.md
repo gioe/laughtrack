@@ -474,6 +474,13 @@ GET https://tockify.com/api/ngevent?calname=<calname>&max=200&startms=<now_ms>
 - Ticket URLs: normalize `embed.showclix.com/event/{slug}` → `www.showclix.com/event/{slug}`
 - Paginate via `metaData.hasNext` + `startms`: the scraper loops in `get_data()` while `metaData.hasNext` is true, re-fetching with `startms` set to `max(event.start_ms) + 1` from the previous page. A 20-page safety cap (4000 events) prevents a server that always returns `hasNext=true` from spinning forever; if the cap fires, `Logger.warn` flags possible truncation.
 - `when.start.tzid` gives the timezone string
+- **Pricing** (TASK-2837 pattern, TASK-2838): the ngevent payload has no price
+  keys. The scraper fetches each distinct `customButtonLink` ticket page once
+  per run (memoized; embed URLs normalized to www first) and parses the lowest
+  positive per-tier price from the page's schema.org JSON-LD `Event.offers`
+  via the shared `EventExtractor` pipeline. All-zero offers parse as
+  proven-free 0.0; the ~10% seated-sales page variant has no JSON-LD and keeps
+  price `None` (TASK-2841 may cover that residue via the ShowClix seated API).
 
 **To onboard a new Tockify venue:**
 1. Use Playwright to find the `calname` in network requests
@@ -1683,6 +1690,25 @@ The scraper appends `/products.json?limit=250` at runtime — store only the col
   Custom title formats require extending the regex patterns in `ShopifyExtractor`.
 - **403 or empty response:** Some Shopify stores restrict the JSON API by region or bot detection.
   Test with the scraper's Playwright browser fallback if `fetch_json` fails.
+
+### Stand-Up NY (standup_ny)
+
+Events come from the VenuePilot GraphQL feed (accountIds `[2535]` via
+`venuepilot.co/graphql`; `api.showtix4u.com` is a dead fallback). Ticket price
+enhancement is dispatched by `ticketsUrl` host (TASK-2836):
+
+- **tickets.venuepilot.com** — fetch the page and read the pinia state
+  (`checkout.tickets[].breakdown.price`). As of May 2026 only free open mics
+  use this path.
+- **square.link** — the venue moved paid checkout to Square payment links
+  (~May 2026). The link redirects to `checkout.square.site` whose embedded JSON
+  carries per-tier `"price_money":{"amount":<cents>}`; the scraper takes the
+  lowest positive tier. Fixture:
+  `tests/scrapers/implementations/venues/standup_ny/fixtures/`.
+- Other hosts (eventbrite, venue sites) get the priceless fallback ticket.
+
+If prices vanish again, re-check the `ticketsUrl` host distribution first — the
+venue has switched checkout platforms before.
 
 ---
 
