@@ -1316,6 +1316,12 @@ The `?per_page=500` parameter is **required** — the default returns only ~50 e
 3. Extract show time via regex: `Show:\s*(\d{1,2}:\d{2}\s*[AP]M)`. Normalize compact format (`"8:30PM"`) to `"8:30 PM"` before strptime.
 4. Date format: `"%B %d, %Y"` (e.g. `"March 29, 2026"`)
 5. Event URL doubles as the ticket purchase URL
+6. **Pricing** (TASK-2839): the listing renders no price strings; each detail
+   page (`/e/{slug}`) embeds schema.org JSON-LD with `offers.price` (single
+   Offer dict, string price). The scraper fetches each distinct detail URL
+   once per run (memoized, failure-evicting) and parses it via the shared
+   `EventExtractor.extract_min_offer_price`; at the default 1 req/s host
+   limit this adds ~2.5 min for ~143 events — fine for a nightly job.
 
 **To onboard a new OpenDate venue:**
 1. Find the venue slug from their OpenDate page URL: `app.opendate.io/v/{slug}`
