@@ -61,10 +61,10 @@ Full operator walkthrough lives in `apps/web/DEPLOYMENT.md` →
 
 ## Regression alerts
 
-`scraper-health-alerts.yaml` defines three unified-alerting rules. Each compares
-the **latest run** against the **trailing 7-run rolling average** (rows
-`rn BETWEEN 2 AND 8` in the SQL — widen/narrow by editing those bounds) and
-routes to a Discord contact point:
+`scraper-health-alerts.yaml` defines four unified-alerting rules routed to a
+Discord contact point. Rules 1 and 3 compare the **latest run** against the
+**trailing 7-run rolling average** (rows `rn BETWEEN 2 AND 8` in the SQL —
+widen/narrow by editing those bounds):
 
 1. **Success-rate regression** — fires when the latest run's overall
    `scraper_runs.success_rate` is more than 10 percentage points below the
@@ -76,6 +76,16 @@ routes to a Discord contact point:
    resolves. One alert instance per club (the `club` label).
 3. **Error-count spike** — fires when the latest run logged more than 5 errors
    above the trailing-average error count.
+4. **Club at zero shows for 2+ consecutive full runs** — self-healing companion
+   to rule 2 (TASK-2832). Fires when a club has zero shows in the last 2
+   consecutive **full** scrape runs (`clubs_processed > 1`, so single-club
+   verify runs cannot pollute the comparison window — the TASK-2824 ImprovCity
+   miss) but had shows within the trailing 30 days. Unlike the one-shot
+   transition rule, this condition **keeps firing every evaluation until the
+   club recovers**, so a missed evaluation cannot bury an outage. The 30-day
+   `> 0` lookback keeps legitimately dark venues (clubs that never had shows)
+   out of the alert; a club that genuinely goes dark stops firing 30 days
+   after its last show. One alert instance per club (the `club` label).
 
 These replace the scraper's old unconditional per-run Discord summary (gated off
 in TASK-2511): a healthy run produces no Discord post, so Discord carries only
@@ -93,9 +103,15 @@ failures and regressions.
 3. **Provision the rules.**
    - *Self-hosted Grafana:* drop `scraper-health-alerts.yaml` in
      `/etc/grafana/provisioning/alerting/` and restart.
-   - *Grafana Cloud* (no file provisioning): recreate the three rules via
+   - *Grafana Cloud* (no file provisioning): recreate the four rules via
      **Alerting → Alert rules → New** using the SQL and thresholds from the file
-     verbatim, or apply them with Terraform / the Alerting API.
+     verbatim, or apply them with Terraform / the Alerting API. When a rule is
+     added to the YAML (e.g. rule 4, TASK-2832), it does **not** reach Grafana
+     Cloud on merge — someone must create it manually in the UI: query A = the
+     rule's `rawSql` against the Neon datasource, expression B = reduce(last, A),
+     expression C = threshold(B > 0), evaluation group `scraper-health-regressions`
+     (1h), labels `service=scraper-health, severity=warning`, and the annotations
+     from the YAML.
 4. **Route to Discord.** Provisioned notification `policies` replace the org root
    policy, so the YAML leaves that block commented out. Add a notification-policy
    route in the UI instead: matcher `service = scraper-health` → contact point
