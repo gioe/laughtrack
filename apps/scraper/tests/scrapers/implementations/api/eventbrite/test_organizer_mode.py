@@ -30,6 +30,7 @@ pytestmark = pytest.mark.skipif(
 )
 
 from laughtrack.core.entities.club.model import Club, ScrapingSource
+from laughtrack.core.entities.club.handler import _normalize_venue_name_for_match
 from laughtrack.core.entities.event.eventbrite import EventbriteEvent
 from laughtrack.core.entities.production_company.model import ProductionCompany
 from laughtrack.core.entities.show.model import Show
@@ -128,6 +129,15 @@ def _fake_venue_club(club_id: int, name: str, city: str, state: str) -> Club:
 def test_extract_organizer_id_handles_path_segment_form():
     assert (
         _extract_eventbrite_organizer_id(_ENCORE_ORGANIZER_URL) == "72313162423"
+    )
+
+
+def test_eventbrite_upsert_normalizes_comic_strip_live_alias_before_sql_fallback():
+    """TASK-2825: the NY Eventbrite venue 'The Comic Strip' must normalize to
+    the canonical same-city club 'Comic Strip Live' before the name-keyed SQL
+    upsert can collide with the separate El Paso club named 'The Comic Strip'."""
+    assert _normalize_venue_name_for_match("The Comic Strip", "New York", "NY") == (
+        _normalize_venue_name_for_match("Comic Strip Live", "New York", "NY")
     )
 
 

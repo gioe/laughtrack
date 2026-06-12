@@ -577,6 +577,14 @@ class TestUpsertSqlAvoidsCteSnapshotBug:
         # CTE must RETURNING * so the final SELECT can read the inserted row.
         assert "RETURNING *" in sql
 
+    def test_eventbrite_name_conflict_requires_compatible_location_before_source_upsert(self):
+        sql = self._normalized(ClubQueries.UPSERT_CLUB_BY_EVENTBRITE_VENUE)
+
+        assert "ON CONFLICT (NAME) DO UPDATE SET" in sql
+        assert "LOWER(TRIM(CLUBS.CITY)) = LOWER(TRIM(EXCLUDED.CITY))" in sql
+        assert "LOWER(TRIM(CLUBS.STATE)) = LOWER(TRIM(EXCLUDED.STATE))" in sql
+        assert sql.index("LOWER(TRIM(CLUBS.CITY))") < sql.index("RETURNING *")
+
     def test_seatengine_upsert_selects_from_cte_not_clubs_table(self):
         sql = self._normalized(ClubQueries.UPSERT_CLUB_BY_SEATENGINE_VENUE)
         assert "JOIN UPSERTED_CLUB" not in sql
@@ -1231,6 +1239,35 @@ class TestUpsertForEventbriteVenueBrandNameSafety:
         assert result.id == 11
         assert result.name == "Comedy Cellar Village"
         assert mock_exec.call_count == 2
+
+    def test_eventbrite_upsert_reuses_comic_strip_live_for_the_comic_strip_alias(self):
+        """TASK-2825: Eventbrite emits the New York venue as 'The Comic Strip',
+        while the canonical club row is 'Comic Strip Live'. Reuse the same-city
+        canonical row before the SQL upsert can collide with the separate El
+        Paso club also named 'The Comic Strip'."""
+        existing = _make_club_row(
+            id=21,
+            name="Comic Strip Live",
+            city="New York",
+            state="NY",
+            eventbrite_id="8100188167",
+        )
+        venue = _FakeVenue(
+            id="ny-eventbrite-venue",
+            name="The Comic Strip",
+            address=_FakeAddress(city="New York", region="NY"),
+        )
+
+        handler = ClubHandler()
+        with patch.object(handler, "execute_with_cursor", return_value=[existing]) as mock_exec:
+            result = handler.upsert_for_eventbrite_venue(venue)
+
+        assert result is not None
+        assert result.id == 21
+        assert result.name == "Comic Strip Live"
+        assert mock_exec.call_count == 1
+        called_sql = mock_exec.call_args_list[0][0][0]
+        assert "GET_CLUBS_BY_LOCATION" in called_sql or "WHERE LOWER(TRIM(c.city))" in called_sql
 
 
 # ---------------------------------------------------------------------------

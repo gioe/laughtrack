@@ -46,7 +46,8 @@ def _normalize_venue_name_for_match(name: str, city: str = "", state: str = "") 
          expand '&' to 'and', then collapse all non-alphanumeric runs to single
          spaces. This normalizes punctuation, em-dashes, and unicode whitespace.
       2. Strip leading 'the ' (so 'The Comedy Cellar' folds to 'comedy cellar').
-      3. Strip a trailing ' <city>', ' <state>', or ' <city> <state>' suffix —
+      3. Strip a trailing ' <city>', ' <state>', ' <city> <state>', or generic
+         same-location ' live' suffix —
          longest match first so 'big couch new orleans la' strips before
          'big couch new orleans'. Only the END of the string is considered;
          middle/prefix occurrences are preserved (a venue genuinely named
@@ -69,6 +70,12 @@ def _normalize_venue_name_for_match(name: str, city: str = "", state: str = "") 
         suffix_candidates.append(norm_city)
     if norm_state:
         suffix_candidates.append(norm_state)
+    if norm_city and norm_state:
+        # Eventbrite sometimes omits a generic venue qualifier that the
+        # canonical club row includes (TASK-2825: "The Comic Strip" vs
+        # "Comic Strip Live"). Keep this gated on complete location so it
+        # cannot create cross-city brand collisions.
+        suffix_candidates.append("live")
     suffix_candidates.sort(key=len, reverse=True)
 
     for suffix in suffix_candidates:

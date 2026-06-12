@@ -230,6 +230,14 @@ class ClubQueries:
             ON CONFLICT (name) DO UPDATE SET
                 city  = COALESCE(clubs.city,  EXCLUDED.city),
                 state = COALESCE(clubs.state, EXCLUDED.state)
+            WHERE (
+                clubs.city IS NULL OR EXCLUDED.city IS NULL
+                OR LOWER(TRIM(clubs.city)) = LOWER(TRIM(EXCLUDED.city))
+            )
+            AND (
+                clubs.state IS NULL OR EXCLUDED.state IS NULL
+                OR LOWER(TRIM(clubs.state)) = LOWER(TRIM(EXCLUDED.state))
+            )
             RETURNING *
         ),
         upserted_source AS (
