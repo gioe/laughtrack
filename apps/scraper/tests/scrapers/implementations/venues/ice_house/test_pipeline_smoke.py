@@ -9,7 +9,7 @@ transformation path.
 import pytest
 
 from laughtrack.core.entities.club.model import Club, ScrapingSource
-from laughtrack.core.entities.event.ice_house import IceHouseEvent, _normalize_showclix_url
+from laughtrack.core.entities.event.ice_house import IceHouseEvent, normalize_showclix_url
 from laughtrack.scrapers.implementations.venues.ice_house.scraper import IceHouseScraper
 from laughtrack.scrapers.implementations.venues.ice_house.data import IceHousePageData
 from laughtrack.scrapers.implementations.venues.ice_house.extractor import IceHouseExtractor
@@ -104,20 +104,20 @@ def _stub_price_fetch(monkeypatch):
 
 
 # ---------------------------------------------------------------------------
-# _normalize_showclix_url tests
+# normalize_showclix_url tests
 # ---------------------------------------------------------------------------
 
 
 def test_normalize_embed_url_to_www():
     """embed.showclix.com URLs are normalized to www.showclix.com."""
     raw = "https://embed.showclix.com/event/comedy-night-4-1-26"
-    assert _normalize_showclix_url(raw) == "https://www.showclix.com/event/comedy-night-4-1-26"
+    assert normalize_showclix_url(raw) == "https://www.showclix.com/event/comedy-night-4-1-26"
 
 
 def test_normalize_www_url_unchanged():
     """www.showclix.com URLs are returned unchanged."""
     url = "https://www.showclix.com/event/comedy-night-4-1-26"
-    assert _normalize_showclix_url(url) == url
+    assert normalize_showclix_url(url) == url
 
 
 # ---------------------------------------------------------------------------
@@ -714,6 +714,26 @@ async def test_get_data_price_fetch_failure_keeps_events_and_retries_later(monke
     # The failed fetch is evicted from the memo, so a retried get_data refetches.
     await scraper.get_data("https://tockify.com/api/ngevent?calname=theicehouse&max=200&startms=0")
     assert len(fetched) == 2
+
+
+@pytest.mark.asyncio
+async def test_get_data_priceless_page_stays_cached(monkeypatch):
+    """A fetched page with no parseable offers is NOT refetched on retry — refetching would not help."""
+    api_events = [_raw_event(uid="1", ticket_url="https://events.leapevents.com/event/show-a")]
+    fetched: list = []
+    scraper = _scraper_with_ticket_pages(
+        monkeypatch,
+        api_events,
+        {"https://events.leapevents.com/event/show-a": "<html><body>seated sales page, no JSON-LD</body></html>"},
+        fetched,
+    )
+
+    first = await scraper.get_data("https://tockify.com/api/ngevent?calname=theicehouse&max=200&startms=0")
+    second = await scraper.get_data("https://tockify.com/api/ngevent?calname=theicehouse&max=200&startms=0")
+
+    assert first.event_list[0].price is None
+    assert second.event_list[0].price is None
+    assert fetched == ["https://events.leapevents.com/event/show-a"]
 
 
 def test_to_show_carries_price_into_fallback_ticket():

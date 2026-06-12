@@ -34,7 +34,7 @@ from typing import Dict, List, Optional
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 from laughtrack.core.entities.club.model import Club
-from laughtrack.core.entities.event.ice_house import IceHouseEvent, _normalize_showclix_url
+from laughtrack.core.entities.event.ice_house import IceHouseEvent, normalize_showclix_url
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.shared.types import ScrapingTarget
@@ -165,7 +165,7 @@ class IceHouseScraper(BaseScraper):
         fallback pages carry no offers) keep price=None.
         """
         urls = list(dict.fromkeys(
-            _normalize_showclix_url(event.ticket_url)
+            normalize_showclix_url(event.ticket_url)
             for event in events
             if event.ticket_url
         ))
@@ -173,7 +173,7 @@ class IceHouseScraper(BaseScraper):
         price_by_url = dict(zip(urls, prices))
         for event in events:
             if event.ticket_url:
-                event.price = price_by_url.get(_normalize_showclix_url(event.ticket_url))
+                event.price = price_by_url.get(normalize_showclix_url(event.ticket_url))
 
     def _ticket_page_price(self, url: str) -> "asyncio.Task[Optional[float]]":
         task = self._ticket_price_tasks.get(url)
@@ -203,7 +203,16 @@ class IceHouseScraper(BaseScraper):
         if not html:
             self._ticket_price_tasks.pop(url, None)
             return None
-        return IceHouseExtractor.extract_min_offer_price(html)
+        try:
+            return IceHouseExtractor.extract_min_offer_price(html)
+        except Exception as e:
+            # Parse failures stay cached — the page was fetched fine, so a
+            # refetch would not help.
+            Logger.warn(
+                f"{self._log_prefix}: ticket-page price parse failed for {url}: {e}",
+                self.logger_context,
+            )
+            return None
 
     @staticmethod
     def _advance_startms(url: str, new_startms: int) -> str:

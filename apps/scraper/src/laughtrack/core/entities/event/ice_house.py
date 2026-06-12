@@ -10,7 +10,7 @@ from laughtrack.core.protocols.show_convertible import ShowConvertible
 from laughtrack.utilities.domain.show.factory import ShowFactoryUtils
 
 
-def _normalize_showclix_url(url: str) -> str:
+def normalize_showclix_url(url: str) -> str:
     """Normalize embed.showclix.com ticket URLs to www.showclix.com URLs.
 
     Tockify's customButtonLink uses embed.showclix.com for iframe embeds.
@@ -61,7 +61,7 @@ class IceHouseEvent(ShowConvertible):
         raw_ticket_url = url or self.ticket_url or self.detail_url
         if not raw_ticket_url:
             return None
-        ticket_url = _normalize_showclix_url(raw_ticket_url)
+        ticket_url = normalize_showclix_url(raw_ticket_url)
         tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url, price=self.price)]
 
         return ShowFactoryUtils.create_enhanced_show_base(
