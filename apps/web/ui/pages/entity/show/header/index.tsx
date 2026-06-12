@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Ticket } from "lucide-react";
 import { formatShowCountdown } from "@/util/dateUtil";
+import { showHeroImage } from "@/util/show/showHeroImage";
 import { ShowDetailDTO } from "@/lib/data/show/detail/interface";
 import MarqueeHero from "@/ui/pages/entity/MarqueeHero";
 
@@ -42,8 +43,11 @@ const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({
             ? show.name
             : `Comedy at ${show.clubName ?? ""}`;
     const countdown = formatShowCountdown(show.date.toString(), now);
-    const imageSrc =
-        show.imageUrl && show.imageUrl !== PLACEHOLDER ? show.imageUrl : null;
+    // Prefer the inferred headliner's headshot over the club image, matching
+    // the iOS marquee (ShowDetailPresentation.heroImageURL).
+    const hero = showHeroImage(show);
+    const imageSrc = hero.src && hero.src !== PLACEHOLDER ? hero.src : null;
+    const imageAlt = hero.headliner?.name ?? show.clubName ?? "Club";
 
     return (
         <MarqueeHero
@@ -59,7 +63,7 @@ const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({
                 ) : null
             }
             imageSrc={imageSrc}
-            imageAlt={show.clubName ?? "Club"}
+            imageAlt={imageAlt}
             fallback={
                 <div className="flex h-full w-full items-center justify-center bg-surface-muted">
                     <Ticket
