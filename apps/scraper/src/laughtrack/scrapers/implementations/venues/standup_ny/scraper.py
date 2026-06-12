@@ -66,16 +66,16 @@ class StandupNYScraper(BaseScraper):
                 Logger.warn(f"{self._log_prefix}: No events found during GraphQL discovery", self.logger_context)
                 return []
 
-            # Get VenuePilot URLs that need enhancement
-            venuepilot_urls = self.page_data.get_venue_pilot_urls()
+            # Get VenuePilot and Square checkout URLs that need enhancement
+            enhancement_urls = self.page_data.get_enhancement_urls()
 
             Logger.info(
                 f"Discovered {self.page_data.get_event_count()} events, "
-                f"{len(venuepilot_urls)} need VenuePilot enhancement",
+                f"{len(enhancement_urls)} need ticket enhancement (VenuePilot/Square)",
                 self.logger_context,
             )
 
-            return venuepilot_urls
+            return enhancement_urls
 
         except Exception as e:
             Logger.error(f"{self._log_prefix}: Error in discover_urls: {e}", self.logger_context)
@@ -84,16 +84,19 @@ class StandupNYScraper(BaseScraper):
 
     async def get_data(self, url: str) -> Optional[JSONDict]:
         """
-        Extract VenuePilot enhancement data for a single URL.
+        Extract ticket enhancement data for a single URL.
+
+        Dispatches by URL host: VenuePilot pages get the pinia ticket
+        extraction; square.link pages get the Square checkout price parse.
 
         Args:
-            url: VenuePilot ticket URL to enhance
+            url: Ticket URL to enhance
 
         Returns:
             Enhanced event data or None if enhancement failed
         """
         if not hasattr(self, "page_data") or not self.page_data:
-            Logger.error(f"{self._log_prefix}: No page data available for VenuePilot enhancement", self.logger_context)
+            Logger.error(f"{self._log_prefix}: No page data available for ticket enhancement", self.logger_context)
             return None
 
         # Find the event for this URL
@@ -104,14 +107,18 @@ class StandupNYScraper(BaseScraper):
 
         session = await self.get_session()
 
-        # Use extractor to enhance the event with VenuePilot data
-        success = await self.extractor.enhance_event_with_venue_pilot(session, event)
+        if "square.link" in url.lower():
+            success = await self.extractor.enhance_event_with_square(session, event)
+            source = "Square"
+        else:
+            success = await self.extractor.enhance_event_with_venue_pilot(session, event)
+            source = "VenuePilot"
 
         if success:
-            Logger.debug(f"{self._log_prefix}: Successfully enhanced event {event.id} with VenuePilot data", self.logger_context)
+            Logger.debug(f"{self._log_prefix}: Successfully enhanced event {event.id} with {source} data", self.logger_context)
             return {"enhanced_event": event, "url": url}
         else:
-            Logger.warn(f"{self._log_prefix}: Failed to enhance event {event.id} with VenuePilot data", self.logger_context)
+            Logger.warn(f"{self._log_prefix}: Failed to enhance event {event.id} with {source} data", self.logger_context)
             return None
 
     async def transform_data(self, raw_data: JSONDict, source_url: str) -> List[Show]:

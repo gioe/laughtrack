@@ -48,8 +48,13 @@ class StandupNYEvent:
     venue_pilot_tickets: Optional[List[Dict[str, Any]]] = None
     venue_pilot_slug: Optional[str] = None
 
+    # Square checkout enhanced data (if available) — tier prices in dollars,
+    # parsed from the checkout.square.site embedded JSON (TASK-2836)
+    square_prices: Optional[List[float]] = None
+
     # Source tracking
     has_venue_pilot_data: bool = False
+    has_square_data: bool = False
     graphql_source: str = "unknown"  # "showtix4u" or "venuepilot"
 
     # Raw data preservation for debugging
@@ -117,6 +122,18 @@ class StandupNYEvent:
 
         # Store raw data
         self._raw_venue_pilot_data = venue_pilot_data
+
+    def add_square_data(self, prices: List[float]) -> None:
+        """
+        Add Square checkout tier prices (dollars) to this event.
+
+        Args:
+            prices: Positive tier prices parsed from the checkout page
+        """
+        if not prices:
+            return
+        self.square_prices = prices
+        self.has_square_data = True
 
     def get_effective_name(self) -> str:
         """Get the best available event name."""

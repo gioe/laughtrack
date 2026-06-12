@@ -125,6 +125,51 @@ class StandupNYEventExtractor:
             Logger.error(f"{self.__class__.__name__}: Error enhancing event {event.id} with VenuePilot data: {e}", self.logger_context)
             return False
 
+    # checkout.square.site embeds item-variation JSON like
+    #   "price_money":{"amount":2500,"currency":"USD"}
+    # with amounts in cents. square.link URLs redirect there (followed by the
+    # HTTP client automatically).
+    _SQUARE_PRICE_PATTERN = re.compile(
+        r'"price_money"\s*:\s*\{\s*"amount"\s*:\s*(\d+)'
+    )
+
+    async def enhance_event_with_square(self, session, event: StandupNYEvent) -> bool:
+        """
+        Enhance an event with ticket prices from its Square checkout page.
+
+        The venue moved paid checkout from VenuePilot to square.link payment
+        links (~May 2026, TASK-2836). The link redirects to checkout.square.site
+        whose embedded JSON exposes per-tier price_money amounts in cents.
+
+        Args:
+            session: HTTP session for requests
+            event: Event to enhance with Square price data
+
+        Returns:
+            True if at least one positive tier price was extracted
+        """
+        if not event.ticket_url or "square.link" not in event.ticket_url.lower():
+            return False
+
+        try:
+            html_content = await HttpClient.fetch_html(
+                session, event.ticket_url, logger_context=self.logger_context
+            )
+            if not html_content:
+                return False
+
+            amounts = self._SQUARE_PRICE_PATTERN.findall(html_content)
+            prices = sorted({int(a) / 100.0 for a in amounts if int(a) > 0})
+            if not prices:
+                return False
+
+            event.add_square_data(prices)
+            return True
+
+        except Exception as e:
+            Logger.error(f"{self.__class__.__name__}: Error enhancing event {event.id} with Square data: {e}", self.logger_context)
+            return False
+
     async def _discover_graphql_endpoint(self, session, club_url: str) -> Optional[str]:
         """
         Discover the GraphQL endpoint from club.scraping_url.

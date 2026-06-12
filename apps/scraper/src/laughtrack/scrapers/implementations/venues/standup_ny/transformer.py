@@ -155,6 +155,18 @@ class StandupNYEventTransformer(DataTransformer[StandupNYEvent]):
             if event.has_enhanced_ticket_data():
                 tickets = self._extract_venue_pilot_tickets(event)
 
+            # Square checkout enhancement: lowest tier price from the
+            # checkout.square.site embedded JSON (TASK-2836)
+            if not tickets and event.has_square_data and event.square_prices:
+                tickets = [
+                    Ticket(
+                        price=min(event.square_prices),
+                        purchase_url=event.get_effective_ticket_url(),
+                        sold_out=False,
+                        type="General Admission",
+                    )
+                ]
+
             # Fallback to basic ticket from GraphQL data
             if not tickets and event.ticket_url:
                 # The GraphQL API (ShowTix4U) only provides a ticket URL — no
