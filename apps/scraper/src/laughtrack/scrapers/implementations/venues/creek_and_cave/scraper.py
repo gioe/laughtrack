@@ -66,30 +66,28 @@ class CreekAndCaveScraper(BaseScraper):
             :class:`CreekAndCavePageData` with extracted shows, or ``None``
             when the page is unavailable or contains no parseable events.
         """
-        try:
-            html_content = await self.fetch_html_bare(url)
-            if not html_content:
-                self._warn_empty_extraction(url, subject="html", html=html_content)
-                return None
+        # Fetch errors deliberately propagate (no broad try/except): the
+        # BaseScraper retry/diagnostics layer records them as fetch_failed,
+        # matching the Gotham feed scraper. Creek is single-target, so a
+        # swallowed fetch error here would misclassify a full site outage as
+        # an empty calendar. Extraction-level errors are already contained
+        # inside CreekAndCaveEventExtractor.extract_shows.
+        html_content = await self.fetch_html_bare(url)
+        if not html_content:
+            self._warn_empty_extraction(url, subject="html", html=html_content)
+            return None
 
-            shows = CreekAndCaveEventExtractor.extract_shows(html_content)
-            if not shows:
-                self._warn_empty_extraction(
-                    url,
-                    html=html_content,
-                    note="site may have changed structure or have no upcoming events",
-                )
-                return None
-
-            Logger.info(
-                f"{self._log_prefix}: extracted {len(shows)} shows from {url}",
-                self.logger_context,
-            )
-            return CreekAndCavePageData(event_list=shows)
-
-        except Exception as e:
-            Logger.error(
-                f"{self._log_prefix}: error fetching {url}: {e}",
-                self.logger_context,
+        shows = CreekAndCaveEventExtractor.extract_shows(html_content)
+        if not shows:
+            self._warn_empty_extraction(
+                url,
+                html=html_content,
+                note="site may have changed structure or have no upcoming events",
             )
             return None
+
+        Logger.info(
+            f"{self._log_prefix}: extracted {len(shows)} shows from {url}",
+            self.logger_context,
+        )
+        return CreekAndCavePageData(event_list=shows)

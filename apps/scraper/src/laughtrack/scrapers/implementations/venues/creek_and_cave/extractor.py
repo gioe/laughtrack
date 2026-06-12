@@ -70,10 +70,14 @@ class CreekAndCaveEventExtractor:
 
             # Fallback: the dehydrated React Query caches (carousel/venueShows)
             # still carry a partial (~25 row) listing the shared extractor knows.
+            # Drop link-less rows here too — the primary path requires
+            # ticket_link, and a show without one would violate the
+            # one-ticket-per-show invariant this extractor guarantees.
             punchup_shows = PunchupExtractor.extract_shows(html_content)
             return [
                 CreekAndCaveShow(**{f.name: getattr(s, f.name) for f in dataclasses.fields(s)})
                 for s in punchup_shows
+                if s.ticket_link
             ]
         except Exception as e:
             Logger.error(f"CreekAndCaveEventExtractor: error extracting shows from HTML: {e}")
@@ -116,9 +120,15 @@ class CreekAndCaveEventExtractor:
                 break
             search_from = key_idx + len(_SHOWS_KEY)
 
-            arr_start = payload.find("[", search_from)
-            if arr_start < 0:
-                break
+            # Only accept an array that immediately follows the key (modulo
+            # whitespace) — an unbounded find("[") could jump past a non-array
+            # value (or a key occurrence inside string content) and decode an
+            # unrelated array elsewhere in the payload.
+            arr_start = search_from
+            while arr_start < len(payload) and payload[arr_start] in " \t\r\n":
+                arr_start += 1
+            if arr_start >= len(payload) or payload[arr_start] != "[":
+                continue
 
             try:
                 value, _end = decoder.raw_decode(payload, arr_start)

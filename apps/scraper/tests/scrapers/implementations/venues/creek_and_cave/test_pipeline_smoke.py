@@ -203,8 +203,13 @@ async def test_get_data_returns_none_when_no_event_rows(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_get_data_returns_none_on_fetch_exception(monkeypatch):
-    """get_data() returns None when fetch_html_bare raises."""
+async def test_get_data_propagates_fetch_exception(monkeypatch):
+    """Fetch errors propagate to the BaseScraper retry/diagnostics layer.
+
+    Creek is single-target, so swallowing a fetch error here would
+    misclassify a full site outage as an empty calendar (review 5131
+    comment 2954); the Gotham feed scraper propagates the same way.
+    """
     scraper = CreekAndCaveScraper(_club())
 
     async def fake_fetch_html_bare(self, url: str) -> str:
@@ -212,8 +217,8 @@ async def test_get_data_returns_none_on_fetch_exception(monkeypatch):
 
     monkeypatch.setattr(CreekAndCaveScraper, "fetch_html_bare", fake_fetch_html_bare)
 
-    result = await scraper.get_data(_CALENDAR_URL)
-    assert result is None
+    with pytest.raises(RuntimeError, match="network error"):
+        await scraper.get_data(_CALENDAR_URL)
 
 
 # ---------------------------------------------------------------------------
