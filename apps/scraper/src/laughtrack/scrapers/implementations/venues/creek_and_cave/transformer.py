@@ -1,14 +1,15 @@
 """Creek and Cave event transformer."""
 
-from laughtrack.core.entities.event.creek_and_cave import CreekAndCaveEvent
 from laughtrack.utilities.infrastructure.transformer.base import DataTransformer
 
+from .data import CreekAndCaveShow
 
-class CreekAndCaveEventTransformer(DataTransformer[CreekAndCaveEvent]):
+
+class CreekAndCaveEventTransformer(DataTransformer[CreekAndCaveShow]):
     """
-    Transformer for converting CreekAndCaveEvent objects to Show objects.
+    Transformer for converting CreekAndCaveShow objects to Show objects.
 
-    Delegates to CreekAndCaveEvent.to_show() via the DataTransformer base class.
+    Delegates to CreekAndCaveShow.to_show() via the DataTransformer base class.
     """
 
     pass

@@ -1,59 +1,113 @@
 """
-Pipeline smoke tests for CreekAndCaveScraper and CreekAndCaveEvent.
+Pipeline smoke tests for CreekAndCaveScraper and CreekAndCaveShow.
 
-Exercises get_data() against mocked S3 monthly JSON responses matching the
-actual creekandcaveevents.s3.amazonaws.com structure, and unit-tests the
-CreekAndCaveEvent.to_show() transformation path.
+Exercises get_data() against mocked Punchup/Next.js calendar HTML matching the
+actual www.creekandcave.com/calendar RSC stream (show rows embedded as a
+"shows": [...] component prop inside self.__next_f.push() chunks), and
+unit-tests the CreekAndCaveShow.to_show() transformation path.
 """
+
+import importlib.util
+import json
+
+from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.skipif(
+    importlib.util.find_spec("curl_cffi") is None,
+    reason="curl_cffi not installed",
+)
+
 from laughtrack.core.entities.club.model import Club, ScrapingSource
-from laughtrack.core.entities.event.creek_and_cave import CreekAndCaveEvent, _infer_comedian_name
 from laughtrack.scrapers.implementations.venues.creek_and_cave.scraper import CreekAndCaveScraper
-from laughtrack.scrapers.implementations.venues.creek_and_cave.data import CreekAndCavePageData
+from laughtrack.scrapers.implementations.venues.creek_and_cave.data import CreekAndCavePageData, CreekAndCaveShow
+from laughtrack.scrapers.implementations.venues.creek_and_cave.extractor import CreekAndCaveEventExtractor
 
 
-_S3_URL = "https://creekandcaveevents.s3.amazonaws.com/events/month/2026-04.json"
+_CALENDAR_URL = "https://www.creekandcave.com/calendar"
+_FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
 
 def _club() -> Club:
     _c = Club(id=999, name='The Creek and The Cave', address='611 East 7th St', website='https://www.creekandcave.com', popularity=0, zip_code='78701', phone_number='', visible=True, timezone='America/Chicago')
-    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url='https://www.creekandcave.com/calendar', external_id=None)
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url=_CALENDAR_URL, external_id=None)
     _c.scraping_sources = [_c.active_scraping_source]
     return _c
 
 
-def _s3_event(
-    name="Al Jackson",
-    slug="al-jackson",
-    shows=None,
-) -> dict:
-    if shows is None:
-        shows = [
-            {
-                "time": "7:00 pm",
-                "listing_url": "https://www.showclix.com/event/al-jacksongtum25a",
-                "date": "2026-04-11T00:00:00.000Z",
-                "inventory": 198,
-            }
-        ]
-    return {
-        "event": {
-            "name": name,
-            "slug": slug,
-            "date": shows[0]["date"] if shows else "2026-04-11T00:00:00.000Z",
-            "thumbnail": "https://example.com/thumb.jpg",
-            "shows": shows,
-        },
-        "hours": 19,
-        "minutes": 0,
+def _show_row(**overrides) -> dict:
+    """One raw event row matching the live calendar RSC field set (2099 dates)."""
+    row = {
+        "id": "b87b52de-4d9f-4ef0-87f2-b5fe5a90eb8d",
+        "created_at": "2026-05-27T17:24:06.045044+00:00",
+        "location": "Austin, TX",
+        "venue": "The Creek and The Cave",
+        "ticket_link": "https://event.tixologi.com/event/12297/tickets",
+        "comedian_id": None,
+        "venue_id": "5dc840a3-14c4-4425-b3c2-371305fda4e7",
+        "datetime": "2099-06-11T23:55:00",
+        "is_sold_out": False,
+        "metadata_text": "FREE! Every Thursday at Midnight\n\nWord Up! Open mic\n\nHosted by: Jordyn Aguilar",
+        "vip_ticket_link": None,
+        "presale_code": None,
+        "flags": [],
+        "title": "Word Up! Open Mic",
+        "tixologi_event_id": "12297",
+        "poster_img": None,
+        "published_at": None,
+        "comedian": None,
+        "show_comedians": [],
+        "venue_pages": [{"id": "5a78dea7", "slug": "creekandcave", "is_live": True}],
     }
+    row.update(overrides)
+    return row
 
 
-def _monthly_json(events_by_day: dict) -> dict:
-    """Wrap events in the S3 monthly structure keyed by day-of-month."""
-    return events_by_day
+def _calendar_payload(rows: list) -> str:
+    """Wrap rows in the RSC component-prop shape the live /calendar page uses."""
+    return (
+        '8:["$","div",null,{"children":["$","$L19",null,{"shows":'
+        + json.dumps(rows)
+        + ',"venueSlug":"creekandcave"}]}]'
+    )
+
+
+def _push_html(*payloads: str) -> str:
+    """Embed payloads as JS-escaped self.__next_f.push([1, "..."]) script chunks."""
+    scripts = "".join(
+        f"<script>self.__next_f.push([1,{json.dumps(p)}])</script>" for p in payloads
+    )
+    return f"<html><body>{scripts}</body></html>"
+
+
+def _calendar_html(rows: list) -> str:
+    return _push_html(_calendar_payload(rows))
+
+
+# ---------------------------------------------------------------------------
+# Registry key
+# ---------------------------------------------------------------------------
+
+
+def test_scraper_key_in_registry():
+    from laughtrack.app.registry import SCRAPERS
+
+    assert SCRAPERS.get("creek_and_cave") is CreekAndCaveScraper
+
+
+# ---------------------------------------------------------------------------
+# collect_scraping_targets() tests
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_collect_scraping_targets_returns_calendar_url():
+    """collect_scraping_targets() returns the single /calendar page URL."""
+    scraper = CreekAndCaveScraper(_club())
+    targets = await scraper.collect_scraping_targets()
+
+    assert targets == [_CALENDAR_URL]
 
 
 # ---------------------------------------------------------------------------
@@ -63,256 +117,288 @@ def _monthly_json(events_by_day: dict) -> dict:
 
 @pytest.mark.asyncio
 async def test_get_data_returns_page_data_with_events(monkeypatch):
-    """get_data() parses S3 JSON and returns CreekAndCavePageData with events."""
+    """get_data() parses the RSC stream and returns CreekAndCavePageData."""
     scraper = CreekAndCaveScraper(_club())
 
-    async def fake_fetch_json(self, url: str, **kwargs) -> dict:
-        return _monthly_json({
-            "10": [_s3_event(name="Al Jackson", slug="al-jackson")],
-        })
+    async def fake_fetch_html_bare(self, url: str) -> str:
+        return _calendar_html([_show_row()])
 
-    monkeypatch.setattr(CreekAndCaveScraper, "fetch_json", fake_fetch_json)
+    monkeypatch.setattr(CreekAndCaveScraper, "fetch_html_bare", fake_fetch_html_bare)
 
-    result = await scraper.get_data(_S3_URL)
+    result = await scraper.get_data(_CALENDAR_URL)
 
     assert isinstance(result, CreekAndCavePageData)
     assert len(result.event_list) == 1
-    assert result.event_list[0].name == "Al Jackson"
-    assert result.event_list[0].slug == "al-jackson"
+    event = result.event_list[0]
+    assert event.title == "Word Up! Open Mic"
+    assert event.datetime_str == "2099-06-11T23:55:00"
+    assert event.ticket_link == "https://event.tixologi.com/event/12297/tickets"
+    assert event.tixologi_event_id == "12297"
+    assert event.is_sold_out is False
 
 
 @pytest.mark.asyncio
-async def test_get_data_expands_multi_show_events(monkeypatch):
-    """get_data() creates one CreekAndCaveEvent per show slot (7pm and 9pm)."""
+async def test_get_data_parses_real_trimmed_snippet(monkeypatch):
+    """get_data() parses the trimmed real calendar RSC snippet fixture."""
     scraper = CreekAndCaveScraper(_club())
+    snippet = (_FIXTURES_DIR / "calendar_rsc_snippet.html").read_text()
 
-    two_show_event = _s3_event(
-        name="Beth Stelling",
-        slug="beth-stelling",
-        shows=[
-            {
-                "time": "7:00 pm",
-                "listing_url": "https://www.showclix.com/event/beth-stellingAAA",
-                "date": "2026-05-08T00:00:00.000Z",
-                "inventory": 200,
-            },
-            {
-                "time": "9:00 pm",
-                "listing_url": "https://www.showclix.com/event/beth-stellingBBB",
-                "date": "2026-05-08T02:00:00.000Z",
-                "inventory": 200,
-            },
-        ],
-    )
+    async def fake_fetch_html_bare(self, url: str) -> str:
+        return snippet
 
-    async def fake_fetch_json(self, url: str, **kwargs) -> dict:
-        return {"8": [two_show_event]}
+    monkeypatch.setattr(CreekAndCaveScraper, "fetch_html_bare", fake_fetch_html_bare)
 
-    monkeypatch.setattr(CreekAndCaveScraper, "fetch_json", fake_fetch_json)
-
-    result = await scraper.get_data(_S3_URL)
+    result = await scraper.get_data(_CALENDAR_URL)
 
     assert isinstance(result, CreekAndCavePageData)
-    assert len(result.event_list) == 2
-    urls = {e.listing_url for e in result.event_list}
-    assert "https://www.showclix.com/event/beth-stellingAAA" in urls
-    assert "https://www.showclix.com/event/beth-stellingBBB" in urls
+    titles = {e.title for e in result.event_list}
+    assert titles == {"Word Up! Open Mic", "Kate Berlant"}
+    kate = next(e for e in result.event_list if e.title == "Kate Berlant")
+    assert [c["display_name"] for c in kate.show_comedians] == ["Kate Berlant"]
 
 
 @pytest.mark.asyncio
-async def test_get_data_multiple_days(monkeypatch):
-    """get_data() aggregates events across multiple days in one monthly file."""
+async def test_get_data_dedupes_rows_across_payloads(monkeypatch):
+    """The same row appearing in more than one chunk yields a single event."""
     scraper = CreekAndCaveScraper(_club())
+    row = _show_row()
 
-    async def fake_fetch_json(self, url: str, **kwargs) -> dict:
-        return {
-            "10": [_s3_event(name="Al Jackson", slug="al-jackson")],
-            "11": [_s3_event(name="Al Jackson", slug="al-jackson")],
-            "12": [_s3_event(name="Off The Cuff", slug="off-the-cuff")],
-        }
+    async def fake_fetch_html_bare(self, url: str) -> str:
+        return _push_html(_calendar_payload([row]), _calendar_payload([row]))
 
-    monkeypatch.setattr(CreekAndCaveScraper, "fetch_json", fake_fetch_json)
+    monkeypatch.setattr(CreekAndCaveScraper, "fetch_html_bare", fake_fetch_html_bare)
 
-    result = await scraper.get_data(_S3_URL)
+    result = await scraper.get_data(_CALENDAR_URL)
 
     assert isinstance(result, CreekAndCavePageData)
-    assert len(result.event_list) == 3
+    assert len(result.event_list) == 1
 
 
 @pytest.mark.asyncio
-async def test_get_data_returns_none_on_empty_response(monkeypatch):
-    """get_data() returns None when fetch_json returns falsy."""
+async def test_get_data_returns_none_on_empty_html(monkeypatch):
+    """get_data() returns None when fetch_html_bare returns falsy."""
     scraper = CreekAndCaveScraper(_club())
 
-    async def fake_fetch_json(self, url: str, **kwargs) -> dict:
-        return {}
+    async def fake_fetch_html_bare(self, url: str) -> str:
+        return ""
 
-    monkeypatch.setattr(CreekAndCaveScraper, "fetch_json", fake_fetch_json)
+    monkeypatch.setattr(CreekAndCaveScraper, "fetch_html_bare", fake_fetch_html_bare)
 
-    result = await scraper.get_data(_S3_URL)
+    result = await scraper.get_data(_CALENDAR_URL)
     assert result is None
 
 
 @pytest.mark.asyncio
-async def test_get_data_returns_none_on_none_response(monkeypatch):
-    """get_data() returns None when fetch_json returns None (future month 404)."""
+async def test_get_data_returns_none_when_no_event_rows(monkeypatch):
+    """get_data() returns None when the page has no event-shaped rows."""
     scraper = CreekAndCaveScraper(_club())
 
-    async def fake_fetch_json(self, url: str, **kwargs):
-        return None
+    async def fake_fetch_html_bare(self, url: str) -> str:
+        return _push_html('8:["$","div",null,{"children":"no shows here"}]')
 
-    monkeypatch.setattr(CreekAndCaveScraper, "fetch_json", fake_fetch_json)
+    monkeypatch.setattr(CreekAndCaveScraper, "fetch_html_bare", fake_fetch_html_bare)
 
-    result = await scraper.get_data(_S3_URL)
+    result = await scraper.get_data(_CALENDAR_URL)
+    assert result is None
+
+
+@pytest.mark.asyncio
+async def test_get_data_returns_none_on_fetch_exception(monkeypatch):
+    """get_data() returns None when fetch_html_bare raises."""
+    scraper = CreekAndCaveScraper(_club())
+
+    async def fake_fetch_html_bare(self, url: str) -> str:
+        raise RuntimeError("network error")
+
+    monkeypatch.setattr(CreekAndCaveScraper, "fetch_html_bare", fake_fetch_html_bare)
+
+    result = await scraper.get_data(_CALENDAR_URL)
     assert result is None
 
 
 # ---------------------------------------------------------------------------
-# collect_scraping_targets() tests
+# CreekAndCaveEventExtractor unit tests
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.asyncio
-async def test_collect_scraping_targets_generates_monthly_urls():
-    """collect_scraping_targets() generates 6 monthly S3 URLs."""
-    scraper = CreekAndCaveScraper(_club())
-    targets = await scraper.collect_scraping_targets()
+def test_extract_shows_skips_row_missing_datetime():
+    rows = [_show_row(datetime=""), _show_row(id="other-id")]
+    shows = CreekAndCaveEventExtractor.extract_shows(_calendar_html(rows))
+    assert len(shows) == 1
 
-    assert len(targets) == 6
-    assert all("creekandcaveevents.s3.amazonaws.com/events/month/" in t for t in targets)
-    assert all(t.endswith(".json") for t in targets)
+
+def test_extract_shows_skips_row_missing_title():
+    rows = [_show_row(title=""), _show_row(id="other-id")]
+    shows = CreekAndCaveEventExtractor.extract_shows(_calendar_html(rows))
+    assert len(shows) == 1
+
+
+def test_extract_shows_skips_row_missing_ticket_link():
+    """Every emitted Show must carry at least one Ticket — link-less rows drop."""
+    rows = [_show_row(ticket_link=""), _show_row(id="other-id")]
+    shows = CreekAndCaveEventExtractor.extract_shows(_calendar_html(rows))
+    assert len(shows) == 1
+
+
+def test_extract_shows_infers_tixologi_event_id_from_ticket_link():
+    rows = [_show_row(tixologi_event_id=None)]
+    shows = CreekAndCaveEventExtractor.extract_shows(_calendar_html(rows))
+    assert len(shows) == 1
+    assert shows[0].tixologi_event_id == "12297"
+
+
+def test_extract_shows_falls_back_to_punchup_query_cache():
+    """With no component-prop rows, the shared Punchup query-cache path is used."""
+    payload = {
+        "queries": [
+            {
+                "queryKey": ["venuePageCarousel", "creek-venue-uuid"],
+                "state": {
+                    "data": {
+                        "mode": "custom",
+                        "items": [
+                            {
+                                "type": "show",
+                                "id": "item-uuid-1",
+                                "show": {
+                                    "id": "show-uuid-1",
+                                    "title": "Creek Carousel Show",
+                                    "datetime": "2099-04-15T20:00:00",
+                                    "ticket_link": "https://event.tixologi.com/event/42/tickets",
+                                    "tixologi_event_id": "42",
+                                    "is_sold_out": False,
+                                    "metadata_text": None,
+                                    "show_comedians": [],
+                                },
+                            }
+                        ],
+                    },
+                    "status": "success",
+                },
+            }
+        ]
+    }
+    html = f"<html><body><script>{json.dumps(payload)}</script></body></html>"
+    shows = CreekAndCaveEventExtractor.extract_shows(html)
+
+    assert len(shows) == 1
+    assert isinstance(shows[0], CreekAndCaveShow)
+    assert shows[0].title == "Creek Carousel Show"
+
+
+def test_extract_shows_returns_empty_for_empty_html():
+    assert CreekAndCaveEventExtractor.extract_shows("") == []
 
 
 # ---------------------------------------------------------------------------
-# CreekAndCaveEvent.to_show() unit tests
+# CreekAndCaveShow.to_show() unit tests
 # ---------------------------------------------------------------------------
 
 
-def _make_event(
-    name="Al Jackson",
-    slug="al-jackson",
-    date_utc="2026-04-11T00:00:00.000Z",
-    time_local="7:00 pm",
-    listing_url="https://www.showclix.com/event/al-jacksongtum25a",
-    inventory=198,
-) -> CreekAndCaveEvent:
-    return CreekAndCaveEvent(
-        slug=slug,
-        name=name,
-        date_utc=date_utc,
-        time_local=time_local,
-        listing_url=listing_url,
-        inventory=inventory,
+def _make_show(
+    title="Word Up! Open Mic",
+    datetime_str="2099-06-11T23:55:00",
+    ticket_link="https://event.tixologi.com/event/12297/tickets",
+    tixologi_event_id="12297",
+    is_sold_out=False,
+    metadata_text=None,
+    show_comedians=None,
+    vip_ticket_link=None,
+) -> CreekAndCaveShow:
+    return CreekAndCaveShow(
+        id="b87b52de-4d9f-4ef0-87f2-b5fe5a90eb8d",
+        title=title,
+        datetime_str=datetime_str,
+        ticket_link=ticket_link,
+        tixologi_event_id=tixologi_event_id,
+        is_sold_out=is_sold_out,
+        metadata_text=metadata_text,
+        show_comedians=show_comedians or [],
+        vip_ticket_link=vip_ticket_link,
     )
 
 
 def test_to_show_returns_show_with_correct_name_and_date():
-    """to_show() produces a Show with the event name and correct date."""
-    event = _make_event(name="Al Jackson", date_utc="2026-04-11T00:00:00.000Z")
+    """to_show() localizes the naive datetime to the club timezone (America/Chicago)."""
+    event = _make_show(datetime_str="2099-06-11T23:55:00")
     show = event.to_show(_club())
 
     assert show is not None
-    assert show.name == "Al Jackson"
-    # 2026-04-11T00:00:00Z = 2026-04-10 19:00 CDT
-    assert show.date.year == 2026
-    assert show.date.month == 4
-    assert show.date.day == 10
-    assert show.date.hour == 19
+    assert show.name == "Word Up! Open Mic"
+    # Naive local time stays local: 2099-06-11 23:55 in America/Chicago
+    assert show.date.year == 2099
+    assert show.date.month == 6
+    assert show.date.day == 11
+    assert show.date.hour == 23
+    assert show.date.minute == 55
+    assert show.date.utcoffset() is not None
 
 
-def test_to_show_extracts_comedian_name_for_headliner():
-    """to_show() puts the comedian name in show.lineup for headliner events."""
-    event = _make_event(name="Al Jackson")
-    show = event.to_show(_club())
-
-    assert show is not None
-    assert len(show.lineup) == 1
-    assert show.lineup[0].name == "Al Jackson"
-
-
-def test_to_show_strips_live_suffix_from_lineup():
-    """to_show() strips the ' Live' suffix when building the lineup entry."""
-    event = _make_event(name="Liza Treyger Live", slug="liza-treyger-live")
-    show = event.to_show(_club())
-
-    assert show is not None
-    # Name on the show keeps the original event name
-    assert show.name == "Liza Treyger Live"
-    # Lineup has the comedian name without the suffix
-    assert len(show.lineup) == 1
-    assert show.lineup[0].name == "Liza Treyger"
-
-
-def test_to_show_no_lineup_for_recurring_show():
-    """to_show() returns an empty lineup for recurring show-title events."""
-    event = _make_event(name="Off The Cuff", slug="off-the-cuff")
-    show = event.to_show(_club())
-
-    assert show is not None
-    assert show.lineup == []
-
-
-def test_to_show_no_lineup_for_open_mic():
-    """to_show() returns an empty lineup for open mic events."""
-    event = _make_event(name="Bear Arms: Open Mic", slug="bear-arms-open-mic")
-    show = event.to_show(_club())
-
-    assert show is not None
-    assert show.lineup == []
-
-
-def test_to_show_creates_ticket_from_listing_url():
-    """to_show() creates a ticket using the Showclix listing_url."""
-    event = _make_event(listing_url="https://www.showclix.com/event/al-jacksongtum25a")
+def test_to_show_creates_ticket_from_ticket_link():
+    """to_show() always emits at least one Ticket using the Tixologi ticket_link."""
+    event = _make_show()
     show = event.to_show(_club())
 
     assert show is not None
     assert len(show.tickets) == 1
-    assert show.tickets[0].purchase_url == "https://www.showclix.com/event/al-jacksongtum25a"
+    assert show.tickets[0].purchase_url == "https://event.tixologi.com/event/12297/tickets"
+    assert show.tickets[0].sold_out is False
+
+
+def test_to_show_propagates_sold_out_flag():
+    event = _make_show(is_sold_out=True)
+    show = event.to_show(_club())
+
+    assert show is not None
+    assert all(t.sold_out for t in show.tickets)
+
+
+def test_to_show_adds_vip_ticket_row():
+    """vip_ticket_link produces an additional VIP ticket alongside GA."""
+    event = _make_show(vip_ticket_link="https://event.tixologi.com/event/12297/vip")
+    show = event.to_show(_club())
+
+    assert show is not None
+    assert len(show.tickets) == 2
+    vip = show.tickets[1]
+    assert vip.purchase_url == "https://event.tixologi.com/event/12297/vip"
+    assert vip.type == "VIP"
+
+
+def test_to_show_builds_plain_lineup_from_show_comedians():
+    """Lineup entries are plain comedian names ordered by 'ordering' — no roles."""
+    event = _make_show(
+        title="Kate Berlant",
+        show_comedians=[
+            {"display_name": "Surprise Guest", "ordering": 1},
+            {"display_name": "Kate Berlant", "ordering": 0},
+        ],
+    )
+    show = event.to_show(_club())
+
+    assert show is not None
+    assert [c.name for c in show.lineup] == ["Kate Berlant", "Surprise Guest"]
+
+
+def test_to_show_empty_lineup_when_no_show_comedians():
+    event = _make_show(show_comedians=[])
+    show = event.to_show(_club())
+
+    assert show is not None
+    assert show.lineup == []
+
+
+def test_to_show_uses_metadata_text_as_description():
+    event = _make_show(metadata_text="FREE! Every Thursday at Midnight")
+    show = event.to_show(_club())
+
+    assert show is not None
+    assert show.description == "FREE! Every Thursday at Midnight"
 
 
 def test_to_show_returns_none_on_unparseable_date():
-    """to_show() returns None when date_utc cannot be parsed."""
-    event = _make_event(date_utc="not-a-date")
+    """to_show() returns None when the datetime cannot be parsed."""
+    event = _make_show(datetime_str="not-a-date")
     show = event.to_show(_club())
 
     assert show is None
-
-
-# ---------------------------------------------------------------------------
-# _infer_comedian_name() unit tests
-# ---------------------------------------------------------------------------
-
-
-def test_infer_comedian_name_person_name():
-    assert _infer_comedian_name("Al Jackson") == "Al Jackson"
-
-
-def test_infer_comedian_name_strips_live_suffix():
-    assert _infer_comedian_name("Liza Treyger Live") == "Liza Treyger"
-
-
-def test_infer_comedian_name_strips_live_suffix_uppercase():
-    assert _infer_comedian_name("Kate Berlant LIVE") == "Kate Berlant"
-
-
-def test_infer_comedian_name_returns_none_for_open_mic():
-    assert _infer_comedian_name("Bear Arms: Open Mic") is None
-
-
-def test_infer_comedian_name_returns_none_for_roast_battle():
-    assert _infer_comedian_name("Roast Battle: Austin") is None
-
-
-def test_infer_comedian_name_returns_none_for_themed_show():
-    assert _infer_comedian_name("King Of The Creek") is None
-
-
-def test_infer_comedian_name_returns_none_for_single_word():
-    """Single-word events like 'FREAKY' are not treated as comedian names."""
-    assert _infer_comedian_name("FREAKY") is None
-
-
-def test_infer_comedian_name_returns_none_for_too_many_words():
-    """Five-word event names are not comedian names."""
-    assert _infer_comedian_name("Standupatodos by Hector Sifuentes Espanol") is None

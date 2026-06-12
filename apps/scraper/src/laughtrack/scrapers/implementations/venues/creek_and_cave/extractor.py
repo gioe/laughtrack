@@ -1,125 +1,186 @@
-"""Creek and Cave event extractor for S3 monthly JSON data."""
+"""Creek and Cave event extractor for Punchup/Next.js calendar pages."""
 
-from typing import Any, Dict, List, Optional
+import dataclasses
+import json
 
-from laughtrack.core.entities.event.creek_and_cave import CreekAndCaveEvent
+from typing import Any, Dict, List, Optional, Tuple
+
+from laughtrack.core.clients.punchup.extractor import PunchupExtractor
+from laughtrack.core.clients.rsc.extractor import extract_push_payloads
+from laughtrack.core.clients.tixologi.extractor import TixologiExtractor
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+
+from .data import CreekAndCaveShow
+
+_SHOWS_KEY = '"shows":'
 
 
 class CreekAndCaveEventExtractor:
-    """Parse Creek and Cave S3 monthly JSON into CreekAndCaveEvent objects.
+    """Parse The Creek and The Cave's calendar page into CreekAndCaveShow objects.
 
-    The S3 monthly JSON is structured as::
+    The venue rebuilt its site on the Punchup platform (Next.js App Router).
+    The /calendar page server-renders the full upcoming-event list (~200 rows;
+    the homepage only embeds ~25) inside ``self.__next_f.push([1, "..."])``
+    streaming script chunks. Unlike the venuePageCarousel/venueShows React
+    Query caches the shared :class:`PunchupExtractor` targets, the full list
+    is passed as a ``"shows": [...]`` component prop in the RSC payload::
 
-        {
-          "25": [
-            {
-              "event": {
-                "name": "Off The Cuff",
-                "slug": "off-the-cuff",
-                "date": "2026-03-25T23:00:00.000Z",
-                "shows": [
-                  {
-                    "time": "6:00 pm",
-                    "listing_url": "https://www.showclix.com/event/off-the-cuffwv5n1ol",
-                    "date": "2026-03-25T23:00:00.000Z",
-                    "inventory": 195
-                  }
-                ]
-              },
-              "hours": 18,
-              "minutes": 0
-            }
-          ],
-          "26": [...],
-          ...
-        }
+        ["$","$L19",null,{"shows":[
+          {
+            "id": "b87b52de-...",                    # uuid
+            "title": "Word Up! Open Mic",
+            "datetime": "2026-06-11T23:55:00",       # NAIVE local (club tz)
+            "ticket_link": "https://event.tixologi.com/event/12297/tickets",
+            "tixologi_event_id": "12297",
+            "is_sold_out": false,
+            "metadata_text": "FREE! ...",
+            "vip_ticket_link": null,
+            "show_comedians": [{"display_name": "...", "ordering": 0, ...}],
+            ...                                       # venue, location, flags, ...
+          }, ...
+        ]}]
 
-    One :class:`CreekAndCaveEvent` is produced per ``shows`` entry.
+    Extraction strategy:
+      1. Decode every push payload, scan for ``"shows":`` arrays whose rows
+         look like event dicts (``ticket_link`` + ``datetime`` keys), and
+         dedupe across payloads (the same row can appear in more than one
+         chunk — e.g. both the component prop and a query-cache entry).
+      2. Fall back to the shared :class:`PunchupExtractor` (carousel /
+         venueShows query caches) if no component-prop rows are found, so a
+         site-side data relayout degrades to the ~25-row embed instead of 0.
     """
 
     @staticmethod
-    def parse_monthly_json(
-        data: Any, logger_context: Optional[Dict] = None
-    ) -> List[CreekAndCaveEvent]:
-        """Parse the S3 monthly JSON response into a flat list of show slots.
+    def extract_shows(html_content: str) -> List[CreekAndCaveShow]:
+        """Extract show rows from the calendar page HTML.
 
         Args:
-            data: Parsed JSON value from the S3 monthly endpoint.
-            logger_context: Logging context for error reporting.
+            html_content: Raw HTML content of the /calendar page.
 
         Returns:
-            List of :class:`CreekAndCaveEvent` objects, one per show slot.
+            List of :class:`CreekAndCaveShow` objects, empty list if none found.
         """
-        ctx = logger_context or {}
-        events: List[CreekAndCaveEvent] = []
+        if not html_content:
+            return []
 
-        if not isinstance(data, dict):
-            Logger.warn(
-                f"CreekAndCaveEventExtractor: expected dict, got {type(data).__name__}",
-                ctx,
-            )
-            return events
+        try:
+            shows = CreekAndCaveEventExtractor._extract_from_component_props(html_content)
+            if shows:
+                return shows
 
-        for day_key, day_entries in data.items():
-            if not isinstance(day_entries, list):
+            # Fallback: the dehydrated React Query caches (carousel/venueShows)
+            # still carry a partial (~25 row) listing the shared extractor knows.
+            punchup_shows = PunchupExtractor.extract_shows(html_content)
+            return [
+                CreekAndCaveShow(**{f.name: getattr(s, f.name) for f in dataclasses.fields(s)})
+                for s in punchup_shows
+            ]
+        except Exception as e:
+            Logger.error(f"CreekAndCaveEventExtractor: error extracting shows from HTML: {e}")
+            return []
+
+    @staticmethod
+    def _extract_from_component_props(html_content: str) -> List[CreekAndCaveShow]:
+        """Scan decoded push payloads for ``"shows": [...]`` event arrays."""
+        shows: List[CreekAndCaveShow] = []
+        seen: set = set()
+
+        for payload in extract_push_payloads(html_content):
+            for row in CreekAndCaveEventExtractor._find_event_rows(payload):
+                key = CreekAndCaveEventExtractor._dedupe_key(row)
+                if key in seen:
+                    continue
+                seen.add(key)
+
+                show = CreekAndCaveEventExtractor._build_show(row)
+                if show:
+                    shows.append(show)
+
+        return shows
+
+    @staticmethod
+    def _find_event_rows(payload: str) -> List[Dict[str, Any]]:
+        """Find every ``"shows":`` array in a decoded payload and keep event rows.
+
+        A row qualifies as an event when it is a dict carrying the event
+        signature keys (``ticket_link`` and ``datetime``); other ``"shows"``
+        arrays in the payload (unrelated props) are skipped by this filter.
+        """
+        rows: List[Dict[str, Any]] = []
+        decoder = json.JSONDecoder()
+
+        search_from = 0
+        while True:
+            key_idx = payload.find(_SHOWS_KEY, search_from)
+            if key_idx < 0:
+                break
+            search_from = key_idx + len(_SHOWS_KEY)
+
+            arr_start = payload.find("[", search_from)
+            if arr_start < 0:
+                break
+
+            try:
+                value, _end = decoder.raw_decode(payload, arr_start)
+            except (json.JSONDecodeError, ValueError):
+                continue
+            if not isinstance(value, list):
                 continue
 
-            for entry in day_entries:
-                if not isinstance(entry, dict):
-                    continue
+            rows.extend(
+                row
+                for row in value
+                if isinstance(row, dict) and "ticket_link" in row and "datetime" in row
+            )
 
-                event_data = entry.get("event", {})
-                if not isinstance(event_data, dict):
-                    continue
+        return rows
 
-                slug = event_data.get("slug") or ""
-                name = event_data.get("name") or ""
-                shows = event_data.get("shows", [])
+    @staticmethod
+    def _dedupe_key(row: Dict[str, Any]) -> Tuple:
+        """Identity key for a raw event row (uuid id, else title+datetime)."""
+        row_id = row.get("id")
+        if row_id:
+            return ("id", row_id)
+        return ("title-dt", row.get("title"), row.get("datetime"))
 
-                if not slug or not name:
-                    Logger.warn(
-                        f"CreekAndCaveEventExtractor: skipping entry missing slug/name on day {day_key}",
-                        ctx,
-                    )
-                    continue
+    @staticmethod
+    def _build_show(row: Dict[str, Any]) -> Optional[CreekAndCaveShow]:
+        """Build a CreekAndCaveShow from a raw event row dict.
 
-                if not isinstance(shows, list) or not shows:
-                    Logger.warn(
-                        f"CreekAndCaveEventExtractor: event '{name}' has no shows, skipping",
-                        ctx,
-                    )
-                    continue
+        Mirrors ``PunchupExtractor._build_punchup_show`` validation: rows
+        missing a title or datetime are skipped here, and rows whose datetime
+        later fails to parse are dropped by ``to_show()`` (returns None) —
+        matching the old S3 extractor, which skipped rows missing date/url
+        but left past-dated rows to the downstream pipeline's date filter.
+        A ticket link is also required so every emitted Show carries at least
+        one Ticket (the old extractor likewise skipped link-less rows).
+        """
+        title = (row.get("title") or "").strip()
+        datetime_str = (row.get("datetime") or "").strip()
+        ticket_link = (row.get("ticket_link") or "").strip()
 
-                for show in shows:
-                    if not isinstance(show, dict):
-                        continue
+        if not title or not datetime_str or not ticket_link:
+            Logger.warn(
+                "CreekAndCaveEventExtractor: skipping row missing "
+                f"title/datetime/ticket_link (title={title!r}, datetime={datetime_str!r})"
+            )
+            return None
 
-                    date_utc = show.get("date") or ""
-                    time_local = show.get("time") or ""
-                    listing_url = show.get("listing_url") or ""
-                    inventory = show.get("inventory")
-
-                    if not date_utc or not listing_url:
-                        Logger.warn(
-                            f"CreekAndCaveEventExtractor: show missing date/url for '{name}', skipping",
-                            ctx,
-                        )
-                        continue
-
-                    events.append(
-                        CreekAndCaveEvent(
-                            slug=slug,
-                            name=name,
-                            date_utc=date_utc,
-                            time_local=time_local,
-                            listing_url=listing_url,
-                            inventory=inventory,
-                        )
-                    )
-
-        Logger.info(
-            f"CreekAndCaveEventExtractor: parsed {len(events)} show slots",
-            ctx,
+        ticket_reference = TixologiExtractor.normalize_ticket_reference(
+            ticket_link,
+            row.get("tixologi_event_id"),
         )
-        return events
+        return CreekAndCaveShow(
+            id=row.get("id", ""),
+            title=title,
+            datetime_str=datetime_str,
+            ticket_link=ticket_reference.ticket_url or ticket_link,
+            tixologi_event_id=ticket_reference.event_id,
+            is_sold_out=bool(row.get("is_sold_out", False)),
+            metadata_text=row.get("metadata_text") or None,
+            show_comedians=row.get("show_comedians") or [],
+            vip_ticket_link=(row.get("vip_ticket_link") or "").strip() or None,
+        )
+
+
+__all__ = ["CreekAndCaveEventExtractor"]
