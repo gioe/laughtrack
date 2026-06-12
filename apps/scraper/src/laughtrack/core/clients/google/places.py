@@ -159,14 +159,19 @@ def _format_24h(hour: int, minutes: int) -> str:
 
 
 def _infer_open_meridiem(open_hour: int, close_hour: int, close_ampm: str) -> str:
+    # Hour 12 is the *start* of its half-day (12 AM = midnight, 12 PM = noon),
+    # so compare on the modulo-12 clock where it maps to 0 — otherwise a
+    # midnight close like "9:00 – 12:00 AM" reads as same-half-day (9am-12am)
+    # and a noon close like "10:00 – 12:00 PM" inverts to 10pm-12pm.
+    crosses_half_day = (open_hour % 12) > (close_hour % 12)
     close_suffix = close_ampm.upper()
     if close_suffix == "AM":
         # Overnight venue ranges commonly appear as "9:00 – 1:00 AM".
-        return "PM" if open_hour > close_hour else "AM"
+        return "PM" if crosses_half_day else "AM"
     # Same-day afternoon/evening ranges commonly appear as "6:00 – 9:30 PM".
-    # If the opening hour is numerically after the close, treat it as a
-    # morning-to-afternoon span such as "10:00 – 2:00 PM".
-    return "AM" if open_hour > close_hour and open_hour != 12 else "PM"
+    # If the opening hour falls after the close on the modulo-12 clock, treat
+    # it as a morning-to-afternoon span such as "10:00 – 2:00 PM".
+    return "AM" if crosses_half_day else "PM"
 
 
 def _parse_time_range(segment: str) -> Optional[str]:

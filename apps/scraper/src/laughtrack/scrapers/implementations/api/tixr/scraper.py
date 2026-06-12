@@ -53,6 +53,11 @@ _MAX_DISCOVERY_PAGES = 12
 _IMPROV_ASYLUM_PIXL_EVENTS_URL = "https://calendar.improvasylum.com/api/events/improv-asylum"
 _PIXL_CALENDAR_API_METADATA_KEY = "pixl_calendar_api_url"
 _GROUP_EVENTS_API_FLAG = "TIXR_GROUP_EVENTS_API_FALLBACK"
+# Laugh Factory Covina's Tixr group: the rendered group page is
+# DataDome-blocked for GHA-class egress, so its group-events API calls skip
+# the doomed direct attempt and go straight through the residential proxy.
+_KNOWN_DATADOME_GROUP_IDS = frozenset({"1613"})
+_KNOWN_DATADOME_GROUP_URL_FRAGMENTS = ("tixr.com/groups/laughfactorycovina",)
 _MONTH_FORMATS = ("%b", "%B")
 _TIME_FORMATS = ("%I:%M %p", "%I %p")
 _MAX_YEAR_ROLLOVER_DAYS = 180
@@ -311,23 +316,42 @@ class TixrScraper(BaseScraper):
             )
             return []
 
-        max_pages = 1 if self._uses_known_datadome_group_events_proxy_only(group_id) else 12
+        proxy_only = self._uses_known_datadome_group_events_proxy_only(group_id)
+        # Proxy-only groups cap at a single page to bound residential-proxy
+        # spend: every page is a separate proxied request, and the loop only
+        # stops after fetching one empty page past the last populated one.
+        # The known group's full future calendar fits one API page today; if
+        # it ever paginates, raise this alongside a fresh page-size probe.
+        max_pages = 1 if proxy_only else 12
         return await self.tixr_client.fetch_group_events(
             group_id,
             max_pages=max_pages,
-            skip_direct=self._uses_known_datadome_group_events_proxy_only(group_id),
+            skip_direct=proxy_only,
         )
 
     def _uses_known_datadome_group_events_proxy_only(self, group_id: str) -> bool:
         normalized_group_id = str(group_id or "").strip().lower()
         normalized_url = URLUtils.normalize_url(self.club.scraping_url or "").lower()
-        return normalized_group_id == "1613" or "tixr.com/groups/laughfactorycovina" in normalized_url
+        return normalized_group_id in _KNOWN_DATADOME_GROUP_IDS or any(
+            fragment in normalized_url for fragment in _KNOWN_DATADOME_GROUP_URL_FRAGMENTS
+        )
 
     def _uses_known_blocked_fallback(self, url: str) -> bool:
         normalized = URLUtils.normalize_url(url).lower()
         if "tixr.com/groups/" not in normalized:
             return False
-        return self._is_improv_asylum_tixr_source(url) or self._group_events_api_fallback_enabled()
+        # Only club-scoped signals may skip the direct page scrape: the
+        # process-wide TIXR_GROUP_EVENTS_API_FALLBACK env var stays
+        # fallback-only (consulted after a failed direct fetch), so setting
+        # it cannot silently bypass direct scraping for every Tixr group
+        # club at once.
+        return (
+            self._is_improv_asylum_tixr_source(url)
+            or self._uses_known_datadome_group_events_proxy_only(
+                str(self.club.metadata_value("tixr_group_id") or "")
+            )
+            or self._group_events_api_metadata_flag() is True
+        )
 
     async def _fetch_known_blocked_fallback_events(self, url: str) -> List[TixrEvent]:
         pixl_events = await self._fetch_pixl_calendar_events(url)
@@ -351,14 +375,21 @@ class TixrScraper(BaseScraper):
         return []
 
     def _group_events_api_fallback_enabled(self) -> bool:
+        metadata_flag = self._group_events_api_metadata_flag()
+        if metadata_flag is not None:
+            return metadata_flag
+
+        raw = os.environ.get(_GROUP_EVENTS_API_FLAG, "")
+        return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+    def _group_events_api_metadata_flag(self) -> Optional[bool]:
+        """Per-source opt-in flag, or None when the source does not declare one."""
         metadata_value = (self.club.source_metadata or {}).get("tixr_group_events_api_fallback")
         if isinstance(metadata_value, bool):
             return metadata_value
         if isinstance(metadata_value, str):
             return metadata_value.strip().lower() in {"1", "true", "yes", "on"}
-
-        raw = os.environ.get(_GROUP_EVENTS_API_FLAG, "")
-        return raw.strip().lower() in {"1", "true", "yes", "on"}
+        return None
 
     @staticmethod
     def _group_slug_from_url(url: str) -> Optional[str]:

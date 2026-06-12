@@ -71,12 +71,13 @@ _KNOWN_DATADOME_DESCRIPTION_BY_HOST = {
         "comedians, showcases, and special events."
     ),
 }
-_KNOWN_DATADOME_HOST_SUFFIXES = (
-    ".funnybone.com",
+# Registrable domains whose fetches we skip (see _known_datadome_description).
+# Derived from the description map so the two structures cannot drift; the
+# Funny Bone chain is listed explicitly because its per-venue subdomains share
+# one chain-level description rather than a map entry.
+_KNOWN_DATADOME_DOMAINS = (
     "funnybone.com",
-    "comedymothership.com",
-    "www.comedymothership.com",
-    "laughfactory.com",
+    *_KNOWN_DATADOME_DESCRIPTION_BY_HOST,
 )
 
 
@@ -224,7 +225,12 @@ def _known_datadome_description(target: _ClubTarget) -> Optional[str]:
 
 def _should_skip_known_datadome_fetch(target: _ClubTarget) -> bool:
     host = _normalized_host(target.website)
-    return any(host == suffix or host.endswith(suffix) for suffix in _KNOWN_DATADOME_HOST_SUFFIXES)
+    # Dot-anchored so unrelated registrable domains that merely end in a
+    # known domain (e.g. notfunnybone.com) are not swept into the skip.
+    return any(
+        host == domain or host.endswith("." + domain)
+        for domain in _KNOWN_DATADOME_DOMAINS
+    )
 
 
 async def _fetch_with_playwright(url: str, context: dict) -> Optional[str]:

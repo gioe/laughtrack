@@ -284,6 +284,8 @@ class TixrClient(BaseApiClient):
         The group-events API is often available through curl-cffi direct egress
         even when the rendered group page is DataDome-blocked. The residential
         proxy remains the fallback for GHA-class egress where direct is blocked.
+        Known DataDome-blocked groups pass ``skip_direct=True`` to skip the
+        doomed direct attempt and go straight to the proxy path.
         """
         if not skip_direct:
             data = await self._fetch_group_events_json_direct(api_url, logger_context)

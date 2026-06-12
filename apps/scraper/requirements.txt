@@ -15,7 +15,12 @@ python-dotenv>=1.0.0   # Environment variable loading from .env files
 
 # Optional: Playwright JS fallback (lazy-loaded; only used when bot-block detected)
 # After installing, run: playwright install chromium
-playwright>=1.40.0     # Headless browser for JS-rendered pages
+# Pinned EXACTLY: the DataDome capsolver path pins _USER_AGENT in
+# playwright_browser.py to the bundled Chromium major (Chrome/145 for 1.58.0).
+# A floating playwright would let CI's bundled Chromium drift away from the
+# pinned UA and out of capsolver's supported window (the Chrome/124 incident,
+# TASK-2689). When bumping, re-pin the UA constant in the same change.
+playwright==1.58.0     # Headless browser for JS-rendered pages
 
 # Web Scraping & Data Processing
 Pillow>=12.2.0         # Image processing; floor pinned to patch PSD OOB-write and FITS GZIP decompression-bomb CVEs

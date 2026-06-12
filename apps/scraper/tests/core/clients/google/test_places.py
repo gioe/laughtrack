@@ -59,6 +59,20 @@ def test_parse_infers_opening_meridiem_when_google_omits_it():
     }
 
 
+def test_parse_infers_meridiem_for_twelve_oclock_closes():
+    # Hour 12 starts its half-day (12 AM = midnight, 12 PM = noon), so the
+    # inference must not treat it as numerically "after" the opening hour:
+    # a midnight close implies an evening open, a noon close a morning open.
+    descs = [
+        "Thursday: 9:00 – 12:00 AM",
+        "Sunday: 10:00 – 12:00 PM",
+    ]
+    assert parse_weekday_descriptions(descs) == {
+        "thursday": "9pm-12am",
+        "sunday": "10am-12pm",
+    }
+
+
 def test_parse_handles_hyphen_fallback():
     descs = ["Thursday: 8:00 PM - 10:00 PM"]
     assert parse_weekday_descriptions(descs) == {"thursday": "8pm-10pm"}
