@@ -170,6 +170,66 @@ describe("ShowDetailHeader", () => {
         ).toContain("border-dashed");
     });
 
+    it("renders the inferred headliner's headshot instead of the club image", () => {
+        render(
+            <ShowDetailHeader
+                show={{
+                    ...baseShow,
+                    lineup: [
+                        {
+                            id: 1,
+                            uuid: "uuid-opener",
+                            name: "Opening Act",
+                            imageUrl:
+                                "https://cdn.example.com/comedians/Opening%20Act.png",
+                            showCount: 8,
+                        },
+                        {
+                            id: 2,
+                            uuid: "uuid-headliner",
+                            name: "Mark Normand",
+                            imageUrl:
+                                "https://cdn.example.com/comedians/Mark%20Normand.png",
+                            showCount: 98,
+                        },
+                    ],
+                }}
+            />,
+        );
+
+        const image = screen.getByAltText("Mark Normand");
+        expect(image.getAttribute("src")).toBe(
+            "https://cdn.example.com/comedians/Mark%20Normand.png",
+        );
+        expect(screen.queryByAltText("The Copper Room")).toBeNull();
+    });
+
+    it("keeps the club image for open-mic shows even with a lineup", () => {
+        render(
+            <ShowDetailHeader
+                show={{
+                    ...baseShow,
+                    tags: [{ slug: "open mic", name: "Open Mic" }],
+                    lineup: [
+                        {
+                            id: 1,
+                            uuid: "uuid-regular",
+                            name: "Mic Regular",
+                            imageUrl:
+                                "https://cdn.example.com/comedians/Mic%20Regular.png",
+                            showCount: 40,
+                        },
+                    ],
+                }}
+            />,
+        );
+
+        const image = screen.getByAltText("The Copper Room");
+        expect(image.getAttribute("src")).toBe(
+            "https://cdn.example.com/copper-room-wide.jpg",
+        );
+    });
+
     it("renders the ticket-icon fallback inside the ring when the image is the placeholder", () => {
         render(
             <ShowDetailHeader
