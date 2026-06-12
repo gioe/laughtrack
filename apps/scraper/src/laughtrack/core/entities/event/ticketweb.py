@@ -19,6 +19,7 @@ class TicketWebEvent(ShowConvertible):
     show_page_url: str
     ticket_url: Optional[str] = None
     sold_out: bool = False
+    price: Optional[float] = None
     performers: List[str] = field(default_factory=list)
 
     def to_show(self, club: "Club", enhanced: bool = True, url: Optional[str] = None) -> Optional[object]:
@@ -31,7 +32,7 @@ class TicketWebEvent(ShowConvertible):
         tickets = []
         if self.ticket_url:
             tickets.append(Ticket(
-                price=None,
+                price=self.price,
                 purchase_url=self.ticket_url,
                 sold_out=self.sold_out,
                 type="General Admission",

@@ -100,9 +100,10 @@ class TicketWebScraper(BaseScraper):
             return None
 
         html = await self.fetch_html(target)
-        ticket_url, sold_out = (None, False)
+        ticket_url, sold_out, price = (None, False, None)
         if html:
             ticket_url, sold_out = TicketWebExtractor.extract_ticket_info(html)
+            price = TicketWebExtractor.extract_price(html)
 
         if not ticket_url:
             Logger.warn(
@@ -115,6 +116,7 @@ class TicketWebScraper(BaseScraper):
             show_page_url=target,
             ticket_url=ticket_url,
             sold_out=sold_out,
+            price=price,
             performers=[cal_event["title"]],
         )
 

@@ -355,6 +355,38 @@ class TestExtractTicketInfo:
 
 
 # ---------------------------------------------------------------------------
+# extract_price — tw-price span on detail pages
+# ---------------------------------------------------------------------------
+
+
+class TestExtractPrice:
+    def test_extracts_low_end_of_price_range(self):
+        """A range like '$25.47 - $170.68' yields the low end."""
+        html = """
+        <div class="tw-info-price-buy-tix">
+            <span class="tw-price"> $25.47 - $170.68 </span>
+        </div>
+        """
+        assert TicketWebExtractor.extract_price(html) == 25.47
+
+    def test_extracts_single_price(self):
+        html = '<span class="tw-price">$30.00</span>'
+        assert TicketWebExtractor.extract_price(html) == 30.0
+
+    def test_extracts_whole_dollar_price(self):
+        html = '<span class="tw-price">$15</span>'
+        assert TicketWebExtractor.extract_price(html) == 15.0
+
+    def test_returns_none_when_no_price_span(self):
+        html = "<html><body><p>No prices here, $20 in prose</p></body></html>"
+        assert TicketWebExtractor.extract_price(html) is None
+
+    def test_returns_none_when_span_has_no_dollar_amount(self):
+        html = '<span class="tw-price">TBD</span>'
+        assert TicketWebExtractor.extract_price(html) is None
+
+
+# ---------------------------------------------------------------------------
 # extract_next_page_url — pagination
 # ---------------------------------------------------------------------------
 

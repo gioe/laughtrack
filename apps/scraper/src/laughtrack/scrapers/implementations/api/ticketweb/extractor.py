@@ -65,6 +65,14 @@ class TicketWebExtractor:
         re.DOTALL,
     )
 
+    # Price span rendered by the tw-plugin on detail pages, e.g.
+    # <span class="tw-price"> $25.47 - $170.68 </span>
+    _TW_PRICE_PATTERN = re.compile(
+        r'class="tw-price"[^>]*>(.*?)</span>', re.DOTALL
+    )
+
+    _DOLLAR_AMOUNT_PATTERN = re.compile(r"\$\s*(\d+(?:\.\d{1,2})?)")
+
     @staticmethod
     def extract_calendar_events(html: str) -> List[Dict]:
         """Parse the inline JS `var all_events` array from a calendar page.
@@ -203,6 +211,26 @@ class TicketWebExtractor:
         sold_out = status_class == "ticketssold"
 
         return ticket_url, sold_out
+
+    @staticmethod
+    def extract_price(html: str) -> Optional[float]:
+        """Extract the lowest ticket price from a detail page's tw-price span.
+
+        The plugin renders a single price or a range ("$25.47 - $170.68");
+        the first dollar amount is the low end.
+        """
+        match = TicketWebExtractor._TW_PRICE_PATTERN.search(html)
+        if not match:
+            return None
+
+        amount = TicketWebExtractor._DOLLAR_AMOUNT_PATTERN.search(match.group(1))
+        if not amount:
+            return None
+
+        try:
+            return float(amount.group(1))
+        except ValueError:
+            return None
 
     @staticmethod
     def build_events(

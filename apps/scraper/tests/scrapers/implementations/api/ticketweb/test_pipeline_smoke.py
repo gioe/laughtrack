@@ -64,9 +64,13 @@ def _html_calendar_page(*blocks, next_url=None):
 
 
 def _detail_page_html(ticket_url="https://www.ticketweb.com/event/test-abc123",
-                      status="onsale"):
+                      status="onsale", price_text=None):
+    price_span = (
+        f'<span class="tw-price">{price_text}</span>' if price_text else ""
+    )
     return f"""
     <div class="event-detail">
+        {price_span}
         <a href="{ticket_url}"
            class="tw-buy-tix-btn tw_{status}">Buy Tickets</a>
     </div>
@@ -208,6 +212,48 @@ async def test_get_data_detects_sold_out():
     result = await scraper.get_data("/event/sold-show")
 
     assert result.event_list[0].sold_out is True
+
+
+@pytest.mark.asyncio
+async def test_get_data_extracts_price_from_detail_page():
+    """get_data() extracts the low end of the tw-price range into the event."""
+    scraper = TicketWebScraper(_club())
+    scraper.fetch_html = AsyncMock(return_value=_js_calendar_html([
+        ("Priced Show", "2099-05-01 20:00:00", "/event/priced-show"),
+    ]))
+    await scraper.collect_scraping_targets()
+
+    scraper.fetch_html = AsyncMock(
+        return_value=_detail_page_html(
+            "https://www.ticketweb.com/event/priced-abc", "onsale",
+            price_text=" $25.47 - $170.68 ",
+        ),
+    )
+    result = await scraper.get_data("/event/priced-show")
+
+    assert result.event_list[0].price == 25.47
+
+    show = result.event_list[0].to_show(_club())
+    assert show.tickets[0].price == 25.47
+
+
+@pytest.mark.asyncio
+async def test_get_data_price_none_when_detail_page_has_no_price():
+    """get_data() leaves price None when the detail page renders no tw-price."""
+    scraper = TicketWebScraper(_club())
+    scraper.fetch_html = AsyncMock(return_value=_js_calendar_html([
+        ("Unpriced Show", "2099-05-02 20:00:00", "/event/unpriced-show"),
+    ]))
+    await scraper.collect_scraping_targets()
+
+    scraper.fetch_html = AsyncMock(
+        return_value=_detail_page_html("https://www.ticketweb.com/event/unpriced-abc"),
+    )
+    result = await scraper.get_data("/event/unpriced-show")
+
+    assert result.event_list[0].price is None
+    show = result.event_list[0].to_show(_club())
+    assert show.tickets[0].price is None
 
 
 @pytest.mark.asyncio
