@@ -7,6 +7,7 @@ Follows the standardized extractor pattern.
 
 import re
 from typing import Dict, List, Optional
+from urllib.parse import urlparse
 
 from laughtrack.core.entities.event.event import JsonLdEvent
 from laughtrack.core.entities.event.improv import ImprovEvent
@@ -27,6 +28,11 @@ class ImprovExtractor:
     - create_improv_event(): Create ImprovEvent from extracted data
     - process_ticket_url(): Complete ticket URL processing (main orchestrator)
     """
+
+    @staticmethod
+    def _is_trailing_period_suffix_comic_link(url: str) -> bool:
+        path = urlparse(url).path.rstrip("/").lower()
+        return bool(re.search(r"/comic/[^/]+\+(?:jr|sr)\.$", path))
 
     @staticmethod
     def extract_event_urls(html: str, base_url: str, logger_context: Optional[Dict] = None) -> List[str]:
@@ -77,6 +83,18 @@ class ImprovExtractor:
             # New markup uses anchor elements whose class list contains "item"
             # Example: <a class="item showcase wtimes hasclubline" href="/addison/event/..." ...>
             links = HtmlScraper.find_links_by_class(html=html, class_name="item", base_url=url)
+            filtered_links = [
+                link
+                for link in links
+                if not ImprovExtractor._is_trailing_period_suffix_comic_link(link)
+            ]
+            if len(filtered_links) != len(links):
+                Logger.info(
+                    f"Filtered {len(links) - len(filtered_links)} trailing-period suffix comic link(s)",
+                    logger_context or {},
+                )
+                links = filtered_links
+
             Logger.info(f"Found {len(links)} ticket links", logger_context or {})
             return links
 
