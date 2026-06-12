@@ -262,6 +262,58 @@ def _run_summary_metadata(
     }
 
 
+# Per-club error excerpt length in the Discord run summary's failing-club
+# lines. Long enough to carry the exception class + message head (the
+# diagnosis), short enough that a handful of failing clubs don't eat the
+# whole 2048-char description budget (TASK-2835).
+_ERROR_EXCERPT_MAX_CHARS = 120
+
+# Explicit cap on failing-club lines in the Discord run summary, with the
+# overflow count stated. Keeps the most actionable block predictable in size
+# before _truncate_description_lines applies its generic greedy packing —
+# without this, a wide outage could silently push the empty-calendar and
+# parser blocks (and the overflow accounting) past the description limit.
+_MAX_FAILING_CLUBS_LISTED = 15
+
+
+def _gha_run_url() -> Optional[str]:
+    """Deep-link to the originating GitHub Actions run, or None locally.
+
+    Built from GITHUB_SERVER_URL / GITHUB_REPOSITORY / GITHUB_RUN_ID, which
+    GHA injects into every job (scraper-schedule.yml included). Read at
+    use-time per the env-var convention so tests can monkeypatch.setenv.
+    Local runs (no GITHUB_RUN_ID / GITHUB_REPOSITORY) return None and the
+    summary omits the link line entirely.
+    """
+    run_id = os.environ.get("GITHUB_RUN_ID")
+    repo = os.environ.get("GITHUB_REPOSITORY")
+    if not run_id or not repo:
+        return None
+    server = os.environ.get("GITHUB_SERVER_URL", "https://github.com")
+    return f"{server}/{repo}/actions/runs/{run_id}"
+
+
+def _format_failing_club_line(m: "DomainRequestMetrics") -> str:
+    """Render one below-threshold club line for the Discord run summary.
+
+    Carries the club_id (so scraper-verify can be dispatched without a DB
+    lookup) and the first error excerpt when one was recorded — the WHY that
+    previously required opening the GHA logs (TASK-2824 went unread for two
+    nights because this line carried only counts).
+    """
+    club_ref = f"{m.club_name} (id {m.club_id})" if m.club_id is not None else m.club_name
+    line = (
+        f"⚠️ {club_ref}: {m.success_rate:.0f}% ({m.ok}/{m.total} ok, "
+        f"{m.none_resp} empty, {m.error} errors)"
+    )
+    if m.error_message:
+        excerpt = " ".join(m.error_message.split())
+        if len(excerpt) > _ERROR_EXCERPT_MAX_CHARS:
+            excerpt = excerpt[: _ERROR_EXCERPT_MAX_CHARS - 1] + "…"
+        line += f" — {excerpt}"
+    return line
+
+
 def _format_per_club_line(m: "DomainRequestMetrics", threshold: float) -> str:
     """Render the text-channel per-club breakdown row for email/webhook summaries."""
     if m.outcome == ScrapeOutcome.EMPTY_CALENDAR:
@@ -296,6 +348,7 @@ def _copy_diagnostics_into_metrics(
     metrics.items_before_filter = result.items_before_filter or 0
     metrics.bot_block_detected = bool(result.bot_block_detected)
     metrics.cross_host_redirects = set(result.cross_host_redirects or set())
+    metrics.error_message = result.error
 
 
 class ScrapingService:
@@ -740,6 +793,7 @@ class ScrapingService:
                             f"no scraper registered for configured key(s) {joined_keys}: "
                             f"{_UNREGISTERED_SCRAPER_KEY_CAUSE_HINT}"
                         )
+                        metrics.error_message = error_msg
                         return ClubScrapingResult(
                             club_name=club.name,
                             shows=[],
@@ -750,6 +804,7 @@ class ScrapingService:
                             is_synthetic=club.is_synthetic,
                             production_company_id=club.production_company_id,
                         ), metrics
+                    metrics.error_message = "no enabled scraping source could be resolved"
                     return ClubScrapingResult(
                         club_name=club.name,
                         shows=[],
@@ -1090,7 +1145,11 @@ class ScrapingService:
             ]
             empty_calendar = summary.empty_calendar_clubs
             parser_rejected_all = summary.classifier_rejected_all_clubs
-            body_lines = [
+            body_lines = []
+            gha_url = _gha_run_url()
+            if gha_url:
+                body_lines.append(f"[GHA run logs]({gha_url})")
+            body_lines += [
                 f"Shows scraped: {db_result.total}",
                 f"Shows inserted: {db_result.inserts}",
                 f"Shows updated: {db_result.updates}",
@@ -1105,10 +1164,12 @@ class ScrapingService:
                 )
             if failing:
                 body_lines += ["", f"**{len(failing)} club(s) below threshold:**"]
-                for m in failing:
+                listed = failing[:_MAX_FAILING_CLUBS_LISTED]
+                body_lines.extend(_format_failing_club_line(m) for m in listed)
+                overflow = len(failing) - len(listed)
+                if overflow > 0:
                     body_lines.append(
-                        f"⚠️ {m.club_name}: {m.success_rate:.0f}% ({m.ok}/{m.total} ok, "
-                        f"{m.none_resp} empty, {m.error} errors)"
+                        f"…and {overflow} more below-threshold club(s) not listed"
                     )
             elif not parser_rejected_all:
                 body_lines.append("All clubs at or above threshold ✅")

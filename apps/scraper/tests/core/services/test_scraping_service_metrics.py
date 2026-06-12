@@ -539,6 +539,9 @@ class TestScrapeClubsWithMetrics:
         assert m.error == 1
         assert m.ok == 0
         assert m.none_resp == 0
+        # TASK-2835: the error text is carried into the per-club metric so the
+        # Discord run summary can render an excerpt without re-reading results.
+        assert m.error_message == "boom"
 
     @pytest.mark.asyncio
     async def test_clubs_run_concurrently(self):
@@ -1178,6 +1181,109 @@ class TestSendDiscordRunSummary:
         desc = mock_alert_cls.call_args.kwargs.get('message', '')
         assert "⚠️" in desc
         assert "Bad Club" in desc
+
+    def _send_and_get_desc(self, svc, summary, db_result):
+        """Run _send_discord_run_summary with mocked channels; return the description."""
+        mock_config = _make_mock_config(channels=["discord"])
+        mock_alert_cls = MagicMock(return_value=MagicMock())
+        with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
+             patch('gioe_libs.alerting.Alert', mock_alert_cls), \
+             patch('gioe_libs.alerting.DiscordAlertChannel'):
+            MockConfig.default.return_value = mock_config
+            svc._send_discord_run_summary(summary, db_result)
+        return mock_alert_cls.call_args.kwargs.get('message', '')
+
+    def test_failing_club_line_includes_club_id_and_error_excerpt(self, monkeypatch):
+        """TASK-2835 (criterion 9134): below-threshold lines carry the club_id
+        and a truncated first-error excerpt so triage doesn't require opening
+        the GHA logs (the TASK-2824 crash went unread for two nights)."""
+        monkeypatch.delenv("GITHUB_RUN_ID", raising=False)
+        svc = self._make_service(threshold=70.0)
+        long_error = (
+            "fetch failed for https://www.simpletix.com/e/improvcity-show-tickets-249393: "
+            "DataError: Data processing error: 'list' object has no attribute 'get' "
+            + "x" * 100
+        )
+        crashed = DomainRequestMetrics(
+            club_name="ImprovCity",
+            club_id=786,
+            total=1,
+            error=1,
+            error_message=long_error,
+        )
+        summary = _make_multi_club_summary([crashed])
+        desc = self._send_and_get_desc(svc, summary, self._make_db_result())
+
+        assert "ImprovCity (id 786)" in desc
+        assert "Data processing error" in desc
+        line = next(l for l in desc.split("\n") if l.startswith("⚠️"))
+        # truncated to the excerpt cap (line prefix + " — " + 120-char excerpt)
+        assert line.endswith("…")
+        excerpt = line.split(" — ", 1)[1]
+        assert len(excerpt) == 120
+
+    def test_failing_club_line_without_error_message_has_no_excerpt(self, monkeypatch):
+        """No recorded error → the line keeps the counts-only shape (no dash suffix)."""
+        monkeypatch.delenv("GITHUB_RUN_ID", raising=False)
+        svc = self._make_service(threshold=70.0)
+        failing = DomainRequestMetrics(club_name="Quiet Failure", club_id=42, total=1, error=1)
+        summary = _make_multi_club_summary([failing])
+        desc = self._send_and_get_desc(svc, summary, self._make_db_result())
+
+        line = next(l for l in desc.split("\n") if l.startswith("⚠️"))
+        assert "Quiet Failure (id 42)" in line
+        assert " — " not in line
+
+    def test_gha_run_link_present_when_env_set(self, monkeypatch):
+        """TASK-2835 (criterion 9135): header links the originating GHA run."""
+        monkeypatch.setenv("GITHUB_SERVER_URL", "https://github.com")
+        monkeypatch.setenv("GITHUB_REPOSITORY", "gioe/laughtrack")
+        monkeypatch.setenv("GITHUB_RUN_ID", "27416992192")
+        svc = self._make_service(threshold=70.0)
+        summary = _make_summary(error=1)
+        desc = self._send_and_get_desc(svc, summary, self._make_db_result())
+
+        assert "[GHA run logs](https://github.com/gioe/laughtrack/actions/runs/27416992192)" in desc
+
+    def test_gha_run_link_omitted_for_local_runs(self, monkeypatch):
+        """TASK-2835 (criterion 9135): local runs (no GITHUB_RUN_ID) omit the link cleanly."""
+        monkeypatch.delenv("GITHUB_RUN_ID", raising=False)
+        monkeypatch.delenv("GITHUB_REPOSITORY", raising=False)
+        svc = self._make_service(threshold=70.0)
+        summary = _make_summary(error=1)
+        desc = self._send_and_get_desc(svc, summary, self._make_db_result())
+
+        assert "GHA run" not in desc
+        assert "actions/runs" not in desc
+
+    def test_failing_list_capped_with_explicit_overflow_count(self, monkeypatch):
+        """TASK-2835 (criterion 9136): a wide outage lists at most
+        _MAX_FAILING_CLUBS_LISTED clubs, states the overflow count explicitly,
+        and the final description stays within the Discord limit."""
+        monkeypatch.delenv("GITHUB_RUN_ID", raising=False)
+        from laughtrack.core.services.scraping import (
+            _DISCORD_DESCRIPTION_LIMIT,
+            _MAX_FAILING_CLUBS_LISTED,
+        )
+        svc = self._make_service(threshold=70.0)
+        clubs = [
+            DomainRequestMetrics(
+                club_name=f"Failing Club {i}",
+                club_id=1000 + i,
+                total=1,
+                error=1,
+                error_message=f"fetch failed for https://example.com/{i}: HTTP 503 " + "y" * 90,
+            )
+            for i in range(40)
+        ]
+        summary = _make_multi_club_summary(clubs)
+        desc = self._send_and_get_desc(svc, summary, self._make_db_result())
+
+        listed = [l for l in desc.split("\n") if l.startswith("⚠️")]
+        assert len(listed) <= _MAX_FAILING_CLUBS_LISTED
+        assert f"…and {40 - _MAX_FAILING_CLUBS_LISTED} more below-threshold club(s) not listed" in desc
+        assert "**40 club(s) below threshold:**" in desc
+        assert len(desc) <= _DISCORD_DESCRIPTION_LIMIT
 
     def test_empty_calendar_block_appears_in_discord_summary(self):
         """A separate '📭 N club(s) with empty calendar' block surfaces empty

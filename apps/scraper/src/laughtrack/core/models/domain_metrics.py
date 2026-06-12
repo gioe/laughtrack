@@ -55,6 +55,12 @@ class DomainRequestMetrics:
     # ClubScrapingResult so ScrapingRunSummary can aggregate uncanonical
     # source_urls across the run for the nightly Discord summary.
     cross_host_redirects: Set[Tuple[str, str]] = field(default_factory=set)
+    # First error text for this club's scrape, carried from
+    # ClubScrapingResult.error so the nightly Discord run summary can show
+    # WHY a below-threshold club failed without a trip to the GHA logs
+    # (TASK-2835; the TASK-2824 SimpleTix crash went unread for two nights
+    # because the summary line carried only counts).
+    error_message: Optional[str] = None
 
     @property
     def success_rate(self) -> float:
