@@ -20,14 +20,16 @@ Pipeline:
   3. transformation_pipeline    → CreekAndCaveShow.to_show() → Show objects
 """
 
+import asyncio
 from typing import List, Optional
 
+from laughtrack.core.clients.tixologi import TixologiClient
 from laughtrack.core.entities.club.model import Club
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.models.types import ScrapingTarget
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 
-from .data import CreekAndCavePageData
+from .data import CreekAndCavePageData, CreekAndCaveShow
 from .extractor import CreekAndCaveEventExtractor
 from .transformer import CreekAndCaveEventTransformer
 
@@ -44,6 +46,7 @@ class CreekAndCaveScraper(BaseScraper):
 
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
+        self.tixologi_client = TixologiClient(club)
         self.transformation_pipeline.register_transformer(
             CreekAndCaveEventTransformer(club)
         )
@@ -86,8 +89,44 @@ class CreekAndCaveScraper(BaseScraper):
             )
             return None
 
+        shows = await self._enrich_tixologi_tickets(shows)
+
         Logger.info(
             f"{self._log_prefix}: extracted {len(shows)} shows from {url}",
             self.logger_context,
         )
         return CreekAndCavePageData(event_list=shows)
+
+    async def _enrich_tixologi_tickets(
+        self, shows: List[CreekAndCaveShow]
+    ) -> List[CreekAndCaveShow]:
+        """Attach Tixologi ticket-type payloads to shows before transformation.
+
+        Mirrors the west_side enrichment (TASK-2840): each show's
+        tixologi_event_id is resolved against the public no-auth
+        api-v2.tixologi.com endpoint so PunchupShow._build_tickets emits
+        priced tickets from ticket_types[].initial_price. Unlike west_side,
+        get_data here has no outer try/except, so a per-show failure is
+        contained — an enrichment error degrades that show to the priceless
+        fallback ticket instead of dropping the whole calendar.
+        """
+
+        async def enrich(show: CreekAndCaveShow) -> CreekAndCaveShow:
+            if not show.tixologi_event_id:
+                return show
+            try:
+                ticket_types = await self.tixologi_client.fetch_event_ticket_types(
+                    show.tixologi_event_id
+                )
+            except Exception as e:
+                Logger.warn(
+                    f"{self._log_prefix}: tixologi enrichment failed for event "
+                    f"{show.tixologi_event_id}: {e}",
+                    self.logger_context,
+                )
+                return show
+            if not ticket_types:
+                return show
+            return show.with_tixologi_ticket_types(ticket_types)
+
+        return list(await asyncio.gather(*(enrich(show) for show in shows)))

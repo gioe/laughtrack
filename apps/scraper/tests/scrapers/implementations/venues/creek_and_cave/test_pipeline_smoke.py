@@ -85,6 +85,15 @@ def _calendar_html(rows: list) -> str:
     return _push_html(_calendar_payload(rows))
 
 
+def _stub_tixologi(monkeypatch):
+    """Bypass Tixologi enrichment in tests that don't exercise pricing."""
+
+    async def identity(self, shows):
+        return shows
+
+    monkeypatch.setattr(CreekAndCaveScraper, "_enrich_tixologi_tickets", identity)
+
+
 # ---------------------------------------------------------------------------
 # Registry key
 # ---------------------------------------------------------------------------
@@ -124,6 +133,7 @@ async def test_get_data_returns_page_data_with_events(monkeypatch):
         return _calendar_html([_show_row()])
 
     monkeypatch.setattr(CreekAndCaveScraper, "fetch_html_bare", fake_fetch_html_bare)
+    _stub_tixologi(monkeypatch)
 
     result = await scraper.get_data(_CALENDAR_URL)
 
@@ -147,6 +157,7 @@ async def test_get_data_parses_real_trimmed_snippet(monkeypatch):
         return snippet
 
     monkeypatch.setattr(CreekAndCaveScraper, "fetch_html_bare", fake_fetch_html_bare)
+    _stub_tixologi(monkeypatch)
 
     result = await scraper.get_data(_CALENDAR_URL)
 
@@ -167,6 +178,7 @@ async def test_get_data_dedupes_rows_across_payloads(monkeypatch):
         return _push_html(_calendar_payload([row]), _calendar_payload([row]))
 
     monkeypatch.setattr(CreekAndCaveScraper, "fetch_html_bare", fake_fetch_html_bare)
+    _stub_tixologi(monkeypatch)
 
     result = await scraper.get_data(_CALENDAR_URL)
 
@@ -183,6 +195,7 @@ async def test_get_data_returns_none_on_empty_html(monkeypatch):
         return ""
 
     monkeypatch.setattr(CreekAndCaveScraper, "fetch_html_bare", fake_fetch_html_bare)
+    _stub_tixologi(monkeypatch)
 
     result = await scraper.get_data(_CALENDAR_URL)
     assert result is None
@@ -197,6 +210,7 @@ async def test_get_data_returns_none_when_no_event_rows(monkeypatch):
         return _push_html('8:["$","div",null,{"children":"no shows here"}]')
 
     monkeypatch.setattr(CreekAndCaveScraper, "fetch_html_bare", fake_fetch_html_bare)
+    _stub_tixologi(monkeypatch)
 
     result = await scraper.get_data(_CALENDAR_URL)
     assert result is None
@@ -219,6 +233,95 @@ async def test_get_data_propagates_fetch_exception(monkeypatch):
 
     with pytest.raises(RuntimeError, match="network error"):
         await scraper.get_data(_CALENDAR_URL)
+
+
+# ---------------------------------------------------------------------------
+# Tixologi ticket-type enrichment (TASK-2840) — mirrors west_side
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_get_data_enriches_tixologi_ticket_types(monkeypatch):
+    """Shows carry Tixologi initial_price tickets via the west_side enrichment pattern."""
+    scraper = CreekAndCaveScraper(_club())
+
+    async def fake_fetch_html_bare(self, url: str) -> str:
+        return _calendar_html([_show_row()])
+
+    async def fake_fetch_event_ticket_types(event_id: str):
+        assert event_id == "12297"
+        return [{"name": "General Admission", "initial_price": 15, "sold_out": False}]
+
+    monkeypatch.setattr(CreekAndCaveScraper, "fetch_html_bare", fake_fetch_html_bare)
+    monkeypatch.setattr(
+        scraper.tixologi_client,
+        "fetch_event_ticket_types",
+        fake_fetch_event_ticket_types,
+    )
+
+    result = await scraper.get_data(_CALENDAR_URL)
+
+    assert isinstance(result, CreekAndCavePageData)
+    show = result.event_list[0].to_show(_club())
+    assert show is not None
+    assert show.tickets[0].price == 15.0
+    assert show.tickets[0].type == "General Admission"
+
+
+@pytest.mark.asyncio
+async def test_get_data_enrichment_preserves_vip_ticket_row(monkeypatch):
+    """The CreekAndCaveShow subclass survives enrichment: VIP row still appended."""
+    scraper = CreekAndCaveScraper(_club())
+
+    async def fake_fetch_html_bare(self, url: str) -> str:
+        return _calendar_html([
+            _show_row(vip_ticket_link="https://event.tixologi.com/event/12297/vip")
+        ])
+
+    async def fake_fetch_event_ticket_types(event_id: str):
+        return [{"name": "General Admission", "initial_price": 15, "sold_out": False}]
+
+    monkeypatch.setattr(CreekAndCaveScraper, "fetch_html_bare", fake_fetch_html_bare)
+    monkeypatch.setattr(
+        scraper.tixologi_client,
+        "fetch_event_ticket_types",
+        fake_fetch_event_ticket_types,
+    )
+
+    result = await scraper.get_data(_CALENDAR_URL)
+
+    enriched = result.event_list[0]
+    assert isinstance(enriched, CreekAndCaveShow)
+    show = enriched.to_show(_club())
+    types = [(t.type, t.price) for t in show.tickets]
+    assert ("General Admission", 15.0) in types
+    assert ("VIP", None) in types
+
+
+@pytest.mark.asyncio
+async def test_get_data_enrichment_failure_keeps_show_with_fallback_ticket(monkeypatch):
+    """A Tixologi outage degrades one show to the priceless fallback, not a dropped calendar."""
+    scraper = CreekAndCaveScraper(_club())
+
+    async def fake_fetch_html_bare(self, url: str) -> str:
+        return _calendar_html([_show_row()])
+
+    async def raising_fetch_event_ticket_types(event_id: str):
+        raise RuntimeError("tixologi down")
+
+    monkeypatch.setattr(CreekAndCaveScraper, "fetch_html_bare", fake_fetch_html_bare)
+    monkeypatch.setattr(
+        scraper.tixologi_client,
+        "fetch_event_ticket_types",
+        raising_fetch_event_ticket_types,
+    )
+
+    result = await scraper.get_data(_CALENDAR_URL)
+
+    assert isinstance(result, CreekAndCavePageData)
+    show = result.event_list[0].to_show(_club())
+    assert show is not None
+    assert show.tickets[0].price is None
 
 
 # ---------------------------------------------------------------------------
