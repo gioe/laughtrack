@@ -103,15 +103,31 @@ failures and regressions.
 3. **Provision the rules.**
    - *Self-hosted Grafana:* drop `scraper-health-alerts.yaml` in
      `/etc/grafana/provisioning/alerting/` and restart.
-   - *Grafana Cloud* (no file provisioning): recreate the four rules via
-     **Alerting → Alert rules → New** using the SQL and thresholds from the file
-     verbatim, or apply them with Terraform / the Alerting API. When a rule is
-     added to the YAML (e.g. rule 4, TASK-2832), it does **not** reach Grafana
-     Cloud on merge — someone must create it manually in the UI: query A = the
-     rule's `rawSql` against the Neon datasource, expression B = reduce(last, A),
-     expression C = threshold(B > 0), evaluation group `scraper-health-regressions`
-     (1h), labels `service=scraper-health, severity=warning`, and the annotations
-     from the YAML.
+   - *Grafana Cloud* (no **file** provisioning): rules added to the YAML do
+     **not** reach Grafana Cloud on merge. The preferred path is the
+     **Alerting provisioning HTTP API** — the `GRAFANA_ACCOUNT_TOKEN` in
+     `apps/scraper/.env` has provisioning rights (verified TASK-2843, which
+     created rule 4 this way):
+
+     ```bash
+     # GET an existing rule as a structural template, then POST the new one.
+     # X-Disable-Provenance keeps the rule editable in the UI afterward.
+     curl -H "Authorization: Bearer $GRAFANA_ACCOUNT_TOKEN" \
+       https://aiqobservability.grafana.net/api/v1/provisioning/alert-rules
+     curl -X POST -H "Authorization: Bearer $GRAFANA_ACCOUNT_TOKEN" \
+       -H "Content-Type: application/json" -H "X-Disable-Provenance: true" \
+       -d @new-rule.json \
+       https://aiqobservability.grafana.net/api/v1/provisioning/alert-rules
+     ```
+
+     Build `new-rule.json` by cloning an existing rule's `data` pipeline
+     (query A = the YAML rule's `rawSql` against the Neon datasource,
+     reduce(last) expression, threshold(>0) expression), set `folderUID` /
+     `ruleGroup` from the template, labels `service=scraper-health,
+     severity=warning`, `noDataState: OK`, and
+     `notification_settings.receiver: "Discord Hook"`. Manual UI creation
+     (**Alerting → Alert rules → New** with the same pieces) remains the
+     fallback when no token is at hand.
 4. **Route to Discord.** Provisioned notification `policies` replace the org root
    policy, so the YAML leaves that block commented out. Add a notification-policy
    route in the UI instead: matcher `service = scraper-health` → contact point
