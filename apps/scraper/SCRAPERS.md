@@ -985,6 +985,13 @@ The generic scraper generates 12 weekly URLs starting from the current Sunday.
 - `publicly_available` — skip when `False`
 - `is_sold_out` — mark ticket as sold out when `True`
 
+**Pricing:** the calendar API carries no price field. The scraper fetches each
+distinct event detail page (`truncated_url`) once per run — performances share
+a page and events recur across weekly windows — and parses the schema.org
+JSON-LD `AggregateOffer.lowPrice` into the fallback ticket (TASK-2837).
+Pages that fail to fetch are retried on a later window; missing/unparseable
+prices stay `None` (price unknown).
+
 **Filtering rules:**
 - Skip events where `publicly_available` is `False` (always-on, engine-level)
 - Skip events whose title starts with any of `metadata.title_skip_prefixes`
