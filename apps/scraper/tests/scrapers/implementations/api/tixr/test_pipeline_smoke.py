@@ -947,7 +947,11 @@ async def test_get_data_uses_group_events_api_fallback_when_all_detail_fetches_f
 
     assert isinstance(result, TixrPageData)
     assert [e.event_id for e in result.event_list] == ["190002"]
-    scraper.tixr_client.fetch_group_events.assert_awaited_once_with("2444")
+    scraper.tixr_client.fetch_group_events.assert_awaited_once_with(
+        "2444",
+        max_pages=12,
+        skip_direct=False,
+    )
     assert scraper.tixr_client.get_event_detail_from_url.await_count == 2
 
 

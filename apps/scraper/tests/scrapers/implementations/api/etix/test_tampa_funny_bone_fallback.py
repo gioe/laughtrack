@@ -92,21 +92,17 @@ def _shows_html() -> str:
 
 
 @pytest.mark.asyncio
-async def test_tampa_funny_bone_target_discovery_uses_public_listing_when_etix_fetch_fails(
-    monkeypatch,
-):
+async def test_tampa_funny_bone_collect_targets_skips_etix_discovery(monkeypatch):
     from laughtrack.scrapers.implementations.api.etix.scraper import EtixScraper
 
     scraper = EtixScraper(_club())
 
-    async def fake_fetch_etix_html(self, url: str) -> str:
-        raise RuntimeError("proxy tunnel failed")
+    async def fail_fetch_etix_html(url: str):
+        raise AssertionError(f"Tampa Funny Bone should not fetch blocked Etix discovery URL: {url}")
 
-    monkeypatch.setattr(EtixScraper, "_fetch_etix_html", fake_fetch_etix_html)
+    monkeypatch.setattr(scraper, "_fetch_etix_html", fail_fetch_etix_html)
 
-    targets = await scraper.collect_scraping_targets()
-
-    assert targets == [SHOWS_URL]
+    assert await scraper.collect_scraping_targets() == [ETIX_URL]
 
 
 @pytest.mark.asyncio
