@@ -135,6 +135,43 @@ class TestCheckAndAlert:
             svc._check_and_alert(summary)
             mock_alert.assert_not_called()
 
+    def test_processing_crash_with_zero_shows_triggers_alert(self):
+        """TASK-2833 (criterion: processing-crash club reaches the alert):
+        a club whose only symptom is a per-target get_data/transform crash
+        with 0 shows must appear in the below-threshold alert. Post-fix the
+        orchestrator metric for such a club carries error=1 (result.error is
+        populated from the recorded exception) with a healthy fetch layer —
+        the exact shape that previously classified EMPTY_CALENDAR and dodged
+        the alert (TASK-2824's ImprovCity night-one miss)."""
+        svc = self._make_service(threshold=70.0)
+        crashed = DomainRequestMetrics(
+            club_name="ImprovCity",
+            scraper_type="simpletix",
+            total=1,
+            error=1,
+            targets_collected=1,
+            fetches_ok=1,
+            fetches_failed=0,
+            items_before_filter=0,
+        )
+        healthy_sibling = DomainRequestMetrics(
+            club_name="Healthy SimpleTix Club",
+            scraper_type="simpletix",
+            total=1,
+            ok=1,
+            fetches_ok=1,
+            items_before_filter=4,
+        )
+        summary = _make_multi_club_summary([crashed, healthy_sibling])
+        mock_config = _make_mock_config(channels=["discord"])
+        with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig:
+            MockConfig.default.return_value = mock_config
+            with patch.object(svc, '_send_discord_alert') as mock_alert:
+                svc._check_and_alert(summary)
+                mock_alert.assert_called_once()
+                individual_arg = mock_alert.call_args[0][0]
+                assert [m.club_name for m in individual_arg] == ["ImprovCity"]
+
     def test_empty_calendar_filtered_but_real_failure_still_alerts(self):
         """When one venue is EMPTY_CALENDAR and another is genuinely failing,
         only the genuine failure routes to the alert."""
