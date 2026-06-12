@@ -11,13 +11,23 @@ Pipeline:
   1. collect_scraping_targets() → [club.scraping_url]  (single page)
   2. get_data(url)              → fetch HTML, extract SportsDrinkEvents
   3. transformation_pipeline    → SportsDrinkEvent.to_show() → Show objects
+
+Ticket prices (TASK-2839): the listing page renders no price strings, but each
+card's detail page (event_url) embeds schema.org JSON-LD with offers.price.
+get_data fetches every distinct detail URL concurrently (asyncio.gather through
+the shared rate limiter) and memoizes results per run, so the ~143 extra
+fetches add roughly one rate-limited round-trip of wall clock rather than a
+serial crawl, and a get_data retry does not refetch successes.
 """
 
-from typing import Optional
+import asyncio
+from typing import Dict, List, Optional
 
 from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.event.sports_drink import SportsDrinkEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.scrapers.base.base_scraper import BaseScraper
+from laughtrack.scrapers.implementations.json_ld.extractor import EventExtractor
 
 from .data import SportsDrinkPageData
 from .extractor import SportsDrinkExtractor
@@ -31,6 +41,9 @@ class SportsDrinkScraper(BaseScraper):
 
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
+        # Detail-page price fetches memoized for the life of the run: each
+        # distinct event_url is fetched at most once even across retries.
+        self._detail_price_tasks: Dict[str, "asyncio.Task[Optional[float]]"] = {}
         self.transformation_pipeline.register_transformer(
             SportsDrinkEventTransformer(club)
         )
@@ -59,6 +72,8 @@ class SportsDrinkScraper(BaseScraper):
                 self._warn_empty_extraction(url, html=html)
                 return None
 
+            await self._attach_detail_page_prices(events)
+
             Logger.info(
                 f"{self._log_prefix}: extracted {len(events)} events from {url}",
                 self.logger_context,
@@ -68,6 +83,56 @@ class SportsDrinkScraper(BaseScraper):
         except Exception as e:
             Logger.error(
                 f"{self._log_prefix}: error fetching {url}: {e}",
+                self.logger_context,
+            )
+            return None
+
+    async def _attach_detail_page_prices(self, events: List[SportsDrinkEvent]) -> None:
+        """Populate each event's price from its detail page's JSON-LD offers.
+
+        Distinct detail URLs are fetched concurrently and memoized per run;
+        events without an event_url keep price=None.
+        """
+        urls = list(dict.fromkeys(e.event_url for e in events if e.event_url))
+        prices = await asyncio.gather(*(self._detail_page_price(u) for u in urls))
+        price_by_url = dict(zip(urls, prices))
+        for event in events:
+            if event.event_url:
+                event.price = price_by_url.get(event.event_url)
+
+    def _detail_page_price(self, url: str) -> "asyncio.Task[Optional[float]]":
+        task = self._detail_price_tasks.get(url)
+        if task is None:
+            task = asyncio.ensure_future(self._fetch_detail_page_price(url))
+            self._detail_price_tasks[url] = task
+        return task
+
+    async def _fetch_detail_page_price(self, url: str) -> Optional[float]:
+        """Fetch one detail page and parse its lowest JSON-LD offer price.
+
+        Never raises: a missing price degrades the ticket to price-unknown
+        (None) rather than dropping the listing. Failed fetches are evicted
+        from the memo so a get_data retry can try the page again; a fetched
+        page with no parseable offers stays cached — refetching would not help.
+        """
+        try:
+            await self.rate_limiter.await_if_needed(url)
+            html = await self.fetch_html(url)
+        except Exception as e:
+            self._detail_price_tasks.pop(url, None)
+            Logger.warn(
+                f"{self._log_prefix}: detail-page price fetch failed for {url}: {e}",
+                self.logger_context,
+            )
+            return None
+        if not html:
+            self._detail_price_tasks.pop(url, None)
+            return None
+        try:
+            return EventExtractor.extract_min_offer_price(html)
+        except Exception as e:
+            Logger.warn(
+                f"{self._log_prefix}: detail-page price parse failed for {url}: {e}",
                 self.logger_context,
             )
             return None

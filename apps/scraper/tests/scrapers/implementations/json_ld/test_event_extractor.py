@@ -327,3 +327,60 @@ def test_extract_events_aggregate_offer_with_explicit_price_preserved():
     events = EventExtractor.extract_events(html)
     assert len(events) == 1
     assert events[0].offers[0].price == "42.00"
+
+
+# ---------------------------------------------------------------------------
+# extract_min_offer_price — lowest per-tier price across Event offers
+# ---------------------------------------------------------------------------
+
+
+def _priced_event(offers):
+    return {
+        "@context": "https://schema.org",
+        "@type": "Event",
+        "name": "Priced Show",
+        "url": "https://example.com/e/priced-show",
+        "startDate": "2026-06-13T20:00:00-05:00",
+        "offers": offers,
+    }
+
+
+def test_extract_min_offer_price_single_offer_dict():
+    """OpenDate shape: a single Offer dict with a string price."""
+    html = _wrap_ldjson(_priced_event(
+        {"@type": "Offer", "url": "https://example.com/e/x", "price": "25.0", "priceCurrency": "USD"}
+    ))
+    assert EventExtractor.extract_min_offer_price(html) == 25.0
+
+
+def test_extract_min_offer_price_offers_list_takes_lowest_positive():
+    """ShowClix/Leap shape: per-tier Offer list — lowest positive tier wins."""
+    html = _wrap_ldjson(_priced_event([
+        {"@type": "Offer", "price": "35.00", "priceCurrency": "USD"},
+        {"@type": "Offer", "price": "20.00", "priceCurrency": "USD"},
+        {"@type": "Offer", "price": "0.00", "priceCurrency": "USD"},
+    ]))
+    assert EventExtractor.extract_min_offer_price(html) == 20.0
+
+
+def test_extract_min_offer_price_aggregate_offer_low_price():
+    """ThunderTix shape: AggregateOffer lowPrice via the Offer model fallback."""
+    html = _wrap_ldjson(_priced_event(
+        {"@type": "AggregateOffer", "lowPrice": "15.0", "highPrice": "40.0", "priceCurrency": "USD"}
+    ))
+    assert EventExtractor.extract_min_offer_price(html) == 15.0
+
+
+def test_extract_min_offer_price_all_zero_offers_means_free():
+    """Explicit all-zero offers (RSVP-only open mics) parse as proven-free 0.0."""
+    html = _wrap_ldjson(_priced_event(
+        {"@type": "Offer", "url": "https://example.com/e/x", "price": "0.0", "priceCurrency": "USD"}
+    ))
+    assert EventExtractor.extract_min_offer_price(html) == 0.0
+
+
+def test_extract_min_offer_price_none_without_offers():
+    """Pages without parseable offers yield None (price unknown, not 0)."""
+    assert EventExtractor.extract_min_offer_price("<html><body>no ld</body></html>") is None
+    html = _wrap_ldjson(_priced_event({"@type": "Offer", "price": "", "priceCurrency": "USD"}))
+    assert EventExtractor.extract_min_offer_price(html) is None

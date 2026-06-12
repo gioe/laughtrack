@@ -70,6 +70,56 @@ def _listing_page(cards: list[str]) -> str:
 </body></html>"""
 
 
+def _detail_page_html(price: str = "25.0") -> str:
+    """Trimmed copy of a live app.opendate.io/e/ detail page JSON-LD block.
+
+    OpenDate emits a single Offer dict (not a list) with a string price; the
+    top-level Event has no url field — JsonLdEvent falls back to offers.url.
+    """
+    return (
+        '<html><head><script type="application/ld+json">'
+        '{"@context":"https://schema.org","@type":"Event",'
+        '"name":"Chanel Ali at SPORTS DRINK (Saturday, 8:00p)",'
+        '"startDate":"2026-06-13",'
+        '"location":{"@type":"Place","name":"SPORTS DRINK"},'
+        '"offers":{"@type":"Offer",'
+        '"url":"https://app.opendate.io/e/chanel-ali-at-sports-drink-712986",'
+        '"price":"' + price + '","priceCurrency":"USD",'
+        '"availability":"https://schema.org/InStock"}}'
+        "</script></head><body></body></html>"
+    )
+
+
+def _stub_price_fetch(monkeypatch):
+    """Bypass detail-page price fetches in tests that don't exercise pricing."""
+
+    async def no_price(self, url: str):
+        return None
+
+    monkeypatch.setattr(SportsDrinkScraper, "_fetch_detail_page_price", no_price)
+
+
+def _scraper_with_detail_pages(monkeypatch, listing_html: str, html_by_url: dict, fetched: list) -> SportsDrinkScraper:
+    """Build a SportsDrinkScraper with the listing and detail pages stubbed."""
+    scraper = SportsDrinkScraper(_club())
+
+    async def fake_fetch_html(self, url: str, **kwargs):
+        if url == LISTING_URL:
+            return listing_html
+        fetched.append(url)
+        result = html_by_url[url]
+        if isinstance(result, Exception):
+            raise result
+        return result
+
+    async def no_rate_limit(url):
+        return None
+
+    monkeypatch.setattr(SportsDrinkScraper, "fetch_html", fake_fetch_html)
+    scraper.rate_limiter = __import__("types").SimpleNamespace(await_if_needed=no_rate_limit)
+    return scraper
+
+
 # ---------------------------------------------------------------------------
 # get_data() tests
 # ---------------------------------------------------------------------------
@@ -97,6 +147,7 @@ async def test_get_data_returns_page_data_with_events(monkeypatch):
         return html
 
     monkeypatch.setattr(SportsDrinkScraper, "fetch_html", fake_fetch_html)
+    _stub_price_fetch(monkeypatch)
 
     result = await scraper.get_data(LISTING_URL)
 
@@ -351,3 +402,86 @@ def test_to_show_handles_compact_time_format():
     assert show is not None, "Compact time format 'Show: 7:00PM' should not return None"
     assert show.date.hour == 19
     assert show.date.minute == 0
+
+
+# ---------------------------------------------------------------------------
+# Detail-page JSON-LD price extraction — the listing page renders no price
+# strings; each card's detail page embeds schema.org offers.price.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_get_data_attaches_detail_page_prices_one_fetch_per_distinct_url(monkeypatch):
+    """Events carry their detail page's offers.price; a shared URL is fetched once."""
+    url_a = "https://app.opendate.io/e/show-a-712986"
+    url_b = "https://app.opendate.io/e/show-b-716277"
+    listing = _listing_page([
+        _card_html(title="Show A Early", event_url=url_a),
+        _card_html(title="Show A Late", event_url=url_a),
+        _card_html(title="Show B", event_url=url_b),
+    ])
+    fetched: list = []
+    scraper = _scraper_with_detail_pages(
+        monkeypatch,
+        listing,
+        {url_a: _detail_page_html("25.0"), url_b: _detail_page_html("15.0")},
+        fetched,
+    )
+
+    result = await scraper.get_data(LISTING_URL)
+
+    assert [e.price for e in result.event_list] == [25.0, 25.0, 15.0]
+    assert sorted(fetched) == [url_a, url_b]
+
+
+@pytest.mark.asyncio
+async def test_get_data_price_fetch_failure_keeps_events_and_retries_later(monkeypatch):
+    """A failed detail fetch degrades to price-unknown and is evicted for retry."""
+    url_a = "https://app.opendate.io/e/show-a-712986"
+    listing = _listing_page([_card_html(title="Show A", event_url=url_a)])
+    fetched: list = []
+    scraper = _scraper_with_detail_pages(
+        monkeypatch, listing, {url_a: Exception("Connection refused")}, fetched
+    )
+
+    result = await scraper.get_data(LISTING_URL)
+
+    assert result.event_list[0].price is None
+    # The failed fetch is evicted from the memo, so a retried get_data refetches.
+    await scraper.get_data(LISTING_URL)
+    assert len(fetched) == 2
+
+
+@pytest.mark.asyncio
+async def test_get_data_priceless_detail_page_stays_cached(monkeypatch):
+    """A fetched page with no JSON-LD offers is NOT refetched — refetching would not help."""
+    url_a = "https://app.opendate.io/e/show-a-712986"
+    listing = _listing_page([_card_html(title="Show A", event_url=url_a)])
+    fetched: list = []
+    scraper = _scraper_with_detail_pages(
+        monkeypatch, listing, {url_a: "<html><body>no JSON-LD here</body></html>"}, fetched
+    )
+
+    first = await scraper.get_data(LISTING_URL)
+    second = await scraper.get_data(LISTING_URL)
+
+    assert first.event_list[0].price is None
+    assert second.event_list[0].price is None
+    assert fetched == [url_a]
+
+
+def test_to_show_carries_price_into_fallback_ticket():
+    """SportsDrinkEvent.price flows into the show's fallback ticket."""
+    event = _make_event()
+    event.price = 25.0
+
+    show = event.to_show(_club())
+
+    assert show.tickets[0].price == 25.0
+
+
+def test_to_show_defaults_to_price_unknown():
+    """Without a detail-page price the fallback ticket stays price-unknown (None, not 0)."""
+    show = _make_event().to_show(_club())
+
+    assert show.tickets[0].price is None

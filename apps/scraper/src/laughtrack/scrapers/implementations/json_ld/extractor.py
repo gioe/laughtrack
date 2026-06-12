@@ -45,6 +45,32 @@ class EventExtractor:
         )
 
     @staticmethod
+    def extract_min_offer_price(html_content: str) -> float | None:
+        """Lowest per-tier offer price across the page's JSON-LD Event blocks.
+
+        Tolerates both offer shapes (single dict and list of per-tier Offers)
+        and both price keys via the Offer model's lowPrice fallback for
+        AggregateOffer. Returns the lowest positive price; 0.0 only when every
+        parseable offer is an explicit zero (proven-free, e.g. RSVP-only open
+        mics); None when no parseable offers exist. A zero tier alongside paid
+        tiers is treated as a comp/placeholder, not the show's price.
+        """
+        prices = []
+        for event in EventExtractor.extract_events(html_content):
+            for offer in event.offers:
+                try:
+                    prices.append(float(offer.price))
+                except (TypeError, ValueError):
+                    continue
+
+        positive = [p for p in prices if p > 0]
+        if positive:
+            return min(positive)
+        if prices:
+            return 0.0
+        return None
+
+    @staticmethod
     def extract_event_field_values(html_content: str, field_path: str) -> Set[str]:
         """Extract string values from a JSON-LD field on Event objects.
 

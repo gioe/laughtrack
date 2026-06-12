@@ -66,6 +66,7 @@ class SportsDrinkEvent(ShowConvertible):
     date_str: str    # e.g. "April 03, 2026"
     time_str: str    # e.g. "Doors: 6:30 PM - Show: 7:00 PM"
     event_url: str   # e.g. "https://app.opendate.io/e/ian-lara-at-sports-drink-..."
+    price: Optional[float] = None  # detail-page JSON-LD offers.price
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None):
         """Convert to a Show domain object."""
@@ -81,7 +82,7 @@ class SportsDrinkEvent(ShowConvertible):
             return None
 
         ticket_url = url or self.event_url
-        tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url)]
+        tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url, price=self.price)]
 
         return ShowFactoryUtils.create_enhanced_show_base(
             name=self.title,
