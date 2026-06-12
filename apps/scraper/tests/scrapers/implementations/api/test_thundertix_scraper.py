@@ -370,6 +370,32 @@ async def test_detail_page_fetch_failure_leaves_price_none(monkeypatch):
 
     assert [event.title for event in result.event_list] == ["Public Show"]
     assert result.event_list[0].price is None
+    # A failed fetch is evicted from the memo, so a later window retries it.
+    await scraper.get_data("https://theannoyance.thundertix.com/reports/calendar?week=0&start=2&end=3")
+    assert len(fetched) == 2
+
+
+@pytest.mark.asyncio
+async def test_detail_page_fetch_skips_venue_root_when_truncated_url_empty(monkeypatch):
+    """An empty truncated_url leaves show_page_url == base_url; the venue root is never fetched."""
+    rootless = _performance_dict(title="No Detail Page", event_id=1, performance_id=101)
+    rootless["truncated_url"] = ""
+    api_fixture = [rootless]
+
+    async def fake_fetch_json_list(self, url: str):
+        return api_fixture
+
+    monkeypatch.setattr(ThunderTixCalendarScraper, "fetch_json_list", fake_fetch_json_list)
+
+    fetched = []
+    scraper = _scraper_with_detail_pages(monkeypatch, {}, fetched)
+
+    result = await scraper.get_data(
+        "https://theannoyance.thundertix.com/reports/calendar?week=0&start=1&end=2"
+    )
+
+    assert fetched == []
+    assert result.event_list[0].price is None
 
 
 def test_to_show_carries_price_into_fallback_ticket():

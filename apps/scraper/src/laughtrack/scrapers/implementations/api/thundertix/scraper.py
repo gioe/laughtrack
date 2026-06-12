@@ -34,7 +34,13 @@ def current_week_start_ts() -> int:
 
 @dataclass(frozen=True)
 class ThunderTixCalendarConfig(Generic[PerformanceT, PageDataT]):
-    """Venue-specific settings for the ThunderTix weekly calendar API."""
+    """Venue-specific settings for the ThunderTix weekly calendar API.
+
+    ``event_factory`` must produce objects that, beyond ShowConvertible,
+    expose a ``show_page_url: str`` and a mutable ``price: Optional[float]``
+    (as ``ThunderTixPerformance`` does) — the scraper's detail-page price
+    attachment reads and writes both.
+    """
 
     base_url: str
     event_factory: Callable[[dict, str], PerformanceT]
@@ -156,20 +162,25 @@ class ThunderTixCalendarScraper(BaseScraper, Generic[PerformanceT, PageDataT]):
         """Fetch one event detail page and parse its JSON-LD lowPrice.
 
         Never raises: a missing price degrades the ticket to price-unknown
-        (None) rather than dropping the whole calendar window.
+        (None) rather than dropping the whole calendar window. Failed fetches
+        are evicted from the memo so a later weekly window can retry a
+        transiently failing page; a successfully fetched page with no parseable
+        price stays cached — refetching it would not help.
         """
         try:
             await self.rate_limiter.await_if_needed(url)
             html = await self.fetch_html(url)
-            if not html:
-                return None
-            return SimpleTixExtractor.extract_json_ld_price(html)
         except Exception as e:
+            self._detail_price_tasks.pop(url, None)
             Logger.warn(
                 f"{self._log_prefix}: detail-page price fetch failed for {url}: {e}",
                 self.logger_context,
             )
             return None
+        if not html:
+            self._detail_price_tasks.pop(url, None)
+            return None
+        return SimpleTixExtractor.extract_json_ld_price(html)
 
 
 _CALENDAR_PATH_SUFFIX = _CALENDAR_PATH.lstrip("/")
