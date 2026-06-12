@@ -1,0 +1,193 @@
+{
+  "items": [
+    {
+      "id": "6a286dd29da8c9c14b299e74",
+      "cmsLocaleId": "66b93f94f8862df02a752913",
+      "lastPublished": "2026-06-09T19:47:30.412Z",
+      "lastUpdated": "2026-06-09T19:47:30.412Z",
+      "createdOn": "2026-06-09T19:47:30.412Z",
+      "isArchived": false,
+      "isDraft": false,
+      "fieldData": {
+        "event-title": "The Gotham All-Stars",
+        "event-image": null,
+        "event-times": "2099-06-20T20:00:00-04:00",
+        "event-description": "<p>A professional Showcase featuring comics from Netflix, Showtime, HBO, The Daily Show, The Tonight Show, Late Night, The Late Show, The Late Late Show & vario",
+        "event-id": "10378853",
+        "event-date": "2099-06-20T00:00:00.000Z",
+        "event-url-slug": "the-gotham-all-stars2526rbueuau",
+        "event-image-url": "//sc-events.s3.amazonaws.com/30025/10187110/885c034eb2351c2dfe2b36a7707ca2eaa9d8ccee4ce0f8e383e23d2b0e8a2ac2/75d25a11-749d-43ac-83ac-12b8b942d2f1.jpg",
+        "parent-id": "10187110",
+        "event-category": "Stand-up Comedy Shows",
+        "name": "The Gotham All-Stars ",
+        "slug": "the-gotham-all-stars--www-gothamcomedyclub-com-event-the-gotham-all-stars"
+      }
+    },
+    {
+      "id": "6a221d6184045c358957222d",
+      "cmsLocaleId": "66b93f94f8862df02a752913",
+      "lastPublished": "2026-06-08T00:02:12.037Z",
+      "lastUpdated": "2026-06-08T00:02:12.037Z",
+      "createdOn": "2026-06-05T00:50:41.804Z",
+      "isArchived": false,
+      "isDraft": false,
+      "fieldData": {
+        "event-title": "The Gotham All-Stars",
+        "event-image": null,
+        "event-times": "2099-06-20T22:30:00-04:00",
+        "event-description": "<p>A professional Showcase featuring comics from Netflix, Showtime, HBO, The Daily Show, The Tonight Show, Late Night, The Late Show, The Late Late Show & vario",
+        "event-id": "10378852",
+        "event-date": "2099-06-20T00:00:00.000Z",
+        "event-url-slug": "the-gotham-all-stars2526ssx4uyy",
+        "event-image-url": "//sc-events.s3.amazonaws.com/30025/10187110/885c034eb2351c2dfe2b36a7707ca2eaa9d8ccee4ce0f8e383e23d2b0e8a2ac2/75d25a11-749d-43ac-83ac-12b8b942d2f1.jpg",
+        "parent-id": "10187110",
+        "event-category": "Stand-up Comedy Shows",
+        "name": "The Gotham All-Stars",
+        "slug": "the-gotham-all-stars--10378852"
+      }
+    },
+    {
+      "id": "6a0b7f29f20e260defd533b4",
+      "cmsLocaleId": "66b93f94f8862df02a752913",
+      "lastPublished": "2026-06-10T14:30:54.957Z",
+      "lastUpdated": "2026-06-10T14:30:54.957Z",
+      "createdOn": "2026-05-18T21:05:44.998Z",
+      "isArchived": false,
+      "isDraft": false,
+      "fieldData": {
+        "event-title": "American Comedy Institute Show (Vintage Lounge)",
+        "event-image": null,
+        "event-times": "2099-07-04T19:30:00-04:00",
+        "event-description": "<p><span style=\"background-color: #ced4d9;\"><em><strong>*This show is held downstairs in The Vintage Lounge at Gotham Comedy Club</strong></em></span></p>\n<p>A ",
+        "event-id": "10359783",
+        "event-date": "2099-07-04T00:00:00.000Z",
+        "event-url-slug": "american-comedy-institute-show-vintage-lounge4yub2yy",
+        "event-image-url": "//sc-events.s3.amazonaws.com/30025/10265567/11e11ca9ce5191f2c8086210d945c1f89256108629201617b1da298898300543/2116c49f-b50e-4614-8485-a20f40611bfb.jpeg",
+        "parent-id": "10265567",
+        "event-category": "Stand-up Comedy Shows",
+        "name": "American Comedy Institute Show (Vintage Lounge)",
+        "slug": "american-comedy-institute-show-vintage-lounge---10359783"
+      }
+    },
+    {
+      "id": "6a0b9a11c075dd905a75b615",
+      "cmsLocaleId": "66b93f94f8862df02a752913",
+      "lastPublished": "2026-05-29T01:35:48.321Z",
+      "lastUpdated": "2026-06-03T22:51:27.078Z",
+      "createdOn": "2026-05-18T23:00:33.304Z",
+      "isArchived": false,
+      "isDraft": true,
+      "fieldData": {
+        "event-title": "Oz \"The Mentalist\" Pearlman LIVE!",
+        "event-image": null,
+        "event-times": "2099-08-01T20:00:00-04:00",
+        "event-description": "<p>$40 (plus $5.50 service fee) + 2 Beverage Minimum per person</p><p><span><strong>Premium Admission: Includes VIP Meet &amp; Greet from 7-7:30PM before the sh",
+        "event-id": "10359808",
+        "event-date": "2099-08-01T00:00:00.000Z",
+        "event-url-slug": "oz-the-mentalist-pearlman-live-5lfj4ro",
+        "event-image-url": "//sc-events.s3.amazonaws.com/30025/10359439/465f82a379cce3e2f2ea9987e25b0106619ec9edd9b430e535d9839e5e08ff60/20d5fb01-4212-4cb6-a8d7-69c81b592838.png",
+        "parent-id": "10359439",
+        "event-category": "Comedy & Entertainment",
+        "name": "Oz \"The Mentalist\" Pearlman LIVE!",
+        "slug": "oz-the-mentalist-pearlman-live---10359808"
+      }
+    },
+    {
+      "id": "ffffffffffffffffffffff01",
+      "cmsLocaleId": "66b93f94f8862df02a752913",
+      "lastPublished": "2026-06-09T19:47:30.412Z",
+      "lastUpdated": "2026-06-09T19:47:30.412Z",
+      "createdOn": "2026-06-09T19:47:30.412Z",
+      "isArchived": true,
+      "isDraft": false,
+      "fieldData": {
+        "event-title": "Archived Showcase",
+        "event-image": null,
+        "event-times": "2099-09-01T20:00:00-04:00",
+        "event-description": "<p>A professional Showcase featuring comics from Netflix, Showtime, HBO, The Daily Show, The Tonight Show, Late Night, The Late Show, The Late Late Show & vario",
+        "event-id": "99999901",
+        "event-date": "2099-09-01T00:00:00.000Z",
+        "event-url-slug": "the-gotham-all-stars2526rbueuau",
+        "event-image-url": "//sc-events.s3.amazonaws.com/30025/10187110/885c034eb2351c2dfe2b36a7707ca2eaa9d8ccee4ce0f8e383e23d2b0e8a2ac2/75d25a11-749d-43ac-83ac-12b8b942d2f1.jpg",
+        "parent-id": "10187110",
+        "event-category": "Stand-up Comedy Shows",
+        "name": "The Gotham All-Stars ",
+        "slug": "the-gotham-all-stars--www-gothamcomedyclub-com-event-the-gotham-all-stars"
+      }
+    },
+    {
+      "id": "ffffffffffffffffffffff02",
+      "cmsLocaleId": "66b93f94f8862df02a752913",
+      "lastPublished": "2026-06-09T19:47:30.412Z",
+      "lastUpdated": "2026-06-09T19:47:30.412Z",
+      "createdOn": "2026-06-09T19:47:30.412Z",
+      "isArchived": false,
+      "isDraft": false,
+      "fieldData": {
+        "event-title": "Show With No Times",
+        "event-image": null,
+        "event-times": null,
+        "event-description": "<p>A professional Showcase featuring comics from Netflix, Showtime, HBO, The Daily Show, The Tonight Show, Late Night, The Late Show, The Late Late Show & vario",
+        "event-id": "99999902",
+        "event-date": "2099-09-02T00:00:00.000Z",
+        "event-url-slug": "the-gotham-all-stars2526rbueuau",
+        "event-image-url": "//sc-events.s3.amazonaws.com/30025/10187110/885c034eb2351c2dfe2b36a7707ca2eaa9d8ccee4ce0f8e383e23d2b0e8a2ac2/75d25a11-749d-43ac-83ac-12b8b942d2f1.jpg",
+        "parent-id": "10187110",
+        "event-category": "Stand-up Comedy Shows",
+        "name": "The Gotham All-Stars ",
+        "slug": "the-gotham-all-stars--www-gothamcomedyclub-com-event-the-gotham-all-stars"
+      }
+    },
+    {
+      "id": "ffffffffffffffffffffff03",
+      "cmsLocaleId": "66b93f94f8862df02a752913",
+      "lastPublished": "2026-06-09T19:47:30.412Z",
+      "lastUpdated": "2026-06-09T19:47:30.412Z",
+      "createdOn": "2026-06-09T19:47:30.412Z",
+      "isArchived": false,
+      "isDraft": false,
+      "fieldData": {
+        "event-title": "Show With Malformed Times",
+        "event-image": null,
+        "event-times": "TBD",
+        "event-description": "<p>A professional Showcase featuring comics from Netflix, Showtime, HBO, The Daily Show, The Tonight Show, Late Night, The Late Show, The Late Late Show & vario",
+        "event-id": "99999903",
+        "event-date": "2099-09-03T00:00:00.000Z",
+        "event-url-slug": "the-gotham-all-stars2526rbueuau",
+        "event-image-url": "//sc-events.s3.amazonaws.com/30025/10187110/885c034eb2351c2dfe2b36a7707ca2eaa9d8ccee4ce0f8e383e23d2b0e8a2ac2/75d25a11-749d-43ac-83ac-12b8b942d2f1.jpg",
+        "parent-id": "10187110",
+        "event-category": "Stand-up Comedy Shows",
+        "name": "The Gotham All-Stars ",
+        "slug": "the-gotham-all-stars--www-gothamcomedyclub-com-event-the-gotham-all-stars"
+      }
+    },
+    {
+      "id": "ffffffffffffffffffffff04",
+      "cmsLocaleId": "66b93f94f8862df02a752913",
+      "lastPublished": "2026-06-09T19:47:30.412Z",
+      "lastUpdated": "2026-06-09T19:47:30.412Z",
+      "createdOn": "2026-06-09T19:47:30.412Z",
+      "isArchived": false,
+      "isDraft": false,
+      "fieldData": {
+        "event-title": "Long Past Showcase",
+        "event-image": null,
+        "event-times": "2020-01-15T20:00:00-05:00",
+        "event-description": "<p>A professional Showcase featuring comics from Netflix, Showtime, HBO, The Daily Show, The Tonight Show, Late Night, The Late Show, The Late Late Show & vario",
+        "event-id": "99999904",
+        "event-date": "2020-01-15T00:00:00.000Z",
+        "event-url-slug": "the-gotham-all-stars2526rbueuau",
+        "event-image-url": "//sc-events.s3.amazonaws.com/30025/10187110/885c034eb2351c2dfe2b36a7707ca2eaa9d8ccee4ce0f8e383e23d2b0e8a2ac2/75d25a11-749d-43ac-83ac-12b8b942d2f1.jpg",
+        "parent-id": "10187110",
+        "event-category": "Stand-up Comedy Shows",
+        "name": "The Gotham All-Stars ",
+        "slug": "the-gotham-all-stars--www-gothamcomedyclub-com-event-the-gotham-all-stars"
+      }
+    }
+  ],
+  "pagination": {
+    "limit": 100,
+    "offset": 0,
+    "total": 8
+  }
+}

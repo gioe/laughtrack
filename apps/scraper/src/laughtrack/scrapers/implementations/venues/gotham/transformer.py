@@ -1,20 +1,20 @@
 """
 Gotham Comedy Club data transformation utilities.
 
-This module provides utilities for transforming GothamEvent objects
+This module provides utilities for transforming GothamFeedEvent objects
 into Show objects, implementing the DataTransformer interface.
 """
 
-from laughtrack.core.entities.event.gotham import GothamEvent
+from laughtrack.core.clients.gotham.models.models import GothamFeedEvent
 from laughtrack.utilities.infrastructure.transformer.base import DataTransformer
 
 
-class GothamEventTransformer(DataTransformer[GothamEvent]):
+class GothamEventTransformer(DataTransformer[GothamFeedEvent]):
     """
-    Transformer for converting GothamEvent objects to Show objects.
+    Transformer for converting GothamFeedEvent objects to Show objects.
 
     Inherits standard transformation logic from DataTransformer base class,
-    which leverages the GothamEvent.to_show() method.
+    which leverages the GothamFeedEvent.to_show() method.
     """
 
     pass

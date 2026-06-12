@@ -1,8 +1,9 @@
-"""Venue-specific scraper implementations."""
+"""Gotham Comedy Club live events feed models."""
 
-# Import all venue scrapers (alphabetical order)
-from .models import GothamMonthlyResponse
+from .models import GothamFeedEvent, GothamFeedPagination, GothamFeedResponse
 
 __all__ = [
-    "GothamMonthlyResponse",
+    "GothamFeedEvent",
+    "GothamFeedPagination",
+    "GothamFeedResponse",
 ]

@@ -1,23 +1,24 @@
 """
 Gotham Comedy Club scraper implementation using standardized project patterns.
 
-This scraper handles Gotham Comedy Club's S3 bucket-based event system that provides
-a JSON API endpoint with event data. The scraper fetches the events JSON and transforms
-the data into Show objects.
+This scraper handles Gotham Comedy Club's live events feed — a Cloudflare
+Worker proxying the venue's Webflow CMS collection — which serves paginated
+JSON pages of upcoming showtimes. The scraper fetches the feed pages and
+transforms the data into Show objects.
 
 This implementation follows the established architectural patterns:
 - BaseScraper pipeline for standard workflow
-- GothamEventExtractor: Handles S3 JSON data extraction and enrichment
-- GothamEventTransformer: Transforms GothamEvent objects to Show objects
+- GothamEventExtractor: Handles feed JSON extraction and Showclix enrichment
+- GothamEventTransformer: Transforms GothamFeedEvent objects to Show objects
 - GothamPageData: Data model for extracted page data
 
 Clean single-responsibility architecture:
-- GothamEventExtractor: S3 JSON API → GothamEvent objects with enrichment
-- GothamEventTransformer: GothamEvent objects → Show objects
+- GothamEventExtractor: feed JSON API → GothamFeedEvent objects with enrichment
+- GothamEventTransformer: GothamFeedEvent objects → Show objects
 - GothamComedyClubScraper: Orchestrates the standard pipeline
 """
 
-from datetime import datetime
+import math
 from typing import List, Optional
 
 from laughtrack.core.entities.club.model import Club
@@ -28,6 +29,17 @@ from laughtrack.scrapers.base.base_scraper import BaseScraper
 
 from .extractor import GothamEventExtractor
 from .transformer import GothamEventTransformer
+
+# Cloudflare Worker proxying the venue's Webflow CMS events collection.
+FEED_BASE_URL = "https://square-mountain-7159.alex-cdc.workers.dev/items"
+
+# The worker caps `limit` at 100 (requesting more echoes pagination.limit=100).
+PAGE_SIZE = 100
+
+# Defensive bound: the feed currently holds ~200 items (a few months of
+# showtimes). 10 pages = 1,000 items of headroom while still bounding the
+# scrape if pagination.total ever returns garbage.
+MAX_PAGES = 10
 
 
 class GothamComedyClubScraper(BaseScraper):
@@ -50,61 +62,83 @@ class GothamComedyClubScraper(BaseScraper):
 
     async def collect_scraping_targets(self) -> List[ScrapingTarget]:
         """
-        Generate monthly JSON URLs for the next 10 months starting from current month.
+        Paginate the live events feed into page URLs.
+
+        Probes the feed with a minimal request to read pagination.total, then
+        generates one target URL per page of PAGE_SIZE items, defensively
+        bounded at MAX_PAGES.
 
         Returns:
-            List of monthly S3 JSON endpoint URLs
+            List of feed page URLs (e.g., .../items?limit=100&offset=0)
         """
-        base_url = "https://gothamevents.s3.amazonaws.com/events/month/"
-        targets = self._generate_monthly_urls(base_url, num_months=10)
+        num_pages = await self._fetch_page_count()
+        targets = [
+            f"{FEED_BASE_URL}?limit={PAGE_SIZE}&offset={page * PAGE_SIZE}"
+            for page in range(num_pages)
+        ]
 
         Logger.info(
-            f"{self._log_prefix}: generated {len(targets)} monthly URLs",
+            f"{self._log_prefix}: generated {len(targets)} feed page URLs",
             self.logger_context,
         )
 
         return targets
 
-    def _generate_monthly_urls(self, base_url: str, num_months: int = 10) -> List[str]:
+    async def _fetch_page_count(self) -> int:
         """
-        Generate monthly JSON URLs for the specified number of months.
+        Probe the feed for pagination.total and derive the page count.
 
-        Args:
-            base_url: The base S3 bucket URL
-            num_months: Number of months to generate URLs for
+        Falls back to a single page when the probe fails or returns an
+        unusable total, so a flaky probe degrades to a partial scrape
+        instead of zero targets.
 
         Returns:
-            List of monthly JSON endpoint URLs
+            Number of PAGE_SIZE pages to fetch (1..MAX_PAGES)
         """
-        urls = []
-        current_date = datetime.now()
+        probe_url = f"{FEED_BASE_URL}?limit=1&offset=0"
+        total = 0
+        try:
+            probe = await self.fetch_json(probe_url, headers=self.extractor.get_headers())
+            if isinstance(probe, dict):
+                pagination = probe.get("pagination") or {}
+                total = int(pagination.get("total") or 0)
+        except Exception as e:
+            Logger.warn(
+                f"{self._log_prefix}: feed pagination probe failed ({e}); defaulting to 1 page",
+                self.logger_context,
+            )
 
-        for i in range(num_months):
-            # Calculate the target month by properly incrementing months
-            year = current_date.year
-            month = current_date.month + i
+        if total <= 0:
+            Logger.warn(
+                f"{self._log_prefix}: feed reported no usable total (total={total}); defaulting to 1 page",
+                self.logger_context,
+            )
+            return 1
 
-            # Handle year rollover
-            while month > 12:
-                month -= 12
-                year += 1
+        num_pages = math.ceil(total / PAGE_SIZE)
+        if num_pages > MAX_PAGES:
+            Logger.warn(
+                f"{self._log_prefix}: feed total {total} exceeds defensive bound; "
+                f"capping at {MAX_PAGES} pages ({MAX_PAGES * PAGE_SIZE} items)",
+                self.logger_context,
+            )
+            num_pages = MAX_PAGES
 
-            month_str = f"{year:04d}-{month:02d}"
-            monthly_url = f"{base_url}{month_str}.json"
-            urls.append(monthly_url)
-
-        return urls
+        Logger.info(
+            f"{self._log_prefix}: feed reports {total} items → {num_pages} page(s) of {PAGE_SIZE}",
+            self.logger_context,
+        )
+        return num_pages
 
     async def get_data(self, target: ScrapingTarget) -> Optional[EventListContainer]:
         """
-        Extract Gotham event data from S3 JSON using the dedicated extractor.
-
-        For S3 URLs, 403/404 responses are expected for future months without events.
+        Extract Gotham event data from one feed page using the dedicated extractor.
 
         Args:
-            target: A monthly JSON file URL (e.g., .../2025-07.json)
+            target: A feed page URL (e.g., .../items?limit=100&offset=0)
 
         Returns:
-            GothamPageData containing the events data or None if failed
+            GothamPageData containing the events data or None if the page had
+            no upcoming events
         """
         return await self.extractor.extract_events(target)

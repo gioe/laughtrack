@@ -1,8 +1,9 @@
 """
 Pipeline smoke test for Gotham Comedy Club scraper.
 
-Exercises collect_scraping_targets() (pure date generation) → get_data()
-by mocking GothamEventExtractor.extract_events to return a fixture GothamPageData.
+Exercises collect_scraping_targets() (feed pagination, with the network
+probe mocked) → get_data() by mocking GothamEventExtractor.extract_events
+to return a fixture GothamPageData.
 """
 
 import importlib.util
@@ -15,11 +16,14 @@ pytestmark = pytest.mark.skipif(
     reason="curl_cffi not installed",
 )
 
+from laughtrack.core.clients.gotham.models.models import GothamFeedEvent
 from laughtrack.core.entities.club.model import Club, ScrapingSource
-from laughtrack.core.entities.event.gotham import GothamEvent
-from laughtrack.scrapers.implementations.venues.gotham.scraper import GothamComedyClubScraper
+from laughtrack.scrapers.implementations.venues.gotham.scraper import (
+    MAX_PAGES,
+    PAGE_SIZE,
+    GothamComedyClubScraper,
+)
 from laughtrack.scrapers.implementations.venues.gotham.data import GothamPageData
-from laughtrack.scrapers.implementations.venues.gotham.extractor import GothamEventExtractor
 
 
 def _club() -> Club:
@@ -29,28 +33,57 @@ def _club() -> Club:
     return _c
 
 
-def _fake_gotham_event() -> GothamEvent:
-    return GothamEvent(
-        id="gotham-evt-1",
+def _fake_gotham_event() -> GothamFeedEvent:
+    return GothamFeedEvent(
+        id="6a286dd29da8c9c14b299e74",
         name="Gotham Showcase",
-        date="2026-04-15",
-        hours=20,
-        minutes=0,
+        start="2099-04-15T20:00:00-04:00",
+        event_id="10378853",
         slug="gotham-showcase",
-        shows=[],
     )
+
+
+def _probe_response(total: int) -> dict:
+    return {"items": [], "pagination": {"limit": 1, "offset": 0, "total": total}}
 
 
 @pytest.mark.asyncio
-async def test_collect_scraping_targets_generates_monthly_urls():
-    """collect_scraping_targets() generates S3 monthly JSON URLs (no HTTP calls)."""
+async def test_collect_scraping_targets_paginates_feed(monkeypatch):
+    """collect_scraping_targets() turns pagination.total into feed page URLs."""
     scraper = GothamComedyClubScraper(_club())
+    monkeypatch.setattr(scraper, "fetch_json", AsyncMock(return_value=_probe_response(193)))
+
     urls = await scraper.collect_scraping_targets()
-    assert len(urls) >= 1, "collect_scraping_targets() returned 0 URLs"
-    assert all("gothamevents.s3.amazonaws.com" in u for u in urls), (
-        f"Expected S3 URLs, got: {urls[:3]}"
+
+    assert len(urls) == 2, f"193 items at PAGE_SIZE={PAGE_SIZE} should yield 2 pages, got: {urls}"
+    assert all("square-mountain-7159.alex-cdc.workers.dev/items" in u for u in urls), (
+        f"Expected worker feed URLs, got: {urls}"
     )
-    assert all(u.endswith(".json") for u in urls), "Expected .json-suffixed monthly URLs"
+    assert f"limit={PAGE_SIZE}&offset=0" in urls[0]
+    assert f"limit={PAGE_SIZE}&offset={PAGE_SIZE}" in urls[1]
+
+
+@pytest.mark.asyncio
+async def test_collect_scraping_targets_caps_pages_defensively(monkeypatch):
+    """A garbage pagination.total must not generate unbounded targets."""
+    scraper = GothamComedyClubScraper(_club())
+    monkeypatch.setattr(scraper, "fetch_json", AsyncMock(return_value=_probe_response(10_000_000)))
+
+    urls = await scraper.collect_scraping_targets()
+
+    assert len(urls) == MAX_PAGES
+
+
+@pytest.mark.asyncio
+async def test_collect_scraping_targets_defaults_to_one_page_on_probe_failure(monkeypatch):
+    """A failed probe degrades to a single first-page target, not zero."""
+    scraper = GothamComedyClubScraper(_club())
+    monkeypatch.setattr(scraper, "fetch_json", AsyncMock(side_effect=Exception("boom")))
+
+    urls = await scraper.collect_scraping_targets()
+
+    assert len(urls) == 1
+    assert "offset=0" in urls[0]
 
 
 @pytest.mark.asyncio
@@ -65,7 +98,9 @@ async def test_get_data_returns_events_from_extractor(monkeypatch):
         AsyncMock(return_value=fake_page_data),
     )
 
-    result = await scraper.get_data("https://gothamevents.s3.amazonaws.com/events/month/2026-04.json")
+    result = await scraper.get_data(
+        "https://square-mountain-7159.alex-cdc.workers.dev/items?limit=100&offset=0"
+    )
 
     assert isinstance(result, GothamPageData), "get_data() did not return GothamPageData"
     assert len(result.event_list) > 0, "get_data() returned 0 events"
@@ -78,6 +113,7 @@ async def test_full_pipeline_discover_then_get_data(monkeypatch):
     scraper = GothamComedyClubScraper(_club())
     fake_page_data = GothamPageData(event_list=[_fake_gotham_event()])
 
+    monkeypatch.setattr(scraper, "fetch_json", AsyncMock(return_value=_probe_response(193)))
     monkeypatch.setattr(
         scraper.extractor,
         "extract_events",
@@ -88,7 +124,7 @@ async def test_full_pipeline_discover_then_get_data(monkeypatch):
     assert len(urls) > 0, "collect_scraping_targets() returned 0 URLs"
 
     all_events = []
-    for url in urls[:2]:  # Only check first 2 months to keep test fast
+    for url in urls[:2]:  # Only check first 2 pages to keep test fast
         page_data = await scraper.get_data(url)
         if page_data:
             all_events.extend(page_data.event_list)
