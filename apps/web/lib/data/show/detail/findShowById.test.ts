@@ -140,6 +140,34 @@ describe("findShowById", () => {
             expect(mockFilterAndMap).toHaveBeenCalledWith(lineupItems);
         });
 
+        it("selects comedian popularity at both lineup depths so headliner selection has real data", async () => {
+            // Wiring pin for TASK-2820: without popularity in the select, the
+            // mapper never hydrates socialData and the headliner popularity
+            // tier (util/show/showHeroImage.ts, iOS heroImageURL) is dead
+            // code that silently degrades to showCount.
+            mockFindUnique.mockResolvedValue(makeShowRow() as never);
+
+            await findShowById(1);
+
+            const select = mockFindUnique.mock.calls[0][0]
+                ?.select as Prisma.ShowSelect;
+            const comedianSelect = (
+                select.lineupItems as {
+                    select: {
+                        comedian: { select: Record<string, unknown> };
+                    };
+                }
+            ).select.comedian.select;
+            expect(comedianSelect.popularity).toBe(true);
+            expect(
+                (
+                    comedianSelect.parentComedian as {
+                        select: Record<string, unknown>;
+                    }
+                ).select.popularity,
+            ).toBe(true);
+        });
+
         it("propagates description when present", async () => {
             const row = makeShowRow({ description: "A great show" });
             mockFindUnique.mockResolvedValue(row as never);

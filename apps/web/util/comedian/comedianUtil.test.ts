@@ -104,6 +104,54 @@ describe("filterAndMapLineupItems", () => {
         });
     });
 
+    describe("socialData popularity hydration", () => {
+        it("attaches socialData with the effective comedian's popularity", () => {
+            const item = makeItem({ popularity: 42.5 });
+            const [result] = filterAndMapLineupItems([item]);
+
+            expect(result.socialData).toEqual({ id: 1, popularity: 42.5 });
+        });
+
+        it("attaches socialData for an explicit popularity of 0", () => {
+            // 0 must hydrate — the headliner comparator ranks an explicit 0
+            // above missing socialData (-1), so dropping it would silently
+            // demote zero-popularity comedians.
+            const item = makeItem({ popularity: 0 });
+            const [result] = filterAndMapLineupItems([item]);
+
+            expect(result.socialData).toEqual({ id: 1, popularity: 0 });
+        });
+
+        it("omits socialData when the caller's select did not load popularity", () => {
+            const item = makeItem({});
+            const [result] = filterAndMapLineupItems([item]);
+
+            expect(result.socialData).toBeUndefined();
+            expect("socialData" in result).toBe(false);
+        });
+
+        it("uses the parent's popularity for alias comedians", () => {
+            const child = makeItem({
+                id: 2,
+                uuid: "uuid-2",
+                name: "Child Comedian",
+                popularity: 3,
+                parentComedian: {
+                    id: 99,
+                    uuid: "uuid-99",
+                    name: "Parent Comic",
+                    visible: true,
+                    taggedComedians: [],
+                    popularity: 77,
+                },
+            });
+
+            const [result] = filterAndMapLineupItems([child]);
+
+            expect(result.socialData).toEqual({ id: 99, popularity: 77 });
+        });
+    });
+
     describe("role", () => {
         it("maps explicit lineup item role without deriving it from comedian data", () => {
             const [result] = filterAndMapLineupItems([
