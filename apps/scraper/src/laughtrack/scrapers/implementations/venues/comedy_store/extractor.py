@@ -7,8 +7,11 @@ La Jolla (/la-jolla).  For each item the extractor reads:
   - title            from h2.show-title > a  (desktop section)
   - datetime_slug    from that anchor's href: /{location}/calendar/show/{id}/{slug}
   - room             from h3.text-white.text-uppercase (excluding the aria-hidden abbreviation)
-  - ticket_url       from the first showclix.com/event/ anchor; falls back to the
-                     comedy store show-page URL when the show is sold out or free
+  - ticket_url       from the first showclix.com/event/ or
+                     events.leapevents.com/event/ anchor (ShowClix migrated to
+                     the Leap domain mid-2026; both forms appear); falls back
+                     to the comedy store show-page URL when the show is sold
+                     out or free
   - sold_out         True when a "SOLD OUT" alert is present in the item
 """
 
@@ -20,7 +23,9 @@ from bs4 import BeautifulSoup
 from laughtrack.core.entities.event.comedy_store import ComedyStoreEvent
 
 
-_SHOWCLIX_RE = re.compile(r"showclix\.com/event/", re.IGNORECASE)
+_SHOWCLIX_RE = re.compile(
+    r"(?:showclix\.com|events\.leapevents\.com)/event/", re.IGNORECASE
+)
 _SHOW_HREF_RE = re.compile(r"^(?:/[^/]+)?/calendar/show/\d+/(.+)$")
 _SLUG_DT_RE = re.compile(r"^\d{4}-\d{2}-\d{2}[tT]\d{6}(?:[+-]\d{4}|Z)")
 
