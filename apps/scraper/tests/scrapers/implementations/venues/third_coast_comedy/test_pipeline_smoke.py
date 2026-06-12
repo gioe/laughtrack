@@ -156,6 +156,7 @@ def _make_event(
     event_url: str = "comedy-night-abc123",
     tz: str = "America/Chicago",
     ticket_base_url: str = _TICKET_BASE,
+    starting_price=None,
 ) -> VivenuEvent:
     return VivenuEvent(
         event_id=event_id,
@@ -164,6 +165,7 @@ def _make_event(
         event_url=event_url,
         tz=tz,
         ticket_base_url=ticket_base_url,
+        starting_price=starting_price,
     )
 
 
@@ -201,6 +203,42 @@ def test_to_show_builds_correct_ticket_url():
     assert show.show_page_url == f"{_TICKET_BASE}/event/comedy-night-abc123"
     assert len(show.tickets) == 1
     assert show.tickets[0].purchase_url == f"{_TICKET_BASE}/event/comedy-night-abc123"
+
+
+def test_to_show_carries_starting_price_into_ticket():
+    """to_show() passes the seller page startingPrice through to the ticket (TASK-2827)."""
+    event = _make_event(starting_price=20.0)
+    show = event.to_show(_club())
+
+    assert show is not None
+    assert show.tickets[0].price == 20.0
+
+
+def test_to_show_treats_zero_starting_price_as_unknown():
+    """startingPrice 0 can mean hidden price on Vivenu — ticket price stays None."""
+    event = _make_event(starting_price=0.0)
+    show = event.to_show(_club())
+
+    assert show is not None
+    assert show.tickets[0].price is None
+
+
+def test_parse_event_reads_starting_price():
+    """_parse_event extracts startingPrice from the raw seller-page event."""
+    from datetime import datetime, timezone as dt_timezone
+
+    raw = {
+        "_id": "ev1",
+        "name": "Freak Stallion - 9pm",
+        "start": "2099-01-01T03:00:00.000Z",
+        "url": "freak-stallion",
+        "timezone": "America/Chicago",
+        "startingPrice": 13,
+    }
+    event = VivenuExtractor._parse_event(raw, _TICKET_BASE, datetime.now(dt_timezone.utc))
+
+    assert event is not None
+    assert event.starting_price == 13.0
 
 
 def test_to_show_returns_none_for_invalid_timezone():

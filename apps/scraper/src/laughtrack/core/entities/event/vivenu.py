@@ -26,6 +26,7 @@ class VivenuEvent(ShowConvertible):
       event_url      ← url (slug for constructing the ticket URL)
       tz             ← timezone (IANA timezone string, e.g. "America/Chicago")
       ticket_base_url ← derived from scraping_url (e.g. "https://tickets.thirdcoastcomedy.club")
+      starting_price ← startingPrice (lowest tier price; 0 can mean hidden, not free)
     """
 
     event_id: str
@@ -33,6 +34,7 @@ class VivenuEvent(ShowConvertible):
     start_utc: str         # ISO 8601 UTC string
     event_url: str         # slug
     tz: str = "America/Chicago"
+    starting_price: Optional[float] = None
     ticket_base_url: str = ""
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None) -> Optional[Show]:
@@ -48,7 +50,10 @@ class VivenuEvent(ShowConvertible):
 
         base = (self.ticket_base_url or "").rstrip("/")
         ticket_url = f"{base}/event/{self.event_url}" if base and self.event_url else ""
-        tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url)] if ticket_url else []
+        # startingPrice of 0 can mean "price hidden" on Vivenu, not free —
+        # only pass proven positive prices through.
+        price = self.starting_price if self.starting_price and self.starting_price > 0 else None
+        tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url, price=price)] if ticket_url else []
 
         return ShowFactoryUtils.create_enhanced_show_base(
             name=self.name or "Comedy Show",

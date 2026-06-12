@@ -174,7 +174,14 @@ class ShopifyEvent(ShowConvertible):
         base = (club.scraping_url or club.website or "").rstrip("/")
         base_clean = base.replace("https://", "").replace("http://", "").rstrip("/")
         ticket_url = url or f"https://{base_clean}/products/{self.handle}"
-        tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url)]
+        try:
+            price: Optional[float] = float(self.price)
+            if price <= 0:
+                # Shopify variants can carry "0.00" placeholders — unknown, not free.
+                price = None
+        except (TypeError, ValueError):
+            price = None
+        tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url, price=price)]
 
         return ShowFactoryUtils.create_enhanced_show_base(
             name=comedian_name,

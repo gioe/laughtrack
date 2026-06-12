@@ -100,6 +100,11 @@ class VivenuExtractor:
         event_url = (raw.get("url") or "").strip()
         tz = (raw.get("timezone") or "America/Chicago").strip()
 
+        try:
+            starting_price = float(raw.get("startingPrice"))
+        except (TypeError, ValueError):
+            starting_price = None
+
         return VivenuEvent(
             event_id=event_id,
             name=name,
@@ -107,4 +112,5 @@ class VivenuExtractor:
             event_url=event_url,
             tz=tz,
             ticket_base_url=ticket_base_url,
+            starting_price=starting_price,
         )

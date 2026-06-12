@@ -46,13 +46,20 @@ def _parse_iso_datetime(iso_str: str, timezone_name: str) -> Optional[datetime]:
 
 
 def _is_sold_out(raw_ticket: dict) -> bool:
-    sold_out = raw_ticket.get("soldOut", raw_ticket.get("sold_out", False))
+    # Live RSC payload uses ticketSoldOut/ticketRemaining; older shapes used
+    # soldOut/remaining variants.
+    sold_out = raw_ticket.get(
+        "ticketSoldOut", raw_ticket.get("soldOut", raw_ticket.get("sold_out", False))
+    )
     if isinstance(sold_out, str):
         sold_out = sold_out.strip().lower() in {"true", "1", "yes", "sold out", "sold_out"}
     if bool(sold_out):
         return True
 
-    remaining = raw_ticket.get("remaining", raw_ticket.get("remainingTickets", raw_ticket.get("remaining_tickets")))
+    remaining = raw_ticket.get(
+        "ticketRemaining",
+        raw_ticket.get("remaining", raw_ticket.get("remainingTickets", raw_ticket.get("remaining_tickets"))),
+    )
     try:
         return remaining is not None and int(remaining) <= 0
     except (TypeError, ValueError):
@@ -102,7 +109,9 @@ class ComedyClubHaugEvent(ShowConvertible):
             for raw_ticket in self.event_ticket_prices:
                 if not isinstance(raw_ticket, dict) or _is_sold_out(raw_ticket):
                     continue
-                price = _parse_ticket_price(raw_ticket.get("price"))
+                price = _parse_ticket_price(
+                    raw_ticket.get("ticketPrice", raw_ticket.get("price"))
+                )
                 if price is None:
                     continue
                 available_tickets.append((price, raw_ticket))
@@ -113,7 +122,9 @@ class ComedyClubHaugEvent(ShowConvertible):
                     ShowFactoryUtils.create_fallback_ticket(
                         ticket_url,
                         price=price,
-                        ticket_type=str(raw_ticket.get("name") or "General Admission"),
+                        ticket_type=str(
+                            raw_ticket.get("ticketName") or raw_ticket.get("name") or "General Admission"
+                        ),
                     )
                 ]
             else:

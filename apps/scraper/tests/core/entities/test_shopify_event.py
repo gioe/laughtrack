@@ -231,3 +231,27 @@ class TestShopifyEventToShow:
 
         assert show is not None
         assert len(show.tickets) >= 1
+
+    def test_ticket_carries_variant_price(self):
+        """The extracted lowest variant price reaches the ticket (TASK-2827:
+        it was previously dropped — create_fallback_ticket got no price arg)."""
+        event = self._make_event(price="25.00")
+        show = event.to_show(make_club(), enhanced=False)
+
+        assert show is not None
+        assert show.tickets[0].price == 25.0
+
+    def test_zero_price_treated_as_unknown(self):
+        """A 0.00 variant price is a placeholder, not a proven-free show."""
+        event = self._make_event(price="0.00")
+        show = event.to_show(make_club(), enhanced=False)
+
+        assert show is not None
+        assert show.tickets[0].price is None
+
+    def test_unparseable_price_treated_as_unknown(self):
+        event = self._make_event(price="")
+        show = event.to_show(make_club(), enhanced=False)
+
+        assert show is not None
+        assert show.tickets[0].price is None

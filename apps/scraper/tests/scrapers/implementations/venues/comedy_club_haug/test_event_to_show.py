@@ -156,6 +156,49 @@ class TestToShowTickets:
         assert show.tickets[0].price == 25.0
         assert show.tickets[0].type == "General Admission"
 
+    def test_ticket_from_live_rsc_key_shape(self):
+        """The live RSC payload uses ticketName/ticketPrice/ticketSoldOut/ticketRemaining.
+
+        TASK-2827: the entity read the older name/price/soldOut/remaining keys,
+        so every live ticket fell through to the priceless fallback.
+        """
+        show = _event(
+            event_ticket_prices=[
+                {"ticketName": "Standard ticket (2.50 fee incl)", "ticketPrice": 2050, "ticketSoldOut": "", "ticketRemaining": 58},
+                {"ticketName": "Front row", "ticketPrice": 2550, "ticketSoldOut": "", "ticketRemaining": 4},
+            ],
+        ).to_show(_club())
+
+        assert show is not None
+        assert len(show.tickets) == 1
+        assert show.tickets[0].price == 20.5
+        assert show.tickets[0].type == "Standard ticket (2.50 fee incl)"
+
+    def test_live_shape_sold_out_via_ticket_remaining(self):
+        """ticketRemaining=0 marks the tier sold out even with empty ticketSoldOut."""
+        show = _event(
+            event_ticket_prices=[
+                {"ticketName": "Early Bird", "ticketPrice": 1500, "ticketSoldOut": "", "ticketRemaining": 0},
+                {"ticketName": "Standard", "ticketPrice": 2050, "ticketSoldOut": "", "ticketRemaining": 12},
+            ],
+        ).to_show(_club())
+
+        assert show is not None
+        assert len(show.tickets) == 1
+        assert show.tickets[0].price == 20.5
+        assert show.tickets[0].type == "Standard"
+
+    def test_live_shape_all_sold_out_falls_back_to_priceless_ticket(self):
+        show = _event(
+            event_ticket_prices=[
+                {"ticketName": "Standard", "ticketPrice": 2050, "ticketSoldOut": "true", "ticketRemaining": 0},
+            ],
+        ).to_show(_club())
+
+        assert show is not None
+        assert len(show.tickets) == 1
+        assert show.tickets[0].price is None
+
     def test_fallback_to_show_page_url_when_no_ticket_url(self):
         show = _event(
             ticket_url="",
