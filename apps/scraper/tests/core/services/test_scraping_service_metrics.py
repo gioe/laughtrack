@@ -1090,6 +1090,15 @@ class TestSendDiscordRunSummary:
         from laughtrack.foundation.models.operation_result import DatabaseOperationResult
         return DatabaseOperationResult(total=total, inserts=inserts, updates=updates)
 
+    @pytest.fixture(autouse=True)
+    def _clear_gha_env(self, monkeypatch):
+        """The summary builder reads GITHUB_* at use-time (TASK-2835 GHA run
+        link); clear them so every test in this class is deterministic whether
+        the suite runs locally or inside a GitHub Actions runner. Tests that
+        assert the link present set the vars explicitly after this fixture."""
+        for var in ("GITHUB_RUN_ID", "GITHUB_REPOSITORY", "GITHUB_SERVER_URL"):
+            monkeypatch.delenv(var, raising=False)
+
     def test_fires_on_clean_run_with_no_failures(self):
         """Summary is posted even when all clubs succeed (zero failures)."""
         svc = self._make_service()
@@ -1193,11 +1202,10 @@ class TestSendDiscordRunSummary:
             svc._send_discord_run_summary(summary, db_result)
         return mock_alert_cls.call_args.kwargs.get('message', '')
 
-    def test_failing_club_line_includes_club_id_and_error_excerpt(self, monkeypatch):
+    def test_failing_club_line_includes_club_id_and_error_excerpt(self):
         """TASK-2835 (criterion 9134): below-threshold lines carry the club_id
         and a truncated first-error excerpt so triage doesn't require opening
         the GHA logs (the TASK-2824 crash went unread for two nights)."""
-        monkeypatch.delenv("GITHUB_RUN_ID", raising=False)
         svc = self._make_service(threshold=70.0)
         long_error = (
             "fetch failed for https://www.simpletix.com/e/improvcity-show-tickets-249393: "
@@ -1222,9 +1230,8 @@ class TestSendDiscordRunSummary:
         excerpt = line.split(" — ", 1)[1]
         assert len(excerpt) == 120
 
-    def test_failing_club_line_without_error_message_has_no_excerpt(self, monkeypatch):
+    def test_failing_club_line_without_error_message_has_no_excerpt(self):
         """No recorded error → the line keeps the counts-only shape (no dash suffix)."""
-        monkeypatch.delenv("GITHUB_RUN_ID", raising=False)
         svc = self._make_service(threshold=70.0)
         failing = DomainRequestMetrics(club_name="Quiet Failure", club_id=42, total=1, error=1)
         summary = _make_multi_club_summary([failing])
@@ -1245,10 +1252,8 @@ class TestSendDiscordRunSummary:
 
         assert "[GHA run logs](https://github.com/gioe/laughtrack/actions/runs/27416992192)" in desc
 
-    def test_gha_run_link_omitted_for_local_runs(self, monkeypatch):
+    def test_gha_run_link_omitted_for_local_runs(self):
         """TASK-2835 (criterion 9135): local runs (no GITHUB_RUN_ID) omit the link cleanly."""
-        monkeypatch.delenv("GITHUB_RUN_ID", raising=False)
-        monkeypatch.delenv("GITHUB_REPOSITORY", raising=False)
         svc = self._make_service(threshold=70.0)
         summary = _make_summary(error=1)
         desc = self._send_and_get_desc(svc, summary, self._make_db_result())
@@ -1256,11 +1261,10 @@ class TestSendDiscordRunSummary:
         assert "GHA run" not in desc
         assert "actions/runs" not in desc
 
-    def test_failing_list_capped_with_explicit_overflow_count(self, monkeypatch):
+    def test_failing_list_capped_with_explicit_overflow_count(self):
         """TASK-2835 (criterion 9136): a wide outage lists at most
         _MAX_FAILING_CLUBS_LISTED clubs, states the overflow count explicitly,
         and the final description stays within the Discord limit."""
-        monkeypatch.delenv("GITHUB_RUN_ID", raising=False)
         from laughtrack.core.services.scraping import (
             _DISCORD_DESCRIPTION_LIMIT,
             _MAX_FAILING_CLUBS_LISTED,

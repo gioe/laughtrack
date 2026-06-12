@@ -273,7 +273,12 @@ _ERROR_EXCERPT_MAX_CHARS = 120
 # before _truncate_description_lines applies its generic greedy packing —
 # without this, a wide outage could silently push the empty-calendar and
 # parser blocks (and the overflow accounting) past the description limit.
-_MAX_FAILING_CLUBS_LISTED = 15
+# Sized from the budget: a worst-case line is ~185 chars (name + id + counts
+# + 120-char excerpt), so 10 lines ≈ 1850 chars, fitting the 2048-char
+# description limit alongside the header block — which keeps the explicit
+# "…and N more" count honest instead of being silently re-truncated by the
+# generic greedy packing.
+_MAX_FAILING_CLUBS_LISTED = 10
 
 
 def _gha_run_url() -> Optional[str]:
@@ -308,6 +313,10 @@ def _format_failing_club_line(m: "DomainRequestMetrics") -> str:
     )
     if m.error_message:
         excerpt = " ".join(m.error_message.split())
+        # Escape Discord markdown metacharacters — exception text routinely
+        # carries underscores and asterisks (URLs, snake_case identifiers)
+        # that would otherwise italicize/bold the rest of the embed.
+        excerpt = re.sub(r"([*_`~|])", r"\\\1", excerpt)
         if len(excerpt) > _ERROR_EXCERPT_MAX_CHARS:
             excerpt = excerpt[: _ERROR_EXCERPT_MAX_CHARS - 1] + "…"
         line += f" — {excerpt}"
