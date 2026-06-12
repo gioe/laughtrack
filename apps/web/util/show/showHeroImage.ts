@@ -8,11 +8,13 @@ export interface HeroImageShowLike extends OpenMicShowLike {
 
 // The lineup item we treat as the headliner for hero-image selection. Mirrors
 // iOS ShowDetailPresentation.headliner (ShowDetailView.swift) so both clients
-// pick the same comedian: the API has no role field on lineup, so approximate
-// by highest socialData.popularity, breaking ties by showCount then list
-// position. Missing socialData ranks as -1 (below an explicit popularity of
-// 0), matching the Swift `?? -1`. Returns null for open mics and empty
-// lineups. Selection only — never surface a "Headliner" label in UI copy.
+// pick the same comedian. Web's lineup DTO carries an optional role string,
+// but it is deliberately ignored here for iOS parity — the iOS schema has no
+// role field, so both clients approximate by highest socialData.popularity,
+// breaking ties by showCount then list position. Missing socialData ranks as
+// -1 (below an explicit popularity of 0), matching the Swift `?? -1`. Returns
+// null for open mics and empty lineups. Selection only — never surface a
+// "Headliner" label in UI copy.
 export function inferHeadliner(
     show: HeroImageShowLike,
 ): ComedianLineupDTO | null {
