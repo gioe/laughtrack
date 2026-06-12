@@ -11,6 +11,7 @@ export const PARENT_COMEDIAN_LINEUP_SELECT = {
     uuid: true,
     name: true,
     hasImage: true,
+    popularity: true,
     visible: true,
     taggedComedians: {
         select: { tag: true },

@@ -13,6 +13,7 @@ export const LINEUP_COMEDIAN_SELECT = {
     uuid: true,
     name: true,
     hasImage: true,
+    popularity: true,
     taggedComedians: {
         select: { tag: true },
     },

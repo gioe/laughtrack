@@ -87,6 +87,18 @@ const mapLineupItem = (
         }).imageUrl,
         hasImage: Boolean(effectiveComedian.hasImage),
         showCount: effectiveComedian._count?.lineupItems ?? undefined,
+        // Popularity drives headliner hero selection on both clients
+        // (util/show/showHeroImage.ts, iOS ShowDetailPresentation.headliner).
+        // Only emitted when the caller's select loaded the column, so any
+        // fetcher that doesn't spread LINEUP_COMEDIAN_SELECT keeps its shape.
+        ...(typeof effectiveComedian.popularity === "number"
+            ? {
+                  socialData: {
+                      id: effectiveComedian.id,
+                      popularity: effectiveComedian.popularity,
+                  },
+              }
+            : {}),
         ...(item.role ? { role: item.role } : {}),
         isFavorite: userId
             ? (item.comedian.favoriteComedians?.length ?? 0) > 0
