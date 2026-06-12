@@ -15,8 +15,21 @@ final class ComedianOnboardingModel: ObservableObject {
 
     static let defaultPageSize = 12
 
+    /// How many fresh suggestion draws to attempt before concluding the
+    /// eligible pool has been dealt out. Each draw is an independent
+    /// weighted-random sample, so near exhaustion a single all-duplicate
+    /// batch is not yet proof there's nobody left.
+    static let maxLoadMoreAttempts = 3
+
     @Published private(set) var comedians: [Components.Schemas.ComedianSearchItem] = []
     @Published private(set) var phase: Phase = .idle
+    @Published private(set) var isLoadingMoreSuggestions = false
+    @Published private(set) var suggestionsExhausted = false
+
+    /// Bumped whenever `comedians` is wholesale replaced (fresh deal or
+    /// search) so an in-flight load-more started against the previous list
+    /// aborts instead of appending into the new one.
+    private var listGeneration = 0
     @Published var searchText = ""
     @Published var emailAlertsEnabled = true
     @Published var pushAlertsEnabled = true
@@ -156,6 +169,8 @@ final class ComedianOnboardingModel: ObservableObject {
         apiClient: Client,
         favorites: ComedianFavoriteStore
     ) async {
+        listGeneration += 1
+        suggestionsExhausted = false
         phase = .loading
         do {
             let output = try await apiClient.getComedianSuggestions()
@@ -172,6 +187,42 @@ final class ComedianOnboardingModel: ObservableObject {
         }
     }
 
+    // The suggestions endpoint redraws its weighted-random sample on every
+    // call, so the swipe deck refills by drawing again and appending only
+    // comedians not already dealt. Exhaustion is declared only after
+    // `maxLoadMoreAttempts` consecutive draws add nothing new (a failed draw
+    // counts too, so an empty deck never waits forever — "Deal them again"
+    // resets the flag via a fresh load).
+    func loadMoreSuggestions(
+        apiClient: Client,
+        favorites: ComedianFavoriteStore
+    ) async {
+        guard !isLoadingMoreSuggestions, !suggestionsExhausted, phase == .loaded else { return }
+        let generation = listGeneration
+        isLoadingMoreSuggestions = true
+        defer { isLoadingMoreSuggestions = false }
+
+        for _ in 0..<Self.maxLoadMoreAttempts {
+            guard
+                let output = try? await apiClient.getComedianSuggestions(),
+                case .ok(let ok) = output,
+                let batch = try? ok.body.json.data
+            else { break }
+
+            guard generation == listGeneration else { return }
+
+            let dealt = Set(comedians.map(\.uuid))
+            let fresh = batch.filter { !dealt.contains($0.uuid) }
+            guard !fresh.isEmpty else { continue }
+
+            comedians.append(contentsOf: fresh.map { resolveFavorite($0, favorites: favorites) })
+            return
+        }
+
+        guard generation == listGeneration else { return }
+        suggestionsExhausted = true
+    }
+
     // Explicit search box query: a deterministic popularity sort is the right
     // behavior here, so this path stays on searchComedians.
     private func load(
@@ -179,6 +230,7 @@ final class ComedianOnboardingModel: ObservableObject {
         apiClient: Client,
         favorites: ComedianFavoriteStore
     ) async {
+        listGeneration += 1
         phase = .loading
         do {
             let output = try await apiClient.searchComedians(

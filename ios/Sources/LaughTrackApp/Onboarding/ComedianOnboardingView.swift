@@ -29,6 +29,10 @@ struct ComedianOnboardingView: View {
     private static let swipeThreshold: CGFloat = 100
     private static let flingDistance: CGFloat = 560
 
+    /// Remaining undealt cards at which the deck prefetches another
+    /// suggestions batch, so swiping normally never hits the bottom.
+    private static let deckPrefetchThreshold = 4
+
     @MainActor
     init(
         apiClient: Client,
@@ -303,7 +307,11 @@ struct ComedianOnboardingView: View {
     private var deck: some View {
         ZStack {
             if visibleDeck.isEmpty {
-                deckExhaustedCard
+                if model.suggestionsExhausted {
+                    deckExhaustedCard
+                } else {
+                    deckRefillCard
+                }
             } else {
                 // Reversed so the top card (depth 0) draws last, on top.
                 ForEach(Array(visibleDeck.enumerated()).reversed(), id: \.element.uuid) { depth, comedian in
@@ -382,7 +390,16 @@ struct ComedianOnboardingView: View {
                 dragOffset = .zero
             }
             deckIndex += 1
+            await prefetchMoreComediansIfNeeded()
         }
+    }
+
+    /// Keep the deck endless: once the undealt remainder dips below the
+    /// threshold, draw another suggestions batch in the background.
+    private func prefetchMoreComediansIfNeeded() async {
+        guard mode == .deck else { return }
+        guard model.comedians.count - deckIndex <= Self.deckPrefetchThreshold else { return }
+        await model.loadMoreSuggestions(apiClient: apiClient, favorites: favorites)
     }
 
     private var deckControls: some View {
@@ -455,6 +472,21 @@ struct ComedianOnboardingView: View {
         .frame(maxWidth: .infinity)
     }
 
+    /// Shown when swiping outpaced the background prefetch: the deck is
+    /// momentarily empty but the suggestion pool isn't exhausted yet. The
+    /// `.task` covers the edge where no prefetch is in flight (e.g. the
+    /// last one failed) so the empty state always resolves — either fresh
+    /// cards arrive or the model flips to exhausted.
+    private var deckRefillCard: some View {
+        ProgressView("Finding more comedians")
+            .tint(theme.laughTrackTokens.colors.accent)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, theme.spacing.xxl)
+            .task {
+                await model.loadMoreSuggestions(apiClient: apiClient, favorites: favorites)
+            }
+    }
+
     private var deckExhaustedCard: some View {
         let tokens = theme.laughTrackTokens
 
@@ -498,11 +530,11 @@ struct ComedianOnboardingView: View {
                 .multilineTextAlignment(.center)
 
             if !model.comedians.isEmpty {
+                // A fresh weighted-random deal (not a replay of the same
+                // cards) — it also clears the exhausted flag, so a deck
+                // ended by a transient fetch failure recovers here.
                 Button {
-                    withAnimation(.spring(duration: 0.3)) {
-                        deckIndex = 0
-                        dragOffset = .zero
-                    }
+                    Task { await returnToDeck() }
                 } label: {
                     HStack(spacing: theme.spacing.xs) {
                         Image(systemName: "arrow.counterclockwise")

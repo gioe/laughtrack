@@ -159,6 +159,67 @@ struct OnboardingTests {
         #expect(await recorder.searchQueries == ["nate"])
     }
 
+    @Test("loading more suggestions appends only comedians not already dealt")
+    func loadMoreAppendsFreshSuggestions() async throws {
+        let source = SuggestionBatchSource(batches: [
+            [
+                .comedian(id: 1, uuid: "comedian-1", name: "Taylor Tomlinson"),
+                .comedian(id: 2, uuid: "comedian-2", name: "Sam Morril"),
+                .comedian(id: 3, uuid: "comedian-3", name: "Atsuko Okatsuka"),
+            ],
+            [
+                .comedian(id: 3, uuid: "comedian-3", name: "Atsuko Okatsuka"),
+                .comedian(id: 4, uuid: "comedian-4", name: "Nate Bargatze"),
+                .comedian(id: 5, uuid: "comedian-5", name: "Beth Stelling"),
+            ],
+        ])
+        let apiClient = Client(
+            serverURL: URL(string: "https://example.com")!,
+            transport: SequencedSuggestionsTransport(source: source)
+        )
+        let model = ComedianOnboardingModel()
+        let favorites = ComedianFavoriteStore()
+
+        await model.loadInitialComedians(apiClient: apiClient, favorites: favorites)
+        await model.loadMoreSuggestions(apiClient: apiClient, favorites: favorites)
+
+        #expect(model.comedians.map(\.uuid) == [
+            "comedian-1", "comedian-2", "comedian-3", "comedian-4", "comedian-5",
+        ])
+        #expect(!model.suggestionsExhausted)
+    }
+
+    @Test("the deck reports exhausted only after repeated draws add nothing new, and a fresh deal resets it")
+    func loadMoreMarksExhaustedWhenPoolIsDry() async throws {
+        let source = SuggestionBatchSource(batches: [
+            [
+                .comedian(id: 1, uuid: "comedian-1", name: "Taylor Tomlinson"),
+                .comedian(id: 2, uuid: "comedian-2", name: "Sam Morril"),
+            ],
+        ])
+        let apiClient = Client(
+            serverURL: URL(string: "https://example.com")!,
+            transport: SequencedSuggestionsTransport(source: source)
+        )
+        let model = ComedianOnboardingModel()
+        let favorites = ComedianFavoriteStore()
+
+        await model.loadInitialComedians(apiClient: apiClient, favorites: favorites)
+        await model.loadMoreSuggestions(apiClient: apiClient, favorites: favorites)
+
+        #expect(model.suggestionsExhausted)
+        #expect(model.comedians.count == 2)
+        #expect(await source.callCount == 1 + ComedianOnboardingModel.maxLoadMoreAttempts)
+
+        // Exhausted state short-circuits further draws...
+        await model.loadMoreSuggestions(apiClient: apiClient, favorites: favorites)
+        #expect(await source.callCount == 1 + ComedianOnboardingModel.maxLoadMoreAttempts)
+
+        // ...until a fresh deal resets the flag.
+        await model.loadInitialComedians(apiClient: apiClient, favorites: favorites)
+        #expect(!model.suggestionsExhausted)
+    }
+
     @Test("onboarding rows do not show tracked show counts")
     func onboardingRowsDoNotShowTrackedShowCounts() throws {
         let source = try String(contentsOf: comedianOnboardingViewSourceURL(), encoding: .utf8)
@@ -510,6 +571,53 @@ private struct MockOnboardingTransport: ClientTransport {
     }
 
     private func jsonResponse<T: Encodable>(_ payload: T) -> (HTTPResponse, HTTPBody?) {
+        let body = (try? JSONEncoder().encode(payload)).map(HTTPBody.init)
+        return (
+            HTTPResponse(status: .ok, headerFields: [.contentType: "application/json"]),
+            body
+        )
+    }
+}
+
+/// Serves suggestion batches in order; the last batch repeats forever,
+/// mimicking the live endpoint resampling an exhausted pool.
+private actor SuggestionBatchSource {
+    private var batches: [[Components.Schemas.ComedianSearchItem]]
+    private(set) var callCount = 0
+
+    init(batches: [[Components.Schemas.ComedianSearchItem]]) {
+        self.batches = batches
+    }
+
+    func next() -> [Components.Schemas.ComedianSearchItem] {
+        callCount += 1
+        guard let first = batches.first else { return [] }
+        if batches.count > 1 {
+            batches.removeFirst()
+        }
+        return first
+    }
+}
+
+private struct SequencedSuggestionsTransport: ClientTransport {
+    let source: SuggestionBatchSource
+
+    func send(
+        _ request: HTTPRequest,
+        body: HTTPBody?,
+        baseURL: URL,
+        operationID: String
+    ) async throws -> (HTTPResponse, HTTPBody?) {
+        guard operationID == "getComedianSuggestions" else {
+            return (
+                HTTPResponse(status: .internalServerError, headerFields: [.contentType: "application/json"]),
+                HTTPBody(#"{"error":"unexpected operation"}"#)
+            )
+        }
+
+        let payload = Operations.GetComedianSuggestions.Output.Ok.Body.JsonPayload(
+            data: await source.next()
+        )
         let body = (try? JSONEncoder().encode(payload)).map(HTTPBody.init)
         return (
             HTTPResponse(status: .ok, headerFields: [.contentType: "application/json"]),
