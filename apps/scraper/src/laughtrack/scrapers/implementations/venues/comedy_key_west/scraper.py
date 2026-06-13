@@ -6,7 +6,12 @@ Next.js App Router. Show data is not exposed as JSON-LD but is embedded in
 React Query hydration state inside self.__next_f.push() streaming script tags.
 
 The site uses Tixologi for ticketing; each show has a tixologi_event_id and a
-ticket link of the form https://event.tixologi.com/event/<id>/tickets.
+ticket link of the form https://event.tixologi.com/event/<id>/tickets. Ticket
+prices (TASK-2851): each show's tixologi_event_id is resolved against the
+public no-auth api-v2.tixologi.com ticket-types endpoint — the same guarded
+enrichment creek_and_cave ships (TASK-2840) — so PunchupShow._build_tickets
+emits per-tier priced tickets from initial_price. A per-show failure degrades
+that show to the priceless fallback ticket.
 
 Fetch strategy:
 - The Punchup RSC stream is server-side rendered and accessible via a plain HTTP
@@ -18,10 +23,12 @@ Fetch strategy:
 - The PunchupExtractor handles both direct JSON and JS-escaped push([1, "..."]) formats.
 """
 
+import asyncio
 import dataclasses
-from typing import Optional
+from typing import List, Optional
 
 from laughtrack.core.clients.punchup.extractor import PunchupExtractor
+from laughtrack.core.clients.tixologi import TixologiClient
 from laughtrack.core.clients.tixologi.extractor import TixologiExtractor
 from laughtrack.core.entities.club.model import Club
 from laughtrack.foundation.infrastructure.logger.logger import Logger
@@ -30,6 +37,11 @@ from laughtrack.scrapers.base.base_scraper import BaseScraper
 
 from .data import ComedyKeyWestPageData, ComedyKeyWestShow
 from .transformer import ComedyKeyWestEventTransformer
+
+# Cap on concurrent Tixologi ticket-type fetches during enrichment — the
+# public API has no caller-side rate limiting, so an unbounded gather would
+# burst one request per show (mirrors creek_and_cave, TASK-2840).
+_TIXOLOGI_MAX_CONCURRENT_FETCHES = 10
 
 
 class ComedyKeyWestScraper(BaseScraper):
@@ -45,6 +57,7 @@ class ComedyKeyWestScraper(BaseScraper):
 
     def __init__(self, club, **kwargs):
         super().__init__(club, **kwargs)
+        self.tixologi_client = TixologiClient(club)
         self.transformation_pipeline.register_transformer(ComedyKeyWestEventTransformer(club))
 
     async def get_data(self, url: str) -> Optional[ComedyKeyWestPageData]:
@@ -80,6 +93,9 @@ class ComedyKeyWestScraper(BaseScraper):
                 self._build_show(s)
                 for s in punchup_shows
             ]
+
+            shows = await self._enrich_tixologi_tickets(shows)
+
             Logger.info(
                 f"{self._log_prefix}: extracted {len(shows)} shows from {url}",
                 self.logger_context,
@@ -92,6 +108,41 @@ class ComedyKeyWestScraper(BaseScraper):
                 self.logger_context,
             )
             return None
+
+    async def _enrich_tixologi_tickets(
+        self, shows: List[ComedyKeyWestShow]
+    ) -> List[ComedyKeyWestShow]:
+        """Attach Tixologi ticket-type payloads to shows before transformation.
+
+        Mirrors the creek_and_cave enrichment (TASK-2840): each show's
+        tixologi_event_id is resolved against the public no-auth
+        api-v2.tixologi.com endpoint so PunchupShow._build_tickets emits
+        priced tickets from ticket_types[].initial_price. Each show is
+        individually guarded — an enrichment error degrades that show to the
+        priceless fallback ticket instead of dropping the whole page.
+        """
+        semaphore = asyncio.Semaphore(_TIXOLOGI_MAX_CONCURRENT_FETCHES)
+
+        async def enrich(show: ComedyKeyWestShow) -> ComedyKeyWestShow:
+            if not show.tixologi_event_id:
+                return show
+            try:
+                async with semaphore:
+                    ticket_types = await self.tixologi_client.fetch_event_ticket_types(
+                        show.tixologi_event_id
+                    )
+            except Exception as e:
+                Logger.warn(
+                    f"{self._log_prefix}: tixologi enrichment failed for event "
+                    f"{show.tixologi_event_id}: {e}",
+                    self.logger_context,
+                )
+                return show
+            if not ticket_types:
+                return show
+            return show.with_tixologi_ticket_types(ticket_types)
+
+        return await asyncio.gather(*(enrich(show) for show in shows))
 
     @staticmethod
     def _build_show(punchup_show) -> ComedyKeyWestShow:

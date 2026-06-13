@@ -64,6 +64,15 @@ def _punchup_html() -> str:
     return f"<html><body><script>{json.dumps(payload)}</script></body></html>"
 
 
+def _stub_tixologi(monkeypatch):
+    """Bypass Tixologi enrichment in tests that don't exercise pricing."""
+
+    async def identity(self, shows):
+        return shows
+
+    monkeypatch.setattr(ComedyKeyWestScraper, "_enrich_tixologi_tickets", identity)
+
+
 @pytest.mark.asyncio
 async def test_collect_scraping_targets_returns_url(monkeypatch):
     """Static URL discovery returns the club's scraping_url without HTTP calls."""
@@ -82,6 +91,7 @@ async def test_get_data_returns_events_from_punchup_html(monkeypatch):
         return _punchup_html()
 
     monkeypatch.setattr(ComedyKeyWestScraper, "fetch_html_bare", fake_fetch_html_bare)
+    _stub_tixologi(monkeypatch)
 
     result = await scraper.get_data(f"https://{SCRAPING_URL}")
 
@@ -99,6 +109,7 @@ async def test_full_pipeline_discover_then_get_data(monkeypatch):
         return _punchup_html()
 
     monkeypatch.setattr(ComedyKeyWestScraper, "fetch_html_bare", fake_fetch_html_bare)
+    _stub_tixologi(monkeypatch)
 
     urls = await scraper.collect_scraping_targets()
     assert len(urls) > 0, "collect_scraping_targets() returned 0 URLs"
