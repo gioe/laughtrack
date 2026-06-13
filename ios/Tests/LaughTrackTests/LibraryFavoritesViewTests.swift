@@ -63,9 +63,18 @@ struct LibraryFavoritesViewTests {
         let source = try String(contentsOf: libraryViewSourceURL(), encoding: .utf8)
 
         #expect(source.contains("Your favorites are touring"))
-        #expect(source.contains("Upcoming after tonight from comedians you saved."))
+        #expect(!source.contains("Upcoming after tonight from comedians you saved."))
         #expect(!source.contains("Loading favorite shows"))
         #expect(!source.contains("No favorite shows yet"))
+    }
+
+    @Test("saved favorites section uses the shared rail card shell")
+    func savedFavoritesSectionUsesRailCardShell() throws {
+        let source = try String(contentsOf: savedFavoritesSectionSourceURL(), encoding: .utf8)
+
+        #expect(source.contains("LaughTrackRailCard("))
+        #expect(!source.contains("LaughTrackSectionHeader("))
+        #expect(!source.contains("LaughTrackCard {"))
     }
 
     @Test("favorites primitive filter only includes supported favorite content")
@@ -211,13 +220,24 @@ struct LibraryFavoritesViewTests {
     }
 
     private func libraryViewSourceURL(filePath: String = #filePath) throws -> URL {
+        try sourceURL("Sources/LaughTrackApp/LibraryView.swift", filePath: filePath)
+    }
+
+    private func savedFavoritesSectionSourceURL(filePath: String = #filePath) throws -> URL {
+        try sourceURL(
+            "Sources/LaughTrackApp/Components/Settings/SavedFavoritesSection.swift",
+            filePath: filePath
+        )
+    }
+
+    private func sourceURL(_ relativePath: String, filePath: String) throws -> URL {
         let testFileURL = URL(fileURLWithPath: filePath)
         let iosRoot = testFileURL
             .deletingLastPathComponent()
             .deletingLastPathComponent()
             .deletingLastPathComponent()
         let sourceURL = iosRoot
-            .appendingPathComponent("Sources/LaughTrackApp/LibraryView.swift")
+            .appendingPathComponent(relativePath)
         guard FileManager.default.fileExists(atPath: sourceURL.path) else {
             throw CocoaError(.fileNoSuchFile)
         }

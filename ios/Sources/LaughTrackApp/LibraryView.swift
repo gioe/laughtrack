@@ -33,8 +33,6 @@ struct LibraryView: View {
 
         ScrollView {
             VStack(alignment: .leading, spacing: tokens.browseDensity.shelfGap) {
-                FavoritesHeader()
-
                 if authManager.currentSession != nil {
                     FavoritePrimitiveSections(
                         apiClient: apiClient,
@@ -59,21 +57,6 @@ struct LibraryView: View {
         .background(tokens.colors.canvas.ignoresSafeArea())
         .navigationTitle(Self.title)
         .modifier(LaughTrackNavigationChrome(background: tokens.colors.canvas))
-    }
-}
-
-private struct FavoritesHeader: View {
-    @Environment(\.appTheme) private var theme
-
-    var body: some View {
-        let tokens = theme.laughTrackTokens
-
-        Text("Saved comedians and their upcoming shows.")
-            .font(tokens.typography.body)
-            .foregroundStyle(tokens.colors.textSecondary)
-            .lineLimit(2)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .accessibilityIdentifier(LaughTrackViewTestID.favoritesHeader)
     }
 }
 
@@ -150,7 +133,6 @@ private struct FavoriteShowsSection: View {
         LaughTrackRailCard(
             eyebrow: "Favorites",
             title: "Your favorites are touring",
-            subtitle: "Upcoming after tonight from comedians you saved.",
             accessibilityIdentifier: LaughTrackViewTestID.favoritesShowsSection
         ) {
             VStack(alignment: .leading, spacing: theme.spacing.sm) {
