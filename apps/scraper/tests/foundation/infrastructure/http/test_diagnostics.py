@@ -293,6 +293,87 @@ class TestPersistLockTimeoutRecording:
         ]
 
 
+class TestDeferredChallengeHeuristic:
+    """TASK-2844: a WAF that answers 202 + challenge body (no known bot
+    signature) must classify as a bot block when the scrape parsed zero
+    items, instead of persisting bot_block_detected=false and reading as a
+    legitimately empty calendar (Rodney's nightly flap)."""
+
+    def test_202_with_zero_items_records_bot_block(self):
+        diagnostics = ScrapeDiagnostics()
+        diagnostics.record_response(202)
+        diagnostics.apply_deferred_challenge_heuristic()
+        assert diagnostics.bot_block_detected is True
+        assert diagnostics.bot_block_signature == "http_202_deferred_zero_items"
+        assert diagnostics.bot_block_type == "deferred_challenge"
+        assert diagnostics.bot_block_source == "status_code_heuristic"
+
+    def test_202_with_items_parsed_does_not_flip(self):
+        """A 202 on some sub-fetch with real items parsed is not a block."""
+        diagnostics = ScrapeDiagnostics()
+        diagnostics.record_response(202)
+        diagnostics.add_items_before_filter(12)
+        diagnostics.apply_deferred_challenge_heuristic()
+        assert diagnostics.bot_block_detected is False
+
+    def test_200_with_zero_items_does_not_flip(self):
+        """A clean 200 with an empty calendar stays EMPTY_CALENDAR territory."""
+        diagnostics = ScrapeDiagnostics()
+        diagnostics.record_response(200)
+        diagnostics.apply_deferred_challenge_heuristic()
+        assert diagnostics.bot_block_detected is False
+
+    def test_no_http_status_does_not_flip(self):
+        diagnostics = ScrapeDiagnostics()
+        diagnostics.apply_deferred_challenge_heuristic()
+        assert diagnostics.bot_block_detected is False
+
+    def test_existing_signature_is_not_overwritten(self):
+        """A real signature recorded during the scrape wins; the heuristic
+        must not clobber it with the synthetic one."""
+        diagnostics = ScrapeDiagnostics()
+        diagnostics.record_response(202)
+        diagnostics.record_bot_block("just a moment", source="response_body")
+        diagnostics.apply_deferred_challenge_heuristic()
+        assert diagnostics.bot_block_signature == "just a moment"
+        assert diagnostics.bot_block_source == "response_body"
+
+    def test_scrape_with_result_carries_heuristic_to_result(self):
+        """End-to-end: a scrape whose only fetch answered 202 with an
+        unrecognized challenge body and produced zero shows must persist
+        bot_block_detected=true on ClubScrapingResult."""
+        from laughtrack.foundation.infrastructure.http.diagnostics import (
+            current_diagnostics,
+        )
+
+        class _BlockedScraper(_NoOpScraper):
+            def scrape(self):
+                current_diagnostics().record_response(202)
+                return []
+
+        result = _BlockedScraper(club=_make_club()).scrape_with_result()
+        assert result.http_status == 202
+        assert result.bot_block_detected is True
+        assert result.bot_block_signature == "http_202_deferred_zero_items"
+
+    def test_scrape_with_result_healthy_202_subfetch_not_flagged(self):
+        """End-to-end: a 202 recorded on a sub-fetch while items still parsed
+        leaves bot_block_detected=false."""
+        from laughtrack.foundation.infrastructure.http.diagnostics import (
+            current_diagnostics,
+        )
+
+        class _HealthyScraper(_NoOpScraper):
+            def scrape(self):
+                diag = current_diagnostics()
+                diag.record_response(202)
+                diag.add_items_before_filter(5)
+                return []
+
+        result = _HealthyScraper(club=_make_club()).scrape_with_result()
+        assert result.bot_block_detected is False
+
+
 class TestScrapeErrorRecording:
     """TASK-2833: per-target fetch/transform exception text must accumulate
     on ScrapeDiagnostics so scrape_with_result can surface it to

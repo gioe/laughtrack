@@ -630,6 +630,13 @@ class BaseScraper(HttpConvenienceMixin, ABC):
                 )
                 error_parts = [p for p in (lock_timeout_error, scrape_error) if p]
 
+                # TASK-2844: a WAF that answers 202 + challenge body instead
+                # of the real page leaves no known bot signature, so a
+                # zero-item run would persist bot_block_detected=false and
+                # read as an empty calendar. items_before_filter is final
+                # here, so the 202+zero-items heuristic can fire.
+                diagnostics.apply_deferred_challenge_heuristic()
+
                 return ClubScrapingResult(
                     club_name=self.club.name,
                     shows=shows,
@@ -660,6 +667,11 @@ class BaseScraper(HttpConvenienceMixin, ABC):
                 Logger.error(
                     f"{self._log_prefix}: Failed to scrape after {execution_time:.2f}s: {error_msg}", self.logger_context
                 )
+
+                # TASK-2844: keep the persisted bot_block_detected truthful on
+                # the exception path too (the error already classifies the
+                # outcome DEGRADED, but the row column drives triage).
+                diagnostics.apply_deferred_challenge_heuristic()
 
                 return ClubScrapingResult(
                     club_name=self.club.name,
