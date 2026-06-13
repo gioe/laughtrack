@@ -18,8 +18,11 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
 
+from dateutil import parser as dateutil_parser
+
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.protocols.show_convertible import ShowConvertible
+from laughtrack.foundation.infrastructure.logger.logger import Logger
 
 
 @dataclass
@@ -60,7 +63,23 @@ class ThunderTixPerformance(ShowConvertible):
         try:
             start_date = datetime.strptime(self.start_dt, "%Y-%m-%d %H:%M:%S %z")
         except ValueError:
-            return None
+            # ThunderTix's calendar API serializes `start` differently depending
+            # on request headers: the default is space-separated
+            # ('2026-03-24 20:00:00 -0500'), but an Accept: application/json
+            # request can return ISO-8601 ('2026-06-10T21:30:00.000-05:00').
+            # strptime only handles the former — if ThunderTix ever flips the
+            # default, every performance would silently drop (TASK-2837). Fall
+            # back to dateutil (as the SimpleTix extractor does) and warn so the
+            # serialization flip is visible in nightly logs.
+            try:
+                start_date = dateutil_parser.parse(self.start_dt)
+            except (ValueError, TypeError, OverflowError):
+                return None
+            Logger.warn(
+                f"ThunderTixPerformance: start '{self.start_dt}' did not match "
+                "the primary '%Y-%m-%d %H:%M:%S %z' format; parsed via dateutil "
+                "fallback (possible ThunderTix datetime serialization flip)"
+            )
 
         ticket_url = url or self.ticket_url
         tickets = [

@@ -1,4 +1,6 @@
+import logging
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from types import SimpleNamespace
 
 import pytest
@@ -419,6 +421,77 @@ def test_to_show_defaults_to_price_unknown():
     show = performance.to_show(_club())
 
     assert show.tickets[0].price is None
+
+
+def _utc_instant(dt: datetime) -> datetime:
+    """Normalize a Show.date to a UTC instant regardless of tzinfo presence.
+
+    The Show factory may store the date as UTC-naive; an aware datetime keeps
+    its offset. Either way the underlying instant is what we assert on.
+    """
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
+
+
+@pytest.mark.parametrize(
+    "start_value, expected_utc",
+    [
+        # Primary space-separated format (ThunderTix default serialization).
+        (
+            "2026-03-24 20:00:00 -0500",
+            datetime(2026, 3, 25, 1, 0, 0, tzinfo=timezone.utc),
+        ),
+        # ISO-8601 with milliseconds (returned under Accept: application/json).
+        (
+            "2026-06-10T21:30:00.000-05:00",
+            datetime(2026, 6, 11, 2, 30, 0, tzinfo=timezone.utc),
+        ),
+    ],
+)
+def test_to_show_parses_both_start_datetime_formats(start_value, expected_utc):
+    """to_show resolves both the space-separated and ISO-8601 start formats
+    to the same correct aware instant (TASK-2849)."""
+    data = _performance_dict()
+    data["start"] = start_value
+    performance = ThunderTixPerformance.from_api_response(
+        data, "https://theannoyance.thundertix.com"
+    )
+
+    show = performance.to_show(_club())
+
+    assert show is not None
+    assert _utc_instant(show.date) == expected_utc
+
+
+def test_to_show_warns_only_on_non_primary_datetime_format(caplog):
+    """The dateutil fallback fires a Logger.warn for a serialization flip, but
+    the primary strptime path stays silent (criteria 9161/9162)."""
+    iso_data = _performance_dict()
+    iso_data["start"] = "2026-06-10T21:30:00.000-05:00"
+    iso_perf = ThunderTixPerformance.from_api_response(
+        iso_data, "https://theannoyance.thundertix.com"
+    )
+
+    with caplog.at_level(logging.WARNING):
+        assert iso_perf.to_show(_club()) is not None
+
+    fallback_warns = [
+        r for r in caplog.records
+        if "dateutil fallback" in r.getMessage() and "ThunderTixPerformance" in r.getMessage()
+    ]
+    assert fallback_warns, "expected a warn when the ISO-8601 fallback path fires"
+
+    # The primary space-separated format must NOT trigger the fallback warn.
+    caplog.clear()
+    primary_perf = ThunderTixPerformance.from_api_response(
+        _performance_dict(), "https://theannoyance.thundertix.com"
+    )
+    with caplog.at_level(logging.WARNING):
+        assert primary_perf.to_show(_club()) is not None
+    assert not any(
+        "dateutil fallback" in r.getMessage() for r in caplog.records
+    ), "primary strptime format should not log a fallback warn"
 
 
 @pytest.mark.asyncio
