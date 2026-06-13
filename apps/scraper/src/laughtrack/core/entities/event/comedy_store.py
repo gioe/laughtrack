@@ -54,6 +54,7 @@ class ComedyStoreEvent(ShowConvertible):
     ticket_url: str     # ShowClix URL (or show-page URL if sold out / free)
     room: str = ""
     sold_out: bool = False
+    price: Optional[float] = None  # ShowClix seated-API primary price
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None):
         """Convert to a Show entity."""
@@ -67,7 +68,11 @@ class ComedyStoreEvent(ShowConvertible):
             return None
 
         ticket_url = url or self.ticket_url
-        tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url, sold_out=self.sold_out)]
+        tickets = [
+            ShowFactoryUtils.create_fallback_ticket(
+                ticket_url, price=self.price, sold_out=self.sold_out
+            )
+        ]
 
         return ShowFactoryUtils.create_enhanced_show_base(
             name=self.title,

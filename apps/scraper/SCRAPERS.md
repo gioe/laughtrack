@@ -684,6 +684,13 @@ rhpSingleEvent    eventWrapper    rhp-event__title--list
 
 **Single-show page quirk:** The `class = "eventStDate"` attribute on single-show detail pages uses spaces around `=` (i.e. `class = "..."`, not `class="..."`). Regex patterns targeting class attributes on these pages must use `class\s*=\s*"` rather than `class="` to match correctly.
 
+**Pricing** (TASK-2842): each card's `rhp-event__cost-text--list` (or `--grid`)
+span carries the cost text (e.g. `$27`, `$27 - $37`). The extractor parses the
+lowest positive dollar amount into the fallback ticket — ranges take the low
+end; `$0` or dollar-less text stays `None` (price unknown). Same markup family
+the Funny Bone Rockhouse parser reads (`_funny_bone_ticket_price` in
+`api/etix/scraper.py`).
+
 **DB setup:**
 ```sql
 UPDATE clubs SET scraper = 'comedy_magic_club', scraping_url = 'https://myvenue.com/events/' WHERE name = 'My Club';
@@ -814,6 +821,15 @@ primitives decode the chunks and `PunchupShow`/`PunchupExtractor` handle the
 row shape (`title`, naive-local `datetime`, Tixologi `ticket_link`,
 `is_sold_out`, `vip_ticket_link`, structured `show_comedians`). Tickets are
 Tixologi (`event.tixologi.com/event/<id>/tickets`).
+
+**Pricing:** the Punchup RSC rows carry no price field. west_side and
+creek_and_cave (TASK-2840) enrich each show's `tixologi_event_id` against the
+public no-auth `api-v2.tixologi.com` ticket-types endpoint so
+`PunchupShow._build_tickets` emits per-tier priced tickets from
+`initial_price`. creek_and_cave guards each show individually (a Tixologi
+outage degrades that show to the priceless fallback, not a dropped calendar)
+and caps in-flight requests at 10. comedy_key_west does not enrich yet —
+TASK-2851.
 
 ---
 
@@ -1783,6 +1799,27 @@ When reusing an existing scraper for a second venue location (e.g., Comedy Store
 For example, `^/calendar/show/\d+/(.+)$` only matches West Hollywood hrefs — it must be generalized to `^(?:/[^/]+)?/calendar/show/\d+/(.+)$` before it can handle `/la-jolla/calendar/show/...`.
 
 Before implementing a second location, fetch one day's HTML from the new location and verify every regex in the extractor matches the new URL structure.
+
+---
+
+### Comedy Store — ShowClix/Leap ticket pricing (TASK-2841)
+
+The calendar day pages render no price element. The `comedy_store` scraper
+resolves each distinct slug-style ticket page once per run (memoized,
+failure-evicting, 10-request cap) to the numeric ShowClix id embedded in an
+inline script — `var EVENT = {"event_id":"10341917", ...}` — then fetches
+per-level prices via the same `ShowclixAPIClient.get_event_data` seated API
+the Gotham scraper uses, taking `get_primary_price()` (0.00 levels are
+placeholder/comp tiers and stay `None`).
+
+**Leap host migration gotcha:** ShowClix migrated venue ticket hrefs from
+`www.showclix.com/event/<slug>` to `events.leapevents.com/event/<slug>`
+(observed live 2026-06-12). The extractor's anchor pattern
+(`SHOWCLIX_EVENT_URL_RE`, shared with the scraper's enrichment eligibility
+check) must match **both** hosts — when it only matched showclix.com, every
+ticketed show's `ticket_url` silently degraded to the venue show page. If
+Comedy Store prices/ticket links vanish again, re-check the calendar's anchor
+host first.
 
 ---
 

@@ -183,6 +183,34 @@ def _empty_day_html() -> str:
     return "<html><body><h1 class='display-3 font-cooper text-center'>No shows today</h1></body></html>"
 
 
+def _stub_price_fetch(monkeypatch):
+    """Bypass ShowClix price resolution in tests that don't exercise pricing."""
+
+    async def no_price(self, url: str):
+        return None
+
+    monkeypatch.setattr(ComedyStoreScraper, "_resolve_and_fetch_price", no_price)
+
+
+def _ticket_page_html(event_id: str = "10341917") -> str:
+    """Trimmed copy of a live events.leapevents.com ticket page inline script."""
+    return (
+        "<html><head><script>\n"
+        'var EVENT = {"event_id":"' + event_id + '","event":"Headliners of the OR"};\n'
+        "</script></head><body></body></html>"
+    )
+
+
+class _FakeEventData:
+    """Stands in for ShowclixEventData — only get_primary_price is consumed."""
+
+    def __init__(self, primary_price):
+        self._primary_price = primary_price
+
+    def get_primary_price(self):
+        return self._primary_price
+
+
 # ---------------------------------------------------------------------------
 # collect_scraping_targets
 # ---------------------------------------------------------------------------
@@ -222,6 +250,7 @@ async def test_get_data_extracts_title_and_datetime(monkeypatch):
         return html
 
     monkeypatch.setattr(ComedyStoreScraper, "fetch_html", fake_fetch)
+    _stub_price_fetch(monkeypatch)
 
     result = await scraper.get_data(f"{CALENDAR_BASE}/2026-04-01")
 
@@ -261,6 +290,7 @@ async def test_get_data_concurrent_shows_same_time_different_rooms(monkeypatch):
         return html
 
     monkeypatch.setattr(ComedyStoreScraper, "fetch_html", fake_fetch)
+    _stub_price_fetch(monkeypatch)
 
     result = await scraper.get_data(f"{CALENDAR_BASE}/2026-04-01")
     assert result is not None
@@ -287,6 +317,7 @@ async def test_get_data_extracts_room(monkeypatch):
         return html
 
     monkeypatch.setattr(ComedyStoreScraper, "fetch_html", fake_fetch)
+    _stub_price_fetch(monkeypatch)
 
     result = await scraper.get_data(f"{CALENDAR_BASE}/2026-04-01")
     assert result is not None
@@ -308,6 +339,7 @@ async def test_get_data_sold_out_show(monkeypatch):
         return html
 
     monkeypatch.setattr(ComedyStoreScraper, "fetch_html", fake_fetch)
+    _stub_price_fetch(monkeypatch)
 
     result = await scraper.get_data(f"{CALENDAR_BASE}/2026-04-01")
     assert result is not None
@@ -325,6 +357,7 @@ async def test_get_data_empty_day_returns_none(monkeypatch):
         return _empty_day_html()
 
     monkeypatch.setattr(ComedyStoreScraper, "fetch_html", fake_fetch)
+    _stub_price_fetch(monkeypatch)
 
     result = await scraper.get_data(f"{CALENDAR_BASE}/2026-04-02")
     assert result is None
@@ -349,6 +382,7 @@ async def test_transformation_pipeline_produces_shows(monkeypatch):
         return html
 
     monkeypatch.setattr(ComedyStoreScraper, "fetch_html", fake_fetch)
+    _stub_price_fetch(monkeypatch)
 
     page_data = await scraper.get_data(f"{CALENDAR_BASE}/2026-04-01")
     assert page_data is not None
@@ -391,6 +425,7 @@ async def test_full_pipeline_produces_events(monkeypatch):
         return _empty_day_html()
 
     monkeypatch.setattr(ComedyStoreScraper, "fetch_html", fake_fetch)
+    _stub_price_fetch(monkeypatch)
 
     targets = await scraper.collect_scraping_targets()
     assert len(targets) > 0
@@ -432,6 +467,7 @@ async def test_get_data_z_utc_offset_slug(monkeypatch):
         return html
 
     monkeypatch.setattr(ComedyStoreScraper, "fetch_html", fake_fetch)
+    _stub_price_fetch(monkeypatch)
 
     result = await scraper.get_data(f"{CALENDAR_BASE}/2026-04-01")
 
@@ -476,6 +512,7 @@ async def test_la_jolla_get_data_extracts_title_and_datetime(monkeypatch):
         return html
 
     monkeypatch.setattr(ComedyStoreScraper, "fetch_html", fake_fetch)
+    _stub_price_fetch(monkeypatch)
 
     result = await scraper.get_data(f"{LA_JOLLA_CALENDAR_BASE}/2026-04-01")
 
@@ -513,6 +550,7 @@ async def test_la_jolla_get_data_concurrent_shows_same_time_different_rooms(monk
         return html
 
     monkeypatch.setattr(ComedyStoreScraper, "fetch_html", fake_fetch)
+    _stub_price_fetch(monkeypatch)
 
     result = await scraper.get_data(f"{LA_JOLLA_CALENDAR_BASE}/2026-04-01")
     assert result is not None
@@ -538,9 +576,232 @@ async def test_la_jolla_get_data_sold_out_show(monkeypatch):
         return html
 
     monkeypatch.setattr(ComedyStoreScraper, "fetch_html", fake_fetch)
+    _stub_price_fetch(monkeypatch)
 
     result = await scraper.get_data(f"{LA_JOLLA_CALENDAR_BASE}/2026-04-01")
     assert result is not None
     ev = result.event_list[0]
     assert ev.sold_out is True
     assert ev.ticket_url.startswith("https://thecomedystore.com/la-jolla/calendar/show/")
+
+
+# ---------------------------------------------------------------------------
+# ShowClix seated-API price enrichment (TASK-2841) — slug page embeds the
+# numeric event_id; the existing Gotham client fetches per-level prices.
+# ---------------------------------------------------------------------------
+
+
+def _scraper_with_price_stack(monkeypatch, day_html: str, page_by_url: dict, data_by_id: dict, fetched: list, api_calls: list) -> ComedyStoreScraper:
+    """Build a ComedyStoreScraper with calendar, slug pages, and API stubbed."""
+    scraper = ComedyStoreScraper(_club())
+
+    async def fake_fetch_html(self, url: str, **kwargs):
+        if "/calendar/" in url:
+            return day_html
+        fetched.append(url)
+        result = page_by_url[url]
+        if isinstance(result, Exception):
+            raise result
+        return result
+
+    async def fake_get_event_data(event_id: str):
+        api_calls.append(event_id)
+        result = data_by_id.get(event_id)
+        if isinstance(result, Exception):
+            raise result
+        return result
+
+    async def no_rate_limit(url):
+        return None
+
+    monkeypatch.setattr(ComedyStoreScraper, "fetch_html", fake_fetch_html)
+    monkeypatch.setattr(scraper.showclix_client, "get_event_data", fake_get_event_data)
+    scraper.rate_limiter = __import__("types").SimpleNamespace(await_if_needed=no_rate_limit)
+    return scraper
+
+
+_TICKET_A = "https://events.leapevents.com/event/930-headliners-2026-june12th"
+_TICKET_B = "https://www.showclix.com/event/belly-room-2026-june12th"
+
+
+@pytest.mark.asyncio
+async def test_get_data_attaches_showclix_prices_one_resolution_per_distinct_url(monkeypatch):
+    """Events carry the seated-API primary price; both URL hosts resolve; one fetch per URL."""
+    day_html = _day_html([
+        {"slug": "2026-04-01t200000-0700-headliners", "title": "Headliners", "ticket": _TICKET_A},
+        {"slug": "2026-04-01t220000-0700-late", "title": "Late Show", "ticket": _TICKET_A},
+        {"slug": "2026-04-01t210000-0700-belly", "title": "Belly Room", "ticket": _TICKET_B},
+    ])
+    fetched: list = []
+    api_calls: list = []
+    scraper = _scraper_with_price_stack(
+        monkeypatch,
+        day_html,
+        {_TICKET_A: _ticket_page_html("10341917"), _TICKET_B: _ticket_page_html("10341918")},
+        {"10341917": _FakeEventData("25.00"), "10341918": _FakeEventData("20.00")},
+        fetched,
+        api_calls,
+    )
+
+    result = await scraper.get_data(f"{CALENDAR_BASE}/2026-04-01")
+
+    prices = {e.title: e.price for e in result.event_list}
+    assert prices == {"Headliners": 25.0, "Late Show": 25.0, "Belly Room": 20.0}
+    assert sorted(fetched) == sorted([_TICKET_A, _TICKET_B])
+    assert sorted(api_calls) == ["10341917", "10341918"]
+
+
+@pytest.mark.asyncio
+async def test_get_data_skips_price_for_venue_page_fallback_urls(monkeypatch):
+    """Sold-out/free shows whose ticket_url is the venue show page are never resolved."""
+    day_html = _day_html([
+        {"slug": "2026-04-01t200000-0700-soldout", "title": "Sold Out Show", "sold_out": True},
+    ])
+    fetched: list = []
+    api_calls: list = []
+    scraper = _scraper_with_price_stack(monkeypatch, day_html, {}, {}, fetched, api_calls)
+
+    result = await scraper.get_data(f"{CALENDAR_BASE}/2026-04-01")
+
+    assert fetched == []
+    assert api_calls == []
+    assert result.event_list[0].price is None
+
+
+@pytest.mark.asyncio
+async def test_slug_resolution_failure_degrades_to_priceless_ticket(monkeypatch):
+    """Criterion 2: a failed slug-page fetch keeps the show with a priceless ticket, and retries later."""
+    day_html = _day_html([
+        {"slug": "2026-04-01t200000-0700-headliners", "title": "Headliners", "ticket": _TICKET_A},
+    ])
+    fetched: list = []
+    api_calls: list = []
+    scraper = _scraper_with_price_stack(
+        monkeypatch, day_html, {_TICKET_A: Exception("Connection refused")}, {}, fetched, api_calls
+    )
+
+    result = await scraper.get_data(f"{CALENDAR_BASE}/2026-04-01")
+
+    assert result is not None
+    show = result.event_list[0].to_show(_club())
+    assert show is not None
+    assert show.tickets[0].price is None
+    # Failed fetches are evicted from the memo, so a retried get_data refetches.
+    await scraper.get_data(f"{CALENDAR_BASE}/2026-04-01")
+    assert len(fetched) == 2
+
+
+@pytest.mark.asyncio
+async def test_page_without_event_id_stays_cached_with_none_price(monkeypatch):
+    """A fetched page without an embedded event_id yields None and is not refetched."""
+    day_html = _day_html([
+        {"slug": "2026-04-01t200000-0700-headliners", "title": "Headliners", "ticket": _TICKET_A},
+    ])
+    fetched: list = []
+    api_calls: list = []
+    scraper = _scraper_with_price_stack(
+        monkeypatch, day_html, {_TICKET_A: "<html><body>no inline EVENT var</body></html>"}, {}, fetched, api_calls
+    )
+
+    first = await scraper.get_data(f"{CALENDAR_BASE}/2026-04-01")
+    second = await scraper.get_data(f"{CALENDAR_BASE}/2026-04-01")
+
+    assert first.event_list[0].price is None
+    assert second.event_list[0].price is None
+    assert fetched == [_TICKET_A]
+    assert api_calls == []
+
+
+@pytest.mark.asyncio
+async def test_seated_api_failure_degrades_to_priceless_ticket(monkeypatch):
+    """An API error after successful slug resolution still keeps the show priceless, not dropped."""
+    day_html = _day_html([
+        {"slug": "2026-04-01t200000-0700-headliners", "title": "Headliners", "ticket": _TICKET_A},
+    ])
+    fetched: list = []
+    api_calls: list = []
+    scraper = _scraper_with_price_stack(
+        monkeypatch,
+        day_html,
+        {_TICKET_A: _ticket_page_html("10341917")},
+        {"10341917": Exception("api down")},
+        fetched,
+        api_calls,
+    )
+
+    result = await scraper.get_data(f"{CALENDAR_BASE}/2026-04-01")
+
+    assert result.event_list[0].price is None
+    assert result.event_list[0].title == "Headliners"
+
+
+def test_to_show_carries_price_into_fallback_ticket():
+    """ComedyStoreEvent.price flows into the show's fallback ticket."""
+    from laughtrack.core.entities.event.comedy_store import ComedyStoreEvent
+
+    event = ComedyStoreEvent(
+        title="Headliners",
+        datetime_slug="2026-04-01t200000-0700",
+        ticket_url=_TICKET_A,
+        price=25.0,
+    )
+    show = event.to_show(_club())
+
+    assert show.tickets[0].price == 25.0
+
+
+def test_to_show_defaults_to_price_unknown():
+    """Without an enriched price the fallback ticket stays price-unknown (None, not 0)."""
+    from laughtrack.core.entities.event.comedy_store import ComedyStoreEvent
+
+    event = ComedyStoreEvent(
+        title="Headliners",
+        datetime_slug="2026-04-01t200000-0700",
+        ticket_url=_TICKET_A,
+    )
+    show = event.to_show(_club())
+
+    assert show.tickets[0].price is None
+
+
+@pytest.mark.asyncio
+async def test_api_returning_none_degrades_to_priceless_ticket(monkeypatch):
+    """get_event_data returning None (fetch/parse miss) keeps the show priceless."""
+    day_html = _day_html([
+        {"slug": "2026-04-01t200000-0700-headliners", "title": "Headliners", "ticket": _TICKET_A},
+    ])
+    fetched: list = []
+    api_calls: list = []
+    scraper = _scraper_with_price_stack(
+        monkeypatch, day_html, {_TICKET_A: _ticket_page_html("10341917")}, {"10341917": None}, fetched, api_calls
+    )
+
+    result = await scraper.get_data(f"{CALENDAR_BASE}/2026-04-01")
+
+    assert result.event_list[0].price is None
+    assert api_calls == ["10341917"]
+
+
+@pytest.mark.asyncio
+async def test_unparseable_or_zero_primary_price_degrades_to_none(monkeypatch):
+    """A None/garbage primary price and an explicit 0.00 level both yield price-unknown."""
+    day_html = _day_html([
+        {"slug": "2026-04-01t200000-0700-a", "title": "No Levels", "ticket": _TICKET_A},
+        {"slug": "2026-04-01t210000-0700-b", "title": "Zero Level", "ticket": _TICKET_B},
+    ])
+    fetched: list = []
+    api_calls: list = []
+    scraper = _scraper_with_price_stack(
+        monkeypatch,
+        day_html,
+        {_TICKET_A: _ticket_page_html("111"), _TICKET_B: _ticket_page_html("222")},
+        {"111": _FakeEventData(None), "222": _FakeEventData("0.00")},
+        fetched,
+        api_calls,
+    )
+
+    result = await scraper.get_data(f"{CALENDAR_BASE}/2026-04-01")
+
+    prices = {e.title: e.price for e in result.event_list}
+    # 0.00 seated levels are placeholder/comp tiers, not proven-free — stays None.
+    assert prices == {"No Levels": None, "Zero Level": None}
