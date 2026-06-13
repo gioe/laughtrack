@@ -69,4 +69,21 @@ struct LaughTrackBrowseComponentsTests {
         #expect(state.message == "Try refreshing this shelf.")
         #expect(state.actionTitle == "Try again")
     }
+
+    @Test("rail card centralizes shared rail header and chrome inputs")
+    func railCardCentralizesSharedRailInputs() {
+        let rail = LaughTrackRailCard(
+            eyebrow: "Favorites",
+            title: "Your favorites are touring",
+            subtitle: "Upcoming after tonight from comedians you saved.",
+            accessibilityIdentifier: "test.rail"
+        ) {
+            Text("Rail content")
+        }
+
+        #expect(rail.eyebrow == "Favorites")
+        #expect(rail.title == "Your favorites are touring")
+        #expect(rail.subtitle == "Upcoming after tonight from comedians you saved.")
+        #expect(rail.accessibilityIdentifier == "test.rail")
+    }
 }

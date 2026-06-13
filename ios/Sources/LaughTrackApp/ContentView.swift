@@ -50,7 +50,6 @@ enum LaughTrackViewTestID {
     static let homeShowsTonightHeroButton = "laughtrack.home.shows-tonight-hero-button"
     static let homeShowsTonightSeeMoreButton = "laughtrack.home.shows-tonight-see-more-button"
     static let homeTrendingComediansRail = "laughtrack.home.trending-comedians-rail"
-    static let homeFavoriteShowsRail = "laughtrack.home.favorite-shows-rail"
     static let homePopularClubsRail = "laughtrack.home.popular-clubs-rail"
     static let homeTrendingPodcastsRail = "laughtrack.home.trending-podcasts-rail"
     static let showsSearchScreen = "laughtrack.shows-search.screen"
@@ -144,6 +143,7 @@ struct ContentView: View {
     @StateObject private var shellState = AppShellState()
     @StateObject private var firstEntryAuthChoiceStore = FirstEntryAuthChoiceStore()
     @StateObject private var podcastPlayer = PodcastPlaybackController()
+    @State private var hasLoadedInitialHome = false
     @Namespace private var authLogoNamespace
 
     var body: some View {
@@ -186,8 +186,20 @@ struct ContentView: View {
                     .transition(.opacity)
             }
         }
+        .overlay {
+            if Self.shouldShowLaunchSplash(
+                surface: surface,
+                hasLoadedInitialHome: hasLoadedInitialHome,
+                isHomeTabSelected: shellState.selectedTab == .nearMe
+            ) {
+                AuthLoadingView(logoNamespace: authLogoNamespace)
+                    .transition(.opacity)
+            }
+        }
         .tint(theme.colors.primary)
+        .laughTrackKeyboardDismissToolbar()
         .animation(.easeInOut(duration: 0.42), value: surface)
+        .animation(.easeInOut(duration: 0.42), value: hasLoadedInitialHome)
         .task {
             await authManager.restoreSessionIfNeeded()
         }
@@ -255,6 +267,20 @@ struct ContentView: View {
         }
     }
 
+    static func shouldShowLaunchSplash(
+        surface: RootSurface,
+        hasLoadedInitialHome: Bool,
+        isHomeTabSelected: Bool
+    ) -> Bool {
+        guard !hasLoadedInitialHome, isHomeTabSelected else { return false }
+        switch surface {
+        case .signedOutShell, .authenticatedShell:
+            return true
+        case .loading, .authChoiceGate, .comedianOnboarding:
+            return false
+        }
+    }
+
     static func shouldPresentComedianOnboarding(
         authState: AuthManager.State,
         currentUser: AuthenticatedUser?
@@ -296,7 +322,8 @@ struct ContentView: View {
                     signedOutMessage: signedOutMessage,
                     favorites: favorites,
                     initialTab: .nearMe,
-                    shellState: shellState
+                    shellState: shellState,
+                    onInitialHomeLoadComplete: markInitialHomeLoaded
                 )
             case .search:
                 AppShellView(
@@ -304,7 +331,8 @@ struct ContentView: View {
                     signedOutMessage: signedOutMessage,
                     favorites: favorites,
                     initialTab: .search,
-                    shellState: shellState
+                    shellState: shellState,
+                    onInitialHomeLoadComplete: markInitialHomeLoaded
                 )
             case .library:
                 AppShellView(
@@ -312,7 +340,8 @@ struct ContentView: View {
                     signedOutMessage: signedOutMessage,
                     favorites: favorites,
                     initialTab: .favorites,
-                    shellState: shellState
+                    shellState: shellState,
+                    onInitialHomeLoadComplete: markInitialHomeLoaded
                 )
             case .profile:
                 ProfileView(
@@ -339,7 +368,8 @@ struct ContentView: View {
                 apiClient: apiClient,
                 signedOutMessage: signedOutMessage,
                 favorites: favorites,
-                shellState: shellState
+                shellState: shellState,
+                onInitialHomeLoadComplete: markInitialHomeLoaded
             )
         }
         // Mount the persistent podcast mini player on the navigation stack
@@ -371,7 +401,44 @@ struct ContentView: View {
     private var nearbyLocationController: NearbyLocationController {
         serviceContainer.resolve(NearbyLocationController.self)
     }
+
+    private func markInitialHomeLoaded() {
+        hasLoadedInitialHome = true
+    }
 }
+
+#if canImport(UIKit)
+private struct LaughTrackKeyboardDismissToolbar: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") {
+                        UIApplication.shared.sendAction(
+                            #selector(UIResponder.resignFirstResponder),
+                            to: nil,
+                            from: nil,
+                            for: nil
+                        )
+                    }
+                }
+            }
+    }
+}
+
+private extension View {
+    func laughTrackKeyboardDismissToolbar() -> some View {
+        modifier(LaughTrackKeyboardDismissToolbar())
+    }
+}
+#else
+private extension View {
+    func laughTrackKeyboardDismissToolbar() -> some View {
+        self
+    }
+}
+#endif
 
 enum PodcastMiniPlayerLayout {
     static let rootTabBarClearance: CGFloat = 68
@@ -425,6 +492,7 @@ final class FirstEntryAuthChoiceStore: ObservableObject {
 
 private struct FirstEntryAuthChoiceView: View {
     @Environment(\.appTheme) private var theme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     let message: String?
     let logoNamespace: Namespace.ID
@@ -439,31 +507,59 @@ private struct FirstEntryAuthChoiceView: View {
             laughTrack.colors.canvas
                 .ignoresSafeArea()
 
-            VStack(alignment: .leading, spacing: laughTrack.spacing.clusterGap) {
-                Spacer(minLength: theme.spacing.xl)
+            LaughTrackSpotlightBackdrop(intensity: 1, lightCenter: UnitPoint(x: 0.5, y: 0.26))
+                .ignoresSafeArea()
 
-                VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
-                    Image("LaunchLogo")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 144, height: 144)
-                        .matchedGeometryEffect(id: "launch-logo", in: logoNamespace)
-                        .padding(.bottom, theme.spacing.xs)
+            VStack(spacing: 0) {
+                Spacer(minLength: theme.spacing.lg)
 
-                    VStack(alignment: .leading, spacing: theme.spacing.xs) {
-                        Text("Find your next laugh")
-                            .font(laughTrack.typography.screenTitle)
-                            .foregroundStyle(laughTrack.colors.textPrimary)
-                            .fixedSize(horizontal: false, vertical: true)
+                // The asset carries a 72pt transparent glow margin on every side
+                // (see bin/generate-launch-logo.swift), so the frame is sized for
+                // a ~156pt visible lockup: 156 × 480/336 ≈ 223.
+                Image("LaunchLogo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 223)
+                    .matchedGeometryEffect(id: "launch-logo", in: logoNamespace)
+                    .shadow(color: laughTrack.colors.accent.opacity(0.42), radius: 38, y: 8)
+                    // Reclaim the transparent glow margin (~33pt top and bottom
+                    // at this frame size) so layout rhythm tracks the visible
+                    // lockup, not the padded bitmap.
+                    .padding(.vertical, -24)
+                    .entrance(hasAppeared, delay: 0, reduceMotion: reduceMotion)
 
-                        Text(message ?? "Browse tonight's shows as a guest, or sign in to sync favorites and alerts.")
-                            .font(laughTrack.typography.body)
-                            .foregroundStyle(laughTrack.colors.textSecondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
+                MarqueeBulbRow()
+                    .padding(.top, theme.spacing.lg)
+                    .entrance(hasAppeared, delay: 0.08, reduceMotion: reduceMotion)
+
+                VStack(spacing: theme.spacing.sm) {
+                    Text("Live comedy near you")
+                        .font(laughTrack.typography.eyebrow)
+                        .kerning(3.2)
+                        .textCase(.uppercase)
+                        .foregroundStyle(laughTrack.colors.accent)
+
+                    (
+                        Text("Find your next ")
+                            .foregroundColor(laughTrack.colors.textPrimary)
+                        + Text("laugh")
+                            .foregroundColor(laughTrack.colors.accentStrong)
+                    )
+                    .font(laughTrack.typography.hero)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                    Text(message ?? "Tonight's lineups, hometown clubs, and the comics you follow — all in one place.")
+                        .font(laughTrack.typography.body)
+                        .foregroundStyle(laughTrack.colors.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.horizontal, theme.spacing.md)
                 }
-                .opacity(hasAppeared ? 1 : 0)
-                .offset(y: hasAppeared ? 0 : 10)
+                .padding(.top, theme.spacing.lg)
+                .entrance(hasAppeared, delay: 0.14, reduceMotion: reduceMotion)
+
+                Spacer(minLength: theme.spacing.lg)
 
                 VStack(spacing: theme.spacing.sm) {
                     FirstEntryGuestButton {
@@ -471,24 +567,91 @@ private struct FirstEntryAuthChoiceView: View {
                     }
                     .accessibilityIdentifier(LaughTrackViewTestID.firstEntryContinueAsGuestButton)
 
+                    FirstEntrySignInDivider()
+                        .padding(.vertical, theme.spacing.xs)
+
                     ForEach(ContentView.firstEntrySignedOutAuthOptions) { option in
                         SignedOutAuthOptionButton(option: option, action: signIn)
                             .accessibilityIdentifier(LaughTrackViewTestID.firstEntryAuthOptionButton(option.provider))
                     }
                 }
-                .opacity(hasAppeared ? 1 : 0)
-                .offset(y: hasAppeared ? 0 : 16)
-
-                Spacer(minLength: theme.spacing.xl)
+                .entrance(hasAppeared, delay: 0.22, reduceMotion: reduceMotion)
+                .padding(.bottom, theme.spacing.lg)
             }
             .padding(.horizontal, theme.spacing.xl)
-            .frame(maxWidth: 520, alignment: .leading)
+            .frame(maxWidth: 520)
         }
         .onAppear {
-            withAnimation(.spring(response: 0.48, dampingFraction: 0.86).delay(0.08)) {
-                hasAppeared = true
+            hasAppeared = true
+        }
+    }
+}
+
+private extension View {
+    /// Staggered entrance used by the first-entry gate: fade + rise, with a
+    /// per-element delay. Collapses to an instant cut under Reduce Motion.
+    func entrance(_ hasAppeared: Bool, delay: Double, reduceMotion: Bool) -> some View {
+        self
+            .opacity(hasAppeared ? 1 : 0)
+            .offset(y: hasAppeared || reduceMotion ? 0 : 14)
+            .animation(
+                reduceMotion
+                    ? .easeOut(duration: 0.1)
+                    : .spring(response: 0.5, dampingFraction: 0.86).delay(0.08 + delay),
+                value: hasAppeared
+            )
+    }
+}
+
+/// A short run of marquee bulbs — the club-sign detail that separates the
+/// brand mark from the headline. Purely decorative.
+private struct MarqueeBulbRow: View {
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        HStack(spacing: 12) {
+            ForEach(0..<5, id: \.self) { index in
+                let distanceFromCenter = abs(index - 2)
+                Circle()
+                    .fill(laughTrack.colors.accentStrong.opacity(1.0 - Double(distanceFromCenter) * 0.3))
+                    .frame(width: index == 2 ? 6 : 4.5, height: index == 2 ? 6 : 4.5)
+                    .shadow(
+                        color: laughTrack.colors.accentStrong.opacity(0.8 - Double(distanceFromCenter) * 0.25),
+                        radius: 5
+                    )
             }
         }
+        .accessibilityHidden(true)
+    }
+}
+
+private struct FirstEntrySignInDivider: View {
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        HStack(spacing: theme.spacing.sm) {
+            dividerLine(fadingToward: .leading)
+            Text("or sign in to sync favorites & alerts")
+                .font(laughTrack.typography.metadata)
+                .foregroundStyle(laughTrack.colors.textSecondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.85)
+                .layoutPriority(1)
+            dividerLine(fadingToward: .trailing)
+        }
+    }
+
+    private func dividerLine(fadingToward edge: UnitPoint) -> some View {
+        LinearGradient(
+            colors: [theme.laughTrackTokens.colors.borderStrong, .clear],
+            startPoint: edge == .leading ? .trailing : .leading,
+            endPoint: edge
+        )
+        .frame(height: 1)
     }
 }
 
@@ -502,21 +665,38 @@ private struct FirstEntryGuestButton: View {
 
         Button(action: action) {
             HStack(spacing: theme.spacing.sm) {
-                Image(systemName: "arrow.right")
-                    .font(.system(size: 21, weight: .semibold))
-                    .frame(width: 24)
-
                 Text("Continue as guest")
                     .font(laughTrack.typography.action)
                     .lineLimit(1)
                     .minimumScaleFactor(0.9)
+
+                Image(systemName: "arrow.right")
+                    .font(.system(size: 17, weight: .semibold))
             }
             .foregroundStyle(laughTrack.colors.textInverse)
-            .frame(maxWidth: .infinity, minHeight: 44)
+            .frame(maxWidth: .infinity, minHeight: 54)
             .padding(.horizontal, theme.spacing.md)
             .contentShape(Rectangle())
-            .background(laughTrack.colors.accent)
+            .background(
+                LinearGradient(
+                    colors: [laughTrack.colors.accentStrong, laughTrack.colors.accent],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: laughTrack.radius.pill, style: .continuous)
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [Color.white.opacity(0.35), .clear],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        ),
+                        lineWidth: 1
+                    )
+            )
             .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.pill, style: .continuous))
+            .shadow(color: laughTrack.colors.accent.opacity(0.38), radius: 18, y: 8)
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Continue as guest")

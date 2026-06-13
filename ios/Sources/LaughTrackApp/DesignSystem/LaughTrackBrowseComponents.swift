@@ -141,6 +141,78 @@ struct LaughTrackShelfHeader: View {
     }
 }
 
+struct LaughTrackRailCard<Content: View>: View {
+    let eyebrow: String?
+    let title: String?
+    let subtitle: String?
+    let accessibilityIdentifier: String?
+    @ViewBuilder let content: Content
+
+    @Environment(\.appTheme) private var theme
+
+    init(
+        eyebrow: String? = nil,
+        title: String? = nil,
+        subtitle: String? = nil,
+        accessibilityIdentifier: String? = nil,
+        @ViewBuilder content: () -> Content
+    ) {
+        self.eyebrow = eyebrow
+        self.title = title
+        self.subtitle = subtitle
+        self.accessibilityIdentifier = accessibilityIdentifier
+        self.content = content()
+    }
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        VStack(alignment: .leading, spacing: theme.spacing.md) {
+            if let title {
+                if let accessibilityIdentifier {
+                    LaughTrackShelfHeader(
+                        eyebrow: eyebrow,
+                        title: title,
+                        subtitle: subtitle
+                    )
+                    .accessibilityIdentifier(accessibilityIdentifier)
+                } else {
+                    LaughTrackShelfHeader(
+                        eyebrow: eyebrow,
+                        title: title,
+                        subtitle: subtitle
+                    )
+                }
+            }
+
+            content
+        }
+        .padding(laughTrack.browseDensity.compactCardPadding)
+        .background(laughTrack.colors.surfaceElevated)
+        .overlay(
+            RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
+                .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
+        .shadowStyle(laughTrack.shadows.card)
+        .modifier(RailAccessibilityIdentifierModifier(
+            identifier: title == nil ? accessibilityIdentifier : nil
+        ))
+    }
+}
+
+private struct RailAccessibilityIdentifierModifier: ViewModifier {
+    let identifier: String?
+
+    func body(content: Content) -> some View {
+        if let identifier {
+            content.accessibilityIdentifier(identifier)
+        } else {
+            content
+        }
+    }
+}
+
 struct LaughTrackBrowseChip: View {
     @Environment(\.appTheme) private var theme
 

@@ -21,6 +21,40 @@ struct ContentViewNavigationTests {
         ) == .loading)
     }
 
+    @Test("shell launch keeps splash visible until initial home load completes")
+    func shellLaunchKeepsSplashVisibleUntilInitialHomeLoadCompletes() async throws {
+        #expect(ContentView.shouldShowLaunchSplash(
+            surface: .signedOutShell(message: nil),
+            hasLoadedInitialHome: false,
+            isHomeTabSelected: true
+        ))
+        #expect(ContentView.shouldShowLaunchSplash(
+            surface: .authenticatedShell,
+            hasLoadedInitialHome: false,
+            isHomeTabSelected: true
+        ))
+        #expect(!ContentView.shouldShowLaunchSplash(
+            surface: .signedOutShell(message: nil),
+            hasLoadedInitialHome: true,
+            isHomeTabSelected: true
+        ))
+        #expect(!ContentView.shouldShowLaunchSplash(
+            surface: .signedOutShell(message: nil),
+            hasLoadedInitialHome: false,
+            isHomeTabSelected: false
+        ))
+        #expect(!ContentView.shouldShowLaunchSplash(
+            surface: .loading,
+            hasLoadedInitialHome: false,
+            isHomeTabSelected: true
+        ))
+        #expect(!ContentView.shouldShowLaunchSplash(
+            surface: .authChoiceGate(message: nil),
+            hasLoadedInitialHome: false,
+            isHomeTabSelected: true
+        ))
+    }
+
     @Test("signing in from the shell keeps the shell visible instead of flashing the splash")
     func signingInFromShellKeepsShellVisible() async throws {
         // A returning guest tapping a provider from Profile: the auth web sheet
@@ -156,7 +190,6 @@ struct ContentViewNavigationTests {
         #expect(HomeContentSection.sections(for: shellState.selectedPrimitive) == [
             .showsTonight,
             .thisWeek,
-            .favoriteShows,
             .comedians,
             .clubs,
             .podcasts,
@@ -185,7 +218,6 @@ struct ContentViewNavigationTests {
         #expect(HomeContentSection.sections(for: shellState.selectedPrimitive) == [
             .showsTonight,
             .thisWeek,
-            .favoriteShows,
         ])
     }
 
@@ -250,7 +282,6 @@ struct ContentViewNavigationTests {
         #expect(HomeContentSection.sections(for: nil) == [
             .showsTonight,
             .thisWeek,
-            .favoriteShows,
             .comedians,
             .clubs,
             .podcasts,
@@ -258,7 +289,6 @@ struct ContentViewNavigationTests {
         #expect(HomeContentSection.sections(for: .shows) == [
             .showsTonight,
             .thisWeek,
-            .favoriteShows,
         ])
         #expect(HomeContentSection.sections(for: .comedians) == [.comedians])
         #expect(HomeContentSection.sections(for: .clubs) == [.clubs])

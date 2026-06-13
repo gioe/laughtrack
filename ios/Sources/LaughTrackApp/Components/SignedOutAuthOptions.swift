@@ -40,7 +40,7 @@ struct SignedOutAuthOptionButton: View {
                     .minimumScaleFactor(0.86)
             }
             .foregroundStyle(option.provider == .apple ? laughTrack.colors.textInverse : laughTrack.colors.textPrimary)
-            .frame(maxWidth: .infinity, minHeight: 44)
+            .frame(maxWidth: .infinity, minHeight: 50)
             .padding(.horizontal, theme.spacing.md)
             .contentShape(Rectangle())
             .background(buttonBackground)

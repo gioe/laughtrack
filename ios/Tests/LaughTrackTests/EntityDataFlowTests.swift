@@ -163,6 +163,31 @@ struct EntityDataFlowTests {
         #expect(model.cityTitle == "New York, NY")
     }
 
+    @Test("home show rails hide sold-out shows")
+    func homeShowRailsHideSoldOutShows() async {
+        let model = HomeShowsTonightModel()
+        let client = Client(
+            serverURL: URL(string: "https://test.example.com")!,
+            configuration: .laughTrack,
+            transport: RawShowRailTransport()
+        )
+
+        await model.refresh(
+            apiClient: client,
+            zipCode: nil,
+            persistentCache: nil,
+            coalescer: HomeFeedRequestCoalescer()
+        )
+
+        guard case .success(let shows) = model.phase else {
+            Issue.record("Expected home shows tonight to decode the 200 home feed")
+            return
+        }
+
+        #expect(shows.map(\.id) == [101])
+        #expect(shows.allSatisfy { $0.soldOut != true })
+    }
+
     @Test("shows discovery model renders raw API show dates from a 200 search response")
     func showsDiscoveryModelDecodesRawSearchDates() async {
         let model = ShowsListModel(
@@ -187,6 +212,32 @@ struct EntityDataFlowTests {
 
         #expect(page.items.map(\.id) == [201])
         #expect(page.total == 1)
+    }
+
+    @Test("shows discovery model hides sold-out shows")
+    func showsDiscoveryModelHidesSoldOutShows() async {
+        let model = ShowsListModel(
+            nearbyLocationController: NearbyLocationController(
+                store: NearbyPreferenceStore(),
+                resolver: StubNearbyLocationResolver(),
+                zipLocationResolver: StubZipLocationResolver()
+            )
+        )
+        let client = Client(
+            serverURL: URL(string: "https://test.example.com")!,
+            configuration: .laughTrack,
+            transport: RawShowRailTransport()
+        )
+
+        await model.reload(apiClient: client)
+
+        guard case .success(let page) = model.phase else {
+            Issue.record("Expected shows discovery to decode the 200 search response")
+            return
+        }
+
+        #expect(page.items.map(\.id) == [201])
+        #expect(page.items.allSatisfy { $0.soldOut != true })
     }
 
     @Test("shows discovery model sends selected filter slugs and stores returned filter options")
@@ -559,6 +610,17 @@ private struct RawShowRailTransport: ClientTransport {
                 {
                   "data": [
                     {
+                      "id": 200,
+                      "clubId": 123,
+                      "date": "2026-05-27T01:30:00.000Z",
+                      "name": "Sold Out Search Show",
+                      "clubName": "Flappers Comedy Club And Restaurant Burbank",
+                      "imageUrl": "/placeholders/club-placeholder.svg",
+                      "soldOut": true,
+                      "lineup": [],
+                      "tickets": []
+                    },
+                    {
                       "id": 201,
                       "clubId": 123,
                       "date": "2026-05-27T02:30:00.000Z",
@@ -570,7 +632,7 @@ private struct RawShowRailTransport: ClientTransport {
                       "tickets": []
                     }
                   ],
-                  "total": 1,
+                  "total": 2,
                   "filters": [],
                   "zipCapTriggered": false
                 }
@@ -604,6 +666,24 @@ private struct RawShowRailTransport: ClientTransport {
             trendingComedians: [],
             comediansNearYou: [],
             showsTonight: [
+                .init(
+                    id: 100,
+                    clubId: 301,
+                    clubName: "New York Comedy Club",
+                    date: Date().addingTimeInterval(30 * 60),
+                    tickets: [
+                        .init(
+                            price: 9.0,
+                            purchaseUrl: "https://example.com/sold-out",
+                            soldOut: true,
+                            _type: "General Admission"
+                        )
+                    ],
+                    name: "Sold Out Tonight Show",
+                    lineup: [],
+                    imageUrl: "https://example.com/sold-out-show.png",
+                    soldOut: true
+                ),
                 .init(
                     id: 101,
                     clubId: 301,

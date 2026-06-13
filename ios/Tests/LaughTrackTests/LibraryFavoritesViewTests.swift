@@ -58,8 +58,18 @@ struct LibraryFavoritesViewTests {
         #expect(shows.map(\.name) == ["Taylor Tomlinson at The Stand"])
     }
 
-    @Test("favorites primitive filter shows only matching favorite content")
-    func favoritesPrimitiveFilterShowsOnlyMatchingContent() async throws {
+    @Test("favorites tab owns the favorite touring rail copy")
+    func favoritesTabOwnsFavoriteTouringRailCopy() throws {
+        let source = try String(contentsOf: libraryViewSourceURL(), encoding: .utf8)
+
+        #expect(source.contains("Your favorites are touring"))
+        #expect(source.contains("Upcoming after tonight from comedians you saved."))
+        #expect(!source.contains("Loading favorite shows"))
+        #expect(!source.contains("No favorite shows yet"))
+    }
+
+    @Test("favorites primitive filter only includes supported favorite content")
+    func favoritesPrimitiveFilterOnlyIncludesSupportedContent() async throws {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthenticatedAuthManager(
             name: "favorites-filter"
         )
@@ -83,9 +93,12 @@ struct LibraryFavoritesViewTests {
         )
         await favorites.loadSavedFavorites(apiClient: apiClient, authManager: authManager)
 
-        #expect(LibraryFavoritesPresentation.includes(.clubs, selectedPrimitive: .clubs))
-        #expect(!LibraryFavoritesPresentation.includes(.comedians, selectedPrimitive: .clubs))
-        #expect(!LibraryFavoritesPresentation.includes(.shows, selectedPrimitive: .clubs))
+        #expect(LibraryFavoritesPresentation.includes(.shows, selectedPrimitive: nil))
+        #expect(LibraryFavoritesPresentation.includes(.comedians, selectedPrimitive: nil))
+        #expect(!LibraryFavoritesPresentation.includes(.clubs, selectedPrimitive: nil))
+        #expect(!LibraryFavoritesPresentation.includes(.podcasts, selectedPrimitive: nil))
+        #expect(!LibraryFavoritesPresentation.includes(.clubs, selectedPrimitive: .clubs))
+        #expect(!LibraryFavoritesPresentation.includes(.podcasts, selectedPrimitive: .podcasts))
     }
 
     @Test("signed-out favorites view shows sign-in CTA and skips the favorites fetch")
@@ -98,7 +111,7 @@ struct LibraryFavoritesViewTests {
         #expect(recorder.getFavoritesCalls == 0)
     }
 
-    @Test("favorite shows and podcasts match expected search fields")
+    @Test("favorite shows search matches comedian names only")
     func favoritesSearchMatchersUseDisplayFields() {
         let parentComedian = lineup(name: "Atsuko Okatsuka")
         let show = show(
@@ -108,23 +121,12 @@ struct LibraryFavoritesViewTests {
                 lineup(name: "Atsuko Alias", parentComedian: parentComedian),
             ]
         )
-        let podcast = Components.Schemas.FavoritePodcastItem(
-            id: 301,
-            title: "Good One",
-            authorName: "Jesse David Fox",
-            episodeCount: 82,
-            isFavorite: true
-        )
 
-        #expect(LibraryFavoritesPresentation.matches(show: show, query: "basement"))
-        #expect(LibraryFavoritesPresentation.matches(show: show, query: "stand"))
         #expect(LibraryFavoritesPresentation.matches(show: show, query: "atsuko alias"))
         #expect(LibraryFavoritesPresentation.matches(show: show, query: "okatsuka"))
+        #expect(!LibraryFavoritesPresentation.matches(show: show, query: "basement"))
+        #expect(!LibraryFavoritesPresentation.matches(show: show, query: "stand"))
         #expect(!LibraryFavoritesPresentation.matches(show: show, query: "cellar"))
-
-        #expect(LibraryFavoritesPresentation.matches(podcast: podcast, query: "good"))
-        #expect(LibraryFavoritesPresentation.matches(podcast: podcast, query: "fox"))
-        #expect(!LibraryFavoritesPresentation.matches(podcast: podcast, query: "club"))
     }
 
     @Test("favorite searchable section returns expected paged item slices")
@@ -206,6 +208,20 @@ struct LibraryFavoritesViewTests {
             showCount: 1,
             parentComedian: parentComedian
         )
+    }
+
+    private func libraryViewSourceURL(filePath: String = #filePath) throws -> URL {
+        let testFileURL = URL(fileURLWithPath: filePath)
+        let iosRoot = testFileURL
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let sourceURL = iosRoot
+            .appendingPathComponent("Sources/LaughTrackApp/LibraryView.swift")
+        guard FileManager.default.fileExists(atPath: sourceURL.path) else {
+            throw CocoaError(.fileNoSuchFile)
+        }
+        return sourceURL
     }
 }
 

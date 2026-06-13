@@ -10,7 +10,6 @@ struct HomeContentSectionTests {
         #expect(HomeContentSection.sections(for: nil) == [
             .showsTonight,
             .thisWeek,
-            .favoriteShows,
             .comedians,
             .clubs,
             .podcasts,
@@ -22,7 +21,6 @@ struct HomeContentSectionTests {
         #expect(HomeContentSection.sections(for: .shows) == [
             .showsTonight,
             .thisWeek,
-            .favoriteShows,
         ])
         #expect(HomeContentSection.sections(for: .comedians) == [.comedians])
         #expect(HomeContentSection.sections(for: .clubs) == [.clubs])

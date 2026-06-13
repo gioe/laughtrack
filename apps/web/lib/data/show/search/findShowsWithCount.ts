@@ -88,6 +88,23 @@ const SHOW_SELECT = {
     },
 } as const;
 
+const AVAILABLE_SHOW_WHERE: Prisma.ShowWhereInput = {
+    AND: [
+        {
+            NOT: [
+                { name: { contains: "sold out", mode: "insensitive" } },
+                { name: { contains: "sold-out", mode: "insensitive" } },
+            ],
+        },
+        {
+            OR: [
+                { tickets: { none: {} } },
+                { tickets: { some: { soldOut: false } } },
+            ],
+        },
+    ],
+};
+
 export async function findShowsWithCount(
     helper: QueryHelper,
 ): Promise<ShowsResponse> {
@@ -99,7 +116,7 @@ export async function findShowsWithCount(
         const dateClause = helper.getDateClause();
         const dateFilter =
             "date" in dateClause ? dateClause : { date: { gte: new Date() } };
-        const whereClause: Prisma.ShowWhereInput = {
+        const searchWhereClause: Prisma.ShowWhereInput = {
             // Shows whose dates are Greater Than (gte) today's date or a date parameter, if provided
             ...dateFilter,
 
@@ -120,6 +137,15 @@ export async function findShowsWithCount(
             // Free filter: when the FREE_FILTER_SLUG is in the filters CSV,
             // narrow to shows with at least one ticket priced 0 or NULL.
             ...helper.getFreeShowsClause(),
+        };
+        const searchAndClauses = Array.isArray(searchWhereClause.AND)
+            ? searchWhereClause.AND
+            : searchWhereClause.AND
+              ? [searchWhereClause.AND]
+              : [];
+        const whereClause: Prisma.ShowWhereInput = {
+            ...searchWhereClause,
+            AND: [...searchAndClauses, AVAILABLE_SHOW_WHERE],
         };
 
         // Sequential awaits instead of a RepeatableRead transaction — slight count/data
@@ -165,12 +191,19 @@ export async function findShowsWithCount(
                 { id: "asc" },
             ]),
         });
+        const availableShows = filteredShows.filter(
+            (show) => !computeShowSoldOut(show.name, show.tickets),
+        );
         // distanceMiles is null whenever zip is absent (e.g. club detail page, comedian page).
         // Cards hide the distance label when distanceMiles is null — this is intentional.
         const searchedZip = helper.params.zip;
         return {
             zipCapTriggered: helper.isZipCapTriggered(),
-            shows: filteredShows.map((show) => ({
+            totalCount: Math.max(
+                0,
+                totalCount - (filteredShows.length - availableShows.length),
+            ),
+            shows: availableShows.map((show) => ({
                 id: show.id,
                 date: show.date,
                 name: show.name,
@@ -196,15 +229,12 @@ export async function findShowsWithCount(
                 tags: (show.taggedShows ?? [])
                     .map((tt) => tt.tag)
                     .filter(
-                        (
-                            tag,
-                        ): tag is { slug: string; name: string } =>
+                        (tag): tag is { slug: string; name: string } =>
                             typeof tag?.slug === "string" &&
                             typeof tag?.name === "string",
                     )
                     .map((tag) => ({ slug: tag.slug, name: tag.name })),
             })),
-            totalCount,
         };
     } catch (error) {
         if (error instanceof Error) {

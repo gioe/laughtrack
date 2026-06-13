@@ -240,9 +240,10 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
             case .ok(let ok):
                 let response = try ok.body.json
                 zipCapTriggered = response.zipCapTriggered
+                let availableShows = ShowAvailability.availableShows(response.data)
                 let pageResponse = DiscoverySearchResponse(
-                    items: response.data,
-                    total: response.total,
+                    items: availableShows,
+                    total: max(0, response.total - (response.data.count - availableShows.count)),
                     filters: response.filters
                 )
                 await MainPageCache.set(pageResponse, forKey: cacheKey, in: cache, ttl: cacheTTL, persistentCache: nil)

@@ -9,7 +9,6 @@ import LaughTrackCore
 enum HomeContentSection: Equatable {
     case showsTonight
     case thisWeek
-    case favoriteShows
     case comedians
     case clubs
     case podcasts
@@ -17,7 +16,7 @@ enum HomeContentSection: Equatable {
     static func sections(for primitive: SearchRootModel.Pivot?) -> [HomeContentSection] {
         switch primitive {
         case .shows:
-            return [.showsTonight, .thisWeek, .favoriteShows]
+            return [.showsTonight, .thisWeek]
         case .comedians:
             return [.comedians]
         case .clubs:
@@ -25,7 +24,7 @@ enum HomeContentSection: Equatable {
         case .podcasts:
             return [.podcasts]
         default:
-            return [.showsTonight, .thisWeek, .favoriteShows, .comedians, .clubs, .podcasts]
+            return [.showsTonight, .thisWeek, .comedians, .clubs, .podcasts]
         }
     }
 }
@@ -106,6 +105,7 @@ struct HomeView: View {
     let signedOutMessage: String?
     let selectedPrimitive: SearchRootModel.Pivot?
     let searchNavigationBridge: SearchNavigationBridge
+    let onInitialHomeLoadComplete: (() -> Void)?
 
     @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
     @EnvironmentObject private var authManager: AuthManager
@@ -117,12 +117,14 @@ struct HomeView: View {
         apiClient: Client,
         signedOutMessage: String?,
         selectedPrimitive: SearchRootModel.Pivot? = nil,
-        searchNavigationBridge: SearchNavigationBridge
+        searchNavigationBridge: SearchNavigationBridge,
+        onInitialHomeLoadComplete: (() -> Void)? = nil
     ) {
         self.apiClient = apiClient
         self.signedOutMessage = signedOutMessage
         self.selectedPrimitive = selectedPrimitive
         self.searchNavigationBridge = searchNavigationBridge
+        self.onInitialHomeLoadComplete = onInitialHomeLoadComplete
     }
 
     var body: some View {
@@ -185,12 +187,6 @@ struct HomeView: View {
                 showsSection(.showsTonight)
             case .thisWeek:
                 showsSection(.thisWeek)
-            case .favoriteShows:
-                HomeFavoriteShowsRail(
-                    apiClient: apiClient,
-                    cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self),
-                    persistentCache: serviceContainer.resolve(PersistentMainPageCache.self)
-                )
             case .comedians:
                 comediansSection
             case .clubs:
@@ -208,7 +204,8 @@ struct HomeView: View {
             nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self),
             searchNavigationBridge: searchNavigationBridge,
             cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self),
-            persistentCache: serviceContainer.resolve(PersistentMainPageCache.self)
+            persistentCache: serviceContainer.resolve(PersistentMainPageCache.self),
+            onInitialHomeLoadComplete: onInitialHomeLoadComplete
         )
     }
 
@@ -610,6 +607,7 @@ private struct HomeShowsTonightRail: View {
     let searchNavigationBridge: SearchNavigationBridge
     let cache: DataCache<LaughTrackCacheKey>
     let persistentCache: PersistentMainPageCache
+    let onInitialHomeLoadComplete: (() -> Void)?
 
     @Environment(\.appTheme) private var theme
     @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
@@ -624,20 +622,12 @@ private struct HomeShowsTonightRail: View {
     }
 
     var body: some View {
-        let laughTrack = theme.laughTrackTokens
-
-        VStack(alignment: .leading, spacing: theme.spacing.md) {
-            LaughTrackShelfHeader(
-                eyebrow: railKind.eyebrow,
-                title: title,
-                subtitle: railKind.subtitle
-            )
-            // Anchoring the rail's test identifier on the shelf header — not the
-            // outer VStack — keeps it from propagating to the combined-children
-            // accessibility nodes produced by the hero/rail cards under iOS 26,
-            // which would otherwise mask the inner Button identifiers.
-            .accessibilityIdentifier(railKind.railAccessibilityIdentifier)
-
+        LaughTrackRailCard(
+            eyebrow: railKind.eyebrow,
+            title: title,
+            subtitle: railKind.subtitle,
+            accessibilityIdentifier: railKind.railAccessibilityIdentifier
+        ) {
             switch model.phase {
             case .idle, .loading:
                 ShowsListSkeleton(rowCount: 3)
@@ -674,18 +664,23 @@ private struct HomeShowsTonightRail: View {
                 persistentCache: persistentCache
             )
         }
-        .padding(laughTrack.browseDensity.compactCardPadding)
-        .background(laughTrack.colors.surfaceElevated)
-        .overlay(
-            RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
-                .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
-        .shadowStyle(laughTrack.shadows.card)
+        .task(id: hasFinishedInitialLoad) {
+            guard railKind == .showsTonight, hasFinishedInitialLoad else { return }
+            onInitialHomeLoadComplete?()
+        }
     }
 
     private var title: String {
         railKind.title(cityTitle: model.cityTitle)
+    }
+
+    private var hasFinishedInitialLoad: Bool {
+        switch model.phase {
+        case .idle, .loading:
+            return false
+        case .success, .failure:
+            return true
+        }
     }
 
     @ViewBuilder
@@ -923,7 +918,7 @@ private struct HomeShowsTonightHeroCard: View {
     }
 
     private static let posterSize: CGFloat = 128
-    private static let posterFrameInset: CGFloat = 8
+    private static let posterFrameInset: CGFloat = 20
     private static let stageHeight: CGFloat = 168
 
     @ViewBuilder
@@ -1175,7 +1170,7 @@ final class HomeShowsTonightModel: ObservableObject {
 
         var seenIDs: Set<Int> = []
         return sourceShows.filter { show in
-            seenIDs.insert(show.id).inserted
+            !ShowAvailability.isSoldOut(show) && seenIDs.insert(show.id).inserted
         }.prefix(Self.displayLimit).map { $0 }
     }
 
@@ -1199,80 +1194,6 @@ final class HomeShowsTonightModel: ObservableObject {
             city: hero.city,
             state: hero.state
         )
-    }
-}
-
-private struct HomeFavoriteShowsRail: View {
-    let apiClient: Client
-    let cache: DataCache<LaughTrackCacheKey>
-    let persistentCache: PersistentMainPageCache
-
-    @Environment(\.appTheme) private var theme
-    @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
-    @EnvironmentObject private var favorites: ComedianFavoriteStore
-    @StateObject private var model = HomeFavoriteShowsModel()
-
-    private var favoriteComedians: [Components.Schemas.ComedianSearchItem] {
-        guard favorites.savedFavoritesPhase == .loaded else { return [] }
-
-        return favorites.savedFavoriteComedians
-    }
-
-    private var requestKey: String {
-        favoriteComedians.map(\.uuid).joined(separator: "|")
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            switch model.phase {
-            case .success(let shows) where !shows.isEmpty:
-                favoriteShowsContent(shows)
-            default:
-                EmptyView()
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .task(id: requestKey) {
-            await model.refresh(
-                apiClient: apiClient,
-                favoriteComedians: favoriteComedians,
-                cache: cache,
-                persistentCache: persistentCache
-            )
-        }
-    }
-
-    private func favoriteShowsContent(_ shows: [Components.Schemas.Show]) -> some View {
-        let laughTrack = theme.laughTrackTokens
-
-        return VStack(alignment: .leading, spacing: theme.spacing.md) {
-            LaughTrackShelfHeader(
-                eyebrow: "Favorites",
-                title: "Your favorites are touring",
-                subtitle: "Upcoming after tonight from comedians you saved."
-            )
-
-            VStack(alignment: .leading, spacing: theme.spacing.sm) {
-                ForEach(shows.prefix(4), id: \.id) { show in
-                    Button {
-                        coordinator.open(.show(show.id))
-                    } label: {
-                        ShowRow(show: show)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityIdentifier(LaughTrackViewTestID.homeFavoriteShowButton(show.id))
-                }
-            }
-        }
-        .padding(laughTrack.browseDensity.compactCardPadding)
-        .background(laughTrack.colors.surfaceElevated)
-        .overlay(
-            RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
-                .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
-        .shadowStyle(laughTrack.shadows.card)
-        .accessibilityIdentifier(LaughTrackViewTestID.homeFavoriteShowsRail)
     }
 }
 
@@ -1343,7 +1264,7 @@ final class HomeFavoriteShowsModel: ObservableObject {
             }
         }
 
-        let shows = showsByID.values.sorted { $0.date < $1.date }
+        let shows = ShowAvailability.availableShows(Array(showsByID.values)).sorted { $0.date < $1.date }
         await MainPageCache.set(
             shows,
             forKey: .favoriteShows(requestKey: requestKey),
@@ -1401,20 +1322,11 @@ private struct HomeTrendingComediansRail: View {
     }
 
     var body: some View {
-        let laughTrack = theme.laughTrackTokens
-
-        VStack(alignment: .leading, spacing: theme.spacing.md) {
-            LaughTrackShelfHeader(
-                eyebrow: "Trending",
-                title: "Comedians drawing crowds",
-                subtitle: nil
-            )
-            // Anchoring the rail's test identifier on the shelf header — not the
-            // inner VStack — keeps it from propagating to the combined-children
-            // accessibility nodes produced by HomeTrendingComedianCard under
-            // iOS 26, which would otherwise mask the inner Button identifiers.
-            .accessibilityIdentifier(LaughTrackViewTestID.homeTrendingComediansRail)
-
+        LaughTrackRailCard(
+            eyebrow: "Trending",
+            title: "Comedians drawing crowds",
+            accessibilityIdentifier: LaughTrackViewTestID.homeTrendingComediansRail
+        ) {
             switch model.phase {
             case .idle, .loading:
                 HomeTrendingComediansGridSkeleton(gridColumns: gridColumns)
@@ -1459,14 +1371,6 @@ private struct HomeTrendingComediansRail: View {
                 persistentCache: persistentCache
             )
         }
-        .padding(laughTrack.browseDensity.compactCardPadding)
-        .background(laughTrack.colors.surfaceElevated)
-        .overlay(
-            RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
-                .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
-        .shadowStyle(laughTrack.shadows.card)
     }
 
     private var gridColumns: [GridItem] {
@@ -1764,9 +1668,11 @@ private struct HomePopularClubsRail: View {
     }
 
     var body: some View {
-        let laughTrack = theme.laughTrackTokens
-
-        VStack(alignment: .leading, spacing: theme.spacing.md) {
+        LaughTrackRailCard(
+            eyebrow: "Clubs",
+            title: "Popular clubs",
+            accessibilityIdentifier: LaughTrackViewTestID.homePopularClubsRail
+        ) {
             switch model.phase {
             case .idle, .loading:
                 HomePopularClubsGridSkeleton(gridColumns: gridColumns)
@@ -1810,15 +1716,6 @@ private struct HomePopularClubsRail: View {
                 persistentCache: persistentCache
             )
         }
-        .padding(laughTrack.browseDensity.compactCardPadding)
-        .background(laughTrack.colors.surfaceElevated)
-        .overlay(
-            RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
-                .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
-        .shadowStyle(laughTrack.shadows.card)
-        .accessibilityIdentifier(LaughTrackViewTestID.homePopularClubsRail)
     }
 
     private var gridColumns: [GridItem] {
@@ -2289,20 +2186,11 @@ struct HomeTrendingPodcastsRail: View {
     }
 
     var body: some View {
-        let laughTrack = theme.laughTrackTokens
-
-        VStack(alignment: .leading, spacing: theme.spacing.md) {
-            LaughTrackShelfHeader(
-                eyebrow: "Podcasts worth a listen",
-                title: "Trending comedian podcasts",
-                subtitle: nil
-            )
-            // Anchoring the rail's test identifier on the shelf header — not the
-            // inner VStack — keeps it from propagating to the combined-children
-            // accessibility nodes produced by HomeTrendingPodcastCard under
-            // iOS 26, which would otherwise mask the inner Button identifiers.
-            .accessibilityIdentifier(LaughTrackViewTestID.homeTrendingPodcastsRail)
-
+        LaughTrackRailCard(
+            eyebrow: "Podcasts",
+            title: "Queue up the laughs",
+            accessibilityIdentifier: LaughTrackViewTestID.homeTrendingPodcastsRail
+        ) {
             switch model.phase {
             case .idle, .loading:
                 HomeTrendingPodcastsGridSkeleton(gridColumns: gridColumns)
@@ -2347,14 +2235,6 @@ struct HomeTrendingPodcastsRail: View {
                 persistentCache: persistentCache
             )
         }
-        .padding(laughTrack.browseDensity.compactCardPadding)
-        .background(laughTrack.colors.surfaceElevated)
-        .overlay(
-            RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
-                .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
-        .shadowStyle(laughTrack.shadows.card)
     }
 
     private var gridColumns: [GridItem] {

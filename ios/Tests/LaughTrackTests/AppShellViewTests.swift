@@ -64,7 +64,6 @@ struct AppShellViewTests {
         #expect(HomeContentSection.sections(for: shellState.selectedPrimitive) == [
             .showsTonight,
             .thisWeek,
-            .favoriteShows,
             .comedians,
             .clubs,
             .podcasts,
@@ -92,7 +91,6 @@ struct AppShellViewTests {
         #expect(HomeContentSection.sections(for: nil) == [
             .showsTonight,
             .thisWeek,
-            .favoriteShows,
             .comedians,
             .clubs,
             .podcasts,
@@ -100,7 +98,6 @@ struct AppShellViewTests {
         #expect(HomeContentSection.sections(for: .shows) == [
             .showsTonight,
             .thisWeek,
-            .favoriteShows,
         ])
     }
 
@@ -116,7 +113,6 @@ struct AppShellViewTests {
         #expect(HomeContentSection.sections(for: nil) == [
             .showsTonight,
             .thisWeek,
-            .favoriteShows,
             .comedians,
             .clubs,
             .podcasts,

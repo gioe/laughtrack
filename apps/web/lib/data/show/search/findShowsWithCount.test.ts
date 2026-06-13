@@ -33,6 +33,23 @@ const { mockCount, mockFindMany } = vi.hoisted(() => ({
     mockFindMany: vi.fn(),
 }));
 
+const availableShowWhere = {
+    AND: [
+        {
+            NOT: [
+                { name: { contains: "sold out", mode: "insensitive" } },
+                { name: { contains: "sold-out", mode: "insensitive" } },
+            ],
+        },
+        {
+            OR: [
+                { tickets: { none: {} } },
+                { tickets: { some: { soldOut: false } } },
+            ],
+        },
+    ],
+};
+
 vi.mock("@/lib/db", () => ({
     db: { show: { count: mockCount, findMany: mockFindMany } },
 }));
@@ -190,6 +207,44 @@ describe("findShowsWithCount", () => {
             );
         });
 
+        it("excludes rows computed as sold out from show search queries", async () => {
+            const date = new Date("2026-04-01T00:00:00.000Z");
+            const helper = {
+                ...makeHelper(),
+                getDateClause: vi.fn(() => ({ date: { gte: date } })),
+                getClubNameClause: vi.fn(() => ({
+                    name: { contains: "Cellar" },
+                })),
+            };
+
+            await findShowsWithCount(helper as never);
+
+            expect(mockCount).toHaveBeenCalledWith({
+                where: {
+                    date: { gte: date },
+                    club: {
+                        visible: true,
+                        name: { contains: "Cellar" },
+                    },
+                    lineupItems: {},
+                    AND: [availableShowWhere],
+                },
+            });
+            expect(mockFindMany).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    where: {
+                        date: { gte: date },
+                        club: {
+                            visible: true,
+                            name: { contains: "Cellar" },
+                        },
+                        lineupItems: {},
+                        AND: [availableShowWhere],
+                    },
+                }),
+            );
+        });
+
         it("spreads the result of getGenericClauses into the findMany call", async () => {
             mockCount.mockResolvedValue(20);
             let capturedArgs: Pick<FindManyArgs, "take" | "skip"> = {};
@@ -266,6 +321,26 @@ describe("findShowsWithCount", () => {
     });
 
     describe("soldOut mapping", () => {
+        it("omits rows that still compute as sold out after the database query", async () => {
+            const soldOutShow = makeShow({
+                id: 1,
+                name: "Andrew Schulz",
+                tickets: [{ soldOut: true }],
+            });
+            const availableShow = makeShow({
+                id: 2,
+                name: "Available Show",
+                tickets: [{ soldOut: false }],
+            });
+            mockCount.mockResolvedValue(2);
+            mockFindMany.mockResolvedValue([soldOutShow, availableShow]);
+
+            const result = await findShowsWithCount(makeHelper() as never);
+
+            expect(result.totalCount).toBe(1);
+            expect(result.shows.map((show) => show.id)).toEqual([2]);
+        });
+
         it("sets soldOut to false when tickets array is empty", async () => {
             const show = makeShow({ tickets: [] });
             mockCount.mockResolvedValue(1);
@@ -276,7 +351,7 @@ describe("findShowsWithCount", () => {
             expect(result.shows[0].soldOut).toBe(false);
         });
 
-        it("sets soldOut to true when all tickets are soldOut", async () => {
+        it("omits shows when all tickets are soldOut", async () => {
             const show = makeShow({
                 tickets: [{ soldOut: true }, { soldOut: true }],
             });
@@ -285,7 +360,8 @@ describe("findShowsWithCount", () => {
 
             const result = await findShowsWithCount(makeHelper() as never);
 
-            expect(result.shows[0].soldOut).toBe(true);
+            expect(result.shows).toEqual([]);
+            expect(result.totalCount).toBe(0);
         });
 
         it("sets soldOut to false when tickets are partially sold out", async () => {
@@ -300,7 +376,7 @@ describe("findShowsWithCount", () => {
             expect(result.shows[0].soldOut).toBe(false);
         });
 
-        it("sets soldOut to true when the title says sold out even if tickets are available", async () => {
+        it("omits shows when the title says sold out even if tickets are available", async () => {
             const show = makeShow({
                 name: "SOLD OUT Ronny Chieng: I Love New York City Tour",
                 tickets: [{ soldOut: false }],
@@ -310,7 +386,8 @@ describe("findShowsWithCount", () => {
 
             const result = await findShowsWithCount(makeHelper() as never);
 
-            expect(result.shows[0].soldOut).toBe(true);
+            expect(result.shows).toEqual([]);
+            expect(result.totalCount).toBe(0);
         });
     });
 
@@ -673,7 +750,7 @@ describe("findShowsWithCount", () => {
                 },
             });
             // And no spurious tag predicate from the synthetic slug.
-            expect(capturedCountWhere.AND).toBeUndefined();
+            expect(capturedCountWhere.AND).toEqual([availableShowWhere]);
         });
 
         it("findShowsWithCount narrows db.show.findMany to explicitly free shows when Free is selected", async () => {
@@ -750,6 +827,7 @@ describe("findShowsWithCount", () => {
                         },
                     },
                 },
+                availableShowWhere,
             ]);
         });
     });

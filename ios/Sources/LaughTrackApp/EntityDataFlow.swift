@@ -70,6 +70,23 @@ struct DiscoverySearchResponse<Item: Sendable>: Sendable {
     }
 }
 
+enum ShowAvailability {
+    static func isSoldOut(_ show: Components.Schemas.Show) -> Bool {
+        if show.soldOut == true {
+            return true
+        }
+
+        guard let tickets = show.tickets, !tickets.isEmpty else {
+            return false
+        }
+        return tickets.allSatisfy { $0.soldOut == true }
+    }
+
+    static func availableShows(_ shows: [Components.Schemas.Show]) -> [Components.Schemas.Show] {
+        shows.filter { !isSoldOut($0) }
+    }
+}
+
 @MainActor
 class EntitySearchModel<Query: Equatable, Item: Sendable>: ObservableObject {
     @Published private(set) var phase: LoadPhase<DiscoverySearchPage<Item>> = .idle

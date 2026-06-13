@@ -101,6 +101,7 @@ struct AppShellView: View {
     let favorites: ComedianFavoriteStore
     let initialTab: AppTab
     @ObservedObject var shellState: AppShellState
+    let onInitialHomeLoadComplete: (() -> Void)?
 
     @Environment(\.appTheme) private var theme
     @Environment(\.serviceContainer) private var serviceContainer
@@ -118,13 +119,15 @@ struct AppShellView: View {
         signedOutMessage: String? = nil,
         favorites: ComedianFavoriteStore,
         initialTab: AppTab = .nearMe,
-        shellState: AppShellState
+        shellState: AppShellState,
+        onInitialHomeLoadComplete: (() -> Void)? = nil
     ) {
         self.apiClient = apiClient
         self.signedOutMessage = signedOutMessage
         self.favorites = favorites
         self.initialTab = initialTab
         self.shellState = shellState
+        self.onInitialHomeLoadComplete = onInitialHomeLoadComplete
     }
 
     var body: some View {
@@ -145,8 +148,6 @@ struct AppShellView: View {
     private var showFavoritesTab: Bool {
         guard authManager.currentSession != nil else { return false }
         return !favorites.savedFavoriteComedians.isEmpty
-            || !podcastFavorites.savedFavoritePodcasts.isEmpty
-            || !clubFavorites.savedFavoriteClubs.isEmpty
     }
 
     private var tabContent: some View {
@@ -155,7 +156,8 @@ struct AppShellView: View {
                 apiClient: apiClient,
                 signedOutMessage: signedOutMessage,
                 selectedPrimitive: shellState.selectedPrimitive,
-                searchNavigationBridge: searchNavigationBridge
+                searchNavigationBridge: searchNavigationBridge,
+                onInitialHomeLoadComplete: onInitialHomeLoadComplete
             )
                 .tabItem { Label("Discover", systemImage: "sparkles") }
                 .tag(AppTab.nearMe)
