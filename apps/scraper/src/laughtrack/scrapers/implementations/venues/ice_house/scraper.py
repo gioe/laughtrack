@@ -20,7 +20,9 @@ regexing dollar amounts out of content.description.text (~78% of events) — was
 rejected: the marketing copy also carries non-ticket amounts (item minimums,
 package upsells) with no way to tell them apart, and it disappears whenever the
 venue trims the blurb, while the JSON-LD offers are structured per-tier base
-prices. Events whose page lacks JSON-LD keep price=None (price unknown).
+prices. Pages lacking JSON-LD (the seated-sales variant, ~10% of pages) fall
+back to the ShowClix seated API via the embedded var EVENT event_id
+(TASK-2848); only when that also misses does the event keep price=None.
 
 No authentication or special headers are required for the Tockify API.
 
@@ -28,10 +30,12 @@ Currently used by: Ice House Comedy Club (Pasadena, CA).
 A second Tockify venue can be onboarded with only a DB row — no Python changes.
 """
 
+import re
 import time
 from typing import List, Optional
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
+from laughtrack.core.clients.showclix.client import ShowclixAPIClient
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.event.ice_house import IceHouseEvent, normalize_showclix_url
 from laughtrack.foundation.infrastructure.logger.logger import Logger
@@ -47,6 +51,10 @@ from .transformer import IceHouseEventTransformer
 # scrape forever. Each page is max=200; 20 pages = 4000 upcoming events, well
 # above any realistic venue calendar.
 _TOCKIFY_MAX_PAGES = 20
+
+# Seated-sales ShowClix pages embed the numeric event id in an inline script:
+#   var EVENT = {"event_id":"10341917","event":"..."}
+_EVENT_ID_RE = re.compile(r'"event_id"\s*:\s*"(\d+)"')
 
 
 class IceHouseScraper(DetailPagePriceMixin, BaseScraper):
@@ -65,6 +73,7 @@ class IceHouseScraper(DetailPagePriceMixin, BaseScraper):
 
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
+        self.showclix_client = ShowclixAPIClient(club)
         self.transformation_pipeline.register_transformer(IceHouseEventTransformer(club))
 
     async def collect_scraping_targets(self) -> List[ScrapingTarget]:
@@ -164,6 +173,30 @@ class IceHouseScraper(DetailPagePriceMixin, BaseScraper):
         carry no offers) keep price=None.
         """
         return normalize_showclix_url(event.ticket_url) if event.ticket_url else None
+
+    async def _fallback_detail_page_price(self, url: str, html: str) -> Optional[float]:
+        """ShowClix seated-API fallback for ticket pages without JSON-LD offers.
+
+        The seated-sales page variant (~10% of Ice House ticket pages,
+        TASK-2838 residue) embeds no JSON-LD Event block; it carries the
+        numeric event id inline instead. Resolve it through the ShowClix
+        seated API, mirroring comedy_store's slug-to-event_id path
+        (TASK-2841).
+        """
+        match = _EVENT_ID_RE.search(html)
+        if not match:
+            return None
+        event_data = await self.showclix_client.get_event_data(match.group(1))
+        if not event_data:
+            return None
+        try:
+            price = float(event_data.get_primary_price())
+        except (TypeError, ValueError):
+            return None
+        # A 0.00 seated price level is a placeholder/comp tier, not proof the
+        # show is free — keep price-unknown per the tickets-are-access-records
+        # convention (TASK-2827).
+        return price if price > 0 else None
 
     @staticmethod
     def _advance_startms(url: str, new_startms: int) -> str:

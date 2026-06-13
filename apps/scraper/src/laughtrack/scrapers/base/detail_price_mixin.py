@@ -91,7 +91,7 @@ class DetailPagePriceMixin:
             self._detail_price_tasks.pop(url, None)
             return None
         try:
-            return self._parse_detail_page_price(html)
+            price = self._parse_detail_page_price(html)
         except Exception as e:
             # Parse failures stay cached — the page was fetched fine, so a
             # refetch would not help.
@@ -100,7 +100,26 @@ class DetailPagePriceMixin:
                 self.logger_context,
             )
             return None
+        if price is not None:
+            return price
+        try:
+            return await self._fallback_detail_page_price(url, html)
+        except Exception as e:
+            # Fallback failures stay cached too, matching the parse path.
+            Logger.warn(
+                f"{self._log_prefix}: {subject} price fallback failed for {url}: {e}",
+                self.logger_context,
+            )
+            return None
 
     def _parse_detail_page_price(self, html: str) -> Optional[float]:
         """Hook for the page→price parse; default is the shared JSON-LD helper."""
         return EventExtractor.extract_min_offer_price(html)
+
+    async def _fallback_detail_page_price(self, url: str, html: str) -> Optional[float]:
+        """Hook for a secondary price source when the page parse yields None.
+
+        Receives the already-fetched page so implementations can resolve ids
+        embedded in it (e.g. ice_house's ShowClix seated-API fallback).
+        """
+        return None

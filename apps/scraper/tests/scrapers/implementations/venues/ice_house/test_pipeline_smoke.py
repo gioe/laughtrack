@@ -613,6 +613,97 @@ def test_extract_min_offer_price_skips_unparseable_prices():
     assert EventExtractor.extract_min_offer_price(html) == 30.0
 
 
+# ---------------------------------------------------------------------------
+# ShowClix seated-API price fallback — the seated-sales page variant (~10% of
+# ticket pages) embeds no JSON-LD Event block, only an inline
+# var EVENT = {"event_id": ...} resolved through the seated API (TASK-2848).
+# ---------------------------------------------------------------------------
+
+
+_SEATED_PAGE_HTML = (
+    "<html><head><title>Tickets</title></head><body>"
+    '<script>var EVENT = {"event_id":"10341917","event":"The Oil Rig"};</script>'
+    "</body></html>"
+)
+
+
+class _FakeSeatedEventData:
+    def __init__(self, price):
+        self._price = price
+
+    def get_primary_price(self):
+        return self._price
+
+
+def _seated_scraper(monkeypatch, html: str, event_data, client_calls: list):
+    """IceHouseScraper whose page fetch and seated-API client are stubbed."""
+    scraper = IceHouseScraper(_club())
+
+    async def fake_fetch_html(self, url: str, **kwargs):
+        return html
+
+    async def fake_get_event_data(event_id: str):
+        client_calls.append(event_id)
+        return event_data
+
+    monkeypatch.setattr(IceHouseScraper, "fetch_html", fake_fetch_html)
+    monkeypatch.setattr(scraper.showclix_client, "get_event_data", fake_get_event_data)
+    monkeypatch.setattr(
+        scraper.rate_limiter, "await_if_needed", lambda url: __import__("asyncio").sleep(0)
+    )
+    return scraper
+
+
+@pytest.mark.asyncio
+async def test_seated_page_without_json_ld_falls_back_to_showclix_api(monkeypatch):
+    """A page with no JSON-LD but an embedded event_id resolves via the seated API."""
+    calls: list = []
+    scraper = _seated_scraper(monkeypatch, _SEATED_PAGE_HTML, _FakeSeatedEventData("23.00"), calls)
+
+    price = await scraper._fetch_detail_page_price("https://www.showclix.com/event/the-oil-rig")
+
+    assert price == 23.0
+    assert calls == ["10341917"]
+
+
+@pytest.mark.asyncio
+async def test_seated_fallback_zero_price_level_stays_unknown(monkeypatch):
+    """A 0.00 seated level is a placeholder/comp tier, not proof the show is free."""
+    calls: list = []
+    scraper = _seated_scraper(monkeypatch, _SEATED_PAGE_HTML, _FakeSeatedEventData("0.00"), calls)
+
+    price = await scraper._fetch_detail_page_price("https://www.showclix.com/event/the-oil-rig")
+
+    assert price is None
+
+
+@pytest.mark.asyncio
+async def test_seated_fallback_skipped_without_embedded_event_id(monkeypatch):
+    """No JSON-LD and no var EVENT id → price-unknown, and the API is never called."""
+    calls: list = []
+    html = "<html><head><title>Tickets</title></head><body>$23.00</body></html>"
+    scraper = _seated_scraper(monkeypatch, html, _FakeSeatedEventData("23.00"), calls)
+
+    price = await scraper._fetch_detail_page_price("https://www.showclix.com/event/the-oil-rig")
+
+    assert price is None
+    assert calls == []
+
+
+@pytest.mark.asyncio
+async def test_json_ld_page_never_hits_seated_api(monkeypatch):
+    """The JSON-LD parse stays primary — the seated API is a fallback only."""
+    calls: list = []
+    scraper = _seated_scraper(
+        monkeypatch, _leap_page_html(["20.00"]), _FakeSeatedEventData("99.00"), calls
+    )
+
+    price = await scraper._fetch_detail_page_price("https://events.leapevents.com/event/the-oil-rig")
+
+    assert price == 20.0
+    assert calls == []
+
+
 def _scraper_with_ticket_pages(monkeypatch, api_events: list, html_by_url: dict, fetched: list) -> IceHouseScraper:
     """Build an IceHouseScraper with the Tockify API and ticket pages stubbed."""
     scraper = IceHouseScraper(_club())
