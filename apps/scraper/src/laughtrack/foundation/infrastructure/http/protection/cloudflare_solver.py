@@ -56,6 +56,18 @@ CLOUDFLARE_CHALLENGE_MARKERS: tuple[str, ...] = (
     "enable javascript and cookies to continue",
 )
 
+# Stricter subset used to gate the *paid* interactive solve. ``just a moment``
+# is deliberately excluded here: it is a page <title> that can legitimately
+# appear in real content, and gating a capsolver call on it would burn paid
+# solves on false positives. ``_cf_chl_opt`` (the challenge JS config object)
+# and the JS-and-cookies notice are emitted only by a genuine Cloudflare
+# challenge, so requiring one of them before solving keeps the broad markers
+# for the cheap passive wait while bounding capsolver spend to real challenges.
+CLOUDFLARE_INTERACTIVE_MARKERS: tuple[str, ...] = (
+    "_cf_chl_opt",
+    "enable javascript and cookies to continue",
+)
+
 # Cookie Cloudflare issues once a challenge clears. capsolver's
 # ``AntiCloudflareTask`` returns it under ``solution.cookies.cf_clearance``;
 # some response shapes also surface a full ``Set-Cookie`` under
@@ -97,16 +109,19 @@ def is_cloudflare_interactive_challenge(html: str) -> bool:
     """Heuristic: does *html* still carry Cloudflare challenge markers?
 
     Returns ``True`` when at least one marker from
-    :data:`CLOUDFLARE_CHALLENGE_MARKERS` appears in the rendered HTML
+    :data:`CLOUDFLARE_INTERACTIVE_MARKERS` appears in the rendered HTML
     (case-insensitive). Used by PlaywrightBrowser AFTER
     :meth:`_wait_for_cloudflare_challenge` has run — if the markers are still
     present the managed/passive wait failed and an interactive solve is
-    required.
+    required. Gates on the stricter marker set (not the broad
+    ``CLOUDFLARE_CHALLENGE_MARKERS`` used for the passive wait) so a real page
+    that merely contains the ``just a moment`` phrase does not trigger a paid
+    capsolver call.
     """
     if not html:
         return False
     lowered = html.lower()
-    return any(marker in lowered for marker in CLOUDFLARE_CHALLENGE_MARKERS)
+    return any(marker in lowered for marker in CLOUDFLARE_INTERACTIVE_MARKERS)
 
 
 class CloudflareSolver:
@@ -250,22 +265,32 @@ class CloudflareSolver:
         token = solution.get("token")
         user_agent = solution.get("userAgent") or fallback_user_agent
 
-        cookie = solution.get("cookie")
-        if not cookie:
-            cookies = solution.get("cookies")
-            if isinstance(cookies, dict):
-                cf_value = cookies.get(CF_CLEARANCE_COOKIE_NAME)
-                if cf_value:
-                    cookie = cf_value
-
-        if cookie and not cookie.startswith(f"{CF_CLEARANCE_COOKIE_NAME}="):
-            # Bare value -> Set-Cookie shape. Cloudflare sets cf_clearance
-            # Secure; HttpOnly; SameSite=None; the caller's default_domain
-            # supplies Domain via parse_set_cookie.
-            cookie = (
-                f"{CF_CLEARANCE_COOKIE_NAME}={cookie}; "
-                "Path=/; Secure; HttpOnly; SameSite=None"
-            )
+        cookie: Optional[str] = None
+        # Preferred shape: AntiCloudflareTask returns the clearance under
+        # ``solution.cookies.cf_clearance`` (a bare value). Wrap it into a
+        # Set-Cookie with the attributes Cloudflare itself uses; the caller's
+        # default_domain supplies Domain via parse_set_cookie.
+        cookies = solution.get("cookies")
+        if isinstance(cookies, dict):
+            cf_value = cookies.get(CF_CLEARANCE_COOKIE_NAME)
+            if cf_value:
+                cf_value = str(cf_value)
+                cookie = (
+                    cf_value
+                    if cf_value.startswith(f"{CF_CLEARANCE_COOKIE_NAME}=")
+                    else f"{CF_CLEARANCE_COOKIE_NAME}={cf_value}; "
+                    "Path=/; Secure; HttpOnly; SameSite=None"
+                )
+        # Fallback: a full Set-Cookie under ``solution.cookie``. Only accept it
+        # when it is explicitly a cf_clearance cookie — capsolver returns the
+        # clearance under ``cookies`` for Cloudflare, so a ``cookie`` field
+        # naming something else is not our clearance and must not be wrapped
+        # (wrapping it would mangle an unrelated Set-Cookie into a bogus
+        # cf_clearance value).
+        if cookie is None:
+            raw = solution.get("cookie")
+            if raw and str(raw).startswith(f"{CF_CLEARANCE_COOKIE_NAME}="):
+                cookie = str(raw)
 
         if not cookie and not token:
             return None
@@ -319,6 +344,7 @@ def build_default_cloudflare_solver() -> Optional[CloudflareSolver]:
 __all__ = [
     "CF_CLEARANCE_COOKIE_NAME",
     "CLOUDFLARE_CHALLENGE_MARKERS",
+    "CLOUDFLARE_INTERACTIVE_MARKERS",
     "CloudflareSolver",
     "CloudflareSolverError",
     "SolvedCloudflareClearance",

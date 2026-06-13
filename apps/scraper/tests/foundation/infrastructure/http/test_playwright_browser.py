@@ -1146,10 +1146,19 @@ class TestPlaywrightBrowser:
         the challenge HTML unchanged so the caller's bot-block detector keeps
         recording the block.
         """
-        challenge_html = "<html><head><title>Just a moment...</title></head></html>"
+        # Include _cf_chl_opt so the page registers as a genuine interactive
+        # challenge (the stricter solve gate ignores the bare 'just a moment'
+        # title) — otherwise the guardrail under test is never reached.
+        challenge_html = (
+            "<html><head><title>Just a moment...</title></head>"
+            "<body><script>window._cf_chl_opt={};</script></body></html>"
+        )
         mock_pw_module, mock_browser, mock_page = _make_pw_mocks()
         mock_page.content = AsyncMock(return_value=challenge_html)
         mock_page.wait_for_function = AsyncMock()
+        mock_page.evaluate = AsyncMock(
+            return_value={"sitekey": None, "action": None, "cdata": None}
+        )
         mock_page.reload = AsyncMock()
         mock_context = mock_browser.new_context.return_value
         mock_context.add_cookies = AsyncMock()

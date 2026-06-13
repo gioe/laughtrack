@@ -41,13 +41,21 @@ class TestCloudflareMarkers:
 
 
 class TestIsCloudflareInteractiveChallenge:
-    def test_detects_just_a_moment_case_insensitive(self):
-        html = "<html><head><title>Just a Moment...</title></head></html>"
-        assert is_cloudflare_interactive_challenge(html)
-
     def test_detects_cf_chl_opt(self):
         html = "<html><script>window._cf_chl_opt={};</script></html>"
         assert is_cloudflare_interactive_challenge(html)
+
+    def test_detects_enable_js_and_cookies_notice(self):
+        html = "<html><body>Enable JavaScript and cookies to continue</body></html>"
+        assert is_cloudflare_interactive_challenge(html)
+
+    def test_just_a_moment_title_alone_is_not_interactive(self):
+        # The broad 'just a moment' phrase gates only the cheap passive wait;
+        # the paid interactive solve requires a genuine-challenge marker so a
+        # real page that merely contains the phrase never burns a capsolver
+        # call (review finding on TASK-2855).
+        html = "<html><head><title>Just a Moment...</title></head></html>"
+        assert not is_cloudflare_interactive_challenge(html)
 
     def test_no_markers_returns_false(self):
         assert not is_cloudflare_interactive_challenge("<html><body>real show</body></html>")
