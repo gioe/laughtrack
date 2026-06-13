@@ -436,10 +436,24 @@ class BaseScraper(HttpConvenienceMixin, ABC):
         """
         value = (self.club.source_metadata or {}).get("datadome_reprobe")
         if isinstance(value, bool):
-            return value
-        if isinstance(value, str):
-            return value.strip().lower() in {"1", "true", "yes", "on"}
-        return False
+            enabled = value
+        elif isinstance(value, str):
+            enabled = value.strip().lower() in {"1", "true", "yes", "on"}
+        else:
+            enabled = False
+        # Log once per scrape when the override is honored. Without this, a
+        # zero-show outcome under reprobe on a still-blocked source produces the
+        # same "empty response"/"no events" logs as an ordinary failure, with no
+        # signal that the short-circuit was bypassed on purpose.
+        if enabled and not getattr(self, "_datadome_reprobe_logged", False):
+            Logger.warn(
+                f"{self._log_prefix}: datadome_reprobe override active — bypassing the "
+                "DataDome short-circuit and attempting the direct ticketing source "
+                "(clear the flag to restore the fallback if the source is still blocked)",
+                self.logger_context,
+            )
+            self._datadome_reprobe_logged = True
+        return enabled
 
     def scrape(self) -> List[Show]:
         """
