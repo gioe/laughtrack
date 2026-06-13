@@ -1,4 +1,5 @@
 import json
+import logging
 from datetime import timezone
 
 import pytest
@@ -427,3 +428,29 @@ def test_extract_min_offer_price_skips_non_dict_offer_entries():
         ["not an offer", {"@type": "Offer", "price": "18.00", "priceCurrency": "USD"}]
     ))
     assert EventExtractor.extract_min_offer_price(html) == 18.0
+
+
+def test_unparseable_event_is_logged_not_silently_dropped(caplog):
+    """An Event block that fails JsonLdEvent validation (here: missing the
+    required url field) is skipped, but the skip emits a debug log naming the
+    exception and the event's @type/name so a vendor dropping a required field
+    is diagnosable from nightly logs instead of looking like 'no JSON-LD'."""
+    # No url and no offers.url fallback -> JsonLdEvent.from_json_ld raises ValueError.
+    html = _wrap_ldjson({
+        "@context": "https://schema.org",
+        "@type": "Event",
+        "name": "Mystery Headliner",
+        "startDate": "2099-09-18T19:30:00+00:00",
+    })
+
+    with caplog.at_level(logging.DEBUG):
+        events = EventExtractor.extract_events(html)
+
+    # The event is still skipped (no usable url), but it is no longer silent.
+    assert events == []
+    skip_logs = [r for r in caplog.records if "Skipping unparseable JSON-LD event" in r.getMessage()]
+    assert skip_logs, "expected a debug log for the dropped JSON-LD event"
+    message = skip_logs[0].getMessage()
+    assert "Mystery Headliner" in message  # event name
+    assert "Event" in message              # event @type
+    assert "ValueError" in message         # the failing exception
