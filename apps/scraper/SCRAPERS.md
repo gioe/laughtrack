@@ -822,14 +822,14 @@ row shape (`title`, naive-local `datetime`, Tixologi `ticket_link`,
 `is_sold_out`, `vip_ticket_link`, structured `show_comedians`). Tickets are
 Tixologi (`event.tixologi.com/event/<id>/tickets`).
 
-**Pricing:** the Punchup RSC rows carry no price field. west_side and
-creek_and_cave (TASK-2840) enrich each show's `tixologi_event_id` against the
-public no-auth `api-v2.tixologi.com` ticket-types endpoint so
-`PunchupShow._build_tickets` emits per-tier priced tickets from
-`initial_price`. creek_and_cave guards each show individually (a Tixologi
-outage degrades that show to the priceless fallback, not a dropped calendar)
-and caps in-flight requests at 10. comedy_key_west does not enrich yet —
-TASK-2851.
+**Pricing:** the Punchup RSC rows carry no price field. All three venues
+enrich each show's `tixologi_event_id` against the public no-auth
+`api-v2.tixologi.com` ticket-types endpoint so `PunchupShow._build_tickets`
+emits per-tier priced tickets from `initial_price` — west_side (original),
+creek_and_cave (TASK-2840), comedy_key_west (TASK-2851). The latter two guard
+each show individually (a Tixologi outage degrades that show to the priceless
+fallback, not a dropped calendar) and cap in-flight requests at 10;
+consolidation of the duplicated machinery is tracked as TASK-2848.
 
 ---
 
