@@ -1,6 +1,7 @@
 """Service for orchestrating show operations with validation and batch processing."""
 
-from typing import List, Optional
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 from laughtrack.foundation.models.operation_result import DatabaseOperationResult
 from .handler import ShowHandler
@@ -39,6 +40,22 @@ class ShowService:
             Logger.info(f"Saving {len(shows)} shows to database...")
             return self.show_handler.insert_shows(shows, club_name=club_name, scraper_key=scraper_key)
             
+    def count_stale_future_shows(
+        self, club_id: int, scraper_key: str, cutoff: datetime
+    ) -> int:
+        """Count stale future shows for the reconciler's safety cap (TASK-2847)."""
+        return self.show_handler.count_stale_future_shows(club_id, scraper_key, cutoff)
+
+    def delete_stale_future_shows(
+        self, club_id: int, scraper_key: str, cutoff: datetime
+    ) -> List[Dict[str, Any]]:
+        """Reconcile stale future shows for a club after a clean scrape (TASK-2847).
+
+        Delegates to ShowHandler.delete_stale_future_shows. Returns the deleted
+        rows so the caller can log the per-show disposition.
+        """
+        return self.show_handler.delete_stale_future_shows(club_id, scraper_key, cutoff)
+
     def update_show_popularity(self, show_ids: Optional[List[int]] = None) -> None:
         """
         Update popularity for shows in the database.

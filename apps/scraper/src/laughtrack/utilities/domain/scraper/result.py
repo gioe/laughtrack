@@ -5,6 +5,8 @@ This module processes and saves scraping results, coordinating between
 metrics collection, show saving, and result reporting.
 """
 
+import os
+from datetime import datetime, timezone
 from typing import List, Optional
 
 from laughtrack.core.entities.show.service import ShowService
@@ -12,6 +14,16 @@ from laughtrack.foundation.models.operation_result import DatabaseOperationResul
 from laughtrack.core.models.results import ClubScrapingResult
 from laughtrack.core.services.metrics import MetricsService
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+
+
+# Safety cap for stale-show reconciliation (TASK-2847). A single clean scrape
+# that would drop more than this many future shows for one club at once is far
+# more likely a silent parser break (upstream format change yielding zero/near-
+# zero events on an HTTP 200) than that many genuine same-day cancellations, so
+# the reconciler refuses and logs for human review rather than wiping inventory.
+# Read at use-time so it can be retuned via env without a redeploy (convention
+# #134); 0 or negative disables the cap.
+_DEFAULT_RECONCILE_DELETE_CAP = 10
 
 
 class ScrapingResultProcessor:
@@ -27,18 +39,131 @@ class ScrapingResultProcessor:
         self.metrics_service.start_session()
 
     def insert_club_result(self, club_result: ClubScrapingResult) -> DatabaseOperationResult:
-        """Persist shows for a single completed club immediately.
+        """Persist shows for a single completed club immediately, then reconcile
+        stale future shows whose source event was cancelled/delisted (TASK-2847).
 
         Must be called while holding the caller's db_lock to ensure thread safety.
         """
-        if not club_result.shows:
-            return DatabaseOperationResult()
-        Logger.info(f"Persisting {len(club_result.shows)} shows for '{club_result.club_name}'...")
-        return self.show_service.insert_shows(
-            club_result.shows,
-            club_name=club_result.club_name,
-            scraper_key=club_result.scraper_key,
-        )
+        # Capture the reconciliation cutoff BEFORE persisting: Show.to_tuple()
+        # stamps last_scraped_date=now() at upsert time, so shows re-seen this
+        # run land strictly after this instant while stale rows keep their older
+        # timestamp. This must precede insert_shows for the delete predicate to
+        # separate touched from stale rows.
+        reconcile_cutoff = datetime.now(timezone.utc)
+
+        db_result = DatabaseOperationResult()
+        if club_result.shows:
+            Logger.info(f"Persisting {len(club_result.shows)} shows for '{club_result.club_name}'...")
+            db_result = self.show_service.insert_shows(
+                club_result.shows,
+                club_name=club_result.club_name,
+                scraper_key=club_result.scraper_key,
+            )
+
+        self._reconcile_stale_future_shows(club_result, reconcile_cutoff)
+        return db_result
+
+    def _reconcile_stale_future_shows(
+        self, club_result: ClubScrapingResult, cutoff: datetime
+    ) -> None:
+        """Delete future shows this scraper stopped seeing on a CLEAN scrape.
+
+        Gated on :meth:`_is_clean_for_reconciliation` so a failed, errored, or
+        bot-blocked scrape never deletes real inventory (TASK-2847 criterion 2).
+        Scoped to the club + scraper_key that just ran; the upsert re-creates a
+        show on a later clean scrape if the source brings it back (self-healing).
+        """
+        if not self._is_clean_for_reconciliation(club_result):
+            return
+        if club_result.club_id is None or not club_result.scraper_key:
+            # Without a club_id + scraper_key we cannot scope the delete safely.
+            return
+        if club_result.is_synthetic:
+            # Organizer/production-company proxy scrapes carry the proxy's
+            # club_id while their shows persist under many per-venue club_ids,
+            # so a club_id-scoped delete would mis-target. Per-venue organizer
+            # reconciliation is tracked separately; skip here rather than risk a
+            # wrong-club delete.
+            return
+        try:
+            stale_count = self.show_service.count_stale_future_shows(
+                club_result.club_id, club_result.scraper_key, cutoff
+            )
+            if stale_count == 0:
+                return
+            cap = self._reconcile_delete_cap()
+            if cap > 0 and stale_count > cap:
+                Logger.warn(
+                    f"Stale-show reconciliation SKIPPED for '{club_result.club_name}' "
+                    f"(scraper={club_result.scraper_key}): {stale_count} future shows "
+                    f"would be deleted, exceeding the safety cap of {cap}. This is the "
+                    f"signature of a silent parser break, not normal cancellations — "
+                    f"investigate the source before any manual cleanup."
+                )
+                return
+            deleted = self.show_service.delete_stale_future_shows(
+                club_result.club_id, club_result.scraper_key, cutoff
+            )
+        except Exception as e:  # pragma: no cover - defensive; never fail the run
+            Logger.error(
+                f"Stale-show reconciliation failed for '{club_result.club_name}': {e}"
+            )
+            return
+        if deleted:
+            titles = ", ".join(
+                f"{row.get('name') or '(untitled)'} @ {row.get('date')}" for row in deleted
+            )
+            Logger.warn(
+                f"Reconciled {len(deleted)} stale future show(s) for "
+                f"'{club_result.club_name}' (scraper={club_result.scraper_key}, "
+                f"source event cancelled/delisted): {titles}"
+            )
+
+    @staticmethod
+    def _reconcile_delete_cap() -> int:
+        """Max future shows one clean scrape may reconcile-delete for a club.
+
+        Read at use-time (convention #134) so it can be retuned via
+        ``RECONCILE_DELETE_CAP`` without a redeploy. Falls back to
+        :data:`_DEFAULT_RECONCILE_DELETE_CAP`; a malformed value uses the
+        default; 0 or negative disables the cap.
+        """
+        raw = os.environ.get("RECONCILE_DELETE_CAP")
+        if raw is None or raw.strip() == "":
+            return _DEFAULT_RECONCILE_DELETE_CAP
+        try:
+            return int(raw)
+        except ValueError:
+            Logger.warn(
+                f"Invalid RECONCILE_DELETE_CAP={raw!r}; using default "
+                f"{_DEFAULT_RECONCILE_DELETE_CAP}"
+            )
+            return _DEFAULT_RECONCILE_DELETE_CAP
+
+    @staticmethod
+    def _is_clean_for_reconciliation(club_result: ClubScrapingResult) -> bool:
+        """Is this scrape trustworthy enough to delete shows it didn't re-emit?
+
+        Mirrors the safe subset of ``ScrapeOutcome`` (domain_metrics): only
+        HEALTHY (shows present) and EMPTY_CALENDAR (the fetch layer reached the
+        source and the parser found zero events) qualify. A scrape that errored,
+        was bot-blocked, had a failed fetch, or never completed a fetch is
+        DEGRADED and must NOT trigger deletion (criterion 2). CLASSIFIER_REJECTED_ALL
+        (parser saw candidates but dropped them all) is also excluded — a parser
+        bug there could wrongly delete live inventory.
+        """
+        if club_result.error is not None or club_result.bot_block_detected:
+            return False
+        if (club_result.fetches_failed or 0) > 0:
+            return False
+        if (club_result.fetches_ok or 0) <= 0:
+            # No successful fetch → DEGRADED fallback; absence is not trustworthy.
+            return False
+        if club_result.shows:
+            return True  # HEALTHY
+        # Zero shows is only safe when the parser genuinely saw no candidates
+        # (EMPTY_CALENDAR); items_before_filter > 0 means CLASSIFIER_REJECTED_ALL.
+        return (club_result.items_before_filter or 0) == 0
 
     def process_results(
         self,

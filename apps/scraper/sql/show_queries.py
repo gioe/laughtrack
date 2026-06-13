@@ -45,6 +45,41 @@ class ShowQueries:
             END AS operation_type
     '''
 
+    # TASK-2847: stale-future-show reconciliation. After a CLEAN scrape of a
+    # club (see ScrapingResultProcessor._is_clean_for_reconciliation), delete
+    # future shows that THIS scraper key produced but did not re-emit this run —
+    # their source event was cancelled/delisted. Scoped to last_scraped_by so a
+    # multi-source club's other scrapers' shows are never touched; gated on
+    # last_scraped_date < the cutoff captured before this run's upsert, so shows
+    # re-seen this run (stamped now() by Show.to_tuple) are excluded. Tickets and
+    # ticket-click events cascade (onDelete: Cascade). A NULL last_scraped_date is
+    # left alone — only rows this scraper is known to have last seen before now
+    # are removed.
+    DELETE_STALE_FUTURE_SHOWS = '''
+        DELETE FROM shows
+        WHERE club_id = %s
+          AND last_scraped_by = %s
+          AND date > NOW()
+          AND last_scraped_date < %s
+        RETURNING id, name, date, room
+    '''
+
+    # Companion count for the same predicate as DELETE_STALE_FUTURE_SHOWS. The
+    # reconciler counts first and refuses to delete when the count exceeds a
+    # safety cap: a single clean scrape that drops a venue's ENTIRE future
+    # calendar at once is the signature of a silent parser break (e.g. an
+    # upstream JSON shape change yielding zero events on an HTTP 200), not a
+    # handful of genuine per-event cancellations. Over the cap, the reconciler
+    # logs loudly for human review instead of wiping inventory (TASK-2847).
+    COUNT_STALE_FUTURE_SHOWS = '''
+        SELECT COUNT(*) AS stale_count
+        FROM shows
+        WHERE club_id = %s
+          AND last_scraped_by = %s
+          AND date > NOW()
+          AND last_scraped_date < %s
+    '''
+
     GET_SHOWS_BY_CLUB_DATE_NAME = '''
         SELECT id, club_id, date, room, COALESCE(name, '') AS name
         FROM shows

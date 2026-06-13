@@ -4,6 +4,7 @@ from typing import Any, Iterable, List, Set
 
 from laughtrack.foundation.models.types import JSONDict
 from laughtrack.foundation.utilities.json.utils import JSONUtils
+from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.utilities.infrastructure.html.scraper import HtmlScraper
 from laughtrack.core.entities.event.event import JsonLdEvent
 
@@ -267,8 +268,18 @@ class EventExtractor:
                 if same_as_override:
                     parsed_event.same_as = same_as_override
                 unique_events.append(parsed_event)
-            except Exception:
-                # If parsing fails, skip the event; upstream scrapers may log details
+            except Exception as exc:
+                # A JSON-LD Event block that fails validation (e.g. JsonLdEvent
+                # requires url and raises ValueError when it's missing) is
+                # dropped here. Without a signal, a vendor silently dropping a
+                # required field looks identical to a page with no JSON-LD at
+                # all (TASK-2838). Log enough to diagnose from nightly logs:
+                # the event's @type/name and the failing exception.
+                Logger.debug(
+                    "Skipping unparseable JSON-LD event "
+                    f"(@type={event.get('@type')!r}, name={event.get('name')!r}): "
+                    f"{type(exc).__name__}: {exc}"
+                )
                 continue
 
         return unique_events

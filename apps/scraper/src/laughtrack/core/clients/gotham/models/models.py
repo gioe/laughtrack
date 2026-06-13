@@ -192,6 +192,13 @@ class GothamFeedEvent(ShowConvertible):
                     price = float(primary_price)
                 except (TypeError, ValueError):
                     price = None
+                else:
+                    # A 0.00 ShowClix level is a hidden/comp placeholder, not
+                    # proven-free — keep it price-unknown per the zero-stays-None
+                    # convention (TASK-2827), mirroring the comedy_store
+                    # _resolve_and_fetch_price guard (TASK-2841/TASK-2852).
+                    if price <= 0:
+                        price = None
 
             available_tickets = event_data.get_available_tickets()
 
