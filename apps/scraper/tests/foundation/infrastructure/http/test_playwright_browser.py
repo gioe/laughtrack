@@ -349,6 +349,57 @@ class TestPlaywrightBrowser:
         assert result == challenge_html
 
     @pytest.mark.asyncio
+    async def test_waits_for_cloudflare_challenge_when_marker_present(self):
+        """A Cloudflare 'Just a moment' interstitial triggers the managed-challenge wait,
+        and the resolved post-challenge content is returned (TASK-2846)."""
+        mock_pw_module, _, mock_page = _make_pw_mocks()
+        mock_page.content = AsyncMock(
+            side_effect=[
+                "<html><head><title>Just a moment...</title></head><body>cf</body></html>",
+                "<html><body><div class='result-box-item'>real show</div></body></html>",
+            ]
+        )
+        mock_page.wait_for_function = AsyncMock()
+
+        with _patch_playwright(mock_pw_module):
+            browser = PlaywrightBrowser()
+            result = await browser.fetch_html("https://tickets.chanhassendt.com/x")
+
+        mock_page.wait_for_function.assert_called_once()
+        assert "result-box-item" in result
+        assert "Just a moment" not in result
+
+    @pytest.mark.asyncio
+    async def test_does_not_wait_when_no_cloudflare_marker(self):
+        """A normal page does not trigger the Cloudflare wait."""
+        mock_pw_module, _, mock_page = _make_pw_mocks()
+        mock_page.content = AsyncMock(return_value="<html><body>regular page</body></html>")
+        mock_page.wait_for_function = AsyncMock()
+
+        with _patch_playwright(mock_pw_module):
+            browser = PlaywrightBrowser()
+            result = await browser.fetch_html("https://example.com")
+
+        mock_page.wait_for_function.assert_not_called()
+        assert result == "<html><body>regular page</body></html>"
+
+    @pytest.mark.asyncio
+    async def test_cloudflare_waiter_returns_challenge_html_on_timeout(self):
+        """If the Cloudflare challenge doesn't clear within timeout, return the challenge
+        HTML so the caller's bot-block detector records it (TASK-2845 JS-path recording)."""
+        mock_pw_module, _, mock_page = _make_pw_mocks()
+        challenge_html = "<html><head><title>Just a moment...</title></head></html>"
+        mock_page.content = AsyncMock(return_value=challenge_html)
+        mock_page.wait_for_function = AsyncMock(side_effect=asyncio.TimeoutError())
+
+        with _patch_playwright(mock_pw_module):
+            browser = PlaywrightBrowser()
+            result = await browser.fetch_html("https://tickets.chanhassendt.com/x")
+
+        mock_page.wait_for_function.assert_called_once()
+        assert result == challenge_html
+
+    @pytest.mark.asyncio
     async def test_goto_uses_domcontentloaded(self):
         mock_pw_module, _, mock_page = _make_pw_mocks()
         with _patch_playwright(mock_pw_module):

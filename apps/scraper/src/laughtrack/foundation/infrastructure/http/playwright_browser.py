@@ -196,6 +196,28 @@ _DATADOME_IFRAME_WAIT_MS = 5_000
 # on the post-challenge page without masking a genuine hang.
 _AWS_WAF_RELOAD_TIMEOUT_MS = 30_000
 
+# Markers present in a Cloudflare "Just a moment" managed-challenge page
+# (TASK-2846). Unlike AWS WAF, the signal is in the rendered markup, not a
+# window global, so detection is a case-insensitive substring match against
+# the HTML — mirroring HttpClient._bot_block_reason so fetch-layer and
+# browser-layer detection cannot drift. When these are present after the
+# initial domcontentloaded, the challenge JS is still running; it clears
+# itself (a managed challenge needs no CAPTCHA interaction) within a few
+# seconds and reloads into the real content.
+_CLOUDFLARE_CHALLENGE_MARKERS: tuple[str, ...] = (
+    "just a moment",
+    "_cf_chl_opt",
+    "enable javascript and cookies to continue",
+)
+
+# Maximum time to wait for a Cloudflare managed challenge to clear after the
+# initial DOMContentLoaded. The challenge typically resolves in 3-6 s direct,
+# but a residential-proxy egress adds latency (verified on tickets.
+# chanhassendt.com — TASK-2846), so 20 s keeps the worst case bounded while
+# letting the steady-state path complete. On timeout, fetch_html returns the
+# challenge HTML and the caller's bot-block detector records it.
+_CLOUDFLARE_CHALLENGE_WAIT_MS = 20_000
+
 # Bounded-retry parameters for ``_safe_content`` (TASK-2625). Some origins
 # (notably Rodney's Comedy Club's HTTP 202 interstitial) return a tiny shell
 # that triggers a JS-driven ``location.reload()`` immediately after
@@ -581,6 +603,44 @@ class PlaywrightBrowser:
         return await _safe_content(page)
 
     @staticmethod
+    async def _wait_for_cloudflare_challenge(
+        page: object, html: str, timeout_ms: int = _CLOUDFLARE_CHALLENGE_WAIT_MS
+    ) -> str:
+        """Wait for a Cloudflare "Just a moment" managed challenge to clear.
+
+        Cloudflare's managed/JS challenge (no CAPTCHA interaction) runs its
+        crypto after ``domcontentloaded`` resolves, then navigates the page
+        into the real content. ``fetch_html`` would otherwise capture the
+        interstitial HTML at ``domcontentloaded`` and return the challenge
+        page instead of the events (the tickets.chanhassendt.com / Stevie
+        Ray's incident — TASK-2846). Polls the live DOM until the challenge
+        title is gone, then returns the resolved HTML. Falls back to the
+        original challenge HTML on timeout — ``HttpClient._bot_block_reason``
+        and caller-level error handling surface the unresolved block (and
+        the JS-path bot-block recording added in TASK-2845).
+        """
+        try:
+            await page.wait_for_function(
+                "() => !document.title.toLowerCase().includes('just a moment')",
+                timeout=timeout_ms,
+            )
+        except Exception:
+            # ``wait_for_function`` aborts with "execution context was
+            # destroyed" the instant the challenge JS triggers its own
+            # navigation into the real content — a *successful* clear from
+            # our perspective. Grab the post-navigation HTML; if the
+            # navigation actually failed and the interstitial remains, the
+            # caller's bot-block detector still picks it up.
+            try:
+                return await page.content()
+            except Exception:
+                return html
+        # Success path: the challenge title cleared in-place. Route through
+        # _safe_content so a reload racing this content() call still recovers
+        # (TASK-2625 fault class).
+        return await _safe_content(page)
+
+    @staticmethod
     async def _solve_datadome_if_present(
         *,
         page: object,
@@ -885,6 +945,14 @@ class PlaywrightBrowser:
                 # _safe_content handles the JS-driven nav race that Rodney's
                 # HTTP 202 interstitial triggers — see _safe_content docstring.
                 html = await _safe_content(page)
+                # Cloudflare "Just a moment" managed challenge (TASK-2846):
+                # the interstitial is present at domcontentloaded but clears
+                # itself within a few seconds. Wait for it before the other
+                # challenge checks — the marker types are mutually exclusive,
+                # so a Cloudflare page never carries AWS WAF / DataDome
+                # signatures.
+                if any(m in html.lower() for m in _CLOUDFLARE_CHALLENGE_MARKERS):
+                    html = await self._wait_for_cloudflare_challenge(page, html)
                 if any(marker in html for marker in _AWS_WAF_MARKERS):
                     html = await self._wait_for_waf_challenge(page, html)
                     # If the markers are still present after the passive
