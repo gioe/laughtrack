@@ -1,5 +1,6 @@
 """Tests for ScrapingResultProcessor incremental persistence."""
 
+from datetime import datetime
 from unittest.mock import MagicMock, patch
 import pytest
 
@@ -241,4 +242,110 @@ class TestIncrementalPersistenceInScrapeOne:
         # insert called once (for the good club only)
         assert svc._result_processor.insert_club_result.call_count == 1
         assert db_result.inserts == 1
+
+
+class TestStaleFutureShowReconciliation:
+    """TASK-2847: a CLEAN scrape deletes future shows it stopped seeing; a
+    failed/errored/bot-blocked/degraded scrape never does."""
+
+    def _clean_result(self, **overrides):
+        """A HEALTHY-by-default result (fetch reached source, no error/block)."""
+        kwargs = dict(
+            club_name="Commonwealth Brewing Co FFX",
+            shows=[MagicMock()],
+            execution_time=1.0,
+            club_id=2301,
+            scraper_key="eventbrite",
+            fetches_ok=1,
+            fetches_failed=0,
+            items_before_filter=1,
+            error=None,
+            bot_block_detected=False,
+        )
+        kwargs.update(overrides)
+        return ClubScrapingResult(**kwargs)
+
+    def test_reconciles_on_clean_healthy_scrape(self):
+        proc = _make_processor()
+        proc.show_service.insert_shows.return_value = DatabaseOperationResult(inserts=1)
+        proc.show_service.delete_stale_future_shows.return_value = [
+            {"id": 1532633, "name": "Cancelled Show", "date": "2026-07-24", "room": ""}
+        ]
+
+        proc.insert_club_result(self._clean_result())
+
+        proc.show_service.delete_stale_future_shows.assert_called_once()
+        args = proc.show_service.delete_stale_future_shows.call_args[0]
+        assert args[0] == 2301
+        assert args[1] == "eventbrite"
+        assert isinstance(args[2], datetime)
+        assert args[2].tzinfo is not None  # tz-aware UTC cutoff
+
+    def test_reconciles_on_clean_empty_calendar(self):
+        """The Commonwealth case: 0 shows, but the fetch reached the source and
+        found no events — the lone cancelled future show must be removed."""
+        proc = _make_processor()
+        proc.show_service.delete_stale_future_shows.return_value = [
+            {"id": 1532633, "name": "Cancelled Show", "date": "2026-07-24", "room": ""}
+        ]
+
+        proc.insert_club_result(
+            self._clean_result(shows=[], items_before_filter=0)
+        )
+
+        proc.show_service.insert_shows.assert_not_called()  # no shows to insert
+        proc.show_service.delete_stale_future_shows.assert_called_once()
+
+    def test_no_reconcile_when_error_present(self):
+        proc = _make_processor()
+        proc.insert_club_result(self._clean_result(shows=[], error="boom"))
+        proc.show_service.delete_stale_future_shows.assert_not_called()
+
+    def test_no_reconcile_when_bot_blocked(self):
+        proc = _make_processor()
+        proc.insert_club_result(self._clean_result(shows=[], bot_block_detected=True))
+        proc.show_service.delete_stale_future_shows.assert_not_called()
+
+    def test_no_reconcile_when_a_fetch_failed(self):
+        proc = _make_processor()
+        proc.insert_club_result(self._clean_result(shows=[], fetches_failed=1))
+        proc.show_service.delete_stale_future_shows.assert_not_called()
+
+    def test_no_reconcile_when_no_fetch_succeeded(self):
+        """fetches_ok == 0 is the DEGRADED fallback — absence is not trustworthy."""
+        proc = _make_processor()
+        proc.insert_club_result(
+            self._clean_result(shows=[], fetches_ok=0, items_before_filter=0)
+        )
+        proc.show_service.delete_stale_future_shows.assert_not_called()
+
+    def test_no_reconcile_when_classifier_rejected_all(self):
+        """0 shows but the parser saw candidates (items_before_filter > 0) — a
+        parser bug there could wrongly delete live inventory."""
+        proc = _make_processor()
+        proc.insert_club_result(
+            self._clean_result(shows=[], items_before_filter=7)
+        )
+        proc.show_service.delete_stale_future_shows.assert_not_called()
+
+    def test_no_reconcile_without_club_id(self):
+        proc = _make_processor()
+        proc.insert_club_result(self._clean_result(club_id=None))
+        proc.show_service.delete_stale_future_shows.assert_not_called()
+
+    def test_no_reconcile_without_scraper_key(self):
+        proc = _make_processor()
+        proc.insert_club_result(self._clean_result(scraper_key=None))
+        proc.show_service.delete_stale_future_shows.assert_not_called()
+
+    def test_reconcile_failure_never_breaks_persistence(self):
+        """A DB error during reconciliation is logged, not raised — the shows
+        were already persisted and the run must continue."""
+        proc = _make_processor()
+        proc.show_service.insert_shows.return_value = DatabaseOperationResult(inserts=1)
+        proc.show_service.delete_stale_future_shows.side_effect = RuntimeError("db down")
+
+        outcome = proc.insert_club_result(self._clean_result())
+
+        assert outcome.inserts == 1  # persistence result still returned
 

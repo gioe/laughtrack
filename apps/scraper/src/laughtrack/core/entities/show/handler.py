@@ -2,7 +2,7 @@
 
 import re
 import unicodedata
-from datetime import timezone
+from datetime import datetime, timezone
 from typing import Dict, List, Optional, Tuple
 
 from laughtrack.core.data.base_handler import BaseDatabaseHandler
@@ -63,6 +63,30 @@ class ShowHandler(BaseDatabaseHandler[Show]):
     def get_entity_class(self) -> type[Show]:
         """Return the Show class for instantiation."""
         return Show
+
+    def delete_stale_future_shows(
+        self, club_id: int, scraper_key: str, cutoff: datetime
+    ) -> List[DictRow]:
+        """Delete future shows this scraper produced but did not re-emit this run.
+
+        TASK-2847 reconciliation: a future show whose source event was cancelled
+        or delisted lingers because the upsert never removes rows it stops
+        seeing. After a CLEAN scrape (the caller gates on
+        ``ScrapingResultProcessor._is_clean_for_reconciliation``), any future
+        show for ``club_id`` attributed to ``scraper_key`` whose
+        ``last_scraped_date`` predates ``cutoff`` (captured before this run's
+        upsert) was not re-seen and is removed. Scoping to ``scraper_key`` keeps
+        a multi-source club's other scrapers' shows untouched; the cutoff
+        excludes rows re-stamped this run. Tickets / ticket-click events cascade.
+
+        Returns the deleted rows (id, name, date, room) for logging.
+        """
+        deleted = self.execute_with_cursor(
+            ShowQueries.DELETE_STALE_FUTURE_SHOWS,
+            (club_id, scraper_key, cutoff),
+            return_results=True,
+        )
+        return deleted or []
 
     def insert_shows(self,
                      shows: List[Show],
