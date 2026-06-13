@@ -1,6 +1,6 @@
 """Tests for ScrapingResultProcessor incremental persistence."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 import pytest
 
@@ -265,12 +265,19 @@ class TestStaleFutureShowReconciliation:
         kwargs.update(overrides)
         return ClubScrapingResult(**kwargs)
 
-    def test_reconciles_on_clean_healthy_scrape(self):
+    def _proc(self, stale_count=1):
+        """Processor whose count_stale_future_shows returns a concrete int so the
+        cap logic runs (a bare MagicMock would break the numeric comparison)."""
         proc = _make_processor()
         proc.show_service.insert_shows.return_value = DatabaseOperationResult(inserts=1)
+        proc.show_service.count_stale_future_shows.return_value = stale_count
         proc.show_service.delete_stale_future_shows.return_value = [
             {"id": 1532633, "name": "Cancelled Show", "date": "2026-07-24", "room": ""}
         ]
+        return proc
+
+    def test_reconciles_on_clean_healthy_scrape(self):
+        proc = self._proc(stale_count=1)
 
         proc.insert_club_result(self._clean_result())
 
@@ -284,36 +291,57 @@ class TestStaleFutureShowReconciliation:
     def test_reconciles_on_clean_empty_calendar(self):
         """The Commonwealth case: 0 shows, but the fetch reached the source and
         found no events — the lone cancelled future show must be removed."""
-        proc = _make_processor()
-        proc.show_service.delete_stale_future_shows.return_value = [
-            {"id": 1532633, "name": "Cancelled Show", "date": "2026-07-24", "room": ""}
-        ]
+        proc = self._proc(stale_count=1)
 
-        proc.insert_club_result(
-            self._clean_result(shows=[], items_before_filter=0)
-        )
+        proc.insert_club_result(self._clean_result(shows=[], items_before_filter=0))
 
         proc.show_service.insert_shows.assert_not_called()  # no shows to insert
         proc.show_service.delete_stale_future_shows.assert_called_once()
 
+    def test_cap_exceeded_skips_delete(self):
+        """A clean scrape that would drop more than the cap (silent-parser-break
+        signature) must NOT delete — it logs for human review instead."""
+        proc = self._proc(stale_count=11)  # default cap is 10
+
+        proc.insert_club_result(self._clean_result(shows=[], items_before_filter=0))
+
+        proc.show_service.count_stale_future_shows.assert_called_once()
+        proc.show_service.delete_stale_future_shows.assert_not_called()
+
+    def test_cap_env_override_allows_larger_sweep(self, monkeypatch):
+        monkeypatch.setenv("RECONCILE_DELETE_CAP", "50")
+        proc = self._proc(stale_count=40)
+
+        proc.insert_club_result(self._clean_result())
+
+        proc.show_service.delete_stale_future_shows.assert_called_once()
+
+    def test_zero_stale_count_skips_delete(self):
+        proc = self._proc(stale_count=0)
+
+        proc.insert_club_result(self._clean_result())
+
+        proc.show_service.delete_stale_future_shows.assert_not_called()
+
     def test_no_reconcile_when_error_present(self):
-        proc = _make_processor()
+        proc = self._proc()
         proc.insert_club_result(self._clean_result(shows=[], error="boom"))
+        proc.show_service.count_stale_future_shows.assert_not_called()
         proc.show_service.delete_stale_future_shows.assert_not_called()
 
     def test_no_reconcile_when_bot_blocked(self):
-        proc = _make_processor()
+        proc = self._proc()
         proc.insert_club_result(self._clean_result(shows=[], bot_block_detected=True))
         proc.show_service.delete_stale_future_shows.assert_not_called()
 
     def test_no_reconcile_when_a_fetch_failed(self):
-        proc = _make_processor()
+        proc = self._proc()
         proc.insert_club_result(self._clean_result(shows=[], fetches_failed=1))
         proc.show_service.delete_stale_future_shows.assert_not_called()
 
     def test_no_reconcile_when_no_fetch_succeeded(self):
         """fetches_ok == 0 is the DEGRADED fallback — absence is not trustworthy."""
-        proc = _make_processor()
+        proc = self._proc()
         proc.insert_club_result(
             self._clean_result(shows=[], fetches_ok=0, items_before_filter=0)
         )
@@ -322,27 +350,59 @@ class TestStaleFutureShowReconciliation:
     def test_no_reconcile_when_classifier_rejected_all(self):
         """0 shows but the parser saw candidates (items_before_filter > 0) — a
         parser bug there could wrongly delete live inventory."""
-        proc = _make_processor()
-        proc.insert_club_result(
-            self._clean_result(shows=[], items_before_filter=7)
-        )
+        proc = self._proc()
+        proc.insert_club_result(self._clean_result(shows=[], items_before_filter=7))
+        proc.show_service.delete_stale_future_shows.assert_not_called()
+
+    def test_no_reconcile_for_synthetic_organizer_proxy(self):
+        """Organizer/production-company proxy scrapes carry the proxy club_id but
+        persist shows under per-venue ids — a club_id-scoped delete would
+        mis-target, so reconciliation is skipped (tracked separately)."""
+        proc = self._proc()
+        proc.insert_club_result(self._clean_result(is_synthetic=True))
+        proc.show_service.count_stale_future_shows.assert_not_called()
         proc.show_service.delete_stale_future_shows.assert_not_called()
 
     def test_no_reconcile_without_club_id(self):
-        proc = _make_processor()
+        proc = self._proc()
         proc.insert_club_result(self._clean_result(club_id=None))
         proc.show_service.delete_stale_future_shows.assert_not_called()
 
     def test_no_reconcile_without_scraper_key(self):
-        proc = _make_processor()
+        proc = self._proc()
         proc.insert_club_result(self._clean_result(scraper_key=None))
         proc.show_service.delete_stale_future_shows.assert_not_called()
+
+    def test_cutoff_captured_before_insert_shows(self):
+        """Safety-critical ordering: the reconcile cutoff must be captured BEFORE
+        insert_shows stamps last_scraped_date=now(), else re-seen shows would be
+        deletable. Pin the call order and that the cutoff precedes insert."""
+        proc = self._proc(stale_count=1)
+        call_order = []
+        insert_ts = {}
+
+        def record_insert(*a, **kw):
+            call_order.append("insert")
+            insert_ts["t"] = datetime.now(timezone.utc)
+            return DatabaseOperationResult(inserts=1)
+
+        def record_count(club_id, scraper_key, cutoff):
+            call_order.append("count")
+            # cutoff must predate the insert timestamp
+            assert cutoff <= insert_ts["t"]
+            return 1
+
+        proc.show_service.insert_shows.side_effect = record_insert
+        proc.show_service.count_stale_future_shows.side_effect = record_count
+
+        proc.insert_club_result(self._clean_result())
+
+        assert call_order == ["insert", "count"]
 
     def test_reconcile_failure_never_breaks_persistence(self):
         """A DB error during reconciliation is logged, not raised — the shows
         were already persisted and the run must continue."""
-        proc = _make_processor()
-        proc.show_service.insert_shows.return_value = DatabaseOperationResult(inserts=1)
+        proc = self._proc(stale_count=1)
         proc.show_service.delete_stale_future_shows.side_effect = RuntimeError("db down")
 
         outcome = proc.insert_club_result(self._clean_result())

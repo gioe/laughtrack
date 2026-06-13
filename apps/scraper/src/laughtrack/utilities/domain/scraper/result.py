@@ -5,6 +5,7 @@ This module processes and saves scraping results, coordinating between
 metrics collection, show saving, and result reporting.
 """
 
+import os
 from datetime import datetime, timezone
 from typing import List, Optional
 
@@ -13,6 +14,16 @@ from laughtrack.foundation.models.operation_result import DatabaseOperationResul
 from laughtrack.core.models.results import ClubScrapingResult
 from laughtrack.core.services.metrics import MetricsService
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+
+
+# Safety cap for stale-show reconciliation (TASK-2847). A single clean scrape
+# that would drop more than this many future shows for one club at once is far
+# more likely a silent parser break (upstream format change yielding zero/near-
+# zero events on an HTTP 200) than that many genuine same-day cancellations, so
+# the reconciler refuses and logs for human review rather than wiping inventory.
+# Read at use-time so it can be retuned via env without a redeploy (convention
+# #134); 0 or negative disables the cap.
+_DEFAULT_RECONCILE_DELETE_CAP = 10
 
 
 class ScrapingResultProcessor:
@@ -67,7 +78,29 @@ class ScrapingResultProcessor:
         if club_result.club_id is None or not club_result.scraper_key:
             # Without a club_id + scraper_key we cannot scope the delete safely.
             return
+        if club_result.is_synthetic:
+            # Organizer/production-company proxy scrapes carry the proxy's
+            # club_id while their shows persist under many per-venue club_ids,
+            # so a club_id-scoped delete would mis-target. Per-venue organizer
+            # reconciliation is tracked separately; skip here rather than risk a
+            # wrong-club delete.
+            return
         try:
+            stale_count = self.show_service.count_stale_future_shows(
+                club_result.club_id, club_result.scraper_key, cutoff
+            )
+            if stale_count == 0:
+                return
+            cap = self._reconcile_delete_cap()
+            if cap > 0 and stale_count > cap:
+                Logger.warn(
+                    f"Stale-show reconciliation SKIPPED for '{club_result.club_name}' "
+                    f"(scraper={club_result.scraper_key}): {stale_count} future shows "
+                    f"would be deleted, exceeding the safety cap of {cap}. This is the "
+                    f"signature of a silent parser break, not normal cancellations — "
+                    f"investigate the source before any manual cleanup."
+                )
+                return
             deleted = self.show_service.delete_stale_future_shows(
                 club_result.club_id, club_result.scraper_key, cutoff
             )
@@ -85,6 +118,27 @@ class ScrapingResultProcessor:
                 f"'{club_result.club_name}' (scraper={club_result.scraper_key}, "
                 f"source event cancelled/delisted): {titles}"
             )
+
+    @staticmethod
+    def _reconcile_delete_cap() -> int:
+        """Max future shows one clean scrape may reconcile-delete for a club.
+
+        Read at use-time (convention #134) so it can be retuned via
+        ``RECONCILE_DELETE_CAP`` without a redeploy. Falls back to
+        :data:`_DEFAULT_RECONCILE_DELETE_CAP`; a malformed value uses the
+        default; 0 or negative disables the cap.
+        """
+        raw = os.environ.get("RECONCILE_DELETE_CAP")
+        if raw is None or raw.strip() == "":
+            return _DEFAULT_RECONCILE_DELETE_CAP
+        try:
+            return int(raw)
+        except ValueError:
+            Logger.warn(
+                f"Invalid RECONCILE_DELETE_CAP={raw!r}; using default "
+                f"{_DEFAULT_RECONCILE_DELETE_CAP}"
+            )
+            return _DEFAULT_RECONCILE_DELETE_CAP
 
     @staticmethod
     def _is_clean_for_reconciliation(club_result: ClubScrapingResult) -> bool:

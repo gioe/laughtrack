@@ -40,6 +40,12 @@ class ShowService:
             Logger.info(f"Saving {len(shows)} shows to database...")
             return self.show_handler.insert_shows(shows, club_name=club_name, scraper_key=scraper_key)
             
+    def count_stale_future_shows(
+        self, club_id: int, scraper_key: str, cutoff: datetime
+    ) -> int:
+        """Count stale future shows for the reconciler's safety cap (TASK-2847)."""
+        return self.show_handler.count_stale_future_shows(club_id, scraper_key, cutoff)
+
     def delete_stale_future_shows(
         self, club_id: int, scraper_key: str, cutoff: datetime
     ) -> List[Dict[str, Any]]:

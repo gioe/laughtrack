@@ -64,6 +64,30 @@ class ShowHandler(BaseDatabaseHandler[Show]):
         """Return the Show class for instantiation."""
         return Show
 
+    def count_stale_future_shows(
+        self, club_id: int, scraper_key: str, cutoff: datetime
+    ) -> int:
+        """Count the stale future shows that delete_stale_future_shows would remove.
+
+        Same predicate as the delete; used by the reconciler to enforce a safety
+        cap before deleting (TASK-2847) so a silent parser break that drops a
+        venue's whole calendar at once is surfaced for review rather than wiping
+        inventory.
+        """
+        rows = self.execute_with_cursor(
+            ShowQueries.COUNT_STALE_FUTURE_SHOWS,
+            (club_id, scraper_key, cutoff),
+            return_results=True,
+        )
+        if not rows:
+            return 0
+        row = rows[0]
+        # DictRow supports key access; fall back to positional for plain tuples.
+        try:
+            return int(row["stale_count"])
+        except (TypeError, KeyError):
+            return int(row[0])
+
     def delete_stale_future_shows(
         self, club_id: int, scraper_key: str, cutoff: datetime
     ) -> List[DictRow]:

@@ -64,6 +64,22 @@ class ShowQueries:
         RETURNING id, name, date, room
     '''
 
+    # Companion count for the same predicate as DELETE_STALE_FUTURE_SHOWS. The
+    # reconciler counts first and refuses to delete when the count exceeds a
+    # safety cap: a single clean scrape that drops a venue's ENTIRE future
+    # calendar at once is the signature of a silent parser break (e.g. an
+    # upstream JSON shape change yielding zero events on an HTTP 200), not a
+    # handful of genuine per-event cancellations. Over the cap, the reconciler
+    # logs loudly for human review instead of wiping inventory (TASK-2847).
+    COUNT_STALE_FUTURE_SHOWS = '''
+        SELECT COUNT(*) AS stale_count
+        FROM shows
+        WHERE club_id = %s
+          AND last_scraped_by = %s
+          AND date > NOW()
+          AND last_scraped_date < %s
+    '''
+
     GET_SHOWS_BY_CLUB_DATE_NAME = '''
         SELECT id, club_id, date, room, COALESCE(name, '') AS name
         FROM shows

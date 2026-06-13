@@ -53,3 +53,32 @@ def test_query_is_scoped_to_future_and_scraper_and_cutoff():
     assert "date > NOW()" in sql
     assert "last_scraped_date < %s" in sql
     assert "RETURNING" in sql
+
+
+def test_count_uses_same_predicate_as_delete():
+    """The cap count must share the delete's predicate or the cap guards nothing."""
+    count_sql = ShowQueries.COUNT_STALE_FUTURE_SHOWS
+    assert "SELECT COUNT(*)" in count_sql
+    for clause in ("club_id = %s", "last_scraped_by = %s", "date > NOW()", "last_scraped_date < %s"):
+        assert clause in count_sql
+
+
+def test_count_stale_future_shows_returns_int():
+    h = _handler()
+    h.execute_with_cursor.return_value = [{"stale_count": 3}]
+    cutoff = datetime(2026, 6, 13, 9, 0, 0, tzinfo=timezone.utc)
+
+    n = h.count_stale_future_shows(2301, "eventbrite", cutoff)
+
+    h.execute_with_cursor.assert_called_once_with(
+        ShowQueries.COUNT_STALE_FUTURE_SHOWS,
+        (2301, "eventbrite", cutoff),
+        return_results=True,
+    )
+    assert n == 3
+
+
+def test_count_stale_future_shows_handles_empty_result():
+    h = _handler()
+    h.execute_with_cursor.return_value = None
+    assert h.count_stale_future_shows(1, "json_ld", datetime.now(timezone.utc)) == 0
