@@ -53,6 +53,13 @@ from laughtrack.foundation.infrastructure.http.protection.aws_waf_solver import 
     build_default_aws_waf_solver,
     is_aws_waf_interactive_challenge,
 )
+from laughtrack.foundation.infrastructure.http.protection.cloudflare_solver import (
+    CLOUDFLARE_CHALLENGE_MARKERS,
+    CloudflareSolver,
+    CloudflareSolverError,
+    build_default_cloudflare_solver,
+    is_cloudflare_interactive_challenge,
+)
 from laughtrack.foundation.infrastructure.http.protection.datadome_solver import (
     DATADOME_IFRAME_HOST,
     DataDomeSolver,
@@ -204,11 +211,7 @@ _AWS_WAF_RELOAD_TIMEOUT_MS = 30_000
 # initial domcontentloaded, the challenge JS is still running; it clears
 # itself (a managed challenge needs no CAPTCHA interaction) within a few
 # seconds and reloads into the real content.
-_CLOUDFLARE_CHALLENGE_MARKERS: tuple[str, ...] = (
-    "just a moment",
-    "_cf_chl_opt",
-    "enable javascript and cookies to continue",
-)
+_CLOUDFLARE_CHALLENGE_MARKERS: tuple[str, ...] = CLOUDFLARE_CHALLENGE_MARKERS
 
 # Maximum time to wait for a Cloudflare managed challenge to clear after the
 # initial DOMContentLoaded. The challenge typically resolves in 3-6 s direct,
@@ -217,6 +220,12 @@ _CLOUDFLARE_CHALLENGE_MARKERS: tuple[str, ...] = (
 # letting the steady-state path complete. On timeout, fetch_html returns the
 # challenge HTML and the caller's bot-block detector records it.
 _CLOUDFLARE_CHALLENGE_WAIT_MS = 20_000
+
+# Timeout for ``page.reload`` after a cf_clearance cookie has been injected by
+# the Cloudflare solver. Once the clearance is set the origin returns the real
+# content without re-challenging; mirrors the AWS WAF / DataDome reload
+# ceilings (TASK-2855).
+_CLOUDFLARE_RELOAD_TIMEOUT_MS = 30_000
 
 # Bounded-retry parameters for ``_safe_content`` (TASK-2625). Some origins
 # (notably Rodney's Comedy Club's HTTP 202 interstitial) return a tiny shell
@@ -641,6 +650,132 @@ class PlaywrightBrowser:
         return await _safe_content(page)
 
     @staticmethod
+    async def _solve_cloudflare_if_stuck(
+        *,
+        page: object,
+        context: object,
+        url: str,
+        proxy_url: Optional[str],
+        html: str,
+        solver: Optional[CloudflareSolver],
+    ) -> Optional[str]:
+        """Solve a Cloudflare challenge after the passive wait failed to clear it.
+
+        Called AFTER :meth:`_wait_for_cloudflare_challenge` has run. If the
+        Cloudflare markers are still in *html*, the managed/passive wait did
+        not clear the page — it is the hard interactive Turnstile path
+        (tickets.chanhassendt.com / tickettailor, TASK-2855), which only the
+        capsolver ``AntiCloudflareTask`` flow can break. Returns the
+        post-solve HTML on success, or ``None`` to leave *html* unchanged
+        (so the caller's bot-block recording still fires).
+        """
+        if not is_cloudflare_interactive_challenge(html):
+            return None
+
+        if solver is None:
+            Logger.warn(
+                "[PlaywrightBrowser] Cloudflare challenge persisted after the "
+                "passive wait but CAPSOLVER_API_KEY is unset — returning "
+                "challenge HTML unchanged",
+                {"url": url},
+            )
+            return None
+
+        # Pull the Turnstile sitekey / action / cdata from the DOM when the
+        # page exposes them (the cf-turnstile widget element, or the
+        # window._cf_chl_opt managed-challenge config). All optional —
+        # AntiCloudflareTask tolerates their absence for the interstitial.
+        website_key = action = cdata = None
+        try:
+            params = await page.evaluate(
+                "() => { const el = document.querySelector('[data-sitekey]'); "
+                "const opt = (window._cf_chl_opt || {}); "
+                "return { sitekey: el ? el.getAttribute('data-sitekey') "
+                ": (opt.chlApiSitekey || null), "
+                "action: el ? el.getAttribute('data-action') : null, "
+                "cdata: el ? el.getAttribute('data-cdata') : null }; }"
+            )
+            if isinstance(params, dict):
+                website_key = params.get("sitekey")
+                action = params.get("action")
+                cdata = params.get("cdata")
+        except Exception as exc:
+            Logger.warn(
+                f"[PlaywrightBrowser] Could not read Cloudflare challenge "
+                f"params: {type(exc).__name__}: {exc}",
+                {"url": url},
+            )
+
+        Logger.info(
+            f"[PlaywrightBrowser] Solving Cloudflare challenge for {url}",
+            {"url": url, "has_sitekey": website_key is not None, "has_proxy": bool(proxy_url)},
+        )
+
+        try:
+            solved = await solver.solve(
+                website_url=url,
+                user_agent=_USER_AGENT,
+                proxy_url=proxy_url,
+                website_key=website_key,
+                action=action,
+                cdata=cdata,
+            )
+        except CloudflareSolverError as exc:
+            Logger.warn(
+                f"[PlaywrightBrowser] capsolver rejected Cloudflare solve: {exc}",
+                {"url": url},
+            )
+            return None
+        except Exception as exc:  # network / unexpected
+            Logger.warn(
+                f"[PlaywrightBrowser] Cloudflare solver raised "
+                f"{type(exc).__name__}: {exc}",
+                {"url": url},
+            )
+            return None
+
+        if solved is None:
+            return None
+        if not solved.cookie:
+            # Token-only solve (standalone Turnstile widget). Injecting a
+            # Turnstile token requires submitting it through the widget's
+            # callback, which is not wired here — the cf_clearance cookie
+            # path is what the interstitial targets need. Leave the HTML
+            # unchanged so the bot-block recording surfaces the unsolved page.
+            if solved.token:
+                Logger.warn(
+                    "[PlaywrightBrowser] Cloudflare solver returned a Turnstile "
+                    "token but no cf_clearance cookie; token injection is not "
+                    "wired — leaving challenge HTML unchanged",
+                    {"url": url},
+                )
+            return None
+
+        default_domain = urlparse(url).hostname
+        cookie = parse_set_cookie(solved.cookie, default_domain=default_domain)
+        if cookie is None:
+            Logger.warn(
+                "[PlaywrightBrowser] Cloudflare solver returned an unparseable cookie",
+                {"url": url},
+            )
+            return None
+
+        try:
+            await context.add_cookies([cookie])
+            await page.reload(
+                wait_until="domcontentloaded",
+                timeout=_CLOUDFLARE_RELOAD_TIMEOUT_MS,
+            )
+            return await _safe_content(page)
+        except Exception as exc:
+            Logger.warn(
+                f"[PlaywrightBrowser] Reload after Cloudflare solve failed: "
+                f"{type(exc).__name__}: {exc}",
+                {"url": url},
+            )
+            return None
+
+    @staticmethod
     async def _solve_datadome_if_present(
         *,
         page: object,
@@ -953,6 +1088,21 @@ class PlaywrightBrowser:
                 # signatures.
                 if any(m in html.lower() for m in _CLOUDFLARE_CHALLENGE_MARKERS):
                     html = await self._wait_for_cloudflare_challenge(page, html)
+                    # If the markers survive the passive wait, the page is on
+                    # the hard interactive Turnstile path — capsolver's
+                    # AntiCloudflareTask can break it and return a cf_clearance
+                    # cookie. Solver is built fresh so a missing API key just
+                    # degrades to the challenge HTML unchanged (TASK-2855).
+                    solved_cf_html = await self._solve_cloudflare_if_stuck(
+                        page=page,
+                        context=context,
+                        url=normalized_url,
+                        proxy_url=proxy_url,
+                        html=html,
+                        solver=build_default_cloudflare_solver(),
+                    )
+                    if solved_cf_html is not None:
+                        html = solved_cf_html
                 if any(marker in html for marker in _AWS_WAF_MARKERS):
                     html = await self._wait_for_waf_challenge(page, html)
                     # If the markers are still present after the passive

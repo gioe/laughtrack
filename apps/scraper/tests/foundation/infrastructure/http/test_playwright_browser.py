@@ -1069,6 +1069,139 @@ class TestPlaywrightBrowser:
         # Chromium launched twice: once before close(), once after.
         assert mock_pw_chromium.launch.call_count == 2
 
+    # -----------------------------------------------------------------------
+    # Cloudflare interactive-challenge solver wiring (TASK-2855)
+    # -----------------------------------------------------------------------
+
+    @pytest.mark.asyncio
+    async def test_cloudflare_solver_fires_when_passive_wait_leaves_markers(self):
+        """Criterion 9173 (positive): solver fires when CF markers persist.
+
+        First content() returns a "Just a moment" challenge; the passive
+        wait runs and the second content() STILL carries the marker —
+        meaning the managed wait failed and the page is on the hard
+        interactive Turnstile path. The solver must be called, the
+        cf_clearance cookie injected, the page reloaded, and the
+        post-reload HTML returned.
+        """
+        from laughtrack.foundation.infrastructure.http.protection.cloudflare_solver import (
+            SolvedCloudflareClearance,
+        )
+
+        challenge_html = (
+            "<html><head><title>Just a moment...</title></head>"
+            "<body><script>window._cf_chl_opt={};</script></body></html>"
+        )
+        post_solve_html = "<html>real venue content after cloudflare solve</html>"
+
+        mock_pw_module, mock_browser, mock_page = _make_pw_mocks()
+        mock_page.content = AsyncMock(
+            side_effect=[
+                challenge_html,   # initial content() in fetch_html
+                challenge_html,   # post-passive-wait content() — still blocked
+                post_solve_html,  # post-solver-reload content()
+            ]
+        )
+        mock_page.wait_for_function = AsyncMock()
+        mock_page.evaluate = AsyncMock(
+            return_value={"sitekey": "0xKEY", "action": None, "cdata": None}
+        )
+        mock_page.reload = AsyncMock()
+        mock_context = mock_browser.new_context.return_value
+        mock_context.add_cookies = AsyncMock()
+
+        fake_solver = AsyncMock()
+        fake_solver.solve = AsyncMock(
+            return_value=SolvedCloudflareClearance(
+                cookie="cf_clearance=CLEAR123; Domain=.example.com; Path=/; Secure",
+                token=None,
+                user_agent="Mozilla/5.0 cf",
+            )
+        )
+
+        with (
+            _patch_playwright(mock_pw_module),
+            patch.object(
+                _pb_mod, "build_default_cloudflare_solver", return_value=fake_solver
+            ),
+        ):
+            browser = PlaywrightBrowser()
+            result = await browser.fetch_html("https://example.com/show")
+
+        fake_solver.solve.assert_awaited_once()
+        mock_context.add_cookies.assert_awaited_once()
+        added = mock_context.add_cookies.call_args[0][0]
+        assert isinstance(added, list) and len(added) == 1
+        assert added[0]["name"] == "cf_clearance"
+        assert added[0]["value"] == "CLEAR123"
+        mock_page.reload.assert_awaited_once()
+        assert result == post_solve_html
+
+    @pytest.mark.asyncio
+    async def test_cloudflare_markers_with_no_api_key_preserves_existing_html(self):
+        """Guardrail: missing CAPSOLVER_API_KEY is a no-op for Cloudflare.
+
+        When markers persist post-wait but build_default_cloudflare_solver
+        returns None, the helper logs and falls through — fetch_html returns
+        the challenge HTML unchanged so the caller's bot-block detector keeps
+        recording the block.
+        """
+        challenge_html = "<html><head><title>Just a moment...</title></head></html>"
+        mock_pw_module, mock_browser, mock_page = _make_pw_mocks()
+        mock_page.content = AsyncMock(return_value=challenge_html)
+        mock_page.wait_for_function = AsyncMock()
+        mock_page.reload = AsyncMock()
+        mock_context = mock_browser.new_context.return_value
+        mock_context.add_cookies = AsyncMock()
+
+        with (
+            _patch_playwright(mock_pw_module),
+            patch.object(
+                _pb_mod, "build_default_cloudflare_solver", return_value=None
+            ),
+        ):
+            browser = PlaywrightBrowser()
+            result = await browser.fetch_html("https://example.com")
+
+        assert result == challenge_html
+        mock_context.add_cookies.assert_not_called()
+        mock_page.reload.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_cloudflare_solver_skipped_when_passive_wait_clears_markers(self):
+        """When the managed wait clears the challenge, no solve is attempted.
+
+        The marker is present at first content() (triggering the wait) but the
+        post-wait content() is clean — so _solve_cloudflare_if_stuck sees no
+        markers and returns None without injecting a cookie or reloading.
+        """
+        challenge_html = "<html><head><title>Just a moment...</title></head></html>"
+        cleared_html = "<html><body>real venue content</body></html>"
+        mock_pw_module, mock_browser, mock_page = _make_pw_mocks()
+        mock_page.content = AsyncMock(side_effect=[challenge_html, cleared_html])
+        mock_page.wait_for_function = AsyncMock()
+        mock_page.reload = AsyncMock()
+        mock_context = mock_browser.new_context.return_value
+        mock_context.add_cookies = AsyncMock()
+
+        fake_solver = AsyncMock()
+        fake_solver.solve = AsyncMock()
+
+        with (
+            _patch_playwright(mock_pw_module),
+            patch.object(
+                _pb_mod, "build_default_cloudflare_solver", return_value=fake_solver
+            ),
+        ):
+            browser = PlaywrightBrowser()
+            result = await browser.fetch_html("https://example.com")
+
+        # Markers gone after the passive wait — solver never consulted.
+        fake_solver.solve.assert_not_called()
+        mock_context.add_cookies.assert_not_called()
+        mock_page.reload.assert_not_called()
+        assert result == cleared_html
+
 
 # ---------------------------------------------------------------------------
 # _QuietShutdownFilter — silences benign Playwright shutdown noise
