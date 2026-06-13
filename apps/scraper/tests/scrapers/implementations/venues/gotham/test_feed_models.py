@@ -154,6 +154,17 @@ def test_enrich_with_showclix_data_tolerates_unparseable_price():
     assert enriched.inventory == 42
 
 
+@pytest.mark.parametrize("zero_price", ["0.00", "0", 0, 0.0])
+def test_enrich_with_showclix_data_keeps_zero_price_unknown(zero_price):
+    """A 0.00 ShowClix level is a hidden/comp placeholder, not proven-free —
+    price stays None per the zero-stays-None convention (TASK-2827/TASK-2852),
+    matching the comedy_store guard. Other ticket fields still enrich."""
+    event = GothamFeedEvent.from_feed_item(_feed_item())
+    enriched = event.enrich_with_showclix_data(_showclix_data(price=zero_price))
+    assert enriched.price is None
+    assert enriched.inventory == 42
+
+
 # ---------------------------------------------------------------------------
 # GothamFeedResponse.from_dict — fixture-based parsing
 # ---------------------------------------------------------------------------
