@@ -154,6 +154,32 @@ class ScrapeDiagnostics:
         """
         self.persist_lock_timeouts.append((venue_label, dropped_events))
 
+    def apply_deferred_challenge_heuristic(self) -> None:
+        """Classify an HTTP-202 scrape that produced zero items as a bot block.
+
+        Some WAFs answer GHA-runner traffic with ``202 Accepted`` plus a
+        challenge body instead of the real page (Rodney's, TASK-2844). The
+        challenge HTML carries none of the known signatures, so the scrape
+        ends with ``http_status=202``, ``bot_block_detected=False`` and zero
+        items — indistinguishable in the run row from a legitimately empty
+        calendar. A 202 on a plain GET of a calendar page is not a real
+        content response; when it coincides with zero parsed items, record a
+        synthetic bot-block so the outcome classifies DEGRADED instead of
+        EMPTY_CALENDAR. Runs that still parsed items despite a 202 on some
+        sub-fetch are left alone. Call at scrape end, once
+        ``items_before_filter`` is final.
+        """
+        if self.bot_block_detected:
+            return
+        if self.http_status == 202 and self.items_before_filter == 0:
+            self.record_bot_block(
+                "http_202_deferred_zero_items",
+                provider=None,
+                block_type="deferred_challenge",
+                source="status_code_heuristic",
+                stage="direct_fetch",
+            )
+
     def record_scrape_error(self, message: str) -> None:
         """Record the text of a per-target fetch/transform exception that the
         pipeline catches without re-raising.
