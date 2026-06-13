@@ -369,7 +369,7 @@ class BaseScraper(HttpConvenienceMixin, ABC):
             html = await asyncio.wait_for(
                 browser.fetch_html(url, proxy_url=proxy_url), timeout=60
             )
-            if html and diagnostics is not None:
+            if html:
                 rendered_bot_signature = _bot_block_reason(html)
                 if rendered_bot_signature is not None:
                     Logger.warn(
@@ -377,11 +377,12 @@ class BaseScraper(HttpConvenienceMixin, ABC):
                         f"a bot-block page (signature: {rendered_bot_signature!r})",
                         self.logger_context,
                     )
-                    diagnostics.record_bot_block(
-                        f"playwright_{rendered_bot_signature}",
-                        source="playwright_rendered_html",
-                        stage="playwright_fallback",
-                    )
+                    if diagnostics is not None:
+                        diagnostics.record_bot_block(
+                            f"playwright_{rendered_bot_signature}",
+                            source="playwright_rendered_html",
+                            stage="playwright_fallback",
+                        )
             return html
         except asyncio.TimeoutError:
             Logger.warn(
@@ -405,6 +406,12 @@ class BaseScraper(HttpConvenienceMixin, ABC):
         all of them through paid proxy egress when only one sits behind a
         WAF. A ``use_residential_proxy: true`` flag on the active scraping
         source's metadata scopes the proxy to that single venue.
+
+        Limitation: the flag is honored only on this Playwright JS path —
+        the curl_cffi path (``fetch_html`` → ``HttpClient.resolve_proxy_url``)
+        resolves proxying purely by scraper key, so setting the flag on a
+        source without ``force_js_rendering`` has no effect. Extend
+        ``HttpClient`` if a curl-path venue ever needs per-source proxying.
         """
         if not bool((self.club.source_metadata or {}).get("use_residential_proxy")):
             return None
