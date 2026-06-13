@@ -330,6 +330,12 @@ class TixrScraper(BaseScraper):
         )
 
     def _uses_known_datadome_group_events_proxy_only(self, group_id: str) -> bool:
+        # datadome_reprobe lets an operator readopt a recovered direct source
+        # without a deploy: it neutralizes the hardcoded known-DataDome block so
+        # the direct Tixr group page is attempted again (and the group-events
+        # fallback, if it still fires, no longer caps at proxy-only single-page).
+        if self._datadome_reprobe_enabled():
+            return False
         normalized_group_id = str(group_id or "").strip().lower()
         normalized_url = URLUtils.normalize_url(self.club.scraping_url or "").lower()
         return normalized_group_id in _KNOWN_DATADOME_GROUP_IDS or any(
@@ -345,8 +351,13 @@ class TixrScraper(BaseScraper):
         # fallback-only (consulted after a failed direct fetch), so setting
         # it cannot silently bypass direct scraping for every Tixr group
         # club at once.
+        # The two DataDome-specific short-circuits (Improv Asylum's Pixl
+        # redirect and the known-blocked group) are gated by datadome_reprobe so
+        # a recovered direct source can be readopted without a deploy. The
+        # explicit tixr_group_events_api_fallback opt-in is a deliberate operator
+        # choice, not a DataDome block, so it stays ungated.
         return (
-            self._is_improv_asylum_tixr_source(url)
+            (self._is_improv_asylum_tixr_source(url) and not self._datadome_reprobe_enabled())
             or self._uses_known_datadome_group_events_proxy_only(
                 str(self.club.metadata_value("tixr_group_id") or "")
             )

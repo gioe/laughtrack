@@ -417,6 +417,30 @@ class BaseScraper(HttpConvenienceMixin, ABC):
             return None
         return os.environ.get("RESIDENTIAL_PROXY_URL") or None
 
+    def _datadome_reprobe_enabled(self) -> bool:
+        """Per-source operational override to readopt a DataDome-blocked direct source.
+
+        Several scrapers (etix, tixr) carry hardcoded short-circuits that skip a
+        venue's direct ticketing source because DataDome blocks it for GHA-class
+        egress, routing instead to a venue-owned fallback. Those blocks are
+        permanent code-level decisions: a venue whose DataDome block is later
+        lifted (or that begins solving via capsolver+proxy) cannot readopt its
+        direct source without a code change and deploy.
+
+        Setting ``datadome_reprobe: true`` on the active scraping source's
+        metadata neutralizes the DataDome short-circuit for that one venue, so
+        the scraper attempts the direct source again — no deploy required. Clear
+        the flag to restore the fallback if the direct source is still blocked.
+        Accepts a JSON bool or a truthy string ("1"/"true"/"yes"/"on"),
+        mirroring the other per-source metadata flags.
+        """
+        value = (self.club.source_metadata or {}).get("datadome_reprobe")
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, str):
+            return value.strip().lower() in {"1", "true", "yes", "on"}
+        return False
+
     def scrape(self) -> List[Show]:
         """
         Synchronously scrape shows from the venue.

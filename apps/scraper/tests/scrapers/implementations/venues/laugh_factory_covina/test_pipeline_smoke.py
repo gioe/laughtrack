@@ -199,6 +199,42 @@ async def test_get_data_returns_none_when_fallback_disabled(monkeypatch):
     fetch_mock.assert_not_called()
 
 
+@pytest.mark.asyncio
+async def test_datadome_reprobe_readopts_direct_tixr_source(monkeypatch):
+    """datadome_reprobe: true disables the known-DataDome short-circuit so the
+    direct Tixr group page is attempted again — no deploy needed (TASK-2819)."""
+    scraper = TixrScraper(_club(metadata={"tixr_group_id": 1613, "datadome_reprobe": True}))
+
+    # Both DataDome guards are neutralized by the override.
+    assert scraper._uses_known_datadome_group_events_proxy_only("1613") is False
+    assert scraper._uses_known_blocked_fallback(GROUP_URL) is False
+
+    # collect_scraping_targets now fetches the direct group page for pagination
+    # discovery instead of short-circuiting straight to the fallback.
+    calendar_calls = []
+
+    async def fake_fetch_calendar_html(url: str):
+        calendar_calls.append(url)
+        return ""  # no pagination links -> single target
+
+    monkeypatch.setattr(scraper, "_fetch_calendar_html", fake_fetch_calendar_html)
+    targets = await scraper.collect_scraping_targets()
+
+    assert calendar_calls, "expected the direct Tixr page to be fetched under reprobe"
+    assert targets == [GROUP_URL]
+
+    # Sanity: without the override the same source still short-circuits.
+    assert TixrScraper(_club())._uses_known_blocked_fallback(GROUP_URL) is True
+
+
+def test_datadome_reprobe_accepts_truthy_string(monkeypatch):
+    """The override honors a truthy string value, matching the other per-source
+    metadata flags."""
+    scraper = TixrScraper(_club(metadata={"tixr_group_id": 1613, "datadome_reprobe": "true"}))
+    assert scraper._datadome_reprobe_enabled() is True
+    assert scraper._uses_known_blocked_fallback(GROUP_URL) is False
+
+
 def test_can_transform_accepts_tixr_event():
     """
     Transformation pipeline accepts TixrEvent — catches type-mismatch regressions

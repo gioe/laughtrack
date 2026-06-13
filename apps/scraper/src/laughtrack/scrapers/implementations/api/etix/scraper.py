@@ -191,7 +191,8 @@ class EtixScraper(BaseScraper):
 
     def _uses_laugh_patriot_place_fallback(self, url: str) -> bool:
         return (
-            self._venue_id == _LAUGH_PATRIOT_PLACE_VENUE_ID
+            not self._datadome_reprobe_enabled()
+            and self._venue_id == _LAUGH_PATRIOT_PLACE_VENUE_ID
             and "etix.com/ticket/mvc/online/upcomingEvents/venue" in url
         )
 
@@ -322,7 +323,8 @@ class EtixScraper(BaseScraper):
 
     def _uses_funny_bone_fallback(self, url: str) -> bool:
         return (
-            self._venue_id in _FUNNY_BONE_FALLBACKS
+            not self._datadome_reprobe_enabled()
+            and self._venue_id in _FUNNY_BONE_FALLBACKS
             and "etix.com/ticket/mvc/online/upcomingEvents/venue" in url
         )
 
@@ -339,7 +341,8 @@ class EtixScraper(BaseScraper):
 
     def _uses_zanies_nashville_fallback(self, url: str) -> bool:
         return (
-            self._venue_id == _ZANIES_NASHVILLE_VENUE_ID
+            not self._datadome_reprobe_enabled()
+            and self._venue_id == _ZANIES_NASHVILLE_VENUE_ID
             and "etix.com/ticket/mvc/online/upcomingEvents/venue" in url
         )
 

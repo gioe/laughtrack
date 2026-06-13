@@ -135,6 +135,77 @@ async def test_laugh_patriot_place_collect_targets_skips_etix_discovery(monkeypa
     assert await scraper.collect_scraping_targets() == [ETIX_URL]
 
 
+# ---------------------------------------------------------------------------
+# datadome_reprobe operational override (TASK-2819)
+# ---------------------------------------------------------------------------
+
+
+def _club_with_reprobe(venue_id: str = "32411", reprobe=True):
+    """A Laugh-Patriot-Place-shaped club whose source carries datadome_reprobe."""
+    from laughtrack.core.entities.club.model import Club, ScrapingSource
+
+    club = _club()
+    club.active_scraping_source = ScrapingSource(
+        id=1,
+        club_id=club.id,
+        platform="etix",
+        scraper_key="etix",
+        source_url=f"https://www.etix.com/ticket/v/{venue_id}/some-venue",
+        external_id=None,
+        metadata={"datadome_reprobe": reprobe},
+    )
+    club.scraping_sources = [club.active_scraping_source]
+    return club
+
+
+@pytest.mark.parametrize(
+    "venue_id, guard_name",
+    [
+        ("32411", "_uses_laugh_patriot_place_fallback"),  # Laugh Patriot Place
+        ("28453", "_uses_funny_bone_fallback"),           # Des Moines Funny Bone
+        ("21745", "_uses_zanies_nashville_fallback"),     # Nashville Zanies
+    ],
+)
+def test_datadome_reprobe_disables_etix_short_circuits(venue_id, guard_name):
+    """datadome_reprobe: true neutralizes every hardcoded Etix DataDome
+    short-circuit so the direct Etix venue page is attempted again (TASK-2819)."""
+    from laughtrack.scrapers.implementations.api.etix.scraper import EtixScraper
+
+    venue_url = (
+        "https://www.etix.com/ticket/mvc/online/upcomingEvents/venue"
+        f"?venue_id={venue_id}&orderBy=1&pageNumber=1"
+    )
+
+    # Without the override the guard short-circuits to the venue-owned fallback.
+    blocked = EtixScraper(_club_with_reprobe(venue_id, reprobe=False))
+    assert getattr(blocked, guard_name)(venue_url) is True
+
+    # With datadome_reprobe set, the short-circuit is disabled.
+    reprobing = EtixScraper(_club_with_reprobe(venue_id, reprobe=True))
+    assert getattr(reprobing, guard_name)(venue_url) is False
+
+
+@pytest.mark.asyncio
+async def test_datadome_reprobe_collect_targets_attempts_direct_etix(monkeypatch):
+    """With the override set, collect_scraping_targets fetches the direct Etix
+    page instead of short-circuiting to the calendar fallback."""
+    from laughtrack.scrapers.implementations.api.etix.scraper import EtixScraper
+
+    scraper = EtixScraper(_club_with_reprobe("32411"))
+    fetched = []
+
+    async def fake_fetch_etix_html(url: str):
+        fetched.append(url)
+        return "<html><body></body></html>"  # no pagination markers -> single page
+
+    monkeypatch.setattr(scraper, "_fetch_etix_html", fake_fetch_etix_html)
+
+    targets = await scraper.collect_scraping_targets()
+
+    assert fetched == [ETIX_URL]  # direct Etix attempted, not skipped
+    assert targets == [ETIX_URL]
+
+
 def test_etix_event_can_use_public_event_page_for_show_page_url():
     from laughtrack.core.entities.event.etix import EtixEvent
 
