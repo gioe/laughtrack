@@ -272,18 +272,25 @@ async def test_get_data_enrichment_skips_shows_without_tixologi_event_id(monkeyp
     async def fake_fetch_html_bare(self, url: str):
         return html
 
-    async def exploding_fetch_event_ticket_types(event_id: str):
-        raise AssertionError("client must not be called for shows without an event id")
+    # Record calls rather than raising: the enrichment guard catches Exception
+    # (including AssertionError), so an exploding mock could be swallowed and
+    # the test would pass even if the client WERE called.
+    client_calls: list = []
+
+    async def recording_fetch_event_ticket_types(event_id: str):
+        client_calls.append(event_id)
+        return []
 
     monkeypatch.setattr(ComedyKeyWestScraper, "fetch_html_bare", fake_fetch_html_bare)
     monkeypatch.setattr(
         scraper.tixologi_client,
         "fetch_event_ticket_types",
-        exploding_fetch_event_ticket_types,
+        recording_fetch_event_ticket_types,
     )
 
     result = await scraper.get_data("comedykeywest.com/shows")
 
     assert isinstance(result, ComedyKeyWestPageData)
+    assert client_calls == [], "client must not be called for shows without an event id"
     show = result.event_list[0].to_show(_club())
     assert show.tickets[0].price is None
