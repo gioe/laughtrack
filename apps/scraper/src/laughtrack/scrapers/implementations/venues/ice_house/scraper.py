@@ -28,15 +28,15 @@ Currently used by: Ice House Comedy Club (Pasadena, CA).
 A second Tockify venue can be onboarded with only a DB row — no Python changes.
 """
 
-import asyncio
 import time
-from typing import Dict, List, Optional
+from typing import List, Optional
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.event.ice_house import IceHouseEvent, normalize_showclix_url
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.scrapers.base.base_scraper import BaseScraper
+from laughtrack.scrapers.base.detail_price_mixin import DetailPagePriceMixin
 from laughtrack.shared.types import ScrapingTarget
 
 from .data import IceHousePageData
@@ -49,23 +49,22 @@ from .transformer import IceHouseEventTransformer
 _TOCKIFY_MAX_PAGES = 20
 
 
-class IceHouseScraper(BaseScraper):
+class IceHouseScraper(DetailPagePriceMixin, BaseScraper):
     """
     Generic Tockify scraper — reads club.scraping_url for the API base URL.
 
     Fetches upcoming events from the Tockify calendar API.
     The startms parameter is set to the current time so only upcoming events
-    are returned.
+    are returned. Ticket prices are attached from each event's ShowClix/Leap
+    ticket page JSON-LD via DetailPagePriceMixin.
     """
 
     key = "tockify"
 
+    _detail_price_log_subject = "ticket-page"
+
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
-        # Ticket-page price fetches memoized for the life of the run: recurring
-        # shows share a ShowClix/Leap page, so each distinct page is fetched at
-        # most once (and a get_data retry does not refetch successes).
-        self._ticket_price_tasks: Dict[str, "asyncio.Task[Optional[float]]"] = {}
         self.transformation_pipeline.register_transformer(IceHouseEventTransformer(club))
 
     async def collect_scraping_targets(self) -> List[ScrapingTarget]:
@@ -141,7 +140,7 @@ class IceHouseScraper(BaseScraper):
                 self._warn_empty_extraction(url, payload=last_response)
                 return None
 
-            await self._attach_ticket_page_prices(all_events)
+            await self._attach_detail_page_prices(all_events, self._ticket_price_url)
 
             Logger.info(
                 f"{self._log_prefix}: extracted {len(all_events)} events across "
@@ -157,62 +156,14 @@ class IceHouseScraper(BaseScraper):
             )
             return None
 
-    async def _attach_ticket_page_prices(self, events: List[IceHouseEvent]) -> None:
-        """Populate each event's price from its ShowClix/Leap ticket page JSON-LD.
+    @staticmethod
+    def _ticket_price_url(event: IceHouseEvent) -> Optional[str]:
+        """Normalized ShowClix/Leap ticket URL for an event's price fetch.
 
-        Fetches are memoized per distinct normalized ticket URL — recurring
-        shows share a page. Events without a ticket button (Tockify detail-url
-        fallback pages carry no offers) keep price=None.
+        Events without a ticket button (Tockify detail-url fallback pages
+        carry no offers) keep price=None.
         """
-        urls = list(dict.fromkeys(
-            normalize_showclix_url(event.ticket_url)
-            for event in events
-            if event.ticket_url
-        ))
-        prices = await asyncio.gather(*(self._ticket_page_price(u) for u in urls))
-        price_by_url = dict(zip(urls, prices))
-        for event in events:
-            if event.ticket_url:
-                event.price = price_by_url.get(normalize_showclix_url(event.ticket_url))
-
-    def _ticket_page_price(self, url: str) -> "asyncio.Task[Optional[float]]":
-        task = self._ticket_price_tasks.get(url)
-        if task is None:
-            task = asyncio.ensure_future(self._fetch_ticket_page_price(url))
-            self._ticket_price_tasks[url] = task
-        return task
-
-    async def _fetch_ticket_page_price(self, url: str) -> Optional[float]:
-        """Fetch one ticket page and parse its lowest JSON-LD offer price.
-
-        Never raises: a missing price degrades the ticket to price-unknown
-        (None) rather than dropping the calendar. Failed fetches are evicted
-        from the memo so a retry of get_data can try the page again; a fetched
-        page with no parseable offers stays cached — refetching would not help.
-        """
-        try:
-            await self.rate_limiter.await_if_needed(url)
-            html = await self.fetch_html(url)
-        except Exception as e:
-            self._ticket_price_tasks.pop(url, None)
-            Logger.warn(
-                f"{self._log_prefix}: ticket-page price fetch failed for {url}: {e}",
-                self.logger_context,
-            )
-            return None
-        if not html:
-            self._ticket_price_tasks.pop(url, None)
-            return None
-        try:
-            return IceHouseExtractor.extract_min_offer_price(html)
-        except Exception as e:
-            # Parse failures stay cached — the page was fetched fine, so a
-            # refetch would not help.
-            Logger.warn(
-                f"{self._log_prefix}: ticket-page price parse failed for {url}: {e}",
-                self.logger_context,
-            )
-            return None
+        return normalize_showclix_url(event.ticket_url) if event.ticket_url else None
 
     @staticmethod
     def _advance_startms(url: str, new_startms: int) -> str:

@@ -10,6 +10,7 @@ import pytest
 
 from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.ice_house import IceHouseEvent, normalize_showclix_url
+from laughtrack.scrapers.implementations.json_ld.extractor import EventExtractor
 from laughtrack.scrapers.implementations.venues.ice_house.scraper import IceHouseScraper
 from laughtrack.scrapers.implementations.venues.ice_house.data import IceHousePageData
 from laughtrack.scrapers.implementations.venues.ice_house.extractor import IceHouseExtractor
@@ -100,7 +101,7 @@ def _stub_price_fetch(monkeypatch):
     async def no_price(self, url: str):
         return None
 
-    monkeypatch.setattr(IceHouseScraper, "_fetch_ticket_page_price", no_price)
+    monkeypatch.setattr(IceHouseScraper, "_fetch_detail_page_price", no_price)
 
 
 # ---------------------------------------------------------------------------
@@ -577,37 +578,39 @@ async def test_get_data_stops_pagination_when_has_next_true_but_no_events(monkey
 # ---------------------------------------------------------------------------
 # Ticket-page JSON-LD price extraction — the Tockify payload has no price
 # keys; each ShowClix/Leap ticket page embeds Event.offers per-tier prices.
+# Parsed via the shared EventExtractor helper (TASK-2848); these tests keep
+# the live Leap-page shape covered against changes to that helper.
 # ---------------------------------------------------------------------------
 
 
 def test_extract_min_offer_price_returns_lowest_positive_tier():
     """The lowest positive per-tier price wins across the offers list."""
     html = _leap_page_html(["25.00", "20.00", "35.00"])
-    assert IceHouseExtractor.extract_min_offer_price(html) == 20.0
+    assert EventExtractor.extract_min_offer_price(html) == 20.0
 
 
 def test_extract_min_offer_price_all_zero_offers_means_free():
     """Explicit all-zero offers (open-mic RSVP pages) parse as proven-free 0.0."""
     html = _leap_page_html(["0.00"])
-    assert IceHouseExtractor.extract_min_offer_price(html) == 0.0
+    assert EventExtractor.extract_min_offer_price(html) == 0.0
 
 
 def test_extract_min_offer_price_ignores_zero_tier_alongside_paid():
     """A zero tier next to paid tiers is a comp/placeholder, not the price."""
     html = _leap_page_html(["0.00", "23.00", "23.00"])
-    assert IceHouseExtractor.extract_min_offer_price(html) == 23.0
+    assert EventExtractor.extract_min_offer_price(html) == 23.0
 
 
 def test_extract_min_offer_price_returns_none_without_json_ld():
     """Pages without a JSON-LD Event block (seated sales variant) yield None."""
     html = "<html><head><title>Tickets</title></head><body>$23.00</body></html>"
-    assert IceHouseExtractor.extract_min_offer_price(html) is None
+    assert EventExtractor.extract_min_offer_price(html) is None
 
 
 def test_extract_min_offer_price_skips_unparseable_prices():
     """Empty/garbage price strings are skipped rather than raising."""
     html = _leap_page_html(["", "abc", "30.00"])
-    assert IceHouseExtractor.extract_min_offer_price(html) == 30.0
+    assert EventExtractor.extract_min_offer_price(html) == 30.0
 
 
 def _scraper_with_ticket_pages(monkeypatch, api_events: list, html_by_url: dict, fetched: list) -> IceHouseScraper:

@@ -1,9 +1,8 @@
 """Configurable scraper for venues using the ThunderTix weekly calendar API."""
 
-import asyncio
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
-from typing import Callable, Dict, Generic, List, Optional, Sequence, Tuple, TypeVar
+from typing import Callable, Generic, List, Optional, Sequence, Tuple, TypeVar
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.event.thundertix import ThunderTixPerformance
@@ -11,7 +10,7 @@ from laughtrack.core.protocols.show_convertible import ShowConvertible
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.ports.scraping import EventListContainer
 from laughtrack.scrapers.base.base_scraper import BaseScraper
-from laughtrack.scrapers.implementations.api.simpletix.extractor import SimpleTixExtractor
+from laughtrack.scrapers.base.detail_price_mixin import DetailPagePriceMixin
 
 from .data import ThunderTixPageData
 from .transformer import ThunderTixEventTransformer
@@ -51,17 +50,17 @@ class ThunderTixCalendarConfig(Generic[PerformanceT, PageDataT]):
     current_week_start_ts: Callable[[], int] = current_week_start_ts
 
 
-class ThunderTixCalendarScraper(BaseScraper, Generic[PerformanceT, PageDataT]):
-    """Base scraper for ThunderTix calendar endpoints configured per venue."""
+class ThunderTixCalendarScraper(
+    DetailPagePriceMixin, BaseScraper, Generic[PerformanceT, PageDataT]
+):
+    """Base scraper for ThunderTix calendar endpoints configured per venue.
+
+    The calendar API carries no price field; each performance's price is
+    attached from its event detail page's JSON-LD AggregateOffer via
+    DetailPagePriceMixin.
+    """
 
     thundertix_config: ThunderTixCalendarConfig[PerformanceT, PageDataT]
-
-    def __init__(self, club: Club, **kwargs):
-        super().__init__(club, **kwargs)
-        # Detail-page price fetches memoized for the life of the run: the same
-        # event recurs across the concurrent weekly windows and performances of
-        # one event share a detail page, so each page is fetched at most once.
-        self._detail_price_tasks: Dict[str, "asyncio.Task[Optional[float]]"] = {}
 
     async def collect_scraping_targets(self) -> List[str]:
         config = self.thundertix_config
@@ -117,7 +116,7 @@ class ThunderTixCalendarScraper(BaseScraper, Generic[PerformanceT, PageDataT]):
                 )
                 return None
 
-            await self._attach_detail_page_prices(performances)
+            await self._attach_detail_page_prices(performances, self._detail_price_url)
 
             Logger.info(
                 f"{self._log_prefix}: extracted {len(performances)} performance(s) from {url}",
@@ -129,58 +128,16 @@ class ThunderTixCalendarScraper(BaseScraper, Generic[PerformanceT, PageDataT]):
             Logger.error(f"{self._log_prefix}: get_data failed for {url}: {e}", self.logger_context)
             return None
 
-    async def _attach_detail_page_prices(self, performances: List[PerformanceT]) -> None:
-        """Populate each performance's price from its event detail page JSON-LD.
+    def _detail_price_url(self, performance: PerformanceT) -> Optional[str]:
+        """Detail-page URL for a performance's price fetch.
 
-        The calendar API carries no price field, but every event detail page
-        (``show_page_url``) embeds a schema.org Event JSON-LD block with an
-        AggregateOffer ``lowPrice``. Fetches are memoized per distinct detail
-        URL — performances of one event share a page, and the same event recurs
-        across weekly windows.
+        An empty truncated_url leaves show_page_url == base_url; the venue
+        root has no event JSON-LD, so skip it (price stays unknown).
         """
-        base_url = self.thundertix_config.base_url
-        urls = list(dict.fromkeys(
-            performance.show_page_url
-            for performance in performances
-            # An empty truncated_url leaves show_page_url == base_url; the
-            # venue root has no event JSON-LD, so skip it.
-            if performance.show_page_url and performance.show_page_url != base_url
-        ))
-        prices = await asyncio.gather(*(self._detail_page_price(url) for url in urls))
-        price_by_url = dict(zip(urls, prices))
-        for performance in performances:
-            performance.price = price_by_url.get(performance.show_page_url)
-
-    def _detail_page_price(self, url: str) -> "asyncio.Task[Optional[float]]":
-        task = self._detail_price_tasks.get(url)
-        if task is None:
-            task = asyncio.ensure_future(self._fetch_detail_page_price(url))
-            self._detail_price_tasks[url] = task
-        return task
-
-    async def _fetch_detail_page_price(self, url: str) -> Optional[float]:
-        """Fetch one event detail page and parse its JSON-LD lowPrice.
-
-        Never raises: a missing price degrades the ticket to price-unknown
-        (None) rather than dropping the whole calendar window. Failed fetches
-        are evicted from the memo so a later weekly window can retry a
-        transiently failing page; a successfully fetched page with no parseable
-        price stays cached — refetching it would not help.
-        """
-        try:
-            await self.rate_limiter.await_if_needed(url)
-            html = await self.fetch_html(url)
-        except Exception as e:
-            self._detail_price_tasks.pop(url, None)
-            Logger.warn(
-                f"{self._log_prefix}: detail-page price fetch failed for {url}: {e}",
-                self.logger_context,
-            )
+        url = performance.show_page_url
+        if not url or url == self.thundertix_config.base_url:
             return None
-        if not html:
-            self._detail_price_tasks.pop(url, None)
-            return None
-        return SimpleTixExtractor.extract_json_ld_price(html)
+        return url
 
 
 _CALENDAR_PATH_SUFFIX = _CALENDAR_PATH.lstrip("/")

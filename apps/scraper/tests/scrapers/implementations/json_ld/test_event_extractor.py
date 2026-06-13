@@ -384,3 +384,46 @@ def test_extract_min_offer_price_none_without_offers():
     assert EventExtractor.extract_min_offer_price("<html><body>no ld</body></html>") is None
     html = _wrap_ldjson(_priced_event({"@type": "Offer", "price": "", "priceCurrency": "USD"}))
     assert EventExtractor.extract_min_offer_price(html) is None
+
+
+def test_extract_min_offer_price_survives_events_missing_model_required_fields():
+    """Price extraction must not depend on the JsonLdEvent factory's required fields.
+
+    Live SimpleTix pages emit a top-level array of per-showtime Events with no
+    `url` anywhere; live ThunderTix detail pages omit `startDate`. Both would
+    be dropped by JsonLdEvent.from_json_ld, but their offers must still yield
+    a price (TASK-2848).
+    """
+    # SimpleTix shape: array of Events, no url, AggregateOffer lowPrice.
+    simpletix = _wrap_ldjson([
+        {
+            "@type": "Event",
+            "name": "ImprovCity Show - Tickets",
+            "startDate": "2099-01-02T19:30:00+00:00",
+            "offers": [{"@type": "AggregateOffer", "priceCurrency": "USD", "lowPrice": 5.72, "highPrice": 20.03}],
+        }
+    ])
+    assert EventExtractor.extract_min_offer_price(simpletix) == 5.72
+
+    # ThunderTix detail-page shape: Event with no startDate.
+    thundertix = _wrap_ldjson({
+        "@context": "https://schema.org",
+        "@type": "Event",
+        "name": "Jury Duty",
+        "offers": {
+            "@type": "AggregateOffer",
+            "url": "https://theannoyance.thundertix.com/events/1",
+            "priceCurrency": "USD",
+            "lowPrice": "15.0",
+            "highPrice": "15.0",
+        },
+    })
+    assert EventExtractor.extract_min_offer_price(thundertix) == 15.0
+
+
+def test_extract_min_offer_price_skips_non_dict_offer_entries():
+    """Non-dict members of an offers list are skipped, not fatal."""
+    html = _wrap_ldjson(_priced_event(
+        ["not an offer", {"@type": "Offer", "price": "18.00", "priceCurrency": "USD"}]
+    ))
+    assert EventExtractor.extract_min_offer_price(html) == 18.0

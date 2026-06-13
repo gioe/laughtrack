@@ -255,6 +255,9 @@ class JsonLdEvent(ShowConvertible):
             offers_list = []
 
         for offer in offers_list:
+            if not isinstance(offer, dict):
+                continue
+
             valid_from = None
             if "validFrom" in offer:
                 try:
@@ -265,8 +268,11 @@ class JsonLdEvent(ShowConvertible):
             # AggregateOffer carries a price *range* (lowPrice/highPrice), not a
             # single `price`. Use lowPrice as the representative ticket price so
             # downstream enhancement doesn't drop the offer for empty `price`.
+            # Applied regardless of @type: live pages mislabel aggregates as
+            # plain Offers (e.g. SimpleTix), and an absent `price` alongside a
+            # present `lowPrice` has only one sensible reading.
             price = offer.get("price", "")
-            if price in ("", None) and _is_aggregate_offer(offer):
+            if price in ("", None):
                 fallback = offer.get("lowPrice", offer.get("highPrice", ""))
                 price = "" if fallback in ("", None) else str(fallback)
 
@@ -330,23 +336,6 @@ class ComedyEvent(JsonLdEvent):
         # Use the base class's _create_from_json_ld method
         event = cls._create_from_json_ld(data)
         return cls(**event.__dict__)
-
-
-_AGGREGATE_OFFER_TYPES = {
-    "AggregateOffer",
-    "http://schema.org/AggregateOffer",
-    "https://schema.org/AggregateOffer",
-}
-
-
-def _is_aggregate_offer(offer: dict) -> bool:
-    """Return True when the offer dict declares schema.org AggregateOffer."""
-    type_value = offer.get("@type")
-    if isinstance(type_value, str):
-        return type_value in _AGGREGATE_OFFER_TYPES
-    if isinstance(type_value, list):
-        return any(t in _AGGREGATE_OFFER_TYPES for t in type_value if isinstance(t, str))
-    return False
 
 
 def parse_event_date(date_str):

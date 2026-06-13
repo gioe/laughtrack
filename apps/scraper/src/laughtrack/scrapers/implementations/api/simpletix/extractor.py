@@ -17,6 +17,7 @@ from dateutil import parser as dateutil_parser
 
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.utilities.html.utils import HtmlUtils
+from laughtrack.scrapers.implementations.json_ld.extractor import EventExtractor
 
 
 class SimpleTixExtractor:
@@ -27,11 +28,6 @@ class SimpleTixExtractor:
     )
 
     _TITLE_PATTERN = re.compile(r"<h1[^>]*>(.*?)</h1>", re.DOTALL)
-
-    _JSON_LD_PATTERN = re.compile(
-        r'<script[^>]*type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
-        re.DOTALL,
-    )
 
     @staticmethod
     def extract_time_array(html: str) -> List[Dict]:
@@ -62,55 +58,13 @@ class SimpleTixExtractor:
 
     @staticmethod
     def extract_json_ld_price(html: str) -> Optional[float]:
-        """Extract the lowest ticket price from JSON-LD AggregateOffer."""
-        matches = SimpleTixExtractor._JSON_LD_PATTERN.findall(html)
-        if not matches:
-            return None
+        """Lowest ticket price from the page's JSON-LD AggregateOffer.
 
-        for raw_ld in matches:
-            try:
-                ld = json.loads(raw_ld)
-            except (json.JSONDecodeError, ValueError):
-                continue
-
-            # The JSON-LD block may be a single object or a top-level array
-            # of event objects (SimpleTix switched to the array form).
-            entries = ld if isinstance(ld, list) else [ld]
-
-            for entry in entries:
-                if not isinstance(entry, dict):
-                    continue
-
-                offers = entry.get("offers")
-                if not offers:
-                    continue
-
-                price = SimpleTixExtractor._lowest_offer_price(offers)
-                if price is not None:
-                    return price
-
-        return None
-
-    @staticmethod
-    def _lowest_offer_price(offers) -> Optional[float]:
-        """Return the first parseable lowPrice from a dict or list of offers."""
-        # offers can be a single dict or a list
-        if isinstance(offers, dict):
-            offers = [offers]
-        if not isinstance(offers, list):
-            return None
-
-        for offer in offers:
-            if not isinstance(offer, dict):
-                continue
-            low_price = offer.get("lowPrice")
-            if low_price is not None:
-                try:
-                    return float(low_price)
-                except (ValueError, TypeError):
-                    continue
-
-        return None
+        Delegates to the shared JSON-LD helper (convention 15), which handles
+        single-object and top-level-array blocks, both offer shapes, and the
+        AggregateOffer lowPrice fallback.
+        """
+        return EventExtractor.extract_min_offer_price(html)
 
     @staticmethod
     def parse_time_entry(time_str: str) -> Optional[datetime]:

@@ -5,7 +5,6 @@ from urllib.parse import parse_qs, urlparse
 
 from laughtrack.core.entities.event.ice_house import IceHouseEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
-from laughtrack.scrapers.implementations.json_ld.extractor import EventExtractor
 
 
 def _extract_calname(api_url: Optional[str]) -> str:
@@ -47,35 +46,6 @@ class IceHouseExtractor:
             except Exception as e:
                 Logger.warn(f"IceHouseExtractor: skipping event due to error: {e}")
         return events
-
-    @staticmethod
-    def extract_min_offer_price(html: str) -> Optional[float]:
-        """Lowest per-tier offer price from a ShowClix/Leap ticket page's JSON-LD.
-
-        Leap event pages embed a schema.org Event block whose ``offers`` list
-        carries one Offer per seating tier (string prices, base price without
-        the service fee). Parsed through the shared JSON-LD pipeline per
-        convention 15 — no bespoke regex.
-
-        Returns the lowest positive offer price; 0.0 only when every parseable
-        offer is an explicit zero (proven-free, e.g. the open-mic RSVP pages);
-        None when no parseable offers exist. A zero tier alongside paid tiers
-        is treated as a comp/placeholder, not the show's price.
-        """
-        prices = []
-        for event in EventExtractor.extract_events(html):
-            for offer in event.offers:
-                try:
-                    prices.append(float(offer.price))
-                except (TypeError, ValueError):
-                    continue
-
-        positive = [p for p in prices if p > 0]
-        if positive:
-            return min(positive)
-        if prices:
-            return 0.0
-        return None
 
     @staticmethod
     def _parse_event(raw: Dict[str, Any], calname: str = "") -> IceHouseEvent | None:

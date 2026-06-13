@@ -48,20 +48,36 @@ class EventExtractor:
     def extract_min_offer_price(html_content: str) -> float | None:
         """Lowest per-tier offer price across the page's JSON-LD Event blocks.
 
-        Tolerates both offer shapes (single dict and list of per-tier Offers)
-        and both price keys via the Offer model's lowPrice fallback for
-        AggregateOffer. Returns the lowest positive price; 0.0 only when every
-        parseable offer is an explicit zero (proven-free, e.g. RSVP-only open
-        mics); None when no parseable offers exist. A zero tier alongside paid
-        tiers is treated as a comp/placeholder, not the show's price.
+        Reads offers from the raw event dicts rather than through the
+        JsonLdEvent factory: ticket-page JSON-LD frequently omits the model's
+        required url/name/startDate fields (SimpleTix's array-of-showtimes
+        block has no url; ThunderTix detail pages omit startDate), and a price
+        must survive that. Tolerates both offer shapes (single dict and list
+        of per-tier Offers) and both price keys via the Offer parser's
+        lowPrice/highPrice fallback for offers that omit ``price``
+        (AggregateOffer ranges, including mislabelled ones). Returns the lowest positive
+        price; 0.0 only when every parseable offer is an explicit zero
+        (proven-free, e.g. RSVP-only open mics); None when no parseable offers
+        exist. A zero tier alongside paid tiers is treated as a
+        comp/placeholder, not the show's price.
         """
+        script_contents = HtmlScraper.get_json_ld_script_contents(html_content)
+        if not script_contents:
+            return None
+        json_objects = JSONUtils.parse_json_ld_contents(script_contents)
+
         prices = []
-        for event in EventExtractor.extract_events(html_content):
-            for offer in event.offers:
+        for item in json_objects or []:
+            for event in EventExtractor._extract_events_recursively(item):
                 try:
-                    prices.append(float(offer.price))
-                except (TypeError, ValueError):
+                    offers = JsonLdEvent._parse_offers(event)
+                except Exception:
                     continue
+                for offer in offers:
+                    try:
+                        prices.append(float(offer.price))
+                    except (TypeError, ValueError):
+                        continue
 
         positive = [p for p in prices if p > 0]
         if positive:

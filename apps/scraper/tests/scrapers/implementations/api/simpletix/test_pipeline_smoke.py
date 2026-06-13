@@ -244,9 +244,13 @@ def test_extract_json_ld_price_returns_none_when_missing():
 
 
 def test_extract_json_ld_price_skips_non_offer_ld():
-    """Extractor skips JSON-LD blocks without offers and finds the right one."""
+    """Extractor skips JSON-LD blocks without offers and finds the right one.
+
+    The shared helper (TASK-2848) returns the lowest positive tier across the
+    Event block's offers — previously the first parseable lowPrice won.
+    """
     price = SimpleTixExtractor.extract_json_ld_price(MULTIPLE_JSON_LD_HTML)
-    assert price == 30.0
+    assert price == 15.0
 
 
 def test_extract_json_ld_price_empty_page():
