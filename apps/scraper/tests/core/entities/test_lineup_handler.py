@@ -695,7 +695,6 @@ class TestUpdateShowLineupsSeedsHeadlinerFromTitle:
         h.comedian_handler.insert_comedians.return_value = []
         h.comedian_handler._filter_denied_comedians.side_effect = lambda comedians: comedians
         h.comedian_handler._filter_false_positive_comedians.side_effect = lambda comedians: comedians
-        h.comedian_handler.source_images_for_new_comedians.return_value = 0
         h.calculate_and_update_popularity = MagicMock()
         return h
 

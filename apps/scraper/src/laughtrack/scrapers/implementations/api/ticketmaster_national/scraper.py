@@ -42,8 +42,18 @@ class TicketmasterNationalScraper(BaseScraper):
 
     _BASE_URL = "https://app.ticketmaster.com/discovery/v2"
     _REQUEST_TIMEOUT = 30
-    _MAX_PAGES = 50
     _PAGE_SIZE = 200
+
+    # The Discovery API rejects deep paging: (page * size) must be < 1000
+    # (error DIS1035). With size=200 only pages 0-4 are reachable, so a single
+    # national query (sorted date,asc) silently truncates to the soonest ~1000
+    # events — dropping ~90% of the catalog and every show booked past the next
+    # few weeks (arenas/theatres like MSG). We therefore shard the horizon into
+    # date windows small enough that each stays under the cap and union the
+    # results. See _fetch_window / _fetch_national_comedy_events.
+    _MAX_PAGES_PER_WINDOW = 1000 // _PAGE_SIZE  # = 5 (pages 0-4)
+    _HORIZON_DAYS = 180
+    _WINDOW_DAYS = 10
 
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
@@ -91,25 +101,52 @@ class TicketmasterNationalScraper(BaseScraper):
     # ------------------------------------------------------------------ #
 
     async def _fetch_national_comedy_events(self) -> list:
-        """Paginate through the Ticketmaster Discovery API for US comedy events."""
-        now = datetime.utcnow()
-        start_dt = now.strftime("%Y-%m-%dT%H:%M:%SZ")
-        end_dt = (now + timedelta(days=180)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        """Fetch US comedy events across the full horizon via date-window sharding.
 
+        Slices the horizon into windows small enough that each stays under the
+        Discovery API's deep-paging cap (DIS1035), fetches each window, and
+        unions the results — deduped by event id across overlapping window
+        boundaries. This is what lets us reach the full catalog (incl. arena/
+        theatre shows booked months out, like MSG) instead of only the soonest
+        ~1000 events a single national query can page through.
+        """
+        now = datetime.utcnow()
+        horizon_end = now + timedelta(days=self._HORIZON_DAYS)
+
+        events_by_id: dict = {}
+        window_start = now
+        while window_start < horizon_end:
+            window_end = min(window_start + timedelta(days=self._WINDOW_DAYS), horizon_end)
+            window_events = await self._fetch_window(window_start, window_end)
+            for event in window_events:
+                event_id = event.get("id")
+                if event_id:
+                    events_by_id[event_id] = event
+            window_start = window_end
+
+        return list(events_by_id.values())
+
+    async def _fetch_window(self, start: datetime, end: datetime) -> list:
+        """Paginate one [start, end) date window of US comedy events.
+
+        Stops at _MAX_PAGES_PER_WINDOW to stay under the DIS1035 cap. If a
+        window itself holds more events than the cap can reach, logs a warning
+        so the window size can be tightened — under normal volume a 10-day
+        window stays well under 1000 events.
+        """
         base_params = {
             "apikey": self._api_key,
             "classificationName": "Comedy",
             "countryCode": "US",
             "size": self._PAGE_SIZE,
             "sort": "date,asc",
-            "startDateTime": start_dt,
-            "endDateTime": end_dt,
+            "startDateTime": start.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "endDateTime": end.strftime("%Y-%m-%dT%H:%M:%SZ"),
         }
 
         events: list = []
         page = 0
-
-        while page < self._MAX_PAGES:
+        while page < self._MAX_PAGES_PER_WINDOW:
             params = {**base_params, "page": page}
             url = f"{self._BASE_URL}/events.json?{urlencode(params)}"
 
@@ -129,16 +166,18 @@ class TicketmasterNationalScraper(BaseScraper):
             events.extend(venue_events)
 
             pagination = data.get("page", {})
+            total_elements = pagination.get("totalElements", 0)
+            if page == 0 and total_elements > 1000:
+                Logger.warn(
+                    f"{self._log_prefix}: window {start.date()}..{end.date()} has "
+                    f"{total_elements} events (>1000 cap) — narrow _WINDOW_DAYS to avoid truncation",
+                    self.logger_context,
+                )
+
             total_pages = pagination.get("totalPages", 1)
             if page + 1 >= total_pages:
                 break
             page += 1
-
-        if page >= self._MAX_PAGES:
-            Logger.warn(
-                f"{self._log_prefix}: reached MAX_PAGES ({self._MAX_PAGES}) — pagination truncated",
-                self.logger_context,
-            )
 
         return events
 

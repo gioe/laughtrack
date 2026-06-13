@@ -97,6 +97,12 @@ _EXECUTOR_SHUTDOWN_TIMEOUT = 30
 _DEFAULT_PER_CLUB_TIMEOUT = 180
 _PER_SCRAPER_TIMEOUT_OVERRIDES: Dict[str, int] = {
     "seatengine_classic": 240,
+    # ticketmaster_national is a single "club" that discovers comedy events
+    # across the whole US and upserts a club row per venue (~1k venues, each a
+    # sequential DB round trip) before persisting ~10k shows. That far exceeds
+    # the per-venue default; without this it times out mid-upsert and the
+    # orchestrator tears down the executor under the still-running loop.
+    "ticketmaster_national": 1800,
 }
 
 
