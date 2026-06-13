@@ -684,6 +684,13 @@ rhpSingleEvent    eventWrapper    rhp-event__title--list
 
 **Single-show page quirk:** The `class = "eventStDate"` attribute on single-show detail pages uses spaces around `=` (i.e. `class = "..."`, not `class="..."`). Regex patterns targeting class attributes on these pages must use `class\s*=\s*"` rather than `class="` to match correctly.
 
+**Pricing** (TASK-2842): each card's `rhp-event__cost-text--list` (or `--grid`)
+span carries the cost text (e.g. `$27`, `$27 - $37`). The extractor parses the
+lowest positive dollar amount into the fallback ticket — ranges take the low
+end; `$0` or dollar-less text stays `None` (price unknown). Same markup family
+the Funny Bone Rockhouse parser reads (`_funny_bone_ticket_price` in
+`api/etix/scraper.py`).
+
 **DB setup:**
 ```sql
 UPDATE clubs SET scraper = 'comedy_magic_club', scraping_url = 'https://myvenue.com/events/' WHERE name = 'My Club';
