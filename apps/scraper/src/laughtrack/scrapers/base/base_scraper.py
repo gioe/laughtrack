@@ -12,6 +12,7 @@ scraper-architecture-patterns.md documentation.
 import asyncio
 import concurrent.futures
 import contextvars
+import os
 from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple
@@ -327,13 +328,30 @@ class BaseScraper(HttpConvenienceMixin, ABC):
         payload. Only override with networkidle if events load via a post-DOMContent
         XHR.
 
+        Routes through the residential proxy when the scraper key is
+        allowlisted (scrapers.use_residential_proxy) or the active scraping
+        source carries a ``use_residential_proxy: true`` metadata flag — the
+        per-source flag exists because generic scrapers (json_ld) share one
+        key across many venues, and only the WAF-blocked venue should pay
+        for proxy egress (TASK-2845, West River's Cloudflare challenge).
+
+        Records fetch diagnostics: ``playwright_fallback_used`` plus a
+        bot-block signature when the rendered HTML is still a challenge
+        page. Before TASK-2845 this path recorded nothing, so a fully
+        blocked force_js_rendering venue persisted http_status=null /
+        bot_block_detected=false and read as a legitimately empty calendar.
+
         Returns:
             The rendered HTML string, or None if Playwright is unavailable or the
             fetch fails.
         """
         try:
             import asyncio
-            from laughtrack.foundation.infrastructure.http.client import _get_js_browser
+            from laughtrack.foundation.infrastructure.http.client import (
+                HttpClient,
+                _bot_block_reason,
+                _get_js_browser,
+            )
             browser = _get_js_browser()
             if browser is None:
                 Logger.warn(
@@ -341,7 +359,31 @@ class BaseScraper(HttpConvenienceMixin, ABC):
                     self.logger_context,
                 )
                 return None
-            return await asyncio.wait_for(browser.fetch_html(url), timeout=60)
+            proxy_url = (
+                HttpClient.resolve_proxy_url(self.key)
+                or self._source_residential_proxy_url()
+            )
+            diagnostics = current_diagnostics()
+            if diagnostics is not None:
+                diagnostics.record_playwright_fallback()
+            html = await asyncio.wait_for(
+                browser.fetch_html(url, proxy_url=proxy_url), timeout=60
+            )
+            if html:
+                rendered_bot_signature = _bot_block_reason(html)
+                if rendered_bot_signature is not None:
+                    Logger.warn(
+                        f"{self._log_prefix}: Playwright render for {url} returned "
+                        f"a bot-block page (signature: {rendered_bot_signature!r})",
+                        self.logger_context,
+                    )
+                    if diagnostics is not None:
+                        diagnostics.record_bot_block(
+                            f"playwright_{rendered_bot_signature}",
+                            source="playwright_rendered_html",
+                            stage="playwright_fallback",
+                        )
+            return html
         except asyncio.TimeoutError:
             Logger.warn(
                 f"{self._log_prefix}: Playwright fetch timed out after 60s for {url}",
@@ -354,6 +396,26 @@ class BaseScraper(HttpConvenienceMixin, ABC):
                 self.logger_context,
             )
             return None
+
+    def _source_residential_proxy_url(self) -> Optional[str]:
+        """Per-source residential-proxy opt-in for shared generic scrapers.
+
+        The scrapers-table allowlist (``HttpClient.resolve_proxy_url``) is
+        keyed by scraper key, which is too coarse for generic scrapers:
+        ``json_ld`` alone serves 23 venues, and enabling the key would route
+        all of them through paid proxy egress when only one sits behind a
+        WAF. A ``use_residential_proxy: true`` flag on the active scraping
+        source's metadata scopes the proxy to that single venue.
+
+        Limitation: the flag is honored only on this Playwright JS path —
+        the curl_cffi path (``fetch_html`` → ``HttpClient.resolve_proxy_url``)
+        resolves proxying purely by scraper key, so setting the flag on a
+        source without ``force_js_rendering`` has no effect. Extend
+        ``HttpClient`` if a curl-path venue ever needs per-source proxying.
+        """
+        if not bool((self.club.source_metadata or {}).get("use_residential_proxy")):
+            return None
+        return os.environ.get("RESIDENTIAL_PROXY_URL") or None
 
     def scrape(self) -> List[Show]:
         """
