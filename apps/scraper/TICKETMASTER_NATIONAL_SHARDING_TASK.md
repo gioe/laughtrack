@@ -53,8 +53,20 @@ scraper's truncated ~1k events._
   count). MSG / Radio City / Barclays / TD Garden / United Center all live with
   shows.
 - Run: ~29 min, 0 upsert errors, 0 chunk-persist failures.
-- Trigger = hidden club **4036**, `scraping_sources.enabled = FALSE` → does NOT
-  run in the nightly GHA scrape. Re-enable deliberately to refresh.
+- Trigger = hidden club **4036**, `scraping_sources.enabled = FALSE` → the
+  national *discovery* job does NOT run in the nightly GHA scrape. Re-enable
+  deliberately to find new venues.
+- **Discovered venue sources switched `live_nation` → `ticketmaster_comedy`**
+  (all 827, post-run). These per-venue sources stay `enabled`, so each venue
+  self-refreshes its comedy listings nightly — independent of the disabled
+  discovery trigger. `ticketmaster_comedy` (FocusedTicketmasterComedyScraper)
+  adds `classificationName=Comedy` at the API level + add-on filtering on top of
+  the transformer's `_is_comedy_event`, so multi-purpose rooms (MSG, arenas,
+  theatres) can't pull concerts/sports — not even the untagged-event edge case
+  that bare `live_nation` allows. Safe for the pure comedy clubs too: every one
+  of these venues was discovered via `classificationName=Comedy`, so the comedy
+  filter captures the same set they were created from. Reversible
+  (`UPDATE scraping_sources SET scraper_key='live_nation' WHERE club_id>4036`).
 
 ## Known / deferred
 - **~97% null price** on national shows — the Discovery API doesn't expose
