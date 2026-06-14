@@ -128,6 +128,16 @@ class ScrapingResultProcessor:
         persisted per-organizer venue history (tracked as a follow-up). Until
         then a dropped venue's stale future shows age out only when that venue is
         rescraped directly or cleaned up manually.
+
+        The same missing-attribution gap cuts the other way: when two distinct
+        organizer feeds (or an organizer feed and a direct Eventbrite source)
+        both route events to the SAME physical venue club_id, reconciling that
+        venue after feed A's run can delete feed B's future shows there — they
+        share last_scraped_by='eventbrite' and predate A's cutoff, so they read
+        as stale even though feed B still maintains them. The clean-scrape gate
+        and per-venue RECONCILE_DELETE_CAP bound the blast radius, but the real
+        fix is the same persisted per-organizer venue history that resolves the
+        dropped-venue case.
         """
         venue_club_ids = sorted(
             {
