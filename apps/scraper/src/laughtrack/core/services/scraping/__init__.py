@@ -98,11 +98,12 @@ _DEFAULT_PER_CLUB_TIMEOUT = 180
 _PER_SCRAPER_TIMEOUT_OVERRIDES: Dict[str, int] = {
     "seatengine_classic": 240,
     # ticketmaster_national is a single "club" that discovers comedy events
-    # across the whole US and upserts a club row per venue (~1k venues, each a
-    # sequential DB round trip) before persisting ~10k shows. That far exceeds
-    # the per-venue default; without this it times out mid-upsert and the
-    # orchestrator tears down the executor under the still-running loop.
-    "ticketmaster_national": 1800,
+    # across the whole US: it upserts ~1k venue rows AND persists ~10k shows
+    # itself (in chunks — see TicketmasterNationalScraper._persist_in_chunks),
+    # all inside scrape_async. At observed persist throughput that whole pass
+    # runs ~30-40 min, far beyond the per-venue default; without this it times
+    # out and the orchestrator tears down the executor under the running loop.
+    "ticketmaster_national": 3600,
 }
 
 

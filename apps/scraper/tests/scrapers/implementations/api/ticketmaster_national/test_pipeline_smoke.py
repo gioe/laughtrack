@@ -62,10 +62,10 @@ async def test_collect_scraping_targets_returns_national():
 
 
 @pytest.mark.asyncio
-async def test_scrape_async_returns_shows_when_events_exist():
+async def test_scrape_async_persists_shows_and_returns_empty():
     """
-    scrape_async() produces Shows when _fetch_national_comedy_events returns
-    events and _process_events converts them successfully.
+    scrape_async() persists the Shows that _process_events produces (in chunks,
+    itself) and returns [] so the per-club pipeline does not re-persist them.
     """
     scraper = TicketmasterNationalScraper(_club())
     expected_shows = [_make_show("Chris Redd Live"), _make_show("Taylor Tomlinson Tour")]
@@ -81,13 +81,16 @@ async def test_scrape_async_returns_shows_when_events_exist():
             "_process_events",
             new=AsyncMock(return_value=expected_shows),
         ),
+        patch.object(
+            scraper,
+            "_persist_in_chunks",
+            new=AsyncMock(return_value=2),
+        ) as mock_persist,
     ):
         shows = await scraper.scrape_async()
 
-    assert len(shows) == 2, (
-        "scrape_async() should return 2 Shows when _process_events returns 2"
-    )
-    assert all(isinstance(s, Show) for s in shows)
+    assert shows == [], "scrape_async() returns [] — it persists shows itself"
+    mock_persist.assert_awaited_once_with(expected_shows)
 
 
 @pytest.mark.asyncio

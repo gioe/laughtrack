@@ -112,10 +112,11 @@ async def test_scrape_async_empty_response(platform_club):
 
 
 @pytest.mark.asyncio
-async def test_scrape_async_returns_shows_for_each_event(platform_club):
+async def test_scrape_async_persists_each_event_and_returns_empty(platform_club):
     """
-    Two events from the same venue should upsert the club once and return
-    a Show for each event.
+    Two events from the same venue upsert the club once and produce a Show for
+    each event. The national scraper persists the shows itself (in chunks) and
+    returns [] so the per-club pipeline does not re-persist.
     """
     event1 = _make_api_event(event_id="ev1", event_url="https://tm.com/ev1")
     event2 = _make_api_event(event_id="ev2", event_url="https://tm.com/ev2")
@@ -136,14 +137,20 @@ async def test_scrape_async_returns_shows_for_each_event(platform_club):
             "upsert_for_ticketmaster_venue",
             return_value=upserted_club,
         ):
-            with patch(
-                "laughtrack.scrapers.implementations.api.ticketmaster_national.scraper.TicketmasterClient"
-            ) as MockClient:
-                MockClient.return_value.create_show.return_value = mock_show
-                shows = await scraper.scrape_async()
+            with patch.object(
+                scraper, "_persist_in_chunks", new=AsyncMock(return_value=2)
+            ) as mock_persist:
+                with patch(
+                    "laughtrack.scrapers.implementations.api.ticketmaster_national.scraper.TicketmasterClient"
+                ) as MockClient:
+                    MockClient.return_value.create_show.return_value = mock_show
+                    shows = await scraper.scrape_async()
 
-    assert len(shows) == 2
-    assert all(s.club_id == 42 for s in shows)
+    # scrape_async returns [] — shows were persisted internally, not handed back
+    assert shows == []
+    persisted_arg = mock_persist.call_args[0][0]
+    assert len(persisted_arg) == 2
+    assert all(s.club_id == 42 for s in persisted_arg)
 
 
 # ------------------------------------------------------------------ #
@@ -179,14 +186,57 @@ async def test_scrape_async_skips_venue_on_upsert_failure(platform_club):
         with patch.object(
             scraper._club_handler, "upsert_for_ticketmaster_venue", side_effect=_upsert
         ):
-            with patch(
-                "laughtrack.scrapers.implementations.api.ticketmaster_national.scraper.TicketmasterClient"
-            ) as MockClient:
-                MockClient.return_value.create_show.return_value = mock_show
-                shows = await scraper.scrape_async()
+            with patch.object(
+                scraper, "_persist_in_chunks", new=AsyncMock(return_value=1)
+            ) as mock_persist:
+                with patch(
+                    "laughtrack.scrapers.implementations.api.ticketmaster_national.scraper.TicketmasterClient"
+                ) as MockClient:
+                    MockClient.return_value.create_show.return_value = mock_show
+                    shows = await scraper.scrape_async()
 
-    assert len(shows) == 1
-    assert shows[0].club_id == 1
+    # only the good venue's show is produced + persisted; scrape_async returns []
+    assert shows == []
+    persisted_arg = mock_persist.call_args[0][0]
+    assert len(persisted_arg) == 1
+    assert persisted_arg[0].club_id == 1
+
+
+# ------------------------------------------------------------------ #
+# _persist_in_chunks — batched persistence                            #
+# ------------------------------------------------------------------ #
+
+
+@pytest.mark.asyncio
+async def test_persist_in_chunks_batches_by_chunk_size(platform_club):
+    """Shows are persisted via ShowService.insert_shows in _PERSIST_CHUNK_SIZE
+    batches, and the total persisted count is returned."""
+    with patch(_CONFIG_PATCH, return_value="fake_api_key"):
+        scraper = TicketmasterNationalScraper(platform_club)
+    scraper._PERSIST_CHUNK_SIZE = 2  # small chunk so 5 shows => 3 calls (2,2,1)
+
+    shows = [MagicMock(spec=Show) for _ in range(5)]
+
+    with patch(
+        "laughtrack.core.entities.show.service.ShowService"
+    ) as MockService:
+        persisted = await scraper._persist_in_chunks(shows)
+
+    insert = MockService.return_value.insert_shows
+    assert insert.call_count == 3
+    # chunk sizes: 2, 2, 1
+    assert [len(call.args[0]) for call in insert.call_args_list] == [2, 2, 1]
+    assert persisted == 5
+
+
+@pytest.mark.asyncio
+async def test_persist_in_chunks_empty_is_noop(platform_club):
+    with patch(_CONFIG_PATCH, return_value="fake_api_key"):
+        scraper = TicketmasterNationalScraper(platform_club)
+    with patch("laughtrack.core.entities.show.service.ShowService") as MockService:
+        persisted = await scraper._persist_in_chunks([])
+    assert persisted == 0
+    MockService.return_value.insert_shows.assert_not_called()
 
 
 # ------------------------------------------------------------------ #

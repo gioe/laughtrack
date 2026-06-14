@@ -55,6 +55,14 @@ class TicketmasterNationalScraper(BaseScraper):
     _HORIZON_DAYS = 180
     _WINDOW_DAYS = 10
 
+    # A national scrape produces ~10k shows — far more than the per-club
+    # pipeline's single insert_club_result (capped by _DB_WRITE_TIMEOUT) can
+    # persist in one call. We persist them ourselves in chunks here and return
+    # [] from scrape_async so the pipeline has nothing left to write. Chunking
+    # also makes progress durable: a mid-run failure keeps already-committed
+    # chunks instead of losing all ~10k shows.
+    _PERSIST_CHUNK_SIZE = 1000
+
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
         self._club_handler = ClubHandler()
@@ -89,12 +97,52 @@ class TicketmasterNationalScraper(BaseScraper):
                 f"{self._log_prefix}: produced {len(shows)} shows",
                 self.logger_context,
             )
-            return shows
+            # Persist here in chunks, then return [] — the standard per-club
+            # persist path cannot write this volume within _DB_WRITE_TIMEOUT.
+            await self._persist_in_chunks(shows)
+            return []
         except Exception as e:
             Logger.error(f"{self._log_prefix}: failed: {e}", self.logger_context)
             raise
         finally:
             await self._cleanup_resources()
+
+    async def _persist_in_chunks(self, shows: List[Show]) -> int:
+        """Persist shows in fixed-size chunks via ShowService, so each DB write
+        stays small (under the pipeline's persist timeout) and progress is
+        durable across the ~10k-show national batch.
+
+        Shows carry their own club_id (set by create_show), so batching by count
+        attributes each show to its correct venue regardless of grouping.
+        """
+        if not shows:
+            return 0
+
+        from laughtrack.core.entities.show.service import ShowService
+
+        service = ShowService()
+        loop = asyncio.get_running_loop()
+        persisted = 0
+        for start in range(0, len(shows), self._PERSIST_CHUNK_SIZE):
+            chunk = shows[start:start + self._PERSIST_CHUNK_SIZE]
+            try:
+                await loop.run_in_executor(
+                    None,
+                    lambda c=chunk: service.insert_shows(
+                        c, club_name=self._club.name, scraper_key=self.key
+                    ),
+                )
+                persisted += len(chunk)
+                Logger.info(
+                    f"{self._log_prefix}: persisted {persisted}/{len(shows)} shows",
+                    self.logger_context,
+                )
+            except Exception as exc:
+                Logger.error(
+                    f"{self._log_prefix}: chunk persist failed at offset {start}: {exc}",
+                    self.logger_context,
+                )
+        return persisted
 
     # ------------------------------------------------------------------ #
     # Internal helpers                                                     #
