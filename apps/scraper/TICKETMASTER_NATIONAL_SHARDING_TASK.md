@@ -45,6 +45,22 @@ scraper's truncated ~1k events._
    `ShowService.insert_shows` and returns `[]` so the pipeline doesn't
    re-persist. Each chunk commits independently → durable partial progress.
 
+6. **Non-comedy filter in the national path** (`_process_events`). The Discovery
+   API's `classificationName=Comedy` is loose — it also returns multi-genre
+   events (music festivals with one comedy act on the bill) whose own
+   classification is Music/Sports. The venue-specific TM scrapers drop these via
+   `TicketmasterEventTransformer._is_comedy_event`, but the national scraper
+   calls `create_show` directly and bypassed that gate, so it persisted music
+   events and turned every attraction on the bill into a "comedian" (Bruce
+   Springsteen, Foo Fighters, …). `_process_events` now applies the same
+   `_is_comedy_event` gate before grouping/creating.
+   - **One-time cleanup** (2026-06-14): removed the contamination already in
+     prod. Identified PURE musicians — acts that appear in hard non-comedy
+     (Music/Sports/Film) events and NEVER in any comedy event (so real comedians
+     TM mistags as Music, e.g. Brad Williams / Josh Wolf, are protected). Deleted
+     157 bogus musician "comedian" rows + 6 all-musician shows. Backed up to
+     `scripts/tmp_cleanup_backup.json` first (reversible).
+
 ## Final prod result (2026-06-14)
 - Catalog 518 → **1,344 clubs**; **841 new national venues, 0 with zero shows**
   (every discovered venue has shows). Venues that matched existing clubs by name

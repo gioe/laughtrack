@@ -240,6 +240,46 @@ async def test_persist_in_chunks_empty_is_noop(platform_club):
 
 
 # ------------------------------------------------------------------ #
+# _process_events — non-comedy filtering                              #
+# ------------------------------------------------------------------ #
+
+
+@pytest.mark.asyncio
+async def test_process_events_drops_non_comedy_events(platform_club):
+    """The Discovery API returns multi-genre events (e.g. music festivals)
+    under classificationName=Comedy. Their own classification is Music/Sports,
+    so _is_comedy_event must drop them before venue upsert / show creation —
+    otherwise their attractions land as fake comedians (e.g. Springsteen)."""
+    comedy = _make_api_event(venue_id="V1", event_id="c1")  # no classifications -> comedy
+    music = _make_api_event(venue_id="V2", venue_name="Amphitheater", event_id="m1")
+    music["classifications"] = [
+        {"segment": {"name": "Music"}, "genre": {"name": "Rock"}, "subGenre": {"name": "Pop"}}
+    ]
+
+    upserted = _make_club(club_id=7)
+    mock_show = MagicMock(spec=Show)
+    mock_show.club_id = 7
+
+    with patch(_CONFIG_PATCH, return_value="fake_api_key"):
+        scraper = TicketmasterNationalScraper(platform_club)
+
+    with patch.object(
+        scraper._club_handler, "upsert_for_ticketmaster_venue", return_value=upserted
+    ) as mock_upsert:
+        with patch(
+            "laughtrack.scrapers.implementations.api.ticketmaster_national.scraper.TicketmasterClient"
+        ) as MockClient:
+            MockClient.return_value.create_show.return_value = mock_show
+            shows = await scraper._process_events([comedy, music])
+
+    # the music venue (V2) is never upserted and produces no show
+    assert mock_upsert.call_count == 1
+    upserted_venue = mock_upsert.call_args[0][0]
+    assert upserted_venue.get("id") == "V1"
+    assert len(shows) == 1
+
+
+# ------------------------------------------------------------------ #
 # _fetch_window — single-window pagination                            #
 # ------------------------------------------------------------------ #
 

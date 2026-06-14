@@ -230,9 +230,36 @@ class TicketmasterNationalScraper(BaseScraper):
         return events
 
     async def _process_events(self, api_events: list) -> List[Show]:
-        """Group events by venue, upsert clubs, convert to Shows."""
+        """Group events by venue, upsert clubs, convert to Shows.
+
+        Filters out non-comedy events first. The Discovery API's
+        classificationName=Comedy is loose — it also returns multi-genre events
+        (e.g. music festivals with one comedy act on the bill) whose own
+        classification is Music/Sports. The venue-specific TM scrapers drop
+        these via TicketmasterEventTransformer._is_comedy_event, but the national
+        path calls create_show directly and bypasses that transformer. Apply the
+        same gate here; without it every attraction on a music festival's bill is
+        persisted as a 'comedian' (e.g. Bruce Springsteen on a Music-tagged
+        festival).
+        """
+        from laughtrack.scrapers.implementations.api.ticketmaster.transformer import (  # noqa: PLC0415
+            TicketmasterEventTransformer,
+        )
+
+        comedy_events = [
+            e for e in api_events
+            if TicketmasterEventTransformer._is_comedy_event(e)
+        ]
+        dropped = len(api_events) - len(comedy_events)
+        if dropped:
+            Logger.info(
+                f"{self._log_prefix}: dropped {dropped} non-comedy event(s) "
+                f"(multi-genre/music events the API returned under Comedy)",
+                self.logger_context,
+            )
+
         venue_groups: dict = defaultdict(list)
-        for event in api_events:
+        for event in comedy_events:
             venues = event.get("_embedded", {}).get("venues", [])
             if venues:
                 venue_id = venues[0].get("id")
