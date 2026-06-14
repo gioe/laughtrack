@@ -354,13 +354,86 @@ class TestStaleFutureShowReconciliation:
         proc.insert_club_result(self._clean_result(shows=[], items_before_filter=7))
         proc.show_service.delete_stale_future_shows.assert_not_called()
 
-    def test_no_reconcile_for_synthetic_organizer_proxy(self):
-        """Organizer/production-company proxy scrapes carry the proxy club_id but
-        persist shows under per-venue ids — a club_id-scoped delete would
-        mis-target, so reconciliation is skipped (tracked separately)."""
+    def _venue_show(self, club_id):
+        """A show mock carrying a concrete per-venue club_id (organizer mode)."""
+        show = MagicMock()
+        show.club_id = club_id
+        return show
+
+    def _organizer_result(self, club_ids, **overrides):
+        """A clean synthetic organizer-proxy result whose shows span the given
+        per-venue club_ids (the proxy club_id is the synthetic placeholder)."""
+        kwargs = dict(
+            shows=[self._venue_show(cid) for cid in club_ids],
+            is_synthetic=True,
+            club_id=0,  # Club.SYNTHETIC_PROXY_PLACEHOLDER_ID
+        )
+        kwargs.update(overrides)
+        return self._clean_result(**kwargs)
+
+    def test_organizer_reconciles_each_distinct_venue_club_id(self):
+        """TASK-2856: an organizer-mode proxy reconciles per distinct per-venue
+        club_id present in its shows — not the proxy club_id."""
+        proc = self._proc(stale_count=1)
+
+        proc.insert_club_result(self._organizer_result([101, 101, 202]))
+
+        deleted_club_ids = sorted(
+            call.args[0]
+            for call in proc.show_service.delete_stale_future_shows.call_args_list
+        )
+        assert deleted_club_ids == [101, 202]
+        for call in proc.show_service.delete_stale_future_shows.call_args_list:
+            assert call.args[1] == "eventbrite"
+            assert call.args[2].tzinfo is not None  # tz-aware UTC cutoff
+        # The synthetic proxy id (0) is never the delete target.
+        assert 0 not in deleted_club_ids
+
+    def test_organizer_skips_none_and_placeholder_club_ids(self):
+        """Shows lacking a resolved venue club_id (None) or carrying the synthetic
+        placeholder must not drive a delete."""
+        proc = self._proc(stale_count=1)
+
+        proc.insert_club_result(self._organizer_result([None, 0, 303]))
+
+        deleted_club_ids = [
+            call.args[0]
+            for call in proc.show_service.delete_stale_future_shows.call_args_list
+        ]
+        assert deleted_club_ids == [303]
+
+    def test_organizer_applies_cap_per_venue(self):
+        """The RECONCILE_DELETE_CAP is enforced per venue — a single venue over
+        the cap is skipped without affecting the others' reconciliation."""
         proc = self._proc()
-        proc.insert_club_result(self._clean_result(is_synthetic=True))
+
+        # Venue 101 is over the cap (11 > 10), venue 202 is within it (1).
+        def count_by_venue(club_id, scraper_key, cutoff):
+            return 11 if club_id == 101 else 1
+
+        proc.show_service.count_stale_future_shows.side_effect = count_by_venue
+
+        proc.insert_club_result(self._organizer_result([101, 202]))
+
+        deleted_club_ids = [
+            call.args[0]
+            for call in proc.show_service.delete_stale_future_shows.call_args_list
+        ]
+        assert deleted_club_ids == [202]  # 101 skipped by the cap, 202 deleted
+
+    def test_organizer_still_gated_on_clean_scrape(self):
+        """A degraded organizer scrape (bot-blocked) reconciles no venue."""
+        proc = self._proc()
+        proc.insert_club_result(
+            self._organizer_result([101, 202], bot_block_detected=True)
+        )
         proc.show_service.count_stale_future_shows.assert_not_called()
+        proc.show_service.delete_stale_future_shows.assert_not_called()
+
+    def test_organizer_without_scraper_key_skips(self):
+        """Without a scraper_key the per-venue delete cannot be scoped safely."""
+        proc = self._proc()
+        proc.insert_club_result(self._organizer_result([101], scraper_key=None))
         proc.show_service.delete_stale_future_shows.assert_not_called()
 
     def test_no_reconcile_without_club_id(self):

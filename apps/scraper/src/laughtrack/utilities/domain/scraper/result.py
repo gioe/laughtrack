@@ -9,6 +9,7 @@ import os
 from datetime import datetime, timezone
 from typing import List, Optional
 
+from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.show.service import ShowService
 from laughtrack.foundation.models.operation_result import DatabaseOperationResult
 from laughtrack.core.models.results import ClubScrapingResult
@@ -70,43 +71,113 @@ class ScrapingResultProcessor:
 
         Gated on :meth:`_is_clean_for_reconciliation` so a failed, errored, or
         bot-blocked scrape never deletes real inventory (TASK-2847 criterion 2).
-        Scoped to the club + scraper_key that just ran; the upsert re-creates a
-        show on a later clean scrape if the source brings it back (self-healing).
+
+        Single-venue scrapes reconcile against ``club_result.club_id``. Organizer
+        / production-company proxy scrapes (``is_synthetic``) fan one feed out to
+        many per-venue club_ids while ``club_result.club_id`` is the single proxy
+        id, so they reconcile per distinct venue club_id present in this run's
+        shows (TASK-2856) — see :meth:`_reconcile_organizer_venues`.
+
+        Either way the delete is scoped to the club + scraper_key that just ran;
+        the upsert re-creates a show on a later clean scrape if the source brings
+        it back (self-healing).
         """
         if not self._is_clean_for_reconciliation(club_result):
             return
-        if club_result.club_id is None or not club_result.scraper_key:
-            # Without a club_id + scraper_key we cannot scope the delete safely.
+        if not club_result.scraper_key:
+            # Without a scraper_key we cannot scope the delete safely.
             return
         if club_result.is_synthetic:
-            # Organizer/production-company proxy scrapes carry the proxy's
-            # club_id while their shows persist under many per-venue club_ids,
-            # so a club_id-scoped delete would mis-target. Per-venue organizer
-            # reconciliation is tracked separately; skip here rather than risk a
-            # wrong-club delete.
+            self._reconcile_organizer_venues(club_result, cutoff)
             return
+        if club_result.club_id is None:
+            # Without a club_id we cannot scope the delete safely.
+            return
+        self._reconcile_one_venue(
+            club_result.club_id,
+            club_result.scraper_key,
+            club_result.club_name,
+            cutoff,
+        )
+
+    def _reconcile_organizer_venues(
+        self, club_result: ClubScrapingResult, cutoff: datetime
+    ) -> None:
+        """Reconcile each per-venue club present in an organizer-mode scrape.
+
+        An Eventbrite organizer feed (source URL with ``/o/``) fans one fetch out
+        to many physical venues via ``ClubHandler.upsert_for_eventbrite_venue``,
+        persisting each show under its own venue club_id while
+        ``club_result.club_id`` is the synthetic proxy id. We reconcile every
+        distinct venue club_id that produced a show this run, each scoped to
+        (venue club_id, scraper_key, cutoff) under the same clean-scrape gate
+        (already checked by the caller) and the same per-venue
+        RECONCILE_DELETE_CAP. A venue still in the feed keeps its re-seen shows
+        (stamped after ``cutoff``); only its cancelled/delisted future shows are
+        removed.
+
+        Known limitation (TASK-2856 criterion 2) — a venue dropped ENTIRELY from
+        the organizer feed (zero shows this run) is NOT reconciled here: it never
+        appears in ``club_result.shows``, and detecting it would require the
+        organizer's prior venue set. That set is not persisted — per-venue clubs
+        created by organizer mode carry no production_company_id, and their shows
+        record only ``last_scraped_by='eventbrite'``, a key shared across every
+        organizer feed and every direct Eventbrite source. So a feed-scoped
+        sweep cannot be attributed to one organizer without risking deletion of a
+        sibling source's live inventory. Safely reconciling that case needs a
+        persisted per-organizer venue history (tracked as a follow-up). Until
+        then a dropped venue's stale future shows age out only when that venue is
+        rescraped directly or cleaned up manually.
+        """
+        venue_club_ids = sorted(
+            {
+                show.club_id
+                for show in club_result.shows
+                if getattr(show, "club_id", None) is not None
+                and show.club_id != Club.SYNTHETIC_PROXY_PLACEHOLDER_ID
+            }
+        )
+        for club_id in venue_club_ids:
+            self._reconcile_one_venue(
+                club_id,
+                club_result.scraper_key,
+                f"{club_result.club_name} (venue club_id={club_id})",
+                cutoff,
+            )
+
+    def _reconcile_one_venue(
+        self, club_id: int, scraper_key: str, label: str, cutoff: datetime
+    ) -> None:
+        """Count → cap-check → delete stale future shows for one (club, scraper).
+
+        Shared by the single-venue and organizer-mode paths. Scoping to
+        ``scraper_key`` keeps a multi-source club's other scrapers' shows
+        untouched; the ``cutoff`` excludes rows re-stamped this run. Never raises
+        — a DB error is logged and swallowed so the run continues (the shows are
+        already persisted).
+        """
         try:
             stale_count = self.show_service.count_stale_future_shows(
-                club_result.club_id, club_result.scraper_key, cutoff
+                club_id, scraper_key, cutoff
             )
             if stale_count == 0:
                 return
             cap = self._reconcile_delete_cap()
             if cap > 0 and stale_count > cap:
                 Logger.warn(
-                    f"Stale-show reconciliation SKIPPED for '{club_result.club_name}' "
-                    f"(scraper={club_result.scraper_key}): {stale_count} future shows "
+                    f"Stale-show reconciliation SKIPPED for '{label}' "
+                    f"(scraper={scraper_key}): {stale_count} future shows "
                     f"would be deleted, exceeding the safety cap of {cap}. This is the "
                     f"signature of a silent parser break, not normal cancellations — "
                     f"investigate the source before any manual cleanup."
                 )
                 return
             deleted = self.show_service.delete_stale_future_shows(
-                club_result.club_id, club_result.scraper_key, cutoff
+                club_id, scraper_key, cutoff
             )
         except Exception as e:  # pragma: no cover - defensive; never fail the run
             Logger.error(
-                f"Stale-show reconciliation failed for '{club_result.club_name}': {e}"
+                f"Stale-show reconciliation failed for '{label}': {e}"
             )
             return
         if deleted:
@@ -115,7 +186,7 @@ class ScrapingResultProcessor:
             )
             Logger.warn(
                 f"Reconciled {len(deleted)} stale future show(s) for "
-                f"'{club_result.club_name}' (scraper={club_result.scraper_key}, "
+                f"'{label}' (scraper={scraper_key}, "
                 f"source event cancelled/delisted): {titles}"
             )
 
