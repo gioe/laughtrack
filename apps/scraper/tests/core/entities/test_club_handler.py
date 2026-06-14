@@ -504,6 +504,52 @@ class TestUpsertForEventbriteVenueHappyPath:
         assert params[1] == ""   # address
 
 
+class TestUpsertForTicketmasterVenueParams:
+    """The TM venue upsert binds venue_id twice: once for the scraping_sources
+    INSERT, once for the ticketmaster_id_unique NOT EXISTS guard that lets an
+    already-configured venue upsert without aborting (and dropping its shows)."""
+
+    _VENUE = {
+        "id": "KovZpZAEAaEA",
+        "name": "The Comedy Store",
+        "address": {"line1": "8433 Sunset Blvd"},
+        "city": {"name": "West Hollywood"},
+        "state": {"stateCode": "CA"},
+        "postalCode": "90069",
+        "timezone": "America/Los_Angeles",
+    }
+
+    def test_binds_venue_id_twice_and_uses_tm_upsert_sql(self):
+        from sql.club_queries import ClubQueries
+
+        handler = ClubHandler()
+        row = _make_club_row(name="The Comedy Store")
+        with patch.object(handler, "_find_fuzzy_match_in_location", return_value=None), \
+             patch.object(handler, "execute_with_cursor", return_value=[row]) as mock_exec:
+            handler.upsert_for_ticketmaster_venue(self._VENUE)
+
+        sql_arg = mock_exec.call_args[0][0]
+        params = mock_exec.call_args[0][1]
+        assert sql_arg == ClubQueries.UPSERT_CLUB_BY_TICKETMASTER_VENUE
+        assert len(params) == 8
+        assert params[0] == "The Comedy Store"   # name
+        assert params[6] == "KovZpZAEAaEA"       # venue_id (INSERT SELECT)
+        assert params[7] == "KovZpZAEAaEA"        # venue_id (NOT EXISTS guard)
+
+    def test_sql_guards_against_both_partial_unique_indexes(self):
+        """The SQL must guard the source insert against the two partial unique
+        indexes that the ON CONFLICT target does not cover."""
+        from sql.club_queries import ClubQueries
+
+        sql = ClubQueries.UPSERT_CLUB_BY_TICKETMASTER_VENUE
+        # ticketmaster_id_unique guard
+        assert "s2.ticketmaster_id = %s" in sql
+        # club_priority_enabled_unique guard
+        assert "s3.club_id = upserted_club.id" in sql
+        # club returned unconditionally (old EXISTS gate removed)
+        assert "WHERE EXISTS (SELECT 1 FROM upserted_source)" not in sql
+
+
 class TestUpsertForEventbriteVenueConflict:
     """Criterion 669: conflict on name preserves existing scraper and eventbrite_id via COALESCE."""
 
@@ -798,7 +844,9 @@ class TestUpsertClubQueriesArePyformatSafe:
         ("eventbrite", 6),
         ("seatengine", 8),
         ("seatengine_v3", 8),
-        ("ticketmaster", 7),
+        # 8 = 6 clubs-INSERT cols + venue_id (source INSERT) + venue_id
+        # (ticketmaster_id_unique NOT EXISTS guard).
+        ("ticketmaster", 8),
     ]
 
     def _query(self, label: str) -> str:

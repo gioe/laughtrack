@@ -9,6 +9,7 @@ pytestmark = pytest.mark.skipif(
     reason="curl_cffi not installed",
 )
 
+from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from laughtrack.scrapers.implementations.api.ticketmaster_national.scraper import (
@@ -111,10 +112,11 @@ async def test_scrape_async_empty_response(platform_club):
 
 
 @pytest.mark.asyncio
-async def test_scrape_async_returns_shows_for_each_event(platform_club):
+async def test_scrape_async_persists_each_event_and_returns_empty(platform_club):
     """
-    Two events from the same venue should upsert the club once and return
-    a Show for each event.
+    Two events from the same venue upsert the club once and produce a Show for
+    each event. The national scraper persists the shows itself (in chunks) and
+    returns [] so the per-club pipeline does not re-persist.
     """
     event1 = _make_api_event(event_id="ev1", event_url="https://tm.com/ev1")
     event2 = _make_api_event(event_id="ev2", event_url="https://tm.com/ev2")
@@ -135,14 +137,20 @@ async def test_scrape_async_returns_shows_for_each_event(platform_club):
             "upsert_for_ticketmaster_venue",
             return_value=upserted_club,
         ):
-            with patch(
-                "laughtrack.scrapers.implementations.api.ticketmaster_national.scraper.TicketmasterClient"
-            ) as MockClient:
-                MockClient.return_value.create_show.return_value = mock_show
-                shows = await scraper.scrape_async()
+            with patch.object(
+                scraper, "_persist_in_chunks", new=AsyncMock(return_value=2)
+            ) as mock_persist:
+                with patch(
+                    "laughtrack.scrapers.implementations.api.ticketmaster_national.scraper.TicketmasterClient"
+                ) as MockClient:
+                    MockClient.return_value.create_show.return_value = mock_show
+                    shows = await scraper.scrape_async()
 
-    assert len(shows) == 2
-    assert all(s.club_id == 42 for s in shows)
+    # scrape_async returns [] — shows were persisted internally, not handed back
+    assert shows == []
+    persisted_arg = mock_persist.call_args[0][0]
+    assert len(persisted_arg) == 2
+    assert all(s.club_id == 42 for s in persisted_arg)
 
 
 # ------------------------------------------------------------------ #
@@ -178,23 +186,69 @@ async def test_scrape_async_skips_venue_on_upsert_failure(platform_club):
         with patch.object(
             scraper._club_handler, "upsert_for_ticketmaster_venue", side_effect=_upsert
         ):
-            with patch(
-                "laughtrack.scrapers.implementations.api.ticketmaster_national.scraper.TicketmasterClient"
-            ) as MockClient:
-                MockClient.return_value.create_show.return_value = mock_show
-                shows = await scraper.scrape_async()
+            with patch.object(
+                scraper, "_persist_in_chunks", new=AsyncMock(return_value=1)
+            ) as mock_persist:
+                with patch(
+                    "laughtrack.scrapers.implementations.api.ticketmaster_national.scraper.TicketmasterClient"
+                ) as MockClient:
+                    MockClient.return_value.create_show.return_value = mock_show
+                    shows = await scraper.scrape_async()
 
-    assert len(shows) == 1
-    assert shows[0].club_id == 1
+    # only the good venue's show is produced + persisted; scrape_async returns []
+    assert shows == []
+    persisted_arg = mock_persist.call_args[0][0]
+    assert len(persisted_arg) == 1
+    assert persisted_arg[0].club_id == 1
 
 
 # ------------------------------------------------------------------ #
-# _fetch_national_comedy_events — pagination                          #
+# _persist_in_chunks — batched persistence                            #
 # ------------------------------------------------------------------ #
 
 
 @pytest.mark.asyncio
-async def test_fetch_events_paginates_until_last_page(platform_club, monkeypatch):
+async def test_persist_in_chunks_batches_by_chunk_size(platform_club):
+    """Shows are persisted via ShowService.insert_shows in _PERSIST_CHUNK_SIZE
+    batches, and the total persisted count is returned."""
+    with patch(_CONFIG_PATCH, return_value="fake_api_key"):
+        scraper = TicketmasterNationalScraper(platform_club)
+    scraper._PERSIST_CHUNK_SIZE = 2  # small chunk so 5 shows => 3 calls (2,2,1)
+
+    shows = [MagicMock(spec=Show) for _ in range(5)]
+
+    with patch(
+        "laughtrack.core.entities.show.service.ShowService"
+    ) as MockService:
+        persisted = await scraper._persist_in_chunks(shows)
+
+    insert = MockService.return_value.insert_shows
+    assert insert.call_count == 3
+    # chunk sizes: 2, 2, 1
+    assert [len(call.args[0]) for call in insert.call_args_list] == [2, 2, 1]
+    assert persisted == 5
+
+
+@pytest.mark.asyncio
+async def test_persist_in_chunks_empty_is_noop(platform_club):
+    with patch(_CONFIG_PATCH, return_value="fake_api_key"):
+        scraper = TicketmasterNationalScraper(platform_club)
+    with patch("laughtrack.core.entities.show.service.ShowService") as MockService:
+        persisted = await scraper._persist_in_chunks([])
+    assert persisted == 0
+    MockService.return_value.insert_shows.assert_not_called()
+
+
+# ------------------------------------------------------------------ #
+# _fetch_window — single-window pagination                            #
+# ------------------------------------------------------------------ #
+
+_W_START = datetime(2026, 6, 1)
+_W_END = datetime(2026, 6, 11)
+
+
+@pytest.mark.asyncio
+async def test_fetch_window_paginates_until_last_page(platform_club, monkeypatch):
     """Paginator follows totalPages from the API and accumulates events."""
     page0_event = _make_api_event(venue_id="V1", event_id="ev1")
     page1_event = _make_api_event(venue_id="V2", venue_name="Venue 2", event_id="ev2")
@@ -223,14 +277,14 @@ async def test_fetch_events_paginates_until_last_page(platform_club, monkeypatch
         scraper = TicketmasterNationalScraper(platform_club)
     scraper.fetch_json = fake_fetch_json
 
-    events = await scraper._fetch_national_comedy_events()
+    events = await scraper._fetch_window(_W_START, _W_END)
 
     assert len(events) == 2
     assert call_count["n"] == 2
 
 
 @pytest.mark.asyncio
-async def test_fetch_events_stops_on_empty_embedded(platform_club):
+async def test_fetch_window_stops_on_empty_embedded(platform_club):
     """Paginator stops when _embedded.events is empty."""
     page0_data = {
         "_embedded": {"events": [_make_api_event()]},
@@ -251,26 +305,26 @@ async def test_fetch_events_stops_on_empty_embedded(platform_club):
         scraper = TicketmasterNationalScraper(platform_club)
     scraper.fetch_json = fake_fetch_json
 
-    events = await scraper._fetch_national_comedy_events()
+    events = await scraper._fetch_window(_W_START, _W_END)
 
     assert len(events) == 1
     assert call_count["n"] == 2
 
 
 @pytest.mark.asyncio
-async def test_fetch_events_stops_on_null_response(platform_club):
+async def test_fetch_window_stops_on_null_response(platform_club):
     """Paginator stops when fetch_json returns None."""
     with patch(_CONFIG_PATCH, return_value="fake_api_key"):
         scraper = TicketmasterNationalScraper(platform_club)
     scraper.fetch_json = AsyncMock(return_value=None)
 
-    events = await scraper._fetch_national_comedy_events()
+    events = await scraper._fetch_window(_W_START, _W_END)
 
     assert events == []
 
 
 @pytest.mark.asyncio
-async def test_fetch_events_skips_events_without_venues(platform_club):
+async def test_fetch_window_skips_events_without_venues(platform_club):
     """Events with no embedded venue are excluded from results."""
     event_with_venue = _make_api_event()
     event_without_venue = {
@@ -288,7 +342,85 @@ async def test_fetch_events_skips_events_without_venues(platform_club):
         scraper = TicketmasterNationalScraper(platform_club)
     scraper.fetch_json = AsyncMock(return_value=page_data)
 
-    events = await scraper._fetch_national_comedy_events()
+    events = await scraper._fetch_window(_W_START, _W_END)
 
     assert len(events) == 1
     assert events[0]["id"] == "vvG1zZ4M8d8kBJ"
+
+
+@pytest.mark.asyncio
+async def test_fetch_window_respects_deep_paging_cap(platform_club):
+    """Never request more than _MAX_PAGES_PER_WINDOW pages, even when the API
+    reports many more — this is what keeps requests under the DIS1035 cap
+    ((page * size) must be < 1000)."""
+    call_count = {"n": 0}
+
+    async def fake_fetch_json(url, **kwargs):
+        call_count["n"] += 1
+        n = call_count["n"]
+        return {
+            "_embedded": {"events": [_make_api_event(venue_id=f"V{n}", event_id=f"ev{n}")]},
+            # API claims far more pages than the cap allows
+            "page": {"number": n - 1, "size": 200, "totalPages": 50, "totalElements": 10000},
+        }
+
+    with patch(_CONFIG_PATCH, return_value="fake_api_key"):
+        scraper = TicketmasterNationalScraper(platform_club)
+    scraper.fetch_json = fake_fetch_json
+
+    events = await scraper._fetch_window(_W_START, _W_END)
+
+    assert call_count["n"] == TicketmasterNationalScraper._MAX_PAGES_PER_WINDOW
+    assert len(events) == TicketmasterNationalScraper._MAX_PAGES_PER_WINDOW
+
+
+# ------------------------------------------------------------------ #
+# _fetch_national_comedy_events — date-window sharding + dedup        #
+# ------------------------------------------------------------------ #
+
+
+@pytest.mark.asyncio
+async def test_fetch_national_shards_full_horizon(platform_club):
+    """The horizon is sharded into (HORIZON_DAYS / WINDOW_DAYS) windows,
+    one _fetch_window call each, covering the full booking window."""
+    windows_seen = []
+
+    async def fake_window(start, end):
+        windows_seen.append((start, end))
+        # unique event per window so nothing is deduped away
+        return [_make_api_event(venue_id=f"V{len(windows_seen)}", event_id=f"ev{len(windows_seen)}")]
+
+    with patch(_CONFIG_PATCH, return_value="fake_api_key"):
+        scraper = TicketmasterNationalScraper(platform_club)
+    scraper._fetch_window = fake_window
+
+    events = await scraper._fetch_national_comedy_events()
+
+    expected_windows = (
+        TicketmasterNationalScraper._HORIZON_DAYS
+        // TicketmasterNationalScraper._WINDOW_DAYS
+    )
+    assert len(windows_seen) == expected_windows
+    assert len(events) == expected_windows
+    # windows are contiguous and non-overlapping
+    for (_, prev_end), (next_start, _) in zip(windows_seen, windows_seen[1:]):
+        assert prev_end == next_start
+
+
+@pytest.mark.asyncio
+async def test_fetch_national_dedupes_events_across_windows(platform_club):
+    """An event appearing in more than one window (boundary overlap) is
+    returned only once."""
+
+    async def fake_window(start, end):
+        # every window returns the SAME event id
+        return [_make_api_event(venue_id="V1", event_id="dup")]
+
+    with patch(_CONFIG_PATCH, return_value="fake_api_key"):
+        scraper = TicketmasterNationalScraper(platform_club)
+    scraper._fetch_window = fake_window
+
+    events = await scraper._fetch_national_comedy_events()
+
+    assert len(events) == 1
+    assert events[0]["id"] == "dup"

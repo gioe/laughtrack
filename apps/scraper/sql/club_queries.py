@@ -434,6 +434,28 @@ class ClubQueries:
                 TRUE,
                 '{}'::jsonb
             FROM upserted_club
+            -- Skip the source insert when an *enabled* source already occupies
+            -- one of scraping_sources' other partial unique indexes. Without
+            -- this, an already-configured venue (overlap with a venue-specific
+            -- TM scraper by ticketmaster_id, or a name-collision with an
+            -- existing managed club that already has an enabled priority-0
+            -- source) violates a constraint NOT covered by the ON CONFLICT
+            -- target below, aborting the whole statement so the club is never
+            -- returned and the venue + its shows are dropped. The
+            -- disabled-source re-enable path still flows through the
+            -- ON CONFLICT (club_id, platform, priority) carve-out.
+            WHERE NOT EXISTS (   -- scraping_sources_ticketmaster_id_unique (WHERE enabled)
+                SELECT 1 FROM scraping_sources s2
+                WHERE s2.platform = 'ticketmaster'
+                  AND s2.enabled
+                  AND s2.ticketmaster_id = %s
+            )
+            AND NOT EXISTS (     -- scraping_sources_club_priority_enabled_unique (WHERE enabled)
+                SELECT 1 FROM scraping_sources s3
+                WHERE s3.club_id = upserted_club.id
+                  AND s3.priority = 0
+                  AND s3.enabled
+            )
             ON CONFLICT (club_id, platform, priority) DO UPDATE SET
                 scraper_key = COALESCE(scraping_sources.scraper_key, EXCLUDED.scraper_key),
                 ticketmaster_id = COALESCE(scraping_sources.ticketmaster_id, EXCLUDED.ticketmaster_id),
@@ -456,9 +478,13 @@ class ClubQueries:
                 END
             RETURNING club_id
         )
+        -- Return the club unconditionally. Even when the source insert is
+        -- skipped above (venue already configured / enabled elsewhere), the
+        -- club row exists and must be returned so the caller can attach shows.
+        -- upserted_source is a data-modifying CTE, so it still executes even
+        -- though the final query no longer references it.
         SELECT uc.*, '[]'::json AS scraping_sources
         FROM upserted_club uc
-        WHERE EXISTS (SELECT 1 FROM upserted_source)
     """
 
     # Discovery-only venue upsert: inserts/updates the clubs row but does

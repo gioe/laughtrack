@@ -856,12 +856,14 @@ class ShowHandler(BaseDatabaseHandler[Show]):
                 inserted_rows = self.comedian_handler.insert_comedians(fp_allowed, pre_filtered=True) if fp_allowed else []
                 comedians_inserted = len(inserted_rows)
 
-                # Source images for newly inserted comedians (non-blocking —
-                # source_images_for_new_comedians catches all exceptions internally)
-                if inserted_rows:
-                    inserted_uuids = {row["uuid"] for row in inserted_rows}
-                    new_names = [c.name for c in fp_allowed if c.uuid in inserted_uuids]
-                    self.comedian_handler.source_images_for_new_comedians(new_names)
+                # NOTE: comedian image sourcing is intentionally NOT done here.
+                # It is a separate, out-of-band responsibility — the standalone
+                # `scripts.core.source_comedian_images` job backfills every
+                # comedian with has_image=false (Wikidata → TMDb → Bunny CDN).
+                # Keeping it out of the scrape path avoids a per-comedian 5s
+                # rate-limit delay blocking persistence (national scrapes create
+                # thousands of new comedians), mirroring the separated
+                # popularity pipeline.
 
             # Batch update all lineups at once
             lineup_items_added, _ = self.lineup_handler.batch_update_lineups(shows, db_lineups)

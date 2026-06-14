@@ -1,0 +1,73 @@
+# Ticketmaster national comedy discovery — shipped
+
+_Implemented + run against prod 2026-06-13/14. National discovery now reaches the
+full US comedy catalog (incl. arenas/theatres like MSG) instead of the dormant
+scraper's truncated ~1k events._
+
+## What shipped
+
+1. **Date-window sharding** (`ticketmaster_national/scraper.py`,
+   `_fetch_national_comedy_events` / `_fetch_window`) — slices the 180-day
+   horizon into 10-day windows, each under the Discovery API's `DIS1035`
+   deep-paging cap (`(page*size) < 1000`), unioned + deduped by event id.
+   Reaches the full ~10.8k-event catalog vs ~1.2k for a single query.
+
+2. **Per-club timeout override** = 3600s for `ticketmaster_national`
+   (`core/services/scraping/__init__.py`). One "club" fetches nationally,
+   upserts ~1k venues, AND persists ~10k shows — the whole pass is ~30 min, far
+   beyond the 180s default.
+
+3. **Image sourcing decoupled** — removed the inline
+   `source_images_for_new_comedians` call from `show/handler.py`. A national
+   scrape creates thousands of comedians; the inline 5s/comedian Wikidata/TMDb/
+   CDN throttle made runs take hours. Backfill is now solely the standalone
+   `scripts.core.source_comedian_images` job (`has_image=false`), mirroring the
+   separated popularity pipeline.
+
+4. **Upsert idempotency fix** (`UPSERT_CLUB_BY_TICKETMASTER_VENUE` in
+   `sql/club_queries.py` + handler param). The `scraping_sources` INSERT only
+   declared `ON CONFLICT (club_id, platform, priority)`, but the table has two
+   more partial unique indexes (`ticketmaster_id_unique`,
+   `club_priority_enabled_unique`, both `WHERE enabled`). An already-configured
+   venue violated a constraint NOT covered by the conflict target, aborting the
+   whole statement so the club was never returned and the venue + its shows were
+   dropped (158 errors / ~143-venue gap on the first run). Fix: guard the source
+   INSERT with `NOT EXISTS` on those two indexes and return the club
+   unconditionally; the disabled-source re-enable carve-out (TASK-1968/1978)
+   still flows through `ON CONFLICT`. Validated against the real prod schema in a
+   rolled-back transaction (existing-name+tmid, new-name+existing-tmid, happy
+   path) + unit tests.
+
+5. **Chunked self-persistence** (`_persist_in_chunks`). A national result is
+   ~10k shows — more than the per-club pipeline's single `insert_club_result`
+   can write within `_DB_WRITE_TIMEOUT` (300s; first attempt lost ~9k shows).
+   The scraper now persists its own shows in 1000-show chunks via
+   `ShowService.insert_shows` and returns `[]` so the pipeline doesn't
+   re-persist. Each chunk commits independently → durable partial progress.
+
+## Final prod result (2026-06-14)
+- Catalog 518 → **1,344 clubs**; **841 new national venues, 0 with zero shows**
+  (every discovered venue has shows). Venues that matched existing clubs by name
+  (Barclays → club 2464, Addison Improv → 29, …) had shows attached there.
+- **~8.8k national shows** (the deduped total; 10.8k was the pre-dedup produced
+  count). MSG / Radio City / Barclays / TD Garden / United Center all live with
+  shows.
+- Run: ~29 min, 0 upsert errors, 0 chunk-persist failures.
+- Trigger = hidden club **4036**, `scraping_sources.enabled = FALSE` → does NOT
+  run in the nightly GHA scrape. Re-enable deliberately to refresh.
+
+## Known / deferred
+- **~97% null price** on national shows — the Discovery API doesn't expose
+  `priceRanges` for comedy (TASK-2098 / TASK-2827). Accept or pair with a price
+  backfill before any nightly activation.
+- `scrape_async` returns `[]` (persists itself), so the per-club run metric
+  reports 0 shows for the trigger club. Cosmetic; only matters if activated
+  nightly and someone reads that one club's metric.
+- Nightly activation also means catalog churn (~3× venues incl. non-comedy-club
+  rooms — Vegas residencies, Broadway, arenas — since `classificationName=Comedy`
+  is coarse). A comedy-quality filter on the national path is the alternative if
+  it's ever activated.
+
+## Note
+`tusk task-insert` was broken (is_deferred, tusk#1096) when this work was done,
+so this is a repo note rather than a tusk task.
