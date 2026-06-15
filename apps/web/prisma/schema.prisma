@@ -113,7 +113,10 @@ model EventbriteOrganizerVenue {
   club                Club              @relation(fields: [clubId], references: [id], onDelete: Cascade)
 
   @@id([productionCompanyId, clubId])
-  @@index([clubId])
+  // No standalone club_id index: the only club_id-alone access is the FK cascade
+  // on a (rare) club delete, which seq-scans this small bookkeeping table cheaply.
+  // The TASK-2859 cross-organizer coverage probe that needed it was removed in
+  // TASK-2861 (per-show organizer attribution). (TASK-2862)
   @@map("eventbrite_organizer_venues")
 }
 
