@@ -15,9 +15,7 @@ def _make_processor():
         proc.show_service = MagicMock()
         proc.metrics_service = MagicMock()
         proc.organizer_venue_handler = MagicMock()
-        # Default: no sibling source owns any venue, no prior history. Organizer
-        # tests override these as needed.
-        proc.organizer_venue_handler.is_venue_covered_elsewhere.return_value = False
+        # Default: no prior history. Organizer tests override as needed.
         proc.organizer_venue_handler.get_venue_club_ids.return_value = []
     return proc
 
