@@ -93,7 +93,7 @@ describe("getAdminOverviewData", () => {
                     club_name: "Thin Metadata Club",
                     city: "Denver",
                     state: "CO",
-                    missing_fields: ["description", "hours"],
+                    missing_fields: ["description", "timezone"],
                 },
             ] as never)
             .mockResolvedValueOnce([

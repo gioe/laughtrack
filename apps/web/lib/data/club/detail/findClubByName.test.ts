@@ -41,7 +41,6 @@ function makeClubRow() {
         clubType: "club",
         phoneNumber: null,
         description: null,
-        hours: null,
         chain: null,
         imageAssets: [{ heroPath: "clubs/Comedy%20Cellar-hero.jpg" }],
     };

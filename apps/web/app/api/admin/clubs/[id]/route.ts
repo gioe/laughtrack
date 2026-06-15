@@ -8,28 +8,8 @@ import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { withRequestMetrics } from "@/lib/metrics";
 
-const DAYS = [
-    "monday",
-    "tuesday",
-    "wednesday",
-    "thursday",
-    "friday",
-    "saturday",
-    "sunday",
-] as const;
-
-const hoursSchema = z
-    .object(
-        Object.fromEntries(DAYS.map((d) => [d, z.string().max(64)])) as Record<
-            (typeof DAYS)[number],
-            z.ZodString
-        >,
-    )
-    .strict();
-
 const bodySchema = z.object({
     description: z.string().max(5000).nullable(),
-    hours: hoursSchema.nullable(),
 });
 
 const CLUB_STATUS_OPTIONS = ["active", "closed", "hiatus"] as const;
@@ -147,7 +127,6 @@ const adminClubSelect = {
     closedAt: true,
     totalShows: true,
     description: true,
-    hours: true,
     chain: { select: { id: true, name: true, slug: true, website: true } },
     scrapingSources: {
         select: {
@@ -229,7 +208,6 @@ export const PATCH = withRequestMetrics(async function PATCH(
                     closedAt: true,
                     totalShows: true,
                     description: true,
-                    hours: true,
                     chain: {
                         select: {
                             id: true,
@@ -283,24 +261,9 @@ export const PATCH = withRequestMetrics(async function PATCH(
                         : null;
                 }
             } else {
-                const { description, hours } = parsed.data;
-                const normalizedDescription =
+                const { description } = parsed.data;
+                data.description =
                     description === null ? null : description.trim() || null;
-
-                const normalizedHours = hours
-                    ? Object.fromEntries(
-                          Object.entries(hours)
-                              .map(([day, val]) => [day, val.trim()])
-                              .filter(([, val]) => val !== ""),
-                      )
-                    : null;
-                const hoursToWrite =
-                    normalizedHours && Object.keys(normalizedHours).length > 0
-                        ? normalizedHours
-                        : null;
-
-                data.description = normalizedDescription;
-                data.hours = hoursToWrite ?? Prisma.DbNull;
             }
 
             const after = await tx.club.update({

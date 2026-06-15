@@ -2,16 +2,7 @@ import { EntityType } from "../../enum";
 import { Entity } from "../../interface";
 import { Show } from "../show/Show";
 import { SocialData } from "../socialData/SocialData";
-import { ClubDTO, ClubHours, ClubInterface } from "./club.interface";
-
-function coerceHours(raw: unknown): ClubHours | undefined {
-    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return undefined;
-    const out: ClubHours = {};
-    for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
-        if (typeof v === "string" && v.trim() !== "") out[k] = v;
-    }
-    return Object.keys(out).length > 0 ? out : undefined;
-}
+import { ClubDTO, ClubInterface } from "./club.interface";
 
 export class Club implements ClubInterface {
     // Required properties
@@ -34,7 +25,6 @@ export class Club implements ClubInterface {
     readonly phoneNumber: string;
     readonly clubType: string;
     readonly description: string;
-    readonly hours?: ClubHours;
     readonly fallbackImageUrl?: URL;
 
     // Complex objects
@@ -54,7 +44,6 @@ export class Club implements ClubInterface {
         this.phoneNumber = input.phoneNumber ?? "";
         this.clubType = input.clubType ?? "club";
         this.description = input.description ?? "";
-        this.hours = coerceHours(input.hours);
 
         this.imageUrl = input.imageUrl;
         this.heroUrl = input.heroUrl ?? "";

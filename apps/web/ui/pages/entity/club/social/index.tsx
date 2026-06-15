@@ -1,31 +1,9 @@
 import { Club } from "@/objects/class/club/Club";
 import { ClubDTO } from "@/objects/class/club/club.interface";
-import { Phone, Globe, MapPin, Clock } from "lucide-react";
+import { Phone, Globe, MapPin } from "lucide-react";
 
 interface ClubDataColumnProps {
     club: ClubDTO;
-}
-
-const DAY_ORDER = [
-    "monday",
-    "tuesday",
-    "wednesday",
-    "thursday",
-    "friday",
-    "saturday",
-    "sunday",
-];
-
-function orderHoursEntries(hours: Record<string, string>): [string, string][] {
-    const entries = Object.entries(hours);
-    return entries.sort(([a], [b]) => {
-        const ai = DAY_ORDER.indexOf(a.toLowerCase());
-        const bi = DAY_ORDER.indexOf(b.toLowerCase());
-        if (ai === -1 && bi === -1) return 0;
-        if (ai === -1) return 1;
-        if (bi === -1) return -1;
-        return ai - bi;
-    });
 }
 
 function buildMapQuery(parsedClub: Club): string | null {
@@ -45,33 +23,12 @@ const ClubDataColumn = ({ club }: ClubDataColumnProps) => {
     const isFestival = parsedClub.clubType === "festival";
 
     const mapUrl = buildMapQuery(parsedClub);
-    const hoursEntries = parsedClub.hours
-        ? orderHoursEntries(parsedClub.hours)
-        : [];
 
     const hasContact =
         parsedClub.phoneNumber !== "" || parsedClub.website !== "" || mapUrl;
 
     return (
         <div className="max-w-2xl bg-coconut-cream space-y-6">
-            {hoursEntries.length > 0 && (
-                <section>
-                    <h2 className="text-xl font-bold mb-2 flex items-center gap-2">
-                        <Clock className="w-5 h-5" aria-hidden="true" />
-                        Hours
-                    </h2>
-                    <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-foreground">
-                        {hoursEntries.map(([day, hours]) => (
-                            <div key={day} className="contents">
-                                <dt className="capitalize font-medium">
-                                    {day}
-                                </dt>
-                                <dd>{hours}</dd>
-                            </div>
-                        ))}
-                    </dl>
-                </section>
-            )}
             {hasContact && (
                 <section>
                     <h2 className="text-xl font-bold mb-4">

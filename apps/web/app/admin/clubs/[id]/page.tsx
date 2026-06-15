@@ -20,18 +20,10 @@ export default async function AdminClubEditPage(props: {
             city: true,
             state: true,
             description: true,
-            hours: true,
         },
     });
 
     if (!club) notFound();
-
-    const initialHours =
-        club.hours &&
-        typeof club.hours === "object" &&
-        !Array.isArray(club.hours)
-            ? (club.hours as Record<string, unknown>)
-            : null;
 
     const location = [club.city, club.state].filter(Boolean).join(", ");
 
@@ -40,7 +32,7 @@ export default async function AdminClubEditPage(props: {
             <AdminPageHeader
                 eyebrow={`Admin · Clubs · ${club.name}`}
                 title="Club details"
-                description="Edit venue description and operating hours."
+                description="Edit venue description."
                 summary={location || undefined}
             />
 
@@ -49,7 +41,6 @@ export default async function AdminClubEditPage(props: {
                     clubId={club.id}
                     clubName={club.name}
                     initialDescription={club.description ?? ""}
-                    initialHours={initialHours}
                 />
             </div>
         </div>

@@ -71,7 +71,6 @@ function clubRow(overrides: Record<string, unknown> = {}) {
         closedAt: null,
         totalShows: 10,
         description: "Old description",
-        hours: null,
         chain: null,
         scrapingSources: [],
         shows: [],
@@ -81,7 +80,7 @@ function clubRow(overrides: Record<string, unknown> = {}) {
 }
 
 function makeRequest(
-    body: unknown = { description: "Hi", hours: null },
+    body: unknown = { description: "Hi" },
     id: string = String(CLUB_ID),
 ): [NextRequest, { params: Promise<{ id: string }> }] {
     const req = new NextRequest(`http://localhost/api/admin/clubs/${id}`, {
@@ -158,10 +157,7 @@ describe("PATCH /api/admin/clubs/[id]", () => {
     it("returns 400 for invalid club id", async () => {
         mockAuth.mockResolvedValue(adminSession as never);
 
-        const [req, ctx] = makeRequest(
-            { description: null, hours: null },
-            "abc",
-        );
+        const [req, ctx] = makeRequest({ description: null }, "abc");
         const res = await PATCH(req, ctx);
 
         expect(res.status).toBe(400);
@@ -176,22 +172,10 @@ describe("PATCH /api/admin/clubs/[id]", () => {
         expect(res.status).toBe(400);
     });
 
-    it("returns 400 when hours has unknown day", async () => {
+    it("returns 400 when no editable or status field is present", async () => {
         mockAuth.mockResolvedValue(adminSession as never);
 
-        const [req, ctx] = makeRequest({
-            description: null,
-            hours: { funday: "9-5" },
-        });
-        const res = await PATCH(req, ctx);
-
-        expect(res.status).toBe(400);
-    });
-
-    it("returns 400 when description is missing from payload", async () => {
-        mockAuth.mockResolvedValue(adminSession as never);
-
-        const [req, ctx] = makeRequest({ hours: null });
+        const [req, ctx] = makeRequest({});
         const res = await PATCH(req, ctx);
 
         expect(res.status).toBe(400);
@@ -201,7 +185,7 @@ describe("PATCH /api/admin/clubs/[id]", () => {
         mockAuth.mockResolvedValue(adminSession as never);
         mockUpdate.mockRejectedValue({ code: "P2025" });
 
-        const [req, ctx] = makeRequest({ description: "x", hours: null });
+        const [req, ctx] = makeRequest({ description: "x" });
         const res = await PATCH(req, ctx);
 
         expect(res.status).toBe(404);
@@ -210,25 +194,10 @@ describe("PATCH /api/admin/clubs/[id]", () => {
     it("happy path: updates, revalidates, returns 200", async () => {
         mockAuth.mockResolvedValue(adminSession as never);
         mockUpdate.mockResolvedValue({
-            ...clubRow({
-                description: "Great club",
-                hours: { monday: "Closed", tuesday: "7 PM - 11 PM" },
-            }),
+            ...clubRow({ description: "Great club" }),
         } as never);
 
-        const hours = {
-            monday: "Closed",
-            tuesday: "7 PM - 11 PM",
-            wednesday: "",
-            thursday: "",
-            friday: "",
-            saturday: "",
-            sunday: "",
-        };
-        const [req, ctx] = makeRequest({
-            description: "  Great club  ",
-            hours,
-        });
+        const [req, ctx] = makeRequest({ description: "  Great club  " });
         const res = await PATCH(req, ctx);
         const body = await res.json();
 
@@ -240,13 +209,11 @@ describe("PATCH /api/admin/clubs/[id]", () => {
             where: { id: CLUB_ID },
             data: expect.objectContaining({
                 description: "Great club",
-                hours: { monday: "Closed", tuesday: "7 PM - 11 PM" },
             }),
             select: expect.objectContaining({
                 id: true,
                 name: true,
                 description: true,
-                hours: true,
             }),
         });
         expect(mockTransaction).toHaveBeenCalledTimes(1);
@@ -261,13 +228,13 @@ describe("PATCH /api/admin/clubs/[id]", () => {
         );
     });
 
-    it("passes Prisma.DbNull when hours is null", async () => {
+    it("clears the description when null is submitted", async () => {
         mockAuth.mockResolvedValue(adminSession as never);
         mockUpdate.mockResolvedValue({
-            ...clubRow({ name: "Gotham", description: null, hours: null }),
+            ...clubRow({ name: "Gotham", description: null }),
         } as never);
 
-        const [req, ctx] = makeRequest({ description: null, hours: null });
+        const [req, ctx] = makeRequest({ description: null });
         const res = await PATCH(req, ctx);
 
         expect(res.status).toBe(200);
@@ -275,13 +242,11 @@ describe("PATCH /api/admin/clubs/[id]", () => {
             where: { id: CLUB_ID },
             data: expect.objectContaining({
                 description: null,
-                hours: Symbol.for("Prisma.DbNull"),
             }),
             select: expect.objectContaining({
                 id: true,
                 name: true,
                 description: true,
-                hours: true,
             }),
         });
     });
@@ -294,14 +259,12 @@ describe("PATCH /api/admin/clubs/[id]", () => {
             clubRow({
                 name: "Gotham",
                 description: "Old",
-                hours: { monday: "Closed" },
             }),
         );
         const update = vi.fn().mockResolvedValue(
             clubRow({
                 name: "Gotham",
                 description: "New",
-                hours: { monday: "7 PM - 11 PM" },
             }),
         );
         mockTransaction.mockImplementation(async (callback) =>
@@ -311,18 +274,7 @@ describe("PATCH /api/admin/clubs/[id]", () => {
             } as never),
         );
 
-        const [req, ctx] = makeRequest({
-            description: "New",
-            hours: {
-                monday: "7 PM - 11 PM",
-                tuesday: "",
-                wednesday: "",
-                thursday: "",
-                friday: "",
-                saturday: "",
-                sunday: "",
-            },
-        });
+        const [req, ctx] = makeRequest({ description: "New" });
         const res = await PATCH(req, ctx);
 
         expect(res.status).toBe(200);
@@ -332,20 +284,17 @@ describe("PATCH /api/admin/clubs/[id]", () => {
                 id: true,
                 name: true,
                 description: true,
-                hours: true,
             }),
         });
         expect(update).toHaveBeenCalledWith({
             where: { id: CLUB_ID },
             data: expect.objectContaining({
                 description: "New",
-                hours: { monday: "7 PM - 11 PM" },
             }),
             select: expect.objectContaining({
                 id: true,
                 name: true,
                 description: true,
-                hours: true,
             }),
         });
         expect(auditCreate).toHaveBeenCalledWith({
@@ -359,13 +308,11 @@ describe("PATCH /api/admin/clubs/[id]", () => {
                     id: CLUB_ID,
                     name: "Gotham",
                     description: "Old",
-                    hours: { monday: "Closed" },
                 }),
                 after: expect.objectContaining({
                     id: CLUB_ID,
                     name: "Gotham",
                     description: "New",
-                    hours: { monday: "7 PM - 11 PM" },
                 }),
             }),
         });

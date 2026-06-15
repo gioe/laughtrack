@@ -319,7 +319,6 @@ export async function getAdminOverviewData(): Promise<AdminOverviewData> {
             SELECT c.id AS club_id, c.name AS club_name, c.city, c.state,
                    ARRAY_REMOVE(ARRAY[
                        CASE WHEN c.description IS NULL OR BTRIM(c.description) = '' THEN 'description' END,
-                       CASE WHEN c.hours IS NULL THEN 'hours' END,
                        CASE WHEN c.timezone IS NULL OR BTRIM(c.timezone) = '' THEN 'timezone' END,
                        CASE WHEN c.phone_number IS NULL OR BTRIM(c.phone_number) = '' THEN 'phone' END,
                        CASE WHEN c.has_image = FALSE THEN 'image' END
@@ -329,14 +328,12 @@ export async function getAdminOverviewData(): Promise<AdminOverviewData> {
               AND c.status = 'active'
               AND (
                   c.description IS NULL OR BTRIM(c.description) = ''
-                  OR c.hours IS NULL
                   OR c.timezone IS NULL OR BTRIM(c.timezone) = ''
                   OR c.phone_number IS NULL OR BTRIM(c.phone_number) = ''
                   OR c.has_image = FALSE
               )
             ORDER BY CARDINALITY(ARRAY_REMOVE(ARRAY[
                        CASE WHEN c.description IS NULL OR BTRIM(c.description) = '' THEN 'description' END,
-                       CASE WHEN c.hours IS NULL THEN 'hours' END,
                        CASE WHEN c.timezone IS NULL OR BTRIM(c.timezone) = '' THEN 'timezone' END,
                        CASE WHEN c.phone_number IS NULL OR BTRIM(c.phone_number) = '' THEN 'phone' END,
                        CASE WHEN c.has_image = FALSE THEN 'image' END

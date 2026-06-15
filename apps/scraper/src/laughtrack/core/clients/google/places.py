@@ -1,15 +1,14 @@
-"""Google Places API (New) client — single-request venue hours lookup.
+"""Google Places API (New) client — venue photo + nearby-discovery lookups.
 
-Uses a single ``places:searchText`` POST with a field mask that asks for
-``regularOpeningHours.weekdayDescriptions`` on the top-level ``places[*]``
-node so the place_id and the human-readable hours come back in one round-
-trip (no separate ``places/{id}`` details call).  Parses the returned
-``weekdayDescriptions`` strings into the project's canonical hours shape:
-``Record<lowercase day, compact range>`` — e.g. ``{"monday": "5pm-11pm"}``.
+Wraps two ``places:searchText`` use cases:
 
-Pricing: Text Search with the opening-hours field currently bills under the
-"Text Search Pro" SKU (~$32 per 1k requests as of 2025).  A one-shot
-backfill of ~340 clubs is well under $20.
+* ``fetch_photo`` — resolve a venue's first Google photo (plus its place_id
+  and required author attributions) for club image sourcing.
+* ``search_nearby`` — text-search biased toward a circle, used to discover
+  comedy venues geographically (see ``bin/discover-nearby``).
+
+Pricing: Text Search bills under the "Text Search" SKUs (~$32 per 1k requests
+as of 2025); each request is drawn from ``GOOGLE_PLACES_DAILY_LIMIT``.
 
 Docs: https://developers.google.com/maps/documentation/places/web-service/text-search
 """
@@ -17,10 +16,8 @@ Docs: https://developers.google.com/maps/documentation/places/web-service/text-s
 from __future__ import annotations
 
 import os
-import re
 import threading
 import time
-import urllib.parse
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
@@ -31,59 +28,20 @@ from laughtrack.foundation.infrastructure.logger.logger import Logger
 _API_BASE = "https://places.googleapis.com/v1"
 _API_URL = f"{_API_BASE}/places:searchText"
 
-_FIELD_MASK = (
-    "places.id,"
-    "places.displayName,"
-    "places.regularOpeningHours.weekdayDescriptions"
-)
-
 # Photo search only needs the place identity plus its photo references; the
 # image bytes are fetched in a follow-up media call keyed off photos[*].name.
 _PHOTO_FIELD_MASK = "places.id,places.displayName,places.photos"
 
-# "Monday: 5:00 PM – 11:00 PM" / "Tuesday: Closed" / "Wednesday: Open 24 hours"
-_DAY_PREFIX_RE = re.compile(
-    r"^\s*(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\s*:\s*(.+?)\s*$",
-    re.IGNORECASE,
-)
+# Nearby/discovery search returns identity + location so callers can dedupe on
+# place_id and filter by true distance. ``nextPageToken`` is top-level (not
+# under ``places``) so it must be named explicitly in the mask to paginate.
+_NEARBY_FIELD_MASK = "nextPageToken," "places.id," "places.displayName," "places.formattedAddress," "places.location"
 
-# "5:00 PM – 11:00 PM" — en dash or hyphen, tolerant of thin/narrow-nbsp before AM/PM
-_TIME_RANGE_12H_RE = re.compile(
-    r"^\s*(\d{1,2})(?::(\d{2}))?\s*([AP]M)\s*[\u2013\u2014\-]\s*"
-    r"(\d{1,2})(?::(\d{2}))?\s*([AP]M)\s*$",
-    re.IGNORECASE,
-)
-
-# "6:00 – 9:30 PM" — Google sometimes omits AM/PM on the opening
-# side when both endpoints are in the same half-day.
-_TIME_RANGE_12H_INFER_OPEN_RE = re.compile(
-    r"^\s*(\d{1,2})(?::(\d{2}))?\s*[\u2013\u2014\-]\s*"
-    r"(\d{1,2})(?::(\d{2}))?\s*([AP]M)\s*$",
-    re.IGNORECASE,
-)
-
-# "17:00 – 23:00" — 24-hour locale format returned by non-US place listings.
-# Hours must be zero-padded so an AM/PM-less 12-hour string like "5:00 - 7:00"
-# (where Google omitted the meridiem) doesn't get silently relabeled as 5am.
-_TIME_RANGE_24H_RE = re.compile(
-    r"^\s*(\d{2}):(\d{2})\s*[\u2013\u2014\-]\s*(\d{2}):(\d{2})\s*$"
-)
-
-_ALWAYS_OPEN_PHRASES = frozenset({"open 24 hours", "24 hours", "24/7"})
-
-
-@dataclass
-class PlacesHoursResult:
-    """Outcome of one ``fetch_hours`` call.
-
-    ``place_id`` is returned even when parsing fails so callers can cache
-    the identifier for future refreshes.  ``hours`` is ``None`` when the
-    API returned no match, the match had no ``regularOpeningHours`` field,
-    or every weekday entry failed to parse.
-    """
-
-    place_id: Optional[str]
-    hours: Optional[Dict[str, str]]
+# Text Search ``locationBias`` circle radius is capped at 50 km by the API.
+_MAX_BIAS_RADIUS_M = 50_000.0
+_METERS_PER_MILE = 1609.344
+# Text Search returns at most 20 results per page; pagination tops out at 60.
+_NEARBY_PAGE_SIZE = 20
 
 
 @dataclass
@@ -102,6 +60,23 @@ class PlacesPhotoResult:
     photo_uri: str
     place_id: Optional[str]
     attributions: List[Dict[str, str]]
+
+
+@dataclass
+class PlacesNearbyVenue:
+    """One venue returned by :meth:`GooglePlacesClient.search_nearby`.
+
+    ``lat``/``lng`` are the venue's own coordinates (not the search center),
+    so callers can compute the true great-circle distance from an origin and
+    discard results the soft ``locationBias`` pulled in from beyond the ring.
+    ``address`` is Google's ``formattedAddress`` (``None`` when absent).
+    """
+
+    place_id: str
+    name: str
+    address: Optional[str]
+    lat: float
+    lng: float
 
 
 def _normalize_attributions(raw: Any) -> List[Dict[str, str]]:
@@ -126,150 +101,6 @@ def _normalize_attributions(raw: Any) -> List[Dict[str, str]]:
         if entry:
             out.append(entry)
     return out
-
-
-def _normalize_ws(text: str) -> str:
-    """Collapse thin / narrow-nbsp / regular nbsp into plain spaces and strip."""
-    return (
-        text.replace("\u202f", " ")  # narrow no-break space (Google uses this before AM/PM)
-        .replace("\u2009", " ")  # thin space
-        .replace("\u00a0", " ")  # no-break space
-        .strip()
-    )
-
-
-def _format_12h(hour: int, minutes: int, ampm: str) -> str:
-    suffix = ampm.lower()
-    if minutes:
-        return f"{hour}:{minutes:02d}{suffix}"
-    return f"{hour}{suffix}"
-
-
-def _format_24h(hour: int, minutes: int) -> str:
-    """Render a 24-hour H:MM pair as the project's compact 12-hour token.
-
-    Caller is responsible for validating ``hour`` (0-23) and ``minutes``
-    (0-59) — out-of-range values would otherwise be silently coerced.
-    """
-    suffix = "am" if hour < 12 else "pm"
-    h12 = hour % 12 or 12
-    if minutes:
-        return f"{h12}:{minutes:02d}{suffix}"
-    return f"{h12}{suffix}"
-
-
-def _infer_open_meridiem(open_hour: int, close_hour: int, close_ampm: str) -> str:
-    # Hour 12 is the *start* of its half-day (12 AM = midnight, 12 PM = noon),
-    # so compare on the modulo-12 clock where it maps to 0 — otherwise a
-    # midnight close like "9:00 – 12:00 AM" reads as same-half-day (9am-12am)
-    # and a noon close like "10:00 – 12:00 PM" inverts to 10pm-12pm.
-    crosses_half_day = (open_hour % 12) > (close_hour % 12)
-    close_suffix = close_ampm.upper()
-    if close_suffix == "AM":
-        # Overnight venue ranges commonly appear as "9:00 – 1:00 AM".
-        return "PM" if crosses_half_day else "AM"
-    # Same-day afternoon/evening ranges commonly appear as "6:00 – 9:30 PM".
-    # If the opening hour falls after the close on the modulo-12 clock, treat
-    # it as a morning-to-afternoon span such as "10:00 – 2:00 PM".
-    return "AM" if crosses_half_day else "PM"
-
-
-def _parse_time_range(segment: str) -> Optional[str]:
-    """Parse one open-close range into the compact project format.
-
-    Accepts both 12-hour forms (``"5:00 PM – 11:00 PM"``) and 24-hour
-    locale forms (``"17:00 – 23:00"``).  Returns ``None`` when the
-    segment matches neither, OR when matched values fall outside the
-    valid clock range — those route to the diagnostic warn path so
-    unexpected formats become visible in logs rather than silently
-    coerced.
-    """
-    match = _TIME_RANGE_12H_RE.match(segment)
-    if match:
-        open_h, open_m = int(match.group(1)), int(match.group(2) or 0)
-        close_h, close_m = int(match.group(4)), int(match.group(5) or 0)
-        if not (1 <= open_h <= 12 and 1 <= close_h <= 12):
-            return None
-        if not (0 <= open_m <= 59 and 0 <= close_m <= 59):
-            return None
-        open_str = _format_12h(open_h, open_m, match.group(3))
-        close_str = _format_12h(close_h, close_m, match.group(6))
-        return f"{open_str}-{close_str}"
-    match = _TIME_RANGE_12H_INFER_OPEN_RE.match(segment)
-    if match:
-        open_h, open_m = int(match.group(1)), int(match.group(2) or 0)
-        close_h, close_m = int(match.group(3)), int(match.group(4) or 0)
-        close_ampm = match.group(5)
-        if not (1 <= open_h <= 12 and 1 <= close_h <= 12):
-            return None
-        if not (0 <= open_m <= 59 and 0 <= close_m <= 59):
-            return None
-        open_ampm = _infer_open_meridiem(open_h, close_h, close_ampm)
-        open_str = _format_12h(open_h, open_m, open_ampm)
-        close_str = _format_12h(close_h, close_m, close_ampm)
-        return f"{open_str}-{close_str}"
-    match = _TIME_RANGE_24H_RE.match(segment)
-    if match:
-        open_h, open_m = int(match.group(1)), int(match.group(2))
-        close_h, close_m = int(match.group(3)), int(match.group(4))
-        if not (0 <= open_h <= 23 and 0 <= close_h <= 23):
-            return None
-        if not (0 <= open_m <= 59 and 0 <= close_m <= 59):
-            return None
-        open_str = _format_24h(open_h, open_m)
-        close_str = _format_24h(close_h, close_m)
-        return f"{open_str}-{close_str}"
-    return None
-
-
-def parse_weekday_descriptions(descriptions: List[str]) -> Optional[Dict[str, str]]:
-    """Convert Places ``weekdayDescriptions`` into the project hours shape.
-
-    Returns ``None`` when no entry parses.  Entries that say "Closed" are
-    intentionally omitted from the result (matches existing behaviour:
-    JSON-LD extraction also omits closed days rather than writing an
-    explicit "closed" marker).  "Open 24 hours" collapses to ``"24hrs"``.
-
-    Handles multi-shift days (e.g. lunch + dinner service) by splitting on
-    commas and joining the parsed sub-ranges back with ", ".  Time ranges
-    are accepted in both 12-hour (``"5:00 PM – 11:00 PM"``) and 24-hour
-    (``"17:00 – 23:00"``) forms; locale output always normalizes to 12h.
-    If the day prefix matches but NO sub-range parses, a diagnostic warn
-    is emitted so production patterns can be spotted in logs.
-    """
-    if not descriptions:
-        return None
-    out: Dict[str, str] = {}
-    for raw in descriptions:
-        if not isinstance(raw, str):
-            continue
-        line = _normalize_ws(raw)
-        prefix = _DAY_PREFIX_RE.match(line)
-        if not prefix:
-            continue
-        day = prefix.group(1).lower()
-        rest = _normalize_ws(prefix.group(2))
-        lowered = rest.lower()
-        if lowered == "closed":
-            continue
-        if lowered in _ALWAYS_OPEN_PHRASES:
-            out[day] = "24hrs"
-            continue
-        segments = [seg for seg in (s.strip() for s in rest.split(",")) if seg]
-        parsed_segments: List[str] = []
-        for segment in segments:
-            formatted = _parse_time_range(segment)
-            if formatted:
-                parsed_segments.append(formatted)
-        if not parsed_segments:
-            # Prefix matched but no time range parsed — surface the raw
-            # entry so unseen locale/format patterns are visible in logs.
-            Logger.warn(
-                f"[places] unparseable hours entry for {day}: {raw!r}"
-            )
-            continue
-        out[day] = ", ".join(parsed_segments)
-    return out or None
 
 
 class GooglePlacesClient:
@@ -328,81 +159,161 @@ class GooglePlacesClient:
             if self._calls_made > 0:
                 self._calls_made -= 1
 
-    def fetch_hours(self, query: str) -> PlacesHoursResult:
-        """Run a text search + hours fetch for ``query`` in one request.
+    def search_nearby(
+        self,
+        query: str,
+        lat: float,
+        lng: float,
+        radius_miles: float,
+        max_pages: int = 3,
+    ) -> List[PlacesNearbyVenue]:
+        """Text-search ``query`` biased toward a circle and return venues.
 
-        ``query`` should be a disambiguated venue string, e.g.
-        ``"Comedy Cellar, New York, NY"``.  Returns an empty
-        ``PlacesHoursResult(None, None)`` on any error, quota breach,
-        missing key, empty results, or unparseable hours.
+        Runs ``places:searchText`` with a ``locationBias`` circle centered on
+        (``lat``, ``lng``). The bias radius is clamped to the API's 50 km
+        ceiling; a wider ``radius_miles`` should be covered by tiling multiple
+        calls and deduping on ``place_id``. Note the bias is *soft* — Google
+        may return venues outside the circle — so callers MUST filter results
+        by true distance from their origin.
+
+        Paginates up to ``max_pages`` pages (20 results each, 60 max) via
+        ``nextPageToken``. Each HTTP request consumes one daily-quota slot.
+        Returns the accumulated venues (de-duplicated on ``place_id`` within
+        this call); an empty list on missing key, blank query, quota breach,
+        or any HTTP/parse error.
         """
-        empty = PlacesHoursResult(None, None)
-        if not self.is_configured:
-            return empty
-        if not query or not query.strip():
-            return empty
-        if not self._reserve_call_slot():
-            Logger.warn(
-                f"[places] daily limit reached ({self._daily_limit}) — skipping query '{query}'"
-            )
-            return empty
+        if not self.is_configured or not query or not query.strip():
+            return []
+
+        radius_m = min(max(radius_miles, 0.0) * _METERS_PER_MILE, _MAX_BIAS_RADIUS_M)
+        if radius_m <= 0:
+            return []
 
         headers = {
             "Content-Type": "application/json",
             "X-Goog-Api-Key": self._api_key,
-            "X-Goog-FieldMask": _FIELD_MASK,
+            "X-Goog-FieldMask": _NEARBY_FIELD_MASK,
         }
-        # pageSize=1 keeps the response small; we only ever use the top match.
-        payload: Dict[str, Any] = {"textQuery": query, "pageSize": 1}
+        base_payload: Dict[str, Any] = {
+            "textQuery": query,
+            "pageSize": _NEARBY_PAGE_SIZE,
+            "locationBias": {
+                "circle": {
+                    "center": {"latitude": lat, "longitude": lng},
+                    "radius": radius_m,
+                }
+            },
+        }
+
+        out: List[PlacesNearbyVenue] = []
+        seen: set = set()
+        page_token: Optional[str] = None
+        for _ in range(max(1, max_pages)):
+            payload = dict(base_payload)
+            if page_token:
+                payload["pageToken"] = page_token
+
+            page = self._fetch_nearby_page(payload, headers, query)
+            if page is None:
+                break
+            venues, page_token = page
+
+            for venue in venues:
+                if venue.place_id not in seen:
+                    seen.add(venue.place_id)
+                    out.append(venue)
+
+            if not page_token:
+                break
+
+        return out
+
+    def _fetch_nearby_page(
+        self, payload: Dict[str, Any], headers: Dict[str, str], query: str
+    ) -> Optional[tuple[List[PlacesNearbyVenue], Optional[str]]]:
+        """Fetch and parse one nearby-search page.
+
+        Returns ``(venues, next_page_token)`` on success (token is ``None``
+        when there are no more pages), or ``None`` to signal pagination should
+        stop — quota breach, network error, non-200, or unparseable JSON. Each
+        successful reservation consumes one daily-quota slot; a slot reserved
+        for a request that never reached the API is refunded.
+        """
+        if not self._reserve_call_slot():
+            Logger.warn(
+                f"[places] daily limit reached ({self._daily_limit}) — " f"stopping nearby search for '{query}'"
+            )
+            return None
 
         if self._delay_s > 0:
             time.sleep(self._delay_s)
 
         try:
-            resp = requests.post(
-                _API_URL, json=payload, headers=headers, timeout=self._timeout_s
-            )
+            resp = requests.post(_API_URL, json=payload, headers=headers, timeout=self._timeout_s)
         except requests.RequestException as exc:
-            # Refund the reserved slot — no request reached the API, so a
-            # transient outage shouldn't drain the daily quota.
             self._release_call_slot()
-            Logger.warn(f"[places] request failed for '{query}': {exc}")
-            return empty
+            Logger.warn(f"[places] nearby search failed for '{query}': {exc}")
+            return None
 
         if resp.status_code == 429:
-            Logger.warn(f"[places] rate limited (HTTP 429) on '{query}'")
-            return empty
+            Logger.warn(f"[places] rate limited (HTTP 429) on nearby '{query}'")
+            return None
         if resp.status_code != 200:
-            Logger.warn(
-                f"[places] HTTP {resp.status_code} on '{query}': {resp.text[:200]}"
-            )
-            return empty
+            Logger.warn(f"[places] HTTP {resp.status_code} on nearby '{query}': {resp.text[:200]}")
+            return None
 
         try:
             data = resp.json()
         except ValueError as exc:
-            Logger.warn(f"[places] bad JSON on '{query}': {exc}")
-            return empty
+            Logger.warn(f"[places] bad JSON on nearby '{query}': {exc}")
+            return None
 
+        token = data.get("nextPageToken") if isinstance(data, dict) else None
+        next_token = token if isinstance(token, str) and token else None
+        return self._parse_nearby_places(data), next_token
+
+    @staticmethod
+    def _parse_nearby_places(data: Any) -> List[PlacesNearbyVenue]:
+        """Pull well-formed venues from one nearby-search response page.
+
+        Skips any entry missing a string ``id`` or numeric lat/lng — those
+        can't be deduped or distance-filtered, so they're dropped rather than
+        carried forward with placeholder coordinates.
+        """
         places = data.get("places") if isinstance(data, dict) else None
-        if not isinstance(places, list) or not places:
-            return empty
-        top = places[0]
-        if not isinstance(top, dict):
-            return empty
+        if not isinstance(places, list):
+            return []
+        out: List[PlacesNearbyVenue] = []
+        for place in places:
+            if not isinstance(place, dict):
+                continue
+            place_id = place.get("id")
+            if not isinstance(place_id, str) or not place_id:
+                continue
+            location = place.get("location")
+            if not isinstance(location, dict):
+                continue
+            lat = location.get("latitude")
+            lng = location.get("longitude")
+            if not isinstance(lat, (int, float)) or not isinstance(lng, (int, float)):
+                continue
+            display = place.get("displayName")
+            name = ""
+            if isinstance(display, dict) and isinstance(display.get("text"), str):
+                name = display["text"]
+            address = place.get("formattedAddress")
+            out.append(
+                PlacesNearbyVenue(
+                    place_id=place_id,
+                    name=name,
+                    address=address if isinstance(address, str) else None,
+                    lat=float(lat),
+                    lng=float(lng),
+                )
+            )
+        return out
 
-        place_id = top.get("id") if isinstance(top.get("id"), str) else None
-        opening = top.get("regularOpeningHours")
-        descriptions: List[str] = []
-        if isinstance(opening, dict):
-            raw_descs = opening.get("weekdayDescriptions")
-            if isinstance(raw_descs, list):
-                descriptions = [d for d in raw_descs if isinstance(d, str)]
-        return PlacesHoursResult(place_id=place_id, hours=parse_weekday_descriptions(descriptions))
-
-    def fetch_photo(
-        self, query: str, max_width_px: int = 500
-    ) -> Optional[PlacesPhotoResult]:
+    def fetch_photo(self, query: str, max_width_px: int = 500) -> Optional[PlacesPhotoResult]:
         """Resolve a venue photo for ``query`` plus its place_id and attribution.
 
         Two requests under the daily cap: a ``places:searchText`` to find the
@@ -423,9 +334,7 @@ class GooglePlacesClient:
         if not query or not query.strip():
             return None
         if not self._reserve_call_slot():
-            Logger.warn(
-                f"[places] daily limit reached ({self._daily_limit}) — skipping photo query '{query}'"
-            )
+            Logger.warn(f"[places] daily limit reached ({self._daily_limit}) — skipping photo query '{query}'")
             return None
 
         headers = {
@@ -439,9 +348,7 @@ class GooglePlacesClient:
             time.sleep(self._delay_s)
 
         try:
-            resp = requests.post(
-                _API_URL, json=payload, headers=headers, timeout=self._timeout_s
-            )
+            resp = requests.post(_API_URL, json=payload, headers=headers, timeout=self._timeout_s)
         except requests.RequestException as exc:
             self._release_call_slot()
             Logger.warn(f"[places] photo search failed for '{query}': {exc}")
@@ -451,9 +358,7 @@ class GooglePlacesClient:
             Logger.warn(f"[places] rate limited (HTTP 429) on photo query '{query}'")
             return None
         if resp.status_code != 200:
-            Logger.warn(
-                f"[places] HTTP {resp.status_code} on photo query '{query}': {resp.text[:200]}"
-            )
+            Logger.warn(f"[places] HTTP {resp.status_code} on photo query '{query}': {resp.text[:200]}")
             return None
 
         try:
@@ -469,9 +374,7 @@ class GooglePlacesClient:
         photo_uri = self._resolve_photo_uri(photo_name, max_width_px, query)
         if not photo_uri:
             return None
-        return PlacesPhotoResult(
-            photo_uri=photo_uri, place_id=place_id, attributions=attributions
-        )
+        return PlacesPhotoResult(photo_uri=photo_uri, place_id=place_id, attributions=attributions)
 
     def fetch_photo_url(self, query: str, max_width_px: int = 500) -> Optional[str]:
         """Resolve a venue photo for ``query`` to a directly-downloadable URL.
@@ -511,14 +414,11 @@ class GooglePlacesClient:
         attributions = _normalize_attributions(first.get("authorAttributions"))
         return place_id, photo_name, attributions
 
-    def _resolve_photo_uri(
-        self, photo_name: str, max_width_px: int, query: str
-    ) -> Optional[str]:
+    def _resolve_photo_uri(self, photo_name: str, max_width_px: int, query: str) -> Optional[str]:
         """Resolve a ``photos/*`` reference to its key-free ``photoUri``."""
         if not self._reserve_call_slot():
             Logger.warn(
-                f"[places] daily limit reached ({self._daily_limit}) — "
-                f"skipping photo media fetch for '{query}'"
+                f"[places] daily limit reached ({self._daily_limit}) — " f"skipping photo media fetch for '{query}'"
             )
             return None
 
@@ -539,9 +439,7 @@ class GooglePlacesClient:
             return None
 
         if resp.status_code != 200:
-            Logger.warn(
-                f"[places] HTTP {resp.status_code} on photo media for '{query}': {resp.text[:200]}"
-            )
+            Logger.warn(f"[places] HTTP {resp.status_code} on photo media for '{query}': {resp.text[:200]}")
             return None
 
         try:

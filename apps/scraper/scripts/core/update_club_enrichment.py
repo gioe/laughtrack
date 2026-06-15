@@ -1,25 +1,17 @@
 #!/usr/bin/env python3
-"""Backfill ``clubs.description`` and ``clubs.hours`` by fetching each club's website.
+"""Backfill ``clubs.description`` by fetching each club's website.
 
 Fetches the stored ``website`` for every visible, active club that is still
-missing either ``description`` or ``hours``, extracts both fields via
+missing a ``description``, extracts it via
 ``laughtrack.utilities.domain.club.enrichment``, and persists anything that
 was parsed.  Existing non-null values are left alone so manual admin edits
 are preserved; pass ``--force`` to overwrite them.
-
-Hours pipeline:
-  1. LD-JSON / meta-tag extraction from the club website (free).
-  2. Google Places API fallback for clubs still missing hours after step 1 —
-     fires only when ``GOOGLE_PLACES_API_KEY`` is set and the club has a
-     ``city`` for query disambiguation.  Bounded by ``GOOGLE_PLACES_DAILY_LIMIT``.
-     Pass ``--skip-places`` to force-disable it for a run.
 
 Usage:
     python -m scripts.core.update_club_enrichment
     python -m scripts.core.update_club_enrichment --limit 50
     python -m scripts.core.update_club_enrichment --dry-run
     python -m scripts.core.update_club_enrichment --force --club-ids 12 34
-    python -m scripts.core.update_club_enrichment --skip-places
 """
 
 from __future__ import annotations
@@ -42,7 +34,6 @@ from curl_cffi.requests import AsyncSession
 from psycopg2.extras import execute_values
 
 from laughtrack.adapters.db import get_connection
-from laughtrack.core.clients.google.places import GooglePlacesClient
 from laughtrack.foundation.infrastructure.http.client import (
     HttpClient,
     _bot_block_reason,
@@ -50,10 +41,7 @@ from laughtrack.foundation.infrastructure.http.client import (
     close_js_browser,
 )
 from laughtrack.foundation.infrastructure.logger.logger import Logger
-from laughtrack.utilities.domain.club.enrichment import (
-    extract_description,
-    extract_hours,
-)
+from laughtrack.utilities.domain.club.enrichment import extract_description
 
 _CONCURRENCY = 8
 _TIMEOUT_SECONDS = 25
@@ -67,8 +55,7 @@ _KNOWN_DATADOME_DESCRIPTION_BY_HOST = {
         "open mics, podcasts, and special events."
     ),
     "laughfactory.com": (
-        "Laugh Factory is a comedy club featuring stand-up shows, touring "
-        "comedians, showcases, and special events."
+        "Laugh Factory is a comedy club featuring stand-up shows, touring " "comedians, showcases, and special events."
     ),
 }
 # Registrable domains whose fetches we skip (see _known_datadome_description).
@@ -89,21 +76,15 @@ class _ClubFetchResult:
     extractable" so the nightly summary can surface each failure mode
     independently (a rising bot_blocked count signals a platform move,
     not a content-quality issue).
-
-    ``hours_source`` records which pipeline stage populated ``hours`` so
-    the summary can split LD-JSON hits from Places fallbacks — useful
-    when sanity-checking cost per nightly run.
     """
 
     club_id: int
     status: str  # "extracted" | "bot_blocked" | "no_data" | "fetch_failed"
     description: Optional[str] = None
-    hours: Optional[Dict[str, str]] = None
-    hours_source: Optional[str] = None  # "ldjson" | "places" | None
 
 
 _GET_CLUBS_SQL = """
-    SELECT id, name, website, city, state, description, hours
+    SELECT id, name, website, city, state, description
     FROM clubs
     WHERE visible = TRUE
       AND status = 'active'
@@ -115,32 +96,24 @@ _GET_CLUBS_SQL = """
 
 _UPDATE_SQL_FILL_NULLS = """
     UPDATE clubs AS c
-    SET description = COALESCE(c.description, v.description),
-        hours       = COALESCE(c.hours,       v.hours)
-    FROM (VALUES %s) AS v(id, description, hours)
+    SET description = COALESCE(c.description, v.description)
+    FROM (VALUES %s) AS v(id, description)
     WHERE c.id = v.id
 """
 
 _UPDATE_SQL_FORCE = """
     UPDATE clubs AS c
-    SET description = COALESCE(v.description, c.description),
-        hours       = COALESCE(v.hours,       c.hours)
-    FROM (VALUES %s) AS v(id, description, hours)
+    SET description = COALESCE(v.description, c.description)
+    FROM (VALUES %s) AS v(id, description)
     WHERE c.id = v.id
 """
 
-_VALUES_TEMPLATE = "(%s, %s, %s::jsonb)"
+_VALUES_TEMPLATE = "(%s, %s)"
 
 
 @dataclass
 class _ClubTarget:
-    """Row shape yielded to ``_process_club``.
-
-    ``has_hours`` is the DB's current state — used to skip the Places
-    fallback for clubs whose hours are already populated (LD-JSON
-    extraction will also skip them, but we guard explicitly so a future
-    re-run with ``--force`` doesn't also burn Places quota).
-    """
+    """Row shape yielded to ``_process_club``."""
 
     id: int
     name: str
@@ -148,7 +121,6 @@ class _ClubTarget:
     city: Optional[str]
     state: Optional[str]
     has_description: bool
-    has_hours: bool
 
 
 def _load_target_clubs(
@@ -162,7 +134,7 @@ def _load_target_clubs(
         filters.append("AND id = ANY(%s::int[])")
         params.append(club_ids)
     if missing_only:
-        filters.append("AND (description IS NULL OR hours IS NULL)")
+        filters.append("AND description IS NULL")
     sql = _GET_CLUBS_SQL.format(extra_filter="\n      ".join(filters))
     if limit:
         sql += f"\n    LIMIT {int(limit)}"
@@ -179,28 +151,9 @@ def _load_target_clubs(
             city=r[3],
             state=r[4],
             has_description=r[5] is not None,
-            has_hours=r[6] is not None,
         )
         for r in rows
     ]
-
-
-def _places_query(name: str, city: Optional[str], state: Optional[str]) -> Optional[str]:
-    """Build a text-search query string for Places.
-
-    Requires a city (state alone doesn't disambiguate — "Comedy Club, TX"
-    would surface the largest match statewide rather than the intended
-    venue).  Returns ``None`` when the club lacks the geo context needed
-    for a trustworthy match so the caller can skip the Places call.
-    """
-    name = (name or "").strip()
-    city = (city or "").strip()
-    state = (state or "").strip()
-    if not name or not city:
-        return None
-    if state:
-        return f"{name}, {city}, {state}"
-    return f"{name}, {city}"
 
 
 def _normalized_host(url: str) -> str:
@@ -212,8 +165,8 @@ def _known_datadome_description(target: _ClubTarget) -> Optional[str]:
 
     These hosts repeatedly serve DataDome interactive CAPTCHA pages to GitHub
     Actions. Since club enrichment only needs slow-changing venue metadata, the
-    nightly job bypasses the website fetch and lets Places fill hours instead
-    of burning a Playwright attempt that cannot solve without CAPSOLVER_API_KEY.
+    nightly job bypasses the website fetch and uses a cached description rather
+    than burning a Playwright attempt that cannot solve without CAPSOLVER_API_KEY.
     """
     host = _normalized_host(target.website)
     if not host:
@@ -227,10 +180,7 @@ def _should_skip_known_datadome_fetch(target: _ClubTarget) -> bool:
     host = _normalized_host(target.website)
     # Dot-anchored so unrelated registrable domains that merely end in a
     # known domain (e.g. notfunnybone.com) are not swept into the skip.
-    return any(
-        host == domain or host.endswith("." + domain)
-        for domain in _KNOWN_DATADOME_DOMAINS
-    )
+    return any(host == domain or host.endswith("." + domain) for domain in _KNOWN_DATADOME_DOMAINS)
 
 
 async def _fetch_with_playwright(url: str, context: dict) -> Optional[str]:
@@ -262,19 +212,12 @@ async def _process_club(
     session: AsyncSession,
     semaphore: asyncio.Semaphore,
     target: _ClubTarget,
-    places_client: Optional[GooglePlacesClient],
-    force: bool,
 ) -> _ClubFetchResult:
-    """Fetch + extract for a single club.
+    """Fetch + extract a description for a single club.
 
     Always returns a ``_ClubFetchResult``; callers inspect ``status`` to
     distinguish extracted data, bot-block interstitials, pages with no
     structured content, and outright fetch failures.
-
-    When the LD-JSON extractor yields no hours and ``places_client`` is
-    configured, falls back to a single Google Places text-search call.
-    Places is gated on (a) the club not already having DB hours (unless
-    ``--force``), and (b) a usable ``city`` for query disambiguation.
     """
     club_id, name, website = target.id, target.name, target.website
     # url_source_field tells HttpClient's cross-host redirect WARN which DB
@@ -289,8 +232,6 @@ async def _process_club(
     async with semaphore:
         status = "extracted"
         description: Optional[str] = None
-        hours: Optional[Dict[str, str]] = None
-        hours_source: Optional[str] = None
 
         if _should_skip_known_datadome_fetch(target):
             cached_description = _known_datadome_description(target)
@@ -299,8 +240,7 @@ async def _process_club(
             host = _normalized_host(website) or website
             Logger.info(
                 f"[club-enrichment] skipping website fetch for known DataDome "
-                f"host {host} (club {club_id} '{name}'); using cached metadata "
-                f"and Places fallback",
+                f"host {host} (club {club_id} '{name}'); using cached metadata",
                 context,
             )
         else:
@@ -322,39 +262,14 @@ async def _process_club(
                 if bot_sig is not None:
                     host = urlparse(website).hostname or website
                     Logger.warn(
-                        f"[club-enrichment] bot-blocked: {host} (club {club_id} "
-                        f"'{name}', signature {bot_sig!r})",
+                        f"[club-enrichment] bot-blocked: {host} (club {club_id} " f"'{name}', signature {bot_sig!r})",
                         context,
                     )
                     status = "bot_blocked"
                 else:
                     description = extract_description(html)
-                    hours = extract_hours(html)
-                    if hours is not None:
-                        hours_source = "ldjson"
 
-        # Places fallback — only when LD-JSON didn't already fill hours.
-        # Gated on: client configured, club doesn't already have DB hours
-        # (unless --force), and a disambiguating city is available.  Runs
-        # even when the website fetch failed or was bot-blocked: that is
-        # exactly the case Places exists to cover, and a successful Places
-        # call promotes the result back to "extracted" so the recovered
-        # hours land in the DB instead of being dropped.
-        if (
-            hours is None
-            and places_client is not None
-            and places_client.is_configured
-            and (force or not target.has_hours)
-        ):
-            query = _places_query(name, target.city, target.state)
-            if query is not None and places_client.calls_remaining > 0:
-                places_result = await asyncio.to_thread(places_client.fetch_hours, query)
-                if places_result.hours:
-                    hours = places_result.hours
-                    hours_source = "places"
-                    status = "extracted"
-
-        if status == "extracted" and description is None and hours is None:
+        if status == "extracted" and description is None:
             status = "no_data"
 
         if status in ("fetch_failed", "bot_blocked", "no_data"):
@@ -364,8 +279,6 @@ async def _process_club(
             club_id=club_id,
             status="extracted",
             description=description,
-            hours=hours,
-            hours_source=hours_source,
         )
 
 
@@ -374,27 +287,18 @@ async def _enrich(
     *,
     force: bool,
     dry_run: bool,
-    places_client: Optional[GooglePlacesClient],
 ) -> Dict[str, int]:
     semaphore = asyncio.Semaphore(_CONCURRENCY)
     async with AsyncSession(impersonate="chrome124", timeout=_TIMEOUT_SECONDS) as session:
         try:
-            extracted = await asyncio.gather(
-                *(
-                    _process_club(session, semaphore, target, places_client, force)
-                    for target in targets
-                )
-            )
+            extracted = await asyncio.gather(*(_process_club(session, semaphore, target) for target in targets))
         finally:
             # Release the shared Playwright singleton on the same loop that
             # created it — mirrors the scraper fleet's teardown pattern.
             await close_js_browser()
 
-    rows: List[Tuple[int, Optional[str], Optional[str]]] = []
+    rows: List[Tuple[int, Optional[str]]] = []
     desc_hits = 0
-    hours_hits = 0
-    hours_from_ldjson = 0
-    hours_from_places = 0
     bot_blocked = 0
     for result in extracted:
         if result.status == "bot_blocked":
@@ -404,37 +308,17 @@ async def _enrich(
             continue
         if result.description:
             desc_hits += 1
-        if result.hours:
-            hours_hits += 1
-            if result.hours_source == "ldjson":
-                hours_from_ldjson += 1
-            elif result.hours_source == "places":
-                hours_from_places += 1
-        rows.append(
-            (
-                result.club_id,
-                result.description,
-                json.dumps(result.hours) if result.hours else None,
-            )
-        )
-
-    places_calls = places_client.calls_made if places_client else 0
+        rows.append((result.club_id, result.description))
 
     Logger.info(
         f"[club-enrichment] extracted from {len(rows)}/{len(targets)} clubs — "
-        f"description={desc_hits}, hours={hours_hits} "
-        f"(ldjson={hours_from_ldjson}, places={hours_from_places}), "
-        f"bot_blocked={bot_blocked}, places_calls={places_calls}"
+        f"description={desc_hits}, bot_blocked={bot_blocked}"
     )
 
     summary = {
         "fetched": len(targets),
         "extracted": len(rows),
         "description_hits": desc_hits,
-        "hours_hits": hours_hits,
-        "hours_from_ldjson": hours_from_ldjson,
-        "hours_from_places": hours_from_places,
-        "places_calls": places_calls,
         "bot_blocked": bot_blocked,
         "written": 0,
     }
@@ -451,9 +335,7 @@ async def _enrich(
                 # page_size = len(rows) keeps all updates in one execute_values
                 # batch so cur.rowcount reflects the entire run — with the
                 # default 100-row pages, rowcount only captures the last batch.
-                execute_values(
-                    cur, sql, rows, template=_VALUES_TEMPLATE, page_size=max(len(rows), 1)
-                )
+                execute_values(cur, sql, rows, template=_VALUES_TEMPLATE, page_size=max(len(rows), 1))
                 written = cur.rowcount
         Logger.info(f"[club-enrichment] wrote updates for {written} clubs")
 
@@ -464,8 +346,7 @@ async def _enrich(
 def main() -> None:
     parser = argparse.ArgumentParser(
         description=(
-            "Backfill clubs.description and clubs.hours by fetching each club's "
-            "website and extracting schema.org / meta tags."
+            "Backfill clubs.description by fetching each club's website and " "extracting schema.org / meta tags."
         ),
     )
     parser.add_argument(
@@ -478,12 +359,12 @@ def main() -> None:
     parser.add_argument(
         "--all",
         action="store_true",
-        help="Re-scan clubs that already have description/hours (default skips them).",
+        help="Re-scan clubs that already have a description (default skips them).",
     )
     parser.add_argument(
         "--force",
         action="store_true",
-        help="Overwrite existing non-null description/hours when extraction succeeds.",
+        help="Overwrite existing non-null descriptions when extraction succeeds.",
     )
     parser.add_argument(
         "--dry-run",
@@ -495,15 +376,6 @@ def main() -> None:
         type=int,
         default=None,
         help="Process at most N clubs (useful for smoke-testing).",
-    )
-    parser.add_argument(
-        "--skip-places",
-        action="store_true",
-        help=(
-            "Disable the Google Places API fallback for clubs with no LD-JSON hours. "
-            "Default behaviour: Places fires when GOOGLE_PLACES_API_KEY is set. "
-            "Daily request ceiling is controlled by GOOGLE_PLACES_DAILY_LIMIT."
-        ),
     )
     parser.add_argument(
         "--summary-out",
@@ -526,35 +398,15 @@ def main() -> None:
         limit=args.limit,
     )
 
-    places_client: Optional[GooglePlacesClient] = None
-    if not args.skip_places:
-        candidate = GooglePlacesClient()
-        if candidate.is_configured:
-            places_client = candidate
-            Logger.info(
-                f"[club-enrichment] Places fallback enabled "
-                f"(daily_limit={candidate.calls_remaining})"
-            )
-        else:
-            Logger.info(
-                "[club-enrichment] Places fallback disabled — "
-                "GOOGLE_PLACES_API_KEY not set"
-            )
-
     Logger.info(
         f"[club-enrichment] {len(targets)} clubs eligible "
-        f"(missing_only={missing_only}, force={args.force}, "
-        f"dry_run={args.dry_run}, places={'on' if places_client else 'off'})"
+        f"(missing_only={missing_only}, force={args.force}, dry_run={args.dry_run})"
     )
     if not targets:
         empty_summary = {
             "fetched": 0,
             "extracted": 0,
             "description_hits": 0,
-            "hours_hits": 0,
-            "hours_from_ldjson": 0,
-            "hours_from_places": 0,
-            "places_calls": 0,
             "bot_blocked": 0,
             "written": 0,
         }
@@ -569,7 +421,6 @@ def main() -> None:
                 targets,
                 force=args.force,
                 dry_run=args.dry_run,
-                places_client=places_client,
             )
         )
     except KeyboardInterrupt:

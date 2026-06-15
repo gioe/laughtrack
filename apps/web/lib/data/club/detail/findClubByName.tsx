@@ -20,7 +20,6 @@ const CLUB_SELECT = {
     clubType: true,
     phoneNumber: true,
     description: true,
-    hours: true,
     chain: {
         select: {
             id: true,
@@ -73,7 +72,6 @@ export async function findClubByName(helper: QueryHelper): Promise<ClubDTO> {
             zipCode: clubData.zipCode,
             phoneNumber: clubData.phoneNumber ?? undefined,
             description: clubData.description ?? undefined,
-            hours: clubData.hours ?? undefined,
             chainId: clubData.chain?.id ?? null,
             chainName: clubData.chain?.name ?? null,
             chainSlug: clubData.chain?.slug ?? null,

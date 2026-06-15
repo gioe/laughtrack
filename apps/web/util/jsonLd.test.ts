@@ -1,10 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-    buildClubJsonLd,
-    buildOpeningHoursSpecification,
-    buildPodcastJsonLd,
-    buildShowJsonLd,
-} from "./jsonLd";
+import { buildClubJsonLd, buildPodcastJsonLd, buildShowJsonLd } from "./jsonLd";
 import { ClubDTO } from "@/objects/class/club/club.interface";
 import type { ShowDTO } from "@/objects/class/show/show.interface";
 import type { PodcastDTO } from "@/lib/data/podcast/interface";
@@ -23,166 +18,10 @@ function baseClub(overrides: Partial<ClubDTO> = {}): ClubDTO {
     };
 }
 
-describe("buildOpeningHoursSpecification", () => {
-    it("returns undefined for empty hours object", () => {
-        expect(buildOpeningHoursSpecification({})).toBeUndefined();
-    });
-
-    it("returns undefined for null/undefined/non-object input", () => {
-        expect(buildOpeningHoursSpecification(null)).toBeUndefined();
-        expect(buildOpeningHoursSpecification(undefined)).toBeUndefined();
-        expect(buildOpeningHoursSpecification("9-5")).toBeUndefined();
-        expect(buildOpeningHoursSpecification(["9-5"])).toBeUndefined();
-    });
-
-    it("maps all 7 days to OpeningHoursSpecification entries with 24-hour opens/closes", () => {
-        const hours = {
-            monday: "9:00 AM - 5:00 PM",
-            tuesday: "9:00 AM - 5:00 PM",
-            wednesday: "9:00 AM - 5:00 PM",
-            thursday: "9:00 AM - 5:00 PM",
-            friday: "9:00 AM - 11:00 PM",
-            saturday: "12:00 PM - 11:30 PM",
-            sunday: "12:00 PM - 8:00 PM",
-        };
-        const result = buildOpeningHoursSpecification(hours);
-        expect(result).toEqual([
-            {
-                "@type": "OpeningHoursSpecification",
-                dayOfWeek: "Monday",
-                opens: "09:00",
-                closes: "17:00",
-            },
-            {
-                "@type": "OpeningHoursSpecification",
-                dayOfWeek: "Tuesday",
-                opens: "09:00",
-                closes: "17:00",
-            },
-            {
-                "@type": "OpeningHoursSpecification",
-                dayOfWeek: "Wednesday",
-                opens: "09:00",
-                closes: "17:00",
-            },
-            {
-                "@type": "OpeningHoursSpecification",
-                dayOfWeek: "Thursday",
-                opens: "09:00",
-                closes: "17:00",
-            },
-            {
-                "@type": "OpeningHoursSpecification",
-                dayOfWeek: "Friday",
-                opens: "09:00",
-                closes: "23:00",
-            },
-            {
-                "@type": "OpeningHoursSpecification",
-                dayOfWeek: "Saturday",
-                opens: "12:00",
-                closes: "23:30",
-            },
-            {
-                "@type": "OpeningHoursSpecification",
-                dayOfWeek: "Sunday",
-                opens: "12:00",
-                closes: "20:00",
-            },
-        ]);
-    });
-
-    it("skips unknown day keys", () => {
-        const hours = {
-            funday: "9:00 AM - 5:00 PM",
-            monday: "9:00 AM - 5:00 PM",
-        };
-        const result = buildOpeningHoursSpecification(hours) as Array<{
-            dayOfWeek: string;
-        }>;
-        expect(result).toHaveLength(1);
-        expect(result[0].dayOfWeek).toBe("Monday");
-    });
-
-    it("skips unparseable hours strings (e.g. 'Closed')", () => {
-        const hours = {
-            monday: "Closed",
-            tuesday: "9:00 AM - 5:00 PM",
-        };
-        const result = buildOpeningHoursSpecification(hours) as Array<{
-            dayOfWeek: string;
-        }>;
-        expect(result).toHaveLength(1);
-        expect(result[0].dayOfWeek).toBe("Tuesday");
-    });
-
-    it("returns undefined when every entry is skipped", () => {
-        const hours = { monday: "Closed", tuesday: "by appointment" };
-        expect(buildOpeningHoursSpecification(hours)).toBeUndefined();
-    });
-
-    it("handles 12 AM / 12 PM boundary correctly", () => {
-        const result = buildOpeningHoursSpecification({
-            monday: "12:00 AM - 12:00 PM",
-        }) as Array<{ opens: string; closes: string }>;
-        expect(result[0].opens).toBe("00:00");
-        expect(result[0].closes).toBe("12:00");
-    });
-
-    it("accepts shorthand without minutes ('9 AM - 5 PM')", () => {
-        const result = buildOpeningHoursSpecification({
-            monday: "9 AM - 5 PM",
-        }) as Array<{ opens: string; closes: string }>;
-        expect(result[0].opens).toBe("09:00");
-        expect(result[0].closes).toBe("17:00");
-    });
-
-    it("accepts case-insensitive day keys and meridiems", () => {
-        const result = buildOpeningHoursSpecification({
-            MONDAY: "9:00 am - 5:00 pm",
-        }) as Array<{ dayOfWeek: string; opens: string; closes: string }>;
-        expect(result[0].dayOfWeek).toBe("Monday");
-        expect(result[0].opens).toBe("09:00");
-        expect(result[0].closes).toBe("17:00");
-    });
-
-    it("emits one entry per sub-range for multi-shift days", () => {
-        // The Places enrichment step produces comma-joined ranges for venues
-        // with separate lunch + dinner service. Each shift must surface as
-        // its own OpeningHoursSpecification.
-        const result = buildOpeningHoursSpecification({
-            tuesday: "11am-2pm, 5pm-10pm",
-        }) as Array<{ dayOfWeek: string; opens: string; closes: string }>;
-        expect(result).toHaveLength(2);
-        expect(result[0]).toEqual({
-            "@type": "OpeningHoursSpecification",
-            dayOfWeek: "Tuesday",
-            opens: "11:00",
-            closes: "14:00",
-        });
-        expect(result[1]).toEqual({
-            "@type": "OpeningHoursSpecification",
-            dayOfWeek: "Tuesday",
-            opens: "17:00",
-            closes: "22:00",
-        });
-    });
-
-    it("keeps valid sub-ranges when one segment in a multi-shift day fails", () => {
-        const result = buildOpeningHoursSpecification({
-            wednesday: "11am-2pm, GARBAGE",
-        }) as Array<{ dayOfWeek: string; opens: string; closes: string }>;
-        expect(result).toHaveLength(1);
-        expect(result[0].opens).toBe("11:00");
-        expect(result[0].closes).toBe("14:00");
-    });
-});
-
 describe("buildClubJsonLd", () => {
-    it("does not emit description or openingHoursSpecification when fields are absent", () => {
+    it("does not emit description when the field is absent", () => {
         const jsonLd = buildClubJsonLd(baseClub()) as Record<string, unknown>;
         expect(jsonLd.description).toBeUndefined();
-        expect(jsonLd.openingHoursSpecification).toBeUndefined();
     });
 
     it("emits description when Club.description is non-empty", () => {
@@ -223,31 +62,6 @@ describe("buildClubJsonLd", () => {
             baseClub({ description: "<p> </p><br>" }),
         ) as Record<string, unknown>;
         expect(jsonLd.description).toBeUndefined();
-    });
-
-    it("emits openingHoursSpecification when hours is a populated map", () => {
-        const jsonLd = buildClubJsonLd(
-            baseClub({
-                hours: {
-                    monday: "9:00 AM - 5:00 PM",
-                    tuesday: "9:00 AM - 5:00 PM",
-                },
-            }),
-        ) as Record<string, unknown>;
-        expect(jsonLd.openingHoursSpecification).toEqual([
-            {
-                "@type": "OpeningHoursSpecification",
-                dayOfWeek: "Monday",
-                opens: "09:00",
-                closes: "17:00",
-            },
-            {
-                "@type": "OpeningHoursSpecification",
-                dayOfWeek: "Tuesday",
-                opens: "09:00",
-                closes: "17:00",
-            },
-        ]);
     });
 });
 
