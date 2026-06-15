@@ -2076,7 +2076,12 @@ class TestPerClubTimeoutResolution:
             _PER_SCRAPER_TIMEOUT_OVERRIDES,
         )
         assert _DEFAULT_PER_CLUB_TIMEOUT == 180
-        # seatengine_classic must be the only override until another platform
-        # is audited and added with rationale (mirrors the _DB_WRITE_TIMEOUT
-        # pattern — explicit values, no env-driven shadow config).
-        assert _PER_SCRAPER_TIMEOUT_OVERRIDES == {"seatengine_classic": 240}
+        # Every override is an explicit, audited value with rationale documented
+        # at the constant (mirrors the _DB_WRITE_TIMEOUT pattern — no env-driven
+        # shadow config). seatengine_classic=240 covers large-catalogue venues;
+        # ticketmaster_national=3600 covers the single national-discovery "club"
+        # that upserts ~1k venues + ~10k shows in one pass.
+        assert _PER_SCRAPER_TIMEOUT_OVERRIDES == {
+            "seatengine_classic": 240,
+            "ticketmaster_national": 3600,
+        }
