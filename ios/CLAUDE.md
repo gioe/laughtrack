@@ -259,14 +259,27 @@ than identifier.
 
 ### Persistent Caches Bleed Real Production Data Into HostedView Tests
 
-Models reading from a singleton disk-backed cache (`PersistentMainPageCache.shared`,
-`DataCache<…>` instances scoped at `.appLevel`) will return whatever was
-written to disk by previous launches — including debug-build runs of the
-real app against production servers. A HostedView test that constructs a
-mock transport will silently never invoke it: the model returns cached
-production data first, so the test assertions are evaluated against
-whatever the prod API happened to return last time the simulator's app
-sandbox was written to.
+Two different caches let a model return real data before a test's mock
+transport is ever invoked, and they bleed at **different scopes** — do not
+conflate them:
+
+- **`PersistentMainPageCache.shared` is genuinely disk-backed.** It survives
+  across app launches *and builds*, so it can return whatever was written to
+  disk by a previous debug-build run against production servers. (TASK-2919
+  stamps each entry with the app build version and treats a mismatch — or any
+  decode failure — as a miss, so entries from a *different* build no longer
+  bleed; same-build reads still hit, which is the test hazard below.)
+- **`DataCache<…>` registered at `.appLevel` is in-memory only.** `.appLevel`
+  is a ServiceContainer *lifetime* scope (one actor instance per app process),
+  NOT disk persistence — its `storage: [Key: Entry]` dictionary starts empty
+  on every fresh launch, so it cannot bleed across launches or builds. It
+  *does* bleed across views and across test suites **within a single process**,
+  because every consumer resolves the same singleton instance.
+
+A HostedView test that constructs a mock transport will silently never invoke
+it: the model returns cached data first, so assertions run against whatever the
+prod API returned last (disk cache) or whatever a prior in-process write left
+behind (appLevel DataCache).
 
 When you build a HostedView test that depends on the model load path,
 either:
