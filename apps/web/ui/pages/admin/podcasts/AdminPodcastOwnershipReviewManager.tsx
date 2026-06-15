@@ -516,6 +516,8 @@ export default function AdminPodcastHostshipReviewManager({
                 : (selectedCohosts[group.key] ?? []).filter(
                       (cohost) => cohost.id !== host?.id,
                   );
+        const effectiveDenyListed =
+            denyListed || (host === null && cohosts.length === 0);
         setStatus({ kind: "idle" });
         setPendingKey(group.key);
 
@@ -528,7 +530,7 @@ export default function AdminPodcastHostshipReviewManager({
                     podcastId: group.podcast.id,
                     hostComedianIds: host ? [host.id] : [],
                     cohostComedianIds: cohosts.map((cohost) => cohost.id),
-                    denyListed,
+                    denyListed: effectiveDenyListed,
                     reason,
                 }),
             });
@@ -554,10 +556,10 @@ export default function AdminPodcastHostshipReviewManager({
 
         setStatus({
             kind: "ok",
-            message: denyListed
-                ? `${group.podcast.title} deny-listed.`
+            message: effectiveDenyListed
+                ? `${group.podcast.title} rejected and deny-listed.`
                 : host === null
-                  ? `${group.podcast.title} restored without hosts.`
+                  ? `${group.podcast.title} approved with co-host only.`
                   : `${group.podcast.title} approved with ${host.name} as host.`,
         });
         setSelectedHosts((prev) => ({
@@ -1137,16 +1139,15 @@ export default function AdminPodcastHostshipReviewManager({
                                                       variant="outline"
                                                       className="border-copper-dark bg-white !text-copper-dark hover:bg-copper-dark hover:!text-white disabled:border-gray-300 disabled:bg-gray-100 disabled:!text-soft-charcoal disabled:opacity-100"
                                                       onClick={() =>
-                                                          void save(
-                                                              group,
-                                                              null,
-                                                              false,
-                                                          )
+                                                          void save(group)
                                                       }
-                                                      disabled={disabled}
-                                                      aria-label={`Restore ${group.podcast.title}`}
+                                                      disabled={
+                                                          disabled ||
+                                                          !selectedHost
+                                                      }
+                                                      aria-label={`Restore ${group.podcast.title} with host`}
                                                   >
-                                                      Restore podcast
+                                                      Restore with host
                                                   </Button>
                                               )}
                                               <Button

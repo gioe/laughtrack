@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "$0")/../../.." && pwd)"
+WEB_DIR="$ROOT_DIR/apps/web"
+SCRAPER_ENV="$ROOT_DIR/apps/scraper/.env"
+
+if [[ -z "${DATABASE_URL:-}" ]]; then
+  DATABASE_URL="$(
+    cd "$WEB_DIR"
+    python3 - <<'PY'
+from dotenv import dotenv_values
+
+v = dotenv_values("../scraper/.env")
+print(
+    "postgresql://"
+    f"{v['DATABASE_USER']}:{v['DATABASE_PASSWORD']}"
+    f"@{v['DATABASE_HOST']}:{v.get('DATABASE_PORT', '5432')}"
+    f"/{v['DATABASE_NAME']}?sslmode=require"
+)
+PY
+  )"
+  export DATABASE_URL
+fi
+
+if [[ ! -f "$SCRAPER_ENV" ]]; then
+  echo "Missing scraper env file: $SCRAPER_ENV" >&2
+  exit 1
+fi
+
+cd "$WEB_DIR"
+npx tsx scripts/standardize-podcast-review-states.ts "$@"

@@ -294,8 +294,11 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
         })),
     ] as const;
     const selectedComedianIds = selectedRoleRows.map((row) => row.comedianId);
-    const denyListed = parsed.data.denyListed ?? false;
+    const denyListed =
+        (parsed.data.denyListed ?? false) || selectedComedianIds.length === 0;
     const reason = parsed.data.reason?.trim() || null;
+    const decisionReason =
+        reason ?? (denyListed ? "No accepted host after review" : null);
     if (denyListed && selectedComedianIds.length > 0) {
         return NextResponse.json(
             { error: "A deny-listed podcast cannot also have hosts" },
@@ -521,7 +524,7 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
                           source: podcast.source,
                           sourcePodcastId: podcast.sourcePodcastId,
                           feedUrl: podcast.feedUrl,
-                          reason,
+                          reason: decisionReason,
                           deniedAt: reviewedAt,
                           deniedBy: profileId,
                       },
@@ -529,7 +532,7 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
                           source: podcast.source,
                           sourcePodcastId: podcast.sourcePodcastId,
                           feedUrl: podcast.feedUrl,
-                          reason,
+                          reason: decisionReason,
                           deniedAt: reviewedAt,
                           deniedBy: profileId,
                           restoredAt: null,
@@ -553,12 +556,10 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
                 action:
                     selectedComedianIds.length > 0
                         ? "podcast_hostship_review.approve"
-                        : denyListed
-                          ? "podcast_hostship_review.deny_list"
-                          : "podcast_hostship_review.reject",
+                        : "podcast_hostship_review.deny_list",
                 entityType: "podcast",
                 entityId: podcastId,
-                reason,
+                reason: decisionReason,
                 before: {
                     podcast,
                     candidates: beforeCandidates.map(candidateSnapshot),

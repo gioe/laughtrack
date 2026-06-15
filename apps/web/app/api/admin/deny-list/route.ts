@@ -1,4 +1,5 @@
 import { writeAdminActionAudit } from "@/lib/admin/audit";
+import { denyPodcastsHostedByComedianName } from "@/lib/admin/podcastDenyList";
 import { db } from "@/lib/db";
 import { requireAdminForApi } from "@/lib/auth/requireAdmin";
 import type { Prisma } from "@prisma/client";
@@ -101,7 +102,7 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
     const reason = parsed.data.reason.trim();
 
     try {
-        const entry = await db.$transaction(async (tx: DenyListWriter) => {
+        const result = await db.$transaction(async (tx: DenyListWriter) => {
             const before = await findEntry(tx, name);
             const nameToWrite = before?.name ?? name;
             const rows = await tx.$queryRaw<DenyListRow[]>`
@@ -114,6 +115,11 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
                 RETURNING name, reason, added_by, deleted_at
             `;
             const after = serializeRow(rows[0]);
+            const deniedPodcasts = await denyPodcastsHostedByComedianName(tx, {
+                comedianName: after.name,
+                reason: `Host comedian was added to comedian deny list: ${after.name}`,
+                deniedBy: profileId,
+            });
 
             await writeAdminActionAudit(tx, {
                 actorProfileId: profileId,
@@ -124,13 +130,13 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
                 entityId: after.name,
                 reason,
                 before: before ? serializeRow(before) : {},
-                after,
+                after: { ...after, deniedPodcasts },
             });
 
-            return after;
+            return { entry: after, deniedPodcasts };
         });
 
-        return NextResponse.json({ ok: true, entry }, { status: 201 });
+        return NextResponse.json({ ok: true, ...result }, { status: 201 });
     } catch (error) {
         console.error("Admin deny-list POST failed:", error);
         return NextResponse.json({ error: "Create failed" }, { status: 500 });

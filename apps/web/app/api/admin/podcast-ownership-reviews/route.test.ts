@@ -565,6 +565,110 @@ describe("POST /api/admin/podcast-hostship-reviews", () => {
             }),
         });
     });
+
+    it("treats a no-host review as a rejected deny-list decision", async () => {
+        const podcast = {
+            id: 99,
+            slug: "jane-show",
+            title: "The Jane Show",
+            source: "podcast-index",
+            sourcePodcastId: "feed-99",
+            feedUrl: "https://pod.example/feed.xml",
+        };
+        const candidate = {
+            id: 12,
+            comedianId: 42,
+            podcastId: 99,
+            source: "podcast-index",
+            sourcePodcastId: "feed-99",
+            candidateStatus: "pending",
+            associationType: "host",
+            confidence: 0.42,
+            evidence: {},
+            reviewedAt: null,
+            reviewedBy: null,
+            comedian: {
+                id: 42,
+                name: "Jane Comic",
+                uuid: "comedian-uuid",
+                popularity: 74,
+            },
+            podcast,
+        };
+        const auditCreate = vi.fn();
+        const podcastFindUnique = vi.fn().mockResolvedValue(podcast);
+        const candidateFindMany = vi.fn().mockResolvedValue([candidate]);
+        const candidateUpdateMany = vi.fn();
+        const hostshipFindMany = vi.fn().mockResolvedValue([]);
+        const hostshipDeleteMany = vi.fn();
+        const denyListFindMany = vi.fn().mockResolvedValue([]);
+        const denyListUpsert = vi.fn().mockResolvedValue({
+            id: 5,
+            podcastId: 99,
+            source: "podcast-index",
+            sourcePodcastId: "feed-99",
+            feedUrl: "https://pod.example/feed.xml",
+            reason: "No accepted host after review",
+            deniedAt: new Date("2026-05-18T12:00:00Z"),
+            deniedBy: "profile-1",
+        });
+        const denyListUpdateMany = vi.fn();
+        mockTransaction.mockImplementation(async (callback) =>
+            callback({
+                podcast: { findUnique: podcastFindUnique },
+                comedian: { findUnique: vi.fn() },
+                podcastCandidateReview: {
+                    findMany: candidateFindMany,
+                    updateMany: candidateUpdateMany,
+                },
+                comedianPodcast: {
+                    findMany: hostshipFindMany,
+                    deleteMany: hostshipDeleteMany,
+                    upsert: vi.fn(),
+                },
+                podcastDenyList: {
+                    findMany: denyListFindMany,
+                    upsert: denyListUpsert,
+                    updateMany: denyListUpdateMany,
+                },
+                adminActionAudit: { create: auditCreate },
+            } as never),
+        );
+
+        const res = await POST(
+            makeRequest({
+                podcastId: 99,
+                hostComedianIds: [],
+                cohostComedianIds: [],
+                denyListed: false,
+                reason: "",
+            }),
+        );
+
+        expect(res.status).toBe(200);
+        expect(denyListUpsert).toHaveBeenCalledWith(
+            expect.objectContaining({
+                where: { podcastId: 99 },
+                create: expect.objectContaining({
+                    podcastId: 99,
+                    reason: "No accepted host after review",
+                    deniedBy: "profile-1",
+                }),
+                update: expect.objectContaining({
+                    reason: "No accepted host after review",
+                    restoredAt: null,
+                    restoredBy: null,
+                }),
+            }),
+        );
+        expect(denyListUpdateMany).not.toHaveBeenCalled();
+        expect(auditCreate).toHaveBeenCalledWith({
+            data: expect.objectContaining({
+                action: "podcast_hostship_review.deny_list",
+                reason: "No accepted host after review",
+            }),
+        });
+    });
 });
 
 describe("PUT /api/admin/podcast-hostship-reviews", () => {

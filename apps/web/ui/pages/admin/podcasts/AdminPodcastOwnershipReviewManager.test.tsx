@@ -480,12 +480,15 @@ describe("AdminPodcastHostshipReviewManager", () => {
                         podcastId: 99,
                         hostComedianIds: [],
                         cohostComedianIds: [],
-                        denyListed: false,
+                        denyListed: true,
                         reason: "Wrong Jane",
                     }),
                 }),
             );
         });
+        expect(
+            await screen.findByText("The Jane Show rejected and deny-listed."),
+        ).toBeTruthy();
     });
 
     it("deny-lists a podcast from the podcast row action", async () => {
@@ -515,7 +518,7 @@ describe("AdminPodcastHostshipReviewManager", () => {
             );
         });
         expect(
-            await screen.findByText("The Jane Show deny-listed."),
+            await screen.findByText("The Jane Show rejected and deny-listed."),
         ).toBeTruthy();
         expect(screen.getAllByText("No host").length).toBeGreaterThan(0);
     });
@@ -544,7 +547,12 @@ describe("AdminPodcastHostshipReviewManager", () => {
         expect(screen.getAllByText("Deny-listed").length).toBeGreaterThan(0);
         expect(screen.getByText(/Not comedy/)).toBeTruthy();
         fireEvent.click(
-            screen.getByRole("button", { name: "Restore The Jane Show" }),
+            screen.getByRole("button", { name: "Set Jane Comic as host" }),
+        );
+        fireEvent.click(
+            screen.getByRole("button", {
+                name: "Restore The Jane Show with host",
+            }),
         );
 
         await waitFor(() => {
@@ -554,7 +562,7 @@ describe("AdminPodcastHostshipReviewManager", () => {
                     method: "POST",
                     body: JSON.stringify({
                         podcastId: 99,
-                        hostComedianIds: [],
+                        hostComedianIds: [42],
                         cohostComedianIds: [],
                         denyListed: false,
                         reason: "",

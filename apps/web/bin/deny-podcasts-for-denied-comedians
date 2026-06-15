@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+#
+# Dry-run by default:
+#   bin/deny-podcasts-for-denied-comedians
+#
+# Apply cleanup:
+#   bin/deny-podcasts-for-denied-comedians --apply
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+WEB_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+SCRAPER_ENV="$WEB_DIR/../scraper/.env"
+
+if [[ ! -f "$SCRAPER_ENV" ]]; then
+    echo "Error: $SCRAPER_ENV not found — cannot assemble DATABASE_URL." >&2
+    exit 1
+fi
+
+set +u
+set -a
+# shellcheck disable=SC1090
+. "$SCRAPER_ENV"
+set +a
+set -u
+
+: "${DATABASE_USER:?scraper/.env is missing DATABASE_USER}"
+: "${DATABASE_PASSWORD:?scraper/.env is missing DATABASE_PASSWORD}"
+: "${DATABASE_HOST:?scraper/.env is missing DATABASE_HOST}"
+: "${DATABASE_NAME:?scraper/.env is missing DATABASE_NAME}"
+DATABASE_PORT="${DATABASE_PORT:-5432}"
+
+DATABASE_URL="postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}?sslmode=require"
+export DATABASE_URL
+export DIRECT_URL="$DATABASE_URL"
+
+cd "$WEB_DIR"
+exec npx tsx scripts/deny-podcasts-for-denied-comedians.ts "$@"

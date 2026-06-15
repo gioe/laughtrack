@@ -15,6 +15,10 @@ vi.mock("@/lib/db", () => ({
     },
 }));
 
+vi.mock("@/lib/admin/podcastDenyList", () => ({
+    denyPodcastsHostedByComedianName: vi.fn(() => Promise.resolve([])),
+}));
+
 vi.mock("@prisma/client", () => ({
     Prisma: {
         sql: (strings: TemplateStringsArray, ...values: unknown[]) => ({
@@ -27,11 +31,13 @@ vi.mock("@prisma/client", () => ({
 import { DELETE, GET, POST } from "./route";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { denyPodcastsHostedByComedianName } from "@/lib/admin/podcastDenyList";
 
 const mockAuth = vi.mocked(auth);
 const mockQueryRaw = vi.mocked(db.$queryRaw);
 const mockTransaction = vi.mocked(db.$transaction);
 const mockFindUserProfile = vi.mocked(db.userProfile.findFirst);
+const mockDenyHostedPodcasts = vi.mocked(denyPodcastsHostedByComedianName);
 
 const adminSession = {
     profile: {
@@ -61,6 +67,7 @@ function makeGetRequest(query?: string) {
 
 beforeEach(() => {
     vi.clearAllMocks();
+    mockDenyHostedPodcasts.mockResolvedValue([]);
     mockFindUserProfile.mockResolvedValue({
         id: "profile-1",
         userid: "user-1",
@@ -203,8 +210,82 @@ describe("POST /api/admin/deny-list", () => {
                     reason: "Recurring event title, not a comedian",
                     addedBy: "profile-1",
                     addedAt: "2026-05-17T20:00:00.000Z",
+                    deniedPodcasts: [],
                 },
             },
+        });
+    });
+
+    it("deny-lists accepted host podcasts for the denied comedian name", async () => {
+        mockAuth.mockResolvedValue(adminSession as never);
+
+        const tx = {
+            $queryRaw: vi
+                .fn()
+                .mockResolvedValueOnce([])
+                .mockResolvedValueOnce([
+                    {
+                        name: "Jimmy Dore",
+                        reason: "Not a target comedian profile",
+                        added_by: "profile-1",
+                        deleted_at: new Date("2026-06-12T00:00:00Z"),
+                    },
+                ]),
+            adminActionAudit: { create: vi.fn() },
+        };
+        mockTransaction.mockImplementation(async (callback) =>
+            callback(tx as never),
+        );
+        mockDenyHostedPodcasts.mockResolvedValue([
+            {
+                podcastId: 5441,
+                title: "The Jimmy Dore Show",
+                source: "podcast_index",
+                sourcePodcastId: "1073736",
+                feedUrl: "https://thejimmydoreshow.libsyn.com/rss",
+            },
+        ]);
+
+        const res = await POST(
+            makeRequest("POST", {
+                name: "Jimmy Dore",
+                reason: "Not a target comedian profile",
+            }),
+        );
+        const body = await res.json();
+
+        expect(res.status).toBe(201);
+        expect(mockDenyHostedPodcasts).toHaveBeenCalledWith(tx, {
+            comedianName: "Jimmy Dore",
+            reason: "Host comedian was added to comedian deny list: Jimmy Dore",
+            deniedBy: "profile-1",
+        });
+        expect(body.deniedPodcasts).toEqual([
+            {
+                podcastId: 5441,
+                title: "The Jimmy Dore Show",
+                source: "podcast_index",
+                sourcePodcastId: "1073736",
+                feedUrl: "https://thejimmydoreshow.libsyn.com/rss",
+            },
+        ]);
+        expect(tx.adminActionAudit.create).toHaveBeenCalledWith({
+            data: expect.objectContaining({
+                action: "comedian_deny_list.create",
+                entityType: "comedian_deny_list",
+                entityId: "Jimmy Dore",
+                after: expect.objectContaining({
+                    deniedPodcasts: [
+                        {
+                            podcastId: 5441,
+                            title: "The Jimmy Dore Show",
+                            source: "podcast_index",
+                            sourcePodcastId: "1073736",
+                            feedUrl: "https://thejimmydoreshow.libsyn.com/rss",
+                        },
+                    ],
+                }),
+            }),
         });
     });
 });
