@@ -104,7 +104,12 @@ The submission has three tiers — each kicks in only if the previous tier fails
 
 ### Tier 1 — `tusk report-issue`
 
-The primary path. `tusk report-issue` calls `gh issue create --repo gioe/tusk --label instance-feedback --label cluster:<cluster>` internally and exits with the issue URL on stdout:
+The primary path. `tusk report-issue` calls `gh issue create --repo gioe/tusk --label instance-feedback --label cluster:<cluster>` internally and exits with the issue URL on stdout.
+
+Two best-effort filing-time guards run first (issues #1087 / #1040); both tolerate gh/network failures silently and never block filing:
+
+- **Dedupe** — when an open instance-feedback issue has a high-similarity title, report-issue appends an occurrence comment to that issue instead of filing a duplicate. The matched issue's URL is printed on stdout (so the `ISSUE_URL=$(...)` capture below still works — it just points at the existing issue) and the match explanation goes to stderr. Pass `--force` to file a separate issue anyway.
+- **Version staleness** — when the local tusk VERSION is behind the latest on gioe/tusk, a stderr warning suggests `tusk upgrade` + re-verify, and the issue body's version line is annotated with both versions.
 
 ```bash
 if [[ -n "$EXPECTED" ]]; then
@@ -187,10 +192,10 @@ Then stop — do not record progress.
 If Step 2 found `$TASK_ID`, log the URL as a progress checkpoint so it shows up in the local task history:
 
 ```bash
-tusk progress "$TASK_ID" --next-steps "Filed tusk-issue: $ISSUE_URL"
+tusk progress "$TASK_ID" --note "Filed tusk-issue: $ISSUE_URL"
 ```
 
-`tusk progress`'s `--next-steps` is the free-form checkpoint field — it does not have to be a literal "next step" — so it doubles as the structured slot for tracking external follow-up.
+Use `--note` for the external issue URL so it stays out of `next_steps`, which is reserved for forward-looking handoff work.
 
 If Step 2 found no task, skip this step.
 

@@ -82,7 +82,15 @@ When invoked as `/address-issue --cluster worktree --batch`, do **not** treat th
 
    Apply Shared gh Failure Handling to every close/comment call.
 
-   **Run Step 10's per-group sub-steps inline.** After Step 9 closes the issue(s), close the /tusk skill-run with `tusk skill-run finish <run_id>` and print the per-task rollup with `tusk task-summary <task_id> --format markdown` so each task gets its identity/cost/duration/diff/criteria block before the next group starts. **Do NOT invoke `/retro <task_id>` per group** — retro is deferred to Step 7 below.
+   **Run Step 10's per-group sub-steps inline.** After Step 9 closes the issue(s), close the /tusk skill-run and print the per-task rollup from the stable checkout captured before task-worktree handoff:
+
+   ```bash
+   cd "$ADDRESS_ISSUE_PRIMARY_CWD"
+   "$ADDRESS_ISSUE_TUSK_BIN" skill-run finish <run_id>
+   "$ADDRESS_ISSUE_TUSK_BIN" task-summary <task_id> --format markdown
+   ```
+
+   This matters because `tusk merge` may remove the task worktree before the post-merge finalization commands run; launching those commands from the removed worktree can fail before tusk starts. The per-task rollup gives each task its identity/cost/duration/diff/criteria block before the next group starts. **Do NOT invoke `/retro <task_id>` per group** — retro is deferred to Step 7 below.
 
    Continue to the next root-cause group only after the per-group sub-steps above complete for the current group. Accumulate every merged task ID into a `BATCH_TASK_IDS` list as you go — Step 7 reads it.
 
@@ -139,6 +147,8 @@ Using the issue `title`, `body`, and `labels`, determine:
 | **complexity** | Estimate from the issue body length and scope. Short reproduction steps with a clear fix → `S`; broad feature request → `M`; major architectural change → `L`. |
 
 Generate **3–7 acceptance criteria** from the issue body — concrete, testable conditions. For bug issues, always include a criterion that the failure case is resolved and a regression test criterion.
+
+Keep issue-provided requirements in the task fields above, but route durable investigation findings that are not requirements through context atoms after insertion. Use `memory`, `assumption`, `question`, `risk`, `decision`, or `entry_point` as narrowly as possible. Examples: a non-blocking ambiguity from Step 4.5 is a `question`; a likely failure mode is a `risk`; a stable file/function to inspect first is an `entry_point`. Do **not** write directly to `task_context_items`.
 
 ### Failing Test Polarity Convention
 
@@ -340,6 +350,9 @@ When `test_present` is `"unverifiable"`, suffix that contribution with the value
 1. <criterion 1>
 2. <criterion 2>
 ...
+
+**Durable Context:**
+- `<type>`: <handoff fact from issue analysis, if any>
 ```
 
 Then ask the user to choose, **bolding the option that matches the Model Recommendation**. For a Decline recommendation, replace "confirm" with "proceed anyway" in the prompt:
@@ -379,10 +392,24 @@ Check for semantic duplicates against the backlog from Step 3. If a likely dupli
 
 > Possible duplicate: existing task #<id> — "<summary>". Proceed anyway?
 
-If confirmed (or no duplicate found), insert with:
+If confirmed (or no duplicate found), write the full task description to a
+temporary UTF-8 file first, then insert with `--description-file`. The issue
+body is untrusted text from GitHub and may contain shell metacharacters such as
+`$0`, `$SHELL`, backticks, or `$(...)`; do not pass it as an interpolated shell
+argument. Use the Write tool or another non-interpolating file write so the
+file contents are exactly:
+
+```text
+GitHub Issue #<N>: <url>
+
+<body>
+```
+
+Then run:
 
 ```bash
-tusk task-insert "<summary>" "<description>" \
+tusk task-insert "<summary>" \
+  --description-file "<description_file>" \
   --priority "<priority>" \
   --domain "<domain>" \
   --task-type "<task_type>" \
@@ -432,6 +459,14 @@ This criterion will be validated by running the spec as a shell command when `tu
 
 **Exit code 0** — success. Note the `task_id` from the JSON output.
 
+After a successful insert, write any durable context atoms confirmed in Step 5:
+
+```bash
+tusk context add <task_id> --source create_task --type risk --content "<content>"
+```
+
+Use the confirmed type for each atom (`memory`, `assumption`, `question`, `risk`, `decision`, or `entry_point`) and note the returned context item IDs.
+
 **Exit code 1** — heuristic duplicate found. Report the matched task and stop:
 
 > Skipped — duplicate of existing task #<id> (similarity <score>).
@@ -448,6 +483,18 @@ Then branch on the duplicate task's current status before handing off:
 
 **Dirty checkout guard.** Before the `/tusk` handoff, preserve the current checkout exactly as-is. The development work must happen in the task-owned workspace that `/tusk` Step 2 creates with `tusk task-worktree create <id> <brief-description-slug>`; do not run `tusk branch` directly from the current checkout, and do not allow dirty unrelated files in the current checkout to be auto-stashed as part of address-issue startup. If task-worktree creation is unavailable or fails, stop and surface the failure instead of falling back to branch-first work. Only proceed once you are operating from the returned `workspace_path` or an already-recorded workspace for this task.
 
+Before invoking `/tusk`, capture a stable checkout and tusk binary for post-merge commands:
+
+```bash
+ADDRESS_ISSUE_PRIMARY_CWD=$(pwd)
+ADDRESS_ISSUE_TUSK_BIN="$ADDRESS_ISSUE_PRIMARY_CWD/bin/tusk"
+if [ ! -x "$ADDRESS_ISSUE_TUSK_BIN" ]; then
+  ADDRESS_ISSUE_TUSK_BIN=$(command -v tusk)
+fi
+```
+
+Use these values for the post-merge `skill-run finish` and `task-summary` calls in Step 10. `tusk merge` may remove the task worktree before those commands run; if the next tool call launches from that removed worktree, process creation can fail before tusk starts. The primary checkout remains usable after task-worktree cleanup.
+
 Immediately invoke the `/tusk` workflow for the newly created task. Follow the "Begin Work on a Task" instructions from the tusk skill:
 
 ```
@@ -458,7 +505,7 @@ Then execute those instructions starting at **"Begin Work on a Task (with task I
 
 **IMPORTANT: Execute /tusk steps 1–11 only. Do NOT execute step 12 (merge/retro).** Stop after step 11 (`/review-commits` or the lint step) — this skill owns merge, issue close, and retro as steps 8–10 below.
 
-**Mid-task criteria management** (mark done, group with commits, skip inapplicable, skip-verify) follows /tusk's Step 7 verbatim. In particular: if a criterion does not apply to the implementation path you chose (e.g., the issue describes "do X OR document why exempt" and you did X), use `tusk criteria skip <cid> --reason "..."`, NOT `tusk criteria done <cid> --skip-verify` — the latter stamps the criterion with an unrelated commit hash and pollutes the audit trail. The commit-time scope guard from /tusk Step 7 also applies — issue-derived edits touching files outside the task's referenced paths require `TUSK_SCOPE_GUARD_BYPASS=1` or `tusk commit --skip-verify`.
+**Mid-task criteria management** (mark done, group with commits, skip inapplicable, skip-verify) follows /tusk's Step 7 verbatim. In particular: if a criterion does not apply to the implementation path you chose (e.g., the issue describes "do X OR document why exempt" and you did X), use `tusk criteria skip <cid> --reason "..."`, NOT `tusk criteria done <cid> --skip-verify` — the latter stamps the criterion with an unrelated commit hash and pollutes the audit trail. The commit-time scope guard from /tusk Step 7 also applies — issue-derived edits must be covered by `task_scope`; add justified scope rows before staging, and reserve `TUSK_SCOPE_GUARD_BYPASS=1` or `tusk commit --skip-verify` for exceptional cases where the guard cannot express the change.
 
 Hold onto the `session_id` returned by `tusk task-start` in step 1 of the /tusk workflow — it is required in step 8 below.
 
@@ -531,19 +578,27 @@ Use the `commit_sha` from Step 8 (include the PR URL if available, else the bran
 
 ### Step 10: Retro
 
-After `tusk merge` exits 0, close out the `/tusk` skill-run opened in Step 7 (its `run_id` came from `tusk task-start` inside the `/tusk` Step 1 invocation — you captured it as `skill_run.run_id` in the returned JSON) so its cost is captured before `/retro` starts its own run:
+After `tusk merge` exits 0, first switch back to the stable checkout captured in Step 7:
 
 ```bash
-tusk skill-run finish <run_id>
+cd "$ADDRESS_ISSUE_PRIMARY_CWD"
 ```
 
-Then emit the canonical end-of-run summary so the user sees the identity/cost/duration/diff/criteria rollup before the retro findings:
+Then close out the `/tusk` skill-run opened in Step 7 (its `run_id` came from `tusk task-start` inside the `/tusk` Step 1 invocation — you captured it as `skill_run.run_id` in the returned JSON) using the stable tusk binary, so its cost is captured before `/retro` starts its own run:
 
 ```bash
-tusk task-summary <task_id> --format markdown
+"$ADDRESS_ISSUE_TUSK_BIN" skill-run finish <run_id>
+```
+
+Emit the canonical end-of-run summary from the same stable checkout:
+
+```bash
+"$ADDRESS_ISSUE_TUSK_BIN" task-summary <task_id> --format markdown
 ```
 
 Show it verbatim — do not re-render or summarize. `/retro` Step LR-3 assumes this block has already been printed and intentionally does not re-emit it.
+
+Do not launch `skill-run finish` or `task-summary` from the task worktree after merge. `tusk merge` may remove that worktree as part of cleanup; if the caller's CWD has been removed, the shell or tool host can fail with "No such file or directory" before tusk receives control.
 
 Invoke `/retro <task_id>` immediately — do not ask "shall I run retro?". Pass the task id explicitly so `/retro` attributes cost to the task you just finalized rather than picking up whichever sibling worktree closed last (issue #805). Read and follow:
 

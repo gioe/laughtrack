@@ -14,7 +14,7 @@ Reviews the current conversation history to capture process learnings, instructi
 
 `RETRO_TASK_ID` identifies the single just-closed task this retro is reviewing. Resolve it in this order (issue #805, original incident: with parallel worktrees finalizing tasks within seconds of each other, the most-recent-Done heuristic returns whichever sibling closed last — not the task `/tusk` just finalized):
 
-1. **Argv-supplied task id** — when the skill was invoked as `/retro <task_id>` (the normal handoff from `/tusk` Step 12 and `/address-issue` Step 10), use that id directly. Confirm with `tusk task-get <task_id>` and read its `complexity` field from the returned JSON. This is the authoritative path for handoffs.
+1. **Argv-supplied task id** — when the skill was invoked as `/retro <task_id>` (the normal handoff from `/tusk` Step 12 and `/address-issue` Step 10), use that id directly. Confirm with `tusk task-get <task_id>` and read its `complexity` field from the returned JSON at `.task.complexity` (for example: `tusk task-get <task_id> | jq -r .task.complexity`). This is the authoritative path for handoffs.
 2. **Most-recent-Done fallback** — only when no argv was passed (stand-alone `/retro` invocations typed by the user). Use the ORDER BY heuristic below.
 
 ```bash
@@ -108,12 +108,18 @@ If **all categories are empty**, run `tusk skill-run cancel <run_id>`, report "C
 
 ### LR-1b: Classify Each Finding
 
-For each finding, determine whether it is a **tusk-issue** or a **project-issue**:
+For each finding, first choose the smallest durable unit that matches it:
+
+- **Task** — shippable backlog work that needs its own branch/worktree/review.
+- **Criterion** — an observable completion condition that belongs on an existing open task; use `tusk criteria add <task_id> "<criterion>"` rather than creating a sibling task.
+- **Context atom** — durable memory that improves future handoff but is not shippable work: an assumption, question, risk, decision, entry point, or compact memory. Context atoms must not inflate the task backlog.
+
+For findings whose durable unit is a task, determine whether it is a **tusk-issue** or a **project-issue**:
 
 - **tusk-issue** — a bug, limitation, or improvement in tusk itself: the CLI, a skill, DB schema, or installed tooling (e.g., a skill instruction is confusing, a `tusk` command misbehaves, a missing feature in the tool)
 - **project-issue** — specific to the current project: its code, architecture, conventions, or processes
 
-Label each finding with its classification. This drives the routing in LR-2.
+Label each finding with its durable unit and, for task findings, its classification. This drives the routing in LR-2.
 
 Category A findings are always **tusk-issues**. Category D findings are normally **project-issues** unless the missing documentation is in tusk's distributed docs/prompts/skills.
 
@@ -126,9 +132,25 @@ Category A findings are always **tusk-issues**. Category D findings are normally
    tusk dupes check "<proposed summary>"
    ```
 
-3. Present findings and proposed actions in a table (include the classification from LR-1b). Wait for explicit user approval before acting.
+3. Present findings and proposed actions in a table (include the durable unit and, for task findings, the classification from LR-1b). Wait for explicit user approval before acting.
 
-4. For each approved finding, route based on its LR-1b classification:
+4. For each approved finding, route based on its LR-1b durable unit:
+
+   **criteria** — add the finding to the best matching open task:
+   ```bash
+   tusk criteria add <task_id> "<criterion>"
+   ```
+   Do **not** create a new task for this finding.
+
+   **context atoms** — write through the first-class context CLI:
+   ```bash
+   tusk context add <task_id> --type risk --content "<finding summary>" --source retro
+   tusk context resolve <context_item_id>
+   tusk context supersede <context_item_id>
+   ```
+   Choose `memory`, `assumption`, `question`, `risk`, `decision`, or `entry_point` as narrowly as possible. Use `resolve` when the finding closes an active question/risk/assumption; use `supersede` when the finding replaces stale context. Do **not** use direct SQL for context atoms.
+
+   **tasks** — route based on LR-1b classification:
 
    **tusk-issues** — file a GitHub issue via:
    ```bash
@@ -282,6 +304,8 @@ The /tusk skill already printed the task summary block (`tusk task-summary <id> 
 **Session**: <what was accomplished>
 **Findings**: X total (by category — use resolved category names)
 **Created**: N tasks (#id, #id)
+**Criteria added**: N (omit line if zero)
+**Context atoms updated**: N added, R resolved, S superseded (omit line if all zero)
 **GitHub issues filed**: N (tusk-issues routed via tusk report-issue — omit line if zero)
 **Lint rules**: K applied inline, M deferred as tasks
 **Auto-applied**: P frontmatter edits — <one entry per item from $AUTO_APPLIED, format: `path/to/SKILL.md (brief description)`> (omit line if P == 0)
@@ -296,7 +320,7 @@ tusk -header -column "SELECT id, summary, priority, domain, task_type, status FR
 
 ### LR-3a: Record approved findings for cross-retro theme detection
 
-Before closing the skill run, write one `retro_findings` row per **approved** finding (task created, issue filed, lint rule added, convention added, or skill-patched inline). Skipped/duplicate findings are **not** recorded — only actioned ones feed the cross-retro signal. For each approved finding, run:
+Before closing the skill run, write one `retro_findings` row per **approved** finding (task created, criterion added, context atom updated, issue filed, lint rule added, convention added, or skill-patched inline). Skipped/duplicate findings are **not** recorded — only actioned ones feed the cross-retro signal. For each approved finding, run:
 
 ```bash
 tusk retro-finding add \
@@ -309,6 +333,8 @@ tusk retro-finding add \
 
 `<action_taken>` vocabulary (pick whichever fits; omit `--action-taken` if none do):
 - `task:TASK-<id>` — a new task was created via `tusk task-insert`
+- `criterion:<id>` — an acceptance criterion was added via `tusk criteria add`
+- `context:<id>` — a context atom was added, resolved, or superseded via `tusk context`
 - `issue:<url>` — a GitHub issue was filed via `tusk report-issue`
 - `lint:<id>` — a lint rule was added via `tusk lint-rule add`
 - `convention:<id>` — a convention was added via `tusk conventions add`
