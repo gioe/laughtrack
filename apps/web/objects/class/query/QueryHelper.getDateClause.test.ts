@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { QueryHelper } from "./QueryHelper";
 
 function makeHelper(params: Record<string, string | undefined> = {}) {
@@ -7,6 +7,21 @@ function makeHelper(params: Record<string, string | undefined> = {}) {
         timezone: "America/New_York",
     });
 }
+
+// getDateClause has a "when fromDate is today, use current time instead of
+// midnight" branch. Several cases below assert the exact midnight→UTC
+// conversion for literal dates (e.g. 2026-06-15); those break on the one real
+// calendar day that happens to equal the literal. Pin "now" to a fixed instant
+// that matches none of the literal dates so the conversion path is exercised
+// deterministically regardless of the wall clock.
+beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-04-20T12:00:00Z"));
+});
+
+afterEach(() => {
+    vi.useRealTimers();
+});
 
 type DateClause = {
     date: {
