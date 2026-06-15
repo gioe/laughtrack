@@ -168,6 +168,59 @@ struct MainPageCacheTests {
         #expect(cached?.map(\.id) == [709])
     }
 
+    @Test("home feed written by a prior build version is treated as a miss and deleted")
+    func persistentHomeFeedInvalidatesOnSchemaVersionMismatch() async throws {
+        let directory = try temporaryDirectory()
+        let writer = PersistentMainPageCache(directory: directory, schemaVersion: "build-1")
+        await writer.setHomeFeed(homeFeed(showID: 730), zipCode: "10801", ttl: 60)
+
+        // A later build reads the same on-disk directory with a new version.
+        let reader = PersistentMainPageCache(directory: directory, schemaVersion: "build-2")
+        let cached = await reader.getHomeFeed(zipCode: "10801")
+        #expect(cached == nil)
+
+        // The stale entry is deleted, so a same-version writer starts clean.
+        let file = directory.appendingPathComponent("home-feed-10801.json")
+        #expect(!FileManager.default.fileExists(atPath: file.path))
+    }
+
+    @Test("a corrupt persisted entry is deleted and reported as a miss")
+    func persistentCacheDeletesUndecodableEntry() async throws {
+        let directory = try temporaryDirectory()
+        let file = directory.appendingPathComponent("home-feed-10801.json")
+        try Data("{ this is not a valid entry }".utf8).write(to: file)
+
+        let cache = PersistentMainPageCache(directory: directory)
+        let cached = await cache.getHomeFeed(zipCode: "10801")
+
+        #expect(cached == nil)
+        #expect(!FileManager.default.fileExists(atPath: file.path))
+    }
+
+    @Test("version invalidation applies to every persisted rail family, not just home feed")
+    func persistentFavoriteShowsInvalidatesOnSchemaVersionMismatch() async throws {
+        let directory = try temporaryDirectory()
+        let writer = PersistentMainPageCache(directory: directory, schemaVersion: "build-1")
+        await writer.setFavoriteShows([homeShow(id: 731)], requestKey: "comedian-a", ttl: 60)
+
+        let reader = PersistentMainPageCache(directory: directory, schemaVersion: "build-2")
+        let cached = await reader.getFavoriteShows(requestKey: "comedian-a")
+
+        #expect(cached == nil)
+    }
+
+    @Test("entries written and read under the same version still resolve")
+    func persistentCacheResolvesWhenSchemaVersionMatches() async throws {
+        let directory = try temporaryDirectory()
+        let writer = PersistentMainPageCache(directory: directory, schemaVersion: "build-1")
+        await writer.setHomeFeed(homeFeed(showID: 732), zipCode: "10801", ttl: 60)
+
+        let reader = PersistentMainPageCache(directory: directory, schemaVersion: "build-1")
+        let cached = await reader.getHomeFeed(zipCode: "10801")
+
+        #expect(cached?.showsTonight.map(\.id) == [732])
+    }
+
     @Test("init purges orphaned nearby-shows cache files left behind by TASK-1887 removal")
     func initPurgesOrphanedNearbyShowsFiles() async throws {
         let directory = try temporaryDirectory()
