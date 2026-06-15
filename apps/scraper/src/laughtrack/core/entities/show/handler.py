@@ -112,6 +112,50 @@ class ShowHandler(BaseDatabaseHandler[Show]):
         )
         return deleted or []
 
+    @staticmethod
+    def _extract_stale_count(rows: Optional[List[DictRow]]) -> int:
+        """Pull stale_count out of a COUNT(*) result, tolerating plain tuples."""
+        if not rows:
+            return 0
+        row = rows[0]
+        try:
+            return int(row["stale_count"])
+        except (TypeError, KeyError):
+            return int(row[0])
+
+    def count_stale_future_shows_by_organizer(
+        self, club_id: int, organizer_id: int, cutoff: datetime
+    ) -> int:
+        """Count organizer-attributed stale future shows (TASK-2861).
+
+        Mirrors :meth:`count_stale_future_shows` but scopes by
+        ``scraped_by_organizer_id`` instead of ``scraper_key`` so the cap is
+        enforced per (venue, organizer).
+        """
+        rows = self.execute_with_cursor(
+            ShowQueries.COUNT_STALE_FUTURE_SHOWS_BY_ORGANIZER,
+            (club_id, organizer_id, cutoff),
+            return_results=True,
+        )
+        return self._extract_stale_count(rows)
+
+    def delete_stale_future_shows_by_organizer(
+        self, club_id: int, organizer_id: int, cutoff: datetime
+    ) -> List[DictRow]:
+        """Delete future shows THIS organizer produced but did not re-emit (TASK-2861).
+
+        Scopes by ``scraped_by_organizer_id`` so a sibling organizer/source's
+        shows at a shared venue are never deleted, while cancelled shows at a
+        multi-organizer venue ARE reconciled. Same cutoff semantics as
+        :meth:`delete_stale_future_shows`. Returns the deleted rows for logging.
+        """
+        deleted = self.execute_with_cursor(
+            ShowQueries.DELETE_STALE_FUTURE_SHOWS_BY_ORGANIZER,
+            (club_id, organizer_id, cutoff),
+            return_results=True,
+        )
+        return deleted or []
+
     def insert_shows(self,
                      shows: List[Show],
                      batch_size: int = DEFAULT_BATCH_SIZE,

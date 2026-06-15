@@ -41,35 +41,6 @@ def test_forget_venue_issues_scoped_delete():
     )
 
 
-def test_covered_when_another_organizer_claims_the_venue():
-    h = _handler()
-    # First lookup (other organizer) returns a row → covered, second never runs.
-    h.execute_with_cursor.return_value = [{"?column?": 1}]
-
-    assert h.is_venue_covered_elsewhere(55, 303) is True
-    h.execute_with_cursor.assert_called_once_with(
-        OrganizerVenueQueries.COVERED_BY_OTHER_ORGANIZER, (303, 55), return_results=True
-    )
-
-
-def test_covered_when_direct_eventbrite_source_exists():
-    h = _handler()
-    # No other organizer, but the venue has its own enabled eventbrite source.
-    h.execute_with_cursor.side_effect = [[], [{"?column?": 1}]]
-
-    assert h.is_venue_covered_elsewhere(55, 303) is True
-    assert h.execute_with_cursor.call_args_list[1].args[0] == (
-        OrganizerVenueQueries.HAS_DIRECT_EVENTBRITE_SOURCE
-    )
-    assert h.execute_with_cursor.call_args_list[1].args[1] == (303,)
-
-
-def test_not_covered_when_neither_sibling_source_exists():
-    h = _handler()
-    h.execute_with_cursor.side_effect = [[], []]
-    assert h.is_venue_covered_elsewhere(55, 303) is False
-
-
 def test_record_venues_noop_on_empty():
     h = _handler()
     h.transaction = MagicMock()
@@ -77,17 +48,10 @@ def test_record_venues_noop_on_empty():
     h.transaction.assert_not_called()
 
 
-def test_coverage_query_excludes_same_organizer():
-    """The other-organizer probe must exclude this organizer's own row, or every
-    venue would look covered by itself."""
-    sql = OrganizerVenueQueries.COVERED_BY_OTHER_ORGANIZER
-    assert "club_id = %s" in sql
-    assert "production_company_id <> %s" in sql
-
-
-def test_direct_source_query_scoped_to_enabled_eventbrite():
-    sql = OrganizerVenueQueries.HAS_DIRECT_EVENTBRITE_SOURCE
-    assert "scraping_sources" in sql
-    assert "club_id = %s" in sql
-    assert "platform = 'eventbrite'" in sql
-    assert "enabled = TRUE" in sql
+def test_coverage_probes_removed_in_task_2861():
+    """The TASK-2859 conservative-skip coverage probes were superseded by per-show
+    organizer attribution (TASK-2861); they must no longer exist on the handler or
+    the queries class."""
+    assert not hasattr(OrganizerVenueHandler, "is_venue_covered_elsewhere")
+    assert not hasattr(OrganizerVenueQueries, "COVERED_BY_OTHER_ORGANIZER")
+    assert not hasattr(OrganizerVenueQueries, "HAS_DIRECT_EVENTBRITE_SOURCE")

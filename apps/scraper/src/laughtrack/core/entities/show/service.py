@@ -56,6 +56,26 @@ class ShowService:
         """
         return self.show_handler.delete_stale_future_shows(club_id, scraper_key, cutoff)
 
+    def count_stale_future_shows_by_organizer(
+        self, club_id: int, organizer_id: int, cutoff: datetime
+    ) -> int:
+        """Count organizer-attributed stale future shows for the cap (TASK-2861)."""
+        return self.show_handler.count_stale_future_shows_by_organizer(
+            club_id, organizer_id, cutoff
+        )
+
+    def delete_stale_future_shows_by_organizer(
+        self, club_id: int, organizer_id: int, cutoff: datetime
+    ) -> List[Dict[str, Any]]:
+        """Reconcile stale future shows scoped to one organizer (TASK-2861).
+
+        Delegates to ShowHandler.delete_stale_future_shows_by_organizer. Returns
+        the deleted rows so the caller can log the per-show disposition.
+        """
+        return self.show_handler.delete_stale_future_shows_by_organizer(
+            club_id, organizer_id, cutoff
+        )
+
     def update_show_popularity(self, show_ids: Optional[List[int]] = None) -> None:
         """
         Update popularity for shows in the database.

@@ -23,7 +23,7 @@ class ShowQueries:
     BATCH_INSERT_SHOWS = '''
         INSERT INTO shows (
             name, show_page_url, description, date, club_id, last_scraped_date, room,
-            production_company_id, last_scraped_by
+            production_company_id, last_scraped_by, scraped_by_organizer_id
         )
         VALUES %s
         ON CONFLICT (club_id, date, room)
@@ -36,7 +36,12 @@ class ShowQueries:
             last_scraped_date = EXCLUDED.last_scraped_date,
             room = EXCLUDED.room,
             production_company_id = COALESCE(EXCLUDED.production_company_id, shows.production_company_id),
-            last_scraped_by = COALESCE(EXCLUDED.last_scraped_by, shows.last_scraped_by)
+            last_scraped_by = COALESCE(EXCLUDED.last_scraped_by, shows.last_scraped_by),
+            -- Overwrite (NOT coalesce): the last producer's attribution always
+            -- wins. An organizer stamps its id; a non-organizer re-scrape sets it
+            -- NULL, correctly clearing the claim so that organizer's reconcile no
+            -- longer matches the row (TASK-2861).
+            scraped_by_organizer_id = EXCLUDED.scraped_by_organizer_id
         RETURNING
             id, club_id, room, date,
             CASE
@@ -76,6 +81,33 @@ class ShowQueries:
         FROM shows
         WHERE club_id = %s
           AND last_scraped_by = %s
+          AND date > NOW()
+          AND last_scraped_date < %s
+    '''
+
+    # TASK-2861: organizer-attributed variant of the stale-future-show reconcile.
+    # Eventbrite organizer-mode scrapes scope by scraped_by_organizer_id (the
+    # production company whose /o/ feed produced the show) instead of
+    # last_scraped_by, because every Eventbrite show shares
+    # last_scraped_by='eventbrite'. This deletes ONLY future shows THIS organizer
+    # produced but did not re-emit this run, so a sibling organizer/source's shows
+    # at a shared venue are never touched, while cancelled shows at a
+    # multi-organizer venue ARE reconciled. Same cutoff semantics as the
+    # scraper-key variant (last_scraped_date < the pre-upsert cutoff).
+    DELETE_STALE_FUTURE_SHOWS_BY_ORGANIZER = '''
+        DELETE FROM shows
+        WHERE club_id = %s
+          AND scraped_by_organizer_id = %s
+          AND date > NOW()
+          AND last_scraped_date < %s
+        RETURNING id, name, date, room
+    '''
+
+    COUNT_STALE_FUTURE_SHOWS_BY_ORGANIZER = '''
+        SELECT COUNT(*) AS stale_count
+        FROM shows
+        WHERE club_id = %s
+          AND scraped_by_organizer_id = %s
           AND date > NOW()
           AND last_scraped_date < %s
     '''

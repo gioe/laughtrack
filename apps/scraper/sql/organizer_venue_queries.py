@@ -29,25 +29,8 @@ class OrganizerVenueQueries:
           AND club_id = %s
     """
 
-    # Cross-organizer safety (criterion 9184): is this venue claimed by ANY other
-    # organizer's history? If so, that organizer still maintains the venue's shows
-    # and this organizer must not reconcile (delete) them.
-    COVERED_BY_OTHER_ORGANIZER = """
-        SELECT 1
-        FROM eventbrite_organizer_venues
-        WHERE club_id = %s
-          AND production_company_id <> %s
-        LIMIT 1
-    """
-
-    # Cross-organizer safety (criterion 9184): does the venue have its OWN enabled
-    # direct Eventbrite scraping source? If so, it is independently scraped and an
-    # organizer drop must not delete its inventory.
-    HAS_DIRECT_EVENTBRITE_SOURCE = """
-        SELECT 1
-        FROM scraping_sources
-        WHERE club_id = %s
-          AND platform = 'eventbrite'
-          AND enabled = TRUE
-        LIMIT 1
-    """
+    # Note: the TASK-2859 cross-organizer coverage probes (COVERED_BY_OTHER_ORGANIZER,
+    # HAS_DIRECT_EVENTBRITE_SOURCE) were removed in TASK-2861. The reconcile no longer
+    # skips shared venues; it scopes the DELETE to shows.scraped_by_organizer_id, so a
+    # sibling source's shows are never matched. The history table here is now used only
+    # to detect venues that dropped ENTIRELY from a feed.

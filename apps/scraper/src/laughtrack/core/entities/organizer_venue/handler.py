@@ -1,8 +1,10 @@
 """Handler for the per-organizer Eventbrite venue history (TASK-2859).
 
 Records which venue club_ids each Eventbrite organizer (production company) feed
-produced shows for, and answers the cross-organizer safety questions the
-dropped-venue reconciler needs before deleting any inventory.
+produced shows for, so a later clean scrape can diff its current venue set
+against the prior one and detect venues that dropped ENTIRELY from the feed.
+(The TASK-2859 cross-organizer coverage probes were removed in TASK-2861, which
+scopes the reconcile DELETE to shows.scraped_by_organizer_id instead.)
 """
 
 from typing import List
@@ -62,27 +64,3 @@ class OrganizerVenueHandler(BaseDatabaseHandler[int]):
             OrganizerVenueQueries.DELETE_VENUE,
             (production_company_id, club_id),
         )
-
-    def is_venue_covered_elsewhere(
-        self, production_company_id: int, club_id: int
-    ) -> bool:
-        """Does a sibling Eventbrite source still maintain this venue's shows?
-
-        True when another organizer's history claims the venue, or when the venue
-        has its own enabled direct Eventbrite scraping source. The dropped-venue
-        (and present-venue) reconcile must skip such venues so it never deletes a
-        sibling source's live inventory (criterion 9184).
-        """
-        other = self.execute_with_cursor(
-            OrganizerVenueQueries.COVERED_BY_OTHER_ORGANIZER,
-            (club_id, production_company_id),
-            return_results=True,
-        )
-        if other:
-            return True
-        direct = self.execute_with_cursor(
-            OrganizerVenueQueries.HAS_DIRECT_EVENTBRITE_SOURCE,
-            (club_id,),
-            return_results=True,
-        )
-        return bool(direct)
