@@ -80,6 +80,7 @@ model ProductionCompany {
   visible          Boolean                  @default(true)
   showNameKeywords String[]                 @default([]) @map("show_name_keywords")
   venues           ProductionCompanyVenue[]
+  organizerVenues  EventbriteOrganizerVenue[]
   shows            Show[]
 
   @@map("production_companies")
@@ -93,6 +94,26 @@ model ProductionCompanyVenue {
 
   @@id([productionCompanyId, clubId])
   @@map("production_company_venues")
+}
+
+// Per-organizer Eventbrite venue history (TASK-2859). Eventbrite organizer-mode
+// scrapes (source URL with /o/) discover venues dynamically — unlike the curated
+// production_company_venues, these (production_company_id, club_id) pairs are
+// recorded by the scraper after each clean run so a later run can detect a venue
+// that dropped ENTIRELY from the organizer feed (zero shows that run) and
+// reconcile its now-stale future shows. Distinct table so it never perturbs the
+// production_company_venues lookup that decides whether to build a synthetic
+// organizer proxy in the first place.
+model EventbriteOrganizerVenue {
+  productionCompanyId Int               @map("production_company_id")
+  clubId              Int               @map("club_id")
+  lastSeenAt          DateTime          @default(now()) @map("last_seen_at") @db.Timestamptz
+  productionCompany   ProductionCompany @relation(fields: [productionCompanyId], references: [id], onDelete: Cascade)
+  club                Club              @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@id([productionCompanyId, clubId])
+  @@index([clubId])
+  @@map("eventbrite_organizer_venues")
 }
 
 model ScrapingSource {
@@ -168,6 +189,7 @@ model Club {
   emailSubscriptions      EmailSubscription[]
   processedEmails         ProcessedEmail[]
   productionCompanyVenues ProductionCompanyVenue[]
+  organizerVenues         EventbriteOrganizerVenue[]
   scrapingSources         ScrapingSource[]
   aliases                 ClubAlias[]
   favorites               FavoriteClub[]
