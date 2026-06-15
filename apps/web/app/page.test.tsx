@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
     cookies: vi.fn(),
     getTrendingComedians: vi.fn(),
     getClubs: vi.fn(),
+    getClubsByZip: vi.fn(),
     getComediansByZip: vi.fn(),
     getShowsTonight: vi.fn(),
     getShowsNearZip: vi.fn(),
@@ -32,6 +33,9 @@ vi.mock("@/lib/data/home/getTrendingComedians", () => ({
 }));
 vi.mock("@/lib/data/home/getClubs", () => ({
     getClubs: mocks.getClubs,
+}));
+vi.mock("@/lib/data/home/getClubsByZip", () => ({
+    getClubsByZip: mocks.getClubsByZip,
 }));
 vi.mock("@/lib/data/home/getComediansByZip", () => ({
     getComediansByZip: mocks.getComediansByZip,
@@ -115,6 +119,7 @@ beforeEach(() => {
     mocks.cookies.mockResolvedValue({ get: vi.fn() });
     mocks.getTrendingComedians.mockResolvedValue([]);
     mocks.getClubs.mockResolvedValue([]);
+    mocks.getClubsByZip.mockResolvedValue([]);
     mocks.getComediansByZip.mockResolvedValue([]);
     mocks.getShowsTonight.mockResolvedValue([]);
     mocks.getShowsNearZip.mockResolvedValue([]);

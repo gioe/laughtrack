@@ -14,9 +14,15 @@ import {
 
 interface TrendingClubsCarouselProps {
     clubs: ClubDTO[];
+    // When set, the rail is scoped to the viewer's area and titled accordingly.
+    // Omitted (no resolved location) falls back to the global popular list.
+    zipCode?: string;
 }
 
-const TrendingClubsCarousel = ({ clubs }: TrendingClubsCarouselProps) => {
+const TrendingClubsCarousel = ({
+    clubs,
+    zipCode,
+}: TrendingClubsCarouselProps) => {
     const scrollContainerRef = useRef<HTMLDivElement | null>(null);
     const [isClient, setIsClient] = useState(false);
     const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -163,8 +169,12 @@ const TrendingClubsCarousel = ({ clubs }: TrendingClubsCarouselProps) => {
                 {/* No eyebrow: the iOS popular-clubs rail renders no header
                     eyebrow, so web stays in lockstep (TASK-2751). */}
                 <SectionHeader
-                    title="Popular clubs"
-                    subtitle="Check out our most popular comedy venues"
+                    title={zipCode ? "Popular clubs near you" : "Popular clubs"}
+                    subtitle={
+                        zipCode
+                            ? `The most active comedy venues near ${zipCode} right now.`
+                            : "Check out our most popular comedy venues"
+                    }
                     className="mb-4 sm:mb-0"
                 />
                 <div className="flex gap-2 self-end sm:self-auto md:self-auto lg:self-auto">

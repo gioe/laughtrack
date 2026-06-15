@@ -6,6 +6,7 @@ import { CACHE } from "@/util/constants/cacheConstants";
 import { readTimezoneCookie } from "@/util/timezone";
 import { getTrendingComedians } from "@/lib/data/home/getTrendingComedians";
 import { getClubs } from "@/lib/data/home/getClubs";
+import { getClubsByZip } from "@/lib/data/home/getClubsByZip";
 import { getComediansByZip } from "@/lib/data/home/getComediansByZip";
 import { getShowsTonight } from "@/lib/data/home/getShowsTonight";
 import { getShowsNearZip } from "@/lib/data/home/getShowsNearZip";
@@ -90,6 +91,7 @@ export default async function HomePage() {
     const [
         { comedians, clubs },
         nearYouComedians,
+        nearYouClubs,
         showsTonight,
         showsNearYou,
         trendingShowsThisWeek,
@@ -99,6 +101,11 @@ export default async function HomePage() {
         zipCode
             ? getComediansByZip(zipCode, DEFAULT_HOME_RADIUS_MILES, {
                   sortBy: "upcomingShows",
+              }).catch(() => [])
+            : Promise.resolve([]),
+        zipCode
+            ? getClubsByZip(zipCode, DEFAULT_HOME_RADIUS_MILES, 8, {
+                  requireImage: true,
               }).catch(() => [])
             : Promise.resolve([]),
         zipCode
@@ -128,6 +135,11 @@ export default async function HomePage() {
     // have local results, otherwise the global on-the-rise list.
     const onTheRiseLocal = Boolean(zipCode && nearYouComedians.length > 0);
     const onTheRiseComedians = onTheRiseLocal ? nearYouComedians : comedians;
+
+    // Same treatment for the popular-clubs rail so it re-localizes when the
+    // viewer changes their zip; fall back to the global club list otherwise.
+    const popularClubsLocal = Boolean(zipCode && nearYouClubs.length > 0);
+    const popularClubs = popularClubsLocal ? nearYouClubs : clubs;
 
     return (
         <main id="main-content" className="min-h-screen w-full">
@@ -189,7 +201,10 @@ export default async function HomePage() {
                 </section>
             )}
             <section className="w-full bg-coconut-cream">
-                <TrendingClubsCarousel clubs={clubs} />
+                <TrendingClubsCarousel
+                    clubs={popularClubs}
+                    zipCode={popularClubsLocal && zipCode ? zipCode : undefined}
+                />
             </section>
             <FooterComponent />
         </main>
