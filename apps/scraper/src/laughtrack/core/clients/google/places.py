@@ -33,9 +33,20 @@ _API_URL = f"{_API_BASE}/places:searchText"
 _PHOTO_FIELD_MASK = "places.id,places.displayName,places.photos"
 
 # Nearby/discovery search returns identity + location so callers can dedupe on
-# place_id and filter by true distance. ``nextPageToken`` is top-level (not
-# under ``places``) so it must be named explicitly in the mask to paginate.
-_NEARBY_FIELD_MASK = "nextPageToken," "places.id," "places.displayName," "places.formattedAddress," "places.location"
+# place_id and filter by true distance. ``websiteUri`` and ``primaryType`` ride
+# along in the same call (no extra billing) to power downstream triage — the
+# website is the entry point for both comedy-likelihood scoring and later
+# scraper onboarding. ``nextPageToken`` is top-level (not under ``places``) so
+# it must be named explicitly in the mask to paginate.
+_NEARBY_FIELD_MASK = (
+    "nextPageToken,"
+    "places.id,"
+    "places.displayName,"
+    "places.formattedAddress,"
+    "places.location,"
+    "places.websiteUri,"
+    "places.primaryType"
+)
 
 # Text Search ``locationBias`` circle radius is capped at 50 km by the API.
 _MAX_BIAS_RADIUS_M = 50_000.0
@@ -70,6 +81,9 @@ class PlacesNearbyVenue:
     so callers can compute the true great-circle distance from an origin and
     discard results the soft ``locationBias`` pulled in from beyond the ring.
     ``address`` is Google's ``formattedAddress`` (``None`` when absent).
+    ``website`` is Google's ``websiteUri`` and ``primary_type`` its
+    ``primaryType`` (both ``None`` when absent) — triage signals for whether a
+    hit is a real comedy venue and where its calendar lives.
     """
 
     place_id: str
@@ -77,6 +91,8 @@ class PlacesNearbyVenue:
     address: Optional[str]
     lat: float
     lng: float
+    website: Optional[str] = None
+    primary_type: Optional[str] = None
 
 
 def _normalize_attributions(raw: Any) -> List[Dict[str, str]]:
@@ -302,6 +318,8 @@ class GooglePlacesClient:
             if isinstance(display, dict) and isinstance(display.get("text"), str):
                 name = display["text"]
             address = place.get("formattedAddress")
+            website = place.get("websiteUri")
+            primary_type = place.get("primaryType")
             out.append(
                 PlacesNearbyVenue(
                     place_id=place_id,
@@ -309,6 +327,8 @@ class GooglePlacesClient:
                     address=address if isinstance(address, str) else None,
                     lat=float(lat),
                     lng=float(lng),
+                    website=website if isinstance(website, str) and website else None,
+                    primary_type=(primary_type if isinstance(primary_type, str) and primary_type else None),
                 )
             )
         return out

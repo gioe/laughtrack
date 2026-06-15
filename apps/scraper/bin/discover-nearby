@@ -274,6 +274,8 @@ def main() -> None:
                 "name": venue.name,
                 "distance_mi": round(dist, 1),
                 "address": venue.address,
+                "website": venue.website,
+                "primary_type": venue.primary_type,
                 "place_id": venue.place_id,
                 "matched_club_id": club_id,
                 "matched_club_name": club_name,
@@ -304,6 +306,8 @@ _CSV_FIELDS = [
     "name",
     "distance_mi",
     "address",
+    "website",
+    "primary_type",
     "place_id",
     "matched_club_id",
     "matched_club_name",
@@ -331,6 +335,8 @@ def _render(results, fmt) -> None:
         suffix = ""
         if r["matched_club_name"]:
             suffix = f"  → club #{r['matched_club_id']} {r['matched_club_name']!r}"
+        elif r.get("website"):
+            suffix = f"  {r['website']}"
         print(
             f"[{tag.get(r['status'], r['status'])}] {r['distance_mi']:>5.1f} mi  "
             f"{r['name']}{(' — ' + loc) if loc else ''}{suffix}"

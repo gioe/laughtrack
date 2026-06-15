@@ -289,6 +289,8 @@ def test_parse_nearby_places_extracts_well_formed_venues():
                 "displayName": {"text": "The Comedy Spot"},
                 "formattedAddress": "1 Main St, Akron, OH",
                 "location": {"latitude": 41.08, "longitude": -81.52},
+                "websiteUri": "https://thecomedyspot.example.com",
+                "primaryType": "comedy_club",
             }
         ]
     }
@@ -300,6 +302,8 @@ def test_parse_nearby_places_extracts_well_formed_venues():
             address="1 Main St, Akron, OH",
             lat=41.08,
             lng=-81.52,
+            website="https://thecomedyspot.example.com",
+            primary_type="comedy_club",
         )
     ]
 
