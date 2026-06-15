@@ -129,12 +129,24 @@ class ScrapingResultProcessor:
         Cross-organizer safety (TASK-2859 criterion 9184): because every Eventbrite
         show shares ``last_scraped_by='eventbrite'``, a venue covered by a second
         organizer feed — or by its own enabled direct Eventbrite scraping source —
-        must never have its shows deleted by this organizer's reconcile. Both the
+        should not have its shows deleted by this organizer's reconcile. Both the
         present- and dropped-venue paths skip any venue
         :meth:`OrganizerVenueHandler.is_venue_covered_elsewhere` reports as owned
-        elsewhere, so a sibling source's live inventory is never touched. The
-        trade-off is that cancelled shows at a genuinely multi-organizer venue are
-        not auto-reconciled (they age out when the owning source rescrapes).
+        elsewhere. The trade-off is that cancelled shows at a genuinely
+        multi-organizer venue are not auto-reconciled (they age out when the
+        owning source rescrapes).
+
+        Bootstrap gap (residual of the conservative-skip design): the
+        other-organizer probe only sees a sibling once that sibling has recorded
+        the venue in ``eventbrite_organizer_venues``. During first rollout — or
+        any window before a sibling organizer has run a clean scrape this cycle —
+        a shared venue that lacks a direct Eventbrite source is NOT yet seen as
+        covered, so this organizer can still reconcile the sibling's shows there.
+        The clean-scrape gate and per-venue RECONCILE_DELETE_CAP bound the blast
+        radius, and the gap closes once every covering organizer has recorded its
+        set. Fully closing it would need per-show organizer attribution (a
+        ``scraped_by_organizer_id`` on shows), which scopes the delete precisely
+        rather than skipping shared venues — deferred as a heavier follow-up.
 
         When ``production_company_id`` is absent we cannot key the history or run
         the cross-organizer check, so only the present-venue reconcile runs

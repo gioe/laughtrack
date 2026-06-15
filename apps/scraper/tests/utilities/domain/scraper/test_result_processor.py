@@ -531,6 +531,28 @@ class TestStaleFutureShowReconciliation:
         )
         assert deleted_club_ids == [101]  # 202 skipped — covered elsewhere
 
+    def test_history_read_error_skips_dropped_reconcile_and_write(self):
+        """If reading the prior venue set errors, the dropped-venue pass aborts
+        early and does NOT overwrite history with a half-known set."""
+        proc = self._proc(stale_count=1)
+        proc.organizer_venue_handler.get_venue_club_ids.side_effect = RuntimeError(
+            "db down"
+        )
+
+        proc.insert_club_result(
+            self._organizer_result([101], production_company_id=55)
+        )
+
+        # Present-venue reconcile still ran (101 deleted)...
+        deleted_club_ids = [
+            call.args[0]
+            for call in proc.show_service.delete_stale_future_shows.call_args_list
+        ]
+        assert deleted_club_ids == [101]
+        # ...but the failed history read skips both forget_venue and record_venues.
+        proc.organizer_venue_handler.forget_venue.assert_not_called()
+        proc.organizer_venue_handler.record_venues.assert_not_called()
+
     def test_coverage_check_failure_skips_reconcile_conservatively(self):
         """If the cross-organizer coverage lookup errors, the venue is treated as
         covered (no delete) — never delete on doubt."""

@@ -16,14 +16,10 @@ class OrganizerVenueQueries:
         WHERE production_company_id = %s
     """
 
-    # Stamp this run's venues. last_seen_at is refreshed so the row reflects the
-    # most recent run that produced a show for the venue.
-    UPSERT_VENUE = """
-        INSERT INTO eventbrite_organizer_venues (production_company_id, club_id, last_seen_at)
-        VALUES (%s, %s, NOW())
-        ON CONFLICT (production_company_id, club_id)
-        DO UPDATE SET last_seen_at = NOW()
-    """
+    # NB: the upsert of this run's venue set is a multi-row execute_values insert
+    # built inline in OrganizerVenueHandler.record_venues (it needs the VALUES %s
+    # placeholder + per-row template), so there is intentionally no single-row
+    # UPSERT constant here.
 
     # Drop a venue this organizer no longer produces (after the dropped-venue
     # reconcile, or when a sibling source owns it). Idempotent.
