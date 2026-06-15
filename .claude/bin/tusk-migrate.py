@@ -2488,6 +2488,13 @@ def migrate_64(db_path: str, config_path: str, script_dir: str) -> None:
         md_path = os.path.join(repo_root, "docs", "GLOSSARY.md")
         if os.path.isfile(md_path):
             try:
+                # Pass the resolved md_path explicitly via --file. Without it,
+                # tusk-glossary.py sync-from-md re-resolves GLOSSARY.md via
+                # `git rev-parse --show-toplevel` from CWD, which can read a
+                # different checkout's doc than the one this migration gated on
+                # (db_path's repo root). In production the two coincide; the
+                # explicit path keeps the migration deterministic and seeds
+                # from exactly the file it verified (issue #1097).
                 subprocess.run(
                     [
                         "python3",
@@ -2495,6 +2502,8 @@ def migrate_64(db_path: str, config_path: str, script_dir: str) -> None:
                         db_path,
                         config_path,
                         "sync-from-md",
+                        "--file",
+                        md_path,
                     ],
                     check=True,
                     capture_output=True,
@@ -3324,6 +3333,183 @@ def migrate_75(db_path: str, config_path: str, script_dir: str) -> None:
     _progress("  Migration 75: added tasks.not_before and filtered future-gated ready views")
 
 
+def migrate_76(db_path: str, config_path: str, script_dir: str) -> None:
+    """Add task_progress.note for rationale separate from next_steps.
+
+    ``next_steps`` is consumed as forward-looking handoff text by resume and
+    retro-signal flows. ``note`` preserves checkpoint rationale without making
+    that text look like unfinished work.
+    """
+    if get_version(db_path) >= 76:
+        _progress("  Migration 76: added task_progress.note")
+        return
+
+    if not has_column(db_path, "task_progress", "note"):
+        run_script(db_path, "ALTER TABLE task_progress ADD COLUMN note TEXT;")
+
+    set_version(db_path, 76)
+    _progress("  Migration 76: added task_progress.note")
+
+
+def migrate_77(db_path: str, config_path: str, script_dir: str) -> None:
+    """Add objectives and task context items for durable handoff modeling."""
+    if get_version(db_path) >= 77:
+        _progress("  Migration 77: added objective and task context item tables")
+        return
+
+    script = """
+        CREATE TABLE IF NOT EXISTS objectives (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            summary TEXT NOT NULL,
+            description TEXT,
+            status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'completed', 'abandoned')),
+            created_at TEXT NOT NULL DEFAULT (datetime('now')),
+            updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+            closed_at TEXT
+        );
+
+        CREATE TABLE IF NOT EXISTS objective_tasks (
+            objective_id INTEGER NOT NULL,
+            task_id INTEGER NOT NULL,
+            relationship_type TEXT NOT NULL DEFAULT 'contributes_to' CHECK (relationship_type IN ('primary', 'contributes_to', 'follow_up')),
+            created_at TEXT NOT NULL DEFAULT (datetime('now')),
+            PRIMARY KEY (objective_id, task_id),
+            FOREIGN KEY (objective_id) REFERENCES objectives(id) ON DELETE CASCADE,
+            FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS idx_objective_tasks_task_id ON objective_tasks(task_id);
+
+        CREATE TABLE IF NOT EXISTS task_context_items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            task_id INTEGER NOT NULL,
+            objective_id INTEGER,
+            item_type TEXT NOT NULL CHECK (item_type IN ('memory', 'assumption', 'question', 'risk', 'decision', 'entry_point')),
+            content TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'resolved', 'superseded')),
+            source TEXT NOT NULL DEFAULT 'manual' CHECK (source IN ('manual', 'create_task', 'task_progress', 'review', 'retro', 'agent_handoff')),
+            created_at TEXT NOT NULL DEFAULT (datetime('now')),
+            updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+            resolved_at TEXT,
+            FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
+            FOREIGN KEY (objective_id) REFERENCES objectives(id) ON DELETE SET NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_task_context_items_task_id ON task_context_items(task_id);
+        CREATE INDEX IF NOT EXISTS idx_task_context_items_objective_id ON task_context_items(objective_id);
+        CREATE INDEX IF NOT EXISTS idx_task_context_items_type_status ON task_context_items(item_type, status);
+
+        PRAGMA user_version = 77;
+    """
+    run_script(db_path, script)
+    _progress("  Migration 77: added objective and task context item tables")
+
+
+def migrate_78(db_path: str, config_path: str, script_dir: str) -> None:
+    """Add external_blockers.resolution_note for `tusk blockers resolve --note`.
+
+    Records HOW a blocker was cleared (e.g. the CI run or approval that proved
+    it resolved) so a later audit can see the rationale on the row instead of
+    only in conversation history (issue #1046).
+    """
+    if get_version(db_path) >= 78:
+        _progress("  Migration 78: added external_blockers.resolution_note")
+        return
+
+    if not has_column(db_path, "external_blockers", "resolution_note"):
+        run_script(db_path, "ALTER TABLE external_blockers ADD COLUMN resolution_note TEXT;")
+
+    set_version(db_path, 78)
+    _progress("  Migration 78: added external_blockers.resolution_note")
+
+
+def migrate_79(db_path: str, config_path: str, script_dir: str) -> None:
+    """Add task_sessions.active_seconds for idle-gap-discounted duration.
+
+    duration_seconds is wall time (ended_at - started_at), so a session left
+    open overnight reports "active" identical to wall and the column carries
+    no signal (issue #1069). session-stats now computes active_seconds from
+    transcript event timestamps, discounting idle gaps above the threshold;
+    NULL on legacy rows — consumers fall back per-row to duration_seconds.
+    """
+    if get_version(db_path) >= 79:
+        _progress("  Migration 79: added task_sessions.active_seconds")
+        return
+
+    if not has_column(db_path, "task_sessions", "active_seconds"):
+        run_script(db_path, "ALTER TABLE task_sessions ADD COLUMN active_seconds INTEGER;")
+
+    set_version(db_path, 79)
+    _progress("  Migration 79: added task_sessions.active_seconds")
+
+
+def migrate_80(db_path: str, config_path: str, script_dir: str) -> None:
+    """Null out blank acceptance_criteria.verification_spec rows.
+
+    Legacy write paths (criteria add --spec '', task-insert --typed-criteria
+    with a blank spec) stored '' instead of NULL, which lint Rule 10 read as
+    "has a spec" and flagged as a blocking type mismatch on unrelated tasks'
+    merges (issue #1045). The write boundaries now normalize blank specs to
+    NULL; this cleans up rows written before the fix. Plain TRIM only strips
+    spaces, so pass the full whitespace character set explicitly.
+    """
+    if get_version(db_path) >= 80:
+        _progress("  Migration 80: nulled blank verification_spec rows")
+        return
+
+    run_script(
+        db_path,
+        "UPDATE acceptance_criteria SET verification_spec = NULL"
+        " WHERE verification_spec IS NOT NULL"
+        " AND TRIM(verification_spec, ' ' || char(9) || char(10) || char(13)) = '';",
+    )
+
+    set_version(db_path, 80)
+    _progress("  Migration 80: nulled blank verification_spec rows")
+
+
+def migrate_81(db_path: str, config_path: str, script_dir: str) -> None:
+    """Add precheck_verdicts table so tusk commit can reuse a same-HEAD verdict.
+
+    Issue #1083: when a pre-existing test failure exists at HEAD, every commit
+    re-runs the full test_command, exits 2, and forces a hand-rolled git
+    fallback that loses lint + criterion binding + the message guard. This
+    table lets `tusk test-precheck` record its verdict keyed by (head_sha,
+    test_command); `tusk commit`'s test gate then reuses a same-HEAD
+    pre_existing=true verdict instead of refusing. The DB is single-node and
+    per-repo, so no project_root column is needed.
+
+    Idempotent: guarded with has_table; re-running is a no-op after the table
+    exists.
+    """
+    if get_version(db_path) >= 81:
+        _progress("  Migration 81: added precheck_verdicts table")
+        return
+
+    ddl_stmts = []
+    if not has_table(db_path, "precheck_verdicts"):
+        ddl_stmts.append("""
+            CREATE TABLE precheck_verdicts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                task_id INTEGER,
+                session_id INTEGER,
+                head_sha TEXT NOT NULL,
+                test_command TEXT NOT NULL,
+                pre_existing INTEGER NOT NULL,
+                exit_code INTEGER NOT NULL,
+                created_at TEXT NOT NULL DEFAULT (datetime('now')),
+                FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE SET NULL,
+                FOREIGN KEY (session_id) REFERENCES task_sessions(id) ON DELETE SET NULL
+            );
+            CREATE INDEX idx_precheck_verdicts_lookup
+                ON precheck_verdicts(head_sha, test_command, id DESC);
+        """)
+
+    script = "\n".join(ddl_stmts) + """
+        PRAGMA user_version = 81;
+    """
+    run_script(db_path, script)
+    _progress("  Migration 81: added precheck_verdicts table")
+
+
 # ── Migration registry ────────────────────────────────────────────────────────
 
 MIGRATIONS = [
@@ -3402,6 +3588,12 @@ MIGRATIONS = [
     (73, migrate_73),
     (74, migrate_74),
     (75, migrate_75),
+    (76, migrate_76),
+    (77, migrate_77),
+    (78, migrate_78),
+    (79, migrate_79),
+    (80, migrate_80),
+    (81, migrate_81),
 ]
 
 

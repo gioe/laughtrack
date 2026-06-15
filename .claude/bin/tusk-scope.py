@@ -31,6 +31,7 @@ Exit codes:
 import argparse
 import os
 import sqlite3
+import subprocess
 import sys
 from pathlib import Path
 
@@ -127,6 +128,112 @@ def _normalize_pattern(pattern: str, repo_root: str, source: str) -> tuple[str, 
     return normalized, None
 
 
+def _git(cwd: str, args: list[str]) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        ["git", "-C", cwd, *args],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+
+
+def _is_sparse_checkout(worktree_root: str) -> bool:
+    inside = _git(worktree_root, ["rev-parse", "--is-inside-work-tree"])
+    if inside.returncode != 0 or inside.stdout.strip() != "true":
+        return False
+    sparse = _git(worktree_root, ["config", "--get", "core.sparseCheckout"])
+    return sparse.returncode == 0 and sparse.stdout.strip() == "true"
+
+
+def _sparse_cone_entry(pattern: str, repo_root: str) -> "str | None":
+    if _is_pattern_like(pattern) or "/" not in pattern:
+        return None
+
+    primary_path = Path(repo_root, pattern)
+    if primary_path.is_dir():
+        entry = pattern
+    else:
+        entry = os.path.dirname(pattern)
+
+    entry = entry.strip().rstrip("/")
+    if not entry or entry == "." or entry.startswith("/"):
+        return None
+    if any(seg in {"", ".."} for seg in entry.split("/")):
+        return None
+    return entry
+
+
+def _materialize_sparse_path(pattern: str, repo_root: str) -> None:
+    """Best-effort: keep sparse checkout contents aligned with new scope."""
+    worktree_root = os.getcwd()
+    if not _is_sparse_checkout(worktree_root):
+        return
+
+    target = Path(worktree_root, pattern)
+    if target.exists():
+        return
+
+    entry = _sparse_cone_entry(pattern, repo_root)
+    if entry is None:
+        return
+
+    result = _git(worktree_root, ["sparse-checkout", "add", entry])
+    if result.returncode == 0:
+        print(
+            f"Note: sparse-checkout materialized scope path via "
+            f"`git sparse-checkout add {entry}`.",
+            file=sys.stderr,
+        )
+        return
+
+    stderr = result.stderr.strip()
+    print(
+        f"Warning: scope path {pattern!r} may be outside the current "
+        f"sparse-checkout cone. Run `git sparse-checkout add {entry}` "
+        f"from this worktree to materialize it."
+        + (f" git stderr: {stderr}" if stderr else ""),
+        file=sys.stderr,
+    )
+
+
+def _has_task_work_evidence(conn: sqlite3.Connection, task_id: int) -> bool:
+    """Return True once a task has durable progress or committed criteria."""
+    progress = conn.execute(
+        "SELECT 1 FROM task_progress WHERE task_id = ? LIMIT 1",
+        (task_id,),
+    ).fetchone()
+    if progress is not None:
+        return True
+
+    committed_criterion = conn.execute(
+        "SELECT 1 FROM acceptance_criteria "
+        "WHERE task_id = ? AND commit_hash IS NOT NULL LIMIT 1",
+        (task_id,),
+    ).fetchone()
+    return committed_criterion is not None
+
+
+def _resolve_add_source(
+    conn: sqlite3.Connection,
+    task_id: int,
+    requested_source: "str | None",
+) -> str:
+    if requested_source is not None:
+        return requested_source
+    if _has_task_work_evidence(conn, task_id):
+        return "expanded_mid_task"
+    return "operator_declared"
+
+
+def _task_has_unbounded_scope(conn: sqlite3.Connection, task_id: int) -> bool:
+    row = conn.execute(
+        "SELECT 1 FROM task_scope "
+        "WHERE task_id = ? AND pattern = '**' AND source = 'unbounded' LIMIT 1",
+        (task_id,),
+    ).fetchone()
+    return row is not None
+
+
 def cmd_list(args: argparse.Namespace, db_path: str) -> int:
     task_id = _parse_task_id(args.task_id)
     with get_connection(db_path) as conn:
@@ -142,11 +249,10 @@ def cmd_list(args: argparse.Namespace, db_path: str) -> int:
 
 def cmd_add(args: argparse.Namespace, db_path: str, repo_root: str) -> int:
     task_id = _parse_task_id(args.task_id)
-    source = args.source
-    if source not in VALID_SOURCES_ADD:
+    if args.source is not None and args.source not in VALID_SOURCES_ADD:
         joined = ", ".join(VALID_SOURCES_ADD)
         print(
-            f"Error: invalid --source {source!r}. Valid for `scope add`: {joined}",
+            f"Error: invalid --source {args.source!r}. Valid for `scope add`: {joined}",
             file=sys.stderr,
         )
         return 2
@@ -160,10 +266,24 @@ def cmd_add(args: argparse.Namespace, db_path: str, repo_root: str) -> int:
         return 2
     with get_connection(db_path) as conn:
         _ensure_task_exists(conn, task_id)
+        if _task_has_unbounded_scope(conn, task_id):
+            print(dumps({
+                "task_id": task_id,
+                "pattern": pattern,
+                "source": "unbounded",
+                "unbounded": True,
+                "note": (
+                    "task scope is unbounded; no further authorization needed"
+                ),
+            }))
+            return 0
+        source = _resolve_add_source(conn, task_id, args.source)
         pattern, err = _normalize_pattern(pattern, repo_root, source)
         if err is not None:
             print(err, file=sys.stderr)
             return 2
+        if source != "creates":
+            _materialize_sparse_path(pattern, repo_root)
 
         existing = conn.execute(
             "SELECT id, task_id, pattern, source, reason, locked_at, locked_by, created_at "
@@ -259,34 +379,37 @@ def main(argv: list) -> int:
     config_path = argv[2]
     repo_root = _repo_root(config_path)
 
-    parser = argparse.ArgumentParser(prog="tusk scope", description="Manage task scope")
+    parser = argparse.ArgumentParser(allow_abbrev=False, prog="tusk scope", description="Manage task scope")
     sub = parser.add_subparsers(dest="cmd", required=True)
 
-    p_list = sub.add_parser("list", help="List scope entries for a task")
+    p_list = sub.add_parser("list", allow_abbrev=False, help="List scope entries for a task")
     p_list.add_argument("task_id")
 
     p_add = sub.add_parser(
-        "add",
-        help="Add a scope pattern to a task (default source: expanded_mid_task)",
+        "add", allow_abbrev=False,
+        help=(
+            "Add a scope pattern to a task (default source: operator_declared "
+            "before task work, expanded_mid_task afterward)"
+        ),
     )
     p_add.add_argument("task_id")
     p_add.add_argument("pattern")
     p_add.add_argument("--reason", default=None)
     p_add.add_argument(
         "--source",
-        default="expanded_mid_task",
+        default=None,
         choices=VALID_SOURCES_ADD,
     )
 
     p_lock = sub.add_parser(
-        "lock",
+        "lock", allow_abbrev=False,
         help="Stamp locked_at on every scope entry for a task",
     )
     p_lock.add_argument("task_id")
     p_lock.add_argument("--by", default=None, help="Lock attribution (defaults to $USER)")
 
     p_remove = sub.add_parser(
-        "remove",
+        "remove", allow_abbrev=False,
         aliases=["rm"],
         help="Remove one scope entry by row id",
     )

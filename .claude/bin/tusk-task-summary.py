@@ -236,14 +236,27 @@ def fetch_tokens(conn: sqlite3.Connection, task_id: int) -> dict:
 
 
 def fetch_duration(conn: sqlite3.Connection, task_id: int, identity: dict) -> dict:
-    """Wall time = earliest session start → task closed_at; active = SUM(session.duration_seconds)."""
-    row = conn.execute(
-        "SELECT COUNT(*) AS cnt, "
-        "       MIN(started_at) AS first_start, "
-        "       COALESCE(SUM(duration_seconds), 0) AS active "
-        "FROM task_sessions WHERE task_id = ?",
-        (task_id,),
-    ).fetchone()
+    """Wall time = earliest session start → task closed_at; active = SUM of
+    per-session idle-gap-discounted active_seconds (issue #1069), falling
+    back per-row to duration_seconds for legacy rows closed before schema 79
+    computed the transcript-derived value."""
+    try:
+        row = conn.execute(
+            "SELECT COUNT(*) AS cnt, "
+            "       MIN(started_at) AS first_start, "
+            "       COALESCE(SUM(COALESCE(active_seconds, duration_seconds)), 0) AS active "
+            "FROM task_sessions WHERE task_id = ?",
+            (task_id,),
+        ).fetchone()
+    except sqlite3.OperationalError:
+        # Pre-migration schema without active_seconds — legacy behavior.
+        row = conn.execute(
+            "SELECT COUNT(*) AS cnt, "
+            "       MIN(started_at) AS first_start, "
+            "       COALESCE(SUM(duration_seconds), 0) AS active "
+            "FROM task_sessions WHERE task_id = ?",
+            (task_id,),
+        ).fetchone()
     first_start = row["first_start"]
     closed_at = identity["closed_at"]
     wall = None
@@ -1026,7 +1039,7 @@ def _load_baseline_threshold(config_path: str) -> int:
 def main(argv: list) -> int:
     db_path = argv[0]
     config_path = argv[1]
-    parser = argparse.ArgumentParser(
+    parser = argparse.ArgumentParser(allow_abbrev=False,
         prog="tusk task-summary",
         description="Emit an end-of-run summary for a task (identity, cost, duration, diff, criteria).",
     )

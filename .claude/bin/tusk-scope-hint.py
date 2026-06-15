@@ -16,7 +16,7 @@ Arguments received from tusk:
 
 Output (stdout, JSON):
     {
-      "scope": [...],         // paths from extract_paths over text blocks
+      "scope": [...],         // paths from the shared auto-scope heuristics
       "creates": [...],       // paths the description marks as newly-created
       "unbounded": true|false,
       "rationale": {
@@ -42,11 +42,13 @@ import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import tusk_loader  # loads tusk-git-helpers.py, tusk-json-lib.py
+import tusk_loader  # loads tusk-task-insert.py, tusk-json-lib.py
 
-_git_helpers = tusk_loader.load("tusk-git-helpers")
+_task_insert = tusk_loader.load("tusk-task-insert")
 _json_lib = tusk_loader.load("tusk-json-lib")
-extract_paths = _git_helpers.extract_paths
+auto_scope_candidates = _task_insert._auto_scope_candidates
+resolve_auto_derived_scope_pattern = _task_insert._resolve_auto_derived_scope_pattern
+repo_root_for_config = _task_insert._repo_root
 dumps = _json_lib.dumps
 
 
@@ -113,11 +115,26 @@ def _collect_text_blocks(args: argparse.Namespace) -> list[str]:
     return blocks
 
 
-def _extract_scope(blocks: list[str]) -> list[str]:
+def _extract_scope(
+    blocks: list[str],
+    *,
+    repo_root: str | None = None,
+    task_type: str | None = None,
+) -> list[str]:
     seen: set = set()
     out: list = []
+    requires_unit_tests = any(
+        _task_insert._UNIT_TEST_REQUIREMENT_RE.search(block or "")
+        for block in blocks
+    )
     for text in blocks:
-        for p in extract_paths(text):
+        for p in auto_scope_candidates(
+            text,
+            repo_root=repo_root,
+            task_type=task_type,
+            requires_unit_tests=requires_unit_tests,
+        ):
+            p = resolve_auto_derived_scope_pattern(repo_root, p)
             if p not in seen:
                 seen.add(p)
                 out.append(p)
@@ -162,9 +179,10 @@ def main(argv: list) -> int:
 
     # argv[1] (db_path) and argv[2] (config_path) are passed by the
     # dispatcher for arity parity with other tusk subcommands, but the
-    # hint is read-only over raw text and ignores them.
+    # hint is read-only over raw text and uses config_path only to resolve
+    # the repo root for suffix-based path hints.
 
-    parser = argparse.ArgumentParser(
+    parser = argparse.ArgumentParser(allow_abbrev=False,
         prog="tusk scope-hint",
         description="Emit scope/creates/unbounded suggestions for a draft task",
     )
@@ -183,10 +201,12 @@ def main(argv: list) -> int:
         help="Task type (refactor → unbounded hint)",
     )
     parser.add_argument("--domain", default=None, help="Task domain (informational)")
+    parser.add_argument("--repo-root", default=None, help=argparse.SUPPRESS)
     args = parser.parse_args(argv[3:])
 
     blocks = _collect_text_blocks(args)
-    scope = _extract_scope(blocks)
+    repo_root = repo_root_for_config(argv[2], args.repo_root)
+    scope = _extract_scope(blocks, repo_root=repo_root, task_type=args.task_type)
     creates = _extract_creates(blocks)
     unbounded_flag, unbounded_why = _detect_unbounded(args, blocks)
 

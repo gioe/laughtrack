@@ -17,6 +17,7 @@ Flags:
     --task-type <t>       Update task_type
     --assignee <a>        Update assignee
     --complexity <c>      Update complexity
+    --not-before <ts>     Update not_before, or empty string to clear
 
 Only specified fields are updated; unspecified fields are left unchanged.
 Always sets updated_at = datetime('now').
@@ -42,16 +43,86 @@ TUSK_BIN = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tusk")
 
 _db_lib = tusk_loader.load("tusk-db-lib")
 _json_lib = tusk_loader.load("tusk-json-lib")
+_task_insert = tusk_loader.load("tusk-task-insert")
 dumps = _json_lib.dumps
 get_connection = _db_lib.get_connection
 load_config = _db_lib.load_config
 validate_enum = _db_lib.validate_enum
 
 
+def _rederive_auto_scope(
+    conn: sqlite3.Connection,
+    task_id: int,
+    config_path: str,
+) -> None:
+    if conn.execute(
+        "SELECT 1 FROM task_scope WHERE task_id = ? AND source = 'unbounded' LIMIT 1",
+        (task_id,),
+    ).fetchone():
+        conn.execute(
+            "DELETE FROM task_scope WHERE task_id = ? AND source = 'auto_derived'",
+            (task_id,),
+        )
+        return
+
+    task = conn.execute("SELECT * FROM tasks WHERE id = ?", (task_id,)).fetchone()
+    if not task:
+        return
+
+    explicit_rows = conn.execute(
+        "SELECT pattern FROM task_scope WHERE task_id = ? AND source <> 'auto_derived'",
+        (task_id,),
+    ).fetchall()
+    explicit_patterns = {row["pattern"] for row in explicit_rows}
+
+    text_blocks = [task["summary"] or "", task["description"] or ""]
+    criteria = conn.execute(
+        "SELECT criterion, verification_spec FROM acceptance_criteria WHERE task_id = ?",
+        (task_id,),
+    ).fetchall()
+    for criterion in criteria:
+        text_blocks.append(criterion["criterion"] or "")
+        text_blocks.append(criterion["verification_spec"] or "")
+
+    repo_root = _task_insert._repo_root(config_path)
+    task_type = task["task_type"] if "task_type" in task.keys() else None
+    seen_auto: set[str] = set()
+    derived: list[str] = []
+    requires_unit_tests = any(
+        _task_insert._UNIT_TEST_REQUIREMENT_RE.search(block or "")
+        for block in text_blocks
+    )
+    for text in text_blocks:
+        for path in _task_insert._auto_scope_candidates(
+            text,
+            repo_root=repo_root,
+            task_type=task_type,
+            requires_unit_tests=requires_unit_tests,
+        ):
+            if _task_insert.is_prose_identifier_path(path, repo_root):
+                continue
+            resolved = _task_insert._resolve_auto_derived_scope_pattern(repo_root, path)
+            if resolved in explicit_patterns or resolved in seen_auto:
+                continue
+            seen_auto.add(resolved)
+            derived.append(resolved)
+
+    conn.execute(
+        "DELETE FROM task_scope WHERE task_id = ? AND source = 'auto_derived'",
+        (task_id,),
+    )
+    for pattern in derived:
+        conn.execute(
+            "INSERT INTO task_scope (task_id, pattern, source) "
+            "VALUES (?, ?, 'auto_derived')",
+            (task_id, pattern),
+        )
+
+
 def main(argv: list[str]) -> int:
     db_path = argv[0]
     config_path = argv[1]
-    parser = argparse.ArgumentParser(
+    parser = argparse.ArgumentParser(allow_abbrev=False,
         prog="tusk task-update",
         description="Update task fields with config validation",
     )
@@ -64,6 +135,16 @@ def main(argv: list[str]) -> int:
     parser.add_argument("--assignee", default=None, help="Update assignee")
     parser.add_argument("--complexity", default=None, help="Update complexity")
     parser.add_argument("--workflow", default=None, help="Update workflow (empty string clears to NULL)")
+    parser.add_argument(
+        "--not-before",
+        default=None,
+        dest="not_before",
+        metavar="TIMESTAMP",
+        help=(
+            "Update not_before; accepts ISO or +Nm/+Nh/+Nd/+Nw. "
+            "Pass an empty string to clear to NULL."
+        ),
+    )
     args = parser.parse_args(argv[2:])
 
     task_id = args.task_id
@@ -78,6 +159,18 @@ def main(argv: list[str]) -> int:
     # --workflow: empty string clears to NULL, non-empty sets the value
     if args.workflow is not None:
         updates["workflow"] = None if args.workflow == "" else args.workflow
+
+    # --not-before is explicit-only. Description phrase detection is deferred:
+    # task-update is non-interactive, so prose heuristics should not silently
+    # change scheduling without a dedicated warning/prompt surface.
+    if args.not_before is not None:
+        if args.not_before == "":
+            updates["not_before"] = None
+        else:
+            try:
+                updates["not_before"] = _task_insert._parse_not_before(args.not_before)
+            except argparse.ArgumentTypeError as exc:
+                parser.error(str(exc))
 
     if not updates:
         parser.error("at least one field flag is required")
@@ -145,6 +238,8 @@ def main(argv: list[str]) -> int:
 
         try:
             conn.execute(sql, params)
+            if "summary" in updates or "description" in updates:
+                _rederive_auto_scope(conn, task_id, config_path)
             conn.commit()
         except sqlite3.Error as e:
             conn.rollback()

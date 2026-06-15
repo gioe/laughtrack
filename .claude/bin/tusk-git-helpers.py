@@ -37,6 +37,7 @@ import posixpath
 import re
 import sqlite3
 import subprocess
+import sys
 
 
 _UNREACHABLE_REMOTE_PATTERNS = (
@@ -388,7 +389,9 @@ _PATH_RE = re.compile(
     r'|\.[A-Za-z0-9][\w._-]*/'
     r'|(?!\w+://)\w[\w._-]*/'  # any directory prefix that is not a URL protocol
     r')'
-    r'[\w./_-]+'
+    # "@" admits literal @ path segments (apps/web/@/components/..., issue
+    # #1047) alongside the bracket segments ([id]) from issue #1030.
+    r'[\w./_\-\[\]@]+'
     r'|'
     r'(?:' + _BARE_TOPLEVEL_ALTERNATION + r')(?!\w)'
     r')'
@@ -451,7 +454,17 @@ def extract_paths(text: str) -> list:
             and "." not in basename
             and any(p.startswith(prefix) for prefix in _EXTENSIONLESS_SCRIPT_PREFIXES)
         )
-        if p in _BARE_TOPLEVEL_WHITELIST or "." in basename or is_extensionless_script:
+        is_github_directory_scope = (
+            basename
+            and p.endswith("/")
+            and p.startswith(".github/")
+        )
+        if (
+            p in _BARE_TOPLEVEL_WHITELIST
+            or "." in basename
+            or is_extensionless_script
+            or is_github_directory_scope
+        ):
             paths.append(_prefix_cd_relative_path(p, cd_dir))
     return paths
 
@@ -497,16 +510,69 @@ def path_exists_in_repo(repo_root: str | None, path: str | None) -> bool:
     )
 
 
+_FILE_SPEC_GLOB_METACHARS = "*?["
+
+
+def file_spec_glob_metachars(spec: str | None) -> list:
+    """Return the glob metacharacters present in a file-type verification spec.
+
+    File-type criteria are verified with glob.glob, so a bracket sequence
+    like ``[wght]`` is a character class, not literal text. Literal filenames
+    containing brackets are real (Google Fonts ships variable fonts named
+    ``Chivo[wght].ttf``), so callers warn rather than reject (issue #1032).
+    """
+    if not spec:
+        return []
+    return [ch for ch in _FILE_SPEC_GLOB_METACHARS if ch in spec]
+
+
+def warn_file_spec_glob_metachars(spec: str | None, source: str) -> bool:
+    """Warn on stderr when a file-type spec contains glob metacharacters.
+
+    Returns True when a warning was printed. Deliberately distinct from the
+    path-does-not-exist warning: that one is expected for file-type criteria
+    whose deliverable is created later, so it reads as benign; this one names
+    the offending metacharacters and the glob-vs-literal mismatch.
+    """
+    chars = file_spec_glob_metachars(spec)
+    if not chars:
+        return False
+    joined = " ".join(repr(ch) for ch in chars)
+    print(
+        f"Warning: {source} file-type verification_spec contains glob "
+        f"metacharacter(s) {joined} — the spec is matched as a glob at "
+        f"verification time, not as a literal path. Escape '[' as '[[]' "
+        f"if a literal filename is intended: {spec}",
+        file=sys.stderr,
+    )
+    return True
+
+
 def is_prose_identifier_path(path: str | None, repo_root: str | None = None) -> bool:
     """Return True for slash-joined code identifiers masquerading as paths."""
     if not path or "/" not in path:
         return False
+    raw = path.strip()
+    if path_exists_in_repo(repo_root, raw):
+        return False
+    parts = raw.split("/")
     first = path.strip().split("/", 1)[0]
-    if first.startswith(".") or "." not in first:
-        return False
-    if path_exists_in_repo(repo_root, path):
-        return False
-    return True
+    # A dot-prefixed segment ANYWHERE in the path signals a hidden/runtime
+    # directory crossing mid-path (e.g. ``node_modules/.venv``,
+    # ``foo/.git/bar``) — a strong prose-concatenation signal. The original
+    # rule only checked the first segment, so symmetric junk such as
+    # ``node_modules/.venv`` (first segment is a plain name, the ``.venv``
+    # is second) slipped through and landed as a bogus auto_derived scope
+    # row (issue #1093). Real source paths whose dot-prefixed segments
+    # actually exist are already returned above via path_exists_in_repo;
+    # callers that legitimately want non-existent ``.github/...`` paths
+    # (e.g. task-insert's explicit-github carve-out) gate this call
+    # accordingly.
+    if any(seg.startswith(".") for seg in parts):
+        return True
+    if "." in first:
+        return True
+    return any(re.fullmatch(r"\d+(?:\.\d+)+", part) for part in parts[1:])
 
 
 # Regex to extract bare-basename file-like tokens (basename with multi-char

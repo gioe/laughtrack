@@ -2,12 +2,12 @@
 """Consolidate task-start setup into a single CLI command.
 
 Called by the tusk wrapper:
-    tusk task-start [<task_id>] [--force] [--force-deps] [--force-not-before] [--force-session] [--agent <name>] [--skill <name>]
+    tusk task-start [<task_id>] [--force] [--force-deps] [--force-contingent] [--force-not-before] [--force-session] [--agent <name>] [--skill <name>]
 
 Arguments received from tusk:
     sys.argv[1] — DB path
     sys.argv[2] — config path
-    sys.argv[3:] — [task_id] [--force] [--force-deps] [--force-not-before] [--force-session] [--agent <name>] [--skill <name>]
+    sys.argv[3:] — [task_id] [--force] [--force-deps] [--force-contingent] [--force-not-before] [--force-session] [--agent <name>] [--skill <name>]
 
 When task_id is omitted, the top WSJF-ranked ready task is picked from
 v_ready_tasks (same ranking logic tusk-task-select uses) and started in a
@@ -25,6 +25,7 @@ Performs all setup steps for beginning work on a task:
 
 --force: bypass the zero-criteria guard (emits a warning but proceeds)
 --force-deps: bypass the unmet-`blocks`-dependency guard (emits a warning but proceeds)
+--force-contingent: bypass the open contingent dependency guard (emits a warning but proceeds)
 --force-not-before: bypass a future not_before timestamp (emits a warning but proceeds)
 --force-session: reuse an existing active session from outside the task workspace
 """
@@ -34,10 +35,11 @@ import json
 import os
 import re
 import sqlite3
+import subprocess
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import tusk_loader  # loads tusk-db-lib.py, tusk-json-lib.py, tusk-rank-lib.py, tusk-git-helpers.py
+import tusk_loader  # loads tusk-db-lib.py, tusk-json-lib.py, tusk-rank-lib.py, tusk-git-helpers.py, tusk-criteria.py
 
 _db_lib = tusk_loader.load("tusk-db-lib")
 _json_lib = tusk_loader.load("tusk-json-lib")
@@ -67,6 +69,11 @@ _STALE_PROGRESS_STOPWORDS = frozenset({
     "up", "us", "very", "was", "we", "were", "what", "when", "which", "while",
     "who", "why", "will", "with", "you", "your",
 })
+
+_DEFER_TRIGGER_RE = re.compile(
+    r"^(?:defer\s+trigger\s*:|defer\s*:|defer\s+until\b|wait\s+for\b)",
+    re.IGNORECASE,
+)
 
 
 def _stem_token(word: str) -> str:
@@ -133,6 +140,28 @@ def _find_stale_progress_row(progress_rows: list, current_text: str):
     return None
 
 
+def _strip_marker_prefixes(line: str) -> str:
+    stripped = line.strip()
+    while True:
+        updated = re.sub(r"^(?:>\s*|[-*]\s+|\d+[.)]\s+)", "", stripped).strip()
+        if updated == stripped:
+            return stripped
+        stripped = updated
+
+
+def _find_defer_trigger(text: str) -> str | None:
+    """Return the first explicit defer-trigger line in task text, if any."""
+    if not text:
+        return None
+    for raw_line in text.splitlines():
+        line = _strip_marker_prefixes(raw_line)
+        if not line:
+            continue
+        if _DEFER_TRIGGER_RE.search(line):
+            return line
+    return None
+
+
 def _register_active_project() -> None:
     """Append the active REPO_ROOT to the active-projects registry.
 
@@ -163,7 +192,9 @@ def _register_active_project() -> None:
         pass
 
 
-def _task_commits_on_default(db_path: str, task_id: int) -> bool:
+def _task_commits_on_default(
+    db_path: str, task_id: int, conn: sqlite3.Connection | None = None
+) -> bool:
     """Return True if [TASK-<id>] commits already exist on the default branch.
 
     Widens task-start's deliverable_check_needed beyond the completed-criteria
@@ -172,6 +203,20 @@ def _task_commits_on_default(db_path: str, task_id: int) -> bool:
     deliverable check. Scans the local default branch and origin/<default>
     (a no-checkout fast-forward push leaves the local default behind origin).
     Best-effort — any git failure yields False.
+
+    Prefix-collision file-overlap heuristic (issue #1056): a bare [TASK-<id>]
+    message match from a prior task-numbering epoch must not flip the flag
+    when the task has a scope signal the matched commits don't touch. Matched
+    commits route through the shared block-level filter (issue #855) with
+    ``fallthrough=False``, mirroring tusk-task-unstart's gate semantics:
+    empty kept set = every block off-scope = prefix-match false positive →
+    False. No scope signal, ``conn=None``, or a heuristic failure keeps the
+    conservative True so genuine orphaned work is never silently dropped.
+
+    Deliberately does NOT mirror the TASK-472 scope_enforced bypass used by
+    check-deliverables and task-unstart: this scan has no ``since`` anchor,
+    so a prior-epoch commit's scope-guard pass binds to the OLD task that
+    owned the ID — trusting it here would reintroduce the false positive.
     """
     repo_root = os.environ.get("TUSK_REPO_ROOT") or os.path.dirname(
         os.path.dirname(os.path.abspath(db_path))
@@ -180,10 +225,185 @@ def _task_commits_on_default(db_path: str, task_id: int) -> bool:
         default = _git_helpers.default_branch(repo_root)
     except Exception:
         return False
+    commits: list = []
+    seen: set = set()
     for ref in (default, f"origin/{default}"):
-        if _git_helpers.find_task_commits(task_id, repo_root, refs=[ref]):
-            return True
-    return False
+        for sha in _git_helpers.find_task_commits(task_id, repo_root, refs=[ref]):
+            if sha not in seen:
+                seen.add(sha)
+                commits.append(sha)
+    if not commits:
+        return False
+    try:
+        kept = _git_helpers.filter_commits_by_block_overlap(
+            commits, task_id, repo_root, conn, fallthrough=False
+        )
+    except Exception:
+        return True
+    return bool(kept)
+
+
+def _count_criteria_already_passing(conn: sqlite3.Connection, task_id: int) -> int:
+    """Count incomplete code/file criteria whose verification specs already pass.
+
+    Convergent-completion signal (issue #1051): a sibling task may have shipped
+    this task's deliverables before pickup, leaving the disk in a state where
+    automatable acceptance criteria pass before any work begins. Runs the same
+    specs `tusk criteria done` executes, via its runner (timeout-bounded,
+    exception-safe), read-only at start. test-type specs are excluded — full
+    suite runs are too slow for task-start latency. Best-effort by design: any
+    failure counts as not-passing and the whole scan degrades to 0 rather than
+    blocking task-start.
+    """
+    try:
+        rows = conn.execute(
+            "SELECT criterion_type, verification_spec FROM acceptance_criteria "
+            "WHERE task_id = ? AND is_completed = 0 AND is_deferred = 0 "
+            "AND criterion_type IN ('code', 'file') "
+            "AND verification_spec IS NOT NULL AND verification_spec != ''",
+            (task_id,),
+        ).fetchall()
+        if not rows:
+            return 0
+        run_verification = tusk_loader.load("tusk-criteria").run_verification
+        return sum(
+            1
+            for row in rows
+            if run_verification(row["criterion_type"], row["verification_spec"])["passed"]
+        )
+    except Exception:
+        return 0
+
+
+def _convergence_recency_hint(
+    conn: sqlite3.Connection, task_id: int, repo_root: str | None
+) -> None:
+    """Print a possible-convergence hint when commits touching files named in
+    this task's description/criteria landed near its filing and reference
+    ANOTHER [TASK-N] (issue #1048).
+
+    The cheap signal the completed-criteria and convergent-spec checks miss: a
+    sibling task's fix for exactly these files may have shipped just before (or
+    after) this task was filed from a stale observation. One `git log` over the
+    cited paths/basenames, bounded to ~7 days before created_at through now,
+    surfaces any such commit so the agent can confirm before sinking a build.
+
+    Advisory only and fully best-effort: missing repo_root, no created_at, no
+    cited paths, no matching commits, or any git/DB error is a silent no-op —
+    it never gates task-start or touches the JSON stdout contract.
+    """
+    if not repo_root:
+        return
+    try:
+        row = conn.execute(
+            "SELECT created_at FROM tasks WHERE id = ?", (task_id,)
+        ).fetchone()
+        if not row or not row["created_at"]:
+            return
+        created_at = row["created_at"]
+        paths = _git_helpers.task_referenced_paths(task_id, conn)
+        basenames = _git_helpers.task_referenced_basenames(task_id, conn)
+    except sqlite3.Error:
+        return
+    # Full paths as-is; basenames as wildcard pathspecs that match the file at
+    # any depth (git pathspec `*` spans directory separators).
+    pathspecs = list(paths) + [f"*{b}" for b in basenames]
+    if not pathspecs:
+        return
+    try:
+        since = conn.execute(
+            "SELECT datetime(?, '-7 days')", (created_at,)
+        ).fetchone()[0]
+    except sqlite3.Error:
+        return
+    if not since:
+        return
+    result = subprocess.run(
+        ["git", "-C", repo_root, "log", f"--since={since}",
+         "--format=%h\t%cI\t%s", "--", *pathspecs],
+        capture_output=True, text=True, encoding="utf-8",
+    )
+    if result.returncode != 0 or not result.stdout.strip():
+        return
+    pat = re.compile(r"\[TASK-(\d+)\]")
+    hits = []
+    for line in result.stdout.splitlines():
+        parts = line.split("\t", 2)
+        if len(parts) < 3:
+            continue
+        sha, date, subject = parts
+        m = pat.search(subject)
+        if m and int(m.group(1)) != task_id:
+            hits.append((sha, date, subject))
+    if not hits:
+        return
+    print(
+        f"Warning: {len(hits)} commit(s) touching files named in task {task_id}'s "
+        f"description/criteria landed within ~7 days of its filing and reference "
+        f"another task — possible convergence (the work may already be shipped). "
+        f"Confirm the failure/gap still exists before implementing:",
+        file=sys.stderr,
+    )
+    for sha, date, subject in hits[:10]:
+        preview = subject if len(subject) <= 100 else subject[:97] + "..."
+        print(f"  {sha} {date} {preview}", file=sys.stderr)
+
+
+def _default_branch_staleness_warning(repo_root: str | None) -> dict | None:
+    """Return a non-blocking warning when local default is behind origin.
+
+    Best-effort by design: task-start must not block just because a repo has no
+    origin, fetch is unavailable, or the local checkout is offline.
+    """
+    if not repo_root:
+        return None
+    try:
+        default = _git_helpers.default_branch(repo_root)
+    except Exception:
+        return None
+
+    try:
+        fetch_res = subprocess.run(
+            ["git", "-C", repo_root, "fetch", "origin", default, "--quiet"],
+            check=False,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=5,
+        )
+        count_res = subprocess.run(
+            [
+                "git", "-C", repo_root,
+                "rev-list", "--count", f"{default}..origin/{default}",
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=5,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+
+    if fetch_res.returncode != 0:
+        return None
+    if count_res.returncode != 0:
+        return None
+    try:
+        behind_count = int(count_res.stdout.strip() or "0")
+    except ValueError:
+        return None
+    if behind_count <= 0:
+        return None
+    return {
+        "type": "stale_default_branch",
+        "default_branch": default,
+        "behind_count": behind_count,
+        "message": (
+            f"local {default} is {behind_count} commit(s) behind "
+            f"origin/{default}; consider syncing before investigating"
+        ),
+    }
 
 
 def _current_repo_root() -> str | None:
@@ -210,7 +430,7 @@ def _same_path(left: str | None, right: str | None) -> bool:
 def main(argv: list[str]) -> int:
     db_path = argv[0]
     # argv[1] is config_path (unused but kept for dispatch consistency)
-    parser = argparse.ArgumentParser(
+    parser = argparse.ArgumentParser(allow_abbrev=False,
         prog="tusk task-start",
         description="Begin work on a task (or pick the top ready task when no ID is given)",
     )
@@ -227,6 +447,12 @@ def main(argv: list[str]) -> int:
         dest="force_deps",
         action="store_true",
         help="Bypass unmet 'blocks' dependency guard (use sparingly)",
+    )
+    parser.add_argument(
+        "--force-contingent",
+        dest="force_contingent",
+        action="store_true",
+        help="Bypass open 'contingent' dependency guard (use sparingly)",
     )
     parser.add_argument(
         "--force-not-before",
@@ -251,6 +477,7 @@ def main(argv: list[str]) -> int:
     task_id = args.task_id
     force = args.force
     force_deps = args.force_deps
+    force_contingent = args.force_contingent
     force_not_before = args.force_not_before
     force_session = args.force_session
     agent_name = args.agent_name
@@ -324,8 +551,7 @@ def main(argv: list[str]) -> int:
             )
 
         # 1c. Guard: task must not be blocked by unmet 'blocks' dependencies.
-        # Mirrors v_ready_tasks: only blocks-type deps gate readiness; contingent
-        # deps are documented (docs/GLOSSARY.md) to NOT block, only inform priority.
+        # Mirrors v_ready_tasks' hard readiness semantics for blocks-type deps.
         unmet_deps = conn.execute(
             "SELECT b.id, b.summary, b.status "
             "FROM task_dependencies d "
@@ -357,7 +583,44 @@ def main(argv: list[str]) -> int:
                 file=sys.stderr,
             )
 
-        # 1d. Guard: task must not have open external blockers
+        # 1d. Guard: open contingent deps are not hard blockers in the DAG, but
+        # task-start should not silently hand up a task whose prerequisite path
+        # has not resolved. Require an explicit bypass so the operator sees the
+        # ordering risk before work begins.
+        open_contingent_deps = conn.execute(
+            "SELECT b.id, b.summary, b.status "
+            "FROM task_dependencies d "
+            "JOIN tasks b ON b.id = d.depends_on_id "
+            "WHERE d.task_id = ? AND d.relationship_type = 'contingent' "
+            "AND b.status <> 'Done' "
+            "ORDER BY b.id",
+            (task_id,),
+        ).fetchall()
+        if open_contingent_deps:
+            if not force_contingent:
+                lines = [
+                    f"Error: Task {task_id} has open 'contingent' dependencies:"
+                ]
+                for d in open_contingent_deps:
+                    lines.append(
+                        f"  • TASK-{d['id']} ({d['status']}) — {d['summary']}"
+                    )
+                lines.append(
+                    "Finish the upstream task(s), or bypass with --force-contingent "
+                    "(use sparingly — contingent deps may make this task premature)."
+                )
+                print("\n".join(lines), file=sys.stderr)
+                return 2
+            contingent_ids = ", ".join(
+                f"TASK-{d['id']}" for d in open_contingent_deps
+            )
+            print(
+                f"Warning: Task {task_id} has open 'contingent' deps "
+                f"({contingent_ids}). Proceeding anyway due to --force-contingent.",
+                file=sys.stderr,
+            )
+
+        # 1e. Guard: task must not have open external blockers
         open_blockers = conn.execute(
             "SELECT id, description, blocker_type FROM external_blockers "
             "WHERE task_id = ? AND is_resolved = 0",
@@ -498,7 +761,7 @@ def main(argv: list[str]) -> int:
         # it is backwards (issue #956). Consult task_dependencies and drop any
         # referenced task that depends_on the current task via 'blocks' so only
         # genuine prerequisites (or un-formalized text references) are warned.
-        text = (task["description"] or "") + " " + (task["summary"] or "")
+        text = (task["description"] or "") + "\n" + (task["summary"] or "")
         referenced_ids = list({
             int(m.group(1))
             for m in re.finditer(r'\bTASK-(\d+)\b', text, re.IGNORECASE)
@@ -538,13 +801,35 @@ def main(argv: list[str]) -> int:
             )
             print(f"  next_steps: {preview}", file=sys.stderr)
 
+        defer_trigger = _find_defer_trigger(text)
+
         deliverable_check_needed = any(c["is_completed"] for c in criteria_list)
         if not deliverable_check_needed:
             # Orphaned-work signal (issue #948): a prior session may have committed
             # and pushed [TASK-N] commits to the default branch without finalizing
             # via tusk merge or marking any criterion done. The completed-criteria
             # proxy misses that state, so scan the default branch for shipped commits.
-            deliverable_check_needed = _task_commits_on_default(db_path, task_id)
+            deliverable_check_needed = _task_commits_on_default(db_path, task_id, conn)
+
+        # Convergent-completion signal (issue #1051): sibling work may have
+        # already shipped this task's deliverables, leaving automatable
+        # criteria passing on disk before any work begins.
+        criteria_already_passing = _count_criteria_already_passing(conn, task_id)
+        if criteria_already_passing > 0:
+            deliverable_check_needed = True
+            incomplete_total = sum(1 for c in criteria_list if not c["is_completed"])
+            print(
+                f"Warning: {criteria_already_passing}/{incomplete_total} incomplete "
+                f"criteria verification spec(s) already pass — possible convergent "
+                f"completion; run tusk check-deliverables {task_id} before implementing",
+                file=sys.stderr,
+            )
+
+        # Convergence-recency hint (issue #1048): surface commits touching files
+        # named in this task's description/criteria that landed near its filing
+        # and reference another [TASK-N] — the cheap signal that a sibling task
+        # already shipped this work, before a worktree + cold build is sunk.
+        _convergence_recency_hint(conn, task_id, _current_repo_root())
 
         # Optional fused skill-run start: collapses the common /tusk, /chain,
         # /review-commits, /retro pattern of calling `tusk skill-run start <name>
@@ -574,8 +859,32 @@ def main(argv: list[str]) -> int:
             "criteria": criteria_list,
             "session_id": session_id,
             "deliverable_check_needed": deliverable_check_needed,
+            "criteria_already_passing": criteria_already_passing,
             "skill_run": skill_run_info,
         }
+        warnings = {}
+        if defer_trigger is not None:
+            warnings["defer_trigger"] = {
+                "type": "defer_trigger",
+                "line": defer_trigger,
+                "message": (
+                    "task description contains an explicit defer trigger; "
+                    "confirm it is satisfied before investigating"
+                ),
+            }
+            print(
+                f"Warning: task description contains defer trigger: {defer_trigger}",
+                file=sys.stderr,
+            )
+        stale_default_warning = _default_branch_staleness_warning(_current_repo_root())
+        if stale_default_warning is not None:
+            warnings["stale_default_branch"] = stale_default_warning
+            print(
+                f"Warning: {stale_default_warning['message']}.",
+                file=sys.stderr,
+            )
+        if warnings:
+            result["warnings"] = warnings
 
         _register_active_project()
 
@@ -588,6 +897,6 @@ def main(argv: list[str]) -> int:
 if __name__ == "__main__":
     if len(sys.argv) < 2 or not sys.argv[1].endswith(".db"):
         print("Error: This script must be invoked via the tusk wrapper.", file=sys.stderr)
-        print("Use: tusk task-start [<task_id>] [--force] [--force-deps] [--force-not-before] [--force-session] [--agent NAME] [--skill NAME]", file=sys.stderr)
+        print("Use: tusk task-start [<task_id>] [--force] [--force-deps] [--force-contingent] [--force-not-before] [--force-session] [--agent NAME] [--skill NAME]", file=sys.stderr)
         sys.exit(1)
     sys.exit(main(sys.argv[1:]))

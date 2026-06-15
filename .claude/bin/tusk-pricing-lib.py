@@ -28,6 +28,9 @@ MODEL_ALIASES: dict = {}
 
 # Context window sizes (in tokens) for known models.
 CONTEXT_WINDOW: dict[str, int] = {
+    "claude-fable-5": 1_000_000,
+    "claude-mythos-5": 1_000_000,
+    "claude-opus-4-8": 1_000_000,
     "claude-opus-4-7": 1_000_000,
     "claude-opus-4-6": 1_000_000,
     "claude-opus-4-5": 200_000,
@@ -140,8 +143,9 @@ def _jsonl_files_for_hash(project_hash: str) -> list[Path]:
 def _candidate_dirs(start: str) -> list[str]:
     """Return candidate directories to try for transcript discovery.
 
-    Order: cwd, git root (if different), then each parent up to filesystem root.
-    Deduplicates while preserving order.
+    Order: cwd, git root (if different), the primary checkout that owns a git
+    worktree's common dir, then each parent up to filesystem root. Deduplicates
+    while preserving order.
     """
     seen: set[str] = set()
     candidates: list[str] = []
@@ -167,6 +171,29 @@ def _candidate_dirs(start: str) -> list[str]:
     except Exception:
         pass
 
+    # Task-owned worktrees are often under ~/.tusk/worktrees/<repo>/TASK-...
+    # while Claude records transcripts against the primary checkout path. Git's
+    # common dir points back at that checkout, so include it before broad parent
+    # fallbacks.
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--git-common-dir"],
+            capture_output=True,
+            text=True, encoding="utf-8",
+            cwd=start,
+            timeout=5,
+        )
+        if result.returncode == 0:
+            common_dir_text = result.stdout.strip()
+            if common_dir_text:
+                common_dir = Path(common_dir_text)
+                if not common_dir.is_absolute():
+                    common_dir = Path(start) / common_dir
+                if common_dir.name == ".git":
+                    add(str(common_dir.parent))
+    except Exception:
+        pass
+
     # Walk up parent directories
     p = Path(start).parent
     while str(p) != str(p.parent):
@@ -176,24 +203,8 @@ def _candidate_dirs(start: str) -> list[str]:
     return candidates
 
 
-def find_transcript(project_dir: str | None = None) -> str | None:
-    """Find the most recently modified JSONL in the Claude projects dir.
-
-    If *project_dir* is not given, tries multiple candidate directories:
-    1. os.getcwd()
-    2. git root (via git rev-parse --show-toplevel)
-    3. Each parent directory walking up to the filesystem root
-
-    Returns the most recently modified JSONL found, or None if nothing found.
-    """
-    if project_dir is not None:
-        # Caller supplied an explicit hash — use it directly (legacy behaviour).
-        files = _jsonl_files_for_hash(project_dir)
-        if not files:
-            return None
-        return str(max(files, key=lambda p: p.stat().st_mtime))
-
-    for candidate in _candidate_dirs(os.getcwd()):
+def _find_transcript_for_candidates(candidates: list[str]) -> str | None:
+    for candidate in candidates:
         project_hash = derive_project_hash(candidate)
         files = _jsonl_files_for_hash(project_hash)
         if files:
@@ -203,6 +214,29 @@ def find_transcript(project_dir: str | None = None) -> str | None:
 
     log.debug("No JSONL transcripts found after trying all candidate directories")
     return None
+
+
+def find_transcript(project_dir: str | None = None) -> str | None:
+    """Find the most recently modified JSONL in the Claude projects dir.
+
+    If *project_dir* is not given, tries multiple candidate directories:
+    1. os.getcwd()
+    2. git root (via git rev-parse --show-toplevel)
+    3. primary checkout root for task worktrees (via git common dir)
+    4. Each parent directory walking up to the filesystem root
+
+    Returns the most recently modified JSONL found, or None if nothing found.
+    """
+    if project_dir is not None:
+        if os.path.isdir(project_dir):
+            return _find_transcript_for_candidates(_candidate_dirs(project_dir))
+        # Caller supplied an explicit hash — use it directly (legacy behaviour).
+        files = _jsonl_files_for_hash(project_dir)
+        if not files:
+            return None
+        return str(max(files, key=lambda p: p.stat().st_mtime))
+
+    return _find_transcript_for_candidates(_candidate_dirs(os.getcwd()))
 
 
 def find_all_transcripts_with_fallback(start_dir: str | None = None) -> list[str]:
@@ -270,6 +304,36 @@ def estimate_tokens_from_chars(chars: int) -> int:
     return chars // 4
 
 
+# Idle-gap threshold for active-duration computation (issue #1069). Gaps
+# between consecutive transcript events above this many seconds count as
+# idle (an overnight pause, a stepped-away operator) and contribute nothing
+# to active_seconds; gaps at or below it count in full.
+IDLE_GAP_THRESHOLD_SECONDS = 600
+
+
+def compute_active_seconds(
+    timestamps: list,
+    threshold: int = IDLE_GAP_THRESHOLD_SECONDS,
+) -> int:
+    """Sum consecutive-event deltas at or below *threshold* seconds.
+
+    The transcript's per-event timestamps (user prompts, assistant messages,
+    token_count events) approximate when work actually happened; idle gaps
+    above the threshold are discounted entirely so a session left open
+    overnight reports active time near the real working time (issue #1069).
+    Fewer than two events yields 0.
+    """
+    if len(timestamps) < 2:
+        return 0
+    ordered = sorted(timestamps)
+    active = 0.0
+    for prev, curr in zip(ordered, ordered[1:]):
+        delta = (curr - prev).total_seconds()
+        if 0 < delta <= threshold:
+            active += delta
+    return int(active)
+
+
 def aggregate_session(
     transcript_path: str,
     started_at: datetime,
@@ -280,7 +344,8 @@ def aggregate_session(
     Returns dict with keys: input_tokens, output_tokens,
     cache_creation_input_tokens, cache_creation_5m_tokens,
     cache_creation_1h_tokens, cache_read_input_tokens, model,
-    model_counts, request_count, user_prompt_tokens, user_prompt_count.
+    model_counts, request_count, user_prompt_tokens, user_prompt_count,
+    active_seconds (idle-gap-discounted, issue #1069).
     """
     log.debug("Aggregating session from %s", transcript_path)
     log.debug("Time window: %s .. %s", started_at.isoformat(),
@@ -304,6 +369,7 @@ def aggregate_session(
     codex_meta: dict | None = None
     user_prompt_tokens = 0
     user_prompt_count = 0
+    event_timestamps: list = []
 
     with open(transcript_path) as f:
         for line in f:
@@ -328,6 +394,7 @@ def aggregate_session(
                     continue
                 if ended_at and ts > ended_at:
                     continue
+                event_timestamps.append(ts)
 
                 info = entry.get("payload", {}).get("info", {})
                 usage = info.get("total_token_usage") or info.get("last_token_usage") or {}
@@ -364,6 +431,7 @@ def aggregate_session(
                             continue
                         if ended_at and ts > ended_at:
                             continue
+                        event_timestamps.append(ts)
                         text = _user_prompt_text(entry.get("message", {}))
                         chars = len(text)
                         if chars > 0:
@@ -388,6 +456,7 @@ def aggregate_session(
                 continue
             if ended_at and ts > ended_at:
                 continue
+            event_timestamps.append(ts)
 
             # Deduplicate by requestId (streaming produces multiple entries)
             request_id = entry.get("requestId")
@@ -465,7 +534,23 @@ def aggregate_session(
         "context_window": context_window or get_context_window(dominant_model),
         "user_prompt_tokens": user_prompt_tokens,
         "user_prompt_count": user_prompt_count,
+        "active_seconds": compute_active_seconds(event_timestamps),
     }
+
+
+# Models already warned about this process — one stderr line per model, not per call.
+_WARNED_UNPRICED_MODELS: set = set()
+
+
+def _warn_unpriced_model(model: str) -> None:
+    if model in _WARNED_UNPRICED_MODELS:
+        return
+    _WARNED_UNPRICED_MODELS.add(model)
+    print(
+        f"Warning: unknown model {model!r} — no pricing.json entry; cost recorded as $0. "
+        "Add the model to pricing.json so cost analytics stop silently zeroing.",
+        file=sys.stderr,
+    )
 
 
 def compute_cost(totals: dict) -> float:
@@ -476,7 +561,20 @@ def compute_cost(totals: dict) -> float:
     model = totals.get("model", "")
     rates = PRICING.get(model)
     if not rates:
-        log.debug("No pricing for model %r — cost = $0", model)
+        tokens = sum(
+            totals.get(field, 0) or 0
+            for field in (
+                "input_tokens",
+                "cache_creation_5m_tokens",
+                "cache_creation_1h_tokens",
+                "cache_read_input_tokens",
+                "output_tokens",
+            )
+        )
+        if tokens > 0:
+            _warn_unpriced_model(model)
+        else:
+            log.debug("No pricing for model %r — cost = $0", model)
         return 0.0
 
     mtok = 1_000_000
@@ -885,6 +983,19 @@ def update_session_stats(conn: sqlite3.Connection, session_id: int, totals: dict
         (tokens_in, tokens_out, cost, model, peak_context, first_context, last_context, context_window, request_count,
          cache_read_tokens_in, cache_write_tokens_in, uncached_tokens_in, session_id),
     )
+
+    # Idle-gap-discounted active duration (issue #1069, schema 79). Written
+    # separately and best-effort: new code may run against a pre-migration
+    # schema mid-upgrade, and active_seconds is advisory observability data.
+    active_seconds = totals.get("active_seconds")
+    if isinstance(active_seconds, int):
+        try:
+            conn.execute(
+                "UPDATE task_sessions SET active_seconds = ? WHERE id = ?",
+                (active_seconds, session_id),
+            )
+        except sqlite3.OperationalError:
+            pass
 
 
 def upsert_criterion_tool_stats(

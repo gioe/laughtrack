@@ -20,7 +20,8 @@ Steps:
         the task's recorded workspace branch, or when no workspace is recorded and HEAD
         is the default branch (issue #794). Bypass with --allow-branch-mismatch.
     0. Validate file paths — fail fast before lint/tests if any path is missing or escapes repo root
-    1. Run test_command gate: use domain_test_commands[task.domain] if present, else test_command (hard-blocks on failure).
+    1. Preflight git index lock creation, then run test_command gate:
+       use domain_test_commands[task.domain] if present, else test_command (hard-blocks on failure).
        Info-skipped when every staged file is non-code — a docs/markdown file (*.md) or a scope.always_allowed metadata file
        (VERSION, CHANGELOG.md, MANIFEST, .claude/tusk-manifest.json) — since such commits cannot change test outcomes (issue #950).
     2. Stage files: git add for all files (handles additions, modifications, and deletions)
@@ -58,6 +59,7 @@ import json
 import math
 import os
 import re
+import shlex
 import sqlite3
 import subprocess
 import sys
@@ -143,6 +145,66 @@ def _escapes_root(real_abs: str, real_repo_root: str) -> bool:
 
 def run(args: list[str], check: bool = True, cwd: str | None = None) -> subprocess.CompletedProcess:
     return subprocess.run(args, capture_output=True, text=True, encoding="utf-8", check=check, cwd=cwd)
+
+
+def _git_index_lock_path(repo_root: str) -> str:
+    """Return the actual index.lock path for normal and linked worktrees.
+
+    Avoid a git subprocess here because many commit-path unit tests mock
+    `git rev-parse` broadly for HEAD checks. The `.git` directory/file format
+    is enough for the lock path we need to preflight.
+    """
+    git_entry = os.path.join(repo_root, ".git")
+    if os.path.isdir(git_entry):
+        return os.path.join(git_entry, "index.lock")
+    if os.path.isfile(git_entry):
+        try:
+            content = open(git_entry, encoding="utf-8").read().strip()
+        except OSError:
+            return ""
+        prefix = "gitdir:"
+        if content.lower().startswith(prefix):
+            git_dir = content[len(prefix):].strip()
+            if not os.path.isabs(git_dir):
+                git_dir = os.path.normpath(os.path.join(repo_root, git_dir))
+            return os.path.join(git_dir, "index.lock")
+    return ""
+
+
+def _preflight_git_index_writable(repo_root: str) -> tuple[bool, str]:
+    """Verify that git can create the index lock before expensive gates run."""
+    lock_path = _git_index_lock_path(repo_root)
+    if not lock_path:
+        return True, ""
+    try:
+        fd = os.open(lock_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o666)
+    except FileExistsError:
+        return (
+            False,
+            "Error: git index lock is already present — aborting before test_command.\n"
+            f"  Lock path: {lock_path}\n"
+            "  Hint: another git process may be running, or a stale index.lock "
+            "may need to be removed after verifying no git process is active.",
+        )
+    except OSError as exc:
+        return (
+            False,
+            "Error: git index is not writable — aborting before test_command.\n"
+            f"  Lock path: {lock_path}\n"
+            f"  {exc.strerror or exc}",
+        )
+    else:
+        os.close(fd)
+        try:
+            os.unlink(lock_path)
+        except OSError as exc:
+            return (
+                False,
+                "Error: git index lock preflight could not clean up — aborting before test_command.\n"
+                f"  Lock path: {lock_path}\n"
+                f"  {exc.strerror or exc}",
+            )
+    return True, ""
 
 
 def _get_staged_deletions(repo_root: str) -> set[str]:
@@ -321,6 +383,15 @@ def load_test_command(config_path: str, domain: str = "", paths=None,
 DEFAULT_TEST_COMMAND_TIMEOUT_SEC = 240
 AUTO_TIMEOUT_SAMPLE_COUNT = 20
 AUTO_TIMEOUT_MULTIPLIER = 2.0
+# Bimodal/high-variance guard (issue #1062): the auto-scaled ceiling is also
+# floored at the slowest recent successful run times this grace factor, so a
+# history dominated by warm runs cannot yield a p95*multiplier ceiling that
+# sits below a legitimate cold/under-load run already observed to succeed.
+AUTO_TIMEOUT_MAX_RECENT_GRACE = 1.5
+# When an auto-scaled timeout is hit on a run that was still producing output
+# (progressing, not a silent hang), the gate retries the command once with the
+# ceiling widened by this factor before aborting (issue #1062).
+AUTO_TIMEOUT_RETRY_MULTIPLIER = 2.0
 
 def _resolve_db_path(repo_root: str) -> str:
     """Best-effort DB path lookup mirroring bin/tusk's resolution.
@@ -342,14 +413,28 @@ def _compute_auto_timeout(
     test_command: str,
     sample_count: int = AUTO_TIMEOUT_SAMPLE_COUNT,
     multiplier: float = AUTO_TIMEOUT_MULTIPLIER,
+    floor: int | None = None,
+    max_recent_grace: float = AUTO_TIMEOUT_MAX_RECENT_GRACE,
 ) -> int | None:
-    """Return ceil(p95(last N successful elapsed times) * multiplier) or None.
+    """Return the auto-scaled timeout for ``test_command`` or None.
+
+    The ceiling is ``max(static_floor, ceil(p95 * multiplier), ceil(max_recent
+    * max_recent_grace))`` over the last N successful runs. The max-recent term
+    is the issue #1062 bimodal/high-variance guard: when a history dominated by
+    warm runs yields a low p95, ``p95 * multiplier`` can sit below a legitimate
+    cold/under-load run that already succeeded, so the ceiling is also floored
+    at the slowest recent success plus a grace margin.
 
     Cold start: returns None when fewer than ``sample_count`` successful runs
     of this exact ``test_command`` exist in the ``test_runs`` table — caller
     falls through to the static default. Scoping by the literal command
     string keeps a `pytest` history from contaminating a later
     `pytest -n auto` config.
+
+    ``floor`` clamps the scaled value from below and defaults to the commit
+    test gate's static default; the pre-merge lint gate passes its own 60s
+    floor (issue #1070) so a fast lint history never produces a timeout
+    tighter than the static default.
 
     The caller decides what to do with the result: this helper never raises;
     a missing DB, missing table (pre-migration install), schema mismatch, or
@@ -376,7 +461,10 @@ def _compute_auto_timeout(
     # p95 of N samples: index = ceil(0.95 * N) - 1, clamped to a valid index.
     idx = max(0, math.ceil(0.95 * len(samples)) - 1)
     p95 = samples[idx]
-    return max(DEFAULT_TEST_COMMAND_TIMEOUT_SEC, math.ceil(p95 * multiplier))
+    if floor is None:
+        floor = DEFAULT_TEST_COMMAND_TIMEOUT_SEC
+    max_recent_floor = math.ceil(samples[-1] * max_recent_grace)
+    return max(floor, math.ceil(p95 * multiplier), max_recent_floor)
 
 
 def _record_test_run(
@@ -408,6 +496,79 @@ def _record_test_run(
             conn.close()
     except sqlite3.Error:
         pass
+
+
+# Window within which a recorded test-precheck verdict is eligible for reuse by
+# the commit test gate. The HEAD sha already pins the exact committed state, so
+# a same-HEAD pre_existing verdict stays valid as long as HEAD has not moved;
+# the window only bounds how stale a verdict the gate will trust (issue #1083).
+PRECHECK_VERDICT_REUSE_WINDOW_SEC = 24 * 3600
+
+
+def _reuse_precheck_verdict(
+    db_path: str,
+    repo_root: str,
+    test_command: str,
+    exit_code: int,
+) -> str | None:
+    """Return a bypass note when a same-HEAD pre_existing verdict exists, else None.
+
+    Looks up the most recent ``precheck_verdicts`` row for the current HEAD sha
+    and this exact ``test_command``. The verdict is reused only when
+    ``pre_existing = 1`` and the row was written within
+    ``PRECHECK_VERDICT_REUSE_WINDOW_SEC``. On a match, returns the audit note
+    the caller stamps into the commit message body so the bypass is durable in
+    git history (issue #1083).
+
+    Best-effort and conservative: a missing DB, missing table (pre-migration
+    install), locked DB, unresolvable HEAD, no row, a pre_existing=0 verdict, or
+    a stale row all return None so the caller's exit-2 refusal stays intact.
+    Refusing to bypass is always the safe default.
+    """
+    if not test_command or not os.path.exists(db_path):
+        return None
+    head = run(["git", "rev-parse", "HEAD"], check=False, cwd=repo_root)
+    if head.returncode != 0 or not head.stdout.strip():
+        return None
+    head_sha = head.stdout.strip()
+    try:
+        conn = sqlite3.connect(db_path, timeout=2.0)
+        try:
+            row = conn.execute(
+                "SELECT pre_existing, "
+                "(julianday('now') - julianday(created_at)) * 86400 AS age_sec "
+                "FROM precheck_verdicts "
+                "WHERE head_sha = ? AND test_command = ? "
+                "ORDER BY id DESC LIMIT 1",
+                (head_sha, test_command),
+            ).fetchone()
+        finally:
+            conn.close()
+    except sqlite3.Error:
+        return None
+    if not row:
+        return None
+    pre_existing, age_sec = row
+    if not pre_existing:
+        return None
+    if age_sec is None or age_sec > PRECHECK_VERDICT_REUSE_WINDOW_SEC:
+        return None
+    return (
+        f"[test-precheck-bypass] test_command exited {exit_code} but a same-HEAD "
+        f"test-precheck verdict (HEAD {head_sha[:12]}) proved these failures "
+        f"pre-existing; commit test gate bypassed."
+    )
+
+
+_TEST_COMMAND_ROUTING_ENV_KEYS = ("TUSK_DB", "TUSK_PROJECT", "TUSK_REPO_ROOT")
+
+
+def _test_command_env(base_env: dict[str, str] | None = None) -> dict[str, str]:
+    """Return an env for test_command subprocesses without tusk routing pins."""
+    env = dict(os.environ if base_env is None else base_env)
+    for key in _TEST_COMMAND_ROUTING_ENV_KEYS:
+        env.pop(key, None)
+    return env
 
 
 def load_test_command_timeout(
@@ -635,15 +796,58 @@ def _validate_task_branch(
     return True, None
 
 
+# Test-runner summary signatures. When any of these appear in the captured
+# output, the suite demonstrably RAN — a nonzero exit is a genuine test
+# failure, not an unavailable command, no matter what substrings the test
+# output happens to contain (issue #1067: a failing vitest assertion about a
+# "not found" page was misrouted to the unavailable diagnostic, steering
+# agents toward --skip-verify with a real regression in play).
+_TEST_RUNNER_OUTPUT_RE = re.compile(
+    "|".join(
+        [
+            # pytest final summary / section banners
+            r"^=+ [^\n]*(?:passed|failed|error|no tests ran)[^\n]*=+\s*$",
+            r"^\s*Test Files\s+\d",          # vitest
+            r"^\s*Tests:?\s+\d",             # jest / vitest
+            r"\b\d+ passing\b",              # mocha
+            r"\b\d+ failing\b",              # mocha
+            r"^--- (?:FAIL|PASS|SKIP):",     # go test
+            r"^(?:FAIL|ok)\t",               # go test package line
+            r"^test result: (?:ok|FAILED)",  # cargo test
+            r"^(?:not )?ok \d+ ",            # TAP
+        ]
+    ),
+    re.MULTILINE,
+)
+
+# Line-anchored shell-execution-error signatures: the SHELL itself (or env)
+# reporting that a command could not be executed. Anchoring to a shell-name
+# prefix keeps arbitrary test/assertion output (which may legitimately
+# contain phrases like "not found") from matching.
+_SHELL_EXEC_ERROR_RE = re.compile(
+    r"^(?:/[\w./-]+/)?(?:sh|bash|zsh|dash|ksh)(?:\[\d+\])?:\s*"
+    r"(?:(?:line )?\d+:\s*)?[^\n]*(?:command not found|No such file or directory|not found)\s*$"
+    r"|^env:\s[^\n]*No such file or directory\s*$",
+    re.IGNORECASE | re.MULTILINE,
+)
+
+
 def _test_command_unavailable(result: subprocess.CompletedProcess) -> bool:
-    """Return True when the shell could not execute the configured command."""
-    stderr = (result.stderr or "").lower()
-    return (
-        result.returncode in (126, 127)
-        or "command not found" in stderr
-        or "no such file or directory" in stderr
-        or "not found" in stderr
-    )
+    """Return True when the shell could not execute the configured command.
+
+    Exit 126/127 is the shell's own cannot-exec signal and is authoritative.
+    For other nonzero exits, recognizable test-runner output proves the suite
+    ran (genuine test failure — return False), and only a line-anchored
+    shell-execution-error signature on stderr counts as unavailable. Bare
+    substring matches anywhere in captured test output do NOT qualify
+    (issue #1067).
+    """
+    if result.returncode in (126, 127):
+        return True
+    combined = f"{result.stdout or ''}\n{result.stderr or ''}"
+    if _TEST_RUNNER_OUTPUT_RE.search(combined):
+        return False
+    return bool(_SHELL_EXEC_ERROR_RE.search(result.stderr or ""))
 
 
 def _sparse_checkout_active(repo_root: str) -> bool:
@@ -682,6 +886,84 @@ def _test_command_outside_sparse_cone(
         if os.path.exists(os.path.join(repo_root, tok.rstrip("/"))):
             return False, ""
     return True, targets[0]
+
+
+def _sparse_checkout_recovery_cone(paths: list[str], repo_root: str) -> list[str]:
+    """Infer cone entries to add for paths rejected by sparse-checkout."""
+    cones: list[str] = []
+    seen: set[str] = set()
+    for path in paths:
+        rel = os.path.relpath(path, repo_root) if os.path.isabs(path) else path
+        rel = os.path.normpath(rel)
+        if rel.startswith(f".{os.sep}"):
+            rel = rel[2:]
+        if not rel or rel == "." or rel.startswith("../"):
+            continue
+        cone = rel.split(os.sep, 1)[0]
+        if cone not in seen:
+            cones.append(cone)
+            seen.add(cone)
+    return cones
+
+
+def _render_tusk_commit_retry(
+    task_id: int,
+    message: str,
+    files: list[str],
+    criteria_ids: list[str],
+    *,
+    skip_verify: bool,
+    skip_lint: bool,
+    allow_branch_mismatch: bool,
+    verbose: bool,
+) -> str:
+    """Render the equivalent tusk commit command using parsed arguments."""
+    args = ["tusk", "commit", str(task_id), message, *files]
+    if criteria_ids:
+        args.append("--criteria")
+        args.extend(criteria_ids)
+    if skip_verify:
+        args.append("--skip-verify")
+    if skip_lint:
+        args.append("--skip-lint")
+    if allow_branch_mismatch:
+        args.append("--allow-branch-mismatch")
+    if verbose:
+        args.append("--verbose")
+    return " ".join(shlex.quote(arg) for arg in args)
+
+
+def _render_sparse_checkout_recovery(
+    paths: list[str],
+    repo_root: str,
+    task_id: int,
+    message: str,
+    files: list[str],
+    criteria_ids: list[str],
+    *,
+    skip_verify: bool,
+    skip_lint: bool,
+    allow_branch_mismatch: bool,
+    verbose: bool,
+) -> str | None:
+    """Return an actionable recovery command for sparse-checkout git-add errors."""
+    cones = _sparse_checkout_recovery_cone(paths, repo_root)
+    if not cones:
+        return None
+    add_cmd = " ".join(
+        ["git", "sparse-checkout", "add", *[shlex.quote(cone) for cone in cones]]
+    )
+    retry_cmd = _render_tusk_commit_retry(
+        task_id,
+        message,
+        files,
+        criteria_ids,
+        skip_verify=skip_verify,
+        skip_lint=skip_lint,
+        allow_branch_mismatch=allow_branch_mismatch,
+        verbose=verbose,
+    )
+    return f"{add_cmd} && {retry_cmd}"
 
 
 # Canonical non-code metadata files — mirrors scope.always_allowed in
@@ -767,6 +1049,134 @@ def _all_staged_files_non_code(rel_paths, allowlist: set[str]) -> bool:
     return True
 
 
+def _dump_timeout_output(exc: subprocess.TimeoutExpired, verbose: bool) -> None:
+    """Dump partial stdout/stderr captured before a timed-out child was killed.
+
+    With ``capture_output=True`` the TimeoutExpired carries whatever was
+    collected before the kill; even with ``text=True`` the buffered payload can
+    come back as raw bytes when the timeout fires before decode, so handle both
+    shapes. No-op in verbose mode where output already streamed live.
+    """
+    if verbose:
+        return
+    if exc.stdout:
+        out = exc.stdout
+        if isinstance(out, bytes):
+            out = out.decode("utf-8", errors="replace")
+        sys.stdout.write(out)
+        sys.stdout.flush()
+    if exc.stderr:
+        err = exc.stderr
+        if isinstance(err, bytes):
+            err = err.decode("utf-8", errors="replace")
+        sys.stderr.write(err)
+        sys.stderr.flush()
+
+
+def _timeout_source_hint(timeout_source: str) -> str:
+    """Human-readable description of where the test_command timeout came from."""
+    return {
+        "env": "TUSK_TEST_COMMAND_TIMEOUT env var",
+        "config": 'config key "test_command_timeout_sec"',
+        "auto": 'auto-scaled from p95 of recent successful runs '
+                '(override with "test_command_timeout_sec" in tusk/config.json '
+                'or TUSK_TEST_COMMAND_TIMEOUT env var)',
+        "default": 'default (override with "test_command_timeout_sec" in tusk/config.json '
+                   'or TUSK_TEST_COMMAND_TIMEOUT env var)',
+    }[timeout_source]
+
+
+def _timeout_had_progress(exc: subprocess.TimeoutExpired) -> bool:
+    """True when the timed-out run produced any output.
+
+    A run that emitted test output before the kill was progressing (likely just
+    slow on a cold/under-load host), not hung waiting for input — the signal
+    that gates the issue #1062 auto-retry.
+    """
+    return bool(exc.stdout) or bool(exc.stderr)
+
+
+def _run_test_with_retry(
+    test_cmd: str,
+    repo_root: str,
+    timeout_sec: int,
+    timeout_source: str,
+    verbose: bool,
+) -> tuple[subprocess.CompletedProcess | None, float | None]:
+    """Run ``test_cmd`` once, auto-retrying a progressing auto-timeout once.
+
+    Returns ``(completed_process, elapsed_seconds)`` on completion (the
+    returncode may be nonzero — that's the caller's normal failure path), or
+    ``(None, None)`` when the command timed out terminally and the caller should
+    abort with exit 5 (the diagnostic has already been printed to stderr).
+
+    Issue #1062: an auto-scaled ceiling is only an estimate. When it is hit on a
+    run that was STILL PRODUCING OUTPUT (progressing, not a silent hang), the
+    estimate was likely too tight for a cold/under-load run, so the command is
+    retried once with the ceiling widened by AUTO_TIMEOUT_RETRY_MULTIPLIER. The
+    retry fires only for the ``auto`` source — explicit env/config/default
+    ceilings are intentional and respected as-is — and only on a progressing
+    timeout, so a genuine silent hang aborts after the first ceiling.
+    """
+    started = time.monotonic()
+    try:
+        test = subprocess.run(
+            test_cmd,
+            shell=True,
+            capture_output=not verbose,
+            text=True, encoding="utf-8",
+            cwd=repo_root,
+            env=_test_command_env(),
+            timeout=timeout_sec,
+        )
+        return test, time.monotonic() - started
+    except subprocess.TimeoutExpired as exc:
+        _dump_timeout_output(exc, verbose)
+        if timeout_source == "auto" and _timeout_had_progress(exc):
+            retry_timeout = math.ceil(timeout_sec * AUTO_TIMEOUT_RETRY_MULTIPLIER)
+            print(
+                f"\nNote: test_command hit the auto-scaled timeout "
+                f"({timeout_sec}s) while still producing output — retrying once "
+                f"with a widened ceiling ({retry_timeout}s) before aborting "
+                f"(issue #1062).",
+                file=sys.stderr,
+            )
+            sys.stderr.flush()
+            started = time.monotonic()
+            try:
+                test = subprocess.run(
+                    test_cmd,
+                    shell=True,
+                    capture_output=not verbose,
+                    text=True, encoding="utf-8",
+                    cwd=repo_root,
+                    env=_test_command_env(),
+                    timeout=retry_timeout,
+                )
+                return test, time.monotonic() - started
+            except subprocess.TimeoutExpired as exc2:
+                _dump_timeout_output(exc2, verbose)
+                _print_error(
+                    f"\nError: test_command timed out again after {retry_timeout}s "
+                    f"on the auto-retry — aborting commit\n"
+                    f"  Command: {test_cmd}\n"
+                    f"  Timeout source: {_timeout_source_hint(timeout_source)} "
+                    f"(retried once with a widened ceiling, issue #1062)\n"
+                    f"  Hint: if the command needs more time, raise the limit; "
+                    f"if it hangs waiting for input (e.g. interactive mode), "
+                    f"switch to a non-interactive form."
+                )
+                return None, None
+        _print_error(
+            f"\nError: test_command timed out after {timeout_sec}s — aborting commit\n"
+            f"  Command: {test_cmd}\n"
+            f"  Timeout source: {_timeout_source_hint(timeout_source)}\n"
+            f"  Hint: if the command needs more time, raise the limit; "
+            f"if it hangs waiting for input (e.g. interactive mode), switch to a non-interactive form."
+        )
+        return None, None
+
+
 def _print_test_command_failure(
     result: subprocess.CompletedProcess,
     test_cmd: str,
@@ -839,8 +1249,9 @@ def _validate_message_metacharacters(message: str) -> tuple[bool, str]:
         f"double quotes. The corrupted message would land on origin and cannot "
         f"be amended.\n"
         f"Fix: rewrite the message without the metacharacter (use plain "
-        f"identifiers, not backticked code spans), or wrap the entire message "
-        f"in single quotes if the literal character must appear."
+        f"identifiers, not backticked code spans). If you need to describe "
+        f"literal shell syntax, write it in words instead of including the "
+        f"shell metacharacter."
     )
     return False, diagnostic
 
@@ -996,7 +1407,8 @@ def _run_commit(argv: list[str], state: dict) -> int:
     #                                          recorded task workspace; bypass
     #                                          with --allow-branch-mismatch)
     #   Step 0  (path validation)   → exit 3  (escapes root or path not found)
-    #   Step 1  (test_command gate) → exit 2  (test_command failed)
+    #   Step 1a (index preflight)   → exit 3  (git index lock unavailable)
+    #   Step 1b (test_command gate) → exit 2  (test_command failed)
     #   Step 2  (git add)           → exit 3  (git add failed)
     #   Step 3  (git commit)        → exit 3  (git commit failed)
     #   Step 4  (criteria done)     → exit 4  (one or more criteria failed)
@@ -1158,7 +1570,13 @@ def _run_commit(argv: list[str], state: dict) -> int:
     if skip_lint and announce_status:
         print("Note: --skip-lint is ignored by tusk commit; lint runs at merge time.")
 
-    # ── Step 1: Run test_command gate (hard-blocks on failure) ───────
+    # ── Step 1a: Preflight git index writability before expensive gates ─
+    index_ok, index_diagnostic = _preflight_git_index_writable(repo_root)
+    if not index_ok:
+        _print_error(index_diagnostic)
+        return 3
+
+    # ── Step 1b: Run test_command gate (hard-blocks on failure) ──────
     # Only query the task's domain when domain_test_commands is configured —
     # avoids a DB round-trip for the common case where domain routing is unused.
     # resolved_files is passed through so path_test_commands (insertion-order
@@ -1222,6 +1640,10 @@ def _run_commit(argv: list[str], state: dict) -> int:
             )
             sys.stdout.flush()
             noncode_skip_test = True
+    # Set when the test gate fails but a same-HEAD test-precheck verdict proves
+    # the failures pre-existing — stamped into the commit message body so the
+    # bypass is durable in git history (issue #1083).
+    gate_bypass_note: str | None = None
     if test_cmd and not skip_verify and not sparse_skip_test and not noncode_skip_test:
         test_cmd, _ = _worktree_command.rewrite_linked_worktree_venv_command(
             test_cmd,
@@ -1238,53 +1660,13 @@ def _run_commit(argv: list[str], state: dict) -> int:
         if verbose:
             print(f"=== Running test_command: {test_cmd} (timeout {timeout_sec}s) ===")
             sys.stdout.flush()
-        started = time.monotonic()
-        try:
-            test = subprocess.run(
-                test_cmd,
-                shell=True,
-                capture_output=not verbose,
-                text=True, encoding="utf-8",
-                cwd=repo_root,
-                timeout=timeout_sec,
-            )
-        except subprocess.TimeoutExpired as exc:
-            # When capture_output=True, TimeoutExpired carries whatever was
-            # collected on stdout/stderr before the child was killed — dump it
-            # first so the user can see which test hung.  Even with text=True,
-            # the buffered payload can come back as raw bytes when the timeout
-            # fires before subprocess decodes it, so handle both shapes.
-            if not verbose:
-                if exc.stdout:
-                    out = exc.stdout
-                    if isinstance(out, bytes):
-                        out = out.decode("utf-8", errors="replace")
-                    sys.stdout.write(out)
-                    sys.stdout.flush()
-                if exc.stderr:
-                    err = exc.stderr
-                    if isinstance(err, bytes):
-                        err = err.decode("utf-8", errors="replace")
-                    sys.stderr.write(err)
-                    sys.stderr.flush()
-            source_hint = {
-                "env": "TUSK_TEST_COMMAND_TIMEOUT env var",
-                "config": 'config key "test_command_timeout_sec"',
-                "auto": 'auto-scaled from p95 of recent successful runs '
-                        '(override with "test_command_timeout_sec" in tusk/config.json '
-                        'or TUSK_TEST_COMMAND_TIMEOUT env var)',
-                "default": 'default (override with "test_command_timeout_sec" in tusk/config.json '
-                           'or TUSK_TEST_COMMAND_TIMEOUT env var)',
-            }[timeout_source]
-            _print_error(
-                f"\nError: test_command timed out after {timeout_sec}s — aborting commit\n"
-                f"  Command: {test_cmd}\n"
-                f"  Timeout source: {source_hint}\n"
-                f"  Hint: if the command needs more time, raise the limit; "
-                f"if it hangs waiting for input (e.g. interactive mode), switch to a non-interactive form."
-            )
+        test, elapsed = _run_test_with_retry(
+            test_cmd, repo_root, timeout_sec, timeout_source, verbose,
+        )
+        if test is None:
+            # Terminal timeout (after the optional auto-retry); the diagnostic
+            # was already printed by _run_test_with_retry.
             return 5
-        elapsed = time.monotonic() - started
         if test.returncode != 0:
             # Dump the captured output so the failure is diagnosable even in
             # quiet mode.  In verbose mode the output already streamed live, so
@@ -1296,11 +1678,23 @@ def _run_commit(argv: list[str], state: dict) -> int:
                 if test.stderr:
                     sys.stderr.write(test.stderr)
                     sys.stderr.flush()
-            _print_test_command_failure(test, test_cmd, elapsed, repo_root)
-            return 2
-        print(f"tests passed ({elapsed:.1f}s)")
-        sys.stdout.flush()
-        _record_test_run(db_path, task_id, test_cmd, elapsed, succeeded=True)
+            gate_bypass_note = _reuse_precheck_verdict(
+                db_path, repo_root, test_cmd, test.returncode,
+            )
+            if gate_bypass_note is None:
+                _print_test_command_failure(test, test_cmd, elapsed, repo_root)
+                return 2
+            print(
+                f"\nNote: test_command failed (exit {test.returncode}, "
+                f"{elapsed:.1f}s) but a same-HEAD test-precheck verdict proved "
+                "these failures pre-existing — proceeding with commit "
+                "(bypass recorded in the commit message).",
+            )
+            sys.stdout.flush()
+        else:
+            print(f"tests passed ({elapsed:.1f}s)")
+            sys.stdout.flush()
+            _record_test_run(db_path, task_id, test_cmd, elapsed, succeeded=True)
 
     # ── Step 2.5: Stage unstaged deletions of tracked files ─────────
     # GitHub Issue #474: when tracked files are removed via `rm`/`rm -rf`
@@ -1510,10 +1904,30 @@ def _run_commit(argv: list[str], state: dict) -> int:
                         "use `git add -f <file>` to force-add, then commit manually."
                     )
                 elif "sparse-checkout" in stderr_text:
-                    _print_error(
-                        "  Hint: one or more files are outside the git sparse-checkout cone — "
-                        "run `git sparse-checkout add <directory>` to include them."
+                    recovery = _render_sparse_checkout_recovery(
+                        to_add,
+                        repo_root,
+                        task_id,
+                        message,
+                        files,
+                        criteria_ids,
+                        skip_verify=skip_verify,
+                        skip_lint=skip_lint,
+                        allow_branch_mismatch=allow_branch_mismatch,
+                        verbose=verbose,
                     )
+                    if recovery:
+                        _print_error(
+                            "  Hint: one or more files are outside the git "
+                            "sparse-checkout cone."
+                        )
+                        _print_error(f"  Run: {recovery}")
+                    else:
+                        _print_error(
+                            "  Hint: one or more files are outside the git "
+                            "sparse-checkout cone — run `git sparse-checkout add "
+                            "<directory>` to include them."
+                        )
 
         if stderr_text is not None:
             return 3
@@ -1522,7 +1936,8 @@ def _run_commit(argv: list[str], state: dict) -> int:
     if announce_status:
         print("=== Creating commit ===")
         sys.stdout.flush()
-    full_message = f"[TASK-{task_id}] {message}\n\n{TRAILER}"
+    body_extra = f"\n\n{gate_bypass_note}" if gate_bypass_note else ""
+    full_message = f"[TASK-{task_id}] {message}{body_extra}\n\n{TRAILER}"
     # Capture HEAD before committing so we can verify whether the commit
     # landed even when a hook (e.g. husky + lint-staged) exits non-zero.
     pre = run(["git", "rev-parse", "HEAD"], check=False, cwd=repo_root)
@@ -1620,7 +2035,16 @@ def _run_commit(argv: list[str], state: dict) -> int:
             cmd.append("--skip-verify")
         if idx > 0 and len(criteria_ids) > 1:
             cmd.append("--batch")
-        result = subprocess.run(cmd, capture_output=False, check=False)
+        criteria_env = os.environ.copy()
+        if test_cmd and not skip_verify and state.get("sha"):
+            criteria_env["TUSK_COMMIT_GATE_COMMAND"] = test_cmd
+            criteria_env["TUSK_COMMIT_GATE_SHA"] = state["sha"]
+        result = subprocess.run(
+            cmd,
+            capture_output=False,
+            check=False,
+            env=criteria_env,
+        )
         if result.returncode != 0:
             print(
                 f"Warning: Failed to mark criterion {cid} done",

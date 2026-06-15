@@ -465,6 +465,7 @@ _PATH_TOKEN_RE = re.compile(
     rf"(?<![\w/.])([\w./\-]+\.(?:{_PATH_TOKEN_EXTENSIONS}))(?![\w/])",
     re.IGNORECASE,
 )
+_SYMBOL_TOKEN_RE = re.compile(r"\b([A-Za-z_][\w]*\.[A-Za-z_][\w]*)\b")
 
 
 def _extract_paths(text: str | None) -> list[str]:
@@ -486,6 +487,58 @@ def _extract_paths(text: str | None) -> list[str]:
     return found
 
 
+def _extract_symbol_tokens(text: str | None) -> list[str]:
+    """Extract dotted code-symbol references from review prose."""
+    if not text:
+        return []
+    found: list[str] = []
+    seen: set[str] = set()
+    for m in _SYMBOL_TOKEN_RE.finditer(text):
+        token = m.group(1).rstrip(".,;:!?)\"'")
+        if token and token not in seen:
+            seen.add(token)
+            found.append(token)
+    return found
+
+
+def _read_repo_file_lines(repo_root: str, path: str) -> list[str]:
+    try:
+        with open(os.path.join(repo_root, path), "r", encoding="utf-8") as f:
+            return f.read().splitlines()
+    except OSError:
+        return []
+
+
+def _line_symbol_mismatch(
+    repo_root: str,
+    path: str,
+    line_start: int | None,
+    comment: str | None,
+) -> tuple[str, str] | None:
+    """Return (symbol, cited_line_text) when a comment cites the wrong line.
+
+    The guard is intentionally conservative: dismiss only when the exact
+    dotted symbol is absent from the cited line but present elsewhere in
+    the same file. If the symbol cannot be found literally elsewhere, the
+    validator leaves the finding open for the operator.
+    """
+    if not line_start:
+        return None
+    symbols = _extract_symbol_tokens(comment)
+    if not symbols:
+        return None
+    lines = _read_repo_file_lines(repo_root, path)
+    if not lines or line_start < 1 or line_start > len(lines):
+        return None
+    cited_line = lines[line_start - 1]
+    for symbol in symbols:
+        if symbol in cited_line:
+            continue
+        if any(symbol in line for i, line in enumerate(lines) if i != line_start - 1):
+            return symbol, cited_line.strip()
+    return None
+
+
 def _path_in_diff(token: str, diff_files: set[str]) -> bool:
     """Decide whether *token* matches any entry in *diff_files*.
 
@@ -499,6 +552,23 @@ def _path_in_diff(token: str, diff_files: set[str]) -> bool:
     if "/" in token:
         return False
     return any(os.path.basename(f) == token for f in diff_files)
+
+
+def _existing_repo_paths(token: str, repo_root: str, repo_files: set[str]) -> list[str]:
+    """Return tracked/on-disk repo paths matching *token*.
+
+    Multi-segment tokens must match their exact repo-relative path. Bare
+    basenames may match any tracked file with that basename, mirroring
+    ``_path_in_diff`` while still avoiding a full filesystem walk.
+    """
+    if "/" in token:
+        if token in repo_files or os.path.exists(os.path.join(repo_root, token)):
+            return [token]
+        return []
+    matches = sorted(p for p in repo_files if os.path.basename(p) == token)
+    if os.path.exists(os.path.join(repo_root, token)) and token not in matches:
+        matches.insert(0, token)
+    return matches
 
 
 def cmd_validate_comments(args: argparse.Namespace, db_path: str) -> int:
@@ -516,11 +586,11 @@ def cmd_validate_comments(args: argparse.Namespace, db_path: str) -> int:
 
     General-scope comments (``file_path`` is null/empty) are body-scanned
     for file-path-shaped tokens (issue #912). When the body cites one or
-    more path tokens AND none of them appear in the diff, the comment is
-    dismissed under the same fabrication-guard rationale as file_path
-    comments. General comments that cite at least one in-diff path, or
-    cite no path tokens at all, are preserved — the orchestrator's
-    diff-line-quote rule still handles the latter case.
+    more path tokens AND none of them appear in the diff, tokens that do
+    not resolve to real repo files are dismissed under the fabrication
+    guard. Tokens that resolve to real repo files are preserved and
+    returned separately as out-of-diff real paths so the orchestrator can
+    spin them off as follow-up work instead of treating them as noise.
 
     JSON output:
         {
@@ -529,6 +599,8 @@ def cmd_validate_comments(args: argparse.Namespace, db_path: str) -> int:
             "validated": int,                # pending comments inspected
             "dismissed": [{"comment_id", "file_path"}, ...],
             "dismissed_general": [{"comment_id", "cited_paths"}, ...],
+            "dismissed_symbol_mismatch": [{"comment_id", "file_path", "line_start", "symbol"}, ...],
+            "out_of_diff_real": [{"comment_id", "cited_paths", "existing_paths"}, ...],
             "in_diff": int,                  # file_path values matched
             "general": int,                  # null-file_path comments preserved
             "diff_files": [str, ...],        # the diff's --name-only set
@@ -549,7 +621,7 @@ def cmd_validate_comments(args: argparse.Namespace, db_path: str) -> int:
         stored_range = review["diff_range"]
 
         pending = conn.execute(
-            "SELECT id, file_path, comment, category FROM review_comments"
+            "SELECT id, file_path, line_start, comment, category FROM review_comments"
             " WHERE review_id = ? AND resolution IS NULL",
             (args.review_id,),
         ).fetchall()
@@ -598,9 +670,22 @@ def cmd_validate_comments(args: argparse.Namespace, db_path: str) -> int:
         )
         return 1
     diff_files = {p.strip() for p in name_only.stdout.splitlines() if p.strip()}
+    ls_files = subprocess.run(
+        ["git", "ls-files", "-z"],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        cwd=diff_cwd,
+    )
+    if ls_files.returncode != 0:
+        print(f"git ls-files failed: {ls_files.stderr}", file=sys.stderr)
+        return 1
+    repo_files = {p for p in ls_files.stdout.split("\0") if p}
 
     dismissed = []
     dismissed_general = []
+    dismissed_symbol_mismatch = []
+    out_of_diff_real = []
     in_diff = 0
     general = 0
     for c in pending:
@@ -617,6 +702,20 @@ def cmd_validate_comments(args: argparse.Namespace, db_path: str) -> int:
                 continue
             if any(_path_in_diff(p, diff_files) for p in cited_paths):
                 general += 1
+                continue
+            existing_paths = []
+            for path in cited_paths:
+                existing_paths.extend(
+                    p for p in _existing_repo_paths(path, diff_cwd, repo_files)
+                    if p not in existing_paths
+                )
+            if existing_paths:
+                general += 1
+                out_of_diff_real.append({
+                    "comment_id": c["id"],
+                    "cited_paths": cited_paths,
+                    "existing_paths": existing_paths,
+                })
                 continue
             note = (
                 f"validation: general comment cites paths {cited_paths} "
@@ -640,6 +739,38 @@ def cmd_validate_comments(args: argparse.Namespace, db_path: str) -> int:
             })
             continue
         if fp in diff_files:
+            mismatch = _line_symbol_mismatch(
+                diff_cwd,
+                fp,
+                c["line_start"],
+                c["comment"],
+            )
+            if mismatch:
+                symbol, cited_line = mismatch
+                note = (
+                    f"validation: cited line {c['line_start']} in '{fp}' "
+                    f"does not contain referenced symbol '{symbol}' "
+                    f"(line text: {cited_line!r}); symbol appears elsewhere "
+                    f"in the same file (issue #1012 line-symbol-mismatch guard)"
+                )
+                conn = get_connection(db_path)
+                try:
+                    conn.execute(
+                        "UPDATE review_comments SET resolution = 'dismissed',"
+                        " resolution_note = ?, updated_at = datetime('now')"
+                        " WHERE id = ?",
+                        (note, c["id"]),
+                    )
+                    conn.commit()
+                finally:
+                    conn.close()
+                dismissed_symbol_mismatch.append({
+                    "comment_id": c["id"],
+                    "file_path": fp,
+                    "line_start": c["line_start"],
+                    "symbol": symbol,
+                })
+                continue
             in_diff += 1
             continue
         # Path is non-null and not in the diff — fabrication. Dismiss.
@@ -666,6 +797,8 @@ def cmd_validate_comments(args: argparse.Namespace, db_path: str) -> int:
         "validated": len(pending),
         "dismissed": dismissed,
         "dismissed_general": dismissed_general,
+        "dismissed_symbol_mismatch": dismissed_symbol_mismatch,
+        "out_of_diff_real": out_of_diff_real,
         "in_diff": in_diff,
         "general": general,
         "diff_files": sorted(diff_files),
@@ -1104,14 +1237,14 @@ def main():
     db_path = sys.argv[1]
     config_path = sys.argv[2]
 
-    parser = argparse.ArgumentParser(
+    parser = argparse.ArgumentParser(allow_abbrev=False,
         prog="tusk review",
         description="Manage code reviews for tasks",
     )
     subparsers = parser.add_subparsers(dest="command", help="Command to run")
 
     # start
-    start_p = subparsers.add_parser("start", help="Start a new code review for a task")
+    start_p = subparsers.add_parser("start", allow_abbrev=False, help="Start a new code review for a task")
     start_p.add_argument("task_id", type=int, help="Task ID")
     start_p.add_argument("--reviewer", default=None, help="Reviewer name (overrides config reviewers)")
     start_p.add_argument("--pass-num", type=int, default=1, help="Review pass number (default: 1)")
@@ -1120,7 +1253,7 @@ def main():
 
     # begin
     begin_p = subparsers.add_parser(
-        "begin",
+        "begin", allow_abbrev=False,
         help="Bundle review-diff-range and review start in one call (returns JSON)",
     )
     begin_p.add_argument("task_id", type=int, help="Task ID")
@@ -1129,7 +1262,7 @@ def main():
     begin_p.add_argument("--agent", default=None, help="Agent name that ran the review (e.g. from /chain)")
 
     # add-comment
-    add_comment_p = subparsers.add_parser("add-comment", help="Add a finding comment to a review")
+    add_comment_p = subparsers.add_parser("add-comment", allow_abbrev=False, help="Add a finding comment to a review")
     add_comment_p.add_argument("review_id", type=int, help="Review ID")
     add_comment_p.add_argument("comment", help="Comment text")
     add_comment_p.add_argument("--file", default=None, help="File path")
@@ -1139,11 +1272,11 @@ def main():
     add_comment_p.add_argument("--severity", default=None, help="Severity (e.g., critical, major, minor)")
 
     # list
-    list_p = subparsers.add_parser("list", help="List reviews and findings for a task")
+    list_p = subparsers.add_parser("list", allow_abbrev=False, help="List reviews and findings for a task")
     list_p.add_argument("task_id", type=int, help="Task ID")
 
     # resolve
-    resolve_p = subparsers.add_parser("resolve", help="Resolve a review comment")
+    resolve_p = subparsers.add_parser("resolve", allow_abbrev=False, help="Resolve a review comment")
     resolve_p.add_argument("comment_id", type=int, help="Comment ID")
     resolve_p.add_argument("resolution", choices=["fixed", "dismissed"], help="Resolution status")
     resolve_p.add_argument(
@@ -1153,7 +1286,7 @@ def main():
     )
 
     # approve
-    approve_p = subparsers.add_parser("approve", help="Approve a review")
+    approve_p = subparsers.add_parser("approve", allow_abbrev=False, help="Approve a review")
     approve_p.add_argument("review_id", type=int, help="Review ID")
     approve_p.add_argument(
         "--note",
@@ -1166,7 +1299,7 @@ def main():
     _add_cost_flags(approve_p)
 
     # request-changes
-    req_changes_p = subparsers.add_parser("request-changes", help="Request changes on a review")
+    req_changes_p = subparsers.add_parser("request-changes", allow_abbrev=False, help="Request changes on a review")
     req_changes_p.add_argument("review_id", type=int, help="Review ID")
     req_changes_p.add_argument(
         "--note",
@@ -1180,7 +1313,7 @@ def main():
 
     # backfill-cost
     backfill_cost_p = subparsers.add_parser(
-        "backfill-cost",
+        "backfill-cost", allow_abbrev=False,
         help="Recompute cost/tokens for an existing review row from its created_at window",
     )
     backfill_cost_p.add_argument("review_id", type=int, help="Review ID")
@@ -1212,26 +1345,26 @@ def main():
     )
 
     # status
-    status_p = subparsers.add_parser("status", help="Show current review status for a task (JSON)")
+    status_p = subparsers.add_parser("status", allow_abbrev=False, help="Show current review status for a task (JSON)")
     status_p.add_argument("task_id", type=int, help="Task ID")
 
     # summary
-    summary_p = subparsers.add_parser("summary", help="Print a human-readable summary of a review")
+    summary_p = subparsers.add_parser("summary", allow_abbrev=False, help="Print a human-readable summary of a review")
     summary_p.add_argument("review_id", type=int, help="Review ID")
 
     # validate-comments
     validate_p = subparsers.add_parser(
-        "validate-comments",
+        "validate-comments", allow_abbrev=False,
         help="Dismiss pending review comments whose file_path is not in the diff",
     )
     validate_p.add_argument("review_id", type=int, help="Review ID")
 
     # verdict
-    verdict_p = subparsers.add_parser("verdict", help="Return JSON verdict for a task (APPROVED or CHANGES_REMAINING)")
+    verdict_p = subparsers.add_parser("verdict", allow_abbrev=False, help="Return JSON verdict for a task (APPROVED or CHANGES_REMAINING)")
     verdict_p.add_argument("task_id", type=int, help="Task ID")
 
     # pass-status
-    pass_status_p = subparsers.add_parser("pass-status", help="Return JSON with current pass, max passes, can_retry, open_must_fix")
+    pass_status_p = subparsers.add_parser("pass-status", allow_abbrev=False, help="Return JSON with current pass, max passes, can_retry, open_must_fix")
     pass_status_p.add_argument("task_id", type=int, help="Task ID")
 
     args = parser.parse_args(sys.argv[3:])

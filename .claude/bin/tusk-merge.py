@@ -2,12 +2,12 @@
 """Finalize a task: close session, merge branch, push, clean up, and close task.
 
 Called by the tusk wrapper:
-    tusk merge <task_id> [--session <session_id>] [--pr] [--pr-number N] [--rebase]
+    tusk merge <task_id> [--session <session_id>] [--pr] [--pr-number N] [--rebase] [--skip-lint] [--skip-verify]
 
 Arguments received from tusk:
     sys.argv[1] — DB path
     sys.argv[2] — config path
-    sys.argv[3:] — task_id [--session <session_id>] [--pr] [--pr-number N] [--rebase]
+    sys.argv[3:] — task_id [--session <session_id>] [--pr] [--pr-number N] [--rebase] [--skip-lint] [--skip-verify]
 
 If --session is omitted, the open session for the task is auto-detected:
   - Exactly one open session → use it
@@ -62,6 +62,26 @@ iter_branch_auto_stashes = _git_helpers.iter_branch_auto_stashes
 _GENERATED_LOCKFILES = _git_helpers.GENERATED_LOCKFILES
 
 DEFAULT_LINT_TIMEOUT_SEC = 60
+
+# Sentinel command key for pre-merge lint gate timing samples in the shared
+# test_runs table (issue #1070). A literal key — not the actual lint argv,
+# which embeds the task id — so every merge contributes to one history.
+LINT_GATE_SAMPLE_KEY = "__tusk_pre_merge_lint_gate__"
+
+
+def _commit_timing_lib():
+    """Lazy-load tusk-commit.py for the shared auto-timeout helpers.
+
+    The lint gate reuses the commit test gate's p95 auto-scale machinery
+    (issue #1070): _compute_auto_timeout and _record_test_run against the
+    test_runs table. Lazy + best-effort: any load failure returns None and
+    the gate falls back to its static default — timing is advisory
+    infrastructure and must never block a merge.
+    """
+    try:
+        return tusk_loader.load("tusk-commit")
+    except Exception:
+        return None
 
 _WORKSPACE_NOT_PROVIDED = object()
 _REBASE_FF_RETRY_LIMIT = 3
@@ -940,8 +960,16 @@ def load_merge_mode(config_path: str) -> str:
         return "local"
 
 
-def load_lint_timeout(config_path: str) -> tuple[int, str]:
-    """Return (timeout_seconds, source) for the pre-merge lint gate."""
+def load_lint_timeout(config_path: str, db_path: str | None = None) -> tuple[int, str]:
+    """Return (timeout_seconds, source) for the pre-merge lint gate.
+
+    Resolution order (issue #1070): TUSK_LINT_TIMEOUT env var > config key
+    lint_timeout_sec > auto-scale from p95 of recent successful lint-gate
+    runs (recorded under LINT_GATE_SAMPLE_KEY in test_runs, floored at the
+    static default) > 60s static default. The auto layer keeps overnight
+    batch runs from aborting when machine load stretches a normally-fast
+    lint pass beyond the static default.
+    """
     env_val = os.environ.get("TUSK_LINT_TIMEOUT")
     if env_val:
         try:
@@ -960,7 +988,48 @@ def load_lint_timeout(config_path: str) -> tuple[int, str]:
                 return parsed, "config"
     except (FileNotFoundError, json.JSONDecodeError, TypeError, ValueError):
         pass
+    if db_path:
+        commit_lib = _commit_timing_lib()
+        if commit_lib is not None:
+            # Strict isinstance check: the helper is loaded dynamically, so
+            # an unexpected return (or a test double standing in for the
+            # loader) must fall through to the static default rather than
+            # feed a non-int into subprocess.run's timeout.
+            try:
+                auto = commit_lib._compute_auto_timeout(
+                    db_path,
+                    LINT_GATE_SAMPLE_KEY,
+                    floor=DEFAULT_LINT_TIMEOUT_SEC,
+                )
+            except Exception:
+                auto = None
+            if isinstance(auto, int) and not isinstance(auto, bool) and auto > 0:
+                return auto, "auto"
     return DEFAULT_LINT_TIMEOUT_SEC, "default"
+
+
+def _record_lint_gate_sample(
+    db_path: str | None,
+    task_id: int,
+    elapsed_seconds: float,
+    succeeded: bool,
+) -> None:
+    """Best-effort persistence of one lint-gate timing sample (issue #1070)."""
+    if not db_path:
+        return
+    commit_lib = _commit_timing_lib()
+    if commit_lib is None:
+        return
+    try:
+        commit_lib._record_test_run(
+            db_path,
+            task_id,
+            LINT_GATE_SAMPLE_KEY,
+            elapsed_seconds,
+            succeeded=succeeded,
+        )
+    except Exception:
+        pass
 
 
 def _make_lint_trace_env():
@@ -1000,15 +1069,25 @@ def _lint_timeout_hung_rule_line(trace_path):
 
 
 def _run_pre_merge_lint(
-    tusk_bin: str, config_path: str, task_id: int, cwd: str | None = None
+    tusk_bin: str,
+    config_path: str,
+    task_id: int,
+    cwd: str | None = None,
+    skip_lint: bool = False,
+    db_path: str | None = None,
 ) -> int:
     """Run the required clean-lint gate before merge/session mutation."""
-    lint_timeout_sec, lint_timeout_source = load_lint_timeout(config_path)
+    if skip_lint:
+        print("Skipping pre-merge lint (--skip-lint).", file=sys.stderr)
+        return 0
+
+    lint_timeout_sec, lint_timeout_source = load_lint_timeout(config_path, db_path)
     print(
         f"Running tusk lint before merge (timeout {lint_timeout_sec}s)...",
         file=sys.stderr,
     )
     trace_path, lint_env = _make_lint_trace_env()
+    lint_started = time.monotonic()
     try:
         lint = subprocess.run(
             [tusk_bin, "lint", "--quiet", "--task", str(task_id)],
@@ -1023,6 +1102,11 @@ def _run_pre_merge_lint(
         source_hint = {
             "env": 'env var "TUSK_LINT_TIMEOUT"',
             "config": 'config key "lint_timeout_sec"',
+            "auto": (
+                'auto-scaled from p95 of recent successful lint-gate runs '
+                '(override with "lint_timeout_sec" in tusk/config.json '
+                'or TUSK_LINT_TIMEOUT env var)'
+            ),
             "default": (
                 'default (override with "lint_timeout_sec" in tusk/config.json '
                 'or TUSK_LINT_TIMEOUT env var)'
@@ -1040,6 +1124,12 @@ def _run_pre_merge_lint(
     finally:
         _cleanup_lint_trace(trace_path)
 
+    _record_lint_gate_sample(
+        db_path,
+        task_id,
+        time.monotonic() - lint_started,
+        succeeded=lint.returncode == 0,
+    )
     if lint.stdout:
         print(lint.stdout.rstrip(), file=sys.stderr)
     if lint.stderr:
@@ -1737,6 +1827,54 @@ def _guard_no_open_completion_criteria(db_path: str, task_id: int) -> int:
     return 2
 
 
+def _task_done_refused_already_done(result: subprocess.CompletedProcess) -> bool:
+    """True when task-done refused because the task is already Done."""
+    return result.returncode == 2 and "is already done" in result.stderr.lower()
+
+
+def _task_already_finalized(db_path: str, task_id: int) -> bool:
+    """True when the task row is Done with closed_reason='completed'.
+
+    Gating on closed_reason keeps the safety net intact for genuine state
+    mismatches (wont_do, expired, duplicate): only completed re-runs unlock
+    idempotent recovery (issues #943, #1066).
+    """
+    try:
+        conn = get_connection(db_path)
+        try:
+            row = conn.execute(
+                "SELECT status, closed_reason FROM tasks WHERE id = ?",
+                (task_id,),
+            ).fetchone()
+        finally:
+            conn.close()
+    except sqlite3.Error:
+        return False
+    return bool(row and row["status"] == "Done" and row["closed_reason"] == "completed")
+
+
+def _format_pre_merged_push_warning(default_branch: str, stderr: str) -> str:
+    """Explain a push failure on the pre-merged auto-complete path.
+
+    A non-fast-forward rejection here usually means the local default-branch
+    ref is stale while origin already contains the merged work — benign, but
+    the generic wording reads like data loss (issue #1066).
+    """
+    body = stderr.strip()
+    lowered = stderr.lower()
+    if "non-fast-forward" in lowered or "fetch first" in lowered or "[rejected]" in lowered:
+        return (
+            f"Note: git push origin {default_branch} was rejected (non-fast-forward) — "
+            f"local {default_branch} is behind origin/{default_branch}, which already "
+            "contains the merged work. Benign for an already-merged branch; run "
+            f"git pull --ff-only to sync the local {default_branch} ref.\n{body}"
+        )
+    return (
+        f"Warning: git push origin {default_branch} failed — "
+        f"branch may already be pushed:\n{body}"
+    )
+
+
 def _close_completed_task(
     tusk_bin: str, task_id: int, db_path: str, session_was_closed: bool,
     merge_commit_sha: str | None = None,
@@ -1803,7 +1941,7 @@ def _close_completed_task(
                 )
             print(dumps(synthetic))
             return 0
-        if result.returncode == 2 and "is already done" in result.stderr.lower():
+        if _task_done_refused_already_done(result):
             # Idempotent retry path (issue #943): a prior tusk merge attempt got
             # as far as marking the task Done but failed during worktree cleanup
             # (e.g. untracked files blocked `git worktree remove`). Rerunning
@@ -1815,18 +1953,7 @@ def _close_completed_task(
             # the no-checkout fast-forward path. Closed_reason gating keeps the
             # safety net intact for genuine state mismatches (wont_do, expired,
             # duplicate): only completed retries unlock idempotent recovery.
-            try:
-                conn = get_connection(db_path)
-                try:
-                    row = conn.execute(
-                        "SELECT status, closed_reason FROM tasks WHERE id = ?",
-                        (task_id,),
-                    ).fetchone()
-                finally:
-                    conn.close()
-            except sqlite3.Error:
-                row = None
-            if row and row["status"] == "Done" and row["closed_reason"] == "completed":
+            if _task_already_finalized(db_path, task_id):
                 print(
                     f"Warning: Task {task_id} was already closed by a prior merge "
                     "attempt — continuing with cleanup.",
@@ -1868,6 +1995,139 @@ def _close_completed_task(
 
     print(dumps(task_done_result))
     return 0
+
+
+# Bounded retry budget for no-checkout pushes that lose the race to a
+# concurrent default-branch advance (issue #1072). Only applies in --rebase
+# mode, where the user has already authorized rebasing onto origin.
+_PUSH_RACE_MAX_RETRIES = 2
+
+
+def _is_push_race_rejection(stderr: str) -> bool:
+    """True when a push was rejected because origin advanced concurrently.
+
+    Covers the fetch-first rejection class: cannot-lock-ref ("is at X but
+    expected Y"), fetch-first, non-fast-forward, and stale-info wordings.
+    Auth failures, unreachable remotes, and hook rejections stay outside the
+    class so they surface immediately (issue #1072).
+    """
+    lowered = stderr.lower()
+    return (
+        "cannot lock ref" in lowered
+        or "fetch first" in lowered
+        or "non-fast-forward" in lowered
+        or "stale info" in lowered
+    )
+
+
+def _main_side_overlap(branch_name: str, default_branch: str) -> tuple[list[str], list[str]]:
+    """Files changed on origin/<default> since merge-base that the branch also touched.
+
+    Returns (overlapping_files, main_side_commit_lines); both empty when there
+    is no overlap or any git query fails (the warning is best-effort and must
+    never block the merge). The overlap predicts rebase collisions — possibly
+    semantic, not just textual — before they surprise the operator (issue #1081).
+    """
+    base = run(["git", "merge-base", branch_name, f"origin/{default_branch}"], check=False)
+    if base.returncode != 0 or not base.stdout.strip():
+        return [], []
+    base_sha = base.stdout.strip()
+    main_diff = run(
+        ["git", "diff", "--name-only", f"{base_sha}..origin/{default_branch}"],
+        check=False,
+    )
+    branch_diff = run(
+        ["git", "diff", "--name-only", f"{base_sha}..{branch_name}"], check=False
+    )
+    if main_diff.returncode != 0 or branch_diff.returncode != 0:
+        return [], []
+    main_files = {ln.strip() for ln in main_diff.stdout.splitlines() if ln.strip()}
+    branch_files = {ln.strip() for ln in branch_diff.stdout.splitlines() if ln.strip()}
+    overlap = sorted(main_files & branch_files)
+    if not overlap:
+        return [], []
+    log = run(
+        ["git", "log", "--format=%h %s", f"{base_sha}..origin/{default_branch}", "--", *overlap],
+        check=False,
+    )
+    commits = (
+        [ln.strip() for ln in log.stdout.splitlines() if ln.strip()]
+        if log.returncode == 0
+        else []
+    )
+    return overlap, commits
+
+
+def _format_main_side_overlap_warning(
+    default_branch: str, overlap: list[str], commits: list[str]
+) -> str:
+    if len(overlap) <= 10:
+        files = ", ".join(overlap)
+    else:
+        files = ", ".join(overlap[:10]) + f", ... and {len(overlap) - 10} more"
+    lines = [
+        f"Warning: origin/{default_branch} has commits touching {len(overlap)} "
+        "file(s) this branch also modified — the collision may be semantic, not "
+        "just textual; read the main-side work before resolving (issue #1081).",
+        f"  files: {files}",
+    ]
+    if commits:
+        lines.append("  main-side commits:")
+        lines.extend(f"    {c}" for c in commits)
+    return "\n".join(lines)
+
+
+def _maybe_warn_main_side_overlap(branch_name: str, default_branch: str) -> None:
+    overlap, commits = _main_side_overlap(branch_name, default_branch)
+    if overlap:
+        print(
+            _format_main_side_overlap_warning(default_branch, overlap, commits),
+            file=sys.stderr,
+        )
+
+
+def _rebase_branch_onto_target(
+    branch_name: str, rebase_target: str, task_id: int, did_stash: bool
+) -> int:
+    """Rebase the checked-out feature branch onto rebase_target.
+
+    Returns 0 on success (including the VERSION/CHANGELOG auto-recovery
+    path), 2 on a conflict that needs manual resolution — conflict guidance
+    is printed and the rebase is left in progress for the operator.
+    """
+    rebase_result = run(["git", "rebase", rebase_target], check=False)
+    if rebase_result.returncode == 0:
+        return 0
+    if _recover_version_changelog_rebase_conflict(os.getcwd(), rebase_target):
+        print(
+            "Resolved VERSION/CHANGELOG.md rebase conflict by assigning "
+            "the next available version.",
+            file=sys.stderr,
+        )
+        return 0
+    if rebase_result.stderr.strip():
+        print(rebase_result.stderr.strip(), file=sys.stderr)
+    stash_note = ""
+    if did_stash:
+        stash_note = (
+            f"\nNote: your pre-merge working-tree changes are saved in stash "
+            f"entry 'tusk-merge: auto-stash for TASK-{task_id}'. "
+            "Restore them with `git stash list` + `git stash pop <ref>` "
+            "after the rebase completes."
+        )
+    print(
+        f"Error: git rebase {rebase_target} failed — conflicts must be resolved manually.\n"
+        f"You are on '{branch_name}' with the rebase in progress. To finish:\n"
+        "  1. Fix the conflicting files (git status lists them)\n"
+        "  2. git add <resolved files>\n"
+        "  3. git rebase --continue\n"
+        "  4. Repeat steps 1–3 until the rebase completes\n"
+        f"  5. Re-run: tusk merge {task_id}\n"
+        "To abort the rebase and return to the pre-rebase state:\n"
+        f"  git rebase --abort{stash_note}",
+        file=sys.stderr,
+    )
+    return 2
 
 
 def _complete_no_checkout_fast_forward(
@@ -1919,38 +2179,12 @@ def _complete_no_checkout_fast_forward(
                 if did_stash:
                     _try_pop_stash(task_id)
                 return 2
-            rebase_result = run(["git", "rebase", rebase_target], check=False)
-            if rebase_result.returncode != 0:
-                if _recover_version_changelog_rebase_conflict(os.getcwd(), rebase_target):
-                    print(
-                        "Resolved VERSION/CHANGELOG.md rebase conflict by assigning "
-                        "the next available version.",
-                        file=sys.stderr,
-                    )
-                else:
-                    if rebase_result.stderr.strip():
-                        print(rebase_result.stderr.strip(), file=sys.stderr)
-                    stash_note = ""
-                    if did_stash:
-                        stash_note = (
-                            f"\nNote: your pre-merge working-tree changes are saved in stash "
-                            f"entry 'tusk-merge: auto-stash for TASK-{task_id}'. "
-                            "Restore them with `git stash list` + `git stash pop <ref>` "
-                            "after the rebase completes."
-                        )
-                    print(
-                        f"Error: git rebase {rebase_target} failed — conflicts must be resolved manually.\n"
-                        f"You are on '{branch_name}' with the rebase in progress. To finish:\n"
-                        "  1. Fix the conflicting files (git status lists them)\n"
-                        "  2. git add <resolved files>\n"
-                        "  3. git rebase --continue\n"
-                        "  4. Repeat steps 1–3 until the rebase completes\n"
-                        f"  5. Re-run: tusk merge {task_id}\n"
-                        "To abort the rebase and return to the pre-rebase state:\n"
-                        f"  git rebase --abort{stash_note}",
-                        file=sys.stderr,
-                    )
-                    return 2
+            _maybe_warn_main_side_overlap(branch_name, default_branch)
+            rebase_rc = _rebase_branch_onto_target(
+                branch_name, rebase_target, task_id, did_stash
+            )
+            if rebase_rc != 0:
+                return rebase_rc
 
     else:
         fetch_result = run(["git", "fetch", "origin"], check=False)
@@ -1966,6 +2200,7 @@ def _complete_no_checkout_fast_forward(
                 check=False,
             )
             if base_check.returncode != 0:
+                _maybe_warn_main_side_overlap(branch_name, default_branch)
                 print(
                     f"Error: origin/{default_branch} has commits not reachable from "
                     f"{branch_name}; refusing the no-checkout fast-forward push "
@@ -2044,8 +2279,61 @@ def _complete_no_checkout_fast_forward(
             f"merge {task_id} --session {session_id} to finish finalization.",
             file=sys.stderr,
         )
-        result = run(["git", "push", "origin", f"{branch_name}:{default_branch}"], check=False)
-        if result.returncode != 0:
+        # Bounded push-race retry (issue #1072): under parallel-worktree
+        # workflows origin/<default> can advance between the rebase above and
+        # this push. The recovery (fetch + rebase + push again) is mechanical,
+        # so in --rebase mode re-run it up to _PUSH_RACE_MAX_RETRIES times
+        # before surfacing the error. Rebase conflicts surface immediately.
+        push_attempts = 1 + (_PUSH_RACE_MAX_RETRIES if use_rebase else 0)
+        for attempt in range(1, push_attempts + 1):
+            result = run(
+                ["git", "push", "origin", f"{branch_name}:{default_branch}"],
+                check=False,
+            )
+            if result.returncode == 0:
+                break
+            if (
+                use_rebase
+                and attempt < push_attempts
+                and _is_push_race_rejection(result.stderr)
+            ):
+                print(
+                    f"Note: push to origin/{default_branch} lost a race to a "
+                    f"concurrent advance (attempt {attempt}/{push_attempts}); "
+                    "refetching, rebasing, and retrying...",
+                    file=sys.stderr,
+                )
+                fetch_retry = run(["git", "fetch", "origin"], check=False)
+                if fetch_retry.returncode != 0:
+                    print(
+                        f"Error: git fetch origin failed during push retry:\n"
+                        f"{fetch_retry.stderr.strip()}",
+                        file=sys.stderr,
+                    )
+                    if did_stash:
+                        _try_pop_stash(task_id)
+                    return 2
+                co_retry = run(["git", "checkout", branch_name], check=False)
+                if co_retry.returncode != 0:
+                    print(
+                        f"Error: git checkout {branch_name} failed during push retry:\n"
+                        f"{co_retry.stderr.strip()}",
+                        file=sys.stderr,
+                    )
+                    if did_stash:
+                        _try_pop_stash(task_id)
+                    return 2
+                rebase_rc = _rebase_branch_onto_target(
+                    branch_name, f"origin/{default_branch}", task_id, did_stash
+                )
+                if rebase_rc != 0:
+                    return rebase_rc
+                # The rebase moved the branch tip; the pre-push merge-base
+                # stamp must track the new base (migration 72, TASK-452).
+                pre_push_merge_base_sha = _resolve_merge_base(
+                    branch_name, default_branch
+                )
+                continue
             print(
                 f"Error: no-checkout fast-forward push failed:\n{result.stderr.strip()}\n"
                 "The remote default branch was not updated. This usually means the "
@@ -2690,9 +2978,35 @@ def _remove_recorded_task_worktree(
         _clean_tusk_auto_symlinks(workspace_path, db_path)
         result = run(["git", "worktree", "remove", workspace_path], check=False)
         if result.returncode != 0:
+            # The name-based pre-clean above only knows the configured /
+            # canonical symlink set. Symlinks into the primary checkout can
+            # also appear at unconfigured locations (e.g. the linked-worktree
+            # test gate's on-demand `ln -s` of node_modules inside a monorepo
+            # subdir, issue #1067) and block removal the same way (issue
+            # #1077). A symlink whose target resolves inside the primary is
+            # recoverable by definition — the target survives — so unlink
+            # those and retry once before giving up.
+            swept = _sweep_primary_targeted_symlinks(workspace_path, repo_root)
+            if swept:
+                print(
+                    f"Note: removed {swept} leftover symlink(s) targeting the "
+                    "primary checkout; retrying git worktree remove.",
+                    file=sys.stderr,
+                )
+                result = run(
+                    ["git", "worktree", "remove", workspace_path], check=False
+                )
+        if result.returncode != 0:
             detail = result.stderr.strip() or result.stdout.strip()
+            leftovers = _list_worktree_entries(workspace_path)
+            leftover_note = (
+                "Remaining entries: " + ", ".join(leftovers) + "\n"
+                if leftovers
+                else ""
+            )
             print(
                 f"Error: git worktree remove {workspace_path} failed:\n{detail}\n"
+                f"{leftover_note}"
                 "Clean or stash that task worktree, then re-run this command. "
                 "If you intentionally want to discard its local files, run:\n"
                 f"  git worktree remove --force {workspace_path}\n"
@@ -2798,6 +3112,76 @@ def _clean_tusk_auto_symlinks(workspace_path: str, db_path: str) -> int:
     return removed
 
 
+def _sweep_primary_targeted_symlinks(workspace_path: str, repo_root: str) -> int:
+    """Unlink every symlink under ``workspace_path`` whose resolved target
+    lies inside the primary checkout (``repo_root``).
+
+    Failure-path companion to ``_clean_tusk_auto_symlinks``: the name-based
+    pre-clean only knows the configured / canonical symlink set, but symlinks
+    into the primary can be created at unconfigured locations too (the
+    linked-worktree test gate's on-demand node_modules link, issue #1067; an
+    agent's ad-hoc ``ln -s`` during a task). Any symlink that resolves into
+    the primary is recoverable by definition — the target survives worktree
+    removal — so unlinking it can never lose data. Symlinks targeting
+    anywhere else are left untouched.
+
+    Returns the count of symlinks removed. Best-effort like the pre-clean:
+    individual failures are swallowed so cleanup is never blocked by one
+    entry.
+    """
+    if not os.path.isdir(workspace_path):
+        return 0
+    real_root = os.path.realpath(repo_root)
+    removed = 0
+    for root, dirs, files in os.walk(workspace_path, followlinks=False):
+        if ".git" in dirs:
+            dirs.remove(".git")
+        unlinked_dirs = []
+        for n in dirs + files:
+            p = os.path.join(root, n)
+            if not os.path.islink(p):
+                continue
+            try:
+                target = os.path.realpath(p)
+                inside = os.path.commonpath([target, real_root]) == real_root
+            except (OSError, ValueError):
+                continue
+            if not inside:
+                continue
+            try:
+                os.unlink(p)
+                removed += 1
+                if n in dirs:
+                    unlinked_dirs.append(n)
+            except OSError:
+                pass
+        # Don't descend into symlinked dirs we just removed.
+        for n in unlinked_dirs:
+            dirs.remove(n)
+    return removed
+
+
+def _list_worktree_entries(workspace_path: str, limit: int = 10) -> list[str]:
+    """Up to ``limit`` workspace-relative paths still present under
+    ``workspace_path`` (excluding ``.git``), for the post-failure diagnostic.
+    Directories are listed without descending so the listing names the
+    shallowest blocking entries rather than their full contents.
+    """
+    entries: list[str] = []
+    if not os.path.isdir(workspace_path):
+        return entries
+    try:
+        for name in sorted(os.listdir(workspace_path)):
+            if name == ".git":
+                continue
+            entries.append(name)
+            if len(entries) >= limit:
+                break
+    except OSError:
+        return entries
+    return entries
+
+
 def _load_worktree_symlink_files(config_path: str) -> list[str]:
     """Load ``worktree.symlink_files`` from the project config, returning []
     on any error. Mirrors ``_load_symlink_files`` in bin/tusk-task-worktree.py.
@@ -2818,6 +3202,120 @@ def _load_worktree_symlink_files(config_path: str) -> list[str]:
     if not isinstance(names, list):
         return []
     return [str(n) for n in names if isinstance(n, str) and n]
+
+
+def _auto_complete_pre_merged(
+    tusk_bin: str,
+    config_path: str,
+    db_path: str,
+    task_id: int,
+    session_id,
+    skip_lint: bool,
+) -> int:
+    """Finalize a task whose feature branch was already merged and deleted.
+
+    Fast-path taken when the caller is on the default branch and no
+    feature/TASK-N-* branch exists. Re-runs the finalization steps the prior
+    merge attempt may have left unfinished (session close, push, task-done).
+    A fully-finalized re-run reports success and exits 0 instead of tripping
+    over each already-complete step (issue #1066).
+    """
+    default_branch = detect_default_branch()
+    print(
+        f"Note: TASK-{task_id} — no feature branch found; already on '{default_branch}'.\n"
+        "Branch was previously merged. Auto-completing finalization...",
+        file=sys.stderr,
+    )
+
+    def _already_finalized_result(session_was_closed: bool) -> int:
+        print(
+            f"TASK-{task_id} already finalized — nothing to do.",
+            file=sys.stderr,
+        )
+        print(dumps({
+            "task": {"id": task_id, "status": "Done", "closed_reason": "completed"},
+            "sessions_closed": 1 if session_was_closed else 0,
+            "unblocked_tasks": [],
+            "already_finalized": True,
+        }))
+        return 0
+
+    if _task_already_finalized(db_path, task_id):
+        # The prior run pushed, closed the session, and marked the task Done.
+        # Skip the criteria guard, lint gate, and push entirely — re-running
+        # them produces benign-but-alarming noise (stale-main push rejection,
+        # already-closed session warning, already-Done exit 2). Still close
+        # the session in case it was left open out-of-band.
+        result = _run_tusk_subcommand(tusk_bin, ["session-close", str(session_id)])
+        session_was_closed = result.returncode == 0
+        if result.returncode != 0 and not (
+            "already closed" in result.stderr or "No session found" in result.stderr
+        ):
+            print(
+                f"Warning: session-close failed:\n{result.stderr.strip()}",
+                file=sys.stderr,
+            )
+        return _already_finalized_result(session_was_closed)
+
+    criteria_rc = _guard_no_open_completion_criteria(db_path, task_id)
+    if criteria_rc != 0:
+        return criteria_rc
+    lint_rc = _run_pre_merge_lint(
+        tusk_bin, config_path, task_id, skip_lint=skip_lint, db_path=db_path
+    )
+    if lint_rc != 0:
+        return lint_rc
+    checkpoint_wal(db_path)
+    print(f"Closing session {session_id}...", file=sys.stderr)
+    result = _run_tusk_subcommand(tusk_bin, ["session-close", str(session_id)])
+    session_was_closed = result.returncode == 0
+    if result.returncode != 0:
+        if "already closed" in result.stderr or "No session found" in result.stderr:
+            print(f"Warning: {result.stderr.strip()}", file=sys.stderr)
+        else:
+            print(f"Error: session-close failed:\n{result.stderr.strip()}", file=sys.stderr)
+            return 2
+    # Push the default branch — may already be up to date if merged via PR
+    if _has_remote():
+        push = run(["git", "push", "origin", default_branch], check=False)
+        if push.returncode != 0:
+            print(
+                _format_pre_merged_push_warning(default_branch, push.stderr),
+                file=sys.stderr,
+            )
+    else:
+        print(
+            "Warning: no git remote 'origin' configured — skipping push.",
+            file=sys.stderr,
+        )
+    print(f"Closing task {task_id}...", file=sys.stderr)
+    # Auto-complete path implicitly grants --force: the feature branch was
+    # previously merged so the criteria-without-commit-hash check, run
+    # without --force, would print a misleading "Error:" before the call
+    # site retried with --force. Pass --force up front so task-done emits
+    # "Warning:" instead — diagnostic preserved, no contradiction.
+    result = _run_tusk_subcommand(
+        tusk_bin, ["task-done", str(task_id), "--reason", "completed", "--force"]
+    )
+    if result.returncode != 0:
+        if _task_done_refused_already_done(result) and _task_already_finalized(db_path, task_id):
+            # Race twin of the early short-circuit: the task flipped to Done
+            # between the check above and task-done (issue #1066) — success.
+            return _already_finalized_result(session_was_closed)
+        print(f"Error: task-done failed:\n{result.stderr.strip()}", file=sys.stderr)
+        return 2
+    if result.stderr.strip():
+        print(result.stderr.strip(), file=sys.stderr)
+    try:
+        task_done_result = json.loads(result.stdout)
+    except json.JSONDecodeError:
+        if result.stdout.strip():
+            print(result.stdout.strip())
+        return 0
+    if session_was_closed:
+        task_done_result["sessions_closed"] = 1
+    print(dumps(task_done_result))
+    return 0
 
 
 def find_task_branch(task_id: int) -> tuple[str | None, str | None, bool]:
@@ -3022,7 +3520,7 @@ def _autodetect_session(
 def main(argv: list[str]) -> int:
     if len(argv) < 3:
         print(
-            "Usage: tusk merge <task_id> [--session <session_id>] [--pr] [--pr-number N] [--rebase]",
+            "Usage: tusk merge <task_id> [--session <session_id>] [--pr] [--pr-number N] [--rebase] [--skip-lint] [--skip-verify]",
             file=sys.stderr,
         )
         return 1
@@ -3051,6 +3549,7 @@ def main(argv: list[str]) -> int:
     use_pr = False
     pr_number = None
     use_rebase = False
+    skip_lint = False
 
     i = 0
     while i < len(remaining):
@@ -3079,6 +3578,12 @@ def main(argv: list[str]) -> int:
             i += 2
         elif remaining[i] == "--rebase":
             use_rebase = True
+            i += 1
+        elif remaining[i] == "--skip-lint":
+            skip_lint = True
+            i += 1
+        elif remaining[i] == "--skip-verify":
+            skip_lint = True
             i += 1
         else:
             print(f"Error: Unknown argument: {remaining[i]}", file=sys.stderr)
@@ -3258,66 +3763,9 @@ def main(argv: list[str]) -> int:
     if pre_merged:
         # Fast-path: feature branch was already merged and deleted; user is on
         # the default branch. Skip the normal merge and auto-complete finalization.
-        default_branch = detect_default_branch()
-        print(
-            f"Note: TASK-{task_id} — no feature branch found; already on '{default_branch}'.\n"
-            "Branch was previously merged. Auto-completing finalization...",
-            file=sys.stderr,
+        return _auto_complete_pre_merged(
+            tusk_bin, config_path, _db_path, task_id, session_id, skip_lint
         )
-        criteria_rc = _guard_no_open_completion_criteria(_db_path, task_id)
-        if criteria_rc != 0:
-            return criteria_rc
-        lint_rc = _run_pre_merge_lint(tusk_bin, config_path, task_id)
-        if lint_rc != 0:
-            return lint_rc
-        checkpoint_wal(_db_path)
-        print(f"Closing session {session_id}...", file=sys.stderr)
-        result = _run_tusk_subcommand(tusk_bin, ["session-close", str(session_id)])
-        session_was_closed = result.returncode == 0
-        if result.returncode != 0:
-            if "already closed" in result.stderr or "No session found" in result.stderr:
-                print(f"Warning: {result.stderr.strip()}", file=sys.stderr)
-            else:
-                print(f"Error: session-close failed:\n{result.stderr.strip()}", file=sys.stderr)
-                return 2
-        # Push the default branch — may already be up to date if merged via PR
-        if _has_remote():
-            push = run(["git", "push", "origin", default_branch], check=False)
-            if push.returncode != 0:
-                print(
-                    f"Warning: git push origin {default_branch} failed — "
-                    f"branch may already be pushed:\n{push.stderr.strip()}",
-                    file=sys.stderr,
-                )
-        else:
-            print(
-                "Warning: no git remote 'origin' configured — skipping push.",
-                file=sys.stderr,
-            )
-        print(f"Closing task {task_id}...", file=sys.stderr)
-        # Auto-complete path implicitly grants --force: the feature branch was
-        # previously merged so the criteria-without-commit-hash check, run
-        # without --force, would print a misleading "Error:" before the call
-        # site retried with --force. Pass --force up front so task-done emits
-        # "Warning:" instead — diagnostic preserved, no contradiction.
-        result = _run_tusk_subcommand(
-            tusk_bin, ["task-done", str(task_id), "--reason", "completed", "--force"]
-        )
-        if result.returncode != 0:
-            print(f"Error: task-done failed:\n{result.stderr.strip()}", file=sys.stderr)
-            return 2
-        if result.stderr.strip():
-            print(result.stderr.strip(), file=sys.stderr)
-        try:
-            task_done_result = json.loads(result.stdout)
-        except json.JSONDecodeError:
-            if result.stdout.strip():
-                print(result.stdout.strip())
-            return 0
-        if session_was_closed:
-            task_done_result["sessions_closed"] = 1
-        print(dumps(task_done_result))
-        return 0
 
     if err:
         print(f"Error: {err}", file=sys.stderr)
@@ -3327,7 +3775,10 @@ def main(argv: list[str]) -> int:
     criteria_rc = _guard_no_open_completion_criteria(_db_path, task_id)
     if criteria_rc != 0:
         return criteria_rc
-    lint_rc = _run_pre_merge_lint(tusk_bin, config_path, task_id, cwd=lint_cwd)
+    lint_rc = _run_pre_merge_lint(
+        tusk_bin, config_path, task_id, cwd=lint_cwd, skip_lint=skip_lint,
+        db_path=_db_path,
+    )
     if lint_rc != 0:
         return lint_rc
 
@@ -3988,6 +4439,9 @@ def main(argv: list[str]) -> int:
 if __name__ == "__main__":
     if len(sys.argv) < 2 or not sys.argv[1].endswith(".db"):
         print("Error: This script must be invoked via the tusk wrapper.", file=sys.stderr)
-        print("Use: tusk merge <task_id> [--session <session_id>] [--pr --pr-number <N>] [--rebase]", file=sys.stderr)
+        print(
+            "Use: tusk merge <task_id> [--session <session_id>] [--pr --pr-number <N>] [--rebase] [--skip-lint] [--skip-verify]",
+            file=sys.stderr,
+        )
         sys.exit(1)
     sys.exit(main(sys.argv[1:]))

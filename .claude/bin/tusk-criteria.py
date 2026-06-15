@@ -22,12 +22,15 @@ import time
 from typing import Optional
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import tusk_loader  # loads tusk-pricing-lib.py, tusk-db-lib.py, tusk-json-lib.py, tusk-worktree-command.py
+import tusk_loader  # loads tusk-pricing-lib.py, tusk-db-lib.py, tusk-json-lib.py, tusk-git-helpers.py, tusk-worktree-command.py
 
 lib = tusk_loader.load("tusk-pricing-lib")
 _db_lib = tusk_loader.load("tusk-db-lib")
 get_connection = _db_lib.get_connection
 load_config = _db_lib.load_config
+
+_git_helpers = tusk_loader.load("tusk-git-helpers")
+warn_file_spec_glob_metachars = _git_helpers.warn_file_spec_glob_metachars
 
 _json_lib = tusk_loader.load("tusk-json-lib")
 dumps = _json_lib.dumps
@@ -302,17 +305,34 @@ def run_verification(criterion_type: str, spec: str) -> dict:
         # patterns are passed through untouched. Falls back to caller cwd
         # when not in a git repo (preserves prior behavior for non-repo
         # test fixtures).
+        #
+        # A leading "!" inverts the check (issue #1041): the criterion
+        # passes when the glob matches zero files, so absence assertions
+        # ("file X is no longer in the bundle") don't need a code-type
+        # shell spec with its inverted-polarity hazards.
+        pattern = spec
+        negated = pattern.startswith("!")
+        if negated:
+            pattern = pattern[1:].strip()
+            if not pattern:
+                return {"passed": False, "output": "Empty file pattern after '!'"}
         base = repo_root or os.getcwd()
-        if os.path.isabs(spec):
-            matches = globmod.glob(spec, recursive=True)
+        if os.path.isabs(pattern):
+            matches = globmod.glob(pattern, recursive=True)
             display = matches
         else:
-            matches = globmod.glob(os.path.join(base, spec), recursive=True)
+            matches = globmod.glob(os.path.join(base, pattern), recursive=True)
             display = [os.path.relpath(m, base) for m in matches]
+        file_list = ""
         if matches:
             file_list = ", ".join(display[:10])
             if len(display) > 10:
                 file_list += f" ... ({len(display)} total)"
+        if negated:
+            if matches:
+                return {"passed": False, "output": f"Expected no files matching {pattern}, found: {file_list}"}
+            return {"passed": True, "output": f"Absent as expected: {pattern}"}
+        if matches:
             return {"passed": True, "output": f"Found: {file_list}"}
         return {"passed": False, "output": f"No files matching: {spec}"}
 
@@ -320,6 +340,13 @@ def run_verification(criterion_type: str, spec: str) -> dict:
 
 
 SPEC_REQUIRED_TYPES = {"code", "test", "file"}
+
+
+def _normalize_spec(spec: str | None) -> str | None:
+    """Collapse empty/whitespace-only specs to None so '' never reaches the DB (issue #1045)."""
+    if spec is None or not spec.strip():
+        return None
+    return spec
 
 
 # ── Subcommands ──────────────────────────────────────────────────────
@@ -359,6 +386,7 @@ def _find_superseded_criteria(
     return superseded
 
 def cmd_add(args: argparse.Namespace, db_path: str, config: dict) -> int:
+    spec = _normalize_spec(args.spec)
     conn = get_connection(db_path)
     try:
         # Verify task exists
@@ -375,22 +403,25 @@ def cmd_add(args: argparse.Namespace, db_path: str, config: dict) -> int:
             return 2
 
         # Validate spec: required for non-manual types
-        if args.type in SPEC_REQUIRED_TYPES and not args.spec:
+        if args.type in SPEC_REQUIRED_TYPES and not spec:
             print(f"Error: --spec is required for criterion type '{args.type}'", file=sys.stderr)
             return 2
+
+        if args.type == "file":
+            warn_file_spec_glob_metachars(spec, "criteria add")
 
         superseded_ids = _find_superseded_criteria(
             conn,
             task_id=args.task_id,
             text=args.text,
             ctype=args.type,
-            spec=args.spec,
+            spec=spec,
         )
 
         conn.execute(
             "INSERT INTO acceptance_criteria (task_id, criterion, source, criterion_type, verification_spec) "
             "VALUES (?, ?, ?, ?, ?)",
-            (args.task_id, args.text, args.source, args.type, args.spec),
+            (args.task_id, args.text, args.source, args.type, spec),
         )
         cid = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
 
@@ -484,13 +515,87 @@ def cmd_list(args: argparse.Namespace, db_path: str, config: dict) -> int:
     return 0
 
 
+def _normalize_update_spec(raw: str | None) -> tuple[bool, str | None]:
+    if raw is None:
+        return False, None
+    if raw == "NULL":
+        return True, None
+    return True, _normalize_spec(raw)
+
+
+def cmd_update(args: argparse.Namespace, db_path: str, config: dict) -> int:
+    changed_spec, requested_spec = _normalize_update_spec(args.verification_spec)
+    if args.criterion_type is None and not changed_spec:
+        print(
+            "Error: provide --criterion-type and/or --verification-spec",
+            file=sys.stderr,
+        )
+        return 1
+
+    criterion_types = config.get("criterion_types", [])
+    if args.criterion_type is not None and criterion_types and args.criterion_type not in criterion_types:
+        joined = ", ".join(criterion_types)
+        print(
+            f"Error: Invalid criterion type '{args.criterion_type}'. Valid: {joined}",
+            file=sys.stderr,
+        )
+        return 2
+
+    conn = get_connection(db_path)
+    try:
+        row = conn.execute(
+            "SELECT id, task_id, criterion, criterion_type, verification_spec "
+            "FROM acceptance_criteria WHERE id = ?",
+            (args.criterion_id,),
+        ).fetchone()
+        if not row:
+            print(f"Error: Criterion {args.criterion_id} not found", file=sys.stderr)
+            return 2
+
+        new_type = args.criterion_type or row["criterion_type"] or "manual"
+        new_spec = requested_spec if changed_spec else row["verification_spec"]
+
+        if new_type in SPEC_REQUIRED_TYPES and not new_spec:
+            print(
+                f"Error: --verification-spec is required for criterion type '{new_type}'",
+                file=sys.stderr,
+            )
+            return 2
+        if new_type == "manual" and new_spec:
+            print(
+                "Error: manual criteria cannot have verification_spec; "
+                "use --verification-spec NULL or choose a non-manual --criterion-type",
+                file=sys.stderr,
+            )
+            return 2
+
+        conn.execute(
+            "UPDATE acceptance_criteria "
+            "SET criterion_type = ?, verification_spec = ?, updated_at = datetime('now') "
+            "WHERE id = ?",
+            (new_type, new_spec, args.criterion_id),
+        )
+        conn.commit()
+        print(dumps({
+            "id": args.criterion_id,
+            "task_id": row["task_id"],
+            "criterion": row["criterion"],
+            "criterion_type": new_type,
+            "verification_spec": new_spec,
+        }))
+        return 0
+    finally:
+        conn.close()
+
+
 def _done_single(conn: sqlite3.Connection, criterion_id: int, skip_verify: bool,
                   suppress_shared_commit: bool, commit_hash: Optional[str],
                   committed_at: Optional[str], note: Optional[str] = None,
                   head_task_id: Optional[int] = None) -> int:
     """Mark a single criterion as done. Returns 0 on success, 1 on verification failure, 2 on not-found."""
     row = conn.execute(
-        "SELECT id, task_id, criterion, is_completed, criterion_type, verification_spec "
+        "SELECT id, task_id, criterion, is_completed, criterion_type, verification_spec, "
+        "is_deferred, deferred_reason "
         "FROM acceptance_criteria WHERE id = ?",
         (criterion_id,),
     ).fetchone()
@@ -522,7 +627,9 @@ def _done_single(conn: sqlite3.Connection, criterion_id: int, skip_verify: bool,
     # Run verification for non-manual types (unless --skip-verify)
     verification_result = None
     if criterion_type != "manual" and spec and not skip_verify:
-        result = run_verification(criterion_type, spec)
+        result = _reuse_commit_gate_verification(criterion_type, spec, commit_hash)
+        if result is None:
+            result = run_verification(criterion_type, spec)
         verification_result = json.dumps(result)
 
         if not result["passed"]:
@@ -561,15 +668,31 @@ def _done_single(conn: sqlite3.Connection, criterion_id: int, skip_verify: bool,
                 file=sys.stderr,
             )
 
+    # Completing a deferred criterion clears the deferral (issue #1058): the
+    # sanctioned way to record a post-merge verification outcome after the
+    # task closed is to re-run `tusk criteria done <cid>` once the deferred
+    # check is performed. deferred_reason is kept for history; is_completed=1
+    # with completed_at is what distinguishes "verified later" from "never
+    # performed" in coverage views and audit queries.
+    deferral_cleared = bool(row["is_deferred"])
     conn.execute(
         "UPDATE acceptance_criteria SET is_completed = 1, "
         "completed_at = strftime('%Y-%m-%d %H:%M:%f', 'now'), "
         "commit_hash = ?, committed_at = ?, "
         "verification_result = ?, skip_note = ?, "
+        "is_deferred = 0, "
         "updated_at = datetime('now') WHERE id = ?",
         (commit_hash, committed_at, verification_result, note, criterion_id),
     )
     conn.commit()
+    if deferral_cleared:
+        reason = row["deferred_reason"] or "no reason recorded"
+        print(
+            f"Note: criterion #{criterion_id} was deferred ({reason}) — "
+            "completion clears the deferral; the verified outcome is now part "
+            "of the audit trail.",
+            file=sys.stderr,
+        )
 
     # Best-effort cost capture — pass completed_at to bound the transcript window
     crit_ts = conn.execute(
@@ -587,7 +710,7 @@ def _done_single(conn: sqlite3.Connection, criterion_id: int, skip_verify: bool,
     verification = None
     if criterion_type != "manual":
         verification = "skipped" if skip_verify else "passed"
-    print(dumps({
+    payload = {
         "id": criterion_id,
         "task_id": row["task_id"],
         "is_completed": True,
@@ -596,8 +719,70 @@ def _done_single(conn: sqlite3.Connection, criterion_id: int, skip_verify: bool,
         "commit_hash": commit_hash,
         "verification": verification,
         "skip_note": note,
-    }))
+    }
+    if deferral_cleared:
+        payload["deferral_cleared"] = True
+        payload["deferred_reason"] = row["deferred_reason"]
+    print(dumps(payload))
     return 0
+
+
+def _shell_segments(command: str) -> list[str]:
+    return [
+        segment.strip()
+        for segment in re.split(r"\s*(?:&&|;)\s*", command or "")
+        if segment.strip()
+    ]
+
+
+def _verification_spec_covered_by_gate(spec: str, gate_command: str) -> bool:
+    """Return True when ``spec`` is covered by the just-passed gate command.
+
+    Exact substring matching covers simple cases. Segment matching covers the
+    common expanded-gate form where the criterion spec is ``cd dir && test`` and
+    the gate inserts setup between those two shell segments.
+    """
+    normalized_spec = " ".join((spec or "").split())
+    normalized_gate = " ".join((gate_command or "").split())
+    if not normalized_spec or not normalized_gate:
+        return False
+    if normalized_spec in normalized_gate:
+        return True
+
+    start = 0
+    for segment in _shell_segments(normalized_spec):
+        index = normalized_gate.find(segment, start)
+        if index == -1:
+            return False
+        start = index + len(segment)
+    return True
+
+
+def _reuse_commit_gate_verification(
+    criterion_type: str,
+    spec: Optional[str],
+    commit_hash: Optional[str],
+) -> Optional[dict]:
+    if criterion_type != "test" or not spec or not commit_hash:
+        return None
+
+    gate_command = os.environ.get("TUSK_COMMIT_GATE_COMMAND", "")
+    gate_sha = os.environ.get("TUSK_COMMIT_GATE_SHA", "")
+    if not gate_command or not gate_sha:
+        return None
+    if not (gate_sha.startswith(commit_hash) or commit_hash.startswith(gate_sha)):
+        return None
+    if not _verification_spec_covered_by_gate(spec, gate_command):
+        return None
+
+    return {
+        "passed": True,
+        "output": (
+            "reused passed tusk commit test_command gate for this commit: "
+            f"{gate_command}"
+        ),
+        "reused_commit_gate": True,
+    }
 
 
 def _head_task_id(cwd: Optional[str] = None) -> Optional[int]:
@@ -854,6 +1039,43 @@ def cmd_reset(args: argparse.Namespace, db_path: str, config: dict) -> int:
         conn.close()
 
 
+def cmd_delete(args: argparse.Namespace, db_path: str, config: dict) -> int:
+    conn = get_connection(db_path)
+    try:
+        row = conn.execute(
+            "SELECT id, task_id, criterion, is_completed "
+            "FROM acceptance_criteria WHERE id = ?",
+            (args.criterion_id,),
+        ).fetchone()
+        if not row:
+            print(f"Error: Criterion {args.criterion_id} not found", file=sys.stderr)
+            return 2
+
+        if row["is_completed"] and not args.force:
+            print(
+                f"Error: Criterion {args.criterion_id} is completed; "
+                "pass --force to delete completed criteria.",
+                file=sys.stderr,
+            )
+            return 1
+
+        conn.execute(
+            "DELETE FROM acceptance_criteria WHERE id = ?",
+            (args.criterion_id,),
+        )
+        conn.commit()
+        print(dumps({
+            "id": args.criterion_id,
+            "task_id": row["task_id"],
+            "deleted": True,
+            "was_completed": bool(row["is_completed"]),
+            "criterion": row["criterion"],
+        }))
+        return 0
+    finally:
+        conn.close()
+
+
 def cmd_finish_deferred(args: argparse.Namespace, db_path: str, config: dict) -> int:
     conn = get_connection(db_path)
     try:
@@ -886,21 +1108,21 @@ def cmd_finish_deferred(args: argparse.Namespace, db_path: str, config: dict) ->
 
 def main():
     if len(sys.argv) < 3:
-        print("Usage: tusk criteria {add|list|done|skip|reset|finish-deferred} ...", file=sys.stderr)
+        print("Usage: tusk criteria {add|list|update|done|skip|reset|delete|finish-deferred} ...", file=sys.stderr)
         sys.exit(1)
 
     db_path = sys.argv[1]
     config_path = sys.argv[2]
     config = load_config(config_path)
 
-    parser = argparse.ArgumentParser(
+    parser = argparse.ArgumentParser(allow_abbrev=False,
         prog="tusk criteria",
         description="Manage acceptance criteria for tasks",
     )
     subparsers = parser.add_subparsers(dest="command", help="Command to run")
 
     # add
-    add_p = subparsers.add_parser("add", help="Add a criterion to a task")
+    add_p = subparsers.add_parser("add", allow_abbrev=False, help="Add a criterion to a task")
     add_p.add_argument("task_id", type=int, help="Task ID")
     add_p.add_argument("text", help="Criterion text")
     add_p.add_argument(
@@ -914,15 +1136,33 @@ def main():
     )
     add_p.add_argument(
         "--spec",
-        help="Verification spec (required for non-manual types)",
+        help=(
+            "Verification spec (required for non-manual types). For file-type "
+            "criteria the spec is a glob; a leading '!' inverts the check so "
+            "verification passes when no file matches (absence assertion)"
+        ),
     )
 
     # list
-    list_p = subparsers.add_parser("list", help="List criteria for a task")
+    list_p = subparsers.add_parser("list", allow_abbrev=False, help="List criteria for a task")
     list_p.add_argument("task_id", type=int, help="Task ID")
 
+    # update
+    update_p = subparsers.add_parser("update", allow_abbrev=False, help="Update criterion type or verification spec")
+    update_p.add_argument("criterion_id", type=int, help="Criterion ID")
+    update_p.add_argument(
+        "--criterion-type",
+        "--type",
+        dest="criterion_type",
+        help="New criterion type",
+    )
+    update_p.add_argument(
+        "--verification-spec",
+        help="New verification spec, or literal NULL to clear it",
+    )
+
     # done
-    done_p = subparsers.add_parser("done", help="Mark one or more criteria as completed")
+    done_p = subparsers.add_parser("done", allow_abbrev=False, help="Mark one or more criteria as completed")
     done_p.add_argument("criterion_ids", type=int, nargs="+", help="One or more criterion IDs")
     done_p.add_argument(
         "--skip-verify", action="store_true",
@@ -943,7 +1183,7 @@ def main():
 
     # skip
     skip_p = subparsers.add_parser(
-        "skip",
+        "skip", allow_abbrev=False,
         help="Close a criterion without commit attribution (not applicable, deferred to chain orchestrator, etc.)",
     )
     skip_p.add_argument("criterion_id", type=int, help="Criterion ID")
@@ -959,12 +1199,20 @@ def main():
     )
 
     # reset
-    reset_p = subparsers.add_parser("reset", help="Reset a criterion to incomplete (clears deferred flag too)")
+    reset_p = subparsers.add_parser("reset", allow_abbrev=False, help="Reset a criterion to incomplete (clears deferred flag too)")
     reset_p.add_argument("criterion_id", type=int, help="Criterion ID")
+
+    # delete
+    delete_p = subparsers.add_parser("delete", allow_abbrev=False, help="Delete a stale criterion")
+    delete_p.add_argument("criterion_id", type=int, help="Criterion ID")
+    delete_p.add_argument(
+        "--force", action="store_true",
+        help="Allow deleting a completed criterion",
+    )
 
     # finish-deferred
     fd_p = subparsers.add_parser(
-        "finish-deferred",
+        "finish-deferred", allow_abbrev=False,
         help="Mark all deferred criteria with a given reason as completed for specified tasks",
     )
     fd_p.add_argument("--reason", required=True, help="Deferred reason to match (e.g., 'chain')")
@@ -979,16 +1227,25 @@ def main():
     if args.command == "done" and getattr(args, "note", None) and not args.skip_verify:
         done_p.error("--note requires --skip-verify")
 
+    # Catch-all so transient DB contention or another unexpected failure leaves
+    # command-specific stderr. Without this, the outer bin/tusk silent-exit guard
+    # can only report a generic "criteria: exited N with no diagnostic output".
     try:
         handlers = {
             "add": cmd_add, "list": cmd_list, "done": cmd_done,
+            "update": cmd_update,
             "skip": cmd_skip, "reset": cmd_reset,
+            "delete": cmd_delete,
             "finish-deferred": cmd_finish_deferred,
         }
         sys.exit(handlers[args.command](args, db_path, config))
-    except sqlite3.Error as e:
-        print(f"Database error: {e}", file=sys.stderr)
-        sys.exit(2)
+    except Exception as e:
+        print(
+            f"Error: criteria {args.command} crashed with "
+            f"{type(e).__name__}: {e}",
+            file=sys.stderr,
+        )
+        sys.exit(1)
 
 
 if __name__ == "__main__":

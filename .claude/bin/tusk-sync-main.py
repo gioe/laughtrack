@@ -47,14 +47,174 @@ Exit codes:
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
+import tempfile
+import time
 import uuid
 
+# Transient .git/index.lock contention signatures (issue #1075). "could not
+# write index" is what `git stash pop` emits when another process holds the
+# lock mid-write; the "Unable to create ... index.lock" wording is the same
+# class seen by tusk-merge's _run_with_index_lock_retry (issues #620, #640).
+# Real pop conflicts match neither, so they are never retried.
+_TRANSIENT_INDEX_LOCK_RE = re.compile(
+    r"could not write index|Unable to create '[^']*\.git/index\.lock'"
+)
+_POP_LOCK_BACKOFF_SECONDS = (0.5, 1.0)
 
-def _run(cmd, cwd, check=False):
+
+def _run(cmd, cwd, check=False, env=None):
     return subprocess.run(
-        cmd, cwd=cwd, capture_output=True, text=True, encoding="utf-8", check=check
+        cmd, cwd=cwd, capture_output=True, text=True, encoding="utf-8",
+        check=check, env=env,
+    )
+
+
+def _parse_merge_tree_conflicts(output):
+    """Extract conflicted paths from ``git merge-tree --write-tree`` output.
+
+    Layout (conflict case): line 0 is the toplevel tree OID; every subsequent
+    line up to the first blank line is a conflicted-file entry in
+    ``<mode> <oid> <stage>\\t<path>`` form. The informational ``CONFLICT (...)``
+    messages follow the blank line and are ignored here.
+    """
+    lines = output.splitlines()
+    paths = []
+    seen = set()
+    for line in lines[1:]:
+        if not line.strip():
+            break
+        if "\t" not in line:
+            continue
+        path = line.split("\t", 1)[1].strip()
+        if path and path not in seen:
+            seen.add(path)
+            paths.append(path)
+    return paths
+
+
+def _preflight_stash_conflict(repo_root, default_branch):
+    """Detect whether the dirty tree would conflict with the incoming
+    origin/<default> commits BEFORE stashing (issue #1095).
+
+    ``git stash pop`` runs after the fast-forward, so a conflict between the
+    local changes and the incoming commits surfaces only once the tree is
+    already half-rewritten — the partial-apply hybrid state TASK-643 could
+    only explain after the fact. This pre-flight performs the same 3-way
+    merge ahead of time: it builds a throwaway tree from a TEMP index
+    (``read-tree HEAD`` + ``add -A`` → HEAD plus every working change,
+    including untracked) and asks ``git merge-tree`` to merge
+    origin/<default> against it with HEAD as the base — exactly what the pop
+    will do. Only the object DB is written; the real index and working tree
+    are never touched, so an abort leaves the operator's state pristine.
+
+    Returns:
+      - ``list[str]`` of conflicted paths when a conflict is detected,
+      - ``[]`` when the merge is clean,
+      - ``None`` when the check could not be performed (any git step failed,
+        empty output, or a merge-tree too old to support ``--write-tree``) so
+        the caller falls through to the normal stash/pop path rather than
+        blocking on an unprovable state.
+    """
+    tmp_index = None
+    try:
+        fd, tmp_index = tempfile.mkstemp(prefix="tusk-sync-preflight-index-")
+        os.close(fd)
+        env = dict(os.environ, GIT_INDEX_FILE=tmp_index)
+        if _run(["git", "read-tree", "HEAD"], cwd=repo_root, env=env).returncode != 0:
+            return None
+        if _run(["git", "add", "-A"], cwd=repo_root, env=env).returncode != 0:
+            return None
+        tree_res = _run(["git", "write-tree"], cwd=repo_root, env=env)
+        local_tree = tree_res.stdout.strip()
+        if tree_res.returncode != 0 or not local_tree:
+            return None
+        commit_res = _run(
+            ["git", "commit-tree", local_tree, "-p", "HEAD",
+             "-m", "tusk-sync-main preflight"],
+            cwd=repo_root,
+        )
+        local_commit = commit_res.stdout.strip()
+        if commit_res.returncode != 0 or not local_commit:
+            return None
+        merge_res = _run(
+            ["git", "merge-tree", "--write-tree", "--merge-base=HEAD",
+             f"origin/{default_branch}", local_commit],
+            cwd=repo_root,
+        )
+        if merge_res.returncode == 0:
+            return []
+        if merge_res.returncode != 1:
+            return None  # indeterminate (e.g. merge-tree predates --write-tree)
+        return _parse_merge_tree_conflicts(merge_res.stdout)
+    finally:
+        if tmp_index and os.path.exists(tmp_index):
+            os.unlink(tmp_index)
+
+
+def _pop_stash_with_lock_retry(repo_root, current_ref):
+    """Pop the stash; retry briefly on transient index.lock contention.
+
+    A concurrent session's git process can hold .git/index.lock at the moment
+    of the pop (issue #1075) — the same pop succeeds seconds later with zero
+    conflicts. Retries len(_POP_LOCK_BACKOFF_SECONDS) times; any failure that
+    does not match the lock signature returns immediately.
+    """
+    pop_res = _run(["git", "stash", "pop", current_ref], cwd=repo_root)
+    total = len(_POP_LOCK_BACKOFF_SECONDS)
+    for attempt, delay in enumerate(_POP_LOCK_BACKOFF_SECONDS, start=1):
+        if pop_res.returncode == 0 or not _TRANSIENT_INDEX_LOCK_RE.search(
+            pop_res.stderr or ""
+        ):
+            return pop_res
+        print(
+            f"Note: git stash pop hit transient .git/index.lock contention; "
+            f"retrying ({attempt}/{total}) after {delay}s...",
+            file=sys.stderr,
+        )
+        time.sleep(delay)
+        pop_res = _run(["git", "stash", "pop", current_ref], cwd=repo_root)
+    return pop_res
+
+
+def _format_pop_failure(repo_root, current_ref, stash_message, pop_res):
+    """Build the stderr message for a failed stash pop.
+
+    A conflicted pop PARTIALLY applies: git stages every cleanly-merged file
+    (polluting the index with the operator's previously-unstaged WIP) and
+    leaves the conflicted file(s) in UU state, while keeping the stash entry
+    (issue #1063). That state needs explicit step-by-step recovery — the
+    operator's original state was unstaged WIP, and improvising the
+    index-restoration inside user-owned uncommitted work is risky. Conflict
+    lines land on stdout, so classification scans stdout+stderr.
+    """
+    combined = (pop_res.stdout or "") + (pop_res.stderr or "")
+    if "CONFLICT" not in combined:
+        return (
+            f"Error: git stash pop {current_ref} failed: "
+            f"{pop_res.stderr.strip()}\nYour changes remain in the stash "
+            f"list under message '{stash_message}'."
+        )
+    try:
+        unmerged = _unmerged_paths(repo_root)
+    except RuntimeError:
+        unmerged = []
+    if unmerged:
+        conflicted = "Conflicted file(s): " + ", ".join(unmerged)
+    else:
+        conflicted = "Conflicted file(s): see `git status` (UU entries)"
+    return (
+        f"Error: git stash pop {current_ref} hit a merge conflict and "
+        "PARTIALLY applied: git staged every cleanly-merged file (your "
+        "previously-unstaged changes are now in the index) and left the "
+        f"conflicted file(s) in UU state. {conflicted}.\n"
+        f"The stash entry is kept under message '{stash_message}'.\n"
+        "To restore your original unstaged-WIP state:\n"
+        "  1. Resolve the conflict markers in the UU file(s), then `git add` them\n"
+        "  2. git reset    # unstage everything the pop staged — your WIP was unstaged before sync-main\n"
+        f"  3. git stash drop {current_ref}    # the kept entry is now redundant"
     )
 
 
@@ -160,6 +320,37 @@ def sync_main(repo_root, tusk_bin):
         print(f"Error: {e}", file=sys.stderr)
         return 1, result
 
+    # Pre-flight: refuse BEFORE stashing when the local changes would conflict
+    # with the incoming commits, so the working tree is left untouched instead
+    # of landing in the half-applied stash-pop state TASK-643 could only
+    # explain after the fact (issue #1095). Best-effort and signal-gated: an
+    # indeterminate result (None) falls through to the normal stash/pop path.
+    if (
+        result["fetched_commits"] > 0
+        and dirty
+        and not os.environ.get("TUSK_SYNC_MAIN_NO_PREFLIGHT")
+    ):
+        conflicts = _preflight_stash_conflict(repo_root, default_branch)
+        if conflicts:
+            if len(conflicts) <= 10:
+                display = ", ".join(conflicts)
+            else:
+                display = (
+                    ", ".join(conflicts[:10])
+                    + f", ... and {len(conflicts) - 10} more"
+                )
+            print(
+                f"Error: local changes would conflict with the "
+                f"{result['fetched_commits']} incoming commit(s) from "
+                f"origin/{default_branch} in {len(conflicts)} file(s) "
+                f"({display}). Aborting before stashing so your working tree is "
+                "left untouched. Commit or revert the conflicting change(s) and "
+                "retry, or sync manually and resolve the stash-pop conflict. "
+                "(Set TUSK_SYNC_MAIN_NO_PREFLIGHT=1 to skip this check.)",
+                file=sys.stderr,
+            )
+            return 1, result
+
     stash_message = ""
     if result["fetched_commits"] > 0 and dirty:
         stash_message = f"tusk-sync-main/{os.getpid()}/{uuid.uuid4().hex[:8]}"
@@ -225,12 +416,10 @@ def sync_main(repo_root, tusk_bin):
                 file=sys.stderr,
             )
             return 1, result
-        pop_res = _run(["git", "stash", "pop", current_ref], cwd=repo_root)
+        pop_res = _pop_stash_with_lock_retry(repo_root, current_ref)
         if pop_res.returncode != 0:
             print(
-                f"Error: git stash pop {current_ref} failed: "
-                f"{pop_res.stderr.strip()}\nYour changes remain in the stash "
-                f"list under message '{stash_message}'.",
+                _format_pop_failure(repo_root, current_ref, stash_message, pop_res),
                 file=sys.stderr,
             )
             return 1, result
@@ -259,7 +448,7 @@ def main(argv):
     repo_root = argv[0]
     rest = argv[1:]
 
-    ap = argparse.ArgumentParser(prog="tusk sync-main")
+    ap = argparse.ArgumentParser(allow_abbrev=False, prog="tusk sync-main")
     ap.parse_args(rest)
 
     tusk_bin = os.path.join(os.path.dirname(os.path.realpath(__file__)), "tusk")

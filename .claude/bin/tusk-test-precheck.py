@@ -28,11 +28,22 @@ Resolution order for the test command:
 
 Output JSON (stdout):
     {
-        "pre_existing": bool,   # did the test fail against HEAD (no local changes)?
-        "exit_code": int,       # raw exit code returned by the test command
-        "test_command": str,    # the command that was actually executed
-        "stashed": bool         # did we create and pop a stash entry?
+        "pre_existing": bool,          # did the test fail against HEAD (no local changes)?
+        "exit_code": int,              # raw exit code returned by the test command
+        "test_command": str,           # the command that was actually executed
+        "stashed": bool,               # did we create and pop a stash entry?
+        "diverged_from_default": bool, # (issue #1082) when pre_existing, does
+                                       #   origin/<default> have commits HEAD lacks
+                                       #   touching differing files? a true value
+                                       #   means the failure may already be fixed
+                                       #   upstream — rebase before concluding
+        "diverged_paths": [str]        # sample of those differing paths (capped)
     }
+    With --flake-retries N (N > 0) the verdict additionally carries
+    "flake_runs_total" (int), "flake_failures" (int), and "flaky_suspect"
+    (bool — true when the N+1 HEAD runs disagree, signalling a flake rather
+    than a regression; issue #1076). These keys are omitted with the default
+    zero retries.
 
 Exit codes:
     0 — success (the CLI ran to completion; the test result is in the JSON)
@@ -44,6 +55,7 @@ import fnmatch
 import json
 import os
 import shutil
+import sqlite3
 import subprocess
 import sys
 import tempfile
@@ -228,6 +240,231 @@ def _detect_active_task_domain(repo_root: str, script_dir: str) -> str:
     return (rows[0] or {}).get("domain", "") or ""
 
 
+def _resolve_db_path(repo_root: str) -> str:
+    """Resolve the tusk DB path, honoring TUSK_DB / TUSK_REPO_ROOT routing.
+
+    Mirrors ``_resolve_db_path`` in ``tusk-commit.py`` so the verdict precheck
+    writes and the commit gate reads through the identical path resolution.
+    """
+    env_db = os.environ.get("TUSK_DB")
+    if env_db:
+        return env_db
+    project_root = os.environ.get("TUSK_REPO_ROOT") or repo_root
+    return os.path.join(project_root, "tusk", "tasks.db")
+
+
+def _current_head_sha(repo_root: str) -> str:
+    res = _run(["git", "rev-parse", "HEAD"], cwd=repo_root)
+    return res.stdout.strip() if res.returncode == 0 else ""
+
+
+def _detect_active_task_id(repo_root: str, script_dir: str):
+    """Best-effort task id from the current feature branch; None on any failure."""
+    tusk_bin = os.path.join(script_dir, "tusk")
+    if not (os.path.isfile(tusk_bin) and os.access(tusk_bin, os.X_OK)):
+        return None
+    try:
+        parse = subprocess.run(
+            [tusk_bin, "branch-parse"],
+            cwd=repo_root,
+            capture_output=True, text=True, encoding="utf-8", check=False,
+        )
+    except OSError:
+        return None
+    if parse.returncode != 0 or not parse.stdout.strip():
+        return None
+    try:
+        task_id = (json.loads(parse.stdout) or {}).get("task_id")
+    except json.JSONDecodeError:
+        return None
+    return task_id if isinstance(task_id, int) and task_id > 0 else None
+
+
+def _record_precheck_verdict(repo_root: str, script_dir: str,
+                             test_command: str, pre_existing: bool,
+                             exit_code: int) -> None:
+    """Best-effort persistence of one precheck verdict keyed by (head_sha,
+    test_command) so ``tusk commit`` can reuse a same-HEAD pre_existing verdict
+    instead of refusing the commit (issue #1083).
+
+    Silent on any error — the precheck's primary contract is the JSON verdict on
+    stdout; a failed write just means commit-reuse stays unavailable until the
+    next successful precheck. Honors TUSK_DB / TUSK_REPO_ROOT routing so the row
+    lands in the same DB the commit gate later reads.
+    """
+    db_path = _resolve_db_path(repo_root)
+    if not test_command or not os.path.exists(db_path):
+        return
+    head_sha = _current_head_sha(repo_root)
+    if not head_sha:
+        return
+    task_id = _detect_active_task_id(repo_root, script_dir)
+    try:
+        conn = sqlite3.connect(db_path, timeout=2.0)
+        try:
+            conn.execute(
+                "INSERT INTO precheck_verdicts "
+                "(task_id, head_sha, test_command, pre_existing, exit_code) "
+                "VALUES (?, ?, ?, ?, ?)",
+                (task_id, head_sha, test_command,
+                 1 if pre_existing else 0, int(exit_code)),
+            )
+            conn.commit()
+        finally:
+            conn.close()
+    except sqlite3.Error:
+        pass
+
+
+# Cap on the diverged-path sample echoed in the JSON verdict — enough to be
+# actionable without bloating programmatic output.
+DIVERGED_PATHS_SAMPLE = 20
+
+
+def _resolve_default_branch(repo_root: str, script_dir: str) -> str:
+    """Return the default branch name (e.g. 'main'), or '' if unresolvable.
+
+    Reads ``refs/remotes/origin/HEAD`` directly first — the common case in a
+    real checkout, and it never touches the network. Falls back to
+    ``tusk git-default-branch`` (symbolic-ref → gh fallback → 'main') only when
+    the local ref is unset, so the hot path avoids an unnecessary gh shell-out.
+    """
+    res = _run(["git", "symbolic-ref", "refs/remotes/origin/HEAD"], cwd=repo_root)
+    if res.returncode == 0 and res.stdout.strip():
+        return res.stdout.strip().rsplit("/", 1)[-1]
+    tusk_bin = os.path.join(script_dir, "tusk")
+    if os.path.isfile(tusk_bin) and os.access(tusk_bin, os.X_OK):
+        try:
+            res = subprocess.run(
+                [tusk_bin, "git-default-branch"],
+                cwd=repo_root,
+                capture_output=True, text=True, encoding="utf-8", check=False,
+            )
+            if res.returncode == 0 and res.stdout.strip():
+                return res.stdout.strip()
+        except OSError:
+            pass
+    return ""
+
+
+def _compute_divergence(repo_root: str, script_dir: str, paths) -> tuple[bool, list]:
+    """Return ``(diverged, diverged_paths)`` for HEAD vs ``origin/<default>``.
+
+    Implements the issue #1082 signal: when a failure is pre_existing against
+    branch HEAD, the real cause may be branch staleness — the failing files were
+    already fixed on the default branch after the branch diverged. This diffs
+    HEAD against ``origin/<default>`` on the three-dot (merge-base) range so only
+    commits the default branch has that HEAD lacks contribute, optionally scoped
+    to ``paths``. A best-effort, non-interactive fetch refreshes the upstream
+    ref first (skipped when ``TUSK_PRECHECK_NO_FETCH=1``).
+
+    Best-effort throughout: no ``origin`` remote, an unresolvable default
+    branch, a missing upstream ref, or any git failure returns ``(False, [])``
+    so the precheck verdict is never blocked or altered.
+    """
+    # No origin remote → nothing to diverge from. Short-circuits before any
+    # default-branch resolution or fetch so the check stays a no-op in repos
+    # without a remote (and keeps hermetic tests off the network).
+    origin = _run(["git", "remote", "get-url", "origin"], cwd=repo_root)
+    if origin.returncode != 0 or not origin.stdout.strip():
+        return False, []
+    default_branch = _resolve_default_branch(repo_root, script_dir)
+    if not default_branch:
+        return False, []
+    default_ref = f"origin/{default_branch}"
+    if os.environ.get("TUSK_PRECHECK_NO_FETCH") != "1":
+        fetch_env = dict(os.environ, GIT_TERMINAL_PROMPT="0")
+        try:
+            subprocess.run(
+                ["git", "fetch", "--quiet", "origin", default_branch],
+                cwd=repo_root,
+                capture_output=True, text=True, encoding="utf-8",
+                timeout=30, env=fetch_env, check=False,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            pass
+    verify = _run(
+        ["git", "rev-parse", "--verify", "--quiet", default_ref], cwd=repo_root
+    )
+    if verify.returncode != 0:
+        return False, []
+    diff_cmd = ["git", "diff", "--name-only", f"HEAD...{default_ref}"]
+    if paths:
+        diff_cmd.append("--")
+        diff_cmd.extend(paths)
+    diff = _run(diff_cmd, cwd=repo_root)
+    if diff.returncode != 0:
+        return False, []
+    changed = [ln for ln in diff.stdout.splitlines() if ln.strip()]
+    return (len(changed) > 0), changed
+
+
+def _emit_verdict(repo_root: str, script_dir: str, test_command: str,
+                  exit_code: int, stashed: bool, paths,
+                  flake_exits: list | None = None) -> int:
+    """Record the verdict, print the JSON payload, and return 0.
+
+    Always emits ``diverged_from_default``/``diverged_paths``. The divergence
+    check runs only when the failure is pre_existing (exit_code != 0); on a
+    passing run both fields are reported false/empty without touching git
+    remotes (issue #1082).
+
+    ``flake_exits`` is the list of exit codes from the repeated HEAD runs when
+    ``--flake-retries`` was used (the primary run is element 0). When it holds
+    more than one run, ``flake_runs_total``/``flake_failures``/``flaky_suspect``
+    are added: a flake is suspected when the runs disagree on identical HEAD —
+    at least one pass and at least one fail — which steers the caller to retry
+    the commit rather than diagnose a regression (issue #1076). With the
+    default zero retries the keys are omitted entirely, leaving the contract
+    unchanged.
+    """
+    pre_existing = exit_code != 0
+    _record_precheck_verdict(
+        repo_root, script_dir, test_command, pre_existing, exit_code,
+    )
+    diverged = False
+    diverged_paths: list = []
+    if pre_existing:
+        diverged, diverged_paths = _compute_divergence(repo_root, script_dir, paths)
+        if diverged:
+            sample = ", ".join(diverged_paths[:5])
+            print(
+                "Note: this failure is pre_existing against HEAD, but "
+                f"origin/<default> has commits HEAD lacks touching "
+                f"{len(diverged_paths)} file(s) (e.g. {sample}). The failure "
+                "may already be fixed upstream — consider rebasing onto the "
+                "default branch before concluding pre-existing or filing a "
+                "follow-up.",
+                file=sys.stderr,
+            )
+    verdict = {
+        "pre_existing": pre_existing,
+        "exit_code": exit_code,
+        "test_command": test_command,
+        "stashed": stashed,
+        "diverged_from_default": diverged,
+        "diverged_paths": diverged_paths[:DIVERGED_PATHS_SAMPLE],
+    }
+    if flake_exits and len(flake_exits) > 1:
+        total = len(flake_exits)
+        failures = sum(1 for e in flake_exits if e != 0)
+        passes = total - failures
+        flaky_suspect = failures > 0 and passes > 0
+        verdict["flake_runs_total"] = total
+        verdict["flake_failures"] = failures
+        verdict["flaky_suspect"] = flaky_suspect
+        if flaky_suspect:
+            print(
+                f"Note: test_command produced mixed results across {total} runs "
+                f"on identical HEAD ({passes} passed, {failures} failed) — "
+                "suspected flake, not a regression. Retry the commit rather "
+                "than diagnosing the failing test.",
+                file=sys.stderr,
+            )
+    print(dumps(verdict))
+    return 0
+
+
 def resolve_test_command(explicit: str, config_path: str, repo_root: str,
                          script_dir: str, paths=None, domain: str = "") -> str:
     """Resolve the test command.
@@ -368,7 +605,7 @@ def _remove_generated_pop_blockers(repo_root: str, stderr: str) -> list[str]:
 
 
 def main(argv):
-    parser = argparse.ArgumentParser(
+    parser = argparse.ArgumentParser(allow_abbrev=False,
         prog="tusk test-precheck",
         description=(
             "Run the project's test command against HEAD (stashing and "
@@ -400,7 +637,21 @@ def main(argv):
             "Falls through to the global test_command when unset or no entry matches."
         ),
     )
+    parser.add_argument(
+        "--flake-retries",
+        type=int,
+        default=0,
+        metavar="N",
+        help=(
+            "Re-run the resolved test_command N extra times against the same "
+            "stashed HEAD state to detect flakiness. When >0, the verdict adds "
+            "flake_runs_total/flake_failures/flaky_suspect; flaky_suspect is "
+            "true when the runs disagree on identical HEAD (issue #1076). "
+            "Default 0 leaves the output contract unchanged."
+        ),
+    )
     args = parser.parse_args(argv[2:])
+    flake_retries = max(0, args.flake_retries)
 
     repo_root = argv[0]
     config_path = argv[1]
@@ -449,13 +700,9 @@ def main(argv):
             except RuntimeError as e:
                 print(f"Error: {e}", file=sys.stderr)
                 return 1
-            print(dumps({
-                "pre_existing": exit_code != 0,
-                "exit_code": exit_code,
-                "test_command": test_command,
-                "stashed": False,
-            }))
-            return 0
+            return _emit_verdict(
+                repo_root, script_dir, test_command, exit_code, False, args.paths,
+            )
         try:
             stash_ref = find_stash_ref_by_message(repo_root, stash_message)
         except RuntimeError as e:
@@ -486,8 +733,20 @@ def main(argv):
 
     exit_code = 1
     run_test_error: Exception | None = None
+    flake_exits: list | None = None
     try:
         exit_code = run_test(test_command, repo_root)
+        if flake_retries > 0:
+            # Re-run against the same stashed HEAD state to detect flakiness.
+            # The primary run is element 0; retries are best-effort — an
+            # exception in a retry counts as a failing run rather than aborting
+            # the precheck (and losing the stash, which the finally still pops).
+            flake_exits = [exit_code]
+            for _ in range(flake_retries):
+                try:
+                    flake_exits.append(run_test(test_command, repo_root))
+                except Exception:
+                    flake_exits.append(1)
     except Exception as e:
         # run_test raising (FileNotFoundError, OSError, etc.) must still
         # trigger the stash-pop cleanup path — the alternative is leaving
@@ -548,13 +807,10 @@ def main(argv):
         )
         return 1
 
-    print(dumps({
-        "pre_existing": exit_code != 0,
-        "exit_code": exit_code,
-        "test_command": test_command,
-        "stashed": stashed,
-    }))
-    return 0
+    return _emit_verdict(
+        repo_root, script_dir, test_command, exit_code, stashed, args.paths,
+        flake_exits=flake_exits,
+    )
 
 
 if __name__ == "__main__":

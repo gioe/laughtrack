@@ -153,6 +153,28 @@ def _rev_count(repo_root: str, rev_range: str) -> int | None:
     return int(text) if text.isdigit() else None
 
 
+# When the primary tree is this dirty, the `tusk sync-main` the staleness
+# advisory recommends has to stash and pop this many entries across the
+# fast-forward — exactly when a stash-pop conflict is most likely (issue
+# #1095). The advisory calls that out so the operator can reduce the surface
+# before syncing.
+_HEAVY_DIRTY_THRESHOLD = 10
+
+
+def _primary_dirty_count(primary_root: str) -> int:
+    """Count modified/untracked entries in ``primary_root`` (porcelain lines).
+
+    Best-effort: returns 0 on any git failure so the caller stays silent
+    rather than guessing. Mirrors ``git status --porcelain`` one-line-per-entry
+    semantics, which counts tracked modifications and untracked files alike —
+    every one of which the sync-main stash round-trip has to carry.
+    """
+    result = _run_git(primary_root, ["status", "--porcelain"])
+    if result.returncode != 0:
+        return 0
+    return sum(1 for line in result.stdout.splitlines() if line.strip())
+
+
 def _detect_default_branch(repo_root: str) -> str:
     set_head = _run_git(repo_root, ["remote", "set-head", "origin", "--auto"])
     if set_head.returncode == 0:
@@ -281,6 +303,48 @@ def _test_command_cone_paths(config_path: str) -> list[str]:
     return paths
 
 
+def _test_command_helper_cone_paths(config_path: str, repo_root: str) -> list[str]:
+    """Return repo-helper paths needed by configured test commands.
+
+    Source-repo unit tests commonly import ``bin/tusk-*.py`` helpers by
+    repo-relative path. The configured test command only names ``tests/...``,
+    so path-token extraction alone materializes the tests but omits the helper
+    directory they import. When pytest is configured to run tracked tests and a
+    source-repo helper exists, include one helper path so cone derivation pulls
+    ``bin`` into the sparse worktree.
+    """
+    if not config_path or not os.path.exists(config_path):
+        return []
+    try:
+        with open(config_path, encoding="utf-8") as f:
+            cfg = json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return []
+    cmd = cfg.get("test_command") or ""
+    if not isinstance(cmd, str) or not cmd.strip():
+        return []
+
+    tokens = [tok.strip().strip('"').strip("'") for tok in cmd.split()]
+    if "pytest" not in tokens:
+        return []
+    if not any(tok == "tests" or tok.startswith("tests/") for tok in tokens):
+        return []
+
+    bin_dir = os.path.join(repo_root, "bin")
+    if not os.path.isdir(bin_dir):
+        return []
+    for name in ("tusk", "tusk-task-summary.py"):
+        if os.path.exists(os.path.join(bin_dir, name)):
+            return [f"bin/{name}"]
+    try:
+        for name in sorted(os.listdir(bin_dir)):
+            if name.startswith("tusk-") and name.endswith(".py"):
+                return [f"bin/{name}"]
+    except OSError:
+        return []
+    return []
+
+
 def _is_safe_cone_entry(entry: str) -> bool:
     """Return True iff ``entry`` is safe to pass to ``git sparse-checkout set``.
 
@@ -356,6 +420,105 @@ def _derive_sparse_cone(paths: list[str]) -> list[str]:
         if candidate:
             cone.add(candidate)
     return sorted(cone)
+
+
+def _tracked_dirs(repo_root: str) -> set | None:
+    """Every directory tracked at HEAD, or None when git fails (validation
+    is then skipped entirely rather than guessing)."""
+    result = _run_git(repo_root, ["ls-tree", "-r", "-d", "--name-only", "HEAD"])
+    if result.returncode != 0:
+        return None
+    return {line.strip() for line in result.stdout.splitlines() if line.strip()}
+
+
+def _validate_referenced_cone(
+    repo_root: str, entries: set
+) -> tuple[list, dict, list]:
+    """Validate description-derived cone candidates against tracked paths
+    (issue #1044).
+
+    Task descriptions routinely mention paths relative to a repo subdir
+    (e.g. ``ui/components/ui/button.tsx`` meaning
+    ``apps/web/ui/components/ui/button.tsx``); the derivation otherwise
+    treats them as root-relative cone entries that match nothing and, in a
+    repo without a masking sibling cone, silently fail to materialize the
+    intended files. Only description-derived entries go through this —
+    operator-declared cones (--cone, sparse_always_cone, config scope
+    lists) are trusted as-is.
+
+    Returns ``(kept, resolved, dropped)``:
+    - ``kept`` — entries that exist (tracked or on disk), or whose first
+      segment exists at the root (preserves tasks that create a brand-new
+      subdirectory under an existing tree).
+    - ``resolved`` — ``{original: fully_qualified}`` for entries that match
+      no root-relative path but uniquely suffix-resolve against tracked
+      directories.
+    - ``dropped`` — entries with zero or ambiguous suffix resolutions.
+
+    When ``git ls-tree`` fails, every entry is kept (no validation).
+    """
+    tracked = _tracked_dirs(repo_root)
+    kept: list = []
+    resolved: dict = {}
+    dropped: list = []
+    for entry in sorted(entries):
+        if tracked is None:
+            kept.append(entry)
+            continue
+        if entry in tracked or os.path.isdir(os.path.join(repo_root, entry)):
+            kept.append(entry)
+            continue
+        first = entry.split("/", 1)[0]
+        if first in tracked or os.path.isdir(os.path.join(repo_root, first)):
+            kept.append(entry)
+            continue
+        suffix = "/" + entry
+        matches = sorted(d for d in tracked if d.endswith(suffix))
+        if len(matches) == 1:
+            resolved[entry] = matches[0]
+        else:
+            dropped.append(entry)
+    return kept, resolved, dropped
+
+
+CI_WORKFLOW_PHRASES = (
+    "github actions",
+    "ci workflow",
+    "workflow_dispatch",
+)
+
+
+def _task_mentions_ci_workflow(conn: sqlite3.Connection, task_id: int) -> bool:
+    """Return True when task text or declared scope clearly targets CI workflows."""
+    row = conn.execute(
+        "SELECT summary, description FROM tasks WHERE id = ?", (task_id,)
+    ).fetchone()
+    if row is None:
+        return False
+
+    criteria_rows = conn.execute(
+        "SELECT criterion, verification_spec FROM acceptance_criteria WHERE task_id = ?",
+        (task_id,),
+    ).fetchall()
+    scope_rows = conn.execute(
+        "SELECT pattern FROM task_scope WHERE task_id = ?",
+        (task_id,),
+    ).fetchall()
+
+    texts = [row["summary"] or "", row["description"] or ""]
+    for cr in criteria_rows:
+        texts.append(cr["criterion"] or "")
+        texts.append(cr["verification_spec"] or "")
+    for sr in scope_rows:
+        pattern = sr["pattern"] or ""
+        texts.append(pattern)
+        if pattern.startswith(".github/workflows/") or pattern == ".github/workflows":
+            return True
+
+    combined = "\n".join(texts).lower()
+    if any(phrase in combined for phrase in CI_WORKFLOW_PHRASES):
+        return True
+    return "gha" in {token.strip(".,:;()[]{}<>\"'").lower() for token in combined.split()}
 
 
 def _apply_sparse_checkout(
@@ -441,6 +604,65 @@ def _primary_repo_root(repo_root: str) -> str:
     return primary if os.path.isdir(primary) else repo_root
 
 
+def _primary_origin_state(primary_root: str) -> tuple[str, int, int] | None:
+    """Return ``(default_branch, ahead, behind)`` for primary vs origin.
+
+    Best-effort: any git failure (no remote, no network, detached HEAD,
+    unreachable refs, missing ``origin``) returns ``None`` so callers can stay
+    silent rather than blocking worktree creation on an unprovable state.
+    """
+    if not primary_root or not os.path.isdir(primary_root):
+        return None
+
+    head_result = _run_git(
+        primary_root,
+        ["symbolic-ref", "--short", "refs/remotes/origin/HEAD"],
+    )
+    if head_result.returncode != 0:
+        return None
+    default_ref = head_result.stdout.strip()
+    if not default_ref or "/" not in default_ref:
+        return None
+    default_branch = default_ref.split("/", 1)[1]
+
+    # Best-effort fetch; silently swallow failures (offline, auth, etc.).
+    _run_git(primary_root, ["fetch", "origin", default_branch])
+
+    behind = _rev_count(primary_root, f"HEAD..origin/{default_branch}")
+    ahead = _rev_count(primary_root, f"origin/{default_branch}..HEAD")
+    if behind is None or ahead is None:
+        return None
+    return default_branch, ahead, behind
+
+
+def _stale_primary_refusal(primary_root: str) -> str | None:
+    """Return a pre-create refusal message when primary is behind origin."""
+    state = _primary_origin_state(primary_root)
+    if state is None:
+        return None
+    default_branch, ahead, behind = state
+    if behind <= 0:
+        return None
+
+    if ahead > 0:
+        return (
+            f"primary checkout has diverged from origin/{default_branch} "
+            f"({ahead} commit(s) ahead, {behind} behind); task-worktree create "
+            "refuses to create a workspace from stale primary state. "
+            f'"tusk sync-main" cannot recover a diverged branch because its '
+            f"git merge --ff-only step refuses the non-fast-forward. Run "
+            f'"git pull --rebase origin {default_branch}" in {primary_root} to '
+            'reconcile, then retry. Pass --force-stale to bypass intentionally.'
+        )
+
+    return (
+        f"primary checkout is {behind} commit(s) behind origin/{default_branch}; "
+        "task-worktree create refuses before creating the task branch or "
+        f'workspace. Run "tusk sync-main" in {primary_root} first, or pass '
+        "--force-stale to bypass intentionally."
+    )
+
+
 def _maybe_advise_stale_primary(primary_root: str) -> None:
     """Emit a one-line stderr advisory when primary diverges from origin.
 
@@ -464,38 +686,16 @@ def _maybe_advise_stale_primary(primary_root: str) -> None:
     """
     if os.environ.get("TUSK_NO_STALE_PRIMARY_ADVISORY"):
         return
-    if not primary_root or not os.path.isdir(primary_root):
+    state = _primary_origin_state(primary_root)
+    if state is None:
         return
-
-    # Resolve the default branch name as origin's symbolic-ref. Falls back
-    # to "main" when symbolic-ref isn't set (a freshly-cloned repo whose
-    # origin doesn't expose HEAD, or an offline checkout). Skip the
-    # advisory rather than guess when nothing resolves — false advisories
-    # are worse than missing ones for a best-effort hint.
-    head_result = _run_git(
-        primary_root,
-        ["symbolic-ref", "--short", "refs/remotes/origin/HEAD"],
-    )
-    if head_result.returncode != 0:
-        return
-    default_ref = head_result.stdout.strip()
-    if not default_ref or "/" not in default_ref:
-        return
-    default_branch = default_ref.split("/", 1)[1]
-
-    # Best-effort fetch; silently swallow failures (offline, auth, etc.).
-    _run_git(primary_root, ["fetch", "origin", default_branch])
+    default_branch, ahead, behind = state
 
     # Compute behind AND ahead so a divergence (local commits unpushed AND
     # origin advanced) is reported as such instead of being mislabeled as a
     # simple "behind" — the issue #949 fix. Ahead-only primary commits are not
     # stale binaries, but they can still strand the later no-checkout merge
     # because the feature branch starts from origin/<default> (issue #972).
-    behind = _rev_count(primary_root, f"HEAD..origin/{default_branch}")
-    ahead = _rev_count(primary_root, f"origin/{default_branch}..HEAD")
-    if behind is None or ahead is None:
-        return
-
     if ahead and ahead > 0:
         if behind <= 0:
             print(
@@ -529,15 +729,28 @@ def _maybe_advise_stale_primary(primary_root: str) -> None:
     if behind <= 0:
         return
 
-    print(
+    message = (
         f"tusk: primary checkout is {behind} commit(s) behind "
         f"origin/{default_branch}; PATH-resolved tusk invocations from "
         f"this worktree will run stale binaries against the worktree CWD "
         f'and may corrupt MANIFEST under sparse-checkout. Run "tusk '
         f'sync-main" in {primary_root} before invoking "tusk" from any '
-        "subshell here.",
-        file=sys.stderr,
+        "subshell here."
     )
+    # When primary is heavily dirty, the recommended sync-main has to stash and
+    # pop that many entries across the fast-forward — exactly when a stash-pop
+    # conflict is most likely (issue #1095). Flag it so the operator can shrink
+    # the surface (commit/stash/revert) before syncing.
+    dirty_count = _primary_dirty_count(primary_root)
+    if dirty_count >= _HEAVY_DIRTY_THRESHOLD:
+        message += (
+            f" Note: primary has {dirty_count} uncommitted/untracked file(s), "
+            "so that sync-main will stash and pop them across the "
+            "fast-forward — the round-trip is most likely to hit a stash-pop "
+            "conflict when the tree is this dirty. Commit, stash, or revert "
+            "what you can first."
+        )
+    print(message, file=sys.stderr)
 
 
 def _load_symlink_files(config_path: str) -> list[str]:
@@ -846,7 +1059,7 @@ def _select_existing_workspace(
 def cmd_create(
     db_path: str, config_path: str, repo_root: str, argv: list[str]
 ) -> int:
-    parser = argparse.ArgumentParser(
+    parser = argparse.ArgumentParser(allow_abbrev=False,
         prog="tusk task-worktree create",
         description="Create or reuse a task-owned git worktree.",
     )
@@ -878,9 +1091,19 @@ def cmd_create(
         help=(
             "Pre-declare extra sparse-checkout cone paths (repeatable). "
             "Unioned with task_referenced_paths, scope.sparse_always_include, "
-            "scope.always_allowed, and the configured test_command's target "
-            "paths. Skipped entirely when sparse-checkout itself is disabled "
-            "(zero referenced paths or TUSK_NO_SPARSE_WORKTREE=1)."
+            "scope.sparse_always_cone, scope.always_allowed, and the "
+            "configured test_command's target paths. Skipped entirely when "
+            "sparse-checkout itself is disabled (zero referenced paths or "
+            "TUSK_NO_SPARSE_WORKTREE=1)."
+        ),
+    )
+    parser.add_argument(
+        "--force-stale",
+        action="store_true",
+        help=(
+            "Create the worktree even when the primary checkout is behind or "
+            "diverged from origin/<default>. Intended only for deliberate "
+            "stale-primary recovery/debugging."
         ),
     )
     args = parser.parse_args(argv)
@@ -1016,6 +1239,13 @@ def cmd_create(
             )
             return 2
 
+        primary_root = _primary_repo_root(repo_root)
+        if not args.force_stale:
+            refusal = _stale_primary_refusal(primary_root)
+            if refusal is not None:
+                print(f"Error: {refusal}", file=sys.stderr)
+                return 2
+
         base_ok, base_branch, base_err = _resolve_worktree_base(repo_root)
         if not base_ok:
             print(f"Error: {base_err}", file=sys.stderr)
@@ -1066,6 +1296,9 @@ def cmd_create(
         #      etc. into every task worktree so unit tests reading those
         #      files don't FileNotFoundError under a narrow per-task cone
         #      (issue #935).
+        #   7. CI workflow prose/scope hints — tasks that ask for GitHub
+        #      Actions or workflow_dispatch work need sibling workflows even
+        #      when they never spell out `.github/workflows/...` (issue #978).
         if not os.environ.get("TUSK_NO_SPARSE_WORKTREE"):
             referenced = [
                 p for p in task_referenced_paths(task_id, conn)
@@ -1077,14 +1310,44 @@ def cmd_create(
                 )
                 always_allowed = _load_scope_list(config_path, "always_allowed")
                 always_cone = _load_scope_list(config_path, "sparse_always_cone")
-                test_cmd_paths = _test_command_cone_paths(config_path)
+                test_cmd_paths = [
+                    *_test_command_cone_paths(config_path),
+                    *_test_command_helper_cone_paths(config_path, repo_root),
+                ]
                 # File-path inputs go through _derive_sparse_cone, which drops
                 # root-level entries (cone mode auto-materializes top-level
                 # files) and takes the parent dir of nested file paths.
-                cone_set = set(
+                # Description-derived entries are additionally validated
+                # against tracked paths (issue #1044): subdir-relative prose
+                # mentions (e.g. ui/components/ui/button.tsx meaning
+                # apps/web/...) otherwise become root-relative cone entries
+                # that match nothing. Config-sourced and operator-declared
+                # entries below are trusted as-is.
+                referenced_cone = set(_derive_sparse_cone(referenced))
+                kept, resolved, dropped = _validate_referenced_cone(
+                    repo_root, referenced_cone
+                )
+                if resolved or dropped:
+                    bits = []
+                    if resolved:
+                        resolved_display = ", ".join(
+                            f"{orig} -> {full}"
+                            for orig, full in sorted(resolved.items())
+                        )
+                        bits.append("resolved " + resolved_display)
+                    if dropped:
+                        bits.append("dropped " + ", ".join(sorted(dropped)))
+                    summary = "; ".join(bits)
+                    print(
+                        "Note: cone entries derived from the task description "
+                        f"were validated against tracked paths: {summary} "
+                        "(issue #1044). Use --cone <path> to force an entry.",
+                        file=sys.stderr,
+                    )
+                cone_set = set(kept) | set(resolved.values())
+                cone_set.update(
                     _derive_sparse_cone(
                         [
-                            *referenced,
                             *always_include,
                             *always_allowed,
                             *test_cmd_paths,
@@ -1099,6 +1362,8 @@ def cmd_create(
                     d = _normalize_cone_entry(raw or "")
                     if d:
                         cone_set.add(d)
+                if _task_mentions_ci_workflow(conn, task_id):
+                    cone_set.add(".github")
                 # --cone <path> entries are directory-shaped; pass them through
                 # without the dirname() step so `--cone docs` survives the
                 # single-segment drop and `--cone skills/tusk` lands as a
@@ -1169,7 +1434,6 @@ def cmd_create(
             symlink_names = list(CANONICAL_RUNTIME_FILES)
             is_fallback = True
         if symlink_names:
-            primary_root = _primary_repo_root(repo_root)
             created = _link_gitignored_files(
                 primary_root, workspace_path, symlink_names
             )
@@ -1188,7 +1452,7 @@ def cmd_create(
         # recorded so a slow or hung fetch never blocks task-worktree
         # create from returning the workspace JSON. Best-effort; silently
         # no-ops on any git error or when TUSK_NO_STALE_PRIMARY_ADVISORY=1.
-        _maybe_advise_stale_primary(_primary_repo_root(repo_root))
+        _maybe_advise_stale_primary(primary_root)
         print(dumps(_workspace_payload(row, created=True)))
         return 0
     except sqlite3.IntegrityError as exc:
@@ -1199,7 +1463,7 @@ def cmd_create(
 
 
 def cmd_list(db_path: str, repo_root: str, argv: list[str]) -> int:
-    parser = argparse.ArgumentParser(
+    parser = argparse.ArgumentParser(allow_abbrev=False,
         prog="tusk task-worktree list",
         description="List recorded task-owned git worktrees.",
     )
@@ -1347,7 +1611,7 @@ def _perform_reconcile(
 
 
 def cmd_reconcile(db_path: str, repo_root: str, argv: list[str]) -> int:
-    parser = argparse.ArgumentParser(
+    parser = argparse.ArgumentParser(allow_abbrev=False,
         prog="tusk task-worktree reconcile",
         description=(
             "Clean up worktrees whose tasks are Done and whose branches are "
@@ -1598,7 +1862,7 @@ def _classify_relocate_row(
 def cmd_relocate(
     db_path: str, config_path: str, repo_root: str, argv: list[str]
 ) -> int:
-    parser = argparse.ArgumentParser(
+    parser = argparse.ArgumentParser(allow_abbrev=False,
         prog="tusk task-worktree relocate",
         description=(
             "Migrate existing flat-pool task worktrees into the per-repo "
@@ -1821,7 +2085,7 @@ def cmd_relocate(
 
 
 def cmd_prune(db_path: str, repo_root: str, argv: list[str]) -> int:
-    parser = argparse.ArgumentParser(
+    parser = argparse.ArgumentParser(allow_abbrev=False,
         prog="tusk task-worktree prune",
         description="Remove stale task-owned worktree registry rows.",
     )
@@ -1890,7 +2154,8 @@ def main(argv: list[str]) -> int:
         return cmd_relocate(db_path, config_path, repo_root, rest)
 
     print(
-        "Usage: tusk task-worktree create <task_id> <slug> [--workspace-root <path>]\n"
+        "Usage: tusk task-worktree create <task_id> <slug> "
+        "[--workspace-root <path>] [--force-stale]\n"
         "       tusk task-worktree list [--format json]\n"
         "       tusk task-worktree prune [--dry-run] [--format json]\n"
         "       tusk task-worktree reconcile [--dry-run] [--yes] [--format text|json]\n"
