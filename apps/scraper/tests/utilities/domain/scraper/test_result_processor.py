@@ -14,6 +14,11 @@ def _make_processor():
         proc = ScrapingResultProcessor.__new__(ScrapingResultProcessor)
         proc.show_service = MagicMock()
         proc.metrics_service = MagicMock()
+        proc.organizer_venue_handler = MagicMock()
+        # Default: no sibling source owns any venue, no prior history. Organizer
+        # tests override these as needed.
+        proc.organizer_venue_handler.is_venue_covered_elsewhere.return_value = False
+        proc.organizer_venue_handler.get_venue_club_ids.return_value = []
     return proc
 
 
@@ -434,6 +439,111 @@ class TestStaleFutureShowReconciliation:
         """Without a scraper_key the per-venue delete cannot be scoped safely."""
         proc = self._proc()
         proc.insert_club_result(self._organizer_result([101], scraper_key=None))
+        proc.show_service.delete_stale_future_shows.assert_not_called()
+
+    # --- TASK-2859: persisted per-organizer venue history + dropped venues ---
+
+    def test_organizer_records_current_venue_set_in_history(self):
+        """A clean organizer run with a production_company_id persists this run's
+        distinct venue set so a later run can diff against it."""
+        proc = self._proc(stale_count=0)  # no stale shows; just exercise history
+        proc.organizer_venue_handler.get_venue_club_ids.return_value = []
+
+        proc.insert_club_result(
+            self._organizer_result([101, 202], production_company_id=55)
+        )
+
+        proc.organizer_venue_handler.record_venues.assert_called_once_with(
+            55, [101, 202]
+        )
+
+    def test_no_history_ops_without_production_company_id(self):
+        """Without a production_company_id the run cannot key the history table, so
+        no read/write/diff happens (TASK-2856 present-venue behaviour only)."""
+        proc = self._proc(stale_count=1)
+
+        proc.insert_club_result(self._organizer_result([101]))  # pc_id defaults None
+
+        proc.organizer_venue_handler.get_venue_club_ids.assert_not_called()
+        proc.organizer_venue_handler.record_venues.assert_not_called()
+
+    def test_dropped_venue_is_reconciled_from_history(self):
+        """A venue in the persisted prior set but absent from this run's shows
+        dropped entirely from the feed and has its stale shows reconciled."""
+        proc = self._proc(stale_count=1)
+        # Prior run saw 101, 202, 303; this run only carries 101, 202.
+        proc.organizer_venue_handler.get_venue_club_ids.return_value = [101, 202, 303]
+
+        proc.insert_club_result(
+            self._organizer_result([101, 202], production_company_id=55)
+        )
+
+        deleted_club_ids = sorted(
+            call.args[0]
+            for call in proc.show_service.delete_stale_future_shows.call_args_list
+        )
+        assert deleted_club_ids == [101, 202, 303]  # 303 reconciled as dropped
+        # The dropped venue's stale history claim is forgotten.
+        proc.organizer_venue_handler.forget_venue.assert_called_once_with(55, 303)
+        # History rewritten to this run's set.
+        proc.organizer_venue_handler.record_venues.assert_called_once_with(55, [101, 202])
+
+    def test_dropped_venue_skipped_when_covered_by_sibling_source(self):
+        """A dropped venue still owned by another organizer/direct source must NOT
+        have its shows deleted, but its stale history claim is still forgotten."""
+        proc = self._proc(stale_count=1)
+        proc.organizer_venue_handler.get_venue_club_ids.return_value = [101, 303]
+
+        def covered(pc_id, club_id):
+            return club_id == 303  # 303 is owned by a sibling source
+
+        proc.organizer_venue_handler.is_venue_covered_elsewhere.side_effect = covered
+
+        proc.insert_club_result(
+            self._organizer_result([101], production_company_id=55)
+        )
+
+        deleted_club_ids = [
+            call.args[0]
+            for call in proc.show_service.delete_stale_future_shows.call_args_list
+        ]
+        assert deleted_club_ids == [101]  # 303 NOT deleted — sibling owns it
+        proc.organizer_venue_handler.forget_venue.assert_called_once_with(55, 303)
+
+    def test_present_venue_skipped_when_covered_elsewhere(self):
+        """A present venue a sibling source also maintains is not reconciled, so
+        the sibling's non-overlapping inventory is never deleted (criterion 9184)."""
+        proc = self._proc(stale_count=1)
+        proc.organizer_venue_handler.get_venue_club_ids.return_value = []
+
+        def covered(pc_id, club_id):
+            return club_id == 202
+
+        proc.organizer_venue_handler.is_venue_covered_elsewhere.side_effect = covered
+
+        proc.insert_club_result(
+            self._organizer_result([101, 202], production_company_id=55)
+        )
+
+        deleted_club_ids = sorted(
+            call.args[0]
+            for call in proc.show_service.delete_stale_future_shows.call_args_list
+        )
+        assert deleted_club_ids == [101]  # 202 skipped — covered elsewhere
+
+    def test_coverage_check_failure_skips_reconcile_conservatively(self):
+        """If the cross-organizer coverage lookup errors, the venue is treated as
+        covered (no delete) — never delete on doubt."""
+        proc = self._proc(stale_count=1)
+        proc.organizer_venue_handler.get_venue_club_ids.return_value = []
+        proc.organizer_venue_handler.is_venue_covered_elsewhere.side_effect = RuntimeError(
+            "db down"
+        )
+
+        proc.insert_club_result(
+            self._organizer_result([101], production_company_id=55)
+        )
+
         proc.show_service.delete_stale_future_shows.assert_not_called()
 
     def test_no_reconcile_without_club_id(self):

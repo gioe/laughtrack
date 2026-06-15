@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 from typing import List, Optional
 
 from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.organizer_venue.handler import OrganizerVenueHandler
 from laughtrack.core.entities.show.service import ShowService
 from laughtrack.foundation.models.operation_result import DatabaseOperationResult
 from laughtrack.core.models.results import ClubScrapingResult
@@ -34,6 +35,7 @@ class ScrapingResultProcessor:
         """Initialize with required services."""
         self.show_service = ShowService()
         self.metrics_service = MetricsService()
+        self.organizer_venue_handler = OrganizerVenueHandler()
 
     def start_run(self) -> None:
         """Mark the start of a scraping run before any per-club writes begin."""
@@ -103,41 +105,40 @@ class ScrapingResultProcessor:
     def _reconcile_organizer_venues(
         self, club_result: ClubScrapingResult, cutoff: datetime
     ) -> None:
-        """Reconcile each per-venue club present in an organizer-mode scrape.
+        """Reconcile an organizer-mode scrape's present AND dropped venues.
 
         An Eventbrite organizer feed (source URL with ``/o/``) fans one fetch out
         to many physical venues via ``ClubHandler.upsert_for_eventbrite_venue``,
         persisting each show under its own venue club_id while
-        ``club_result.club_id`` is the synthetic proxy id. We reconcile every
-        distinct venue club_id that produced a show this run, each scoped to
-        (venue club_id, scraper_key, cutoff) under the same clean-scrape gate
-        (already checked by the caller) and the same per-venue
-        RECONCILE_DELETE_CAP. A venue still in the feed keeps its re-seen shows
-        (stamped after ``cutoff``); only its cancelled/delisted future shows are
-        removed.
+        ``club_result.club_id`` is the synthetic proxy id.
 
-        Known limitation (TASK-2856 criterion 2) — a venue dropped ENTIRELY from
-        the organizer feed (zero shows this run) is NOT reconciled here: it never
-        appears in ``club_result.shows``, and detecting it would require the
-        organizer's prior venue set. That set is not persisted — per-venue clubs
-        created by organizer mode carry no production_company_id, and their shows
-        record only ``last_scraped_by='eventbrite'``, a key shared across every
-        organizer feed and every direct Eventbrite source. So a feed-scoped
-        sweep cannot be attributed to one organizer without risking deletion of a
-        sibling source's live inventory. Safely reconciling that case needs a
-        persisted per-organizer venue history (tracked as a follow-up). Until
-        then a dropped venue's stale future shows age out only when that venue is
-        rescraped directly or cleaned up manually.
+        Present venues (TASK-2856): every distinct venue club_id that produced a
+        show this run is reconciled scoped to (venue club_id, scraper_key, cutoff)
+        under the same clean-scrape gate (already checked by the caller) and the
+        same per-venue RECONCILE_DELETE_CAP. A venue still in the feed keeps its
+        re-seen shows (stamped after ``cutoff``); only its cancelled/delisted
+        future shows are removed.
 
-        The same missing-attribution gap cuts the other way: when two distinct
-        organizer feeds (or an organizer feed and a direct Eventbrite source)
-        both route events to the SAME physical venue club_id, reconciling that
-        venue after feed A's run can delete feed B's future shows there — they
-        share last_scraped_by='eventbrite' and predate A's cutoff, so they read
-        as stale even though feed B still maintains them. The clean-scrape gate
-        and per-venue RECONCILE_DELETE_CAP bound the blast radius, but the real
-        fix is the same persisted per-organizer venue history that resolves the
-        dropped-venue case.
+        Dropped venues (TASK-2859): the organizer's prior venue set is persisted
+        in ``eventbrite_organizer_venues`` keyed by ``production_company_id``.
+        Diffing this run's venue set against that prior set surfaces venues that
+        dropped ENTIRELY from the feed (zero shows this run); their now-stale
+        future shows are reconciled too. The history table is then updated to this
+        run's venue set.
+
+        Cross-organizer safety (TASK-2859 criterion 9184): because every Eventbrite
+        show shares ``last_scraped_by='eventbrite'``, a venue covered by a second
+        organizer feed — or by its own enabled direct Eventbrite scraping source —
+        must never have its shows deleted by this organizer's reconcile. Both the
+        present- and dropped-venue paths skip any venue
+        :meth:`OrganizerVenueHandler.is_venue_covered_elsewhere` reports as owned
+        elsewhere, so a sibling source's live inventory is never touched. The
+        trade-off is that cancelled shows at a genuinely multi-organizer venue are
+        not auto-reconciled (they age out when the owning source rescrapes).
+
+        When ``production_company_id`` is absent we cannot key the history or run
+        the cross-organizer check, so only the present-venue reconcile runs
+        (the TASK-2856 behaviour).
         """
         venue_club_ids = sorted(
             {
@@ -147,13 +148,106 @@ class ScrapingResultProcessor:
                 and show.club_id != Club.SYNTHETIC_PROXY_PLACEHOLDER_ID
             }
         )
+        pc_id = club_result.production_company_id
+        scraper_key = club_result.scraper_key
+
         for club_id in venue_club_ids:
+            if pc_id is not None and self._venue_covered_elsewhere(pc_id, club_id):
+                # A sibling organizer/source still maintains this venue — leave it.
+                continue
             self._reconcile_one_venue(
                 club_id,
-                club_result.scraper_key,
+                scraper_key,
                 f"{club_result.club_name} (venue club_id={club_id})",
                 cutoff,
             )
+
+        if pc_id is None:
+            # No organizer identity → cannot persist or diff a venue set, so the
+            # present-venue reconcile above is all we can safely do.
+            return
+
+        self._reconcile_dropped_organizer_venues(
+            pc_id, scraper_key, venue_club_ids, club_result.club_name, cutoff
+        )
+
+    def _reconcile_dropped_organizer_venues(
+        self,
+        production_company_id: int,
+        scraper_key: str,
+        current_club_ids: List[int],
+        club_name: str,
+        cutoff: datetime,
+    ) -> None:
+        """Reconcile venues that vanished from this organizer's feed (TASK-2859).
+
+        Diffs the persisted prior venue set against this run's set; a venue in the
+        prior set but absent now dropped entirely and has its stale future shows
+        reconciled (unless a sibling source owns it). The history table is then
+        rewritten to this run's venue set. Never raises — bookkeeping errors are
+        logged so the run continues.
+        """
+        try:
+            prior = set(
+                self.organizer_venue_handler.get_venue_club_ids(production_company_id)
+            )
+        except Exception as e:
+            Logger.error(
+                f"Organizer venue-history read failed for "
+                f"production_company={production_company_id}: {e}"
+            )
+            return
+
+        current = set(current_club_ids)
+        for club_id in sorted(prior - current):
+            try:
+                if not self._venue_covered_elsewhere(production_company_id, club_id):
+                    self._reconcile_one_venue(
+                        club_id,
+                        scraper_key,
+                        f"{club_name} (dropped venue club_id={club_id})",
+                        cutoff,
+                    )
+                # Reconciled or owned by a sibling source, this organizer no longer
+                # produces the venue — drop the stale history claim either way.
+                self.organizer_venue_handler.forget_venue(
+                    production_company_id, club_id
+                )
+            except Exception as e:
+                Logger.error(
+                    f"Dropped-venue reconciliation failed for "
+                    f"production_company={production_company_id}, club_id={club_id}: {e}"
+                )
+
+        try:
+            self.organizer_venue_handler.record_venues(
+                production_company_id, sorted(current)
+            )
+        except Exception as e:
+            Logger.error(
+                f"Organizer venue-history write failed for "
+                f"production_company={production_company_id}: {e}"
+            )
+
+    def _venue_covered_elsewhere(
+        self, production_company_id: int, club_id: int
+    ) -> bool:
+        """Is this venue maintained by a sibling Eventbrite source? (criterion 9184)
+
+        On a lookup error, return True (conservative): never delete a venue's
+        shows when we cannot confirm this organizer exclusively owns it.
+        """
+        try:
+            return self.organizer_venue_handler.is_venue_covered_elsewhere(
+                production_company_id, club_id
+            )
+        except Exception as e:
+            Logger.error(
+                f"Cross-organizer coverage check failed for "
+                f"production_company={production_company_id}, club_id={club_id}; "
+                f"skipping reconcile to stay safe: {e}"
+            )
+            return True
 
     def _reconcile_one_venue(
         self, club_id: int, scraper_key: str, label: str, cutoff: datetime
