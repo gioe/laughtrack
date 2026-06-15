@@ -100,6 +100,20 @@ public final class CurrentLocationZipResolver: NSObject, NearbyLocationResolving
     }
 }
 
+extension CurrentLocationZipResolver: ForegroundLocationAuthorizing {
+    /// True only when the user has already granted location access, so a silent
+    /// foreground refresh never triggers an authorization prompt. `.notDetermined`,
+    /// `.denied`, and `.restricted` all report `false`.
+    public var isLocationAuthorizedForForegroundRefresh: Bool {
+        switch locationManager.authorizationStatus {
+        case .authorizedAlways, .authorizedWhenInUse:
+            return true
+        default:
+            return false
+        }
+    }
+}
+
 extension CurrentLocationZipResolver: @preconcurrency CLLocationManagerDelegate {
     public func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         let status = manager.authorizationStatus

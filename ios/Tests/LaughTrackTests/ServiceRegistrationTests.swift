@@ -105,6 +105,7 @@ struct ServiceRegistrationTests {
         #expect(container.resolveOptional((any NearbyLocationResolving).self) != nil)
         #expect(container.resolveOptional((any ZipLocationResolving).self) != nil)
         #expect(container.resolveOptional(NearbyLocationController.self) != nil)
+        #expect(container.resolveOptional(ForegroundLocationRefresher.self) != nil)
     }
 
     @Test("NearbyPreferenceStore and NearbyLocationController are shared singletons across resolutions")

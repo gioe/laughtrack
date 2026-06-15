@@ -80,6 +80,15 @@ public enum ServiceRegistration {
                 zipLocationResolver: container.resolve((any ZipLocationResolving).self)
             )
         }
+        container.register(ForegroundLocationRefresher.self, scope: .appLevel) {
+            let resolver = container.resolve((any NearbyLocationResolving).self)
+            return ForegroundLocationRefresher(
+                store: container.resolve(NearbyPreferenceStore.self),
+                resolver: resolver,
+                authorization: resolver as? (any ForegroundLocationAuthorizing),
+                syncClient: container.resolveOptional((any ProfileLocationPreferenceSyncing).self)
+            )
+        }
     }
 
     @MainActor

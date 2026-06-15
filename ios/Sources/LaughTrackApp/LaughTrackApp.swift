@@ -17,6 +17,7 @@ struct LaughTrackApp: App {
     @StateObject private var authManager: AuthManager
     @StateObject private var loginModalPresenter = LoginModalPresenter()
     @StateObject private var clubFavorites = ClubFavoriteStore()
+    @Environment(\.scenePhase) private var scenePhase
     #if canImport(UIKit)
     @UIApplicationDelegateAdaptor(LaughTrackRemoteNotificationDelegate.self) private var remoteNotificationDelegate
     #endif
@@ -24,6 +25,7 @@ struct LaughTrackApp: App {
     private let container: ServiceContainer
     private let apiClient: Client
     private let theme: LaughTrackTheme
+    private let foregroundLocationRefresher: ForegroundLocationRefresher
 
     init() {
         Self.resetPersistentStateForUITestsIfNeeded()
@@ -31,6 +33,7 @@ struct LaughTrackApp: App {
         self.container = bootstrap.container
         self.apiClient = bootstrap.apiClient
         self.theme = bootstrap.theme
+        self.foregroundLocationRefresher = bootstrap.container.resolve(ForegroundLocationRefresher.self)
         _authManager = StateObject(wrappedValue: bootstrap.authManager)
         #if canImport(UIKit)
         remoteNotificationDelegate.pushTokenManager = bootstrap.container.resolveOptional((any PushDeviceTokenManaging).self)
@@ -58,6 +61,14 @@ struct LaughTrackApp: App {
                 .environmentObject(clubFavorites)
                 .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
                 .preferredColorScheme(.dark)
+                .onChange(of: scenePhase) { newPhase in
+                    // Keep the backend ZIP fresh for the location-based push job.
+                    // Silent + gated (already-geolocated + already-authorized);
+                    // skipped under mock mode so screenshot/UI-test launches
+                    // never reach for the device location.
+                    guard newPhase == .active, !MockModeDetector.isMockMode else { return }
+                    foregroundLocationRefresher.refreshIfEligible()
+                }
                 #if DEBUG
                 .task {
                     guard let route = DebugLaunchRoute.routeFromEnvironment() else { return }
