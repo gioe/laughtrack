@@ -33,6 +33,11 @@ class Show(DatabaseEntity):
     room: Optional[str] = ""
     production_company_id: Optional[int] = None
     last_scraped_by: Optional[str] = None  # scraper_key of the producer; stamped at persistence
+    # production_company_id of the Eventbrite organizer whose /o/ feed produced
+    # this show; stamped at persistence for organizer-mode scrapes (TASK-2861).
+    # NULL for non-organizer shows. Scopes the stale-show reconcile DELETE to one
+    # organizer so a sibling source's shows at a shared venue are never deleted.
+    scraped_by_organizer_id: Optional[int] = None
     first_discovered_at: Optional[datetime] = None
     id: Optional[int] = None  # Database ID
     operation_type: Optional[str] = None  # 'inserted' or 'updated'
@@ -117,6 +122,7 @@ class Show(DatabaseEntity):
             popularity=row.get("popularity", 0.0),
             production_company_id=row.get("production_company_id"),
             last_scraped_by=row.get("last_scraped_by"),
+            scraped_by_organizer_id=row.get("scraped_by_organizer_id"),
             first_discovered_at=row.get("first_discovered_at"),
         )
 
@@ -137,6 +143,7 @@ class Show(DatabaseEntity):
             self.room,
             self.production_company_id,
             self.last_scraped_by,
+            self.scraped_by_organizer_id,
         )
 
     def to_unique_key(self) -> tuple:

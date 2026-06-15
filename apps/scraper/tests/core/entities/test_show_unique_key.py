@@ -66,14 +66,32 @@ def test_to_tuple_emits_last_scraped_by_in_position_8():
     """Position must match BATCH_INSERT_SHOWS column order (TASK-2051).
 
     INSERT columns: name, show_page_url, description, date, club_id,
-    last_scraped_date, room, production_company_id, last_scraped_by.
-    Drift between this tuple and the SQL would mis-stamp every persisted
-    show across the fleet, so we lock the index in.
+    last_scraped_date, room, production_company_id, last_scraped_by,
+    scraped_by_organizer_id. Drift between this tuple and the SQL would
+    mis-stamp every persisted show across the fleet, so we lock the index in.
     """
     show = _show(datetime(2026, 4, 15, 20, 0, 0))
     show.last_scraped_by = "live_nation"
 
     assert show.to_tuple()[8] == "live_nation"
+
+
+def test_to_tuple_emits_scraped_by_organizer_id_in_position_9():
+    """Position must match BATCH_INSERT_SHOWS column order (TASK-2861).
+
+    scraped_by_organizer_id is the 10th INSERT column (index 9), right after
+    last_scraped_by. Locking the index guards the organizer-attribution stamp
+    from silently drifting onto the wrong column across the fleet.
+    """
+    show = _show(datetime(2026, 4, 15, 20, 0, 0))
+    show.scraped_by_organizer_id = 55
+
+    assert show.to_tuple()[9] == 55
+
+
+def test_to_tuple_scraped_by_organizer_id_defaults_to_none():
+    show = _show(datetime(2026, 4, 15, 20, 0, 0))
+    assert show.to_tuple()[9] is None
 
 
 def test_to_tuple_last_scraped_by_defaults_to_none():

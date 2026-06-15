@@ -81,7 +81,8 @@ model ProductionCompany {
   showNameKeywords String[]                 @default([]) @map("show_name_keywords")
   venues           ProductionCompanyVenue[]
   organizerVenues  EventbriteOrganizerVenue[]
-  shows            Show[]
+  shows            Show[]                    @relation("ShowProductionCompany")
+  scrapedShows     Show[]                    @relation("ShowScrapedByOrganizer")
 
   @@map("production_companies")
 }
@@ -693,6 +694,13 @@ model Show {
   description          String?
   room                 String?
   productionCompanyId  Int?                       @map("production_company_id")
+  // The Eventbrite organizer (production company) whose /o/ feed most recently
+  // produced this show, stamped at persist time for organizer-mode scrapes
+  // (TASK-2861). Lets the stale-show reconciler scope its DELETE to one
+  // organizer so a sibling organizer/source's shows at a shared venue are never
+  // deleted, and cancelled shows at multi-organizer venues ARE reconciled.
+  // NULL for non-organizer (single-venue / direct) shows.
+  scrapedByOrganizerId Int?                       @map("scraped_by_organizer_id")
   // Denormalized cheapest *paid* ticket price (excludes price = 0 / NULL).
   // Maintained by the tickets_trickle_show_min_price_{ins,del,upd} triggers
   // on tickets so the shows search can ORDER BY price without a per-row
@@ -701,7 +709,8 @@ model Show {
   minPrice             Decimal?                   @map("min_price") @db.Decimal(7, 2)
   lineupItems          LineupItem[]
   club                 Club                       @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  productionCompany    ProductionCompany?         @relation(fields: [productionCompanyId], references: [id])
+  productionCompany    ProductionCompany?         @relation("ShowProductionCompany", fields: [productionCompanyId], references: [id])
+  scrapedByOrganizer   ProductionCompany?         @relation("ShowScrapedByOrganizer", fields: [scrapedByOrganizerId], references: [id], onDelete: SetNull)
   taggedShows          TaggedShow[]
   tickets              Ticket[]
   sentNotifications    SentNotification[]
@@ -718,6 +727,9 @@ model Show {
   @@unique([clubId, date, room])
   @@index([date])
   @@index([productionCompanyId])
+  // Scopes the organizer-attributed stale-show reconcile DELETE/COUNT
+  // (WHERE club_id = ? AND scraped_by_organizer_id = ? AND date > NOW() ...).
+  @@index([clubId, scrapedByOrganizerId])
   // Intentional attribution audit index. Broad row-returning NULL/inequality
   // audits still use seq scans, but count-style audits use index-only scans
   // and equality audits use bitmap scans; the deployed index is small enough
