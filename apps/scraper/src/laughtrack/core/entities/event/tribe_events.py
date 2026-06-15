@@ -50,12 +50,18 @@ class TribeEvent(ShowConvertible):
         show_url = url or self.url
 
         tickets = []
-        if self.cost_values:
+        # Tribe's cost_details.values are not guaranteed to be sorted, so pick
+        # the lowest parseable numeric value as the displayed (from) price.
+        numeric_costs = []
+        for v in self.cost_values:
             try:
-                price = float(self.cost_values[0])
-                tickets.append(ShowFactoryUtils.create_fallback_ticket(show_url, price=price, sold_out=is_sold_out))
+                numeric_costs.append(float(v))
             except (ValueError, TypeError):
-                pass
+                continue
+        if numeric_costs:
+            tickets.append(
+                ShowFactoryUtils.create_fallback_ticket(show_url, price=min(numeric_costs), sold_out=is_sold_out)
+            )
         if not tickets and show_url:
             tickets.append(ShowFactoryUtils.create_fallback_ticket(show_url, sold_out=is_sold_out))
 

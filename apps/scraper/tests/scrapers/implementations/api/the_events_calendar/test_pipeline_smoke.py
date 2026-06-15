@@ -211,6 +211,16 @@ def test_to_show_creates_ticket_from_cost_values():
     assert show.tickets[0].price == 25.0
 
 
+def test_to_show_picks_lowest_price_when_cost_values_unsorted():
+    """to_show() picks the minimum numeric cost_value even when values are out of order."""
+    event = _make_event(cost_values=["40", "25", "55"])
+    show = event.to_show(_club())
+
+    assert show is not None
+    assert len(show.tickets) == 1
+    assert show.tickets[0].price == 25.0
+
+
 def test_to_show_creates_fallback_ticket_on_non_numeric_cost():
     """to_show() still creates a (price-less) ticket when cost_values are non-numeric."""
     event = _make_event(cost_values=["varies"])
