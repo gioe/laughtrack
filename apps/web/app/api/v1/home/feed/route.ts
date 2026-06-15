@@ -3,6 +3,7 @@ import { withRequestMetrics } from "@/lib/metrics";
 import { auth } from "@/auth";
 import { getTrendingComedians } from "@/lib/data/home/getTrendingComedians";
 import { getClubs } from "@/lib/data/home/getClubs";
+import { getClubsByZip } from "@/lib/data/home/getClubsByZip";
 import { getComediansByZip } from "@/lib/data/home/getComediansByZip";
 import { getShowsTonight } from "@/lib/data/home/getShowsTonight";
 import { getShowsNearZip } from "@/lib/data/home/getShowsNearZip";
@@ -96,9 +97,23 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                 : getTrendingComedians().catch(
                       logSectionError("getTrendingComedians"),
                   ),
-            getClubs(8, 0, { requireImage: true }).catch(
-                logSectionError("getClubs"),
-            ),
+            // Zip-scope the popular-clubs rail so it re-localizes when the
+            // caller changes their zip (iOS already passes ?zip and re-fetches;
+            // it was only ever getting the global list back). Fall back to the
+            // global list when no zip resolves or no nearby clubs are found.
+            zipCode
+                ? getClubsByZip(zipCode, distanceMiles, 8, {
+                      requireImage: true,
+                  })
+                      .then((clubs) =>
+                          clubs.length > 0
+                              ? clubs
+                              : getClubs(8, 0, { requireImage: true }),
+                      )
+                      .catch(logSectionError("getClubsByZip"))
+                : getClubs(8, 0, { requireImage: true }).catch(
+                      logSectionError("getClubs"),
+                  ),
             zipCode
                 ? getComediansByZip(zipCode, distanceMiles).catch(
                       logSectionError("getComediansByZip"),

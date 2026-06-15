@@ -24,6 +24,9 @@ vi.mock("@/lib/data/home/getTrendingComedians", () => ({
 vi.mock("@/lib/data/home/getClubs", () => ({
     getClubs: vi.fn(),
 }));
+vi.mock("@/lib/data/home/getClubsByZip", () => ({
+    getClubsByZip: vi.fn(),
+}));
 vi.mock("@/lib/data/home/getComediansByZip", () => ({
     getComediansByZip: vi.fn(),
 }));
@@ -46,6 +49,7 @@ import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { getHeroContext } from "@/lib/data/home/getHeroContext";
 import { getTrendingComedians } from "@/lib/data/home/getTrendingComedians";
 import { getClubs } from "@/lib/data/home/getClubs";
+import { getClubsByZip } from "@/lib/data/home/getClubsByZip";
 import { getComediansByZip } from "@/lib/data/home/getComediansByZip";
 import { getShowsTonight } from "@/lib/data/home/getShowsTonight";
 import { getShowsNearZip } from "@/lib/data/home/getShowsNearZip";
@@ -63,6 +67,7 @@ const mockRateLimitHeaders = vi.mocked(rateLimitHeaders);
 const mockGetHeroContext = vi.mocked(getHeroContext);
 const mockGetTrendingComedians = vi.mocked(getTrendingComedians);
 const mockGetClubs = vi.mocked(getClubs);
+const mockGetClubsByZip = vi.mocked(getClubsByZip);
 const mockGetComediansByZip = vi.mocked(getComediansByZip);
 const mockGetShowsTonight = vi.mocked(getShowsTonight);
 const mockGetShowsNearZip = vi.mocked(getShowsNearZip);
@@ -83,6 +88,7 @@ function makeRequest(
 function primeHappyPath() {
     mockGetTrendingComedians.mockResolvedValue([]);
     mockGetClubs.mockResolvedValue([]);
+    mockGetClubsByZip.mockResolvedValue([]);
     mockGetComediansByZip.mockResolvedValue([]);
     mockGetShowsTonight.mockResolvedValue([]);
     mockGetShowsNearZip.mockResolvedValue([]);
@@ -159,6 +165,9 @@ describe("GET /api/v1/home/feed", () => {
                 50,
             );
             expect(mockGetShowsNearZip).toHaveBeenCalledWith("94108", 50);
+            expect(mockGetClubsByZip).toHaveBeenCalledWith("94108", 50, 8, {
+                requireImage: true,
+            });
             expect(mockGetTrendingShowsThisWeek).toHaveBeenCalledWith(
                 "UTC",
                 "94108",
@@ -227,6 +236,72 @@ describe("GET /api/v1/home/feed", () => {
             expect(body.data.comediansNearYou).toEqual([]);
             expect(body.data.moreNearYou).toEqual([]);
             expect(body.data.hero.shows).toEqual([]);
+        });
+    });
+
+    describe("popularClubs zip-scoping", () => {
+        it("returns zip-scoped clubs and does not fall back when nearby clubs exist", async () => {
+            mockGetHeroContext.mockResolvedValue({
+                zipCode: "10001",
+                city: "New York",
+                state: "NY",
+            });
+            mockGetClubsByZip.mockResolvedValue([
+                { id: 1, name: "Local Club" },
+            ] as never);
+
+            const res = await GET(makeRequest({ zip: "10001" }));
+            const body = await res.json();
+
+            expect(res.status).toBe(200);
+            expect(mockGetClubsByZip).toHaveBeenCalled();
+            expect(
+                body.data.popularClubs.map((c: { id: number }) => c.id),
+            ).toEqual([1]);
+            // Nearby clubs found → no global fallback fetch.
+            expect(mockGetClubs).not.toHaveBeenCalled();
+        });
+
+        it("falls back to the global club list when no nearby clubs are found", async () => {
+            mockGetHeroContext.mockResolvedValue({
+                zipCode: "59718",
+                city: "Bozeman",
+                state: "MT",
+            });
+            mockGetClubsByZip.mockResolvedValue([]);
+            mockGetClubs.mockResolvedValue([
+                { id: 99, name: "Global Club" },
+            ] as never);
+
+            const res = await GET(makeRequest({ zip: "59718" }));
+            const body = await res.json();
+
+            expect(res.status).toBe(200);
+            expect(mockGetClubsByZip).toHaveBeenCalled();
+            expect(mockGetClubs).toHaveBeenCalledWith(8, 0, {
+                requireImage: true,
+            });
+            expect(
+                body.data.popularClubs.map((c: { id: number }) => c.id),
+            ).toEqual([99]);
+        });
+
+        it("uses the global club list (no zip-scoped fetch) when no zip resolves", async () => {
+            mockGetClubs.mockResolvedValue([
+                { id: 42, name: "Global Club" },
+            ] as never);
+
+            const res = await GET(makeRequest());
+            const body = await res.json();
+
+            expect(res.status).toBe(200);
+            expect(mockGetClubsByZip).not.toHaveBeenCalled();
+            expect(mockGetClubs).toHaveBeenCalledWith(8, 0, {
+                requireImage: true,
+            });
+            expect(
+                body.data.popularClubs.map((c: { id: number }) => c.id),
+            ).toEqual([42]);
         });
     });
 
