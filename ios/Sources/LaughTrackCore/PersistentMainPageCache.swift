@@ -14,13 +14,30 @@ public actor PersistentMainPageCache {
 
     public static let shared = PersistentMainPageCache()
 
+    /// Stamp persisted entries with the app build number. Entries are decoded
+    /// into generated OpenAPI types (`Components.Schemas.*`); when a new build
+    /// changes the home-feed schema, a blob written by a prior build may no
+    /// longer decode — or worse, decode into a semantically wrong value. Keying
+    /// on the build number means any entry from a different build is treated as
+    /// a miss and refetched, instead of bleeding stale data into the Discover
+    /// rails (TASK-2919). CFBundleVersion changes on every build, so this also
+    /// covers schema changes that happen to remain decode-compatible.
+    public static var defaultSchemaVersion: String {
+        (Bundle.main.infoDictionary?["CFBundleVersion"] as? String) ?? "0"
+    }
+
     private struct Entry<Value: Codable>: Codable {
         let value: Value
         let expiresAt: Date
+        // Optional so a legacy entry written before this field existed decodes
+        // successfully and is then invalidated by the version mismatch below
+        // (rather than being silently treated as current).
+        let schemaVersion: String?
     }
 
     private let directory: URL
     private let fileManager: FileManager
+    private let schemaVersion: String
     private let decoder = JSONDecoder()
     private let encoder = JSONEncoder()
 
@@ -28,10 +45,12 @@ public actor PersistentMainPageCache {
         directory: URL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)
             .first!
             .appendingPathComponent("LaughTrackMainPageCache", isDirectory: true),
-        fileManager: FileManager = .default
+        fileManager: FileManager = .default,
+        schemaVersion: String = PersistentMainPageCache.defaultSchemaVersion
     ) {
         self.directory = directory
         self.fileManager = fileManager
+        self.schemaVersion = schemaVersion
         Self.purgeOrphanedNearbyShowsFiles(in: directory, fileManager: fileManager)
     }
 
@@ -88,7 +107,11 @@ public actor PersistentMainPageCache {
     }
 
     private func set<Value: Codable & Sendable>(_ value: Value, fileName: String, ttl: TimeInterval) {
-        let entry = Entry(value: value, expiresAt: Date().addingTimeInterval(ttl))
+        let entry = Entry(
+            value: value,
+            expiresAt: Date().addingTimeInterval(ttl),
+            schemaVersion: schemaVersion
+        )
 
         do {
             try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -105,12 +128,23 @@ public actor PersistentMainPageCache {
         do {
             let data = try Data(contentsOf: url)
             let entry = try decoder.decode(Entry<Value>.self, from: data)
+            // A blob written by a different build may decode into a semantically
+            // stale value; treat a version mismatch (or a legacy entry with no
+            // stamped version) as a miss and delete it so it is refetched.
+            guard entry.schemaVersion == schemaVersion else {
+                try? fileManager.removeItem(at: url)
+                return nil
+            }
             guard Date() < entry.expiresAt else {
                 try? fileManager.removeItem(at: url)
                 return nil
             }
             return CachedValue(value: entry.value, expiresAt: entry.expiresAt)
         } catch {
+            // Undecodable entry (corrupt, or a prior build's incompatible
+            // schema): delete it so a stale blob never blocks the feed, then
+            // report a miss so the caller refetches from the network.
+            try? fileManager.removeItem(at: url)
             return nil
         }
     }
