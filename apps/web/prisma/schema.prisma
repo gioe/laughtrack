@@ -707,7 +707,15 @@ model Show {
 
 model TicketPurchaseClickEvent {
   id                 Int          @id @default(autoincrement())
-  showId             Int          @map("show_id")
+  // Nullable so a show hard-delete (stale-show reconciler, cleanup scripts,
+  // bulk future-show purges) sets show_id NULL instead of cascade-deleting the
+  // click event. The attribution that matters survives the show: club_id stays
+  // valid (a show delete never deletes its club) and destination_url /
+  // routed_destination_url / destination_provider / affiliate_applied /
+  // fallback_reason / source_surface are denormalized onto the row. Show-level
+  // click aggregations join on show_id equality, which naturally excludes the
+  // orphaned rows; club-level and global revenue/attribution reporting keep them.
+  showId             Int?         @map("show_id")
   clubId             Int          @map("club_id")
   profileId          String?      @map("profile_id")
   anonymousVisitorId String       @map("anonymous_visitor_id")
@@ -720,7 +728,7 @@ model TicketPurchaseClickEvent {
   userAgent          String?      @map("user_agent")
   deviceMetadata     Json         @default("{}") @map("device_metadata")
   createdAt          DateTime     @default(now()) @map("created_at") @db.Timestamptz
-  show               Show         @relation(fields: [showId], references: [id], onDelete: Cascade)
+  show               Show?        @relation(fields: [showId], references: [id], onDelete: SetNull)
   club               Club         @relation(fields: [clubId], references: [id], onDelete: Cascade)
   profile            UserProfile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
 
