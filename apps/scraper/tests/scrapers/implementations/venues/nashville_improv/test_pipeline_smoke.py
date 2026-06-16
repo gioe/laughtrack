@@ -160,7 +160,7 @@ async def test_full_pipeline_transformation_produces_shows(monkeypatch):
     monkeypatch.setattr(
         SquarespaceExtractor,
         "extract_events",
-        staticmethod(lambda resp, domain: [fake_event]),
+        staticmethod(lambda resp, domain, exclude_title_re=None: [fake_event]),
     )
 
     async def fake_fetch_json(self, url: str, **kwargs):
@@ -203,7 +203,7 @@ async def test_show_page_url_uses_nashvilleimprov_domain(monkeypatch):
     monkeypatch.setattr(
         SquarespaceExtractor,
         "extract_events",
-        staticmethod(lambda resp, domain: [fake_event]),
+        staticmethod(lambda resp, domain, exclude_title_re=None: [fake_event]),
     )
 
     async def fake_fetch_json(self, url: str, **kwargs):
