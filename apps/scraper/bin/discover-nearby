@@ -180,8 +180,35 @@ def _load_existing_clubs(dsn):
     return by_place_id, name_rows
 
 
-def _classify(venue, origin, by_place_id, name_rows, name_match_miles):
-    """Tag a discovered venue as known / likely / new against existing clubs."""
+def _load_denied_place_ids(dsn):
+    """Return the set of Google place_ids on the venue deny-list.
+
+    Venues are deny-listed after discovery when they are evaluated and rejected
+    as non-comedy (e.g. live-music venues with no stand-up on their own
+    calendar). Returns an empty set if the table does not exist yet so the tool
+    still runs against a DB that predates the venue_deny_list migration.
+    """
+    import psycopg2
+
+    from laughtrack.foundation.db_util import connect_with_retry
+
+    conn = connect_with_retry(dsn)
+    try:
+        conn.autocommit = True
+        with conn.cursor() as cur:
+            try:
+                cur.execute("SELECT google_place_id FROM venue_deny_list")
+                return {row[0] for row in cur.fetchall() if row[0]}
+            except psycopg2.errors.UndefinedTable:
+                return set()
+    finally:
+        conn.close()
+
+
+def _classify(venue, origin, by_place_id, name_rows, name_match_miles, denied_place_ids=frozenset()):
+    """Tag a discovered venue as denied / known / likely / new against existing clubs."""
+    if venue.place_id in denied_place_ids:
+        return "denied", None, None
     if venue.place_id in by_place_id:
         club_id, club_name = by_place_id[venue.place_id]
         return "known", club_id, club_name
@@ -259,13 +286,16 @@ def main() -> None:
 
     dsn = _resolve_database_url()
     by_place_id, name_rows = _load_existing_clubs(dsn)
+    denied_place_ids = _load_denied_place_ids(dsn)
 
     results = []
     for venue in deduped.values():
         dist = _haversine_miles(o_lat, o_lng, venue.lat, venue.lng)
         if dist > args.radius:
             continue
-        status, club_id, club_name = _classify(venue, origin, by_place_id, name_rows, args.name_match_miles)
+        status, club_id, club_name = _classify(
+            venue, origin, by_place_id, name_rows, args.name_match_miles, denied_place_ids
+        )
         if args.new_only and status != "new":
             continue
         results.append(
@@ -286,7 +316,7 @@ def main() -> None:
     if args.limit is not None:
         results = results[: args.limit]
 
-    counts = {"new": 0, "likely": 0, "known": 0}
+    counts = {"new": 0, "likely": 0, "known": 0, "denied": 0}
     for r in results:
         counts[r["status"]] = counts.get(r["status"], 0) + 1
     print(
@@ -294,7 +324,9 @@ def main() -> None:
         file=sys.stderr,
     )
     print(
-        f"{len(results)} venue(s): " f"{counts['new']} new, {counts['likely']} likely-known, {counts['known']} known",
+        f"{len(results)} venue(s): "
+        f"{counts['new']} new, {counts['likely']} likely-known, {counts['known']} known, "
+        f"{counts['denied']} deny-listed",
         file=sys.stderr,
     )
 
@@ -329,7 +361,7 @@ def _render(results, fmt) -> None:
     if not results:
         print("(no venues found)")
         return
-    tag = {"new": "NEW   ", "likely": "likely", "known": "known "}
+    tag = {"new": "NEW   ", "likely": "likely", "known": "known ", "denied": "denied"}
     for r in results:
         loc = r["address"] or ""
         suffix = ""
