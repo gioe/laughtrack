@@ -180,7 +180,7 @@ Navigate to the venue page and inspect XHR/fetch requests:
 | `tockify.com/api/ngevent?calname=...` | Tockify | json_feed | Venue-specific (ref: `ice_house`) |
 | `/api/open/GetItemsByMonth?collectionId=...` | Squarespace | json_feed | `squarespace` scraper (generic) |
 | `crowdwork.com/api/v2/{theatre}/shows` | Crowdwork | json_feed | Venue-specific (ref: `io_theater`) |
-| `plugin.vbotickets.com` | VBO Tickets | html | Venue-specific (ref: `esthers_follies`) |
+| `plugin.vbotickets.com` / `connect.vbotickets.com` | VBO Tickets | html | `vbo_tickets` scraper (generic, multi-event listing; `source_url`=loadplugin URL) or venue-specific (ref: `esthers_follies`) for single-recurring-show venues |
 | `/.netlify/functions/availability` | Netlify Functions | json_feed | Venue-specific (ref: `east_austin_comedy`) |
 | `/wp-json/tribe/events/v1/events` | Tribe Events (WP) | json_feed | `the_events_calendar` scraper (generic) |
 | `wix-one-events-server/web/paginated-events` | Wix Events | external_api | Venue-specific (ref: `bushwick`) |
@@ -246,7 +246,8 @@ Copy the reference implementation and modify:
 | Tockify | `ice_house` | `calname` parameter |
 | Wix Events | `bushwick` or `red_room` | `compId` parameter |
 | Crowdwork | `io_theater` or `logan_square_improv` | Theatre slug |
-| VBO Tickets | `esthers_follies` | `SITE_ID` and `EID` constants |
+| VBO Tickets (multi-event) | `vbo_tickets` (generic) | `SiteID` GUID in `source_url` loadplugin URL |
+| VBO Tickets (single recurring show) | `esthers_follies` | `SITE_ID` and `EID` constants |
 | SquadUP | `sunset_strip` or `dynasty_typewriter` | `user_ids` parameter |
 | TicketSource | `comedy_clubhouse` | Venue slug |
 | OvationTix (calendar) | `uncle_vinnies` | Production discovery URL |

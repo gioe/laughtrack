@@ -601,12 +601,17 @@ The `<theatre>` value comes from the `data-theatre` attribute on the embedded sc
 
 | | |
 |---|---|
-| **Scraper key** | Venue-specific (e.g. `esthers_follies`) |
-| **DB field** | `scraping_url` (venue tickets page URL) |
-| **Generic?** | ❌ Requires a new venue-specific scraper |
+| **Scraper key** | `vbo_tickets` (generic, multi-event listing) — or venue-specific (`esthers_follies`, `nest_theatre`, `csz_philadelphia`) for single-recurring-show venues |
+| **DB field** | `source_url` = the loadplugin URL `https://plugin.vbotickets.com/plugin/loadplugin?siteid=<SITE_ID>&page=ListEvents` |
+| **Platform enum** | `custom` |
+| **Generic?** | ✅ for multi-event venues — use `vbo_tickets`; it reads the SiteID from `source_url`, no per-venue code |
+
+**Which scraper:** Use the generic **`vbo_tickets`** scraper for venues whose VBO plugin renders a multi-event listing (the `/Plugin/events/showevents?ViewType=list` grid — many distinct shows). The venue-specific scrapers (`esthers_follies`, `nest_theatre`, `csz_philadelphia`) predate it and model a single recurring show via the per-event date slider; new multi-event venues should use `vbo_tickets`.
+
+**`vbo_tickets` setup:** insert a `scraping_sources` row with `platform='custom'`, `scraper_key='vbo_tickets'`, and `source_url` = the loadplugin URL with the venue's SiteID. The scraper acquires a session from that URL, then GETs `https://plugin.vbotickets.com/Plugin/events/showevents?ViewType=list&EventType=current&day=&s=<session>` and parses each `<div id="EDID…">` block (`data-event-name`, `.TextEventDate`, `.EventListPrice`, `event.asp?eid=`). **Find the SiteID** in the venue's `/tickets` page inline JS: `var SiteID = "<GUID>";`.
 
 **Detection signals:**
-- Network requests to `plugin.vbotickets.com`
+- Network requests to `plugin.vbotickets.com` / `connect.vbotickets.com`
 - Ticketing iframe loads `plugin.vbotickets.com/plugin/loadplugin?siteid=<UUID>`
 
 **Session flow:** VBO uses a session-based iframe — there is no unauthenticated public JSON API.
