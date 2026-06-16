@@ -308,6 +308,21 @@ model ComedianDenyList {
   @@map("comedian_deny_list")
 }
 
+// Discovered venues (via discover-comedy-venues) that were evaluated and
+// rejected as non-comedy — e.g. live-music venues whose own calendar carries no
+// stand-up. Keyed on Google place_id so discover-nearby can classify them
+// "denied" and never re-file an onboarding task, and so a zero-show triage /
+// adopt-scraper pass knows the venue was deliberately excluded (not a gap).
+model VenueDenyList {
+  googlePlaceId String   @id @map("google_place_id")
+  name          String
+  reason        String   @default("")
+  addedBy       String   @default("discovery_triage") @map("added_by")
+  deniedAt      DateTime @default(now()) @map("denied_at") @db.Timestamptz
+
+  @@map("venue_deny_list")
+}
+
 model ComedianPodcastDiscoveryAttempt {
   id              Int      @id @default(autoincrement())
   comedianId      Int      @map("comedian_id")
