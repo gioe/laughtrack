@@ -1747,6 +1747,28 @@ venue has switched checkout platforms before.
 
 ---
 
+### BookTix
+
+`scraper_key = booktix`, `platform = custom` (BookTix has no dedicated
+`ScrapingPlatform` enum value). Generic, serves any venue with a BookTix box
+office at `https://{org}.booktix.com`. Two-step, **static HTML** (no JSON-LD, no
+public JSON API, no JS rendering needed — curl_cffi suffices):
+
+1. **Discovery** — the box office home `https://{org}.booktix.com/dept/main`
+   lists each production as `/dept/main/e/{code}` links. `source_url` = that home
+   URL. `extract_event_urls` regexes the codes (deduped) into production-page URLs.
+2. **Detail** — each production page (`/dept/main/e/{code}`) is server-rendered:
+   - **name**: the `<h3 class="text-2xl font-bold ...">` heading
+   - **showtimes**: text like `Sat Jun 20 2026 - 7:00 PM` (a production page lists
+     ALL its showtimes — one `Show` per showtime)
+   - **price**: the `$N` token (lowest on the page = GA)
+
+Production pages include **past** showtimes of a multi-weekend run, so
+`BookTixEvent.to_show` filters showtimes earlier than now (there is no global
+past-show filter). Onboarded: Makeshift Theater Akron (`makeshift.booktix.com`).
+
+---
+
 ## Implementation Patterns
 
 ### Playwright Network Inspection for JS-Heavy Sites
