@@ -102,19 +102,28 @@ class _Club:
 
 class TestToShow:
     def test_builds_show_with_localized_date(self):
+        # Far-future date so the test is not time-fragile against the past filter.
         ev = BookTixEvent(
             title="Point of No Return Improv Comedy",
-            start_date_str="Sat Jun 20 2026 - 7:00 PM",
+            start_date_str="Sat Jun 20 2099 - 7:00 PM",
             ticket_url="https://makeshift.booktix.com/dept/main/e/PNRJune",
             price=8.0,
         )
         show = ev.to_show(_Club())
         assert show is not None
         assert show.name == "Point of No Return Improv Comedy"
-        # 7:00 PM America/New_York on 2026-06-20
-        expected = pytz.timezone("America/New_York").localize(datetime(2026, 6, 20, 19, 0))
+        # 7:00 PM America/New_York on 2099-06-20
+        expected = pytz.timezone("America/New_York").localize(datetime(2099, 6, 20, 19, 0))
         assert show.date == expected
         assert show.show_page_url == "https://makeshift.booktix.com/dept/main/e/PNRJune"
+
+    def test_past_showtime_returns_none(self):
+        ev = BookTixEvent(
+            title="Old Show",
+            start_date_str="Mon Jan 06 2020 - 7:00 PM",
+            ticket_url="u",
+        )
+        assert ev.to_show(_Club()) is None
 
     def test_unparseable_date_returns_none(self):
         ev = BookTixEvent(title="X", start_date_str="not a date", ticket_url="u")

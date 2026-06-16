@@ -12,7 +12,7 @@ showtime — the production name is shared across its showtimes.
 import pytz
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from laughtrack.core.entities.club.model import Club
@@ -54,6 +54,12 @@ class BookTixEvent(ShowConvertible):
             self.start_date_str, club.timezone or "America/New_York"
         )
         if start_dt is None:
+            return None
+
+        # BookTix production pages list every showtime, including ones that have
+        # already passed (e.g. a multi-weekend run mid-season). Skip past
+        # showtimes so we don't persist stale shows.
+        if start_dt < datetime.now(timezone.utc):
             return None
 
         ticket_url = url or self.ticket_url
