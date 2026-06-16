@@ -56,6 +56,28 @@ _LOAD_PODCASTS_SQL = """
     WHERE COALESCE(feed_url, source_payload ->> 'feed_url') IS NOT NULL
       AND (%s::text IS NULL OR source = %s)
       AND (%s::int[] IS NULL OR id = ANY(%s::int[]))
+      AND NOT EXISTS (
+          SELECT 1
+          FROM podcast_deny_list pdl
+          WHERE pdl.restored_at IS NULL
+            AND (
+                pdl.podcast_id = podcasts.id
+                OR (
+                    pdl.source = podcasts.source
+                    AND pdl.source_podcast_id = podcasts.source_podcast_id
+                )
+                OR pdl.feed_url = COALESCE(podcasts.feed_url, podcasts.source_payload ->> 'feed_url')
+            )
+      )
+      AND EXISTS (
+          SELECT 1
+          FROM comedian_podcasts cp
+          JOIN comedians c ON c.id = cp.comedian_id
+          WHERE cp.podcast_id = podcasts.id
+            AND cp.review_status = 'accepted'
+            AND cp.association_type IN ('host', 'cohost', 'owner')
+            AND c.parent_comedian_id IS NULL
+      )
       AND {reachable}
     ORDER BY last_synced_at ASC NULLS FIRST, id ASC
     {limit_clause}
@@ -70,6 +92,28 @@ _COUNT_UNREACHABLE_SQL = """
     WHERE COALESCE(feed_url, source_payload ->> 'feed_url') IS NOT NULL
       AND (%s::text IS NULL OR source = %s)
       AND (%s::int[] IS NULL OR id = ANY(%s::int[]))
+      AND NOT EXISTS (
+          SELECT 1
+          FROM podcast_deny_list pdl
+          WHERE pdl.restored_at IS NULL
+            AND (
+                pdl.podcast_id = podcasts.id
+                OR (
+                    pdl.source = podcasts.source
+                    AND pdl.source_podcast_id = podcasts.source_podcast_id
+                )
+                OR pdl.feed_url = COALESCE(podcasts.feed_url, podcasts.source_payload ->> 'feed_url')
+            )
+      )
+      AND EXISTS (
+          SELECT 1
+          FROM comedian_podcasts cp
+          JOIN comedians c ON c.id = cp.comedian_id
+          WHERE cp.podcast_id = podcasts.id
+            AND cp.review_status = 'accepted'
+            AND cp.association_type IN ('host', 'cohost', 'owner')
+            AND c.parent_comedian_id IS NULL
+      )
       AND NOT {reachable}
 """
 

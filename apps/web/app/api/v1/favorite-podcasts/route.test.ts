@@ -8,7 +8,7 @@ vi.mock("@/lib/auth/resolveAuth", () => ({
 vi.mock("@/lib/db", () => ({
     db: {
         favoritePodcast: { findMany: vi.fn(), upsert: vi.fn() },
-        podcast: { findUnique: vi.fn() },
+        podcast: { findFirst: vi.fn(), findUnique: vi.fn() },
     },
 }));
 vi.mock("@/lib/rateLimit", () => ({
@@ -27,8 +27,10 @@ import { GET, POST } from "./route";
 import { resolveAuth } from "@/lib/auth/resolveAuth";
 import { db } from "@/lib/db";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
+import { PUBLIC_PODCAST_ACCEPTED_ATTRIBUTION_WHERE } from "@/lib/data/podcast/publicWhere";
 
 const mockResolveAuth = vi.mocked(resolveAuth);
+const mockFindFirst = vi.mocked(db.podcast.findFirst);
 const mockFindUnique = vi.mocked(db.podcast.findUnique);
 const mockFindMany = vi.mocked(db.favoritePodcast.findMany);
 const mockUpsert = vi.mocked(db.favoritePodcast.upsert);
@@ -134,7 +136,10 @@ describe("/api/v1/favorite-podcasts", () => {
         expect(res.headers.get("X-RateLimit-Remaining")).toBe("42");
         expect(mockFindMany).toHaveBeenCalledWith(
             expect.objectContaining({
-                where: { profileId: "profile-1" },
+                where: {
+                    profileId: "profile-1",
+                    podcast: PUBLIC_PODCAST_ACCEPTED_ATTRIBUTION_WHERE,
+                },
             }),
         );
         expect(body).toEqual({
@@ -160,7 +165,7 @@ describe("/api/v1/favorite-podcasts", () => {
             profileId: "profile-1",
             userId: "user-1",
         });
-        mockFindUnique.mockResolvedValue({ id: 42 } as never);
+        mockFindFirst.mockResolvedValue({ id: 42 } as never);
         mockUpsert.mockResolvedValue({} as never);
 
         await POST(makeRequest());
@@ -221,7 +226,7 @@ describe("/api/v1/favorite-podcasts", () => {
             profileId: "profile-1",
             userId: "user-1",
         });
-        mockFindUnique.mockResolvedValue(null);
+        mockFindFirst.mockResolvedValue(null);
 
         const res = await POST(makeRequest());
 
@@ -233,7 +238,7 @@ describe("/api/v1/favorite-podcasts", () => {
             profileId: "profile-1",
             userId: "user-1",
         });
-        mockFindUnique.mockResolvedValue({ id: 42 } as never);
+        mockFindFirst.mockResolvedValue({ id: 42 } as never);
         mockUpsert.mockResolvedValue({} as never);
 
         const res = await POST(makeRequest());
@@ -242,6 +247,14 @@ describe("/api/v1/favorite-podcasts", () => {
         expect(res.status).toBe(200);
         expect(res.headers.get("X-RateLimit-Remaining")).toBe("42");
         expect(body).toEqual({ data: { isFavorited: true } });
+        expect(mockFindFirst).toHaveBeenCalledWith({
+            where: {
+                id: 42,
+                ...PUBLIC_PODCAST_ACCEPTED_ATTRIBUTION_WHERE,
+            },
+            select: { id: true },
+        });
+        expect(mockFindUnique).not.toHaveBeenCalled();
         expect(mockUpsert).toHaveBeenCalledWith(
             expect.objectContaining({
                 where: {

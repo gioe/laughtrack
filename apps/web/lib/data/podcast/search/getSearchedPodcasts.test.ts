@@ -17,6 +17,52 @@ vi.mock("@/lib/db", () => ({
 import { getSearchedPodcasts } from "./getSearchedPodcasts";
 import { SortParamValue } from "@/objects/enum/sortParamValue";
 
+const canonicalComedianWhere = {
+    visible: true,
+    parentComedianId: null,
+};
+
+const publicAttributionWhere = {
+    denyListEntries: {
+        none: {
+            restoredAt: null,
+        },
+    },
+    OR: [
+        {
+            comedianPodcasts: {
+                some: {
+                    reviewStatus: "accepted",
+                    associationType: "host",
+                    comedian: canonicalComedianWhere,
+                },
+            },
+        },
+        {
+            AND: [
+                {
+                    comedianPodcasts: {
+                        none: {
+                            reviewStatus: "accepted",
+                            associationType: "host",
+                            comedian: canonicalComedianWhere,
+                        },
+                    },
+                },
+                {
+                    comedianPodcasts: {
+                        some: {
+                            reviewStatus: "accepted",
+                            associationType: "cohost",
+                            comedian: canonicalComedianWhere,
+                        },
+                    },
+                },
+            ],
+        },
+    ],
+};
+
 beforeEach(() => {
     vi.clearAllMocks();
     mockCount.mockResolvedValue(0);
@@ -26,47 +72,6 @@ beforeEach(() => {
 describe("getSearchedPodcasts", () => {
     it("only counts and returns podcasts with accepted host-role attribution", async () => {
         await getSearchedPodcasts({});
-
-        const publicAttributionWhere = {
-            denyListEntries: {
-                none: {
-                    restoredAt: null,
-                },
-            },
-            OR: [
-                {
-                    comedianPodcasts: {
-                        some: {
-                            reviewStatus: "accepted",
-                            associationType: "host",
-                            comedian: { visible: true },
-                        },
-                    },
-                },
-                {
-                    AND: [
-                        {
-                            comedianPodcasts: {
-                                none: {
-                                    reviewStatus: "accepted",
-                                    associationType: "host",
-                                    comedian: { visible: true },
-                                },
-                            },
-                        },
-                        {
-                            comedianPodcasts: {
-                                some: {
-                                    reviewStatus: "accepted",
-                                    associationType: "cohost",
-                                    comedian: { visible: true },
-                                },
-                            },
-                        },
-                    ],
-                },
-            ],
-        };
 
         expect(mockCount).toHaveBeenCalledWith({
             where: publicAttributionWhere,
@@ -78,27 +83,15 @@ describe("getSearchedPodcasts", () => {
         );
     });
 
-    it("includes podcasts without accepted comedian ownership when includeEmpty is true", async () => {
+    it("still limits results to canonical podcasts when includeEmpty is true", async () => {
         await getSearchedPodcasts({ includeEmpty: "true" });
 
         expect(mockCount).toHaveBeenCalledWith({
-            where: {
-                denyListEntries: {
-                    none: {
-                        restoredAt: null,
-                    },
-                },
-            },
+            where: publicAttributionWhere,
         });
         expect(mockFindMany).toHaveBeenCalledWith(
             expect.objectContaining({
-                where: {
-                    denyListEntries: {
-                        none: {
-                            restoredAt: null,
-                        },
-                    },
-                },
+                where: publicAttributionWhere,
             }),
         );
     });
@@ -109,46 +102,7 @@ describe("getSearchedPodcasts", () => {
         expect(mockCount).toHaveBeenCalledWith({
             where: {
                 AND: [
-                    {
-                        denyListEntries: {
-                            none: {
-                                restoredAt: null,
-                            },
-                        },
-                        OR: [
-                            {
-                                comedianPodcasts: {
-                                    some: {
-                                        reviewStatus: "accepted",
-                                        associationType: "host",
-                                        comedian: { visible: true },
-                                    },
-                                },
-                            },
-                            {
-                                AND: [
-                                    {
-                                        comedianPodcasts: {
-                                            none: {
-                                                reviewStatus: "accepted",
-                                                associationType: "host",
-                                                comedian: { visible: true },
-                                            },
-                                        },
-                                    },
-                                    {
-                                        comedianPodcasts: {
-                                            some: {
-                                                reviewStatus: "accepted",
-                                                associationType: "cohost",
-                                                comedian: { visible: true },
-                                            },
-                                        },
-                                    },
-                                ],
-                            },
-                        ],
-                    },
+                    publicAttributionWhere,
                     {
                         OR: [
                             {

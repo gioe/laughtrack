@@ -2,10 +2,7 @@ import { db } from "@/lib/db";
 import type { Prisma } from "@prisma/client";
 import type { PodcastSearchResponse } from "../interface";
 import { buildPodcastArtworkUrl } from "@/lib/data/podcast/imageUrl";
-import {
-    PUBLIC_PODCAST_DENY_LIST_WHERE,
-    PUBLIC_PODCAST_HOST_ROLE_WHERE,
-} from "@/lib/data/podcast/publicWhere";
+import { PUBLIC_PODCAST_HOST_ROLE_WHERE } from "@/lib/data/podcast/publicWhere";
 import { stripHtmlTags } from "@/util/primatives/stringUtil";
 
 const DEFAULT_PAGE_SIZE = 20;
@@ -102,10 +99,7 @@ export async function getSearchedPodcasts(params: {
     const page = normalizePage(params.page);
     const size = normalizeSize(params.size);
     const sort = normalizeSort(params.sort);
-    const includeEmpty = params.includeEmpty === "true";
-    const ownershipWhere = includeEmpty
-        ? PUBLIC_PODCAST_DENY_LIST_WHERE
-        : PUBLIC_PODCAST_HOST_ROLE_WHERE;
+    const ownershipWhere = PUBLIC_PODCAST_HOST_ROLE_WHERE;
     const queryWhere: Prisma.PodcastWhereInput | null = query
         ? {
               OR: [

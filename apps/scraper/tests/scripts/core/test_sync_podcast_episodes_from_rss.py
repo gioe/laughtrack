@@ -206,6 +206,25 @@ def test_load_podcasts_query_skips_feeds_in_reachability_cooldown():
     assert select_params[-1] == 500
 
 
+def test_load_podcasts_query_limits_to_canonical_non_denylisted_podcasts():
+    conn = _FakeConn()
+
+    mod.load_podcasts(conn, source=None, podcast_ids=None, limit=500)
+
+    select_sql, _select_params = next(
+        (sql, params) for sql, params in conn.executed if "SELECT" in sql and "source_podcast_id" in sql
+    )
+    normalized = " ".join(select_sql.split())
+    assert "FROM podcast_deny_list" in select_sql
+    assert "restored_at IS NULL" in select_sql
+    assert "pdl.podcast_id = podcasts.id" in normalized
+    assert "FROM comedian_podcasts cp" in select_sql
+    assert "JOIN comedians c ON c.id = cp.comedian_id" in select_sql
+    assert "cp.review_status = 'accepted'" in select_sql
+    assert "cp.association_type IN ('host', 'cohost', 'owner')" in select_sql
+    assert "c.parent_comedian_id IS NULL" in select_sql
+
+
 def test_driver_records_failure_and_reports_skipped_unreachable(monkeypatch):
     conn = _FakeConn()
     conn.unreachable_count = 12

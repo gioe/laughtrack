@@ -44,7 +44,10 @@ describe("getPodcastDetailPageData", () => {
                                 some: {
                                     reviewStatus: "accepted",
                                     associationType: "host",
-                                    comedian: { visible: true },
+                                    comedian: {
+                                        visible: true,
+                                        parentComedianId: null,
+                                    },
                                 },
                             },
                         },
@@ -55,7 +58,10 @@ describe("getPodcastDetailPageData", () => {
                                         none: {
                                             reviewStatus: "accepted",
                                             associationType: "host",
-                                            comedian: { visible: true },
+                                            comedian: {
+                                                visible: true,
+                                                parentComedianId: null,
+                                            },
                                         },
                                     },
                                 },
@@ -64,7 +70,10 @@ describe("getPodcastDetailPageData", () => {
                                         some: {
                                             reviewStatus: "accepted",
                                             associationType: "cohost",
-                                            comedian: { visible: true },
+                                            comedian: {
+                                                visible: true,
+                                                parentComedianId: null,
+                                            },
                                         },
                                     },
                                 },
@@ -96,7 +105,10 @@ describe("getPodcastDetailPageData", () => {
                                 some: {
                                     reviewStatus: "accepted",
                                     associationType: "host",
-                                    comedian: { visible: true },
+                                    comedian: {
+                                        visible: true,
+                                        parentComedianId: null,
+                                    },
                                 },
                             },
                         },
@@ -107,7 +119,10 @@ describe("getPodcastDetailPageData", () => {
                                         none: {
                                             reviewStatus: "accepted",
                                             associationType: "host",
-                                            comedian: { visible: true },
+                                            comedian: {
+                                                visible: true,
+                                                parentComedianId: null,
+                                            },
                                         },
                                     },
                                 },
@@ -116,7 +131,10 @@ describe("getPodcastDetailPageData", () => {
                                         some: {
                                             reviewStatus: "accepted",
                                             associationType: "cohost",
-                                            comedian: { visible: true },
+                                            comedian: {
+                                                visible: true,
+                                                parentComedianId: null,
+                                            },
                                         },
                                     },
                                 },

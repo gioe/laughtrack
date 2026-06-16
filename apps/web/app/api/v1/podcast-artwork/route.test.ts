@@ -30,6 +30,7 @@ vi.mock("@/lib/rateLimit", () => ({
 
 import { GET } from "./route";
 import { applyPublicReadRateLimit } from "@/lib/rateLimit";
+import { PUBLIC_PODCAST_ACCEPTED_ATTRIBUTION_WHERE } from "@/lib/data/podcast/publicWhere";
 
 const mockApplyPublicReadRateLimit = vi.mocked(applyPublicReadRateLimit);
 
@@ -84,7 +85,10 @@ describe.sequential("GET /api/v1/podcast-artwork", () => {
         expect(res.headers.get("cache-control")).toContain("s-maxage=604800");
         expect(await res.text()).toBe("image-bytes");
         expect(mockFindFirst).toHaveBeenCalledWith({
-            where: { imageUrl: "https://cdn.example.com/art.jpg" },
+            where: {
+                imageUrl: "https://cdn.example.com/art.jpg",
+                ...PUBLIC_PODCAST_ACCEPTED_ATTRIBUTION_WHERE,
+            },
             select: { id: true },
         });
         expect(fetch).toHaveBeenCalledWith(
