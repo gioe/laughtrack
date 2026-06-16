@@ -25,6 +25,30 @@ PRODUCTION_URL_RE = re.compile(
     re.IGNORECASE,
 )
 
+# The OvationTix "series" calendar view lists every upcoming production for a
+# client on a single static (server-rendered) page, unlike the default "/cal/"
+# month view which only shows the current month. Scraping this view captures
+# future-month on-sale productions the configured discovery page would miss
+# (TASK-2937 / convention #188).
+SERIES_CALENDAR_URL_TEMPLATE = "https://web.ovationtix.com/trs/series/{client_id}"
+
+
+def series_calendar_url(client_id: str) -> str:
+    """Build the OvationTix series-view discovery URL for a client ID."""
+    return SERIES_CALENDAR_URL_TEMPLATE.format(client_id=client_id)
+
+
+def merge_production_ids(*id_lists: List[str]) -> List[str]:
+    """Union production IDs across pages, preserving first-seen order and deduping."""
+    seen: set = set()
+    merged: List[str] = []
+    for ids in id_lists:
+        for prod_id in ids:
+            if prod_id not in seen:
+                seen.add(prod_id)
+                merged.append(prod_id)
+    return merged
+
 
 def extract_client_and_production_ids(html: str) -> Tuple[Optional[str], List[str]]:
     """

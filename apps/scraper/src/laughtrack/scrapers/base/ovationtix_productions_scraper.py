@@ -26,11 +26,14 @@ from laughtrack.core.clients.ovationtix.extractor import (
     extract_client_and_production_ids,
     extract_events_from_production,
     is_past_event,
+    merge_production_ids,
+    series_calendar_url,
 )
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.event.ovationtix import OvationTixEvent
 from laughtrack.foundation.infrastructure.http.base_headers import BaseHeaders
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+from laughtrack.foundation.utilities.url import URLUtils
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.utilities.infrastructure.scraper.config import BatchScrapingConfig
 from laughtrack.utilities.infrastructure.scraper.scraper import BatchScraper
@@ -64,6 +67,42 @@ class OvationTixProductionsScraper(BaseScraper):
         self.transformation_pipeline.register_transformer(self.transformer_cls(club))
         self.batch_scraper = BatchScraper(self.logger_context, config=_PRICING_BATCH_CONFIG)
 
+    async def _fetch_series_production_ids(self, discovery_url: str, client_id: Optional[str]):
+        """Fetch the OvationTix series view and return its production IDs.
+
+        The series view (web.ovationtix.com/trs/series/{client_id}) lists every
+        upcoming production for a client on one static page — unlike the "/cal/"
+        month view, which only shows the current month. Returns an empty list
+        when the client ID is unknown, the discovery URL already targets the
+        series view, or the fetch fails (so the configured discovery page's
+        productions are still used).
+        """
+        if not client_id:
+            return []
+
+        series_url = series_calendar_url(client_id)
+        if URLUtils.normalize_url(discovery_url) == URLUtils.normalize_url(series_url):
+            # Discovery page is already the series view — avoid a redundant fetch.
+            return []
+
+        try:
+            series_headers = BaseHeaders.get_headers(
+                base_type="desktop_browser",
+                domain="https://web.ovationtix.com",
+                referer="https://web.ovationtix.com/",
+            )
+            series_html = await self.fetch_html(series_url, headers=series_headers)
+        except Exception as e:
+            Logger.warn(
+                f"{self._log_prefix}: Could not fetch OvationTix series view "
+                f"{series_url}: {e}",
+                self.logger_context,
+            )
+            return []
+
+        _, series_ids = extract_client_and_production_ids(series_html or "")
+        return series_ids
+
     async def get_data(self, url: str):
         try:
             # Step 1: fetch discovery page and extract production IDs
@@ -75,18 +114,28 @@ class OvationTixProductionsScraper(BaseScraper):
                 referer=f"{page_origin}/",
             )
             html = await self.fetch_html(url, headers=page_headers)
-            client_id, production_ids = extract_client_and_production_ids(html)
+            page_client_id, page_production_ids = extract_client_and_production_ids(html)
+
+            # Resolve the client ID from the discovery page, falling back to the
+            # per-venue configured ID. The "/cal/" discovery page only shows the
+            # current month, so augment with the series view, which lists every
+            # upcoming production on one page (TASK-2937 / convention #188).
+            client_id = page_client_id or self.default_client_id
+            series_production_ids = await self._fetch_series_production_ids(url, client_id)
+            production_ids = merge_production_ids(page_production_ids, series_production_ids)
 
             if not production_ids:
                 Logger.warn(
-                    f"{self._log_prefix}: No OvationTix production IDs found on discovery page",
+                    f"{self._log_prefix}: No OvationTix production IDs found on discovery "
+                    f"page or series view",
                     self.logger_context,
                 )
                 return None
 
-            client_id = client_id or self.default_client_id
             Logger.info(
-                f"{self._log_prefix}: Discovered {len(production_ids)} production(s)",
+                f"{self._log_prefix}: Discovered {len(production_ids)} production(s) "
+                f"({len(page_production_ids)} from discovery page, "
+                f"{len(series_production_ids)} from series view)",
                 self.logger_context,
             )
 
