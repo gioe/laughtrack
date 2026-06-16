@@ -21,6 +21,23 @@ jobs:
       - name: Set up scraper Python environment
         uses: ./.github/actions/scraper-setup
 
+      # Apply any committed-but-unapplied apps/scraper/migrations/*.sql before the
+      # scrape so the prod migrations_log can never silently drift behind the repo
+      # (TASK-2935). bin/migrate is idempotent, serializes via a pg advisory lock,
+      # and exits non-zero on failure so a bad migration fails the run loudly
+      # instead of letting the scrape proceed against an un-migrated schema.
+      # Migrations must stay idempotent (INSERT ... WHERE NOT EXISTS, guarded
+      # UPDATEs) per convention #186 — they re-run here on every nightly invocation.
+      - name: Apply pending scraper migrations
+        env:
+          DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+          DATABASE_USER: ${{ secrets.DATABASE_USER }}
+          DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
+          DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+          DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
+        run: |
+          python bin/migrate
+
       - name: Install system dependencies
         run: |
           sudo apt-get update
