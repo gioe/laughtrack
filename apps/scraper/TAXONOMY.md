@@ -86,7 +86,7 @@ How many HTTP round-trips are needed to collect all event data.
 | 39 | StandUp NY | `standup_ny` | graphql | multi_step | ShowTix4U GraphQL + VenuePilot enrichment |
 | 40 | Stevie Ray's | `stevie_rays` | html | single | AudienceView HTML (Playwright JS execution required) |
 | 41 | Sunset Strip | `sunset_strip` | external_api | single | SquadUP JSON API (paginated) |
-| 42 | The Rockwell | `the_rockwell` | json_feed | single | Tribe Events WordPress REST API |
+| 42 | The Rockwell | `the_events_calendar` | json_feed | single | Tribe Events WordPress REST API (generic scraper; migrated off venue-specific `the_rockwell` in TASK-2921) |
 | 43 | The Stand | `the_stand` | external_api | multi_step | Tixr group page -> per-event JSON-LD fetch |
 | 44 | Third Coast Comedy | `third_coast_comedy` | next_data | single | Vivenu `__NEXT_DATA__` JSON |
 | 45 | Uncle Vinnie's | `uncle_vinnies` | external_api | multi_step | OvationTix calendar -> production API |
@@ -182,7 +182,7 @@ Navigate to the venue page and inspect XHR/fetch requests:
 | `crowdwork.com/api/v2/{theatre}/shows` | Crowdwork | json_feed | Venue-specific (ref: `io_theater`) |
 | `plugin.vbotickets.com` | VBO Tickets | html | Venue-specific (ref: `esthers_follies`) |
 | `/.netlify/functions/availability` | Netlify Functions | json_feed | Venue-specific (ref: `east_austin_comedy`) |
-| `/wp-json/tribe/events/v1/events` | Tribe Events (WP) | json_feed | `the_rockwell` scraper (generic) |
+| `/wp-json/tribe/events/v1/events` | Tribe Events (WP) | json_feed | `the_events_calendar` scraper (generic) |
 | `wix-one-events-server/web/paginated-events` | Wix Events | external_api | Venue-specific (ref: `bushwick`) |
 | `inffuse.eventscalendar.co` + Eventbrite backend | Wix + Eventbrite | external_api | `eventbrite` scraper (generic) |
 
@@ -225,7 +225,7 @@ Use the decision matrix below to determine whether you need new code:
 | SeatEngine v1 | `seatengine` | `seatengine_id` (numeric) |
 | SeatEngine Classic | `seatengine_classic` | `scraping_url` |
 | SeatEngine v3 | `seatengine_v3` | `seatengine_id` (UUID) |
-| Tribe Events (WP) | `the_rockwell` | `scraping_url` |
+| Tribe Events (WP) | `the_events_calendar` | `source_url` |
 | rhp-events (WP) | `comedy_magic_club` | `scraping_url` |
 | JSON-LD | `json_ld` | `scraping_url` |
 | Prekindle | `json_ld` | `scraping_url` |

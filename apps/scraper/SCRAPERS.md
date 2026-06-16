@@ -70,7 +70,7 @@ Check browser network requests (browser_navigate + browser_network_requests):
                                                 → new venue-specific scraper required
                                                 (see Square Online section — use coral_gables_comedy_club as reference)
   └── /wp-json/tribe/events/v1/events        → platform: Tribe Events Calendar (WordPress)
-                                                → scraper: the_rockwell (generic; set scraping_url)
+                                                → scraper: the_events_calendar (generic; set source_url)
   └── jetbook.co/elasticsearch/msearch        → platform: JetBook (Bubble.io)
                                                 → scraper: jetbook (generic)
                                                   DB: scraping_url = https://jetbook.co/o_iframe/<venue-slug>
@@ -655,10 +655,11 @@ INSERT INTO clubs (..., scraper, scraping_url, ...) VALUES (..., 'esthers_follie
 | **Scraper key** | `the_events_calendar` |
 | **Platform enum** | `tribe_events` |
 | **DB field** | `scraping_sources.source_url` |
-| **Generic?** | ✅ Already generic — works for any Tribe Events Calendar venue |
+| **Generic?** | ✅ Generic — works for any Tribe Events Calendar venue |
 
-> Note: `the_rockwell` is a separate **venue-specific** scraper. For new Tribe / The
-> Events Calendar venues use the generic `the_events_calendar` scraper.
+> Note: The Rockwell (club 150) originally shipped as a venue-specific `the_rockwell`
+> scraper; TASK-2921 migrated it onto this generic scraper and deleted the duplicate.
+> Use `the_events_calendar` for all Tribe / The Events Calendar venues.
 
 **Detection signals:**
 - Network requests to `/wp-json/tribe/events/v1/events`
@@ -2051,7 +2052,7 @@ Other related checks:
 | `seatengine` | `seatengine_id` (numeric) |
 | `seatengine_classic` | `seatengine_id` (numeric) |
 | `seatengine_v3` | `seatengine_id` (UUID) |
-| `the_rockwell` | `scraping_url` (Tribe Events REST API base URL) |
+| `the_events_calendar` | `source_url` (Tribe Events REST API base URL) |
 | `comedy_magic_club` | `scraping_url` (base `/events/` URL — no pagination) |
 | `json_ld` | `scraping_url` (events page with JSON-LD markup, e.g. Prekindle, Humanitix) |
 | `ninkashi` | `scraping_url` (tickets subdomain, e.g. `tickets.myvenue.com`) |

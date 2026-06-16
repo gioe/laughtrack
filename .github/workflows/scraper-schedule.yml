@@ -114,6 +114,23 @@ jobs:
           python -m scripts.core.update_club_enrichment \
             --summary-out enrichment-summary.json
 
+      - name: Backfill club timezones
+        if: always()
+        env:
+          DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+          DATABASE_USER: ${{ secrets.DATABASE_USER }}
+          DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
+          DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+          DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
+        run: |
+          # Fills timezone for any visible club still missing one, resolving
+          # from clubs.state then clubs.address. No --geocode flag, so this is
+          # a cheap state/address-only sweep that never touches the Places API
+          # quota — it catches new NULL-tz clubs from every creation path
+          # (Eventbrite organizer mode, national sweeps, discovery upserts).
+          # Re-running is safe: every write is NULL-guarded.
+          python -m scripts.core.backfill_club_timezones
+
       - name: Post enrichment summary to Discord
         if: always()
         continue-on-error: true
