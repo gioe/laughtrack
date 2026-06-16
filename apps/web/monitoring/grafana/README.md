@@ -4,13 +4,26 @@ Dashboard-as-code for the scraper-health Postgres tables (`scraper_runs`,
 `scraper_run_clubs`, `scraper_run_errors`), which the scraper writes after every run but
 which nothing read until now.
 
-`scraper_runs` is shared by two writers: real scrape snapshots (written with
-`run_type = 'scraper'`, carrying per-club child rows) and generic GitHub Actions
-pipeline records (`run_type = 'pipeline'`, no child rows — written by
-`record_pipeline_run.py` / `backfill_github_pipeline_runs.py`). Every dashboard panel
-and alert rule filters on `run_type = 'scraper'` so pipeline rows never leak into the
-scraper metrics. (This replaced the earlier `run_key LIKE 'scraper:%'` naming-convention
-discriminator — TASK-2518.)
+`scraper_runs` is shared by three writers, discriminated by `run_type`:
+
+- `run_type = 'scraper'` — real **full** scrape snapshots (the nightly
+  `scrape_shows --all`), carrying per-club child rows. These are the only runs the
+  dashboard panels and alert windows are designed to compare.
+- `run_type = 'pipeline'` — generic GitHub Actions pipeline records (no child rows,
+  synthetic `success_rate`), written by `record_pipeline_run.py` /
+  `backfill_github_pipeline_runs.py`.
+- `run_type = 'verify'` — single-club verify runs (`scrape_shows --club-id`/`--club`),
+  with `clubs_processed = 1`. Because they hold child rows for only one club, leaving
+  them tagged `'scraper'` made a verify run landing as rn=1/rn=2 between two nightlies
+  silently mask a zero-drop for every *other* club (root cause of the missed ImprovCity
+  alert — TASK-2824 / TASK-2831), and skewed the success-rate / error-count baselines.
+
+Every dashboard panel and alert comparison window filters on `run_type = 'scraper'`,
+so both pipeline and verify rows are excluded from the scraper metrics automatically.
+(This filter replaced the earlier `run_key LIKE 'scraper:%'` naming-convention
+discriminator — TASK-2518.) The one deliberate exception is rule 4's 30-day `history`
+lookback, which matches `run_type IN ('scraper', 'verify')`: a recent single-club
+verify scrape that returned shows is still valid evidence the club is not dark.
 
 ## Files
 
@@ -128,6 +141,15 @@ failures and regressions.
      `notification_settings.receiver: "Discord Hook"`. Manual UI creation
      (**Alerting → Alert rules → New** with the same pieces) remains the
      fallback when no token is at hand.
+   - **TASK-2831 re-provisioning (after this merge).** Tagging single-club runs
+     `run_type='verify'` needs no rule edits for rules 1–3: they already whitelist
+     `run_type='scraper'`, so verify rows drop out automatically the moment the
+     writer change deploys. Two pieces of SQL *did* change and must be re-applied
+     in Grafana Cloud (they are not auto-provisioned): **rule 4**'s `history`
+     subquery now reads `run_type IN ('scraper','verify')` so a recent verify run
+     still proves a club is not dark (re-POST it via the provisioning API above),
+     and the **bot-block-by-provider** panel in `scraper-health.json` now joins
+     `scraper_runs` to exclude verify-run blocks (re-import the dashboard).
 4. **Route to Discord.** Provisioned notification `policies` replace the org root
    policy, so the YAML leaves that block commented out. Add a notification-policy
    route in the UI instead: matcher `service = scraper-health` → contact point

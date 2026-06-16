@@ -152,7 +152,7 @@ class PostgresMetricsRepository:
             snapshot.errors.total,
             snapshot.success_rate,
             self._json_payload(snapshot.to_full_json()),
-            "scraper",
+            snapshot.run_type,
         )
 
     @staticmethod

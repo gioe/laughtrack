@@ -469,7 +469,12 @@ class ScrapingService:
         if not clubs:
             raise ValueError(f"Club with ID {club_id} not found" if club_id else "No club selected")
         results, _, db_result = self._scrape_clubs_with_metrics(clubs)
-        self.result_processor.process_results(results, db_result)
+        # Tag as a "verify" run so the persisted scraper_runs row is excluded from the
+        # Grafana scraper-health alert comparison windows and rolling baselines. A
+        # single-club run otherwise lands as run_type='scraper' with clubs_processed=1,
+        # which silently breaks the per-club rn=1/rn=2 zero-drop join for every other
+        # club and skews the success-rate/error-count baselines (TASK-2831 / TASK-2824).
+        self.result_processor.process_results(results, db_result, run_type="verify")
         self.club_handler.refresh_club_total_shows()
         total_shows = sum(r.num_shows for r in results)
         club_label = clubs[0].name if len(clubs) == 1 else f"{len(clubs)} clubs"

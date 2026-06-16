@@ -139,7 +139,7 @@
           "format": "table",
           "rawQuery": true,
           "datasource": { "type": "grafana-postgresql-datasource", "uid": "${datasource}" },
-          "rawSql": "SELECT COALESCE(bot_block_provider, 'unknown') AS provider, COUNT(*) AS blocks FROM scraper_run_clubs WHERE bot_block_detected GROUP BY bot_block_provider ORDER BY blocks DESC"
+          "rawSql": "SELECT COALESCE(c.bot_block_provider, 'unknown') AS provider, COUNT(*) AS blocks FROM scraper_run_clubs c JOIN scraper_runs r ON c.run_id = r.id WHERE c.bot_block_detected AND r.run_type = 'scraper' GROUP BY c.bot_block_provider ORDER BY blocks DESC"
         }
       ]
     }

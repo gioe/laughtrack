@@ -27,6 +27,7 @@ class ScrapingMetricsSnapshot:
     per_club_stats: List[PerClubStat] = field(default_factory=list)
     error_details: List[ErrorDetail] = field(default_factory=list)
     duplicate_show_details: List[DuplicateShowDetail] = field(default_factory=list)
+    run_type: str = "scraper"
 
     @staticmethod
     def _parse_per_club_stats(data: List[Dict[str, Any]] | None) -> List[PerClubStat]:
@@ -132,6 +133,7 @@ class ScrapingMetricsSnapshot:
             per_club_stats=per_club_stats,
             error_details=error_details,
             duplicate_show_details=duplicate_show_details,
+            run_type=str(data.get("run_type") or "scraper"),
         )
 
     def to_json_dict(self) -> Dict[str, Any]:
@@ -179,6 +181,7 @@ class ScrapingMetricsSnapshot:
             "per_club_stats": [asdict(s) for s in (self.per_club_stats or [])],
             "error_details": [asdict(e) for e in (self.error_details or [])],
             "duplicate_show_details": [asdict(d) for d in (self.duplicate_show_details or [])],
+            "run_type": self.run_type,
         }
 
     @classmethod
@@ -187,6 +190,7 @@ class ScrapingMetricsSnapshot:
         session_result: "ScrapingSessionResult",
         db_operation_result: "DatabaseOperationResult",
         dt: _dt.datetime,
+        run_type: str = "scraper",
     ) -> "ScrapingMetricsSnapshot":
         shows_scraped = len(session_result.shows)
         saved = db_operation_result.total
@@ -253,6 +257,7 @@ class ScrapingMetricsSnapshot:
                 ]
             ),
             duplicate_show_details=typed_duplicates,
+            run_type=run_type,
         )
 
     @classmethod
@@ -344,6 +349,7 @@ class ScrapingMetricsSnapshot:
                 "per_club_stats": per_club_stats_list or [],
                 "error_details": data.get("error_details") if isinstance(data.get("error_details"), list) else [],
                 "duplicate_show_details": duplicate_details_raw or [],
+                "run_type": data.get("run_type") or "scraper",
             }
             return cls.from_json(payload, timestamp=dt.isoformat(), dt=dt)
         except Exception:

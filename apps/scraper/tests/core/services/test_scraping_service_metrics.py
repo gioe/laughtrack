@@ -1555,6 +1555,31 @@ class TestSendDiscordRunSummary:
 
         svc.club_handler.refresh_club_total_shows.assert_called_once_with()
 
+    def test_scrape_single_club_tags_run_type_verify(self):
+        """Single-club runs persist run_type='verify' so the scraper_runs row is excluded
+        from the Grafana scraper-health alert windows/baselines (TASK-2831 / TASK-2824)."""
+        from laughtrack.core.services.scraping import ScrapingService
+        from laughtrack.foundation.models.operation_result import DatabaseOperationResult
+
+        with patch.object(ScrapingService, '__init__', lambda self, *a, **kw: None):
+            svc = ScrapingService.__new__(ScrapingService)
+            svc.success_rate_threshold = 70.0
+            svc.proxy_pool = None
+
+        mock_club = MagicMock()
+        mock_club.name = "Test Club"
+        svc.club_handler = MagicMock()
+        svc.club_handler.get_clubs_by_ids.return_value = [mock_club]
+        svc.club_handler.refresh_club_total_shows.return_value = None
+        svc._result_processor = MagicMock()
+        svc._result_processor.process_results.return_value = None
+
+        with patch.object(svc, '_scrape_clubs_with_metrics',
+                          return_value=([], _make_summary(ok=1), DatabaseOperationResult())):
+            svc.scrape_single_club(club_id=837)
+
+        assert svc._result_processor.process_results.call_args.kwargs["run_type"] == "verify"
+
     def test_scrape_by_scraper_type_refreshes_total_shows(self):
         """scrape_by_scraper_type refreshes clubs.total_shows after persisting results.
 
@@ -1582,6 +1607,9 @@ class TestSendDiscordRunSummary:
             svc.scrape_by_scraper_type(scraper_type="seatengine")
 
         svc.club_handler.refresh_club_total_shows.assert_called_once_with()
+        # A scraper-type backfill is a multi-club run, not a single-club verify — it must
+        # NOT be tagged 'verify' (default 'scraper' keeps it in the alert windows). TASK-2831
+        assert svc._result_processor.process_results.call_args.kwargs.get("run_type", "scraper") != "verify"
 
 
 class TestSendRunSummary:

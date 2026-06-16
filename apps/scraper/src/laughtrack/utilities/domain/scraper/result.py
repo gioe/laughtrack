@@ -363,14 +363,21 @@ class ScrapingResultProcessor:
         self,
         club_scraping_results: List[ClubScrapingResult],
         db_result: Optional[DatabaseOperationResult] = None,
+        run_type: str = "scraper",
     ) -> DatabaseOperationResult:
         """Finalize scraping run: close metrics session.
 
         Shows are already persisted per-club by insert_club_result(); this method
         only runs the metrics/dashboard pipeline using the accumulated db_result.
+
+        ``run_type`` tags the persisted scraper_runs row. Full nightly/scraper-type
+        runs use "scraper"; single-club verify runs (scrape_shows --club-id/--club)
+        pass "verify" so Grafana scraper-health alert rules — which whitelist
+        run_type='scraper' — exclude them from the rn=1/rn=2 comparison windows and
+        rolling baselines (TASK-2831).
         """
         Logger.info("Finalizing scraping results...")
         if db_result is None:
             db_result = DatabaseOperationResult()
-        self.metrics_service.end_session(club_scraping_results, db_result)
+        self.metrics_service.end_session(club_scraping_results, db_result, run_type=run_type)
         return db_result

@@ -93,7 +93,10 @@ groups:
                 -- (record_pipeline_run.py / backfill_github_pipeline_runs.py,
                 -- written with run_type='pipeline'), which carry a synthetic
                 -- success_rate and no club rows and would otherwise pollute the
-                -- rolling baseline.
+                -- rolling baseline. It also excludes single-club verify runs
+                -- (scrape_shows --club-id/--club, written with run_type='verify'
+                -- — TASK-2831), whose success_rate of 0/100 from a clubs_processed=1
+                -- run would otherwise skew this baseline.
                 WITH ranked AS (
                   SELECT success_rate,
                          ROW_NUMBER() OVER (ORDER BY exported_at DESC) AS rn
@@ -153,8 +156,11 @@ groups:
               format: table
               rawSql: |
                 -- run_type = 'scraper' restricts the two-run window to real
-                -- scrape runs (generic pipeline runs have no club rows, so a
-                -- pipeline run as rn=1 or rn=2 would silently mask a drop).
+                -- full scrape runs. Generic pipeline runs have no club rows, and
+                -- single-club verify runs (run_type='verify', clubs_processed=1)
+                -- contain rows for only one club — either landing as rn=1 or rn=2
+                -- would silently mask a drop for every other club (the root cause
+                -- of the missed ImprovCity zero-drop alert, TASK-2824 / TASK-2831).
                 -- club_shows aggregates num_shows per (run_id, club_name) so a
                 -- venue scraped from multiple sources in one run resolves to a
                 -- single row — scraper_run_clubs has no UNIQUE on (run_id,
@@ -208,10 +214,11 @@ groups:
       #    every evaluation until the club recovers, so a missed evaluation
       #    only delays the alert by one interval. The 30-day >0 lookback keeps
       #    legitimately dark venues (EMPTY_CALENDAR clubs that never had
-      #    shows) out of the alert. clubs_processed > 1 excludes single-club
-      #    verify runs (scrape_shows --club-id N persists run_type='scraper'
-      #    with clubs_processed=1) from the consecutive-run window — the same
-      #    pollution class TASK-2831 removes from the rolling baselines.
+      #    shows) out of the alert. Single-club verify runs are kept out of the
+      #    consecutive-run window two ways: TASK-2831 now persists them with
+      #    run_type='verify' (so the run_type='scraper' filter alone excludes
+      #    them), and clubs_processed > 1 remains as defense-in-depth for any
+      #    legacy rows written before that change.
       - uid: scraper-club-consecutive-zero-shows
         title: Club at zero shows for 2+ consecutive full runs (had shows in last 30 days)
         condition: C
@@ -243,7 +250,10 @@ groups:
                 -- has no UNIQUE on (run_id, club_name), see rule 2.
                 -- history: 30-day lookback includes verify runs deliberately —
                 -- any run proving the club had shows recently is evidence it
-                -- is not a legitimately dark venue.
+                -- is not a legitimately dark venue. Since TASK-2831 tags those
+                -- runs run_type='verify', this lookback must match both types
+                -- (IN ('scraper','verify')) or a club kept alive only by a
+                -- single-club verify scrape would wrongly read as dark.
                 WITH full_runs AS (
                   SELECT id, exported_at,
                          ROW_NUMBER() OVER (ORDER BY exported_at DESC) AS rn
@@ -261,7 +271,7 @@ groups:
                   SELECT c.club_name, MAX(c.num_shows) AS max_shows_30d
                   FROM scraper_run_clubs c
                   JOIN scraper_runs r ON r.id = c.run_id
-                  WHERE r.run_type = 'scraper'
+                  WHERE r.run_type IN ('scraper', 'verify')
                     AND r.exported_at >= NOW() - INTERVAL '30 days'
                   GROUP BY c.club_name
                 )
@@ -318,8 +328,9 @@ groups:
               refId: A
               format: table
               rawSql: |
-                -- run_type = 'scraper' excludes generic pipeline runs from
-                -- the error-count baseline (see the success-rate rule above).
+                -- run_type = 'scraper' excludes generic pipeline runs and
+                -- single-club verify runs (run_type='verify') from the
+                -- error-count baseline (see the success-rate rule above).
                 WITH per_run AS (
                   SELECT r.id, r.exported_at, COUNT(e.id) AS errors
                   FROM scraper_runs r

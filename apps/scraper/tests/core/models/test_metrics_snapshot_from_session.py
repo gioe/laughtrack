@@ -31,6 +31,23 @@ def test_from_session_empty():
     assert snap.success_rate == 0.0
 
 
+def test_from_session_run_type_defaults_to_scraper():
+    session = ScrapingSessionResult(shows=[], errors=[], per_club_stats=[])
+    snap = ScrapingMetricsSnapshot.from_session(session, DatabaseOperationResult(), dt=datetime.now(timezone.utc))
+    assert snap.run_type == "scraper"
+
+
+def test_from_session_passes_through_verify_run_type():
+    """A single-club verify run threads run_type='verify' to the snapshot so the writer
+    persists it and the Grafana alert rules (run_type='scraper' whitelist) skip it (TASK-2831)."""
+    session = ScrapingSessionResult(shows=[], errors=[], per_club_stats=[])
+    snap = ScrapingMetricsSnapshot.from_session(
+        session, DatabaseOperationResult(), dt=datetime.now(timezone.utc), run_type="verify"
+    )
+    assert snap.run_type == "verify"
+    assert snap.to_full_json()["run_type"] == "verify"
+
+
 def test_from_session_updates_only():
     shows = [make_show(i) for i in range(3)]
     stats = [PerClubStat(club="Club A", num_shows=3, execution_time=1.5, success=True)]

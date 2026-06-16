@@ -99,7 +99,25 @@ class TestProcessResults:
 
         proc.process_results(club_results, provided_db_result)
 
-        proc.metrics_service.end_session.assert_called_once_with(club_results, provided_db_result)
+        proc.metrics_service.end_session.assert_called_once_with(
+            club_results, provided_db_result, run_type="scraper"
+        )
+
+    def test_defaults_run_type_to_scraper(self):
+        """Full/nightly runs leave run_type at the 'scraper' default so they stay in
+        the Grafana scraper-health alert comparison windows (TASK-2831)."""
+        proc = _make_processor()
+        proc.process_results([_make_result("Club A")], DatabaseOperationResult())
+
+        assert proc.metrics_service.end_session.call_args.kwargs["run_type"] == "scraper"
+
+    def test_forwards_verify_run_type_to_metrics(self):
+        """Single-club verify runs must tag the metrics session run_type='verify' so the
+        persisted scraper_runs row is excluded from the alert windows/baselines (TASK-2831)."""
+        proc = _make_processor()
+        proc.process_results([_make_result("Club A")], DatabaseOperationResult(), run_type="verify")
+
+        assert proc.metrics_service.end_session.call_args.kwargs["run_type"] == "verify"
 
     def test_defaults_to_empty_db_result_when_none_provided(self):
         proc = _make_processor()

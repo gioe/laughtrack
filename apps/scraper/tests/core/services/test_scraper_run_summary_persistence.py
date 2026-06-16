@@ -137,6 +137,31 @@ def test_scraper_run_summary_persistence_upserts_run_and_replaces_child_rows():
     assert error_rows[0][2] == "Bad Club"
 
 
+def test_scraper_run_summary_persists_snapshot_run_type():
+    """The persisted scraper_runs.run_type (param index 17) must come from
+    snapshot.run_type, not a hardcoded literal. A single-club verify run carries
+    run_type='verify' so the Grafana scraper-health alert rules — which whitelist
+    run_type='scraper' — exclude it from the comparison windows/baselines (TASK-2831)."""
+    snapshot = _snapshot()
+    snapshot.run_type = "verify"
+    cursor = _Cursor(valid_club_ids=[7, 8])
+
+    with (
+        patch(
+            "laughtrack.core.services.metrics.postgres_repository.get_transaction",
+            return_value=_Transaction(_Connection(cursor)),
+        ),
+        patch(
+            "laughtrack.core.services.metrics.postgres_repository.execute_values",
+        ),
+    ):
+        result = PostgresMetricsRepository().persist_snapshot(snapshot)
+
+    assert result is True
+    assert "INSERT INTO scraper_runs" in cursor.executed[0][0]
+    assert cursor.executed[0][1][17] == "verify"
+
+
 def test_scraper_run_summary_nullifies_unknown_club_ids_to_satisfy_fk():
     """Synthetic production_company proxies carry the SYNTHETIC_PROXY_PLACEHOLDER_ID
     sentinel (0) plus is_synthetic=True; deleted clubs leave stale positive ids in

@@ -42,9 +42,14 @@ class MetricsService:
     def start_session(self) -> None:  # pragma: no cover - intentional no-op
         pass
 
-    def end_session(self, club_results: List[ClubScrapingResult], db_operations: DatabaseOperationResult) -> None:
+    def end_session(
+        self,
+        club_results: List[ClubScrapingResult],
+        db_operations: DatabaseOperationResult,
+        run_type: str = "scraper",
+    ) -> None:
         session: ScrapingSessionResult = self._aggregator.aggregate(club_results or [])
-        self._generate_and_save_dashboard(session, db_operations)
+        self._generate_and_save_dashboard(session, db_operations, run_type=run_type)
         self._process_latest_session_and_email()
 
     # ----------------- Internal orchestration helpers -----------------
@@ -57,10 +62,15 @@ class MetricsService:
             return False
 
     def _generate_and_save_dashboard(
-        self, session: ScrapingSessionResult, db_operations: DatabaseOperationResult
+        self,
+        session: ScrapingSessionResult,
+        db_operations: DatabaseOperationResult,
+        run_type: str = "scraper",
     ) -> None:
         try:
-            snapshot = ScrapingMetricsSnapshot.from_session(session, db_operations, dt=_dt.now())
+            snapshot = ScrapingMetricsSnapshot.from_session(
+                session, db_operations, dt=_dt.now(), run_type=run_type
+            )
             self._render_and_save_dashboard(snapshot)
             self._persist_snapshot_json(snapshot)
             self._persist_snapshot_postgres(snapshot)
