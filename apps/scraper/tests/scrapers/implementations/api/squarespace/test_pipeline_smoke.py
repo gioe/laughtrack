@@ -361,7 +361,7 @@ async def test_get_data_returns_none_when_all_events_malformed(monkeypatch):
         return [_raw_event()]  # non-empty array
 
     monkeypatch.setattr(SquarespaceScraper, "fetch_json", fake_fetch_json)
-    monkeypatch.setattr(SquarespaceExtractor, "extract_events", staticmethod(lambda resp, domain: []))
+    monkeypatch.setattr(SquarespaceExtractor, "extract_events", staticmethod(lambda resp, domain, exclude_title_re=None: []))
     monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", lambda url: __import__("asyncio").sleep(0))
 
     result = await scraper.get_data(
@@ -599,7 +599,7 @@ async def test_full_pipeline_transformation_produces_shows(monkeypatch):
     monkeypatch.setattr(
         SquarespaceExtractor,
         "extract_events",
-        staticmethod(lambda resp, domain: [fake_event]),
+        staticmethod(lambda resp, domain, exclude_title_re=None: [fake_event]),
     )
 
     async def fake_fetch_json(self, url: str, **kwargs):
@@ -620,3 +620,83 @@ async def test_full_pipeline_transformation_produces_shows(monkeypatch):
         "is registered with the correct generic type"
     )
     assert shows[0].name == "Sammy Obeid"
+
+
+# ---------------------------------------------------------------------------
+# Opt-in non-show title filter (TASK-2888 — improv-theatre class sessions)
+# ---------------------------------------------------------------------------
+
+import re  # noqa: E402
+
+
+def _club_with_exclude(patterns) -> Club:
+    c = _club()
+    c.active_scraping_source = ScrapingSource(
+        id=1, club_id=c.id, platform="custom", scraper_key="squarespace",
+        source_url=SCRAPING_URL, external_id=None, metadata={"exclude_title_patterns": patterns},
+    )
+    c.scraping_sources = [c.active_scraping_source]
+    return c
+
+
+def test_extract_events_excludes_titles_matching_regex():
+    """extract_events() drops events whose title matches exclude_title_re."""
+    raw = [
+        _raw_event(event_id="1", title="Imposters BIG Improv Comedy Night"),
+        _raw_event(event_id="2", title="Improv Level 1"),
+        _raw_event(event_id="3", title="Try Improv! Workshop for Beginners"),
+        _raw_event(event_id="4", title="Matt Banwart Live @ Imposters"),
+    ]
+    rx = re.compile(r"\bLevel \d|Workshop|Try Improv", re.IGNORECASE)
+    events = SquarespaceExtractor.extract_events(raw, BASE_DOMAIN, exclude_title_re=rx)
+    titles = {e.title for e in events}
+    assert titles == {"Imposters BIG Improv Comedy Night", "Matt Banwart Live @ Imposters"}
+
+
+def test_extract_events_keeps_all_when_exclude_re_is_none():
+    """Default (no exclude regex) keeps every valid event — existing-venue behavior."""
+    raw = [_raw_event(event_id="1", title="Improv Level 1"), _raw_event(event_id="2", title="Comedy Night")]
+    events = SquarespaceExtractor.extract_events(raw, BASE_DOMAIN)
+    assert {e.title for e in events} == {"Improv Level 1", "Comedy Night"}
+
+
+def test_scraper_builds_exclude_re_from_metadata():
+    scraper = SquarespaceScraper(_club_with_exclude([r"\bLevel \d", "Workshop"]))
+    assert scraper.exclude_title_re is not None
+    assert scraper.exclude_title_re.search("Improv Level 2")
+    assert not scraper.exclude_title_re.search("Harold Night")
+
+
+def test_scraper_no_exclude_re_when_metadata_absent():
+    """A club without exclude_title_patterns metadata keeps the default (None)."""
+    assert SquarespaceScraper(_club()).exclude_title_re is None
+
+
+def test_scraper_invalid_regex_metadata_is_ignored():
+    """A bad regex in metadata is logged and ignored rather than crashing init."""
+    scraper = SquarespaceScraper(_club_with_exclude(["valid", "(unclosed["]))
+    assert scraper.exclude_title_re is None
+
+
+@pytest.mark.asyncio
+async def test_get_data_applies_metadata_exclude_filter(monkeypatch):
+    """End-to-end: metadata exclude_title_patterns drops class events in get_data()."""
+    scraper = SquarespaceScraper(_club_with_exclude([r"\bLevel \d", "Workshop", r"\bCamp\b"]))
+
+    async def fake_fetch_json_list(self, url: str, **kwargs):
+        return [
+            _raw_event(event_id="1", title="Imposters BIG Comedy Night"),
+            _raw_event(event_id="2", title="Improv Level 3"),
+            _raw_event(event_id="3", title="Improv Summer Camp for Kids"),
+        ]
+
+    async def fake_enrich(self, events):
+        return None
+
+    monkeypatch.setattr(SquarespaceScraper, "fetch_json_list", fake_fetch_json_list)
+    monkeypatch.setattr(SquarespaceScraper, "_enrich_with_ticket_urls", fake_enrich)
+    monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", lambda url: __import__("asyncio").sleep(0))
+
+    result = await scraper.get_data(SCRAPING_URL)
+    assert isinstance(result, SquarespacePageData)
+    assert [e.title for e in result.event_list] == ["Imposters BIG Comedy Night"]

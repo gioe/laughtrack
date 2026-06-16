@@ -65,7 +65,28 @@ class SquarespaceScraper(BaseScraper):
         qs = parse_qs(parsed.query)
         self.collection_id = (qs.get("collectionId") or [""])[0]
 
+        # Opt-in non-show filter: venues whose events collection mixes public
+        # shows with class sessions/workshops (common for improv theatres) set
+        # scraping_sources.metadata.exclude_title_patterns to a list of regex
+        # strings; any event whose title matches is dropped. Absent/empty → keep
+        # everything (existing venues are unaffected).
+        self.exclude_title_re = self._build_exclude_title_re(club)
+
         self._register_host_rps(_SQUARESPACE_HOST_RPS)
+
+    @staticmethod
+    def _build_exclude_title_re(club: Club):
+        patterns = (club.source_metadata or {}).get("exclude_title_patterns")
+        if not isinstance(patterns, list):
+            return None
+        valid = [p for p in patterns if isinstance(p, str) and p.strip()]
+        if not valid:
+            return None
+        try:
+            return re.compile("|".join(valid), re.IGNORECASE)
+        except re.error as e:
+            Logger.warn(f"SquarespaceScraper [{club.name}]: invalid exclude_title_patterns: {e}")
+            return None
 
     async def collect_scraping_targets(self) -> List[ScrapingTarget]:
         """Return GetItemsByMonth URLs for the current month and next two months."""
@@ -107,7 +128,9 @@ class SquarespaceScraper(BaseScraper):
                 )
                 return None
 
-            events = SquarespaceExtractor.extract_events(response, self.base_domain)
+            events = SquarespaceExtractor.extract_events(
+                response, self.base_domain, exclude_title_re=self.exclude_title_re
+            )
             if not events:
                 Logger.info(
                     f"{self._log_prefix}: no events extracted from {url}",
