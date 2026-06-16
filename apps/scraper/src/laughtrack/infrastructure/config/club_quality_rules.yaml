@@ -20,12 +20,17 @@ website_hostname_deny:
   exact:
     - "testcenter.seatengine.com"
     - "developmenttestsite.seatengine.com"
+    # SEO/aggregator account, not a physical venue — a SeatEngine org whose
+    # listings are festivals/takeovers at other real venues (TASK-2933).
+    - "comedyshowsnear.me"
+    - "www.comedyshowsnear.me"
   glob:
     - "demo-*.seatengine.com"
 
 # Reject clubs whose name exactly matches any of these entries (case-sensitive).
 # Used to deny-list non-comedy venues that were bulk-imported without research.
 name_exact_deny:
+  - "Comedy Shows Near Me"
   - "test 2"
   - "Events by KathySings4u"
   - "Fiesta De Independencia"
