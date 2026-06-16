@@ -133,9 +133,9 @@ class OvationTixProductionsScraper(BaseScraper):
                 return None
 
             Logger.info(
-                f"{self._log_prefix}: Discovered {len(production_ids)} production(s) "
-                f"({len(page_production_ids)} from discovery page, "
-                f"{len(series_production_ids)} from series view)",
+                f"{self._log_prefix}: Discovered {len(production_ids)} unique production(s) "
+                f"(discovery page contributed {len(page_production_ids)}, series view "
+                f"contributed {len(series_production_ids)} before cross-source dedup)",
                 self.logger_context,
             )
 
