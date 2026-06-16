@@ -652,17 +652,24 @@ INSERT INTO clubs (..., scraper, scraping_url, ...) VALUES (..., 'esthers_follie
 
 | | |
 |---|---|
-| **Scraper key** | `the_rockwell` |
-| **DB field** | `scraping_url` |
+| **Scraper key** | `the_events_calendar` |
+| **Platform enum** | `tribe_events` |
+| **DB field** | `scraping_sources.source_url` |
 | **Generic?** | ✅ Already generic — works for any Tribe Events Calendar venue |
+
+> Note: `the_rockwell` is a separate **venue-specific** scraper. For new Tribe / The
+> Events Calendar venues use the generic `the_events_calendar` scraper.
 
 **Detection signals:**
 - Network requests to `/wp-json/tribe/events/v1/events`
 - WordPress site with The Events Calendar plugin
 
-**DB setup:** Set `scraping_url` to the base REST API URL:
+**DB setup:** Insert a `scraping_sources` row pointing `source_url` at the base REST API URL (config lives in `scraping_sources`, not flat `clubs` columns):
 ```sql
-UPDATE clubs SET scraper = 'the_rockwell', scraping_url = 'https://myvenue.com/wp-json/tribe/events/v1/events' WHERE name = 'My Club';
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, priority, enabled, metadata)
+SELECT c.id, 'tribe_events'::"ScrapingPlatform", 'the_events_calendar', 'https://myvenue.com/wp-json/tribe/events/v1/events', 0, TRUE, '{}'::jsonb
+FROM clubs c WHERE c.name = 'My Club'
+  AND NOT EXISTS (SELECT 1 FROM scraping_sources s WHERE s.club_id = c.id AND s.scraper_key = 'the_events_calendar');
 ```
 
 ---
@@ -1878,7 +1885,7 @@ cd apps/scraper && make scrape-club CLUB='My Club'
 | SeatEngine v1 | `seatengine` | No | `seatengine_id` (numeric) |
 | SeatEngine v1 legacy | `seatengine_classic` | No | `seatengine_id` (numeric) |
 | SeatEngine v3 | `seatengine_v3` | No | `seatengine_id` (UUID) |
-| Tribe Events (WordPress) | `the_rockwell` | No | `scraping_url` |
+| Tribe Events (WordPress) | `the_events_calendar` | No | `source_url` |
 | rhp-events (WordPress) | `comedy_magic_club` | No | `scraping_url` |
 | JSON-LD (generic) | `json_ld` | No | `scraping_url` |
 | Prekindle | `json_ld` | No | `scraping_url` |
