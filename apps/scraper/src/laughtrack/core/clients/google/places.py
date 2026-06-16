@@ -32,6 +32,14 @@ _API_URL = f"{_API_BASE}/places:searchText"
 # image bytes are fetched in a follow-up media call keyed off photos[*].name.
 _PHOTO_FIELD_MASK = "places.id,places.displayName,places.photos"
 
+# Place Details lookup for timezone/location backfill — the formatted address,
+# coordinates, and structured address components (used to pull the state code
+# off administrative_area_level_1 and the city off locality).
+_DETAILS_FIELD_MASK = "formattedAddress,location,addressComponents"
+
+# find_place_id only needs the top match's identifier.
+_FIND_PLACE_FIELD_MASK = "places.id"
+
 # Nearby/discovery search returns identity + location so callers can dedupe on
 # place_id and filter by true distance. ``websiteUri`` and ``primaryType`` ride
 # along in the same call (no extra billing) to power downstream triage — the
@@ -93,6 +101,26 @@ class PlacesNearbyVenue:
     lng: float
     website: Optional[str] = None
     primary_type: Optional[str] = None
+
+
+@dataclass
+class PlaceDetails:
+    """Structured fields from one ``fetch_place_details`` (Place Details) call.
+
+    Used by the club timezone backfill to resolve a venue's IANA timezone from
+    its US state and to opportunistically fill ``clubs.state/address/lat/lng``.
+    ``state_code`` is the two-letter ``shortText`` of the
+    ``administrative_area_level_1`` address component; ``city`` is the
+    ``locality`` component (``shortText``/``longText``). All non-id fields are
+    optional — Google may omit any of them.
+    """
+
+    place_id: str
+    formatted_address: Optional[str]
+    state_code: Optional[str]
+    city: Optional[str]
+    lat: Optional[float]
+    lng: Optional[float]
 
 
 def _normalize_attributions(raw: Any) -> List[Dict[str, str]]:
@@ -405,6 +433,160 @@ class GooglePlacesClient:
         """
         result = self.fetch_photo(query, max_width_px)
         return result.photo_uri if result else None
+
+    def find_place_id(self, query: str) -> Optional[str]:
+        """Resolve the top text-search match for ``query`` to its place_id.
+
+        One ``places:searchText`` request under the daily cap (field mask
+        ``places.id``, ``pageSize=1``). Returns the top result's ``id``, or
+        ``None`` on missing key, blank query, quota breach, any HTTP/network
+        error, unparseable JSON, or no match. Mirrors ``fetch_photo``'s search
+        half so callers can resolve a place_id before ``fetch_place_details``.
+        """
+        if not self.is_configured:
+            return None
+        if not query or not query.strip():
+            return None
+        if not self._reserve_call_slot():
+            Logger.warn(f"[places] daily limit reached ({self._daily_limit}) — skipping find_place_id '{query}'")
+            return None
+
+        headers = {
+            "Content-Type": "application/json",
+            "X-Goog-Api-Key": self._api_key,
+            "X-Goog-FieldMask": _FIND_PLACE_FIELD_MASK,
+        }
+        payload: Dict[str, Any] = {"textQuery": query, "pageSize": 1}
+
+        if self._delay_s > 0:
+            time.sleep(self._delay_s)
+
+        try:
+            resp = requests.post(_API_URL, json=payload, headers=headers, timeout=self._timeout_s)
+        except requests.RequestException as exc:
+            self._release_call_slot()
+            Logger.warn(f"[places] find_place_id search failed for '{query}': {exc}")
+            return None
+
+        if resp.status_code == 429:
+            Logger.warn(f"[places] rate limited (HTTP 429) on find_place_id '{query}'")
+            return None
+        if resp.status_code != 200:
+            Logger.warn(f"[places] HTTP {resp.status_code} on find_place_id '{query}': {resp.text[:200]}")
+            return None
+
+        try:
+            data = resp.json()
+        except ValueError as exc:
+            Logger.warn(f"[places] bad JSON on find_place_id '{query}': {exc}")
+            return None
+
+        places = data.get("places") if isinstance(data, dict) else None
+        if not isinstance(places, list) or not places:
+            return None
+        top = places[0]
+        if not isinstance(top, dict):
+            return None
+        place_id = top.get("id")
+        return place_id if isinstance(place_id, str) and place_id else None
+
+    def fetch_place_details(self, place_id: str) -> Optional[PlaceDetails]:
+        """Fetch structured address + location for a known ``place_id``.
+
+        One Place Details ``GET /places/{place_id}`` request under the daily
+        cap (field mask ``formattedAddress,location,addressComponents``).
+        Parses the ``administrative_area_level_1`` component's ``shortText``
+        into ``state_code`` and the ``locality`` component into ``city``, plus
+        the location's lat/lng. Returns ``None`` on missing key, blank
+        place_id, quota breach, any HTTP/network error, or unparseable JSON.
+        """
+        if not self.is_configured:
+            return None
+        if not place_id or not place_id.strip():
+            return None
+        if not self._reserve_call_slot():
+            Logger.warn(
+                f"[places] daily limit reached ({self._daily_limit}) — skipping place details for '{place_id}'"
+            )
+            return None
+
+        headers = {
+            "X-Goog-Api-Key": self._api_key,
+            "X-Goog-FieldMask": _DETAILS_FIELD_MASK,
+        }
+
+        if self._delay_s > 0:
+            time.sleep(self._delay_s)
+
+        try:
+            resp = requests.get(f"{_API_BASE}/places/{place_id}", headers=headers, timeout=self._timeout_s)
+        except requests.RequestException as exc:
+            self._release_call_slot()
+            Logger.warn(f"[places] place details fetch failed for '{place_id}': {exc}")
+            return None
+
+        if resp.status_code == 429:
+            Logger.warn(f"[places] rate limited (HTTP 429) on place details '{place_id}'")
+            return None
+        if resp.status_code != 200:
+            Logger.warn(f"[places] HTTP {resp.status_code} on place details '{place_id}': {resp.text[:200]}")
+            return None
+
+        try:
+            data = resp.json()
+        except ValueError as exc:
+            Logger.warn(f"[places] bad JSON on place details '{place_id}': {exc}")
+            return None
+
+        return self._parse_place_details(place_id, data)
+
+    @staticmethod
+    def _parse_place_details(place_id: str, data: Any) -> PlaceDetails:
+        """Pull state/city/lat/lng/address out of a Place Details payload."""
+        if not isinstance(data, dict):
+            return PlaceDetails(place_id, None, None, None, None, None)
+
+        formatted = data.get("formattedAddress")
+        formatted_address = formatted if isinstance(formatted, str) and formatted else None
+
+        state_code: Optional[str] = None
+        city: Optional[str] = None
+        components = data.get("addressComponents")
+        if isinstance(components, list):
+            for comp in components:
+                if not isinstance(comp, dict):
+                    continue
+                types = comp.get("types")
+                if not isinstance(types, list):
+                    continue
+                if "administrative_area_level_1" in types and state_code is None:
+                    short = comp.get("shortText")
+                    if isinstance(short, str) and short:
+                        state_code = short
+                if "locality" in types and city is None:
+                    name = comp.get("shortText") or comp.get("longText")
+                    if isinstance(name, str) and name:
+                        city = name
+
+        lat: Optional[float] = None
+        lng: Optional[float] = None
+        location = data.get("location")
+        if isinstance(location, dict):
+            raw_lat = location.get("latitude")
+            raw_lng = location.get("longitude")
+            if isinstance(raw_lat, (int, float)):
+                lat = float(raw_lat)
+            if isinstance(raw_lng, (int, float)):
+                lng = float(raw_lng)
+
+        return PlaceDetails(
+            place_id=place_id,
+            formatted_address=formatted_address,
+            state_code=state_code,
+            city=city,
+            lat=lat,
+            lng=lng,
+        )
 
     @staticmethod
     def _extract_photo_fields(

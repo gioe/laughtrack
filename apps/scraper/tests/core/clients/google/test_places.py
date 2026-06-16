@@ -5,8 +5,10 @@ from unittest.mock import MagicMock, patch
 import pytest
 import requests
 
+from laughtrack.core.clients.google import places
 from laughtrack.core.clients.google.places import (
     GooglePlacesClient,
+    PlaceDetails,
     PlacesNearbyVenue,
     PlacesPhotoResult,
     _normalize_attributions,
@@ -387,3 +389,127 @@ def test_search_nearby_refunds_slot_on_network_error(configured_client):
         mock_post.side_effect = requests.RequestException("boom")
         assert configured_client.search_nearby("comedy club", 41.0, -81.0, 30.0) == []
     assert configured_client.calls_made == 0  # reserved slot rolled back
+
+
+# ---------------------------------------------------------------------------
+# GooglePlacesClient.fetch_place_details
+# ---------------------------------------------------------------------------
+
+
+_DETAILS_BODY = {
+    "formattedAddress": "123 Main St, San Francisco, CA 94102, USA",
+    "location": {"latitude": 37.7793, "longitude": -122.4193},
+    "addressComponents": [
+        {
+            "longText": "California",
+            "shortText": "CA",
+            "types": ["administrative_area_level_1", "political"],
+        },
+        {
+            "longText": "San Francisco",
+            "shortText": "San Francisco",
+            "types": ["locality", "political"],
+        },
+    ],
+}
+
+
+def test_fetch_place_details_unconfigured_returns_none(monkeypatch):
+    monkeypatch.delenv("GOOGLE_PLACES_API_KEY", raising=False)
+    client = GooglePlacesClient()
+    assert client.fetch_place_details("ChIJabc") is None
+
+
+def test_fetch_place_details_blank_id_returns_none(configured_client):
+    assert configured_client.fetch_place_details("") is None
+    assert configured_client.fetch_place_details("   ") is None
+
+
+def test_fetch_place_details_happy_path_parses_fields(configured_client, monkeypatch):
+    mock_get = MagicMock(return_value=_mock_response(200, json_data=_DETAILS_BODY))
+    monkeypatch.setattr(places.requests, "get", mock_get)
+
+    result = configured_client.fetch_place_details("ChIJabc")
+
+    assert result == PlaceDetails(
+        place_id="ChIJabc",
+        formatted_address="123 Main St, San Francisco, CA 94102, USA",
+        state_code="CA",
+        city="San Francisco",
+        lat=37.7793,
+        lng=-122.4193,
+    )
+    # Place Details is a GET to /places/{id} with the documented field mask.
+    _args, kwargs = mock_get.call_args
+    assert mock_get.call_args[0][0].endswith("/places/ChIJabc")
+    assert kwargs["headers"]["X-Goog-FieldMask"] == "formattedAddress,location,addressComponents"
+    assert kwargs["headers"]["X-Goog-Api-Key"] == "fake-key"
+    assert configured_client.calls_made == 1
+
+
+def test_fetch_place_details_http_error_returns_none(configured_client, monkeypatch):
+    monkeypatch.setattr(
+        places.requests, "get", MagicMock(return_value=_mock_response(404, json_data=None, text="not found"))
+    )
+    assert configured_client.fetch_place_details("ChIJabc") is None
+
+
+def test_fetch_place_details_network_error_refunds_slot(configured_client, monkeypatch):
+    monkeypatch.setattr(places.requests, "get", MagicMock(side_effect=requests.ConnectionError("dns fail")))
+    assert configured_client.fetch_place_details("ChIJabc") is None
+    assert configured_client.calls_made == 0  # reserved slot rolled back
+
+
+def test_fetch_place_details_tolerates_missing_components(configured_client, monkeypatch):
+    body = {"location": {"latitude": 1.0, "longitude": 2.0}}
+    monkeypatch.setattr(places.requests, "get", MagicMock(return_value=_mock_response(200, json_data=body)))
+    result = configured_client.fetch_place_details("ChIJabc")
+    assert result == PlaceDetails("ChIJabc", None, None, None, 1.0, 2.0)
+
+
+# ---------------------------------------------------------------------------
+# GooglePlacesClient.find_place_id
+# ---------------------------------------------------------------------------
+
+
+def test_find_place_id_unconfigured_returns_none(monkeypatch):
+    monkeypatch.delenv("GOOGLE_PLACES_API_KEY", raising=False)
+    client = GooglePlacesClient()
+    assert client.find_place_id("Comedy Cellar") is None
+
+
+def test_find_place_id_blank_query_returns_none(configured_client):
+    assert configured_client.find_place_id("") is None
+    assert configured_client.find_place_id("   ") is None
+
+
+def test_find_place_id_happy_path_returns_top_id(configured_client):
+    body = {"places": [{"id": "ChIJtop"}, {"id": "ChIJother"}]}
+    with patch("laughtrack.core.clients.google.places.requests.post") as mock_post:
+        mock_post.return_value = _mock_response(200, json_data=body)
+        place_id = configured_client.find_place_id("Comedy Cellar, New York, NY")
+
+    assert place_id == "ChIJtop"
+    _args, kwargs = mock_post.call_args
+    assert kwargs["headers"]["X-Goog-FieldMask"] == "places.id"
+    assert kwargs["json"] == {"textQuery": "Comedy Cellar, New York, NY", "pageSize": 1}
+    assert configured_client.calls_made == 1
+
+
+def test_find_place_id_no_results_returns_none(configured_client):
+    with patch("laughtrack.core.clients.google.places.requests.post") as mock_post:
+        mock_post.return_value = _mock_response(200, json_data={"places": []})
+        assert configured_client.find_place_id("Made-Up Place") is None
+
+
+def test_find_place_id_http_error_returns_none(configured_client):
+    with patch("laughtrack.core.clients.google.places.requests.post") as mock_post:
+        mock_post.return_value = _mock_response(403, json_data=None, text="forbidden")
+        assert configured_client.find_place_id("Comedy Cellar") is None
+
+
+def test_find_place_id_network_error_refunds_slot(configured_client):
+    with patch("laughtrack.core.clients.google.places.requests.post") as mock_post:
+        mock_post.side_effect = requests.ConnectionError("dns fail")
+        assert configured_client.find_place_id("Comedy Cellar") is None
+    assert configured_client.calls_made == 0
