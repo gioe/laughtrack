@@ -680,35 +680,49 @@ class ClubHandler(BaseDatabaseHandler[Club]):
             Logger.error(f"Error upserting discovered venue '{name}': {e}")
             raise
 
-    def enrich_timezones(self, scraper: str = "eventbrite") -> int:
+    def enrich_timezones(self, scraper: Optional[str] = "eventbrite") -> int:
         """
         Enrich timezone for clubs that were upserted without one.
 
-        Queries clubs WHERE scraper = <scraper> AND timezone IS NULL, infers
-        the timezone from the stored address (US state abbreviation), and
-        updates only rows still NULL — so re-running is always safe.
+        With ``scraper`` set (default 'eventbrite') this queries clubs WHERE the
+        primary source's scraper_key = <scraper> AND timezone IS NULL. Pass
+        ``scraper=None`` to instead sweep every visible club with timezone=NULL
+        regardless of scraper (used by the nightly backfill). The timezone is
+        resolved from the stored state column first, then the address (US state
+        abbreviation), and only rows still NULL are updated — re-running is safe.
 
         Args:
-            scraper: The scraper type to filter clubs by (default: 'eventbrite').
+            scraper: The scraper type to filter clubs by, or None to sweep all
+                visible clubs (default: 'eventbrite').
 
         Returns:
             Number of clubs whose timezone was successfully updated.
         """
-        from laughtrack.utilities.domain.club.timezone_lookup import timezone_from_address  # noqa: PLC0415
-
-        rows = self.execute_with_cursor(
-            ClubQueries.GET_CLUBS_WITH_NULL_TIMEZONE,
-            (scraper,),
-            return_results=True,
+        from laughtrack.utilities.domain.club.timezone_lookup import (  # noqa: PLC0415
+            timezone_from_address,
+            timezone_from_state,
         )
+
+        if scraper is None:
+            rows = self.execute_with_cursor(
+                ClubQueries.GET_ALL_VISIBLE_CLUBS_WITH_NULL_TIMEZONE,
+                return_results=True,
+            )
+        else:
+            rows = self.execute_with_cursor(
+                ClubQueries.GET_CLUBS_WITH_NULL_TIMEZONE,
+                (scraper,),
+                return_results=True,
+            )
         if not rows:
-            Logger.info(f"No clubs with scraper='{scraper}' and timezone=NULL found.")
+            scope = "any scraper" if scraper is None else f"scraper='{scraper}'"
+            Logger.info(f"No clubs with {scope} and timezone=NULL found.")
             return 0
 
         updates: List[tuple] = []
         for row in rows:
             club = Club.from_db_row(row)
-            tz = timezone_from_address(club.address)
+            tz = timezone_from_state(club.state) or timezone_from_address(club.address)
             if tz:
                 updates.append((club.id, tz))
             else:

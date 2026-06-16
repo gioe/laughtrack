@@ -396,6 +396,13 @@ class ClubQueries:
         ORDER BY c.id
     """
 
+    GET_ALL_VISIBLE_CLUBS_WITH_NULL_TIMEZONE = f"""
+        { _BASE_CLUB_SELECT }
+        WHERE c.visible = TRUE
+          AND c.timezone IS NULL
+        ORDER BY c.id
+    """
+
     BATCH_UPDATE_CLUB_TIMEZONES = """
         UPDATE clubs AS c
         SET timezone = v.timezone
