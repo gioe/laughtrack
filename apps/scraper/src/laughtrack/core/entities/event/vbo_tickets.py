@@ -16,6 +16,7 @@ from typing import Optional
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.show.model import Show
 from laughtrack.core.protocols.show_convertible import ShowConvertible
+from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.utilities.domain.show.factory import ShowFactoryUtils
 
 # VBO event names frequently carry a trailing " M/D" date suffix (e.g.
@@ -44,13 +45,17 @@ class VboEvent(ShowConvertible):
 
         m = _VBO_DATE_RE.search(self.date_str or "")
         if not m:
+            # Log rather than drop silently — a VBO date-format change would
+            # otherwise read as an empty calendar with no diagnostic trail.
+            Logger.warn(f"VboEvent: unrecognized VBO date format {self.date_str!r} for {name!r}")
             return None
         try:
             naive = datetime.strptime(f"{m.group(1)} {m.group(2).upper().replace(' ', '')}", "%m/%d/%Y %I:%M%p")
             start_date = ShowFactoryUtils.parse_datetime_with_timezone_fallback(
                 naive.isoformat(), club.timezone
             )
-        except Exception:
+        except Exception as e:
+            Logger.warn(f"VboEvent: failed to parse date {self.date_str!r} for {name!r}: {e}")
             return None
 
         show_url = url or self.url
