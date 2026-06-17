@@ -25,6 +25,7 @@ from typing import Dict, List, Set
 
 from laughtrack.core.entities.comedian.handler import ComedianHandler
 from laughtrack.core.entities.lineup.handler import LineupHandler
+from laughtrack.foundation.infrastructure.logger.logger import Logger
 
 # Floor on a matched comedian's stored popularity. Sits in the gap between the
 # lowest observed real PHS comedian (~0.40) and the highest false positive
@@ -60,7 +61,19 @@ def select_comedy_titles(
     popularity = comedian_handler.get_stored_popularity_by_names(matched_names)
 
     comedy_titles: Set[str] = set()
+    dropped: list = []
     for title, comedians in matches.items():
         if any(popularity.get(c.name, 0.0) >= min_popularity for c in comedians):
             comedy_titles.add(title)
+        else:
+            # Matched a known comedian but every match is below the floor — kept
+            # out of comedy. Log it so under-coverage (a real act below the floor)
+            # is diagnosable rather than silent.
+            best = max((popularity.get(c.name, 0.0) for c in comedians), default=0.0)
+            dropped.append(f"{title!r} (best matched popularity {best:.3f} < {min_popularity})")
+    if dropped:
+        Logger.debug(
+            f"playhouse_square comedy filter dropped {len(dropped)} below-floor "
+            f"name-match(es): {'; '.join(dropped)}"
+        )
     return comedy_titles
