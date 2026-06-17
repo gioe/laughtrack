@@ -17,15 +17,23 @@ Generated 2026-06-16. Re-run the recipe in "Method" for any other ZIP.
   The other ~158 (generic `performing_arts_theater`/`bar`/`event_venue`/etc. with no comedy
   signal) were **not individually probed** in this pass — they are lower-signal and most host
   comedy only incidentally; probe them on demand if a specific lead arises.
-- Of the 17: **2 are clean, ready-to-onboard wins mapping to existing scrapers**, 1 is likely
-  already covered by an onboarded host venue, and **the remaining 14 are dead ends**
-  (Google misclassifications, not-comedy, social-/door-only, or roving acts).
+- Of the 17: **2 map to existing scrapers**, 1 is likely already covered by an onboarded host
+  venue, and **the remaining 14 are dead ends** (Google misclassifications, not-comedy,
+  social-/door-only, or roving acts).
+
+> **Update (TASK-2940):** The Cellar @ Pittsburgh Winery was onboarded (club 8730, etix venue
+> 31604) but is a **mixed music+comedy venue** (~5 comedy of ~22 events) — the `etix` scraper has
+> no genre filter, so the full music calendar comes in too and is pruned manually (operator
+> decision). It is *not* the "clean win" this sheet first implied; comedy at a Pittsburgh winery
+> is already covered comedy-filtered by **City Winery Pittsburgh** (club 8720, a different chain
+> venue, `genre=Comedy`). See convention #195 (mixed-venue onboarding needs a platform genre
+> filter). Local verify was 0 shows (etix DataDome block); N>0 pending the GHA nightly.
 
 ### Recommended next actions (file these as onboarding tasks)
 
 | Venue | City | Platform | `scraper_key` | Why it's ready |
 |---|---|---|---|---|
-| **The Cellar @ The Original Pittsburgh Winery** | Pittsburgh, PA | Etix | **`etix`** (exists) | Fixed venue; all show listings link `etix.com`. Comedy + music room. |
+| **The Cellar @ The Original Pittsburgh Winery** | Pittsburgh, PA | Etix | **`etix`** (exists) | ONBOARDED (TASK-2940, club 8730) with a caveat — mixed music+comedy, no genre filter, music pruned manually. NOT a clean win. |
 | **Something Dada Improv Comedy Co.** | Cleveland, OH | TicketLeap (`somethingdada.ticketleap.com/dada`) | **`ticketleap`** (exists) | Long-running improv troupe; tickets via a TicketLeap subdomain. |
 
 Neither is currently in `clubs` or has a dedicated onboarding task (dupe-checked 2026-06-16).
@@ -34,7 +42,7 @@ Neither is currently in `clubs` or has a dedicated onboarding task (dupe-checked
 
 | Venue | Dist | Comedy? | Website | Platform | Candidate `scraper_key` | Disposition | Conf. |
 |---|---|---|---|---|---|---|---|
-| The Cellar @ Pittsburgh Winery | 79.0mi | yes | pittsburghwinery.com | Etix | `etix` | **ONBOARD** — ready | high |
+| The Cellar @ Pittsburgh Winery | 79.0mi | yes (mixed) | pittsburghwinery.com | Etix (venue 31604) | `etix` | **ONBOARDED w/ caveat** (TASK-2940, club 8730) — mixed music+comedy, music pruned manually; no genre filter | high |
 | Something Dada Improv Comedy Co. | 68.0mi | yes | somethingdada.ticketleap.com/dada | TicketLeap | `ticketleap` | **ONBOARD** — ready | high |
 | Columbus Improv Wars | 89.9mi | yes | improvwarscolumbus.com (down) | host theaters | — | Likely covered — ticketed via MadLab (club 8725) + The Nest (8713), both already onboarded | med |
 | PNR Improv (Point of No Return) | 38.3mi | yes | pnrimprov.org | none — $5 cash at door | not scrapable | Skip — door-only cash; performs at Newell Theatre / Quirk Cultural Center | high |
