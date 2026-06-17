@@ -50,7 +50,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.laughtrack.core
         GENERATE_INFOPLIST_FILE: "YES"
-        MARKETING_VERSION: "2.5.9"
+        MARKETING_VERSION: "2.6.0"
   LaughTrackBridge:
     type: framework
     platform: iOS
@@ -63,7 +63,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.laughtrack.bridge
         GENERATE_INFOPLIST_FILE: "YES"
-        MARKETING_VERSION: "2.5.9"
+        MARKETING_VERSION: "2.6.0"
   LaughTrackAPIClient:
     type: framework
     platform: iOS
@@ -83,7 +83,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.laughtrack.apiclient
         GENERATE_INFOPLIST_FILE: "YES"
-        MARKETING_VERSION: "2.5.9"
+        MARKETING_VERSION: "2.6.0"
   LaughTrackNotificationServiceExtension:
     type: app-extension
     platform: iOS
@@ -102,8 +102,8 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: app.laughtrack.ios.NotificationServiceExtension
         DEVELOPMENT_TEAM: 4HDNC3V5Q6
         GENERATE_INFOPLIST_FILE: "NO"
-        MARKETING_VERSION: "2.5.9"
-        CURRENT_PROJECT_VERSION: "29"
+        MARKETING_VERSION: "2.6.0"
+        CURRENT_PROJECT_VERSION: "30"
   LaughTrack:
     type: application
     platform: iOS
@@ -186,8 +186,8 @@ targets:
         # on device (didFailToRegister fires; no token is ever delivered), even
         # though the provisioning profile grants it.
         CODE_SIGN_ENTITLEMENTS: Sources/LaughTrackApp/LaughTrack.entitlements
-        MARKETING_VERSION: "2.5.9"
-        CURRENT_PROJECT_VERSION: "29"
+        MARKETING_VERSION: "2.6.0"
+        CURRENT_PROJECT_VERSION: "30"
         SWIFT_EMIT_LOC_STRINGS: "YES"
         # iPhone-only (TARGETED_DEVICE_FAMILY "1"). Without this xcodegen defaults
         # to "1,2" (iPhone + iPad), which makes App Store Connect require iPad
@@ -228,7 +228,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.laughtrack.tests
         GENERATE_INFOPLIST_FILE: "YES"
-        MARKETING_VERSION: "2.5.9"
+        MARKETING_VERSION: "2.6.0"
   LaughTrackUITests:
     type: bundle.ui-testing
     platform: iOS
@@ -251,5 +251,5 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.laughtrack.uitests
         GENERATE_INFOPLIST_FILE: "YES"
-        MARKETING_VERSION: "2.5.9"
+        MARKETING_VERSION: "2.6.0"
         TEST_TARGET_NAME: LaughTrack
