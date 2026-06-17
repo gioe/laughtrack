@@ -665,14 +665,20 @@ The `<theatre>` value comes from the `data-theatre` attribute on the embedded sc
 
 | | |
 |---|---|
-| **Scraper key** | `vbo_tickets` (generic, multi-event listing) — or venue-specific (`esthers_follies`, `nest_theatre`, `csz_philadelphia`) for single-recurring-show venues |
+| **Scraper key** | `vbo_tickets` (generic, multi-event listing) — or venue-specific (`esthers_follies`, `csz_philadelphia`) for single-recurring-show / seat-tier venues |
 | **DB field** | `source_url` = the loadplugin URL `https://plugin.vbotickets.com/plugin/loadplugin?siteid=<SITE_ID>&page=ListEvents` |
 | **Platform enum** | `custom` |
 | **Generic?** | ✅ for multi-event venues — use `vbo_tickets`; it reads the SiteID from `source_url`, no per-venue code |
 
-**Which scraper:** Use the generic **`vbo_tickets`** scraper for venues whose VBO plugin renders a multi-event listing (the `/Plugin/events/showevents?ViewType=list` grid — many distinct shows). The venue-specific scrapers (`esthers_follies`, `nest_theatre`, `csz_philadelphia`) predate it and model a single recurring show via the per-event date slider; new multi-event venues should use `vbo_tickets`.
+**Which scraper:** Use the generic **`vbo_tickets`** scraper for venues whose VBO plugin renders a multi-event listing (the `/Plugin/events/showevents` grid — many distinct shows). It parses both VBO's structured per-occurrence rows (`Tue, 6/16/2026 @ 7:00 PM`) and free-form / recurring date text entered by hand (`Fri 9:30pm 6/5, 6/12, ...`), and accepts an optional `category_filter` in `scraping_sources.metadata` to keep only matching `data-event-category` values.
 
-**`vbo_tickets` setup:** insert a `scraping_sources` row with `platform='custom'`, `scraper_key='vbo_tickets'`, and `source_url` = the loadplugin URL with the venue's SiteID. The scraper acquires a session from that URL, then GETs `https://plugin.vbotickets.com/Plugin/events/showevents?ViewType=list&EventType=current&day=&s=<session>` and parses each `<div id="EDID…">` block (`data-event-name`, `.TextEventDate`, `.EventListPrice`, `event.asp?eid=`). **Find the SiteID** in the venue's `/tickets` page inline JS: `var SiteID = "<GUID>";`.
+**Consolidation decision (TASK-2938):** The Nest Theatre — formerly the venue-specific `nest_theatre` scraper — was migrated onto `vbo_tickets`: it read the same `showevents` listing and differed only in its `Live Shows` category filter and free-form recurring dates, both now handled generically (set `metadata.category_filter='Live Shows'`). The remaining venue-specific VBO scrapers **stay separate on purpose**:
+- **`esthers_follies`** — a single recurring show scraped via the per-event date slider (`load_eventdate_slider`), with per-show seat-tier price enrichment (extra seat-map SVG + getseats JSON fetches). The multi-event listing flow does not model seat tiers.
+- **`csz_philadelphia`** — a two-stage flow (showevents → per-event date slider) with dynamic session self-healing and `data-event-subcategory='Comedy'` filtering; it expands each event's slider dates rather than reading the listing's dates.
+
+Folding either into `vbo_tickets` would require the generic scraper to grow the date-slider mode + seat-tier enrichment — high complexity for two venues with divergent logic — so they remain venue-specific.
+
+**`vbo_tickets` setup:** insert a `scraping_sources` row with `platform='custom'`, `scraper_key='vbo_tickets'`, and `source_url` = the loadplugin URL with the venue's SiteID. Optionally add `metadata = {"category_filter": "Live Shows"}` (string or list) to drop non-matching `data-event-category` entries (e.g. classes). The scraper acquires a session from that URL, then GETs `https://plugin.vbotickets.com/Plugin/events/showevents?ViewType=list&EventType=current&day=&s=<session>` and parses each `<div id="EDID…">` block (`data-event-name`, `data-event-category`, `.TextEventDate`, `.EventListPrice`, `event.asp?eid=`). **Find the SiteID** in the venue's `/tickets` page inline JS: `var SiteID = "<GUID>";`.
 
 **Detection signals:**
 - Network requests to `plugin.vbotickets.com` / `connect.vbotickets.com`
