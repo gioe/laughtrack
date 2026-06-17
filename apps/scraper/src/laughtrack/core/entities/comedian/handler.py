@@ -6,7 +6,7 @@ import os
 import re
 import threading
 import time
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 
 import requests
 from psycopg2.extras import DictRow
@@ -738,6 +738,26 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
 
         Logger.info(f"Retrieved {len(results)} comedian UUIDs from database")
         return [row["uuid"] for row in results]
+
+    def get_stored_popularity_by_names(self, names: List[str]) -> Dict[str, float]:
+        """Return ``{name: stored_popularity}`` for the given comedian names.
+
+        Reads the persisted ``comedians.popularity`` column (the full social +
+        performance score), unlike the lineup-match query which omits the social
+        columns. Genre-less venue scrapers (e.g. playhouse_square) use this to
+        gate a name-match comedy filter on a popularity floor. Names with no row
+        are simply absent from the result.
+        """
+        unique_names = [n for n in dict.fromkeys(names) if n]
+        if not unique_names:
+            return {}
+
+        results = self.execute_with_cursor(
+            ComedianQueries.GET_STORED_POPULARITY_BY_NAMES, (unique_names,), return_results=True
+        )
+        if not results:
+            return {}
+        return {row["name"]: float(row["popularity"] or 0.0) for row in results}
 
     # ------------------------------------------------------------------
     # Social follower refresh

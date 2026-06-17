@@ -355,3 +355,13 @@ class ComedianQueries:
         WHERE c.uuid = v.uuid::text
           AND c.website_scraping_url_confidence IS DISTINCT FROM v.confidence
     '''
+
+    # Stored popularity by exact comedian name. Used by genre-less venue scrapers
+    # (e.g. playhouse_square) to gate a name-match comedy filter on the comedian's
+    # popularity floor, dropping junk/miscategorised comedian rows whose names
+    # collide with non-comedy show titles (e.g. a "The Nutcracker" ballet row).
+    GET_STORED_POPULARITY_BY_NAMES = '''
+        SELECT name, popularity
+        FROM comedians
+        WHERE name = ANY(%s)
+    '''
