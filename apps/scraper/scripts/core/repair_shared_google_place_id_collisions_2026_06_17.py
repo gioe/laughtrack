@@ -213,7 +213,7 @@ def main() -> int:
             for group in GROUPS:
                 holders = set(live_collisions.get(group.place_id, []))
                 if not holders:
-                    print(f"  {group.place_id}: already resolved (no club holds it)")
+                    print(f"  {group.place_id}: already resolved (no active collision)")
                     continue
                 to_null = sorted(holders - ({group.keep_club_id} if group.keep_club_id else set()))
                 keep = group.keep_club_id if group.keep_club_id is not None else "NONE"
