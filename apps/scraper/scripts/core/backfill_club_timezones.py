@@ -70,8 +70,13 @@ _UPDATE_TIMEZONE_SQL = """
     WHERE id = %s AND timezone IS NULL
 """
 
-# Opportunistic enrichment of the columns geocoding resolved, each guarded so
-# only currently-NULL columns are filled (manual edits / prior values win).
+# Opportunistic identity enrichment from an AUTHORITATIVE geocode — the club's
+# OWN google_place_id (SOURCE_PLACEID_GEOCODE) — each column guarded so only
+# currently-NULL columns are filled (manual edits / prior values win). NEVER
+# applied to a SOURCE_NAME_GEOCODE result: a name text-search is a heuristic
+# match that can land on an unrelated famous venue (TASK-2933: club 620 'Comedy
+# Shows Near Me' matched Comedy Cellar's place_id + 117 MacDougal St address),
+# so writing its address/coords/place_id back corrupts club identity.
 _UPDATE_GEOCODE_FIELDS_SQL = """
     UPDATE clubs
     SET state     = COALESCE(state, %s),
@@ -81,10 +86,14 @@ _UPDATE_GEOCODE_FIELDS_SQL = """
     WHERE id = %s
 """
 
-_UPDATE_PLACE_ID_SQL = """
+# State-only enrichment for a name-search (heuristic) match: the matched venue's
+# state is the same signal the timezone itself was derived from, so it is no
+# riskier than the timezone we already write — but address/coords/place_id are
+# identity fields and must never be adopted from a heuristic match.
+_UPDATE_STATE_SQL = """
     UPDATE clubs
-    SET google_place_id = %s
-    WHERE id = %s AND google_place_id IS NULL
+    SET state = COALESCE(state, %s)
+    WHERE id = %s
 """
 
 
@@ -190,12 +199,20 @@ def _load_target_clubs(club_ids: Optional[List[int]], limit: Optional[int]) -> L
 
 
 def _persist(row: ClubRow, resolution: Resolution) -> None:
-    """Write the resolved timezone (NULL-guarded) plus any geocoded fields."""
+    """Write the resolved timezone (NULL-guarded) plus source-gated geocode fields.
+
+    Identity columns (address/lat/lng and any resolved place_id) are backfilled
+    ONLY for ``SOURCE_PLACEID_GEOCODE`` — that resolution used the club's own
+    ``google_place_id``, so its Place Details authoritatively describe this club.
+    A ``SOURCE_NAME_GEOCODE`` match is a heuristic name text-search that can land
+    on an unrelated famous venue (TASK-2933), so it persists only the
+    timezone-bearing state; its address/coords/place_id are never written.
+    """
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(_UPDATE_TIMEZONE_SQL, (resolution.timezone, row.id))
             details = resolution.details
-            if details is not None:
+            if details is not None and resolution.source == SOURCE_PLACEID_GEOCODE:
                 cur.execute(
                     _UPDATE_GEOCODE_FIELDS_SQL,
                     (
@@ -206,8 +223,8 @@ def _persist(row: ClubRow, resolution: Resolution) -> None:
                         row.id,
                     ),
                 )
-            if resolution.resolved_place_id:
-                cur.execute(_UPDATE_PLACE_ID_SQL, (resolution.resolved_place_id, row.id))
+            elif details is not None and resolution.source == SOURCE_NAME_GEOCODE:
+                cur.execute(_UPDATE_STATE_SQL, (details.state_code, row.id))
         conn.commit()
 
 
