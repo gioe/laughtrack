@@ -4,6 +4,54 @@ A developer onboarding a new comedy club should be able to pick the right scrape
 
 ---
 
+## Entry Format
+
+When adding a newly discovered platform or scraper pattern, add one platform
+section using this shape. Keep the table as the canonical summary; put API
+quirks, pricing behavior, pagination, bot blocking, and historical notes in the
+bullets below it. If endpoint URLs are documented, verify them against the
+actual client source before writing them down.
+
+````md
+### Platform Name
+
+| | |
+|---|---|
+| **Scraper key** | `scraper_key` or venue-specific (reference: `existing_venue`) |
+| **Platform** | `ScrapingPlatform` enum value, or `custom` when no enum exists |
+| **DB field** | `scraping_url`, `scraping_sources.source_url`, metadata keys, or platform-specific columns |
+| **Value format** | Exact URL/ID shape to store |
+| **Generic?** | ✅ DB-only / ✅ generic for specific source shape / ❌ venue-specific code required |
+
+**Detection signals:**
+- Hostnames, widgets, CSS classes, page-source markers, or network requests that identify the platform
+
+**API/source pattern:**
+- Endpoint or page pattern used by the scraper
+- Required request parameters or metadata
+
+**Key extraction notes:**
+- Date/time parsing, timezone, title, ticket URL, price, sold-out, lineup, and pagination details
+
+**DB setup:**
+```sql
+-- Minimal row/update needed to onboard a venue
+```
+
+**Failure modes / gotchas:**
+- Bot-blocking behavior, stale IDs, missing prices, duplicate pages, rate limits, or unsupported variants
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/...`
+- Reference venue/task, if known
+````
+
+When updating the decision flow or summary tables, update the matching platform
+section in the same change so the quick references do not drift from the
+canonical section.
+
+---
+
 ## Decision Flowchart
 
 ```
@@ -39,8 +87,11 @@ Is there a buy link to `{venue}.showare.com` or an accesso ShoWare footer?
               (see ShoWare section — use metadata title filters for multi-purpose theatres)
 
 Is there a tixr.com buy link?
-  └── YES → platform: Tixr → new venue-specific scraper required
-              (see Tixr section — short/long URL format matters)
+  └── YES → platform: Tixr → scraper: tixr for server-rendered event links
+                                      tixr_public_card for supported venue-owned cards
+                                      tixr_webflow_day_card for supported Webflow day cards
+                                      venue-specific only for unsupported source shapes
+              (see Tixr section — short/long URL format and DataDome behavior matter)
 
 Is there a Showpass widget or showpass.com buy link?
   └── YES → platform: Showpass → scraper = 'showpass' (generic)
@@ -53,19 +104,32 @@ Is there an events.ticketleap.com/events/{slug} link or a TicketLeap widget?
               (see TicketLeap section — listing page requires JS, detail pages emit
                standard schema.org Event JSON-LD)
 
+Is there a SimpleTix event page link?
+  └── YES → platform: SimpleTix → scraper = 'simpletix' (generic)
+              DB: scraping_url = full SimpleTix event page URL
+
+Is there a Shopify collection page for shows?
+  └── YES → platform: Shopify → scraper = 'shopify' (generic)
+              DB: scraping_url = Shopify collection page URL
+
+Is there a BookTix box office at `{org}.booktix.com`?
+  └── YES → platform: BookTix → scraper = 'booktix' (generic)
+              DB: source_url = https://{org}.booktix.com/dept/main
+
 Check browser network requests (browser_navigate + browser_network_requests):
   └── tockify.com/api/tagoptions/<calname>   → platform: Tockify
                                                 → new venue-specific scraper required
   └── /api/open/GetItemsByMonth              → platform: Squarespace
-                                                → new venue-specific scraper required
+                                                → scraper: squarespace (generic; set scraping_url)
   └── crowdwork.com/api/v2/<theatre>/shows   → platform: Crowdwork
                                                 → new venue-specific scraper required
   └── plugin.vbotickets.com                  → platform: VBO Tickets
-                                                → new venue-specific scraper required
+                                                → scraper: vbo_tickets for multi-event listings
+                                                  (single-recurring-show venues may still use venue-specific scrapers)
   └── /.netlify/functions/availability       → platform: Netlify Functions
                                                 → new venue-specific scraper required
   └── showpass.com/api/public/venues/          → platform: Showpass
-                                                → new venue-specific scraper required
+                                                → scraper: showpass (generic; set scraping_url)
   └── editmysite.com/app/store/api/          → platform: Square Online (Weebly)
                                                 → new venue-specific scraper required
                                                 (see Square Online section — use coral_gables_comedy_club as reference)
@@ -1960,7 +2024,7 @@ cd apps/scraper && make scrape-club CLUB='My Club'
 | Ticketmaster | `live_nation` | No | `ticketmaster_id` |
 | Eventbrite | `eventbrite` | No | `eventbrite_id` |
 | SeatEngine v1 | `seatengine` | No | `seatengine_id` (numeric) |
-| SeatEngine v1 legacy | `seatengine_classic` | No | `seatengine_id` (numeric) |
+| SeatEngine Classic | `seatengine_classic` | No | `scraping_url` (calendar URL; `seatengine_id` metadata only) |
 | SeatEngine v3 | `seatengine_v3` | No | `seatengine_id` (UUID) |
 | Tribe Events (WordPress) | `the_events_calendar` | No | `source_url` |
 | rhp-events (WordPress) | `comedy_magic_club` | No | `scraping_url` |
@@ -1972,14 +2036,17 @@ cd apps/scraper && make scrape-club CLUB='My Club'
 | ShowSlinger | `show_slinger` | No | `scraping_url` (full combo_widget URL with id, secure_code, origin_url) |
 | Tixr detail pages | `tixr` | No | `scraping_url` / `source_url` |
 | Tixr public cards | `tixr_public_card` | No | `scraping_url` / `source_url` |
+| Tixr Webflow day cards | `tixr_webflow_day_card` | No | `source_url` + metadata `tixr_group_fragment` |
 | Tockify | venue-specific | **Yes** — replace calname | `scraping_url` |
-| Squarespace | venue-specific | **Yes** — replace collectionId | `scraping_url` |
+| Squarespace | `squarespace` | No | `scraping_url` (full GetItemsByMonth URL with `collectionId`) |
 | Wix Events | venue-specific | **Yes** — replace compId | `scraping_url` |
 | Crowdwork | venue-specific | **Yes** — replace theatre slug | `scraping_url` |
-| VBO Tickets | venue-specific | **Yes** — replace UUID | `scraping_url` |
+| VBO Tickets (multi-event listing) | `vbo_tickets` | No | `source_url` (loadplugin URL with SiteID) |
+| VBO Tickets (single recurring show) | venue-specific | **Yes** — replace SiteID/EID constants | `scraping_url` |
 | SquadUP | venue-specific | **Yes** — replace user_id | `scraping_url` |
 | Netlify Functions | venue-specific | **Yes** — new scraper dir | `scraping_url` (unused) |
-| ThunderTix | venue-specific | **Yes** — new scraper dir (ref: `annoyance`) | `scraping_url` |
+| SimpleTix | `simpletix` | No | `scraping_url` (full SimpleTix event page URL) |
+| ThunderTix | `thundertix` | No | `scraping_sources.source_url` (+ optional `metadata.title_skip_prefixes`) |
 | TicketSource | venue-specific | **Yes** — new scraper dir (ref: `comedy_clubhouse`) | `scraping_url` |
 | StageTime | venue-specific | **Yes** — new scraper dir | `scraping_url` |
 | OvationTix (calendar) | `uncle_vinnies` | **Yes** — replace production IDs | `scraping_url` |
@@ -1987,8 +2054,11 @@ cd apps/scraper && make scrape-club CLUB='My Club'
 | OvationTix (generic) | `ovationtix` | **No** — set `ovationtix_client_id` | `scraping_url` = `web.ovationtix.com/trs/cal/{clientId}` |
 | OpenDate | venue-specific | **Yes** — ref: `sports_drink` | `scraping_url` |
 | Square Online (Weebly) | venue-specific | **Yes** — ref: `coral_gables_comedy_club` | `scraping_url` (full products API URL) |
+| Showpass | `showpass` | No | `scraping_url` (Showpass calendar API base URL) |
 | TicketLeap | `ticketleap` | No | `scraping_url` (org listing URL: `events.ticketleap.com/events/{org_slug}`) |
 | SellingTicket | `sellingticket` | No | `scraping_url` (list URL with OrganizationID) |
+| Shopify | `shopify` | No | `scraping_url` (Shopify collection page URL) |
+| BookTix | `booktix` | No | `source_url` or `scraping_url` (BookTix box-office home URL) |
 | ShoWare | `showare` | No | `scraping_url` / `source_url` (ShoWare `default.asp` or venue root URL) |
 
 ---
@@ -2126,15 +2196,25 @@ Other related checks:
 | `live_nation` | `ticketmaster_id` (alphanumeric Discovery API ID) |
 | `eventbrite` | `eventbrite_id` (organizer or venue numeric ID) |
 | `seatengine` | `seatengine_id` (numeric) |
-| `seatengine_classic` | `seatengine_id` (numeric) |
+| `seatengine_classic` | `scraping_url` (calendar URL; `seatengine_id` optional metadata only) |
 | `seatengine_v3` | `seatengine_id` (UUID) |
 | `the_events_calendar` | `source_url` (Tribe Events REST API base URL) |
 | `comedy_magic_club` | `scraping_url` (base `/events/` URL — no pagination) |
 | `json_ld` | `scraping_url` (events page with JSON-LD markup, e.g. Prekindle, Humanitix) |
+| `tixr` | `source_url` or `scraping_url` (server-rendered calendar page with Tixr event links) |
+| `tixr_public_card` | `source_url` or `scraping_url` (venue-owned event cards with Tixr ticket URLs) |
+| `tixr_webflow_day_card` | `source_url` + metadata `tixr_group_fragment` |
+| `squarespace` | `scraping_url` (full GetItemsByMonth URL with `collectionId`) |
+| `vbo_tickets` | `source_url` (loadplugin URL with SiteID) |
 | `ninkashi` | `scraping_url` (tickets subdomain, e.g. `tickets.myvenue.com`) |
 | `vivenu` | `scraping_url` (Vivenu seller page root URL) |
+| `simpletix` | `scraping_url` (full SimpleTix event page URL) |
+| `thundertix` | `source_url` (+ optional metadata `title_skip_prefixes`) |
 | `showpass` | `scraping_url` (Showpass calendar API base URL: `.../venues/{slug}/calendar/`) |
 | `show_slinger` | `scraping_url` (full combo_widget URL with id, secure_code, origin_url) |
 | `ticketleap` | `scraping_url` (org listing URL: `events.ticketleap.com/events/{org_slug}`) |
+| `sellingticket` | `scraping_url` or `source_url` (list URL with OrganizationID) |
+| `shopify` | `scraping_url` (Shopify collection page URL) |
+| `booktix` | `source_url` or `scraping_url` (BookTix box-office home URL) |
 | `east_austin_comedy` | `scraping_url` (homepage anchor; unused at runtime) |
 | All venue-specific | `scraping_url` (venue calendar page or API URL) |

@@ -107,6 +107,10 @@ can affect DB-mutating operations like `task-start`, `criteria done`, `commit`,
 
 For platform-specific venue onboarding guides (StageTime, Prekindle, Humanitix, Ninkashi, Tixr, Eventbrite, SeatEngine, Squarespace, Tockify, OvationTix, OpenDate, TicketSource, and more), see `apps/scraper/SCRAPERS.md`.
 
+When adding a newly discovered platform or scraper pattern to `SCRAPERS.md`, use
+the file's "Entry Format" template so detection signals, DB fields, endpoint
+shape, failure modes, and reference implementations are captured consistently.
+
 ## Scraper Testing Patterns
 
 For testing patterns when writing scraper tests (smoke tests, module loading, mocking, async, VCR cassettes, etc.), see `apps/scraper/CONTRIBUTING.md`.
