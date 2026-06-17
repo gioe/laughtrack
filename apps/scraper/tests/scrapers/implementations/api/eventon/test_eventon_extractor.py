@@ -132,6 +132,13 @@ class TestExtractEvents:
         events = extract_events(parse_loader_events(LOADER_JSON), meta)
         assert [e.title for e in events] == ["Mid-Life Crisis: A Comedy Improv Troupe"]
 
+    def test_empty_filter_set_fails_closed(self):
+        # A configured-but-unresolved comedy filter (empty set, not None) must
+        # import NOTHING rather than flooding a comedy-only DB with all events.
+        meta = build_rest_meta(REST_ITEMS)
+        events = extract_events(parse_loader_events(LOADER_JSON), meta, comedy_term_ids=set())
+        assert events == []
+
 
 class TestToShow:
     def test_localizes_wall_clock_to_club_tz(self):
@@ -153,3 +160,75 @@ class TestToShow:
             show_page_url="https://jillysmusicroom.com/events/old/",
         )
         assert ev.to_show(_Club()) is None
+
+
+import json
+
+from unittest.mock import AsyncMock
+
+from laughtrack.core.entities.club.model import Club, ScrapingSource
+from laughtrack.scrapers.implementations.api.eventon.scraper import EventONScraper
+
+
+def _make_scraper(event_type_filter=None):
+    meta = {"event_type_filter": event_type_filter} if event_type_filter else {}
+    src = ScrapingSource(
+        platform="custom", scraper_key="eventon",
+        source_url="https://jillysmusicroom.com", priority=0, enabled=True,
+        id=1, club_id=999, metadata=meta,
+    )
+    club = Club(
+        id=999, name="Jilly's Music Room", address="", website="https://jillysmusicroom.com",
+        popularity=0, zip_code="44308", phone_number="", visible=True,
+        timezone="America/New_York", city="Akron", state="OH",
+        scraping_sources=[src], active_scraping_source=src,
+    )
+    return EventONScraper(club)
+
+
+def _fetch_json_side_effect(url):
+    if "ajde_events" in url:
+        return REST_ITEMS
+    if "event_type" in url:
+        return EVENT_TYPE_TERMS
+    return None
+
+
+class TestGetDataOrchestration:
+    async def test_comedy_filter_keeps_only_comedy(self):
+        scraper = _make_scraper(event_type_filter="comedy")
+        scraper.post_form = AsyncMock(return_value=json.dumps(LOADER_JSON))
+        scraper.fetch_json = AsyncMock(side_effect=_fetch_json_side_effect)
+
+        page = await scraper.get_data("https://jillysmusicroom.com")
+        assert page is not None
+        assert [e.title for e in page.event_list] == ["Mid-Life Crisis: A Comedy Improv Troupe"]
+
+    async def test_no_filter_imports_all(self):
+        scraper = _make_scraper(event_type_filter=None)
+        scraper.post_form = AsyncMock(return_value=json.dumps(LOADER_JSON))
+        scraper.fetch_json = AsyncMock(side_effect=_fetch_json_side_effect)
+
+        page = await scraper.get_data("https://jillysmusicroom.com")
+        assert page is not None
+        assert {e.title for e in page.event_list} == {
+            "Mid-Life Crisis: A Comedy Improv Troupe",
+            "Swizzle Stick Band",
+        }
+
+    async def test_unresolved_filter_fails_closed(self):
+        # event_type taxonomy returns no comedy term -> filter set() -> import none.
+        scraper = _make_scraper(event_type_filter="comedy")
+        scraper.post_form = AsyncMock(return_value=json.dumps(LOADER_JSON))
+
+        def side_effect(url):
+            if "ajde_events" in url:
+                return REST_ITEMS
+            if "event_type" in url:
+                return [{"id": 6, "name": "MUSIC", "slug": "music"}]  # no comedy term
+            return None
+
+        scraper.fetch_json = AsyncMock(side_effect=side_effect)
+        page = await scraper.get_data("https://jillysmusicroom.com")
+        # No comedy term -> empty filter set -> nothing imported -> None page.
+        assert page is None

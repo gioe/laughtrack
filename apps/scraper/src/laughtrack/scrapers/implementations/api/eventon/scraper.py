@@ -145,7 +145,11 @@ class EventONScraper(BaseScraper):
     async def _resolve_filter_term_ids(self, root: str) -> Optional[Set[int]]:
         """Resolve ``event_type`` term ids for the configured comedy filter.
 
-        Returns None when no filter is configured (import everything).
+        Returns None only when no filter is configured (import everything). When
+        a filter IS configured, always returns a set — possibly empty if the
+        taxonomy is unavailable or no term matches. An empty set makes
+        ``extract_events`` fail CLOSED (import nothing) rather than flooding a
+        comedy-only DB with every event.
         """
         raw = self.club.metadata_value("event_type_filter")
         if not raw:
@@ -160,15 +164,16 @@ class EventONScraper(BaseScraper):
         if not isinstance(terms, list):
             Logger.warn(
                 f"{self._log_prefix}: event_type taxonomy unavailable at {root}; "
-                f"cannot apply '{raw}' filter",
+                f"'{raw}' filter fails closed (importing no events this run)",
                 self.logger_context,
             )
-            return None
+            return set()
 
         term_ids = discover_term_ids(terms, target_names=names)
         if not term_ids:
             Logger.warn(
-                f"{self._log_prefix}: No event_type term matched {names} at {root}",
+                f"{self._log_prefix}: No event_type term matched {names} at {root}; "
+                f"filter fails closed (importing no events this run)",
                 self.logger_context,
             )
         return term_ids

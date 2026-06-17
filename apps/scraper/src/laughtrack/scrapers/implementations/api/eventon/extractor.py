@@ -147,9 +147,12 @@ def extract_events(
 ) -> List[EventONEvent]:
     """Build EventONEvents, joining permalinks from *rest_meta*.
 
-    When *comedy_term_ids* is non-empty, keep only events whose REST
-    ``event_type`` includes one of those term ids. An event with no REST entry
-    (no permalink) is dropped — Show requires a page URL.
+    *comedy_term_ids* fails CLOSED when not None: ``None`` means no filter is
+    configured (keep everything), while a set (even an empty one) means a filter
+    was requested — keep only events whose REST ``event_type`` intersects it. An
+    empty set therefore drops every event, so a configured-but-unresolved comedy
+    filter imports nothing rather than flooding a comedy-only DB. An event with
+    no REST entry (no permalink) is dropped — Show requires a page URL.
     """
     events: List[EventONEvent] = []
     for raw in loader_events:
@@ -163,7 +166,7 @@ def extract_events(
         if not meta or not meta.get("link"):
             continue
 
-        if comedy_term_ids:
+        if comedy_term_ids is not None:
             term_ids = set(meta.get("event_type") or [])
             if not (term_ids & comedy_term_ids):
                 continue
