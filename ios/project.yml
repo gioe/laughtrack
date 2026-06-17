@@ -84,6 +84,26 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.laughtrack.apiclient
         GENERATE_INFOPLIST_FILE: "YES"
         MARKETING_VERSION: "2.5.9"
+  LaughTrackNotificationServiceExtension:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: Sources/LaughTrackNotificationServiceExtension
+    info:
+      path: Sources/LaughTrackNotificationServiceExtension/Info.plist
+      properties:
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.usernotifications.service
+          NSExtensionPrincipalClass: "$(PRODUCT_MODULE_NAME).NotificationService"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.laughtrack.ios.NotificationServiceExtension
+        DEVELOPMENT_TEAM: 4HDNC3V5Q6
+        GENERATE_INFOPLIST_FILE: "NO"
+        MARKETING_VERSION: "2.5.9"
+        CURRENT_PROJECT_VERSION: "29"
   LaughTrack:
     type: application
     platform: iOS
@@ -133,6 +153,9 @@ targets:
         UISupportedInterfaceOrientations~iphone:
           - UIInterfaceOrientationPortrait
     dependencies:
+      - target: LaughTrackNotificationServiceExtension
+        embed: true
+        codeSign: true
       - target: LaughTrackCore
       - target: LaughTrackBridge
       - target: LaughTrackAPIClient

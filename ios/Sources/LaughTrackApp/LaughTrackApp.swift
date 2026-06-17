@@ -7,6 +7,7 @@ import Foundation
 import os
 #if canImport(UIKit)
 import UIKit
+import UserNotifications
 #endif
 
 // SwiftPM test bundles provide their own entrypoint; keep the app entrypoint for Xcode builds.
@@ -61,6 +62,15 @@ struct LaughTrackApp: App {
                 .environmentObject(clubFavorites)
                 .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
                 .preferredColorScheme(.dark)
+                .onAppear {
+                    remoteNotificationDelegate.routeHandler = { route in
+                        coordinator.push(route)
+                    }
+                }
+                .onOpenURL { url in
+                    guard let route = LaughTrackNotificationDeepLink.route(from: url) else { return }
+                    coordinator.push(route)
+                }
                 .onChange(of: scenePhase) { newPhase in
                     // Keep the backend ZIP fresh for the location-based push job.
                     // Silent + gated (already-geolocated + already-authorized);
@@ -225,6 +235,20 @@ final class LaughTrackRemoteNotificationDelegate: NSObject, UIApplicationDelegat
     )
 
     var pushTokenManager: (any PushDeviceTokenManaging)?
+    @MainActor var routeHandler: ((AppRoute) -> Void)? {
+        didSet {
+            flushPendingRoutes()
+        }
+    }
+    @MainActor private var pendingRoutes: [AppRoute] = []
+
+    func application(
+        _ application: UIApplication,
+        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
+    ) -> Bool {
+        UNUserNotificationCenter.current().delegate = self
+        return true
+    }
 
     func application(
         _ application: UIApplication,
@@ -242,6 +266,46 @@ final class LaughTrackRemoteNotificationDelegate: NSObject, UIApplicationDelegat
         Self.logger.error(
             "Remote notification registration failed: \(error.localizedDescription, privacy: .public)"
         )
+    }
+}
+
+extension LaughTrackRemoteNotificationDelegate: UNUserNotificationCenterDelegate {
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification
+    ) async -> UNNotificationPresentationOptions {
+        [.banner, .list, .sound]
+    }
+
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse
+    ) async {
+        guard let route = LaughTrackNotificationDeepLink.route(
+            from: response.notification.request.content.userInfo
+        ) else {
+            return
+        }
+        await open(route)
+    }
+
+    @MainActor
+    private func open(_ route: AppRoute) {
+        if let routeHandler {
+            routeHandler(route)
+        } else {
+            pendingRoutes.append(route)
+        }
+    }
+
+    @MainActor
+    private func flushPendingRoutes() {
+        guard let routeHandler else { return }
+        let routes = pendingRoutes
+        pendingRoutes.removeAll()
+        for route in routes {
+            routeHandler(route)
+        }
     }
 }
 #endif

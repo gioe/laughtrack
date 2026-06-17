@@ -68,10 +68,12 @@
 		3F81904705764BF90FC9F14B /* PushAnalyticsEvents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 528FFEA1D198B7E47EDBDA81 /* PushAnalyticsEvents.swift */; };
 		3F8E5733305A73D0F92BD5C6 /* SearchField.swift in Sources */ = {isa = PBXBuildFile; fileRef = B567539F4B8C5140CCA80BFC /* SearchField.swift */; };
 		403FAA0E18FAE3566D477353 /* LocationFilterSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F4599CDD472CF4C4FFA8E5B /* LocationFilterSheet.swift */; };
+		40470757A306FA549FA5CC8F /* LaughTrackNotificationServiceExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 77792AE6A29CBDA8435461B6 /* LaughTrackNotificationServiceExtension.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		419F7FF802DBB6EAA23BDC4A /* RemoteImageViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFE2AE340B8C39B49B146875 /* RemoteImageViewTests.swift */; };
 		41DC07457C594E4BA82A70E8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 412E08B18318996CA4DB94CD /* Assets.xcassets */; };
 		41F25FA51A32EFBC75B3B7B7 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 013C30ED4B343F94BCD7B193 /* ProfileView.swift */; };
 		42424F768696DC2F72FF6B9E /* LaughTrackBridge.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20552640F544D4395DE585B7 /* LaughTrackBridge.framework */; };
+		456B5688FE416997A0B3D6A4 /* LaughTrackNotificationDeepLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 758E99D05CBD4C53BF89DD20 /* LaughTrackNotificationDeepLink.swift */; };
 		4585B8D5EB7FB72C80BBAF06 /* DetailHeroLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63EDE38E061B529E52A38C3F /* DetailHeroLayoutTests.swift */; };
 		464D53193F4769A1BD73A7A3 /* Demo.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBE877FF9B9D76AAC6FFCBA7 /* Demo.swift */; };
 		497B1B88853BE206736ADEFC /* LibraryFavoritesViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7436912FD34C53C36498E5EF /* LibraryFavoritesViewTests.swift */; };
@@ -141,6 +143,7 @@
 		94487F196E7F1E52967A3AB0 /* LaughTrackCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8EA13D0C5CA2F5439E19E122 /* LaughTrackCore.framework */; };
 		944ED15226713D49D69F17EE /* SearchFavoriteRowLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71CC048190FA9153D454C974 /* SearchFavoriteRowLayoutTests.swift */; };
 		97A64E347CF2AF2280EFA9A2 /* ShowFormatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E967C8A3F78A8A5226D2AA /* ShowFormatting.swift */; };
+		9B1CA745E1B68BE906F7BB8E /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20119147759900D9247D49A5 /* NotificationService.swift */; };
 		9B927C16B4B51ABF7EA9ED87 /* NotificationPreferenceStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 008683977BC9D75F1F750482 /* NotificationPreferenceStoreTests.swift */; };
 		9DF9E44E3C545330B35C49C1 /* PillSheetTrigger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00935250DBF700278E692D7F /* PillSheetTrigger.swift */; };
 		9E3D740175C97A1CD7B19AE6 /* PodcastSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81A43012E1A7CE02D4EAE547 /* PodcastSearchView.swift */; };
@@ -179,6 +182,7 @@
 		BFC58996894BF81634F8EA04 /* PushAuthorizationStatusProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D6CF43DA5863EA4A2E10C43 /* PushAuthorizationStatusProvider.swift */; };
 		C27DB4BAD000672EF70ED3E6 /* LaughTrackBridge.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 20552640F544D4395DE585B7 /* LaughTrackBridge.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		C385816EB40B0E60FD8350AD /* HTTPTypes in Frameworks */ = {isa = PBXBuildFile; productRef = F840714F147704B940EFAC06 /* HTTPTypes */; };
+		C44978167BDF373356A7D382 /* NotificationDeepLinkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3919358BAEAFEDD42CBCE64 /* NotificationDeepLinkTests.swift */; };
 		C4D575BB4C744D954DBDE5C6 /* PushDeviceTokenManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E115819A3E8E7A9D194E204 /* PushDeviceTokenManager.swift */; };
 		C6716683C773C258B4689242 /* MainPageCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64FD81FFE1F92583390A721E /* MainPageCacheTests.swift */; };
 		C6BDC552CA2E02C18B2C5F2E /* ShowDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F507D3C7B4E507D8FA307075 /* ShowDetailView.swift */; };
@@ -282,6 +286,13 @@
 			remoteGlobalIDString = E407829409969471735EAA0F;
 			remoteInfo = LaughTrack;
 		};
+		7D79B0534ED0C0EAEC322165 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5FB0ADAB0EB091F9D35AAAFB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C8EE528C5C93D9D2E1FD6202;
+			remoteInfo = LaughTrackNotificationServiceExtension;
+		};
 		7E6F9BAA0C9B9CD608AF7811 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 5FB0ADAB0EB091F9D35AAAFB /* Project object */;
@@ -324,6 +335,17 @@
 				C6FB9B34A0F4D1A23A580E19 /* LaughTrackAPIClient.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B6370F06BA013FF4905B357C /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				40470757A306FA549FA5CC8F /* LaughTrackNotificationServiceExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		FCB232C13A5BE6125D562EF3 /* Embed Frameworks */ = {
@@ -372,8 +394,10 @@
 		1CA1C8E0B073FCE3484E62AB /* XTimezoneHeaderNormalizationMiddleware.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XTimezoneHeaderNormalizationMiddleware.swift; sourceTree = "<group>"; };
 		1DD4E55D9ECB947F114CB992 /* DetailInfoCards.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailInfoCards.swift; sourceTree = "<group>"; };
 		1F7744758B0F2196DFF05F32 /* NearbyPreferenceStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NearbyPreferenceStoreTests.swift; sourceTree = "<group>"; };
+		20119147759900D9247D49A5 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		20552640F544D4395DE585B7 /* LaughTrackBridge.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LaughTrackBridge.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		22E3FEC26FAACA575C943CBF /* SearchRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchRootView.swift; sourceTree = "<group>"; };
+		23A769473DB407F52463C418 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		23B9224C211F8ECAD8510E1A /* DateRangeFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateRangeFilter.swift; sourceTree = "<group>"; };
 		23C754F57E247ED20F9C3291 /* AuthenticatedUser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticatedUser.swift; sourceTree = "<group>"; };
 		253B49BBBF819450AC9E778A /* ComediansDiscoveryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComediansDiscoveryView.swift; sourceTree = "<group>"; };
@@ -431,7 +455,9 @@
 		72C538B76724132F4A26DCE0 /* TunedForChromeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunedForChromeTests.swift; sourceTree = "<group>"; };
 		7436912FD34C53C36498E5EF /* LibraryFavoritesViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryFavoritesViewTests.swift; sourceTree = "<group>"; };
 		74568165A0CA8A0DB5CD35AF /* PodcastFavoriteStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastFavoriteStore.swift; sourceTree = "<group>"; };
+		758E99D05CBD4C53BF89DD20 /* LaughTrackNotificationDeepLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackNotificationDeepLink.swift; sourceTree = "<group>"; };
 		7593C96779BA48EAD4AC7E16 /* StubURLProtocolSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StubURLProtocolSupport.swift; sourceTree = "<group>"; };
+		77792AE6A29CBDA8435461B6 /* LaughTrackNotificationServiceExtension.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = LaughTrackNotificationServiceExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		77FB1D59ADDFE8101352E823 /* ExternalLinkRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalLinkRouter.swift; sourceTree = "<group>"; };
 		787B72EABFD79CFD44CEF1A1 /* ComediansDiscoveryModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComediansDiscoveryModel.swift; sourceTree = "<group>"; };
 		7A6667B928C06BDF139513D4 /* PushPermissionTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushPermissionTestSupport.swift; sourceTree = "<group>"; };
@@ -530,6 +556,7 @@
 		F1FCFA6135148D9C41CD49A8 /* SearchFieldInputBehavior.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchFieldInputBehavior.swift; sourceTree = "<group>"; };
 		F2A090D0A39069956E88CB02 /* HostedViewTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostedViewTestSupport.swift; sourceTree = "<group>"; };
 		F2C7FA012A0D0A87051A85B0 /* MarqueeHeroLetterboxTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarqueeHeroLetterboxTests.swift; sourceTree = "<group>"; };
+		F3919358BAEAFEDD42CBCE64 /* NotificationDeepLinkTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationDeepLinkTests.swift; sourceTree = "<group>"; };
 		F507D3C7B4E507D8FA307075 /* ShowDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShowDetailView.swift; sourceTree = "<group>"; };
 		F68855886251A28240961B91 /* PodcastPlayback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastPlayback.swift; sourceTree = "<group>"; };
 		F6C46BD00ADB099FBA8460B7 /* ShowsListModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShowsListModel.swift; sourceTree = "<group>"; };
@@ -669,6 +696,7 @@
 				B2537988FDEE64029B75C0C6 /* MonthCalendarViewTests.swift */,
 				C2BF672FCBD4D1FC71AC695A /* NearbyLocationControllerTests.swift */,
 				1F7744758B0F2196DFF05F32 /* NearbyPreferenceStoreTests.swift */,
+				F3919358BAEAFEDD42CBCE64 /* NotificationDeepLinkTests.swift */,
 				008683977BC9D75F1F750482 /* NotificationPreferenceStoreTests.swift */,
 				15A4C4CDF0A65612934098BF /* OnboardingTests.swift */,
 				8F13D45B524D9F3E3A29C75C /* PodcastDetailViewTests.swift */,
@@ -747,6 +775,16 @@
 			path = Views;
 			sourceTree = "<group>";
 		};
+		2A075C34FC1B9357689C07B3 /* LaughTrackNotificationServiceExtension */ = {
+			isa = PBXGroup;
+			children = (
+				23A769473DB407F52463C418 /* Info.plist */,
+				20119147759900D9247D49A5 /* NotificationService.swift */,
+			);
+			name = LaughTrackNotificationServiceExtension;
+			path = Sources/LaughTrackNotificationServiceExtension;
+			sourceTree = "<group>";
+		};
 		3EB9EE628EE74E8B8BAB55C2 /* Settings */ = {
 			isa = PBXGroup;
 			children = (
@@ -820,6 +858,7 @@
 				60D274A90614E6596D6F336D /* LaughTrackApp */,
 				11CB7D3C335525FFE3629FA9 /* LaughTrackBridge */,
 				48A1C8253AED9F441B4B02FA /* LaughTrackCore */,
+				2A075C34FC1B9357689C07B3 /* LaughTrackNotificationServiceExtension */,
 				8EB150A6A4FC547F0915F95F /* Resources */,
 				D65543612003A38D124A722F /* Tests */,
 				D8FE5A1E404D541E9C145D48 /* Products */,
@@ -849,6 +888,7 @@
 				50F23924A8A716577DB3ED8B /* LaughTrack.entitlements */,
 				281FB22CC5183EF10EE60C01 /* LaughTrackApp.swift */,
 				EE87A12423AD71BAD9FAF368 /* LaughTrackLoginModalView.swift */,
+				758E99D05CBD4C53BF89DD20 /* LaughTrackNotificationDeepLink.swift */,
 				F89AAF6B2F061BEDB66EB34A /* LibraryView.swift */,
 				03760E9F0943F566D7BA4BCE /* LocationPermissionPitchView.swift */,
 				05DDCB75107CBE67C0FD9CEB /* LoginModalPresenter.swift */,
@@ -1003,6 +1043,7 @@
 				DE90DE11FF14510C06890AB7 /* LaughTrackAPIClient.framework */,
 				20552640F544D4395DE585B7 /* LaughTrackBridge.framework */,
 				8EA13D0C5CA2F5439E19E122 /* LaughTrackCore.framework */,
+				77792AE6A29CBDA8435461B6 /* LaughTrackNotificationServiceExtension.appex */,
 				D82C2EA908ED34FDCA8EE86C /* LaughTrackTests.xctest */,
 				FB6DE921008E3BE464BC6C0A /* LaughTrackUITests.xctest */,
 			);
@@ -1155,6 +1196,23 @@
 			productReference = DE90DE11FF14510C06890AB7 /* LaughTrackAPIClient.framework */;
 			productType = "com.apple.product-type.framework";
 		};
+		C8EE528C5C93D9D2E1FD6202 /* LaughTrackNotificationServiceExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 856C22AEF8990CB2CAE55C9D /* Build configuration list for PBXNativeTarget "LaughTrackNotificationServiceExtension" */;
+			buildPhases = (
+				40DF5E41A57F274D4B2AD6D4 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LaughTrackNotificationServiceExtension;
+			packageProductDependencies = (
+			);
+			productName = LaughTrackNotificationServiceExtension;
+			productReference = 77792AE6A29CBDA8435461B6 /* LaughTrackNotificationServiceExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		D19CF0218A59D603BE1AE54D /* LaughTrackBridge */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 055AAE6E4FAC82177905CE0A /* Build configuration list for PBXNativeTarget "LaughTrackBridge" */;
@@ -1181,11 +1239,13 @@
 				08CC6FAA7FD758ED8CC803EC /* Sources */,
 				BB6E4AE57D6B2801E1F53FA4 /* Resources */,
 				79CB179671AEFAFA805BEAD0 /* Frameworks */,
+				B6370F06BA013FF4905B357C /* Embed Foundation Extensions */,
 				FCB232C13A5BE6125D562EF3 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				6D56FFB318F79DF75B260723 /* PBXTargetDependency */,
 				1E5F32AB6B0EC2C9D6C1D4B8 /* PBXTargetDependency */,
 				53769A04FC0E5A64BAFAE5BA /* PBXTargetDependency */,
 				D6314ADF457256542AF9F2D1 /* PBXTargetDependency */,
@@ -1213,6 +1273,9 @@
 				TargetAttributes = {
 					52750A922363534F75FFBF6B = {
 						TestTargetID = E407829409969471735EAA0F;
+					};
+					C8EE528C5C93D9D2E1FD6202 = {
+						DevelopmentTeam = 4HDNC3V5Q6;
 					};
 					E407829409969471735EAA0F = {
 						DevelopmentTeam = 4HDNC3V5Q6;
@@ -1245,6 +1308,7 @@
 				B8EDA9FFB6021A3EABF2DF1D /* LaughTrackAPIClient */,
 				D19CF0218A59D603BE1AE54D /* LaughTrackBridge */,
 				588031D52FEC00A9869B0CEE /* LaughTrackCore */,
+				C8EE528C5C93D9D2E1FD6202 /* LaughTrackNotificationServiceExtension */,
 				2F7ACF39895DFE26E41CFC10 /* LaughTrackTests */,
 				52750A922363534F75FFBF6B /* LaughTrackUITests */,
 			);
@@ -1312,6 +1376,7 @@
 				F07B8BFA93C29AAB9929748A /* LaughTrackComponents.swift in Sources */,
 				3A87DFE2E185644A17460C44 /* LaughTrackLoginModalView.swift in Sources */,
 				B8C85860DFEDE38D9667F5EA /* LaughTrackNavigationChrome.swift in Sources */,
+				456B5688FE416997A0B3D6A4 /* LaughTrackNotificationDeepLink.swift in Sources */,
 				B02B4C039B49D16147102DC7 /* LibraryView.swift in Sources */,
 				86C75F3B71BF229686DB88CD /* LineupAvatarStrip.swift in Sources */,
 				8A22D1AB3B7F3AC0E2379A46 /* ListLoadingSkeletons.swift in Sources */,
@@ -1355,6 +1420,14 @@
 				7C144BFBEBBC56DE3D32FB32 /* StateCards.swift in Sources */,
 				9080A2F106D54AFAA1548F67 /* UITestLaunchArgs.swift in Sources */,
 				DCF255F920A82556C2EEF714 /* URLHelpers.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		40DF5E41A57F274D4B2AD6D4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9B1CA745E1B68BE906F7BB8E /* NotificationService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1459,6 +1532,7 @@
 				BBD55C6563601DE4850554F5 /* MonthCalendarViewTests.swift in Sources */,
 				87A52A26C28E621FFF07B848 /* NearbyLocationControllerTests.swift in Sources */,
 				EC250092710CB355D3BF3A08 /* NearbyPreferenceStoreTests.swift in Sources */,
+				C44978167BDF373356A7D382 /* NotificationDeepLinkTests.swift in Sources */,
 				9B927C16B4B51ABF7EA9ED87 /* NotificationPreferenceStoreTests.swift in Sources */,
 				D3F21EAB1809543C8A52B948 /* OnboardingTests.swift in Sources */,
 				AC32C21C506F3FC4D3F24D7F /* PodcastDetailViewTests.swift in Sources */,
@@ -1516,6 +1590,11 @@
 			isa = PBXTargetDependency;
 			target = D19CF0218A59D603BE1AE54D /* LaughTrackBridge */;
 			targetProxy = 44CC746FBC174026B35906B5 /* PBXContainerItemProxy */;
+		};
+		6D56FFB318F79DF75B260723 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C8EE528C5C93D9D2E1FD6202 /* LaughTrackNotificationServiceExtension */;
+			targetProxy = 7D79B0534ED0C0EAEC322165 /* PBXContainerItemProxy */;
 		};
 		7EF6497A1E6D61ADD11A29C3 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -1602,6 +1681,25 @@
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
+		};
+		169B7D4C92BE72224038C095 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CURRENT_PROJECT_VERSION = 29;
+				DEVELOPMENT_TEAM = 4HDNC3V5Q6;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Sources/LaughTrackNotificationServiceExtension/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 2.5.9;
+				PRODUCT_BUNDLE_IDENTIFIER = app.laughtrack.ios.NotificationServiceExtension;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
 		};
 		1A0A285F92524EC4F8FF4413 /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -1875,6 +1973,25 @@
 			};
 			name = Release;
 		};
+		D8D475425D0D687DEC955D35 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CURRENT_PROJECT_VERSION = 29;
+				DEVELOPMENT_TEAM = 4HDNC3V5Q6;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Sources/LaughTrackNotificationServiceExtension/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 2.5.9;
+				PRODUCT_BUNDLE_IDENTIFIER = app.laughtrack.ios.NotificationServiceExtension;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		EF21138385410472A8669B1A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1955,6 +2072,15 @@
 			buildConfigurations = (
 				4406245F42A0F6FC2D99678E /* Debug */,
 				14DCB10E8498AFF5A1621645 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		856C22AEF8990CB2CAE55C9D /* Build configuration list for PBXNativeTarget "LaughTrackNotificationServiceExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				169B7D4C92BE72224038C095 /* Debug */,
+				D8D475425D0D687DEC955D35 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
