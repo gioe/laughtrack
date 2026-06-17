@@ -1880,6 +1880,46 @@ is a custom CMS serving a curated, JS-"Show More"-paginated `m-eventItem` list
 with no comedy genre tag, and its box office 403s. It needs a separate dedicated
 scraper, not this `tessitura` (WordPress) scraper.
 
+### EventON (WordPress admin-ajax loader)
+
+`scraper_key = eventon`, `platform = custom` (EventON has no dedicated
+`ScrapingPlatform` enum value). Generic, serves venues running the EventON
+WordPress events-calendar plugin (custom post type `ajde_events`).
+
+**Spike finding (TASK-2926) — REST has no dates; the admin-ajax loader does.**
+EventON keeps event start times in unexposed post meta (`evcal_srow`), so
+`/wp-json/wp/v2/ajde_events` lists every event (id/title/link) but with **empty
+meta** — no dates. `/wp-json/eventon/v1/data` 404s, `/events/` is AJAX-rendered
+(no JSON-LD in initial HTML), and the homepage exposes only a 4-event rolling
+JSON-LD widget. The scrapable seam is the frontend calendar loader:
+
+1. **Loader (POST, required)** — `POST {root}/wp-admin/admin-ajax.php` with
+   `action=eventon_init_load` and the **full default shortcode (`sc`) param set**
+   serialized as `cals[<cal_id>][sc][<key>]=<value>` (see `extractor._DEFAULT_SC`;
+   key tunables `event_past_future=future`, `hide_past=yes`, `event_count=300`,
+   `number_of_months=12`). A *minimal* param set returns an empty `cals`, and GET
+   returns empty — it must be POST with the full set. No nonce required. The
+   response carries upcoming events under `cals.<cal_id>.json` as objects with
+   `event_id`, `event_title`, and `event_start_unix`. Sent via `post_form`
+   (curl_cffi), which clears the site's ModSecurity (plain curl → 406).
+2. **Permalink + taxonomy join** — the loader payload has no per-event URLs or
+   taxonomy, so `GET {root}/wp-json/wp/v2/ajde_events?include=<ids>&per_page=100&_fields=id,link,event_type`
+   maps each `event_id` → `{link, event_type[term_ids]}`.
+3. **Comedy filter** — `metadata.event_type_filter` (comma-separated names,
+   e.g. `comedy`) discovers the matching `event_type` term id from
+   `{root}/wp-json/wp/v2/event_type` (by name/slug) and keeps only events tagged
+   with it. Omit to import all events. Use it for venues that host comedy
+   *alongside* other programming.
+
+**Timezone:** `event_start_unix` is the local wall-clock encoded as a UTC unix
+timestamp — format it in UTC to read the wall-clock components, then localize to
+the club timezone (`EventONEvent` does this; a 7 PM show stores as `…T19:00Z`).
+
+`source_url` = the WordPress site root (e.g. `https://jillysmusicroom.com`).
+Optional `metadata`: `cal_id` (default `MAIN`), `event_type_filter`. Onboarded:
+**Jilly's Music Room** (Akron; `event_type_filter='comedy'` — verified 1 upcoming
+comedy show out of 58 future events).
+
 ---
 
 ## Implementation Patterns
