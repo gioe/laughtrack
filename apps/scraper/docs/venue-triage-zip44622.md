@@ -17,9 +17,11 @@ Generated 2026-06-16. Re-run the recipe in "Method" for any other ZIP.
   The other ~158 (generic `performing_arts_theater`/`bar`/`event_venue`/etc. with no comedy
   signal) were **not individually probed** in this pass — they are lower-signal and most host
   comedy only incidentally; probe them on demand if a specific lead arises.
-- Of the 17: **2 map to existing scrapers**, 1 is likely already covered by an onboarded host
-  venue, and **the remaining 14 are dead ends** (Google misclassifications, not-comedy,
-  social-/door-only, or roving acts).
+- Of the 17: **2 mapped to existing scrapers on paper** but neither was a clean win on closer
+  inspection (1 onboarded with a manual-prune caveat, 1 turned out to have a dead ticketing
+  source — see updates below), 1 is likely already covered by an onboarded host venue, and **the
+  remaining 14 are dead ends** (Google misclassifications, not-comedy, social-/door-only, or
+  roving acts). Net: **0 clean ready-to-onboard wins** from this batch.
 
 > **Update (TASK-2940):** The Cellar @ Pittsburgh Winery was onboarded (club 8730, etix venue
 > 31604) but is a **mixed music+comedy venue** (~5 comedy of ~22 events) — the `etix` scraper has
@@ -29,12 +31,19 @@ Generated 2026-06-16. Re-run the recipe in "Method" for any other ZIP.
 > venue, `genre=Comedy`). See convention #195 (mixed-venue onboarding needs a platform genre
 > filter). Local verify was 0 shows (etix DataDome block); N>0 pending the GHA nightly.
 
+> **Update (TASK-2941):** Something Dada was **closed wont_do** — not scrapable. Its TicketLeap org
+> (`somethingdada.ticketleap.com/dada`) is **decommissioned**: a real browser (Playwright) redirects
+> both `/dada` and `/dada/` to the ticketleap.com marketing homepage, and `somethingdada.com` does
+> not resolve. The troupe still exists physically (Lakewood) and is comedy-only, but has no working
+> ticketing/calendar source right now. This sheet's original "ready, high confidence" row trusted a
+> subagent's web-research URL without loading it live — see the Method note below.
+
 ### Recommended next actions (file these as onboarding tasks)
 
 | Venue | City | Platform | `scraper_key` | Why it's ready |
 |---|---|---|---|---|
 | **The Cellar @ The Original Pittsburgh Winery** | Pittsburgh, PA | Etix | **`etix`** (exists) | ONBOARDED (TASK-2940, club 8730) with a caveat — mixed music+comedy, no genre filter, music pruned manually. NOT a clean win. |
-| **Something Dada Improv Comedy Co.** | Cleveland, OH | TicketLeap (`somethingdada.ticketleap.com/dada`) | **`ticketleap`** (exists) | Long-running improv troupe; tickets via a TicketLeap subdomain. |
+| ~~Something Dada Improv Comedy Co.~~ | Cleveland, OH | ~~TicketLeap~~ | — | **wont_do (TASK-2941)** — TicketLeap org decommissioned (subdomain redirects to ticketleap.com marketing); no working ticketing source. Comedy-only but not scrapable. |
 
 Neither is currently in `clubs` or has a dedicated onboarding task (dupe-checked 2026-06-16).
 
@@ -43,7 +52,7 @@ Neither is currently in `clubs` or has a dedicated onboarding task (dupe-checked
 | Venue | Dist | Comedy? | Website | Platform | Candidate `scraper_key` | Disposition | Conf. |
 |---|---|---|---|---|---|---|---|
 | The Cellar @ Pittsburgh Winery | 79.0mi | yes (mixed) | pittsburghwinery.com | Etix (venue 31604) | `etix` | **ONBOARDED w/ caveat** (TASK-2940, club 8730) — mixed music+comedy, music pruned manually; no genre filter | high |
-| Something Dada Improv Comedy Co. | 68.0mi | yes | somethingdada.ticketleap.com/dada | TicketLeap | `ticketleap` | **ONBOARD** — ready | high |
+| Something Dada Improv Comedy Co. | 68.0mi | yes | somethingdada.ticketleap.com/dada (dead) | TicketLeap (decommissioned) | — | **wont_do** (TASK-2941) — TicketLeap org redirects to marketing homepage; .com dead; no working source | high (not-scrapable) |
 | Columbus Improv Wars | 89.9mi | yes | improvwarscolumbus.com (down) | host theaters | — | Likely covered — ticketed via MadLab (club 8725) + The Nest (8713), both already onboarded | med |
 | PNR Improv (Point of No Return) | 38.3mi | yes | pnrimprov.org | none — $5 cash at door | not scrapable | Skip — door-only cash; performs at Newell Theatre / Quirk Cultural Center | high |
 | Funny Bus Cleveland | 67.7mi | n/a | funnybus.net/cleveland | Resmark (proprietary) | not scrapable | Skip — roving comedy BUS TOUR, not a fixed venue | high |
@@ -80,6 +89,12 @@ Neither is currently in `clubs` or has a dedicated onboarding task (dupe-checked
 5. **Confirm comedy from the venue's own calendar** — do not trust the Google `comedy_club`
    type or an aggregator listing. Lowercase one-word names with no website are usually Places
    misclassifications.
+6. **Load the live ticketing URL before assigning a high-confidence "ready" disposition.**
+   Web research (or a subagent) can cite a stale or dead ticketing URL — curl/Playwright the
+   actual page and confirm it renders real upcoming events. TASK-2941 (Something Dada) was
+   marked "ready, high confidence" off a web-research URL whose TicketLeap org had since been
+   decommissioned (redirects to the marketing homepage). Re-probe the source, don't trust the
+   citation.
 
 ## Caveats / honest scope
 
