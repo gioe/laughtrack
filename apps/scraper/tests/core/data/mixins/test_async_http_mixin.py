@@ -257,3 +257,41 @@ class TestProxyUrl:
 
         sess1.close.assert_called_once()
         assert MockSession.call_count == 2
+
+
+# ---------------------------------------------------------------------------
+# Tests: impersonation-owned headers are not overridden (TASK-2930)
+# ---------------------------------------------------------------------------
+
+
+class TestImpersonationOwnedHeaders:
+    """The static default User-Agent / client-hint headers must be dropped so
+    curl_cffi's impersonation supplies values matched to the TLS fingerprint —
+    a hardcoded Chrome-135 UA over a chrome124 impersonation triggered
+    TicketWeb's Cloudflare HTTP 530."""
+
+    def test_strips_default_user_agent_and_client_hints(self):
+        mixin = _ConcreteHttpMixin()
+        headers = mixin._build_session_headers()
+        lowered = {k.lower() for k in headers}
+        assert "user-agent" not in lowered
+        assert "sec-ch-ua" not in lowered
+        assert "sec-ch-ua-mobile" not in lowered
+        assert "sec-ch-ua-platform" not in lowered
+
+    def test_keeps_non_impersonation_default_headers(self):
+        mixin = _ConcreteHttpMixin()
+        headers = mixin._build_session_headers()
+        # Non-fingerprint headers from the defaults survive.
+        assert headers.get("Accept-Language") == "en-US,en;q=0.9"
+        assert "Sec-Fetch-Mode" in headers
+
+    def test_explicit_custom_user_agent_is_preserved(self):
+        mixin = _ConcreteHttpMixin()
+        headers = mixin._build_session_headers({"User-Agent": "Custom/1.0"})
+        assert headers["User-Agent"] == "Custom/1.0"
+
+    def test_explicit_custom_client_hint_is_preserved(self):
+        mixin = _ConcreteHttpMixin()
+        headers = mixin._build_session_headers({"sec-ch-ua": '"X";v="1"'})
+        assert headers["sec-ch-ua"] == '"X";v="1"'

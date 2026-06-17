@@ -13,6 +13,17 @@ from curl_cffi.requests import AsyncSession
 
 from laughtrack.foundation.infrastructure.http.base_headers import BaseHeaders
 
+# Headers that the curl_cffi ``impersonate`` target supplies itself, matched to
+# the TLS/JA3 fingerprint it presents. Overriding them with static values
+# desyncs the HTTP headers from the fingerprint — e.g. a hardcoded Chrome-135
+# ``User-Agent`` over a ``chrome124`` impersonation — which strict Cloudflare
+# bot rules flag (TicketWeb returns HTTP 530, TASK-2930). We strip these from
+# the default header set so impersonation supplies matching values; an explicit
+# per-call custom header still wins.
+_IMPERSONATION_OWNED_HEADERS = frozenset(
+    {"user-agent", "sec-ch-ua", "sec-ch-ua-mobile", "sec-ch-ua-platform"}
+)
+
 
 class AsyncHttpMixin(ABC):
     """
@@ -105,6 +116,15 @@ class AsyncHttpMixin(ABC):
             self._default_headers = self._get_default_headers()
 
         headers = self._default_headers.copy()
+
+        # Let curl_cffi impersonation own the User-Agent / client-hint headers so
+        # they stay matched to the presented TLS fingerprint (see
+        # _IMPERSONATION_OWNED_HEADERS). Drop them from the defaults unless the
+        # caller explicitly overrides them on this call.
+        custom_keys = {k.lower() for k in (custom_headers or {})}
+        for key in list(headers):
+            if key.lower() in _IMPERSONATION_OWNED_HEADERS and key.lower() not in custom_keys:
+                del headers[key]
 
         # Merge custom headers if provided
         if custom_headers:
