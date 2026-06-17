@@ -255,3 +255,90 @@ class TestShopifyEventToShow:
 
         assert show is not None
         assert show.tickets[0].price is None
+
+
+# ---------------------------------------------------------------------------
+# Format C: handle/numeric-title date + clock time (TASK-2949)
+# ---------------------------------------------------------------------------
+
+from datetime import datetime as _dt  # noqa: E402
+
+import laughtrack.core.entities.event.shopify as _shopify_mod  # noqa: E402
+from laughtrack.core.entities.event.shopify import (  # noqa: E402
+    parse_clock_time,
+    parse_handle_title_date,
+)
+
+
+class _FixedNow(_dt):
+    """datetime subclass with a frozen now() for hermetic year-inference tests."""
+
+    @classmethod
+    def now(cls, tz=None):
+        return _dt(2026, 6, 17, 12, 0, 0, tzinfo=tz)
+
+
+class TestParseClockTime:
+    def test_pm_no_minutes(self):
+        assert parse_clock_time("7pm") == (19, 0)
+
+    def test_pm_with_minutes_and_text(self):
+        assert parse_clock_time("6:30 PM - The Audacity / Anecdotal Harmony") == (18, 30)
+
+    def test_leading_variant_time(self):
+        assert parse_clock_time("6pm - Who Are We Anyway? / Awkward Noize") == (18, 0)
+
+    def test_noon_and_midnight(self):
+        assert parse_clock_time("12pm") == (12, 0)
+        assert parse_clock_time("12am") == (0, 0)
+
+    def test_no_time(self):
+        assert parse_clock_time("Default Title") is None
+        assert parse_clock_time("Any two shows") is None
+        assert parse_clock_time("") is None
+
+
+class TestParseHandleTitleDate:
+    def test_explicit_ymd_handle_uses_title_day_and_handle_year(self):
+        # handle says 0625, title (advertised) says 6/26 → trust title day, handle year
+        dt = parse_handle_title_date("20260625-capybara-comedy-hour", "6/26 7pm - Capybara", TZ)
+        assert (dt.year, dt.month, dt.day) == (2026, 6, 26)
+
+    def test_explicit_ymd_handle_without_title_md(self):
+        dt = parse_handle_title_date("20260625-capybara-comedy-hour", "Capybara Comedy Hour", TZ)
+        assert (dt.year, dt.month, dt.day) == (2026, 6, 25)
+
+    def test_explicit_year_is_not_dropped_when_past(self, monkeypatch):
+        # explicit YYYYMMDD year is trusted verbatim, never the drop-if-past path
+        monkeypatch.setattr(_shopify_mod, "datetime", _FixedNow)
+        dt = parse_handle_title_date("20240101-old-show", "Old Show", TZ)
+        assert (dt.year, dt.month, dt.day) == (2024, 1, 1)
+
+    def test_inferred_future_md_is_kept(self, monkeypatch):
+        monkeypatch.setattr(_shopify_mod, "datetime", _FixedNow)
+        dt = parse_handle_title_date("7-10-cool-kids", "7/10 7pm - Cool Kids", TZ)
+        assert (dt.year, dt.month, dt.day) == (2026, 7, 10)
+
+    def test_inferred_past_md_is_dropped(self, monkeypatch):
+        # 6/6 is past relative to frozen now 2026-06-17 → stale listing, dropped
+        monkeypatch.setattr(_shopify_mod, "datetime", _FixedNow)
+        assert parse_handle_title_date("6-6-improv", "6/6 Saturday Night Improv Shows", TZ) is None
+
+    def test_handle_md_prefix_used_when_no_title_md(self, monkeypatch):
+        monkeypatch.setattr(_shopify_mod, "datetime", _FixedNow)
+        dt = parse_handle_title_date("6-27-saturday-night-improv", "Saturday Night Improv Shows", TZ)
+        assert (dt.year, dt.month, dt.day) == (2026, 6, 27)
+
+    def test_no_date_returns_none(self):
+        assert parse_handle_title_date("makers-market", "Makers Market", TZ) is None
+
+
+class TestExtractComedianNameFormatC:
+    def test_strips_numeric_date_time_prefix(self):
+        assert (
+            extract_comedian_name("6/26 7pm - Capybara Comedy Hour Featuring Jon Flanagan")
+            == "Capybara Comedy Hour Featuring Jon Flanagan"
+        )
+
+    def test_strips_numeric_date_prefix_without_time(self):
+        assert extract_comedian_name("6/27 Saturday Night Improv Shows") == "Saturday Night Improv Shows"

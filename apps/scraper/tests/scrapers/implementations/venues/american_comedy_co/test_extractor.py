@@ -1,11 +1,9 @@
 """Unit tests for ShopifyExtractor.extract_events.
 
 Covers Format A (variant-date) grouping, Format B (title-date) fallback,
-multi-variant products, missing fields, and empty responses.
+Format C (handle/numeric-title date), non-show filtering, multi-variant
+products, missing fields, and empty responses.
 """
-
-from datetime import datetime
-from zoneinfo import ZoneInfo
 
 from laughtrack.scrapers.implementations.venues.american_comedy_co.extractor import (
     ShopifyExtractor,
@@ -237,3 +235,72 @@ class TestExtractEventsEdgeCases:
         product["tags"] = "comedy"
         events = ShopifyExtractor.extract_events({"products": [product]}, TZ)
         assert events[0].tags == []
+
+
+# ---------------------------------------------------------------------------
+# Format C: date in handle / numeric title, time in title or variants;
+# non-show (class/merch/membership) filtering (TASK-2949)
+# ---------------------------------------------------------------------------
+
+
+class TestFormatC:
+    """Improv School Redlands shape: numeric handles/titles, no weekday/month-name."""
+
+    def test_variant_times_expand_to_one_event_each(self):
+        """A YYYYMMDD handle + per-showtime variants → one event per variant time."""
+        product = {
+            "id": 10,
+            "title": "Saturday Night Improv Shows",
+            "handle": "20260620-saturday-night-improv-showcase",
+            "tags": [],
+            "images": [],
+            "variants": [
+                {"title": "6pm - Secret Time / Lethargic Salmon", "price": "15.00", "available": True},
+                {"title": "7pm - The Audacity / Anecdotal Harmony", "price": "15.00", "available": True},
+                {"title": "8pm - Off-Script / The Resistance", "price": "15.00", "available": False},
+                {"title": "Any two shows", "price": "25.00", "available": True},
+            ],
+        }
+        events = ShopifyExtractor.extract_events({"products": [product]}, TZ)
+        hours = sorted(e.show_date.hour for e in events)
+        assert hours == [18, 19, 20]  # "Any two shows" carries no clock time → skipped
+        assert all((e.show_date.year, e.show_date.month, e.show_date.day) == (2026, 6, 20) for e in events)
+
+    def test_title_time_fallback_when_no_variant_time(self):
+        """Default-Title variant → single event using the time in the product title."""
+        product = {
+            "id": 11,
+            "title": "6/26 7pm - Capybara Comedy Hour Featuring Jon Flanagan",
+            "handle": "20260625-capybara-comedy-hour",
+            "tags": ["stand up show"],
+            "images": [],
+            "variants": [{"title": "Default Title", "price": "20.00", "available": True}],
+        }
+        events = ShopifyExtractor.extract_events({"products": [product]}, TZ)
+        assert len(events) == 1
+        ev = events[0]
+        # title day (26) + handle year (2026); time 7pm from title
+        assert (ev.show_date.year, ev.show_date.month, ev.show_date.day, ev.show_date.hour) == (2026, 6, 26, 19)
+        assert ev.price == "20.00"
+
+    def test_class_and_merch_and_membership_products_dropped(self):
+        products = [
+            {"id": 20, "title": "Beginner Improv", "handle": "beginner-improv",
+             "tags": ["class", "improv class"], "images": [],
+             "variants": [{"title": "20260701 @ 6pm", "price": "100.00", "available": True}]},
+            {"id": 21, "title": "Improv School Redlands Unisex Hoodie", "handle": "20260701-hoodie",
+             "tags": ["merch"], "images": [],
+             "variants": [{"title": "6pm - Black / S", "price": "40.00", "available": True}]},
+            {"id": 22, "title": "Improv Membership", "handle": "membership",
+             "tags": ["class"], "images": [],
+             "variants": [{"title": "Monthly Membership", "price": "50.00", "available": True}]},
+        ]
+        assert ShopifyExtractor.extract_events({"products": products}, TZ) == []
+
+    def test_undated_special_event_dropped(self):
+        product = {
+            "id": 30, "title": "Makers Market", "handle": "makers-market",
+            "tags": ["event", "Special Event"], "images": [],
+            "variants": [{"title": "Default Title", "price": "0.00", "available": True}],
+        }
+        assert ShopifyExtractor.extract_events({"products": [product]}, TZ) == []

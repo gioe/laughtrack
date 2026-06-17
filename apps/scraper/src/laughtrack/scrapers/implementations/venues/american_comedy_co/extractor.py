@@ -14,14 +14,21 @@ The extractor tries Format A first; if no variant yields a parseable date it
 falls back to Format B.
 """
 
+import re
 from typing import Any, Dict, List
 
 from laughtrack.core.entities.event.shopify import (
     ShopifyEvent,
+    parse_clock_time,
+    parse_handle_title_date,
     parse_product_title_datetime,
     parse_variant_datetime,
 )
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+
+# Tags that mark a Shopify product as a non-show (classes, workshops, merch,
+# memberships) — excluded from the show calendar regardless of date format.
+_NON_SHOW_TAG_RE = re.compile(r"class|merch|membership", re.IGNORECASE)
 
 
 class ShopifyExtractor:
@@ -58,6 +65,11 @@ class ShopifyExtractor:
         tags = product.get("tags") or []
 
         if not title or not handle:
+            return []
+
+        # Drop non-show products (classes, workshops, merch, memberships).
+        tag_list = tags if isinstance(tags, list) else []
+        if any(_NON_SHOW_TAG_RE.search(str(t)) for t in tag_list):
             return []
 
         images = product.get("images") or []
@@ -110,10 +122,32 @@ class ShopifyExtractor:
 
         # --- Format B: date/time in product title, variants are ticket tiers ---
         dt = parse_product_title_datetime(title, timezone)
-        if not dt:
-            return []
+        if dt:
+            lowest_price, any_available = ShopifyExtractor._tier_summary(variants)
+            return [
+                ShopifyEvent(
+                    product_id=product_id,
+                    title=title,
+                    handle=handle,
+                    show_date=dt,
+                    price=lowest_price,
+                    available=any_available,
+                    image_url=image_url,
+                    body_html=body_html,
+                    timezone=timezone,
+                    tags=tag_list,
+                )
+            ]
 
-        # Lowest price / any available across all tier variants
+        # --- Format C: date in the handle / numeric "M/D" title; time in the
+        # title ("6/26 7pm") or in per-showtime variant titles ("6pm - <act>").
+        return ShopifyExtractor._parse_format_c(
+            product_id, title, handle, image_url, body_html, tag_list, variants, timezone
+        )
+
+    @staticmethod
+    def _tier_summary(variants: List[Dict[str, Any]]) -> tuple:
+        """Return (lowest_price, any_available) across ticket-tier variants."""
         lowest_price = "0.00"
         any_available = False
         for variant in variants:
@@ -122,18 +156,69 @@ class ShopifyExtractor:
                 lowest_price = price
             if variant.get("available", False):
                 any_available = True
+        return lowest_price, any_available
 
+    @staticmethod
+    def _parse_format_c(
+        product_id: int,
+        title: str,
+        handle: str,
+        image_url: str,
+        body_html: str,
+        tag_list: List[str],
+        variants: List[Dict[str, Any]],
+        timezone: str,
+    ) -> List[ShopifyEvent]:
+        """Build events from a handle/numeric-title date plus a showtime.
+
+        Emits one event per variant that carries its own clock time (e.g.
+        "6pm - <act>", "7pm - <act>"); when no variant has a time, falls back to
+        a single event using the time embedded in the product title.
+        """
+        event_date = parse_handle_title_date(handle, title, timezone)
+        if not event_date:
+            return []
+
+        events: List[ShopifyEvent] = []
+        for variant in variants:
+            clock = parse_clock_time(variant.get("title", ""))
+            if not clock:
+                continue
+            show_dt = event_date.replace(hour=clock[0], minute=clock[1])
+            events.append(
+                ShopifyEvent(
+                    product_id=product_id,
+                    title=title,
+                    handle=handle,
+                    show_date=show_dt,
+                    price=variant.get("price", "0.00"),
+                    available=variant.get("available", False),
+                    image_url=image_url,
+                    body_html=body_html,
+                    timezone=timezone,
+                    tags=tag_list,
+                )
+            )
+        if events:
+            return events
+
+        # No per-variant times — take the time from the product title.
+        clock = parse_clock_time(title)
+        if not clock:
+            return []
+        show_dt = event_date.replace(hour=clock[0], minute=clock[1])
+        lowest_price, any_available = ShopifyExtractor._tier_summary(variants)
         return [
             ShopifyEvent(
                 product_id=product_id,
                 title=title,
                 handle=handle,
-                show_date=dt,
+                show_date=show_dt,
                 price=lowest_price,
                 available=any_available,
                 image_url=image_url,
                 body_html=body_html,
                 timezone=timezone,
-                tags=tags if isinstance(tags, list) else [],
+                tags=tag_list,
             )
         ]
