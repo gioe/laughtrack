@@ -1,0 +1,284 @@
+{
+  "dry_run": false,
+  "generated_at": "2026-06-17T11:47:09.339270+00:00",
+  "merges": [
+    {
+      "canonical_club_before": {
+        "address": "1615 Euclid Ave, Cleveland, OH",
+        "city": "Cleveland",
+        "closed_at": null,
+        "id": 5058,
+        "name": "Connor Palace at Playhouse Square",
+        "state": "OH",
+        "status": "active",
+        "timezone": "America/New_York",
+        "total_shows": 20,
+        "visible": true,
+        "website": ""
+      },
+      "conflicting_duplicate_shows_deleted": [
+        {
+          "canonical_show_id": 2841082,
+          "date": "2026-08-28T23:00:00+00:00",
+          "duplicate_name": "HASAN HATES RONNY | RONNY HATES HASAN",
+          "duplicate_show_id": 2876293,
+          "room": ""
+        },
+        {
+          "canonical_show_id": 2876257,
+          "date": "2026-08-29T23:00:00+00:00",
+          "duplicate_name": "Nikki Glaser",
+          "duplicate_show_id": 2841101,
+          "room": ""
+        },
+        {
+          "canonical_show_id": 2876258,
+          "date": "2026-09-17T23:00:00+00:00",
+          "duplicate_name": "Leanne Morgan",
+          "duplicate_show_id": 2841102,
+          "room": ""
+        },
+        {
+          "canonical_show_id": 2876259,
+          "date": "2026-09-18T23:00:00+00:00",
+          "duplicate_name": "Leanne Morgan",
+          "duplicate_show_id": 2841103,
+          "room": ""
+        },
+        {
+          "canonical_show_id": 2876260,
+          "date": "2026-11-04T00:30:00+00:00",
+          "duplicate_name": "Hadestown (Touring)",
+          "duplicate_show_id": 2876297,
+          "room": ""
+        },
+        {
+          "canonical_show_id": 2876261,
+          "date": "2026-11-05T00:30:00+00:00",
+          "duplicate_name": "Hadestown (Touring)",
+          "duplicate_show_id": 2876298,
+          "room": ""
+        },
+        {
+          "canonical_show_id": 2876262,
+          "date": "2026-11-06T00:30:00+00:00",
+          "duplicate_name": "Hadestown (Touring)",
+          "duplicate_show_id": 2876299,
+          "room": ""
+        },
+        {
+          "canonical_show_id": 2876263,
+          "date": "2026-11-07T00:30:00+00:00",
+          "duplicate_name": "Hadestown (Touring)",
+          "duplicate_show_id": 2876300,
+          "room": ""
+        },
+        {
+          "canonical_show_id": 2876264,
+          "date": "2026-11-07T18:30:00+00:00",
+          "duplicate_name": "Hadestown (Touring)",
+          "duplicate_show_id": 2876301,
+          "room": ""
+        },
+        {
+          "canonical_show_id": 2876265,
+          "date": "2026-11-08T00:30:00+00:00",
+          "duplicate_name": "Hadestown (Touring)",
+          "duplicate_show_id": 2876302,
+          "room": ""
+        },
+        {
+          "canonical_show_id": 2876266,
+          "date": "2026-11-08T18:00:00+00:00",
+          "duplicate_name": "Hadestown (Touring)",
+          "duplicate_show_id": 2876303,
+          "room": ""
+        },
+        {
+          "canonical_show_id": 2876267,
+          "date": "2026-11-08T23:30:00+00:00",
+          "duplicate_name": "Hadestown (Touring)",
+          "duplicate_show_id": 2876304,
+          "room": ""
+        },
+        {
+          "canonical_show_id": 2876268,
+          "date": "2026-11-18T00:30:00+00:00",
+          "duplicate_name": "Clue (Touring)",
+          "duplicate_show_id": 2841104,
+          "room": ""
+        },
+        {
+          "canonical_show_id": 2876269,
+          "date": "2026-11-19T00:30:00+00:00",
+          "duplicate_name": "Clue (Touring)",
+          "duplicate_show_id": 2841105,
+          "room": ""
+        },
+        {
+          "canonical_show_id": 2876270,
+          "date": "2026-11-20T00:30:00+00:00",
+          "duplicate_name": "Clue (Touring)",
+          "duplicate_show_id": 2841106,
+          "room": ""
+        },
+        {
+          "canonical_show_id": 2876271,
+          "date": "2026-11-21T00:30:00+00:00",
+          "duplicate_name": "Clue (Touring)",
+          "duplicate_show_id": 2841107,
+          "room": ""
+        },
+        {
+          "canonical_show_id": 2876272,
+          "date": "2026-11-21T18:30:00+00:00",
+          "duplicate_name": "Clue (Touring)",
+          "duplicate_show_id": 2841108,
+          "room": ""
+        },
+        {
+          "canonical_show_id": 2876273,
+          "date": "2026-11-22T00:30:00+00:00",
+          "duplicate_name": "Clue (Touring)",
+          "duplicate_show_id": 2841109,
+          "room": ""
+        },
+        {
+          "canonical_show_id": 2876274,
+          "date": "2026-11-22T18:00:00+00:00",
+          "duplicate_name": "Clue (Touring)",
+          "duplicate_show_id": 2841110,
+          "room": ""
+        },
+        {
+          "canonical_show_id": 2876275,
+          "date": "2026-11-22T23:30:00+00:00",
+          "duplicate_name": "Clue (Touring)",
+          "duplicate_show_id": 2841111,
+          "room": ""
+        }
+      ],
+      "deleted_show_count": 20,
+      "duplicate_club_before": {
+        "address": "1615 Euclid Ave., Cleveland, OH",
+        "city": "Cleveland",
+        "closed_at": null,
+        "id": 5071,
+        "name": "Connor Palace - Cleveland",
+        "state": "OH",
+        "status": "active",
+        "timezone": "America/New_York",
+        "total_shows": 20,
+        "visible": true,
+        "website": ""
+      },
+      "duplicate_shows_migrated": [],
+      "favorites_already_on_canonical_deleted": 0,
+      "favorites_migrated": 0,
+      "migrated_show_count": 0,
+      "rationale": "Same physical venue (Connor Palace, Playhouse Square). Keep 5058."
+    },
+    {
+      "canonical_club_before": {
+        "address": "1511 Euclid Ave, Cleveland, OH",
+        "city": "Cleveland",
+        "closed_at": null,
+        "id": 5394,
+        "name": "Mimi Ohio Theatre",
+        "state": "OH",
+        "status": "active",
+        "timezone": "America/New_York",
+        "total_shows": 1,
+        "visible": true,
+        "website": ""
+      },
+      "conflicting_duplicate_shows_deleted": [
+        {
+          "canonical_show_id": 2841724,
+          "date": "2026-11-13T00:00:00+00:00",
+          "duplicate_name": "Daniel Sloss",
+          "duplicate_show_id": 2876819,
+          "room": ""
+        }
+      ],
+      "deleted_show_count": 1,
+      "duplicate_club_before": {
+        "address": "1511 Euclid Ave., Cleveland, OH",
+        "city": "Cleveland",
+        "closed_at": null,
+        "id": 5338,
+        "name": "Ohio Theatre at PlayhouseSquare",
+        "state": "OH",
+        "status": "active",
+        "timezone": "America/New_York",
+        "total_shows": 2,
+        "visible": true,
+        "website": ""
+      },
+      "duplicate_shows_migrated": [
+        {
+          "canonical_show_id": null,
+          "date": "2026-10-24T23:00:00+00:00",
+          "duplicate_name": "ZARNA GARG: MILLION DOLLAR EXCUSES",
+          "duplicate_show_id": 2841661,
+          "room": ""
+        }
+      ],
+      "favorites_already_on_canonical_deleted": 0,
+      "favorites_migrated": 0,
+      "migrated_show_count": 1,
+      "rationale": "Ohio Theatre at Playhouse Square was renamed Mimi Ohio Theatre (the name the PHS feed uses). Keep 5394."
+    },
+    {
+      "canonical_club_before": {
+        "address": "1511 Euclid Ave, Cleveland, OH",
+        "city": "Cleveland",
+        "closed_at": null,
+        "id": 5394,
+        "name": "Mimi Ohio Theatre",
+        "state": "OH",
+        "status": "active",
+        "timezone": "America/New_York",
+        "total_shows": 2,
+        "visible": true,
+        "website": ""
+      },
+      "conflicting_duplicate_shows_deleted": [
+        {
+          "canonical_show_id": 2841661,
+          "date": "2026-10-24T23:00:00+00:00",
+          "duplicate_name": "ZARNA GARG: MILLION DOLLAR EXCUSES",
+          "duplicate_show_id": 2876889,
+          "room": ""
+        },
+        {
+          "canonical_show_id": 2841724,
+          "date": "2026-11-13T00:00:00+00:00",
+          "duplicate_name": "Daniel Sloss",
+          "duplicate_show_id": 2841722,
+          "room": ""
+        }
+      ],
+      "deleted_show_count": 2,
+      "duplicate_club_before": {
+        "address": "1511 Euclid Ave, Cleveland, OH",
+        "city": "Cleveland",
+        "closed_at": null,
+        "id": 5392,
+        "name": "Ohio Theatre - Playhouse Square",
+        "state": "OH",
+        "status": "active",
+        "timezone": "America/New_York",
+        "total_shows": 2,
+        "visible": true,
+        "website": ""
+      },
+      "duplicate_shows_migrated": [],
+      "favorites_already_on_canonical_deleted": 0,
+      "favorites_migrated": 0,
+      "migrated_show_count": 0,
+      "rationale": "Ohio Theatre at Playhouse Square was renamed Mimi Ohio Theatre (the name the PHS feed uses). Keep 5394."
+    }
+  ],
+  "task_id": 2942
+}
