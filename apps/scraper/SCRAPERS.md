@@ -1951,6 +1951,35 @@ already carrying a `ticketmaster_comedy` source, and the all-events AXS import
 would flood the comedy DB. The scraper is verified against Agora's homepage (19
 live shows incl. comedy) and ready for comedy-dedicated AXS-skinned venues.
 
+### NeonCRM / Neon One (`neoncrm`)
+
+`scraper_key = neoncrm`, `platform = custom` (NeonCRM has no dedicated
+`ScrapingPlatform` enum value). Generic, serves venues hosted on a NeonCRM
+(Neon One) org.
+
+**Datasource (TASK-2939):** the public event list at
+`https://{org}.app.neoncrm.com/eventList.jsp?categoryId={N}` (canonical
+`/np/clients/{org}/eventList.jsp`) is static server-rendered HTML — curl_cffi
+chrome impersonation suffices. Each row is a `div.neoncrm-event-list-event` with:
+- **name + detail URL**: `<h2 class="neoncrm-event-name"><a href="...event.jsp?event={id}">NAME</a></h2>`
+- **date range**: `<div class="neoncrm-event-date">MM/DD/YYYY HH:MM PM - MM/DD/YYYY HH:MM PM ET</div>`
+  — the scraper takes the range **start** as the show datetime (`%m/%d/%Y %I:%M %p`, localized to the club tz).
+
+`show_page_url` = the absolute `event.jsp?event={id}` detail page; the list page
+alone yields name + date + url (no per-event fetch needed).
+
+**Config via `scraping_sources.metadata`:** `neon_org` (org slug) +
+`category_ids` (list). When present the scraper builds one eventList URL per
+category id; otherwise it falls back to the verbatim `scraping_url`. Use the
+category filter to scope to the comedy-bearing category — NeonCRM categories mix
+camps/classes/cinema with performances, so pick the venue's "Theater
+Productions"-style category (it carries improv / stand-up / plays).
+
+Onboarded: **Oglebay Institute Towngate Theatre** (Wheeling WV;
+`neon_org=oionline`, `category_ids=[27]` Theater Productions — resident improv
+troupes Left of Centre Players / Crazy 8s; verified 3 upcoming productions,
+comedy/improv appear seasonally under the same category).
+
 ---
 
 ## Implementation Patterns
