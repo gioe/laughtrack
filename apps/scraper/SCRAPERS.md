@@ -1767,6 +1767,55 @@ Production pages include **past** showtimes of a multi-weekend run, so
 `BookTixEvent.to_show` filters showtimes earlier than now (there is no global
 past-show filter). Onboarded: Makeshift Theater Akron (`makeshift.booktix.com`).
 
+### Tessitura (WordPress REST integration)
+
+`scraper_key = tessitura`, `platform = custom` (Tessitura has no dedicated
+`ScrapingPlatform` enum value). Generic, serves Tessitura venue operators that
+run the WordPress integration plugin which mirrors Tessitura productions into
+`tessi_production` / `tessi_performance` custom post types.
+
+**Spike finding (TASK-2924) — the box office is NOT the scrapable seam.** The
+Tessitura box office itself (`tickets.{org}.com`) is bot/queue protected:
+`tickets.capa.com/online/` 302-redirects into a **Queue-It** virtual waiting
+room, and `tickets.playhousesquare.org/online/` returns **403**. There is no
+usable public Tessitura ticketing JSON. The scrapable seam is instead the
+operator's **WordPress site** (e.g. `www.capa.com`), which exposes the same
+productions over the standard WP REST API.
+
+`source_url` = the operator site root (e.g. `https://www.capa.com`); the scraper
+derives `/wp-json/wp/v2` from it. Single API pass (no JS rendering — curl_cffi /
+`fetch_json` suffices):
+
+1. **Genre discovery** — `GET /wp-json/wp/v2/genre?per_page=100`; pick the term
+   whose name matches "comedy" (case-insensitive, substring) with a non-zero
+   `count`. CAPA: `Comedy` = id 71.
+2. **Productions** — page through
+   `GET /wp-json/wp/v2/tessi_production?genre={id}&per_page=100` (server-side
+   genre filter = clean comedy slate, no per-show classification needed).
+   - **title**: `title.rendered`
+   - **showtime**: parsed from `content.rendered`, e.g.
+     `Saturday, December 5, 2026 | 7 PM` (bare-hour and `7:30 PM` forms)
+   - **venue/room**: the `VENUE … Plan Your Visit` block → `Show.room`
+   - **ticket url**: the first `https://tickets.{org}.com/{prod}/{perf}/` link in
+     `content.rendered`; falls back to the production page URL
+   - **show page url**: the production `link` (drives traffic to the operator site)
+
+`TessituraEvent.to_show` filters past showtimes (the genre feed includes
+archived productions). Optional `scraping_sources.metadata` overrides:
+`post_type` (default `tessi_production`), `genre_taxonomy` (default `genre`),
+`comedy_genre_names` (comma-separated, default `comedy`).
+
+Onboarded: **CAPA — Columbus Association for the Performing Arts** (`www.capa.com`),
+modeled as ONE operator club (Ohio / Palace / Southern / Lincoln theatres + the
+Davidson at the Riffe Center are carried in `Show.room`). Verified 18 future
+comedy shows live (Whitney Cummings, Gary Gulman, Jo Koy, Daniel Sloss, …).
+
+**Not on this seam:** Playhouse Square (Cleveland) is also a Tessitura operator
+but its marketing site (`playhousesquare.org/events`) is **not** WordPress — it
+is a custom CMS serving a curated, JS-"Show More"-paginated `m-eventItem` list
+with no comedy genre tag, and its box office 403s. It needs a separate dedicated
+scraper, not this `tessitura` (WordPress) scraper.
+
 ---
 
 ## Implementation Patterns
