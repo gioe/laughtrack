@@ -11,8 +11,11 @@ within --radius (the bias is soft, so Google returns some venues from beyond
 the ring). Each hit is then classified against the clubs table:
 
     known   place_id already stored on clubs.google_place_id
-    likely  name matches an existing club within ~2 mi (probable same venue,
-            place_id just not linked yet)
+    likely  name matches an existing club within ~2 mi, OR the street address
+            (number + street word, format-tolerant) matches an existing club —
+            probable same venue, place_id just not linked yet. The address arm
+            catches clubs onboarded under a name variant and/or with a NULL
+            place_id, which the name/place_id checks miss.
     new     no match — a candidate venue we don't track
 
 Usage:
@@ -120,6 +123,33 @@ def _normalize_name(name: str) -> str:
     return re.sub(r"[^a-z0-9]", "", (name or "").lower())
 
 
+_STREET_DIRECTIONS = frozenset(
+    {"n", "s", "e", "w", "ne", "nw", "se", "sw", "north", "south", "east", "west"}
+)
+
+
+def _normalize_address(address: str):
+    """Street-identity key: ``"<number> <first street word>"`` or None.
+
+    Built from the first comma-segment (the street line) as
+    ``street_number + first non-directional street word`` so format variants
+    collapse to the same key: "24 N Mentor Ave" / "24 N Mentor Avenue" and
+    "1215 Baker St" / "1215 Baker Street, Unit C" all -> "24 mentor" / "1215 baker".
+    Returns None when there is no leading street number (too weak to match on).
+    This catches duplicates that the place_id and name checks miss — existing
+    clubs onboarded under a name variant and/or with a NULL google_place_id.
+    """
+    seg = re.sub(r"[^a-z0-9 ]", " ", (address or "").split(",")[0].lower())
+    toks = seg.split()
+    if not toks or not toks[0].isdigit():
+        return None
+    word = next(
+        (t for t in toks[1:] if t.isalpha() and t not in _STREET_DIRECTIONS and len(t) > 2),
+        "",
+    )
+    return f"{toks[0]} {word}".strip() if word else None
+
+
 def _tile_centers(lat, lng, radius_miles, spacing_miles):
     """Grid of search centers covering the radius-mile disk around (lat, lng).
 
@@ -149,7 +179,7 @@ def _tile_centers(lat, lng, radius_miles, spacing_miles):
 
 
 def _load_existing_clubs(dsn):
-    """Return existing clubs as (by_place_id dict, list of name/coord rows)."""
+    """Return existing clubs as (by_place_id dict, name_rows, addr_index)."""
     import psycopg2  # noqa: F401
 
     from laughtrack.foundation.db_util import connect_with_retry
@@ -158,26 +188,24 @@ def _load_existing_clubs(dsn):
     try:
         conn.autocommit = True
         with conn.cursor() as cur:
-            cur.execute("SELECT id, name, latitude, longitude, google_place_id FROM clubs")
+            cur.execute("SELECT id, name, address, latitude, longitude, google_place_id FROM clubs")
             rows = cur.fetchall()
     finally:
         conn.close()
 
     by_place_id = {}
     name_rows = []
-    for club_id, name, lat, lng, place_id in rows:
+    addr_index = {}
+    for club_id, name, address, lat, lng, place_id in rows:
+        flat = float(lat) if lat is not None else None
+        flng = float(lng) if lng is not None else None
         if place_id:
             by_place_id[place_id] = (club_id, name)
-        name_rows.append(
-            (
-                club_id,
-                name,
-                _normalize_name(name),
-                float(lat) if lat is not None else None,
-                float(lng) if lng is not None else None,
-            )
-        )
-    return by_place_id, name_rows
+        name_rows.append((club_id, name, _normalize_name(name), flat, flng))
+        addr_key = _normalize_address(address)
+        if addr_key:
+            addr_index.setdefault(addr_key, []).append((club_id, name, flat, flng))
+    return by_place_id, name_rows, addr_index
 
 
 def _load_denied_place_ids(dsn):
@@ -205,7 +233,51 @@ def _load_denied_place_ids(dsn):
         conn.close()
 
 
-def _classify(venue, origin, by_place_id, name_rows, name_match_miles, denied_place_ids=frozenset()):
+def _within(venue, lat, lng, miles):
+    """True if the club coords are within ``miles`` of the venue, or if proximity
+    can't be checked (either side lacks coords). Without coords an exact name or
+    street-address key match is itself strong identity, so we accept it."""
+    if lat is None or lng is None or venue.lat is None or venue.lng is None:
+        return True
+    return _haversine_miles(venue.lat, venue.lng, lat, lng) <= miles
+
+
+def _match_by_name(venue, name_rows, name_match_miles):
+    """Existing club with the same normalized name, proximity-confirmed when
+    coords are available (so a chain like "Funny Bone" in two cities isn't
+    collapsed). Returns (club_id, club_name) or None."""
+    target = _normalize_name(venue.name)
+    if not target:
+        return None
+    for club_id, club_name, norm, lat, lng in name_rows:
+        if norm == target and _within(venue, lat, lng, name_match_miles):
+            return club_id, club_name
+    return None
+
+
+def _match_by_address(venue, addr_index, name_match_miles):
+    """Existing club at the same street address (number + first street word,
+    format-tolerant), proximity-confirmed when coords are available. Catches
+    duplicates onboarded under a name variant and/or with a NULL google_place_id,
+    which the name and place_id checks miss. Returns (club_id, club_name) or None."""
+    addr_key = _normalize_address(venue.address)
+    if not (addr_key and addr_index):
+        return None
+    for club_id, club_name, lat, lng in addr_index.get(addr_key, ()):
+        if _within(venue, lat, lng, name_match_miles):
+            return club_id, club_name
+    return None
+
+
+def _classify(
+    venue,
+    origin,
+    by_place_id,
+    name_rows,
+    name_match_miles,
+    denied_place_ids=frozenset(),
+    addr_index=None,
+):
     """Tag a discovered venue as denied / known / likely / new against existing clubs."""
     if venue.place_id in denied_place_ids:
         return "denied", None, None
@@ -213,17 +285,11 @@ def _classify(venue, origin, by_place_id, name_rows, name_match_miles, denied_pl
         club_id, club_name = by_place_id[venue.place_id]
         return "known", club_id, club_name
 
-    target = _normalize_name(venue.name)
-    if target:
-        for club_id, club_name, norm, lat, lng in name_rows:
-            if norm != target:
-                continue
-            # Same normalized name — confirm proximity when we have coords so
-            # a chain like "Funny Bone" in two cities isn't collapsed to one.
-            if lat is None or lng is None:
-                return "likely", club_id, club_name
-            if _haversine_miles(venue.lat, venue.lng, lat, lng) <= name_match_miles:
-                return "likely", club_id, club_name
+    match = _match_by_name(venue, name_rows, name_match_miles) or _match_by_address(
+        venue, addr_index, name_match_miles
+    )
+    if match:
+        return "likely", match[0], match[1]
     return "new", None, None
 
 
@@ -285,7 +351,7 @@ def main() -> None:
             deduped[venue.place_id] = venue
 
     dsn = _resolve_database_url()
-    by_place_id, name_rows = _load_existing_clubs(dsn)
+    by_place_id, name_rows, addr_index = _load_existing_clubs(dsn)
     denied_place_ids = _load_denied_place_ids(dsn)
 
     results = []
@@ -294,7 +360,8 @@ def main() -> None:
         if dist > args.radius:
             continue
         status, club_id, club_name = _classify(
-            venue, origin, by_place_id, name_rows, args.name_match_miles, denied_place_ids
+            venue, origin, by_place_id, name_rows, args.name_match_miles,
+            denied_place_ids, addr_index,
         )
         if args.new_only and status != "new":
             continue
