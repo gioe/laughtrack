@@ -1,6 +1,5 @@
 """Event extraction from a VBO Tickets ``showevents`` listing HTML response."""
 
-import html as _html
 import re
 from datetime import date
 from html import unescape
@@ -58,7 +57,7 @@ def _strip_tags(html_fragment: str) -> List[str]:
     """Convert an HTML fragment to a list of non-empty, stripped text lines."""
     text = re.sub(r"<script.*?</script>", "", html_fragment, flags=re.S)
     text = re.sub(r"<[^>]+>", "\n", text)
-    text = _html.unescape(text)
+    text = unescape(text)
     return [ln.strip() for ln in text.splitlines() if ln.strip()]
 
 

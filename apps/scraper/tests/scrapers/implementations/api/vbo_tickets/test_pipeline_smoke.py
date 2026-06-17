@@ -198,12 +198,16 @@ def test_category_filter_keeps_only_allowed_categories():
     assert {e.name for e in filtered} == {"Troika Improv Contest", "PROUD: A Variety Show!"}
     assert "Improv Level 1" not in {e.name for e in filtered}  # Classes excluded
 
-    # Without a filter the class is included (and the unparseable class date is dropped per-row).
-    unfiltered_names = {
-        e.name
-        for e in VboTicketsExtractor.extract_events(NEST_HTML, club_name="The Nest Theatre", today=_REF_TODAY)
-    }
-    assert "Improv Level 1" in unfiltered_names
+    # Without a filter the class is included. Its free-form range
+    # "Mondays 6/1-6/29 6:30PM-8:30PM" parses like any recurring line: 6/1 is
+    # dropped as past, 6/29 is kept, so the class surfaces as a single 6/29
+    # occurrence — which is why a category_filter (not date-unparseability) is
+    # what keeps classes out.
+    unfiltered = VboTicketsExtractor.extract_events(
+        NEST_HTML, club_name="The Nest Theatre", today=_REF_TODAY
+    )
+    classes = [e for e in unfiltered if e.name == "Improv Level 1"]
+    assert [e.start_iso for e in classes] == ["2026-06-29 18:30:00"]
 
 
 def test_category_filter_accepts_iterable():
