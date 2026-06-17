@@ -56,8 +56,8 @@ endif
 define activate_venv
 	$(if $(filter false,$(VENV_ACTIVE)), \
 		$(if $(filter true,$(VENV_AVAILABLE)), \
-			@echo "🔧 Activating virtual environment..." && source $(VENV_ACTIVATE) &&, \
-			@echo "⚠️  No virtual environment found at $(VENV_DIR)/" && echo "   Run 'make setup-venv' to create one" && exit 1 \
+			@echo "🔧 Activating virtual environment..." >&2 && source $(VENV_ACTIVATE) &&, \
+			@echo "⚠️  No virtual environment found at $(VENV_DIR)/" >&2 && echo "   Run 'make setup-venv' to create one" >&2 && exit 1 \
 		) \
 	)
 endef
