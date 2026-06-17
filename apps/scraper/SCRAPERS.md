@@ -1876,9 +1876,9 @@ comedy shows live (Whitney Cummings, Gary Gulman, Jo Koy, Daniel Sloss, …).
 
 **Not on this seam:** Playhouse Square (Cleveland) is also a Tessitura operator
 but its marketing site (`playhousesquare.org/events`) is **not** WordPress — it
-is a custom CMS serving a curated, JS-"Show More"-paginated `m-eventItem` list
-with no comedy genre tag, and its box office 403s. It needs a separate dedicated
-scraper, not this `tessitura` (WordPress) scraper.
+is a custom CMS with no comedy genre tag, and its box office 403s. It has its own
+dedicated `playhouse_square` scraper (see below), not this `tessitura` (WordPress)
+scraper.
 
 ### EventON (WordPress admin-ajax loader)
 
@@ -1979,6 +1979,72 @@ Onboarded: **Oglebay Institute Towngate Theatre** (Wheeling WV;
 `neon_org=oionline`, `category_ids=[27]` Theater Productions — resident improv
 troupes Left of Centre Players / Crazy 8s; verified 3 upcoming productions,
 comedy/improv appear seasonally under the same category).
+
+### Playhouse Square — Cleveland (`playhouse_square`)
+
+`scraper_key = playhouse_square`, `platform = custom` (no dedicated
+`ScrapingPlatform` enum value). **Venue-specific, not generic** — it targets the
+carbonhouse "showtime" CMS that Playhouse Square runs. PHS is a Tessitura
+operator but is NOT on the WordPress `tessi_production` seam (see the Tessitura
+section), so it cannot use the `tessitura` scraper.
+
+**Datasource (TASK-2942) — the load-more AJAX feed.** `playhousesquare.org/events`
+server-renders only a curated subset behind a JS "Load More Events" button. The
+full upcoming list is the button's AJAX feed:
+
+```
+GET {origin}/events/events_ajax/0?per_page=N&category=0&venue=0&team=0&came_from_page=event-list-page
+```
+
+- Requires curl_cffi's **default Chrome impersonation** — plain requests get a
+  `406` from the WAF (the same 406 that blocks `/events/category/comedy`).
+- The response is a **JSON-encoded string of HTML** (the same `m-eventItem` cards
+  the page renders). `fetch_json` returns the decoded HTML string, which the
+  extractor parses. `per_page=500` returns the whole feed in one fetch.
+
+Per `div.m-eventItem` card:
+- **name + detail URL**: `<h3 class="m-eventItem__title"><a href="/events/detail/<slug>">NAME</a></h3>`
+- **date**: `<div class="m-eventItem__date">` as a single date
+  (`m-date__singleDate`) or a range (`m-date__rangeFirst`/`m-date__rangeLast`) —
+  **date only, no time**; the scraper takes the range START and combines it with
+  `metadata.default_show_time` (`HH:MM`, default `19:00`) localized to the club tz.
+  Months render mixed full ("June") and abbreviated ("Oct").
+- **venue**: `<span class="venue_title">` (e.g. "Mimi Ohio Theatre") — PHS is a
+  multi-theatre complex; this is how each source is scoped to one theatre.
+- **ticket url**: `<a class="tickets" href="tickets.playhousesquare.org/...">` (the
+  Tessitura box office). `show_page_url` is the venue's own `/events/detail/`
+  page (drives traffic to the venue).
+
+Cards whose title is prefixed `(Canceled)` are dropped.
+
+**Comedy isolation — known-comedian heuristic (no genre tag anywhere).** Neither
+the markup class tokens (`on_stage`/`home`/`Tri-CJazzFest`/…) nor the detail
+pages carry a comedy/genre signal (the only "comedy" string is boilerplate meta
+text). Since there is no downstream comedy-relevance gate, the scraper isolates
+comedy itself (`comedy_filter.py`): keep an event only when its title contains a
+credible whole-name match to a known comedian (the lineup-enrichment credibility
+check) AND that comedian's STORED popularity clears
+`metadata.min_comedian_popularity` (default `0.30`). The popularity floor drops
+data-quality false positives — e.g. a junk "The Nutcracker" comedian row (ballet)
+or a miscategorised "Professor Brian Cox" (science lecture), which score < 0.20,
+vs. real touring acts at >= 0.40.
+
+**Per-source `scraping_sources.metadata`:** `venue_titles` (REQUIRED — list of
+feed `venue_title` strings this source covers; without it the source emits
+nothing rather than the whole multi-venue feed), `per_page` (default 500),
+`min_comedian_popularity` (default 0.30), `default_show_time` (default 19:00).
+`source_url` = `https://www.playhousesquare.org/events` (origin is derived from it).
+
+**Wiring — per theatre, preferred over the aggregator.** Comedy at PHS spans
+multiple theatres, so one `playhouse_square` source is wired per comedy theatre
+at **priority 0**, with the venue's existing `ticketmaster_comedy` source demoted
+to priority 1 (kept as a fallback) — per project policy to prefer the venue's own
+site over aggregators. Onboarded (TASK-2942): **Connor Palace** (club 5058),
+**Mimi Ohio Theatre** (club 5394), **KeyBank State Theatre** (club 8901, created
+during onboarding). Verified 10 upcoming comedy shows live across the three
+(Nikki Glaser, Leanne Morgan, Kill Tony, Marc Maron, Zarna Garg, Daniel Sloss,
+Rickey Smiley, Jo Koy, Ron White). The duplicate PHS venue clubs were merged
+first (`dedupe_playhouse_square_clubs_2026_06_17.py`: 5071→5058, 5338/5392→5394).
 
 ---
 

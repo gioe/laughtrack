@@ -77,6 +77,17 @@ class TestExtractEventsFromFixture:
     def test_empty_html(self):
         assert extract_events("", _BASE) == []
 
+    def test_canceled_event_is_dropped(self):
+        html = (
+            '<div class="m-eventItem on_stage"><div class="m-eventItem__date">'
+            '<span class="m-date__singleDate"><span class="m-date__month">Oct </span>'
+            '<span class="m-date__day">10</span><span class="m-date__year">, 2026</span></span>'
+            '<span class="venue_title">Mimi Ohio Theatre</span></div>'
+            '<h3 class="m-eventItem__title"><a href="/events/detail/canceled-act">'
+            "(Canceled) Some Comedian</a></h3></div>"
+        )
+        assert extract_events(html, _BASE) == []
+
 
 # --------------------------------------------------------------------------- #
 # to_show

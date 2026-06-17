@@ -24,6 +24,10 @@ from bs4 import BeautifulSoup
 from laughtrack.core.entities.event.playhouse_square import PlayhouseSquareEvent
 
 
+# Titles the feed prefixes when a show is pulled, e.g. "(Canceled) Harland Williams".
+_CANCELED_RE = re.compile(r"^\(\s*cancell?ed\s*\)", re.IGNORECASE)
+
+
 def _clean(text: Optional[str]) -> str:
     # Collapse whitespace and drop the &nbsp; (\xa0) the date delimiter uses.
     return unescape(" ".join((text or "").replace("\xa0", " ").split()))
@@ -86,6 +90,10 @@ def extract_events(decoded_html: str, base_url: str) -> List[PlayhouseSquareEven
         if href in seen:
             continue
         seen.add(href)
+
+        # Drop shows the feed has marked canceled ("(Canceled) <act>").
+        if _CANCELED_RE.match(title):
+            continue
 
         date_str = _extract_start_date(item.select_one(".m-eventItem__date"))
         if not date_str:
