@@ -133,3 +133,114 @@ def test_unresolved_when_geocode_returns_no_state():
     # tried place_id, then fell through to name search (which found nothing).
     assert client.details_calls == ["ChIJabc"]
     assert client.find_calls == ["The Club"]
+
+
+# ---------------------------------------------------------------------------
+# _persist source-gated write tests (TASK-2934)
+# ---------------------------------------------------------------------------
+
+
+class _FakeCursor:
+    """Records every (sql, params) execute so persistence can be asserted."""
+
+    def __init__(self) -> None:
+        self.executed: List[tuple] = []
+
+    def execute(self, sql, params=None):
+        self.executed.append((sql, params))
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+
+class _FakeConn:
+    def __init__(self, cursor: _FakeCursor) -> None:
+        self._cursor = cursor
+        self.committed = False
+
+    def cursor(self):
+        return self._cursor
+
+    def commit(self):
+        self.committed = True
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+
+def _persist_capturing(monkeypatch, resolution: mod.Resolution, row: mod.ClubRow) -> _FakeCursor:
+    cur = _FakeCursor()
+    monkeypatch.setattr(mod, "get_connection", lambda: _FakeConn(cur))
+    mod._persist(row, resolution)
+    return cur
+
+
+def test_persist_name_geocode_writes_timezone_and_state_only(monkeypatch):
+    # Mirrors the TASK-2933 incident: a generic SEO-junk name matched Comedy
+    # Cellar's place_id + 117 MacDougal St. None of that identity may be written.
+    details = PlaceDetails(
+        "ChIJmzPYgJFZwokRg4zUwTlZwtI",
+        "117 MacDougal St, New York, NY 10012, USA",
+        "NY",
+        "New York",
+        40.73,
+        -74.0,
+    )
+    res = mod.Resolution(
+        source=mod.SOURCE_NAME_GEOCODE,
+        timezone="America/New_York",
+        details=details,
+        resolved_place_id="ChIJmzPYgJFZwokRg4zUwTlZwtI",
+    )
+    row = _row(id=620, name="Comedy Shows Near Me")
+
+    cur = _persist_capturing(monkeypatch, res, row)
+    executed_sql = [sql for sql, _ in cur.executed]
+
+    # timezone + state are persisted...
+    assert mod._UPDATE_TIMEZONE_SQL in executed_sql
+    assert mod._UPDATE_STATE_SQL in executed_sql
+    # ...but identity columns (address/lat/lng) are NOT.
+    assert mod._UPDATE_GEOCODE_FIELDS_SQL not in executed_sql
+
+    # And the matched venue's place_id / address never reach any SQL params.
+    flat_params = [
+        value
+        for _, params in cur.executed
+        if params
+        for value in params
+    ]
+    assert "ChIJmzPYgJFZwokRg4zUwTlZwtI" not in flat_params
+    assert "117 MacDougal St, New York, NY 10012, USA" not in flat_params
+
+
+def test_persist_placeid_geocode_backfills_identity_fields(monkeypatch):
+    # The club's OWN place_id resolved these details — safe to backfill identity.
+    details = PlaceDetails("ChIJown", "1 Market St, San Francisco, CA, USA", "CA", "San Francisco", 37.7, -122.4)
+    res = mod.Resolution(
+        source=mod.SOURCE_PLACEID_GEOCODE,
+        timezone="America/Los_Angeles",
+        details=details,
+    )
+    row = _row(id=5, google_place_id="ChIJown")
+
+    cur = _persist_capturing(monkeypatch, res, row)
+    executed_sql = [sql for sql, _ in cur.executed]
+
+    assert mod._UPDATE_TIMEZONE_SQL in executed_sql
+    assert mod._UPDATE_GEOCODE_FIELDS_SQL in executed_sql
+    # placeid path uses the full geocode-fields write, not the state-only one.
+    assert mod._UPDATE_STATE_SQL not in executed_sql
+    flat_params = [
+        value
+        for _, params in cur.executed
+        if params
+        for value in params
+    ]
+    assert "1 Market St, San Francisco, CA, USA" in flat_params
