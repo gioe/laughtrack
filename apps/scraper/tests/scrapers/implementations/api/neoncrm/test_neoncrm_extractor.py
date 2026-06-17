@@ -77,3 +77,40 @@ class TestToShow:
             show_page_url="https://oionline.app.neoncrm.com/event.jsp?event=2",
         )
         assert ev.to_show(_Club()) is None
+
+
+from laughtrack.core.entities.club.model import Club, ScrapingSource
+from laughtrack.scrapers.implementations.api.neoncrm.scraper import NeonCRMScraper
+
+
+def _make_scraper(metadata=None, source_url=""):
+    src = ScrapingSource(
+        platform="custom", scraper_key="neoncrm", source_url=source_url,
+        priority=0, enabled=True, id=1, club_id=999, metadata=metadata or {},
+    )
+    club = Club(
+        id=999, name="Towngate", address="", website="https://oionline.com/towngate/",
+        popularity=0, zip_code="26003", phone_number="", visible=True,
+        timezone="America/New_York", city="Wheeling", state="WV",
+        scraping_sources=[src], active_scraping_source=src,
+    )
+    return NeonCRMScraper(club)
+
+
+class TestCollectScrapingTargets:
+    async def test_builds_one_url_per_category_from_metadata(self):
+        scraper = _make_scraper(metadata={"neon_org": "oionline", "category_ids": [27, 31]})
+        targets = await scraper.collect_scraping_targets()
+        assert targets == [
+            "https://oionline.app.neoncrm.com/eventList.jsp?categoryId=27",
+            "https://oionline.app.neoncrm.com/eventList.jsp?categoryId=31",
+        ]
+
+    async def test_falls_back_to_scraping_url_without_metadata(self):
+        url = "https://oionline.app.neoncrm.com/eventList.jsp?categoryId=27"
+        scraper = _make_scraper(metadata={}, source_url=url)
+        assert await scraper.collect_scraping_targets() == [url]
+
+    async def test_no_metadata_no_url_returns_empty(self):
+        scraper = _make_scraper(metadata={}, source_url="")
+        assert await scraper.collect_scraping_targets() == []
