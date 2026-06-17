@@ -111,3 +111,62 @@ class TestToShow:
             show_page_url="https://www.agoracleveland.com/events/detail/4",
         )
         assert ev.to_show(_Club()) is None
+
+    def test_full_month_name_date_parses(self):
+        # Some AXS venue themes render the full month name; to_show must accept it.
+        ev = AXSEvent(
+            title="Full Month",
+            date_str="Sat, June 16, 2099",
+            show_page_url="https://www.agoracleveland.com/events/detail/5",
+        )
+        show = ev.to_show(_Club())
+        assert show is not None
+        assert show.date.astimezone(pytz.timezone("America/New_York")).month == 6
+
+
+from unittest.mock import AsyncMock
+
+from laughtrack.core.entities.club.model import Club, ScrapingSource
+from laughtrack.scrapers.implementations.api.axs.scraper import AXSVenueScraper
+
+
+def _make_scraper(source_url="https://agoracleveland.com"):
+    src = ScrapingSource(
+        platform="custom", scraper_key="axs", source_url=source_url,
+        priority=0, enabled=True, id=1, club_id=999, metadata={},
+    )
+    club = Club(
+        id=999, name="Agora Theater & Ballroom", address="", website="https://agoracleveland.com",
+        popularity=0, zip_code="44115", phone_number="", visible=True,
+        timezone="America/New_York", city="Cleveland", state="OH",
+        scraping_sources=[src], active_scraping_source=src,
+    )
+    return AXSVenueScraper(club)
+
+
+class TestScraperGlue:
+    async def test_no_scraping_url_returns_empty_targets(self):
+        scraper = _make_scraper(source_url="")
+        assert await scraper.collect_scraping_targets() == []
+
+    async def test_get_data_parses_fixture(self):
+        scraper = _make_scraper()
+        scraper.fetch_html = AsyncMock(return_value=_load_fixture())
+        page = await scraper.get_data("https://agoracleveland.com")
+        assert page is not None
+        assert len(page.event_list) == 20
+
+    async def test_get_data_empty_html_returns_none(self):
+        scraper = _make_scraper()
+        scraper.fetch_html = AsyncMock(return_value="")
+        assert await scraper.get_data("https://agoracleveland.com") is None
+
+    async def test_get_data_no_events_returns_none(self):
+        scraper = _make_scraper()
+        scraper.fetch_html = AsyncMock(return_value="<html><body>no cards here</body></html>")
+        assert await scraper.get_data("https://agoracleveland.com") is None
+
+    async def test_get_data_fetch_exception_returns_none(self):
+        scraper = _make_scraper()
+        scraper.fetch_html = AsyncMock(side_effect=RuntimeError("boom"))
+        assert await scraper.get_data("https://agoracleveland.com") is None

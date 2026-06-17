@@ -21,9 +21,24 @@ from typing import Optional
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.protocols.show_convertible import ShowConvertible
 
-# Homepage date format, e.g. "Tue, Jun 16, 2026".
-_AXS_DATE_FORMAT = "%a, %b %d, %Y"
+# Homepage date formats, e.g. "Tue, Jun 16, 2026" (abbreviated month) or
+# "Tue, June 16, 2026" (full month — some AXS venue themes render it this way).
+_AXS_DATE_FORMATS = ("%a, %b %d, %Y", "%a, %B %d, %Y")
 _DEFAULT_SHOW_TIME = "19:00"
+
+
+def _parse_axs_date(date_str: str):
+    """Parse an AXS homepage date, tolerating abbreviated and full month names.
+
+    Returns a ``date`` or None if neither format matches.
+    """
+    cleaned = " ".join(date_str.split())
+    for fmt in _AXS_DATE_FORMATS:
+        try:
+            return datetime.strptime(cleaned, fmt).date()
+        except ValueError:
+            continue
+    return None
 
 
 def _parse_default_time(raw: Optional[str]) -> time:
@@ -52,9 +67,8 @@ class AXSEvent(ShowConvertible):
         if not self.title or not self.date_str or not self.show_page_url:
             return None
 
-        try:
-            date_only = datetime.strptime(self.date_str.strip(), _AXS_DATE_FORMAT).date()
-        except ValueError:
+        date_only = _parse_axs_date(self.date_str)
+        if date_only is None:
             return None
 
         default_time = _parse_default_time(club.metadata_value("default_show_time"))
