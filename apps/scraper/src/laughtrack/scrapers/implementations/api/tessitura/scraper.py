@@ -137,13 +137,18 @@ class TessituraScraper(BaseScraper):
             try:
                 page_items = await self.fetch_json(url)
             except Exception as e:
-                # WP returns 400 once `page` exceeds the available page count;
-                # that is the normal pagination terminator, not a hard error.
+                # Defensive terminator for genuine fetch failures (e.g. the WP
+                # 400 "invalid page number" surfacing as a raised RequestsError
+                # when the Playwright fallback is disabled or fails).
                 Logger.info(
                     f"{self._log_prefix}: pagination stopped at page {page} ({e})",
                     self.logger_context,
                 )
                 break
+            # Normal terminator: once `page` exceeds the page count WP returns a
+            # 400, which fetch_json's Playwright fallback recovers as the JSON
+            # error *object* ({"code": "rest_post_invalid_page_number", ...}) —
+            # a dict, not a list — so this guard ends the loop without raising.
             if not isinstance(page_items, list) or not page_items:
                 break
             collected.extend(page_items)
