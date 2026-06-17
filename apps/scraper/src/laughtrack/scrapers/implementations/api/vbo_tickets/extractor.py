@@ -1,10 +1,12 @@
 """Event extraction from a VBO Tickets ``showevents`` listing HTML response."""
 
+import html as _html
 import re
+from datetime import date
 from html import unescape
-from typing import List, Optional
+from typing import Iterable, List, Optional, Set, Union
 
-from laughtrack.core.entities.event.vbo_tickets import VboEvent
+from laughtrack.core.entities.event.vbo_tickets import _VBO_DATE_RE, VboEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
 # The loadplugin response posts the user session UUID back to the parent frame
@@ -20,14 +22,101 @@ _EVENT_BLOCK_RE = re.compile(
     re.IGNORECASE | re.DOTALL,
 )
 _NAME_RE = re.compile(r'data-event-name="([^"]*)"', re.IGNORECASE)
+_CATEGORY_RE = re.compile(r'data-event-category="([^"]*)"', re.IGNORECASE)
 _EID_RE = re.compile(r"event\.asp\?eid=(\d+)", re.IGNORECASE)
 _DATE_RE = re.compile(r'class="TextEventDate[^"]*">\s*([^<]+?)\s*</div>', re.IGNORECASE)
 _PRICE_RE = re.compile(r'class="EventListPrice">\s*([^<]+?)\s*</div>', re.IGNORECASE)
 _PRICE_NUM_RE = re.compile(r"\$\s*([0-9]+(?:\.[0-9]{2})?)")
 
+# Free-form date parsing (venues whose admins enter date text by hand rather
+# than using VBO's structured per-occurrence rows). A clock time like "7:00pm",
+# "8pm", "9:30 PM"; a month/day, optionally with a 4-digit year: "6/19",
+# "7/11/2026".
+_TIME_RE = re.compile(r"(\d{1,2})(?::(\d{2}))?\s*([ap]m)", re.IGNORECASE)
+_DATE_PARTS_RE = re.compile(r"(\d{1,2})/(\d{1,2})(?:/(\d{4}))?")
+
 # Stable per-event landing URL (session token deliberately omitted so the
 # persisted show_page_url does not rot when the VBO session expires).
 _EVENT_URL = "https://plugin.vbotickets.com/v5.0/event.asp?eid={eid}"
+
+
+def _normalize_category_filter(
+    category_filter: Optional[Union[str, Iterable[str]]],
+) -> Optional[Set[str]]:
+    """Return a lowercased set of allowed categories, or None when unfiltered."""
+    if not category_filter:
+        return None
+    if isinstance(category_filter, str):
+        values = [category_filter]
+    else:
+        values = list(category_filter)
+    allowed = {v.strip().lower() for v in values if v and v.strip()}
+    return allowed or None
+
+
+def _strip_tags(html_fragment: str) -> List[str]:
+    """Convert an HTML fragment to a list of non-empty, stripped text lines."""
+    text = re.sub(r"<script.*?</script>", "", html_fragment, flags=re.S)
+    text = re.sub(r"<[^>]+>", "\n", text)
+    text = _html.unescape(text)
+    return [ln.strip() for ln in text.splitlines() if ln.strip()]
+
+
+def _parse_room(block: str, club_name: str) -> str:
+    """Extract the sub-venue/stage from a '<club name> - <room>' line, if any."""
+    if not club_name:
+        return ""
+    needle = f"{club_name} -"
+    for ln in _strip_tags(block):
+        if needle in ln:
+            return ln.split(" - ", 1)[1].strip()
+    return ""
+
+
+def _parse_datetimes(date_line: str, today: date) -> List[str]:
+    """Parse a free-form VBO date line into local 'YYYY-MM-DD HH:MM:00' strings.
+
+    Handles single ("Wed 6/17 7:00pm") and recurring ("Fri 9:30pm 6/5, 6/12,
+    6/19, ...") listings, emitting one datetime per upcoming date. Past dates
+    are dropped; a single bare-year date that has already passed rolls to next
+    year (it is next year's show), while past dates inside a recurring list are
+    simply skipped.
+    """
+    if not date_line:
+        return []
+    tm = _TIME_RE.search(date_line)
+    if not tm:
+        return []
+    hour = int(tm.group(1))
+    minute = int(tm.group(2) or 0)
+    meridiem = tm.group(3).lower()
+    if meridiem == "pm" and hour != 12:
+        hour += 12
+    if meridiem == "am" and hour == 12:
+        hour = 0
+
+    matches = _DATE_PARTS_RE.findall(date_line)
+    if not matches:
+        return []
+    multi = len(matches) > 1
+
+    out: List[str] = []
+    for month_s, day_s, year_s in matches:
+        month, day = int(month_s), int(day_s)
+        year = int(year_s) if year_s else today.year
+        try:
+            cand = date(year, month, day)
+        except ValueError:
+            continue
+        if cand < today:
+            if multi or year_s:
+                continue  # past occurrence of a recurring show, or an explicit past year
+            try:
+                cand = date(year + 1, month, day)  # single bare-year date → next year's show
+            except ValueError:
+                continue
+        out.append(f"{cand.isoformat()} {hour:02d}:{minute:02d}:00")
+    return out
 
 
 class VboTicketsExtractor:
@@ -42,26 +131,56 @@ class VboTicketsExtractor:
         return m.group(1) if m else None
 
     @staticmethod
-    def extract_events(showevents_html: str) -> List[VboEvent]:
-        """Extract VboEvent rows from a ``showevents`` listing response."""
+    def extract_events(
+        showevents_html: str,
+        category_filter: Optional[Union[str, Iterable[str]]] = None,
+        club_name: str = "",
+        today: Optional[date] = None,
+    ) -> List[VboEvent]:
+        """Extract VboEvent rows from a ``showevents`` listing response.
+
+        Args:
+            showevents_html: the rendered listing HTML.
+            category_filter: optional ``data-event-category`` allow-list (string
+                or iterable, case-insensitive). When set, only matching events
+                are kept — e.g. ``"Live Shows"`` excludes a venue's classes.
+            club_name: the venue name, used to extract the sub-venue/stage from
+                free-form listings (a "<club name> - <room>" line).
+            today: reference date for dropping past occurrences (defaults to
+                ``date.today()``); injectable for tests.
+        """
+        allowed = _normalize_category_filter(category_filter)
+        ref_today = today or date.today()
         events: List[VboEvent] = []
         for block in _EVENT_BLOCK_RE.findall(showevents_html or ""):
             try:
-                event = VboTicketsExtractor._parse_block(block)
-                if event:
-                    events.append(event)
+                events.extend(
+                    VboTicketsExtractor._parse_block(block, allowed, club_name, ref_today)
+                )
             except Exception as e:
                 Logger.warn(f"VboTicketsExtractor: skipping event due to error: {e}")
         return events
 
     @staticmethod
-    def _parse_block(block: str) -> Optional[VboEvent]:
+    def _parse_block(
+        block: str,
+        allowed_categories: Optional[Set[str]],
+        club_name: str,
+        today: date,
+    ) -> List[VboEvent]:
         eid_m = _EID_RE.search(block)
         name_m = _NAME_RE.search(block)
         date_m = _DATE_RE.search(block)
         # An event row without an eid or a date is not a bookable show.
         if not eid_m or not date_m:
-            return None
+            return []
+
+        # Optional category allow-list (e.g. keep only "Live Shows").
+        if allowed_categories is not None:
+            cat_m = _CATEGORY_RE.search(block)
+            category = (cat_m.group(1).strip().lower() if cat_m else "")
+            if category not in allowed_categories:
+                return []
 
         price_min = None
         price_m = _PRICE_RE.search(block)
@@ -71,10 +190,43 @@ class VboTicketsExtractor:
                 price_min = min(nums)
 
         eid = eid_m.group(1)
-        return VboEvent(
-            eid=eid,
-            name=unescape((name_m.group(1) if name_m else "").strip()),
-            date_str=unescape(date_m.group(1).strip()),
-            url=_EVENT_URL.format(eid=eid),
-            price_min=price_min,
-        )
+        name = unescape((name_m.group(1) if name_m else "").strip())
+        date_str = unescape(date_m.group(1).strip())
+        url = _EVENT_URL.format(eid=eid)
+
+        # Structured per-occurrence row ("Tue, 6/16/2026 @ 7:00 PM"): one event,
+        # date parsed downstream in VboEvent.to_show() (unchanged path).
+        if _VBO_DATE_RE.search(date_str):
+            return [
+                VboEvent(
+                    eid=eid,
+                    name=name,
+                    date_str=date_str,
+                    url=url,
+                    price_min=price_min,
+                )
+            ]
+
+        # Free-form / recurring date text: expand into one event per upcoming
+        # occurrence with the local datetime pre-computed.
+        room = _parse_room(block, club_name)
+        occurrences = _parse_datetimes(date_str, today)
+        if not occurrences:
+            # A non-empty date string we could not parse — surface it rather
+            # than dropping the show silently.
+            Logger.warn(
+                f"VboTicketsExtractor: unrecognized VBO date {date_str!r} for {name!r}"
+            )
+            return []
+        return [
+            VboEvent(
+                eid=eid,
+                name=name,
+                date_str=date_str,
+                url=url,
+                price_min=price_min,
+                start_iso=occ,
+                room=room,
+            )
+            for occ in occurrences
+        ]

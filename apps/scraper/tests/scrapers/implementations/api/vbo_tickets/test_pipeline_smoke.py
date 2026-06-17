@@ -6,6 +6,8 @@ two-step flow (loadplugin → showevents listing), modelled on the Amish Country
 Theater listing, plus unit tests for the VboEvent.to_show() transformation.
 """
 
+from datetime import date
+
 import pytest
 
 from laughtrack.core.entities.club.model import Club, ScrapingSource
@@ -149,3 +151,106 @@ def test_to_show_parses_date_strips_trailing_date_and_sets_price():
 def test_to_show_returns_none_on_unparseable_date():
     event = VboEvent(eid="1", name="Mystery Show", date_str="TBD", url="http://x", price_min=None)
     assert event.to_show(_club()) is None
+
+
+# ---------------------------------------------------------------------------
+# category filter + free-form/recurring date expansion
+# (the consolidated The Nest Theatre path — see TASK-2938)
+# ---------------------------------------------------------------------------
+
+
+def _nest_block(edid: str, eid: str, name: str, category: str, date_str: str, price: str) -> str:
+    """A VBO list block shaped like The Nest Theatre's (category + free-form date + room line)."""
+    return f"""
+<div id="EDID{edid}" class="EventListWrapper EventListBgd clearfix EID{eid} EDID{edid} __FilterableEvent" data-event-name="{name}" data-event-category="{category}" data-event-subcategory="Improv" role="listitem">
+  <div class="EventListPosterWrapper"><div class="EventListPoster">
+    <a href="https://plugin.vbotickets.com/v5.0/event.asp?eid={eid}&amp;s=SESSION">buy</a>
+    <div class="EventListPriceWrapper"><div class="EventListPriceBgd"><div class="EventListPrice">{price}</div></div></div>
+  </div></div>
+  <div class="EventListDetails"><div class="EventListText">
+    <h2 class="HeaderEventName">{name}</h2>
+    <div class="EventListVenue">The Nest Theatre - Mainstage</div>
+    <div class="TextEventDate FloatLeft">{date_str}</div>
+  </div></div>
+</div>
+"""
+
+
+NEST_HTML = (
+    '<div class="clearfix gridrow" id="CurrentEvents" role="list">'
+    + _nest_block("690621", "194647", "Troika Improv Contest", "Live Shows",
+                  "Fri 9:30pm 6/5, 6/19, 6/26, 7/10", "$15.00")
+    + _nest_block("700001", "200001", "PROUD: A Variety Show!", "Live Shows",
+                  "Thu 6/18 7:30pm", "$13.00")
+    + _nest_block("700002", "200002", "Improv Level 1", "Classes",
+                  "Mondays 6/1-6/29 6:30PM-8:30PM", "$200.00")
+    + "</div>"
+)
+
+_REF_TODAY = date(2026, 6, 17)
+
+
+def test_category_filter_keeps_only_allowed_categories():
+    """A category_filter drops events whose data-event-category is not allowed."""
+    filtered = VboTicketsExtractor.extract_events(
+        NEST_HTML, category_filter="Live Shows", club_name="The Nest Theatre", today=_REF_TODAY
+    )
+    assert {e.name for e in filtered} == {"Troika Improv Contest", "PROUD: A Variety Show!"}
+    assert "Improv Level 1" not in {e.name for e in filtered}  # Classes excluded
+
+    # Without a filter the class is included (and the unparseable class date is dropped per-row).
+    unfiltered_names = {
+        e.name
+        for e in VboTicketsExtractor.extract_events(NEST_HTML, club_name="The Nest Theatre", today=_REF_TODAY)
+    }
+    assert "Improv Level 1" in unfiltered_names
+
+
+def test_category_filter_accepts_iterable():
+    events = VboTicketsExtractor.extract_events(
+        NEST_HTML, category_filter=["live shows"], club_name="The Nest Theatre", today=_REF_TODAY
+    )
+    assert {e.name for e in events} == {"Troika Improv Contest", "PROUD: A Variety Show!"}
+
+
+def test_freeform_recurring_dates_expand_to_one_event_per_upcoming_date():
+    """A recurring free-form date line yields one VboEvent per upcoming occurrence."""
+    events = VboTicketsExtractor.extract_events(
+        NEST_HTML, category_filter="Live Shows", club_name="The Nest Theatre", today=_REF_TODAY
+    )
+    troika = [e for e in events if e.name == "Troika Improv Contest"]
+    # 6/5 is in the past relative to 2026-06-17 → dropped; 6/19, 6/26, 7/10 remain.
+    assert [e.start_iso for e in troika] == [
+        "2026-06-19 21:30:00",
+        "2026-06-26 21:30:00",
+        "2026-07-10 21:30:00",
+    ]
+    assert all(e.room == "Mainstage" for e in troika)
+    assert all(e.price_min == 15.0 for e in troika)
+
+    single = next(e for e in events if e.name == "PROUD: A Variety Show!")
+    assert single.start_iso == "2026-06-18 19:30:00"
+    assert single.room == "Mainstage"
+
+
+def test_to_show_uses_precomputed_start_iso():
+    """When start_iso is set it takes precedence over date_str parsing."""
+    event = VboEvent(
+        eid="194647", name="Troika Improv Contest",
+        date_str="Fri 9:30pm 6/19, 6/26",  # raw free-form, not directly parseable
+        url="https://plugin.vbotickets.com/v5.0/event.asp?eid=194647",
+        price_min=15.0, start_iso="2026-06-19 21:30:00", room="Mainstage",
+    )
+    show = event.to_show(_club())
+    assert show is not None
+    assert show.date.year == 2026 and show.date.month == 6 and show.date.day == 19
+    assert show.date.hour == 21 and show.date.minute == 30
+    assert show.room == "Mainstage"
+    assert show.tickets[0].price == 15.0
+
+
+def test_structured_rows_unaffected_by_freeform_path():
+    """Structured '@' rows still produce one event with no start_iso (Amish path)."""
+    events = VboTicketsExtractor.extract_events(SHOWEVENTS_HTML)
+    assert len(events) == 2
+    assert all(e.start_iso is None and e.room == "" for e in events)

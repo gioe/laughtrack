@@ -12,10 +12,22 @@ This scraper reproduces the plugin's multi-event ``ListEvents`` flow:
 
 Any VBO-hosted venue can be onboarded by pointing its
 ``scraping_sources.source_url`` at the step-1 loadplugin URL (with the venue's
-SiteID) — no per-venue code required. This differs from the venue-specific VBO
-scrapers (esthers_follies / nest_theatre / csz_philadelphia), which model a
-single recurring show via the per-event date slider; this scraper reads the
-multi-event listing instead.
+SiteID) — no per-venue code required. An optional ``category_filter`` in
+``scraping_sources.metadata`` restricts the listing to matching
+``data-event-category`` values (e.g. "Live Shows" to drop a venue's classes).
+The extractor parses both VBO's structured per-occurrence rows
+("Tue, 6/16/2026 @ 7:00 PM") and free-form / recurring date text entered by
+hand ("Fri 9:30pm 6/5, 6/12, ..."), expanding the latter into one show per
+upcoming date.
+
+Consolidation note (TASK-2938): The Nest Theatre — formerly the venue-specific
+``nest_theatre`` scraper — was migrated onto this generic scraper, since it reads
+the same ``showevents`` listing and differed only in its category filter and
+free-form recurring dates (both now handled here). The remaining venue-specific
+VBO scrapers (``esthers_follies``, ``csz_philadelphia``) stay separate: they use
+the single-event date-slider endpoint with per-show seat-tier enrichment
+(esthers_follies) / dynamic session self-healing + per-event date expansion
+(csz_philadelphia), neither of which the multi-event listing flow models.
 """
 
 from typing import Optional
@@ -79,7 +91,15 @@ class VboTicketsScraper(BaseScraper):
             Logger.error(f"{self._log_prefix}: failed to fetch VBO showevents listing: {e}", self.logger_context)
             return None
 
-        events = VboTicketsExtractor.extract_events(listing_html or "")
+        # Optional per-source config: a ``category_filter`` in
+        # scraping_sources.metadata restricts the listing to matching
+        # ``data-event-category`` values (e.g. "Live Shows" to drop classes).
+        category_filter = self.club.source_metadata.get("category_filter")
+        events = VboTicketsExtractor.extract_events(
+            listing_html or "",
+            category_filter=category_filter,
+            club_name=self.club.name or "",
+        )
         if not events:
             self._warn_empty_extraction(url, html=listing_html)
             return None

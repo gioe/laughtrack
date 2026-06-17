@@ -31,32 +31,53 @@ _VBO_DATE_RE = re.compile(
 
 @dataclass
 class VboEvent(ShowConvertible):
-    """A single event row from a VBO Tickets ``showevents`` listing."""
+    """A single event row from a VBO Tickets ``showevents`` listing.
+
+    Two date paths are supported. Most VBO sites render structured per-occurrence
+    rows (``date_str`` like "Tue, 6/16/2026 @ 7:00 PM"), parsed here from
+    ``date_str``. Sites whose admins enter free-form / recurring date text (e.g.
+    "Fri 9:30pm 6/5, 6/12, ...") are expanded by the extractor into one VboEvent
+    per occurrence with ``start_iso`` pre-computed; when ``start_iso`` is set it
+    takes precedence over ``date_str`` parsing.
+    """
 
     eid: str
     name: str
     date_str: str  # raw VBO date, e.g. "Tue, 6/16/2026 @ 7:00 PM"
     url: str  # stable VBO event-page URL (no session token)
     price_min: Optional[float] = None  # lowest parsed price, if any
+    start_iso: Optional[str] = None  # extractor-computed "YYYY-MM-DD HH:MM:00" for free-form/recurring dates
+    room: str = ""  # sub-venue/stage, when the listing exposes one
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None) -> Optional[Show]:
         """Convert a VboEvent to a Show domain object, or None if unparseable."""
         name = _TRAILING_DATE_RE.sub("", (self.name or "").strip()) or "Comedy Show"
 
-        m = _VBO_DATE_RE.search(self.date_str or "")
-        if not m:
-            # Log rather than drop silently — a VBO date-format change would
-            # otherwise read as an empty calendar with no diagnostic trail.
-            Logger.warn(f"VboEvent: unrecognized VBO date format {self.date_str!r} for {name!r}")
-            return None
-        try:
-            naive = datetime.strptime(f"{m.group(1)} {m.group(2).upper().replace(' ', '')}", "%m/%d/%Y %I:%M%p")
-            start_date = ShowFactoryUtils.parse_datetime_with_timezone_fallback(
-                naive.isoformat(), club.timezone
-            )
-        except Exception as e:
-            Logger.warn(f"VboEvent: failed to parse date {self.date_str!r} for {name!r}: {e}")
-            return None
+        if self.start_iso:
+            # Free-form / recurring path: the extractor already resolved the
+            # local datetime, so parse the ISO string directly.
+            try:
+                start_date = ShowFactoryUtils.parse_datetime_with_timezone_fallback(
+                    self.start_iso, club.timezone
+                )
+            except Exception as e:
+                Logger.warn(f"VboEvent: failed to parse precomputed date {self.start_iso!r} for {name!r}: {e}")
+                return None
+        else:
+            m = _VBO_DATE_RE.search(self.date_str or "")
+            if not m:
+                # Log rather than drop silently — a VBO date-format change would
+                # otherwise read as an empty calendar with no diagnostic trail.
+                Logger.warn(f"VboEvent: unrecognized VBO date format {self.date_str!r} for {name!r}")
+                return None
+            try:
+                naive = datetime.strptime(f"{m.group(1)} {m.group(2).upper().replace(' ', '')}", "%m/%d/%Y %I:%M%p")
+                start_date = ShowFactoryUtils.parse_datetime_with_timezone_fallback(
+                    naive.isoformat(), club.timezone
+                )
+            except Exception as e:
+                Logger.warn(f"VboEvent: failed to parse date {self.date_str!r} for {name!r}: {e}")
+                return None
 
         show_url = url or self.url
         tickets = [
@@ -70,7 +91,7 @@ class VboEvent(ShowConvertible):
             show_page_url=show_url,
             lineup=[],
             tickets=tickets,
-            room="",
+            room=self.room,
             supplied_tags=["event"],
             enhanced=enhanced,
         )
