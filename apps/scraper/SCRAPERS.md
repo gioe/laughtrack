@@ -1920,6 +1920,37 @@ Optional `metadata`: `cal_id` (default `MAIN`), `event_type_filter`. Onboarded:
 **Jilly's Music Room** (Akron; `event_type_filter='comedy'` — verified 1 upcoming
 comedy show out of 58 future events).
 
+### AXS-skinned venue homepage (`axs`)
+
+`scraper_key = axs`, `platform = custom` (AXS has no dedicated `ScrapingPlatform`
+enum value). Generic, serves AXS/AEG venues that run the stock venue website
+(royalSlider event slider) and link tickets to
+`axs.com/events/<id>/...?skin=<venue>`.
+
+**Spike finding (TASK-2929) — scrape the venue homepage, NOT axs.com.** The
+`axs.com` event detail pages are DataDome-protected (403), but the venue's own
+homepage is plain server-rendered HTML carrying the full event list. Parse the
+`div.rsCaption` cards:
+- **name**: `<h3><a href="<venue>/events/detail/<id>">NAME</a></h3>`
+- **date**: a following `<h4>Tue, Jun 16, 2026</h4>` (`%a, %b %d, %Y`) — **date
+  only, no time**
+- **room**: `<h4 class="event_venue">`
+- **ticket url**: `<a class="tickets" href="axs.com/events/<id>/...?skin=<venue>">`
+
+`source_url` = the venue homepage. The homepage carries no show time, so each
+Show uses `metadata.default_show_time` (`HH:MM`, default `19:00`) localized to
+the club timezone. `show_page_url` is the venue detail page (drives traffic to
+the venue); the ticket link is the AXS URL.
+
+**No comedy filter — import-all.** The homepage has no genre/category tag, so the
+scraper imports **every** event. There is no downstream comedy-relevance gate, so
+only wire this scraper for venues whose programming is comedy-dedicated (or
+accept concert noise). **Agora Theater (Cleveland)** was the originating venue
+but was intentionally **NOT wired** (TASK-2929): it is a mostly-concerts venue
+already carrying a `ticketmaster_comedy` source, and the all-events AXS import
+would flood the comedy DB. The scraper is verified against Agora's homepage (19
+live shows incl. comedy) and ready for comedy-dedicated AXS-skinned venues.
+
 ---
 
 ## Implementation Patterns
