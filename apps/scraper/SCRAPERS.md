@@ -104,6 +104,11 @@ Is there an events.ticketleap.com/events/{slug} link or a TicketLeap widget?
               (see TicketLeap section — listing page requires JS, detail pages emit
                standard schema.org Event JSON-LD)
 
+Is the box office a Tessitura TNEW page loading `production.tnew-assets.com`
+assets and POSTing `/api/products/productionseasons`?
+  └── YES → platform: custom → scraper = 'tessitura_tnew' (generic)
+              DB: source_url = TNEW list page, usually /events?view=list
+
 Is there a SimpleTix event page link?
   └── YES → platform: SimpleTix → scraper = 'simpletix' (generic)
               DB: scraping_url = full SimpleTix event page URL
@@ -1906,6 +1911,66 @@ but its marketing site (`playhousesquare.org/events`) is **not** WordPress — i
 is a custom CMS with no comedy genre tag, and its box office 403s. It has its own
 dedicated `playhouse_square` scraper (see below), not this `tessitura` (WordPress)
 scraper.
+
+### Tessitura TNEW (production-seasons API)
+
+| | |
+|---|---|
+| **Scraper key** | `tessitura_tnew` |
+| **Platform** | `custom` |
+| **DB field** | `scraping_sources.source_url` + optional `metadata.events_url` / `metadata.api_url` |
+| **Value format** | TNEW listing page, usually `https://{boxoffice-host}/events?view=list` |
+| **Generic?** | ✅ generic for TNEW storefront event-listing pages |
+
+**Detection signals:**
+- Box office host serves TNEW assets from `production.tnew-assets.com`.
+- Listing page declares `listingStartDate`, `listingEndDate`, and
+  `additionalApiData` in inline JS.
+- Browser network shows `POST /api/products/productionseasons` with
+  `content-type: application/x-www-form-urlencoded` and a
+  `RequestVerificationToken` header.
+
+**API/source pattern:**
+- Prime the listing page (`source_url`) first. This establishes Incapsula /
+  ASP.NET cookies and exposes the hidden `__RequestVerificationToken`.
+- POST `{origin}/api/products/productionseasons` form data:
+  `keywordIds=&startDate=<local-start>&endDate=<local-end>`.
+- The empty `productionSeasonIdFilter: []` from page config serializes to no
+  form field. Sending JSON or guessing array fields can produce HTTP 500.
+
+**Key extraction notes:**
+- Response root is a list of productions. Each production contains a
+  `performances` array; create one show per performance.
+- Prefer `performanceDate` because it carries the timezone offset; fall back to
+  `iso8601DateString` localized with the club timezone.
+- Title comes from `performanceTitle`, then `performanceSortTitle`, then the
+  production title. Ticket/show URL is `performance.actionUrl`.
+- Prices are not exposed on the list API; use a fallback ticket URL.
+
+**DB setup:**
+```sql
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, priority, enabled, metadata)
+VALUES (
+    <club_id>, 'custom'::"ScrapingPlatform", 'tessitura_tnew',
+    'https://purchase.example.com/events?view=list', 0, TRUE,
+    '{"events_url":"https://purchase.example.com/events?view=list","api_url":"https://purchase.example.com/api/products/productionseasons"}'::jsonb
+);
+```
+
+**Failure modes / gotchas:**
+- Use the scraper HTTP stack. Plain `requests` can fail on the Incapsula-protected
+  listing page and does not prove the scraper cannot fetch it.
+- TNEW's browser form request is token-bearing even when no explicit anti-CSRF
+  field is obvious in task notes; replay the hidden input as
+  `RequestVerificationToken`.
+- The form date range should use venue-local offsets. The listing end date is
+  sent as end-of-day (`23:59:59`), not midnight.
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/scrapers/implementations/api/tessitura_tnew/`
+- `apps/scraper/src/laughtrack/core/entities/event/tessitura_tnew.py`
+- Onboarded: The Groundlings Theatre & School (`purchase.groundlings.com`, org
+  `GTAS`, TASK-2946).
 
 ### EventON (WordPress admin-ajax loader)
 
