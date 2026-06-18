@@ -21,7 +21,9 @@ from laughtrack.utilities.domain.show.factory import ShowFactoryUtils
 # strptime %p matches AM/PM case-insensitively, so lower-case "pm" parses.
 _DATETIME_FORMATS = (
     "%m/%d/%Y %I:%M%p",
+    "%m/%d/%Y %I:%M %p",
     "%m/%d/%Y %I%p",
+    "%m/%d/%Y %I %p",
     "%m/%d/%Y %H:%M",
 )
 _DATE_ONLY_FORMAT = "%m/%d/%Y"

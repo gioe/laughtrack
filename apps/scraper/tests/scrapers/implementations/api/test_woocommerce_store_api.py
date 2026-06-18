@@ -10,6 +10,7 @@ product fans out into one show per (date, time) showtime.
 import pytest
 
 from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.event.woocommerce import WoocommerceEvent
 from laughtrack.scrapers.implementations.api.woocommerce_store_api.extractor import (
     WoocommerceStoreApiExtractor,
 )
@@ -104,6 +105,27 @@ def test_event_to_show_parses_datetime_and_ticket():
     # The show factory normalizes the URL (trailing slash dropped).
     assert show.show_page_url.rstrip("/") == "https://www.grandcomedyclub.com/product/j-watkins"
     assert show.tickets and show.tickets[0].price == 20.0
+
+
+@pytest.mark.parametrize(
+    "time_str, expected_hour, expected_minute",
+    [
+        ("6:30pm", 18, 30),
+        ("6:30 pm", 18, 30),  # space-separated meridiem must not fall back to midnight
+        ("7pm", 19, 0),
+        ("7 pm", 19, 0),
+    ],
+)
+def test_to_show_handles_time_formats(time_str, expected_hour, expected_minute):
+    event = WoocommerceEvent(
+        name="Show",
+        date_str="07/23/2026",
+        time_str=time_str,
+        permalink="https://www.grandcomedyclub.com/product/x/",
+    )
+    show = event.to_show(_club())
+    assert show is not None
+    assert (show.date.hour, show.date.minute) == (expected_hour, expected_minute)
 
 
 @pytest.mark.asyncio
