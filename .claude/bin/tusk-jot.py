@@ -37,12 +37,14 @@ import sqlite3
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import tusk_loader  # loads tusk-db-lib.py and tusk-json-lib.py
+import tusk_loader  # loads tusk-db-lib.py, tusk-json-lib.py, tusk-git-helpers.py
 
 _db_lib = tusk_loader.load("tusk-db-lib")
 _json_lib = tusk_loader.load("tusk-json-lib")
+_git_helpers = tusk_loader.load("tusk-git-helpers")
 dumps = _json_lib.dumps
 get_connection = _db_lib.get_connection
+reject_shell_metacharacters = _git_helpers.reject_shell_metacharacters
 
 
 def resolve_active_run(conn: sqlite3.Connection) -> sqlite3.Row | None:
@@ -164,6 +166,21 @@ def main(argv: list) -> int:
                 return 1
             if not args.note.strip():
                 print("note must not be empty", file=sys.stderr)
+                return 1
+            # Reject shell-substitution metacharacters in the category and note
+            # before any DB write (issue #1107 wired the note; issue #1108 closed
+            # the sibling category gap). zsh/bash expand `, $(...), ${...}, and
+            # bare $IDENT before tusk sees the argv, even inside double quotes,
+            # silently corrupting the stored jot. The category is a short label
+            # that should never carry shell metacharacters, so it is guarded too.
+            ok, diagnostic = reject_shell_metacharacters(
+                args.category, subject="jot category")
+            if not ok:
+                print(diagnostic, file=sys.stderr)
+                return 1
+            ok, diagnostic = reject_shell_metacharacters(args.note, subject="jot note")
+            if not ok:
+                print(diagnostic, file=sys.stderr)
                 return 1
             try:
                 row = write_jot(
