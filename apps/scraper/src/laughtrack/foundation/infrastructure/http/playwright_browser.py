@@ -462,6 +462,20 @@ class PlaywrightBrowser:
         # fetch_html calls are therefore serialized; concurrent callers queue up.
         self._browser_lock = asyncio.Lock()
 
+        # Per-host cache of solved cf_clearance cookies, keyed by URL hostname
+        # (TASK-2931). A fresh browser context is created per fetch_html call, so
+        # the cf_clearance cookie injected after a Cloudflare solve is otherwise
+        # discarded when its context closes — every per-event detail GET would
+        # then re-trigger the interstitial and burn the capsolver budget, which
+        # is why West River's tickettailor calendar only yielded ~4 of ~14 events
+        # from GHA. Caching the cookie here lets later same-host fetches in the
+        # same scrape run pre-load it and skip the re-challenge. cf_clearance is
+        # IP-bound, but every fetch for one venue shares the same egress (same
+        # proxy_url), so a cookie solved on the listing fetch stays valid for the
+        # detail GETs. An expired/invalid cookie simply falls through to the
+        # normal solve path again, which re-caches.
+        self._cf_clearance_cookies: dict[str, dict] = {}
+
         # Install the logging filter once at construction so the noise is
         # silenced regardless of which loop eventually raises it.
         _install_quiet_shutdown_filter()
@@ -649,8 +663,8 @@ class PlaywrightBrowser:
         # (TASK-2625 fault class).
         return await _safe_content(page)
 
-    @staticmethod
     async def _solve_cloudflare_if_stuck(
+        self,
         *,
         page: object,
         context: object,
@@ -759,6 +773,11 @@ class PlaywrightBrowser:
                 {"url": url},
             )
             return None
+
+        # Cache the solved cf_clearance cookie for this host so later same-host
+        # fetches in this run pre-load it and skip the re-challenge (TASK-2931).
+        if default_domain:
+            self._cf_clearance_cookies[default_domain] = cookie
 
         try:
             await context.add_cookies([cookie])
@@ -1072,6 +1091,24 @@ class PlaywrightBrowser:
                 page = await context.new_page()
                 # Apply stealth patches before any navigation
                 await page.add_init_script(_STEALTH_SCRIPT)
+                # Pre-load a previously solved cf_clearance cookie for this host
+                # so detail-page fetches in the same run reuse the listing-fetch
+                # clearance instead of re-triggering the Cloudflare interstitial
+                # (TASK-2931). Best-effort: a failure here just means the normal
+                # solve path runs again on this navigation.
+                cached_host = urlparse(normalized_url).hostname
+                cached_cf_cookie = (
+                    self._cf_clearance_cookies.get(cached_host) if cached_host else None
+                )
+                if cached_cf_cookie is not None:
+                    try:
+                        await context.add_cookies([cached_cf_cookie])
+                    except Exception as exc:
+                        Logger.warn(
+                            f"[PlaywrightBrowser] Could not pre-load cached "
+                            f"cf_clearance cookie: {type(exc).__name__}: {exc}",
+                            {"url": normalized_url},
+                        )
                 await page.goto(
                     normalized_url,
                     wait_until="domcontentloaded",

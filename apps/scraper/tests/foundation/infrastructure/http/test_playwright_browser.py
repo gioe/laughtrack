@@ -1211,6 +1211,106 @@ class TestPlaywrightBrowser:
         mock_page.reload.assert_not_called()
         assert result == cleared_html
 
+    @pytest.mark.asyncio
+    async def test_cf_clearance_cookie_reused_across_same_host_fetches(self):
+        """TASK-2931: a solved cf_clearance cookie is cached per-host and
+        pre-loaded into later same-host contexts so detail-page fetches skip
+        the Cloudflare re-challenge instead of re-solving on every GET.
+
+        Fetch 1 (listing) hits the interactive challenge, the solver fires and
+        returns a cf_clearance cookie. Fetch 2 (a detail page on the same host)
+        must pre-load that cached cookie into its fresh context and render
+        clean WITHOUT the solver being consulted a second time — this is the
+        root-cause fix for West River's ~4-of-14 partial extraction.
+        """
+        from laughtrack.foundation.infrastructure.http.protection.cloudflare_solver import (
+            SolvedCloudflareClearance,
+        )
+
+        challenge_html = (
+            "<html><head><title>Just a moment...</title></head>"
+            "<body><script>window._cf_chl_opt={};</script></body></html>"
+        )
+        listing_html = "<html>west river listing after cloudflare solve</html>"
+        detail_html = "<html>west river event detail page</html>"
+
+        # Distinct page per context so the two fetches return different content.
+        listing_page = AsyncMock()
+        listing_page.add_init_script = AsyncMock()
+        listing_page.goto = AsyncMock()
+        listing_page.reload = AsyncMock()
+        listing_page.wait_for_function = AsyncMock()
+        listing_page.evaluate = AsyncMock(
+            return_value={"sitekey": "0xKEY", "action": None, "cdata": None}
+        )
+        listing_page.content = AsyncMock(
+            side_effect=[challenge_html, challenge_html, listing_html]
+        )
+
+        detail_page = AsyncMock()
+        detail_page.add_init_script = AsyncMock()
+        detail_page.goto = AsyncMock()
+        detail_page.reload = AsyncMock()
+        detail_page.content = AsyncMock(return_value=detail_html)
+
+        listing_ctx = AsyncMock()
+        listing_ctx.new_page = AsyncMock(return_value=listing_page)
+        listing_ctx.add_cookies = AsyncMock()
+        detail_ctx = AsyncMock()
+        detail_ctx.new_page = AsyncMock(return_value=detail_page)
+        detail_ctx.add_cookies = AsyncMock()
+
+        mock_browser = AsyncMock()
+        mock_browser.new_context = AsyncMock(side_effect=[listing_ctx, detail_ctx])
+        mock_browser.close = AsyncMock()
+        mock_chromium = AsyncMock()
+        mock_chromium.launch = AsyncMock(return_value=mock_browser)
+        mock_pw = MagicMock()
+        mock_pw.chromium = mock_chromium
+        mock_cm = AsyncMock()
+        mock_cm.__aenter__ = AsyncMock(return_value=mock_pw)
+        mock_cm.__aexit__ = AsyncMock(return_value=False)
+        mock_pw_module = MagicMock()
+        mock_pw_module.async_playwright = MagicMock(return_value=mock_cm)
+
+        fake_solver = AsyncMock()
+        fake_solver.solve = AsyncMock(
+            return_value=SolvedCloudflareClearance(
+                cookie="cf_clearance=CLEAR123; Domain=.tickettailor.com; Path=/; Secure",
+                token=None,
+                user_agent="Mozilla/5.0 cf",
+            )
+        )
+
+        with (
+            _patch_playwright(mock_pw_module),
+            patch.object(
+                _pb_mod, "build_default_cloudflare_solver", return_value=fake_solver
+            ),
+        ):
+            browser = PlaywrightBrowser()
+            listing_result = await browser.fetch_html(
+                "https://www.tickettailor.com/events/westrivercomedyclub"
+            )
+            detail_result = await browser.fetch_html(
+                "https://www.tickettailor.com/events/westrivercomedyclub/12345"
+            )
+
+        # Listing fetch solved the challenge once and cached the cookie.
+        assert listing_result == listing_html
+        fake_solver.solve.assert_awaited_once()
+        assert "www.tickettailor.com" in browser._cf_clearance_cookies
+
+        # Detail fetch pre-loaded the cached cf_clearance into its fresh context
+        # and did NOT consult the solver again.
+        detail_ctx.add_cookies.assert_awaited_once()
+        preloaded = detail_ctx.add_cookies.call_args[0][0]
+        assert isinstance(preloaded, list) and len(preloaded) == 1
+        assert preloaded[0]["name"] == "cf_clearance"
+        assert preloaded[0]["value"] == "CLEAR123"
+        assert fake_solver.solve.await_count == 1
+        assert detail_result == detail_html
+
 
 # ---------------------------------------------------------------------------
 # _QuietShutdownFilter — silences benign Playwright shutdown noise
