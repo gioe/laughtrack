@@ -21,7 +21,7 @@ lineup here — the normal nightly enrichment pass re-derives the lineup from th
 persisted show name.
 """
 
-from typing import Dict, List, Set
+from typing import Dict, List, Optional, Set
 
 from laughtrack.core.entities.comedian.handler import ComedianHandler
 from laughtrack.core.entities.lineup.handler import LineupHandler
@@ -39,15 +39,30 @@ def select_comedy_titles(
     lineup_handler: LineupHandler,
     comedian_handler: ComedianHandler,
     min_popularity: float = DEFAULT_MIN_COMEDIAN_POPULARITY,
+    allowlist: Optional[List[str]] = None,
 ) -> Set[str]:
     """Return the subset of ``titles`` that name a known, sufficiently-popular comedian.
 
     A title is kept when at least one credible matched comedian has stored
     popularity >= ``min_popularity``.
+
+    ``allowlist`` is a curated per-source escape hatch (case-insensitive
+    substrings, from ``scraping_sources.metadata.comedy_title_allowlist``): any
+    title containing an allowlisted substring is force-included as comedy,
+    bypassing the name heuristic. It exists for real comedy the heuristic cannot
+    catch — multi-comedian titles with no single matched full name (e.g. "HASAN
+    HATES RONNY") or variety shows with no comedian name. Because it is an
+    explicit per-source opt-in, it carries no false-positive risk to other
+    venues; a broader first-name heuristic was deferred for exactly that risk.
     """
     unique_titles = [t for t in dict.fromkeys(titles) if t]
     if not unique_titles:
         return set()
+
+    allow_subs = [s.strip().lower() for s in (allowlist or []) if s and s.strip()]
+    forced = {
+        t for t in unique_titles if any(sub in t.lower() for sub in allow_subs)
+    }
 
     # {title: [Comedian, ...]} — already filtered by the credibility check
     # (>= 2 words, whole-word match, false-positive denylist).
@@ -55,7 +70,7 @@ def select_comedy_titles(
         [(t,) for t in unique_titles]
     )
     if not matches:
-        return set()
+        return set(forced)
 
     matched_names = sorted({c.name for comedians in matches.values() for c in comedians})
     popularity = comedian_handler.get_stored_popularity_by_names(matched_names)
@@ -76,4 +91,4 @@ def select_comedy_titles(
             f"playhouse_square comedy filter dropped {len(dropped)} below-floor "
             f"name-match(es): {'; '.join(dropped)}"
         )
-    return comedy_titles
+    return comedy_titles | forced

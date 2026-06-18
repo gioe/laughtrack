@@ -162,6 +162,7 @@ class PlayhouseSquareScraper(BaseScraper):
                 lineup_handler=self._lineup_handler,
                 comedian_handler=self._comedian_handler,
                 min_popularity=min_pop,
+                allowlist=self._metadata().get("comedy_title_allowlist"),
             ),
         )
 

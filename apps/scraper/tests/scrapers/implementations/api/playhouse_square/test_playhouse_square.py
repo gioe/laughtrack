@@ -226,6 +226,44 @@ class TestSelectComedyTitles:
             == set()
         )
 
+    def test_allowlist_force_includes_unmatched_title(self):
+        # "HASAN HATES RONNY" names no single comedian full-name, so the heuristic
+        # misses it; a curated per-source allowlist substring force-includes it.
+        lineup = _FakeLineupHandler({})
+        comedian = _FakeComedianHandler({})
+        result = select_comedy_titles(
+            ["HASAN HATES RONNY | RONNY HATES HASAN", "Some Concert"],
+            lineup_handler=lineup,
+            comedian_handler=comedian,
+            allowlist=["hasan hates ronny"],
+        )
+        assert result == {"HASAN HATES RONNY | RONNY HATES HASAN"}
+
+    def test_allowlist_unions_with_name_matches(self):
+        # Allowlisted variety show kept alongside a normal name+popularity match.
+        lineup = _FakeLineupHandler({"Marc Maron": ["Marc Maron"]})
+        comedian = _FakeComedianHandler({"Marc Maron": 0.55})
+        result = select_comedy_titles(
+            ["Marc Maron", "The Uncle Louie Variety Show", "Pilobolus"],
+            lineup_handler=lineup,
+            comedian_handler=comedian,
+            allowlist=["uncle louie variety show"],
+        )
+        assert result == {"Marc Maron", "The Uncle Louie Variety Show"}
+
+    def test_empty_allowlist_is_noop(self):
+        lineup = _FakeLineupHandler({})
+        comedian = _FakeComedianHandler({})
+        assert (
+            select_comedy_titles(
+                ["Concert A"],
+                lineup_handler=lineup,
+                comedian_handler=comedian,
+                allowlist=[],
+            )
+            == set()
+        )
+
 
 # --------------------------------------------------------------------------- #
 # Scraper config / target building
