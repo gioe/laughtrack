@@ -1747,7 +1747,7 @@ Public, no auth required. Returns up to 250 products in a single request — no 
 }
 ```
 
-**Two date/time parsing formats (tried in order):**
+**Three date/time parsing formats (tried in order):**
 
 1. **Format A — date in variant title:** Each variant encodes a specific date/time
    (e.g. `"Thursday April 9 2026 / 8:00pm General Admission"`). Multiple variants per
@@ -1757,8 +1757,29 @@ Public, no auth required. Returns up to 250 products in a single request — no 
    (e.g. `"Sat Apr 11th @6:30pm - Des Mulrooney, Caleb Synan and Landry"`). Variants
    are ticket tiers only (General Admission, VIP). One show per product.
 
-The extractor tries Format A first; if no variant yields a date, falls back to Format B.
-Products where neither format matches are skipped.
+3. **Format C — date in handle / numeric title (TASK-2949):** No weekday/month-name
+   date anywhere; the date lives in the product **handle** (`20260625-capybara-comedy-hour`
+   → `YYYYMMDD`, or `6-27-saturday-night-improv-showcase` → `M-D`) and/or a numeric
+   `M/D` product title (`"6/26 7pm - Capybara Comedy Hour"`). The **time** comes from the
+   title (`"6/26 7pm"`) or from per-showtime variant titles (`"6pm - <act>"`, `"7pm - <act>"`
+   → one show per variant time). Month/day prefer the title's `M/D` (the venue's advertised
+   date); the year is trusted from a `YYYYMMDD` handle, else inferred from the current year —
+   and an inferred date already in the past is **dropped as a stale listing**, not bumped to
+   next year (avoids resurrecting past weekly shows as phantoms).
+
+The extractor tries Format A first, then Format B, then Format C.
+Products where none match are skipped.
+
+**Non-show filtering:** products whose `tags` contain a word-boundary match for
+`class` / `classes` / `merch` / `membership` are excluded (drops classes, workshops,
+merch, memberships). Substrings like "classic comedy" / "masterclass" are **not** swept up.
+
+**Onboarding a venue whose shows span multiple collections:** if no single
+`/collections/{handle}` holds all the dated shows (e.g. separate `improv-shows` and
+`stand-up-comedy-shows` collections), set `scraping_url`/`source_url` to the **base domain**
+(`https://www.example.com`) so the scraper fetches `/products.json` (the whole catalog) and
+relies on the tag filter + date parsing to keep only real shows. Improv School Redlands
+(club 8878, source 5904) is onboarded this way.
 
 **Comedian name extraction:**
 - Format A: Cleaned from product title (strips "LIVE!", day markers like "[THU]", parenthetical notes)
