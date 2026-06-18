@@ -125,3 +125,12 @@ def test_to_show_builds_pacific_show_with_ticket():
 def test_to_show_returns_none_on_bad_datetime():
     event = VenturaImprovEvent(name="X", dt_str="not-a-date", price=None)
     assert event.to_show(_club()) is None
+
+
+def test_abbreviated_month_name_is_parsed():
+    # Hand-edited page may abbreviate the month ("Jul"); must not silently drop.
+    events = VenturaImprovExtractor.extract_shows(
+        _shows_html(date_line="FRI Jul 10 – 7PM"), today=date(2026, 6, 1)
+    )
+    assert len(events) == 1
+    assert events[0].dt_str == "2026-07-10 19:00:00"

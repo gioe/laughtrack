@@ -52,12 +52,17 @@ def _parse_datetime(date_line: str, today: date) -> Optional[str]:
         return None
     month_str, day_str, hour_str, minute_str, meridiem = m.groups()
     minute = minute_str or "00"
-    try:
-        parsed = datetime.strptime(
-            f"{month_str} {int(day_str)} {today.year} {int(hour_str)}:{minute} {meridiem.upper()}",
-            "%B %d %Y %I:%M %p",
-        )
-    except ValueError:
+    stamp = f"{month_str} {int(day_str)} {today.year} {int(hour_str)}:{minute} {meridiem.upper()}"
+    # Accept both full ("July") and abbreviated ("Jul") month names — the page
+    # is hand-edited, so don't silently drop a show over an abbreviation.
+    parsed = None
+    for month_fmt in ("%B", "%b"):
+        try:
+            parsed = datetime.strptime(stamp, f"{month_fmt} %d %Y %I:%M %p")
+            break
+        except ValueError:
+            continue
+    if parsed is None:
         return None
     if parsed.date() < today:
         try:
