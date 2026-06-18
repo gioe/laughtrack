@@ -4,10 +4,11 @@ from dataclasses import dataclass
 from typing import List
 
 from laughtrack.core.entities.event.squarespace import SquarespaceEvent
+from laughtrack.ports.scraping import EventListContainer
 
 
 @dataclass
-class SquarespacePageData:
+class SquarespacePageData(EventListContainer[SquarespaceEvent]):
     """Raw extracted event data from a Squarespace venue's GetItemsByMonth API."""
 
     event_list: List[SquarespaceEvent]

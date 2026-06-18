@@ -4,10 +4,11 @@ from dataclasses import dataclass
 from typing import List
 
 from laughtrack.core.entities.event.ovationtix import OvationTixEvent
+from laughtrack.ports.scraping import EventListContainer
 
 
 @dataclass
-class OvationTixPageData:
+class OvationTixPageData(EventListContainer[OvationTixEvent]):
     """Container for OvationTix performances extracted from the API."""
 
     event_list: List[OvationTixEvent]

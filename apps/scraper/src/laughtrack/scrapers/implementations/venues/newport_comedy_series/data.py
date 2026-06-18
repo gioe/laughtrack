@@ -3,11 +3,12 @@
 from dataclasses import dataclass
 from typing import List
 
+from laughtrack.ports.scraping import EventListContainer
 from .extractor import NewportComedySeriesShow
 
 
 @dataclass
-class NewportComedySeriesPageData:
+class NewportComedySeriesPageData(EventListContainer[NewportComedySeriesShow]):
     """
     Container for show data extracted from Newport Comedy Series' Punchup page.
 

@@ -4,10 +4,11 @@ from dataclasses import dataclass, field
 from typing import List
 
 from laughtrack.foundation.models.types import JSONDict
+from laughtrack.ports.scraping import EventListContainer
 
 
 @dataclass
-class SeatEngineClassicPageData:
+class SeatEngineClassicPageData(EventListContainer[JSONDict]):
     event_list: List[JSONDict] = field(default_factory=list)
 
     def is_transformable(self) -> bool:

@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import List
 
 from laughtrack.core.clients.punchup.extractor import PunchupShow
+from laughtrack.ports.scraping import EventListContainer
 
 
 @dataclass
@@ -12,7 +13,7 @@ class ComedyKeyWestShow(PunchupShow):
 
 
 @dataclass
-class ComedyKeyWestPageData:
+class ComedyKeyWestPageData(EventListContainer[ComedyKeyWestShow]):
     """
     Container for show data extracted from Comedy Key West's Punchup page.
 

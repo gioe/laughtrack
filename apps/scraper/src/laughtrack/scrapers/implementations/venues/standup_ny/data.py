@@ -8,11 +8,12 @@ from dataclasses import dataclass
 from typing import List, Optional
 
 from laughtrack.core.entities.event.standup_ny import StandupNYEvent
+from laughtrack.ports.scraping import EventListContainer
 
 
 
 @dataclass
-class StandupNYPageData:
+class StandupNYPageData(EventListContainer[StandupNYEvent]):
     """
     Data model representing raw extracted data from StandUp NY's workflow.
 

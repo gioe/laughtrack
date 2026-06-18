@@ -4,10 +4,11 @@ from dataclasses import dataclass
 from typing import List
 
 from laughtrack.core.entities.event.dr_grins import DrGrinsEvent
+from laughtrack.ports.scraping import EventListContainer
 
 
 @dataclass
-class DrGrinsPageData:
+class DrGrinsPageData(EventListContainer[DrGrinsEvent]):
     """Raw extracted performances from one Dr. Grins comedian detail page."""
 
     event_list: List[DrGrinsEvent]

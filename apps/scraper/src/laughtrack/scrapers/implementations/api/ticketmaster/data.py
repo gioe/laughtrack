@@ -8,10 +8,11 @@ from dataclasses import dataclass
 from typing import List
 
 from laughtrack.foundation.models.types import JSONDict
+from laughtrack.ports.scraping import EventListContainer
 
 
 @dataclass
-class TicketmasterPageData:
+class TicketmasterPageData(EventListContainer[JSONDict]):
     event_list: List[JSONDict]
 
     def is_transformable(self) -> bool:

@@ -4,10 +4,11 @@ from dataclasses import dataclass
 from typing import List
 
 from laughtrack.core.entities.event.largo_at_the_coronet import LargoAtTheCoronetEvent
+from laughtrack.ports.scraping import EventListContainer
 
 
 @dataclass
-class LargoAtTheCoronetPageData:
+class LargoAtTheCoronetPageData(EventListContainer[LargoAtTheCoronetEvent]):
     """Container for all events extracted from the Largo shows page."""
 
     event_list: List[LargoAtTheCoronetEvent]

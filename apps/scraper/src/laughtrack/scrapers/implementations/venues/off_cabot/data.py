@@ -4,10 +4,11 @@ from dataclasses import dataclass
 from typing import List
 
 from laughtrack.core.entities.event.off_cabot import OffCabotEvent
+from laughtrack.ports.scraping import EventListContainer
 
 
 @dataclass
-class OffCabotPageData:
+class OffCabotPageData(EventListContainer[OffCabotEvent]):
     """Container for events extracted from an Off Cabot event detail page."""
 
     event_list: List[OffCabotEvent]
