@@ -2124,8 +2124,31 @@ vs. real touring acts at >= 0.40.
 **Per-source `scraping_sources.metadata`:** `venue_titles` (REQUIRED — list of
 feed `venue_title` strings this source covers; without it the source emits
 nothing rather than the whole multi-venue feed), `per_page` (default 500),
-`min_comedian_popularity` (default 0.30), `default_show_time` (default 19:00).
+`min_comedian_popularity` (default 0.30), `default_show_time` (default 19:00),
+`comedy_title_allowlist` (optional — see below).
 `source_url` = `https://www.playhousesquare.org/events` (origin is derived from it).
+
+**`comedy_title_allowlist` — curated escape hatch (TASK-2943).** The known-comedian
+name heuristic misses real comedy whose title contains no single matched full
+name: multi-comedian bills (`HASAN HATES RONNY | RONNY HATES HASAN` = Hasan Minhaj
++ Ronny Chieng) and variety shows (`The Uncle Louie Variety Show`). Add the
+title (or a distinctive substring, matched case-insensitively) to
+`metadata.comedy_title_allowlist` and that title is force-included as comedy,
+bypassing the heuristic. Because it is an explicit per-source opt-in it carries
+no false-positive risk to other venues — a broader first-name-matching heuristic
+was deliberately **deferred** for exactly that risk (common first names would
+admit non-comedy events). Applied: Connor Palace (5058) carries
+`["HASAN HATES RONNY"]`.
+
+**Unwired-theatre coverage audit (2026-06-18, TASK-2943).** The full PHS feed
+(78 events) was audited for comedy at theatres with no `playhouse_square` source.
+The non-wired theatres (Hanna, Allen, Outcalt, E.J. Thomas, the Plaza, etc.) host
+**no name-comedian stand-up** — only musicals, plays, dance, jazz, and magic. The
+sole comedy-adjacent event is `The Uncle Louie Variety Show` at **Hanna Theatre**
+(one borderline variety show). Wiring a dedicated Hanna club for a single event
+was judged not worth it; if Hanna starts hosting recurring comedy, create the club
+and add a `playhouse_square` source with `venue_titles=["Hanna Theatre"]` (and a
+`comedy_title_allowlist` entry for the variety show if desired).
 
 **Wiring — per theatre, preferred over the aggregator.** Comedy at PHS spans
 multiple theatres, so one `playhouse_square` source is wired per comedy theatre
