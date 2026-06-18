@@ -122,12 +122,36 @@ import re as _re
 _VENUE_CODE_PREFIX_RE = _re.compile(r"^\([A-Z]\)")
 _DJ_SET_RE = _re.compile(r"\bDJ\b", _re.IGNORECASE)
 
+# Keywords that positively identify a comedy event by its title/tags/description.
+# Used to filter mixed-use venues (music bars, jazz clubs) that opt into comedy
+# filtering via the scraping_sources `comedy_filter` metadata flag, so their
+# non-comedy programming (live music, karaoke, jazz, DJ nights) does not surface.
+# Word-boundary anchored so "comic" doesn't match "comically", etc. The optional
+# space/hyphen classes catch "stand up" / "stand-up" / "standup" and
+# "open mic" / "open-mic" / "openmic".
+_COMEDY_EVENT_RE = _re.compile(
+    r"\b(?:comedy|comedians?|comics?|stand[\s-]?up|improv|sketch|open[\s-]?mic|roast)\b",
+    _re.IGNORECASE,
+)
+
 
 def is_dj_set_show(name: Optional[str]) -> bool:
     """Return True if the show name indicates a DJ set rather than a comedy show."""
     if not name:
         return False
     return bool(_DJ_SET_RE.search(name))
+
+
+def is_comedy_event(*texts: Optional[str]) -> bool:
+    """Return True if any provided text (title, tag, description) signals comedy.
+
+    Positive-allowlist counterpart to the eventbrite Music-category filter, for
+    platforms (Tockify, Wix Events) whose APIs expose no genre/category field.
+    Only mixed-use venues that set the `comedy_filter` metadata flag run this;
+    all-comedy venues leave the flag unset and are unaffected, so a comedy show
+    titled with only a comedian's name is never dropped at those venues.
+    """
+    return any(t and _COMEDY_EVENT_RE.search(t) for t in texts)
 
 
 def _is_valid_lineup_name(name: Optional[str]) -> bool:

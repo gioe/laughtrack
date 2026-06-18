@@ -5,6 +5,7 @@ from urllib.parse import parse_qs, urlparse
 
 from laughtrack.core.entities.event.ice_house import IceHouseEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+from laughtrack.utilities.domain.show.factory import is_comedy_event
 
 
 def _extract_calname(api_url: Optional[str]) -> str:
@@ -25,12 +26,18 @@ class IceHouseExtractor:
     def extract_events(
         api_response: Dict[str, Any],
         api_url: Optional[str] = None,
+        comedy_filter: bool = False,
     ) -> List[IceHouseEvent]:
         """Extract IceHouseEvent objects from the Tockify API response dict.
 
         Passing the source api_url lets the extractor derive each event's public
         Tockify detail URL (https://tockify.com/<calname>/detail/<uid>/<tid>),
         which is used as a fallback when content.customButtonLink is absent.
+
+        When comedy_filter is True (opt-in via the source's `comedy_filter`
+        metadata flag for mixed-use venues), events whose title, tags, and
+        description carry no comedy keyword are dropped so the venue's non-comedy
+        programming (live music, karaoke, DJ nights) does not surface.
         """
         raw_events = api_response.get("events", [])
         if not isinstance(raw_events, list):
@@ -40,7 +47,9 @@ class IceHouseExtractor:
         events = []
         for raw in raw_events:
             try:
-                event = IceHouseExtractor._parse_event(raw, calname=calname)
+                event = IceHouseExtractor._parse_event(
+                    raw, calname=calname, comedy_filter=comedy_filter
+                )
                 if event:
                     events.append(event)
             except Exception as e:
@@ -48,7 +57,9 @@ class IceHouseExtractor:
         return events
 
     @staticmethod
-    def _parse_event(raw: Dict[str, Any], calname: str = "") -> IceHouseEvent | None:
+    def _parse_event(
+        raw: Dict[str, Any], calname: str = "", comedy_filter: bool = False
+    ) -> IceHouseEvent | None:
         """Parse a single raw Tockify event dict into an IceHouseEvent, or None to skip."""
         eid = raw.get("eid") or {}
         uid = str(eid.get("uid", ""))
@@ -74,6 +85,12 @@ class IceHouseExtractor:
         tags = tagset.get("tags") or {}
         default_tags = tags.get("default") or []
         room = default_tags[0] if default_tags else ""
+
+        if comedy_filter:
+            description = (content.get("description") or {}).get("text") or ""
+            if not is_comedy_event(title, description, *default_tags):
+                Logger.info(f"Skipping non-comedy Tockify event: {title!r}")
+                return None
 
         tid = eid.get("tid")
         if not isinstance(tid, (int, float)):

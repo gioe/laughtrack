@@ -845,3 +845,58 @@ def test_to_show_defaults_to_price_unknown():
     show = _make_event().to_show(_club())
 
     assert show.tickets[0].price is None
+
+
+# --- comedy_filter (TASK-2952): mixed-use Tockify venues opt in via metadata --------
+
+def _raw_event_with(uid, title, *, description="", tags=None):
+    """Build a raw Tockify event with a custom title, description, and tag list."""
+    raw = _raw_event(uid=uid, title=title)
+    raw["content"]["description"] = {"text": description}
+    raw["content"]["tagset"] = {"tags": {"default": list(tags)} if tags else {}}
+    return raw
+
+
+def test_comedy_filter_off_keeps_all_events():
+    """Without comedy_filter, every event is kept (all-comedy venues like Ice House)."""
+    raw = _api_response([
+        _raw_event_with("1", "Bear City Comedy"),
+        _raw_event_with("2", "R&B Night"),
+        _raw_event_with("3", "Karaoke Tuesdays"),
+    ])
+    events = IceHouseExtractor.extract_events(raw)
+    assert {e.title for e in events} == {"Bear City Comedy", "R&B Night", "Karaoke Tuesdays"}
+
+
+def test_comedy_filter_drops_non_comedy_by_title():
+    """With comedy_filter, music/karaoke titles are dropped; comedy titles kept (Que Sera)."""
+    raw = _api_response([
+        _raw_event_with("1", "Bear City Comedy"),
+        _raw_event_with("2", "After Comedy Happy Hour"),
+        _raw_event_with("3", "R&B Night"),
+        _raw_event_with("4", "Karaoke Tuesdays"),
+        _raw_event_with("5", "Club Disintegration (Darkwave)"),
+    ])
+    events = IceHouseExtractor.extract_events(raw, comedy_filter=True)
+    assert {e.title for e in events} == {"Bear City Comedy", "After Comedy Happy Hour"}
+
+
+def test_comedy_filter_keeps_event_when_tag_signals_comedy():
+    """A neutral title is kept when a Tockify tag carries a comedy keyword."""
+    raw = _api_response([
+        _raw_event_with("1", "Friday Night Lineup", tags=["comedy", "long-beach"]),
+        _raw_event_with("2", "Live Bands", tags=["band-night", "live-bands"]),
+    ])
+    events = IceHouseExtractor.extract_events(raw, comedy_filter=True)
+    assert {e.title for e in events} == {"Friday Night Lineup"}
+
+
+def test_comedy_filter_keeps_event_when_description_signals_comedy():
+    """A neutral title is kept when the description mentions stand-up."""
+    raw = _api_response([
+        _raw_event_with("1", "Tonight at Que", description="A night of stand-up comedy."),
+        _raw_event_with("2", "Tonight at Que", description="Free pool and drink specials."),
+    ])
+    events = IceHouseExtractor.extract_events(raw, comedy_filter=True)
+    assert len(events) == 1
+    assert events[0].uid == "1"

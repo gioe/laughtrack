@@ -89,6 +89,7 @@ class WixEventsScraper(BaseScraper):
             headers = self._build_auth_headers()
             all_events = []
             current_url = url
+            comedy_filter = bool(self.club.source_metadata.get("comedy_filter"))
 
             parsed = urlparse(current_url)
             params = parse_qs(parsed.query, keep_blank_values=True)
@@ -99,7 +100,9 @@ class WixEventsScraper(BaseScraper):
                 if response is None:
                     break
 
-                all_events.extend(WixEventsExtractor.extract_events(response))
+                all_events.extend(
+                    WixEventsExtractor.extract_events(response, comedy_filter=comedy_filter)
+                )
 
                 if not response.get("hasMore", False):
                     break

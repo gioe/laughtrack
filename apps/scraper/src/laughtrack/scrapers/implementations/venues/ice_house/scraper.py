@@ -101,6 +101,7 @@ class IceHouseScraper(DetailPagePriceMixin, BaseScraper):
         current_url = url
         last_response: Optional[dict] = None
         page_count = 0
+        comedy_filter = bool(self.club.source_metadata.get("comedy_filter"))
 
         try:
             while page_count < _TOCKIFY_MAX_PAGES:
@@ -121,7 +122,9 @@ class IceHouseScraper(DetailPagePriceMixin, BaseScraper):
                     )
                     break
 
-                events = IceHouseExtractor.extract_events(response, api_url=current_url)
+                events = IceHouseExtractor.extract_events(
+                    response, api_url=current_url, comedy_filter=comedy_filter
+                )
                 all_events.extend(events)
 
                 meta = response.get("metaData") or {}
