@@ -47,8 +47,8 @@ PRODUCTIONS = [
         "performances": [
             {
                 "id": 18349,
-                "performanceDate": "2026-06-17T20:00:00-07:00",
-                "iso8601DateString": "2026-06-17T20:00:00",
+                "performanceDate": "2026-09-17T20:00:00-07:00",
+                "iso8601DateString": "2026-09-17T20:00:00",
                 "performanceTitle": "Crazy Uncle Joe Show",
                 "actionUrl": "https://purchase.groundlings.com/17748/18349",
                 "isPerformanceVisible": True,
@@ -56,7 +56,7 @@ PRODUCTIONS = [
             },
             {
                 "id": 99999,
-                "performanceDate": "2026-06-18T20:00:00-07:00",
+                "performanceDate": "2026-09-18T20:00:00-07:00",
                 "performanceTitle": "Hidden",
                 "actionUrl": "/17748/99999",
                 "isPerformanceVisible": False,
@@ -69,7 +69,7 @@ PRODUCTIONS = [
         "performances": [
             {
                 "id": 18001,
-                "iso8601DateString": "2026-07-01T19:30:00",
+                "iso8601DateString": "2026-10-01T19:30:00",
                 "performanceTitle": "",
                 "actionUrl": "/18000/18001",
                 "isPerformanceVisible": True,
@@ -84,8 +84,8 @@ LISTING_HTML = """
   <body>
     <input name="__RequestVerificationToken" value="token-123" />
     <script>
-      var listingStartDate = "2026-06-17T00:00:00.0000000";
-      var listingEndDate = "2026-12-17T00:00:00.0000000";
+      var listingStartDate = "2026-09-17T00:00:00.0000000";
+      var listingEndDate = "2027-03-17T00:00:00.0000000";
     </script>
   </body>
 </html>
@@ -155,8 +155,8 @@ async def test_scraper_posts_browser_equivalent_form(monkeypatch):
     assert calls["post_url"] == API_URL
     parsed = parse_qs(calls["data"], keep_blank_values=True)
     assert parsed["keywordIds"] == [""]
-    assert parsed["startDate"] == ["2026-06-17T00:00:00-07:00"]
-    assert parsed["endDate"] == ["2026-12-17T23:59:59-08:00"]
+    assert parsed["startDate"] == ["2026-09-17T00:00:00-07:00"]
+    assert parsed["endDate"] == ["2027-03-17T23:59:59-07:00"]
     assert calls["headers"]["requestverificationtoken"] == "token-123"
     assert calls["headers"]["x-requested-with"] == "XMLHttpRequest"
 

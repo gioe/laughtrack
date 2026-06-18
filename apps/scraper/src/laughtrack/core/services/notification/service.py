@@ -49,7 +49,6 @@ JOIN comedians c ON c.uuid = fc.comedian_id
 JOIN lineup_items li ON li.comedian_id = c.uuid AND li.show_id IN (
     SELECT s2.id FROM shows s2
     WHERE s2.date >= NOW()
-      AND s2.date <= NOW() + INTERVAL '%s days'
       AND s2.first_discovered_at IS NOT NULL
       AND s2.first_discovered_at >= NOW() - INTERVAL '%s days'
 )
@@ -380,35 +379,43 @@ class ComedianArrivalNotificationService:
     def run(
         self,
         radius_miles: float = 50.0,
-        days_ahead: int = 30,
+        days_ahead: int | None = None,
         discovered_within_days: int = 1,
+        dry_run: bool = False,
     ) -> Dict[str, int]:
         """
-        Query candidates and send emails for matches within each user's radius.
+        Query newly discovered future shows and send notifications for matches
+        within each user's radius.
 
         radius_miles is the fallback radius for profiles without a stored
         nearby_distance_miles preference.
+        days_ahead is accepted for backward compatibility but no longer limits
+        notification eligibility.
+        dry_run counts deliverable notifications without sending or recording them.
 
         Returns a summary dict with email and push delivery counts.
         """
         summary = {
             "candidates": 0,
             "distance_filtered": 0,
+            "emails_would_send": 0,
             "emails_sent": 0,
             "errors": 0,
             "push_candidates": 0,
             "push_filtered": 0,
+            "push_would_send": 0,
             "push_sent": 0,
             "push_errors": 0,
         }
 
         Logger.info(
             f"ComedianArrivalNotificationService: starting run "
-            f"(radius={radius_miles} miles, days_ahead={days_ahead})"
+            f"(radius={radius_miles} miles, discovered_within_days={discovered_within_days}, "
+            f"dry_run={dry_run})"
         )
 
         try:
-            rows = self._fetch_candidates(days_ahead, discovered_within_days=discovered_within_days)
+            rows = self._fetch_candidates(discovered_within_days=discovered_within_days)
         except Exception as e:
             Logger.error(f"ComedianArrivalNotificationService: failed to fetch candidates: {e}")
             summary["errors"] += 1
@@ -472,6 +479,24 @@ class ComedianArrivalNotificationService:
                     summary["push_errors"] += 1
                     summary["errors"] += 1
                     continue
+                if dry_run:
+                    try:
+                        self._ensure_push_sender_configured()
+                    except Exception as e:
+                        Logger.error(
+                            f"ComedianArrivalNotificationService: dry-run push config check failed "
+                            f"for user={user_id} token_id={push_token_id} show={show_id}: {e}"
+                        )
+                        summary["push_errors"] += 1
+                        summary["errors"] += 1
+                        continue
+                    summary["push_would_send"] += 1
+                    Logger.info(
+                        f"ComedianArrivalNotificationService: dry-run would send push to user={user_id} "
+                        f"comedian={comedian_name!r} show={show_id} distance={distance:.1f} miles "
+                        f"radius={effective_radius_miles} miles"
+                    )
+                    continue
                 try:
                     result = self._send_push_notification(
                         device_token=push_token,
@@ -506,6 +531,14 @@ class ComedianArrivalNotificationService:
                     summary["errors"] += 1
                     continue
             else:
+                if dry_run:
+                    summary["emails_would_send"] += 1
+                    Logger.info(
+                        f"ComedianArrivalNotificationService: dry-run would send email to user={user_id} "
+                        f"comedian={comedian_name!r} show={show_id} distance={distance:.1f} miles "
+                        f"radius={effective_radius_miles} miles"
+                    )
+                    continue
                 try:
                     self._send_notification(
                         user_email=user_email,
@@ -556,8 +589,9 @@ class ComedianArrivalNotificationService:
         Logger.info(
             f"ComedianArrivalNotificationService: done — "
             f"candidates={summary['candidates']} distance_filtered={summary['distance_filtered']} "
-            f"emails_sent={summary['emails_sent']} push_candidates={summary['push_candidates']} "
-            f"push_filtered={summary['push_filtered']} push_sent={summary['push_sent']} "
+            f"emails_would_send={summary['emails_would_send']} emails_sent={summary['emails_sent']} "
+            f"push_candidates={summary['push_candidates']} push_filtered={summary['push_filtered']} "
+            f"push_would_send={summary['push_would_send']} push_sent={summary['push_sent']} "
             f"push_errors={summary['push_errors']} errors={summary['errors']}"
         )
         return summary
@@ -568,7 +602,7 @@ class ComedianArrivalNotificationService:
             return fallback_radius_miles
         return float(profile_radius)
 
-    def _fetch_candidates(self, days_ahead: int, discovered_within_days: int = 1) -> list:
+    def _fetch_candidates(self, days_ahead: int | None = None, discovered_within_days: int = 1) -> list:
         """Fetch all candidate rows from the DB."""
         rows = []
         with get_connection() as conn:
@@ -576,12 +610,9 @@ class ComedianArrivalNotificationService:
                 # psycopg2 does not allow %s inside a string literal in mogrify-style
                 # substitution, so we use Python string formatting for INTERVAL values
                 # after coercing them to ints.
-                days_ahead = int(days_ahead)
                 discovered_within_days = int(discovered_within_days)
                 sql = _CANDIDATES_SQL % (
-                    days_ahead,
                     discovered_within_days,
-                    days_ahead,
                     discovered_within_days,
                 )
                 cur.execute(sql)
@@ -651,6 +682,10 @@ class ComedianArrivalNotificationService:
             club_state=club_state,
             show_page_url=show_page_url,
         )
+
+    def _ensure_push_sender_configured(self) -> None:
+        if self._push_sender is None:
+            self._push_sender = ApnsPushService.from_env()
 
     def _record_notification(
         self,

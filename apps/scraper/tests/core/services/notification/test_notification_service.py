@@ -185,6 +185,59 @@ class TestRunSendsPushForMatchingComedian:
         mock_record.assert_not_called()
 
 
+class TestDryRun:
+    def test_dry_run_counts_email_without_sending_or_recording(self):
+        row = _make_row(user_zip="10001", club_zip="10002")
+
+        mock_zip = MagicMock()
+        mock_zip.distance_miles.return_value = 5.0
+
+        service = ComedianArrivalNotificationService(zip_distance=mock_zip)
+
+        with patch.object(service, "_fetch_candidates", return_value=[row]):
+            with patch(
+                "laughtrack.core.services.notification.service.EmailService"
+            ) as MockEmail:
+                with patch.object(service, "_record_notification") as mock_record:
+                    summary = service.run(radius_miles=50.0, dry_run=True)
+
+        assert summary["emails_sent"] == 0
+        assert summary["emails_would_send"] == 1
+        assert summary["push_sent"] == 0
+        assert summary["push_would_send"] == 0
+        assert summary["errors"] == 0
+        MockEmail.send_email.assert_not_called()
+        mock_record.assert_not_called()
+
+    def test_dry_run_counts_push_without_sending_or_recording(self):
+        row = _make_row(
+            notification_type="push",
+            push_token_id="token-row-1",
+            push_token="abcdef123456",
+        )
+
+        mock_zip = MagicMock()
+        mock_zip.distance_miles.return_value = 5.0
+        mock_push_sender = MagicMock()
+
+        service = ComedianArrivalNotificationService(
+            zip_distance=mock_zip,
+            push_sender=mock_push_sender,
+        )
+
+        with patch.object(service, "_fetch_candidates", return_value=[row]):
+            with patch.object(service, "_record_notification") as mock_record:
+                summary = service.run(radius_miles=50.0, dry_run=True)
+
+        assert summary["push_candidates"] == 1
+        assert summary["push_sent"] == 0
+        assert summary["push_would_send"] == 1
+        assert summary["push_errors"] == 0
+        assert summary["emails_would_send"] == 0
+        mock_push_sender.send_show_notification.assert_not_called()
+        mock_record.assert_not_called()
+
+
 class TestRunSkipsIfOutsideRadius:
     def test_skips_and_does_not_send(self):
         row = _make_row(user_zip="10001", club_zip="90210")
@@ -360,6 +413,30 @@ class TestPushCandidateSql:
         sql_arg = mock_cur.execute.call_args[0][0]
         assert "s2.first_discovered_at IS NOT NULL" in sql_arg
         assert "s2.first_discovered_at >= NOW() - INTERVAL '2 days'" in sql_arg
+
+    def test_fetch_candidates_does_not_filter_out_far_future_new_discoveries(self):
+        service = ComedianArrivalNotificationService()
+
+        mock_conn = MagicMock()
+        mock_cur = MagicMock()
+        mock_conn.__enter__ = MagicMock(return_value=mock_conn)
+        mock_conn.__exit__ = MagicMock(return_value=False)
+        mock_cur.__enter__ = MagicMock(return_value=mock_cur)
+        mock_cur.__exit__ = MagicMock(return_value=False)
+        mock_conn.cursor.return_value = mock_cur
+        mock_cur.description = []
+        mock_cur.fetchall.return_value = []
+
+        with patch(
+            "laughtrack.core.services.notification.service.get_connection",
+            return_value=mock_conn,
+        ):
+            service._fetch_candidates(discovered_within_days=2)
+
+        sql_arg = mock_cur.execute.call_args[0][0]
+        assert "s2.date >= NOW()" in sql_arg
+        assert "s2.first_discovered_at >= NOW() - INTERVAL '2 days'" in sql_arg
+        assert "s2.date <= NOW() + INTERVAL" not in sql_arg
 
 
 class TestRunMultipleCandidates:

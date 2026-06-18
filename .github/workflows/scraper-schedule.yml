@@ -5,6 +5,11 @@ on:
     # Daily at 06:00 UTC (02:00 ET / 22:00 PT)
     - cron: '0 6 * * *'
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Run notification candidate selection without sending or recording notifications"
+        type: boolean
+        default: false
 
 jobs:
   scrape:
@@ -192,8 +197,16 @@ jobs:
           EMAIL_SMTP_USE_TLS: ${{ secrets.EMAIL_SMTP_USE_TLS }}
           EMAIL_FROM_EMAIL: ${{ secrets.EMAIL_FROM_EMAIL }}
           EMAIL_FROM_NAME: ${{ secrets.EMAIL_FROM_NAME }}
+          APNS_TEAM_ID: ${{ secrets.APNS_TEAM_ID }}
+          APNS_KEY_ID: ${{ secrets.APNS_KEY_ID }}
+          APNS_PRIVATE_KEY: ${{ secrets.APNS_PRIVATE_KEY }}
+          APNS_BUNDLE_ID: ${{ secrets.APNS_BUNDLE_ID }}
         run: |
-          python -m laughtrack.app.cli notify-comedian-arrivals --radius 50 --days-ahead 30
+          DRY_RUN_FLAG=""
+          if [ "${{ inputs.dry_run || false }}" = "true" ]; then
+            DRY_RUN_FLAG="--dry-run"
+          fi
+          python -m laughtrack.app.cli notify-comedian-arrivals --radius 50 $DRY_RUN_FLAG
 
       - name: Upload scraper logs
         uses: actions/upload-artifact@v7

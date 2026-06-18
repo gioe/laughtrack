@@ -4,7 +4,7 @@ Sends email and push notifications to users when a comedian they follow has an u
 show within a configurable distance of their zip code.
 
 Usage:
-    python -m laughtrack.app.cli notify-comedian-arrivals [--radius MILES] [--days-ahead DAYS]
+    python -m laughtrack.app.cli notify-comedian-arrivals [--radius MILES] [--dry-run]
 """
 
 from __future__ import annotations
@@ -35,24 +35,31 @@ def main(argv: list | None = None) -> None:
         type=int,
         default=30,
         metavar="DAYS",
-        help="Number of days ahead to look for upcoming shows (default: 30).",
+        help=argparse.SUPPRESS,
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Count matching notifications without sending emails, pushes, or sent-notification records.",
     )
     args = parser.parse_args(argv)
 
     Logger.info(
         f"notify-comedian-arrivals: starting with radius={args.radius} miles, "
-        f"days_ahead={args.days_ahead}"
+        f"dry_run={args.dry_run}"
     )
 
     service = ComedianArrivalNotificationService()
-    summary = service.run(radius_miles=args.radius, days_ahead=args.days_ahead)
+    summary = service.run(radius_miles=args.radius, dry_run=args.dry_run)
 
     print(
         f"Done — candidates: {summary['candidates']}, "
         f"distance_filtered: {summary['distance_filtered']}, "
+        f"emails_would_send: {summary['emails_would_send']}, "
         f"emails_sent: {summary['emails_sent']}, "
         f"push_candidates: {summary['push_candidates']}, "
         f"push_filtered: {summary['push_filtered']}, "
+        f"push_would_send: {summary['push_would_send']}, "
         f"push_sent: {summary['push_sent']}, "
         f"push_errors: {summary['push_errors']}, "
         f"errors: {summary['errors']}"
