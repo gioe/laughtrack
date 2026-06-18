@@ -28,7 +28,9 @@ from laughtrack.foundation.infrastructure.logger.logger import Logger
 
 # Tags that mark a Shopify product as a non-show (classes, workshops, merch,
 # memberships) — excluded from the show calendar regardless of date format.
-_NON_SHOW_TAG_RE = re.compile(r"class|merch|membership", re.IGNORECASE)
+# Word-boundary anchored so substrings of real show tags ("classic comedy",
+# "masterclass", "merchandising night") are not swept up.
+_NON_SHOW_TAG_RE = re.compile(r"\b(?:class|classes|merch|membership)\b", re.IGNORECASE)
 
 
 class ShopifyExtractor:

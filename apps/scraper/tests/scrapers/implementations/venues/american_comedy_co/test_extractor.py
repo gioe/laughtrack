@@ -304,3 +304,17 @@ class TestFormatC:
             "variants": [{"title": "Default Title", "price": "0.00", "available": True}],
         }
         assert ShopifyExtractor.extract_events({"products": [product]}, TZ) == []
+
+    def test_substring_class_tags_are_not_treated_as_non_show(self):
+        """'classic'/'masterclass' contain 'class' but are real shows (word-boundary guard)."""
+        product = {
+            "id": 40,
+            "title": "Capybara Comedy Hour",
+            "handle": "20260626-capybara-classic",
+            "tags": ["classic comedy", "masterclass showcase"],
+            "images": [],
+            "variants": [{"title": "7pm - Headliner", "price": "20.00", "available": True}],
+        }
+        events = ShopifyExtractor.extract_events({"products": [product]}, TZ)
+        assert len(events) == 1
+        assert events[0].show_date.hour == 19
