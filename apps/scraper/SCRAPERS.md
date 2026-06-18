@@ -2138,6 +2138,34 @@ during onboarding). Verified 10 upcoming comedy shows live across the three
 Rickey Smiley, Jo Koy, Ron White). The duplicate PHS venue clubs were merged
 first (`dedupe_playhouse_square_clubs_2026_06_17.py`: 5071→5058, 5338/5392→5394).
 
+### WooCommerce Store API
+
+| | |
+|---|---|
+| **Scraper key** | `woocommerce_store_api` |
+| **Platform** | `custom` |
+| **DB field** | `source_url` (site root or the products endpoint) |
+| **Generic?** | ✅ Generic — serves any WordPress + WooCommerce venue selling shows as products |
+
+**Detection signals:**
+- WordPress + WooCommerce site (`/wp-json/` reachable; footer/assets reference WooCommerce)
+- `GET {site}/wp-json/wc/store/v1/products?per_page=100` returns a JSON **array** (HTTP 200)
+- Products carry attributes "Show Dates" (MM/DD/YYYY) + "Show Times" and a `permalink`
+- JSON-LD is `@type: Product` (not `Event`); `tribe_events` 404s
+
+**Key implementation details:**
+- Products are filtered to the comedy category (default `Comedy Events`; matched against each product's category name or slug)
+- Each product fans out into one show per **(Show Date × Show Time)** — comedy clubs run uniform showtimes across a run, so the cartesian product is correct. A venue with genuinely per-date times would over-generate; revisit then.
+- `permalink` is both the show URL and the ticket purchase URL; price comes from `prices.price` interpreted in `currency_minor_unit` (cents)
+- Product names are HTML-unescaped; "Show Times" accept compact (`6:30pm`) and spaced (`6:30 pm`) meridiem forms
+
+**Onboarding:**
+1. Insert a `scraping_sources` row: `platform='custom'`, `scraper_key='woocommerce_store_api'`, `source_url=<site root or products endpoint>`, `enabled=true`. The scraper appends `/wp-json/wc/store/v1/products` and enforces `per_page=100` if the path is just the site root.
+2. **Verify `clubs.timezone` is set** — a NULL timezone defaults to `America/New_York` and ships showtimes 1-3h off for non-Eastern venues (set it from the venue city/state).
+3. `make scrape-club-id ID=<club>` and confirm N>0 shows before flipping `visible=true`.
+
+First venue: Grand Comedy Club & Pizzeria (club 8897, grandcomedyclub.com).
+
 ---
 
 ## Implementation Patterns
