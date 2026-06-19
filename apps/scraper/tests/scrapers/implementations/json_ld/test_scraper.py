@@ -479,6 +479,22 @@ class TestComedyFilter:
         assert [e.name for e in result.event_list] == ["Comedy Open Mic"]
 
     @pytest.mark.asyncio
+    async def test_filter_false_returns_all_events(self, monkeypatch):
+        """comedy_filter must be a real bool read: an explicit `false` must NOT
+        enable the filter (regression — metadata_value() would stringify it to
+        the truthy "False")."""
+        scraper = JsonLdScraper(_make_club(metadata={"comedy_filter": False}))
+
+        async def fake_fetch_html(self, url):
+            return _mixed_use_html()
+
+        monkeypatch.setattr(JsonLdScraper, "fetch_html", fake_fetch_html, raising=False)
+
+        result = await scraper.get_data("https://colesbarchicago.com/")
+        assert isinstance(result, JsonLdPageData)
+        assert len(result.event_list) == 2
+
+    @pytest.mark.asyncio
     async def test_filter_with_no_comedy_returns_none(self, monkeypatch):
         music_only = {
             "@context": "https://schema.org",

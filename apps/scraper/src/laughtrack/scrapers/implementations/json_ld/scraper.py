@@ -185,7 +185,7 @@ class JsonLdScraper(BaseScraper):
             # so the title/description keyword match is the only signal. Set the
             # `comedy_filter` metadata flag only on mixed-use venues; all-comedy
             # venues leave it unset and are unaffected.
-            if self.club.metadata_value("comedy_filter"):
+            if (self.club.source_metadata or {}).get("comedy_filter"):
                 before = len(event_list)
                 event_list = [
                     e for e in event_list
