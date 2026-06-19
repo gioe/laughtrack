@@ -13,6 +13,7 @@ datasource db {
 enum ScrapingPlatform {
   custom
   crowdwork
+  dice
   etix
   eventbrite
   jetbook

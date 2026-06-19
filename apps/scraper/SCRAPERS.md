@@ -64,6 +64,13 @@ Is there an Eventbrite widget or eventbrite.com buy link?
   └── YES → platform: Eventbrite → scraper: eventbrite
               DB: eventbrite_id = organizer ID (11 digits) or venue ID (8-9 digits)
 
+Is there a DICE event-list widget or widgets.dice.fm script?
+  └── YES → platform: DICE → scraper: dice (generic)
+              DB: source_url = venue-owned calendar page; metadata must include
+                  dice_api_key plus at least one dice_venue_id/dice_venue_name/
+                  dice_promoter_id/dice_promoter_name filter
+              (see DICE section for browser extraction details)
+
 Is there an Etix venue page or a venue-owned Rockhouse Partners event listing
 with etix.com/ticket/p/ buy links?
   └── YES → platform: Etix → scraper: etix
@@ -135,6 +142,10 @@ Check browser network requests (browser_navigate + browser_network_requests):
                                                 → new venue-specific scraper required
   └── showpass.com/api/public/venues/          → platform: Showpass
                                                 → scraper: showpass (generic; set scraping_url)
+  └── widgets.dice.fm/dice-event-list-widget.js
+      + partners-endpoint.dice.fm/api/v2/events
+                                             → platform: DICE
+                                               → scraper: dice (generic; set source_url + metadata)
   └── editmysite.com/app/store/api/          → platform: Square Online (Weebly)
                                                 → new venue-specific scraper required
                                                 (see Square Online section — use coral_gables_comedy_club as reference)
@@ -209,6 +220,75 @@ When a Ticketmaster-backed scraper returns 0 events, first verify the stored `ti
 ```sql
 UPDATE clubs SET scraper = 'live_nation', ticketmaster_id = 'KovZpZAJalFA' WHERE name = 'My Club';
 ```
+
+---
+
+### DICE
+
+| | |
+|---|---|
+| **Scraper key** | `dice` |
+| **Platform** | `dice` |
+| **DB field** | `scraping_sources.source_url` plus metadata keys |
+| **Value format** | `source_url` = venue-owned calendar/widget page; metadata = `dice_api_key` plus one or more DICE venue/promoter filters; optional `dice_tags` CSV |
+| **Generic?** | ✅ DB-only for DICE event-list widgets |
+
+**Detection signals:**
+- Page or rendered DOM loads `https://widgets.dice.fm/dice-event-list-widget.js`
+- Inline rendered script calls `DiceEventListWidget.create({...})`
+- Browser network calls `https://partners-endpoint.dice.fm/api/v2/events`
+
+**API/source pattern:**
+- Scraper source: `apps/scraper/src/laughtrack/scrapers/implementations/api/dice/scraper.py`
+- Endpoint: `GET https://partners-endpoint.dice.fm/api/v2/events`
+- Required header: `x-api-key: <metadata.dice_api_key>`
+- Core params: `page[size]`, `types=linkout,event`, `filter[flags][]=going_ahead`, `filter[flags][]=rescheduled`
+- Supported filters from metadata:
+  - `dice_venue_id` → `filter[venue_ids][]`
+  - `dice_venue_name` → `filter[venues][]`
+  - `dice_promoter_id` → `filter[promoter_ids][]`
+  - `dice_promoter_name` → `filter[promoters][]`
+  - `dice_tags` → `filter[tags][]`
+- Pagination comes from `links.next`, but DICE may return an `events-api.dice.fm`
+  URL there. The scraper preserves the query string and replays it against
+  `partners-endpoint.dice.fm/api/v2/events`, matching the widget's own next-page
+  behavior and avoiding `events-api` 403s.
+
+**Key extraction notes:**
+- Use a browser/network capture when static HTML only shows a Squarespace shell. The Color Club `/comedy` rendered page had:
+  `DiceEventListWidget.create({"partnerId":"d285d692","apiKey":"...","venues":["Color Club"],"tags":["type:comedy"], ...})`
+- Prefer numeric `dice_venue_id` or `dice_promoter_id` once the first API response reveals them. Keep name filters in metadata as audit context/fallback.
+- Ticket URL uses `url` for native DICE events and `external_url` for linkout events.
+- Price is `ticket_types[0].price.total / 100` when present; linkout/free events may expose top-level `price`.
+- The scraper filters cancelled/postponed flags and keeps DICE `linkout` rows so venue calendars that point to external ticketing still produce shows.
+
+**DB setup:**
+```sql
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, priority, enabled, metadata, created_at, updated_at)
+SELECT c.id, 'dice'::"ScrapingPlatform", 'dice', 'https://www.example.com/calendar', 0, TRUE,
+       jsonb_build_object(
+         'dice_api_key', '<apiKey from DiceEventListWidget.create>',
+         'dice_partner_id', '<partnerId from widget config>',
+         'dice_venue_id', '<numeric venue id from first API response>',
+         'dice_venue_name', '<widget venue name>',
+         'dice_tags', '<optional comma-separated DICE tags, e.g. type:comedy>'
+       ),
+       now(), now()
+FROM clubs c
+WHERE c.name = 'My Club'
+  AND NOT EXISTS (SELECT 1 FROM scraping_sources s WHERE s.club_id = c.id AND s.scraper_key = 'dice');
+```
+
+**Failure modes / gotchas:**
+- Static `curl` of Squarespace pages may not show the inline widget config; use a browser-rendered DOM/network capture.
+- DICE partner API requires the widget API key in `x-api-key`; unauthenticated requests fail or return no usable payload.
+- The public widget can filter by names, but names are less stable than numeric venue/promoter ids. Capture numeric ids from the first successful API response.
+- Mixed-use venues expose music, markets, and workshops alongside comedy. Prefer the venue's comedy-specific widget/page when present and copy its `tags` value into `dice_tags`.
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/scrapers/implementations/api/dice/scraper.py`
+- `apps/scraper/src/laughtrack/core/entities/event/dice.py`
+- Color Club (TASK-3013): `https://www.colorclub.events/comedy`, DICE venue id `14681`, promoter id `14931`, tag `type:comedy`
 
 ---
 

@@ -1,0 +1,77 @@
+{
+  "data": [
+    {
+      "id": "69f377adbef35c0001a0dc80",
+      "int_id": 590811,
+      "type": "event",
+      "name": "Kate Renegade, Toddo, Life in Public",
+      "venue": "Color Club",
+      "timezone": "America/Chicago",
+      "date": "2026-06-20T01:00:00Z",
+      "url": "https://link.dice.fm/hec6178f0e0f",
+      "external_url": null,
+      "sold_out": false,
+      "status": "on-sale",
+      "currency": "USD",
+      "ticket_types": [
+        {
+          "id": 1271812,
+          "name": "General Admission",
+          "price": {
+            "total": 1500,
+            "fees": 268,
+            "face_value": 1232
+          },
+          "sold_out": false
+        }
+      ],
+      "venues": [
+        {
+          "id": 14681,
+          "name": "Color Club",
+          "url": "https://dice.fm/venue/color-club-pyy28"
+        }
+      ],
+      "promoters": [
+        {
+          "id": 14931,
+          "name": "Color Club LLC dba Color Club"
+        }
+      ],
+      "flags": ["qr-code", "cooling-off-period", "going_ahead"]
+    },
+    {
+      "id": 605336,
+      "int_id": 605336,
+      "type": "linkout",
+      "name": "Lesbian Market",
+      "venue": "Color Club",
+      "timezone": "America/Chicago",
+      "date": "2026-06-20T18:00:00Z",
+      "url": null,
+      "external_url": "https://www.eventbrite.com/e/chicagos-annual-lesbian-makers-market-tickets-1990735391144",
+      "sold_out": null,
+      "status": null,
+      "currency": "USD",
+      "price": 0,
+      "ticket_types": [],
+      "venues": [
+        {
+          "id": 14681,
+          "name": "Color Club"
+        }
+      ],
+      "promoters": [
+        {
+          "id": 14931,
+          "name": "Color Club LLC dba Color Club"
+        }
+      ],
+      "flags": ["going_ahead"]
+    }
+  ],
+  "links": {
+    "self": "https://events-api.dice.fm/api/v2/events?filter[venue_ids][]=14681&page[size]=2&types=linkout%2Cevent",
+    "next": "https://events-api.dice.fm/api/v2/events?filter[venue_ids][]=14681&page[number]=2&page[size]=2&types=linkout%2Cevent"
+  }
+}
