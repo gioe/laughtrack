@@ -897,6 +897,29 @@ UPDATE clubs SET scraper = 'comedy_magic_club', scraping_url = 'https://myvenue.
 UPDATE clubs SET scraper = 'json_ld', scraping_url = 'https://myvenue.com/events/' WHERE name = 'My Club';
 ```
 
+**Optional `scraping_sources.metadata` flags:**
+- `location_name_filter` (string) — keep only events whose JSON-LD `location.name`
+  contains the substring; for multi-venue calendar pages.
+- `detail_fetch` (object) — two-pass scrape when the listing page has only event
+  *links* (not full Event blocks). Fetch the index, harvest detail URLs, then
+  extract each detail page's Event JSON-LD. Anchor mode:
+  `{"enabled": true, "url_path_prefix": "/shows/"}` collects every `<a href>` under
+  that path prefix; `pagination` / typed-field (`object_type`/`url_path`) modes
+  also exist.
+- `comedy_filter` (bool) — for **mixed-use venues** (a music bar / arts space whose
+  calendar is mostly non-comedy). When `true`, drops events whose title +
+  description carry no comedy keyword (`is_comedy_event`), mirroring the
+  `wix_events` flag. schema.org Event JSON-LD has no genre field, so the keyword
+  match is the only signal. Leave unset for all-comedy venues so a show titled with
+  only a comedian's name is never dropped.
+
+**Mixed-use example — Cole's Bar (TASK-2964):** an Opendate music bar whose
+`/shows/<slug>` detail pages embed `MusicEvent` JSON-LD. The homepage lists ~85%
+live music plus a weekly "Comedy Open Mic". Onboarded with `scraper_key='json_ld'`,
+`source_url='https://colesbarchicago.com/'`, and
+`metadata={"detail_fetch": {"enabled": true, "url_path_prefix": "/shows/"}, "comedy_filter": true}`
+→ scrapes only the comedy open mics.
+
 ---
 
 ### SquadUP
