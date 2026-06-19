@@ -645,6 +645,15 @@ For these venues:
   without a `compId` param when authenticated
 - The scraper automatically omits `compId` from the request when it's not set
 
+**Not-scrapable variant (Wix Stores, not Wix Events):**
+A Wix site can have the Events app installed yet sell shows as **undated,
+recurring Wix Stores products** (a "select ticket option" dropdown, e.g.
+"Date Night Fridays" $30/$45/$80) rather than dated events. The
+`paginated-events/viewer` API then returns **0 upcoming events** (often only
+stale demo/template events with `status=2`). There are no per-show dates to
+build `Show` rows → **not scrapable**; close `wont_do`. Always confirm the
+API returns `> 0` upcoming events before onboarding a Wix venue. (TASK-2957)
+
 ---
 
 ### Crowdwork
