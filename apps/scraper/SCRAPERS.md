@@ -588,6 +588,8 @@ GET https://tockify.com/api/ngevent?calname=<calname>&max=200&startms=<now_ms>
 
 **Two-collection trap:** Some Squarespace sites have a calendar-block collection (type 10, e.g. `/shows`) separate from the actual event-items collection (e.g. `/all-shows`). If `GetItemsByMonth` returns `[]` for the ID found on the listing page, fetch an individual event's page (`/all-shows/<slug>`) and read its `Static.SQUARESPACE_CONTEXT` — the `collection.id` there is the correct ID to use in the scraping URL.
 
+**Products-collection mode (TASK-3012):** Some venues sell each show as a dated store product (collection `typeName='products'`, type 13, e.g. `/tickets/p/june-19-2026`) instead of an Events collection, so `GetItemsByMonth` returns `[]`. Onboard with `scraping_url` = the collection PAGE url (e.g. `https://<domain>/tickets`, no `collectionId` param) and `metadata.collection_type='products'`; the scraper then reads the page via `?format=json`, follows `pagination.nextPageUrl`, and parses each product's show date from its `fullUrl` slug (`/tickets/p/june-19-2026`) plus the time from the title (`@8pm`, default 19:00 if absent). Example: Westside Improv Studio (Wheaton, IL).
+
 **To onboard a new Squarespace venue:**
 1. Navigate in Playwright → capture `browser_network_requests` → find `GetItemsByMonth` call
 2. Extract `collectionId` from the network request URL
