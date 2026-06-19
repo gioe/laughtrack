@@ -151,6 +151,8 @@ Check browser network requests (browser_navigate + browser_network_requests):
                                                 (see Square Online section — use coral_gables_comedy_club as reference)
   └── /wp-json/tribe/events/v1/events        → platform: Tribe Events Calendar (WordPress)
                                                 → scraper: the_events_calendar (generic; set source_url)
+  └── /wp-json/wp/v2/mec-events              → platform: Modern Events Calendar (WordPress)
+                                                → scraper: modern_events_calendar (generic; set source_url)
   └── /wp-json/wp/v2/posts?categories=<id>   → WordPress category posts
                                                 → venue-specific scraper when dates live only in post titles
   └── jetbook.co/elasticsearch/msearch        → platform: JetBook (Bubble.io)
@@ -891,6 +893,42 @@ SELECT c.id, 'custom'::"ScrapingPlatform", '<venue_scraper_key>',
 **Reference implementation:**
 - `apps/scraper/src/laughtrack/scrapers/implementations/venues/kenosha_comedy_club/`
 - TASK-2978, Kenosha Comedy Club
+
+---
+
+### Modern Events Calendar (WordPress)
+
+| | |
+|---|---|
+| **Scraper key** | `modern_events_calendar` |
+| **Platform** | `custom` |
+| **DB field** | `scraping_sources.source_url` |
+| **Value format** | WordPress MEC endpoint, e.g. `https://site.example/wp-json/wp/v2/mec-events?mec_category=<id>` |
+| **Generic?** | ✅ Generic when MEC detail pages render schema.org Event JSON-LD |
+
+**Detection signals:**
+- `/wp-json/wp/v2/types` lists `mec-events` with `rest_base: "mec-events"`.
+- `/wp-json/wp/v2/mec_category` lists a comedy/category id that can filter the venue's mixed calendar.
+- Event detail pages render `<script type="application/ld+json">` with schema.org `Event` data including `startDate`, `offers`, and `location`.
+
+**Source pattern:** Use the REST collection as the index and the event detail pages as the canonical date/price source. Some sites, including Moonlight Theatre, return empty HTML to plain curl but render correctly in Playwright; set `metadata.force_js_rendering=true` for those sources.
+
+**DB setup:**
+```sql
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, priority, enabled, metadata)
+SELECT c.id, 'custom'::"ScrapingPlatform", 'modern_events_calendar',
+       'https://site.example/wp-json/wp/v2/mec-events?mec_category=<id>',
+       0, TRUE,
+       jsonb_build_object(
+         'listing_url', 'https://site.example/event-category/comedy/',
+         'force_js_rendering', TRUE,
+         'per_page', 20,
+         'max_pages', 3,
+         'max_detail_pages', 60
+       )
+  FROM clubs c
+ WHERE c.name = '<Venue Name>';
+```
 
 ---
 
@@ -2498,6 +2536,7 @@ cd apps/scraper && make scrape-club CLUB='My Club'
 | SeatEngine Classic | `seatengine_classic` | No | `scraping_url` (calendar URL; `seatengine_id` metadata only) |
 | SeatEngine v3 | `seatengine_v3` | No | `seatengine_id` (UUID) |
 | Tribe Events (WordPress) | `the_events_calendar` | No | `source_url` |
+| Modern Events Calendar (WordPress) | `modern_events_calendar` | No | `source_url` (`mec-events` REST endpoint + optional metadata) |
 | WordPress category posts | venue-specific | **Yes** — parse venue title/date format | `source_url` (WP posts API category URL) |
 | rhp-events (WordPress) | `comedy_magic_club` | No | `scraping_url` |
 | JSON-LD (generic) | `json_ld` | No | `scraping_url` |
@@ -2671,6 +2710,7 @@ Other related checks:
 | `seatengine_classic` | `scraping_url` (calendar URL; `seatengine_id` optional metadata only) |
 | `seatengine_v3` | `seatengine_id` (UUID) |
 | `the_events_calendar` | `source_url` (Tribe Events REST API base URL) |
+| `modern_events_calendar` | `source_url` (WordPress `mec-events` REST endpoint, optionally filtered by `mec_category`) |
 | `comedy_magic_club` | `scraping_url` (base `/events/` URL — no pagination) |
 | `json_ld` | `scraping_url` (events page with JSON-LD markup, e.g. Prekindle, Humanitix) |
 | `tixr` | `source_url` or `scraping_url` (server-rendered calendar page with Tixr event links) |
