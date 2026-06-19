@@ -65,17 +65,30 @@ class UPComedyClubScraper(BaseScraper):
     """Scraper for UP Comedy Club Chicago via The Second City platform API."""
 
     key = "up_comedy_club"
+    DEFAULT_VENUE_NAME_FILTERS = ("UP Comedy Club",)
 
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
         self.transformation_pipeline.register_transformer(UPComedyClubTransformer(club))
 
+    def _venue_name_filters(self) -> List[str]:
+        raw_filters = self.club.source_metadata.get("venue_name_contains")
+        if isinstance(raw_filters, str):
+            filters = [raw_filters]
+        elif isinstance(raw_filters, list):
+            filters = [item for item in raw_filters if isinstance(item, str)]
+        else:
+            filters = list(self.DEFAULT_VENUE_NAME_FILTERS)
+
+        cleaned = [item.strip() for item in filters if item.strip()]
+        return cleaned or list(self.DEFAULT_VENUE_NAME_FILTERS)
+
     async def collect_scraping_targets(self) -> List[str]:
         """
         Discover UP Comedy Club shows via the Second City GraphQL API.
 
-        Queries all Chicago shows and filters for those whose venue list
-        contains "UP Comedy Club".  Returns one entityResolver URL per show.
+        Queries all Chicago shows and filters for those whose venue list matches
+        the configured Second City room.  Returns one entityResolver URL per show.
         """
         graphql_url = (
             f"{_GRAPHQL_URL}"
@@ -103,6 +116,7 @@ class UPComedyClubScraper(BaseScraper):
         nodes = (
             response.get("data", {}).get("shows", {}).get("nodes") or []
         )
+        venue_filters = self._venue_name_filters()
 
         targets: List[str] = []
         for node in nodes:
@@ -120,7 +134,11 @@ class UPComedyClubScraper(BaseScraper):
                 if isinstance(v, dict)
             ]
 
-            if not any("UP Comedy Club" in name for name in venue_names):
+            if not any(
+                venue_filter in name
+                for name in venue_names
+                for venue_filter in venue_filters
+            ):
                 continue
 
             uri = node.get("uri", "")
@@ -134,7 +152,8 @@ class UPComedyClubScraper(BaseScraper):
             targets.append(resolver_url)
 
         Logger.info(
-            f"{self._log_prefix}: discovered {len(targets)} UP Comedy Club show(s)",
+            f"{self._log_prefix}: discovered {len(targets)} Second City show(s) "
+            f"matching venue filters {venue_filters}",
             self.logger_context,
         )
         return targets

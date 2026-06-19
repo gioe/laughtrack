@@ -39,6 +39,21 @@ def _club(timezone: str = "America/Chicago") -> Club:
     return _c
 
 
+def _donnys_skybox_club(timezone: str = "America/Chicago") -> Club:
+    _c = Club(id=1000, name="Donny's Skybox Theatre", address='230 W North Ave', website='https://www.secondcity.com/shows/chicago/', popularity=0, zip_code='60610', phone_number='', visible=True, timezone=timezone)
+    _c.active_scraping_source = ScrapingSource(
+        id=2,
+        club_id=_c.id,
+        platform='custom',
+        scraper_key='up_comedy_club',
+        source_url=SCRAPING_URL,
+        external_id=None,
+        metadata={"venue_name_contains": "Donny's Skybox Theater"},
+    )
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
+
+
 def _graphql_response(include_up_show: bool = True) -> Dict[str, Any]:
     """Fake GraphQL response listing Chicago shows."""
     nodes = [
@@ -54,6 +69,13 @@ def _graphql_response(include_up_show: bool = True) -> Dict[str, Any]:
             "uri": "/shows/chicago/the-second-city-mainstage-114th-revue-chi",
             "showAttributes": {
                 "venue": [{"name": "Chicago Mainstage"}],
+            },
+        },
+        {
+            "title": "Coached Ensembles",
+            "uri": "/shows/chicago/coached-ensembles-chi",
+            "showAttributes": {
+                "venue": [{"name": "Donny's Skybox Theater - Chicago"}],
             },
         },
     ]
@@ -138,6 +160,21 @@ async def test_collect_scraping_targets_excludes_non_up_shows(monkeypatch):
 
     urls = await scraper.collect_scraping_targets()
     assert urls == [], f"Expected no URLs when no UP Comedy Club shows, got: {urls}"
+
+
+@pytest.mark.asyncio
+async def test_collect_scraping_targets_uses_metadata_venue_filter(monkeypatch):
+    """Second City venues can reuse the scraper with a source-level venue filter."""
+    scraper = UPComedyClubScraper(_donnys_skybox_club())
+
+    async def fake_fetch_json(self, url: str, **kwargs) -> Dict:
+        return _graphql_response(include_up_show=True)
+
+    monkeypatch.setattr(UPComedyClubScraper, "fetch_json", fake_fetch_json)
+
+    urls = await scraper.collect_scraping_targets()
+    assert len(urls) == 1, f"Expected 1 Donny's Skybox show URL, got: {urls}"
+    assert "coached-ensembles-chi" in urls[0]
 
 
 @pytest.mark.asyncio
