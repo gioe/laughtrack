@@ -56,6 +56,9 @@ class SquarespaceScraper(BaseScraper):
 
     key = "squarespace"
 
+    # Pagination cap for products mode (?format=json follows pagination.nextPageUrl).
+    _PRODUCTS_MAX_PAGES = 10
+
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
         self.transformation_pipeline.register_transformer(SquarespaceEventTransformer(club))
@@ -64,6 +67,16 @@ class SquarespaceScraper(BaseScraper):
         self.base_domain = f"{parsed.scheme}://{parsed.netloc}"
         qs = parse_qs(parsed.query)
         self.collection_id = (qs.get("collectionId") or [""])[0]
+
+        # Products-collection mode: some venues sell each show as a dated store
+        # product (collection typeName='products') instead of an Events
+        # collection, so GetItemsByMonth returns []. Opt in via
+        # scraping_sources.metadata.collection_type='products'; scraping_url is
+        # then the collection PAGE url (e.g. https://venue.com/tickets) and the
+        # scraper reads it via ?format=json. Absent/other → events mode (default).
+        self.products_mode = (club.source_metadata or {}).get("collection_type") == "products"
+        # The collection page url with any query stripped (?format=json appended later).
+        self.products_url = f"{self.base_domain}{parsed.path}".rstrip("/")
 
         # Opt-in non-show filter: venues whose events collection mixes public
         # shows with class sessions/workshops (common for improv theatres) set
@@ -89,7 +102,14 @@ class SquarespaceScraper(BaseScraper):
             return None
 
     async def collect_scraping_targets(self) -> List[ScrapingTarget]:
-        """Return GetItemsByMonth URLs for the current month and next two months."""
+        """Return the fetch targets for this venue.
+
+        Products mode: the single collection page rendered as JSON. Events mode:
+        GetItemsByMonth URLs for the current month and next two months.
+        """
+        if self.products_mode:
+            return [f"{self.products_url}?format=json"]
+
         today = date.today()
         targets = []
         for i in range(3):
@@ -111,6 +131,9 @@ class SquarespaceScraper(BaseScraper):
         response is None means a network failure; response == [] means no shows
         scheduled for that month.
         """
+        if self.products_mode:
+            return await self._get_products_data(url)
+
         try:
             await self.rate_limiter.await_if_needed(url)
 
@@ -152,6 +175,73 @@ class SquarespaceScraper(BaseScraper):
                 self.logger_context,
             )
             return None
+
+    async def _get_products_data(self, url: str) -> Optional[SquarespacePageData]:
+        """Fetch a Squarespace products/store collection and extract dated shows.
+
+        The collection page rendered as ``?format=json`` returns a dict with an
+        ``items`` array of store products and a ``pagination`` block. Follows
+        ``pagination.nextPageUrl`` (capped) to capture every product. No
+        per-event detail enrichment: each product's ``fullUrl`` is already its
+        ticket/checkout page.
+        """
+        all_items: List[dict] = []
+        current_url: Optional[str] = url
+        for _ in range(self._PRODUCTS_MAX_PAGES):
+            if not current_url:
+                break
+            try:
+                await self.rate_limiter.await_if_needed(current_url)
+                response = await self.fetch_json(current_url)
+            except Exception as e:
+                Logger.error(
+                    f"{self._log_prefix}: error fetching products from {current_url}: {e}",
+                    self.logger_context,
+                )
+                return None
+            if not isinstance(response, dict):
+                break
+            items = response.get("items")
+            if isinstance(items, list):
+                all_items.extend(items)
+            pagination = response.get("pagination") or {}
+            next_path = pagination.get("nextPageUrl") if pagination.get("nextPage") else None
+            current_url = self._products_next_url(next_path)
+
+        if not all_items:
+            Logger.info(
+                f"{self._log_prefix}: no products found at {url}",
+                self.logger_context,
+            )
+            return None
+
+        events = SquarespaceExtractor.extract_products(
+            all_items,
+            self.base_domain,
+            timezone_name=self.club.timezone or "UTC",
+            exclude_title_re=self.exclude_title_re,
+        )
+        if not events:
+            Logger.info(
+                f"{self._log_prefix}: no datable show products extracted from {url}",
+                self.logger_context,
+            )
+            return None
+
+        Logger.info(
+            f"{self._log_prefix}: extracted {len(events)} show product(s) from {url}",
+            self.logger_context,
+        )
+        return SquarespacePageData(event_list=events)
+
+    def _products_next_url(self, next_path: Optional[str]) -> Optional[str]:
+        """Resolve a pagination.nextPageUrl (relative path) to an absolute JSON URL."""
+        if not next_path:
+            return None
+        absolute = next_path if next_path.startswith("http") else self.base_domain + next_path
+        if "format=json" not in absolute:
+            absolute += ("&" if "?" in absolute else "?") + "format=json"
+        return absolute
 
     async def _enrich_with_ticket_urls(self, events: List[SquarespaceEvent]) -> None:
         """
