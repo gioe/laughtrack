@@ -1,0 +1,9 @@
+{
+  "collection": {"id": "613eb3a09271606618a3b043", "typeName": "products", "type": 13},
+  "items": [
+    {"id": "p1", "title": "June 19: Friday Night Show  @8pm", "fullUrl": "/tickets/p/june-19-2026", "recordTypeLabel": "store-item", "excerpt": "<p>Who's Playing? Bicycle Fish Parade</p>"},
+    {"id": "p2", "title": "June 21: Sunday Night Show @7pm", "fullUrl": "/tickets/p/june-21-2026", "recordTypeLabel": "store-item", "excerpt": ""},
+    {"id": "p3", "title": "Gift Card", "fullUrl": "/tickets/p/gift-card", "recordTypeLabel": "store-item", "excerpt": "A gift card"}
+  ],
+  "pagination": {"nextPage": false}
+}
