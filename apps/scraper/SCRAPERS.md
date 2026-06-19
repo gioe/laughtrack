@@ -151,6 +151,8 @@ Check browser network requests (browser_navigate + browser_network_requests):
                                                 (see Square Online section — use coral_gables_comedy_club as reference)
   └── /wp-json/tribe/events/v1/events        → platform: Tribe Events Calendar (WordPress)
                                                 → scraper: the_events_calendar (generic; set source_url)
+  └── /wp-json/wp/v2/posts?categories=<id>   → WordPress category posts
+                                                → venue-specific scraper when dates live only in post titles
   └── jetbook.co/elasticsearch/msearch        → platform: JetBook (Bubble.io)
                                                 → scraper: jetbook (generic)
                                                   DB: scraping_url = https://jetbook.co/o_iframe/<venue-slug>
@@ -843,6 +845,52 @@ SELECT c.id, 'tribe_events'::"ScrapingPlatform", 'the_events_calendar', 'https:/
 FROM clubs c WHERE c.name = 'My Club'
   AND NOT EXISTS (SELECT 1 FROM scraping_sources s WHERE s.club_id = c.id AND s.scraper_key = 'the_events_calendar');
 ```
+
+---
+
+### WordPress Category Posts
+
+| | |
+|---|---|
+| **Scraper key** | venue-specific (reference: `kenosha_comedy_club`) |
+| **Platform** | `custom` |
+| **DB field** | `scraping_sources.source_url` |
+| **Value format** | WordPress posts endpoint, e.g. `https://site.example/wp-json/wp/v2/posts?categories=<id>&per_page=20&_fields=id,date,modified,link,title,excerpt,categories` |
+| **Generic?** | ❌ venue-specific code required unless the title/date format matches an existing scraper exactly |
+
+**Detection signals:**
+- WordPress category archive represents a venue or event series.
+- `/wp-json/wp/v2/categories?search=<name>` returns a category whose `name` or `description` names the venue.
+- `/wp-json/wp/v2/posts?categories=<id>` returns plain posts, not event custom post types.
+- Standard event-plugin APIs (for example `/wp-json/tribe/events/v1/events`) are missing or empty for these shows.
+
+**API/source pattern:**
+- Fetch the category posts endpoint directly.
+- Use `_fields=` to keep payloads small; include at least `id`, `link`, `title`, and `excerpt`.
+
+**Key extraction notes:**
+- These posts are hand-maintained content, so date/time may live only in the title.
+- Do not invent a showtime when the post title has dates but no time; skip that post or add a venue-specific fallback only when the site exposes a reliable time elsewhere.
+- Use the post URL as the show/ticket URL when no deeper ticketing link is exposed.
+
+**DB setup:**
+```sql
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, priority, enabled, metadata)
+SELECT c.id, 'custom'::"ScrapingPlatform", '<venue_scraper_key>',
+       'https://site.example/wp-json/wp/v2/posts?categories=<id>&per_page=20&_fields=id,date,modified,link,title,excerpt,categories',
+       0, TRUE, '{}'::jsonb
+  FROM clubs c
+ WHERE c.name = '<Venue Name>';
+```
+
+**Failure modes / gotchas:**
+- WordPress publish dates are not show dates; parse event dates from the post content/title instead.
+- Category slugs can be generic or misleading. Kenosha Comedy Club uses category slug `comedy`, but category id `506` and name `Kenosha Comedy Club`.
+- Posts can be stale or reused across years; parse against the current year and roll past month/day values forward only when the parsed date is before today.
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/scrapers/implementations/venues/kenosha_comedy_club/`
+- TASK-2978, Kenosha Comedy Club
 
 ---
 
@@ -2450,6 +2498,7 @@ cd apps/scraper && make scrape-club CLUB='My Club'
 | SeatEngine Classic | `seatengine_classic` | No | `scraping_url` (calendar URL; `seatengine_id` metadata only) |
 | SeatEngine v3 | `seatengine_v3` | No | `seatengine_id` (UUID) |
 | Tribe Events (WordPress) | `the_events_calendar` | No | `source_url` |
+| WordPress category posts | venue-specific | **Yes** — parse venue title/date format | `source_url` (WP posts API category URL) |
 | rhp-events (WordPress) | `comedy_magic_club` | No | `scraping_url` |
 | JSON-LD (generic) | `json_ld` | No | `scraping_url` |
 | Prekindle | `json_ld` | No | `scraping_url` |
