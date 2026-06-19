@@ -83,3 +83,16 @@ class TestExtractProducts:
 
     def test_non_list_input_returns_empty(self):
         assert SquarespaceExtractor.extract_products({}, _BASE, timezone_name=_TZ) == []
+
+    def test_non_month_word_not_parsed_as_date(self):
+        # "marathon" must NOT match March via a 3-char prefix (review #3038); with
+        # no datable slug, the product is skipped rather than mis-dated.
+        items = [{"id": "z", "title": "Marathon 5 Training Night", "fullUrl": "/tickets/p/marathon-night"}]
+        assert SquarespaceExtractor.extract_products(items, _BASE, timezone_name=_TZ) == []
+
+    def test_full_month_name_in_slug_parsed(self):
+        items = [{"id": "d", "title": "NYE Bash @9pm", "fullUrl": "/tickets/p/december-31-2026"}]
+        events = SquarespaceExtractor.extract_products(items, _BASE, timezone_name=_TZ)
+        assert len(events) == 1
+        # Dec 31 2026 @ 9pm CST == 2027-01-01T03:00:00Z
+        assert _utc(events[0].start_date_ms).isoformat() == "2027-01-01T03:00:00+00:00"

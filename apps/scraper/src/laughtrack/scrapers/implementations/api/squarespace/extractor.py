@@ -12,6 +12,20 @@ _MONTHS = {
     "jan": 1, "feb": 2, "mar": 3, "apr": 4, "may": 5, "jun": 6,
     "jul": 7, "aug": 8, "sep": 9, "oct": 10, "nov": 11, "dec": 12,
 }
+_FULL_MONTHS = {
+    "january": 1, "february": 2, "march": 3, "april": 4, "may": 5, "june": 6,
+    "july": 7, "august": 8, "september": 9, "october": 10, "november": 11, "december": 12,
+}
+
+
+def _month_num(token: str) -> Optional[int]:
+    """Return a month number only for an exact 3-letter abbrev or full month name.
+
+    Exact-membership (not a 3-char prefix of an arbitrary word) so tokens like
+    "marathon" don't false-match to March.
+    """
+    t = (token or "").lower()
+    return _MONTHS.get(t) or _FULL_MONTHS.get(t)
 # Date in a ticket-product slug, e.g. "/tickets/p/june-19-2026" -> (june, 19, 2026).
 _SLUG_DATE_RE = re.compile(r"([a-z]{3,9})-(\d{1,2})-(\d{4})", re.IGNORECASE)
 # Leading "Month DD" in a product title, e.g. "June 19: Friday Night Show".
@@ -119,7 +133,7 @@ class SquarespaceExtractor:
         m = _SLUG_DATE_RE.search(full_url or "")
         if not m:
             return None
-        month = _MONTHS.get(m.group(1)[:3].lower())
+        month = _month_num(m.group(1))
         if not month:
             return None
         return int(m.group(3)), month, int(m.group(2))
@@ -129,7 +143,7 @@ class SquarespaceExtractor:
         m = _TITLE_DATE_RE.search(title or "")
         if not m:
             return None
-        month = _MONTHS.get(m.group(1)[:3].lower())
+        month = _month_num(m.group(1))
         if not month:
             return None
         # Title dates carry no year; infer the next occurrence so a Dec show seen

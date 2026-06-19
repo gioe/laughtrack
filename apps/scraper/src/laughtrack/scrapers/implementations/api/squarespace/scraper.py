@@ -207,6 +207,16 @@ class SquarespaceScraper(BaseScraper):
             pagination = response.get("pagination") or {}
             next_path = pagination.get("nextPageUrl") if pagination.get("nextPage") else None
             current_url = self._products_next_url(next_path)
+        else:
+            # for-else: ran the full page budget without breaking. If a next page
+            # is still pending, we truncated — warn rather than silently capping.
+            if current_url:
+                Logger.warn(
+                    f"{self._log_prefix}: products pagination hit the "
+                    f"{self._PRODUCTS_MAX_PAGES}-page cap with more pages pending; "
+                    f"some shows may be missing",
+                    self.logger_context,
+                )
 
         if not all_items:
             Logger.info(
