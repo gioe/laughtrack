@@ -152,3 +152,36 @@ class TestFlattenEvents:
         payload = SeatEngineV3Extractor.build_query_payload(VENUE_UUID)
         assert payload["variables"]["venueUuid"] == VENUE_UUID
         assert "eventsList" in payload["query"]
+
+
+class TestSoldOutSchemaDrift:
+    """TASK-3009: Event.soldOut was removed from the SeatEngine v3 schema.
+
+    Querying it fails the whole query ('Cannot query field "soldOut" on type
+    "Event"'), so the query must NOT select event-level soldOut. sold-out is
+    derived from the Show level only.
+    """
+
+    def test_query_does_not_select_event_level_soldout(self):
+        query = SeatEngineV3Extractor.build_query_payload(VENUE_UUID)["query"]
+        # Split at the nested `shows {` block: the event-level selection is
+        # everything before it, the show-level selection everything after.
+        event_level, _, show_level = query.partition("shows {")
+        assert "soldOut" not in event_level, "event-level soldOut must not be queried (TASK-3009)"
+        assert "soldOut" in show_level, "show-level soldOut is still required"
+
+    def test_flatten_derives_soldout_from_show_when_event_has_no_soldout_key(self):
+        # Schema-drift response shape: the event dict has NO soldOut key at all.
+        show = _make_show("2026-04-01T20:00:00", sold_out=True)
+        event = _make_event("Drift Show", [show])
+        del event["soldOut"]
+        records = SeatEngineV3Extractor.flatten_events(_make_response([event]), BASE_URL)
+        assert len(records) == 1
+        assert records[0]["sold_out"] is True
+
+    def test_flatten_soldout_false_when_show_not_sold_and_event_key_absent(self):
+        show = _make_show("2026-04-01T20:00:00", sold_out=False)
+        event = _make_event("Available Show", [show])
+        del event["soldOut"]
+        records = SeatEngineV3Extractor.flatten_events(_make_response([event]), BASE_URL)
+        assert records[0]["sold_out"] is False
