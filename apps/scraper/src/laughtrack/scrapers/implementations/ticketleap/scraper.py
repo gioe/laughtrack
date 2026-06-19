@@ -33,11 +33,21 @@ from collections import Counter
 from typing import List, Optional
 
 from laughtrack.core.entities.club.model import Club
+import asyncio
+
+from laughtrack.core.entities.comedian.handler import ComedianHandler
+from laughtrack.core.entities.lineup.handler import LineupHandler
 from laughtrack.core.entities.show.model import Show
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.utilities.url import URLUtils
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.scrapers.implementations.json_ld.extractor import EventExtractor
+from laughtrack.scrapers.utils.comedy_filter import (
+    is_comedy_filter_enabled,
+    resolve_allowlist,
+    resolve_min_popularity,
+    select_comedy_titles,
+)
 from laughtrack.shared.types import ScrapingTarget
 
 from .data import TicketleapPageData
@@ -54,6 +64,9 @@ class TicketleapScraper(BaseScraper):
         super().__init__(club, **kwargs)
         self.transformation_pipeline.register_transformer(TicketleapTransformer(club))
         self._location_name_counts: Counter[str] = Counter()
+        self._comedy_filter = is_comedy_filter_enabled(self.club.source_metadata)
+        self._lineup_handler = LineupHandler() if self._comedy_filter else None
+        self._comedian_handler = ComedianHandler() if self._comedy_filter else None
 
     async def scrape_async(self) -> List[Show]:
         # Reset per-scrape drift tally; org slugs like 'funny' cover multiple
@@ -110,6 +123,36 @@ class TicketleapScraper(BaseScraper):
 
         return [build_event_detail_url(eid) for eid in event_ids]
 
+    async def _filter_comedy(self, events):
+        """Keep only comedy events (opt-in via metadata.comedy_filter).
+
+        Mixed-use TicketLeap orgs (e.g. a venue running comedy + dance classes)
+        set the flag so non-comedy programming doesn't surface; all-comedy orgs
+        leave it unset.
+        """
+        descriptions = {
+            e.name: getattr(e, "description", None) for e in events if e.name
+        }
+        titles = [e.name for e in events if e.name]
+        loop = asyncio.get_running_loop()
+        comedy_titles = await loop.run_in_executor(
+            None,
+            lambda: select_comedy_titles(
+                titles,
+                lineup_handler=self._lineup_handler,
+                comedian_handler=self._comedian_handler,
+                descriptions=descriptions,
+                min_popularity=resolve_min_popularity(self.club.source_metadata),
+                allowlist=resolve_allowlist(self.club.source_metadata),
+            ),
+        )
+        kept = [e for e in events if e.name in comedy_titles]
+        Logger.info(
+            f"{self._log_prefix}: comedy filter kept {len(kept)}/{len(events)} event(s)",
+            self.logger_context,
+        )
+        return kept
+
     async def get_data(self, target: ScrapingTarget) -> Optional[TicketleapPageData]:
         """Fetch one TicketLeap event detail page and extract the JSON-LD Event."""
         try:
@@ -127,6 +170,11 @@ class TicketleapScraper(BaseScraper):
                 loc_name = getattr(getattr(event, "location", None), "name", None)
                 if loc_name:
                     self._location_name_counts[loc_name] += 1
+
+            if self._comedy_filter:
+                events = await self._filter_comedy(events)
+                if not events:
+                    return None
 
             return TicketleapPageData(events)
         except Exception as e:

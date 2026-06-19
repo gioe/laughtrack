@@ -14,15 +14,24 @@ either:
 A new Etix venue can be onboarded with only a DB row — no Python changes.
 """
 
+import asyncio
 import re
 from datetime import date
 from typing import List, Optional
 from urllib.parse import urljoin, urlparse
 
 from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.comedian.handler import ComedianHandler
 from laughtrack.core.entities.event.etix import EtixEvent
+from laughtrack.core.entities.lineup.handler import LineupHandler
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.scrapers.base.base_scraper import BaseScraper
+from laughtrack.scrapers.utils.comedy_filter import (
+    is_comedy_filter_enabled,
+    resolve_allowlist,
+    resolve_min_popularity,
+    select_comedy_titles,
+)
 
 from .data import EtixPageData
 from .extractor import EtixExtractor
@@ -73,6 +82,9 @@ class EtixScraper(BaseScraper):
         super().__init__(club, **kwargs)
         self.transformation_pipeline.register_transformer(EtixEventTransformer(club))
         self._venue_id = self._extract_venue_id()
+        self._comedy_filter = is_comedy_filter_enabled(self.club.source_metadata)
+        self._lineup_handler = LineupHandler() if self._comedy_filter else None
+        self._comedian_handler = ComedianHandler() if self._comedy_filter else None
 
     def _extract_venue_id(self) -> str:
         """Extract the Etix venue ID from scraping_url."""
@@ -131,6 +143,40 @@ class EtixScraper(BaseScraper):
         return urls
 
     async def get_data(self, url: str) -> Optional[EtixPageData]:
+        """Fetch a page's events, then (opt-in) keep only comedy.
+
+        Mixed-use Etix venues set ``scraping_sources.metadata.comedy_filter`` so
+        their concerts/plays/dance don't surface; all-comedy venues leave it
+        unset and run the raw path unchanged.
+        """
+        data = await self._get_data_raw(url)
+        if not self._comedy_filter or not data or not data.event_list:
+            return data
+        return await self._filter_comedy(data)
+
+    async def _filter_comedy(self, data: EtixPageData) -> Optional[EtixPageData]:
+        titles = [e.title for e in data.event_list]
+        loop = asyncio.get_running_loop()
+        comedy_titles = await loop.run_in_executor(
+            None,
+            lambda: select_comedy_titles(
+                titles,
+                lineup_handler=self._lineup_handler,
+                comedian_handler=self._comedian_handler,
+                min_popularity=resolve_min_popularity(self.club.source_metadata),
+                allowlist=resolve_allowlist(self.club.source_metadata),
+            ),
+        )
+        kept = [e for e in data.event_list if e.title in comedy_titles]
+        Logger.info(
+            f"{self._log_prefix}: comedy filter kept {len(kept)}/{len(data.event_list)} event(s)",
+            self.logger_context,
+        )
+        if not kept:
+            return None
+        return EtixPageData(event_list=kept)
+
+    async def _get_data_raw(self, url: str) -> Optional[EtixPageData]:
         """Fetch a single page and extract event cards."""
         try:
             if self._is_rockhouse_public_url(url):
