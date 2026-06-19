@@ -238,6 +238,20 @@ class TestParseCityStateFromAddress:
         assert city == "Springfield"
         assert state is None
 
+    @pytest.mark.parametrize(
+        "address",
+        [
+            "‘26 Chicago, IL",
+            "’26 Chicago, IL",
+            "'26 Houston, TX",
+            "May 17 '26 Dallas, TX",
+        ],
+    )
+    def test_tour_date_fragment_returns_no_city(self, address):
+        city, state = parse_city_state_from_address(address)
+        assert city is None
+        assert state is not None
+
     def test_single_segment_returns_none_both(self):
         city, state = parse_city_state_from_address("No commas here")
         assert city is None

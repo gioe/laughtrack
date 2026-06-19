@@ -92,6 +92,16 @@ def _extract_state_code(candidate: str) -> Optional[str]:
     return None
 
 
+def _looks_like_non_city_segment(candidate: str) -> bool:
+    """Return True when an address segment is clearly not a city name."""
+    if not candidate:
+        return True
+    # Tour-list fragments such as "‘26 Chicago" and "May 17 '26 Dallas"
+    # are event date remnants, not city names. They should not be persisted
+    # as clubs.city just because the following comma segment is a valid state.
+    return any(ch.isdigit() for ch in candidate)
+
+
 def parse_city_state_from_address(address: Optional[str]) -> tuple[Optional[str], Optional[str]]:
     """
     Parse city and state from a comma-separated US address string.
@@ -110,6 +120,8 @@ def parse_city_state_from_address(address: Optional[str]) -> tuple[Optional[str]
         return None, None
     state = _extract_state_code(parts[-1])
     city = parts[-2] or None
+    if city and _looks_like_non_city_segment(city):
+        city = None
     return city, state
 
 
