@@ -424,3 +424,78 @@ class TestLocationNameFilter:
 
         result = await scraper.get_data("https://comedycraftbeer.com/calendar")
         assert result is None
+
+
+def _mixed_use_html() -> str:
+    """A music show and a comedy show on one calendar page (Cole's Bar shape)."""
+    music_event = {
+        "@context": "https://schema.org",
+        "@type": "MusicEvent",
+        "name": "Sun Not Yellow, Disaster Kid, Dogcatcher",
+        "description": "Live indie rock at Cole's Bar.",
+        "startDate": "2099-06-19T20:00:00-05:00",
+        "url": "https://colesbarchicago.com/shows/sun-not-yellow",
+        "location": {"@type": "Place", "name": "Cole's Bar"},
+    }
+    comedy_event = {
+        "@context": "https://schema.org",
+        "@type": "MusicEvent",
+        "name": "Comedy Open Mic",
+        "description": "Cole's WORLD FAMOUS Comedy Open Mic established 2009!!!",
+        "startDate": "2099-06-24T20:00:00-05:00",
+        "url": "https://colesbarchicago.com/shows/comedy-open-mic",
+        "location": {"@type": "Place", "name": "Cole's Bar"},
+    }
+    return f"<html><head>{_wrap_ldjson([music_event, comedy_event])}</head></html>"
+
+
+class TestComedyFilter:
+    """Verify the comedy_filter metadata key drops non-comedy events at mixed-use venues."""
+
+    @pytest.mark.asyncio
+    async def test_no_filter_returns_all_events(self, monkeypatch):
+        scraper = JsonLdScraper(_make_club())
+
+        async def fake_fetch_html(self, url):
+            return _mixed_use_html()
+
+        monkeypatch.setattr(JsonLdScraper, "fetch_html", fake_fetch_html, raising=False)
+
+        result = await scraper.get_data("https://colesbarchicago.com/")
+        assert isinstance(result, JsonLdPageData)
+        assert len(result.event_list) == 2
+
+    @pytest.mark.asyncio
+    async def test_filter_keeps_only_comedy_events(self, monkeypatch):
+        scraper = JsonLdScraper(_make_club(metadata={"comedy_filter": True}))
+
+        async def fake_fetch_html(self, url):
+            return _mixed_use_html()
+
+        monkeypatch.setattr(JsonLdScraper, "fetch_html", fake_fetch_html, raising=False)
+
+        result = await scraper.get_data("https://colesbarchicago.com/")
+        assert isinstance(result, JsonLdPageData)
+        assert [e.name for e in result.event_list] == ["Comedy Open Mic"]
+
+    @pytest.mark.asyncio
+    async def test_filter_with_no_comedy_returns_none(self, monkeypatch):
+        music_only = {
+            "@context": "https://schema.org",
+            "@type": "MusicEvent",
+            "name": "Some Band, Another Band",
+            "description": "Live music only.",
+            "startDate": "2099-08-01T20:00:00-05:00",
+            "url": "https://colesbarchicago.com/shows/some-band",
+            "location": {"@type": "Place", "name": "Cole's Bar"},
+        }
+        html = f"<html><head>{_wrap_ldjson([music_only])}</head></html>"
+        scraper = JsonLdScraper(_make_club(metadata={"comedy_filter": True}))
+
+        async def fake_fetch_html(self, url):
+            return html
+
+        monkeypatch.setattr(JsonLdScraper, "fetch_html", fake_fetch_html, raising=False)
+
+        result = await scraper.get_data("https://colesbarchicago.com/")
+        assert result is None

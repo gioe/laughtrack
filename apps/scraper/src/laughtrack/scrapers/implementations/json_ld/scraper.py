@@ -23,6 +23,7 @@ from laughtrack.core.entities.show.model import Show
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.utilities.url import URLUtils
+from laughtrack.utilities.domain.show.factory import is_comedy_event
 from .transformer import JsonLdTransformer
 
 if TYPE_CHECKING:
@@ -172,6 +173,26 @@ class JsonLdScraper(BaseScraper):
                 Logger.info(
                     f"{self._log_prefix}: location_name_filter '{location_filter}' "
                     f"kept {len(event_list)}/{before} events",
+                    self.logger_context,
+                )
+                if not event_list:
+                    return None
+
+            # Opt-in comedy keyword filter for mixed-use venues (e.g. a music
+            # bar like Cole's Bar whose JSON-LD calendar lists mostly bands
+            # plus a weekly comedy open mic). Mirrors the wix_events
+            # `comedy_filter` flag: schema.org Event JSON-LD carries no genre,
+            # so the title/description keyword match is the only signal. Set the
+            # `comedy_filter` metadata flag only on mixed-use venues; all-comedy
+            # venues leave it unset and are unaffected.
+            if self.club.metadata_value("comedy_filter"):
+                before = len(event_list)
+                event_list = [
+                    e for e in event_list
+                    if is_comedy_event(e.name, e.description)
+                ]
+                Logger.info(
+                    f"{self._log_prefix}: comedy_filter kept {len(event_list)}/{before} events",
                     self.logger_context,
                 )
                 if not event_list:
