@@ -16,6 +16,11 @@ from laughtrack.foundation.models.types import JSONDict
 #   events, statuses, totalCount (totalCount returns null in practice).
 # The API performs a full dump in a single response. At 147 events for The Comedy
 # Studio, no truncation was observed. Pagination is not needed.
+# NOTE (TASK-3009): the Event type no longer exposes `soldOut` — SeatEngine
+# removed it schema-wide, and querying it now fails the WHOLE query with
+# 'Cannot query field "soldOut" on type "Event".' (observed on every v3 venue,
+# including The Comedy Studio). sold-out is read from the SHOW level only; the
+# Show type still exposes `soldOut`. Do NOT re-add event-level soldOut.
 _GRAPHQL_QUERY = """
 query GetEvents($venueUuid: UUID4!) {
     eventsList(venueUuid: $venueUuid) {
@@ -23,7 +28,6 @@ query GetEvents($venueUuid: UUID4!) {
             uuid
             name
             status
-            soldOut
             page { path }
             talents { name }
             shows {
@@ -87,7 +91,10 @@ class SeatEngineV3Extractor:
                         "show_page_url": show_page_url,
                         "show_uuid": show.get("uuid"),
                         "start_datetime": show.get("startDateTime"),
-                        "sold_out": event.get("soldOut", False) or show.get("soldOut", False),
+                        # show-level only — Event.soldOut was removed from the
+                        # schema (TASK-3009). `event.get` kept as a defensive
+                        # fallback in case it ever returns.
+                        "sold_out": show.get("soldOut", False) or event.get("soldOut", False),
                         "show_status": show.get("status"),
                         "talents": talents,
                         "inventories": show.get("inventories", []),
