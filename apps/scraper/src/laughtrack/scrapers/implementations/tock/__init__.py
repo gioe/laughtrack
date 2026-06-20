@@ -1,0 +1,2 @@
+"""Tock platform scraper package."""
+

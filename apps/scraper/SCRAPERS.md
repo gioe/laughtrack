@@ -111,6 +111,12 @@ Is there an events.ticketleap.com/events/{slug} link or a TicketLeap widget?
               (see TicketLeap section — listing page requires JS, detail pages emit
                standard schema.org Event JSON-LD)
 
+Is there an exploretock.com/{business_slug} page or exploretock.com/{business_slug}/event/{id}/{slug} buy link?
+  └── YES → platform: Tock → scraper = 'tock' (generic)
+              DB: source_url = https://www.exploretock.com/{business_slug}
+              (see Tock section — business page requires JS and exposes rendered
+               Redux calendar state)
+
 Is there a brasstix.com/pmt/calendar.php?Show=... ticket calendar?
   └── YES → platform: BrassTix → scraper = 'brasstix' (generic)
               DB: source_url = full BrassTix calendar.php URL
@@ -1870,6 +1876,60 @@ needed to avoid mis-attributing them.
 
 ---
 
+### Tock
+
+| | |
+|---|---|
+| **Scraper key** | `tock` |
+| **Platform** | `custom` |
+| **DB field** | `scraping_sources.source_url`, optional `metadata.comedy_filter` |
+| **Value format** | Business page URL: `https://www.exploretock.com/{business_slug}` |
+| **Generic?** | ✅ DB-only onboarding for Tock business pages with rendered calendar state |
+
+**Detection signals:**
+- Venue website links to `exploretock.com/{business_slug}` or `exploretock.com/{business_slug}/event/{id}/{slug}` ticket pages
+- Plain HTTP may return Cloudflare, but the scraper's Playwright browser can render the Tock page
+- Rendered HTML contains `window.$REDUX_STATE` with `calendar.offerings.experience[]`
+
+**API/source pattern:**
+- `TockScraper` uses `_fetch_html_with_js()` on the configured business page.
+- It parses the rendered `window.$REDUX_STATE` object, normalizing Tock's JavaScript-only
+  values (`undefined`, `function noop`) before JSON decoding.
+- Each `GA_EVENT` experience becomes one event using `eventDetails.date`,
+  `eventDetails.startTime`, `eventDetails.location`, `priceCents`, `id`, and `slug`.
+
+**Key extraction notes:**
+- Dates/times are local to the club timezone from the club row.
+- Ticket/show URL is reconstructed as `{source_url}/event/{id}/{slug}`.
+- `priceCents` becomes a USD ticket price; missing or malformed prices stay unknown.
+- Mixed-use calendars should set `metadata.comedy_filter = true`; filtering uses
+  title/description comedy keywords (`comedy`, `stand-up`, `improv`, `open mic`, etc.).
+
+**DB setup:**
+```sql
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, priority, enabled, metadata)
+SELECT c.id, 'custom'::"ScrapingPlatform", 'tock',
+       'https://www.exploretock.com/{business_slug}',
+       0, TRUE, '{"comedy_filter": true}'::jsonb
+  FROM clubs c
+ WHERE c.name = '<Venue Name>';
+```
+
+**Failure modes / gotchas:**
+- Do not confuse Tock (`exploretock.com`) with Tockify (`tockify.com`); they use unrelated
+  data shapes and scraper keys.
+- Plain `curl` can hit Cloudflare and return a challenge page. Test fetchability with
+  `PlaywrightBrowser`, not `requests`.
+- Tock also has lower-level session/protobuf APIs, but this scraper intentionally uses
+  the rendered business-page state so onboarding remains DB-configurable.
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/scrapers/implementations/tock/`
+- `apps/scraper/tests/scrapers/implementations/tock/test_scraper.py`
+- TASK-2993: My Buddy's (Chicago)
+
+---
+
 ### BrassTix
 
 | | |
@@ -2645,6 +2705,7 @@ cd apps/scraper && make scrape-club CLUB='My Club'
 | Tixr public cards | `tixr_public_card` | No | `scraping_url` / `source_url` |
 | Tixr Webflow day cards | `tixr_webflow_day_card` | No | `source_url` + metadata `tixr_group_fragment` |
 | Tockify | venue-specific | **Yes** — replace calname | `scraping_url` |
+| Tock | `tock` | No | `source_url` (business page URL; set `metadata.comedy_filter` for mixed calendars) |
 | Squarespace | `squarespace` | No | `scraping_url` (full GetItemsByMonth URL with `collectionId`) |
 | Wix Events | venue-specific | **Yes** — replace compId | `scraping_url` |
 | Crowdwork | venue-specific | **Yes** — replace theatre slug | `scraping_url` |
@@ -2822,6 +2883,7 @@ Other related checks:
 | `showpass` | `scraping_url` (Showpass calendar API base URL: `.../venues/{slug}/calendar/`) |
 | `show_slinger` | `scraping_url` (full combo_widget URL with id, secure_code, origin_url) |
 | `ticketleap` | `scraping_url` (org listing URL: `events.ticketleap.com/events/{org_slug}`) |
+| `tock` | `source_url` (business page URL: `exploretock.com/{business_slug}`; optional `metadata.comedy_filter`) |
 | `sellingticket` | `scraping_url` or `source_url` (list URL with OrganizationID) |
 | `shopify` | `scraping_url` (Shopify collection page URL) |
 | `booktix` | `source_url` or `scraping_url` (BookTix box-office home URL) |
