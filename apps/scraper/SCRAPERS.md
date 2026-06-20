@@ -1520,6 +1520,58 @@ SELECT c.id, 'custom'::"ScrapingPlatform", 'tempo_tickets',
 
 ---
 
+### Ticket Tailor
+
+| | |
+|---|---|
+| **Scraper key** | `ticket_tailor` (generic — shared across all Ticket Tailor box offices) |
+| **Platform** | `custom` |
+| **Onboarded as** | a `production_companies` row (NOT a `clubs` row) — Ticket Tailor accounts are commonly **roving producers** running shows at varying venues |
+| **DB field** | `production_companies.scraping_url` = the box-office URL; `website` = the producer site (used as the Cloudflare-clearing Referer) |
+| **Value format** | `scraping_url`: `https://www.tickettailor.com/events/<account_slug>/` (== `/all-tickets/<account_slug>/`) |
+| **Generic?** | ✅ generic — any tickettailor.com account onboards as a production company, no new code |
+
+**Detection signals:**
+- Buy links / ticketing redirects to `tickettailor.com`
+- Box-office listing at `tickettailor.com/events/<account>/` (the `<account>` slug is the box office)
+- Server-rendered HTML (no reliable JSON-LD), behind Cloudflare
+
+**Roving-producer model (per-show venues):**
+- A Ticket Tailor account is modeled as a `production_companies` row with **no** `production_company_venues` mapping. `ScrapingService._scrape_production_companies` then builds a synthetic in-memory Club proxy via `_build_synthetic_proxy_for_company`, which recognizes Ticket Tailor box-office URLs (alongside Eventbrite organizers) and drives `TicketTailorScraper`.
+- The scraper parses each event's own venue (name + zip) from the listing and upserts one `clubs` row per distinct venue via `ClubHandler.upsert_discovered_venue`; each Show is built on its per-venue club. The orchestrator stamps `production_company_id` on every resulting Show.
+- Set `production_companies.visible = FALSE` for a hidden proxy producer — its shows surface under the auto-created per-venue clubs, not under a producer page.
+
+**Key extraction notes:**
+- Each event card is `li.events-listing__item`: `h3.event__title` / `a.event__link` (detail link), `span.event-meta__date` ("Tue Jun 30, 2026 6:00 PM - 9:00 PM CDT"), `span.event-meta__location` ("Vendetta Coffee Bar, 53204" = name + zip)
+- The date carries the year; the US timezone abbreviation (CDT/EST/…) is mapped to an IANA zone for localization
+- Per-venue clubs get only name + zip (the listing has no street/city), so `city`/`state` are empty — see TASK-3023 context atom on the dedup limitation
+
+**Anti-bot (Cloudflare):**
+- tickettailor.com 403s a plain request. The scraper clears it with `curl_cffi` `impersonate='chrome120'` plus a `Referer` header set to the producer's own website (`production_companies.website`)
+
+**DB setup:**
+```sql
+-- See migrations/20260620_onboard_milwaukee_comedy_ticket_tailor.sql for the full
+-- idempotent onboarding. No production_company_venues row (→ synthetic proxy).
+INSERT INTO production_companies (name, slug, scraping_url, website, visible, show_name_keywords)
+VALUES ('Milwaukee Comedy', 'milwaukee-comedy',
+        'https://www.tickettailor.com/events/milwaukeecomedy/',
+        'https://www.milwaukeecomedy.com/', FALSE, ARRAY[]::text[])
+ON CONFLICT (name) DO UPDATE SET scraping_url = EXCLUDED.scraping_url, website = EXCLUDED.website;
+```
+
+**Failure modes / gotchas:**
+- If the listing markup (`li.events-listing__item` / `event-meta__*`) changes, the extractor returns zero — covered by the recorded-fixture smoke test
+- The simple per-venue upsert loop omits the Eventbrite organizer scraper's lock-cascade retry machinery; fine for small indie feeds, revisit if a high-volume Ticket Tailor producer is onboarded
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/scrapers/implementations/ticket_tailor/`
+- Event entity: `apps/scraper/src/laughtrack/core/entities/event/ticket_tailor.py`
+- Synthetic-proxy dispatch: `_build_synthetic_proxy_for_company` in `core/services/scraping/__init__.py`
+- Reference producer/task: Milwaukee Comedy (account `milwaukeecomedy`), TASK-3023
+
+---
+
 ### Humanitix
 
 | | |
