@@ -129,8 +129,16 @@ _DJ_SET_RE = _re.compile(r"\bDJ\b", _re.IGNORECASE)
 # Word-boundary anchored so "comic" doesn't match "comically", etc. The optional
 # space/hyphen classes catch "stand up" / "stand-up" / "standup" and
 # "open mic" / "open-mic" / "openmic".
+#
+# "roast" is deliberately NOT a bare keyword: culinary roasts (pig/hog/pork/beef/
+# turkey/chicken/lamb/coffee/garlic roast, roast beef, etc.) are common at the
+# mixed-use food/brewpub venues this filter exists to clean up, and a bare match
+# surfaces e.g. "Pig Roast Celebrating Father's Day!" as a comedy show (TASK-3020).
+# Instead, only qualified comedy-roast forms count: "Comedy Roast" (via the bare
+# "comedy" alternative), "Celebrity Roast", "Roast Battle", and "Roast of <name>".
 _COMEDY_EVENT_RE = _re.compile(
-    r"\b(?:comedy|comedians?|comics?|stand[\s-]?up|improv|sketch|open[\s-]?mic|roast)\b",
+    r"\b(?:comedy|comedians?|comics?|stand[\s-]?up|improv|sketch|open[\s-]?mic"
+    r"|celebrity\s+roast|roast\s+battle|roast\s+of)\b",
     _re.IGNORECASE,
 )
 
