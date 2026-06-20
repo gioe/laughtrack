@@ -284,6 +284,79 @@ def test_extract_events_aggregate_offer_sold_out_flag_propagates_to_ticket():
     assert tickets[0].price == 64.0
 
 
+def test_extract_events_reads_schema_org_microdata_event_attrs():
+    html = """
+    <html><body>
+      <article itemscope itemtype="http://schema.org/Event">
+        <meta itemprop="startDate" content="2026-06-27T01:00:00">
+        <meta itemprop="endDate" content="2026-06-27T03:00:00">
+        <a itemprop="url" href="/event/late-night-comedy-42/register">
+          <span itemprop="name">Late Night Comedy</span>
+        </a>
+        <div itemprop="description">A stand-up showcase in Oak Park.</div>
+        <div itemprop="location" itemscope itemtype="http://schema.org/Place">
+          <span itemprop="name">Comedy Plex Comedy Club</span>
+          <div itemprop="address" itemscope itemtype="http://schema.org/PostalAddress">
+            <span itemprop="streetAddress">1128 Lake St Lower Level</span>
+            <span itemprop="addressLocality">Oak Park</span>
+            <span itemprop="addressRegion">IL</span>
+            <span itemprop="postalCode">60301</span>
+            <span itemprop="addressCountry">US</span>
+          </div>
+        </div>
+        <div itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+          <a itemprop="url" href="/event/late-night-comedy-42/register">Register</a>
+          <meta itemprop="price" content="25.00">
+          <meta itemprop="priceCurrency" content="USD">
+          <link itemprop="availability" href="https://schema.org/InStock">
+        </div>
+      </article>
+    </body></html>
+    """
+
+    events = EventExtractor.extract_events(
+        html,
+        same_as_override="https://www.comedyplex.com/event/late-night-comedy-42/register",
+    )
+
+    assert len(events) == 1
+    event = events[0]
+    assert event.name == "Late Night Comedy"
+    assert event.same_as == "https://www.comedyplex.com/event/late-night-comedy-42/register"
+    assert event.start_date.isoformat() == "2026-06-27T01:00:00"
+    assert event.location.name == "Comedy Plex Comedy Club"
+    assert event.location.address.street_address == "1128 Lake St Lower Level"
+    assert event.offers[0].price == "25.00"
+    assert event.offers[0].price_currency == "USD"
+
+
+def test_extract_events_uses_detail_url_for_microdata_without_url_prop():
+    html = """
+    <html><body>
+      <div itemscope itemtype="http://schema.org/Event">
+        <h1 itemprop="name">Andrew Rudick</h1>
+        <meta itemprop="startDate" content="2026-08-22T01:00:00">
+        <div itemprop="location" itemscope itemtype="https://schema.org/Place">
+          <div itemprop="name">Comedy Plex</div>
+          <div itemprop="address" itemscope itemtype="http://schema.org/PostalAddress">
+            <span itemprop="streetAddress">1128 Lake St<br>Lower Level<br>Oak Park IL 60301<br>United States</span>
+          </div>
+        </div>
+      </div>
+    </body></html>
+    """
+
+    events = EventExtractor.extract_events(
+        html,
+        same_as_override="https://www.comedyplex.com/event/andrew-rudick-864/register",
+    )
+
+    assert len(events) == 1
+    assert events[0].name == "Andrew Rudick"
+    assert events[0].url == "https://www.comedyplex.com/event/andrew-rudick-864/register"
+    assert events[0].same_as == "https://www.comedyplex.com/event/andrew-rudick-864/register"
+
+
 def test_extract_events_aggregate_offer_falls_back_to_high_price():
     """When AggregateOffer omits lowPrice, fall back to highPrice."""
     obj = {

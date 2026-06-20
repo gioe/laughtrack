@@ -175,6 +175,9 @@ Check page source:
         → platform: SquadUP → new venue-specific scraper required
   └── <script type="application/ld+json"> with "@type": "Event"
         → platform: JSON-LD → scraper: json_ld (generic; set scraping_url)
+  └── Odoo website_event pages at /event with itemtype="http://schema.org/Event"
+      microdata cards/detail pages
+        → platform: custom → scraper: odoo_events (generic; set source_url)
   └── CSS classes: rhpSingleEvent / eventWrapper / rhp-event__title--list
         → platform: rhp-events (WordPress) → scraper: comedy_magic_club (generic; set scraping_url)
   └── data-compId on Wix event widget / wixstatic.com assets
@@ -1016,6 +1019,49 @@ live music plus a weekly "Comedy Open Mic". Onboarded with `scraper_key='json_ld
 `source_url='https://colesbarchicago.com/'`, and
 `metadata={"detail_fetch": {"enabled": true, "url_path_prefix": "/shows/"}, "comedy_filter": true}`
 → scrapes only the comedy open mics.
+
+---
+
+### Odoo website_event
+
+| | |
+|---|---|
+| **Scraper key** | `odoo_events` |
+| **Platform** | `custom` |
+| **DB field** | `scraping_sources.source_url` |
+| **Value format** | Odoo event listing URL, usually `https://<host>/event` |
+| **Generic?** | ✅ Generic for Odoo website_event pages whose detail pages expose schema.org Event microdata |
+
+**Detection signals:**
+- Listing page at `/event` with links shaped `/event/<slug>-<id>/register`
+- Page source contains `itemscope itemtype="http://schema.org/Event"` and `itemprop` attributes (`startDate`, `name`, `offers`, `location`)
+- Odoo asset/page markers such as `website_event` may appear, but the scraper keys off the public Event microdata and links
+
+**API/source pattern:**
+- Fetch `scraping_sources.source_url`
+- Crawl same-host register links under `/event/`
+- Follow Odoo pagination links such as `/event/page/2?date=upcoming`
+- Fetch each detail page and parse schema.org Event microdata
+
+**Key extraction notes:**
+- Odoo stores event datetimes as UTC-like strings without a timezone suffix (for example `2026-06-27T01:00:00` for an evening Central Time show). The scraper treats naive datetimes as UTC and converts to the club timezone.
+- Detail pages are the canonical source for price, location, and description. Listing cards are used only for discovery.
+- The scraper drops past shows and defaults to excluding class/workshop/camp title matches. Configure `metadata.exclude_title_patterns` when a venue has additional non-comedy series (Comedy Plex uses `\bjazz\b`).
+
+**DB setup:**
+```sql
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, priority, enabled, metadata)
+VALUES (<club_id>, 'custom'::"ScrapingPlatform", 'odoo_events', 'https://www.example.com/event', 0, TRUE, '{}'::jsonb);
+```
+
+**Failure modes / gotchas:**
+- If the venue customizes detail pages and removes Event microdata, this scraper will return no shows.
+- Pagination is capped by metadata/defaults; increase `metadata.detail_fetch.pagination.max_pages` only when a venue has more than ten upcoming listing pages.
+- Some Odoo venues use category tags for mixed calendars; this generic scraper does not currently filter Odoo categories.
+
+**Reference implementation:**
+- `src/laughtrack/scrapers/implementations/api/odoo_events/scraper.py`
+- Onboarded example: Comedy Plex Comedy Club (TASK-3021)
 
 ---
 
@@ -2920,6 +2966,7 @@ Other related checks:
 | `modern_events_calendar` | `source_url` (WordPress `mec-events` REST endpoint, optionally filtered by `mec_category`) |
 | `comedy_magic_club` | `scraping_url` (base `/events/` URL — no pagination) |
 | `json_ld` | `scraping_url` (events page with JSON-LD markup, e.g. Prekindle, Humanitix) |
+| `odoo_events` | `source_url` (Odoo website_event listing URL, usually `/event`) |
 | `tixr` | `source_url` or `scraping_url` (server-rendered calendar page with Tixr event links) |
 | `tixr_public_card` | `source_url` or `scraping_url` (venue-owned event cards with Tixr ticket URLs) |
 | `tixr_webflow_day_card` | `source_url` + metadata `tixr_group_fragment` |

@@ -2,6 +2,9 @@
 
 from typing import Any, Iterable, List, Set
 
+from bs4 import BeautifulSoup
+from bs4.element import Tag
+
 from laughtrack.foundation.models.types import JSONDict
 from laughtrack.foundation.utilities.json.utils import JSONUtils
 from laughtrack.foundation.infrastructure.logger.logger import Logger
@@ -29,21 +32,43 @@ class EventExtractor:
         Returns:
             List of Event dictionaries found in the HTML (all objects or events only)
         """
+        microdata_events = EventExtractor._extract_microdata_events(
+            html_content,
+            url_fallback=same_as_override,
+        )
+
         # Use the HtmlScraper utility method to extract JSON-LD data
         script_contents = HtmlScraper.get_json_ld_script_contents(html_content)
 
         if not script_contents:
-            return []
+            return EventExtractor._events_from_dicts(
+                microdata_events,
+                same_as_override=same_as_override,
+                source_label="microdata",
+            )
 
         json_objects = JSONUtils.parse_json_ld_contents(script_contents)
         if not json_objects:
-            return []
+            return EventExtractor._events_from_dicts(
+                microdata_events,
+                same_as_override=same_as_override,
+                source_label="microdata",
+            )
 
         # For non-event-only extraction, return all JSON-LD objects that look like events
-        return EventExtractor._extract_events_from_data(
+        json_ld_events = EventExtractor._extract_events_from_data(
             json_objects,
             same_as_override=same_as_override,
         )
+        if not microdata_events:
+            return json_ld_events
+
+        microdata_parsed = EventExtractor._events_from_dicts(
+            microdata_events,
+            same_as_override=same_as_override,
+            source_label="microdata",
+        )
+        return EventExtractor._dedupe_events(json_ld_events + microdata_parsed)
 
     @staticmethod
     def extract_min_offer_price(html_content: str) -> float | None:
@@ -253,10 +278,23 @@ class EventExtractor:
         for item in json_ld_data:
             all_events.extend(EventExtractor._extract_events_recursively(item))
 
+        return EventExtractor._events_from_dicts(
+            all_events,
+            same_as_override=same_as_override,
+            source_label="JSON-LD",
+        )
+
+    @staticmethod
+    def _events_from_dicts(
+        raw_events: list[dict[str, Any]],
+        *,
+        same_as_override: str | None = None,
+        source_label: str,
+    ) -> List[JsonLdEvent]:
         # Deduplicate events by their string representation
         seen = set()
         unique_events = []
-        for event in all_events:
+        for event in raw_events:
             event_str = str(sorted(event.items()))
             if event_str in seen:
                 continue
@@ -276,10 +314,173 @@ class EventExtractor:
                 # all (TASK-2838). Log enough to diagnose from nightly logs:
                 # the event's @type/name and the failing exception.
                 Logger.debug(
-                    "Skipping unparseable JSON-LD event "
+                    f"Skipping unparseable {source_label} event "
                     f"(@type={event.get('@type')!r}, name={event.get('name')!r}): "
                     f"{type(exc).__name__}: {exc}"
                 )
                 continue
 
         return unique_events
+
+    @staticmethod
+    def _dedupe_events(events: list[JsonLdEvent]) -> list[JsonLdEvent]:
+        seen: set[tuple[str, str, str]] = set()
+        unique: list[JsonLdEvent] = []
+        for event in events:
+            key = (
+                event.name or "",
+                event.start_date.isoformat() if event.start_date else "",
+                event.same_as or event.url or "",
+            )
+            if key in seen:
+                continue
+            seen.add(key)
+            unique.append(event)
+        return unique
+
+    @staticmethod
+    def _extract_microdata_events(
+        html_content: str,
+        *,
+        url_fallback: str | None = None,
+    ) -> list[dict[str, Any]]:
+        soup = BeautifulSoup(html_content or "", "html.parser")
+        events: list[dict[str, Any]] = []
+        for scope in soup.find_all(attrs={"itemscope": True}):
+            if not isinstance(scope, Tag):
+                continue
+            if not EventExtractor._itemtype_matches(scope, "Event"):
+                continue
+
+            raw = EventExtractor._microdata_event(scope, url_fallback=url_fallback)
+            if raw:
+                events.append(raw)
+        return events
+
+    @staticmethod
+    def _microdata_event(scope: Tag, *, url_fallback: str | None = None) -> dict[str, Any] | None:
+        name = EventExtractor._microdata_value(scope, "name")
+        start = EventExtractor._microdata_value(scope, "startDate")
+        url = EventExtractor._microdata_value(scope, "url")
+        description = EventExtractor._microdata_value(scope, "description") or ""
+        location = EventExtractor._microdata_location(scope)
+        offers = EventExtractor._microdata_offers(scope)
+
+        if not url and offers:
+            url = offers[0].get("url")
+        if not url:
+            url = url_fallback
+
+        if not name or not start or not url:
+            return None
+
+        return {
+            "@type": "Event",
+            "name": name,
+            "startDate": start,
+            "url": url,
+            "description": description,
+            "location": location,
+            "offers": offers,
+        }
+
+    @staticmethod
+    def _microdata_location(scope: Tag) -> dict[str, Any]:
+        location_scope = EventExtractor._microdata_scope(scope, "location")
+        if location_scope is None:
+            return {"@type": "Place", "name": EventExtractor._microdata_value(scope, "location") or ""}
+
+        address_scope = EventExtractor._microdata_scope(location_scope, "address")
+        address: dict[str, str] | str
+        if address_scope is not None:
+            address = {
+                "@type": "PostalAddress",
+                "streetAddress": EventExtractor._microdata_value(address_scope, "streetAddress") or "",
+                "addressLocality": EventExtractor._microdata_value(address_scope, "addressLocality") or "",
+                "addressRegion": EventExtractor._microdata_value(address_scope, "addressRegion") or "",
+                "postalCode": EventExtractor._microdata_value(address_scope, "postalCode") or "",
+                "addressCountry": EventExtractor._microdata_value(address_scope, "addressCountry") or "",
+            }
+        else:
+            address = EventExtractor._microdata_value(location_scope, "address") or ""
+
+        return {
+            "@type": "Place",
+            "name": EventExtractor._microdata_value(location_scope, "name") or "",
+            "address": address,
+        }
+
+    @staticmethod
+    def _microdata_offers(scope: Tag) -> list[dict[str, str]]:
+        offers: list[dict[str, str]] = []
+        for offer_scope in EventExtractor._microdata_scopes(scope, "offers"):
+            offer = {
+                "@type": "Offer",
+                "url": EventExtractor._microdata_value(offer_scope, "url") or "",
+                "price": EventExtractor._microdata_value(offer_scope, "price") or "",
+                "priceCurrency": EventExtractor._microdata_value(offer_scope, "priceCurrency") or "",
+                "availability": EventExtractor._microdata_value(offer_scope, "availability") or "",
+            }
+            if any(offer.values()):
+                offers.append(offer)
+        return offers
+
+    @staticmethod
+    def _microdata_scope(scope: Tag, prop: str) -> Tag | None:
+        scopes = EventExtractor._microdata_scopes(scope, prop)
+        return scopes[0] if scopes else None
+
+    @staticmethod
+    def _microdata_scopes(scope: Tag, prop: str) -> list[Tag]:
+        return [
+            element
+            for element in EventExtractor._scoped_prop_elements(scope, prop)
+            if element.has_attr("itemscope")
+        ]
+
+    @staticmethod
+    def _microdata_value(scope: Tag, prop: str) -> str | None:
+        element = next(iter(EventExtractor._scoped_prop_elements(scope, prop)), None)
+        if not element:
+            return None
+        for attr in ("content", "href", "src", "datetime"):
+            value = element.get(attr)
+            if isinstance(value, str) and value.strip():
+                return value.strip()
+        text = element.get_text(" ", strip=True)
+        return text or None
+
+    @staticmethod
+    def _scoped_prop_elements(scope: Tag, prop: str) -> list[Tag]:
+        elements: list[Tag] = []
+        for element in scope.find_all(attrs={"itemprop": True}):
+            if not isinstance(element, Tag):
+                continue
+            props = element.get("itemprop")
+            prop_values = props if isinstance(props, list) else str(props).split()
+            if prop not in prop_values:
+                continue
+            if not EventExtractor._belongs_to_scope(element, scope):
+                continue
+            elements.append(element)
+        return elements
+
+    @staticmethod
+    def _belongs_to_scope(element: Tag, scope: Tag) -> bool:
+        parent = element.parent
+        while isinstance(parent, Tag) and parent is not scope:
+            if parent.has_attr("itemscope"):
+                return False
+            parent = parent.parent
+        return True
+
+    @staticmethod
+    def _itemtype_matches(scope: Tag, expected_type: str) -> bool:
+        raw = scope.get("itemtype")
+        values = raw if isinstance(raw, list) else str(raw or "").split()
+        expected = expected_type.lower()
+        for value in values:
+            normalized = value.rstrip("/").rsplit("/", 1)[-1].lower()
+            if normalized == expected or normalized == f"comedy{expected}":
+                return True
+        return False
