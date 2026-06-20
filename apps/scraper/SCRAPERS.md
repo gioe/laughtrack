@@ -1572,6 +1572,54 @@ ON CONFLICT (name) DO UPDATE SET scraping_url = EXCLUDED.scraping_url, website =
 
 ---
 
+### Ludus
+
+| | |
+|---|---|
+| **Scraper key** | `ludus` (generic — shared across all Ludus venues) |
+| **Platform** | `custom` |
+| **DB field** | `scraping_sources.source_url` + `metadata` keys `ludus_subdomain` (required), `comedy_category_id` (required), `comedy_filter` (optional) |
+| **Value format** | `metadata`: `{"ludus_subdomain": "parktheatreholland", "comedy_category_id": "468", "comedy_filter": true}` |
+| **Generic?** | ✅ generic — any ludus.com venue onboards via metadata, no new code |
+
+**Detection signals:**
+- Buy links / embedded widget from `*.ludus.com` (formerly Tixato); the venue's own site often only embeds the Ludus widget
+- Box-office embed at `{subdomain}.ludus.com/embed/index.php?widget=1&sections=all&hideNav=false`
+
+**API/source pattern (two-step embed → detail):**
+- **Embed**: one `div.show_item[data-show-id][data-event-categories]` per show, title in `h2.show_item_title`. The `&category_id=` URL param does NOT server-side filter — comedy shows are filtered client-side on the `;`-separated `data-event-categories` containing the venue-specific `comedy_category_id`
+- **Detail** `{subdomain}.ludus.com/index.php?show_id=<id>`: dates are NOT on the embed cards; each detail page lists `div.showtimes_item[data-past-date]` rows with a human-readable "Sunday, July 12, 2026 7:00 PM" date
+
+**Key extraction notes:**
+- The `comedy_category_id` is a coarse venue tag and can be mis-applied (e.g. a "Radiohead Performed by Android Paranoid" tribute band mis-tagged comedy). Layer the shared comedy filter (`comedy_filter: true` → `select_comedy_titles`, keyword OR known-comedian) on top to drop mis-tags. This keeps bare-comedian-name titles (e.g. "Cam Bertrand") via the comedian DB while dropping the tribute band
+- The card title is trimmed at the " ★ <Venue>" separator the listing appends
+- Skip `div.showtimes_item[data-past-date="1"]`; dedupe (the row repeats its date text). The human-readable date carries the year; localize with the club timezone (e.g. America/Detroit, EDT/EST)
+
+**Anti-bot (Cloudflare):**
+- Ludus sits behind a Cloudflare managed challenge that 403s a plain request; a `curl_cffi` `impersonate='chrome120'` session clears it (no Referer needed)
+
+**DB setup:**
+```sql
+-- See migrations/20260620_onboard_park_theatre_holland_ludus.sql for the full
+-- idempotent club + scraping_sources onboarding.
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, priority, enabled, metadata)
+SELECT c.id, 'custom'::"ScrapingPlatform", 'ludus', 'https://parktheatreholland.ludus.com/', 0, TRUE,
+       '{"ludus_subdomain": "parktheatreholland", "comedy_category_id": "468", "comedy_filter": true}'::jsonb
+  FROM clubs c WHERE c.id = <club_id>;
+```
+
+**Failure modes / gotchas:**
+- The `comedy_category_id` is **venue-specific** — find it by inspecting `data-event-categories` on the embed's comedy cards
+- The full embed page is large (~500 KB); recorded fixtures are trimmed to a few real cards
+- If the embed markup (`show_item` / `showtimes_item`) changes, the extractor returns zero — covered by the recorded-fixture smoke test
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/scrapers/implementations/ludus/`
+- Event entity: `apps/scraper/src/laughtrack/core/entities/event/ludus.py`
+- Reference venue/task: Park Theatre Holland (subdomain `parktheatreholland`, category `468`), TASK-3025
+
+---
+
 ### Humanitix
 
 | | |
