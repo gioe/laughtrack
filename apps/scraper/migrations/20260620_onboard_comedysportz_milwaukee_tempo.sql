@@ -71,7 +71,7 @@ SELECT
     'https://www.tempotickets.com/tempotickets/site/pages/listing.php?c=80',
     0,
     TRUE,
-    '{"category_id": "80"}'::jsonb
+    '{"category_id": "80", "tags": ["event", "improv"]}'::jsonb
   FROM clubs c
  WHERE (c.google_place_id = 'ChIJD9azULwZBYgRouAgH_i5lrw'
         OR lower(c.name) = lower('ComedySportz Milwaukee'))

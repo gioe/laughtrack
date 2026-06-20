@@ -7,9 +7,9 @@ into one :class:`TempoTicketsEvent` per upcoming date, which converts to a Show
 here. The buy URL is the event page (the EventDateID is passable downstream).
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.show.model import Show
@@ -27,6 +27,10 @@ class TempoTicketsEvent(ShowConvertible):
     start: datetime
     event_url: str
     date_id: Optional[str] = None
+    # Tags applied to the Show. Defaults to the neutral ["event"]; the scraper
+    # passes venue-specific tags (e.g. ["event", "improv"]) from source metadata
+    # so this shared entity stays generic across Tempo venues.
+    tags: List[str] = field(default_factory=lambda: ["event"])
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None) -> Optional[Show]:
         start_date = ShowFactoryUtils.parse_datetime_with_timezone_fallback(
@@ -38,12 +42,12 @@ class TempoTicketsEvent(ShowConvertible):
         tickets = [ShowFactoryUtils.create_fallback_ticket(source_url)]
 
         return ShowFactoryUtils.create_enhanced_show_base(
-            name=self.title or "ComedySportz Match",
+            name=self.title or club.name,
             club=club,
             date=start_date,
             show_page_url=source_url,
             lineup=[],
             tickets=tickets,
-            supplied_tags=["event", "improv"],
+            supplied_tags=self.tags or ["event"],
             enhanced=enhanced,
         )

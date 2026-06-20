@@ -54,7 +54,7 @@ def club() -> Club:
         platform="custom",
         scraper_key="tempo_tickets",
         source_url="https://www.tempotickets.com/tempotickets/site/pages/listing.php?c=80",
-        metadata={"category_id": "80"},
+        metadata={"category_id": "80", "tags": ["event", "improv"]},
     )
     _c.scraping_sources = [_c.active_scraping_source]
     return _c
@@ -137,8 +137,25 @@ async def test_get_data_fans_out_dates(monkeypatch, club):
     assert len(page.event_list) == 13
     event = page.event_list[0]
     assert event.title
+    # The hardcoded leading year is stripped so rolled-over dates don't go stale.
+    assert not event.title[:4].isdigit()
     assert event.event_url == "https://www.tempotickets.com/event/NtjnAX"
     assert event.date_id == "27784"
+    # Tags come from source metadata, keeping the shared scraper generic.
+    assert event.tags == ["event", "improv"]
+
+
+def test_show_tags_default_when_metadata_absent(club):
+    club.active_scraping_source.metadata = {"category_id": "80"}
+    assert TempoTicketsScraper(club)._show_tags() == ["event"]
+
+
+def test_extract_title_strips_leading_year():
+    html = "<html><head><title>2026 ComedySportz Friday 7:30 Match</title></head></html>"
+    assert (
+        TempoTicketsScraper._extract_title(html, fallback="fallback")
+        == "ComedySportz Friday 7:30 Match"
+    )
 
 
 @pytest.mark.asyncio

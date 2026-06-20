@@ -13,6 +13,7 @@ scraping source's `category_id` metadata so the scraper is reusable for any
 Tempo venue; it falls back to the club's scraping_url when no category is set.
 """
 
+import re
 from typing import List, Optional
 
 from laughtrack.core.entities.club.model import Club
@@ -38,6 +39,17 @@ class TempoTicketsScraper(BaseScraper):
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
         self.transformation_pipeline.register_transformer(TempoTicketsTransformer(club))
+
+    def _show_tags(self) -> List[str]:
+        """Venue-specific Show tags from source metadata (default ['event']).
+
+        Keeps the shared scraper generic: ComedySportz sets ['event','improv'],
+        a future stand-up Tempo venue can set its own without code changes.
+        """
+        tags = (self.club.source_metadata or {}).get("tags")
+        if isinstance(tags, list) and tags:
+            return [str(t) for t in tags]
+        return ["event"]
 
     def _listing_url(self) -> Optional[str]:
         category_id = (self.club.source_metadata or {}).get("category_id")
@@ -78,7 +90,8 @@ class TempoTicketsScraper(BaseScraper):
             self._warn_empty_extraction(target, html=html)
             return None
 
-        title = self._extract_title(html, fallback="ComedySportz Match")
+        title = self._extract_title(html, fallback=self.club.name)
+        tags = self._show_tags()
         dates = extract_event_dates(html)
         if not dates:
             self._warn_empty_extraction(target, subject="upcoming dates", html=html)
@@ -90,20 +103,29 @@ class TempoTicketsScraper(BaseScraper):
                 start=start,
                 event_url=target,
                 date_id=date_id,
+                tags=tags,
             )
             for date_id, start in dates
         ]
         return TempoTicketsPageData(event_list=events)
 
-    @staticmethod
-    def _extract_title(html: str, *, fallback: str) -> str:
+    # Tempo event titles are hardcoded with the current year ('2026 ComedySportz
+    # Friday 7:30 Match'); strip a leading 4-digit year so a rolled-over
+    # next-year date doesn't carry a stale year in the Show name.
+    _LEADING_YEAR_RE = re.compile(r"^\s*\d{4}\s+")
+
+    @classmethod
+    def _extract_title(cls, html: str, *, fallback: str) -> str:
         """Best-effort event title from the event page <h1>/<title>."""
         from bs4 import BeautifulSoup
 
         soup = BeautifulSoup(html, "html.parser")
         heading = soup.find("h1")
+        raw = ""
         if heading and heading.get_text(strip=True):
-            return heading.get_text(strip=True)
-        if soup.title and soup.title.get_text(strip=True):
-            return soup.title.get_text(strip=True)
-        return fallback
+            raw = heading.get_text(strip=True)
+        elif soup.title and soup.title.get_text(strip=True):
+            raw = soup.title.get_text(strip=True)
+
+        cleaned = cls._LEADING_YEAR_RE.sub("", raw).strip()
+        return cleaned or fallback
