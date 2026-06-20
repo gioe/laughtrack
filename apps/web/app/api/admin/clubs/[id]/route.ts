@@ -12,7 +12,12 @@ const bodySchema = z.object({
     description: z.string().max(5000).nullable(),
 });
 
-const CLUB_STATUS_OPTIONS = ["active", "closed", "hiatus"] as const;
+const CLUB_STATUS_OPTIONS = [
+    "active",
+    "closed",
+    "hiatus",
+    "not_open_yet",
+] as const;
 const CLUB_TYPE_OPTIONS = ["club", "festival", "venue"] as const;
 
 const statusOverrideSchema = z

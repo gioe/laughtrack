@@ -266,6 +266,26 @@ describe("AdminClubManager", () => {
         expect(groupList!.hidden).toBe(false);
     });
 
+    it("includes not_open_yet in status controls", () => {
+        render(<AdminClubManager groups={groups} />);
+
+        fireEvent.click(getFunnyBoneGroupToggle());
+
+        const statusFilter = screen.getByLabelText(
+            "Filter Funny Bone clubs by status",
+        );
+        expect(
+            within(statusFilter).getByRole("option", {
+                name: "not_open_yet",
+            }),
+        ).toBeTruthy();
+        expect(
+            within(screen.getAllByLabelText("Status")[0]).getByRole("option", {
+                name: "not_open_yet",
+            }),
+        ).toBeTruthy();
+    });
+
     it("saves status overrides", async () => {
         render(<AdminClubManager groups={groups} />);
 

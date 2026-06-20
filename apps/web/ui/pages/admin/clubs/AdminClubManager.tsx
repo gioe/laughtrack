@@ -49,7 +49,7 @@ type ChainClubControls = {
     clubType: string;
 };
 
-const CLUB_STATUS_OPTIONS = ["active", "closed", "hiatus"];
+const CLUB_STATUS_OPTIONS = ["active", "closed", "hiatus", "not_open_yet"];
 const CLUB_TYPE_OPTIONS = ["club", "festival", "venue"];
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 const DEFAULT_CHAIN_CONTROLS: ChainClubControls = {
@@ -186,6 +186,9 @@ function statusBadgeClass(club: AdminClubListItem) {
     }
     if (club.status === "hiatus") {
         return "border-amber-700/30 bg-amber-50 text-amber-900";
+    }
+    if (club.status === "not_open_yet") {
+        return "border-sky-700/30 bg-sky-50 text-sky-900";
     }
     if (!club.visible) {
         return "border-gray-500/30 bg-gray-100 text-gray-900";

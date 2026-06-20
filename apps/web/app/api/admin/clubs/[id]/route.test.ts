@@ -369,6 +369,40 @@ describe("PATCH /api/admin/clubs/[id]", () => {
         });
     });
 
+    it("accepts not_open_yet as a club status override", async () => {
+        mockAuth.mockResolvedValue(adminSession as never);
+
+        const auditCreate = vi.fn();
+        const findUnique = vi.fn().mockResolvedValue(clubRow());
+        const update = vi.fn().mockResolvedValue(
+            clubRow({
+                status: "not_open_yet",
+            }),
+        );
+        mockTransaction.mockImplementation(async (callback) =>
+            callback({
+                club: { findUnique, update },
+                adminActionAudit: { create: auditCreate },
+            } as never),
+        );
+
+        const [req, ctx] = makeRequest({
+            status: "not_open_yet",
+        });
+        const res = await PATCH(req, ctx);
+        const body = await res.json();
+
+        expect(res.status).toBe(200);
+        expect(body.club.status).toBe("not_open_yet");
+        expect(update).toHaveBeenCalledWith({
+            where: { id: CLUB_ID },
+            data: expect.objectContaining({
+                status: "not_open_yet",
+            }),
+            select: expect.any(Object),
+        });
+    });
+
     it("updates a club name and revalidates the old and new names", async () => {
         mockAuth.mockResolvedValue(adminSession as never);
 
