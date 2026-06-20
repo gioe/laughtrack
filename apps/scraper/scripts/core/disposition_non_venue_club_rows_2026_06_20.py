@@ -446,7 +446,7 @@ def run(dry_run: bool) -> int:
                         f"visible={row['visible']} type={row['club_type']!r}",
                         file=sys.stderr,
                     )
-                return 1
+                raise RuntimeError("residual synthetic address rows remain")
 
     return 0
 
