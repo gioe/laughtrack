@@ -35,7 +35,6 @@ Usage
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -306,27 +305,6 @@ _PRESERVE_ROWS: tuple[PreserveRow, ...] = (
     PreserveRow(5109, "Pantages Theater", "valid_multi_room", "named Tacoma theater"),
     PreserveRow(5175, "Theatre On the Square", "valid_multi_room", "named Tacoma theater"),
 )
-
-
-def _load_metadata(raw: Any) -> dict[str, Any]:
-    if raw is None:
-        return {}
-    if isinstance(raw, str):
-        return json.loads(raw)
-    return dict(raw)
-
-
-def _classification_note(classification: str, rationale: str) -> str:
-    return f"{_DESCRIPTION_MARKER} {classification}. {rationale}."
-
-
-def _append_note(description: str | None, note: str) -> str:
-    existing = (description or "").strip()
-    if _DESCRIPTION_MARKER in existing:
-        return existing
-    if existing:
-        return f"{existing}\n\n{note}"
-    return note
 
 
 def _all_expected_names() -> dict[int, str]:
