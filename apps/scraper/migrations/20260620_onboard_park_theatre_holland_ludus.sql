@@ -48,7 +48,7 @@ WHERE NOT EXISTS (
     SELECT 1
       FROM clubs
      WHERE google_place_id = 'ChIJn8cCVrfyGYgRzUzahhTdGq4'
-        OR lower(name) = lower('Park Theatre')
+        OR (lower(name) = lower('Park Theatre') AND lower(city) = lower('Holland') AND state = 'MI')
 );
 
 UPDATE clubs
@@ -63,7 +63,7 @@ UPDATE clubs
        club_type = 'club',
        google_place_id = COALESCE(google_place_id, 'ChIJn8cCVrfyGYgRzUzahhTdGq4')
  WHERE google_place_id = 'ChIJn8cCVrfyGYgRzUzahhTdGq4'
-    OR lower(name) = lower('Park Theatre');
+    OR (lower(name) = lower('Park Theatre') AND lower(city) = lower('Holland') AND state = 'MI');
 
 INSERT INTO scraping_sources (
     club_id,
@@ -84,7 +84,7 @@ SELECT
     '{"ludus_subdomain": "parktheatreholland", "comedy_category_id": "468", "comedy_filter": true}'::jsonb
   FROM clubs c
  WHERE (c.google_place_id = 'ChIJn8cCVrfyGYgRzUzahhTdGq4'
-        OR lower(c.name) = lower('Park Theatre'))
+        OR (lower(c.name) = lower('Park Theatre') AND lower(c.city) = lower('Holland') AND c.state = 'MI'))
    AND NOT EXISTS (
        SELECT 1
          FROM scraping_sources s
@@ -103,4 +103,4 @@ UPDATE scraping_sources s
  WHERE s.club_id = c.id
    AND s.scraper_key = 'ludus'
    AND (c.google_place_id = 'ChIJn8cCVrfyGYgRzUzahhTdGq4'
-        OR lower(c.name) = lower('Park Theatre'));
+        OR (lower(c.name) = lower('Park Theatre') AND lower(c.city) = lower('Holland') AND c.state = 'MI'));
