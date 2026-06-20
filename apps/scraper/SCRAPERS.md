@@ -1425,6 +1425,55 @@ VALUES ('My Venue', 'my_venue', 'https://www.ticketsource.com/my-venue', ...);
 
 ---
 
+### Tempo Tickets
+
+| | |
+|---|---|
+| **Scraper key** | `tempo_tickets` (generic — shared across all Tempo venues) |
+| **Platform** | `custom` |
+| **DB field** | `scraping_sources.source_url` + `metadata` keys `category_id` (required), `tags` (optional) |
+| **Value format** | `source_url`: `https://www.tempotickets.com/tempotickets/site/pages/listing.php?c=<category_id>`; `metadata`: `{"category_id": "80", "tags": ["event", "improv"]}` |
+| **Generic?** | ✅ generic — any tempotickets.com venue onboards via metadata, no new code |
+
+**Detection signals:**
+- Buy links / ticketing redirects to `tempotickets.com`
+- Listing page is `…/tempotickets/site/pages/listing.php?c=<id>` (the `c=<id>` is the venue/category key)
+- Server-rendered PHP HTML — browser UA, no JSON-LD / API / auth / anti-bot
+
+**API/source pattern:**
+- **Listing** `listing.php?c=<id>`: one `div.listing_table_row` per recurring event, each with `<a href='.../event/{code}'>{title}</a>`
+- **Event** `/event/{code}`: upcoming individual dates live in `<select name='EventDateID'><option value='{dateId}'>Fri Jun 26 @ 7:30pm (...)</option>…</select>`
+
+**Key extraction notes:**
+- The scraper builds the listing URL from `metadata.category_id`, falling back to `source_url`
+- Option `value='0'` is a placeholder (empty text) — skip it. Past dates render as `div.date_past` and are **not** inside the select, so no past-date filtering is needed
+- **Year inference (GOTCHA):** option text carries no year ("Fri Jun 26 @ 7:30pm"). Since the select lists only upcoming dates, the year is inferred by rollover from the current date (a December scrape reads a "Jan 9" option as next year)
+- Title is pulled from the event page `<h1>`/`<title>`; a leading 4-digit year ("2026 …") is stripped so rolled-over next-year dates don't carry a stale year
+- `tags` come from source metadata (default `["event"]`), keeping the shared scraper generic — set `["event", "improv"]` for improv venues, etc.
+- Buy URL = the `/event/{code}` page (the EventDateID is passable downstream)
+
+**DB setup:**
+```sql
+-- See migrations/20260620_onboard_comedysportz_milwaukee_tempo.sql for the full
+-- idempotent club + scraping_sources onboarding pattern.
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, priority, enabled, metadata)
+SELECT c.id, 'custom'::"ScrapingPlatform", 'tempo_tickets',
+       'https://www.tempotickets.com/tempotickets/site/pages/listing.php?c=80',
+       0, TRUE, '{"category_id": "80", "tags": ["event", "improv"]}'::jsonb
+  FROM clubs c WHERE c.id = <club_id>;
+```
+
+**Failure modes / gotchas:**
+- Recurring events fan out into many shows (one per upcoming option) — a single listing of 4 events produced 54 dated shows for ComedySportz MKE
+- If a future Tempo listing changes the `div.listing_table_row` / `EventDateID` markup, the extractor returns zero — covered by the recorded-fixture smoke tests
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/scrapers/implementations/tempo_tickets/`
+- Event entity: `apps/scraper/src/laughtrack/core/entities/event/tempo_tickets.py`
+- Reference venue/task: ComedySportz Milwaukee (`c=80`), TASK-3022
+
+---
+
 ### Humanitix
 
 | | |
