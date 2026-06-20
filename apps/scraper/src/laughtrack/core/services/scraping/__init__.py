@@ -10,7 +10,7 @@ import uuid
 from collections import defaultdict
 from datetime import datetime, timezone
 import copy
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, Tuple
 
 from laughtrack.app.scraper_resolver import ScraperResolver
 from laughtrack.core.entities.club.handler import ClubHandler
@@ -200,38 +200,81 @@ def _extract_eventbrite_organizer_id(url: str) -> Optional[str]:
     return None
 
 
+def _extract_tickettailor_account(url: str) -> Optional[str]:
+    """Extract the box-office account slug from a Ticket Tailor URL.
+
+    Accepts both ``tickettailor.com/events/<slug>/`` and the equivalent
+    ``/all-tickets/<slug>/`` shape.
+    """
+    if not url or "tickettailor.com" not in url:
+        return None
+    match = re.search(r"tickettailor\.com/(?:events|all-tickets)/([A-Za-z0-9_-]+)", url)
+    return match.group(1) if match else None
+
+
+def _synthetic_source_for_company(
+    company: ProductionCompany,
+) -> Optional[Tuple[ScrapingSource, str]]:
+    """Build the ScrapingSource (and a name-suffix label) that drives a
+    company's synthetic-proxy scrape from its ``scraping_url``.
+
+    Supports two synthetic source shapes; returns None for any other URL:
+    - **Eventbrite organizer** feeds (``eventbrite.com/o/...``)
+    - **Ticket Tailor** box offices (``tickettailor.com/events/<account>/``)
+    """
+    url = company.scraping_url or ""
+    organizer_id = _extract_eventbrite_organizer_id(url)
+    if organizer_id is not None:
+        source = ScrapingSource(
+            platform="eventbrite",
+            scraper_key="eventbrite",
+            source_url=url,
+            eventbrite_id=organizer_id,
+            priority=0,
+            enabled=True,
+        )
+        return source, "organizer"
+    account_slug = _extract_tickettailor_account(url)
+    if account_slug is not None:
+        source = ScrapingSource(
+            platform="custom",
+            scraper_key="ticket_tailor",
+            source_url=url,
+            metadata={"account_slug": account_slug},
+            priority=0,
+            enabled=True,
+        )
+        return source, "producer"
+    return None
+
+
 def _build_synthetic_proxy_for_company(company: ProductionCompany) -> Optional[Club]:
     """Synthesize an in-memory Club for a production company with no venue mapping.
 
     Used when ``production_company_venues`` has no row for the company — typical
-    for multi-venue organizers (e.g., Eventbrite organizers covering many states)
-    where seeding a single primary venue would defeat per-event venue routing.
-    The returned Club is never persisted; it exists solely to drive
+    for roving multi-venue producers (e.g., an Eventbrite organizer covering many
+    states, or a Ticket Tailor box office selling shows at varying venues) where
+    seeding a single primary venue would defeat per-event venue routing. The
+    returned Club is never persisted; it exists solely to drive
     ``_scrape_clubs_with_metrics`` and downstream per-event venue resolution
-    inside the chosen scraper (currently EventbriteScraper organizer mode).
+    inside the chosen scraper (EventbriteScraper organizer mode or
+    TicketTailorScraper).
 
     Returns None when the company's scraping_url cannot be parsed into a
-    supported synthetic source (today: Eventbrite organizer URLs only).
+    supported synthetic source (today: Eventbrite organizer URLs or Ticket
+    Tailor box-office URLs).
     """
-    url = company.scraping_url or ""
-    organizer_id = _extract_eventbrite_organizer_id(url)
-    if organizer_id is None:
+    built = _synthetic_source_for_company(company)
+    if built is None:
         return None
-    source = ScrapingSource(
-        platform="eventbrite",
-        scraper_key="eventbrite",
-        source_url=url,
-        eventbrite_id=organizer_id,
-        priority=0,
-        enabled=True,
-    )
+    source, label = built
     proxy = Club(
         # Synthetic proxies have no clubs.id; the SYNTHETIC_PROXY_PLACEHOLDER_ID
         # sentinel is a noop value for downstream code paths that read club.id
         # as a plain int (logging, DomainRequestMetrics). is_synthetic is the
         # real discriminator and production_company_id carries the linkage.
         id=Club.SYNTHETIC_PROXY_PLACEHOLDER_ID,
-        name=f"{company.name} (organizer)",
+        name=f"{company.name} ({label})",
         address="",
         website=company.website or "",
         popularity=0,
