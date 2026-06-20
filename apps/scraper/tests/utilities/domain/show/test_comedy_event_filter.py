@@ -27,10 +27,37 @@ from laughtrack.utilities.domain.show.factory import is_comedy_event
         "Two Comedians, One Mic",
         "The Roast of Someone",
         "tonight: COMEDY",
+        # Comedy-roast forms must still surface (TASK-3020).
+        "Comedy Roast of the Mayor",
+        "Celebrity Roast Night",
+        "Roast Battle: Open Bracket",
+        "The Roast of Jane Doe",
+        "roast of the class of 2010",  # case-insensitive
     ],
 )
 def test_matches_comedy_titles(text):
     assert is_comedy_event(text) is True
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        # Culinary roasts at mixed-use food/brewpub venues must NOT surface (TASK-3020).
+        "Pig Roast Celebrating Father's Day!",
+        "Annual Hog Roast",
+        "Pork Roast Sunday Supper",
+        "Beef Roast Dinner",
+        "Slow-Roast Turkey Feast",
+        "Whole Chicken Roast",
+        "Lamb Roast & Ale Pairing",
+        "Coffee Roast Tasting",
+        "Garlic Roast Festival",
+        "Roast Beef Special",
+        "Sunday Roast",
+    ],
+)
+def test_rejects_culinary_roasts(text):
+    assert is_comedy_event(text) is False
 
 
 @pytest.mark.parametrize(
