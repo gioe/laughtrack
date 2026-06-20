@@ -10,6 +10,9 @@ A comedy club chain/brand (e.g., Improv, Helium, Funny Bone). Groups multiple Cl
 ### Club
 Comedy club venue. Has shows, tags, email subscriptions, and processed emails. Optionally belongs to a Chain via chainId FK. `googlePlaceId` caches the resolved Google Places identifier (text-searched by name + city/state) so the venue can be re-queried without re-resolving; `googlePlaceAttribution` stores the Google Places photo's required author attributions as a JSON array of `{displayName, uri, photoUri}` when a club image is sourced from Places rather than the club website. Both are populated server-side by the scraper's `source_club_images` job — `GOOGLE_PLACES_API_KEY` is read only in the scraper and is never exposed to the web client.
 
+### SourceTarget
+Non-venue scraper trigger identity for platform, national, or aggregate feeds that should not appear as physical clubs. Use this when a source exists only to drive discovery or scraping and cannot truthfully provide a venue address. `scraping_sources` rows belong to exactly one owner: either `clubId` for venue-scoped scraping or `sourceTargetId` for non-venue scraping. Shows discovered through a source target must still be attributed to real `Club` rows where venue data is available; production attribution remains on `ProductionCompany`.
+
 ### ClubAlias
 Verified alternate venue names that resolve to one canonical Club before scraper discovery inserts a new club row. Aliases are global across ingestion sources and are scoped by normalized alias name, city, and state so the same venue nickname in a different market does not collide.
 
