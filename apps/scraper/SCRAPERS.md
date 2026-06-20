@@ -2594,6 +2594,52 @@ already carrying a `ticketmaster_comedy` source, and the all-events AXS import
 would flood the comedy DB. The scraper is verified against Agora's homepage (19
 live shows incl. comedy) and ready for comedy-dedicated AXS-skinned venues.
 
+### Pabst Theater Group venue page (`pabst_axs`)
+
+`scraper_key = pabst_axs`, `platform = custom`. **Pabst-group-specific, not the
+generic `axs` scraper.** The Pabst Theater Group (pabsttheater.org) runs one
+shared venue-page template across its rooms (Pabst Theater, Riverside Theater,
+Turner Hall, …), all ticketed via AXS (`axs.com/events/<id>/...?skin=pabst`). The
+generic `axs` scraper expects an AXS-skinned homepage with `rsCaption` slider
+cards and returns 0 against this template — the Pabst pages use a different
+`div.eventItem` card layout, carry **no** JSON-LD events (only `Organization`),
+and the date lives in the thumbnail filename rather than a text node.
+
+**Datasource (TASK-3033) — scrape the venue page, NOT axs.com.** The `axs.com`
+detail pages are DataDome-protected; the venue page is plain server-rendered HTML
+(plain curl gets 406 — use curl_cffi chrome impersonation, which `fetch_html`
+does by default). Parse the `div.eventItem` cards:
+- **name**: the `title` attribute of the info/ticket link — `More Info for <NAME>`
+  (preferred) or `Buy Tickets for <NAME>` (the prefix is stripped)
+- **date**: embedded in the thumbnail filename
+  `<img src=".../assets/img/YYYY.MM.DD-<...>.png">` — **date only, no time**.
+  Cards with no dated thumbnail (e.g. a TBA show) are skipped.
+- **ticket url**: `<a href="axs.com/events/<id>/<slug>-tickets?skin=pabst">`
+- **show_page_url**: the venue's own `…/events/detail/…` "More Info" link (drives
+  traffic to the venue), falling back to the AXS ticket URL
+
+`source_url` = the room's venue page (e.g.
+`https://pabsttheater.org/venues/the-riverside-theater/`). The page carries no
+show time, so each Show uses `metadata.default_show_time` (`HH:MM`, default
+`19:00`) localized to the club timezone (Pabst rooms are `America/Chicago`).
+
+**Comedy filter — mixed-use venue.** Each room is music-dominated (~5–7 comedy
+acts among ~20 events), so wire the shared comedy filter via
+`metadata.comedy_filter: true`. It keeps a title when it carries a comedy keyword
+(`is_comedy_event`), names a known comedian above `metadata.min_comedian_popularity`
+(default 0.30), **or** matches a per-source `metadata.comedy_title_allowlist`
+substring. The allowlist is the escape hatch for comedian-name acts the keyword
+filter misses (e.g. `"ben schwartz"`, `"anthony jeselnik"`, `"wait wait"` for
+the NPR show, the Hasan Minhaj / Ronny Chieng wordplay title).
+
+**Onboarding another Pabst-group room:** insert a `clubs` row + a
+`scraping_sources` row (`scraper_key=pabst_axs`, `source_url`=the room's venue
+page, `metadata` with `default_show_time` + `comedy_filter` +
+`comedy_title_allowlist`) via an idempotent migration keyed on `google_place_id`.
+See `migrations/20260620_onboard_riverside_theater_pabst_axs.sql` for the
+template. Onboarded: **The Riverside Theater** (Milwaukee; verified 7 dated
+comedy shows among 23 events).
+
 ### NeonCRM / Neon One (`neoncrm`)
 
 `scraper_key = neoncrm`, `platform = custom` (NeonCRM has no dedicated
