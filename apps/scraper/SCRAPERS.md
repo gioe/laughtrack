@@ -1013,6 +1013,44 @@ live music plus a weekly "Comedy Open Mic". Onboarded with `scraper_key='json_ld
 
 ---
 
+### TicketsCandy
+
+| | |
+|---|---|
+| **Scraper key** | `ticketscandy` |
+| **DB field** | `scraping_url` (the venue's shows-listing page) |
+| **Generic?** | ✅ Generic platform scraper |
+
+TicketsCandy (`ticketscandy.com`) is a ticketing platform; venues link out to
+per-show TicketsCandy event pages from their own sites. There is **no
+TicketsCandy organizer/venue aggregation endpoint**, so the scraper discovers
+event URLs by crawling the venue's own site and collecting every
+`ticketscandy.com/e/<slug>` link. Each TicketsCandy page carries standard
+schema.org Event JSON-LD, parsed via the shared `json_ld` extractor.
+
+**Detection signals:** the venue's show pages link to `ticketscandy.com/e/...`;
+those pages contain `<script type="application/ld+json">` with `"@type":"Event"`.
+
+**`scraping_sources.metadata`:**
+- `detail_link_prefix` (string, optional) — for **two-hop** venues (e.g. a
+  WordPress `/shows/` index linking to `/shows/<slug>/` sub-pages that each carry
+  the TicketsCandy links): same-host sub-pages under this prefix are crawled for
+  TicketsCandy links. Omit for **one-hop** venues that link to TicketsCandy
+  directly from the listing.
+
+**Two TicketsCandy data quirks the scraper corrects automatically:**
+1. `startDate` is mislabeled `+00:00` even though the time is venue-local
+   wall-clock — the scraper strips the offset and re-localizes to the club tz.
+2. The `startDate` **time** is sometimes wrong (e.g. `07:00` for a 7:30 PM show)
+   while the title reliably reads `(... - 7:30PM)` — the title's clock time wins
+   (the date is taken from `startDate`).
+
+**Example — Funny Pharm Comedy Club (TASK-3024):** WordPress two-hop site →
+`scraper_key='ticketscandy'`, `source_url='https://www.funnypharmcomedy.com/shows/'`,
+`metadata={"detail_link_prefix": "/shows/"}` → 29 shows, all 7:30 PM ET, DST-correct.
+
+---
+
 ### SquadUP
 
 | | |
