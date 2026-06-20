@@ -111,6 +111,11 @@ Is there an events.ticketleap.com/events/{slug} link or a TicketLeap widget?
               (see TicketLeap section — listing page requires JS, detail pages emit
                standard schema.org Event JSON-LD)
 
+Is there a brasstix.com/pmt/calendar.php?Show=... ticket calendar?
+  └── YES → platform: BrassTix → scraper = 'brasstix' (generic)
+              DB: source_url = full BrassTix calendar.php URL
+              (see BrassTix section — calendar events are inline eventArray JS)
+
 Is the box office a Tessitura TNEW page loading `production.tnew-assets.com`
 assets and POSTing `/api/products/productionseasons`?
   └── YES → platform: custom → scraper = 'tessitura_tnew' (generic)
@@ -1827,6 +1832,59 @@ needed to avoid mis-attributing them.
 
 ---
 
+### BrassTix
+
+| | |
+|---|---|
+| **Scraper key** | `brasstix` |
+| **Platform** | `custom` |
+| **DB field** | `scraping_sources.source_url` |
+| **Value format** | Full calendar URL, e.g. `https://brasstix.com/pmt/calendar.php?Show=DrunkChicago` |
+| **Generic?** | ✅ DB-only for BrassTix `calendar.php` pages with inline `eventArray` data |
+
+**Detection signals:**
+- Ticket links point to `brasstix.com/pmt/calendar.php?Show=...`
+- Page source loads FullCalendar and embeds `eventArray = [...]` / `eventArray.push.apply(...)`
+- Event objects include `eventid`, `start`, `url`, and `ShowName` fields
+
+**API/source pattern:**
+- The calendar page is server-rendered HTML with inline JavaScript, not JSON-LD.
+- `BrassTixScraper` fetches the configured `source_url` and parses each inline event
+  object into a `BrassTixEvent`.
+- Empty `url` values are sold-out or placeholder events and are skipped.
+
+**Key extraction notes:**
+- `title` may contain leading status labels such as `SELLING OUT` or `SOLD OUT`;
+  the scraper strips those from the show name and keeps purchasable status text in
+  the description.
+- `start` is a local naive timestamp (`YYYY-MM-DD HH:MM:SS`) and is interpreted in
+  the club's configured timezone.
+- BrassTix does not expose structured prices on the calendar entries; tickets are
+  persisted with unknown price (`NULL`) and the per-event purchase URL.
+
+**DB setup:**
+```sql
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, priority, enabled, metadata)
+SELECT c.id, 'custom'::"ScrapingPlatform", 'brasstix',
+       'https://brasstix.com/pmt/calendar.php?Show=DrunkChicago',
+       0, TRUE, '{}'::jsonb
+  FROM clubs c
+ WHERE c.name = 'Drunk Shakespeare Chicago';
+```
+
+**Failure modes / gotchas:**
+- Some calendars include future placeholder events far outside the normal booking
+  window; those generally have empty purchase URLs and are skipped.
+- One calendar can include related productions under different `ShowName` values
+  at the same venue.
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/scrapers/implementations/api/brasstix/`
+- `apps/scraper/tests/scrapers/implementations/api/brasstix/test_scraper.py`
+- TASK-2990: Drunk Shakespeare Chicago
+
+---
+
 ### SellingTicket
 
 | | |
@@ -2567,6 +2625,7 @@ cd apps/scraper && make scrape-club CLUB='My Club'
 | Square Online (Weebly) | venue-specific | **Yes** — ref: `coral_gables_comedy_club` | `scraping_url` (full products API URL) |
 | Showpass | `showpass` | No | `scraping_url` (Showpass calendar API base URL) |
 | TicketLeap | `ticketleap` | No | `scraping_url` (org listing URL: `events.ticketleap.com/events/{org_slug}`) |
+| BrassTix | `brasstix` | No | `scraping_sources.source_url` (calendar.php URL with `Show=...`) |
 | SellingTicket | `sellingticket` | No | `scraping_url` (list URL with OrganizationID) |
 | Shopify | `shopify` | No | `scraping_url` (Shopify collection page URL) |
 | BookTix | `booktix` | No | `source_url` or `scraping_url` (BookTix box-office home URL) |
