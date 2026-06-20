@@ -139,6 +139,14 @@ class TicketsCandyScraper(BaseScraper):
                 hour += 12
             minute = int(match.group(2) or 0)
             naive = naive.replace(hour=hour, minute=minute, second=0, microsecond=0)
+        else:
+            # No title time to fall back on, so the (sometimes-wrong) startDate
+            # time is used as-is. Log it so a title-format change is observable.
+            Logger.warn(
+                f"{self._log_prefix}: no clock time in title {event.name!r}; "
+                f"using startDate time {naive.strftime('%H:%M')} verbatim",
+                self.logger_context,
+            )
         tz_name = self.club.timezone or "America/New_York"
         event.start_date = naive.replace(tzinfo=ZoneInfo(tz_name))
 
@@ -158,12 +166,14 @@ class TicketsCandyScraper(BaseScraper):
         # Two-hop: crawl same-host sub-pages under detail_link_prefix.
         prefix = (self.club.source_metadata or {}).get("detail_link_prefix")
         if isinstance(prefix, str) and prefix:
-            subpages = TicketsCandyExtractor.extract_subpage_urls(
+            all_subpages = TicketsCandyExtractor.extract_subpage_urls(
                 listing_html, listing_url, prefix
-            )[:_MAX_SUBPAGES]
-            if len(subpages) >= _MAX_SUBPAGES:
+            )
+            subpages = all_subpages[:_MAX_SUBPAGES]
+            if len(all_subpages) > _MAX_SUBPAGES:
                 Logger.warn(
-                    f"{self._log_prefix}: sub-page crawl capped at {_MAX_SUBPAGES}",
+                    f"{self._log_prefix}: sub-page crawl capped at {_MAX_SUBPAGES}; "
+                    f"dropped {len(all_subpages) - _MAX_SUBPAGES}",
                     self.logger_context,
                 )
             sub_results = await self._fetch_all_raw_subpages(subpages)
