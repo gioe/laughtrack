@@ -73,17 +73,17 @@ model ChainScrapingDefault {
 }
 
 model ProductionCompany {
-  id               Int                      @id @default(autoincrement())
-  name             String                   @unique
-  slug             String                   @unique
+  id               Int                        @id @default(autoincrement())
+  name             String                     @unique
+  slug             String                     @unique
   website          String?
-  scrapingUrl      String?                  @map("scraping_url")
-  visible          Boolean                  @default(true)
-  showNameKeywords String[]                 @default([]) @map("show_name_keywords")
+  scrapingUrl      String?                    @map("scraping_url")
+  visible          Boolean                    @default(true)
+  showNameKeywords String[]                   @default([]) @map("show_name_keywords")
   venues           ProductionCompanyVenue[]
   organizerVenues  EventbriteOrganizerVenue[]
-  shows            Show[]                    @relation("ShowProductionCompany")
-  scrapedShows     Show[]                    @relation("ShowScrapedByOrganizer")
+  shows            Show[]                     @relation("ShowProductionCompany")
+  scrapedShows     Show[]                     @relation("ShowScrapedByOrganizer")
 
   @@map("production_companies")
 }
@@ -123,7 +123,8 @@ model EventbriteOrganizerVenue {
 
 model ScrapingSource {
   id             Int              @id @default(autoincrement())
-  clubId         Int              @map("club_id")
+  clubId         Int?             @map("club_id")
+  sourceTargetId Int?             @map("source_target_id")
   platform       ScrapingPlatform
   scraperKey     String           @map("scraper_key")
   seatengineId   Int?             @map("seatengine_id")
@@ -139,12 +140,35 @@ model ScrapingSource {
   metadata       Json             @default("{}")
   createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz
   updatedAt      DateTime         @updatedAt @map("updated_at") @db.Timestamptz
-  club           Club             @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  club           Club?            @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  sourceTarget   SourceTarget?    @relation(fields: [sourceTargetId], references: [id], onDelete: Cascade)
 
   @@unique([clubId, platform, priority])
+  @@unique([sourceTargetId, platform, priority])
   @@index([clubId, enabled, priority])
+  @@index([sourceTargetId, enabled, priority])
   @@index([platform, enabled])
   @@map("scraping_sources")
+}
+
+model SourceTarget {
+  id              Int               @id @default(autoincrement())
+  name            String            @unique
+  slug            String            @unique
+  targetType      String            @map("target_type")
+  platform        ScrapingPlatform?
+  sourceUrl       String?           @map("source_url")
+  visible         Boolean           @default(false)
+  enabled         Boolean           @default(true)
+  status          String            @default("active")
+  metadata        Json              @default("{}")
+  createdAt       DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime          @updatedAt @map("updated_at") @db.Timestamptz
+  scrapingSources ScrapingSource[]
+
+  @@index([targetType, enabled])
+  @@index([platform, enabled])
+  @@map("source_targets")
 }
 
 // Per-scraper runtime configuration. The Python scraper loads
@@ -759,7 +783,7 @@ model Show {
 }
 
 model TicketPurchaseClickEvent {
-  id                 Int          @id @default(autoincrement())
+  id                   Int          @id @default(autoincrement())
   // Nullable so a show hard-delete (stale-show reconciler, cleanup scripts,
   // bulk future-show purges) sets show_id NULL instead of cascade-deleting the
   // click event. The attribution that matters survives the show: club_id stays
@@ -768,22 +792,22 @@ model TicketPurchaseClickEvent {
   // fallback_reason / source_surface are denormalized onto the row. Show-level
   // click aggregations join on show_id equality, which naturally excludes the
   // orphaned rows; club-level and global revenue/attribution reporting keep them.
-  showId             Int?         @map("show_id")
-  clubId             Int          @map("club_id")
-  profileId          String?      @map("profile_id")
-  anonymousVisitorId String       @map("anonymous_visitor_id")
-  destinationUrl     String       @map("destination_url")
-  destinationProvider String?      @map("destination_provider")
-  routedDestinationUrl String?     @map("routed_destination_url")
-  affiliateApplied   Boolean      @default(false) @map("affiliate_applied")
-  fallbackReason     String?      @map("fallback_reason")
-  sourceSurface      String       @map("source_surface")
-  userAgent          String?      @map("user_agent")
-  deviceMetadata     Json         @default("{}") @map("device_metadata")
-  createdAt          DateTime     @default(now()) @map("created_at") @db.Timestamptz
-  show               Show?        @relation(fields: [showId], references: [id], onDelete: SetNull)
-  club               Club         @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  profile            UserProfile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
+  showId               Int?         @map("show_id")
+  clubId               Int          @map("club_id")
+  profileId            String?      @map("profile_id")
+  anonymousVisitorId   String       @map("anonymous_visitor_id")
+  destinationUrl       String       @map("destination_url")
+  destinationProvider  String?      @map("destination_provider")
+  routedDestinationUrl String?      @map("routed_destination_url")
+  affiliateApplied     Boolean      @default(false) @map("affiliate_applied")
+  fallbackReason       String?      @map("fallback_reason")
+  sourceSurface        String       @map("source_surface")
+  userAgent            String?      @map("user_agent")
+  deviceMetadata       Json         @default("{}") @map("device_metadata")
+  createdAt            DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  show                 Show?        @relation(fields: [showId], references: [id], onDelete: SetNull)
+  club                 Club         @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  profile              UserProfile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
 
   @@index([createdAt])
   @@index([showId, createdAt])
