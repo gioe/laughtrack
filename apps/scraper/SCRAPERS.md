@@ -2637,8 +2637,10 @@ the NPR show, the Hasan Minhaj / Ronny Chieng wordplay title).
 page, `metadata` with `default_show_time` + `comedy_filter` +
 `comedy_title_allowlist`) via an idempotent migration keyed on `google_place_id`.
 See `migrations/20260620_onboard_riverside_theater_pabst_axs.sql` for the
-template. Onboarded: **The Riverside Theater** (Milwaukee; verified 7 dated
-comedy shows among 23 events).
+template. Onboarded (all Milwaukee): **The Riverside Theater** (TASK-3033;
+verified 7 dated comedy shows among 23 events), **Pabst Theater** (TASK-3035;
+migrated off `ticketmaster_comedy`, 5 comedy shows), and **Turner Hall Ballroom**
+(TASK-3035; 3 comedy shows).
 
 ### NeonCRM / Neon One (`neoncrm`)
 
