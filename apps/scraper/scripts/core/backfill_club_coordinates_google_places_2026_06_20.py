@@ -482,7 +482,6 @@ def _write_accepted(cur: RealDictCursor, accepted: list[AuditRow]) -> int:
         SET google_place_id = COALESCE(c.google_place_id, b.google_place_id),
             latitude = b.latitude,
             longitude = b.longitude,
-            country = COALESCE(c.country, 'US'),
             description = CASE
                 WHEN COALESCE(c.description, '') LIKE %s THEN c.description
                 WHEN COALESCE(c.description, '') = '' THEN b.note
