@@ -8,6 +8,10 @@ class ClubQueries:
         json_build_object(
             'id', ss.id,
             'club_id', ss.club_id,
+            'source_target_id', ss.source_target_id,
+            'source_target_name', st.name,
+            'source_target_slug', st.slug,
+            'source_target_type', st.target_type,
             'platform', ss.platform,
             'scraper_key', COALESCE(NULLIF(ss.scraper_key, ''), csd.scraper_key, ss.scraper_key),
             'seatengine_id', ss.seatengine_id,
@@ -36,6 +40,7 @@ class ClubQueries:
                 '[]'::json
             ) AS scraping_sources
             FROM scraping_sources ss
+            LEFT JOIN source_targets st ON st.id = ss.source_target_id
             LEFT JOIN chain_scraping_defaults csd
               ON csd.chain_id = c.chain_id
              AND csd.platform = ss.platform
@@ -92,6 +97,64 @@ class ClubQueries:
         WHERE c.visible = TRUE
           AND c.status = 'active'
         ORDER BY c.id
+    """
+
+    GET_ALL_SOURCE_TARGETS = """
+        SELECT
+            st.id,
+            st.name,
+            ''::text AS address,
+            COALESCE(st.source_url, '') AS website,
+            0 AS popularity,
+            ''::text AS zip_code,
+            ''::text AS phone_number,
+            st.visible,
+            'America/New_York'::text AS timezone,
+            NULL::text AS city,
+            NULL::text AS state,
+            st.status,
+            'source_target'::text AS club_type,
+            NULL::integer AS chain_id,
+            source_list.scraping_sources
+        FROM source_targets st
+        JOIN LATERAL (
+            SELECT COALESCE(
+                json_agg(
+                    json_build_object(
+                        'id', ss.id,
+                        'club_id', ss.club_id,
+                        'source_target_id', ss.source_target_id,
+                        'source_target_name', st.name,
+                        'source_target_slug', st.slug,
+                        'source_target_type', st.target_type,
+                        'platform', ss.platform,
+                        'scraper_key', ss.scraper_key,
+                        'seatengine_id', ss.seatengine_id,
+                        'eventbrite_id', ss.eventbrite_id,
+                        'ticketmaster_id', ss.ticketmaster_id,
+                        'wix_event_id', ss.wix_event_id,
+                        'ovationtix_id', ss.ovationtix_id,
+                        'squadup_id', ss.squadup_id,
+                        'seatengine_v3_id', ss.seatengine_v3_id,
+                        'source_url', COALESCE(ss.source_url, st.source_url),
+                        'priority', ss.priority,
+                        'enabled', ss.enabled,
+                        'metadata', COALESCE(st.metadata, '{}'::jsonb) || COALESCE(ss.metadata, '{}'::jsonb),
+                        'chain_scraping_default_id', NULL,
+                        'chain_id', NULL
+                    )
+                    ORDER BY ss.priority, ss.id
+                ) FILTER (WHERE ss.id IS NOT NULL),
+                '[]'::json
+            ) AS scraping_sources
+            FROM scraping_sources ss
+            WHERE ss.source_target_id = st.id
+              AND ss.club_id IS NULL
+              AND ss.enabled = TRUE
+        ) source_list ON TRUE
+        WHERE st.status = 'active'
+          AND st.enabled = TRUE
+        ORDER BY st.id
     """
 
     GET_ALL_CLUBS_JSON = """

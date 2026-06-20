@@ -38,6 +38,10 @@ class ScrapingSource:
     metadata: JSONDict = field(default_factory=dict)
     id: Optional[int] = None
     club_id: Optional[int] = None
+    source_target_id: Optional[int] = None
+    source_target_name: Optional[str] = None
+    source_target_slug: Optional[str] = None
+    source_target_type: Optional[str] = None
     external_id: Optional[str] = None
     chain_scraping_default_id: Optional[int] = None
     chain_id: Optional[int] = None
@@ -94,6 +98,10 @@ class ScrapingSource:
             priority=int(raw.get("priority") or 0),
             enabled=bool(raw.get("enabled", True)),
             metadata=metadata,
+            source_target_id=raw.get("source_target_id"),
+            source_target_name=raw.get("source_target_name"),
+            source_target_slug=raw.get("source_target_slug"),
+            source_target_type=raw.get("source_target_type"),
             chain_scraping_default_id=raw.get("chain_scraping_default_id"),
             chain_id=raw.get("chain_id"),
         )

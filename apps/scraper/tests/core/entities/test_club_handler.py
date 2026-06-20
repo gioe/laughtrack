@@ -212,6 +212,26 @@ class TestChainScrapingDefaultQueries:
         assert "SS.ENABLED = TRUE" in sql
         assert "COALESCE(CSD.METADATA, '{}'::JSONB) || COALESCE(SS.METADATA, '{}'::JSONB)" in sql
 
+    def test_base_club_select_projects_source_target_fields(self):
+        sql = self._normalized(ClubQueries.GET_ALL_CLUBS)
+
+        assert "SOURCE_TARGETS ST" in sql
+        assert "ST.ID = SS.SOURCE_TARGET_ID" in sql
+        assert "'SOURCE_TARGET_ID', SS.SOURCE_TARGET_ID" in sql
+        assert "'SOURCE_TARGET_NAME', ST.NAME" in sql
+        assert "'SOURCE_TARGET_SLUG', ST.SLUG" in sql
+        assert "'SOURCE_TARGET_TYPE', ST.TARGET_TYPE" in sql
+
+    def test_source_target_query_loads_non_venue_scrape_targets(self):
+        sql = self._normalized(ClubQueries.GET_ALL_SOURCE_TARGETS)
+
+        assert "FROM SOURCE_TARGETS ST" in sql
+        assert "JOIN LATERAL" in sql
+        assert "SS.SOURCE_TARGET_ID = ST.ID" in sql
+        assert "SS.CLUB_ID IS NULL" in sql
+        assert "ST.STATUS = 'ACTIVE'" in sql
+        assert "ST.ENABLED = TRUE" in sql
+
     def test_get_clubs_by_scraper_filters_on_effective_primary_source_key(self):
         sql = self._normalized(ClubQueries.GET_CLUBS_BY_SCRAPER)
 

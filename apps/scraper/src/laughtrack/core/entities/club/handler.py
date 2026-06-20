@@ -119,6 +119,22 @@ class ClubHandler(BaseDatabaseHandler[Club]):
             Logger.error(f"Error fetching clubs: {str(e)}")
             raise
 
+    def get_all_source_targets(self) -> List[Club]:
+        """Fetch non-venue scraper targets as Club-shaped scrape proxies."""
+        try:
+            results = self.execute_with_cursor(ClubQueries.GET_ALL_SOURCE_TARGETS, return_results=True)
+            if not results:
+                return []
+
+            targets = [Club.from_db_row(row) for row in results]
+            for target in targets:
+                target.is_synthetic = True
+            Logger.info(f"Retrieved {len(targets)} non-venue source targets from database")
+            return targets
+        except Exception as e:
+            Logger.error(f"Error fetching source targets: {str(e)}")
+            raise
+
     def get_all_clubs_json(self) -> List[Dict[str, Optional[str]]]:
         """Fetch all clubs (including those without scrapers) with name, city, state, website."""
         results = self.execute_with_cursor(ClubQueries.GET_ALL_CLUBS_JSON, return_results=True)

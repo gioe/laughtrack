@@ -2,6 +2,7 @@
 
 import threading
 import time
+import sys
 from unittest.mock import MagicMock, patch, call
 import pytest
 
@@ -31,6 +32,13 @@ def _make_multi_club_summary(clubs):
     s = ScrapingRunSummary()
     s.per_club.extend(clubs)
     return s
+
+
+def _drop_stubbed_db_adapter() -> None:
+    """Remove entity-test DB stubs that break ScrapingService imports."""
+    module = sys.modules.get("laughtrack.adapters.db")
+    if module is not None and not hasattr(module, "db"):
+        del sys.modules["laughtrack.adapters.db"]
 
 
 def _make_mock_config(channels=None):
@@ -1526,6 +1534,47 @@ class TestSendDiscordRunSummary:
              patch.object(svc, '_send_run_summary') as mock_summary:
             svc.scrape_all_clubs()
             mock_summary.assert_called_once_with(summary, expected_db_result)
+
+    def test_scrape_all_clubs_includes_source_targets(self):
+        """Non-venue source targets are scraped with regular clubs."""
+        _drop_stubbed_db_adapter()
+
+        from laughtrack.core.services.scraping import ScrapingService
+        from laughtrack.foundation.models.operation_result import DatabaseOperationResult
+
+        with patch.object(ScrapingService, '__init__', lambda self, *a, **kw: None):
+            svc = ScrapingService.__new__(ScrapingService)
+            svc.success_rate_threshold = 70.0
+            svc.proxy_pool = None
+
+        club = MagicMock()
+        club.club_type = "club"
+        source_target = MagicMock()
+        source_target.club_type = "source_target"
+        expected_db_result = DatabaseOperationResult(total=1)
+        summary = _make_summary(ok=1)
+
+        svc.club_handler = MagicMock()
+        svc.club_handler.get_all_clubs.return_value = [club]
+        svc.club_handler.get_all_source_targets.return_value = [source_target]
+        svc.club_handler.refresh_club_total_shows.return_value = None
+        svc.production_company_handler = MagicMock()
+        svc._result_processor = MagicMock()
+        svc._result_processor.process_results.return_value = None
+
+        with patch.object(svc, '_try_validate_scraper_keys') as mock_validate, \
+             patch.object(svc, '_scrape_clubs_with_metrics',
+                          return_value=([], summary, expected_db_result)) as mock_scrape, \
+             patch.object(svc, '_scrape_production_companies',
+                          return_value=([], ScrapingRunSummary(), DatabaseOperationResult())), \
+             patch.object(svc, '_geocode_missing_clubs_after_scrape'), \
+             patch.object(svc, '_emit_summary'), \
+             patch.object(svc, '_check_and_alert'), \
+             patch.object(svc, '_send_run_summary'):
+            svc.scrape_all_clubs()
+
+        mock_validate.assert_called_once_with([club, source_target])
+        mock_scrape.assert_called_once_with([club, source_target])
 
     def test_scrape_single_club_refreshes_total_shows(self):
         """scrape_single_club refreshes clubs.total_shows after persisting results.

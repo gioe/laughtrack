@@ -133,6 +133,36 @@ class TestClubFromDbRow:
         assert club.seatengine_id == "502"
         assert club.scraping_sources[0].seatengine_id == 502
 
+    def test_reads_source_target_identity_for_non_venue_sources(self):
+        row = self._base_row(
+            id=4036,
+            name="Ticketmaster National",
+            visible=False,
+            scraping_sources=[
+                {
+                    "id": 91,
+                    "club_id": None,
+                    "source_target_id": 7,
+                    "source_target_name": "Ticketmaster National",
+                    "source_target_slug": "ticketmaster-national",
+                    "source_target_type": "platform",
+                    "platform": "ticketmaster",
+                    "scraper_key": "ticketmaster_national",
+                    "source_url": "https://www.ticketmaster.com/comedy",
+                    "priority": 0,
+                    "enabled": True,
+                    "metadata": {"genre": "comedy"},
+                }
+            ],
+        )
+
+        club = Club.from_db_row(row)
+
+        assert club.scraping_sources[0].source_target_id == 7
+        assert club.scraping_sources[0].club_id is None
+        assert club.scraping_sources[0].source_target_slug == "ticketmaster-national"
+        assert club.scraping_sources[0].source_target_type == "platform"
+
     def test_reads_chain_default_resolved_sources_for_multiple_clubs(self):
         rows = [
             self._base_row(

@@ -472,12 +472,18 @@ class ScrapingService:
     def scrape_all_clubs(self) -> List[ClubScrapingResult]:
         Logger.info("Starting scrape of all clubs...")
         clubs = self.club_handler.get_all_clubs()
-        if not clubs:
+        source_targets = list(self.club_handler.get_all_source_targets() or [])
+        scrape_targets = clubs + source_targets
+        if not scrape_targets:
             raise ValueError("No clubs found with valid scraper configurations")
-        Logger.info(f"Found {len(clubs)} clubs with scraper configurations")
+        Logger.info(
+            f"Found {len(clubs)} clubs and {len(source_targets)} source targets "
+            "with scraper configurations"
+        )
         clubs = self._filter_off_season_festivals(clubs)
-        self._try_validate_scraper_keys(clubs)
-        results, summary, db_result = self._scrape_clubs_with_metrics(clubs)
+        scrape_targets = clubs + source_targets
+        self._try_validate_scraper_keys(scrape_targets)
+        results, summary, db_result = self._scrape_clubs_with_metrics(scrape_targets)
 
         # Scrape production companies after regular clubs
         pc_results, pc_summary, pc_db_result = self._scrape_production_companies(clubs)
