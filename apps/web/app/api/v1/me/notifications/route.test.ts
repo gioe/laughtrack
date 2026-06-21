@@ -371,4 +371,38 @@ describe("GET /api/v1/me/notifications", () => {
         expect(body.data.items[0].body).toBe("Mystery Room");
         expect(body.data.items[0].showDate).toBeNull();
     });
+
+    it("does not leave a dangling separator when the club name is empty", async () => {
+        mockResolveAuth.mockResolvedValue({
+            userId: "user-1",
+            profileId: "profile-1",
+        });
+        mockFindNotifications.mockResolvedValue([
+            notificationRow({
+                show: {
+                    date: null,
+                    showPageUrl: "https://laugh-track.com/show/555",
+                    club: { name: "", city: "Los Angeles", state: "CA" },
+                },
+            }),
+        ] as never);
+
+        const res = await GET(makeGetRequest());
+
+        const body = await res.json();
+        expect(body.data.items[0].body).toBe("Los Angeles, CA");
+    });
+
+    it("caps the history fetch with a take limit", async () => {
+        mockResolveAuth.mockResolvedValue({
+            userId: "user-1",
+            profileId: "profile-1",
+        });
+
+        await GET(makeGetRequest());
+
+        expect(mockFindNotifications).toHaveBeenCalledWith(
+            expect.objectContaining({ take: 100 }),
+        );
+    });
 });

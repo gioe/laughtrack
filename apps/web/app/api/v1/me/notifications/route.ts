@@ -36,6 +36,12 @@ interface NotificationItem {
     isUnread: boolean;
 }
 
+// Cap the history fetch so a long-tenured user with thousands of sent
+// notifications never triggers an unbounded query + join payload on every load
+// of the notification center. The cap counts pre-grouping rows; email+push for
+// the same event collapse afterward, so the rendered item count can be lower.
+const NOTIFICATIONS_FETCH_LIMIT = 100;
+
 const NotificationPreferenceUpdateSchema = z
     .object({
         emailShowNotifications: z.boolean().optional(),
@@ -87,6 +93,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     const rows = await db.sentNotification.findMany({
         where: { userId: authCtx.userId },
         orderBy: { sentAt: "desc" },
+        take: NOTIFICATIONS_FETCH_LIMIT,
         select: {
             comedianId: true,
             showId: true,
@@ -125,7 +132,9 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
         groups.set(key, {
             id: key,
             title: `${comedianName} is performing near you`,
-            body: location ? `${clubName} · ${location}` : clubName,
+            // Join only the non-empty segments so a missing club name (or
+            // missing location) never leaves a dangling " · " separator.
+            body: [clubName, location].filter(Boolean).join(" · "),
             comedianId: row.comedianId,
             comedianName,
             showId: row.showId,
