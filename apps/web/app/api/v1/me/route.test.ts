@@ -35,6 +35,9 @@ vi.mock("@/lib/db", () => ({
             delete: vi.fn(),
             findUnique: vi.fn(),
         },
+        sentNotification: {
+            groupBy: vi.fn(),
+        },
     },
 }));
 
@@ -52,6 +55,7 @@ const mockDeleteFavorites = vi.mocked(db.favoriteComedian.deleteMany);
 const mockDeleteProfile = vi.mocked(db.userProfile.delete);
 const mockUpdateProfile = vi.mocked(db.userProfile.update);
 const mockDeleteUser = vi.mocked(db.user.delete);
+const mockGroupBy = vi.mocked(db.sentNotification.groupBy);
 
 type TransactionCallback = (tx: typeof db) => unknown | Promise<unknown>;
 
@@ -78,6 +82,7 @@ beforeEach(() => {
     mockTransaction.mockImplementation(async (fn: TransactionCallback) =>
         fn(db),
     );
+    mockGroupBy.mockResolvedValue([] as never);
 });
 
 describe("GET /api/v1/me", () => {
@@ -192,6 +197,7 @@ describe("GET /api/v1/me", () => {
                 zipCode: "94108",
                 nearbyDistanceMiles: 25,
                 comedianOnboardingCompleted: true,
+                notificationsUnreadCount: 0,
             },
         });
         expect(res.headers.get("X-RateLimit-Remaining")).toBe("99");
@@ -210,6 +216,7 @@ describe("GET /api/v1/me", () => {
                         zipCode: true,
                         nearbyDistanceMiles: true,
                         comedianOnboardingCompleted: true,
+                        notificationsLastSeenAt: true,
                     },
                 },
             },
@@ -252,7 +259,79 @@ describe("GET /api/v1/me", () => {
                 zipCode: null,
                 nearbyDistanceMiles: null,
                 comedianOnboardingCompleted: false,
+                notificationsUnreadCount: 0,
             },
+        });
+    });
+
+    it("counts unread notifications grouped by (comedian, show) when lastSeenAt is set", async () => {
+        mockResolveAuth.mockResolvedValue({
+            userId: "user-123",
+            profileId: "profile-123",
+        });
+        mockFindUser.mockResolvedValue({
+            id: "user-123",
+            name: "Ada",
+            email: "ada@example.com",
+            image: null,
+            profile: {
+                role: "user",
+                emailShowNotifications: false,
+                pushShowNotifications: false,
+                zipCode: null,
+                nearbyDistanceMiles: null,
+                comedianOnboardingCompleted: false,
+                notificationsLastSeenAt: new Date("2026-06-20T00:00:00.000Z"),
+            },
+        } as never);
+        mockGroupBy.mockResolvedValue([
+            { comedianId: "c1", showId: 1 },
+            { comedianId: "c2", showId: 2 },
+        ] as never);
+
+        const res = await GET(makeRequest());
+
+        expect(res.status).toBe(200);
+        const body = await res.json();
+        expect(body.data.notificationsUnreadCount).toBe(2);
+        expect(mockGroupBy).toHaveBeenCalledWith({
+            by: ["comedianId", "showId"],
+            where: {
+                userId: "user-123",
+                sentAt: { gt: new Date("2026-06-20T00:00:00.000Z") },
+            },
+        });
+    });
+
+    it("counts all notifications as unread when lastSeenAt is null", async () => {
+        mockResolveAuth.mockResolvedValue({
+            userId: "user-123",
+            profileId: "profile-123",
+        });
+        mockFindUser.mockResolvedValue({
+            id: "user-123",
+            name: "Ada",
+            email: "ada@example.com",
+            image: null,
+            profile: {
+                role: "user",
+                emailShowNotifications: false,
+                pushShowNotifications: false,
+                zipCode: null,
+                nearbyDistanceMiles: null,
+                comedianOnboardingCompleted: false,
+                notificationsLastSeenAt: null,
+            },
+        } as never);
+        mockGroupBy.mockResolvedValue([{ comedianId: "c1", showId: 1 }] as never);
+
+        const res = await GET(makeRequest());
+
+        const body = await res.json();
+        expect(body.data.notificationsUnreadCount).toBe(1);
+        expect(mockGroupBy).toHaveBeenCalledWith({
+            by: ["comedianId", "showId"],
+            where: { userId: "user-123" },
         });
     });
 

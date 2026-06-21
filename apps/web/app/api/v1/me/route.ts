@@ -62,6 +62,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                     comedianOnboardingCompleted: true,
                     zipCode: true,
                     nearbyDistanceMiles: true,
+                    notificationsLastSeenAt: true,
                 },
             },
         },
@@ -72,6 +73,21 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
             { status: 401, headers: rateLimitHeaders(rl) },
         );
     }
+
+    // Unread notification badge count. A notification is unread when its sentAt
+    // is newer than the user's last-seen high-water mark (null means the center
+    // was never opened -> everything counts). Group by (comedian, show) so the
+    // email+push rows for one event collapse to a single unread, matching the
+    // grouped GET /me/notifications feed.
+    const lastSeenAt = user.profile?.notificationsLastSeenAt ?? null;
+    const unreadGroups = await db.sentNotification.groupBy({
+        by: ["comedianId", "showId"],
+        where: {
+            userId: user.id,
+            ...(lastSeenAt ? { sentAt: { gt: lastSeenAt } } : {}),
+        },
+    });
+    const notificationsUnreadCount = unreadGroups.length;
 
     return NextResponse.json(
         {
@@ -89,6 +105,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                     user.profile?.comedianOnboardingCompleted ?? false,
                 zipCode: user.profile?.zipCode ?? null,
                 nearbyDistanceMiles: user.profile?.nearbyDistanceMiles ?? null,
+                notificationsUnreadCount,
             },
         },
         { headers: rateLimitHeaders(rl) },
