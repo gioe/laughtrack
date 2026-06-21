@@ -240,6 +240,24 @@ jobs:
 
       - name: Notify on failure
         if: failure()
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           echo "::error::Scraper production run failed. Check the logs artifact for details."
-          echo "GitHub will send an email notification to repository administrators."
+          # Post directly to Discord on a hard job failure. The Grafana
+          # scraper-health alerts only fire off data the pipeline writes WHILE
+          # running, so a pre-scrape failure (migrate/setup) that writes no
+          # scraper_runs row is invisible to them — the migration outage in
+          # TASK-3036 ran 4 nights with only an unwatched GitHub admin email.
+          # The Grafana staleness rule (scraper-health-alerts.yaml rule 4) is the
+          # primary catch within ~26h; this is the immediate same-run signal.
+          if [ -z "$DISCORD_WEBHOOK_URL" ]; then
+            echo "DISCORD_WEBHOOK_URL not set — skipping Discord post (GitHub will still email admins)"
+            exit 0
+          fi
+          MSG="🚨 [scraper] Production pipeline run FAILED — ${RUN_URL}"
+          curl -fsS --retry 3 --max-time 10 -X POST "$DISCORD_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -nc --arg c "$MSG" '{content: $c}')" \
+            || echo "Discord post failed (non-fatal); GitHub will still email admins"
