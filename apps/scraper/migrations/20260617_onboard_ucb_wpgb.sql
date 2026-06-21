@@ -15,6 +15,8 @@ ON CONFLICT DO NOTHING;
 
 UPDATE clubs
    SET visible = TRUE,
-       website = 'https://ucbcomedy.com',
-       scraping_url = 'https://ucbcomedy.com/shows/'
+       website = 'https://ucbcomedy.com'
+       -- scrape config lives in scraping_sources (inserted above), not on clubs;
+       -- clubs has no scraping_url column and assigning it fails the whole
+       -- migration queue + nightly migrate step. (TASK-3036)
  WHERE id IN (8823, 8834);

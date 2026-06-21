@@ -24,9 +24,11 @@ SELECT 8836,
           AND scraper_key = 'tessitura_tnew'
  );
 
+-- scrape config lives in scraping_sources (inserted above), not on clubs; clubs
+-- has no scraping_url column and assigning it fails the whole migration queue +
+-- nightly migrate step. (TASK-3036)
 UPDATE clubs
    SET visible = TRUE,
        website = 'https://groundlings.com/',
-       scraping_url = 'https://purchase.groundlings.com/events?view=list',
        timezone = 'America/Los_Angeles'
  WHERE id = 8836;
