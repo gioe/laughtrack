@@ -7,8 +7,34 @@ import {
     checkRateLimit,
     getClientIp,
     RATE_LIMITS,
+    rateLimitHeaders,
     rateLimitResponse,
 } from "@/lib/rateLimit";
+
+/**
+ * One notification-center item. Today the only notification type is the
+ * comedian-arrival alert, whose copy is template-derived from (comedian, show,
+ * club) — so we reconstruct the title/body at read time from the join rather
+ * than persisting rendered content. Email and push deliveries for the same
+ * (comedianId, showId) collapse into a single item; `channels` records which
+ * channels fired.
+ */
+interface NotificationItem {
+    id: string;
+    title: string;
+    body: string;
+    comedianId: string;
+    comedianName: string;
+    showId: number;
+    showPageUrl: string | null;
+    showDate: string | null;
+    clubName: string | null;
+    city: string | null;
+    state: string | null;
+    channels: string[];
+    sentAt: string;
+    isUnread: boolean;
+}
 
 const NotificationPreferenceUpdateSchema = z
     .object({
@@ -23,6 +49,113 @@ const NotificationPreferenceUpdateSchema = z
             message: "At least one notification preference must be provided",
         },
     );
+
+export const GET = withRequestMetrics(async function GET(req: NextRequest) {
+    const ipRl = await checkRateLimit(
+        `me-notifications-ip:${getClientIp(req)}`,
+        RATE_LIMITS.authToken,
+    );
+    if (!ipRl.allowed) return rateLimitResponse(ipRl);
+
+    const authCtx = await resolveAuth(req);
+    if (authCtx === PROFILE_MISSING) {
+        return NextResponse.json(
+            { error: "profile_missing" },
+            { status: 422, headers: rateLimitHeaders(ipRl) },
+        );
+    }
+    if (!authCtx) {
+        return NextResponse.json(
+            { error: "unauthorized" },
+            { status: 401, headers: rateLimitHeaders(ipRl) },
+        );
+    }
+
+    const rl = await checkRateLimit(
+        `me-notifications:${authCtx.userId}`,
+        RATE_LIMITS.authenticated,
+    );
+    if (!rl.allowed) return rateLimitResponse(rl);
+
+    const profile = await db.userProfile.findUnique({
+        where: { id: authCtx.profileId },
+        select: { notificationsLastSeenAt: true },
+    });
+    const lastSeenAt = profile?.notificationsLastSeenAt ?? null;
+
+    // Newest first so the first row seen per group carries the latest sentAt.
+    const rows = await db.sentNotification.findMany({
+        where: { userId: authCtx.userId },
+        orderBy: { sentAt: "desc" },
+        select: {
+            comedianId: true,
+            showId: true,
+            notificationType: true,
+            sentAt: true,
+            comedian: { select: { name: true } },
+            show: {
+                select: {
+                    date: true,
+                    showPageUrl: true,
+                    club: { select: { name: true, city: true, state: true } },
+                },
+            },
+        },
+    });
+
+    // Collapse email+push rows for the same (comedianId, showId) into one item.
+    const groups = new Map<string, NotificationItem>();
+    for (const row of rows) {
+        const key = `${row.comedianId}:${row.showId}`;
+        const existing = groups.get(key);
+        if (existing) {
+            if (!existing.channels.includes(row.notificationType)) {
+                existing.channels.push(row.notificationType);
+            }
+            continue;
+        }
+
+        const comedianName = row.comedian?.name ?? "A comedian you follow";
+        const club = row.show?.club;
+        const clubName = club?.name ?? "";
+        const location = [club?.city, club?.state]
+            .filter(Boolean)
+            .join(", ");
+
+        groups.set(key, {
+            id: key,
+            title: `${comedianName} is performing near you`,
+            body: location ? `${clubName} · ${location}` : clubName,
+            comedianId: row.comedianId,
+            comedianName,
+            showId: row.showId,
+            showPageUrl: row.show?.showPageUrl ?? null,
+            showDate: row.show?.date ? row.show.date.toISOString() : null,
+            clubName: clubName || null,
+            city: club?.city ?? null,
+            state: club?.state ?? null,
+            channels: [row.notificationType],
+            sentAt: row.sentAt.toISOString(),
+            // A group is unread when its most recent send (the first row, since
+            // rows are sorted desc) is newer than the last-seen high-water mark.
+            isUnread: lastSeenAt ? row.sentAt > lastSeenAt : true,
+        });
+    }
+
+    const items = Array.from(groups.values());
+    const unreadCount = items.filter((item) => item.isUnread).length;
+
+    return NextResponse.json(
+        {
+            data: {
+                items,
+                unreadCount,
+                lastSeenAt: lastSeenAt ? lastSeenAt.toISOString() : null,
+            },
+        },
+        { headers: rateLimitHeaders(rl) },
+    );
+});
 
 export const PATCH = withRequestMetrics(async function PATCH(req: NextRequest) {
     const ipRl = await checkRateLimit(

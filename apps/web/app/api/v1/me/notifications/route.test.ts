@@ -15,6 +15,7 @@ vi.mock("@/lib/rateLimit", () => ({
     })),
     getClientIp: vi.fn(() => "127.0.0.1"),
     RATE_LIMITS: { authenticated: {}, authToken: {} },
+    rateLimitHeaders: vi.fn(() => ({ "X-RateLimit-Remaining": "99" })),
     rateLimitResponse: vi.fn(
         () => new Response(null, { status: 429 }) as never,
     ),
@@ -23,12 +24,16 @@ vi.mock("@/lib/rateLimit", () => ({
 vi.mock("@/lib/db", () => ({
     db: {
         userProfile: {
+            findUnique: vi.fn(),
             update: vi.fn(),
+        },
+        sentNotification: {
+            findMany: vi.fn(),
         },
     },
 }));
 
-import { PATCH } from "./route";
+import { GET, PATCH } from "./route";
 import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { db } from "@/lib/db";
@@ -36,6 +41,8 @@ import { db } from "@/lib/db";
 const mockResolveAuth = vi.mocked(resolveAuth);
 const mockCheckRateLimit = vi.mocked(checkRateLimit);
 const mockUpdateProfile = vi.mocked(db.userProfile.update);
+const mockFindProfile = vi.mocked(db.userProfile.findUnique);
+const mockFindNotifications = vi.mocked(db.sentNotification.findMany);
 
 function makeRequest(body: unknown): NextRequest {
     return new NextRequest("http://localhost/api/v1/me/notifications", {
@@ -139,5 +146,229 @@ describe("PATCH /api/v1/me/notifications", () => {
 
         expect(res.status).toBe(429);
         expect(mockResolveAuth).not.toHaveBeenCalled();
+    });
+});
+
+function makeGetRequest(): NextRequest {
+    return new NextRequest("http://localhost/api/v1/me/notifications", {
+        method: "GET",
+    });
+}
+
+function notificationRow(overrides: Record<string, unknown> = {}) {
+    return {
+        comedianId: "comedian-uuid-1",
+        showId: 555,
+        notificationType: "push",
+        sentAt: new Date("2026-06-20T12:00:00.000Z"),
+        comedian: { name: "Taylor Tomlinson" },
+        show: {
+            date: new Date("2026-07-01T02:00:00.000Z"),
+            showPageUrl: "https://laugh-track.com/show/555",
+            club: { name: "The Comedy Store", city: "Los Angeles", state: "CA" },
+        },
+        ...overrides,
+    };
+}
+
+describe("GET /api/v1/me/notifications", () => {
+    beforeEach(() => {
+        mockFindProfile.mockResolvedValue({
+            notificationsLastSeenAt: null,
+        } as never);
+        mockFindNotifications.mockResolvedValue([] as never);
+    });
+
+    it("returns 401 when resolveAuth returns null", async () => {
+        mockResolveAuth.mockResolvedValue(null);
+
+        const res = await GET(makeGetRequest());
+
+        expect(res.status).toBe(401);
+        expect(mockFindNotifications).not.toHaveBeenCalled();
+    });
+
+    it("returns 422 when authenticated user has no UserProfile row", async () => {
+        mockResolveAuth.mockResolvedValue(PROFILE_MISSING);
+
+        const res = await GET(makeGetRequest());
+
+        expect(res.status).toBe(422);
+        expect(await res.json()).toEqual({ error: "profile_missing" });
+        expect(mockFindNotifications).not.toHaveBeenCalled();
+    });
+
+    it("returns 429 when the pre-auth IP rate limit is exceeded", async () => {
+        mockCheckRateLimit.mockResolvedValueOnce({
+            allowed: false,
+            limit: 10,
+            remaining: 0,
+            resetAt: 0,
+        });
+
+        const res = await GET(makeGetRequest());
+
+        expect(res.status).toBe(429);
+        expect(mockResolveAuth).not.toHaveBeenCalled();
+    });
+
+    it("returns 429 when the per-user rate limit is exceeded", async () => {
+        mockResolveAuth.mockResolvedValue({
+            userId: "user-1",
+            profileId: "profile-1",
+        });
+        mockCheckRateLimit
+            .mockResolvedValueOnce({
+                allowed: true,
+                limit: 10,
+                remaining: 9,
+                resetAt: 0,
+            })
+            .mockResolvedValueOnce({
+                allowed: false,
+                limit: 100,
+                remaining: 0,
+                resetAt: 0,
+            });
+
+        const res = await GET(makeGetRequest());
+
+        expect(res.status).toBe(429);
+        expect(mockFindNotifications).not.toHaveBeenCalled();
+    });
+
+    it("returns an empty feed with zero unread when no notifications exist", async () => {
+        mockResolveAuth.mockResolvedValue({
+            userId: "user-1",
+            profileId: "profile-1",
+        });
+
+        const res = await GET(makeGetRequest());
+
+        expect(res.status).toBe(200);
+        expect(await res.json()).toEqual({
+            data: { items: [], unreadCount: 0, lastSeenAt: null },
+        });
+        expect(mockFindNotifications).toHaveBeenCalledWith(
+            expect.objectContaining({
+                where: { userId: "user-1" },
+                orderBy: { sentAt: "desc" },
+            }),
+        );
+    });
+
+    it("reconstructs the title/body and exposes show + club fields", async () => {
+        mockResolveAuth.mockResolvedValue({
+            userId: "user-1",
+            profileId: "profile-1",
+        });
+        mockFindNotifications.mockResolvedValue([notificationRow()] as never);
+
+        const res = await GET(makeGetRequest());
+
+        const body = await res.json();
+        expect(body.data.items).toHaveLength(1);
+        expect(body.data.items[0]).toMatchObject({
+            id: "comedian-uuid-1:555",
+            title: "Taylor Tomlinson is performing near you",
+            body: "The Comedy Store · Los Angeles, CA",
+            comedianId: "comedian-uuid-1",
+            comedianName: "Taylor Tomlinson",
+            showId: 555,
+            showPageUrl: "https://laugh-track.com/show/555",
+            clubName: "The Comedy Store",
+            city: "Los Angeles",
+            state: "CA",
+            channels: ["push"],
+            isUnread: true,
+        });
+    });
+
+    it("collapses email + push rows for the same (comedian, show) into one item", async () => {
+        mockResolveAuth.mockResolvedValue({
+            userId: "user-1",
+            profileId: "profile-1",
+        });
+        mockFindNotifications.mockResolvedValue([
+            notificationRow({
+                notificationType: "push",
+                sentAt: new Date("2026-06-20T12:00:00.000Z"),
+            }),
+            notificationRow({
+                notificationType: "email",
+                sentAt: new Date("2026-06-20T11:00:00.000Z"),
+            }),
+        ] as never);
+
+        const res = await GET(makeGetRequest());
+
+        const body = await res.json();
+        expect(body.data.items).toHaveLength(1);
+        expect(body.data.items[0].channels).toEqual(["push", "email"]);
+        // The latest send (push at 12:00) wins as the item timestamp.
+        expect(body.data.items[0].sentAt).toBe("2026-06-20T12:00:00.000Z");
+        expect(body.data.unreadCount).toBe(1);
+    });
+
+    it("marks items at or before lastSeenAt as read and counts only unread", async () => {
+        mockResolveAuth.mockResolvedValue({
+            userId: "user-1",
+            profileId: "profile-1",
+        });
+        mockFindProfile.mockResolvedValue({
+            notificationsLastSeenAt: new Date("2026-06-20T12:30:00.000Z"),
+        } as never);
+        mockFindNotifications.mockResolvedValue([
+            notificationRow({
+                comedianId: "comedian-uuid-2",
+                showId: 777,
+                sentAt: new Date("2026-06-20T13:00:00.000Z"),
+            }),
+            notificationRow({
+                comedianId: "comedian-uuid-1",
+                showId: 555,
+                sentAt: new Date("2026-06-20T12:00:00.000Z"),
+            }),
+        ] as never);
+
+        const res = await GET(makeGetRequest());
+
+        const body = await res.json();
+        expect(body.data.lastSeenAt).toBe("2026-06-20T12:30:00.000Z");
+        expect(body.data.unreadCount).toBe(1);
+        const byId = Object.fromEntries(
+            body.data.items.map((i: { id: string; isUnread: boolean }) => [
+                i.id,
+                i.isUnread,
+            ]),
+        );
+        expect(byId["comedian-uuid-2:777"]).toBe(true);
+        expect(byId["comedian-uuid-1:555"]).toBe(false);
+    });
+
+    it("falls back gracefully when comedian/club fields are missing", async () => {
+        mockResolveAuth.mockResolvedValue({
+            userId: "user-1",
+            profileId: "profile-1",
+        });
+        mockFindNotifications.mockResolvedValue([
+            notificationRow({
+                comedian: { name: null },
+                show: {
+                    date: null,
+                    showPageUrl: "https://laugh-track.com/show/555",
+                    club: { name: "Mystery Room", city: null, state: null },
+                },
+            }),
+        ] as never);
+
+        const res = await GET(makeGetRequest());
+
+        const body = await res.json();
+        expect(body.data.items[0].title).toBe(
+            "A comedian you follow is performing near you",
+        );
+        expect(body.data.items[0].body).toBe("Mystery Room");
+        expect(body.data.items[0].showDate).toBeNull();
     });
 });
