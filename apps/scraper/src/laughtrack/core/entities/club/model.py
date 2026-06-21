@@ -149,6 +149,17 @@ class Club(DatabaseEntity):
     Also serves as configuration for scrapers, containing all necessary metadata.
     """
 
+    ACCEPTED_CLUB_TYPES: ClassVar[frozenset[str]] = frozenset(
+        {
+            "club",
+            "venue",
+            "festival",
+            "producer",
+            "secret_location",
+            "non_comedy",
+        }
+    )
+
     id: int
     name: str
     address: str

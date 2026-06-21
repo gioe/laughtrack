@@ -209,6 +209,7 @@ model Club {
   googlePlaceId           String?                    @map("google_place_id")
   googlePlaceAttribution  Json?                      @map("google_place_attribution")
   status                  String                     @default("active")
+  /// Venue taxonomy: club, venue, festival, producer, secret_location, non_comedy.
   clubType                String                     @default("club") @map("club_type")
   closedAt                DateTime?                  @map("closed_at")
   chainId                 Int?                       @map("chain_id")

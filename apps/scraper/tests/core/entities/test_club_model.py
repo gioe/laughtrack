@@ -7,6 +7,17 @@ _LEGACY_KWARGS = {"scraping_url", "scraper", "eventbrite_id", "seatengine_id",
                   "ticketmaster_id", "ovationtix_client_id", "wix_comp_id",
                   "squadup_user_id"}
 
+ACCEPTED_CLUB_TYPES = frozenset(
+    {
+        "club",
+        "venue",
+        "festival",
+        "producer",
+        "secret_location",
+        "non_comedy",
+    }
+)
+
 
 def _attach_source(club: Club, *, scraping_url=None, scraper=None,
                     eventbrite_id=None, seatengine_id=None,
@@ -58,6 +69,10 @@ def _make_club(**kwargs) -> Club:
     club = Club(**defaults)
     _attach_source(club, **legacy)
     return club
+
+
+def test_club_model_exposes_accepted_club_types():
+    assert Club.ACCEPTED_CLUB_TYPES == ACCEPTED_CLUB_TYPES
 
 
 class TestClubScrapingDomain:
