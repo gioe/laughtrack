@@ -366,3 +366,74 @@ groups:
                 - evaluator:
                     type: gt
                     params: [5]
+
+      # 4) Pipeline liveness / staleness: no successful full scrape run has
+      #    landed in over ~26h. Unlike rules 1-3, which baseline the LATEST run
+      #    against prior runs and therefore go silent when the pipeline fails to
+      #    run AT ALL (the run writes no scraper_runs row, so "latest" never
+      #    advances), this rule is failure-mode-agnostic: it alerts whenever the
+      #    newest run is too old, for ANY reason the pipeline stopped producing
+      #    data — a pre-scrape migrate failure (TASK-3036: a stale
+      #    clubs.scraping_url assignment in an onboarding migration failed the
+      #    migrate step before the scrape and silently skipped 4 nightly runs),
+      #    a setup/dependency failure, a disabled schedule, etc.
+      #
+      #    The nightly cadence is daily (21:00 UTC), so hours_stale cycles 0->24
+      #    between healthy runs; the 26h threshold gives a ~2h grace past the
+      #    expected cadence so a single missed run fires without flapping on
+      #    normal run-to-run jitter. noDataState is **Alerting** (not OK like the
+      #    regression rules): an empty scraper_runs table is itself an outage
+      #    signal here, not a healthy "nothing to compare" state.
+      - uid: scraper-pipeline-staleness
+        title: Scraper pipeline stale — no successful run in 26h
+        condition: C
+        for: 0m
+        noDataState: Alerting
+        execErrState: Alerting
+        labels:
+          service: scraper-health
+          severity: critical
+        annotations:
+          summary: No successful scraper run in over 26h
+          description: >
+            The newest full scrape run (scraper_runs.run_type='scraper') is more
+            than 26 hours old, so the nightly pipeline has missed at least one run
+            for some reason — a pre-scrape failure (migrate/setup), a disabled
+            schedule, or a hung job. Unlike the regression rules this fires even
+            when no new run row was written at all. Check the latest
+            scraper-schedule.yml run on GitHub Actions.
+        data:
+          - refId: A
+            relativeTimeRange: { from: 0, to: 0 }
+            datasourceUid: dfnjxqagicw74a
+            model:
+              refId: A
+              format: table
+              rawSql: |
+                -- Hours since the newest real full scrape run. run_type='scraper'
+                -- excludes generic 'pipeline' rows (record_pipeline_run.py writes
+                -- one with if: always() even on a failed run — counting it would
+                -- mask the very outage this rule exists to catch) and single-club
+                -- 'verify' runs. Returns one row; an empty scraper_runs table
+                -- yields NO row -> NoData -> Alerting (see noDataState above).
+                SELECT EXTRACT(EPOCH FROM (NOW() - MAX(exported_at))) / 3600.0
+                       AS hours_stale
+                FROM scraper_runs
+                WHERE run_type = 'scraper';
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [26]
