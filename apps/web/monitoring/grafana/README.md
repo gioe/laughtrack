@@ -118,9 +118,10 @@ failures and regressions.
 ### Setup
 
 1. **Pin the datasource UID.** The rule file references the Neon datasource by
-   the UID `neon-scraper-health`. Either set the datasource's UID to that value
-   (datasource settings → JSON model) or replace every `neon-scraper-health`
-   occurrence in the YAML with your datasource's actual UID.
+   the UID `dfnjxqagicw74a` (the real, immutable UID of the `grafana_ro` Neon
+   datasource in the aiqobservability stack — same value the dashboard JSON pins,
+   see above). If the datasource is ever recreated, replace every
+   `dfnjxqagicw74a` occurrence in the YAML with the new UID.
 2. **Set the Discord webhook.** Replace `REPLACE_WITH_DISCORD_WEBHOOK_URL` in the
    `contactPoints` block with the `#laughtrack` channel's incoming-webhook URL
    (do **not** append `/slack`). Keep the secret out of git.
