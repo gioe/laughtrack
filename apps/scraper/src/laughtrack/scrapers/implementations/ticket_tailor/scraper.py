@@ -10,8 +10,9 @@ event as a Show whose ``club_id`` points at the per-venue club. The orchestrator
 then stamps ``production_company_id`` on every resulting Show.
 
 Anti-bot: tickettailor.com sits behind Cloudflare, which 403s a plain request.
-A curl_cffi ``impersonate='chrome120'`` session plus a ``Referer`` header (the
-producer's own website) clears it.
+curl_cffi browser impersonation usually clears it, but Cloudflare occasionally
+rejects a single browser fingerprint from datacenter egress. The fetcher tries
+a short ordered list of supported fingerprints before giving up.
 """
 
 import asyncio
@@ -37,6 +38,7 @@ from .extractor import (
 
 _FETCH_TIMEOUT = 30
 _DEFAULT_REFERER = "https://www.tickettailor.com/"
+_IMPERSONATION_TARGETS = ("chrome124", "chrome120", "safari17_0")
 
 
 class TicketTailorScraper(BaseScraper):
@@ -63,15 +65,31 @@ class TicketTailorScraper(BaseScraper):
 
     async def _fetch_listing(self, url: str) -> Optional[str]:
         """Fetch listing HTML with curl_cffi impersonation + Referer (Cloudflare)."""
-        headers = {"Referer": self._referer()}
-        try:
-            async with AsyncSession(impersonate="chrome120", timeout=_FETCH_TIMEOUT) as session:
-                response = await session.get(url, headers=headers)
-                response.raise_for_status()
-                return response.text
-        except Exception as e:
-            Logger.error(f"{self._log_prefix}: Ticket Tailor fetch failed for {url}: {e}", self.logger_context)
-            return None
+        headers = {"Referer": self._referer(), "Accept-Language": "en-US,en;q=0.9"}
+        errors: List[str] = []
+        for impersonation_target in _IMPERSONATION_TARGETS:
+            try:
+                async with AsyncSession(
+                    impersonate=impersonation_target,
+                    timeout=_FETCH_TIMEOUT,
+                ) as session:
+                    response = await session.get(url, headers=headers)
+                    response.raise_for_status()
+                    Logger.info(
+                        f"{self._log_prefix}: Ticket Tailor fetch succeeded with "
+                        f"{impersonation_target}",
+                        self.logger_context,
+                    )
+                    return response.text
+            except Exception as e:
+                errors.append(f"{impersonation_target}: {e}")
+
+        Logger.error(
+            f"{self._log_prefix}: Ticket Tailor fetch failed for {url} "
+            f"after {len(_IMPERSONATION_TARGETS)} impersonation attempt(s): {'; '.join(errors)}",
+            self.logger_context,
+        )
+        return None
 
     async def get_data(self, target: ScrapingTarget) -> None:
         """Unused: this scraper only runs in production-company mode via

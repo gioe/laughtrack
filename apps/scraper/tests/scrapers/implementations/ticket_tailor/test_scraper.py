@@ -25,6 +25,7 @@ from laughtrack.scrapers.implementations.ticket_tailor.extractor import (
     extract_events,
     listing_url_for_account,
 )
+from laughtrack.scrapers.implementations.ticket_tailor import scraper as scraper_mod
 from laughtrack.scrapers.implementations.ticket_tailor.scraper import TicketTailorScraper
 
 _FIXTURE = (Path(__file__).parent / "fixtures" / "listing.html").read_text()
@@ -178,3 +179,41 @@ async def test_full_scrape_empty_listing(monkeypatch, producer_proxy):
 def test_referer_uses_producer_website(producer_proxy):
     scraper = TicketTailorScraper(producer_proxy)
     assert scraper._referer() == "https://www.milwaukeecomedy.com/"
+
+
+@pytest.mark.asyncio
+async def test_fetch_listing_retries_supported_impersonation_targets(monkeypatch, producer_proxy):
+    attempts = []
+
+    class FakeResponse:
+        text = _FIXTURE
+
+        def raise_for_status(self):
+            return None
+
+    class FakeSession:
+        def __init__(self, *, impersonate, timeout):
+            self.impersonate = impersonate
+            self.timeout = timeout
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            return None
+
+        async def get(self, url, headers):
+            attempts.append((self.impersonate, url, headers))
+            if self.impersonate == "chrome124":
+                raise RuntimeError("403")
+            return FakeResponse()
+
+    monkeypatch.setattr(scraper_mod, "AsyncSession", FakeSession)
+
+    scraper = TicketTailorScraper(producer_proxy)
+    html = await scraper._fetch_listing("https://www.tickettailor.com/events/milwaukeecomedy/")
+
+    assert html == _FIXTURE
+    assert [attempt[0] for attempt in attempts] == ["chrome124", "chrome120"]
+    assert attempts[0][2]["Referer"] == "https://www.milwaukeecomedy.com/"
+    assert attempts[0][2]["Accept-Language"] == "en-US,en;q=0.9"

@@ -1552,7 +1552,8 @@ SELECT c.id, 'custom'::"ScrapingPlatform", 'tempo_tickets',
 - Per-venue clubs get only name + zip (the listing has no street/city), so `city`/`state` are empty — see TASK-3023 context atom on the dedup limitation
 
 **Anti-bot (Cloudflare):**
-- tickettailor.com 403s a plain request. The scraper clears it with `curl_cffi` `impersonate='chrome120'` plus a `Referer` header set to the producer or venue website.
+- tickettailor.com 403s a plain request. The scraper clears it with `curl_cffi` browser impersonation plus a `Referer` header set to the producer or venue website.
+- Cloudflare can reject one browser fingerprint from datacenter egress while accepting another, so the scraper tries `chrome124`, then `chrome120`, then `safari17_0` before failing the source.
 - Prefer this scraper over `json_ld` + `force_js_rendering` for Ticket Tailor-hosted calendars. Playwright may get a local residential managed challenge that auto-clears but a GHA datacenter hard Turnstile that does not; the listing scraper avoids that path.
 
 **DB setup:**
