@@ -74,7 +74,7 @@ Full operator walkthrough lives in `apps/web/DEPLOYMENT.md` →
 
 ## Regression alerts
 
-`scraper-health-alerts.yaml` defines four unified-alerting rules routed to a
+`scraper-health-alerts.yaml` defines five unified-alerting rules routed to a
 Discord contact point. Rules 1 and 3 compare the **latest run** against the
 **trailing 7-run rolling average** (rows `rn BETWEEN 2 AND 8` in the SQL —
 widen/narrow by editing those bounds):
@@ -99,6 +99,17 @@ widen/narrow by editing those bounds):
    `> 0` lookback keeps legitimately dark venues (clubs that never had shows)
    out of the alert; a club that genuinely goes dark stops firing 30 days
    after its last show. One alert instance per club (the `club` label).
+5. **Pipeline liveness / staleness** (TASK-3040) — fires when the newest full
+   scrape run (`scraper_runs.run_type='scraper'`) is more than 26 hours old.
+   Unlike rules 1–4, which baseline the latest run against prior runs and go
+   silent when the pipeline fails to run **at all** (no new row → "latest" never
+   advances), this rule is failure-mode-agnostic: it catches a pre-scrape
+   migrate/setup failure, a disabled schedule, or a hung job. Its `noDataState`
+   is **Alerting** (not `OK`): an empty `scraper_runs` table is itself an outage
+   signal. (Motivated by the TASK-3036 incident: a bad onboarding migration
+   failed the pre-scrape migrate step and silently skipped ~4 nightly runs with
+   no alert.) The GHA `Notify on failure` step (`scraper-schedule.yml`) also now
+   posts to Discord on a hard job failure as an immediate same-run signal.
 
 These replace the scraper's old unconditional per-run Discord summary (gated off
 in TASK-2511): a healthy run produces no Discord post, so Discord carries only
