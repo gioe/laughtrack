@@ -525,9 +525,8 @@ class TestUpsertForEventbriteVenueHappyPath:
 
 
 class TestUpsertForTicketmasterVenueParams:
-    """The TM venue upsert binds venue_id twice: once for the scraping_sources
-    INSERT, once for the ticketmaster_id_unique NOT EXISTS guard that lets an
-    already-configured venue upsert without aborting (and dropping its shows)."""
+    """The TM venue upsert resolves venues by Ticketmaster's stable venue id
+    before falling back to name-based insertion for brand-new venues."""
 
     _VENUE = {
         "id": "KovZpZAEAaEA",
@@ -539,7 +538,10 @@ class TestUpsertForTicketmasterVenueParams:
         "timezone": "America/Los_Angeles",
     }
 
-    def test_binds_venue_id_twice_and_uses_tm_upsert_sql(self):
+    def _normalized(self, sql: str) -> str:
+        return " ".join(sql.split()).upper()
+
+    def test_binds_venue_id_first_and_uses_tm_upsert_sql(self):
         from sql.club_queries import ClubQueries
 
         handler = ClubHandler()
@@ -551,10 +553,9 @@ class TestUpsertForTicketmasterVenueParams:
         sql_arg = mock_exec.call_args[0][0]
         params = mock_exec.call_args[0][1]
         assert sql_arg == ClubQueries.UPSERT_CLUB_BY_TICKETMASTER_VENUE
-        assert len(params) == 8
-        assert params[0] == "The Comedy Store"   # name
-        assert params[6] == "KovZpZAEAaEA"       # venue_id (INSERT SELECT)
-        assert params[7] == "KovZpZAEAaEA"        # venue_id (NOT EXISTS guard)
+        assert len(params) == 7
+        assert params[0] == "KovZpZAEAaEA"       # venue_id (identity lookup)
+        assert params[1] == "The Comedy Store"   # name (fallback insert/update)
 
     def test_sql_guards_against_both_partial_unique_indexes(self):
         """The SQL must guard the source insert against the two partial unique
@@ -563,11 +564,23 @@ class TestUpsertForTicketmasterVenueParams:
 
         sql = ClubQueries.UPSERT_CLUB_BY_TICKETMASTER_VENUE
         # ticketmaster_id_unique guard
-        assert "s2.ticketmaster_id = %s" in sql
+        assert "s2.ticketmaster_id = iv.ticketmaster_id" in sql
         # club_priority_enabled_unique guard
-        assert "s3.club_id = upserted_club.id" in sql
+        assert "s3.club_id = resolved_club.id" in sql
         # club returned unconditionally (old EXISTS gate removed)
         assert "WHERE EXISTS (SELECT 1 FROM upserted_source)" not in sql
+
+    def test_sql_resolves_existing_club_by_ticketmaster_id_before_name_fallback(self):
+        from sql.club_queries import ClubQueries
+
+        sql = self._normalized(ClubQueries.UPSERT_CLUB_BY_TICKETMASTER_VENUE)
+
+        assert "EXISTING_TICKETMASTER_CLUB AS" in sql
+        assert "S.TICKETMASTER_ID = IV.TICKETMASTER_ID" in sql
+        assert "UPDATE CLUBS C" in sql
+        assert "WHERE C.ID IN (SELECT ID FROM EXISTING_TICKETMASTER_CLUB)" in sql
+        assert "WHERE NOT EXISTS (SELECT 1 FROM UPDATED_TICKETMASTER_CLUB)" in sql
+        assert "ON CONFLICT (NAME) DO UPDATE SET" in sql
 
 
 class TestUpsertForEventbriteVenueConflict:
@@ -666,7 +679,7 @@ class TestUpsertSqlAvoidsCteSnapshotBug:
     def test_ticketmaster_upsert_selects_from_cte_not_clubs_table(self):
         sql = self._normalized(ClubQueries.UPSERT_CLUB_BY_TICKETMASTER_VENUE)
         assert "JOIN UPSERTED_CLUB" not in sql
-        assert "FROM UPSERTED_CLUB" in sql
+        assert "FROM RESOLVED_CLUB" in sql
         assert "RETURNING *" in sql
 
     def test_discovered_venue_upsert_does_not_touch_scraping_sources(self):
@@ -864,9 +877,8 @@ class TestUpsertClubQueriesArePyformatSafe:
         ("eventbrite", 6),
         ("seatengine", 8),
         ("seatengine_v3", 8),
-        # 8 = 6 clubs-INSERT cols + venue_id (source INSERT) + venue_id
-        # (ticketmaster_id_unique NOT EXISTS guard).
-        ("ticketmaster", 8),
+        # 7 = input_venue CTE fields; downstream source insert/guards reuse it.
+        ("ticketmaster", 7),
     ]
 
     def _query(self, label: str) -> str:
@@ -1653,9 +1665,9 @@ class TestTicketmasterVenueCityStateExtraction:
             handler.upsert_for_ticketmaster_venue(venue)
 
         params = mock_exec.call_args[0][1]
-        # New CTE shape: (name, address, zip_code, city, state, timezone, venue_id)
-        assert params[3] == "New York"  # city
-        assert params[4] == "NY"        # state
+        # New CTE shape: (venue_id, name, address, zip_code, city, state, timezone)
+        assert params[4] == "New York"  # city
+        assert params[5] == "NY"        # state
 
     def test_city_state_none_when_absent_from_venue(self):
         """City and state default to None when not present in venue dict."""
@@ -1666,8 +1678,8 @@ class TestTicketmasterVenueCityStateExtraction:
             handler.upsert_for_ticketmaster_venue(venue)
 
         params = mock_exec.call_args[0][1]
-        assert params[3] is None  # city
-        assert params[4] is None  # state
+        assert params[4] is None  # city
+        assert params[5] is None  # state
 
 
 # ---------------------------------------------------------------------------

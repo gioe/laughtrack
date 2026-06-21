@@ -243,12 +243,13 @@ accumulated. The nightly now runs the single `ticketmaster_national` source targ
 which discovers every US comedy venue, upserts a club per venue, and persists in
 chunks. Per-venue `ticketmaster_comedy` is reserved for the **edge cases national
 cannot cover**: venues with comedy beyond the 180-day horizon or not classified
-`Comedy` nationally (national returns nothing for them), or whose existing club
-name differs from the national venue name (keeping their per-venue source
-*enabled* makes national's `ticketmaster_id` source-insert guard skip them, which
-avoids a duplicate club — see TASK-3042 / TASK-3043). The cutover migration
-(`migrations/20260621_cutover_ticketmaster_comedy_to_national.sql`) keys the
-keep-list on `ticketmaster_id`.
+`Comedy` nationally (national returns nothing for them). Name differences alone
+are not a keep-list reason: `ticketmaster_national` resolves discovered venues by
+the stable `scraping_sources.ticketmaster_id` first, then falls back to name for
+brand-new venues (TASK-3043). The cutover migrations
+(`migrations/20260621_cutover_ticketmaster_comedy_to_national.sql` and
+`migrations/20260621_rekey_ticketmaster_national_upsert.sql`) key the keep-list
+on `ticketmaster_id`.
 
 **DB setup:**
 ```sql
