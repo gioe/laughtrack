@@ -234,6 +234,22 @@ When a Ticketmaster-backed scraper returns 0 events, first verify the stored `ti
 
 **Multi-purpose venues:** Use `scraper_key='ticketmaster_comedy'` when the Ticketmaster venue hosts concerts, sports, talks, tours, VIP add-ons, or other non-comedy events. This focused scraper calls the same Discovery API with `classificationName=Comedy`, then keeps the existing comedy transformer guard. Keep `live_nation` for comedy-first venues where uncategorized Arts & Theatre events should remain eligible.
 
+**Nightly TM path is batched (`ticketmaster_national`, TASK-3042).** Do NOT add new
+TM comedy venues as per-venue `ticketmaster_comedy` nightly sources by default —
+that pattern made one Discovery API call per venue against a shared 5 req/sec
+limit and blew the nightly past the 120-min GHA timeout once ~800 TM venues
+accumulated. The nightly now runs the single `ticketmaster_national` source target
+(~18 windowed national `classificationName=Comedy` calls over a 180-day horizon),
+which discovers every US comedy venue, upserts a club per venue, and persists in
+chunks. Per-venue `ticketmaster_comedy` is reserved for the **edge cases national
+cannot cover**: venues with comedy beyond the 180-day horizon or not classified
+`Comedy` nationally (national returns nothing for them), or whose existing club
+name differs from the national venue name (keeping their per-venue source
+*enabled* makes national's `ticketmaster_id` source-insert guard skip them, which
+avoids a duplicate club — see TASK-3042 / TASK-3043). The cutover migration
+(`migrations/20260621_cutover_ticketmaster_comedy_to_national.sql`) keys the
+keep-list on `ticketmaster_id`.
+
 **DB setup:**
 ```sql
 UPDATE clubs SET scraper = 'live_nation', ticketmaster_id = 'KovZpZAJalFA' WHERE name = 'My Club';
