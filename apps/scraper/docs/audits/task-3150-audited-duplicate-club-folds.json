@@ -1,0 +1,711 @@
+{
+  "after": {
+    "aliases": [
+      {
+        "alias_name": "Laugh Factory at the Silver Legacy Casino",
+        "city": "Reno",
+        "club_id": 173,
+        "id": 339,
+        "normalized_alias_name": "laugh factory at the silver legacy casino",
+        "normalized_city": "reno",
+        "normalized_state": "nv",
+        "source": "TASK-3150",
+        "state": "NV",
+        "verified": true
+      },
+      {
+        "alias_name": "Laugh Factory at Silver Legacy Casino",
+        "city": "Reno",
+        "club_id": 173,
+        "id": 340,
+        "normalized_alias_name": "laugh factory at silver legacy casino",
+        "normalized_city": "reno",
+        "normalized_state": "nv",
+        "source": "TASK-3150",
+        "state": "NV",
+        "verified": true
+      },
+      {
+        "alias_name": "Punch Line Houston",
+        "city": "Houston",
+        "club_id": 198,
+        "id": 341,
+        "normalized_alias_name": "punch line houston",
+        "normalized_city": "houston",
+        "normalized_state": "tx",
+        "source": "TASK-3150",
+        "state": "TX",
+        "verified": true
+      },
+      {
+        "alias_name": "Punch Line Comedy Club - Sacramento",
+        "city": "Sacramento",
+        "club_id": 1039,
+        "id": 338,
+        "normalized_alias_name": "punch line comedy club sacramento",
+        "normalized_city": "sacramento",
+        "normalized_state": "ca",
+        "source": "TASK-3150",
+        "state": "CA",
+        "verified": true
+      },
+      {
+        "alias_name": "V theater at Planet Hollywood Las Vegas",
+        "city": "Las Vegas",
+        "club_id": 4497,
+        "id": 334,
+        "normalized_alias_name": "v theater at planet hollywood las vegas",
+        "normalized_city": "las vegas",
+        "normalized_state": "nv",
+        "source": "TASK-3150",
+        "state": "NV",
+        "verified": true
+      },
+      {
+        "alias_name": "V Theater - Planet Hollywood Resort & Casino",
+        "city": "Las Vegas",
+        "club_id": 4497,
+        "id": 335,
+        "normalized_alias_name": "v theater planet hollywood resort and casino",
+        "normalized_city": "las vegas",
+        "normalized_state": "nv",
+        "source": "TASK-3150",
+        "state": "NV",
+        "verified": true
+      },
+      {
+        "alias_name": "Planet Hollywood-Saxe Theater",
+        "city": "Las Vegas",
+        "club_id": 4597,
+        "id": 336,
+        "normalized_alias_name": "planet hollywood saxe theater",
+        "normalized_city": "las vegas",
+        "normalized_state": "nv",
+        "source": "TASK-3150",
+        "state": "NV",
+        "verified": true
+      },
+      {
+        "alias_name": "Saxe Theater - Planet Hollywood Resort & Casino",
+        "city": "Las Vegas",
+        "club_id": 4597,
+        "id": 337,
+        "normalized_alias_name": "saxe theater planet hollywood resort and casino",
+        "normalized_city": "las vegas",
+        "normalized_state": "nv",
+        "source": "TASK-3150",
+        "state": "NV",
+        "verified": true
+      }
+    ],
+    "clubs": [
+      {
+        "city": "Reno",
+        "closed_at": null,
+        "id": 173,
+        "name": "Laugh Factory Reno",
+        "state": "NV",
+        "status": "active",
+        "total_shows": 211,
+        "visible": true
+      },
+      {
+        "city": "Houston",
+        "closed_at": null,
+        "id": 198,
+        "name": "Punch Line Comedy Club Houston",
+        "state": "TX",
+        "status": "active",
+        "total_shows": 201,
+        "visible": true
+      },
+      {
+        "city": "Sacramento",
+        "closed_at": null,
+        "id": 1039,
+        "name": "Punch Line Sacramento",
+        "state": "CA",
+        "status": "active",
+        "total_shows": 246,
+        "visible": true
+      },
+      {
+        "city": "Las Vegas",
+        "closed_at": null,
+        "id": 4497,
+        "name": "V Theater at Planet Hollywood Inside the Miracle Mile Mall",
+        "state": "NV",
+        "status": "active",
+        "total_shows": 537,
+        "visible": true
+      },
+      {
+        "city": "Sacramento",
+        "closed_at": null,
+        "id": 4564,
+        "name": "Punch Line Sacramento Callback Bar",
+        "state": "CA",
+        "status": "active",
+        "total_shows": 51,
+        "visible": true
+      },
+      {
+        "city": "Las Vegas",
+        "closed_at": null,
+        "id": 4597,
+        "name": "Saxe Theater at Planet Hollywood Inside the Miracle Mile Mall",
+        "state": "NV",
+        "status": "active",
+        "total_shows": 258,
+        "visible": true
+      },
+      {
+        "city": "Las Vegas",
+        "closed_at": "2026-06-21T23:37:51.689652+00:00",
+        "id": 4616,
+        "name": "Planet Hollywood-Saxe Theater (duplicate of club 4597; folded from club 4616)",
+        "state": "NV",
+        "status": "closed",
+        "total_shows": 0,
+        "visible": false
+      },
+      {
+        "city": "Las Vegas",
+        "closed_at": "2026-06-21T23:37:51.689652+00:00",
+        "id": 4841,
+        "name": "V theater at Planet Hollywood Las Vegas (duplicate of club 4497; folded from club 4841)",
+        "state": "NV",
+        "status": "closed",
+        "total_shows": 0,
+        "visible": false
+      },
+      {
+        "city": "Houston",
+        "closed_at": "2026-06-21T23:37:51.689652+00:00",
+        "id": 6779,
+        "name": "Punch Line Houston (duplicate of club 198; folded from club 6779)",
+        "state": "TX",
+        "status": "closed",
+        "total_shows": 0,
+        "visible": false
+      },
+      {
+        "city": "Sacramento",
+        "closed_at": "2026-06-21T23:37:51.689652+00:00",
+        "id": 6796,
+        "name": "Punch Line Comedy Club - Sacramento (duplicate of club 1039; folded from club 6796)",
+        "state": "CA",
+        "status": "closed",
+        "total_shows": 0,
+        "visible": false
+      },
+      {
+        "city": "Reno",
+        "closed_at": "2026-06-21T23:37:51.689652+00:00",
+        "id": 6802,
+        "name": "Laugh Factory at the Silver Legacy Casino (duplicate of club 173; folded from club 6802)",
+        "state": "NV",
+        "status": "closed",
+        "total_shows": 0,
+        "visible": false
+      }
+    ],
+    "duplicate_show_summary": [],
+    "remaining_duplicate_references": {
+      "click_events": 0,
+      "club_image_assets": 0,
+      "email_subscriptions": 0,
+      "favorite_clubs": 0,
+      "processed_emails": 0,
+      "production_company_venues": 0,
+      "scraper_run_clubs": 0,
+      "shows": 0,
+      "tagged_clubs": 0
+    },
+    "sources": [
+      {
+        "club_id": 173,
+        "enabled": true,
+        "id": 104,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "live_nation",
+        "source_url": "ticketmaster/KovZ917AP-J",
+        "ticketmaster_id": "KovZ917AP-J"
+      },
+      {
+        "club_id": 198,
+        "enabled": true,
+        "id": 540,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "live_nation",
+        "source_url": "ticketmaster/KovZ917ARGO",
+        "ticketmaster_id": "KovZ917ARGO"
+      },
+      {
+        "club_id": 1039,
+        "enabled": true,
+        "id": 221,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "live_nation",
+        "source_url": "https://www.punchlinesac.com/shows",
+        "ticketmaster_id": "KovZpZAEkFIA"
+      },
+      {
+        "club_id": 4497,
+        "enabled": true,
+        "id": 3587,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "KovZpZAJ666A"
+      },
+      {
+        "club_id": 4497,
+        "enabled": false,
+        "id": 3931,
+        "metadata": {
+          "task_3150_disposition": "moved disabled duplicate source from club 4841 to club 4497",
+          "task_3150_source_task": "TASK-3045"
+        },
+        "platform": "ticketmaster",
+        "priority": 1,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "ZFr9jZFA1F"
+      },
+      {
+        "club_id": 4564,
+        "enabled": true,
+        "id": 3654,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "KovZ917AY5N"
+      },
+      {
+        "club_id": 4597,
+        "enabled": true,
+        "id": 3687,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "KovZpZAJ6n7A"
+      },
+      {
+        "club_id": 4597,
+        "enabled": false,
+        "id": 3706,
+        "metadata": {
+          "task_3150_disposition": "moved disabled duplicate source from club 4616 to club 4597",
+          "task_3150_source_task": "TASK-3046"
+        },
+        "platform": "ticketmaster",
+        "priority": 1,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "ZFr9jZadv7"
+      }
+    ]
+  },
+  "before": {
+    "aliases": [],
+    "clubs": [
+      {
+        "city": "Reno",
+        "closed_at": null,
+        "id": 173,
+        "name": "Laugh Factory Reno",
+        "state": "NV",
+        "status": "active",
+        "total_shows": 210,
+        "visible": true
+      },
+      {
+        "city": "Houston",
+        "closed_at": null,
+        "id": 198,
+        "name": "Punch Line Comedy Club Houston",
+        "state": "TX",
+        "status": "active",
+        "total_shows": 201,
+        "visible": true
+      },
+      {
+        "city": "Sacramento",
+        "closed_at": null,
+        "id": 1039,
+        "name": "Punch Line Sacramento",
+        "state": "CA",
+        "status": "active",
+        "total_shows": 246,
+        "visible": true
+      },
+      {
+        "city": "Las Vegas",
+        "closed_at": null,
+        "id": 4497,
+        "name": "V Theater at Planet Hollywood Inside the Miracle Mile Mall",
+        "state": "NV",
+        "status": "active",
+        "total_shows": 535,
+        "visible": true
+      },
+      {
+        "city": "Sacramento",
+        "closed_at": null,
+        "id": 4564,
+        "name": "Punch Line Sacramento Callback Bar",
+        "state": "CA",
+        "status": "active",
+        "total_shows": 51,
+        "visible": true
+      },
+      {
+        "city": "Las Vegas",
+        "closed_at": null,
+        "id": 4597,
+        "name": "Saxe Theater at Planet Hollywood Inside the Miracle Mile Mall",
+        "state": "NV",
+        "status": "active",
+        "total_shows": 258,
+        "visible": true
+      },
+      {
+        "city": "Las Vegas",
+        "closed_at": null,
+        "id": 4616,
+        "name": "Planet Hollywood-Saxe Theater",
+        "state": "NV",
+        "status": "active",
+        "total_shows": 258,
+        "visible": true
+      },
+      {
+        "city": "Las Vegas",
+        "closed_at": null,
+        "id": 4841,
+        "name": "V theater at Planet Hollywood Las Vegas",
+        "state": "NV",
+        "status": "active",
+        "total_shows": 532,
+        "visible": true
+      },
+      {
+        "city": "Houston",
+        "closed_at": null,
+        "id": 6779,
+        "name": "Punch Line Houston",
+        "state": "TX",
+        "status": "active",
+        "total_shows": 118,
+        "visible": true
+      },
+      {
+        "city": "Sacramento",
+        "closed_at": null,
+        "id": 6796,
+        "name": "Punch Line Comedy Club - Sacramento",
+        "state": "CA",
+        "status": "active",
+        "total_shows": 165,
+        "visible": true
+      },
+      {
+        "city": "Reno",
+        "closed_at": null,
+        "id": 6802,
+        "name": "Laugh Factory at the Silver Legacy Casino",
+        "state": "NV",
+        "status": "active",
+        "total_shows": 158,
+        "visible": true
+      }
+    ],
+    "duplicate_show_summary": [
+      {
+        "club_id": 4616,
+        "first_show": "2026-06-16T03:30:00+00:00",
+        "last_show": "2026-12-17T04:30:00+00:00",
+        "show_count": 258
+      },
+      {
+        "club_id": 4841,
+        "first_show": "2026-06-14T20:30:00+00:00",
+        "last_show": "2026-12-17T22:30:00+00:00",
+        "show_count": 532
+      },
+      {
+        "club_id": 6779,
+        "first_show": "2026-06-15T00:00:00+00:00",
+        "last_show": "2026-12-18T01:30:00+00:00",
+        "show_count": 118
+      },
+      {
+        "club_id": 6796,
+        "first_show": "2026-06-15T02:00:00+00:00",
+        "last_show": "2026-12-14T02:00:00+00:00",
+        "show_count": 165
+      },
+      {
+        "club_id": 6802,
+        "first_show": "2026-06-15T02:30:00+00:00",
+        "last_show": "2026-12-18T03:30:00+00:00",
+        "show_count": 158
+      }
+    ],
+    "remaining_duplicate_references": {
+      "click_events": 685,
+      "club_image_assets": 0,
+      "email_subscriptions": 0,
+      "favorite_clubs": 0,
+      "processed_emails": 0,
+      "production_company_venues": 0,
+      "scraper_run_clubs": 8,
+      "shows": 1231,
+      "tagged_clubs": 0
+    },
+    "sources": [
+      {
+        "club_id": 173,
+        "enabled": true,
+        "id": 104,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "live_nation",
+        "source_url": "ticketmaster/KovZ917AP-J",
+        "ticketmaster_id": "KovZ917AP-J"
+      },
+      {
+        "club_id": 198,
+        "enabled": true,
+        "id": 540,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "live_nation",
+        "source_url": "ticketmaster/KovZ917ARGO",
+        "ticketmaster_id": "KovZ917ARGO"
+      },
+      {
+        "club_id": 1039,
+        "enabled": true,
+        "id": 221,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "live_nation",
+        "source_url": "https://www.punchlinesac.com/shows",
+        "ticketmaster_id": "KovZpZAEkFIA"
+      },
+      {
+        "club_id": 4497,
+        "enabled": true,
+        "id": 3587,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "KovZpZAJ666A"
+      },
+      {
+        "club_id": 4564,
+        "enabled": true,
+        "id": 3654,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "KovZ917AY5N"
+      },
+      {
+        "club_id": 4597,
+        "enabled": true,
+        "id": 3687,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "KovZpZAJ6n7A"
+      },
+      {
+        "club_id": 4616,
+        "enabled": true,
+        "id": 3706,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "ZFr9jZadv7"
+      },
+      {
+        "club_id": 4841,
+        "enabled": true,
+        "id": 3931,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "ZFr9jZFA1F"
+      }
+    ]
+  },
+  "counts": {
+    "aliases_upserted": 8,
+    "click_events_club_repointed": 11,
+    "click_events_repointed_to_existing_show": 674,
+    "club_image_assets_moved": 0,
+    "club_totals_recomputed": 11,
+    "colliding_duplicate_shows_deleted": 1229,
+    "conflicting_email_subscriptions_deleted": 0,
+    "conflicting_sent_notifications_deleted": 0,
+    "duplicate_active_club_images_deactivated": 0,
+    "duplicate_clubs_closed": 5,
+    "duplicate_favorite_clubs_deleted": 0,
+    "duplicate_production_company_venues_deleted": 0,
+    "duplicate_sources_moved_to_canonical": 2,
+    "duplicate_tagged_clubs_deleted": 0,
+    "email_subscriptions_moved": 0,
+    "favorite_clubs_inserted": 0,
+    "lineup_items_copied": 0,
+    "noncolliding_shows_moved": 2,
+    "processed_emails_moved": 0,
+    "production_company_venues_inserted": 0,
+    "remaining_duplicate_sources_disabled": 0,
+    "scraper_run_clubs_moved": 8,
+    "sent_notifications_repointed": 0,
+    "tagged_clubs_inserted": 0,
+    "tagged_shows_copied": 2,
+    "tickets_copied": 0
+  },
+  "dry_run": false,
+  "generated_at": "2026-06-21T23:37:51.431877+00:00",
+  "source_tasks": [
+    "TASK-3045",
+    "TASK-3046",
+    "TASK-3047",
+    "TASK-3048",
+    "TASK-3049"
+  ],
+  "task_id": 3150,
+  "validated": {
+    "clubs": [
+      {
+        "city": "Houston",
+        "id": 198,
+        "name": "Punch Line Comedy Club Houston",
+        "state": "TX",
+        "status": "active",
+        "total_shows": 201,
+        "visible": true
+      },
+      {
+        "city": "Sacramento",
+        "id": 1039,
+        "name": "Punch Line Sacramento",
+        "state": "CA",
+        "status": "active",
+        "total_shows": 246,
+        "visible": true
+      },
+      {
+        "city": "Sacramento",
+        "id": 4564,
+        "name": "Punch Line Sacramento Callback Bar",
+        "state": "CA",
+        "status": "active",
+        "total_shows": 51,
+        "visible": true
+      },
+      {
+        "city": "Las Vegas",
+        "id": 4841,
+        "name": "V theater at Planet Hollywood Las Vegas",
+        "state": "NV",
+        "status": "active",
+        "total_shows": 532,
+        "visible": true
+      },
+      {
+        "city": "Las Vegas",
+        "id": 4597,
+        "name": "Saxe Theater at Planet Hollywood Inside the Miracle Mile Mall",
+        "state": "NV",
+        "status": "active",
+        "total_shows": 258,
+        "visible": true
+      },
+      {
+        "city": "Reno",
+        "id": 173,
+        "name": "Laugh Factory Reno",
+        "state": "NV",
+        "status": "active",
+        "total_shows": 210,
+        "visible": true
+      },
+      {
+        "city": "Las Vegas",
+        "id": 4616,
+        "name": "Planet Hollywood-Saxe Theater",
+        "state": "NV",
+        "status": "active",
+        "total_shows": 258,
+        "visible": true
+      },
+      {
+        "city": "Las Vegas",
+        "id": 4497,
+        "name": "V Theater at Planet Hollywood Inside the Miracle Mile Mall",
+        "state": "NV",
+        "status": "active",
+        "total_shows": 535,
+        "visible": true
+      },
+      {
+        "city": "Houston",
+        "id": 6779,
+        "name": "Punch Line Houston",
+        "state": "TX",
+        "status": "active",
+        "total_shows": 118,
+        "visible": true
+      },
+      {
+        "city": "Sacramento",
+        "id": 6796,
+        "name": "Punch Line Comedy Club - Sacramento",
+        "state": "CA",
+        "status": "active",
+        "total_shows": 165,
+        "visible": true
+      },
+      {
+        "city": "Reno",
+        "id": 6802,
+        "name": "Laugh Factory at the Silver Legacy Casino",
+        "state": "NV",
+        "status": "active",
+        "total_shows": 158,
+        "visible": true
+      }
+    ]
+  }
+}
