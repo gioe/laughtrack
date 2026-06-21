@@ -14,7 +14,12 @@ on:
 jobs:
   scrape:
     runs-on: ubuntu-24.04
-    timeout-minutes: 120
+    # Raised 120->180 (TASK-3044): with the 817 ticketmaster_comedy venues batched
+    # onto ticketmaster_national (TASK-3042), the remaining ~580 clubs at
+    # MAX_CONCURRENT_CLUBS=12 run in ~40m and ticketmaster_national (appended last)
+    # needs ~40m to persist ~10k shows, so a full run lands well under 180m. The
+    # liveness alert (TASK-3040) catches any future regression past this budget.
+    timeout-minutes: 180
     defaults:
       run:
         working-directory: apps/scraper
@@ -84,6 +89,13 @@ jobs:
           # proxy-enabled scrapers (tixr) can complete one — proxyless callers
           # skip the solve up front.
           CAPSOLVER_API_KEY: ${{ secrets.CAPSOLVER_API_KEY }}
+          # Raised 5->12 (TASK-3044). Concurrency only parallelizes the network
+          # fetch — DB writes are serialized by _DB_WRITE_LOCK regardless — and
+          # with Ticketmaster batched onto ticketmaster_national (TASK-3042) the
+          # remaining clubs are mostly distinct domains, so per-domain rate
+          # limiting is unaffected. Read at use-time by _max_concurrent_clubs in
+          # core/services/scraping/__init__.py (default 5).
+          MAX_CONCURRENT_CLUBS: "12"
         run: |
           python -m scripts.core.scrape_shows --all
 
