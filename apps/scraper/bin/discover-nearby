@@ -38,6 +38,7 @@ import math
 import os
 import re
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 from urllib.parse import quote
 
@@ -82,6 +83,23 @@ from laughtrack.core.services.notification.geo import (  # noqa: E402
 )
 
 _MILES_PER_LAT_DEGREE = 69.0
+
+
+@dataclass(frozen=True)
+class Classification:
+    status: str
+    club_id: int | None = None
+    club_name: str | None = None
+    category_state: str | None = None
+    deny_reason: str | None = None
+    deny_google_primary_type: str | None = None
+    deny_evidence: dict | None = None
+
+    def __iter__(self):
+        """Keep older tests/callers that unpack ``status, club_id, club_name`` working."""
+        yield self.status
+        yield self.club_id
+        yield self.club_name
 
 
 def _resolve_database_url() -> str:
@@ -188,7 +206,13 @@ def _load_existing_clubs(dsn):
     try:
         conn.autocommit = True
         with conn.cursor() as cur:
-            cur.execute("SELECT id, name, address, latitude, longitude, google_place_id FROM clubs")
+            cur.execute(
+                """
+                SELECT id, name, address, latitude, longitude, google_place_id,
+                       club_type, visible, status
+                  FROM clubs
+                """
+            )
             rows = cur.fetchall()
     finally:
         conn.close()
@@ -196,25 +220,28 @@ def _load_existing_clubs(dsn):
     by_place_id = {}
     name_rows = []
     addr_index = {}
-    for club_id, name, address, lat, lng, place_id in rows:
+    for club_id, name, address, lat, lng, place_id, club_type, visible, status in rows:
         flat = float(lat) if lat is not None else None
         flng = float(lng) if lng is not None else None
+        club_meta = (club_type or "club", bool(visible), status or "")
         if place_id:
-            by_place_id[place_id] = (club_id, name)
-        name_rows.append((club_id, name, _normalize_name(name), flat, flng))
+            by_place_id[place_id] = (club_id, name, *club_meta)
+        name_rows.append((club_id, name, _normalize_name(name), flat, flng, *club_meta))
         addr_key = _normalize_address(address)
         if addr_key:
-            addr_index.setdefault(addr_key, []).append((club_id, name, flat, flng))
+            addr_index.setdefault(addr_key, []).append((club_id, name, flat, flng, *club_meta))
     return by_place_id, name_rows, addr_index
 
 
-def _load_denied_place_ids(dsn):
-    """Return the set of Google place_ids on the venue deny-list.
+def _load_denied_venues(dsn):
+    """Return Google place_id -> structured venue deny-list evidence.
 
     Venues are deny-listed after discovery when they are evaluated and rejected
     as non-comedy (e.g. live-music venues with no stand-up on their own
-    calendar). Returns an empty set if the table does not exist yet so the tool
-    still runs against a DB that predates the venue_deny_list migration.
+    calendar). Returns an empty dict if the table does not exist yet so the tool
+    still runs against a DB that predates the venue_deny_list migration. If the
+    table exists but predates the structured-evidence columns, fall back to the
+    original place_id-only shape.
     """
     import psycopg2
 
@@ -225,10 +252,38 @@ def _load_denied_place_ids(dsn):
         conn.autocommit = True
         with conn.cursor() as cur:
             try:
-                cur.execute("SELECT google_place_id FROM venue_deny_list")
-                return {row[0] for row in cur.fetchall() if row[0]}
+                cur.execute(
+                    """
+                    SELECT google_place_id, name, reason, google_primary_type, evidence
+                      FROM venue_deny_list
+                    """
+                )
+                denied = {}
+                for place_id, name, reason, google_primary_type, evidence in cur.fetchall():
+                    if not place_id:
+                        continue
+                    denied[place_id] = {
+                        "name": name,
+                        "reason": reason,
+                        "google_primary_type": google_primary_type,
+                        "evidence": evidence if isinstance(evidence, dict) else {},
+                    }
+                return denied
+            except psycopg2.errors.UndefinedColumn:
+                conn.rollback()
+                cur.execute("SELECT google_place_id, name, reason FROM venue_deny_list")
+                return {
+                    row[0]: {
+                        "name": row[1],
+                        "reason": row[2],
+                        "google_primary_type": None,
+                        "evidence": {},
+                    }
+                    for row in cur.fetchall()
+                    if row[0]
+                }
             except psycopg2.errors.UndefinedTable:
-                return set()
+                return {}
     finally:
         conn.close()
 
@@ -242,6 +297,21 @@ def _within(venue, lat, lng, miles):
     return _haversine_miles(venue.lat, venue.lng, lat, lng) <= miles
 
 
+def _club_category_state(club_type, visible, status):
+    base = club_type or "club"
+    if visible is False and status == "active":
+        return f"hidden_active:{base}"
+    return base
+
+
+def _split_club_match(row, meta_offset):
+    club_id, club_name = row[0], row[1]
+    club_type = row[meta_offset] if len(row) > meta_offset else "club"
+    visible = row[meta_offset + 1] if len(row) > meta_offset + 1 else True
+    status = row[meta_offset + 2] if len(row) > meta_offset + 2 else "active"
+    return club_id, club_name, club_type, visible, status
+
+
 def _match_by_name(venue, name_rows, name_match_miles):
     """Existing club with the same normalized name, proximity-confirmed when
     coords are available (so a chain like "Funny Bone" in two cities isn't
@@ -249,9 +319,10 @@ def _match_by_name(venue, name_rows, name_match_miles):
     target = _normalize_name(venue.name)
     if not target:
         return None
-    for club_id, club_name, norm, lat, lng in name_rows:
+    for row in name_rows:
+        club_id, club_name, norm, lat, lng = row[:5]
         if norm == target and _within(venue, lat, lng, name_match_miles):
-            return club_id, club_name
+            return _split_club_match(row, 5)
     return None
 
 
@@ -263,9 +334,10 @@ def _match_by_address(venue, addr_index, name_match_miles):
     addr_key = _normalize_address(venue.address)
     if not (addr_key and addr_index):
         return None
-    for club_id, club_name, lat, lng in addr_index.get(addr_key, ()):
+    for row in addr_index.get(addr_key, ()):
+        club_id, club_name, lat, lng = row[:4]
         if _within(venue, lat, lng, name_match_miles):
-            return club_id, club_name
+            return _split_club_match(row, 4)
     return None
 
 
@@ -276,21 +348,48 @@ def _classify(
     name_rows,
     name_match_miles,
     denied_place_ids=frozenset(),
+    denied_venues=None,
     addr_index=None,
 ):
     """Tag a discovered venue as denied / known / likely / new against existing clubs."""
-    if venue.place_id in denied_place_ids:
-        return "denied", None, None
+    denied_venues = denied_venues or {}
+    if venue.place_id in denied_venues or venue.place_id in denied_place_ids:
+        evidence = denied_venues.get(venue.place_id, {})
+        google_primary_type = evidence.get("google_primary_type") or getattr(venue, "primary_type", None)
+        category_state = "denied"
+        if google_primary_type:
+            category_state = f"denied:{google_primary_type}"
+        return Classification(
+            "denied",
+            category_state=category_state,
+            deny_reason=evidence.get("reason"),
+            deny_google_primary_type=google_primary_type,
+            deny_evidence=evidence.get("evidence") or {},
+        )
     if venue.place_id in by_place_id:
-        club_id, club_name = by_place_id[venue.place_id]
-        return "known", club_id, club_name
+        club_id, club_name, club_type, visible, status = _split_club_match(
+            by_place_id[venue.place_id], 2
+        )
+        return Classification(
+            "known",
+            club_id,
+            club_name,
+            category_state=_club_category_state(club_type, visible, status),
+        )
 
     match = _match_by_name(venue, name_rows, name_match_miles) or _match_by_address(
         venue, addr_index, name_match_miles
     )
     if match:
-        return "likely", match[0], match[1]
-    return "new", None, None
+        club_id, club_name, club_type, visible, status = match
+        return Classification(
+            "likely",
+            club_id,
+            club_name,
+            category_state=_club_category_state(club_type, visible, status),
+        )
+    primary_type = getattr(venue, "primary_type", None)
+    return Classification("new", category_state=f"google:{primary_type}" if primary_type else "uncategorized")
 
 
 def main() -> None:
@@ -352,30 +451,34 @@ def main() -> None:
 
     dsn = _resolve_database_url()
     by_place_id, name_rows, addr_index = _load_existing_clubs(dsn)
-    denied_place_ids = _load_denied_place_ids(dsn)
+    denied_venues = _load_denied_venues(dsn)
 
     results = []
     for venue in deduped.values():
         dist = _haversine_miles(o_lat, o_lng, venue.lat, venue.lng)
         if dist > args.radius:
             continue
-        status, club_id, club_name = _classify(
+        classification = _classify(
             venue, origin, by_place_id, name_rows, args.name_match_miles,
-            denied_place_ids, addr_index,
+            denied_venues=denied_venues, addr_index=addr_index,
         )
-        if args.new_only and status != "new":
+        if args.new_only and classification.status != "new":
             continue
         results.append(
             {
-                "status": status,
+                "status": classification.status,
                 "name": venue.name,
                 "distance_mi": round(dist, 1),
                 "address": venue.address,
                 "website": venue.website,
                 "primary_type": venue.primary_type,
+                "category_state": classification.category_state,
                 "place_id": venue.place_id,
-                "matched_club_id": club_id,
-                "matched_club_name": club_name,
+                "matched_club_id": classification.club_id,
+                "matched_club_name": classification.club_name,
+                "deny_reason": classification.deny_reason,
+                "deny_google_primary_type": classification.deny_google_primary_type,
+                "deny_evidence": classification.deny_evidence,
             }
         )
 
@@ -407,9 +510,13 @@ _CSV_FIELDS = [
     "address",
     "website",
     "primary_type",
+    "category_state",
     "place_id",
     "matched_club_id",
     "matched_club_name",
+    "deny_reason",
+    "deny_google_primary_type",
+    "deny_evidence",
 ]
 
 
@@ -431,6 +538,7 @@ def _render(results, fmt) -> None:
     tag = {"new": "NEW   ", "likely": "likely", "known": "known ", "denied": "denied"}
     for r in results:
         loc = r["address"] or ""
+        category = f" [{r['category_state']}]" if r.get("category_state") else ""
         suffix = ""
         if r["matched_club_name"]:
             suffix = f"  → club #{r['matched_club_id']} {r['matched_club_name']!r}"
@@ -438,7 +546,7 @@ def _render(results, fmt) -> None:
             suffix = f"  {r['website']}"
         print(
             f"[{tag.get(r['status'], r['status'])}] {r['distance_mi']:>5.1f} mi  "
-            f"{r['name']}{(' — ' + loc) if loc else ''}{suffix}"
+            f"{r['name']}{category}{(' — ' + loc) if loc else ''}{suffix}"
         )
 
 

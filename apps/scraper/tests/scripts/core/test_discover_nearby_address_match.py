@@ -20,8 +20,22 @@ dn = importlib.util.module_from_spec(_spec)
 _loader.exec_module(dn)
 
 
-def venue(name, address, place_id="PID_NEW", lat=34.1466, lng=-118.1307):
-    return types.SimpleNamespace(name=name, address=address, place_id=place_id, lat=lat, lng=lng)
+def venue(
+    name,
+    address,
+    place_id="PID_NEW",
+    lat=34.1466,
+    lng=-118.1307,
+    primary_type="comedy_club",
+):
+    return types.SimpleNamespace(
+        name=name,
+        address=address,
+        place_id=place_id,
+        lat=lat,
+        lng=lng,
+        primary_type=primary_type,
+    )
 
 
 @pytest.mark.parametrize(
@@ -67,11 +81,51 @@ def test_address_match_proximity_guard_rejects_same_number_in_another_city():
 
 def test_place_id_match_takes_precedence_as_known():
     v = venue("Whatever", "24 N Mentor Ave", place_id="PID_KNOWN")
-    status, club_id, _ = dn._classify(
-        v, None, by_place_id={"PID_KNOWN": (167, "Ice House Comedy Club")},
+    result = dn._classify(
+        v, None, by_place_id={"PID_KNOWN": (167, "Ice House Comedy Club", "club", True, "active")},
         name_rows=[], name_match_miles=2.0, addr_index={},
     )
-    assert (status, club_id) == ("known", 167)
+    assert (result.status, result.club_id, result.category_state) == ("known", 167, "club")
+
+
+def test_hidden_active_known_place_id_preserves_category_state():
+    v = venue("Hidden Music Room", "101 Music Ave", place_id="PID_HIDDEN")
+    result = dn._classify(
+        v,
+        None,
+        by_place_id={"PID_HIDDEN": (901, "Hidden Music Room", "non_comedy", False, "active")},
+        name_rows=[],
+        name_match_miles=2.0,
+        addr_index={},
+    )
+
+    assert (result.status, result.club_id) == ("known", 901)
+    assert result.category_state == "hidden_active:non_comedy"
+
+
+def test_denied_place_id_preserves_deny_list_evidence():
+    v = venue("Music Hall", "101 Music Ave", place_id="PID_DENIED", primary_type="live_music_venue")
+    result = dn._classify(
+        v,
+        None,
+        by_place_id={},
+        name_rows=[],
+        name_match_miles=2.0,
+        denied_venues={
+            "PID_DENIED": {
+                "name": "Music Hall",
+                "reason": "music only",
+                "google_primary_type": "live_music_venue",
+                "evidence": {"calendar": "music"},
+            }
+        },
+        addr_index={},
+    )
+
+    assert result.status == "denied"
+    assert result.category_state == "denied:live_music_venue"
+    assert result.deny_reason == "music only"
+    assert result.deny_evidence == {"calendar": "music"}
 
 
 def test_truly_new_venue_stays_new():
@@ -81,3 +135,28 @@ def test_truly_new_venue_stays_new():
         name_match_miles=2.0, addr_index={"24 mentor": [(167, "Ice House Comedy Club", None, None)]},
     )
     assert status == "new"
+
+
+def test_table_render_includes_category_state(capsys):
+    dn._render(
+        [
+            {
+                "status": "known",
+                "name": "Hidden Music Room",
+                "distance_mi": 1.2,
+                "address": "101 Music Ave",
+                "website": None,
+                "primary_type": "live_music_venue",
+                "category_state": "hidden_active:non_comedy",
+                "place_id": "PID_HIDDEN",
+                "matched_club_id": 901,
+                "matched_club_name": "Hidden Music Room",
+                "deny_reason": None,
+                "deny_google_primary_type": None,
+                "deny_evidence": None,
+            }
+        ],
+        "table",
+    )
+
+    assert "hidden_active:non_comedy" in capsys.readouterr().out
