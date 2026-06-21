@@ -1526,10 +1526,10 @@ SELECT c.id, 'custom'::"ScrapingPlatform", 'tempo_tickets',
 |---|---|
 | **Scraper key** | `ticket_tailor` (generic — shared across all Ticket Tailor box offices) |
 | **Platform** | `custom` |
-| **Onboarded as** | a `production_companies` row (NOT a `clubs` row) — Ticket Tailor accounts are commonly **roving producers** running shows at varying venues |
-| **DB field** | `production_companies.scraping_url` = the box-office URL; `website` = the producer site (used as the Cloudflare-clearing Referer) |
-| **Value format** | `scraping_url`: `https://www.tickettailor.com/events/<account_slug>/` (== `/all-tickets/<account_slug>/`) |
-| **Generic?** | ✅ generic — any tickettailor.com account onboards as a production company, no new code |
+| **Onboarded as** | Usually a `production_companies` row for roving producers; use a `scraping_sources` row with `metadata.single_venue=true` when the Ticket Tailor account is one physical club |
+| **DB field** | Roving: `production_companies.scraping_url` = the box-office URL; `website` = the producer site. Single venue: `scraping_sources.source_url` = the box-office URL; `clubs.website` = the venue site. Both website fields are used as the Cloudflare-clearing Referer |
+| **Value format** | `https://www.tickettailor.com/events/<account_slug>/` (== `/all-tickets/<account_slug>/`) |
+| **Generic?** | ✅ generic — any tickettailor.com account onboards with config only |
 
 **Detection signals:**
 - Buy links / ticketing redirects to `tickettailor.com`
@@ -1541,13 +1541,19 @@ SELECT c.id, 'custom'::"ScrapingPlatform", 'tempo_tickets',
 - The scraper parses each event's own venue (name + zip) from the listing and upserts one `clubs` row per distinct venue via `ClubHandler.upsert_discovered_venue`; each Show is built on its per-venue club. The orchestrator stamps `production_company_id` on every resulting Show.
 - Set `production_companies.visible = FALSE` for a hidden proxy producer — its shows surface under the auto-created per-venue clubs, not under a producer page.
 
+**Single-venue club model:**
+- If the Ticket Tailor account belongs to one venue, add a normal enabled `scraping_sources` row on that club with `scraper_key='ticket_tailor'`, `source_url='https://www.tickettailor.com/events/<account_slug>/'`, and metadata `{"account_slug": "<account_slug>", "single_venue": true}`.
+- In `single_venue` mode, `TicketTailorScraper` attaches every listing event to the configured club and does **not** call `ClubHandler.upsert_discovered_venue`.
+- West River Comedy Club (TASK-3026) uses this mode because the previous `json_ld` + `force_js_rendering` source hit hard Cloudflare Turnstile from GHA datacenter egress, while the Ticket Tailor listing HTML clears via curl-cffi impersonation plus the venue website Referer and avoids Playwright entirely.
+
 **Key extraction notes:**
 - Each event card is `li.events-listing__item`: `h3.event__title` / `a.event__link` (detail link), `span.event-meta__date` ("Tue Jun 30, 2026 6:00 PM - 9:00 PM CDT"), `span.event-meta__location` ("Vendetta Coffee Bar, 53204" = name + zip)
 - The date carries the year; the US timezone abbreviation (CDT/EST/…) is mapped to an IANA zone for localization
 - Per-venue clubs get only name + zip (the listing has no street/city), so `city`/`state` are empty — see TASK-3023 context atom on the dedup limitation
 
 **Anti-bot (Cloudflare):**
-- tickettailor.com 403s a plain request. The scraper clears it with `curl_cffi` `impersonate='chrome120'` plus a `Referer` header set to the producer's own website (`production_companies.website`)
+- tickettailor.com 403s a plain request. The scraper clears it with `curl_cffi` `impersonate='chrome120'` plus a `Referer` header set to the producer or venue website.
+- Prefer this scraper over `json_ld` + `force_js_rendering` for Ticket Tailor-hosted calendars. Playwright may get a local residential managed challenge that auto-clears but a GHA datacenter hard Turnstile that does not; the listing scraper avoids that path.
 
 **DB setup:**
 ```sql

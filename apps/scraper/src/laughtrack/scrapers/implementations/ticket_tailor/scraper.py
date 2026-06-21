@@ -102,7 +102,41 @@ class TicketTailorScraper(BaseScraper):
             f"{self._log_prefix}: parsed {len(events)} Ticket Tailor event(s)",
             self.logger_context,
         )
+        if self._single_venue_mode():
+            return self._events_to_current_club(events)
         return await self._route_events_to_venues(events)
+
+    def _single_venue_mode(self) -> bool:
+        """Attach every listing event to the configured club.
+
+        Ticket Tailor accounts are usually roving producers, so the default
+        route still groups by each card's venue. Some accounts, including West
+        River, are a single physical venue whose own box office carries the
+        complete calendar. Those sources opt in through metadata so they avoid
+        noisy discovered-venue upserts and keep all shows on the configured
+        club row.
+        """
+        return bool((self.club.source_metadata or {}).get("single_venue"))
+
+    def _events_to_current_club(self, events: List[TicketTailorEvent]) -> List[Show]:
+        shows: List[Show] = []
+        for event in events:
+            try:
+                show = event.to_show(self.club)
+            except Exception as e:
+                Logger.error(
+                    f"{self._log_prefix}: to_show failed for '{event.title}': {e}",
+                    self.logger_context,
+                )
+                continue
+            if show:
+                shows.append(show)
+
+        Logger.info(
+            f"{self._log_prefix}: built {len(shows)} show(s) for single-venue Ticket Tailor source",
+            self.logger_context,
+        )
+        return shows
 
     async def _route_events_to_venues(self, events: List[TicketTailorEvent]) -> List[Show]:
         """Group events by venue, upsert one club per venue, build per-venue shows."""

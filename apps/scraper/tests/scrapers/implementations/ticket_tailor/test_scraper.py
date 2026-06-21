@@ -122,6 +122,48 @@ async def test_full_scrape_routes_to_per_venue_club(monkeypatch, producer_proxy)
 
 
 @pytest.mark.asyncio
+async def test_single_venue_source_attaches_events_to_configured_club(monkeypatch):
+    club = Club(
+        id=1059,
+        name="West River Comedy Club",
+        address="",
+        website="https://www.westrivercomedy.com",
+        popularity=0,
+        zip_code="57701",
+        phone_number="",
+        visible=True,
+        timezone="America/Denver",
+    )
+    club.active_scraping_source = ScrapingSource(
+        id=1,
+        club_id=club.id,
+        platform="custom",
+        scraper_key="ticket_tailor",
+        source_url="https://www.tickettailor.com/events/westrivercomedyclub/",
+        metadata={"account_slug": "westrivercomedyclub", "single_venue": True},
+    )
+    club.scraping_sources = [club.active_scraping_source]
+
+    scraper = TicketTailorScraper(club)
+
+    async def fake_fetch(url):
+        return _FIXTURE
+
+    monkeypatch.setattr(scraper, "_fetch_listing", fake_fetch)
+
+    def fail_upsert(venue):
+        pytest.fail("should not upsert venues in single-venue mode")
+
+    monkeypatch.setattr(scraper._club_handler, "upsert_discovered_venue", fail_upsert)
+
+    shows = await scraper.scrape_async()
+
+    assert len(shows) == 1
+    assert shows[0].club_id == 1059
+    assert shows[0].tickets[0].purchase_url.endswith("/events/milwaukeecomedy/2260402")
+
+
+@pytest.mark.asyncio
 async def test_full_scrape_empty_listing(monkeypatch, producer_proxy):
     scraper = TicketTailorScraper(producer_proxy)
 
