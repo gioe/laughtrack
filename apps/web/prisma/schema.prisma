@@ -597,6 +597,12 @@ model UserProfile {
   comedianOnboardingCompleted Boolean                    @default(false) @map("comedian_onboarding_completed")
   zipCode                     String?                    @map("zip_code")
   nearbyDistanceMiles         Int?                       @map("nearby_distance_miles")
+  // High-water mark for the notification center: notifications with
+  // sentAt > this timestamp are "unread". Opening the center stamps it to
+  // now() (POST /api/v1/me/notifications/seen), which clears the unread badge.
+  // NULL means the user has never opened the center, so every notification
+  // counts as unread.
+  notificationsLastSeenAt     DateTime?                  @map("notifications_last_seen_at") @db.Timestamptz
   userid                      String                     @unique @map("user_id")
   adminActionAudits           AdminActionAudit[]
   favoriteClubs               FavoriteClub[]
