@@ -369,6 +369,41 @@ describe("PATCH /api/admin/clubs/[id]", () => {
         });
     });
 
+    it("accepts every intentional club type override", async () => {
+        mockAuth.mockResolvedValue(adminSession as never);
+
+        for (const clubType of [
+            "club",
+            "venue",
+            "festival",
+            "producer",
+            "secret_location",
+            "non_comedy",
+        ]) {
+            const auditCreate = vi.fn();
+            const findUnique = vi.fn().mockResolvedValue(clubRow());
+            const update = vi.fn().mockResolvedValue(clubRow({ clubType }));
+            mockTransaction.mockImplementationOnce(async (callback) =>
+                callback({
+                    club: { findUnique, update },
+                    adminActionAudit: { create: auditCreate },
+                } as never),
+            );
+
+            const [req, ctx] = makeRequest({ clubType });
+            const res = await PATCH(req, ctx);
+            const body = await res.json();
+
+            expect(res.status).toBe(200);
+            expect(body.club.clubType).toBe(clubType);
+            expect(update).toHaveBeenCalledWith({
+                where: { id: CLUB_ID },
+                data: expect.objectContaining({ clubType }),
+                select: expect.any(Object),
+            });
+        }
+    });
+
     it("accepts not_open_yet as a club status override", async () => {
         mockAuth.mockResolvedValue(adminSession as never);
 

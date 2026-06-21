@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { CLUB_TYPE_OPTIONS } from "@/lib/admin/clubTaxonomy";
 import { Prisma } from "@prisma/client";
 import { writeAdminActionAudit } from "@/lib/admin/audit";
 import { requireAdminForApi } from "@/lib/auth/requireAdmin";
@@ -18,7 +19,6 @@ const CLUB_STATUS_OPTIONS = [
     "hiatus",
     "not_open_yet",
 ] as const;
-const CLUB_TYPE_OPTIONS = ["club", "festival", "venue"] as const;
 
 const statusOverrideSchema = z
     .object({

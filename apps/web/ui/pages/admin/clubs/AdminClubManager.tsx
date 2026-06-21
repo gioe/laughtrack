@@ -4,6 +4,7 @@ import type {
     AdminClubGroup,
     AdminClubListItem,
 } from "@/lib/admin/clubManagement";
+import { CLUB_TYPE_OPTIONS } from "@/lib/admin/clubTaxonomy";
 import { Button } from "@/ui/components/ui/button";
 import {
     AdminPagination,
@@ -50,7 +51,6 @@ type ChainClubControls = {
 };
 
 const CLUB_STATUS_OPTIONS = ["active", "closed", "hiatus", "not_open_yet"];
-const CLUB_TYPE_OPTIONS = ["club", "festival", "venue"];
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 const DEFAULT_CHAIN_CONTROLS: ChainClubControls = {
     query: "",

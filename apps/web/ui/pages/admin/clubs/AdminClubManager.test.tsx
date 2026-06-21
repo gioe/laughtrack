@@ -286,6 +286,37 @@ describe("AdminClubManager", () => {
         ).toBeTruthy();
     });
 
+    it("includes every intentional club type in type controls", () => {
+        render(<AdminClubManager groups={groups} />);
+
+        fireEvent.click(getFunnyBoneGroupToggle());
+
+        const expectedTypes = [
+            "club",
+            "venue",
+            "festival",
+            "producer",
+            "secret_location",
+            "non_comedy",
+        ];
+        const typeFilter = screen.getByLabelText(
+            "Filter Funny Bone clubs by type",
+        );
+        for (const type of expectedTypes) {
+            expect(
+                within(typeFilter).getByRole("option", { name: type }),
+            ).toBeTruthy();
+        }
+        for (const type of expectedTypes) {
+            expect(
+                within(screen.getAllByLabelText("Type")[0]).getByRole(
+                    "option",
+                    { name: type },
+                ),
+            ).toBeTruthy();
+        }
+    });
+
     it("saves status overrides", async () => {
         render(<AdminClubManager groups={groups} />);
 
