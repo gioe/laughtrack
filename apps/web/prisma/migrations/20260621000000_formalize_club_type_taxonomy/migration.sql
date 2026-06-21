@@ -15,6 +15,10 @@ UPDATE clubs
    AND clubs.visible = FALSE
    AND clubs.status = 'active';
 
+UPDATE clubs
+   SET club_type = 'venue'
+ WHERE club_type = 'theater';
+
 ALTER TABLE clubs
     DROP CONSTRAINT IF EXISTS clubs_club_type_check;
 

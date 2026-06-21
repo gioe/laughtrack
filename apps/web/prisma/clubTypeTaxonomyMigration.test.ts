@@ -37,4 +37,11 @@ describe("club type taxonomy migration", () => {
         expect(migration).toContain("venue_deny_list");
         expect(migration).toContain("club_type = 'non_comedy'");
     });
+
+    it("maps legacy theater rows into venue before adding the constraint", () => {
+        const migration = sql();
+
+        expect(migration).toContain("club_type = 'venue'");
+        expect(migration).toContain("club_type = 'theater'");
+    });
 });
