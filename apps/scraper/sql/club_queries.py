@@ -477,17 +477,57 @@ class ClubQueries:
     # See UPSERT_CLUB_BY_EVENTBRITE_VENUE comment above for why the final
     # SELECT projects from the CTE rather than JOINing the clubs table.
     UPSERT_CLUB_BY_TICKETMASTER_VENUE = """
-        WITH upserted_club AS (
+        WITH input_venue AS (
+            SELECT
+                %s::text AS ticketmaster_id,
+                %s::text AS name,
+                %s::text AS address,
+                %s::text AS zip_code,
+                %s::text AS city,
+                %s::text AS state,
+                %s::text AS timezone
+        ),
+        existing_ticketmaster_club AS (
+            SELECT c.*
+            FROM clubs c
+            JOIN scraping_sources s ON s.club_id = c.id
+            JOIN input_venue iv ON s.ticketmaster_id = iv.ticketmaster_id
+            WHERE s.platform = 'ticketmaster'
+            ORDER BY s.enabled DESC, s.priority ASC, s.id ASC
+            LIMIT 1
+        ),
+        updated_ticketmaster_club AS (
+            UPDATE clubs c
+            SET
+                address  = COALESCE(NULLIF(c.address, ''), iv.address),
+                zip_code = COALESCE(NULLIF(c.zip_code, ''), iv.zip_code),
+                timezone = COALESCE(c.timezone, iv.timezone),
+                city     = COALESCE(c.city,     iv.city),
+                state    = COALESCE(c.state,    iv.state)
+            FROM input_venue iv
+            WHERE c.id IN (SELECT id FROM existing_ticketmaster_club)
+            RETURNING c.*
+        ),
+        inserted_or_name_matched_club AS (
             INSERT INTO clubs (
                 name, address, website, visible,
                 zip_code, city, state, phone_number, popularity, timezone
             )
-            VALUES (%s, %s, '', TRUE, %s, %s, %s, '', 0, %s)
+            SELECT
+                iv.name, iv.address, '', TRUE,
+                iv.zip_code, iv.city, iv.state, '', 0, iv.timezone
+            FROM input_venue iv
+            WHERE NOT EXISTS (SELECT 1 FROM updated_ticketmaster_club)
             ON CONFLICT (name) DO UPDATE SET
                 timezone = COALESCE(clubs.timezone, EXCLUDED.timezone),
                 city     = COALESCE(clubs.city,     EXCLUDED.city),
                 state    = COALESCE(clubs.state,    EXCLUDED.state)
             RETURNING *
+        ),
+        resolved_club AS (
+            SELECT * FROM updated_ticketmaster_club
+            UNION ALL
+            SELECT * FROM inserted_or_name_matched_club
         ),
         upserted_source AS (
             INSERT INTO scraping_sources (
@@ -498,12 +538,13 @@ class ClubQueries:
                 id,
                 'ticketmaster',
                 'live_nation',
-                %s,
+                iv.ticketmaster_id,
                 'https://www.ticketmaster.com',
                 0,
                 TRUE,
                 '{}'::jsonb
-            FROM upserted_club
+            FROM resolved_club
+            CROSS JOIN input_venue iv
             -- Skip the source insert when an *enabled* source already occupies
             -- one of scraping_sources' other partial unique indexes. Without
             -- this, an already-configured venue (overlap with a venue-specific
@@ -518,11 +559,11 @@ class ClubQueries:
                 SELECT 1 FROM scraping_sources s2
                 WHERE s2.platform = 'ticketmaster'
                   AND s2.enabled
-                  AND s2.ticketmaster_id = %s
+                  AND s2.ticketmaster_id = iv.ticketmaster_id
             )
             AND NOT EXISTS (     -- scraping_sources_club_priority_enabled_unique (WHERE enabled)
                 SELECT 1 FROM scraping_sources s3
-                WHERE s3.club_id = upserted_club.id
+                WHERE s3.club_id = resolved_club.id
                   AND s3.priority = 0
                   AND s3.enabled
             )
@@ -553,8 +594,8 @@ class ClubQueries:
         -- club row exists and must be returned so the caller can attach shows.
         -- upserted_source is a data-modifying CTE, so it still executes even
         -- though the final query no longer references it.
-        SELECT uc.*, '[]'::json AS scraping_sources
-        FROM upserted_club uc
+        SELECT rc.*, '[]'::json AS scraping_sources
+        FROM resolved_club rc
     """
 
     # Discovery-only venue upsert: inserts/updates the clubs row but does

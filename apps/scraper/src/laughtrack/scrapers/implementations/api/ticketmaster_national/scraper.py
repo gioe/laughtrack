@@ -7,8 +7,9 @@ For each event returned:
 - Converts the event to a Show via TicketmasterClient.create_show().
 
 Deduplicates correctly against shows already ingested by venue-specific TM
-scrapers: the clubs UPSERT conflicts on name (COALESCE preserves existing
-ticketmaster_id/scraper), and show-level dedup is handled by insert_shows().
+scrapers: the clubs UPSERT resolves existing clubs by
+scraping_sources.ticketmaster_id before falling back to name for brand-new
+venues, and show-level dedup is handled by insert_shows().
 
 Triggered by a single clubs row with scraper='ticketmaster_national'.
 """

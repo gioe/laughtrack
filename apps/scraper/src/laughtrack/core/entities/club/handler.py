@@ -633,9 +633,7 @@ class ClubHandler(BaseDatabaseHandler[Club]):
         try:
             results = self.execute_with_cursor(
                 ClubQueries.UPSERT_CLUB_BY_TICKETMASTER_VENUE,
-                # venue_id appears twice: once in the scraping_sources INSERT
-                # SELECT, once in the ticketmaster_id_unique NOT EXISTS guard.
-                (name, address, zip_code, city, state, timezone, venue_id, venue_id),
+                (venue_id, name, address, zip_code, city, state, timezone),
                 return_results=True,
             )
             if not results:
