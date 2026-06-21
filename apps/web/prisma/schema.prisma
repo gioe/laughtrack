@@ -340,11 +340,13 @@ model ComedianDenyList {
 // "denied" and never re-file an onboarding task, and so a zero-show triage /
 // adopt-scraper pass knows the venue was deliberately excluded (not a gap).
 model VenueDenyList {
-  googlePlaceId String   @id @map("google_place_id")
-  name          String
-  reason        String   @default("")
-  addedBy       String   @default("discovery_triage") @map("added_by")
-  deniedAt      DateTime @default(now()) @map("denied_at") @db.Timestamptz
+  googlePlaceId     String   @id @map("google_place_id")
+  name              String
+  reason            String   @default("")
+  googlePrimaryType String?  @map("google_primary_type")
+  evidence          Json     @default("{}")
+  addedBy           String   @default("discovery_triage") @map("added_by")
+  deniedAt          DateTime @default(now()) @map("denied_at") @db.Timestamptz
 
   @@map("venue_deny_list")
 }
