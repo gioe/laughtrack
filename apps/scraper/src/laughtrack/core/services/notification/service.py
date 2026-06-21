@@ -61,7 +61,6 @@ WHERE up.email_show_notifications = true
   AND NOT EXISTS (
       SELECT 1 FROM sent_notifications sn
       WHERE sn.user_id = u.id
-        AND sn.comedian_id = c.uuid
         AND sn.show_id = s.id
         AND sn.notification_type = 'email'
   )
@@ -116,7 +115,7 @@ _INVALID_APNS_REASONS = {
 _EMAIL_HTML_TEMPLATE = """<!DOCTYPE html>
 <html>
 <body style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <h2 style="color: #1a1a1a;">%(e_comedian)s is performing near you!</h2>
+  <h2 style="color: #1a1a1a;">%(e_comedian)s %(verb)s performing near you!</h2>
   <p>Great news — one of your favorite comedians has an upcoming show in your area.</p>
   <table style="width:100%%; border-collapse:collapse; margin: 16px 0;">
     <tr>
@@ -147,6 +146,21 @@ _EMAIL_HTML_TEMPLATE = """<!DOCTYPE html>
 </html>"""
 
 
+def _format_comedian_names(names: list[str]) -> str:
+    cleaned = [name for name in names if name]
+    if not cleaned:
+        return "A comedian you follow"
+    if len(cleaned) == 1:
+        return cleaned[0]
+    if len(cleaned) == 2:
+        return f"{cleaned[0]} and {cleaned[1]}"
+    return f"{', '.join(cleaned[:-1])}, and {cleaned[-1]}"
+
+
+def _is_plural_comedian_label(comedian_name: str) -> bool:
+    return " and " in comedian_name or ", " in comedian_name
+
+
 def _build_email_html(
     comedian_name: str,
     show_date: object,
@@ -168,6 +182,7 @@ def _build_email_html(
     )
     return _EMAIL_HTML_TEMPLATE % {
         "e_comedian": e_comedian,
+        "verb": "are" if _is_plural_comedian_label(comedian_name) else "is",
         "e_club": e_club,
         "e_location": e_location,
         "e_date_str": e_date_str,
@@ -185,8 +200,9 @@ def _build_email_text(
 ) -> str:
     date_str = show_date.strftime("%A, %B %-d, %Y at %-I:%M %p") if hasattr(show_date, "strftime") else str(show_date)
     location = ", ".join(filter(None, [club_city, club_state]))
+    verb = "are" if _is_plural_comedian_label(comedian_name) else "is"
     lines = [
-        f"{comedian_name} is performing near you!",
+        f"{comedian_name} {verb} performing near you!",
         "",
         f"Comedian: {comedian_name}",
         f"Date: {date_str}",
@@ -289,7 +305,8 @@ class ApnsPushService:
         except ImportError as e:
             raise RuntimeError("APNs push delivery requires httpx with HTTP/2 support") from e
 
-        title = f"{comedian_name} is performing near you"
+        verb = "are" if _is_plural_comedian_label(comedian_name) else "is"
+        title = f"{comedian_name} {verb} performing near you"
         location = ", ".join(filter(None, [club_city, club_state]))
         body = f"{club_name}"
         if location:
@@ -376,11 +393,33 @@ class ComedianArrivalNotificationService:
         self._zip_distance = zip_distance or ZipCodeDistance()
         self._push_sender = push_sender
 
+    def _merge_same_show_candidates(self, rows: list[dict]) -> list[dict]:
+        """Collapse multiple followed comedians on the same show into one candidate."""
+        merged: dict[tuple[object, object, object, object], dict] = {}
+        for row in rows:
+            notification_type = row.get("notification_type") or "email"
+            push_token_id = row.get("push_token_id") if notification_type == "push" else None
+            key = (row["user_id"], row["show_id"], notification_type, push_token_id)
+            existing = merged.get(key)
+            if existing is None:
+                merged_row = dict(row)
+                merged_row["comedian_uuids"] = [row["comedian_uuid"]]
+                merged_row["comedian_names"] = [row["comedian_name"]]
+                merged[key] = merged_row
+                continue
+
+            if row["comedian_uuid"] not in existing["comedian_uuids"]:
+                existing["comedian_uuids"].append(row["comedian_uuid"])
+            if row["comedian_name"] not in existing["comedian_names"]:
+                existing["comedian_names"].append(row["comedian_name"])
+
+        return list(merged.values())
+
     def run(
         self,
         radius_miles: float = 50.0,
         days_ahead: int | None = None,
-        discovered_within_days: int = 1,
+        discovered_within_days: int = 7,
         dry_run: bool = False,
     ) -> Dict[str, int]:
         """
@@ -390,7 +429,8 @@ class ComedianArrivalNotificationService:
         radius_miles is the fallback radius for profiles without a stored
         nearby_distance_miles preference.
         days_ahead is accepted for backward compatibility but no longer limits
-        notification eligibility.
+        notification eligibility. discovered_within_days is a bounded catch-up
+        window for newly discovered shows whose first notification run was missed.
         dry_run counts deliverable notifications without sending or recording them.
 
         Returns a summary dict with email and push delivery counts.
@@ -421,11 +461,14 @@ class ComedianArrivalNotificationService:
             summary["errors"] += 1
             return summary
 
+        raw_candidate_count = len(rows)
+        rows = self._merge_same_show_candidates(rows)
+
         summary["candidates"] = len(rows)
         summary["push_candidates"] = sum(1 for row in rows if row.get("notification_type") == "push")
         Logger.info(
-            f"ComedianArrivalNotificationService: {len(rows)} candidate row(s) before distance filter "
-            f"(push_candidates={summary['push_candidates']})"
+            f"ComedianArrivalNotificationService: {len(rows)} candidate notification(s) before distance filter "
+            f"(raw_rows={raw_candidate_count}, push_candidates={summary['push_candidates']})"
         )
 
         for row in rows:
@@ -435,8 +478,8 @@ class ComedianArrivalNotificationService:
             user_name = row["user_name"] or ""
             user_zip = row["user_zip"] or ""
             effective_radius_miles = self._effective_radius_miles(row, radius_miles)
-            comedian_uuid = row["comedian_uuid"]
-            comedian_name = row["comedian_name"]
+            comedian_uuid = row["comedian_uuids"][0] if row.get("comedian_uuids") else row["comedian_uuid"]
+            comedian_name = _format_comedian_names(row.get("comedian_names") or [row["comedian_name"]])
             show_id = row["show_id"]
             show_date = row["show_date"]
             show_page_url = row["show_page_url"] or ""
@@ -602,7 +645,7 @@ class ComedianArrivalNotificationService:
             return fallback_radius_miles
         return float(profile_radius)
 
-    def _fetch_candidates(self, days_ahead: int | None = None, discovered_within_days: int = 1) -> list:
+    def _fetch_candidates(self, days_ahead: int | None = None, discovered_within_days: int = 7) -> list:
         """Fetch all candidate rows from the DB."""
         rows = []
         with get_connection() as conn:
@@ -651,7 +694,11 @@ class ComedianArrivalNotificationService:
         )
         message = EmailMessage(
             to_emails=user_email,
-            subject=f"{comedian_name} is performing near you!",
+            subject=(
+                f"{comedian_name} "
+                f"{'are' if _is_plural_comedian_label(comedian_name) else 'is'} "
+                "performing near you!"
+            ),
             html_content=html,
             text_content=text,
         )

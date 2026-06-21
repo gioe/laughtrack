@@ -42,15 +42,29 @@ def main(argv: list | None = None) -> None:
         action="store_true",
         help="Count matching notifications without sending emails, pushes, or sent-notification records.",
     )
+    parser.add_argument(
+        "--discovered-within-days",
+        type=int,
+        default=7,
+        metavar="DAYS",
+        help=(
+            "Notify for unsent matching shows first discovered within this many days "
+            "(default: 7)."
+        ),
+    )
     args = parser.parse_args(argv)
 
     Logger.info(
         f"notify-comedian-arrivals: starting with radius={args.radius} miles, "
-        f"dry_run={args.dry_run}"
+        f"discovered_within_days={args.discovered_within_days}, dry_run={args.dry_run}"
     )
 
     service = ComedianArrivalNotificationService()
-    summary = service.run(radius_miles=args.radius, dry_run=args.dry_run)
+    summary = service.run(
+        radius_miles=args.radius,
+        discovered_within_days=args.discovered_within_days,
+        dry_run=args.dry_run,
+    )
 
     print(
         f"Done — candidates: {summary['candidates']}, "
