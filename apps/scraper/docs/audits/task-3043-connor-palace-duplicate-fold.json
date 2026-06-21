@@ -57,6 +57,90 @@
       {
         "club_id": 5058,
         "enabled": false,
+        "id": 6417,
+        "metadata": {
+          "task_3043_disposition": "moved disabled duplicate Connor Palace source from club 9612 to club 5058",
+          "task_3043_note": "Connor Palace duplicate club 9612 folded into 5058; alternate Ticketmaster ids route here"
+        },
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "live_nation",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "ZFr9jZd7a7"
+      },
+      {
+        "club_id": 5058,
+        "enabled": false,
+        "id": 4148,
+        "metadata": {
+          "task_3043_note": "Connor Palace duplicate club 9612 folded into 5058; alternate Ticketmaster ids route here"
+        },
+        "platform": "ticketmaster",
+        "priority": 1,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "KovZpZAJEv6A"
+      }
+    ]
+  },
+  "before": {
+    "alias": [
+      {
+        "alias_name": "Connor Palace - Cleveland",
+        "city": "Cleveland",
+        "club_id": 5058,
+        "id": 315,
+        "normalized_alias_name": "connor palace cleveland",
+        "normalized_city": "cleveland",
+        "normalized_state": "oh",
+        "source": "TASK-3043",
+        "state": "OH",
+        "verified": true
+      }
+    ],
+    "clubs": [
+      {
+        "city": "Cleveland",
+        "id": 5058,
+        "name": "Connor Palace at Playhouse Square",
+        "state": "OH",
+        "status": "active",
+        "total_shows": 20,
+        "visible": true
+      },
+      {
+        "city": "Cleveland",
+        "id": 9612,
+        "name": "Connor Palace - Cleveland (duplicate of club 5058; folded from club 9612)",
+        "state": "OH",
+        "status": "closed",
+        "total_shows": 0,
+        "visible": false
+      }
+    ],
+    "duplicate_shows": [],
+    "sources": [
+      {
+        "club_id": 5058,
+        "enabled": true,
+        "id": 5884,
+        "metadata": {
+          "comedy_title_allowlist": [
+            "HASAN HATES RONNY"
+          ],
+          "venue_titles": [
+            "Connor Palace"
+          ]
+        },
+        "platform": "custom",
+        "priority": 0,
+        "scraper_key": "playhouse_square",
+        "source_url": "https://www.playhousesquare.org/events",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 5058,
+        "enabled": false,
         "id": 4148,
         "metadata": {
           "task_3043_note": "Ticketmaster venue id from folded duplicate club 9612; canonical routing is via club_aliases"
@@ -82,250 +166,32 @@
       }
     ]
   },
-  "before": {
-    "alias": [],
-    "clubs": [
-      {
-        "city": "Cleveland",
-        "id": 5058,
-        "name": "Connor Palace at Playhouse Square",
-        "state": "OH",
-        "status": "active",
-        "total_shows": 18,
-        "visible": true
-      },
-      {
-        "city": "Cleveland",
-        "id": 9612,
-        "name": "Connor Palace - Cleveland",
-        "state": "OH",
-        "status": "active",
-        "total_shows": 20,
-        "visible": true
-      }
-    ],
-    "duplicate_shows": [
-      {
-        "canonical_show_id": 3144955,
-        "date": "2026-08-28T23:00:00+00:00",
-        "duplicate_name": "HASAN HATES RONNY | RONNY HATES HASAN",
-        "duplicate_show_id": 3135662,
-        "room": ""
-      },
-      {
-        "canonical_show_id": null,
-        "date": "2026-08-29T23:00:00+00:00",
-        "duplicate_name": "Nikki Glaser",
-        "duplicate_show_id": 3135663,
-        "room": ""
-      },
-      {
-        "canonical_show_id": null,
-        "date": "2026-09-17T23:00:00+00:00",
-        "duplicate_name": "Leanne Morgan",
-        "duplicate_show_id": 3135664,
-        "room": ""
-      },
-      {
-        "canonical_show_id": 2876259,
-        "date": "2026-09-18T23:00:00+00:00",
-        "duplicate_name": "Leanne Morgan",
-        "duplicate_show_id": 3135665,
-        "room": ""
-      },
-      {
-        "canonical_show_id": 2876260,
-        "date": "2026-11-04T00:30:00+00:00",
-        "duplicate_name": "Hadestown (Touring)",
-        "duplicate_show_id": 3135666,
-        "room": ""
-      },
-      {
-        "canonical_show_id": 2876261,
-        "date": "2026-11-05T00:30:00+00:00",
-        "duplicate_name": "Hadestown (Touring)",
-        "duplicate_show_id": 3135667,
-        "room": ""
-      },
-      {
-        "canonical_show_id": 2876262,
-        "date": "2026-11-06T00:30:00+00:00",
-        "duplicate_name": "Hadestown (Touring)",
-        "duplicate_show_id": 3135668,
-        "room": ""
-      },
-      {
-        "canonical_show_id": 2876263,
-        "date": "2026-11-07T00:30:00+00:00",
-        "duplicate_name": "Hadestown (Touring)",
-        "duplicate_show_id": 3135669,
-        "room": ""
-      },
-      {
-        "canonical_show_id": 2876264,
-        "date": "2026-11-07T18:30:00+00:00",
-        "duplicate_name": "Hadestown (Touring)",
-        "duplicate_show_id": 3135670,
-        "room": ""
-      },
-      {
-        "canonical_show_id": 2876265,
-        "date": "2026-11-08T00:30:00+00:00",
-        "duplicate_name": "Hadestown (Touring)",
-        "duplicate_show_id": 3135671,
-        "room": ""
-      },
-      {
-        "canonical_show_id": 2876266,
-        "date": "2026-11-08T18:00:00+00:00",
-        "duplicate_name": "Hadestown (Touring)",
-        "duplicate_show_id": 3135672,
-        "room": ""
-      },
-      {
-        "canonical_show_id": 2876267,
-        "date": "2026-11-08T23:30:00+00:00",
-        "duplicate_name": "Hadestown (Touring)",
-        "duplicate_show_id": 3135673,
-        "room": ""
-      },
-      {
-        "canonical_show_id": 2876268,
-        "date": "2026-11-18T00:30:00+00:00",
-        "duplicate_name": "Clue (Touring)",
-        "duplicate_show_id": 3135674,
-        "room": ""
-      },
-      {
-        "canonical_show_id": 2876269,
-        "date": "2026-11-19T00:30:00+00:00",
-        "duplicate_name": "Clue (Touring)",
-        "duplicate_show_id": 3135675,
-        "room": ""
-      },
-      {
-        "canonical_show_id": 2876270,
-        "date": "2026-11-20T00:30:00+00:00",
-        "duplicate_name": "Clue (Touring)",
-        "duplicate_show_id": 3135676,
-        "room": ""
-      },
-      {
-        "canonical_show_id": 2876271,
-        "date": "2026-11-21T00:30:00+00:00",
-        "duplicate_name": "Clue (Touring)",
-        "duplicate_show_id": 3135677,
-        "room": ""
-      },
-      {
-        "canonical_show_id": 2876272,
-        "date": "2026-11-21T18:30:00+00:00",
-        "duplicate_name": "Clue (Touring)",
-        "duplicate_show_id": 3135678,
-        "room": ""
-      },
-      {
-        "canonical_show_id": 2876273,
-        "date": "2026-11-22T00:30:00+00:00",
-        "duplicate_name": "Clue (Touring)",
-        "duplicate_show_id": 3135679,
-        "room": ""
-      },
-      {
-        "canonical_show_id": 2876274,
-        "date": "2026-11-22T18:00:00+00:00",
-        "duplicate_name": "Clue (Touring)",
-        "duplicate_show_id": 3135680,
-        "room": ""
-      },
-      {
-        "canonical_show_id": 2876275,
-        "date": "2026-11-22T23:30:00+00:00",
-        "duplicate_name": "Clue (Touring)",
-        "duplicate_show_id": 3135681,
-        "room": ""
-      }
-    ],
-    "sources": [
-      {
-        "club_id": 5058,
-        "enabled": true,
-        "id": 5884,
-        "metadata": {
-          "comedy_title_allowlist": [
-            "HASAN HATES RONNY"
-          ],
-          "venue_titles": [
-            "Connor Palace"
-          ]
-        },
-        "platform": "custom",
-        "priority": 0,
-        "scraper_key": "playhouse_square",
-        "source_url": "https://www.playhousesquare.org/events",
-        "ticketmaster_id": null
-      },
-      {
-        "club_id": 5058,
-        "enabled": false,
-        "id": 4148,
-        "metadata": {},
-        "platform": "ticketmaster",
-        "priority": 1,
-        "scraper_key": "ticketmaster_comedy",
-        "source_url": "https://www.ticketmaster.com",
-        "ticketmaster_id": "KovZpZAJEv6A"
-      },
-      {
-        "club_id": 9612,
-        "enabled": true,
-        "id": 6417,
-        "metadata": {},
-        "platform": "ticketmaster",
-        "priority": 0,
-        "scraper_key": "live_nation",
-        "source_url": "https://www.ticketmaster.com",
-        "ticketmaster_id": "ZFr9jZd7a7"
-      }
-    ]
-  },
   "canonical_before": {
     "city": "Cleveland",
     "id": 5058,
     "name": "Connor Palace at Playhouse Square",
     "state": "OH",
     "status": "active",
-    "total_shows": 18,
+    "total_shows": 20,
     "visible": true
   },
   "counts": {
     "aliases_upserted": 1,
-    "canonical_ticketmaster_source_annotated": 1,
-    "click_events_club_repointed": 0,
-    "click_events_repointed_to_existing_show": 0,
-    "club_totals_recomputed": 2,
-    "colliding_duplicate_shows_deleted": 18,
-    "conflicting_sent_notifications_deleted": 0,
-    "duplicate_club_closed": 1,
-    "duplicate_favorites_deleted": 0,
-    "duplicate_sources_disabled": 1,
-    "favorites_moved": 0,
-    "lineup_items_copied": 0,
-    "noncolliding_shows_moved": 2,
-    "sent_notifications_repointed": 0,
-    "tagged_shows_copied": 0,
-    "tickets_copied": 0
+    "canonical_ticketmaster_sources_annotated": 2,
+    "duplicate_sources_moved_to_canonical": 1,
+    "remaining_duplicate_sources_disabled": 0
   },
   "dry_run": false,
   "duplicate_before": {
     "city": "Cleveland",
     "id": 9612,
-    "name": "Connor Palace - Cleveland",
+    "name": "Connor Palace - Cleveland (duplicate of club 5058; folded from club 9612)",
     "state": "OH",
-    "status": "active",
-    "total_shows": 20,
-    "visible": true
+    "status": "closed",
+    "total_shows": 0,
+    "visible": false
   },
-  "generated_at": "2026-06-21T21:45:33.355178+00:00",
+  "generated_at": "2026-06-21T21:48:26.805812+00:00",
+  "skipped_show_fold": "duplicate already hidden + closed",
   "task_id": 3043
 }

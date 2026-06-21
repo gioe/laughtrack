@@ -169,6 +169,8 @@ def _snapshot(cur: RealDictCursor) -> dict[str, Any]:
 def _apply(cur: RealDictCursor) -> dict[str, int]:
     counts: dict[str, int] = {}
 
+    counts.update(_ensure_future_routing(cur))
+
     cur.execute(
         """
         CREATE TEMP TABLE task_3043_duplicate_show_map AS
@@ -184,48 +186,6 @@ def _apply(cur: RealDictCursor) -> dict[str, int]:
         """,
         (CANONICAL_CLUB_ID, DUPLICATE_CLUB_ID),
     )
-
-    cur.execute(
-        """
-        INSERT INTO club_aliases (
-            club_id,
-            alias_name,
-            normalized_alias_name,
-            city,
-            state,
-            normalized_city,
-            normalized_state,
-            source,
-            verified,
-            created_at,
-            updated_at
-        )
-        VALUES (
-            %s,
-            %s,
-            'connor palace cleveland',
-            'Cleveland',
-            'OH',
-            'cleveland',
-            'oh',
-            %s,
-            TRUE,
-            NOW(),
-            NOW()
-        )
-        ON CONFLICT (normalized_alias_name, normalized_city, normalized_state)
-        DO UPDATE SET
-            club_id = EXCLUDED.club_id,
-            alias_name = EXCLUDED.alias_name,
-            city = EXCLUDED.city,
-            state = EXCLUDED.state,
-            source = EXCLUDED.source,
-            verified = TRUE,
-            updated_at = NOW()
-        """,
-        (CANONICAL_CLUB_ID, DUPLICATE_NAME, ALIAS_SOURCE),
-    )
-    counts["aliases_upserted"] = cur.rowcount
 
     cur.execute(
         """
@@ -351,40 +311,6 @@ def _apply(cur: RealDictCursor) -> dict[str, int]:
 
     cur.execute(
         """
-        UPDATE scraping_sources
-        SET enabled = false,
-            metadata = COALESCE(metadata, '{}'::jsonb)
-                || jsonb_build_object(
-                    'task_3043_disposition',
-                    'disabled duplicate Connor Palace source after folding club 9612 into club 5058'
-                ),
-            updated_at = NOW()
-        WHERE club_id = %s
-        """,
-        (DUPLICATE_CLUB_ID,),
-    )
-    counts["duplicate_sources_disabled"] = cur.rowcount
-
-    cur.execute(
-        """
-        UPDATE scraping_sources
-        SET ticketmaster_id = COALESCE(ticketmaster_id, 'ZFr9jZd7a7'),
-            metadata = COALESCE(metadata, '{}'::jsonb)
-                || jsonb_build_object(
-                    'task_3043_note',
-                    'Ticketmaster venue id from folded duplicate club 9612; canonical routing is via club_aliases'
-                ),
-            updated_at = NOW()
-        WHERE club_id = %s
-          AND platform = 'ticketmaster'
-          AND scraper_key = 'ticketmaster_comedy'
-        """,
-        (CANONICAL_CLUB_ID,),
-    )
-    counts["canonical_ticketmaster_source_annotated"] = cur.rowcount
-
-    cur.execute(
-        """
         UPDATE clubs
         SET name = %s,
             visible = false,
@@ -409,6 +335,110 @@ def _apply(cur: RealDictCursor) -> dict[str, int]:
     return counts
 
 
+def _ensure_future_routing(cur: RealDictCursor) -> dict[str, int]:
+    """Ensure future Ticketmaster national discoveries resolve to club 5058."""
+    counts: dict[str, int] = {}
+    cur.execute(
+        """
+        INSERT INTO club_aliases (
+            club_id,
+            alias_name,
+            normalized_alias_name,
+            city,
+            state,
+            normalized_city,
+            normalized_state,
+            source,
+            verified,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            %s,
+            %s,
+            'connor palace cleveland',
+            'Cleveland',
+            'OH',
+            'cleveland',
+            'oh',
+            %s,
+            TRUE,
+            NOW(),
+            NOW()
+        )
+        ON CONFLICT (normalized_alias_name, normalized_city, normalized_state)
+        DO UPDATE SET
+            club_id = EXCLUDED.club_id,
+            alias_name = EXCLUDED.alias_name,
+            city = EXCLUDED.city,
+            state = EXCLUDED.state,
+            source = EXCLUDED.source,
+            verified = TRUE,
+            updated_at = NOW()
+        """,
+        (CANONICAL_CLUB_ID, DUPLICATE_NAME, ALIAS_SOURCE),
+    )
+    counts["aliases_upserted"] = cur.rowcount
+
+    cur.execute(
+        """
+        UPDATE scraping_sources ss
+        SET club_id = %s,
+            enabled = false,
+            metadata = COALESCE(metadata, '{}'::jsonb)
+                || jsonb_build_object(
+                    'task_3043_disposition',
+                    'moved disabled duplicate Connor Palace source from club 9612 to club 5058'
+                ),
+            updated_at = NOW()
+        WHERE ss.club_id = %s
+          AND NOT EXISTS (
+              SELECT 1
+              FROM scraping_sources existing
+              WHERE existing.club_id = %s
+                AND existing.platform = ss.platform
+                AND existing.priority = ss.priority
+                AND existing.id <> ss.id
+          )
+        """,
+        (CANONICAL_CLUB_ID, DUPLICATE_CLUB_ID, CANONICAL_CLUB_ID),
+    )
+    counts["duplicate_sources_moved_to_canonical"] = cur.rowcount
+
+    cur.execute(
+        """
+        UPDATE scraping_sources
+        SET enabled = false,
+            metadata = COALESCE(metadata, '{}'::jsonb)
+                || jsonb_build_object(
+                    'task_3043_disposition',
+                    'disabled duplicate Connor Palace source after folding club 9612 into club 5058'
+                ),
+            updated_at = NOW()
+        WHERE club_id = %s
+        """,
+        (DUPLICATE_CLUB_ID,),
+    )
+    counts["remaining_duplicate_sources_disabled"] = cur.rowcount
+
+    cur.execute(
+        """
+        UPDATE scraping_sources
+        SET metadata = COALESCE(metadata, '{}'::jsonb)
+                || jsonb_build_object(
+                    'task_3043_note',
+                    'Connor Palace duplicate club 9612 folded into 5058; alternate Ticketmaster ids route here'
+                ),
+            updated_at = NOW()
+        WHERE club_id = %s
+          AND platform = 'ticketmaster'
+        """,
+        (CANONICAL_CLUB_ID,),
+    )
+    counts["canonical_ticketmaster_sources_annotated"] = cur.rowcount
+    return counts
+
+
 def run(dry_run: bool) -> dict[str, Any]:
     log: dict[str, Any] = {
         "task_id": 3043,
@@ -422,7 +452,9 @@ def run(dry_run: bool) -> dict[str, Any]:
             log["duplicate_before"] = duplicate
             log["before"] = _snapshot(cur)
             if _already_folded(duplicate):
-                log["skipped"] = "duplicate already hidden + closed"
+                log["counts"] = _ensure_future_routing(cur)
+                log["skipped_show_fold"] = "duplicate already hidden + closed"
+                log["after"] = _snapshot(cur)
             else:
                 log["counts"] = _apply(cur)
                 log["after"] = _snapshot(cur)
