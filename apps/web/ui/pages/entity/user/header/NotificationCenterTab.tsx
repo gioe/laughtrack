@@ -124,7 +124,9 @@ const NotificationCenterTab = ({ onSeen }: NotificationCenterTabProps) => {
 
             {!error && items !== null && items.length > 0 && (
                 <ul className="space-y-3" data-testid="notification-list">
-                    {items.map((item) => (
+                    {items.map((item) => {
+                        const relative = relativeTime(item.sentAt);
+                        return (
                         <li key={item.id}>
                             <Link
                                 href={`/show/${item.showId}`}
@@ -156,15 +158,14 @@ const NotificationCenterTab = ({ onSeen }: NotificationCenterTabProps) => {
                                                 {channel}
                                             </span>
                                         ))}
-                                        {relativeTime(item.sentAt) && (
-                                            <span>{relativeTime(item.sentAt)}</span>
-                                        )}
+                                        {relative && <span>{relative}</span>}
                                     </span>
                                 </span>
                                 <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0 mt-1" />
                             </Link>
                         </li>
-                    ))}
+                        );
+                    })}
                 </ul>
             )}
         </div>

@@ -120,4 +120,25 @@ describe("NotificationCenterTab", () => {
             expect(screen.getByText("No notifications yet")).toBeTruthy();
         });
     });
+
+    it("shows an error message when the feed fails to load", async () => {
+        fetchMock.mockImplementation((url: string) => {
+            if (url === "/api/v1/me/notifications") {
+                return Promise.resolve({
+                    ok: false,
+                    status: 500,
+                    json: async () => ({}),
+                });
+            }
+            return Promise.resolve(jsonResponse({ data: { lastSeenAt: null } }));
+        });
+
+        render(<NotificationCenterTab />);
+
+        await waitFor(() => {
+            expect(
+                screen.getByText(/couldn't load your notifications/i),
+            ).toBeTruthy();
+        });
+    });
 });
