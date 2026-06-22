@@ -65,8 +65,8 @@ struct NotificationCenterModelTests {
         #expect(message.contains("Sign in"))
     }
 
-    @Test("markSeen zeroes the unread count and flips loaded rows to read")
-    func markSeenClears() async {
+    @Test("markSeen zeroes the unread badge count but leaves the per-row dots for the session")
+    func markSeenClearsBadge() async {
         let transport = NotificationsMockTransport(
             list: .init(data: .init(
                 items: [sampleItem(id: "c1:555", isUnread: true)],
@@ -84,12 +84,14 @@ struct NotificationCenterModelTests {
         let ok = await model.markSeen(apiClient: client)
 
         #expect(ok == true)
+        // Badge count zeroes immediately...
         #expect(model.unreadCount == 0)
         guard case .loaded(let items) = model.phase else {
             Issue.record("Expected .loaded, got \(model.phase)")
             return
         }
-        #expect(items.allSatisfy { !$0.isUnread })
+        // ...but the loaded rows keep their unread dots for this viewing session.
+        #expect(items.contains { $0.isUnread })
     }
 
     @Test("NotificationCenterItem falls back gracefully and parses sentAt")

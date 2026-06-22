@@ -113,18 +113,17 @@ final class NotificationCenterModel: ObservableObject {
     }
 
     /// Stamp the last-seen high-water mark so the unread badge clears. Returns
-    /// `true` on success; the caller refreshes `currentUser` so the
-    /// launch-time badge count catches up. Locally flips loaded rows to read
-    /// and zeroes `unreadCount` for an immediate UI update.
+    /// `true` on success; the caller refreshes `currentUser` so the launch-time
+    /// badge count catches up. Zeroes `unreadCount` for an immediate badge
+    /// update but intentionally leaves the loaded rows' `isUnread` flags intact
+    /// so the per-row "new" dots stay visible for this viewing session — a
+    /// fresh load (next visit) reflects the now-cleared server state.
     @discardableResult
     func markSeen(apiClient: Client) async -> Bool {
         do {
             let output = try await apiClient.markMeNotificationsSeen(.init())
             guard case .ok = output else { return false }
             unreadCount = 0
-            if case .loaded(let items) = phase {
-                phase = .loaded(items.map { $0.markedRead() })
-            }
             return true
         } catch {
             return false

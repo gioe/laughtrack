@@ -63,9 +63,13 @@ struct NotificationCenterView: View {
         .accessibilityIdentifier(LaughTrackViewTestID.notificationCenterScreen)
         .task {
             await model.loadIfNeeded(apiClient: apiClient)
-            // Opening the center is the "seen" signal. Stamp the high-water
-            // mark, then refresh currentUser so the profile-button badge
-            // (driven by /me notificationsUnreadCount) clears on next render.
+            // Opening the center is the "seen" signal — but only mark seen once
+            // the feed actually loaded. Marking seen after a failed/never-loaded
+            // fetch would stamp the high-water mark and silently clear
+            // notifications the user never got to see. On success, refresh
+            // currentUser so the profile-button badge (driven by /me
+            // notificationsUnreadCount) clears on next render.
+            guard case .loaded = model.phase else { return }
             if await model.markSeen(apiClient: apiClient) {
                 await authManager.refreshCurrentUser()
             }
@@ -141,11 +145,17 @@ private struct NotificationRow: View {
     private var laughTrackBody: Font { theme.laughTrackTokens.typography.body }
     private var laughTrackMetadata: Font { theme.laughTrackTokens.typography.metadata }
 
-    private var relativeSentAt: String? {
-        guard let sentAt = item.sentAt else { return nil }
+    // Shared formatter — reused across every row body eval rather than
+    // allocated per render (matches the static ISO formatters in the model).
+    private static let relativeFormatter: RelativeDateTimeFormatter = {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .abbreviated
-        return formatter.localizedString(for: sentAt, relativeTo: Date())
+        return formatter
+    }()
+
+    private var relativeSentAt: String? {
+        guard let sentAt = item.sentAt else { return nil }
+        return Self.relativeFormatter.localizedString(for: sentAt, relativeTo: Date())
     }
 }
 
