@@ -1,0 +1,396 @@
+{
+  "after": {
+    "aliases": [
+      {
+        "alias_name": "Troy Savings Music Hall",
+        "city": "Troy",
+        "club_id": 2579,
+        "id": 396,
+        "normalized_alias_name": "troy savings music hall",
+        "normalized_city": "troy",
+        "normalized_state": "ny",
+        "source": "TASK-3059",
+        "state": "NY",
+        "verified": true
+      }
+    ],
+    "child_row_summary": [],
+    "clubs": [
+      {
+        "address": "30 Second Street",
+        "city": "Troy",
+        "closed_at": null,
+        "id": 2579,
+        "name": "Troy Savings Bank Music Hall",
+        "state": "NY",
+        "status": "active",
+        "timezone": "America/New_York",
+        "total_shows": 5,
+        "visible": true,
+        "website": "https://www.troymusichall.org/"
+      },
+      {
+        "address": "30 2nd St, Troy, NY",
+        "city": "Troy",
+        "closed_at": "2026-06-22T15:07:25.860253+00:00",
+        "id": 5038,
+        "name": "Troy Savings Music Hall (duplicate of club 2579; folded from club 5038)",
+        "state": "NY",
+        "status": "closed",
+        "timezone": "America/New_York",
+        "total_shows": 0,
+        "visible": false,
+        "website": ""
+      }
+    ],
+    "duplicate_show_map_summary": {
+      "date_room_mapped_shows": 0,
+      "duplicate_shows": 0,
+      "name_mismatch_mapped": 0,
+      "noncolliding_shows": 0,
+      "same_name_mapped": 0
+    },
+    "mapped_name_mismatches": [],
+    "remaining_duplicate_references": {
+      "click_events": 0,
+      "club_image_assets": 0,
+      "email_subscriptions": 0,
+      "enabled_sources": 0,
+      "eventbrite_organizer_venues": 0,
+      "favorite_clubs": 0,
+      "processed_emails": 0,
+      "production_company_venues": 0,
+      "scraper_run_clubs": 0,
+      "shows": 0,
+      "tagged_clubs": 0
+    },
+    "show_summary": [
+      {
+        "club_id": 2579,
+        "first_show": "2026-06-14T18:00:00+00:00",
+        "last_show": "2026-10-23T23:30:00+00:00",
+        "show_count": 5
+      }
+    ],
+    "sources": [
+      {
+        "club_id": 2579,
+        "enabled": true,
+        "id": 2375,
+        "metadata": {
+          "official_events_url": "https://www.troymusichall.org/events/?searchType=7",
+          "official_site": "https://www.troymusichall.org/",
+          "ticketing_platform": "cart.troymusichall.org",
+          "verification": "Scraper HTTP stack fetched the official server-rendered comedy list; cards provide title, local date/time, detail URL, and cart ticket URL.",
+          "verified_at": "2026-05-19",
+          "verified_event_count": 5,
+          "verified_sample_event": "Leslie Jones: I'm Hot Tour",
+          "verified_sample_event_date": "2026-10-10",
+          "verified_sample_ticket_url": "https://cart.troymusichall.org/33985/leslie-jones-im-hot-tour"
+        },
+        "platform": "custom",
+        "priority": 0,
+        "scraper_key": "troy_savings_bank_music_hall",
+        "source_url": "https://www.troymusichall.org/events/?searchType=7",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 2579,
+        "enabled": false,
+        "id": 4128,
+        "metadata": {
+          "task_3059_disposition": "moved disabled duplicate Ticketmaster source from club 5038 to club 2579",
+          "task_3059_source_audit": "TASK-3059"
+        },
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "ZFr9jZeFA7"
+      },
+      {
+        "club_id": 2579,
+        "enabled": false,
+        "id": 1587,
+        "metadata": {
+          "comedian_refs": [
+            {
+              "name": "Leslie Jones",
+              "uuid": "6ffc1b783bdf3324535dc7f33c05455b"
+            }
+          ],
+          "event_urls": [
+            "https://concerts50.com/buy/leslie-jones-in-troy-tickets-oct-10-2026"
+          ],
+          "fallback_after_source": "custom",
+          "first_seen_at": "2026-05-12T22:36:20.795705+00:00",
+          "last_seen_at": "2026-05-12T22:43:08.032498+00:00",
+          "onboarded_platform": "custom",
+          "onboarded_scraper_key": "troy_savings_bank_music_hall",
+          "platform_hints": [
+            "tour_listing"
+          ],
+          "rationale": "Venue-owned Troy Savings Bank Music Hall comedy listing scraper added; tour_dates kept enabled as fallback until production scrape history confirms replacement output.",
+          "reference_count": 3,
+          "sample_urls": [
+            "https://lesliejonestour.com/"
+          ],
+          "source": "comedian_websites",
+          "task_2581_disposition": {
+            "disabled_at": "2026-06-02 13:29:14.793375+00",
+            "reason": "TourDatesScraper deleted; BandsInTown-sourced show ingestion dropped per TASK-2581"
+          },
+          "tour_dates_preserved_as_fallback": true,
+          "verified_at": "2026-05-19"
+        },
+        "platform": "tour_dates",
+        "priority": 1,
+        "scraper_key": "tour_dates",
+        "source_url": "tour_dates",
+        "ticketmaster_id": null
+      }
+    ]
+  },
+  "before": {
+    "aliases": [],
+    "child_row_summary": [
+      {
+        "new_lineup_items": 0,
+        "new_show_id": 1874853,
+        "new_tagged_shows": 4,
+        "new_tickets": 1,
+        "old_click_events": 5,
+        "old_lineup_items": 1,
+        "old_show_id": 2841037,
+        "old_tagged_shows": 2,
+        "old_tickets": 1
+      }
+    ],
+    "clubs": [
+      {
+        "address": "30 Second Street",
+        "city": "Troy",
+        "closed_at": null,
+        "id": 2579,
+        "name": "Troy Savings Bank Music Hall",
+        "state": "NY",
+        "status": "active",
+        "timezone": "America/New_York",
+        "total_shows": 5,
+        "visible": true,
+        "website": "https://www.troymusichall.org/"
+      },
+      {
+        "address": "30 2nd St, Troy, NY",
+        "city": "Troy",
+        "closed_at": null,
+        "id": 5038,
+        "name": "Troy Savings Music Hall",
+        "state": "NY",
+        "status": "active",
+        "timezone": "America/New_York",
+        "total_shows": 1,
+        "visible": true,
+        "website": ""
+      }
+    ],
+    "duplicate_show_map_summary": {
+      "date_room_mapped_shows": 1,
+      "duplicate_shows": 1,
+      "name_mismatch_mapped": 1,
+      "noncolliding_shows": 0,
+      "same_name_mapped": 0
+    },
+    "mapped_name_mismatches": [
+      {
+        "canonical_name": "Please Don\u2019t Destroy: LIVE",
+        "canonical_show_id": 1874853,
+        "canonical_show_page_url": "https://www.troymusichall.org/events/3017/please-don-t-destroy-live/?",
+        "date": "2026-08-22T23:00:00+00:00",
+        "duplicate_name": "Please Don't Destroy",
+        "duplicate_show_id": 2841037,
+        "duplicate_show_page_url": "https://www.ticketmaster.com/event/Z7r9jZ1A70AoK",
+        "room": ""
+      }
+    ],
+    "remaining_duplicate_references": {
+      "click_events": 5,
+      "club_image_assets": 0,
+      "email_subscriptions": 0,
+      "enabled_sources": 1,
+      "eventbrite_organizer_venues": 0,
+      "favorite_clubs": 0,
+      "processed_emails": 0,
+      "production_company_venues": 0,
+      "scraper_run_clubs": 4,
+      "shows": 1,
+      "tagged_clubs": 0
+    },
+    "show_summary": [
+      {
+        "club_id": 2579,
+        "first_show": "2026-06-14T18:00:00+00:00",
+        "last_show": "2026-10-23T23:30:00+00:00",
+        "show_count": 5
+      },
+      {
+        "club_id": 5038,
+        "first_show": "2026-08-22T23:00:00+00:00",
+        "last_show": "2026-08-22T23:00:00+00:00",
+        "show_count": 1
+      }
+    ],
+    "sources": [
+      {
+        "club_id": 2579,
+        "enabled": true,
+        "id": 2375,
+        "metadata": {
+          "official_events_url": "https://www.troymusichall.org/events/?searchType=7",
+          "official_site": "https://www.troymusichall.org/",
+          "ticketing_platform": "cart.troymusichall.org",
+          "verification": "Scraper HTTP stack fetched the official server-rendered comedy list; cards provide title, local date/time, detail URL, and cart ticket URL.",
+          "verified_at": "2026-05-19",
+          "verified_event_count": 5,
+          "verified_sample_event": "Leslie Jones: I'm Hot Tour",
+          "verified_sample_event_date": "2026-10-10",
+          "verified_sample_ticket_url": "https://cart.troymusichall.org/33985/leslie-jones-im-hot-tour"
+        },
+        "platform": "custom",
+        "priority": 0,
+        "scraper_key": "troy_savings_bank_music_hall",
+        "source_url": "https://www.troymusichall.org/events/?searchType=7",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 2579,
+        "enabled": false,
+        "id": 1587,
+        "metadata": {
+          "comedian_refs": [
+            {
+              "name": "Leslie Jones",
+              "uuid": "6ffc1b783bdf3324535dc7f33c05455b"
+            }
+          ],
+          "event_urls": [
+            "https://concerts50.com/buy/leslie-jones-in-troy-tickets-oct-10-2026"
+          ],
+          "fallback_after_source": "custom",
+          "first_seen_at": "2026-05-12T22:36:20.795705+00:00",
+          "last_seen_at": "2026-05-12T22:43:08.032498+00:00",
+          "onboarded_platform": "custom",
+          "onboarded_scraper_key": "troy_savings_bank_music_hall",
+          "platform_hints": [
+            "tour_listing"
+          ],
+          "rationale": "Venue-owned Troy Savings Bank Music Hall comedy listing scraper added; tour_dates kept enabled as fallback until production scrape history confirms replacement output.",
+          "reference_count": 3,
+          "sample_urls": [
+            "https://lesliejonestour.com/"
+          ],
+          "source": "comedian_websites",
+          "task_2581_disposition": {
+            "disabled_at": "2026-06-02 13:29:14.793375+00",
+            "reason": "TourDatesScraper deleted; BandsInTown-sourced show ingestion dropped per TASK-2581"
+          },
+          "tour_dates_preserved_as_fallback": true,
+          "verified_at": "2026-05-19"
+        },
+        "platform": "tour_dates",
+        "priority": 1,
+        "scraper_key": "tour_dates",
+        "source_url": "tour_dates",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 5038,
+        "enabled": true,
+        "id": 4128,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "ZFr9jZeFA7"
+      }
+    ]
+  },
+  "counts": {
+    "click_events_club_repointed": 0,
+    "click_events_repointed_to_existing_show": 5,
+    "club_image_assets_moved": 0,
+    "club_totals_recomputed": 2,
+    "colliding_duplicate_shows_deleted": 1,
+    "conflicting_sent_notifications_deleted": 0,
+    "duplicate_aliases_upserted": 1,
+    "duplicate_clubs_closed": 1,
+    "duplicate_favorite_clubs_deleted": 0,
+    "duplicate_production_company_venues_deleted": 0,
+    "duplicate_sources_moved_to_canonical": 1,
+    "duplicate_tagged_clubs_deleted": 0,
+    "email_subscriptions_moved": 0,
+    "eventbrite_organizer_venues_moved": 0,
+    "favorite_clubs_inserted": 0,
+    "lineup_items_copied": 1,
+    "processed_emails_moved": 0,
+    "production_company_venues_inserted": 0,
+    "scraper_run_clubs_moved": 4,
+    "sent_notifications_repointed": 0,
+    "tagged_clubs_inserted": 0,
+    "tagged_shows_copied": 1,
+    "tickets_copied": 0
+  },
+  "dry_run": false,
+  "fold": {
+    "aliases": [
+      {
+        "alias_name": "Troy Savings Music Hall",
+        "city": "Troy",
+        "state": "NY"
+      }
+    ],
+    "canonical_id": 2579,
+    "canonical_name": "Troy Savings Bank Music Hall",
+    "duplicate_id": 5038,
+    "duplicate_name": "Troy Savings Music Hall",
+    "match_key": [
+      "date",
+      "room"
+    ],
+    "name_mismatch_policy": "Rows with the same date and room must merge because shows_club_id_date_room_key prevents preserving both under the canonical club."
+  },
+  "generated_at": "2026-06-22T15:07:26.805762+00:00",
+  "source_audit_task": "TASK-3059",
+  "task": "TASK-3059",
+  "validation": {
+    "clubs": [
+      {
+        "address": "30 2nd St, Troy, NY",
+        "city": "Troy",
+        "google_place_id": "ChIJ4akrgwcP3okROKDH6fEfhGk",
+        "id": 5038,
+        "name": "Troy Savings Music Hall",
+        "state": "NY",
+        "status": "active",
+        "timezone": "America/New_York",
+        "total_shows": 1,
+        "visible": true,
+        "website": ""
+      },
+      {
+        "address": "30 Second Street",
+        "city": "Troy",
+        "google_place_id": "ChIJ4akrgwcP3okROKDH6fEfhGk",
+        "id": 2579,
+        "name": "Troy Savings Bank Music Hall",
+        "state": "NY",
+        "status": "active",
+        "timezone": "America/New_York",
+        "total_shows": 5,
+        "visible": true,
+        "website": "https://www.troymusichall.org/"
+      }
+    ]
+  }
+}
