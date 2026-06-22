@@ -1,0 +1,308 @@
+{
+  "after": {
+    "aliases": [
+      {
+        "alias_name": "Wilson Center-NC",
+        "city": "Wilmington",
+        "club_id": 5272,
+        "id": 368,
+        "normalized_alias_name": "wilson center nc",
+        "normalized_city": "wilmington",
+        "normalized_state": "nc",
+        "source": "TASK-3160",
+        "state": "NC",
+        "verified": true
+      },
+      {
+        "alias_name": "Wilson Center, CFCC",
+        "city": "Wilmington",
+        "club_id": 5272,
+        "id": 369,
+        "normalized_alias_name": "wilson center cfcc",
+        "normalized_city": "wilmington",
+        "normalized_state": "nc",
+        "source": "TASK-3160",
+        "state": "NC",
+        "verified": true
+      }
+    ],
+    "clubs": [
+      {
+        "address": "703 North 3rd Street, Wilmington, NC 28401",
+        "city": "Wilmington",
+        "closed_at": null,
+        "id": 5272,
+        "name": "Wilson Center",
+        "state": "NC",
+        "status": "active",
+        "total_shows": 7,
+        "visible": true,
+        "website": "https://www.wilsoncentertickets.com/"
+      },
+      {
+        "address": "703 N. 3rd Street, Wilmington, NC",
+        "city": "Wilmington",
+        "closed_at": "2026-06-22T01:12:51.184945+00:00",
+        "id": 5293,
+        "name": "Wilson Center-NC (duplicate of club 5272; folded from club 5293)",
+        "state": "NC",
+        "status": "closed",
+        "total_shows": 0,
+        "visible": false,
+        "website": ""
+      }
+    ],
+    "duplicate_show_map_summary": {
+      "date_room_mapped_shows": 0,
+      "duplicate_shows": 0,
+      "name_mismatch_mapped": 0,
+      "noncolliding_shows": 0,
+      "same_name_mapped": 0
+    },
+    "mapped_name_mismatches": [],
+    "remaining_duplicate_references": {
+      "click_events": 0,
+      "club_image_assets": 0,
+      "email_subscriptions": 0,
+      "enabled_sources": 0,
+      "eventbrite_organizer_venues": 0,
+      "favorite_clubs": 0,
+      "processed_emails": 0,
+      "production_company_venues": 0,
+      "scraper_run_clubs": 0,
+      "shows": 0,
+      "tagged_clubs": 0
+    },
+    "show_summary": [
+      {
+        "club_id": 5272,
+        "first_show": "2026-06-14T17:00:00+00:00",
+        "last_show": "2026-10-16T01:30:00+00:00",
+        "show_count": 7
+      }
+    ],
+    "sources": [
+      {
+        "club_id": 5272,
+        "enabled": true,
+        "id": 4362,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "KovZpZAEdJ6A"
+      },
+      {
+        "club_id": 5272,
+        "enabled": false,
+        "id": 4383,
+        "metadata": {
+          "task_3160_disposition": "moved disabled duplicate Ticketmaster source from club 5293 to club 5272",
+          "task_3160_source_audit": "TASK-3052"
+        },
+        "platform": "ticketmaster",
+        "priority": 1,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "Z7r9jZaeWY"
+      }
+    ]
+  },
+  "before": {
+    "aliases": [],
+    "clubs": [
+      {
+        "address": "701 North Third Street, Wilmington, NC",
+        "city": "Wilmington",
+        "closed_at": null,
+        "id": 5272,
+        "name": "Wilson Center, CFCC",
+        "state": "NC",
+        "status": "active",
+        "total_shows": 7,
+        "visible": true,
+        "website": ""
+      },
+      {
+        "address": "703 N. 3rd Street, Wilmington, NC",
+        "city": "Wilmington",
+        "closed_at": null,
+        "id": 5293,
+        "name": "Wilson Center-NC",
+        "state": "NC",
+        "status": "active",
+        "total_shows": 7,
+        "visible": true,
+        "website": ""
+      }
+    ],
+    "duplicate_show_map_summary": {
+      "date_room_mapped_shows": 7,
+      "duplicate_shows": 7,
+      "name_mismatch_mapped": 2,
+      "noncolliding_shows": 0,
+      "same_name_mapped": 5
+    },
+    "mapped_name_mismatches": [
+      {
+        "canonical_name": "Daniel Tosh: My First Farewell Tour",
+        "canonical_show_id": 2841545,
+        "canonical_show_page_url": "https://wilsoncentertickets.com/events/daniel-tosh-2026-10-15-700-pm",
+        "date": "2026-10-15T23:00:00+00:00",
+        "duplicate_name": "Daniel Tosh",
+        "duplicate_show_id": 2841587,
+        "duplicate_show_page_url": "https://www.ticketmaster.com/event/Z7r9jZ1A7rFZd",
+        "room": ""
+      },
+      {
+        "canonical_name": "Daniel Tosh: My First Farewell Tour",
+        "canonical_show_id": 2841546,
+        "canonical_show_page_url": "https://wilsoncentertickets.com/events/daniel-tosh-2026-10-15-700-pm",
+        "date": "2026-10-16T01:30:00+00:00",
+        "duplicate_name": "Daniel Tosh",
+        "duplicate_show_id": 2841588,
+        "duplicate_show_page_url": "https://www.ticketmaster.com/event/Z7r9jZ1A7rfua",
+        "room": ""
+      }
+    ],
+    "remaining_duplicate_references": {
+      "click_events": 50,
+      "club_image_assets": 0,
+      "email_subscriptions": 0,
+      "enabled_sources": 1,
+      "eventbrite_organizer_venues": 0,
+      "favorite_clubs": 0,
+      "processed_emails": 0,
+      "production_company_venues": 0,
+      "scraper_run_clubs": 4,
+      "shows": 7,
+      "tagged_clubs": 0
+    },
+    "show_summary": [
+      {
+        "club_id": 5272,
+        "first_show": "2026-06-14T17:00:00+00:00",
+        "last_show": "2026-10-16T01:30:00+00:00",
+        "show_count": 7
+      },
+      {
+        "club_id": 5293,
+        "first_show": "2026-06-14T17:00:00+00:00",
+        "last_show": "2026-10-16T01:30:00+00:00",
+        "show_count": 7
+      }
+    ],
+    "sources": [
+      {
+        "club_id": 5272,
+        "enabled": true,
+        "id": 4362,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "KovZpZAEdJ6A"
+      },
+      {
+        "club_id": 5293,
+        "enabled": true,
+        "id": 4383,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "Z7r9jZaeWY"
+      }
+    ]
+  },
+  "counts": {
+    "canonical_clubs_normalized": 1,
+    "canonical_old_name_aliases_upserted": 1,
+    "click_events_club_repointed": 0,
+    "click_events_repointed_to_existing_show": 50,
+    "club_image_assets_moved": 0,
+    "club_totals_recomputed": 2,
+    "colliding_duplicate_shows_deleted": 7,
+    "conflicting_sent_notifications_deleted": 0,
+    "duplicate_aliases_upserted": 1,
+    "duplicate_clubs_closed": 1,
+    "duplicate_favorite_clubs_deleted": 0,
+    "duplicate_production_company_venues_deleted": 0,
+    "duplicate_sources_moved_to_canonical": 1,
+    "duplicate_tagged_clubs_deleted": 0,
+    "email_subscriptions_moved": 0,
+    "eventbrite_organizer_venues_moved": 0,
+    "favorite_clubs_inserted": 0,
+    "lineup_items_copied": 0,
+    "processed_emails_moved": 0,
+    "production_company_venues_inserted": 0,
+    "scraper_run_clubs_moved": 4,
+    "sent_notifications_repointed": 0,
+    "tagged_clubs_inserted": 0,
+    "tagged_shows_copied": 0,
+    "tickets_copied": 0
+  },
+  "dry_run": false,
+  "fold": {
+    "aliases": [
+      {
+        "alias_name": "Wilson Center-NC",
+        "city": "Wilmington",
+        "state": "NC"
+      },
+      {
+        "alias_name": "Wilson Center, CFCC",
+        "city": "Wilmington",
+        "state": "NC"
+      }
+    ],
+    "canonical_id": 5272,
+    "canonical_metadata": {
+      "address": "703 North 3rd Street, Wilmington, NC 28401",
+      "website": "https://www.wilsoncentertickets.com/"
+    },
+    "canonical_name": "Wilson Center",
+    "duplicate_id": 5293,
+    "duplicate_name": "Wilson Center-NC",
+    "match_key": [
+      "date",
+      "room"
+    ],
+    "name_mismatch_policy": "Rows with the same date and room must merge because shows_club_id_date_room_key prevents preserving both under the canonical club.",
+    "previous_canonical_name": "Wilson Center, CFCC"
+  },
+  "generated_at": "2026-06-22T01:12:51.965140+00:00",
+  "source_audit_task": "TASK-3052",
+  "task": "TASK-3160",
+  "validation": {
+    "clubs": [
+      {
+        "address": "701 North Third Street, Wilmington, NC",
+        "city": "Wilmington",
+        "google_place_id": "ChIJ4dcRduofqokRlO7Yv2CiHxM",
+        "id": 5272,
+        "name": "Wilson Center, CFCC",
+        "state": "NC",
+        "status": "active",
+        "total_shows": 7,
+        "visible": true,
+        "website": ""
+      },
+      {
+        "address": "703 N. 3rd Street, Wilmington, NC",
+        "city": "Wilmington",
+        "google_place_id": "ChIJ4dcRduofqokRlO7Yv2CiHxM",
+        "id": 5293,
+        "name": "Wilson Center-NC",
+        "state": "NC",
+        "status": "active",
+        "total_shows": 7,
+        "visible": true,
+        "website": ""
+      }
+    ]
+  }
+}
