@@ -490,6 +490,19 @@ _PATH_TOKEN_RE = re.compile(
 )
 _SYMBOL_TOKEN_RE = re.compile(r"\b([A-Za-z_][\w]*\.[A-Za-z_][\w]*)\b")
 
+# Dotted English prose abbreviations that the symbol regex above matches but
+# which are never code symbols. Without this denylist the line-symbol-mismatch
+# guard (issue #1012) extracted tokens like "e.g" from comment bodies such as
+# "(e.g. one selling stand-up)" and auto-dismissed correctly-anchored review
+# comments because the prose token was absent from the cited line but present
+# elsewhere in the file (issue #1117). Compared case-insensitively.
+_PROSE_ABBREVIATIONS = frozenset({
+    "e.g",
+    "i.e",
+    "et.al",
+    "a.k",  # from "a.k.a" — the regex yields only the first dotted pair
+})
+
 
 def _extract_paths(text: str | None) -> list[str]:
     """Extract file-path-shaped tokens from a comment body.
@@ -511,13 +524,21 @@ def _extract_paths(text: str | None) -> list[str]:
 
 
 def _extract_symbol_tokens(text: str | None) -> list[str]:
-    """Extract dotted code-symbol references from review prose."""
+    """Extract dotted code-symbol references from review prose.
+
+    Common dotted English prose abbreviations (``e.g``, ``i.e``, ...) are
+    excluded so the line-symbol-mismatch guard does not auto-dismiss a
+    correctly-anchored comment whose body merely contains "(e.g. ...)"
+    (issue #1117).
+    """
     if not text:
         return []
     found: list[str] = []
     seen: set[str] = set()
     for m in _SYMBOL_TOKEN_RE.finditer(text):
         token = m.group(1).rstrip(".,;:!?)\"'")
+        if token.lower() in _PROSE_ABBREVIATIONS:
+            continue
         if token and token not in seen:
             seen.add(token)
             found.append(token)
@@ -532,6 +553,20 @@ def _read_repo_file_lines(repo_root: str, path: str) -> list[str]:
         return []
 
 
+def _symbol_in_line(symbol: str, line: str) -> bool:
+    """Return True when *symbol* appears in *line* as a whole identifier.
+
+    The dotted symbol is matched with identifier boundaries on both sides
+    rather than as a raw substring: neither the character before nor the
+    character after the match may be a word character or a dot. This keeps
+    a coincidental substring (``a.b`` inside ``data.bar``) from counting as
+    the symbol appearing — the substring match was the primary source of
+    false dismissals the prose denylist could only patch one case at a time
+    (issue #1121). ``re.escape`` neutralizes the literal ``.`` in the token.
+    """
+    return re.search(rf"(?<![\w.]){re.escape(symbol)}(?![\w.])", line) is not None
+
+
 def _line_symbol_mismatch(
     repo_root: str,
     path: str,
@@ -542,8 +577,9 @@ def _line_symbol_mismatch(
 
     The guard is intentionally conservative: dismiss only when the exact
     dotted symbol is absent from the cited line but present elsewhere in
-    the same file. If the symbol cannot be found literally elsewhere, the
-    validator leaves the finding open for the operator.
+    the same file, matched as a whole identifier rather than a substring
+    (issue #1121). If the symbol cannot be found as a whole token
+    elsewhere, the validator leaves the finding open for the operator.
     """
     if not line_start:
         return None
@@ -555,9 +591,13 @@ def _line_symbol_mismatch(
         return None
     cited_line = lines[line_start - 1]
     for symbol in symbols:
-        if symbol in cited_line:
+        if _symbol_in_line(symbol, cited_line):
             continue
-        if any(symbol in line for i, line in enumerate(lines) if i != line_start - 1):
+        if any(
+            _symbol_in_line(symbol, line)
+            for i, line in enumerate(lines)
+            if i != line_start - 1
+        ):
             return symbol, cited_line.strip()
     return None
 
@@ -1187,24 +1227,35 @@ def cmd_pass_status(args: argparse.Namespace, db_path: str, config_path: str) ->
 
 
 def cmd_summary(args: argparse.Namespace, db_path: str) -> int:
-    """Output a summary of all findings for a review."""
+    """Output a summary of the latest review's findings for a task."""
     conn = get_connection(db_path)
     try:
+        task = conn.execute(
+            "SELECT id, summary FROM tasks WHERE id = ?", (args.task_id,)
+        ).fetchone()
+        if not task:
+            print(f"Error: Task {args.task_id} not found", file=sys.stderr)
+            return 2
+
+        # Resolve the latest non-superseded review for this task. Mirrors the
+        # task-centric lookup used by `review list`/`status`/`verdict`; the arg
+        # is a task_id, never a review_id (issue #1033).
         review = conn.execute(
             "SELECT r.id, r.task_id, r.reviewer, r.status, r.review_pass,"
             "  r.diff_summary, r.created_at, t.summary as task_summary"
             " FROM code_reviews r JOIN tasks t ON t.id = r.task_id"
-            " WHERE r.id = ?",
-            (args.review_id,),
+            " WHERE r.task_id = ? AND r.status <> 'superseded'"
+            " ORDER BY r.id DESC LIMIT 1",
+            (args.task_id,),
         ).fetchone()
         if not review:
-            print(f"Error: Review {args.review_id} not found", file=sys.stderr)
-            return 2
+            print(f"No reviews for task #{args.task_id}: {task['summary']}")
+            return 0
 
         comments = conn.execute(
             "SELECT id, file_path, line_start, line_end, category, severity, comment, resolution, resolution_note"
             " FROM review_comments WHERE review_id = ? ORDER BY severity, category, id",
-            (args.review_id,),
+            (review["id"],),
         ).fetchall()
     finally:
         conn.close()
@@ -1387,8 +1438,8 @@ def main():
     status_p.add_argument("task_id", type=int, help="Task ID")
 
     # summary
-    summary_p = subparsers.add_parser("summary", allow_abbrev=False, help="Print a human-readable summary of a review")
-    summary_p.add_argument("review_id", type=int, help="Review ID")
+    summary_p = subparsers.add_parser("summary", allow_abbrev=False, help="Print a human-readable summary of a task's latest review")
+    summary_p.add_argument("task_id", type=int, help="Task ID")
 
     # validate-comments
     validate_p = subparsers.add_parser(

@@ -274,6 +274,25 @@ maybe_warn_path_resolved_tusk_overrides_cwd() {
 }
 maybe_warn_path_resolved_tusk_overrides_cwd
 
+# Proactive skill/CLI drift nudge at task-start (issue #1122). Unlike the three
+# sibling advisories above, this is NOT invoked on every tusk command — it is
+# called only from the task-start dispatch case, so the cost of scanning the
+# installed skills is paid once per task pickup rather than per invocation.
+#
+# Same gating as maybe_warn_cross_repo_drift: stderr-TTY-only by default (agent
+# callers, piped/captured stderr, and CI stay silent so the warning never lands
+# back in LLM context), silenced by TUSK_QUIET=1, restorable in non-TTY contexts
+# by TUSK_FORCE_WARN=1. The gate runs entirely in-shell BEFORE any python3 is
+# spawned, so the silent agent/CI path adds zero subprocess cost. The drift
+# computation and advisory wording live in tusk-skill-drift.py --advisory, which
+# always exits 0 so this nudge can never block task-start (advisory, not a gate).
+maybe_warn_skill_drift_at_task_start() {
+  [[ -n "${TUSK_QUIET:-}" ]] && return 0
+  [[ -z "${TUSK_FORCE_WARN:-}" && ! -t 2 ]] && return 0
+  [[ ! -f "$SCRIPT_DIR/tusk-skill-drift.py" ]] && return 0
+  python3 "$SCRIPT_DIR/tusk-skill-drift.py" "$REPO_ROOT" --advisory || true
+}
+
 # Default config: check sibling (installed) then parent dir (source repo)
 if [[ -f "$SCRIPT_DIR/config.default.json" ]]; then
   DEFAULT_CONFIG="$SCRIPT_DIR/config.default.json"
@@ -431,6 +450,12 @@ cmd_validate() {
       return 1
     fi
   fi
+
+  # Detect skill/CLI subcommand drift: installed skills must not reference
+  # subcommands this CLI lacks (issue #1035). Advisory only — drift is a
+  # recoverable version-skew condition fixed by 'tusk upgrade', not a config
+  # integrity error, so it must not fail validate.
+  python3 "$SCRIPT_DIR/tusk-skill-drift.py" "$REPO_ROOT" || true
 }
 
 update_gitignore() {
@@ -1332,7 +1357,7 @@ cmd_query() {
         _fuzzy_match="$(python3 - "$_subcmd_lc" <<'PYEOF' 2>/dev/null  # suppress errors; no hint shown on failure
 import difflib, sys
 candidates = [
-  'init','path','config','validate','sql-quote','typed-criteria-build','resolve-schema-bin','branch','commit',
+  'init','path','config','validate','skill-drift','sql-quote','typed-criteria-build','resolve-schema-bin','branch','commit',
   'lint','lint-rule','dupes','conventions','pillars','glossary','plans','criteria','dashboard','cost','chain','blockers',
   'context',
   'review','review-verdict','review-pass-status','review-final-summary','review-diff-range','review-wait','review-check-perms','review-agent-cost',
@@ -1358,6 +1383,13 @@ PYEOF
             _hint=" Did you mean: tusk $_fuzzy_match?"
           fi
         fi
+      fi
+      # If installed skills reference this exact subcommand, the CLI is almost
+      # certainly behind the skills it ships with (issue #1035) — steer the
+      # operator to 'tusk upgrade' rather than leaving a bare "Unknown
+      # subcommand". Probe is quiet and only runs on the error path.
+      if python3 "$SCRIPT_DIR/tusk-skill-drift.py" "$REPO_ROOT" --is-referenced "$_subcmd_lc" >/dev/null 2>&1; then
+        _hint="$_hint Installed skills reference 'tusk $_subcmd_lc' but it is absent from this CLI (v$TUSK_VERSION) — run 'tusk upgrade' to enable it."
       fi
       echo "Warning: Unknown subcommand '$_subcmd_lc'.${_hint}" >&2
       ;;
@@ -1805,7 +1837,7 @@ is_readonly_subcmd() {
     return 1
   fi
   case "${1:-}" in
-    ""|path|config|validate|sql-quote|typed-criteria-build|version|version-bump|\
+    ""|path|config|validate|skill-drift|sql-quote|typed-criteria-build|version|version-bump|\
     git-default-branch|branch-parse|report-issue|\
     sync-skills|reconcile-skills|generate-manifest|pricing-update|dev-sync|token-audit|\
     task-get|task-get-multi|task-list|task-select|task-summary|task-brief|setup|cost|\
@@ -1905,7 +1937,7 @@ preflight_schema_version() {
     ""|init|path|config|version|version-bump|upgrade|migrate|regen-triggers|\
       sql-quote|typed-criteria-build|git-default-branch|branch-parse|report-issue|update-gitignore|\
       sync-skills|sync-main|reconcile-skills|generate-manifest|pricing-update|dev-sync|token-audit|\
-      resolve-schema-bin)
+      skill-drift|resolve-schema-bin)
       return 0 ;;
   esac
   local user_version supported_max _uv_err _uv_rc=0
@@ -1971,6 +2003,7 @@ case "${1:-}" in
   path)   shift; cmd_path "$@" ;;
   config) shift; cmd_config "$@" ;;
   validate) shift; cmd_validate "$@" ;;
+  skill-drift) shift; exec python3 "$SCRIPT_DIR/tusk-skill-drift.py" "$REPO_ROOT" "$@" ;;
   sql-quote) shift; sql_quote "${1:-}" ;;
   typed-criteria-build) shift; exec python3 "$SCRIPT_DIR/tusk-typed-criteria-build.py" "$@" ;;
   resolve-schema-bin) shift; exec python3 "$SCRIPT_DIR/tusk-resolve-schema-bin.py" "$@" ;;
@@ -2009,7 +2042,7 @@ case "${1:-}" in
   task-get) shift; exec python3 "$SCRIPT_DIR/tusk-task-get.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   task-get-multi) shift; exec python3 "$SCRIPT_DIR/tusk-task-get-multi.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   task-select) shift; exec python3 "$SCRIPT_DIR/tusk-task-select.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
-  task-start) shift; exec python3 "$SCRIPT_DIR/tusk-task-start.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
+  task-start) shift; maybe_warn_skill_drift_at_task_start; exec python3 "$SCRIPT_DIR/tusk-task-start.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   task-done) shift; exec python3 "$SCRIPT_DIR/tusk-task-done.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   task-insert) shift; exec python3 "$SCRIPT_DIR/tusk-task-insert.py" "$DB_PATH" "$(resolve_config)" --repo-root "$REPO_ROOT" "$@" ;;
   task-update) shift; exec python3 "$SCRIPT_DIR/tusk-task-update.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
