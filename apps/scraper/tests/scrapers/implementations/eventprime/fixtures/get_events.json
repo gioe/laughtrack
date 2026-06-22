@@ -1,0 +1,87 @@
+{
+  "status": "success",
+  "count": 3,
+  "events": [
+    {
+      "id": 916,
+      "title": "Shell Yeah! A Night of Longform Improv",
+      "slug": "shell-yeah-a-night-of-longform-improv-4",
+      "content": "<p class=\"ds-markdown-paragraph\"><span class=\"\">Flip Flops Comedy Club</span><span class=\"\">\u00a0is proud to welcome\u00a0</span><span class=\"\">Ears</span><span class=\"\">\u00a0and\u00a0</span><span class=\"\">Lighthouse L",
+      "status": "publish",
+      "permalink": "https://flipflopscomedy.com/event/shell-yeah-a-night-of-longform-improv-4/",
+      "image_url": "https://flipflopscomedy.com/wp-content/uploads/2026/05/Untitled-design-32.png",
+      "start_date": "2099-07-15T21:30:00-04:00",
+      "end_date": "2099-07-16T03:59:00-04:00",
+      "timezone": null,
+      "venue": null,
+      "tickets": [
+        {
+          "id": 196,
+          "name": "VIP Couch",
+          "price": 35,
+          "capacity": 3
+        },
+        {
+          "id": 197,
+          "name": "GA",
+          "price": 12,
+          "capacity": 32
+        }
+      ]
+    },
+    {
+      "id": 848,
+      "title": "Driftwood Open Mic",
+      "slug": "driftwood-open-mic-5",
+      "content": "<p class=\"ds-markdown-paragraph\"><span class=\"\">This is where the comedy gets made.</span></p>\n<p class=\"ds-markdown-paragraph\"><span class=\"\">Wednesdays at 8pm \u2014 free, laid-back, and anything can hap",
+      "status": "publish",
+      "permalink": "https://flipflopscomedy.com/event/driftwood-open-mic-5/",
+      "image_url": "https://flipflopscomedy.com/wp-content/uploads/2026/05/file_00000000cf0c71f5af310231d45fbbc4.png",
+      "start_date": "2099-07-02T00:00:00-04:00",
+      "end_date": "2099-07-02T03:59:00-04:00",
+      "timezone": null,
+      "venue": null,
+      "tickets": [
+        {
+          "id": 190,
+          "name": "VIP Couch",
+          "price": 15,
+          "capacity": 3
+        },
+        {
+          "id": 191,
+          "name": "GA",
+          "price": 0,
+          "capacity": 32
+        }
+      ]
+    },
+    {
+      "id": 846,
+      "title": "Driftwood Open Mic",
+      "slug": "driftwood-open-mic-3",
+      "content": "<p class=\"ds-markdown-paragraph\"><span class=\"\">This is where the comedy gets made.</span></p>\n<p class=\"ds-markdown-paragraph\"><span class=\"\">Wednesdays at 8pm \u2014 free, laid-back, and anything can hap",
+      "status": "publish",
+      "permalink": "https://flipflopscomedy.com/event/driftwood-open-mic-3/",
+      "image_url": "https://flipflopscomedy.com/wp-content/uploads/2026/05/file_00000000cf0c71f5af310231d45fbbc4.png",
+      "start_date": "2020-06-18T00:00:00-04:00",
+      "end_date": "2020-06-18T03:59:00-04:00",
+      "timezone": null,
+      "venue": null,
+      "tickets": [
+        {
+          "id": 186,
+          "name": "VIP Couch",
+          "price": 15,
+          "capacity": 3
+        },
+        {
+          "id": 187,
+          "name": "GA",
+          "price": 0,
+          "capacity": 32
+        }
+      ]
+    }
+  ]
+}
