@@ -2637,6 +2637,29 @@ Production pages include **past** showtimes of a multi-weekend run, so
 `BookTixEvent.to_show` filters showtimes earlier than now (there is no global
 past-show filter). Onboarded: Makeshift Theater Akron (`makeshift.booktix.com`).
 
+### Tix.com (`tix_com`)
+
+`scraper_key = tix_com`, `platform = custom` (Tix.com has no dedicated
+`ScrapingPlatform` enum value). Generic, serves any venue selling through Tix.com.
+The public storefront `https://www.tix.com/ticket-sales/<slug>/<org_id>` is a
+React SPA, but its on-sale events come from an **anonymous JSON API** (no auth, no
+JS rendering — curl_cffi suffices):
+
+  `https://www.tix.com/api_ots/onlinesales/events/organization/<org_id>`
+
+- `source_url` (`scraping_url`) = the public storefront URL
+  (e.g. `https://www.tix.com/ticket-sales/playhouseonpark/2704`). The scraper
+  regexes the trailing numeric `<org_id>` (`2704`) out of it and builds the API URL.
+- Response shape: `{payload: {groupedEvents: [[event, ...], ...]}}`. Each event has
+  `EventId`, `ProductionName` (title), `EventDate` (naive local ISO), `MinPrice`
+  (0 / `SuppressPrices` → price-unknown), `Category`/`SubCategory`, and venue fields.
+- `show_page_url` = `<source_url>/event/<EventId>`.
+- **Mixed-use venues** (community theaters running a recurring comedy series among
+  musicals/plays) set `metadata.comedy_filter=true` to isolate comedy (same
+  mechanism as etix/seatengine/academy_of_music). Onboarded: Playhouse on Park
+  (`playhouseonpark/2704`, West Hartford CT) — note its Comedy Nights series is
+  seasonal, so the feed has 0 comedy between seasons.
+
 ### Tessitura (WordPress REST integration)
 
 `scraper_key = tessitura`, `platform = custom` (Tessitura has no dedicated
