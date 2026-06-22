@@ -16,8 +16,12 @@ _BASE_URL = "https://aomtheatre.com"
 _DEFAULT_TZ = "America/New_York"
 
 # "Friday, October 9th, 2026 at 8:00pm" (the ordinal suffix is stripped first).
+# Collapse an optional space before the meridiem and uppercase it, so both the
+# canonical "8:00pm" and a spaced "8:00 pm" variant normalize to "8:00PM" before
+# strptime's "%I:%M%p" (which has no space). (%p is case-insensitive in CPython,
+# but normalizing keeps the format string honest.)
 _ORDINAL_RE = re.compile(r"(\d{1,2})(?:st|nd|rd|th)", re.IGNORECASE)
-_AMPM_RE = re.compile(r"\b(am|pm)\b", re.IGNORECASE)
+_AMPM_RE = re.compile(r"\s*([AaPp][Mm])\b")
 _DATE_FMT = "%A, %B %d, %Y %I:%M%p"
 _PRICE_RE = re.compile(r"\$?\s*(\d+(?:\.\d{1,2})?)")
 
