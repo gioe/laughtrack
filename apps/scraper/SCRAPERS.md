@@ -2218,6 +2218,77 @@ SELECT c.id, 'custom'::"ScrapingPlatform", 'tock',
 
 ---
 
+### AnyRoad
+
+| | |
+|---|---|
+| **Scraper key** | `anyroad` |
+| **Platform** | `custom` (no `ScrapingPlatform` enum value) |
+| **DB field** | `scraping_sources.metadata.plugin_id` (preferred); `source_url` as parse fallback |
+| **Value format** | Plugin id, e.g. `rozziesquaretheater`; `source_url` = `https://app.anyroad.com/i/plugin/{plugin_id}` |
+| **Generic?** | ✅ DB-only onboarding for any AnyRoad experiences widget |
+
+**Detection signals:**
+- Venue page embeds `window.anyroad = new AnyRoad({ plugin: { id: '{plugin_id}' } })`
+  loaded from `app.anyroad.com/assets/integration-v1.1.js`.
+- The booking widget renders from `https://integrations.anyroad.com/{plugin_id}`
+  (a React SPA shell). The Squarespace/CMS host page is often just a wrapper — do
+  **not** wire `squarespace` for these venues (its events collection is typically
+  an empty placeholder).
+
+**API/source pattern:**
+- `AnyRoadScraper` resolves the plugin id (metadata → source_url) and walks
+  `GET https://app.anyroad.com/plugins/api/v3/experiences?plugin_id={id}&page=N`,
+  page 1.. until an empty `experiences.data[]` (no `links`/`meta` pagination).
+- Cloudflare-gated to plain `curl`, but cleared by curl_cffi Chrome impersonation —
+  the default `fetch_json` session works directly (Playwright fallback as backstop).
+- Each experience's inline `schedule` map (`{"YYYY-MM-DD": {"<time>": <avail>}}`) is
+  fanned into one show per (date, time).
+
+**Key extraction notes:**
+- `nameTranslation` → name, `descriptionTranslation` → description,
+  `unformattedPrice`/`zeroPriced` → USD ticket price, `url` → show page, `picture`
+  → image, schedule availability count > 0 → InStock else SoldOut.
+- **Showtime is a placeholder.** The plugin *summary* feed reports a nominal slot
+  time (Rozzie's feed reports a uniform `9:00 AM` for every occurrence); the real
+  per-slot times live behind the Cloudflare/CORS-gated booking-availability step the
+  widget only loads on "Book Now". The schedule **dates** are accurate; the time is
+  transformed literally rather than invented.
+- `locationInfo` (sub-venue free text, e.g. `18b Corinth Street`) is mapped onto
+  `Show.room`, so experiences at *different* sub-venues sharing a date stay distinct
+  under the `(club, date, room)` identity key (and the club-page Show Rooms grouping
+  shows a real location). Because of the placeholder time, distinct experiences at
+  the **same** sub-venue on the **same** date still collapse in dedup — an inherent
+  limit of a feed with no per-occurrence times, surfaced by the dedup WARNING.
+
+**DB setup:**
+```sql
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, priority, enabled, metadata)
+SELECT c.id, 'custom'::"ScrapingPlatform", 'anyroad',
+       'https://app.anyroad.com/i/plugin/{plugin_id}',
+       0, TRUE, '{"plugin_id": "{plugin_id}"}'::jsonb
+  FROM clubs c
+ WHERE c.name = '<Venue Name>';
+```
+
+**Failure modes / gotchas:**
+- A venue's resident companies can share one AnyRoad feed: Rozzie Square Theater's
+  feed is the whole building's calendar (CSz Boston + Riot Theater shows included),
+  so onboarding the host venue alone covers the trio — do **not** triple-onboard.
+- Optional `metadata.comedy_filter` (bool) drops non-comedy experiences via
+  `is_comedy_event` for AnyRoad venues that mix in non-comedy bookings; leave unset
+  for all-comedy venues.
+- Many AnyRoad venues mix ticketed *shows* with multi-week *classes/workshops*; the
+  scraper persists all dated experiences (the full ticketed calendar).
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/scrapers/implementations/anyroad/`
+- `apps/scraper/tests/scrapers/implementations/anyroad/test_scraper.py`
+- `apps/scraper/scripts/core/onboard_rozzie_square_theater_anyroad_2026_06_22.py`
+- TASK-3158: The Rozzie Square Theater (Roslindale, MA)
+
+---
+
 ### BrassTix
 
 | | |
