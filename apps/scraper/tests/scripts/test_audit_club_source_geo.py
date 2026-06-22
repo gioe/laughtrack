@@ -56,10 +56,12 @@ def _src(**overrides):
         "visible": True,
         "chain_id": None,
         "seatengine_id": None,
+        "seatengine_v3_id": None,
         "eventbrite_id": None,
         "ticketmaster_id": None,
         "ovationtix_id": None,
         "wix_event_id": None,
+        "squadup_id": None,
     }
     row.update(overrides)
     return row
@@ -181,3 +183,53 @@ def test_shared_domain_same_geo_not_flagged(mod):
              city="Denver", state="CO"),
     ]
     assert mod._shared_venue_across_geo(rows, include_chains=False) == []
+
+
+def test_shared_squadup_id_across_geo_flagged(mod):
+    """squadup.com is denylisted, so squadup_id is the only signal left."""
+    rows = [
+        _src(source_id=1, club_id=10, squadup_id="sq-7",
+             source_url="https://www.squadup.com/x", city="Reno", state="NV"),
+        _src(source_id=2, club_id=11, squadup_id="sq-7",
+             source_url="https://www.squadup.com/x", city="Tampa", state="FL"),
+    ]
+    out = mod._shared_venue_across_geo(rows, include_chains=False)
+    keys = {(r["identifier_kind"], r["identifier"]) for r in out}
+    # The denylisted domain produces no bucket; only the id collision flags.
+    assert ("squadup_id", "sq-7") in keys
+    assert ("domain", "squadup.com") not in keys
+
+
+# ---- CSV / _flatten_shared ---------------------------------------------
+
+def test_format_csv_website_mismatch(mod):
+    rows = mod._website_domain_mismatch([_src(
+        source_url="https://redroom.club/events",
+        website="https://nyc-venue.example.com",
+    )])
+    out = mod._format_csv("website_domain_mismatch", rows)
+    header = out.splitlines()[0]
+    assert header.split(",") == [
+        "signal", "club_id", "club_name", "city", "state", "source_id",
+        "platform", "enabled", "source_domain", "website_domain",
+        "source_url", "website",
+    ]
+    assert "redroom.club" in out
+
+
+def test_format_csv_shared_venue_flattens_one_row_per_club(mod):
+    groups = mod._shared_venue_across_geo([
+        _src(source_id=1, club_id=10, source_url="https://shared.example.com",
+             city="Boston", state="MA"),
+        _src(source_id=2, club_id=11, source_url="https://shared.example.com",
+             city="Edmonton", state="AB"),
+    ], include_chains=False)
+    out = mod._format_csv("shared_venue_across_geo", groups)
+    lines = out.strip().splitlines()
+    assert lines[0].split(",")[:3] == ["signal", "identifier_kind", "identifier"]
+    # header + one row per member club
+    assert len(lines) == 1 + 2
+
+
+def test_format_csv_empty_is_blank(mod):
+    assert mod._format_csv("website_domain_mismatch", []) == ""

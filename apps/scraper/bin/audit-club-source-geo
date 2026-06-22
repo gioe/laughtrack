@@ -212,10 +212,14 @@ def _resolve_database_url() -> str:
 
 
 # Per-platform concrete venue-id columns on scraping_sources. A shared value in
-# any of these across clubs of differing geo is a mis-wire signal.
+# any of these across clubs of differing geo is a mis-wire signal. Includes
+# squadup_id and seatengine_v3_id: those platforms' domains are in the denylist
+# (so domain bucketing skips them), making the id the only signal left — drop
+# them here and a SquadUp-/SeatEngine-v3-wired mis-geo club is invisible to both
+# signals. (source_target_id is a generic FK, not a venue id, so it's excluded.)
 VENUE_ID_COLUMNS = (
-    "seatengine_id", "eventbrite_id", "ticketmaster_id",
-    "ovationtix_id", "wix_event_id",
+    "seatengine_id", "seatengine_v3_id", "eventbrite_id", "ticketmaster_id",
+    "ovationtix_id", "wix_event_id", "squadup_id",
 )
 
 
@@ -390,7 +394,9 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    signals = args.signal if args.signal else list(SIGNALS)
+    # dict.fromkeys dedups repeated --signal while preserving order (argparse
+    # append does not dedup, which would double output rows / summary lines).
+    signals = list(dict.fromkeys(args.signal)) if args.signal else list(SIGNALS)
 
     try:
         import psycopg2  # noqa: F401
