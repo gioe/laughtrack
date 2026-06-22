@@ -2,7 +2,63 @@
 
 from __future__ import annotations
 
-from laughtrack.scrapers.implementations.anyroad.extractor import extract_anyroad_events
+from laughtrack.scrapers.implementations.anyroad.extractor import (
+    extract_anyroad_events,
+    extract_tour_availability,
+)
+
+
+def _detail_html(dates_json: str) -> str:
+    return (
+        '<html><body><div data-react-props=\'{"x":1}\'>'
+        '{"a":{},"tour_availability":{"isLoading":false,"cached":{},'
+        f'"dates":{dates_json}}},"after":1}}</div></body></html>'
+    )
+
+
+def test_extract_tour_availability_parses_dates_block():
+    html = _detail_html('{"2026-06-27":{" 6:00pm":23},"2026-07-11":{" 8:30pm":0}}')
+    assert extract_tour_availability(html) == {
+        "2026-06-27": {" 6:00pm": 23},
+        "2026-07-11": {" 8:30pm": 0},
+    }
+
+
+def test_extract_tour_availability_absent_returns_none():
+    assert extract_tour_availability("<html>no availability here</html>") is None
+    assert extract_tour_availability(None) is None
+    assert extract_tour_availability("") is None
+
+
+def test_availability_overrides_placeholder_schedule_with_real_times():
+    records = [
+        _record(
+            exp_id=79259,
+            name="ComedySportz",
+            schedule={"2026-06-27": {"9:00 AM": 1}},  # list placeholder
+        )
+    ]
+    events = extract_anyroad_events(
+        records,
+        timezone="America/New_York",
+        availability_by_id={"79259": {"2026-06-27": {" 6:00pm": 23}, "2026-07-18": {" 6:00pm": 0}}},
+    )
+    # Real detail times replace the placeholder, and the detail calendar (2 dates)
+    # supersedes the 1-date list schedule.
+    assert len(events) == 2
+    iso = sorted(e.start_date.isoformat() for e in events)
+    assert iso == ["2026-06-27T18:00:00-04:00", "2026-07-18T18:00:00-04:00"]
+    sold_out = next(e for e in events if e.start_date.date().isoformat() == "2026-07-18")
+    assert sold_out.offers[0].availability == "SoldOut"  # count 0
+
+
+def test_falls_back_to_placeholder_schedule_when_no_availability():
+    records = [
+        _record(exp_id=1, name="Improv Jam", schedule={"2026-07-04": {"9:00 AM": 2}})
+    ]
+    events = extract_anyroad_events(records, timezone="America/New_York", availability_by_id={})
+    assert len(events) == 1
+    assert events[0].start_date.isoformat() == "2026-07-04T09:00:00-04:00"
 
 
 def _record(

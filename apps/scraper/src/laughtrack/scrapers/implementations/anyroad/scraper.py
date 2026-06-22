@@ -7,6 +7,12 @@ Cloudflare-gated to plain HTTP but is cleared by curl_cffi's Chrome
 impersonation (the default ``fetch_json`` session), with the shared Playwright
 browser as the automatic fallback.
 
+The list endpoint's inline ``schedule`` carries only a placeholder slot time, so
+for each experience the scraper also fetches its booking detail page
+(``attributes.url``) and parses the embedded ``tour_availability.dates`` blob —
+the real per-occurrence times and the full availability calendar. Detail fetches
+fall back per-experience to the placeholder ``schedule`` if one fails.
+
 Wiring (``scraping_sources``): set ``scraper_key='anyroad'`` and put the plugin
 id in ``metadata.plugin_id`` (the canonical wire — the ``scraping_sources``
 schema has no ``external_id`` column, so ``ScrapingSource.from_dict`` never
@@ -24,7 +30,10 @@ from laughtrack.core.entities.club.model import Club
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.scrapers.implementations.anyroad.data import AnyRoadPageData
-from laughtrack.scrapers.implementations.anyroad.extractor import extract_anyroad_events
+from laughtrack.scrapers.implementations.anyroad.extractor import (
+    extract_anyroad_events,
+    extract_tour_availability,
+)
 from laughtrack.scrapers.implementations.anyroad.transformer import AnyRoadTransformer
 from laughtrack.scrapers.utils.comedy_filter import is_comedy_filter_enabled
 from laughtrack.shared.types import ScrapingTarget
@@ -104,10 +113,12 @@ class AnyRoadScraper(BaseScraper):
                 )
                 return None
 
+            availability_by_id = await self._fetch_availability_by_id(records)
             events = extract_anyroad_events(
                 records,
                 timezone=self.club.timezone,
                 comedy_filter=is_comedy_filter_enabled(self.club.source_metadata),
+                availability_by_id=availability_by_id,
             )
             if not events:
                 self._warn_empty_extraction(
@@ -153,6 +164,44 @@ class AnyRoadScraper(BaseScraper):
             self.logger_context,
         )
         return records
+
+    async def _fetch_availability_by_id(self, records: List[dict]) -> dict:
+        """Fetch each experience's booking detail page and parse real times.
+
+        Returns ``{experience_id: dates_map}`` from the embedded
+        ``tour_availability.dates`` blob. A per-experience fetch/parse failure is
+        logged and skipped (no entry) so the extractor falls back to that
+        experience's placeholder ``schedule`` rather than dropping it.
+        """
+        availability: dict = {}
+        for record in records:
+            attrs = record.get("attributes") if isinstance(record, dict) else None
+            if not isinstance(attrs, dict):
+                continue
+            exp_id = self._record_id(record)
+            url = attrs.get("url")
+            if not exp_id or not url:
+                continue
+            try:
+                html = await self.fetch_html(str(url))
+            except Exception as e:
+                Logger.warn(
+                    f"{self._log_prefix}: AnyRoad detail fetch failed for "
+                    f"experience {exp_id} ({url}): {e}; using placeholder schedule",
+                    self.logger_context,
+                )
+                continue
+            dates = extract_tour_availability(html)
+            if dates:
+                availability[str(exp_id)] = dates
+            else:
+                Logger.warn(
+                    f"{self._log_prefix}: no tour_availability parsed from "
+                    f"AnyRoad detail page for experience {exp_id} ({url}); "
+                    f"using placeholder schedule",
+                    self.logger_context,
+                )
+        return availability
 
     @staticmethod
     def _record_id(record: dict):

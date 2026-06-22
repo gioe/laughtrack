@@ -30,6 +30,34 @@ def _load(name: str) -> dict:
     return json.loads((_FIXTURES / name).read_text())
 
 
+def _detail_html(dates: dict) -> str:
+    """A minimal AnyRoad booking detail page embedding tour_availability.dates."""
+    blob = json.dumps(dates)
+    return (
+        '<!DOCTYPE html><html><body><div data-react-props=\'{"x":1}\'>'
+        '{"booking":{},"tour_availability":{"isLoading":false,"cached":{},'
+        f'"dates":{blob}}},"trailing":1}}'
+        "</div></body></html>"
+    )
+
+
+# Real per-experience availability keyed by the slug in the detail URL. CSz and
+# Riot both have a 2026-07-18 occurrence but at *different* real times, so they
+# stay distinct under the (club, date, room) key.
+_AVAILABILITY_BY_SLUG = {
+    "comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5": {
+        "2026-06-27": {" 6:00pm": 23},
+        "2026-07-18": {" 6:00pm": 20},
+    },
+    "riot-improv-mainstage-stories-to-scenes": {
+        "2026-07-18": {" 8:00pm": 5},
+    },
+    "roslindale-queer-comedy-night": {
+        "2026-07-17": {" 7:30pm": 0},
+    },
+}
+
+
 @pytest.fixture
 def club() -> Club:
     _c = Club(
@@ -102,43 +130,69 @@ def test_resolve_plugin_id_parsed_from_source_url():
     assert AnyRoadScraper(c)._resolve_plugin_id() == "parsedFromUrl"
 
 
+def _slug_of(url: str) -> str:
+    return urlparse(url).path.rstrip("/").split("/")[-1]
+
+
 @pytest.mark.asyncio
-async def test_scraper_full_pipeline_produces_shows(monkeypatch, club):
+async def test_scraper_full_pipeline_uses_real_detail_times(monkeypatch, club):
     scraper = AnyRoadScraper(club)
     page1 = _load("experiences_page1.json")
     page2 = _load("experiences_page2_empty.json")
 
-    calls: list[int] = []
-
     async def fake_fetch_json(url, **kwargs):
         qs = parse_qs(urlparse(url).query)
         assert qs["plugin_id"] == ["rozziesquaretheater"]
-        page = int(qs["page"][0])
-        calls.append(page)
-        return page1 if page == 1 else page2
+        return page1 if int(qs["page"][0]) == 1 else page2
+
+    async def fake_fetch_html(url, **kwargs):
+        return _detail_html(_AVAILABILITY_BY_SLUG[_slug_of(url)])
 
     monkeypatch.setattr(scraper, "fetch_json", fake_fetch_json)
+    monkeypatch.setattr(scraper, "fetch_html", fake_fetch_html)
 
     shows = await scraper.scrape_async()
 
-    # Fixture: ComedySportz (4 dates) + Riot Improv (4) + Queer Comedy (2) = 10.
-    assert len(shows) == 10
+    # One show per (experience, date, time) from the *detail* availability:
+    # CSz 2 + Riot 1 + Queer 1 = 4.
+    assert len(shows) == 4
     assert {s.club_id for s in shows} == {club.id}
-    names = {s.name for s in shows}
-    assert "ComedySportz®" in names  # CSz Boston resident company
-    assert any("Riot Improv" in n for n in names)  # Riot Theater resident company
-    assert any("Queer Comedy" in n for n in names)  # Rozzie's own show
 
+    csz = [s for s in shows if s.name == "ComedySportz®"]
+    assert len(csz) == 2
+    # Real 6:00pm time from the detail page, NOT the 9:00 AM list placeholder.
+    assert all(s.date.isoformat() == f"{s.date.date()}T18:00:00-04:00" for s in csz)
+    assert csz[0].tickets and csz[0].tickets[0].price == 13.0
+    assert csz[0].room == "18b Corinth Street, Boston, MA"
+
+    # CSz (6pm) and Riot (8pm) both fall on 2026-07-18 — distinct real times keep
+    # them as two separate shows rather than collapsing under (club, date, room).
+    on_0718 = sorted(s.date.isoformat() for s in shows if s.date.date().isoformat() == "2026-07-18")
+    assert on_0718 == ["2026-07-18T18:00:00-04:00", "2026-07-18T20:00:00-04:00"]
+
+
+@pytest.mark.asyncio
+async def test_detail_fetch_failure_falls_back_to_placeholder_schedule(monkeypatch, club):
+    scraper = AnyRoadScraper(club)
+    page1 = _load("experiences_page1.json")
+    page2 = _load("experiences_page2_empty.json")
+
+    async def fake_fetch_json(url, **kwargs):
+        return page1 if int(parse_qs(urlparse(url).query)["page"][0]) == 1 else page2
+
+    async def failing_fetch_html(url, **kwargs):
+        raise RuntimeError("detail page unreachable")
+
+    monkeypatch.setattr(scraper, "fetch_json", fake_fetch_json)
+    monkeypatch.setattr(scraper, "fetch_html", failing_fetch_html)
+
+    shows = await scraper.scrape_async()
+
+    # Every detail fetch failed, so each experience falls back to its list
+    # placeholder schedule (CSz 4 + Riot 4 + Queer 2 = 10) at the 9:00 AM nominal.
+    assert len(shows) == 10
     csz = next(s for s in shows if s.name == "ComedySportz®")
-    assert csz.show_page_url.endswith("comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US") or \
-        "comedysportz" in csz.show_page_url
-    assert csz.tickets and csz.tickets[0].price == 13.0
-    # locationInfo is mapped onto room so same-date experiences at different
-    # sub-venues stay distinct under the (club, date, room) identity key.
-    assert csz.room == "18b Corinth Street, Boston, MA"
-
-    # Pagination stopped at the empty page (page 1 then page 2).
-    assert calls == [1, 2]
+    assert csz.date.isoformat().endswith("T09:00:00-04:00")
 
 
 @pytest.mark.asyncio

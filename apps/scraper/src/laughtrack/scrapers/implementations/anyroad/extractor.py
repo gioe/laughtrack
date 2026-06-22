@@ -3,25 +3,30 @@
 AnyRoad (app.anyroad.com) is a reusable experiences-booking platform. A venue
 embeds a widget keyed by a ``plugin_id``; the widget calls
 ``/plugins/api/v3/experiences?plugin_id=<id>&page=N`` (Cloudflare-gated, cleared
-by curl_cffi browser impersonation). Each experience carries an inline
-``schedule`` map of ``{ "YYYY-MM-DD": { "<time>": <availability_count> } }``.
+by curl_cffi browser impersonation) for the experience list (name, price, url,
+slug, location, an inline ``schedule`` summary).
 
-We fan a single experience into one ``JsonLdEvent`` per (date, time) slot so a
-recurring show/class becomes one dated show per occurrence — the same shape the
-``json_ld`` / ``tock`` extractors produce.
+Real per-occurrence start times do NOT live in the list endpoint — its inline
+``schedule`` reports only a nominal placeholder time (Rozzie's feed reports a
+uniform ``9:00 AM`` for every occurrence). The true times (and the *full*
+availability calendar) are embedded in each experience's booking detail page
+(the experience's ``attributes.url``,
+``app.anyroad.com/i/plugin/<plugin_id>/tours/<slug>?lang=en-US``) as a JSON
+blob ``"tour_availability":{...,"dates":{"YYYY-MM-DD":{" 6:00pm":<count>}}}``.
+That page is also fetchable via curl_cffi impersonation (``fetch_html``).
 
-Time caveat: the plugin *summary* endpoint reports a nominal slot time (Rozzie
-Square Theater's feed reports a uniform ``9:00 AM`` placeholder for every
-occurrence — the real per-slot times live behind the Cloudflare/CORS-gated
-booking-availability step the widget only loads on "Book Now"). The schedule
-*dates* are accurate; we transform the reported time literally rather than
-inventing one. See ``apps/scraper/SCRAPERS.md`` (AnyRoad section).
+The scraper fetches each detail page and passes the parsed availability into
+:func:`extract_anyroad_events` via ``availability_by_id``; we fan one
+``JsonLdEvent`` per (date, time) using the real times, falling back to the
+list's placeholder ``schedule`` only when a detail fetch fails. See
+``apps/scraper/SCRAPERS.md`` (AnyRoad section).
 """
 
 from __future__ import annotations
 
+import json
 from datetime import datetime
-from typing import Any, Iterable
+from typing import Any, Iterable, Optional
 from zoneinfo import ZoneInfo
 
 from laughtrack.core.entities.event.event import (
@@ -32,9 +37,65 @@ from laughtrack.core.entities.event.event import (
 )
 from laughtrack.utilities.domain.show.factory import is_comedy_event
 
-# Accepted schedule time formats, tried in order. AnyRoad reports "9:00 AM";
-# we also tolerate 24-hour "HH:MM" in case a venue's feed differs.
-_TIME_FORMATS = ("%I:%M %p", "%I:%M%p", "%H:%M")
+# Accepted slot time formats, tried in order (after upper-casing). The detail
+# page reports lower-case " 6:00pm"; the list placeholder reports "9:00 AM"; we
+# also tolerate 24-hour "HH:MM" in case a venue's feed differs.
+_TIME_FORMATS = ("%I:%M%p", "%I:%M %p", "%H:%M")
+
+_TOUR_AVAILABILITY_KEY = '"tour_availability":'
+
+
+def extract_tour_availability(detail_html: Optional[str]) -> Optional[dict]:
+    """Parse the real availability map from an AnyRoad booking detail page.
+
+    Returns the ``tour_availability.dates`` object
+    (``{"YYYY-MM-DD": {"<time>": <count>}}``) embedded as JSON in the detail
+    page HTML, or ``None`` if the page has no parseable availability block.
+    """
+    if not detail_html:
+        return None
+    start = detail_html.find(_TOUR_AVAILABILITY_KEY)
+    if start < 0:
+        return None
+    dates_key = detail_html.find('"dates":', start)
+    if dates_key < 0:
+        return None
+    brace = detail_html.find("{", dates_key)
+    if brace < 0:
+        return None
+    end = _find_balanced_object_end(detail_html, brace)
+    if end is None:
+        return None
+    try:
+        parsed = json.loads(detail_html[brace:end])
+    except json.JSONDecodeError:
+        return None
+    return parsed if isinstance(parsed, dict) else None
+
+
+def _find_balanced_object_end(text: str, object_start: int) -> Optional[int]:
+    depth = 0
+    in_string = False
+    escaped = False
+    for index in range(object_start, len(text)):
+        char = text[index]
+        if in_string:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == '"':
+                in_string = False
+            continue
+        if char == '"':
+            in_string = True
+        elif char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0:
+                return index + 1
+    return None
 
 
 def extract_anyroad_events(
@@ -42,16 +103,23 @@ def extract_anyroad_events(
     *,
     timezone: str,
     comedy_filter: bool = False,
+    availability_by_id: Optional[dict[str, dict]] = None,
 ) -> list[JsonLdEvent]:
-    """Return one JsonLdEvent per (experience, date, time) schedule slot.
+    """Return one JsonLdEvent per (experience, date, time) occurrence.
 
     Args:
         experiences: The merged ``experiences.data`` records across all pages,
             each shaped ``{"id", "type", "attributes": {...}}``.
-        timezone: IANA tz name for the venue; schedule times are local to it.
+        timezone: IANA tz name for the venue; slot times are local to it.
         comedy_filter: When True, drop experiences whose name/description do not
             look like comedy (for AnyRoad venues that mix non-comedy experiences).
+        availability_by_id: Optional ``{experience_id: dates_map}`` of real
+            per-occurrence times parsed from each experience's detail page (via
+            :func:`extract_tour_availability`). When an experience has an entry,
+            its real availability is used; otherwise the experience falls back to
+            its list ``schedule`` (placeholder time).
     """
+    availability_by_id = availability_by_id or {}
     events: list[JsonLdEvent] = []
     for record in experiences:
         if not isinstance(record, dict):
@@ -59,14 +127,26 @@ def extract_anyroad_events(
         attrs = record.get("attributes")
         if not isinstance(attrs, dict):
             continue
+        exp_id = _experience_id(record, attrs)
+        dates = availability_by_id.get(exp_id) if exp_id else None
+        if not isinstance(dates, dict) or not dates:
+            dates = attrs.get("schedule")  # placeholder-time fallback
         events.extend(
-            _events_from_experience(attrs, timezone=timezone, comedy_filter=comedy_filter)
+            _events_from_experience(
+                attrs, dates, timezone=timezone, comedy_filter=comedy_filter
+            )
         )
     return events
 
 
+def _experience_id(record: dict[str, Any], attrs: dict[str, Any]) -> Optional[str]:
+    raw = record.get("id") or attrs.get("id")
+    return str(raw) if raw is not None else None
+
+
 def _events_from_experience(
     attrs: dict[str, Any],
+    dates: Any,
     *,
     timezone: str,
     comedy_filter: bool,
@@ -80,8 +160,7 @@ def _events_from_experience(
     if comedy_filter and not is_comedy_event(name, description):
         return []
 
-    schedule = attrs.get("schedule")
-    if not isinstance(schedule, dict) or not schedule:
+    if not isinstance(dates, dict) or not dates:
         return []
 
     tzinfo = ZoneInfo(timezone)
@@ -89,7 +168,7 @@ def _events_from_experience(
     image = _image(attrs)
 
     events: list[JsonLdEvent] = []
-    for date_str, slots in schedule.items():
+    for date_str, slots in dates.items():
         if not isinstance(slots, dict):
             continue
         for time_str, count in slots.items():
@@ -121,10 +200,13 @@ def _parse_datetime(date_str: Any, time_str: Any, tzinfo: ZoneInfo) -> datetime 
     except (ValueError, TypeError):
         return None
 
+    # Detail-page times are lower-case with a leading space (" 6:00pm");
+    # upper-case so %p matches regardless of the source's casing.
+    normalized_time = time_str.upper()
     parsed_time = None
     for fmt in _TIME_FORMATS:
         try:
-            parsed_time = datetime.strptime(time_str, fmt).time()
+            parsed_time = datetime.strptime(normalized_time, fmt).time()
             break
         except (ValueError, TypeError):
             continue
