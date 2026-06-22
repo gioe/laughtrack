@@ -1,0 +1,111 @@
+{
+  "experiences": {
+    "data": [
+      {
+        "id": "79259",
+        "type": "tours",
+        "attributes": {
+          "id": 79259,
+          "slug": "comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5",
+          "length": 1.5,
+          "lengthType": "hours",
+          "online": false,
+          "picture": "//app.anyroad.com/rails/active_storage/representations/redirect/<trimmed>",
+          "mobilePicture": "//app.anyroad.com/rails/active_storage/representations/redirect/<trimmed>",
+          "price": "$13",
+          "zeroPriced": false,
+          "unformattedPrice": 13,
+          "nameTranslation": "ComedySportz\u00ae",
+          "descriptionTranslation": " Two teams battle for laughs and points as they make up scenes, games and songs on the spot, in the spirit of TV\u2019s Whose Line Is It Anyway? A referee governs the action, calling fouls and keeping...",
+          "taglineTranslation": "The Fast and Funny Comedy Competition",
+          "bookNowButton": "Book Now",
+          "locationInfo": "18b Corinth Street, Boston, MA",
+          "hasMultipleLocations": false,
+          "url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US",
+          "schedule": {
+            "2026-06-27": {
+              "9:00 AM": 1
+            },
+            "2026-07-11": {
+              "9:00 AM": 1
+            },
+            "2026-07-18": {
+              "9:00 AM": 1
+            },
+            "2026-07-25": {
+              "9:00 AM": 1
+            }
+          }
+        }
+      },
+      {
+        "id": "88719",
+        "type": "tours",
+        "attributes": {
+          "id": 88719,
+          "slug": "riot-improv-mainstage-stories-to-scenes",
+          "length": 1,
+          "lengthType": "hours",
+          "online": false,
+          "picture": "//app.anyroad.com/rails/active_storage/representations/redirect/<trimmed>",
+          "mobilePicture": "//app.anyroad.com/rails/active_storage/representations/redirect/<trimmed>",
+          "price": "$15",
+          "zeroPriced": false,
+          "unformattedPrice": 15,
+          "nameTranslation": "Riot Improv Mainstage: Stories to Scenes",
+          "descriptionTranslation": "On the third Saturday of every month, Riot Improv collaborates with local storytellers in a unique mash-up to create hilarious improv comedy with a narrative twist! Riot Improv will create improv...",
+          "taglineTranslation": "Improv inspired stories",
+          "bookNowButton": "Book Now",
+          "locationInfo": "18b Corinth Street, Boston, MA",
+          "hasMultipleLocations": false,
+          "url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/riot-improv-mainstage-stories-to-scenes?lang=en-US",
+          "schedule": {
+            "2026-07-18": {
+              "9:00 AM": 1
+            },
+            "2026-08-15": {
+              "9:00 AM": 1
+            },
+            "2026-09-19": {
+              "9:00 AM": 1
+            },
+            "2026-10-17": {
+              "9:00 AM": 1
+            }
+          }
+        }
+      },
+      {
+        "id": "87538",
+        "type": "tours",
+        "attributes": {
+          "id": 87538,
+          "slug": "roslindale-queer-comedy-night",
+          "length": 1.25,
+          "lengthType": "hours",
+          "online": false,
+          "picture": "//app.anyroad.com/rails/active_storage/representations/redirect/<trimmed>",
+          "mobilePicture": "//app.anyroad.com/rails/active_storage/representations/redirect/<trimmed>",
+          "price": "$20",
+          "zeroPriced": false,
+          "unformattedPrice": 20,
+          "nameTranslation": "Roslindale Queer Comedy Night + Caboodle\ud83c\udfa4 \ud83c\udf89",
+          "descriptionTranslation": "Join us for a comedy experience like no other in Boston! Roslindale QCN, now in its 5th year, is a monthly curated lineup of local queer comedians showcasing their talent for the hilarious to a...",
+          "taglineTranslation": "a comedy experience like no other in Boston",
+          "bookNowButton": "Book Now",
+          "locationInfo": "18b Corinth Street, Boston, MA",
+          "hasMultipleLocations": false,
+          "url": "https://app.anyroad.com/i/plugin/rozziesquaretheater/tours/roslindale-queer-comedy-night?lang=en-US",
+          "schedule": {
+            "2026-07-17": {
+              "9:00 AM": 1
+            },
+            "2026-08-21": {
+              "9:00 AM": 1
+            }
+          }
+        }
+      }
+    ]
+  }
+}
