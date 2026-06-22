@@ -24,10 +24,24 @@ def test_extract_tour_availability_parses_dates_block():
     }
 
 
+def test_extract_tour_availability_ignores_decoy_dates_in_cached():
+    # A non-empty `cached` object preceding `dates` carries its own nested
+    # `dates` key; the parser must read the tour_availability object's own
+    # `dates`, not the first textual match.
+    html = (
+        '<html><body>{"a":{},"tour_availability":{"isLoading":false,'
+        '"cached":{"stale":{"dates":{"1999-01-01":{" 9:00am":0}}}},'
+        '"dates":{"2026-06-27":{" 6:00pm":23}}},"after":1}</body></html>'
+    )
+    assert extract_tour_availability(html) == {"2026-06-27": {" 6:00pm": 23}}
+
+
 def test_extract_tour_availability_absent_returns_none():
     assert extract_tour_availability("<html>no availability here</html>") is None
     assert extract_tour_availability(None) is None
     assert extract_tour_availability("") is None
+    # tour_availability present but with no dates field → None.
+    assert extract_tour_availability('x"tour_availability":{"isLoading":false}y') is None
 
 
 def test_availability_overrides_placeholder_schedule_with_real_times():

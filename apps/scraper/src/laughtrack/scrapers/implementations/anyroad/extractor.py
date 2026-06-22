@@ -57,10 +57,11 @@ def extract_tour_availability(detail_html: Optional[str]) -> Optional[dict]:
     start = detail_html.find(_TOUR_AVAILABILITY_KEY)
     if start < 0:
         return None
-    dates_key = detail_html.find('"dates":', start)
-    if dates_key < 0:
-        return None
-    brace = detail_html.find("{", dates_key)
+    # Parse the whole tour_availability object and read its own ``dates`` field,
+    # rather than anchoring on the first textual "dates": after the key — the
+    # object has a sibling ``cached`` before ``dates`` that could itself nest a
+    # ``dates`` key and steal the match.
+    brace = detail_html.find("{", start + len(_TOUR_AVAILABILITY_KEY))
     if brace < 0:
         return None
     end = _find_balanced_object_end(detail_html, brace)
@@ -70,7 +71,10 @@ def extract_tour_availability(detail_html: Optional[str]) -> Optional[dict]:
         parsed = json.loads(detail_html[brace:end])
     except json.JSONDecodeError:
         return None
-    return parsed if isinstance(parsed, dict) else None
+    if not isinstance(parsed, dict):
+        return None
+    dates = parsed.get("dates")
+    return dates if isinstance(dates, dict) else None
 
 
 def _find_balanced_object_end(text: str, object_start: int) -> Optional[int]:
