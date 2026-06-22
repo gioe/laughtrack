@@ -96,14 +96,6 @@ class _FakeBatchScraper:
             await processor(item)
 
 
-class _NoComedyHandlers:
-    def get_comedians_from_show_names(self, names):
-        return {}
-
-    def get_stored_popularity_by_names(self, names):
-        return {}
-
-
 async def _no_series(self, discovery_url, client_id):
     return []
 
@@ -130,6 +122,11 @@ async def _run_scraper(monkeypatch, *, metadata: dict | None = None):
             performance_id="4001",
             description="Silent film screening with live score.",
         ),
+        "500": _production_payload(
+            production_name="New England Philharmonic Chamber Ensemble",
+            performance_id="5001",
+            description="A silent-film program with physical comedy and live chamber music.",
+        ),
     }
     html = "".join(
         f'<a href="https://ci.ovationtix.com/{CLIENT_ID}/production/{production_id}">'
@@ -149,14 +146,6 @@ async def _run_scraper(monkeypatch, *, metadata: dict | None = None):
     monkeypatch.setattr(OvationTixScraper, "fetch_html", fake_fetch_html)
     monkeypatch.setattr(OvationTixScraper, "_fetch_series_production_ids", _no_series)
     monkeypatch.setattr(OvationTixScraper, "get_session", fake_get_session)
-    monkeypatch.setattr(
-        "laughtrack.scrapers.base.ovationtix_productions_scraper.LineupHandler",
-        lambda: _NoComedyHandlers(),
-    )
-    monkeypatch.setattr(
-        "laughtrack.scrapers.base.ovationtix_productions_scraper.ComedianHandler",
-        lambda: _NoComedyHandlers(),
-    )
 
     scraper = OvationTixScraper(_club(metadata=metadata))
     scraper.batch_scraper = _FakeBatchScraper()
@@ -172,15 +161,22 @@ async def test_scraper_keeps_all_events_without_comedy_filter(monkeypatch):
     assert sorted(event.production_name for event in page.event_list) == [
         "Margaret Cho",
         "Mavis Staples",
+        "New England Philharmonic Chamber Ensemble",
         "Nosferatu",
         "Patton Oswalt: Effervescent",
     ]
-    assert sum("Performance(" in call for call in fake_session.calls) == 4
+    assert sum("Performance(" in call for call in fake_session.calls) == 5
 
 
 @pytest.mark.asyncio
 async def test_comedy_filter_keeps_only_comedy_events(monkeypatch):
-    page, fake_session = await _run_scraper(monkeypatch, metadata={"comedy_filter": True})
+    page, fake_session = await _run_scraper(
+        monkeypatch,
+        metadata={
+            "comedy_filter": True,
+            "exclude_title_patterns": ["Philharmonic", "^FILM:"],
+        },
+    )
 
     assert page is not None
     assert sorted(event.production_name for event in page.event_list) == [

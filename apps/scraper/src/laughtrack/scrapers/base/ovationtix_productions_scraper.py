@@ -19,7 +19,7 @@ Subclasses specify:
 - discover_urls(): how to find the discovery page URL
 """
 
-import asyncio
+import re
 from urllib.parse import urlparse
 from typing import ClassVar, List, Optional, Type
 
@@ -31,9 +31,7 @@ from laughtrack.core.clients.ovationtix.extractor import (
     series_calendar_url,
 )
 from laughtrack.core.entities.club.model import Club
-from laughtrack.core.entities.comedian.handler import ComedianHandler
 from laughtrack.core.entities.event.ovationtix import OvationTixEvent
-from laughtrack.core.entities.lineup.handler import LineupHandler
 from laughtrack.foundation.infrastructure.http.base_headers import BaseHeaders
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.utilities.url import URLUtils
@@ -41,9 +39,8 @@ from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.scrapers.utils.comedy_filter import (
     is_comedy_filter_enabled,
     resolve_allowlist,
-    resolve_min_popularity,
-    select_comedy_titles,
 )
+from laughtrack.utilities.domain.show.factory import is_comedy_event
 from laughtrack.utilities.infrastructure.scraper.config import BatchScrapingConfig
 from laughtrack.utilities.infrastructure.scraper.scraper import BatchScraper
 
@@ -76,8 +73,10 @@ class OvationTixProductionsScraper(BaseScraper):
         self.transformation_pipeline.register_transformer(self.transformer_cls(club))
         self.batch_scraper = BatchScraper(self.logger_context, config=_PRICING_BATCH_CONFIG)
         self._comedy_filter = is_comedy_filter_enabled(self.club.source_metadata)
-        self._lineup_handler = LineupHandler() if self._comedy_filter else None
-        self._comedian_handler = ComedianHandler() if self._comedy_filter else None
+        self._exclude_title_patterns = _compiled_metadata_patterns(
+            self.club.source_metadata,
+            "exclude_title_patterns",
+        )
 
     async def _fetch_series_production_ids(self, discovery_url: str, client_id: Optional[str]):
         """Fetch the OvationTix series view and return its production IDs.
@@ -245,27 +244,43 @@ class OvationTixProductionsScraper(BaseScraper):
 
     async def _filter_comedy(self, events: List[OvationTixEvent]) -> List[OvationTixEvent]:
         """Keep only comedy events when a mixed-use OvationTix source opts in."""
-        descriptions = {
-            event.production_name: event.description
-            for event in events
-            if event.production_name
-        }
-        titles = [event.production_name for event in events if event.production_name]
-        loop = asyncio.get_running_loop()
-        kept_titles = await loop.run_in_executor(
-            None,
-            lambda: select_comedy_titles(
-                titles,
-                lineup_handler=self._lineup_handler,
-                comedian_handler=self._comedian_handler,
-                descriptions=descriptions,
-                min_popularity=resolve_min_popularity(self.club.source_metadata),
-                allowlist=resolve_allowlist(self.club.source_metadata),
-            ),
-        )
-        kept = [event for event in events if event.production_name in kept_titles]
+        allow_subs = [
+            value.strip().lower()
+            for value in resolve_allowlist(self.club.source_metadata)
+            if value.strip()
+        ]
+        kept = [
+            event for event in events
+            if _is_comedy_ovationtix_event(event, allow_subs, self._exclude_title_patterns)
+        ]
         Logger.info(
             f"{self._log_prefix}: comedy filter kept {len(kept)}/{len(events)} event(s)",
             self.logger_context,
         )
         return kept
+
+
+def _is_comedy_ovationtix_event(
+    event: OvationTixEvent,
+    allow_subs: List[str],
+    exclude_patterns: List[re.Pattern],
+) -> bool:
+    title = event.production_name or ""
+    if exclude_patterns and any(pattern.search(title) for pattern in exclude_patterns):
+        return False
+    if allow_subs and any(value in title.lower() for value in allow_subs):
+        return True
+    return is_comedy_event(title, event.description)
+
+
+def _compiled_metadata_patterns(metadata: Optional[dict], key: str) -> List[re.Pattern]:
+    raw = (metadata or {}).get(key)
+    if not raw:
+        return []
+    if isinstance(raw, str):
+        values = [raw]
+    elif isinstance(raw, list):
+        values = [str(value) for value in raw if str(value).strip()]
+    else:
+        return []
+    return [re.compile(value, re.IGNORECASE) for value in values]
