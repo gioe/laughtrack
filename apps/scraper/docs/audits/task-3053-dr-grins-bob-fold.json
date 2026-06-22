@@ -1,0 +1,378 @@
+{
+  "after": {
+    "aliases": [
+      {
+        "alias_name": "Dr. Grins Comedy Club at The B.O.B.",
+        "city": "Grand Rapids",
+        "club_id": 207,
+        "id": 373,
+        "normalized_alias_name": "dr grins comedy club at the b o b",
+        "normalized_city": "grand rapids",
+        "normalized_state": "mi",
+        "source": "TASK-3161",
+        "state": "MI",
+        "verified": true
+      }
+    ],
+    "child_row_summary": [],
+    "clubs": [
+      {
+        "address": "20 Monroe Ave NW #3f, Grand Rapids, MI 49503, USA",
+        "city": "Grand Rapids",
+        "closed_at": null,
+        "id": 207,
+        "name": "Dr. Grins Comedy Club",
+        "state": "MI",
+        "status": "active",
+        "timezone": "America/Detroit",
+        "total_shows": 107,
+        "visible": true,
+        "website": "https://www.thebob.com/drgrins/"
+      },
+      {
+        "address": "20 Monroe Ave NW, Grand Rapids, MI",
+        "city": "Grand Rapids",
+        "closed_at": "2026-06-22T01:33:13.333394+00:00",
+        "id": 5449,
+        "name": "Dr. Grins Comedy Club at The B.O.B. (duplicate of club 207; folded from club 5449)",
+        "state": "MI",
+        "status": "closed",
+        "timezone": "America/New_York",
+        "total_shows": 0,
+        "visible": false,
+        "website": ""
+      }
+    ],
+    "duplicate_show_map_summary": {
+      "date_room_mapped_shows": 0,
+      "duplicate_shows": 0,
+      "name_mismatch_mapped": 0,
+      "noncolliding_shows": 0,
+      "same_name_mapped": 0
+    },
+    "mapped_name_mismatches": [],
+    "remaining_duplicate_references": {
+      "click_events": 0,
+      "club_image_assets": 0,
+      "email_subscriptions": 0,
+      "enabled_sources": 0,
+      "eventbrite_organizer_venues": 0,
+      "favorite_clubs": 0,
+      "processed_emails": 0,
+      "production_company_venues": 0,
+      "scraper_run_clubs": 0,
+      "shows": 0,
+      "tagged_clubs": 0
+    },
+    "show_summary": [
+      {
+        "club_id": 207,
+        "first_show": "2026-04-11T04:00:00+00:00",
+        "last_show": "2026-12-06T02:45:00+00:00",
+        "show_count": 107
+      }
+    ],
+    "sources": [
+      {
+        "club_id": 207,
+        "enabled": true,
+        "id": 154,
+        "metadata": {},
+        "platform": "etix",
+        "priority": 0,
+        "scraper_key": "dr_grins",
+        "source_url": "https://www.etix.com/ticket/v/35455/drgrins-comedy-club-at-the-bob",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 207,
+        "enabled": false,
+        "id": 4539,
+        "metadata": {
+          "task_3161_disposition": "moved disabled duplicate Ticketmaster source from club 5449 to club 207",
+          "task_3161_source_audit": "TASK-3053"
+        },
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "ZFr9jZ11kk"
+      }
+    ]
+  },
+  "before": {
+    "aliases": [],
+    "child_row_summary": [
+      {
+        "new_lineup_items": 1,
+        "new_show_id": 975004,
+        "new_tagged_shows": 2,
+        "new_tickets": 1,
+        "old_click_events": 6,
+        "old_lineup_items": 1,
+        "old_show_id": 2841791,
+        "old_tagged_shows": 3,
+        "old_tickets": 1
+      },
+      {
+        "new_lineup_items": 1,
+        "new_show_id": 975005,
+        "new_tagged_shows": 2,
+        "new_tickets": 1,
+        "old_click_events": 6,
+        "old_lineup_items": 1,
+        "old_show_id": 2841792,
+        "old_tagged_shows": 2,
+        "old_tickets": 1
+      },
+      {
+        "new_lineup_items": 1,
+        "new_show_id": 975006,
+        "new_tagged_shows": 2,
+        "new_tickets": 1,
+        "old_click_events": 6,
+        "old_lineup_items": 1,
+        "old_show_id": 2841793,
+        "old_tagged_shows": 2,
+        "old_tickets": 1
+      },
+      {
+        "new_lineup_items": 1,
+        "new_show_id": 975007,
+        "new_tagged_shows": 2,
+        "new_tickets": 1,
+        "old_click_events": 6,
+        "old_lineup_items": 1,
+        "old_show_id": 2841794,
+        "old_tagged_shows": 2,
+        "old_tickets": 1
+      },
+      {
+        "new_lineup_items": 1,
+        "new_show_id": 975008,
+        "new_tagged_shows": 2,
+        "new_tickets": 1,
+        "old_click_events": 6,
+        "old_lineup_items": 1,
+        "old_show_id": 2841795,
+        "old_tagged_shows": 3,
+        "old_tickets": 1
+      }
+    ],
+    "clubs": [
+      {
+        "address": "20 Monroe Ave NW #3f, Grand Rapids, MI 49503, USA",
+        "city": "Grand Rapids",
+        "closed_at": null,
+        "id": 207,
+        "name": "Dr. Grins Comedy Club",
+        "state": "MI",
+        "status": "active",
+        "timezone": "America/Detroit",
+        "total_shows": 107,
+        "visible": true,
+        "website": "https://www.thebob.com/drgrins/"
+      },
+      {
+        "address": "20 Monroe Ave NW, Grand Rapids, MI",
+        "city": "Grand Rapids",
+        "closed_at": null,
+        "id": 5449,
+        "name": "Dr. Grins Comedy Club at The B.O.B.",
+        "state": "MI",
+        "status": "active",
+        "timezone": "America/New_York",
+        "total_shows": 5,
+        "visible": true,
+        "website": ""
+      }
+    ],
+    "duplicate_show_map_summary": {
+      "date_room_mapped_shows": 5,
+      "duplicate_shows": 5,
+      "name_mismatch_mapped": 5,
+      "noncolliding_shows": 0,
+      "same_name_mapped": 0
+    },
+    "mapped_name_mismatches": [
+      {
+        "canonical_name": "Brian Simpson",
+        "canonical_show_id": 975004,
+        "canonical_show_page_url": "https://www.thebob.com/drgrins/comedian/index.html?id=1463",
+        "date": "2026-12-04T01:00:00+00:00",
+        "duplicate_name": "Brian Simpson - Comedian",
+        "duplicate_show_id": 2841791,
+        "duplicate_show_page_url": "https://www.ticketmaster.com/event/Z7r9jZ1A7-f8a",
+        "room": ""
+      },
+      {
+        "canonical_name": "Brian Simpson",
+        "canonical_show_id": 975005,
+        "canonical_show_page_url": "https://www.thebob.com/drgrins/comedian/index.html?id=1463",
+        "date": "2026-12-05T00:15:00+00:00",
+        "duplicate_name": "Brian Simpson - Comedian",
+        "duplicate_show_id": 2841792,
+        "duplicate_show_page_url": "https://www.ticketmaster.com/event/Z7r9jZ1A7-f8A",
+        "room": ""
+      },
+      {
+        "canonical_name": "Brian Simpson",
+        "canonical_show_id": 975006,
+        "canonical_show_page_url": "https://www.thebob.com/drgrins/comedian/index.html?id=1463",
+        "date": "2026-12-05T02:45:00+00:00",
+        "duplicate_name": "Brian Simpson - Comedian",
+        "duplicate_show_id": 2841793,
+        "duplicate_show_page_url": "https://www.ticketmaster.com/event/Z7r9jZ1A7-f8k",
+        "room": ""
+      },
+      {
+        "canonical_name": "Brian Simpson",
+        "canonical_show_id": 975007,
+        "canonical_show_page_url": "https://www.thebob.com/drgrins/comedian/index.html?id=1463",
+        "date": "2026-12-06T00:15:00+00:00",
+        "duplicate_name": "Brian Simpson - Comedian",
+        "duplicate_show_id": 2841794,
+        "duplicate_show_page_url": "https://www.ticketmaster.com/event/Z7r9jZ1A7-f8F",
+        "room": ""
+      },
+      {
+        "canonical_name": "Brian Simpson",
+        "canonical_show_id": 975008,
+        "canonical_show_page_url": "https://www.thebob.com/drgrins/comedian/index.html?id=1463",
+        "date": "2026-12-06T02:45:00+00:00",
+        "duplicate_name": "Brian Simpson - Comedian",
+        "duplicate_show_id": 2841795,
+        "duplicate_show_page_url": "https://www.ticketmaster.com/event/Z7r9jZ1A7-f86",
+        "room": ""
+      }
+    ],
+    "remaining_duplicate_references": {
+      "click_events": 30,
+      "club_image_assets": 0,
+      "email_subscriptions": 0,
+      "enabled_sources": 1,
+      "eventbrite_organizer_venues": 0,
+      "favorite_clubs": 0,
+      "processed_emails": 0,
+      "production_company_venues": 0,
+      "scraper_run_clubs": 4,
+      "shows": 5,
+      "tagged_clubs": 0
+    },
+    "show_summary": [
+      {
+        "club_id": 207,
+        "first_show": "2026-04-11T04:00:00+00:00",
+        "last_show": "2026-12-06T02:45:00+00:00",
+        "show_count": 107
+      },
+      {
+        "club_id": 5449,
+        "first_show": "2026-12-04T01:00:00+00:00",
+        "last_show": "2026-12-06T02:45:00+00:00",
+        "show_count": 5
+      }
+    ],
+    "sources": [
+      {
+        "club_id": 207,
+        "enabled": true,
+        "id": 154,
+        "metadata": {},
+        "platform": "etix",
+        "priority": 0,
+        "scraper_key": "dr_grins",
+        "source_url": "https://www.etix.com/ticket/v/35455/drgrins-comedy-club-at-the-bob",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 5449,
+        "enabled": true,
+        "id": 4539,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "ZFr9jZ11kk"
+      }
+    ]
+  },
+  "counts": {
+    "click_events_club_repointed": 0,
+    "click_events_repointed_to_existing_show": 30,
+    "club_image_assets_moved": 0,
+    "club_totals_recomputed": 2,
+    "colliding_duplicate_shows_deleted": 5,
+    "conflicting_sent_notifications_deleted": 0,
+    "duplicate_aliases_upserted": 1,
+    "duplicate_clubs_closed": 1,
+    "duplicate_favorite_clubs_deleted": 0,
+    "duplicate_production_company_venues_deleted": 0,
+    "duplicate_sources_moved_to_canonical": 1,
+    "duplicate_tagged_clubs_deleted": 0,
+    "email_subscriptions_moved": 0,
+    "eventbrite_organizer_venues_moved": 0,
+    "favorite_clubs_inserted": 0,
+    "lineup_items_copied": 0,
+    "processed_emails_moved": 0,
+    "production_company_venues_inserted": 0,
+    "scraper_run_clubs_moved": 4,
+    "sent_notifications_repointed": 0,
+    "tagged_clubs_inserted": 0,
+    "tagged_shows_copied": 12,
+    "tickets_copied": 0
+  },
+  "dry_run": false,
+  "fold": {
+    "aliases": [
+      {
+        "alias_name": "Dr. Grins Comedy Club at The B.O.B.",
+        "city": "Grand Rapids",
+        "state": "MI"
+      }
+    ],
+    "canonical_id": 207,
+    "canonical_name": "Dr. Grins Comedy Club",
+    "duplicate_id": 5449,
+    "duplicate_name": "Dr. Grins Comedy Club at The B.O.B.",
+    "match_key": [
+      "date",
+      "room"
+    ],
+    "name_mismatch_policy": "Rows with the same date and room must merge because shows_club_id_date_room_key prevents preserving both under the canonical club."
+  },
+  "generated_at": "2026-06-22T01:33:14.226595+00:00",
+  "source_audit_task": "TASK-3053",
+  "task": "TASK-3161",
+  "validation": {
+    "clubs": [
+      {
+        "address": "20 Monroe Ave NW, Grand Rapids, MI",
+        "city": "Grand Rapids",
+        "google_place_id": "ChIJ-bBwwsStGYgR_brjZDHmeP4",
+        "id": 5449,
+        "name": "Dr. Grins Comedy Club at The B.O.B.",
+        "state": "MI",
+        "status": "active",
+        "timezone": "America/New_York",
+        "total_shows": 5,
+        "visible": true,
+        "website": ""
+      },
+      {
+        "address": "20 Monroe Ave NW #3f, Grand Rapids, MI 49503, USA",
+        "city": "Grand Rapids",
+        "google_place_id": "ChIJ-bBwwsStGYgR_brjZDHmeP4",
+        "id": 207,
+        "name": "Dr. Grins Comedy Club",
+        "state": "MI",
+        "status": "active",
+        "timezone": "America/Detroit",
+        "total_shows": 107,
+        "visible": true,
+        "website": "https://www.thebob.com/drgrins/"
+      }
+    ]
+  }
+}
