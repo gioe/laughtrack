@@ -1,13 +1,28 @@
+import asyncio
 from typing import List, Optional
 
 from laughtrack.core.clients.seatengine.client import SeatEngineClient
 from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.comedian.handler import ComedianHandler
+from laughtrack.core.entities.lineup.handler import LineupHandler
 from laughtrack.core.entities.show.model import Show
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+from laughtrack.foundation.models.types import JSONDict
 from laughtrack.scrapers.base.base_scraper import BaseScraper
+from laughtrack.scrapers.utils.comedy_filter import (
+    is_comedy_filter_enabled,
+    resolve_allowlist,
+    resolve_min_popularity,
+    select_comedy_titles,
+)
 from laughtrack.ports.scraping import EventListContainer
 from .extractor import SeatEngineExtractor
 from .transformer import SeatEngineEventTransformer
+
+
+def _event_title(item: JSONDict) -> str:
+    """SeatEngine wraps each show as ``{id, event: {name, ...}}``."""
+    return ((item or {}).get("event") or {}).get("name") or ""
 
 
 class SeatEngineScraper(BaseScraper):
@@ -16,9 +31,14 @@ class SeatEngineScraper(BaseScraper):
 
     This scraper reads the club's seatengine_id field and uses the
     SeatEngineClient to fetch all events for that venue via API.
+
+    Mixed-use SeatEngine venues (e.g. P-town cabaret/drag rooms that also
+    program stand-up) opt into comedy-only isolation by setting
+    ``scraping_sources.metadata.comedy_filter``; dedicated comedy clubs leave it
+    unset and ingest the whole calendar unchanged.
     """
     key = 'seatengine'
-    
+
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
 
@@ -35,6 +55,11 @@ class SeatEngineScraper(BaseScraper):
         self.transformation_pipeline.register_transformer(
             SeatEngineEventTransformer(club, client=self.seatengine_client)
         )
+
+        # Opt-in comedy isolation for mixed-use venues.
+        self._comedy_filter = is_comedy_filter_enabled(self.club.source_metadata)
+        self._lineup_handler = LineupHandler() if self._comedy_filter else None
+        self._comedian_handler = ComedianHandler() if self._comedy_filter else None
 
         self.logger_context = club.as_context()
 
@@ -58,7 +83,43 @@ class SeatEngineScraper(BaseScraper):
                 self.logger_context,
             )
             return SeatEngineExtractor.to_page_data([])
+        if self._comedy_filter:
+            events_data = await self._filter_comedy(events_data)
         return SeatEngineExtractor.to_page_data(events_data)
+
+    async def _filter_comedy(self, events: List[JSONDict]) -> List[JSONDict]:
+        """Keep only events whose title qualifies as comedy (opt-in).
+
+        Mirrors the etix/ticketleap comedy-isolation path: a cheap keyword +
+        allowlist pass, then a DB-backed known-comedian fallback for name-only
+        touring titles. The handler lookups are blocking, so run them off the
+        event loop.
+        """
+        titles = [_event_title(e) for e in events]
+        descriptions = {}
+        for e in events:
+            event_data = (e or {}).get("event") or {}
+            name = event_data.get("name") or ""
+            if name and name not in descriptions:
+                descriptions[name] = event_data.get("description")
+        loop = asyncio.get_running_loop()
+        comedy_titles = await loop.run_in_executor(
+            None,
+            lambda: select_comedy_titles(
+                titles,
+                lineup_handler=self._lineup_handler,
+                comedian_handler=self._comedian_handler,
+                descriptions=descriptions,
+                min_popularity=resolve_min_popularity(self.club.source_metadata),
+                allowlist=resolve_allowlist(self.club.source_metadata),
+            ),
+        )
+        kept = [e for e in events if _event_title(e) in comedy_titles]
+        Logger.info(
+            f"{self._log_prefix}: comedy filter kept {len(kept)}/{len(events)} event(s)",
+            self.logger_context,
+        )
+        return kept
 
     def transform_data(self, raw_data: EventListContainer, source_url: str) -> List[Show]:
         return super().transform_data(raw_data, source_url)

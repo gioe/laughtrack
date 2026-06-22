@@ -12,7 +12,7 @@ Key assertion: show_page_url must be a public venue URL
 """
 
 import importlib.util
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -231,3 +231,66 @@ async def test_transform_sets_wiseguys_room_from_room_specific_source_url(
 
     assert len(shows) == 1
     assert shows[0].room == expected_room
+
+
+# ---------------------------------------------------------------------------
+# comedy_filter: opt-in comedy isolation for mixed-use SeatEngine venues
+# (e.g. P-town cabaret/drag rooms that also program stand-up — TASK-3152)
+# ---------------------------------------------------------------------------
+
+
+def _filtered_club(seatengine_id: str = VENUE_ID) -> Club:
+    """A SeatEngine club that opts into comedy-only filtering via metadata."""
+    _c = Club(id=998, name="Red Room", address='258 Commercial St', website='https://redroomatvelvet.seatengine.com', popularity=0, zip_code='02657', phone_number='', visible=True, timezone='America/New_York')
+    _c.active_scraping_source = ScrapingSource(id=2, club_id=_c.id, platform='seatengine', scraper_key='seatengine', source_url='https://redroomatvelvet.seatengine.com', external_id=seatengine_id, metadata={"comedy_filter": True})
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
+
+
+def _drag_show_dict(show_id: int = 201) -> dict:
+    """A non-comedy SeatEngine show (drag/cabaret) — no comedy keyword in title."""
+    return {
+        "id": show_id,
+        "start_date_time": "2026-04-16T22:00:00-04:00",
+        "sold_out": False,
+        "inventories": [{"price": 3000}],
+        "event": {
+            "name": "Showgirls After Show Party: Studio 69",
+            "description": "Late-night dance party",
+            "talents": [{"name": "Dark City Disco"}],
+            "labels": [],
+        },
+    }
+
+
+@pytest.mark.asyncio
+async def test_comedy_filter_drops_non_comedy_events():
+    """With comedy_filter set, get_data keeps only comedy-titled events."""
+    scraper = SeatEngineScraper(_filtered_club())
+    # Stub the DB-backed known-comedian fallback so the test stays DB-free; the
+    # cheap keyword pass alone must keep "Wednesday Night Comedy" and drop the
+    # drag party (no comedy keyword, no name match).
+    scraper._lineup_handler = MagicMock()
+    scraper._lineup_handler.get_comedians_from_show_names.return_value = {}
+    shows = [_show_dict(101), _drag_show_dict(201)]
+    scraper.seatengine_client.fetch_events = AsyncMock(return_value=shows)
+
+    result = await scraper.get_data(VENUE_ID)
+
+    assert isinstance(result, SeatEnginePageData)
+    titles = [(e.get("event") or {}).get("name") for e in result.event_list]
+    assert titles == ["Wednesday Night Comedy"]
+
+
+@pytest.mark.asyncio
+async def test_no_comedy_filter_keeps_all_events():
+    """Without comedy_filter (default), the whole calendar is ingested unchanged."""
+    scraper = SeatEngineScraper(_club())  # no metadata → filter disabled
+    assert scraper._comedy_filter is False
+    shows = [_show_dict(101), _drag_show_dict(201)]
+    scraper.seatengine_client.fetch_events = AsyncMock(return_value=shows)
+
+    result = await scraper.get_data(VENUE_ID)
+
+    assert isinstance(result, SeatEnginePageData)
+    assert len(result.event_list) == 2
