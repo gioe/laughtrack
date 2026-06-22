@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import pytest
 
 from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.scrapers.implementations.tock.extractor import extract_tock_events
 from laughtrack.scrapers.implementations.tock.scraper import TockScraper
+
+FIXTURES = Path(__file__).parent / "fixtures"
 
 
 @pytest.fixture
@@ -133,6 +136,34 @@ def test_extract_tock_events_decodes_redux_state_and_filters_comedy(club):
     assert event.location.name == "My Buddy's"
     assert event.offers[0].price == "10.00"
     assert event.offers[0].availability == "InStock"
+
+
+def test_extract_tock_events_decodes_recurring_prix_fixe_fixture():
+    html = (FIXTURES / "batsu_chicago_recurring.html").read_text(encoding="utf-8")
+
+    events = extract_tock_events(
+        html,
+        source_url="https://www.exploretock.com/batsu-chicago",
+        timezone="America/Chicago",
+    )
+
+    assert len(events) == 4
+    assert {event.name for event in events} == {"BATSU! Chicago"}
+    assert [event.start_date.isoformat() for event in events] == [
+        "2026-06-26T19:00:00-05:00",
+        "2026-06-26T22:00:00-05:00",
+        "2026-06-27T19:00:00-05:00",
+        "2026-06-27T22:00:00-05:00",
+    ]
+    assert [offer.name for offer in events[0].offers] == [
+        "BATSU! Chicago - VIP Reservation",
+        "BATSU! Chicago - Standard Reservation",
+    ]
+    assert [offer.price for offer in events[0].offers] == ["70.00", "40.00"]
+    assert events[0].url == "https://www.exploretock.com/batsu-chicago"
+    assert events[0].offers[0].url == (
+        "https://www.exploretock.com/batsu-chicago/event/351809/batsu-chicago-vip-reservation"
+    )
 
 
 @pytest.mark.asyncio

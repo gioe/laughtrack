@@ -2240,11 +2240,16 @@ needed to avoid mis-attributing them.
   values (`undefined`, `function noop`) before JSON decoding.
 - Each `GA_EVENT` experience becomes one event using `eventDetails.date`,
   `eventDetails.startTime`, `eventDetails.location`, `priceCents`, `id`, and `slug`.
+- Recurring `PRIX_FIXE` reservation pages (e.g. BATSU! Chicago) expose ticket
+  tiers as experiences plus `calendar.openDate[]` and `calendar.openTime[]`.
+  The scraper creates one show per date/time and attaches each tier as a ticket.
 
 **Key extraction notes:**
 - Dates/times are local to the club timezone from the club row.
 - Ticket/show URL is reconstructed as `{source_url}/event/{id}/{slug}`.
 - `priceCents` becomes a USD ticket price; missing or malformed prices stay unknown.
+- For recurring `PRIX_FIXE` pages, the show URL is the business page and ticket
+  URLs point to the tier detail pages.
 - Mixed-use calendars should set `metadata.comedy_filter = true`; filtering uses
   title/description comedy keywords (`comedy`, `stand-up`, `improv`, `open mic`, etc.).
 
@@ -2270,6 +2275,7 @@ SELECT c.id, 'custom'::"ScrapingPlatform", 'tock',
 - `apps/scraper/src/laughtrack/scrapers/implementations/tock/`
 - `apps/scraper/tests/scrapers/implementations/tock/test_scraper.py`
 - TASK-2993: My Buddy's (Chicago)
+- TASK-3014: BATSU! Chicago recurring PRIX_FIXE reservations
 
 ---
 
