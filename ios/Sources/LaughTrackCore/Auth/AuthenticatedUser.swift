@@ -21,6 +21,13 @@ public struct AuthenticatedUser: Equatable, Sendable {
     public let comedianOnboardingCompleted: Bool
     public let zipCode: String?
     public let nearbyDistanceMiles: Int?
+    /// Number of unread notifications surfaced by `/v1/me`
+    /// (`notificationsUnreadCount`). Drives the profile-button unread badge so
+    /// it can render from the launch-time `/me` fetch without loading the full
+    /// notification feed. Defaults to `0` so non-API construction sites (tests,
+    /// signed-out fallbacks, older `/v1/me` responses that omit the field) stay
+    /// unaffected.
+    public let notificationsUnreadCount: Int
 
     public init(
         userId: String? = nil,
@@ -32,7 +39,8 @@ public struct AuthenticatedUser: Equatable, Sendable {
         pushShowNotifications: Bool = false,
         comedianOnboardingCompleted: Bool = false,
         zipCode: String? = nil,
-        nearbyDistanceMiles: Int? = nil
+        nearbyDistanceMiles: Int? = nil,
+        notificationsUnreadCount: Int = 0
     ) {
         self.userId = userId
         self.displayName = displayName
@@ -44,6 +52,7 @@ public struct AuthenticatedUser: Equatable, Sendable {
         self.comedianOnboardingCompleted = comedianOnboardingCompleted
         self.zipCode = zipCode
         self.nearbyDistanceMiles = nearbyDistanceMiles
+        self.notificationsUnreadCount = notificationsUnreadCount
     }
 
     public func withComedianOnboardingCompleted(_ completed: Bool) -> AuthenticatedUser {
@@ -57,7 +66,8 @@ public struct AuthenticatedUser: Equatable, Sendable {
             pushShowNotifications: pushShowNotifications,
             comedianOnboardingCompleted: completed,
             zipCode: zipCode,
-            nearbyDistanceMiles: nearbyDistanceMiles
+            nearbyDistanceMiles: nearbyDistanceMiles,
+            notificationsUnreadCount: notificationsUnreadCount
         )
     }
 }

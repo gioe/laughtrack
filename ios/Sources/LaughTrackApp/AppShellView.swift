@@ -327,45 +327,73 @@ struct AppShellView: View {
         .background(theme.laughTrackTokens.colors.canvas.opacity(0.97))
     }
 
+    // The profile button is a menu: "Notifications" opens the notification
+    // center and "Settings" preserves the original tap destination (ProfileView).
+    // An unread badge overlays the icon, driven by the /me notificationsUnreadCount
+    // surfaced through currentUser; it clears once the center marks itself seen.
     private var accountHeaderButton: some View {
-        shellHeaderIconButton(
-            systemImage: "person.crop.circle",
-            accessibilityLabel: "Account",
-            accessibilityIdentifier: LaughTrackViewTestID.accountHeaderButton
-        ) {
-            coordinator.push(AppRoute.accountHeaderTarget())
+        let unreadCount = authManager.currentUser?.notificationsUnreadCount ?? 0
+
+        return Menu {
+            Button {
+                coordinator.push(.notifications)
+            } label: {
+                Label("Notifications", systemImage: "bell")
+            }
+            .accessibilityIdentifier(LaughTrackViewTestID.accountNotificationsMenuItem)
+
+            Button {
+                coordinator.push(AppRoute.accountHeaderTarget())
+            } label: {
+                Label("Settings", systemImage: "gearshape")
+            }
+            .accessibilityIdentifier(LaughTrackViewTestID.accountSettingsMenuItem)
+        } label: {
+            shellHeaderIconLabel(systemImage: "person.crop.circle")
+                .overlay(alignment: .topTrailing) {
+                    if unreadCount > 0 {
+                        accountUnreadBadge(count: unreadCount)
+                    }
+                }
         }
+        .accessibilityLabel("Account")
+        .accessibilityIdentifier(LaughTrackViewTestID.accountHeaderButton)
+    }
+
+    @ViewBuilder
+    private func accountUnreadBadge(count: Int) -> some View {
+        let tokens = theme.laughTrackTokens
+        Text(count > 9 ? "9+" : "\(count)")
+            .font(.system(size: 11, weight: .bold))
+            .foregroundStyle(.white)
+            .padding(.horizontal, 5)
+            .frame(minWidth: 18, minHeight: 18)
+            .background(Circle().fill(tokens.colors.accentStrong))
+            .overlay(Circle().stroke(tokens.colors.canvas, lineWidth: 2))
+            .offset(x: 4, y: -4)
+            .accessibilityHidden(true)
     }
 
     private var nearbyLocationController: NearbyLocationController {
         serviceContainer.resolve(NearbyLocationController.self)
     }
 
-    private func shellHeaderIconButton(
-        systemImage: String,
-        accessibilityLabel: String,
-        accessibilityIdentifier: String,
-        action: @escaping () -> Void
-    ) -> some View {
+    private func shellHeaderIconLabel(systemImage: String) -> some View {
         let tokens = theme.laughTrackTokens
 
-        return Button(action: action) {
-            Image(systemName: systemImage)
-                .font(.system(size: 32, weight: .semibold))
-                .foregroundStyle(tokens.colors.textPrimary)
-                .frame(width: AccountHeaderLayout.buttonSize, height: AccountHeaderLayout.buttonSize)
-                .background {
-                    Circle()
-                        .fill(tokens.colors.surfaceElevated.opacity(0.94))
-                        .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 6)
-                }
-                .overlay {
-                    Circle()
-                        .stroke(tokens.colors.borderSubtle, lineWidth: 1)
-                }
-        }
-        .accessibilityLabel(accessibilityLabel)
-        .accessibilityIdentifier(accessibilityIdentifier)
+        return Image(systemName: systemImage)
+            .font(.system(size: 32, weight: .semibold))
+            .foregroundStyle(tokens.colors.textPrimary)
+            .frame(width: AccountHeaderLayout.buttonSize, height: AccountHeaderLayout.buttonSize)
+            .background {
+                Circle()
+                    .fill(tokens.colors.surfaceElevated.opacity(0.94))
+                    .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 6)
+            }
+            .overlay {
+                Circle()
+                    .stroke(tokens.colors.borderSubtle, lineWidth: 1)
+            }
     }
 
     private var primitiveFilterRow: some View {

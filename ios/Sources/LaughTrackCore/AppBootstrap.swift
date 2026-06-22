@@ -174,7 +174,10 @@ public struct AppBootstrap {
                 pushShowNotifications: body.data.pushShowNotifications,
                 comedianOnboardingCompleted: body.data.comedianOnboardingCompleted,
                 zipCode: body.data.zipCode,
-                nearbyDistanceMiles: body.data.nearbyDistanceMiles
+                nearbyDistanceMiles: body.data.nearbyDistanceMiles,
+                // Optional in the spec for rollout-window safety; treat a
+                // missing value as zero so the unread badge stays hidden.
+                notificationsUnreadCount: body.data.notificationsUnreadCount ?? 0
             )
         }
 
