@@ -1,0 +1,290 @@
+{
+  "task": "TASK-3153",
+  "source_audit_task": "TASK-3050",
+  "dry_run": false,
+  "applied_at": "2026-06-22T00:04:19.964562+00:00",
+  "fold": {
+    "canonical_id": 1036,
+    "duplicate_id": 5297,
+    "canonical_name": "Comedy Works Downtown",
+    "duplicate_name": "Comedy Works",
+    "alias": {
+      "alias_name": "Comedy Works",
+      "city": "Denver",
+      "state": "CO"
+    }
+  },
+  "validation": {
+    "clubs": [
+      {
+        "id": 1036,
+        "name": "Comedy Works Downtown",
+        "city": "Denver",
+        "state": "CO",
+        "visible": true,
+        "status": "active",
+        "total_shows": 269,
+        "google_place_id": "ChIJJxkZR8V4bIcRHY8TkXuscXw"
+      },
+      {
+        "id": 5297,
+        "name": "Comedy Works",
+        "city": "Denver",
+        "state": "CO",
+        "visible": true,
+        "status": "active",
+        "total_shows": 27,
+        "google_place_id": "ChIJJxkZR8V4bIcRHY8TkXuscXw"
+      }
+    ]
+  },
+  "before": {
+    "clubs": [
+      {
+        "id": 1036,
+        "name": "Comedy Works Downtown",
+        "city": "Denver",
+        "state": "CO",
+        "visible": true,
+        "status": "active",
+        "closed_at": null,
+        "total_shows": 269
+      },
+      {
+        "id": 5297,
+        "name": "Comedy Works",
+        "city": "Denver",
+        "state": "CO",
+        "visible": true,
+        "status": "active",
+        "closed_at": null,
+        "total_shows": 27
+      }
+    ],
+    "sources": [
+      {
+        "id": 549,
+        "club_id": 1036,
+        "platform": "custom",
+        "scraper_key": "comedy_works_downtown",
+        "ticketmaster_id": null,
+        "source_url": "https://comedyworks.com/shows/calendar",
+        "priority": 0,
+        "enabled": true,
+        "metadata": {}
+      },
+      {
+        "id": 2042,
+        "club_id": 1036,
+        "platform": "tour_dates",
+        "scraper_key": "tour_dates",
+        "ticketmaster_id": null,
+        "source_url": "tour_dates",
+        "priority": 1,
+        "enabled": false,
+        "metadata": {
+          "source": "comedian_websites",
+          "sample_urls": [
+            "https://peteholmes.com/"
+          ],
+          "last_seen_at": "2026-05-13T10:36:40.938287+00:00",
+          "comedian_refs": [
+            {
+              "name": "Pete Holmes",
+              "uuid": "0ed95068bda932e84ed73d27614df8d8"
+            }
+          ],
+          "first_seen_at": "2026-05-13T10:30:17.588623+00:00",
+          "platform_hints": [
+            "text_tour_list"
+          ],
+          "reference_count": 9,
+          "task_2581_disposition": {
+            "reason": "TourDatesScraper deleted; BandsInTown-sourced show ingestion dropped per TASK-2581",
+            "disabled_at": "2026-06-02 13:29:14.793375+00"
+          }
+        }
+      },
+      {
+        "id": 4387,
+        "club_id": 5297,
+        "platform": "ticketmaster",
+        "scraper_key": "ticketmaster_comedy",
+        "ticketmaster_id": "ZFr9jZAeed",
+        "source_url": "https://www.ticketmaster.com",
+        "priority": 0,
+        "enabled": true,
+        "metadata": {}
+      }
+    ],
+    "aliases": [],
+    "show_summary": [
+      {
+        "club_id": 1036,
+        "show_count": 269,
+        "first_show": "2026-04-16T01:00:00+00:00",
+        "last_show": "2027-02-22T02:00:00+00:00"
+      },
+      {
+        "club_id": 5297,
+        "show_count": 27,
+        "first_show": "2026-08-22T03:30:00+00:00",
+        "last_show": "2026-12-12T04:15:00+00:00"
+      }
+    ],
+    "remaining_duplicate_references": {
+      "shows": 27,
+      "click_events": 39,
+      "favorite_clubs": 0,
+      "email_subscriptions": 0,
+      "tagged_clubs": 0,
+      "production_company_venues": 0,
+      "processed_emails": 0,
+      "eventbrite_organizer_venues": 0,
+      "club_image_assets": 0,
+      "scraper_run_clubs": 4
+    }
+  },
+  "counts": {
+    "aliases_upserted": 1,
+    "duplicate_sources_moved_to_canonical": 1,
+    "lineup_items_copied": 0,
+    "tagged_shows_copied": 54,
+    "tickets_copied": 27,
+    "conflicting_sent_notifications_deleted": 0,
+    "sent_notifications_repointed": 0,
+    "click_events_repointed_to_existing_show": 39,
+    "colliding_duplicate_shows_deleted": 27,
+    "click_events_club_repointed": 0,
+    "favorite_clubs_inserted": 0,
+    "duplicate_favorite_clubs_deleted": 0,
+    "production_company_venues_inserted": 0,
+    "duplicate_production_company_venues_deleted": 0,
+    "tagged_clubs_inserted": 0,
+    "duplicate_tagged_clubs_deleted": 0,
+    "email_subscriptions_moved": 0,
+    "processed_emails_moved": 0,
+    "eventbrite_organizer_venues_moved": 0,
+    "club_image_assets_moved": 0,
+    "scraper_run_clubs_moved": 4,
+    "duplicate_clubs_closed": 1,
+    "club_totals_recomputed": 1
+  },
+  "after": {
+    "clubs": [
+      {
+        "id": 1036,
+        "name": "Comedy Works Downtown",
+        "city": "Denver",
+        "state": "CO",
+        "visible": true,
+        "status": "active",
+        "closed_at": null,
+        "total_shows": 269
+      },
+      {
+        "id": 5297,
+        "name": "Comedy Works (duplicate of club 1036; folded from club 5297)",
+        "city": "Denver",
+        "state": "CO",
+        "visible": false,
+        "status": "closed",
+        "closed_at": "2026-06-22T00:04:19.253287+00:00",
+        "total_shows": 0
+      }
+    ],
+    "sources": [
+      {
+        "id": 549,
+        "club_id": 1036,
+        "platform": "custom",
+        "scraper_key": "comedy_works_downtown",
+        "ticketmaster_id": null,
+        "source_url": "https://comedyworks.com/shows/calendar",
+        "priority": 0,
+        "enabled": true,
+        "metadata": {}
+      },
+      {
+        "id": 4387,
+        "club_id": 1036,
+        "platform": "ticketmaster",
+        "scraper_key": "ticketmaster_comedy",
+        "ticketmaster_id": "ZFr9jZAeed",
+        "source_url": "https://www.ticketmaster.com",
+        "priority": 0,
+        "enabled": false,
+        "metadata": {
+          "task_3153_disposition": "moved disabled duplicate source from club 5297 to club 1036",
+          "task_3153_source_task": "TASK-3050"
+        }
+      },
+      {
+        "id": 2042,
+        "club_id": 1036,
+        "platform": "tour_dates",
+        "scraper_key": "tour_dates",
+        "ticketmaster_id": null,
+        "source_url": "tour_dates",
+        "priority": 1,
+        "enabled": false,
+        "metadata": {
+          "source": "comedian_websites",
+          "sample_urls": [
+            "https://peteholmes.com/"
+          ],
+          "last_seen_at": "2026-05-13T10:36:40.938287+00:00",
+          "comedian_refs": [
+            {
+              "name": "Pete Holmes",
+              "uuid": "0ed95068bda932e84ed73d27614df8d8"
+            }
+          ],
+          "first_seen_at": "2026-05-13T10:30:17.588623+00:00",
+          "platform_hints": [
+            "text_tour_list"
+          ],
+          "reference_count": 9,
+          "task_2581_disposition": {
+            "reason": "TourDatesScraper deleted; BandsInTown-sourced show ingestion dropped per TASK-2581",
+            "disabled_at": "2026-06-02 13:29:14.793375+00"
+          }
+        }
+      }
+    ],
+    "aliases": [
+      {
+        "id": 354,
+        "club_id": 1036,
+        "alias_name": "Comedy Works",
+        "normalized_alias_name": "comedy works",
+        "city": "Denver",
+        "state": "CO",
+        "normalized_city": "denver",
+        "normalized_state": "co",
+        "source": "TASK-3153",
+        "verified": true
+      }
+    ],
+    "show_summary": [
+      {
+        "club_id": 1036,
+        "show_count": 269,
+        "first_show": "2026-04-16T01:00:00+00:00",
+        "last_show": "2027-02-22T02:00:00+00:00"
+      }
+    ],
+    "remaining_duplicate_references": {
+      "shows": 0,
+      "click_events": 0,
+      "favorite_clubs": 0,
+      "email_subscriptions": 0,
+      "tagged_clubs": 0,
+      "production_company_venues": 0,
+      "processed_emails": 0,
+      "eventbrite_organizer_venues": 0,
+      "club_image_assets": 0,
+      "scraper_run_clubs": 0
+    }
+  }
+}
