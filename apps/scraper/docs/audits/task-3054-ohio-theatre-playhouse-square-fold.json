@@ -1,0 +1,487 @@
+{
+  "after": {
+    "aliases": [
+      {
+        "alias_name": "Ohio Theatre at PlayhouseSquare",
+        "city": "Cleveland",
+        "club_id": 5394,
+        "id": 377,
+        "normalized_alias_name": "ohio theatre at playhousesquare",
+        "normalized_city": "cleveland",
+        "normalized_state": "oh",
+        "source": "TASK-3165",
+        "state": "OH",
+        "verified": true
+      },
+      {
+        "alias_name": "Ohio Theatre - Playhouse Square",
+        "city": "Cleveland",
+        "club_id": 5394,
+        "id": 378,
+        "normalized_alias_name": "ohio theatre playhouse square",
+        "normalized_city": "cleveland",
+        "normalized_state": "oh",
+        "source": "TASK-3165",
+        "state": "OH",
+        "verified": true
+      }
+    ],
+    "child_row_summary": [],
+    "clubs": [
+      {
+        "address": "1511 Euclid Ave, Cleveland, OH",
+        "city": "Cleveland",
+        "closed_at": null,
+        "google_place_id": "ChIJBxgzN336MIgRJD_z4Lzxnhg",
+        "id": 5394,
+        "name": "Mimi Ohio Theatre",
+        "state": "OH",
+        "status": "active",
+        "timezone": "America/New_York",
+        "total_shows": 2,
+        "visible": true,
+        "website": ""
+      },
+      {
+        "address": "1511 Euclid Ave., Cleveland, OH",
+        "city": "Cleveland",
+        "closed_at": "2026-06-22T10:15:49.556283+00:00",
+        "google_place_id": null,
+        "id": 9906,
+        "name": "Ohio Theatre at PlayhouseSquare (duplicate of club 5394; folded from club 9906)",
+        "state": "OH",
+        "status": "closed",
+        "timezone": "America/New_York",
+        "total_shows": 0,
+        "visible": false,
+        "website": ""
+      },
+      {
+        "address": "1511 Euclid Ave, Cleveland, OH",
+        "city": "Cleveland",
+        "closed_at": "2026-06-22T10:15:49.556283+00:00",
+        "google_place_id": null,
+        "id": 9955,
+        "name": "Ohio Theatre - Playhouse Square (duplicate of club 5394; folded from club 9955)",
+        "state": "OH",
+        "status": "closed",
+        "timezone": "America/New_York",
+        "total_shows": 0,
+        "visible": false,
+        "website": ""
+      }
+    ],
+    "duplicate_show_map_summary": [],
+    "mapped_name_mismatches": [],
+    "remaining_duplicate_references": {
+      "click_events": 0,
+      "club_image_assets": 0,
+      "email_subscriptions": 0,
+      "enabled_sources": 0,
+      "eventbrite_organizer_venues": 0,
+      "favorite_clubs": 0,
+      "processed_emails": 0,
+      "production_company_venues": 0,
+      "scraper_run_clubs": 0,
+      "shows": 0,
+      "sources": 0,
+      "tagged_clubs": 0
+    },
+    "show_summary": [
+      {
+        "club_id": 5394,
+        "first_show": "2026-10-24T23:00:00+00:00",
+        "last_show": "2026-11-13T00:00:00+00:00",
+        "show_count": 2
+      }
+    ],
+    "sources": [
+      {
+        "club_id": 5394,
+        "enabled": true,
+        "id": 5885,
+        "metadata": {
+          "venue_titles": [
+            "Mimi Ohio Theatre"
+          ]
+        },
+        "platform": "custom",
+        "priority": 0,
+        "scraper_key": "playhouse_square",
+        "source_url": "https://www.playhousesquare.org/events",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 5394,
+        "enabled": false,
+        "id": 4484,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 1,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "KovZ917AxSU"
+      },
+      {
+        "club_id": 5394,
+        "enabled": false,
+        "id": 6675,
+        "metadata": {
+          "task_3165_disposition": "moved disabled duplicate Ticketmaster source from Ohio Theatre duplicate club to Mimi Ohio Theatre",
+          "task_3165_source_audit": "TASK-3054"
+        },
+        "platform": "ticketmaster",
+        "priority": 2,
+        "scraper_key": "live_nation",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "KovZpZAEAAEA"
+      },
+      {
+        "club_id": 5394,
+        "enabled": false,
+        "id": 6719,
+        "metadata": {
+          "task_3165_disposition": "moved disabled duplicate Ticketmaster source from Ohio Theatre duplicate club to Mimi Ohio Theatre",
+          "task_3165_source_audit": "TASK-3054"
+        },
+        "platform": "ticketmaster",
+        "priority": 3,
+        "scraper_key": "live_nation",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "ZFr9jZkk76"
+      }
+    ]
+  },
+  "before": {
+    "aliases": [],
+    "child_row_summary": [
+      {
+        "duplicate_club_id": 9906,
+        "new_lineup_items": 2,
+        "new_show_id": 2841661,
+        "new_tagged_shows": 2,
+        "new_tickets": 1,
+        "old_click_events": 0,
+        "old_lineup_items": 2,
+        "old_show_id": 3135862,
+        "old_tagged_shows": 2,
+        "old_tickets": 1
+      },
+      {
+        "duplicate_club_id": 9906,
+        "new_lineup_items": 1,
+        "new_show_id": 2841724,
+        "new_tagged_shows": 2,
+        "new_tickets": 1,
+        "old_click_events": 0,
+        "old_lineup_items": 1,
+        "old_show_id": 3135863,
+        "old_tagged_shows": 2,
+        "old_tickets": 1
+      },
+      {
+        "duplicate_club_id": 9955,
+        "new_lineup_items": 2,
+        "new_show_id": 2841661,
+        "new_tagged_shows": 2,
+        "new_tickets": 1,
+        "old_click_events": 0,
+        "old_lineup_items": 2,
+        "old_show_id": 3135865,
+        "old_tagged_shows": 2,
+        "old_tickets": 1
+      },
+      {
+        "duplicate_club_id": 9955,
+        "new_lineup_items": 1,
+        "new_show_id": 2841724,
+        "new_tagged_shows": 2,
+        "new_tickets": 1,
+        "old_click_events": 0,
+        "old_lineup_items": 1,
+        "old_show_id": 3135866,
+        "old_tagged_shows": 2,
+        "old_tickets": 1
+      }
+    ],
+    "clubs": [
+      {
+        "address": "1511 Euclid Ave, Cleveland, OH",
+        "city": "Cleveland",
+        "closed_at": null,
+        "google_place_id": "ChIJBxgzN336MIgRJD_z4Lzxnhg",
+        "id": 5394,
+        "name": "Mimi Ohio Theatre",
+        "state": "OH",
+        "status": "active",
+        "timezone": "America/New_York",
+        "total_shows": 2,
+        "visible": true,
+        "website": ""
+      },
+      {
+        "address": "1511 Euclid Ave., Cleveland, OH",
+        "city": "Cleveland",
+        "closed_at": null,
+        "google_place_id": null,
+        "id": 9906,
+        "name": "Ohio Theatre at PlayhouseSquare",
+        "state": "OH",
+        "status": "active",
+        "timezone": "America/New_York",
+        "total_shows": 2,
+        "visible": true,
+        "website": ""
+      },
+      {
+        "address": "1511 Euclid Ave, Cleveland, OH",
+        "city": "Cleveland",
+        "closed_at": null,
+        "google_place_id": null,
+        "id": 9955,
+        "name": "Ohio Theatre - Playhouse Square",
+        "state": "OH",
+        "status": "active",
+        "timezone": "America/New_York",
+        "total_shows": 2,
+        "visible": true,
+        "website": ""
+      }
+    ],
+    "duplicate_show_map_summary": [
+      {
+        "date_room_mapped_shows": 2,
+        "duplicate_club_id": 9906,
+        "duplicate_shows": 2,
+        "name_mismatch_mapped": 1,
+        "noncolliding_shows": 0,
+        "same_name_mapped": 1
+      },
+      {
+        "date_room_mapped_shows": 2,
+        "duplicate_club_id": 9955,
+        "duplicate_shows": 2,
+        "name_mismatch_mapped": 1,
+        "noncolliding_shows": 0,
+        "same_name_mapped": 1
+      }
+    ],
+    "mapped_name_mismatches": [
+      {
+        "canonical_name": "Daniel Sloss: BITTER (Brand New Tour!)",
+        "canonical_show_id": 2841724,
+        "canonical_show_page_url": "https://tickets.playhousesquare.org/online/default.asp?doWork::WScontent::loadArticle=Load&BOparam::WScontent::loadArticle::article_id=81BC769F-E7FE-4BF8-8B4F-51E9B2A72002",
+        "date": "2026-11-13T00:00:00+00:00",
+        "duplicate_club_id": 9906,
+        "duplicate_name": "Daniel Sloss",
+        "duplicate_show_id": 3135863,
+        "duplicate_show_page_url": "https://www.ticketmaster.com/event/Z7r9jZ1A7OyoP",
+        "room": ""
+      },
+      {
+        "canonical_name": "Daniel Sloss: BITTER (Brand New Tour!)",
+        "canonical_show_id": 2841724,
+        "canonical_show_page_url": "https://tickets.playhousesquare.org/online/default.asp?doWork::WScontent::loadArticle=Load&BOparam::WScontent::loadArticle::article_id=81BC769F-E7FE-4BF8-8B4F-51E9B2A72002",
+        "date": "2026-11-13T00:00:00+00:00",
+        "duplicate_club_id": 9955,
+        "duplicate_name": "Daniel Sloss",
+        "duplicate_show_id": 3135866,
+        "duplicate_show_page_url": "https://www.ticketmaster.com/event/Z7r9jZ1A7OyoP",
+        "room": ""
+      }
+    ],
+    "remaining_duplicate_references": {
+      "click_events": 0,
+      "club_image_assets": 0,
+      "email_subscriptions": 0,
+      "enabled_sources": 2,
+      "eventbrite_organizer_venues": 0,
+      "favorite_clubs": 0,
+      "processed_emails": 0,
+      "production_company_venues": 0,
+      "scraper_run_clubs": 2,
+      "shows": 4,
+      "sources": 2,
+      "tagged_clubs": 0
+    },
+    "show_summary": [
+      {
+        "club_id": 5394,
+        "first_show": "2026-10-24T23:00:00+00:00",
+        "last_show": "2026-11-13T00:00:00+00:00",
+        "show_count": 2
+      },
+      {
+        "club_id": 9906,
+        "first_show": "2026-10-24T23:00:00+00:00",
+        "last_show": "2026-11-13T00:00:00+00:00",
+        "show_count": 2
+      },
+      {
+        "club_id": 9955,
+        "first_show": "2026-10-24T23:00:00+00:00",
+        "last_show": "2026-11-13T00:00:00+00:00",
+        "show_count": 2
+      }
+    ],
+    "sources": [
+      {
+        "club_id": 5394,
+        "enabled": true,
+        "id": 5885,
+        "metadata": {
+          "venue_titles": [
+            "Mimi Ohio Theatre"
+          ]
+        },
+        "platform": "custom",
+        "priority": 0,
+        "scraper_key": "playhouse_square",
+        "source_url": "https://www.playhousesquare.org/events",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 5394,
+        "enabled": false,
+        "id": 4484,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 1,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "KovZ917AxSU"
+      },
+      {
+        "club_id": 9906,
+        "enabled": true,
+        "id": 6675,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "live_nation",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "KovZpZAEAAEA"
+      },
+      {
+        "club_id": 9955,
+        "enabled": true,
+        "id": 6719,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "live_nation",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "ZFr9jZkk76"
+      }
+    ]
+  },
+  "counts": {
+    "alias_9906_upserted": 1,
+    "alias_9955_upserted": 1,
+    "click_events_club_repointed": 0,
+    "click_events_repointed_to_existing_show": 0,
+    "club_image_assets_moved": 0,
+    "club_totals_recomputed": 3,
+    "colliding_duplicate_shows_deleted": 4,
+    "conflicting_sent_notifications_deleted": 0,
+    "duplicate_9906_closed": 1,
+    "duplicate_9955_closed": 1,
+    "duplicate_favorite_clubs_deleted": 0,
+    "duplicate_production_company_venues_deleted": 0,
+    "duplicate_sources_moved_to_canonical": 2,
+    "duplicate_tagged_clubs_deleted": 0,
+    "email_subscriptions_moved": 0,
+    "eventbrite_organizer_venues_moved": 0,
+    "favorite_clubs_inserted": 0,
+    "lineup_items_copied": 0,
+    "processed_emails_moved": 0,
+    "production_company_venues_inserted": 0,
+    "scraper_run_clubs_moved": 2,
+    "sent_notifications_repointed": 0,
+    "tagged_clubs_inserted": 0,
+    "tagged_shows_copied": 0,
+    "tickets_copied": 0
+  },
+  "dry_run": false,
+  "fold": {
+    "aliases": [
+      {
+        "alias_name": "Ohio Theatre at PlayhouseSquare",
+        "city": "Cleveland",
+        "state": "OH"
+      },
+      {
+        "alias_name": "Ohio Theatre - Playhouse Square",
+        "city": "Cleveland",
+        "state": "OH"
+      }
+    ],
+    "canonical_id": 5394,
+    "canonical_name": "Mimi Ohio Theatre",
+    "duplicate_ids": [
+      9906,
+      9955
+    ],
+    "duplicates": [
+      {
+        "club_id": 9906,
+        "name": "Ohio Theatre at PlayhouseSquare"
+      },
+      {
+        "club_id": 9955,
+        "name": "Ohio Theatre - Playhouse Square"
+      }
+    ],
+    "match_key": [
+      "date",
+      "room"
+    ],
+    "name_mismatch_policy": "Rows with the same date and room must merge because shows_club_id_date_room_key prevents preserving both under the canonical club."
+  },
+  "generated_at": "2026-06-22T10:15:50.424414+00:00",
+  "source_audit_task": "TASK-3054",
+  "task": "TASK-3165",
+  "validation": {
+    "clubs": [
+      {
+        "address": "1511 Euclid Ave, Cleveland, OH",
+        "city": "Cleveland",
+        "google_place_id": "ChIJBxgzN336MIgRJD_z4Lzxnhg",
+        "id": 5394,
+        "name": "Mimi Ohio Theatre",
+        "state": "OH",
+        "status": "active",
+        "timezone": "America/New_York",
+        "total_shows": 2,
+        "visible": true,
+        "website": ""
+      },
+      {
+        "address": "1511 Euclid Ave, Cleveland, OH",
+        "city": "Cleveland",
+        "google_place_id": null,
+        "id": 9955,
+        "name": "Ohio Theatre - Playhouse Square",
+        "state": "OH",
+        "status": "active",
+        "timezone": "America/New_York",
+        "total_shows": 2,
+        "visible": true,
+        "website": ""
+      },
+      {
+        "address": "1511 Euclid Ave., Cleveland, OH",
+        "city": "Cleveland",
+        "google_place_id": null,
+        "id": 9906,
+        "name": "Ohio Theatre at PlayhouseSquare",
+        "state": "OH",
+        "status": "active",
+        "timezone": "America/New_York",
+        "total_shows": 2,
+        "visible": true,
+        "website": ""
+      }
+    ]
+  }
+}
