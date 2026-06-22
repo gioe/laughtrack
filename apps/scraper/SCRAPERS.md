@@ -2242,24 +2242,28 @@ SELECT c.id, 'custom'::"ScrapingPlatform", 'tock',
   page 1.. until an empty `experiences.data[]` (no `links`/`meta` pagination).
 - Cloudflare-gated to plain `curl`, but cleared by curl_cffi Chrome impersonation —
   the default `fetch_json` session works directly (Playwright fallback as backstop).
-- Each experience's inline `schedule` map (`{"YYYY-MM-DD": {"<time>": <avail>}}`) is
-  fanned into one show per (date, time).
+- The list's inline `schedule` carries only a **placeholder** slot time (Rozzie's
+  feed reports a uniform `9:00 AM`). The scraper therefore also fetches each
+  experience's **booking detail page** (`attributes.url`,
+  `app.anyroad.com/i/plugin/{plugin_id}/tours/{slug}?lang=en-US`, also curl_cffi-
+  fetchable via `fetch_html`) and parses the embedded
+  `"tour_availability":{...,"dates":{"YYYY-MM-DD":{" 6:00pm":<count>}}}` JSON for
+  the **real** per-occurrence times and the **full** availability calendar.
+- One show is fanned per (date, time) from the detail availability; if a detail
+  fetch/parse fails for an experience, it falls back to that experience's list
+  `schedule` (placeholder time) rather than being dropped (TASK-3171).
 
 **Key extraction notes:**
 - `nameTranslation` → name, `descriptionTranslation` → description,
   `unformattedPrice`/`zeroPriced` → USD ticket price, `url` → show page, `picture`
-  → image, schedule availability count > 0 → InStock else SoldOut.
-- **Showtime is a placeholder.** The plugin *summary* feed reports a nominal slot
-  time (Rozzie's feed reports a uniform `9:00 AM` for every occurrence); the real
-  per-slot times live behind the Cloudflare/CORS-gated booking-availability step the
-  widget only loads on "Book Now". The schedule **dates** are accurate; the time is
-  transformed literally rather than invented.
+  → image, availability count > 0 → InStock else SoldOut.
+- Detail-page times are lower-case with a leading space (`" 6:00pm"`); the extractor
+  upper-cases before parsing (`%I:%M%p` / `%I:%M %p` / `%H:%M`).
 - `locationInfo` (sub-venue free text, e.g. `18b Corinth Street`) is mapped onto
-  `Show.room`, so experiences at *different* sub-venues sharing a date stay distinct
-  under the `(club, date, room)` identity key (and the club-page Show Rooms grouping
-  shows a real location). Because of the placeholder time, distinct experiences at
-  the **same** sub-venue on the **same** date still collapse in dedup — an inherent
-  limit of a feed with no per-occurrence times, surfaced by the dedup WARNING.
+  `Show.room`, so experiences at different sub-venues stay distinct under the
+  `(club, date, room)` identity key (and the club-page Show Rooms grouping shows a
+  real location). With real per-occurrence times now captured, same-date
+  experiences no longer collapse (Rozzie: 45 placeholder-collapsed → 103 distinct).
 
 **DB setup:**
 ```sql
