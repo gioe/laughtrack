@@ -53,6 +53,20 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `DELETE /me`.
     /// - Remark: Generated from `#/paths//me/delete(deleteMe)`.
     func deleteMe(_ input: Operations.DeleteMe.Input) async throws -> Operations.DeleteMe.Output
+    /// List the authenticated user's notification history
+    ///
+    /// Returns the user's comedian-arrival notifications (push + email), reconstructed from sent-notification records and grouped per (comedian, show). iOS renders these in the notification center. Capped at the 100 most-recent; no cursor pagination.
+    ///
+    /// - Remark: HTTP `GET /me/notifications`.
+    /// - Remark: Generated from `#/paths//me/notifications/get(getMeNotifications)`.
+    func getMeNotifications(_ input: Operations.GetMeNotifications.Input) async throws -> Operations.GetMeNotifications.Output
+    /// Mark the notification center as seen
+    ///
+    /// Stamps the notifications last-seen high-water mark to now, clearing the unread badge. iOS calls this when the user opens the notification center.
+    ///
+    /// - Remark: HTTP `POST /me/notifications/seen`.
+    /// - Remark: Generated from `#/paths//me/notifications/seen/post(markMeNotificationsSeen)`.
+    func markMeNotificationsSeen(_ input: Operations.MarkMeNotificationsSeen.Input) async throws -> Operations.MarkMeNotificationsSeen.Output
     /// List active clubs with upcoming shows
     ///
     /// - Remark: HTTP `GET /clubs`.
@@ -282,6 +296,24 @@ extension APIProtocol {
     /// - Remark: Generated from `#/paths//me/delete(deleteMe)`.
     public func deleteMe(headers: Operations.DeleteMe.Input.Headers = .init()) async throws -> Operations.DeleteMe.Output {
         try await deleteMe(Operations.DeleteMe.Input(headers: headers))
+    }
+    /// List the authenticated user's notification history
+    ///
+    /// Returns the user's comedian-arrival notifications (push + email), reconstructed from sent-notification records and grouped per (comedian, show). iOS renders these in the notification center. Capped at the 100 most-recent; no cursor pagination.
+    ///
+    /// - Remark: HTTP `GET /me/notifications`.
+    /// - Remark: Generated from `#/paths//me/notifications/get(getMeNotifications)`.
+    public func getMeNotifications(headers: Operations.GetMeNotifications.Input.Headers = .init()) async throws -> Operations.GetMeNotifications.Output {
+        try await getMeNotifications(Operations.GetMeNotifications.Input(headers: headers))
+    }
+    /// Mark the notification center as seen
+    ///
+    /// Stamps the notifications last-seen high-water mark to now, clearing the unread badge. iOS calls this when the user opens the notification center.
+    ///
+    /// - Remark: HTTP `POST /me/notifications/seen`.
+    /// - Remark: Generated from `#/paths//me/notifications/seen/post(markMeNotificationsSeen)`.
+    public func markMeNotificationsSeen(headers: Operations.MarkMeNotificationsSeen.Input.Headers = .init()) async throws -> Operations.MarkMeNotificationsSeen.Output {
+        try await markMeNotificationsSeen(Operations.MarkMeNotificationsSeen.Input(headers: headers))
     }
     /// List active clubs with upcoming shows
     ///
@@ -935,6 +967,10 @@ public enum Components {
             ///
             /// - Remark: Generated from `#/components/schemas/MeData/nearbyDistanceMiles`.
             public var nearbyDistanceMiles: Swift.Int?
+            /// Number of unread notifications (distinct comedian+show events with sentAt newer than the last-seen mark). Drives the profile-button unread badge from the launch-time /me fetch. Optional for rollout-window safety: older API responses may omit it; iOS treats a missing value as 0.
+            ///
+            /// - Remark: Generated from `#/components/schemas/MeData/notificationsUnreadCount`.
+            public var notificationsUnreadCount: Swift.Int?
             /// Creates a new `MeData`.
             ///
             /// - Parameters:
@@ -948,6 +984,7 @@ public enum Components {
             ///   - comedianOnboardingCompleted: Whether comedian onboarding has been completed or skipped.
             ///   - zipCode: Saved profile ZIP code used for Near Me.
             ///   - nearbyDistanceMiles: Saved profile distance in miles used for Near Me.
+            ///   - notificationsUnreadCount: Number of unread notifications (distinct comedian+show events with sentAt newer than the last-seen mark). Drives the profile-button unread badge from the launch-time /me fetch. Optional for rollout-window safety: older API responses may omit it; iOS treats a missing value as 0.
             public init(
                 userId: Swift.String? = nil,
                 displayName: Swift.String? = nil,
@@ -958,7 +995,8 @@ public enum Components {
                 pushShowNotifications: Swift.Bool,
                 comedianOnboardingCompleted: Swift.Bool,
                 zipCode: Swift.String? = nil,
-                nearbyDistanceMiles: Swift.Int? = nil
+                nearbyDistanceMiles: Swift.Int? = nil,
+                notificationsUnreadCount: Swift.Int? = nil
             ) {
                 self.userId = userId
                 self.displayName = displayName
@@ -970,6 +1008,7 @@ public enum Components {
                 self.comedianOnboardingCompleted = comedianOnboardingCompleted
                 self.zipCode = zipCode
                 self.nearbyDistanceMiles = nearbyDistanceMiles
+                self.notificationsUnreadCount = notificationsUnreadCount
             }
             public enum CodingKeys: String, CodingKey {
                 case userId
@@ -982,6 +1021,210 @@ public enum Components {
                 case comedianOnboardingCompleted
                 case zipCode
                 case nearbyDistanceMiles
+                case notificationsUnreadCount
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/NotificationListResponse`.
+        public struct NotificationListResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/NotificationListResponse/data`.
+            public struct DataPayload: Codable, Hashable, Sendable {
+                /// - Remark: Generated from `#/components/schemas/NotificationListResponse/data/items`.
+                public var items: [Components.Schemas.NotificationItem]
+                /// Number of unread items in this feed (items with isUnread true).
+                ///
+                /// - Remark: Generated from `#/components/schemas/NotificationListResponse/data/unreadCount`.
+                public var unreadCount: Swift.Int
+                /// ISO-8601 timestamp the user last opened the notification center; null if never opened.
+                ///
+                /// - Remark: Generated from `#/components/schemas/NotificationListResponse/data/lastSeenAt`.
+                public var lastSeenAt: Swift.String?
+                /// Creates a new `DataPayload`.
+                ///
+                /// - Parameters:
+                ///   - items:
+                ///   - unreadCount: Number of unread items in this feed (items with isUnread true).
+                ///   - lastSeenAt: ISO-8601 timestamp the user last opened the notification center; null if never opened.
+                public init(
+                    items: [Components.Schemas.NotificationItem],
+                    unreadCount: Swift.Int,
+                    lastSeenAt: Swift.String? = nil
+                ) {
+                    self.items = items
+                    self.unreadCount = unreadCount
+                    self.lastSeenAt = lastSeenAt
+                }
+                public enum CodingKeys: String, CodingKey {
+                    case items
+                    case unreadCount
+                    case lastSeenAt
+                }
+            }
+            /// - Remark: Generated from `#/components/schemas/NotificationListResponse/data`.
+            public var data: Components.Schemas.NotificationListResponse.DataPayload
+            /// Creates a new `NotificationListResponse`.
+            ///
+            /// - Parameters:
+            ///   - data:
+            public init(data: Components.Schemas.NotificationListResponse.DataPayload) {
+                self.data = data
+            }
+            public enum CodingKeys: String, CodingKey {
+                case data
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/NotificationItem`.
+        public struct NotificationItem: Codable, Hashable, Sendable {
+            /// Stable group id, formatted comedianId:showId.
+            ///
+            /// - Remark: Generated from `#/components/schemas/NotificationItem/id`.
+            public var id: Swift.String
+            /// Reconstructed headline, e.g. "Taylor Tomlinson is performing near you".
+            ///
+            /// - Remark: Generated from `#/components/schemas/NotificationItem/title`.
+            public var title: Swift.String
+            /// Reconstructed subtitle: club name and location joined by a separator.
+            ///
+            /// - Remark: Generated from `#/components/schemas/NotificationItem/body`.
+            public var body: Swift.String
+            /// Comedian UUID the notification is about.
+            ///
+            /// - Remark: Generated from `#/components/schemas/NotificationItem/comedianId`.
+            public var comedianId: Swift.String
+            /// Comedian display name.
+            ///
+            /// - Remark: Generated from `#/components/schemas/NotificationItem/comedianName`.
+            public var comedianName: Swift.String
+            /// Show id; the tap target deep-links to show detail.
+            ///
+            /// - Remark: Generated from `#/components/schemas/NotificationItem/showId`.
+            public var showId: Swift.Int
+            /// Canonical show page URL.
+            ///
+            /// - Remark: Generated from `#/components/schemas/NotificationItem/showPageUrl`.
+            public var showPageUrl: Swift.String?
+            /// ISO-8601 show date; null if the show row was purged.
+            ///
+            /// - Remark: Generated from `#/components/schemas/NotificationItem/showDate`.
+            public var showDate: Swift.String?
+            /// Venue name.
+            ///
+            /// - Remark: Generated from `#/components/schemas/NotificationItem/clubName`.
+            public var clubName: Swift.String?
+            /// Venue city.
+            ///
+            /// - Remark: Generated from `#/components/schemas/NotificationItem/city`.
+            public var city: Swift.String?
+            /// Venue state.
+            ///
+            /// - Remark: Generated from `#/components/schemas/NotificationItem/state`.
+            public var state: Swift.String?
+            /// Delivery channels that fired for this event, e.g. ["push", "email"].
+            ///
+            /// - Remark: Generated from `#/components/schemas/NotificationItem/channels`.
+            public var channels: [Swift.String]
+            /// ISO-8601 timestamp of the most recent delivery in the group.
+            ///
+            /// - Remark: Generated from `#/components/schemas/NotificationItem/sentAt`.
+            public var sentAt: Swift.String
+            /// Whether this item's latest send is newer than the last-seen mark.
+            ///
+            /// - Remark: Generated from `#/components/schemas/NotificationItem/isUnread`.
+            public var isUnread: Swift.Bool
+            /// Creates a new `NotificationItem`.
+            ///
+            /// - Parameters:
+            ///   - id: Stable group id, formatted comedianId:showId.
+            ///   - title: Reconstructed headline, e.g. "Taylor Tomlinson is performing near you".
+            ///   - body: Reconstructed subtitle: club name and location joined by a separator.
+            ///   - comedianId: Comedian UUID the notification is about.
+            ///   - comedianName: Comedian display name.
+            ///   - showId: Show id; the tap target deep-links to show detail.
+            ///   - showPageUrl: Canonical show page URL.
+            ///   - showDate: ISO-8601 show date; null if the show row was purged.
+            ///   - clubName: Venue name.
+            ///   - city: Venue city.
+            ///   - state: Venue state.
+            ///   - channels: Delivery channels that fired for this event, e.g. ["push", "email"].
+            ///   - sentAt: ISO-8601 timestamp of the most recent delivery in the group.
+            ///   - isUnread: Whether this item's latest send is newer than the last-seen mark.
+            public init(
+                id: Swift.String,
+                title: Swift.String,
+                body: Swift.String,
+                comedianId: Swift.String,
+                comedianName: Swift.String,
+                showId: Swift.Int,
+                showPageUrl: Swift.String? = nil,
+                showDate: Swift.String? = nil,
+                clubName: Swift.String? = nil,
+                city: Swift.String? = nil,
+                state: Swift.String? = nil,
+                channels: [Swift.String],
+                sentAt: Swift.String,
+                isUnread: Swift.Bool
+            ) {
+                self.id = id
+                self.title = title
+                self.body = body
+                self.comedianId = comedianId
+                self.comedianName = comedianName
+                self.showId = showId
+                self.showPageUrl = showPageUrl
+                self.showDate = showDate
+                self.clubName = clubName
+                self.city = city
+                self.state = state
+                self.channels = channels
+                self.sentAt = sentAt
+                self.isUnread = isUnread
+            }
+            public enum CodingKeys: String, CodingKey {
+                case id
+                case title
+                case body
+                case comedianId
+                case comedianName
+                case showId
+                case showPageUrl
+                case showDate
+                case clubName
+                case city
+                case state
+                case channels
+                case sentAt
+                case isUnread
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/NotificationsSeenResponse`.
+        public struct NotificationsSeenResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/NotificationsSeenResponse/data`.
+            public struct DataPayload: Codable, Hashable, Sendable {
+                /// The newly-stamped last-seen timestamp (ISO-8601).
+                ///
+                /// - Remark: Generated from `#/components/schemas/NotificationsSeenResponse/data/lastSeenAt`.
+                public var lastSeenAt: Swift.String?
+                /// Creates a new `DataPayload`.
+                ///
+                /// - Parameters:
+                ///   - lastSeenAt: The newly-stamped last-seen timestamp (ISO-8601).
+                public init(lastSeenAt: Swift.String? = nil) {
+                    self.lastSeenAt = lastSeenAt
+                }
+                public enum CodingKeys: String, CodingKey {
+                    case lastSeenAt
+                }
+            }
+            /// - Remark: Generated from `#/components/schemas/NotificationsSeenResponse/data`.
+            public var data: Components.Schemas.NotificationsSeenResponse.DataPayload
+            /// Creates a new `NotificationsSeenResponse`.
+            ///
+            /// - Parameters:
+            ///   - data:
+            public init(data: Components.Schemas.NotificationsSeenResponse.DataPayload) {
+                self.data = data
+            }
+            public enum CodingKeys: String, CodingKey {
+                case data
             }
         }
         /// - Remark: Generated from `#/components/schemas/FavoriteResponse`.
@@ -4941,6 +5184,578 @@ public enum Operations {
                     default:
                         try throwUnexpectedResponseStatus(
                             expectedStatus: "internalServerError",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// List the authenticated user's notification history
+    ///
+    /// Returns the user's comedian-arrival notifications (push + email), reconstructed from sent-notification records and grouped per (comedian, show). iOS renders these in the notification center. Capped at the 100 most-recent; no cursor pagination.
+    ///
+    /// - Remark: HTTP `GET /me/notifications`.
+    /// - Remark: Generated from `#/paths//me/notifications/get(getMeNotifications)`.
+    public enum GetMeNotifications {
+        public static let id: Swift.String = "getMeNotifications"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/me/notifications/GET/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetMeNotifications.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetMeNotifications.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.GetMeNotifications.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - headers:
+            public init(headers: Operations.GetMeNotifications.Input.Headers = .init()) {
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/notifications/GET/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/notifications/GET/responses/200/content/application\/json`.
+                    case json(Components.Schemas.NotificationListResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.NotificationListResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetMeNotifications.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetMeNotifications.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Notification history
+            ///
+            /// - Remark: Generated from `#/paths//me/notifications/get(getMeNotifications)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.GetMeNotifications.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.GetMeNotifications.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Unauthorized: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/notifications/GET/responses/401/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/notifications/GET/responses/401/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetMeNotifications.Output.Unauthorized.Body
+                /// Creates a new `Unauthorized`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetMeNotifications.Output.Unauthorized.Body) {
+                    self.body = body
+                }
+            }
+            /// Missing or invalid Bearer token
+            ///
+            /// - Remark: Generated from `#/paths//me/notifications/get(getMeNotifications)/responses/401`.
+            ///
+            /// HTTP response code: `401 unauthorized`.
+            case unauthorized(Operations.GetMeNotifications.Output.Unauthorized)
+            /// The associated value of the enum case if `self` is `.unauthorized`.
+            ///
+            /// - Throws: An error if `self` is not `.unauthorized`.
+            /// - SeeAlso: `.unauthorized`.
+            public var unauthorized: Operations.GetMeNotifications.Output.Unauthorized {
+                get throws {
+                    switch self {
+                    case let .unauthorized(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unauthorized",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct UnprocessableContent: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/notifications/GET/responses/422/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/notifications/GET/responses/422/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetMeNotifications.Output.UnprocessableContent.Body
+                /// Creates a new `UnprocessableContent`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetMeNotifications.Output.UnprocessableContent.Body) {
+                    self.body = body
+                }
+            }
+            /// Authenticated user has no UserProfile row
+            ///
+            /// - Remark: Generated from `#/paths//me/notifications/get(getMeNotifications)/responses/422`.
+            ///
+            /// HTTP response code: `422 unprocessableContent`.
+            case unprocessableContent(Operations.GetMeNotifications.Output.UnprocessableContent)
+            /// The associated value of the enum case if `self` is `.unprocessableContent`.
+            ///
+            /// - Throws: An error if `self` is not `.unprocessableContent`.
+            /// - SeeAlso: `.unprocessableContent`.
+            public var unprocessableContent: Operations.GetMeNotifications.Output.UnprocessableContent {
+                get throws {
+                    switch self {
+                    case let .unprocessableContent(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unprocessableContent",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/notifications/GET/responses/429/headers`.
+                public struct Headers: Sendable, Hashable {
+                    /// Number of seconds the client should wait before retrying.
+                    ///
+                    /// - Remark: Generated from `#/paths/me/notifications/GET/responses/429/headers/Retry-After`.
+                    public var retryAfter: Swift.Int?
+                    /// Creates a new `Headers`.
+                    ///
+                    /// - Parameters:
+                    ///   - retryAfter: Number of seconds the client should wait before retrying.
+                    public init(retryAfter: Swift.Int? = nil) {
+                        self.retryAfter = retryAfter
+                    }
+                }
+                /// Received HTTP response headers
+                public var headers: Operations.GetMeNotifications.Output.TooManyRequests.Headers
+                /// - Remark: Generated from `#/paths/me/notifications/GET/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/notifications/GET/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetMeNotifications.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - headers: Received HTTP response headers
+                ///   - body: Received HTTP response body
+                public init(
+                    headers: Operations.GetMeNotifications.Output.TooManyRequests.Headers = .init(),
+                    body: Operations.GetMeNotifications.Output.TooManyRequests.Body
+                ) {
+                    self.headers = headers
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded
+            ///
+            /// - Remark: Generated from `#/paths//me/notifications/get(getMeNotifications)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.GetMeNotifications.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.GetMeNotifications.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Mark the notification center as seen
+    ///
+    /// Stamps the notifications last-seen high-water mark to now, clearing the unread badge. iOS calls this when the user opens the notification center.
+    ///
+    /// - Remark: HTTP `POST /me/notifications/seen`.
+    /// - Remark: Generated from `#/paths//me/notifications/seen/post(markMeNotificationsSeen)`.
+    public enum MarkMeNotificationsSeen {
+        public static let id: Swift.String = "markMeNotificationsSeen"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/me/notifications/seen/POST/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.MarkMeNotificationsSeen.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.MarkMeNotificationsSeen.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.MarkMeNotificationsSeen.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - headers:
+            public init(headers: Operations.MarkMeNotificationsSeen.Input.Headers = .init()) {
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/notifications/seen/POST/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/notifications/seen/POST/responses/200/content/application\/json`.
+                    case json(Components.Schemas.NotificationsSeenResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.NotificationsSeenResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.MarkMeNotificationsSeen.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.MarkMeNotificationsSeen.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Last-seen timestamp updated
+            ///
+            /// - Remark: Generated from `#/paths//me/notifications/seen/post(markMeNotificationsSeen)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.MarkMeNotificationsSeen.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.MarkMeNotificationsSeen.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Unauthorized: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/notifications/seen/POST/responses/401/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/notifications/seen/POST/responses/401/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.MarkMeNotificationsSeen.Output.Unauthorized.Body
+                /// Creates a new `Unauthorized`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.MarkMeNotificationsSeen.Output.Unauthorized.Body) {
+                    self.body = body
+                }
+            }
+            /// Missing or invalid Bearer token
+            ///
+            /// - Remark: Generated from `#/paths//me/notifications/seen/post(markMeNotificationsSeen)/responses/401`.
+            ///
+            /// HTTP response code: `401 unauthorized`.
+            case unauthorized(Operations.MarkMeNotificationsSeen.Output.Unauthorized)
+            /// The associated value of the enum case if `self` is `.unauthorized`.
+            ///
+            /// - Throws: An error if `self` is not `.unauthorized`.
+            /// - SeeAlso: `.unauthorized`.
+            public var unauthorized: Operations.MarkMeNotificationsSeen.Output.Unauthorized {
+                get throws {
+                    switch self {
+                    case let .unauthorized(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unauthorized",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct UnprocessableContent: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/notifications/seen/POST/responses/422/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/notifications/seen/POST/responses/422/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.MarkMeNotificationsSeen.Output.UnprocessableContent.Body
+                /// Creates a new `UnprocessableContent`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.MarkMeNotificationsSeen.Output.UnprocessableContent.Body) {
+                    self.body = body
+                }
+            }
+            /// Authenticated user has no UserProfile row
+            ///
+            /// - Remark: Generated from `#/paths//me/notifications/seen/post(markMeNotificationsSeen)/responses/422`.
+            ///
+            /// HTTP response code: `422 unprocessableContent`.
+            case unprocessableContent(Operations.MarkMeNotificationsSeen.Output.UnprocessableContent)
+            /// The associated value of the enum case if `self` is `.unprocessableContent`.
+            ///
+            /// - Throws: An error if `self` is not `.unprocessableContent`.
+            /// - SeeAlso: `.unprocessableContent`.
+            public var unprocessableContent: Operations.MarkMeNotificationsSeen.Output.UnprocessableContent {
+                get throws {
+                    switch self {
+                    case let .unprocessableContent(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unprocessableContent",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/notifications/seen/POST/responses/429/headers`.
+                public struct Headers: Sendable, Hashable {
+                    /// Number of seconds the client should wait before retrying.
+                    ///
+                    /// - Remark: Generated from `#/paths/me/notifications/seen/POST/responses/429/headers/Retry-After`.
+                    public var retryAfter: Swift.Int?
+                    /// Creates a new `Headers`.
+                    ///
+                    /// - Parameters:
+                    ///   - retryAfter: Number of seconds the client should wait before retrying.
+                    public init(retryAfter: Swift.Int? = nil) {
+                        self.retryAfter = retryAfter
+                    }
+                }
+                /// Received HTTP response headers
+                public var headers: Operations.MarkMeNotificationsSeen.Output.TooManyRequests.Headers
+                /// - Remark: Generated from `#/paths/me/notifications/seen/POST/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/notifications/seen/POST/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.MarkMeNotificationsSeen.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - headers: Received HTTP response headers
+                ///   - body: Received HTTP response body
+                public init(
+                    headers: Operations.MarkMeNotificationsSeen.Output.TooManyRequests.Headers = .init(),
+                    body: Operations.MarkMeNotificationsSeen.Output.TooManyRequests.Body
+                ) {
+                    self.headers = headers
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded
+            ///
+            /// - Remark: Generated from `#/paths//me/notifications/seen/post(markMeNotificationsSeen)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.MarkMeNotificationsSeen.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.MarkMeNotificationsSeen.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
                             response: self
                         )
                     }

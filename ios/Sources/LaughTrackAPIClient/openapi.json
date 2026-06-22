@@ -340,6 +340,104 @@
         }
       }
     },
+    "/me/notifications": {
+      "get": {
+        "operationId": "getMeNotifications",
+        "summary": "List the authenticated user's notification history",
+        "description": "Returns the user's comedian-arrival notifications (push + email), reconstructed from sent-notification records and grouped per (comedian, show). iOS renders these in the notification center. Capped at the 100 most-recent; no cursor pagination.",
+        "tags": ["auth"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Notification history",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/NotificationListResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid Bearer token",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Authenticated user has no UserProfile row",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "headers": {
+              "Retry-After": {
+                "description": "Number of seconds the client should wait before retrying.",
+                "schema": { "type": "integer", "minimum": 0 }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/me/notifications/seen": {
+      "post": {
+        "operationId": "markMeNotificationsSeen",
+        "summary": "Mark the notification center as seen",
+        "description": "Stamps the notifications last-seen high-water mark to now, clearing the unread badge. iOS calls this when the user opens the notification center.",
+        "tags": ["auth"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Last-seen timestamp updated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/NotificationsSeenResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid Bearer token",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Authenticated user has no UserProfile row",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "headers": {
+              "Retry-After": {
+                "description": "Number of seconds the client should wait before retrying.",
+                "schema": { "type": "integer", "minimum": 0 }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/clubs": {
       "get": {
         "operationId": "listClubs",
@@ -2431,6 +2529,76 @@
             "type": "integer",
             "nullable": true,
             "description": "Saved profile distance in miles used for Near Me."
+          },
+          "notificationsUnreadCount": {
+            "type": "integer",
+            "description": "Number of unread notifications (distinct comedian+show events with sentAt newer than the last-seen mark). Drives the profile-button unread badge from the launch-time /me fetch. Optional for rollout-window safety: older API responses may omit it; iOS treats a missing value as 0."
+          }
+        }
+      },
+      "NotificationListResponse": {
+        "type": "object",
+        "required": ["data"],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": ["items", "unreadCount", "lastSeenAt"],
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": { "$ref": "#/components/schemas/NotificationItem" }
+              },
+              "unreadCount": {
+                "type": "integer",
+                "description": "Number of unread items in this feed (items with isUnread true)."
+              },
+              "lastSeenAt": {
+                "type": "string",
+                "nullable": true,
+                "description": "ISO-8601 timestamp the user last opened the notification center; null if never opened."
+              }
+            }
+          }
+        }
+      },
+      "NotificationItem": {
+        "type": "object",
+        "required": ["id", "title", "body", "comedianId", "comedianName", "showId", "channels", "sentAt", "isUnread"],
+        "properties": {
+          "id": { "type": "string", "description": "Stable group id, formatted comedianId:showId." },
+          "title": { "type": "string", "description": "Reconstructed headline, e.g. \"Taylor Tomlinson is performing near you\"." },
+          "body": { "type": "string", "description": "Reconstructed subtitle: club name and location joined by a separator." },
+          "comedianId": { "type": "string", "description": "Comedian UUID the notification is about." },
+          "comedianName": { "type": "string", "description": "Comedian display name." },
+          "showId": { "type": "integer", "description": "Show id; the tap target deep-links to show detail." },
+          "showPageUrl": { "type": "string", "nullable": true, "description": "Canonical show page URL." },
+          "showDate": { "type": "string", "nullable": true, "description": "ISO-8601 show date; null if the show row was purged." },
+          "clubName": { "type": "string", "nullable": true, "description": "Venue name." },
+          "city": { "type": "string", "nullable": true, "description": "Venue city." },
+          "state": { "type": "string", "nullable": true, "description": "Venue state." },
+          "channels": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Delivery channels that fired for this event, e.g. [\"push\", \"email\"]."
+          },
+          "sentAt": { "type": "string", "description": "ISO-8601 timestamp of the most recent delivery in the group." },
+          "isUnread": { "type": "boolean", "description": "Whether this item's latest send is newer than the last-seen mark." }
+        }
+      },
+      "NotificationsSeenResponse": {
+        "type": "object",
+        "required": ["data"],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": ["lastSeenAt"],
+            "properties": {
+              "lastSeenAt": {
+                "type": "string",
+                "nullable": true,
+                "description": "The newly-stamped last-seen timestamp (ISO-8601)."
+              }
+            }
           }
         }
       },
