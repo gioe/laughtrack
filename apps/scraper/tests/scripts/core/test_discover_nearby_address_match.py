@@ -128,6 +128,65 @@ def test_denied_place_id_preserves_deny_list_evidence():
     assert result.deny_evidence == {"calendar": "music"}
 
 
+def _name_row(club_id, club_name, lat, lng, club_type="club", visible=True, status="active"):
+    """Build a name_rows entry: (id, name, normalized_name, lat, lng, *meta)."""
+    return (club_id, club_name, dn._normalize_name(club_name), lat, lng, club_type, visible, status)
+
+
+# Foxwoods coords — the Great Cedar Showroom regression case (TASK-3170).
+_FOXWOODS = (41.4742, -71.9601)
+
+
+def test_name_token_subset_catches_longer_stored_variant():
+    # Existing club stored under a longer name variant, with a NULL place_id —
+    # exactly the Great Cedar Showroom gap (re-proposed as "new" because the
+    # discovery name is a strict prefix/subset of the stored name).
+    name_rows = [
+        _name_row(4642, "Great Cedar Showroom at Foxwoods Resort Casino", *_FOXWOODS),
+    ]
+    v = venue("Great Cedar Showroom", "350 Trolley Line Blvd, Mashantucket, CT",
+              place_id="PID_NEW", lat=_FOXWOODS[0], lng=_FOXWOODS[1])
+    result = dn._classify(
+        v, None, by_place_id={}, name_rows=name_rows, name_match_miles=2.0, addr_index={}
+    )
+    assert (result.status, result.club_id) == ("likely", 4642)
+
+
+def test_name_token_subset_requires_proximity():
+    # Same name-subset relationship but the stored club is far away -> not a dup
+    # (guards against collapsing same-named venues in different cities).
+    name_rows = [_name_row(50, "Great Cedar Showroom at Foxwoods Resort Casino", 34.05, -118.25)]
+    v = venue("Great Cedar Showroom", "1 Somewhere St, Los Angeles, CA",
+              place_id="PID_NEW", lat=_FOXWOODS[0], lng=_FOXWOODS[1])
+    result = dn._classify(
+        v, None, by_place_id={}, name_rows=name_rows, name_match_miles=2.0, addr_index={}
+    )
+    assert result.status == "new"
+
+
+def test_single_generic_token_overlap_does_not_collapse():
+    # A lone shared generic word must NOT collapse distinct venues, even nearby.
+    name_rows = [_name_row(60, "Brea Improv Comedy Club", *_FOXWOODS)]
+    v = venue("Comedy", "1 Main St, Mashantucket, CT",
+              place_id="PID_NEW", lat=_FOXWOODS[0], lng=_FOXWOODS[1])
+    result = dn._classify(
+        v, None, by_place_id={}, name_rows=name_rows, name_match_miles=2.0, addr_index={}
+    )
+    assert result.status == "new"
+
+
+def test_name_token_helpers_drop_stopwords():
+    assert dn._name_tokens("Great Cedar Showroom at Foxwoods Resort Casino") == frozenset(
+        {"great", "cedar", "showroom", "foxwoods", "resort", "casino"}
+    )
+    assert dn._is_name_token_subset(
+        frozenset({"great", "cedar", "showroom"}),
+        frozenset({"great", "cedar", "showroom", "foxwoods", "resort", "casino"}),
+    )
+    # single-token subset is rejected (>= 2 meaningful tokens required)
+    assert not dn._is_name_token_subset(frozenset({"comedy"}), frozenset({"comedy", "club"}))
+
+
 def test_truly_new_venue_stays_new():
     v = venue("Brand New Room", "99999 Nowhere Rd, Nowhere, CA 90000, USA", place_id="PID_NEW")
     status, _, _ = dn._classify(

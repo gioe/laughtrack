@@ -141,6 +141,32 @@ def _normalize_name(name: str) -> str:
     return re.sub(r"[^a-z0-9]", "", (name or "").lower())
 
 
+# Filler words dropped before token-subset name comparison so a venue listed as
+# "X" matches a club stored as "X at Y" / "X of Y".
+_NAME_STOPWORDS = frozenset({"at", "the", "of", "and", "a", "an"})
+
+
+def _name_tokens(name: str) -> frozenset:
+    """Set of meaningful lowercase word tokens in a club name (stopwords dropped)."""
+    toks = re.split(r"[^a-z0-9]+", (name or "").lower())
+    return frozenset(t for t in toks if t and t not in _NAME_STOPWORDS)
+
+
+def _is_name_token_subset(a: frozenset, b: frozenset) -> bool:
+    """True when the shorter name's meaningful tokens are a subset of the longer's.
+
+    Catches "Great Cedar Showroom" vs "Great Cedar Showroom at Foxwoods Resort
+    Casino" (an onboarded venue re-surfaced as new because its stored name is a
+    longer variant). Requires the smaller set to have >= 2 tokens so a single
+    generic word ("comedy") can't collapse unrelated venues; the caller's
+    proximity check is the second guard against false positives.
+    """
+    if not a or not b:
+        return False
+    smaller, larger = (a, b) if len(a) <= len(b) else (b, a)
+    return len(smaller) >= 2 and smaller <= larger
+
+
 _STREET_DIRECTIONS = frozenset(
     {"n", "s", "e", "w", "ne", "nw", "se", "sw", "north", "south", "east", "west"}
 )
@@ -319,9 +345,14 @@ def _match_by_name(venue, name_rows, name_match_miles):
     target = _normalize_name(venue.name)
     if not target:
         return None
+    target_tokens = _name_tokens(venue.name)
     for row in name_rows:
         club_id, club_name, norm, lat, lng = row[:5]
-        if norm == target and _within(venue, lat, lng, name_match_miles):
+        if not _within(venue, lat, lng, name_match_miles):
+            continue
+        # Exact normalized equality, or one name is a token-subset of the other
+        # ("Great Cedar Showroom" vs "Great Cedar Showroom at Foxwoods ...").
+        if norm == target or _is_name_token_subset(target_tokens, _name_tokens(club_name)):
             return _split_club_match(row, 5)
     return None
 
