@@ -100,6 +100,12 @@ Is there a tixr.com buy link?
                                       venue-specific only for unsupported source shapes
               (see Tixr section — short/long URL format and DataDome behavior matter)
 
+Is there an events.timely.fun embed or a WordPress All-in-One Event Calendar / time.ly widget?
+  └── YES → platform: custom → scraper = 'timely' (generic)
+              DB: source_url = https://events.timely.fun/{slug}/agenda,
+                  metadata.timely_calendar_id = numeric calendar id
+              (see Timely section — browser requests require a public x-api-key)
+
 Is there a Showpass widget or showpass.com buy link?
   └── YES → platform: Showpass → scraper = 'showpass' (generic)
               DB: scraping_url = Showpass calendar API base URL
@@ -675,6 +681,69 @@ GET https://tockify.com/api/ngevent?calname=<calname>&max=200&startms=<now_ms>
    `https://tockify.com/<calname>/detail/<uid>/<tid>`, derived by the
    extractor from the API URL. No per-venue work required.
 4. Set `scraping_url` in the DB (optional — only needed if overriding the hardcoded URL)
+
+---
+
+### Timely
+
+| | |
+|---|---|
+| **Scraper key** | `timely` |
+| **Platform** | `custom` |
+| **DB field** | `scraping_sources.source_url` + `metadata.timely_calendar_id` |
+| **Value format** | `source_url='https://events.timely.fun/<slug>/agenda'`; metadata numeric `timely_calendar_id` |
+| **Generic?** | ✅ Generic — a second Timely calendar needs only a DB row once the numeric calendar id is captured |
+
+**Detection signals:**
+- Venue page embeds or links to `events.timely.fun/<slug>/agenda`
+- Page source includes `<timely-calendar ... data-info="...">`
+- Browser network requests hit:
+  ```
+  GET https://events.timely.fun/api/calendars/<calendar_id>/events?group_by_date=1&timezone=<iana>&view=agenda&start_date_utc=<local-midnight-epoch>&per_page=30&page=1
+  ```
+
+**API/source pattern:**
+- Timely's public browser API endpoint is:
+  ```
+  GET https://events.timely.fun/api/calendars/<calendar_id>/events
+  ```
+- Required query params used by the scraper: `group_by_date=1`, `timezone`, `view=agenda`, `start_date_utc`, `per_page`, and `page`.
+- The request requires Timely's public browser `x-api-key` header. The scraper stores the currently shipped key as a default and allows `metadata.timely_api_key` to override it if Timely rotates the key.
+- The slug (`fwq8raf8` for Jacques' Cabaret) is not accepted as the API calendar id. Capture the numeric id from browser requests or from the page's decoded `data-info.id`.
+
+**Key extraction notes:**
+- `data.items` is grouped by date when `group_by_date=1`; flatten every list under that object.
+- Dates are local strings (`start_datetime`) plus an IANA `timezone`; parse with `ShowFactoryUtils.parse_datetime_with_timezone_fallback`.
+- Public event URL shape is `<source_url>/event/<custom_url>/<instance>`.
+- Positive `tickets_min_price` values are parsed as ticket prices. `ticket_type='no_ticket'`, `cost_display='0'`, or a missing price does **not** prove the event is free, so leave price unknown.
+- `cost_external_url`, when present, is the ticket purchase URL; otherwise the Timely event URL is the fallback ticket URL.
+- Pagination uses `data.has_next`; the scraper has a safety cap.
+
+**DB setup:**
+```sql
+INSERT INTO scraping_sources (
+    club_id, platform, scraper_key, source_url, priority, enabled, metadata
+)
+VALUES (
+    <club_id>,
+    'custom'::"ScrapingPlatform",
+    'timely',
+    'https://events.timely.fun/<slug>/agenda',
+    0,
+    TRUE,
+    '{"timely_calendar_id": <numeric_id>, "calendar_slug": "<slug>"}'::jsonb
+);
+```
+
+**Failure modes / gotchas:**
+- The API returns `Calendar Not Found` if the `x-api-key` header is omitted.
+- The visible slug and SSR route event ids are not valid substitutes for the numeric calendar id in `/api/calendars/<id>/events`.
+- Some Timely calendars include mixed programming; use a separate task before adding a comedy-only filter, because the generic scraper currently keeps every event in the calendar.
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/scrapers/implementations/api/timely/`
+- `apps/scraper/src/laughtrack/core/entities/event/timely.py`
+- Jacques' Cabaret (TASK-3155): slug `fwq8raf8`, calendar id `54755528`
 
 ---
 
@@ -3142,6 +3211,7 @@ Other related checks:
 | `tixr` | `source_url` or `scraping_url` (server-rendered calendar page with Tixr event links) |
 | `tixr_public_card` | `source_url` or `scraping_url` (venue-owned event cards with Tixr ticket URLs) |
 | `tixr_webflow_day_card` | `source_url` + metadata `tixr_group_fragment` |
+| `timely` | `source_url` + metadata `timely_calendar_id` |
 | `squarespace` | `scraping_url` (full GetItemsByMonth URL with `collectionId`) |
 | `vbo_tickets` | `source_url` (loadplugin URL with SiteID) |
 | `ninkashi` | `scraping_url` (tickets subdomain, e.g. `tickets.myvenue.com`) |
