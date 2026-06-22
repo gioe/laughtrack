@@ -251,16 +251,26 @@ private struct LoadingMarqueeBulbs: View {
 
             HStack(spacing: 12) {
                 ForEach(0..<5, id: \.self) { index in
-                    let wave = isAnimating
+                    // Hoist every arithmetic subexpression into an explicitly
+                    // typed binding. Inlining these in the .fill/.frame/.shadow
+                    // modifiers forces the type-checker through combinatorial
+                    // Double/CGFloat overload resolution and times out
+                    // ("unable to type-check this expression in reasonable
+                    // time"); the explicit Double annotations collapse it.
+                    let wave: Double = isAnimating
                         ? (sin(elapsed * 2 * .pi / 1.8 + Double(index) * 0.65) + 1) / 2
                         : 0.65
+                    let fillOpacity: Double = 0.35 + wave * 0.55
+                    let diameter: Double = 5 + wave * 2
+                    let shadowOpacity: Double = 0.35 + wave * 0.45
+                    let shadowRadius: Double = 4 + wave * 7
 
                     Circle()
-                        .fill(laughTrack.colors.accentStrong.opacity(0.35 + wave * 0.55))
-                        .frame(width: 5 + wave * 2, height: 5 + wave * 2)
+                        .fill(laughTrack.colors.accentStrong.opacity(fillOpacity))
+                        .frame(width: diameter, height: diameter)
                         .shadow(
-                            color: laughTrack.colors.accentStrong.opacity(0.35 + wave * 0.45),
-                            radius: 4 + wave * 7
+                            color: laughTrack.colors.accentStrong.opacity(shadowOpacity),
+                            radius: shadowRadius
                         )
                 }
             }
