@@ -259,6 +259,21 @@ struct ContentViewNavigationTests {
         #expect(pushed == [.profile])
     }
 
+    @Test("Profile menu routes: Notifications pushes .notifications, Settings still pushes .profile")
+    func profileMenuRoutesResolve() async throws {
+        // Settings preserves the original tap destination.
+        #expect(AppRoute.accountHeaderTarget() == .profile)
+        // Notifications is a non-tab detail route, like profile.
+        #expect(AppRoute.notifications.shellTab == nil)
+
+        let coordinator = TypedNavigationCoordinator<AppRoute>()
+        coordinator.push(.notifications)
+        coordinator.push(.showDetail(555))
+        let pushed = decodedRoutes(in: coordinator, as: AppRoute.self)
+        // The center opens, then a tapped row deep-links to the show.
+        #expect(pushed == [.notifications, .showDetail(555)])
+    }
+
     @Test("ContentView switches between the near me and profile routes")
     func contentViewSwitchesBetweenRoutes() async throws {
         #expect(AppRoute.nearMe.shellTab == .nearMe)

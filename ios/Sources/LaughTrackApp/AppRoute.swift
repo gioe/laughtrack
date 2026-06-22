@@ -3,6 +3,7 @@ enum AppRoute: Hashable, Codable {
     case search
     case library
     case profile
+    case notifications
     case showDetail(Int)
     case comedianDetail(Int)
     case clubDetail(Int)
@@ -16,7 +17,7 @@ enum AppRoute: Hashable, Codable {
             return .search
         case .library:
             return .favorites
-        case .profile, .showDetail, .comedianDetail, .clubDetail, .podcastDetail:
+        case .profile, .notifications, .showDetail, .comedianDetail, .clubDetail, .podcastDetail:
             return nil
         }
     }

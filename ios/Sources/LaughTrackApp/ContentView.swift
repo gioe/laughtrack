@@ -30,6 +30,10 @@ enum LaughTrackViewTestID {
     static let softPushPromptEnableButton = "laughtrack.soft-push-prompt.enable-button"
     static let softPushPromptDeferButton = "laughtrack.soft-push-prompt.defer-button"
     static let accountHeaderButton = "laughtrack.account.header-button"
+    static let accountNotificationsMenuItem = "laughtrack.account.menu.notifications"
+    static let accountSettingsMenuItem = "laughtrack.account.menu.settings"
+    static let notificationCenterScreen = "laughtrack.notifications.screen"
+    static let notificationRow = "laughtrack.notifications.row"
     static let locationPermissionPitch = "laughtrack.location-permission.pitch"
     static let locationPermissionAllowButton = "laughtrack.location-permission.allow-button"
     static let locationPermissionManualZipButton = "laughtrack.location-permission.manual-zip-button"
@@ -354,6 +358,8 @@ struct ContentView: View {
                     profileLocationPreferenceSyncClient: serviceContainer.resolveOptional((any ProfileLocationPreferenceSyncing).self),
                     analytics: serviceContainer.resolveOptional(AnalyticsManagerProtocol.self)
                 )
+            case .notifications:
+                NotificationCenterView(apiClient: apiClient)
             case .showDetail(let id):
                 ShowDetailView(showID: id, apiClient: apiClient)
             case .comedianDetail(let id):
