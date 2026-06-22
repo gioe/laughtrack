@@ -127,7 +127,7 @@ check-env:
 		fi \
 	fi
 
-.PHONY: test test-all test-venues test-core test-infrastructure test-utils test-critical help help-full help-install help-test help-lint hdiscover help-clean help-linting help-testing help-scraping help-setup help-analysis help-viz help-maintenance help-update help-updates help-workflows help-discovery help-info help-cleanup scrape-all scrape-club scrape-club-id diagnose-club scrape-interactive scrape-types list-scrapers list-clubs update-popularity update-club-enrichment update-comedian-stats sync-club-images audit-cdn-images migrate migrate-dry-run dashboard visualize-metrics scraper-status daily-scrape full-maintenance install install-dev install-optional seatengine-api-tool seatengine-check seatengine-audit check-scraping-priorities check-scraping-source-invariants check-stale-scraper-keys check-show-attribution clean lint lint-check format format-check lint-fix lint-fix-imports lint-fix-whitespace check-venv check-env setup-venv arch-lint run-script lookup-bandsintown-ids discover-clubs discover-nearby query
+.PHONY: test test-all test-venues test-core test-infrastructure test-utils test-critical help help-full help-install help-test help-lint hdiscover help-clean help-linting help-testing help-scraping help-setup help-analysis help-viz help-maintenance help-update help-updates help-workflows help-discovery help-info help-cleanup scrape-all scrape-club scrape-club-id diagnose-club scrape-interactive scrape-types list-scrapers list-clubs update-popularity update-club-enrichment update-comedian-stats sync-club-images audit-cdn-images migrate migrate-dry-run dashboard visualize-metrics scraper-status daily-scrape full-maintenance install install-dev install-optional seatengine-api-tool seatengine-check seatengine-audit check-scraping-priorities check-scraping-source-invariants check-stale-scraper-keys check-show-attribution clean lint lint-check format format-check lint-fix lint-fix-imports lint-fix-whitespace check-venv check-env setup-venv arch-lint run-script lookup-bandsintown-ids discover-clubs discover-nearby query find-aliases audit-club-geo
 
 # =============================================================================
 # HELP & DOCUMENTATION
@@ -850,6 +850,22 @@ find-aliases: check-env
 		$(if $(MIN_SOURCES),--min-sources $(MIN_SOURCES),) \
 		$(if $(FORMAT),--format $(FORMAT),) \
 		$(if $(LIMIT),--limit $(LIMIT),) \
+		$(ARGS)
+
+# Flag clubs whose geographic identity (city/state/website) has drifted from
+# the venue their scraping source actually points at — the TASK-3152 Red Room
+# class (NYC-labeled club ingesting a Provincetown source). Cheap & offline:
+# compares source_url domains to the club's website domain, and surfaces venue
+# domains / platform venue ids shared by clubs in different cities. Chains are
+# suppressed by default (pass ARGS="--include-chains" to see them).
+#
+# Usage: make audit-club-geo
+#        make audit-club-geo FORMAT=csv
+#        make audit-club-geo ARGS="--signal website_domain_mismatch"
+#        make audit-club-geo ARGS="--include-hidden --include-chains"
+audit-club-geo: check-env
+	@$(activate_venv) $(PYTHON) bin/audit-club-source-geo \
+		$(if $(FORMAT),--format $(FORMAT),) \
 		$(ARGS)
 
 # Probe the live Tixr group-events API and dump raw JSON for fixture creation.

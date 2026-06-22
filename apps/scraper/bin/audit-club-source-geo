@@ -1,0 +1,435 @@
+#!/usr/bin/env python3
+"""
+Audit clubs whose geographic identity has drifted from the venue their
+scraping source actually points at.
+
+Motivating incident (TASK-3152): club 461 "Red Room" was labeled New York, NY
+but its only scraping source (seatengine, source_url redroom.club) is the
+Provincetown, MA venue — so it had been ingesting P-town shows under an NYC
+identity. A club's geographic identity (city/state/website) can drift from the
+venue its scraping source targets, with no guard. This audit surfaces those
+mismatches cheaply (pure SQL + domain parsing, no network calls) so they can be
+corrected.
+
+Signals (each is deterministic and offline):
+
+    website_domain_mismatch
+        A *venue-specific* scraping source (i.e. source_url is the venue's own
+        site, not a generic ticketing/aggregator host like ticketmaster.com)
+        whose registrable domain differs from the club's own `website` domain.
+        This is the Red-Room-class detector: the source points at a different
+        venue's site than the club claims as its homepage.
+
+    shared_venue_across_geo
+        A venue-specific source domain, OR a concrete platform venue id
+        (seatengine_id / eventbrite_id / ticketmaster_id / ovationtix_id /
+        wix_event_id), that maps to 2+ clubs whose (city, state) differ. Two
+        clubs in different cities ingesting from the same venue is a strong
+        mis-wire signal independent of the website field. Groups whose clubs all
+        share the same non-null chain_id are legitimate multi-city chains
+        (Improv, Funny Bone, City Winery, ...) and are suppressed by default —
+        pass --include-chains to see them.
+
+Generic ticketing/aggregator hosts carry no venue-specific geo signal, so
+sources on those hosts are excluded from website_domain_mismatch (their
+source_url is the platform, not the venue). The concrete per-platform venue id
+columns still feed shared_venue_across_geo.
+
+These signals are review lists, not precise detectors. The dominant
+false-positive classes are well understood: (1) a custom scraper hitting a
+third-party booking/ticketing SaaS domain (humanitix, prekindle, opendate, ...)
+rather than the venue's own site — geographically consistent; (2) a venue with
+two of its own domains (a ticketing subdomain plus a marketing site); (3) a
+multi-city chain sharing one corporate domain. The denylist below covers the
+known SaaS platforms, and chain suppression covers (3); the residual is small
+enough to eyeball.
+
+Usage:
+    python bin/audit-club-source-geo
+    python bin/audit-club-source-geo --signal website_domain_mismatch
+    python bin/audit-club-source-geo --format csv
+    python bin/audit-club-source-geo --include-hidden
+    make audit-club-geo
+    make audit-club-geo FORMAT=csv
+
+Reads DATABASE_URL from apps/scraper/.env (same fallback as bin/query).
+"""
+import argparse
+import csv
+import io
+import json
+import os
+import sys
+from pathlib import Path
+from urllib.parse import quote, urlparse
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+SCRAPER_ROOT = SCRIPT_DIR.parent
+ENV_FILE = SCRAPER_ROOT / ".env"
+
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    print("Error: python-dotenv is not installed. Run: pip install python-dotenv", file=sys.stderr)
+    sys.exit(1)
+
+if not ENV_FILE.exists():
+    print(f"Warning: .env not found at {ENV_FILE} — falling back to environment variables", file=sys.stderr)
+
+load_dotenv(ENV_FILE)
+
+SIGNALS = ("website_domain_mismatch", "shared_venue_across_geo")
+
+# Hosts that are ticketing platforms / aggregators rather than a single venue's
+# own site. A source_url on one of these tells us nothing about the venue's
+# geography, so it is excluded from the website-domain comparison. Matched on
+# the registrable domain (last two labels) of the source_url host.
+GENERIC_PLATFORM_DOMAINS = {
+    # Major ticketing platforms
+    "ticketmaster.com",
+    "eventbrite.com",
+    "etix.com",
+    "ovationtix.com",
+    "vbotickets.com",
+    "tixr.com",
+    "simpletix.com",
+    "exploretock.com",
+    "tockify.com",
+    "ticketleap.com",
+    "salesforce-sites.com",
+    "showare.com",
+    "anyroad.com",
+    "editmysite.com",
+    "squarespace.com",
+    "google.com",
+    "crowdwork.com",
+    "stageti.me",
+    "showpass.com",
+    "dice.fm",
+    "seatengine.com",
+    "seatengine-sites.com",
+    "squadup.com",
+    "ticketweb.com",
+    "thundertix.com",
+    "vivenu.com",
+    "shopify.com",
+    "myshopify.com",
+    # Booking / event SaaS used by custom scrapers (source_url is the platform,
+    # not the venue's own site — geographically uninformative).
+    "workers.dev",          # Cloudflare worker proxy
+    "venuepilot.co",
+    "ticketsource.com",
+    "pixlcalendar.com",
+    "punchup.live",
+    "humanitix.com",
+    "prekindle.com",
+    "opendate.io",
+    "mynorthtickets.com",
+    "tickettailor.com",
+    "fienta.com",
+    "sellingticket.com",
+    "accentapi.com",
+    "booktix.com",
+    "neoncrm.com",
+    "brasstix.com",
+    "tempotickets.com",
+    "ludus.com",
+    "timely.fun",
+    "jetbook.co",
+    "showslinger.com",
+    "tixstock.com",
+    "tix.com",
+}
+
+# Multi-label public suffixes we care about, so "foo.salesforce-sites.com" and
+# "bar.co.uk" collapse to the right registrable domain without tldextract.
+# (stageti.me is intentionally NOT here: stagetime gives each venue a
+# subdomain, so we want ccu.stageti.me to collapse to stageti.me and match the
+# platform denylist.)
+TWO_LABEL_SUFFIXES = {
+    "co.uk", "org.uk", "me.uk", "com.au", "co.nz",
+}
+
+
+def registrable_domain(value: str):
+    """Best-effort registrable domain (eTLD+1) from a URL or bare host.
+
+    No tldextract dependency: handles bare hosts, scheme-prefixed URLs, ports,
+    leading www., and a small set of known two-label suffixes. Returns a
+    lowercase domain or None when nothing parseable is found.
+    """
+    if not value:
+        return None
+    value = value.strip().lower()
+    if not value:
+        return None
+    # Make urlparse cooperate whether or not a scheme is present.
+    host = urlparse(value if "//" in value else f"//{value}").hostname
+    if not host:
+        # Fall back to the raw token (e.g. "tour_dates", "ticketmaster").
+        host = value.split("/")[0].split(":")[0]
+    if not host or "." not in host:
+        return None
+    labels = host.split(".")
+    last_two = ".".join(labels[-2:])
+    last_three = ".".join(labels[-3:]) if len(labels) >= 3 else last_two
+    if last_two in TWO_LABEL_SUFFIXES and len(labels) >= 3:
+        return last_three
+    return last_two
+
+
+def is_generic_platform(domain: str) -> bool:
+    return domain in GENERIC_PLATFORM_DOMAINS
+
+
+def _resolve_database_url() -> str:
+    url = os.environ.get("DATABASE_URL")
+    if url:
+        return url
+    host = os.environ.get("DATABASE_HOST")
+    user = os.environ.get("DATABASE_USER")
+    password = os.environ.get("DATABASE_PASSWORD")
+    name = os.environ.get("DATABASE_NAME")
+    port = os.environ.get("DATABASE_PORT", "5432")
+    missing = [
+        var for var, val in (
+            ("DATABASE_HOST", host), ("DATABASE_USER", user),
+            ("DATABASE_PASSWORD", password), ("DATABASE_NAME", name),
+        ) if not val
+    ]
+    if missing:
+        print(
+            "Error: DATABASE_URL not set, and could not compose one from "
+            f"DATABASE_HOST/USER/PASSWORD/NAME/PORT — missing: {', '.join(missing)}. "
+            f"Set DATABASE_URL or the host-family vars in {ENV_FILE}",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    return (
+        f"postgresql://{quote(user, safe='')}:{quote(password, safe='')}"
+        f"@{host}:{port}/{name}?sslmode=require"
+    )
+
+
+# Per-platform concrete venue-id columns on scraping_sources. A shared value in
+# any of these across clubs of differing geo is a mis-wire signal.
+VENUE_ID_COLUMNS = (
+    "seatengine_id", "eventbrite_id", "ticketmaster_id",
+    "ovationtix_id", "wix_event_id",
+)
+
+
+def _fetch_sources(cur, include_hidden: bool):
+    visibility = "" if include_hidden else "AND COALESCE(c.visible, TRUE) = TRUE"
+    id_cols = ", ".join(f"s.{col}" for col in VENUE_ID_COLUMNS)
+    cur.execute(f"""
+        SELECT s.id AS source_id, s.club_id, s.platform::text AS platform,
+               s.source_url, s.enabled,
+               c.name AS club_name, c.city, c.state, c.website, c.visible,
+               c.chain_id,
+               {id_cols}
+        FROM scraping_sources s
+        JOIN clubs c ON c.id = s.club_id
+        WHERE s.club_id IS NOT NULL
+          {visibility}
+        ORDER BY s.club_id, s.id
+    """)
+    cols = [d[0] for d in cur.description]
+    return [dict(zip(cols, row)) for row in cur.fetchall()]
+
+
+def _website_domain_mismatch(sources: list) -> list:
+    """Venue-specific source whose domain != the club's website domain."""
+    out = []
+    for s in sources:
+        src_domain = registrable_domain(s.get("source_url"))
+        if not src_domain or is_generic_platform(src_domain):
+            continue  # no venue-specific geo signal in this source_url
+        web_domain = registrable_domain(s.get("website"))
+        if not web_domain:
+            continue  # handled separately by the no-website bucket
+        if src_domain == web_domain:
+            continue
+        out.append({
+            "signal": "website_domain_mismatch",
+            "club_id": s["club_id"],
+            "club_name": s["club_name"],
+            "city": s["city"],
+            "state": s["state"],
+            "source_id": s["source_id"],
+            "platform": s["platform"],
+            "enabled": s["enabled"],
+            "source_domain": src_domain,
+            "website_domain": web_domain,
+            "source_url": s["source_url"],
+            "website": s["website"],
+        })
+    return out
+
+
+def _geo_key(s: dict) -> str:
+    city = (s.get("city") or "").strip().lower()
+    state = (s.get("state") or "").strip().lower()
+    return f"{city}|{state}"
+
+
+def _shared_venue_across_geo(sources: list, include_chains: bool) -> list:
+    """A venue domain or concrete venue id shared by clubs of differing geo."""
+    # Build buckets keyed by venue identifier -> set of (club_id, geo, detail).
+    buckets = {}  # key -> list of member dicts
+
+    def add(key, s):
+        buckets.setdefault(key, []).append(s)
+
+    for s in sources:
+        # Venue-specific source domain
+        src_domain = registrable_domain(s.get("source_url"))
+        if src_domain and not is_generic_platform(src_domain):
+            add(("domain", src_domain), s)
+        # Concrete per-platform venue ids
+        for col in VENUE_ID_COLUMNS:
+            val = s.get(col)
+            if val is not None and str(val).strip() != "":
+                add((col, str(val).strip()), s)
+
+    out = []
+    for (kind, value), members in buckets.items():
+        geos = {_geo_key(m) for m in members}
+        club_ids = {m["club_id"] for m in members}
+        # Need 2+ distinct clubs AND 2+ distinct geos to be a mismatch.
+        if len(club_ids) < 2 or len(geos) < 2:
+            continue
+        # A multi-city chain legitimately shares one corporate domain. If every
+        # member club carries the same non-null chain_id, treat it as a chain
+        # and suppress unless asked for.
+        chain_ids = {m.get("chain_id") for m in members}
+        same_chain = len(chain_ids) == 1 and None not in chain_ids
+        if same_chain and not include_chains:
+            continue
+        clubs_detail = sorted(
+            {(m["club_id"], m["club_name"], m["city"], m["state"], m.get("chain_id"))
+             for m in members}
+        )
+        out.append({
+            "signal": "shared_venue_across_geo",
+            "identifier_kind": kind,
+            "identifier": value,
+            "club_count": len(club_ids),
+            "geo_count": len(geos),
+            "same_chain": same_chain,
+            "clubs": [
+                {"club_id": cid, "club_name": name, "city": city,
+                 "state": state, "chain_id": chain_id}
+                for (cid, name, city, state, chain_id) in clubs_detail
+            ],
+        })
+    out.sort(key=lambda r: (-r["club_count"], r["identifier_kind"], r["identifier"]))
+    return out
+
+
+def _flatten_shared(rows: list) -> list:
+    """Expand shared_venue_across_geo into one CSV row per (group, club)."""
+    flat = []
+    for r in rows:
+        for c in r["clubs"]:
+            flat.append({
+                "signal": r["signal"],
+                "identifier_kind": r["identifier_kind"],
+                "identifier": r["identifier"],
+                "club_count": r["club_count"],
+                "geo_count": r["geo_count"],
+                "same_chain": r["same_chain"],
+                "club_id": c["club_id"],
+                "club_name": c["club_name"],
+                "city": c["city"],
+                "state": c["state"],
+            })
+    return flat
+
+
+def _format_csv(signal: str, rows: list) -> str:
+    if not rows:
+        return ""
+    buf = io.StringIO()
+    if signal == "website_domain_mismatch":
+        fields = ["signal", "club_id", "club_name", "city", "state", "source_id",
+                  "platform", "enabled", "source_domain", "website_domain",
+                  "source_url", "website"]
+    else:
+        rows = _flatten_shared(rows)
+        fields = ["signal", "identifier_kind", "identifier", "club_count",
+                  "geo_count", "same_chain", "club_id", "club_name", "city", "state"]
+    w = csv.DictWriter(buf, fieldnames=fields)
+    w.writeheader()
+    w.writerows(rows)
+    return buf.getvalue()
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        prog="audit-club-source-geo",
+        description="Flag clubs whose geographic identity is inconsistent with "
+                    "the venue their scraping source points at.",
+    )
+    parser.add_argument(
+        "--signal", action="append", choices=SIGNALS,
+        help=f"Restrict to one signal (repeatable). Default: all of {', '.join(SIGNALS)}.",
+    )
+    parser.add_argument(
+        "--format", choices=("json", "csv"), default="json",
+        help="Output format (default: json).",
+    )
+    parser.add_argument(
+        "--include-hidden", action="store_true",
+        help="Include clubs with visible=FALSE (default: visible clubs only).",
+    )
+    parser.add_argument(
+        "--include-chains", action="store_true",
+        help="In shared_venue_across_geo, also show groups whose clubs share a "
+             "chain_id (legitimate multi-city chains, hidden by default).",
+    )
+    args = parser.parse_args()
+
+    signals = args.signal if args.signal else list(SIGNALS)
+
+    try:
+        import psycopg2  # noqa: F401
+    except ImportError:
+        print("Error: psycopg2 is not installed. Run: pip install psycopg2-binary", file=sys.stderr)
+        sys.exit(1)
+
+    sys.path.insert(0, str(SCRAPER_ROOT / "src"))
+    from laughtrack.foundation.db_util import connect_with_retry  # noqa: E402
+
+    dsn = _resolve_database_url()
+    conn = connect_with_retry(dsn)
+    try:
+        conn.autocommit = True
+        with conn.cursor() as cur:
+            sources = _fetch_sources(cur, args.include_hidden)
+    finally:
+        conn.close()
+
+    results = {}
+    if "website_domain_mismatch" in signals:
+        results["website_domain_mismatch"] = _website_domain_mismatch(sources)
+    if "shared_venue_across_geo" in signals:
+        results["shared_venue_across_geo"] = _shared_venue_across_geo(
+            sources, args.include_chains)
+
+    if args.format == "csv":
+        chunks = []
+        for sig in signals:
+            chunks.append(_format_csv(sig, results.get(sig, [])))
+        sys.stdout.write("\n".join(c for c in chunks if c))
+    else:
+        print(json.dumps(results, indent=2, default=str))
+
+    summary = "; ".join(
+        f"{sig}={len(results.get(sig, []))}" for sig in signals
+    )
+    print(f"audit over {len(sources)} source(s): {summary}", file=sys.stderr)
+
+
+if __name__ == "__main__":
+    main()
