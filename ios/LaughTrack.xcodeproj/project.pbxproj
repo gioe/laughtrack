@@ -130,6 +130,7 @@
 		897916F73DECAD5C678A2269 /* OpenAPIRuntime in Frameworks */ = {isa = PBXBuildFile; productRef = 71C12428379E58C843E61BF8 /* OpenAPIRuntime */; };
 		89C07B42865A1B37AA845F1E /* LaughTrackBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD130C65850C7623AC95788F /* LaughTrackBridge.swift */; };
 		8A22D1AB3B7F3AC0E2379A46 /* ListLoadingSkeletons.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6C10175A73D669E5D8BF97A /* ListLoadingSkeletons.swift */; };
+		8A36AE9D23FAA555350420D5 /* NotificationsAnalyticsEvents.swift in Sources */ = {isa = PBXBuildFile; fileRef = B461E6F9D714C753DF347532 /* NotificationsAnalyticsEvents.swift */; };
 		8A3AE319974FC54ABCE52FB2 /* NearbyPreferenceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92A8166F55F78405CB41E328 /* NearbyPreferenceStore.swift */; };
 		8D81806CD0D225EBF53B6513 /* ComediansDiscoveryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 253B49BBBF819450AC9E778A /* ComediansDiscoveryView.swift */; };
 		8DA3FE021FF27F14D1E9CB48 /* PodcastTonightNearYouCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6740344931ABD2D8276582D0 /* PodcastTonightNearYouCard.swift */; };
@@ -513,6 +514,7 @@
 		AFE2AE340B8C39B49B146875 /* RemoteImageViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteImageViewTests.swift; sourceTree = "<group>"; };
 		B2537988FDEE64029B75C0C6 /* MonthCalendarViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonthCalendarViewTests.swift; sourceTree = "<group>"; };
 		B2A24C1071F5E8BF76882EC9 /* SessionBannerCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionBannerCard.swift; sourceTree = "<group>"; };
+		B461E6F9D714C753DF347532 /* NotificationsAnalyticsEvents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsAnalyticsEvents.swift; sourceTree = "<group>"; };
 		B4E1670E2DC2AFEA73AB1A3E /* ShowDetailViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShowDetailViewTests.swift; sourceTree = "<group>"; };
 		B4FEC52880504039DEF6747D /* PushPermissionStateStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushPermissionStateStore.swift; sourceTree = "<group>"; };
 		B534BFFF719C94C2A0D86C6D /* APIVersionPathMiddleware.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIVersionPathMiddleware.swift; sourceTree = "<group>"; };
@@ -1012,6 +1014,7 @@
 			children = (
 				46FBFF4A89FC9B1EE438A9EE /* ConsoleAnalyticsProvider.swift */,
 				C5D7ED3DC56ACA59D33F3645 /* FirebaseAnalyticsProvider.swift */,
+				B461E6F9D714C753DF347532 /* NotificationsAnalyticsEvents.swift */,
 				528FFEA1D198B7E47EDBDA81 /* PushAnalyticsEvents.swift */,
 			);
 			path = Analytics;
@@ -1476,6 +1479,7 @@
 				E3DDB8037254DC0B356EBBEB /* NearbyLocationController.swift in Sources */,
 				8A3AE319974FC54ABCE52FB2 /* NearbyPreferenceStore.swift in Sources */,
 				2268FC3D21464E385BD48063 /* NotificationPreferenceStore.swift in Sources */,
+				8A36AE9D23FAA555350420D5 /* NotificationsAnalyticsEvents.swift in Sources */,
 				38D7CA0826C7E00A4113ABA9 /* OAuthSessionRunner.swift in Sources */,
 				AB486FE01B540C9BB81E1410 /* PersistentMainPageCache.swift in Sources */,
 				4A80B43FE77D9F072D844DC3 /* PodcastFavoriteStore.swift in Sources */,

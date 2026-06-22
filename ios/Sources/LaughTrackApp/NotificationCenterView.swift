@@ -14,8 +14,13 @@ struct NotificationCenterView: View {
     @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
     @EnvironmentObject private var authManager: AuthManager
     @Environment(\.appTheme) private var theme
+    @Environment(\.serviceContainer) private var serviceContainer
 
     @StateObject private var model = NotificationCenterModel()
+
+    private var analytics: (any AnalyticsManagerProtocol)? {
+        serviceContainer.resolveOptional(AnalyticsManagerProtocol.self)
+    }
 
     var body: some View {
         let tokens = theme.laughTrackTokens
@@ -44,6 +49,12 @@ struct NotificationCenterView: View {
                     LazyVStack(spacing: theme.spacing.sm) {
                         ForEach(items) { item in
                             Button {
+                                analytics?.track(
+                                    NotificationsAnalyticsEvents.cardTapped,
+                                    parameters: [
+                                        NotificationsAnalyticsEvents.Param.showId: item.showId
+                                    ]
+                                )
                                 coordinator.push(.showDetail(item.showId))
                             } label: {
                                 NotificationRow(item: item)
@@ -70,6 +81,14 @@ struct NotificationCenterView: View {
             // currentUser so the profile-button badge (driven by /me
             // notificationsUnreadCount) clears on next render.
             guard case .loaded = model.phase else { return }
+            // Record the open with the count that was waiting, before mark-seen
+            // zeroes it.
+            analytics?.track(
+                NotificationsAnalyticsEvents.viewed,
+                parameters: [
+                    NotificationsAnalyticsEvents.Param.unreadCount: model.unreadCount
+                ]
+            )
             if await model.markSeen(apiClient: apiClient) {
                 await authManager.refreshCurrentUser()
             }
