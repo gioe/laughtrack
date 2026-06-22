@@ -1,0 +1,283 @@
+{
+  "after": {
+    "aliases": [
+      {
+        "alias_name": "ALBERTA ROSE",
+        "city": "Portland",
+        "club_id": 5358,
+        "id": 398,
+        "normalized_alias_name": "alberta rose",
+        "normalized_city": "portland",
+        "normalized_state": "or",
+        "source": "TASK-3060",
+        "state": "OR",
+        "verified": true
+      }
+    ],
+    "child_row_summary": [],
+    "clubs": [
+      {
+        "address": "3000 NE Alberta St, Portland, OR",
+        "city": "Portland",
+        "closed_at": null,
+        "id": 5358,
+        "name": "Alberta Rose Theatre",
+        "state": "OR",
+        "status": "active",
+        "timezone": "America/Los_Angeles",
+        "total_shows": 1,
+        "visible": true,
+        "website": ""
+      },
+      {
+        "address": "3000 NE ALBERTA, Portland, OR",
+        "city": "Portland",
+        "closed_at": "2026-06-22T15:44:25.760297+00:00",
+        "id": 5359,
+        "name": "ALBERTA ROSE (duplicate of club 5358; folded from club 5359)",
+        "state": "OR",
+        "status": "closed",
+        "timezone": "America/Los_Angeles",
+        "total_shows": 0,
+        "visible": false,
+        "website": ""
+      }
+    ],
+    "duplicate_show_map_summary": {
+      "date_room_mapped_shows": 0,
+      "duplicate_shows": 0,
+      "name_mismatch_mapped": 0,
+      "noncolliding_shows": 0,
+      "same_name_mapped": 0
+    },
+    "mapped_name_mismatches": [],
+    "remaining_duplicate_references": {
+      "click_events": 0,
+      "club_image_assets": 0,
+      "email_subscriptions": 0,
+      "enabled_sources": 0,
+      "eventbrite_organizer_venues": 0,
+      "favorite_clubs": 0,
+      "processed_emails": 0,
+      "production_company_venues": 0,
+      "scraper_run_clubs": 0,
+      "shows": 0,
+      "tagged_clubs": 0
+    },
+    "show_summary": [
+      {
+        "club_id": 5358,
+        "first_show": "2026-11-05T03:30:00+00:00",
+        "last_show": "2026-11-05T03:30:00+00:00",
+        "show_count": 1
+      }
+    ],
+    "sources": [
+      {
+        "club_id": 5358,
+        "enabled": true,
+        "id": 4448,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "ZFr9jZ1617"
+      },
+      {
+        "club_id": 5358,
+        "enabled": false,
+        "id": 4449,
+        "metadata": {
+          "task_3060_disposition": "moved disabled duplicate Ticketmaster source from club 5359 to club 5358",
+          "task_3060_source_audit": "TASK-3060"
+        },
+        "platform": "ticketmaster",
+        "priority": 1,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "KovZpa4spe"
+      }
+    ]
+  },
+  "before": {
+    "aliases": [],
+    "child_row_summary": [
+      {
+        "new_lineup_items": 1,
+        "new_show_id": 2841686,
+        "new_tagged_shows": 2,
+        "new_tickets": 1,
+        "old_click_events": 2,
+        "old_lineup_items": 1,
+        "old_show_id": 2841687,
+        "old_tagged_shows": 2,
+        "old_tickets": 1
+      }
+    ],
+    "clubs": [
+      {
+        "address": "3000 NE Alberta St, Portland, OR",
+        "city": "Portland",
+        "closed_at": null,
+        "id": 5358,
+        "name": "Alberta Rose Theatre",
+        "state": "OR",
+        "status": "active",
+        "timezone": "America/Los_Angeles",
+        "total_shows": 1,
+        "visible": true,
+        "website": ""
+      },
+      {
+        "address": "3000 NE ALBERTA, Portland, OR",
+        "city": "Portland",
+        "closed_at": null,
+        "id": 5359,
+        "name": "ALBERTA ROSE",
+        "state": "OR",
+        "status": "active",
+        "timezone": "America/Los_Angeles",
+        "total_shows": 1,
+        "visible": true,
+        "website": ""
+      }
+    ],
+    "duplicate_show_map_summary": {
+      "date_room_mapped_shows": 1,
+      "duplicate_shows": 1,
+      "name_mismatch_mapped": 0,
+      "noncolliding_shows": 0,
+      "same_name_mapped": 1
+    },
+    "mapped_name_mismatches": [],
+    "remaining_duplicate_references": {
+      "click_events": 2,
+      "club_image_assets": 0,
+      "email_subscriptions": 0,
+      "enabled_sources": 0,
+      "eventbrite_organizer_venues": 0,
+      "favorite_clubs": 0,
+      "processed_emails": 0,
+      "production_company_venues": 0,
+      "scraper_run_clubs": 3,
+      "shows": 1,
+      "tagged_clubs": 0
+    },
+    "show_summary": [
+      {
+        "club_id": 5358,
+        "first_show": "2026-11-05T03:30:00+00:00",
+        "last_show": "2026-11-05T03:30:00+00:00",
+        "show_count": 1
+      },
+      {
+        "club_id": 5359,
+        "first_show": "2026-11-05T03:30:00+00:00",
+        "last_show": "2026-11-05T03:30:00+00:00",
+        "show_count": 1
+      }
+    ],
+    "sources": [
+      {
+        "club_id": 5358,
+        "enabled": true,
+        "id": 4448,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "ZFr9jZ1617"
+      },
+      {
+        "club_id": 5359,
+        "enabled": false,
+        "id": 4449,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "KovZpa4spe"
+      }
+    ]
+  },
+  "counts": {
+    "click_events_club_repointed": 0,
+    "click_events_repointed_to_existing_show": 2,
+    "club_image_assets_moved": 0,
+    "club_totals_recomputed": 2,
+    "colliding_duplicate_shows_deleted": 1,
+    "conflicting_sent_notifications_deleted": 0,
+    "duplicate_aliases_upserted": 1,
+    "duplicate_clubs_closed": 1,
+    "duplicate_favorite_clubs_deleted": 0,
+    "duplicate_production_company_venues_deleted": 0,
+    "duplicate_sources_moved_to_canonical": 1,
+    "duplicate_tagged_clubs_deleted": 0,
+    "email_subscriptions_moved": 0,
+    "eventbrite_organizer_venues_moved": 0,
+    "favorite_clubs_inserted": 0,
+    "lineup_items_copied": 0,
+    "processed_emails_moved": 0,
+    "production_company_venues_inserted": 0,
+    "scraper_run_clubs_moved": 3,
+    "sent_notifications_repointed": 0,
+    "tagged_clubs_inserted": 0,
+    "tagged_shows_copied": 0,
+    "tickets_copied": 0
+  },
+  "dry_run": false,
+  "fold": {
+    "aliases": [
+      {
+        "alias_name": "ALBERTA ROSE",
+        "city": "Portland",
+        "state": "OR"
+      }
+    ],
+    "canonical_id": 5358,
+    "canonical_name": "Alberta Rose Theatre",
+    "duplicate_id": 5359,
+    "duplicate_name": "ALBERTA ROSE",
+    "match_key": [
+      "date",
+      "room"
+    ],
+    "name_mismatch_policy": "Rows with the same date and room must merge because shows_club_id_date_room_key prevents preserving both under the canonical club."
+  },
+  "generated_at": "2026-06-22T15:44:26.600377+00:00",
+  "source_audit_task": "TASK-3060",
+  "task": "TASK-3060",
+  "validation": {
+    "clubs": [
+      {
+        "address": "3000 NE Alberta St, Portland, OR",
+        "city": "Portland",
+        "google_place_id": "ChIJbXuuhN6mlVQRRB0icjpP16g",
+        "id": 5358,
+        "name": "Alberta Rose Theatre",
+        "state": "OR",
+        "status": "active",
+        "timezone": "America/Los_Angeles",
+        "total_shows": 1,
+        "visible": true,
+        "website": ""
+      },
+      {
+        "address": "3000 NE ALBERTA, Portland, OR",
+        "city": "Portland",
+        "google_place_id": "ChIJbXuuhN6mlVQRRB0icjpP16g",
+        "id": 5359,
+        "name": "ALBERTA ROSE",
+        "state": "OR",
+        "status": "active",
+        "timezone": "America/Los_Angeles",
+        "total_shows": 1,
+        "visible": true,
+        "website": ""
+      }
+    ]
+  }
+}
