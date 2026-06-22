@@ -54,7 +54,8 @@ def test_fans_out_one_event_per_schedule_slot():
     assert e.offers[0].price == "15.00"
     assert e.offers[0].price_currency == "USD"
     assert e.offers[0].availability == "InStock"
-    # locationInfo flows into the street line
+    # locationInfo flows into the Place name (-> Show.room) and the street line
+    assert e.location.name == "18b Corinth Street, Boston, MA"
     assert e.location.address.street_address == "18b Corinth Street, Boston, MA"
     # image upgraded to https
     assert e.image == "https://app.anyroad.com/rails/active_storage/x.jpg"

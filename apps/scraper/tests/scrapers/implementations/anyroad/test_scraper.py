@@ -118,6 +118,9 @@ async def test_scraper_full_pipeline_produces_shows(monkeypatch, club):
     assert csz.show_page_url.endswith("comedysportz-597fdff3-6214-443a-8fcd-0e05e5e197d5?lang=en-US") or \
         "comedysportz" in csz.show_page_url
     assert csz.tickets and csz.tickets[0].price == 13.0
+    # locationInfo is mapped onto room so same-date experiences at different
+    # sub-venues stay distinct under the (club, date, room) identity key.
+    assert csz.room == "18b Corinth Street, Boston, MA"
 
     # Pagination stopped at the empty page (page 1 then page 2).
     assert calls == [1, 2]

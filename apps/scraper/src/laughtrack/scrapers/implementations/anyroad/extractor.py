@@ -163,13 +163,19 @@ def _offer(attrs: dict[str, Any], *, url: str, available: bool) -> Offer:
 
 
 def _location(attrs: dict[str, Any]) -> Place:
-    # AnyRoad exposes only a free-text ``locationInfo`` string per experience;
-    # there is no structured address. Store it as the street line so the venue
-    # context survives; the club identity supplies the real venue downstream.
+    # AnyRoad exposes only a free-text ``locationInfo`` string per experience
+    # (the sub-venue/space, e.g. "18b Corinth Street" or "The Substation");
+    # there is no structured address. Carry it as the Place name so the
+    # AnyRoadTransformer can map it onto Show.room — that disambiguates
+    # experiences at *different* sub-venues sharing a date (AnyRoad's plugin
+    # feed reports only a placeholder time, so without a room differentiator
+    # the (club, date, room) key would collapse them). The club identity
+    # supplies the real venue downstream.
+    location_info = _string_value(attrs.get("locationInfo"))
     return Place(
-        name="",
+        name=location_info,
         address=PostalAddress(
-            street_address=_string_value(attrs.get("locationInfo")),
+            street_address=location_info,
             address_locality="",
             address_region="",
             postal_code="",
