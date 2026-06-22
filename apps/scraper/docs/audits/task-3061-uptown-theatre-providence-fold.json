@@ -1,0 +1,374 @@
+{
+  "after": {
+    "aliases": [
+      {
+        "alias_name": "Uptown Theatre Providence",
+        "city": "Providence",
+        "club_id": 80,
+        "id": 400,
+        "normalized_alias_name": "uptown theatre providence",
+        "normalized_city": "providence",
+        "normalized_state": "ri",
+        "source": "TASK-3061",
+        "state": "RI",
+        "verified": true
+      }
+    ],
+    "child_row_summary": [],
+    "clubs": [
+      {
+        "address": "270 Broadway Providence, RI 02903",
+        "city": "Providence",
+        "closed_at": null,
+        "id": 80,
+        "name": "Uptown Theater",
+        "state": "RI",
+        "status": "active",
+        "timezone": "America/New_York",
+        "total_shows": 54,
+        "visible": true,
+        "website": "https://www.uptownpvd.com"
+      },
+      {
+        "address": "270 Broadway, Providence, RI",
+        "city": "Providence",
+        "closed_at": "2026-06-22T16:11:40.429124+00:00",
+        "id": 4509,
+        "name": "Uptown Theatre Providence (duplicate of club 80; folded from club 4509)",
+        "state": "RI",
+        "status": "closed",
+        "timezone": "America/New_York",
+        "total_shows": 0,
+        "visible": false,
+        "website": ""
+      }
+    ],
+    "duplicate_show_map_summary": {
+      "date_room_mapped_shows": 0,
+      "duplicate_shows": 0,
+      "name_mismatch_mapped": 0,
+      "noncolliding_shows": 0,
+      "same_name_mapped": 0
+    },
+    "mapped_name_mismatches": [],
+    "remaining_duplicate_references": {
+      "click_events": 0,
+      "club_image_assets": 0,
+      "email_subscriptions": 0,
+      "enabled_sources": 0,
+      "eventbrite_organizer_venues": 0,
+      "favorite_clubs": 0,
+      "processed_emails": 0,
+      "production_company_venues": 0,
+      "scraper_run_clubs": 0,
+      "shows": 0,
+      "tagged_clubs": 0
+    },
+    "show_summary": [
+      {
+        "club_id": 80,
+        "first_show": "2025-08-14T23:30:00+00:00",
+        "last_show": "2027-01-16T00:30:00+00:00",
+        "show_count": 54
+      }
+    ],
+    "sources": [
+      {
+        "club_id": 80,
+        "enabled": true,
+        "id": 101,
+        "metadata": {
+          "detail_fetch": {
+            "listing_type": "CollectionPage",
+            "url_path": "mainEntity.itemListElement[].url"
+          }
+        },
+        "platform": "custom",
+        "priority": 0,
+        "scraper_key": "json_ld",
+        "source_url": "www.uptownpvd.com/events",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 80,
+        "enabled": false,
+        "id": 3599,
+        "metadata": {
+          "task_3061_disposition": "moved and disabled duplicate Ticketmaster source from club 4509 to club 80",
+          "task_3061_source_audit": "TASK-3061"
+        },
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "Z7r9jZak1X"
+      },
+      {
+        "club_id": 80,
+        "enabled": false,
+        "id": 1904,
+        "metadata": {
+          "comedian_refs": [
+            {
+              "name": "Akaash Singh",
+              "uuid": "68756d37a0abf70e0da4d2c18ea82dd2"
+            }
+          ],
+          "event_urls": [
+            "https://concerts50.com/buy/akaash-singh-in-minneapolis-tickets-apr-25-2026"
+          ],
+          "first_seen_at": "2026-05-13T01:37:56.353183+00:00",
+          "last_seen_at": "2026-05-13T10:36:00.362654+00:00",
+          "platform_hints": [
+            "tour_listing"
+          ],
+          "reference_count": 4,
+          "sample_urls": [
+            "https://akaashsinghtour.com/"
+          ],
+          "source": "comedian_websites",
+          "task_2581_disposition": {
+            "disabled_at": "2026-06-02 13:29:14.793375+00",
+            "reason": "TourDatesScraper deleted; BandsInTown-sourced show ingestion dropped per TASK-2581"
+          }
+        },
+        "platform": "tour_dates",
+        "priority": 1,
+        "scraper_key": "tour_dates",
+        "source_url": "tour_dates",
+        "ticketmaster_id": null
+      }
+    ]
+  },
+  "before": {
+    "aliases": [],
+    "child_row_summary": [
+      {
+        "new_lineup_items": 0,
+        "new_show_id": 1364924,
+        "new_tagged_shows": 7,
+        "new_tickets": 1,
+        "old_click_events": 3,
+        "old_lineup_items": 1,
+        "old_show_id": 2828048,
+        "old_tagged_shows": 2,
+        "old_tickets": 1
+      }
+    ],
+    "clubs": [
+      {
+        "address": "270 Broadway Providence, RI 02903",
+        "city": "Providence",
+        "closed_at": null,
+        "id": 80,
+        "name": "Uptown Theater",
+        "state": "RI",
+        "status": "active",
+        "timezone": "America/New_York",
+        "total_shows": 54,
+        "visible": true,
+        "website": "https://www.uptownpvd.com"
+      },
+      {
+        "address": "270 Broadway, Providence, RI",
+        "city": "Providence",
+        "closed_at": null,
+        "id": 4509,
+        "name": "Uptown Theatre Providence",
+        "state": "RI",
+        "status": "active",
+        "timezone": "America/New_York",
+        "total_shows": 1,
+        "visible": true,
+        "website": ""
+      }
+    ],
+    "duplicate_show_map_summary": {
+      "date_room_mapped_shows": 1,
+      "duplicate_shows": 1,
+      "name_mismatch_mapped": 1,
+      "noncolliding_shows": 0,
+      "same_name_mapped": 0
+    },
+    "mapped_name_mismatches": [
+      {
+        "canonical_name": "Please Don\u2019t Destroy: LIVE",
+        "canonical_show_id": 1364924,
+        "canonical_show_page_url": "https://www.uptownpvd.com/events/please-dont-destroy-live",
+        "date": "2026-06-13T23:00:00+00:00",
+        "duplicate_name": "Please Don't Destroy",
+        "duplicate_show_id": 2828048,
+        "duplicate_show_page_url": "https://www.ticketmaster.com/event/Z7r9jZ1A70kAF",
+        "room": ""
+      }
+    ],
+    "remaining_duplicate_references": {
+      "click_events": 3,
+      "club_image_assets": 0,
+      "email_subscriptions": 0,
+      "enabled_sources": 1,
+      "eventbrite_organizer_venues": 0,
+      "favorite_clubs": 0,
+      "processed_emails": 0,
+      "production_company_venues": 0,
+      "scraper_run_clubs": 4,
+      "shows": 1,
+      "tagged_clubs": 0
+    },
+    "show_summary": [
+      {
+        "club_id": 80,
+        "first_show": "2025-08-14T23:30:00+00:00",
+        "last_show": "2027-01-16T00:30:00+00:00",
+        "show_count": 54
+      },
+      {
+        "club_id": 4509,
+        "first_show": "2026-06-13T23:00:00+00:00",
+        "last_show": "2026-06-13T23:00:00+00:00",
+        "show_count": 1
+      }
+    ],
+    "sources": [
+      {
+        "club_id": 80,
+        "enabled": true,
+        "id": 101,
+        "metadata": {
+          "detail_fetch": {
+            "listing_type": "CollectionPage",
+            "url_path": "mainEntity.itemListElement[].url"
+          }
+        },
+        "platform": "custom",
+        "priority": 0,
+        "scraper_key": "json_ld",
+        "source_url": "www.uptownpvd.com/events",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 80,
+        "enabled": false,
+        "id": 1904,
+        "metadata": {
+          "comedian_refs": [
+            {
+              "name": "Akaash Singh",
+              "uuid": "68756d37a0abf70e0da4d2c18ea82dd2"
+            }
+          ],
+          "event_urls": [
+            "https://concerts50.com/buy/akaash-singh-in-minneapolis-tickets-apr-25-2026"
+          ],
+          "first_seen_at": "2026-05-13T01:37:56.353183+00:00",
+          "last_seen_at": "2026-05-13T10:36:00.362654+00:00",
+          "platform_hints": [
+            "tour_listing"
+          ],
+          "reference_count": 4,
+          "sample_urls": [
+            "https://akaashsinghtour.com/"
+          ],
+          "source": "comedian_websites",
+          "task_2581_disposition": {
+            "disabled_at": "2026-06-02 13:29:14.793375+00",
+            "reason": "TourDatesScraper deleted; BandsInTown-sourced show ingestion dropped per TASK-2581"
+          }
+        },
+        "platform": "tour_dates",
+        "priority": 1,
+        "scraper_key": "tour_dates",
+        "source_url": "tour_dates",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 4509,
+        "enabled": true,
+        "id": 3599,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "Z7r9jZak1X"
+      }
+    ]
+  },
+  "counts": {
+    "click_events_club_repointed": 0,
+    "click_events_repointed_to_existing_show": 3,
+    "club_image_assets_moved": 0,
+    "club_totals_recomputed": 2,
+    "colliding_duplicate_shows_deleted": 1,
+    "conflicting_sent_notifications_deleted": 0,
+    "duplicate_aliases_upserted": 1,
+    "duplicate_clubs_closed": 1,
+    "duplicate_favorite_clubs_deleted": 0,
+    "duplicate_production_company_venues_deleted": 0,
+    "duplicate_sources_moved_to_canonical": 1,
+    "duplicate_tagged_clubs_deleted": 0,
+    "email_subscriptions_moved": 0,
+    "eventbrite_organizer_venues_moved": 0,
+    "favorite_clubs_inserted": 0,
+    "lineup_items_copied": 1,
+    "processed_emails_moved": 0,
+    "production_company_venues_inserted": 0,
+    "scraper_run_clubs_moved": 4,
+    "sent_notifications_repointed": 0,
+    "tagged_clubs_inserted": 0,
+    "tagged_shows_copied": 2,
+    "tickets_copied": 0
+  },
+  "dry_run": false,
+  "fold": {
+    "aliases": [
+      {
+        "alias_name": "Uptown Theatre Providence",
+        "city": "Providence",
+        "state": "RI"
+      }
+    ],
+    "canonical_id": 80,
+    "canonical_name": "Uptown Theater",
+    "duplicate_id": 4509,
+    "duplicate_name": "Uptown Theatre Providence",
+    "match_key": [
+      "date",
+      "room"
+    ],
+    "name_mismatch_policy": "Rows with the same date and room must merge because shows_club_id_date_room_key prevents preserving both under the canonical club."
+  },
+  "generated_at": "2026-06-22T16:11:41.269494+00:00",
+  "source_audit_task": "TASK-3061",
+  "task": "TASK-3061",
+  "validation": {
+    "clubs": [
+      {
+        "address": "270 Broadway, Providence, RI",
+        "city": "Providence",
+        "google_place_id": "ChIJV1yw5XRF5IkRnd48L1zOJIE",
+        "id": 4509,
+        "name": "Uptown Theatre Providence",
+        "state": "RI",
+        "status": "active",
+        "timezone": "America/New_York",
+        "total_shows": 1,
+        "visible": true,
+        "website": ""
+      },
+      {
+        "address": "270 Broadway Providence, RI 02903",
+        "city": "Providence",
+        "google_place_id": "ChIJV1yw5XRF5IkRnd48L1zOJIE",
+        "id": 80,
+        "name": "Uptown Theater",
+        "state": "RI",
+        "status": "active",
+        "timezone": "America/New_York",
+        "total_shows": 54,
+        "visible": true,
+        "website": "https://www.uptownpvd.com"
+      }
+    ]
+  }
+}
