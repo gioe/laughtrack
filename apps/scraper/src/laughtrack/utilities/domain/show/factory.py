@@ -129,6 +129,8 @@ _DJ_SET_RE = _re.compile(r"\bDJ\b", _re.IGNORECASE)
 # Word-boundary anchored so "comic" doesn't match "comically", etc. The optional
 # space/hyphen classes catch "stand up" / "stand-up" / "standup" and
 # "open mic" / "open-mic" / "openmic".
+# "night of laughs" catches showroom blurbs that advertise a comedy booking
+# without saying "comedy" in the title or description.
 #
 # "roast" is deliberately NOT a bare keyword: culinary roasts (pig/hog/pork/beef/
 # turkey/chicken/lamb/coffee/garlic roast, roast beef, etc.) are common at the
@@ -138,7 +140,7 @@ _DJ_SET_RE = _re.compile(r"\bDJ\b", _re.IGNORECASE)
 # "comedy" alternative), "Celebrity Roast", "Roast Battle", and "Roast of <name>".
 _COMEDY_EVENT_RE = _re.compile(
     r"\b(?:comedy|comedians?|comics?|stand[\s-]?up|improv|sketch|open[\s-]?mic"
-    r"|celebrity\s+roast|roast\s+battle|roast\s+of)\b",
+    r"|night\s+of\s+laughs|celebrity\s+roast|roast\s+battle|roast\s+of)\b",
     _re.IGNORECASE,
 )
 

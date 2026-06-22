@@ -25,6 +25,8 @@ from laughtrack.utilities.domain.show.factory import is_comedy_event
         "Sketch Revue",
         "Comedian Spotlight",
         "Two Comedians, One Mic",
+        "A night of laughs in Seasons Showroom",
+        "Join us for a night of laughs with Phil Hanley",
         "The Roast of Someone",
         "tonight: COMEDY",
         # Comedy-roast forms must still surface (TASK-3020).
@@ -70,6 +72,8 @@ def test_rejects_culinary_roasts(text):
         "Cool Jazz",
         "Latin Vibe",
         "Live Band Emo Night",
+        "Lobster Bake in Seasons Showroom",
+        "Yachtley Crew yacht rock in Seasons Showroom",
         "Rick Berthod",
         "comically large prop night",  # word-boundary: 'comically' is not 'comic'
         "",
