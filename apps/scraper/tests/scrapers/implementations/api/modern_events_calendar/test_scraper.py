@@ -79,6 +79,36 @@ def _json_ld_html(
     """
 
 
+def _mec_html_without_json_ld() -> str:
+    return """
+    <html>
+      <head><title>Comedian Bob Marley - Rascals</title></head>
+      <body>
+        <h1 class="mec-single-title">Comedian Bob Marley</h1>
+        <div class="mec-single-event-description">
+          New England's King of Comedy returns to Worcester.
+        </div>
+        <div class="mec-single-event-date">
+          <div class="mec-date">Date</div>
+          <dl><dd>Jul 25 2099</dd></dl>
+        </div>
+        <div class="mec-single-event-time">
+          <div class="mec-time">Time</div>
+          <dl><dd>8:00 pm - 10:00 pm</dd></dl>
+        </div>
+        <div class="mec-event-cost">
+          <div class="mec-cost">Cost</div>
+          <dl><dd class="mec-events-event-cost">$39.50</dd></dl>
+        </div>
+        <a class="mec-booking-button" target="_blank"
+           href="https://www.eventbrite.com/e/comedian-bob-marley-tickets-1983822484454">
+          Buy Tickets
+        </a>
+      </body>
+    </html>
+    """
+
+
 @pytest.mark.asyncio
 async def test_collect_event_urls_paginates_wordpress_rest(monkeypatch):
     scraper = ModernEventsCalendarScraper(_club())
@@ -145,6 +175,35 @@ async def test_get_data_extracts_future_json_ld_and_filters_past(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_get_data_uses_mec_html_fallback_when_json_ld_is_absent(monkeypatch):
+    scraper = ModernEventsCalendarScraper(_club())
+
+    async def fake_collect_event_urls(source_url: str):
+        return ["https://moonlighttheatre.com/events/bob-marley/"]
+
+    async def fake_fetch_detail_html(url: str):
+        return _mec_html_without_json_ld()
+
+    monkeypatch.setattr(scraper, "_collect_event_urls", fake_collect_event_urls)
+    monkeypatch.setattr(scraper, "_fetch_detail_html", fake_fetch_detail_html)
+
+    data = await scraper.get_data(
+        "https://moonlighttheatre.com/wp-json/wp/v2/mec-events?mec_category=47"
+    )
+
+    assert data is not None
+    assert len(data.event_list) == 1
+    event = data.event_list[0]
+    assert event.name == "Comedian Bob Marley"
+    assert event.start_date.year == 2099
+    assert event.start_date.hour == 20
+    assert event.offers[0].price == "39.50"
+    assert event.url == "https://www.eventbrite.com/e/comedian-bob-marley-tickets-1983822484454"
+    assert event.same_as == "https://moonlighttheatre.com/events/bob-marley/"
+    assert "King of Comedy" in event.description
+
+
+@pytest.mark.asyncio
 async def test_transformation_pipeline_produces_show(monkeypatch):
     scraper = ModernEventsCalendarScraper(_club())
 
@@ -166,3 +225,30 @@ async def test_transformation_pipeline_produces_show(monkeypatch):
     assert shows[0].name == "Improv in the Moonlight"
     assert shows[0].show_page_url == "https://moonlighttheatre.com/events/future"
     assert shows[0].tickets[0].price == 10.0
+
+
+@pytest.mark.asyncio
+async def test_transformation_pipeline_produces_show_from_mec_html_fallback(monkeypatch):
+    scraper = ModernEventsCalendarScraper(_club())
+
+    async def fake_collect_event_urls(source_url: str):
+        return ["https://moonlighttheatre.com/events/bob-marley/"]
+
+    async def fake_fetch_detail_html(url: str):
+        return _mec_html_without_json_ld()
+
+    monkeypatch.setattr(scraper, "_collect_event_urls", fake_collect_event_urls)
+    monkeypatch.setattr(scraper, "_fetch_detail_html", fake_fetch_detail_html)
+
+    data = await scraper.get_data(
+        "https://moonlighttheatre.com/wp-json/wp/v2/mec-events?mec_category=47"
+    )
+    shows = scraper.transformation_pipeline.transform(data)
+
+    assert len(shows) == 1
+    assert shows[0].name == "Comedian Bob Marley"
+    assert shows[0].show_page_url == "https://moonlighttheatre.com/events/bob-marley"
+    assert shows[0].tickets[0].price == 39.5
+    assert shows[0].tickets[0].purchase_url == (
+        "https://www.eventbrite.com/e/comedian-bob-marley-tickets-1983822484454"
+    )
