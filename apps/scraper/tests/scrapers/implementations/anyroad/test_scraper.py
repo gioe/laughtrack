@@ -45,14 +45,16 @@ def club() -> Club:
         city="Boston",
         state="MA",
     )
+    # Mirror the real DB load path: the plugin id is wired in metadata.plugin_id
+    # (scraping_sources has no external_id column), with source_url as fallback.
     _c.active_scraping_source = ScrapingSource(
         id=1,
         club_id=_c.id,
-        platform="anyroad",
+        platform="custom",
         scraper_key="anyroad",
         source_url="https://app.anyroad.com/i/plugin/rozziesquaretheater",
-        external_id="rozziesquaretheater",
-        metadata={},
+        external_id=None,
+        metadata={"plugin_id": "rozziesquaretheater"},
     )
     _c.scraping_sources = [_c.active_scraping_source]
     return _c
@@ -62,8 +64,21 @@ def test_registry_resolves_anyroad_key():
     assert discover_scrapers().get("anyroad") is AnyRoadScraper
 
 
-def test_resolve_plugin_id_prefers_external_id(club):
+def test_resolve_plugin_id_from_metadata_prod_wire(club):
+    # The canonical production wire: metadata.plugin_id (no external_id column).
     assert AnyRoadScraper(club)._resolve_plugin_id() == "rozziesquaretheater"
+
+
+def test_resolve_plugin_id_external_id_fallback():
+    # Forward-compat: if a future schema ever populates external_id, it resolves
+    # when metadata.plugin_id is absent.
+    c = Club(id=1, name="V", address="", website="", popularity=0, zip_code="",
+             phone_number="", visible=True, timezone="America/New_York", city="", state="MA")
+    c.active_scraping_source = ScrapingSource(
+        platform="custom", scraper_key="anyroad", external_id="fromExternal",
+        metadata={},
+    )
+    assert AnyRoadScraper(c)._resolve_plugin_id() == "fromExternal"
 
 
 def test_resolve_plugin_id_from_metadata():

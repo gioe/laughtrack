@@ -8,9 +8,11 @@ impersonation (the default ``fetch_json`` session), with the shared Playwright
 browser as the automatic fallback.
 
 Wiring (``scraping_sources``): set ``scraper_key='anyroad'`` and put the plugin
-id in ``external_id`` (preferred) or ``metadata.plugin_id``; ``source_url`` may
-hold the human-facing widget URL (``https://app.anyroad.com/i/plugin/<id>``),
-from which the plugin id is parsed as a last resort.
+id in ``metadata.plugin_id`` (the canonical wire — the ``scraping_sources``
+schema has no ``external_id`` column, so ``ScrapingSource.from_dict`` never
+populates it for ``platform='custom'``). ``source_url`` may hold the
+human-facing widget URL (``https://app.anyroad.com/i/plugin/<id>``), from which
+the plugin id is parsed as a fallback.
 """
 
 from __future__ import annotations
@@ -19,7 +21,6 @@ from typing import List, Optional
 from urllib.parse import urlparse
 
 from laughtrack.core.entities.club.model import Club
-from laughtrack.core.entities.show.model import Show
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.scrapers.implementations.anyroad.data import AnyRoadPageData
@@ -47,16 +48,18 @@ class AnyRoadScraper(BaseScraper):
     def _resolve_plugin_id(self) -> Optional[str]:
         """Resolve the AnyRoad plugin id from scraping-source config.
 
-        Order: ``external_id`` -> ``metadata.plugin_id`` -> last path segment of
-        ``source_url`` (handles ``/i/plugin/<id>`` and ``integrations.../<id>``).
+        Order: ``metadata.plugin_id`` (the canonical wire) -> ``external_id``
+        (defensive/forward-compat — not populated by the current
+        ``scraping_sources`` schema) -> last path segment of ``source_url``
+        (handles ``/i/plugin/<id>`` and ``integrations.../<id>``).
         """
         source = self.club.scraping_source
         if source is not None:
-            if source.external_id:
-                return source.external_id.strip()
             meta_id = source.metadata.get("plugin_id") if source.metadata else None
             if meta_id:
                 return str(meta_id).strip()
+            if source.external_id:
+                return source.external_id.strip()
 
         url = self.club.scraping_url
         if url:
@@ -81,7 +84,7 @@ class AnyRoadScraper(BaseScraper):
         if not plugin_id:
             Logger.warn(
                 f"{self._log_prefix}: no AnyRoad plugin id configured "
-                f"(set scraping_sources.external_id or metadata.plugin_id)",
+                f"(set scraping_sources.metadata.plugin_id)",
                 self.logger_context,
             )
             return []
@@ -123,15 +126,40 @@ class AnyRoadScraper(BaseScraper):
             return None
 
     async def _fetch_all_experiences(self, plugin_id: str) -> List[dict]:
-        """Walk pages until an empty ``experiences.data`` array (no links/meta)."""
+        """Walk pages until an empty ``experiences.data`` array (no links/meta).
+
+        Stops early if a page returns only experience ids already seen — guards
+        against an API that ignores the ``page`` param and re-serves page 1, which
+        would otherwise append duplicates until ``_MAX_PAGES``. Warns (rather than
+        truncating silently) if the cap is reached, so a venue larger than the
+        bound surfaces in logs instead of looking like a complete scrape.
+        """
         records: List[dict] = []
+        seen_ids: set = set()
         for page in range(1, _MAX_PAGES + 1):
             payload = await self.fetch_json(self._experiences_url(plugin_id, page))
             data = self._page_records(payload)
             if not data:
-                break
-            records.extend(data)
+                return records
+            fresh = [r for r in data if self._record_id(r) not in seen_ids]
+            if not fresh:
+                # API re-served an already-seen page — stop rather than loop.
+                return records
+            seen_ids.update(self._record_id(r) for r in fresh)
+            records.extend(fresh)
+        Logger.warn(
+            f"{self._log_prefix}: AnyRoad pagination hit the {_MAX_PAGES}-page cap "
+            f"for plugin '{plugin_id}'; calendar may be truncated",
+            self.logger_context,
+        )
         return records
+
+    @staticmethod
+    def _record_id(record: dict):
+        """Stable per-experience id for de-duplicating re-served pages."""
+        if isinstance(record, dict):
+            return record.get("id") or (record.get("attributes") or {}).get("id")
+        return None
 
     @staticmethod
     def _page_records(payload) -> List[dict]:
@@ -142,10 +170,3 @@ class AnyRoadScraper(BaseScraper):
             return []
         data = experiences.get("data")
         return data if isinstance(data, list) else []
-
-    def transform_data(
-        self,
-        raw_data: AnyRoadPageData,
-        source_url_or_identifier: ScrapingTarget,
-    ) -> List[Show]:
-        return super().transform_data(raw_data, source_url_or_identifier)
