@@ -1,0 +1,375 @@
+{
+  "after": {
+    "aliases": [
+      {
+        "alias_name": "Tampa Theater",
+        "city": "Tampa",
+        "club_id": 2584,
+        "id": 384,
+        "normalized_alias_name": "tampa theater",
+        "normalized_city": "tampa",
+        "normalized_state": "fl",
+        "source": "TASK-3056",
+        "state": "FL",
+        "verified": true
+      }
+    ],
+    "child_row_summary": [],
+    "clubs": [
+      {
+        "address": "711 N Franklin St, Tampa, FL 33602, USA",
+        "city": "Tampa",
+        "closed_at": null,
+        "id": 2584,
+        "name": "Tampa Theatre",
+        "state": "FL",
+        "status": "active",
+        "timezone": "America/New_York",
+        "total_shows": 3,
+        "visible": true,
+        "website": ""
+      },
+      {
+        "address": "711 N Franklin St, Tampa, FL",
+        "city": "Tampa",
+        "closed_at": "2026-06-22T13:49:04.468775+00:00",
+        "id": 5356,
+        "name": "Tampa Theater (duplicate of club 2584; folded from club 5356)",
+        "state": "FL",
+        "status": "closed",
+        "timezone": "America/New_York",
+        "total_shows": 0,
+        "visible": false,
+        "website": ""
+      }
+    ],
+    "duplicate_show_map_summary": {
+      "date_room_mapped_shows": 0,
+      "duplicate_shows": 0,
+      "name_mismatch_mapped": 0,
+      "noncolliding_shows": 0,
+      "same_name_mapped": 0
+    },
+    "mapped_name_mismatches": [],
+    "remaining_duplicate_references": {
+      "click_events": 0,
+      "club_image_assets": 0,
+      "email_subscriptions": 0,
+      "enabled_sources": 0,
+      "eventbrite_organizer_venues": 0,
+      "favorite_clubs": 0,
+      "processed_emails": 0,
+      "production_company_venues": 0,
+      "scraper_run_clubs": 0,
+      "shows": 0,
+      "tagged_clubs": 0
+    },
+    "show_summary": [
+      {
+        "club_id": 2584,
+        "first_show": "2026-10-03T00:00:00+00:00",
+        "last_show": "2026-11-02T00:00:00+00:00",
+        "show_count": 3
+      }
+    ],
+    "sources": [
+      {
+        "club_id": 2584,
+        "enabled": false,
+        "id": 1592,
+        "metadata": {
+          "comedian_refs": [
+            {
+              "name": "Leslie Jones",
+              "uuid": "6ffc1b783bdf3324535dc7f33c05455b"
+            }
+          ],
+          "event_urls": [
+            "https://concerts50.com/buy/leslie-jones-in-tampa-tickets-nov-20-2026"
+          ],
+          "first_seen_at": "2026-05-12T22:36:22.663707+00:00",
+          "last_seen_at": "2026-05-12T22:43:10.036273+00:00",
+          "platform_hints": [
+            "tour_listing"
+          ],
+          "reference_count": 3,
+          "sample_urls": [
+            "https://lesliejonestour.com/"
+          ],
+          "source": "comedian_websites",
+          "task_2581_disposition": {
+            "disabled_at": "2026-06-02 13:29:14.793375+00",
+            "reason": "TourDatesScraper deleted; BandsInTown-sourced show ingestion dropped per TASK-2581"
+          }
+        },
+        "platform": "tour_dates",
+        "priority": 0,
+        "scraper_key": "tour_dates",
+        "source_url": "tour_dates",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 2584,
+        "enabled": true,
+        "id": 4313,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "live_nation",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "KovZpZAFAnEA"
+      },
+      {
+        "club_id": 2584,
+        "enabled": false,
+        "id": 4446,
+        "metadata": {
+          "task_3056_disposition": "moved disabled duplicate Ticketmaster source from club 5356 to club 2584",
+          "task_3056_source_audit": "TASK-3056"
+        },
+        "platform": "ticketmaster",
+        "priority": 1,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "ZFr9jZdFaa"
+      }
+    ]
+  },
+  "before": {
+    "aliases": [],
+    "child_row_summary": [
+      {
+        "new_lineup_items": 1,
+        "new_show_id": 2841462,
+        "new_tagged_shows": 2,
+        "new_tickets": 1,
+        "old_click_events": 2,
+        "old_lineup_items": 1,
+        "old_show_id": 2841684,
+        "old_tagged_shows": 2,
+        "old_tickets": 1
+      },
+      {
+        "new_lineup_items": 1,
+        "new_show_id": 2841460,
+        "new_tagged_shows": 2,
+        "new_tickets": 1,
+        "old_click_events": 0,
+        "old_lineup_items": 1,
+        "old_show_id": 2876845,
+        "old_tagged_shows": 2,
+        "old_tickets": 1
+      },
+      {
+        "new_lineup_items": 1,
+        "new_show_id": 2841461,
+        "new_tagged_shows": 2,
+        "new_tickets": 1,
+        "old_click_events": 0,
+        "old_lineup_items": 1,
+        "old_show_id": 2876846,
+        "old_tagged_shows": 2,
+        "old_tickets": 1
+      }
+    ],
+    "clubs": [
+      {
+        "address": "711 N Franklin St, Tampa, FL 33602, USA",
+        "city": "Tampa",
+        "closed_at": null,
+        "id": 2584,
+        "name": "Tampa Theatre",
+        "state": "FL",
+        "status": "active",
+        "timezone": "America/New_York",
+        "total_shows": 3,
+        "visible": true,
+        "website": ""
+      },
+      {
+        "address": "711 N Franklin St, Tampa, FL",
+        "city": "Tampa",
+        "closed_at": null,
+        "id": 5356,
+        "name": "Tampa Theater",
+        "state": "FL",
+        "status": "active",
+        "timezone": "America/New_York",
+        "total_shows": 3,
+        "visible": true,
+        "website": ""
+      }
+    ],
+    "duplicate_show_map_summary": {
+      "date_room_mapped_shows": 3,
+      "duplicate_shows": 3,
+      "name_mismatch_mapped": 0,
+      "noncolliding_shows": 0,
+      "same_name_mapped": 3
+    },
+    "mapped_name_mismatches": [],
+    "remaining_duplicate_references": {
+      "click_events": 2,
+      "club_image_assets": 0,
+      "email_subscriptions": 0,
+      "enabled_sources": 1,
+      "eventbrite_organizer_venues": 0,
+      "favorite_clubs": 0,
+      "processed_emails": 0,
+      "production_company_venues": 0,
+      "scraper_run_clubs": 4,
+      "shows": 3,
+      "tagged_clubs": 0
+    },
+    "show_summary": [
+      {
+        "club_id": 2584,
+        "first_show": "2026-10-03T00:00:00+00:00",
+        "last_show": "2026-11-02T00:00:00+00:00",
+        "show_count": 3
+      },
+      {
+        "club_id": 5356,
+        "first_show": "2026-10-03T00:00:00+00:00",
+        "last_show": "2026-11-02T00:00:00+00:00",
+        "show_count": 3
+      }
+    ],
+    "sources": [
+      {
+        "club_id": 2584,
+        "enabled": false,
+        "id": 1592,
+        "metadata": {
+          "comedian_refs": [
+            {
+              "name": "Leslie Jones",
+              "uuid": "6ffc1b783bdf3324535dc7f33c05455b"
+            }
+          ],
+          "event_urls": [
+            "https://concerts50.com/buy/leslie-jones-in-tampa-tickets-nov-20-2026"
+          ],
+          "first_seen_at": "2026-05-12T22:36:22.663707+00:00",
+          "last_seen_at": "2026-05-12T22:43:10.036273+00:00",
+          "platform_hints": [
+            "tour_listing"
+          ],
+          "reference_count": 3,
+          "sample_urls": [
+            "https://lesliejonestour.com/"
+          ],
+          "source": "comedian_websites",
+          "task_2581_disposition": {
+            "disabled_at": "2026-06-02 13:29:14.793375+00",
+            "reason": "TourDatesScraper deleted; BandsInTown-sourced show ingestion dropped per TASK-2581"
+          }
+        },
+        "platform": "tour_dates",
+        "priority": 0,
+        "scraper_key": "tour_dates",
+        "source_url": "tour_dates",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 2584,
+        "enabled": true,
+        "id": 4313,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "live_nation",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "KovZpZAFAnEA"
+      },
+      {
+        "club_id": 5356,
+        "enabled": true,
+        "id": 4446,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "ZFr9jZdFaa"
+      }
+    ]
+  },
+  "counts": {
+    "click_events_club_repointed": 0,
+    "click_events_repointed_to_existing_show": 2,
+    "club_image_assets_moved": 0,
+    "club_totals_recomputed": 2,
+    "colliding_duplicate_shows_deleted": 3,
+    "conflicting_sent_notifications_deleted": 0,
+    "duplicate_aliases_upserted": 1,
+    "duplicate_clubs_closed": 1,
+    "duplicate_favorite_clubs_deleted": 0,
+    "duplicate_production_company_venues_deleted": 0,
+    "duplicate_sources_moved_to_canonical": 1,
+    "duplicate_tagged_clubs_deleted": 0,
+    "email_subscriptions_moved": 0,
+    "eventbrite_organizer_venues_moved": 0,
+    "favorite_clubs_inserted": 0,
+    "lineup_items_copied": 0,
+    "processed_emails_moved": 0,
+    "production_company_venues_inserted": 0,
+    "scraper_run_clubs_moved": 4,
+    "sent_notifications_repointed": 0,
+    "tagged_clubs_inserted": 0,
+    "tagged_shows_copied": 0,
+    "tickets_copied": 0
+  },
+  "dry_run": false,
+  "fold": {
+    "aliases": [
+      {
+        "alias_name": "Tampa Theater",
+        "city": "Tampa",
+        "state": "FL"
+      }
+    ],
+    "canonical_id": 2584,
+    "canonical_name": "Tampa Theatre",
+    "duplicate_id": 5356,
+    "duplicate_name": "Tampa Theater",
+    "match_key": [
+      "date",
+      "room"
+    ],
+    "name_mismatch_policy": "Rows with the same date and room must merge because shows_club_id_date_room_key prevents preserving both under the canonical club."
+  },
+  "generated_at": "2026-06-22T13:49:05.347490+00:00",
+  "source_audit_task": "TASK-3056",
+  "task": "TASK-3056",
+  "validation": {
+    "clubs": [
+      {
+        "address": "711 N Franklin St, Tampa, FL",
+        "city": "Tampa",
+        "google_place_id": "ChIJ98cKiInEwogRfyDonUPi2bc",
+        "id": 5356,
+        "name": "Tampa Theater",
+        "state": "FL",
+        "status": "active",
+        "timezone": "America/New_York",
+        "total_shows": 3,
+        "visible": true,
+        "website": ""
+      },
+      {
+        "address": "711 N Franklin St, Tampa, FL 33602, USA",
+        "city": "Tampa",
+        "google_place_id": "ChIJ98cKiInEwogRfyDonUPi2bc",
+        "id": 2584,
+        "name": "Tampa Theatre",
+        "state": "FL",
+        "status": "active",
+        "timezone": "America/New_York",
+        "total_shows": 3,
+        "visible": true,
+        "website": ""
+      }
+    ]
+  }
+}
