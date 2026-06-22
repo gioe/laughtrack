@@ -1,0 +1,378 @@
+{
+  "after": {
+    "aliases": [
+      {
+        "alias_name": "The American Comedy Co.",
+        "city": "San Diego",
+        "club_id": 1035,
+        "id": 362,
+        "normalized_alias_name": "the american comedy co",
+        "normalized_city": "san diego",
+        "normalized_state": "ca",
+        "source": "TASK-3157",
+        "state": "CA",
+        "verified": true
+      },
+      {
+        "alias_name": "American Comedy Co.",
+        "city": "San Diego",
+        "club_id": 1035,
+        "id": 363,
+        "normalized_alias_name": "american comedy co",
+        "normalized_city": "san diego",
+        "normalized_state": "ca",
+        "source": "TASK-3157",
+        "state": "CA",
+        "verified": true
+      }
+    ],
+    "clubs": [
+      {
+        "city": "San Diego",
+        "closed_at": null,
+        "id": 1035,
+        "name": "American Comedy Company",
+        "state": "CA",
+        "status": "active",
+        "total_shows": 213,
+        "visible": true
+      },
+      {
+        "city": "San Diego",
+        "closed_at": "2026-06-22T00:43:42.257205+00:00",
+        "id": 4725,
+        "name": "The American Comedy Co. (duplicate of club 1035; folded from club 4725)",
+        "state": "CA",
+        "status": "closed",
+        "total_shows": 0,
+        "visible": false
+      }
+    ],
+    "duplicate_show_map_summary": {
+      "date_room_mapped_shows": 0,
+      "duplicate_shows": 0,
+      "noncolliding_shows": 0
+    },
+    "mapped_name_mismatches": [],
+    "noncolliding_duplicate_shows": [],
+    "remaining_duplicate_references": {
+      "click_events": 0,
+      "club_image_assets": 0,
+      "email_subscriptions": 0,
+      "enabled_sources": 0,
+      "eventbrite_organizer_venues": 0,
+      "favorite_clubs": 0,
+      "processed_emails": 0,
+      "production_company_venues": 0,
+      "scraper_run_clubs": 0,
+      "shows": 0,
+      "tagged_clubs": 0
+    },
+    "show_summary": [
+      {
+        "club_id": 1035,
+        "first_show": "2026-04-10T03:00:00+00:00",
+        "last_show": "2027-01-31T05:00:00+00:00",
+        "show_count": 213
+      }
+    ],
+    "sources": [
+      {
+        "club_id": 1035,
+        "enabled": true,
+        "id": 344,
+        "metadata": {},
+        "platform": "shopify",
+        "priority": 0,
+        "scraper_key": "shopify",
+        "source_url": "https://americancomedyco.com/collections/shows",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 1035,
+        "enabled": false,
+        "id": 3815,
+        "metadata": {
+          "task_3157_disposition": "moved disabled duplicate Ticketmaster source from club 4725 to club 1035",
+          "task_3157_source_audit": "TASK-3051"
+        },
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "Z7r9jZadA-"
+      }
+    ]
+  },
+  "before": {
+    "aliases": [],
+    "clubs": [
+      {
+        "city": "San Diego",
+        "closed_at": null,
+        "id": 1035,
+        "name": "American Comedy Company",
+        "state": "CA",
+        "status": "active",
+        "total_shows": 205,
+        "visible": true
+      },
+      {
+        "city": "San Diego",
+        "closed_at": null,
+        "id": 4725,
+        "name": "The American Comedy Co.",
+        "state": "CA",
+        "status": "active",
+        "total_shows": 34,
+        "visible": true
+      }
+    ],
+    "duplicate_show_map_summary": {
+      "date_room_mapped_shows": 26,
+      "duplicate_shows": 34,
+      "noncolliding_shows": 8
+    },
+    "mapped_name_mismatches": [
+      {
+        "canonical_name": "Jay Mewes: Diary of a Man Child",
+        "canonical_show_id": 1421067,
+        "canonical_show_page_url": "https://americancomedyco.com/collections/shows/products/jay-silent-bob-live-sat",
+        "date": "2026-07-26T02:00:00+00:00",
+        "duplicate_name": "Jay Mewes",
+        "duplicate_show_id": 2874749,
+        "duplicate_show_page_url": "https://www.ticketmaster.com/event/Z7r9jZ1A70xaF",
+        "room": ""
+      },
+      {
+        "canonical_name": "Hollywood Babble On with Kevin Smith",
+        "canonical_show_id": 1421068,
+        "canonical_show_page_url": "https://americancomedyco.com/collections/shows/products/hollywod-babble-on-with-kevin-smith-live-sat",
+        "date": "2026-07-26T04:00:00+00:00",
+        "duplicate_name": "Kevin Smith",
+        "duplicate_show_id": 2832684,
+        "duplicate_show_page_url": "https://www.ticketmaster.com/event/Z7r9jZ1A70x1p",
+        "room": ""
+      }
+    ],
+    "noncolliding_duplicate_shows": [
+      {
+        "click_events": 6,
+        "date": "2026-06-27T02:00:00+00:00",
+        "id": 2832680,
+        "lineup_items": 1,
+        "name": "Jamie Kennedy",
+        "room": "",
+        "show_page_url": "https://www.ticketmaster.com/event/Z7r9jZ1A70x1o",
+        "tagged_shows": 2,
+        "tickets": 1
+      },
+      {
+        "click_events": 6,
+        "date": "2026-06-27T04:00:00+00:00",
+        "id": 2832681,
+        "lineup_items": 1,
+        "name": "Jamie Kennedy",
+        "room": "",
+        "show_page_url": "https://www.ticketmaster.com/event/Z7r9jZ1A70x13",
+        "tagged_shows": 2,
+        "tickets": 1
+      },
+      {
+        "click_events": 6,
+        "date": "2026-06-28T02:00:00+00:00",
+        "id": 2832682,
+        "lineup_items": 1,
+        "name": "Jamie Kennedy",
+        "room": "",
+        "show_page_url": "https://www.ticketmaster.com/event/Z7r9jZ1A70x1K",
+        "tagged_shows": 2,
+        "tickets": 1
+      },
+      {
+        "click_events": 6,
+        "date": "2026-06-28T04:00:00+00:00",
+        "id": 2832683,
+        "lineup_items": 1,
+        "name": "Jamie Kennedy",
+        "room": "",
+        "show_page_url": "https://www.ticketmaster.com/event/Z7r9jZ1A70x18",
+        "tagged_shows": 2,
+        "tickets": 1
+      },
+      {
+        "click_events": 0,
+        "date": "2026-11-21T03:00:00+00:00",
+        "id": 2832702,
+        "lineup_items": 1,
+        "name": "Carlos Mencia",
+        "room": "",
+        "show_page_url": "https://www.ticketmaster.com/event/Z7r9jZ1A70xGZ",
+        "tagged_shows": 2,
+        "tickets": 1
+      },
+      {
+        "click_events": 0,
+        "date": "2026-11-21T05:00:00+00:00",
+        "id": 2832703,
+        "lineup_items": 1,
+        "name": "Carlos Mencia",
+        "room": "",
+        "show_page_url": "https://www.ticketmaster.com/event/Z7r9jZ1A70xGv",
+        "tagged_shows": 2,
+        "tickets": 1
+      },
+      {
+        "click_events": 0,
+        "date": "2026-11-22T05:00:00+00:00",
+        "id": 2832704,
+        "lineup_items": 1,
+        "name": "Carlos Mencia",
+        "room": "",
+        "show_page_url": "https://www.ticketmaster.com/event/Z7r9jZ1A70x1_",
+        "tagged_shows": 2,
+        "tickets": 1
+      },
+      {
+        "click_events": 0,
+        "date": "2026-11-23T03:00:00+00:00",
+        "id": 2832705,
+        "lineup_items": 1,
+        "name": "Carlos Mencia",
+        "room": "",
+        "show_page_url": "https://www.ticketmaster.com/event/Z7r9jZ1A70xGe",
+        "tagged_shows": 2,
+        "tickets": 1
+      }
+    ],
+    "remaining_duplicate_references": {
+      "click_events": 90,
+      "club_image_assets": 0,
+      "email_subscriptions": 0,
+      "enabled_sources": 1,
+      "eventbrite_organizer_venues": 0,
+      "favorite_clubs": 0,
+      "processed_emails": 0,
+      "production_company_venues": 0,
+      "scraper_run_clubs": 4,
+      "shows": 34,
+      "tagged_clubs": 0
+    },
+    "show_summary": [
+      {
+        "club_id": 1035,
+        "first_show": "2026-04-10T03:00:00+00:00",
+        "last_show": "2027-01-31T05:00:00+00:00",
+        "show_count": 205
+      },
+      {
+        "club_id": 4725,
+        "first_show": "2026-06-26T03:00:00+00:00",
+        "last_show": "2026-12-06T05:00:00+00:00",
+        "show_count": 34
+      }
+    ],
+    "sources": [
+      {
+        "club_id": 1035,
+        "enabled": true,
+        "id": 344,
+        "metadata": {},
+        "platform": "shopify",
+        "priority": 0,
+        "scraper_key": "shopify",
+        "source_url": "https://americancomedyco.com/collections/shows",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 4725,
+        "enabled": true,
+        "id": 3815,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "Z7r9jZadA-"
+      }
+    ]
+  },
+  "counts": {
+    "aliases_upserted": 1,
+    "click_events_club_repointed": 24,
+    "click_events_repointed_to_existing_show": 66,
+    "club_image_assets_moved": 0,
+    "club_totals_recomputed": 2,
+    "colliding_duplicate_shows_deleted": 26,
+    "conflicting_sent_notifications_deleted": 0,
+    "duplicate_clubs_closed": 1,
+    "duplicate_favorite_clubs_deleted": 0,
+    "duplicate_production_company_venues_deleted": 0,
+    "duplicate_sources_moved_to_canonical": 1,
+    "duplicate_tagged_clubs_deleted": 0,
+    "email_subscriptions_moved": 0,
+    "eventbrite_organizer_venues_moved": 0,
+    "favorite_clubs_inserted": 0,
+    "lineup_items_copied": 0,
+    "noncolliding_shows_moved": 8,
+    "processed_emails_moved": 0,
+    "production_company_venues_inserted": 0,
+    "punctuation_aliases_upserted": 1,
+    "scraper_run_clubs_moved": 4,
+    "sent_notifications_repointed": 0,
+    "tagged_clubs_inserted": 0,
+    "tagged_shows_copied": 52,
+    "tickets_copied": 0
+  },
+  "dry_run": false,
+  "fold": {
+    "aliases": [
+      {
+        "alias_name": "The American Comedy Co.",
+        "city": "San Diego",
+        "state": "CA"
+      },
+      {
+        "alias_name": "American Comedy Co.",
+        "city": "San Diego",
+        "state": "CA"
+      }
+    ],
+    "canonical_id": 1035,
+    "canonical_name": "American Comedy Company",
+    "duplicate_id": 4725,
+    "duplicate_name": "The American Comedy Co.",
+    "match_key": [
+      "date",
+      "room"
+    ],
+    "name_mismatch_policy": "Rows with the same date and room must merge because shows_club_id_date_room_key prevents preserving both under the canonical club."
+  },
+  "generated_at": "2026-06-22T00:43:43.297120+00:00",
+  "source_audit_task": "TASK-3051",
+  "task": "TASK-3157",
+  "validation": {
+    "clubs": [
+      {
+        "city": "San Diego",
+        "google_place_id": "ChIJcTw_Z1hT2YARSlHHs8-bgrc",
+        "id": 4725,
+        "name": "The American Comedy Co.",
+        "state": "CA",
+        "status": "active",
+        "total_shows": 34,
+        "visible": true
+      },
+      {
+        "city": "San Diego",
+        "google_place_id": "ChIJcTw_Z1hT2YARSlHHs8-bgrc",
+        "id": 1035,
+        "name": "American Comedy Company",
+        "state": "CA",
+        "status": "active",
+        "total_shows": 205,
+        "visible": true
+      }
+    ]
+  }
+}
