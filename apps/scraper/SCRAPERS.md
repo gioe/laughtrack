@@ -1063,6 +1063,61 @@ UPDATE clubs SET scraper = 'comedy_magic_club', scraping_url = 'https://myvenue.
 
 ---
 
+### EventPrime (WordPress Plugin)
+
+| | |
+|---|---|
+| **Scraper key** | `eventprime` |
+| **Platform** | `custom` |
+| **DB field** | `scraping_sources.source_url` (the full `get_events` endpoint) |
+| **Value format** | `https://<site>/wp-json/eventprime/v1/get_events` |
+| **Generic?** | ✅ DB-only onboarding for any WordPress site running the EventPrime plugin |
+
+**Detection signals:**
+- WordPress site whose shows are managed by the EventPrime events plugin (event
+  pages under `/event/<slug>/`; site source references `eventprime` / `em_` assets).
+- Public, unauthenticated REST endpoint `…/wp-json/eventprime/v1/get_events`
+  returns `{"status":"success","count":N,"events":[…]}` (HTTP 200, no auth).
+- **Do NOT** wire `woocommerce_store_api` for these venues even if the site runs
+  WooCommerce — the Store API typically returns only multi-show passes / virtual
+  EventPrime placeholders (Season/Month/Week/10-Show Pass), not dated shows.
+
+**API/source pattern:**
+- `EventPrimeScraper` fetches the `get_events` endpoint via `fetch_json`
+  (curl_cffi impersonation; Playwright fallback as backstop).
+- Each event carries `id`, `title`, `slug`, `content` (HTML), `status`
+  (`"publish"` when live), `permalink`, `image_url`, `start_date` / `end_date`
+  (ISO-8601, usually with a UTC offset), `timezone`, `venue`, and
+  `tickets` (`[{name, price, capacity}]`).
+
+**Key extraction notes:**
+- `title` → name, `permalink` → show page, `image_url` → image, `content` → HTML
+  stripped to plain-text description, each `tickets[]` entry → a USD Offer
+  (`price` 0 → free).
+- `start_date` is parsed with `datetime.fromisoformat` (preserves the embedded
+  offset); a naive timestamp is localized to the club timezone.
+- The endpoint returns the venue's **entire** event history (past + future), so
+  the extractor **drops past occurrences** — only upcoming shows are emitted.
+- Optional `metadata.comedy_filter=true` for mixed-use venues (drops non-comedy
+  titles via `is_comedy_event`).
+
+**DB setup:**
+```sql
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, priority, enabled, metadata)
+SELECT c.id, 'custom'::"ScrapingPlatform", 'eventprime',
+       'https://<site>/wp-json/eventprime/v1/get_events',
+       0, TRUE, '{}'::jsonb
+  FROM clubs c
+ WHERE c.name = '<Venue Name>';
+```
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/scrapers/implementations/eventprime/`
+- `apps/scraper/tests/scrapers/implementations/eventprime/test_scraper.py`
+- TASK-3169: Flip Flops Comedy Club (Old Orchard Beach, ME)
+
+---
+
 ### JSON-LD (Generic Fallback)
 
 | | |
