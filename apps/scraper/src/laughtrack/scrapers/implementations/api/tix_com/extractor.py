@@ -46,14 +46,21 @@ def _clean_description(raw: Optional[str]) -> Optional[str]:
 
 
 def _price(event: JSONDict) -> Optional[float]:
-    """Lowest advertised price; None when suppressed/absent."""
+    """Lowest advertised price, or None when unknown.
+
+    A MinPrice of 0 is treated as price-unknown rather than "free": Tix.com emits
+    0 for not-yet-priced / suppressed-price events, and ShowFactoryUtils reserves
+    price=0.0 for events explicitly proven free (per the tickets-are-access-records
+    convention). Returning None avoids surfacing a paid show as free.
+    """
     if event.get("SuppressPrices"):
         return None
     val = event.get("MinPrice")
     try:
-        return float(val) if val is not None else None
+        price = float(val) if val is not None else None
     except (TypeError, ValueError):
         return None
+    return price if price and price > 0 else None
 
 
 class TixComExtractor:
