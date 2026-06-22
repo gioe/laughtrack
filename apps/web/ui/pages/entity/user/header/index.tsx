@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMotionProps } from "@/hooks";
@@ -9,6 +9,7 @@ import { Loader2 } from "lucide-react";
 import UserHeroBanner from "./UserHeroBanner";
 import UserTabNav from "./UserTabNav";
 import FavoritesTab from "./FavoritesTab";
+import NotificationCenterTab from "./NotificationCenterTab";
 import NotificationsTab from "./NotificationsTab";
 import AccountSettingsTab from "./AccountSettingsTab";
 import { useProfileForm } from "./useProfileForm";
@@ -35,6 +36,31 @@ const UserDetailHeader = ({ profile }: UserDetailHeaderProps) => {
     const searchParams = useSearchParams();
     const activeTab = parseTab(searchParams?.get("tab") ?? null);
 
+    // Unread badge on the Notifications tab. Sourced from the /me launch fetch
+    // (notificationsUnreadCount); cleared the moment the center marks seen.
+    const [notificationsUnread, setNotificationsUnread] = useState(0);
+
+    useEffect(() => {
+        let cancelled = false;
+        fetch("/api/v1/me", { credentials: "same-origin" })
+            .then((res) => (res.ok ? res.json() : null))
+            .then((body) => {
+                if (!cancelled && body?.data) {
+                    setNotificationsUnread(
+                        body.data.notificationsUnreadCount ?? 0,
+                    );
+                }
+            })
+            .catch(() => {});
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
+    const handleNotificationsSeen = useCallback(() => {
+        setNotificationsUnread(0);
+    }, []);
+
     const handleTabChange = (next: TabType) => {
         const params = new URLSearchParams(searchParams?.toString() ?? "");
         if (next === "favorites") {
@@ -57,7 +83,11 @@ const UserDetailHeader = ({ profile }: UserDetailHeaderProps) => {
                 image={profile.image}
             />
 
-            <UserTabNav activeTab={activeTab} onTabChange={handleTabChange} />
+            <UserTabNav
+                activeTab={activeTab}
+                onTabChange={handleTabChange}
+                notificationsUnread={notificationsUnread}
+            />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <AnimatePresence mode="wait">
@@ -80,8 +110,11 @@ const UserDetailHeader = ({ profile }: UserDetailHeaderProps) => {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: mv(-20) }}
                             transition={springs.contentEntrance}
-                            className="max-w-2xl"
+                            className="max-w-2xl space-y-6"
                         >
+                            <NotificationCenterTab
+                                onSeen={handleNotificationsSeen}
+                            />
                             <NotificationsTab
                                 emailOptin={fields.emailOptin}
                                 isDirty={!!dirtyFields.emailOptin}

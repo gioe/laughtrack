@@ -8,6 +8,8 @@ type TabType = "favorites" | "notifications" | "account";
 interface UserTabNavProps {
     activeTab: TabType;
     onTabChange: (tab: TabType) => void;
+    /** Unread notification count; renders a badge on the Notifications tab. */
+    notificationsUnread?: number;
 }
 
 const tabs = [
@@ -16,7 +18,11 @@ const tabs = [
     { id: "account" as TabType, label: "Account Settings", icon: Settings },
 ];
 
-const UserTabNav = ({ activeTab, onTabChange }: UserTabNavProps) => {
+const UserTabNav = ({
+    activeTab,
+    onTabChange,
+    notificationsUnread = 0,
+}: UserTabNavProps) => {
     return (
         <div className="border-b border-subtle mt-6">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -38,6 +44,17 @@ const UserTabNav = ({ activeTab, onTabChange }: UserTabNavProps) => {
                             >
                                 <Icon className="w-4 h-4" />
                                 {tab.label}
+                                {tab.id === "notifications" &&
+                                    notificationsUnread > 0 && (
+                                        <span
+                                            data-testid="notifications-unread-badge"
+                                            className="ml-1 min-w-[18px] h-[18px] px-1 inline-flex items-center justify-center rounded-full bg-copper text-white text-[11px] font-semibold leading-none"
+                                        >
+                                            {notificationsUnread > 9
+                                                ? "9+"
+                                                : notificationsUnread}
+                                        </span>
+                                    )}
                             </button>
                         );
                     })}
