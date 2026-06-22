@@ -28,9 +28,11 @@ class GenericShoWareScraper(BaseScraper):
     def __init__(self, club: Club, **kwargs):
         source_url = URLUtils.normalize_url(club.scraping_url or "")
         base_url = _derive_base_url(source_url)
-        if not base_url or "showare.com" not in urlparse(base_url).netloc:
+        netloc = urlparse(base_url).netloc
+        if not base_url or not _is_showare_host_allowed(club, netloc):
             raise ValueError(
-                "GenericShoWareScraper requires a showare.com "
+                "GenericShoWareScraper requires a showare.com host or "
+                "metadata.showare_whitelabel=true "
                 f"scraping_sources.source_url for club_id={club.id} ('{club.name}'); "
                 f"got {club.scraping_url!r}"
             )
@@ -136,6 +138,13 @@ def _metadata_int(club: Club, key: str, default: int) -> int:
     except (TypeError, ValueError):
         return default
     return value if value > 0 else default
+
+
+def _is_showare_host_allowed(club: Club, netloc: str) -> bool:
+    if "showare.com" in netloc:
+        return True
+    raw = club.metadata_value("showare_whitelabel")
+    return str(raw or "").strip().lower() in {"1", "true", "yes"}
 
 
 def _price_sort_value(event: ShoWarePerformance) -> float:

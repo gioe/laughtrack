@@ -9,6 +9,8 @@ from laughtrack.scrapers.implementations.api.showare.scraper import GenericShoWa
 
 SOURCE_URL = "https://shucommunitytheatre.showare.com/default.asp"
 BASE_URL = "https://shucommunitytheatre.showare.com"
+WHITELABEL_SOURCE_URL = "https://tickets.tupelohall.com/default.asp"
+WHITELABEL_BASE_URL = "https://tickets.tupelohall.com"
 
 
 def _club(metadata: dict | None = None) -> Club:
@@ -35,6 +37,12 @@ def _club(metadata: dict | None = None) -> Club:
         metadata=metadata or {},
     )
     club.scraping_sources = [club.active_scraping_source]
+    return club
+
+
+def _club_with_source(source_url: str, metadata: dict | None = None) -> Club:
+    club = _club(metadata=metadata)
+    club.active_scraping_source.source_url = source_url
     return club
 
 
@@ -98,6 +106,35 @@ def test_performance_from_api_response_builds_detail_and_ticket_urls():
     assert event.title == "Comedy Bang! Bang!"
     assert event.detail_url == f"{BASE_URL}/eventperformances.asp?evt=898"
     assert event.ticket_url == f"{BASE_URL}/ordertickets.asp?p=898&src=default"
+
+
+def test_scraper_accepts_standard_showare_host():
+    scraper = GenericShoWareScraper(_club())
+
+    assert scraper._base_url == BASE_URL
+
+
+def test_scraper_rejects_non_showare_host_without_whitelabel_flag():
+    with pytest.raises(ValueError, match="showare_whitelabel"):
+        GenericShoWareScraper(_club_with_source(WHITELABEL_SOURCE_URL))
+
+
+@pytest.mark.asyncio
+async def test_scraper_accepts_whitelabel_host_with_metadata_flag():
+    scraper = GenericShoWareScraper(
+        _club_with_source(
+            WHITELABEL_SOURCE_URL,
+            metadata={"showare_whitelabel": True},
+        )
+    )
+
+    targets = await scraper.collect_scraping_targets()
+
+    assert scraper._base_url == WHITELABEL_BASE_URL
+    assert targets == [
+        f"{WHITELABEL_BASE_URL}/include/widgets/events/performancelist.asp?"
+        "action=perf&listPageSize=100&listMaxSize=100&page=1"
+    ]
 
 
 @pytest.mark.asyncio
