@@ -3216,6 +3216,50 @@ verified 7 dated comedy shows among 23 events), **Pabst Theater** (TASK-3035;
 migrated off `ticketmaster_comedy`, 5 comedy shows), and **Turner Hall Ballroom**
 (TASK-3035; 3 comedy shows).
 
+### AEG/Goldenvoice Carbonhouse venue page (`aeg_axs`)
+
+`scraper_key = aeg_axs`, `platform = custom`. **AEG-Carbonhouse-template-specific,
+not the generic `axs` scraper.** Many AEG Presents / Goldenvoice venues (The
+Warfield, The Regency Ballroom, Social Hall SF, …) run one shared
+**Carbonhouse** venue-site template (`generatorAgent rdf:resource="http://carbonhouse.com/"`),
+all ticketed via AXS (`axs.com/events/<id>/...?skin=<venue>`). The generic `axs`
+scraper expects an `rsCaption` homepage slider and `pabst_axs` expects
+`div.eventItem` cards; this template returns 0 against both — it lists shows as
+`div.entry` cards on the venue's own `/events` page.
+
+**Datasource (TASK-3209) — scrape the venue `/events` page, NOT axs.com.** The
+`axs.com` detail pages are DataDome-protected; the venue `/events` page is plain
+server-rendered HTML (curl_cffi chrome impersonation, which `fetch_html` does by
+default). Parse the `div.entry` cards:
+- **name**: `<h3 class="carousel_item_title_small"><a href="<venue>/events/detail/<id>">NAME</a></h3>`
+- **date**: `<span class="date">Wed, Jun 24, 2026</span>` (`%a, %b %d, %Y`)
+- **time**: `<span class="time">Show 8:00 PM</span>` — **a real show time**
+  (unlike the date-only `axs`/`pabst_axs` templates); `default_show_time` is only
+  a fallback for cards with no parseable time
+- **ticket url**: `<a ... href="axs.com/events/<id>/...?skin=<venue>">`
+- **show_page_url**: the venue's own `/events/detail/<id>` link (drives traffic to
+  the venue), falling back to the AXS ticket URL
+
+`source_url` = the venue `/events` page (e.g.
+`https://www.thewarfieldtheatre.com/events`).
+
+**Comedy filter — mixed-use concert venue.** These rooms are concert-dominated
+(The Warfield: 19 of 20 upcoming shows are music), so wire the shared comedy
+filter via `metadata.comedy_filter: true`. It keeps a title when it carries a
+comedy keyword (`is_comedy_event`), names a known comedian above
+`metadata.min_comedian_popularity` (default 0.30), **or** matches a per-source
+`metadata.comedy_title_allowlist` substring. The allowlist is the escape hatch for
+comedian-name acts the keyword filter misses whose stored popularity is below the
+floor (e.g. `"kevin langue"` — popularity 0.188).
+
+**Onboarding another AEG/Goldenvoice Carbonhouse room:** insert a `clubs` row + a
+`scraping_sources` row (`scraper_key=aeg_axs`, `source_url`=the venue `/events`
+page, `metadata` with `comedy_filter` + `comedy_title_allowlist` +
+`default_show_time`) via an idempotent migration keyed on `google_place_id`. See
+`apps/web/prisma/migrations/20260623220000_onboard_warfield_aeg_axs/migration.sql`
+for the template. Onboarded: **The Warfield** (San Francisco; TASK-3209; verified
+1 comedy show — "The Kevin Langue Show: Live!" — kept among 20 events).
+
 ### NeonCRM / Neon One (`neoncrm`)
 
 `scraper_key = neoncrm`, `platform = custom` (NeonCRM has no dedicated
