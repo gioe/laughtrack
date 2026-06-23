@@ -8,10 +8,14 @@ on:
     paths:
       - "android/**"
       - ".github/workflows/android.yml"
+      # The Kotlin client is generated from the shared spec; a spec-only edit
+      # (e.g. from an iOS task) must still run the drift check.
+      - "ios/Sources/LaughTrackAPIClient/openapi.json"
   pull_request:
     paths:
       - "android/**"
       - ".github/workflows/android.yml"
+      - "ios/Sources/LaughTrackAPIClient/openapi.json"
 
 concurrency:
   group: android-${{ github.ref }}
@@ -22,6 +26,25 @@ defaults:
     working-directory: android
 
 jobs:
+  openapi-drift:
+    name: OpenAPI client drift check
+    runs-on: ubuntu-latest
+    # Blocking gate: the committed Kotlin client must match a clean regen of the
+    # shared openapi.json. Needs only a JDK (no Android SDK / Gradle), so it runs
+    # fast. Mirrors the iOS check-openapi-regen-drift gate.
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Check generated client matches the spec
+        working-directory: .
+        run: ./android/bin/check-openapi-regen-drift.sh
+
   build-and-test:
     name: Assemble + unit + lint
     runs-on: ubuntu-latest
