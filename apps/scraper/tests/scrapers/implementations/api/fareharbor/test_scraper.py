@@ -25,17 +25,19 @@ CALENDAR_PAYLOAD = json.loads((FIXTURES / "firehouse_calendar.json").read_text()
 
 
 def _club(metadata=None, source_url="https://fareharbor.com/embeds/book/firehousetheater/"):
+    if metadata is None:
+        metadata = {
+            "shortname": "firehousetheater",
+            "exclude_item_pks": [187485, 232371, 695268],
+            "months_ahead": 1,
+        }
     source = ScrapingSource(
         id=1,
         club_id=11074,
         platform="custom",
         scraper_key="fareharbor",
         source_url=source_url,
-        metadata=metadata or {
-            "shortname": "firehousetheater",
-            "exclude_item_pks": [187485, 232371, 695268],
-            "months_ahead": 1,
-        },
+        metadata=metadata,
     )
     club = Club(
         id=11074,
@@ -65,6 +67,19 @@ def test_extract_items_and_filter_operational_products():
     ]
 
     assert kept == ["The Bit Players"]
+
+
+def test_default_operational_filter_does_not_match_class_substring():
+    assert not item_is_operational(
+        {"pk": 1, "name": "World Class Comedy", "headline": "Stand-up"}
+    )
+
+
+def test_allow_item_pks_override_operational_keywords():
+    assert not item_is_operational(
+        {"pk": 695268, "name": "Improv Practice", "headline": "Free"},
+        allowed_item_pks=[695268],
+    )
 
 
 def test_calendar_events_include_price_and_absolute_booking_url():

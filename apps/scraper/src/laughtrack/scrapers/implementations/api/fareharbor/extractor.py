@@ -26,6 +26,10 @@ _RATE_RE = re.compile(
     re.IGNORECASE,
 )
 _ANY_PRICE_RE = re.compile(r"\$(?P<price>\d+(?:\.\d{1,2})?)")
+_OPERATIONAL_PHRASE_RE = re.compile(
+    r"\b(?:classes?|donations?|gift cards?|gift certificates?|practice|workshops?)\b",
+    re.IGNORECASE,
+)
 
 
 def extract_items(payload: Any) -> list[dict[str, Any]]:
@@ -55,8 +59,12 @@ def item_is_operational(
 
     name = _clean_text(item.get("name"))
     headline = _clean_text(item.get("headline"))
-    haystack = f"{name} {headline}".lower()
-    return any(keyword.lower() in haystack for keyword in operational_keywords)
+    haystack = f"{name} {headline}"
+    if set(operational_keywords) == _DEFAULT_OPERATIONAL_KEYWORDS:
+        return bool(_OPERATIONAL_PHRASE_RE.search(haystack))
+
+    lowered = haystack.lower()
+    return any(keyword.lower() in lowered for keyword in operational_keywords)
 
 
 def extract_events_from_calendar(
