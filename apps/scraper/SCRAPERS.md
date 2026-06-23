@@ -1583,6 +1583,64 @@ WHERE name = '<Club Name>';
 
 ---
 
+### TicketSpice (Webconnex)
+
+| | |
+|---|---|
+| **Scraper key** | `ticketspice` (generic — `TicketSpiceScraper`) |
+| **Platform** | `custom` |
+| **DB field** | `scraping_sources.source_url` (+ optional `metadata.default_show_time`, `metadata.form_url`) |
+| **Value format** | Full TicketSpice form URL, e.g. `https://{account}.ticketspice.com/{form-slug}` |
+| **Generic?** | ✅ Single scraper, configured per-venue via `scraping_sources` |
+
+**Detection signals:**
+- Venue website links to `{account}.ticketspice.com/{slug}` ticket pages
+- The form page footer/branding shows "Powered by TicketSpice"
+- Page HTML contains a `window.__BOOTSTRAP__ = { ... }` JS object whose
+  `appSettings` and `formData` members are escaped JSON strings
+
+**Single-event model (IMPORTANT):** A TicketSpice form is a SINGLE-EVENT
+ticketing page — one form == one show on one date. There is no multi-date
+calendar; recurring shows post a NEW form per date (`schedules` and `items` in
+`formData` are empty for single-date forms). The scraper therefore parses one
+show per form URL. Once that date passes, `to_show` drops the show, so a stale
+un-updated form stops emitting a past show (it just scrapes 0 until the venue
+posts the next date's form).
+
+**Where the data lives:** the form HTML embeds `window.__BOOTSTRAP__` near the
+top of the page. Two members are themselves escaped JSON strings:
+- `appSettings` → `formName` (show title), `eventStart` (ISO date at UTC
+  midnight — **date only, no reliable wall-clock time**), `timeZone`, `status`
+  (`1` == published; the scraper skips anything else)
+- `formData` → `ticketBlock.levels[].price` (lowest level becomes the ticket
+  price); `soldOut` flags the whole form sold out and is propagated to the
+  ticket's `sold_out`
+
+**Show time:** TicketSpice forms carry no show time, so each Show uses
+`metadata.default_show_time` (`HH:MM`, default `19:00`) localized to the club
+timezone — same pattern as the AXS homepage scraper.
+
+**Key implementation details:**
+- `collect_scraping_targets()` returns the form URL (`metadata.form_url` override,
+  else the active source's `source_url` via `club.scraping_url`)
+- `extractor.extract_event()` parses the bootstrap into one `TicketSpiceEvent`
+- The page is plain server-rendered HTML — a single `fetch_html` suffices (no
+  auth, no separate API call)
+
+**DB setup:**
+```sql
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, enabled, priority, metadata)
+VALUES (
+  <club_id>, 'custom'::"ScrapingPlatform", 'ticketspice',
+  'https://{account}.ticketspice.com/{form-slug}', TRUE, 0, '{}'::jsonb
+);
+```
+
+**Reference implementation:** `apps/scraper/src/laughtrack/scrapers/implementations/api/ticketspice/`
+(first venue: The Stage at Burke Junction — `thestage.ticketspice.com/barley-me-comedy`, TASK-3207)
+
+---
+
 ### ThunderTix
 
 | | |
