@@ -1,0 +1,18 @@
+*.iml
+.gradle/
+local.properties
+.idea/
+.DS_Store
+build/
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.keystore
+# Firebase config is injected per-environment; keep the real file out of VCS.
+google-services.json
+# Secrets / signing material — never commit (parity with iOS: keys go in CI secrets)
+keystore.properties
+*.jks
+play-service-account.json
