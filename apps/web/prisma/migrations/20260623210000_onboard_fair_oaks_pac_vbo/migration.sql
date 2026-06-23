@@ -51,4 +51,11 @@ WHERE (c.google_place_id = 'ChIJuZcg3gDdmoARNqMo55x-_Go' OR c.name = 'Fair Oaks 
   AND NOT EXISTS (
       SELECT 1 FROM scraping_sources s
       WHERE s.club_id = c.id AND s.scraper_key = 'vbo_tickets'
+  )
+  -- Also guard the table's real unique key (club_id, platform, priority) so a
+  -- pre-existing 'custom'/priority-0 row for this club can't make the
+  -- NOT-EXISTS-on-scraper_key guard pass and then trip a constraint violation.
+  AND NOT EXISTS (
+      SELECT 1 FROM scraping_sources s
+      WHERE s.club_id = c.id AND s.platform = 'custom'::"ScrapingPlatform" AND s.priority = 0
   );
