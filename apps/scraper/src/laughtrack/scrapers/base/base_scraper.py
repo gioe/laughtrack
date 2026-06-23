@@ -13,9 +13,10 @@ import asyncio
 import concurrent.futures
 import contextvars
 import os
+import re
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple
+from typing import Any, Awaitable, Callable, Dict, Iterable, List, Optional, Tuple
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.show.model import Show
@@ -258,6 +259,46 @@ class BaseScraper(HttpConvenienceMixin, ABC):
     def _log_prefix(self) -> str:
         """Logging prefix shared by all Logger calls in this scraper."""
         return f"{self.__class__.__name__} [{self._club.name}]"
+
+    def compile_title_patterns(
+        self, metadata_key: str, *, extra_patterns: Iterable[str] = ()
+    ) -> List[re.Pattern]:
+        """Compile case-insensitive title-match regexes from source metadata.
+
+        Reads ``self.club.source_metadata[metadata_key]`` — a single regex
+        string or a list of regex strings — plus any ``extra_patterns``, and
+        returns a list of compiled ``re.Pattern`` objects (all ``re.IGNORECASE``).
+        Returns ``[]`` when nothing is configured. Invalid regexes are skipped
+        with a warning rather than raising, so one bad operator-supplied
+        pattern can't crash a scrape.
+
+        Shared by scrapers that filter events by title via
+        ``scraping_sources.metadata`` — e.g. eventbrite
+        (``exclude_classes`` → ``extra_patterns`` + ``exclude_title_patterns``),
+        sellingticket / showare (``include_title_patterns`` /
+        ``exclude_title_patterns``). Callers keep their own filter loop (which
+        title field to match, include-vs-exclude semantics); this only owns the
+        metadata parsing and compilation.
+        """
+        raw = (self.club.source_metadata or {}).get(metadata_key)
+        values: List[str] = [str(p) for p in extra_patterns]
+        if isinstance(raw, str):
+            if raw.strip():
+                values.append(raw)
+        elif isinstance(raw, (list, tuple)):
+            values.extend(str(v) for v in raw if str(v).strip())
+
+        compiled: List[re.Pattern] = []
+        for pattern in values:
+            try:
+                compiled.append(re.compile(pattern, re.IGNORECASE))
+            except re.error as e:
+                Logger.warn(
+                    f"{self._log_prefix}: ignoring invalid {metadata_key} regex "
+                    f"{pattern!r}: {e}",
+                    self.logger_context,
+                )
+        return compiled
 
     def _warn_empty_extraction(
         self,
