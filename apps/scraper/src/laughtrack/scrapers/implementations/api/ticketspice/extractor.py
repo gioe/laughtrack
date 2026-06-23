@@ -115,10 +115,12 @@ def extract_event(html: str, form_url: str) -> Optional[TicketSpiceEvent]:
 
     form_data = _extract_js_json_string(html, "formData")
     price = _lowest_price(form_data) if isinstance(form_data, (dict, list)) else None
+    sold_out = bool(form_data.get("soldOut")) if isinstance(form_data, dict) else False
 
     return TicketSpiceEvent(
         title=title,
         event_date=event_date,
         form_url=form_url,
         price=price,
+        sold_out=sold_out,
     )

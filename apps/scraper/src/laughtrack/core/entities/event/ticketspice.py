@@ -44,6 +44,7 @@ class TicketSpiceEvent(ShowConvertible):
     event_date: date                # date portion of appSettings.eventStart (no time)
     form_url: str                   # the TicketSpice form URL (drives ticket purchase)
     price: Optional[float] = None   # lowest ticket-level price, if parsed
+    sold_out: bool = False          # formData.soldOut — whole-form sold-out flag
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None):
         """Convert to a Show domain object, or None if required fields are
@@ -65,7 +66,11 @@ class TicketSpiceEvent(ShowConvertible):
             return None
 
         source_url = url or self.form_url
-        tickets = [ShowFactoryUtils.create_fallback_ticket(source_url, price=self.price)]
+        tickets = [
+            ShowFactoryUtils.create_fallback_ticket(
+                source_url, price=self.price, sold_out=self.sold_out
+            )
+        ]
 
         return ShowFactoryUtils.create_enhanced_show_base(
             name=self.title,

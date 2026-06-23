@@ -47,6 +47,24 @@ class TestExtractEventFromFixture:
         assert ev.form_url == _FORM_URL
         assert ev.price == 9.0
 
+    def test_fixture_event_not_sold_out(self):
+        # The recorded form has formData.soldOut == false.
+        ev = extract_event(_load_fixture(), _FORM_URL)
+        assert ev is not None
+        assert ev.sold_out is False
+
+    def test_sold_out_form_flags_event(self):
+        html = (
+            'window.__BOOTSTRAP__ = {\n'
+            '\tappSettings: "{\\"status\\":1,\\"formName\\":\\"Sold Out Show\\",'
+            '\\"eventStart\\":\\"2099-01-01T00:00:00Z\\"}",\n'
+            '\tformData: "{\\"soldOut\\":true}",\n'
+            '}'
+        )
+        ev = extract_event(html, _FORM_URL)
+        assert ev is not None
+        assert ev.sold_out is True
+
     def test_empty_html_returns_none(self):
         assert extract_event("", _FORM_URL) is None
 

@@ -1585,7 +1585,8 @@ top of the page. Two members are themselves escaped JSON strings:
   midnight — **date only, no reliable wall-clock time**), `timeZone`, `status`
   (`1` == published; the scraper skips anything else)
 - `formData` → `ticketBlock.levels[].price` (lowest level becomes the ticket
-  price); `soldOut` flags the whole form
+  price); `soldOut` flags the whole form sold out and is propagated to the
+  ticket's `sold_out`
 
 **Show time:** TicketSpice forms carry no show time, so each Show uses
 `metadata.default_show_time` (`HH:MM`, default `19:00`) localized to the club
