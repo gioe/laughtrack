@@ -896,20 +896,29 @@ API returns `> 0` upcoming events before onboarding a Wix venue. (TASK-2957)
 
 | | |
 |---|---|
-| **Scraper key** | Venue-specific (e.g. `philly_improv_theater`) |
-| **DB field** | `scraping_url` |
-| **Generic?** | ❌ Requires parameterization — theatre slug is hardcoded per venue |
+| **Scraper key** | `crowdwork` (generic) |
+| **DB field** | `source_url` = `https://crowdwork.com/api/v2/<theatre>/shows` |
+| **Platform enum** | `crowdwork` |
+| **Generic?** | ✅ — the theatre slug lives in `source_url`; no per-venue code |
 
-**Detection signals (via Playwright network inspection):**
+**Detection signals (via Playwright network inspection, or curl the venue's events page):**
 ```
 GET https://crowdwork.com/api/v2/<theatre>/shows
 ```
-The `<theatre>` value comes from the `data-theatre` attribute on the embedded script tag.
+The `<theatre>` slug comes from the embedded CrowdWork links on the venue's site
+(e.g. `crowdwork.com/v/<theatre>/shows`, `<theatre>.crowdwork.com/shows`) or the
+`data-theatre` attribute on the embedded `crowdwork.com/embed.js` script tag.
 
-**To onboard a new Crowdwork venue:**
-1. Navigate in Playwright → capture `browser_network_requests` → find the API call
-2. Extract the `<theatre>` slug from the URL
-3. Create a new scraper directory and replace the theatre slug
+**To onboard a new Crowdwork venue:** insert a `scraping_sources` row with
+`platform='crowdwork'`, `scraper_key='crowdwork'`, and `source_url` set to the
+`/api/v2/<theatre>/shows` endpoint. No new scraper directory is needed — the generic
+`crowdwork` scraper reads the URL from `source_url` and its config from `metadata`:
+- `default_timezone` (IANA) — fallback when a show has no `timezone` field.
+- `rails_to_iana: true` — set this when the API returns **Rails-style** timezone
+  names (`"Pacific Time (US & Canada)"`, etc.) so they normalise to IANA. Venues
+  whose API already returns IANA names (e.g. Philly Improv → `America/New_York`)
+  omit it. Example (Haus of Comedy, TASK-3200, slug `windhausimprov`):
+  `metadata = {"rails_to_iana": true, "default_timezone": "America/Los_Angeles"}`.
 
 ---
 
@@ -3383,7 +3392,7 @@ cd apps/scraper && make scrape-club CLUB='My Club'
 | FareHarbor | `fareharbor` | No | `source_url` + metadata `shortname`, optional `exclude_item_pks` |
 | Squarespace | `squarespace` | No | `scraping_url` (full GetItemsByMonth URL with `collectionId`) |
 | Wix Events | venue-specific | **Yes** — replace compId | `scraping_url` |
-| Crowdwork | venue-specific | **Yes** — replace theatre slug | `scraping_url` |
+| Crowdwork | `crowdwork` | No — slug lives in `source_url` | `source_url` (`/api/v2/<theatre>/shows`) |
 | VBO Tickets (multi-event listing) | `vbo_tickets` | No | `source_url` (loadplugin URL with SiteID) |
 | VBO Tickets (single recurring show) | venue-specific | **Yes** — replace SiteID/EID constants | `scraping_url` |
 | SquadUP | venue-specific | **Yes** — replace user_id | `scraping_url` |
