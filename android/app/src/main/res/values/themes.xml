@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base platform theme. The app is dark-only (parity with iOS), so colors
+         are driven by Compose (core:ui LaughTrackTheme); this XML theme only sets
+         the pre-Compose window background to avoid a light flash at launch. -->
+    <style name="Theme.LaughTrack" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/canvas</item>
+        <item name="android:statusBarColor">@color/canvas</item>
+        <item name="android:navigationBarColor">@color/canvas</item>
+    </style>
+</resources>
