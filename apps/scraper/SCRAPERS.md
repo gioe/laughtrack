@@ -383,15 +383,32 @@ The `calendar=` parameter **is the Eventbrite organizer ID** — use `scraper='e
 UPDATE clubs SET scraper = 'eventbrite', eventbrite_id = '30460267696' WHERE name = 'My Club';
 ```
 
-**Mixed-use organizers (classes vs shows):** improv training centers post class/course
-listings to the same organizer feed as their public shows. Two opt-in
-`scraping_sources.metadata` title filters keep classes out (OFF by default, so
-pure-comedy sources are unchanged):
+**Mixed-use organizers (classes / music vs comedy):** a single Eventbrite
+organizer feed often mixes non-comedy listings (improv classes at training
+centers; band/DJ acts at Blues/Jazz/Comedy venues) with the comedy shows. Three
+opt-in `scraping_sources.metadata` title filters isolate the comedy (all OFF by
+default, so pure-comedy sources are unchanged):
+- `include_title_patterns: ['<regex>', ...]` — keep ONLY events whose title
+  matches at least one pattern (the comedy allowlist). Use this when the
+  non-comedy titles are unpredictable, e.g. a Blues/Jazz/Comedy venue whose
+  music events are named after the band/DJ (TASK-3205, Deja Blue) — an exclude
+  list can't enumerate them, so allowlist the comedy words instead.
 - `exclude_classes: true` — applies built-in class/course/workshop/drop-in/leveled-improv
   patterns.
 - `exclude_title_patterns: ['<regex>', ...]` — drop events whose title matches any pattern.
 
+`include` and `exclude` compose: an event must match an include pattern AND not
+match an exclude pattern to survive. All are matched case-insensitively against
+the event title only.
+
 ```sql
+-- Comedy allowlist for a mixed Blues/Jazz/Comedy organizer feed:
+UPDATE scraping_sources
+SET metadata = jsonb_set(COALESCE(metadata,'{}'::jsonb), '{include_title_patterns}',
+    '["comedy","stand[ -]?up","comedian"]'::jsonb)
+WHERE club_id = <id> AND scraper_key = 'eventbrite';
+
+-- Class exclusion for an improv training center:
 UPDATE scraping_sources
 SET metadata = jsonb_set(COALESCE(metadata,'{}'::jsonb), '{exclude_classes}', 'true')
 WHERE club_id = <id> AND scraper_key = 'eventbrite';
