@@ -1,0 +1,23 @@
+# Code style for the Android client. root=true isolates this toolchain from the
+# repo-level config (Android uses ktlint, unlike the web/scraper apps).
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+[*.{kt,kts}]
+max_line_length = 120
+# Compose theme convention groups tokens in Color.kt / Type.kt, so the file does
+# not match a single top-level declaration name — disable ktlint's filename rule.
+ktlint_standard_filename = disabled
+
+[*.{yml,yaml,toml,json}]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false

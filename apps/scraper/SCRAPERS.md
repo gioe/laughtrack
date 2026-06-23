@@ -1883,6 +1883,11 @@ SELECT c.id, 'custom'::"ScrapingPlatform", 'tempo_tickets',
 - In `single_venue` mode, `TicketTailorScraper` attaches every listing event to the configured club and does **not** call `ClubHandler.upsert_discovered_venue`.
 - West River Comedy Club (TASK-3026) uses this mode because the previous `json_ld` + `force_js_rendering` source hit hard Cloudflare Turnstile from GHA datacenter egress, while the Ticket Tailor listing HTML clears via curl-cffi impersonation plus the venue website Referer and avoids Playwright entirely.
 
+**Mixed-use venues (comedy title filter, off by default):** Some Ticket Tailor box offices are general event halls that host an intermittent comedy series alongside raves / DJ nights / concerts / private parties (e.g. Continental Club Oakland, TASK-3216). Apply an opt-in title filter via `scraping_sources.metadata` so only comedy is ingested:
+- `include_title_patterns` — keep only events whose title matches at least one regex (the comedy allowlist, e.g. `["comedy", "stand[- ]?up", "comedian", "open mic", "improv", "showcase"]`).
+- `exclude_title_patterns` — drop events whose title matches any regex (a blocklist).
+Both are off by default (pattern parsing via the shared `BaseScraper.compile_title_patterns`; include-then-exclude loop mirrors `ticketweb`/`sellingticket`/`showare`), so existing pure-comedy Ticket Tailor sources (West River, Milwaukee Comedy) are unchanged. When the live feed is currently all non-comedy, the filter yields **0 shows by design** — comedy auto-populates when the next stand-up night is listed (Clayton Club precedent, TASK-3192). A 0-show scrape on a comedy-filtered mixed-use source is expected, not a failure.
+
 **Key extraction notes:**
 - Each event card is `li.events-listing__item`: `h3.event__title` / `a.event__link` (detail link), `span.event-meta__date` ("Tue Jun 30, 2026 6:00 PM - 9:00 PM CDT"), `span.event-meta__location` ("Vendetta Coffee Bar, 53204" = name + zip)
 - The date carries the year; the US timezone abbreviation (CDT/EST/…) is mapped to an IANA zone for localization

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Mirrors the iOS dark design tokens (canvas / accent-strong). -->
+    <color name="canvas">#121212</color>
+    <color name="accent_strong">#CD6837</color>
+    <color name="ic_launcher_background">#121212</color>
+</resources>
