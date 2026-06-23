@@ -310,6 +310,25 @@ def _street_number(address: str | None) -> str | None:
     return match.group(1) if match else None
 
 
+def _result_zip(address: str | None) -> str | None:
+    """The US ZIP from a Google formatted address.
+
+    Prefers the 5-digit group that follows the 2-letter state code
+    ("..., Brookfield, WI 53045, USA") so a LEADING 5-digit street number
+    ("20110 W Bluemound Rd, Brookfield, WI 53045") is not mistaken for the zip —
+    that artifact caused valid venues (Milwaukee Improv, several Funny Bones,
+    arena addresses) to be false-rejected as zip mismatches. Falls back to the
+    last 5-digit run when no state+zip pattern is present.
+    """
+    if not address:
+        return None
+    after_state = re.search(r"\b[A-Z]{2}\s+(\d{5})(?:-\d{4})?\b", address)
+    if after_state:
+        return after_state.group(1)
+    runs = re.findall(r"\b(\d{5})\b", address)
+    return runs[-1] if runs else None
+
+
 def _validate(row: ClubRow, result: PlaceResult) -> tuple[bool, str]:
     """High-confidence acceptance gate for a text-search place_id match.
 
@@ -331,8 +350,7 @@ def _validate(row: ClubRow, result: PlaceResult) -> tuple[bool, str]:
     # from the result (Google sometimes omits it) is not — fall back to the
     # street-number anchor below.
     expected_zip = (row.zip_code or "").strip()[:5]
-    result_zip_match = re.search(r"\b(\d{5})\b", result.formatted_address)
-    result_zip = result_zip_match.group(1) if result_zip_match else None
+    result_zip = _result_zip(result.formatted_address)
     if expected_zip.isdigit() and result_zip and expected_zip != result_zip:
         return False, f"zip mismatch: expected {expected_zip}, got {result_zip}"
     zip_matches = bool(expected_zip.isdigit() and result_zip == expected_zip)

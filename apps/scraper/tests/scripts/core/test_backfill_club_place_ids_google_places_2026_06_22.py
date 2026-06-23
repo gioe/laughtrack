@@ -139,3 +139,27 @@ def test_street_number_is_leading_only():
     assert mod._street_number("117 MacDougal St") == "117"
     assert mod._street_number("Suite 200, Broadway") is None
     assert mod._street_number("MacDougal St, NY 10012") is None
+
+
+def test_result_zip_prefers_zip_after_state_not_leading_street_number():
+    # The Milwaukee Improv artifact: a leading 5-digit street number must not be
+    # mistaken for the zip (TASK-3175).
+    assert mod._result_zip("20110 W Bluemound Rd, Brookfield, WI 53045, USA") == "53045"
+    assert mod._result_zip("123 S Walnut St, Bloomington, IN 47408, USA") == "47408"
+    assert mod._result_zip("Some Place, New York, NY 10012-1234, USA") == "10012"
+    # Fallback to the last 5-digit run when there is no state+zip pattern.
+    assert mod._result_zip("Somewhere 90210") == "90210"
+    assert mod._result_zip("No digits here") is None
+
+
+def test_validate_accepts_leading_5digit_street_number_with_matching_zip():
+    # A venue whose Google address starts with a 5-digit house number but whose
+    # real zip equals the stored zip must be ACCEPTED, not false-rejected.
+    row = _row(name="Milwaukee Improv", address="20110 W Bluemound Rd", state="WI", zip_code="53045")
+    result = _result(
+        display_name="Milwaukee Improv",
+        formatted_address="20110 W Bluemound Rd, Brookfield, WI 53045, USA",
+        state_code="WI",
+    )
+    ok, reason = mod._validate(row, result)
+    assert ok is True, reason
