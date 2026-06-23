@@ -1799,11 +1799,30 @@ SELECT c.id, 'custom'::"ScrapingPlatform", 'ludus', 'https://parktheatreholland.
 - No `humanitix_id` column exists; store the full host URL in `scraping_url`
 - Collections-page JSON-LD leads with a urless `AggregateOffer` (a price-range summary); the
   ticket layer falls back to the event URL for `purchase_url` so the show isn't dropped by validation
+- **No host/collections page (events linked individually):** when the venue's own CMS page
+  (Squarespace/Wix/etc.) links each show as a separate `events.humanitix.com/<slug>` event and the
+  org exposes no host or collections page, use the `json_ld` scraper in **detail-fetch mode**: set
+  `scraping_url` to the venue's own shows/calendar page and configure `metadata.detail_fetch` to
+  collect the Humanitix anchors, then fetch each event page's (multi-date) JSON-LD. Each event page
+  embeds every date of that recurring event as its own `Event` block (TASK-3185, All Out Comedy
+  Theater — 5 event pages → 17 shows).
 
 **DB setup:**
 ```sql
+-- Host page (all events in one fetch):
 INSERT INTO clubs (..., scraper, scraping_url, ...)
 VALUES (..., 'json_ld', 'https://events.humanitix.com/host/my-venue', ...);
+
+-- Detail-fetch over a CMS page that links individual Humanitix events (no host page):
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, enabled, priority, metadata)
+VALUES (
+  <club_id>, 'custom', 'json_ld', 'https://myvenue.com/shows', TRUE, 0,
+  jsonb_build_object('detail_fetch', jsonb_build_object(
+    'url_path_prefix', '/',
+    'allowed_hosts', jsonb_build_array('events.humanitix.com'),
+    'set_same_as_to_detail_url', true
+  ))
+);
 ```
 
 ---
