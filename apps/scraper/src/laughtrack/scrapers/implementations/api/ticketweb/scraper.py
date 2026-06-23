@@ -77,6 +77,15 @@ class TicketWebScraper(BaseScraper):
             )
             return []
 
+        events = self._filter_calendar_events(events)
+        if not events:
+            Logger.info(
+                f"{self._log_prefix}: no calendar events matched the configured "
+                f"title filters on {calendar_url}",
+                self.logger_context,
+            )
+            return []
+
         # Cache calendar data keyed by detail page URL for use in get_data
         for ev in events:
             self._calendar_events[ev["url"]] = ev
@@ -86,6 +95,49 @@ class TicketWebScraper(BaseScraper):
             self.logger_context,
         )
         return [ev["url"] for ev in events]
+
+    def _filter_calendar_events(self, events: List[Dict]) -> List[Dict]:
+        """Apply the opt-in title allow/block filter to discovered calendar events.
+
+        Mixed-use TicketWeb venues (live-music rooms that also host a comedy
+        series) expose every event on the same calendar. This filter keeps only
+        the comedy shows when configured via ``scraping_sources.metadata``:
+
+        - ``include_title_patterns`` — keep only events whose title matches at
+          least one pattern (the comedy-series allowlist, e.g.
+          ``["Clement St Comedy", "Best of San Francisco Stand-up"]``).
+        - ``exclude_title_patterns`` — drop events whose title matches any
+          pattern.
+
+        Both are off by default, so existing pure-comedy TicketWeb sources
+        (e.g. The Stand Up Comedy Club) are unchanged — the method returns the
+        events untouched when neither key is configured. Pattern parsing /
+        compilation (str-or-list, case-insensitive, re.error-guarded) is the
+        shared :meth:`BaseScraper.compile_title_patterns` helper (TASK-3250);
+        the include-then-exclude loop mirrors sellingticket / showare.
+        """
+        include = self.compile_title_patterns("include_title_patterns")
+        exclude = self.compile_title_patterns("exclude_title_patterns")
+        if not include and not exclude:
+            return events
+
+        kept: List[Dict] = []
+        for ev in events:
+            title = ev.get("title") or ""
+            if include and not any(p.search(title) for p in include):
+                continue
+            if exclude and any(p.search(title) for p in exclude):
+                continue
+            kept.append(ev)
+
+        dropped = len(events) - len(kept)
+        if dropped:
+            Logger.info(
+                f"{self._log_prefix}: title filter dropped {dropped} of "
+                f"{len(events)} calendar event(s); {len(kept)} kept",
+                self.logger_context,
+            )
+        return kept
 
     async def get_data(self, target: str) -> Optional["TicketWebPageData"]:
         """Fetch a detail page and extract the TicketWeb ticket URL."""
