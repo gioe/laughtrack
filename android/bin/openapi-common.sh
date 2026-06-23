@@ -47,11 +47,18 @@ ensure_generator() {
     mkdir -p "$GEN_CACHE"
     if [[ ! -f "$GEN_JAR" ]]; then
         echo "Downloading openapi-generator-cli $GENERATOR_VERSION ..." >&2
-        curl -fsSL "$MAVEN_BASE/$GENERATOR_VERSION/openapi-generator-cli-$GENERATOR_VERSION.jar" \
-            -o "$GEN_JAR" || {
+        # Download to a temp path and atomically move into the cache only on
+        # success, so a truncated/failed fetch never leaves a usable-looking
+        # (but corrupt) jar that later runs would silently reuse.
+        local tmp_jar
+        tmp_jar="$(mktemp "$GEN_CACHE/.openapi-gen-cli.XXXXXX")"
+        if curl -fsSL "$MAVEN_BASE/$GENERATOR_VERSION/openapi-generator-cli-$GENERATOR_VERSION.jar" -o "$tmp_jar"; then
+            mv "$tmp_jar" "$GEN_JAR"
+        else
+            rm -f "$tmp_jar"
             echo "ERROR: failed to download openapi-generator-cli $GENERATOR_VERSION" >&2
             exit 2
-        }
+        fi
     fi
 }
 
@@ -71,6 +78,9 @@ generate_generated_dir() {
 
     local src="$tmp/src/main/kotlin/$GENERATED_PKG_PATH"
     if [[ ! -d "$src" ]]; then
+        # `exit` does not fire the function-scoped RETURN trap, so clean up the
+        # inner temp dir explicitly before bailing out of the whole script.
+        rm -rf "$tmp"
         echo "ERROR: generator did not produce $src" >&2
         exit 2
     fi
