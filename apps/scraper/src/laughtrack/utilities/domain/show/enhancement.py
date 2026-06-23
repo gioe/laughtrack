@@ -32,21 +32,32 @@ class ShowEnhancement:
         if not event.offers:
             return []
 
+        # Some offers carry no url of their own — notably a leading
+        # AggregateOffer that summarizes a price range across tiers (Humanitix
+        # collections pages emit exactly this). A ticket with an empty
+        # purchase_url fails show validation and the whole show is dropped, so
+        # fall back to the event's own url (or sameAs) as the access link.
+        fallback_url = event.url or event.same_as or ""
+
         enhanced_tickets = []
         for offer in event.offers:
-            ticket = ShowEnhancement._create_enhanced_ticket_from_offer(offer)
+            ticket = ShowEnhancement._create_enhanced_ticket_from_offer(offer, fallback_url=fallback_url)
             if ticket:
                 enhanced_tickets.append(ticket)
 
         return enhanced_tickets
 
     @staticmethod
-    def _create_enhanced_ticket_from_offer(offer: Offer) -> Optional[Ticket]:
+    def _create_enhanced_ticket_from_offer(offer: Offer, fallback_url: str = "") -> Optional[Ticket]:
         """Create an enhanced ticket from an offer with advanced processing.
 
         A None price signals "unknown" — the ticket is still emitted as an
         access record (with the offer URL, type, and sold-out signal) rather
         than dropped. See TASK-2405 audit.
+
+        ``fallback_url`` is used as the ticket purchase_url when the offer
+        itself has no url (e.g. an AggregateOffer summarizing a price range);
+        an empty purchase_url would otherwise fail validation and drop the show.
         """
         try:
             price = ShowEnhancement._extract_price_from_offer(offer)
@@ -56,7 +67,12 @@ class ShowEnhancement:
             ticket_type = ShowEnhancement._determine_ticket_type(offer)
             sold_out = ShowEnhancement._is_sold_out(offer)
 
-            return Ticket(price=price, purchase_url=offer.url or "", type=ticket_type, sold_out=sold_out)
+            return Ticket(
+                price=price,
+                purchase_url=offer.url or fallback_url,
+                type=ticket_type,
+                sold_out=sold_out,
+            )
 
         except Exception as e:
             Logger.error(f"Error creating enhanced ticket from offer: {e}")

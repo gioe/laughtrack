@@ -1,4 +1,6 @@
-from laughtrack.core.entities.event.event import Offer
+from datetime import datetime
+
+from laughtrack.core.entities.event.event import JsonLdEvent, Offer
 from laughtrack.utilities.domain.show.enhancement import ShowEnhancement
 
 
@@ -100,3 +102,50 @@ def test_unparseable_price_emits_ticket_with_none_price():
     assert ticket.price is None
     assert ticket.purchase_url == "https://example.com/tix"
     assert ticket.sold_out is False
+
+
+def test_urless_offer_uses_fallback_url():
+    # An AggregateOffer summarizing a price range carries no url of its own.
+    offer = Offer(
+        url="",
+        price_currency="USD",
+        price="",
+        availability="https://schema.org/InStock",
+    )
+
+    ticket = ShowEnhancement._create_enhanced_ticket_from_offer(
+        offer, fallback_url="https://events.humanitix.com/some-show"
+    )
+
+    assert ticket is not None
+    assert ticket.purchase_url == "https://events.humanitix.com/some-show"
+
+
+def test_aggregate_offer_without_url_falls_back_to_event_url():
+    # Humanitix collections pages lead with a urless AggregateOffer followed by
+    # concrete Offers. Without a fallback, the urless ticket has an empty
+    # purchase_url and the whole show is dropped by validation.
+    event = JsonLdEvent(
+        name="Safe Words Queer Comedy Showcase",
+        start_date=datetime(2099, 1, 1, 19, 0, 0),
+        location=None,
+        offers=[
+            Offer(url="", price_currency="USD", price="", availability="https://schema.org/InStock"),
+            Offer(
+                url="https://events.humanitix.com/safe-words/tickets",
+                price_currency="USD",
+                price=0,
+                availability="https://schema.org/InStock",
+                name="General Admission",
+            ),
+        ],
+        url="https://events.humanitix.com/safe-words",
+        description="",
+    )
+
+    tickets = ShowEnhancement.enhance_tickets_from_event(event)
+
+    assert len(tickets) == 2
+    assert all(t.purchase_url for t in tickets)
+    assert tickets[0].purchase_url == "https://events.humanitix.com/safe-words"
+    assert tickets[1].purchase_url == "https://events.humanitix.com/safe-words/tickets"
