@@ -1785,6 +1785,10 @@ SELECT c.id, 'custom'::"ScrapingPlatform", 'ludus', 'https://parktheatreholland.
 **Detection signals:**
 - Venue's website links to `events.humanitix.com/host/<slug>`
 - The host page embeds `<script type="application/ld+json">` blocks with `@type=Event`
+- Some orgs instead publish a **collections page** at `collections.humanitix.com/<slug>` — its
+  JSON-LD nests the events inside an `ItemList` (`itemListElement[].item` with `@type=Event`)
+  rather than as top-level `Event` blocks. The `json_ld` scraper recurses the `ItemList`, so the
+  collections URL works as `scraping_url` exactly like a host URL (TASK-3177, Safe Words Comedy Show).
 
 **Key implementation details:**
 - Uses the existing `json_ld` scraper — no new code needed
@@ -1793,6 +1797,8 @@ SELECT c.id, 'custom'::"ScrapingPlatform", 'ludus', 'https://parktheatreholland.
 - Ticket URLs follow the pattern `https://events.humanitix.com/{event-slug}/tickets`
 - **No public REST API** — the host page HTML is the only data source
 - No `humanitix_id` column exists; store the full host URL in `scraping_url`
+- Collections-page JSON-LD leads with a urless `AggregateOffer` (a price-range summary); the
+  ticket layer falls back to the event URL for `purchase_url` so the show isn't dropped by validation
 
 **DB setup:**
 ```sql
