@@ -258,3 +258,103 @@ def test_structured_rows_unaffected_by_freeform_path():
     events = VboTicketsExtractor.extract_events(SHOWEVENTS_HTML)
     assert len(events) == 2
     assert all(e.start_iso is None and e.room == "" for e in events)
+
+
+# ---------------------------------------------------------------------------
+# title filter — mixed-use performing-arts venues (TASK-3204, Fair Oaks PAC)
+# ---------------------------------------------------------------------------
+
+
+# A Fair Oaks-shaped mixed-use listing: a comedy series alongside concerts /
+# films / theatre, all sharing non-comedy-exclusive VBO categories.
+MIXED_USE_HTML = (
+    '<div class="clearfix gridrow" id="CurrentEvents" role="list">'
+    + _event_block("1", "187150", "Comedy Under the Stars - Jon Stringer", "Fri, 7/11/2099 @ 7:30 PM", "$25.00")
+    + _event_block("2", "188573", "The Ultimate Tribute Concert: Queen Revisited", "Sat, 7/12/2099 @ 8:00 PM", "$35.00")
+    + _event_block("3", "190951", "Zak Mirz - Presents Kid at Heart Magic Show", "Sun, 7/13/2099 @ 2:00 PM", "$15.00")
+    + "</div>"
+)
+
+
+def _fair_oaks_club(metadata: dict) -> Club:
+    site_id = "AB1E7875-362D-4528-A36D-CEBDFC7BEDA9"
+    loadplugin = f"https://plugin.vbotickets.com/plugin/loadplugin?siteid={site_id}&page=ListEvents"
+    c = Club(
+        id=9000, name="Fair Oaks Performing Arts Center",
+        address="7991 California Ave", website="https://www.fairoaksarts.org",
+        popularity=0, zip_code="95628", phone_number="", visible=True,
+        timezone="America/Los_Angeles",
+    )
+    c.active_scraping_source = ScrapingSource(
+        id=2, club_id=c.id, platform="vbo_tickets", scraper_key="vbo_tickets",
+        source_url=loadplugin, external_id=None, metadata=metadata,
+    )
+    c.scraping_sources = [c.active_scraping_source]
+    return c
+
+
+def _make_fake_fetch(showevents_html: str):
+    async def fake_fetch_html(self, url: str, **kwargs) -> str:
+        if "loadplugin" in url:
+            return LOADPLUGIN_HTML
+        if "showevents" in url:
+            return showevents_html
+        raise AssertionError(f"unexpected url {url}")
+    return fake_fetch_html
+
+
+@pytest.mark.asyncio
+async def test_include_title_patterns_keeps_only_comedy(monkeypatch):
+    """include_title_patterns keeps only the comedy series on a mixed-use listing."""
+    monkeypatch.setattr(
+        VboTicketsScraper, "fetch_html",
+        _make_fake_fetch(MIXED_USE_HTML),
+    )
+    club = _fair_oaks_club({"include_title_patterns": ["Comedy Under the Stars"]})
+    result = await VboTicketsScraper(club).get_data(club.active_scraping_source.source_url)
+    assert isinstance(result, VboTicketsPageData)
+    assert {e.name for e in result.event_list} == {"Comedy Under the Stars - Jon Stringer"}
+
+
+@pytest.mark.asyncio
+async def test_no_title_filter_keeps_all_events(monkeypatch):
+    """With no title filter configured the full mixed-use listing passes through."""
+    monkeypatch.setattr(
+        VboTicketsScraper, "fetch_html",
+        _make_fake_fetch(MIXED_USE_HTML),
+    )
+    club = _fair_oaks_club({})
+    result = await VboTicketsScraper(club).get_data(club.active_scraping_source.source_url)
+    assert isinstance(result, VboTicketsPageData)
+    assert len(result.event_list) == 3
+
+
+@pytest.mark.asyncio
+async def test_exclude_title_patterns_drops_matches(monkeypatch):
+    """exclude_title_patterns drops matching titles (e.g. magic shows)."""
+    monkeypatch.setattr(
+        VboTicketsScraper, "fetch_html",
+        _make_fake_fetch(MIXED_USE_HTML),
+    )
+    club = _fair_oaks_club({"exclude_title_patterns": ["Magic Show"]})
+    result = await VboTicketsScraper(club).get_data(club.active_scraping_source.source_url)
+    assert isinstance(result, VboTicketsPageData)
+    names = {e.name for e in result.event_list}
+    assert "Zak Mirz - Presents Kid at Heart Magic Show" not in names
+    assert len(names) == 2
+
+
+@pytest.mark.asyncio
+async def test_include_and_exclude_compose(monkeypatch):
+    """include + exclude compose: keep comedy, then drop an excluded comedy night."""
+    monkeypatch.setattr(
+        VboTicketsScraper, "fetch_html",
+        _make_fake_fetch(MIXED_USE_HTML),
+    )
+    club = _fair_oaks_club({
+        "include_title_patterns": ["Comedy Under the Stars"],
+        "exclude_title_patterns": ["Jon Stringer"],
+    })
+    result = await VboTicketsScraper(club).get_data(club.active_scraping_source.source_url)
+    # The only comedy event is the excluded one → nothing left → None.
+    assert result is None
