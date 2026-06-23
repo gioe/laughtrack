@@ -66,13 +66,7 @@ class GenericSellingTicketScraper(BaseScraper):
         return filtered
 
     def _compiled_patterns(self, metadata_key: str) -> list[re.Pattern]:
-        raw = (self.club.source_metadata or {}).get(metadata_key)
-        if not raw:
-            return []
-        if isinstance(raw, str):
-            values = [raw]
-        elif isinstance(raw, list):
-            values = [str(value) for value in raw if str(value).strip()]
-        else:
-            return []
-        return [re.compile(value, re.IGNORECASE) for value in values]
+        # Delegates to the shared BaseScraper helper (TASK-3250), which adds an
+        # re.error guard so a malformed operator-supplied pattern is skipped
+        # with a warning instead of crashing the scrape.
+        return self.compile_title_patterns(metadata_key)

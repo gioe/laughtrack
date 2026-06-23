@@ -203,28 +203,15 @@ class EventbriteScraper(BaseScraper):
         (single-venue or organizer) keeps its current behavior by default.
         Malformed regexes are skipped with a warning rather than crashing the
         scrape.
+
+        Delegates metadata parsing + compilation to
+        :meth:`BaseScraper.compile_title_patterns` (TASK-3250); the
+        ``exclude_classes`` flag selects the built-in default patterns to pass
+        as ``extra_patterns``.
         """
         meta = self.club.source_metadata or {}
-        raw: List[str] = []
-        if meta.get("exclude_classes"):
-            raw.extend(_DEFAULT_CLASS_TITLE_PATTERNS)
-        custom = meta.get("exclude_title_patterns")
-        if isinstance(custom, str):
-            raw.append(custom)
-        elif isinstance(custom, (list, tuple)):
-            raw.extend(str(p) for p in custom)
-
-        compiled: List[re.Pattern] = []
-        for pattern in raw:
-            try:
-                compiled.append(re.compile(pattern, re.IGNORECASE))
-            except re.error as e:
-                Logger.warn(
-                    f"{self._log_prefix}: ignoring invalid exclude_title_patterns "
-                    f"regex {pattern!r}: {e}",
-                    self.logger_context,
-                )
-        return compiled
+        extra = _DEFAULT_CLASS_TITLE_PATTERNS if meta.get("exclude_classes") else ()
+        return self.compile_title_patterns("exclude_title_patterns", extra_patterns=extra)
 
     def _filter_events(self, events):
         """Drop events whose title matches a configured exclusion pattern.
