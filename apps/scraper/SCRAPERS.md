@@ -123,6 +123,12 @@ Is there an exploretock.com/{business_slug} page or exploretock.com/{business_sl
               (see Tock section — business page requires JS and exposes rendered
                Redux calendar state)
 
+Is there a fareharbor.com/embeds/book/{shortname}/ widget or FareHarbor booking link?
+  └── YES → platform: custom → scraper = 'fareharbor' (generic)
+              DB: source_url = https://fareharbor.com/embeds/book/{shortname}/,
+                  metadata.shortname = {shortname}
+              (see FareHarbor section — public item list plus monthly calendar JSON)
+
 Is there a brasstix.com/pmt/calendar.php?Show=... ticket calendar?
   └── YES → platform: BrassTix → scraper = 'brasstix' (generic)
               DB: source_url = full BrassTix calendar.php URL
@@ -2279,6 +2285,75 @@ SELECT c.id, 'custom'::"ScrapingPlatform", 'tock',
 
 ---
 
+### FareHarbor
+
+| | |
+|---|---|
+| **Scraper key** | `fareharbor` |
+| **Platform** | `custom` (no `ScrapingPlatform` enum value) |
+| **DB field** | `scraping_sources.source_url` + `metadata.shortname`, optional `metadata.exclude_item_pks`, `metadata.allow_item_pks`, `metadata.months_ahead` |
+| **Value format** | `source_url=https://fareharbor.com/embeds/book/{shortname}/`; `metadata.shortname="{shortname}"` |
+| **Generic?** | ✅ generic for FareHarbor public item/calendar JSON |
+
+**Detection signals:**
+- Booking links or embeds under `fareharbor.com/embeds/book/{shortname}/...`.
+- Public company items API responds at `https://fareharbor.com/api/v1/companies/{shortname}/items/`.
+- Embed pages load FareHarbor's Angular booking shell and item calendar JSON.
+
+**API/source pattern:**
+- Fetch the public items endpoint:
+  `https://fareharbor.com/api/v1/companies/{shortname}/items/`
+- For each kept item, scan monthly calendars:
+  `https://fareharbor.com/api/v1/companies/{shortname}/items/{item_pk}/calendar/{yyyy}/{mm}/`
+- The previously suspected `minimal/availabilities/date-range` endpoint can 404
+  without the right app context; the monthly calendar endpoint is public for
+  Firehouse Theater and carries the dated availability rows needed by the scraper.
+
+**Key extraction notes:**
+- Each calendar availability becomes one show. `start_at` is a naive local time
+  localized with the club timezone; `utc_start_at` is a fallback.
+- Adjacent monthly calendars can include spillover days from the previous/next
+  month, so the scraper de-duplicates by FareHarbor booking URL.
+- Ticket URL comes from `availability.book_url`, resolved against
+  `https://fareharbor.com`.
+- Price is parsed from item copy such as a Rates/Ticket line; if absent, the
+  fallback ticket has unknown price.
+- Operational products should be excluded. The scraper has conservative default
+  keyword skips for gift cards, donations, classes, workshops, and practice
+  items; use `metadata.exclude_item_pks` for venue-specific certainty.
+
+**DB setup:**
+```sql
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, priority, enabled, metadata)
+VALUES (
+  <club_id>,
+  'custom'::"ScrapingPlatform",
+  'fareharbor',
+  'https://fareharbor.com/embeds/book/<shortname>/',
+  0,
+  TRUE,
+  jsonb_build_object(
+    'shortname', '<shortname>',
+    'exclude_item_pks', jsonb_build_array(<gift_card_pk>, <donation_pk>, <class_pk>),
+    'months_ahead', 12
+  )
+);
+```
+
+**Failure modes / gotchas:**
+- Some item/month combinations return HTTP 404 when no public calendar exists;
+  treat these as empty and continue.
+- Item pages may include non-event retail/service products in the same feed.
+- The item list is public and useful for discovery, but dated shows require
+  calendar endpoint fan-out per item/month.
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/scrapers/implementations/api/fareharbor/`
+- `apps/scraper/tests/scrapers/implementations/api/fareharbor/test_scraper.py`
+- TASK-3167: Firehouse Theater Newport (`shortname=firehousetheater`)
+
+---
+
 ### AnyRoad
 
 | | |
@@ -3201,6 +3276,7 @@ cd apps/scraper && make scrape-club CLUB='My Club'
 | Tixr Webflow day cards | `tixr_webflow_day_card` | No | `source_url` + metadata `tixr_group_fragment` |
 | Tockify | venue-specific | **Yes** — replace calname | `scraping_url` |
 | Tock | `tock` | No | `source_url` (business page URL; set `metadata.comedy_filter` for mixed calendars) |
+| FareHarbor | `fareharbor` | No | `source_url` + metadata `shortname`, optional `exclude_item_pks` |
 | Squarespace | `squarespace` | No | `scraping_url` (full GetItemsByMonth URL with `collectionId`) |
 | Wix Events | venue-specific | **Yes** — replace compId | `scraping_url` |
 | Crowdwork | venue-specific | **Yes** — replace theatre slug | `scraping_url` |
