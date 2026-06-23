@@ -39,12 +39,15 @@ def _extract_js_json_string(html: str, key: str) -> Optional[Any]:
     m = re.search(_JS_STRING_RE_TMPL.format(key=re.escape(key)), html, re.S)
     if not m:
         return None
+    # m.group(1) is the raw body of a JS double-quoted string whose value is
+    # itself JSON. Unescape it by re-quoting the captured body and JSON-decoding
+    # it once (which resolves \", \\, \/, and \uXXXX while preserving raw UTF-8
+    # bytes), then JSON-decode the resulting inner JSON text. Using
+    # decode("unicode_escape") instead would mojibake any literal (non-\u-escaped)
+    # UTF-8 in the body — e.g. a non-Latin formName.
     try:
-        unescaped = m.group(1).encode("utf-8").decode("unicode_escape")
-    except (UnicodeDecodeError, ValueError):
-        return None
-    try:
-        return json.loads(unescaped)
+        inner = json.loads('"' + m.group(1) + '"')
+        return json.loads(inner)
     except (json.JSONDecodeError, ValueError):
         return None
 

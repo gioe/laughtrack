@@ -71,6 +71,20 @@ class TestExtractEventFromFixture:
         )
         assert extract_event(html, _FORM_URL) is None
 
+    def test_non_ascii_form_name_is_not_mojibake(self):
+        # A formName with literal (non-\u-escaped) UTF-8 must survive intact.
+        # The earlier decode("unicode_escape") path corrupted such titles into
+        # mojibake; the json.loads re-quote path preserves them.
+        html = (
+            'window.__BOOTSTRAP__ = {\n'
+            '\tappSettings: "{\\"status\\":1,\\"formName\\":\\"略谷 Comedy\\",'
+            '\\"eventStart\\":\\"2099-01-01T00:00:00Z\\"}",\n'
+            '}'
+        )
+        ev = extract_event(html, _FORM_URL)
+        assert ev is not None
+        assert ev.title == "略谷 Comedy"
+
 
 class TestToShow:
     def test_builds_future_show_with_default_time(self):
