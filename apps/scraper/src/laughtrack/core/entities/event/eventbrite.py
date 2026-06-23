@@ -204,7 +204,7 @@ class EventbriteEvent(ShowConvertible):
                 Logger.info(f"Skipping non-comedy (Music category) show: {self.name!r}")
                 return None
 
-            if is_dj_set_show(self.name):
+            if is_dj_set_show(self.name) and self.subcategory_id not in _COMEDY_SUBCATEGORY_IDS:
                 Logger.info(f"Skipping DJ set show: {self.name!r}")
                 return None
 

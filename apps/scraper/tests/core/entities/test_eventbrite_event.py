@@ -162,3 +162,26 @@ def test_to_show_includes_events_with_no_category():
         category_id=None,
     )
     assert ev.to_show(make_club(), enhanced=False) is not None
+
+
+def test_to_show_keeps_dj_named_comedy_subcategory_event():
+    """A comedian named DJ should not be mistaken for a DJ set when Eventbrite marks it comedy."""
+    ev = EventbriteEvent(
+        name="DJ Sandhu Live in Fairfax | Naked Cat Comedy at Mac's Comedy Club",
+        event_url="https://eventbrite.com/e/dj-sandhu",
+        start_date="2099-01-01T20:00:00Z",
+        category_id="105",
+        subcategory_id="5010",
+    )
+    assert ev.to_show(make_club(), enhanced=False) is not None
+
+
+def test_to_show_still_skips_non_comedy_dj_title():
+    ev = EventbriteEvent(
+        name="DJ Devan Air Throwback Party at Mac's",
+        event_url="https://eventbrite.com/e/dj-devan",
+        start_date="2099-01-01T20:00:00Z",
+        category_id="105",
+        subcategory_id=None,
+    )
+    assert ev.to_show(make_club(), enhanced=False) is None
