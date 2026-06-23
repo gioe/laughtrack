@@ -383,6 +383,52 @@ The `calendar=` parameter **is the Eventbrite organizer ID** — use `scraper='e
 UPDATE clubs SET scraper = 'eventbrite', eventbrite_id = '30460267696' WHERE name = 'My Club';
 ```
 
+**Mixed-use organizers (classes vs shows):** improv training centers post class/course
+listings to the same organizer feed as their public shows. Two opt-in
+`scraping_sources.metadata` title filters keep classes out (OFF by default, so
+pure-comedy sources are unchanged):
+- `exclude_classes: true` — applies built-in class/course/workshop/drop-in/leveled-improv
+  patterns.
+- `exclude_title_patterns: ['<regex>', ...]` — drop events whose title matches any pattern.
+
+```sql
+UPDATE scraping_sources
+SET metadata = jsonb_set(COALESCE(metadata,'{}'::jsonb), '{exclude_classes}', 'true')
+WHERE club_id = <id> AND scraper_key = 'eventbrite';
+```
+
+---
+
+### TicketWeb
+
+| | |
+|---|---|
+| **Scraper key** | `ticketweb` |
+| **DB field** | `scraping_sources.source_url` (the venue's own calendar page) plus optional metadata title filters |
+| **Generic?** | ✅ Already generic — no code needed for new venues |
+
+**Detection signals:**
+- Buy links pointing to `ticketweb.com/event/...?pl=<client>` on the venue's own site
+- A WordPress `tw-plugin-upcoming-event-list` widget, or an inline `var all_events = [...]` JS array, on the venue's `/calendar` page
+
+**Datasource:** the venue's OWN calendar page (not ticketweb.com). The scraper parses the inline `var all_events` JS array first, then falls back to the `tw-plugin-upcoming-event-list` HTML (with pagination), and reads the TicketWeb buy link + sold-out status off each event's detail page. `source_url` = the venue's calendar page.
+
+**Mixed-use live-music venues (comedy vs concerts):** many TicketWeb rooms are live-music venues that host a recurring comedy series alongside mostly band/DJ shows. Two opt-in `scraping_sources.metadata` title filters keep only the comedy (OFF by default, so pure-comedy TicketWeb venues like The Stand Up Comedy Club are unchanged):
+- `include_title_patterns: ['<regex>', ...]` — keep ONLY events whose title matches at least one pattern (the comedy-series allowlist).
+- `exclude_title_patterns: ['<regex>', ...]` — drop events whose title matches any pattern.
+
+```sql
+-- Onboard a mixed-use live-music venue, keeping only its comedy series:
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, priority, enabled, metadata, created_at, updated_at)
+VALUES (
+    <club_id>, 'custom'::"ScrapingPlatform", 'ticketweb',
+    'https://<venue>/calendar/', 0, TRUE,
+    jsonb_build_object('include_title_patterns',
+        jsonb_build_array('Stand-Up Comedy', 'Clement St Comedy')),
+    NOW(), NOW()
+);
+```
+
 ---
 
 ### Etix / Rockhouse Partners
