@@ -106,6 +106,12 @@ Is there an events.timely.fun embed or a WordPress All-in-One Event Calendar / t
                   metadata.timely_calendar_id = numeric calendar id
               (see Timely section — browser requests require a public x-api-key)
 
+Is there a Tugoz widget (`www.tugoz.com/js/tugoz.js`) or SITE_CONFIG.LIVE_EVENTS mapping?
+  └── YES → platform: custom → scraper = 'tugoz' (generic)
+              DB: source_url = venue config.js that defines LIVE_EVENTS;
+                  metadata.event_keys optional
+              (see Tugoz section — stale disabled event keys are common)
+
 Is there a Showpass widget or showpass.com buy link?
   └── YES → platform: Showpass → scraper = 'showpass' (generic)
               DB: scraping_url = Showpass calendar API base URL
@@ -706,6 +712,58 @@ VALUES (
 **When NOT to use it:** If the venue's calendar page exposes JSON-LD `Event` blocks with the start time in adjacent visible HTML (e.g. `<div class="month day time">`), keep a custom scraper — `haha_comedy_club` is the canonical example. The day-card extractor relies on `a.day-card` markup; venues that don't follow that exact card structure won't match.
 
 **Smoke test pattern:** `tixr_webflow_day_card` tests instantiate `TixrWebflowDayCardScraper(club)` with a `Club` whose `active_scraping_source.metadata` contains `tixr_group_fragment`, mock `TixrWebflowDayCardScraper.fetch_html`, and assert that `WebflowDayCardPageData` is returned. Construction without `tixr_group_fragment` or without `source_url` raises `ValueError`.
+
+---
+
+### Tugoz
+
+| | |
+|---|---|
+| **Scraper key** | `tugoz` |
+| **Platform** | `custom` |
+| **DB field** | `scraping_sources.source_url`; optional `scraping_sources.metadata.event_keys` / `event_ids` |
+| **Value format** | Venue-owned config JS URL that defines `SITE_CONFIG.LIVE_EVENTS`, e.g. `https://masalacc.org/config.js?v=2` |
+| **Generic?** | ✅ Generic for Tugoz widgets that expose live event IDs through config JS |
+
+**Detection signals:**
+- Venue page includes `www.tugoz.com/js/tugoz.js`.
+- Venue page has a `tugoz-embed.js` helper or a `<div id="tugoz-embed" data-event-key="...">`.
+- Site config includes `SITE_CONFIG.LIVE_EVENTS: { key: <event_id> }`.
+- Browser network requests fetch `https://static.tugoz.com/api/json/www/v4/e-<event_id>`.
+
+**API/source pattern:**
+- The scraper fetches the configured `source_url` and parses integer event IDs from `LIVE_EVENTS`.
+- Each event ID is fetched from `https://static.tugoz.com/api/json/www/v4/e-<event_id>`.
+- `metadata.event_keys` can restrict the keys read from config JS. `metadata.event_ids` is a fallback when the config is unavailable or a venue exposes fixed IDs only.
+
+**Key extraction notes:**
+- Event details live under `einfo`: `name`, `date`, `tziso`, `eventurl`, `about`, and venue fields.
+- Dates are naive local strings (`YYYY-MM-DD HH:MM:SS`) paired with `tziso`.
+- The static JSON currently does not expose stable public price tiers; create a fallback ticket with unknown price pointing at `einfo.eventurl`.
+- The scraper skips stale past events because some Tugoz sites keep old keys in `LIVE_EVENTS` after disabling the visible embed.
+
+**DB setup:**
+```sql
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, enabled, priority, metadata)
+VALUES (
+    <id>,
+    'custom',
+    'tugoz',
+    'https://<venue>/config.js?v=2',
+    TRUE,
+    0,
+    jsonb_build_object('event_keys', jsonb_build_array('<key>'))
+);
+```
+
+**Failure modes / gotchas:**
+- A Tugoz event can have `status='Draft'` / `live=0` while the venue-owned page still renders the booking widget, so do not filter solely by those fields.
+- Pages may include commented-out Tugoz embeds for upcoming shows; the config key can still point at a stale past event. Let the scraper's stale-date skip handle it or restrict `metadata.event_keys`.
+- Tugoz's dynamic `www.tugoz.com/api?action=...` calls are widget-session oriented; the stable extraction source is the static event JSON.
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/scrapers/implementations/api/tugoz/`
+- Masala Comedy Club, TASK-3194.
 
 ---
 
