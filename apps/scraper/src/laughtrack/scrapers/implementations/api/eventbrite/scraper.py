@@ -207,7 +207,10 @@ class EventbriteScraper(BaseScraper):
         Delegates metadata parsing + compilation to
         :meth:`BaseScraper.compile_title_patterns` (TASK-3250); the
         ``exclude_classes`` flag selects the built-in default patterns to pass
-        as ``extra_patterns``.
+        as ``extra_patterns``. Note: the shared helper skips blank/whitespace-only
+        entries in an ``exclude_title_patterns`` list (intentional normalization;
+        a whitespace-only regex is meaningless operator input) — covered by
+        BaseScraper.compile_title_patterns's unit tests.
         """
         meta = self.club.source_metadata or {}
         extra = _DEFAULT_CLASS_TITLE_PATTERNS if meta.get("exclude_classes") else ()
