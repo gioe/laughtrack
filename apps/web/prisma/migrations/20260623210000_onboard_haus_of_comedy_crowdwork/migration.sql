@@ -24,7 +24,7 @@ SELECT
     'Haus of Comedy',
     'Eagle Theater, 921 Front St, Sacramento, CA 95814, USA',
     'https://hausofcomedy.com/',
-    'Sacramento', 'CA', '95814', 'America/Los_Angeles', 'USA', 'club',
+    'Sacramento', 'CA', '95814', 'America/Los_Angeles', 'US', 'club',
     'ChIJF9AoTLyMwEwRTvdQJw7z_w8', TRUE, 'active'
 WHERE NOT EXISTS (
     SELECT 1 FROM clubs
