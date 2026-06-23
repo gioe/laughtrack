@@ -1,0 +1,1 @@
+"""FareHarbor scraper tests."""

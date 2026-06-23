@@ -1,0 +1,24 @@
+{
+  "calendar": {
+    "year": 2026,
+    "month": 10,
+    "weeks": [
+      {
+        "days": [
+          {
+            "at": "2026-10-02",
+            "availabilities": [
+              {
+                "pk": 1864951701,
+                "start_at": "2026-10-02T20:00:00",
+                "utc_start_at": "2026-10-03T00:00:00+0000",
+                "is_sold_out": false,
+                "book_url": "/firehousetheater/items/187495/availability/1864951701/book/"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
