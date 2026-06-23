@@ -1,14 +1,13 @@
 package app.laughtrack.android.core.ui.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 
 /**
  * Maps the LaughTrack design tokens onto a Material 3 color scheme. The app is
- * dark-only (parity with iOS), so the [darkTheme] flag exists for previews and
- * future-proofing but resolves to the same dark scheme today.
+ * dark-only (parity with iOS). A darkTheme/light-scheme toggle is intentionally
+ * omitted until a light scheme actually exists, so the contract never lies.
  */
 private val LaughTrackDarkColorScheme = darkColorScheme(
     primary = LaughTrackColors.AccentStrong,
@@ -25,10 +24,7 @@ private val LaughTrackDarkColorScheme = darkColorScheme(
 )
 
 @Composable
-fun LaughTrackTheme(
-    @Suppress("UNUSED_PARAMETER") darkTheme: Boolean = isSystemInDarkTheme(),
-    content: @Composable () -> Unit,
-) {
+fun LaughTrackTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = LaughTrackDarkColorScheme,
         typography = LaughTrackTypography,

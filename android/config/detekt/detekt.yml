@@ -1,9 +1,8 @@
 # Detekt static-analysis config for the LaughTrack Android client.
 # `buildUponDefaultConfig = true` is set in the root build, so this file only
-# needs to record intentional deviations from detekt's defaults.
-build:
-  maxIssues: 0
-
+# needs to record intentional deviations from detekt's defaults. detekt fails the
+# build on any finding by default, so the deprecated `build.maxIssues` knob is
+# intentionally omitted.
 complexity:
   LongMethod:
     active: true

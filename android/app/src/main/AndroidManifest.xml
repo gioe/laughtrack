@@ -2,9 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Location (ACCESS_*_LOCATION) and POST_NOTIFICATIONS are declared by the
+         tasks that introduce them — location header (TASK-3259) and FCM push
+         (TASK-3264) — so each permission ships with the feature that justifies it. -->
 
     <application
         android:name=".LaughTrackApplication"
