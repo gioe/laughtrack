@@ -71,6 +71,26 @@ class TestExtractEventsFromFixture:
         assert _COMEDY_TITLE in titles
         assert "Killswitch Engage" in titles  # concert present pre-filter
 
+    def test_protocol_relative_axs_ticket_link(self):
+        # A sibling Carbonhouse venue may emit a protocol-relative AXS href; the
+        # ticket regex must still capture it rather than dropping to the detail URL.
+        html = (
+            '<div id="eventsList"><div class="entry">'
+            '<div class="info"><div class="title">'
+            '<h3 class="carousel_item_title_small">'
+            '<a href="https://www.example.com/events/detail/999">Some Comedian</a>'
+            "</h3></div>"
+            '<div class="date-time-container">'
+            '<span class="date">Wed, Jun 24, 2099</span>'
+            '<span class="time">Show 8:00 PM</span></div></div>'
+            '<div class="buttons">'
+            '<a class="tickets" href="//www.axs.com/events/123/some-comedian-tickets?skin=example">'
+            "Buy Tickets</a></div></div></div>"
+        )
+        events = extract_events(html)
+        assert len(events) == 1
+        assert events[0].ticket_url == "//www.axs.com/events/123/some-comedian-tickets?skin=example"
+
     def test_empty_html(self):
         assert extract_events("") == []
 

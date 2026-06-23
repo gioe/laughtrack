@@ -30,8 +30,10 @@ _DATE_RE = re.compile(
 )
 # Time like "8:00 PM" or "8 PM".
 _TIME_RE = re.compile(r"\d{1,2}(?::\d{2})?\s*[AP]M", re.IGNORECASE)
-# AXS ticket links carry the venue skin marker.
-_AXS_TICKET_RE = re.compile(r"https?://(?:www\.)?axs\.com/events/[^\"'<>\s]+")
+# AXS ticket links carry the venue skin marker. The scheme is optional so
+# protocol-relative ("//www.axs.com/...") hrefs that sibling Carbonhouse venues
+# may emit are still matched, not silently dropped to the detail URL.
+_AXS_TICKET_RE = re.compile(r"(?:https?:)?//(?:www\.)?axs\.com/events/[^\"'<>\s]+")
 
 
 def _clean(text: Optional[str]) -> str:

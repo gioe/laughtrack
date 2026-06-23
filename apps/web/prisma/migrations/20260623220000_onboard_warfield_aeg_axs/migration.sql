@@ -19,7 +19,10 @@
 -- comedy. "The Kevin Langue Show: Live!" carries no comedy keyword and Kevin
 -- Langue's stored popularity (0.188) is below the 0.30 known-comedian floor, so a
 -- per-source comedy_title_allowlist entry ("kevin langue") keeps it. The venue
--- /events card carries a real show time, so default_show_time is only a fallback.
+-- /events card always carries a real show time (span.time, e.g. "Show 8:00 PM"),
+-- so no default_show_time override is set — the entity's 19:00 fallback would
+-- only apply to a card with no parseable time, which the Warfield template
+-- never produces.
 --
 -- VERIFICATION NOTE: a real scrape persists a show only while the Warfield is
 -- actively listing a comedy date in its /events window. The enabled
@@ -52,7 +55,7 @@ SELECT
     'https://www.thewarfieldtheatre.com/events',
     TRUE,
     0,
-    '{"comedy_filter": true, "default_show_time": "20:00", "comedy_title_allowlist": ["kevin langue"]}'::jsonb,
+    '{"comedy_filter": true, "comedy_title_allowlist": ["kevin langue"]}'::jsonb,
     NOW(),
     NOW()
 FROM clubs c

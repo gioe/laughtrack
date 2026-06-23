@@ -3254,8 +3254,10 @@ floor (e.g. `"kevin langue"` — popularity 0.188).
 
 **Onboarding another AEG/Goldenvoice Carbonhouse room:** insert a `clubs` row + a
 `scraping_sources` row (`scraper_key=aeg_axs`, `source_url`=the venue `/events`
-page, `metadata` with `comedy_filter` + `comedy_title_allowlist` +
-`default_show_time`) via an idempotent migration keyed on `google_place_id`. See
+page, `metadata` with `comedy_filter` + `comedy_title_allowlist`; add
+`default_show_time` only for a venue whose cards omit a parseable `span.time` —
+the Warfield's always carry one, so its metadata sets none) via an idempotent
+migration keyed on `google_place_id`. See
 `apps/web/prisma/migrations/20260623220000_onboard_warfield_aeg_axs/migration.sql`
 for the template. Onboarded: **The Warfield** (San Francisco; TASK-3209; verified
 1 comedy show — "The Kevin Langue Show: Live!" — kept among 20 events).
