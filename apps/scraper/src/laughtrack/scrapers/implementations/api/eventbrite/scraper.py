@@ -25,8 +25,9 @@ This scraper has two operating modes:
 
 import asyncio
 import os
+import re
 from collections import defaultdict
-from typing import List, Optional, Tuple
+from typing import List, Optional, Pattern, Tuple
 
 from laughtrack.core.clients.eventbrite.client import EventbriteClient
 from laughtrack.core.entities.club.handler import ClubHandler
@@ -116,6 +117,26 @@ def _lock_timeout_retry_backoff() -> float:
         return _EB_LOCK_TIMEOUT_RETRY_BACKOFF_SECS
 
 
+# Built-in title patterns for the ``exclude_classes`` convenience flag. These
+# match the class/course/workshop listings that improv training centers post to
+# the same Eventbrite organizer feed as their public shows. The motivating case
+# (TASK-3176, Leela Improv Theatre) had an organizer feed of 67 live events,
+# every one a class — e.g. "Drop-In Improv Class", "Improv 1: Let's Play!",
+# "Improv 2: Authentic Relationships". Without a filter the shared eventbrite
+# scraper would ingest all of them as comedy "shows" and pollute the platform.
+# Case-insensitive, matched against the event title only.
+_DEFAULT_CLASS_TITLE_PATTERNS = (
+    r"\bclass\b",
+    r"\bclasses\b",
+    r"\bcourse\b",
+    r"\bworkshop\b",
+    r"\bdrop[\s-]?in\b",
+    r"\blesson\b",
+    r"\bimprov\s*[1-9]\b",   # leveled courses: "Improv 1".."Improv 9"
+    r"\blevel\s*[1-9]\b",
+)
+
+
 class EventbriteScraper(BaseScraper):
     """
     Scraper for venues that use Eventbrite for event management.
@@ -158,6 +179,76 @@ class EventbriteScraper(BaseScraper):
         """API-based: single logical target representing the venue/organizer ID."""
         return [self.club.eventbrite_id] if self.club.eventbrite_id else []
 
+    def _title_exclusion_patterns(self) -> List[Pattern]:
+        """Compile the opt-in title-exclusion regexes from source metadata.
+
+        Reads ``scraping_sources.metadata`` (``self.club.source_metadata``):
+
+        - ``exclude_classes: true`` → adds the built-in
+          ``_DEFAULT_CLASS_TITLE_PATTERNS`` (class / course / workshop /
+          drop-in / leveled-improv).
+        - ``exclude_title_patterns: [<regex>, ...]`` (or a single string) →
+          adds caller-supplied case-insensitive regexes.
+
+        Returns ``[]`` when neither key is configured, which makes
+        :meth:`_filter_events` a no-op — so every existing Eventbrite source
+        (single-venue or organizer) keeps its current behavior by default.
+        Malformed regexes are skipped with a warning rather than crashing the
+        scrape.
+        """
+        meta = self.club.source_metadata or {}
+        raw: List[str] = []
+        if meta.get("exclude_classes"):
+            raw.extend(_DEFAULT_CLASS_TITLE_PATTERNS)
+        custom = meta.get("exclude_title_patterns")
+        if isinstance(custom, str):
+            raw.append(custom)
+        elif isinstance(custom, (list, tuple)):
+            raw.extend(str(p) for p in custom)
+
+        compiled: List[Pattern] = []
+        for pattern in raw:
+            try:
+                compiled.append(re.compile(pattern, re.IGNORECASE))
+            except re.error as e:
+                Logger.warn(
+                    f"{self._log_prefix}: ignoring invalid exclude_title_patterns "
+                    f"regex {pattern!r}: {e}",
+                    self.logger_context,
+                )
+        return compiled
+
+    def _filter_events(self, events):
+        """Drop events whose title matches a configured exclusion pattern.
+
+        Opt-in via ``scraping_sources.metadata`` — a no-op that returns
+        ``events`` unchanged when no patterns are configured. Used to keep
+        class/course listings out of mixed-use Eventbrite feeds (improv
+        training centers, etc.) so only public shows reach the pipeline.
+        Applied in both single-venue mode (:meth:`get_data`) and organizer
+        mode (:meth:`_scrape_organizer_async`).
+        """
+        if not events:
+            return events
+        patterns = self._title_exclusion_patterns()
+        if not patterns:
+            return events
+        kept = []
+        dropped = 0
+        for ev in events:
+            name = getattr(ev, "name", "") or ""
+            if any(p.search(name) for p in patterns):
+                dropped += 1
+                continue
+            kept.append(ev)
+        if dropped:
+            Logger.info(
+                f"{self._log_prefix}: title-exclusion filter dropped {dropped} of "
+                f"{len(events)} event(s); {len(kept)} kept",
+                self.logger_context,
+            )
+        return kept
+
     async def get_data(self, target: str) -> Optional[EventListContainer]:
         """Fetch Eventbrite events and wrap into PageData container.
 
@@ -172,6 +263,7 @@ class EventbriteScraper(BaseScraper):
             if events is None:
                 Logger.warn(f"{self._log_prefix}: Network failure fetching Eventbrite events for {target}", self.logger_context)
                 return None
+            events = self._filter_events(events)
             return EventbriteExtractor.to_page_data(events)
         except Exception as e:
             Logger.error(f"{self._log_prefix}: Error fetching Eventbrite data: {e}", self.logger_context)
@@ -231,6 +323,15 @@ class EventbriteScraper(BaseScraper):
         events = await self.eventbrite_client.fetch_all_events()
         if not events:
             Logger.info(f"{self._log_prefix}: organizer feed returned no events", self.logger_context)
+            return []
+
+        events = self._filter_events(events)
+        if not events:
+            Logger.info(
+                f"{self._log_prefix}: organizer feed had no events left after the "
+                f"title-exclusion filter",
+                self.logger_context,
+            )
             return []
 
         # Group events by normalized (name, city, state). Eventbrite emits
