@@ -1,0 +1,21 @@
+# openapi-generator config for the Android Kotlin client.
+# Single source of truth for the generated client's shape — keep generation
+# deterministic so the drift check (android/bin/check-openapi-regen-drift.sh)
+# stays meaningful. The input spec is the SHARED contract at
+# ios/Sources/LaughTrackAPIClient/openapi.json (passed via -i on the CLI);
+# do NOT fork a second spec here.
+generatorName: kotlin
+library: jvm-retrofit2
+packageName: app.laughtrack.android.core.network.generated
+apiPackage: app.laughtrack.android.core.network.generated.api
+modelPackage: app.laughtrack.android.core.network.generated.model
+additionalProperties:
+  # Retrofit2 + kotlinx.serialization + coroutines (suspend fun APIs), matching
+  # the OkHttp/Retrofit/serialization stack wired in core/network/build.gradle.kts.
+  serializationLibrary: kotlinx_serialization
+  useCoroutines: "true"
+  # Date-times are emitted as kotlin.String; LaughTrackInstant (hand-written,
+  # outside generated/) decodes both fractional and whole-second ISO-8601 forms,
+  # mirroring the iOS LaughTrackFlexibleISO8601DateTranscoder.
+  dateLibrary: string
+  enumPropertyNaming: UPPERCASE
