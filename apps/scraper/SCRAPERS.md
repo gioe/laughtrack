@@ -1808,6 +1808,38 @@ VALUES (..., 'json_ld', 'https://events.humanitix.com/host/my-venue', ...);
 
 ---
 
+### Elfsight Event Calendar
+
+| | |
+|---|---|
+| **Scraper key** | `elfsight` |
+| **DB fields** | `source_url` = venue calendar page; `metadata.widget_pid` = Elfsight widget id; `metadata.comedy_filter` (optional) |
+| **Generic?** | ✅ Already generic — no code needed for new venues |
+
+**Detection signals:**
+- The venue's events/calendar page makes no native data call (no JSON-LD events, no Squarespace `GetItemsByMonth`); instead it loads an Elfsight widget.
+- Network tab shows `core.service.elfsight.com/p/boot/?w=<widget_pid>` and `widget-data.service.elfsight.com/api/events?source=...&widget-token=...`.
+- The page HTML references `elfsightcdn.com` / `service.elfsight.com` assets.
+
+**Key implementation details:**
+- Two-step anonymous flow: boot the widget (`/p/boot/?w=<widget_pid>`) for a fresh `public_widget_token` + the events `source` id (under `settings.integrationGoogleCalendar.source`), then call the events API. The token is short-lived, so it is fetched on every scrape — only the widget PID is persisted.
+- The calendar is usually backed by a Google Calendar, so events carry no per-event ticket field; the scraper lifts the first `href` from each event's description HTML as the ticket URL (falling back to `buttonLink`, then the venue calendar page).
+- **Mixed-use venues**: set `metadata.comedy_filter=true` to drop non-comedy programming (film screenings, live music, drama) via the comedy keyword allowlist. Note the allowlist matches `improv`/`sketch`/`comedy`/`stand-up`/`open-mic`/`roast` but **not** `parody`, so parody-only shows are dropped under the filter.
+
+**DB setup:**
+```sql
+-- source_url = venue calendar page; widget_pid drives both Elfsight requests
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, enabled, priority, metadata)
+VALUES (
+  <club_id>, 'custom', 'elfsight', 'https://venue.com/event-calendar', TRUE, 0,
+  jsonb_build_object('widget_pid', '<widget-uuid>', 'comedy_filter', true)
+);
+```
+
+Reference impl: Eclectic Box SF (San Francisco, CA) — TASK-3179.
+
+---
+
 ### Ninkashi
 
 | | |
@@ -3274,6 +3306,7 @@ cd apps/scraper && make scrape-club CLUB='My Club'
 | JSON-LD (generic) | `json_ld` | No | `scraping_url` |
 | Prekindle | `json_ld` | No | `scraping_url` |
 | Humanitix | `json_ld` | No | `scraping_url` (Humanitix host URL) |
+| Elfsight Event Calendar | `elfsight` | No | `source_url` (venue calendar page) + metadata `widget_pid` (+ optional `comedy_filter`) |
 | Ninkashi | `ninkashi` | No | `scraping_url` (tickets subdomain URL) |
 | Vivenu | `vivenu` | No | `scraping_url` |
 | ShowSlinger | `show_slinger` | No | `scraping_url` (full combo_widget URL with id, secure_code, origin_url) |
