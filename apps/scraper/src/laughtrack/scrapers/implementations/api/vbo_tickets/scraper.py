@@ -30,9 +30,10 @@ the single-event date-slider endpoint with per-show seat-tier enrichment
 (csz_philadelphia), neither of which the multi-event listing flow models.
 """
 
-from typing import Optional
+from typing import List, Optional
 
 from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.event.vbo_tickets import VboEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 
@@ -104,5 +105,43 @@ class VboTicketsScraper(BaseScraper):
             self._warn_empty_extraction(url, html=listing_html)
             return None
 
+        # Optional per-source title filter for mixed-use venues (concerts /
+        # films / theatre / magic alongside comedy) whose VBO categories don't
+        # isolate comedy — e.g. a performing-arts center running only a
+        # "Comedy Under the Stars" series. ``include_title_patterns`` keeps only
+        # matching event names; ``exclude_title_patterns`` drops matches. Both
+        # are OFF by default, so existing single-purpose VBO venues are
+        # unaffected.
+        events = self._filter_events_by_title(events)
+        if not events:
+            Logger.info(
+                f"{self._log_prefix}: no VBO events matched configured title filters",
+                self.logger_context,
+            )
+            return None
+
         Logger.info(f"{self._log_prefix}: extracted {len(events)} events from VBO listing", self.logger_context)
         return VboTicketsPageData(event_list=events)
+
+    def _filter_events_by_title(self, events: List[VboEvent]) -> List[VboEvent]:
+        """Keep/drop events by name via metadata-driven title regexes.
+
+        Reads ``include_title_patterns`` / ``exclude_title_patterns`` from
+        ``scraping_sources.metadata`` (single regex or list, case-insensitive)
+        through the shared ``BaseScraper.compile_title_patterns`` helper. When
+        neither key is configured the list passes through unchanged.
+        """
+        include_patterns = self.compile_title_patterns("include_title_patterns")
+        exclude_patterns = self.compile_title_patterns("exclude_title_patterns")
+        if not include_patterns and not exclude_patterns:
+            return events
+
+        filtered: List[VboEvent] = []
+        for event in events:
+            title = event.name or ""
+            if include_patterns and not any(p.search(title) for p in include_patterns):
+                continue
+            if exclude_patterns and any(p.search(title) for p in exclude_patterns):
+                continue
+            filtered.append(event)
+        return filtered

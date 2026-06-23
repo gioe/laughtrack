@@ -383,15 +383,32 @@ The `calendar=` parameter **is the Eventbrite organizer ID** — use `scraper='e
 UPDATE clubs SET scraper = 'eventbrite', eventbrite_id = '30460267696' WHERE name = 'My Club';
 ```
 
-**Mixed-use organizers (classes vs shows):** improv training centers post class/course
-listings to the same organizer feed as their public shows. Two opt-in
-`scraping_sources.metadata` title filters keep classes out (OFF by default, so
-pure-comedy sources are unchanged):
+**Mixed-use organizers (classes / music vs comedy):** a single Eventbrite
+organizer feed often mixes non-comedy listings (improv classes at training
+centers; band/DJ acts at Blues/Jazz/Comedy venues) with the comedy shows. Three
+opt-in `scraping_sources.metadata` title filters isolate the comedy (all OFF by
+default, so pure-comedy sources are unchanged):
+- `include_title_patterns: ['<regex>', ...]` — keep ONLY events whose title
+  matches at least one pattern (the comedy allowlist). Use this when the
+  non-comedy titles are unpredictable, e.g. a Blues/Jazz/Comedy venue whose
+  music events are named after the band/DJ (TASK-3205, Deja Blue) — an exclude
+  list can't enumerate them, so allowlist the comedy words instead.
 - `exclude_classes: true` — applies built-in class/course/workshop/drop-in/leveled-improv
   patterns.
 - `exclude_title_patterns: ['<regex>', ...]` — drop events whose title matches any pattern.
 
+`include` and `exclude` compose: an event must match an include pattern AND not
+match an exclude pattern to survive. All are matched case-insensitively against
+the event title only.
+
 ```sql
+-- Comedy allowlist for a mixed Blues/Jazz/Comedy organizer feed:
+UPDATE scraping_sources
+SET metadata = jsonb_set(COALESCE(metadata,'{}'::jsonb), '{include_title_patterns}',
+    '["comedy","stand[ -]?up","comedian"]'::jsonb)
+WHERE club_id = <id> AND scraper_key = 'eventbrite';
+
+-- Class exclusion for an improv training center:
 UPDATE scraping_sources
 SET metadata = jsonb_set(COALESCE(metadata,'{}'::jsonb), '{exclude_classes}', 'true')
 WHERE club_id = <id> AND scraper_key = 'eventbrite';
@@ -896,20 +913,29 @@ API returns `> 0` upcoming events before onboarding a Wix venue. (TASK-2957)
 
 | | |
 |---|---|
-| **Scraper key** | Venue-specific (e.g. `philly_improv_theater`) |
-| **DB field** | `scraping_url` |
-| **Generic?** | ❌ Requires parameterization — theatre slug is hardcoded per venue |
+| **Scraper key** | `crowdwork` (generic) |
+| **DB field** | `source_url` = `https://crowdwork.com/api/v2/<theatre>/shows` |
+| **Platform enum** | `crowdwork` |
+| **Generic?** | ✅ — the theatre slug lives in `source_url`; no per-venue code |
 
-**Detection signals (via Playwright network inspection):**
+**Detection signals (via Playwright network inspection, or curl the venue's events page):**
 ```
 GET https://crowdwork.com/api/v2/<theatre>/shows
 ```
-The `<theatre>` value comes from the `data-theatre` attribute on the embedded script tag.
+The `<theatre>` slug comes from the embedded CrowdWork links on the venue's site
+(e.g. `crowdwork.com/v/<theatre>/shows`, `<theatre>.crowdwork.com/shows`) or the
+`data-theatre` attribute on the embedded `crowdwork.com/embed.js` script tag.
 
-**To onboard a new Crowdwork venue:**
-1. Navigate in Playwright → capture `browser_network_requests` → find the API call
-2. Extract the `<theatre>` slug from the URL
-3. Create a new scraper directory and replace the theatre slug
+**To onboard a new Crowdwork venue:** insert a `scraping_sources` row with
+`platform='crowdwork'`, `scraper_key='crowdwork'`, and `source_url` set to the
+`/api/v2/<theatre>/shows` endpoint. No new scraper directory is needed — the generic
+`crowdwork` scraper reads the URL from `source_url` and its config from `metadata`:
+- `default_timezone` (IANA) — fallback when a show has no `timezone` field.
+- `rails_to_iana: true` — set this when the API returns **Rails-style** timezone
+  names (`"Pacific Time (US & Canada)"`, etc.) so they normalise to IANA. Venues
+  whose API already returns IANA names (e.g. Philly Improv → `America/New_York`)
+  omit it. Example (Haus of Comedy, TASK-3200, slug `windhausimprov`):
+  `metadata = {"rails_to_iana": true, "default_timezone": "America/Los_Angeles"}`.
 
 ---
 
@@ -930,7 +956,9 @@ The `<theatre>` value comes from the `data-theatre` attribute on the embedded sc
 
 Folding either into `vbo_tickets` would require the generic scraper to grow the date-slider mode + seat-tier enrichment — high complexity for two venues with divergent logic — so they remain venue-specific.
 
-**`vbo_tickets` setup:** insert a `scraping_sources` row with `platform='custom'`, `scraper_key='vbo_tickets'`, and `source_url` = the loadplugin URL with the venue's SiteID. Optionally add `metadata = {"category_filter": "Live Shows"}` (string or list) to drop non-matching `data-event-category` entries (e.g. classes). The scraper acquires a session from that URL, then GETs `https://plugin.vbotickets.com/Plugin/events/showevents?ViewType=list&EventType=current&day=&s=<session>` and parses each `<div id="EDID…">` block (`data-event-name`, `data-event-category`, `.TextEventDate`, `.EventListPrice`, `event.asp?eid=`). **Find the SiteID** in the venue's `/tickets` page inline JS: `var SiteID = "<GUID>";`.
+**`vbo_tickets` setup:** insert a `scraping_sources` row with `platform='custom'`, `scraper_key='vbo_tickets'`, and `source_url` = the loadplugin URL with the venue's SiteID. Optionally add `metadata = {"category_filter": "Live Shows"}` (string or list) to drop non-matching `data-event-category` entries (e.g. classes). The scraper acquires a session from that URL, then GETs `https://plugin.vbotickets.com/Plugin/events/showevents?ViewType=list&EventType=current&day=&s=<session>` and parses each `<div id="EDID…">` block (`data-event-name`, `data-event-category`, `.TextEventDate`, `.EventListPrice`, `event.asp?eid=`). **Find the SiteID** in the venue's `/tickets` page inline JS: `var SiteID = "<GUID>";` (also exposed on any VBO event page as `SiteID = "<GUID>"`).
+
+**Mixed-use venues (title filter, OFF by default):** a performing-arts center that runs comedy alongside concerts / films / theatre / magic often can't be isolated by `category_filter` — its comedy shares a generic VBO category (e.g. "Performing Arts") with non-comedy events. Use the title-pattern filter instead: `metadata = {"include_title_patterns": ["Comedy Under the Stars"]}` keeps only event names matching the regex(es); `exclude_title_patterns` drops matches. Both are case-insensitive (string or list), compose (include then exclude), and are OFF by default so single-purpose VBO venues are unaffected. Example: Fair Oaks Performing Arts Center (club 11112) keeps only its "Comedy Under the Stars" series.
 
 **Detection signals:**
 - Network requests to `plugin.vbotickets.com` / `connect.vbotickets.com`
@@ -3441,7 +3469,7 @@ cd apps/scraper && make scrape-club CLUB='My Club'
 | FareHarbor | `fareharbor` | No | `source_url` + metadata `shortname`, optional `exclude_item_pks` |
 | Squarespace | `squarespace` | No | `scraping_url` (full GetItemsByMonth URL with `collectionId`) |
 | Wix Events | venue-specific | **Yes** — replace compId | `scraping_url` |
-| Crowdwork | venue-specific | **Yes** — replace theatre slug | `scraping_url` |
+| Crowdwork | `crowdwork` | No — slug lives in `source_url` | `source_url` (`/api/v2/<theatre>/shows`) |
 | VBO Tickets (multi-event listing) | `vbo_tickets` | No | `source_url` (loadplugin URL with SiteID) |
 | VBO Tickets (single recurring show) | venue-specific | **Yes** — replace SiteID/EID constants | `scraping_url` |
 | SquadUP | venue-specific | **Yes** — replace user_id | `scraping_url` |

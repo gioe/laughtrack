@@ -215,6 +215,75 @@ async def test_single_venue_mode_applies_filter_in_get_data():
     assert kept == ["Friday Night Stand-Up Showcase", "The Armando — Student Showcase"]
 
 
+@pytest.mark.asyncio
+async def test_include_title_patterns_keeps_only_matching_comedy_events():
+    """include_title_patterns keeps ONLY comedy on a mixed Blues/Jazz/Comedy feed.
+
+    Models TASK-3205 (Deja Blue): one Eventbrite organizer feed carries music
+    acts named after the band/DJ alongside comedy shows. A comedy include
+    filter keeps the two comedy titles and drops the three music acts.
+    """
+    club = _club_with_metadata(
+        _LEELA_ORGANIZER_URL,
+        "815038611",
+        {"include_title_patterns": [r"comedy", r"stand[\s-]?up", r"comedian"]},
+    )
+    venue = _api_venue()
+    feed = [
+        _event("Aki Kumar", "https://eventbrite.com/e/m1", venue),
+        _event("DJ Carmaa", "https://eventbrite.com/e/m2", venue),
+        _event("Isaiah Band", "https://eventbrite.com/e/m3", venue),
+        _event("Summer Heat Comedy Show", "https://eventbrite.com/e/c1", venue),
+        _event("Live at Deja Blue: Comedy All Stars", "https://eventbrite.com/e/c2", venue),
+    ]
+    venue_club = _venue_club()
+
+    scraper = EventbriteScraper(club)
+    with patch.object(
+        scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=feed)
+    ), patch.object(
+        scraper._club_handler, "upsert_for_eventbrite_venue", return_value=venue_club
+    ):
+        shows = await scraper.scrape_async()
+
+    assert sorted(s.name for s in shows) == [
+        "Live at Deja Blue: Comedy All Stars",
+        "Summer Heat Comedy Show",
+    ]
+
+
+@pytest.mark.asyncio
+async def test_include_and_exclude_patterns_compose():
+    """include + exclude compose: must match include AND not match exclude."""
+    club = _club_with_metadata(
+        _LEELA_ORGANIZER_URL,
+        "815038611",
+        {
+            "include_title_patterns": [r"comedy"],
+            "exclude_title_patterns": [r"open mic"],
+        },
+    )
+    venue = _api_venue()
+    feed = [
+        _event("Comedy Showcase", "https://eventbrite.com/e/1", venue),
+        _event("Open Mic Comedy", "https://eventbrite.com/e/2", venue),
+        _event("Jazz Trio", "https://eventbrite.com/e/3", venue),
+    ]
+    venue_club = _venue_club()
+
+    scraper = EventbriteScraper(club)
+    with patch.object(
+        scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=feed)
+    ), patch.object(
+        scraper._club_handler, "upsert_for_eventbrite_venue", return_value=venue_club
+    ):
+        shows = await scraper.scrape_async()
+
+    # "Comedy Showcase" survives; "Open Mic Comedy" matches include but is
+    # dropped by exclude; "Jazz Trio" never matches include.
+    assert [s.name for s in shows] == ["Comedy Showcase"]
+
+
 def test_invalid_custom_regex_is_skipped_without_crashing():
     """A malformed regex is dropped with a warning; valid patterns still apply."""
     club = _club_with_metadata(

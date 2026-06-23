@@ -216,32 +216,64 @@ class EventbriteScraper(BaseScraper):
         extra = _DEFAULT_CLASS_TITLE_PATTERNS if meta.get("exclude_classes") else ()
         return self.compile_title_patterns("exclude_title_patterns", extra_patterns=extra)
 
+    def _title_inclusion_patterns(self) -> List[re.Pattern]:
+        """Compile the opt-in title-INCLUSION regexes from source metadata.
+
+        Reads ``include_title_patterns`` (a single regex string or a list of
+        strings) from ``scraping_sources.metadata``. When configured, the
+        filter keeps ONLY events whose title matches at least one pattern —
+        the inverse of the exclusion list. Returns ``[]`` (no-op) when not
+        configured, so existing sources are unchanged.
+
+        Motivating case (TASK-3205, Deja Blue): a mixed Blues/Jazz/Comedy
+        venue whose single Eventbrite organizer feed carries music acts
+        (named after the band/DJ, e.g. "Aki Kumar", "DJ Carmaa") alongside
+        comedy shows. The music titles are unpredictable, so an exclude list
+        can't reliably keep only comedy; an include filter keyed on comedy
+        words ("comedy", "stand[- ]up", "comedian", ...) keeps the comedy and
+        drops everything else. Delegates parsing/compilation to the shared
+        :meth:`BaseScraper.compile_title_patterns`.
+        """
+        return self.compile_title_patterns("include_title_patterns")
+
     def _filter_events(self, events):
-        """Drop events whose title matches a configured exclusion pattern.
+        """Filter events by configured title include/exclude patterns.
 
         Opt-in via ``scraping_sources.metadata`` — a no-op that returns
-        ``events`` unchanged when no patterns are configured. Used to keep
-        class/course listings out of mixed-use Eventbrite feeds (improv
-        training centers, etc.) so only public shows reach the pipeline.
-        Applied in both single-venue mode (:meth:`get_data`) and organizer
-        mode (:meth:`_scrape_organizer_async`).
+        ``events`` unchanged when neither key is configured.
+
+        - ``include_title_patterns`` → keep ONLY events whose title matches at
+          least one pattern (used to isolate comedy on a mixed-use feed, e.g.
+          a Blues/Jazz/Comedy venue's single Eventbrite organizer).
+        - ``exclude_classes`` / ``exclude_title_patterns`` → drop events whose
+          title matches (used to keep class/course listings out of improv
+          training-center feeds).
+
+        When both are configured they compose: an event must match an include
+        pattern AND not match an exclude pattern to survive. Applied in both
+        single-venue mode (:meth:`get_data`) and organizer mode
+        (:meth:`_scrape_organizer_async`).
         """
         if not events:
             return events
-        patterns = self._title_exclusion_patterns()
-        if not patterns:
+        include_patterns = self._title_inclusion_patterns()
+        exclude_patterns = self._title_exclusion_patterns()
+        if not include_patterns and not exclude_patterns:
             return events
         kept = []
         dropped = 0
         for ev in events:
             name = getattr(ev, "name", "") or ""
-            if any(p.search(name) for p in patterns):
+            if include_patterns and not any(p.search(name) for p in include_patterns):
+                dropped += 1
+                continue
+            if exclude_patterns and any(p.search(name) for p in exclude_patterns):
                 dropped += 1
                 continue
             kept.append(ev)
         if dropped:
             Logger.info(
-                f"{self._log_prefix}: title-exclusion filter dropped {dropped} of "
+                f"{self._log_prefix}: title filter dropped {dropped} of "
                 f"{len(events)} event(s); {len(kept)} kept",
                 self.logger_context,
             )
