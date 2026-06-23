@@ -27,7 +27,7 @@ import asyncio
 import os
 import re
 from collections import defaultdict
-from typing import List, Optional, Pattern, Tuple
+from typing import List, Optional, Tuple
 
 from laughtrack.core.clients.eventbrite.client import EventbriteClient
 from laughtrack.core.entities.club.handler import ClubHandler
@@ -125,6 +125,14 @@ def _lock_timeout_retry_backoff() -> float:
 # "Improv 2: Authentic Relationships". Without a filter the shared eventbrite
 # scraper would ingest all of them as comedy "shows" and pollute the platform.
 # Case-insensitive, matched against the event title only.
+#
+# FALSE-POSITIVE RISK: these are broad word-boundary patterns, so they can also
+# drop legitimate shows whose title happens to contain a class word — e.g.
+# "Class Clown Comedy Show", "A Crash Course in Comedy", or an "Improv 1 Year
+# Anniversary". ``exclude_classes`` is therefore an opt-in convenience default,
+# not a precise classifier: after enabling it on a source, verify the scraped
+# feed and, when a real show is being dropped, switch that source to an explicit
+# ``exclude_title_patterns`` list for precise control instead.
 _DEFAULT_CLASS_TITLE_PATTERNS = (
     r"\bclass\b",
     r"\bclasses\b",
@@ -179,7 +187,7 @@ class EventbriteScraper(BaseScraper):
         """API-based: single logical target representing the venue/organizer ID."""
         return [self.club.eventbrite_id] if self.club.eventbrite_id else []
 
-    def _title_exclusion_patterns(self) -> List[Pattern]:
+    def _title_exclusion_patterns(self) -> List[re.Pattern]:
         """Compile the opt-in title-exclusion regexes from source metadata.
 
         Reads ``scraping_sources.metadata`` (``self.club.source_metadata``):
@@ -206,7 +214,7 @@ class EventbriteScraper(BaseScraper):
         elif isinstance(custom, (list, tuple)):
             raw.extend(str(p) for p in custom)
 
-        compiled: List[Pattern] = []
+        compiled: List[re.Pattern] = []
         for pattern in raw:
             try:
                 compiled.append(re.compile(pattern, re.IGNORECASE))
