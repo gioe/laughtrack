@@ -1,0 +1,65 @@
+{
+ "code": 200,
+ "message": "OK",
+ "payload": [
+  {
+   "id": "1",
+   "name": "The BOAT Improv Jam Showcase",
+   "start": {
+    "date": null,
+    "dateTime": "2026-06-28T19:00:00-07:00"
+   },
+   "end": {
+    "date": null,
+    "dateTime": "2026-06-28T21:00:00-07:00"
+   },
+   "description": "<a href=\"https://events.humanitix.com/the-boat-showcase\">Link to tickets here.</a> An improv jam.",
+   "image": {
+    "url": "https://x/boat.png"
+   },
+   "buttonLink": null
+  },
+  {
+   "id": "2",
+   "name": "Twilight Zone Parody Series",
+   "start": {
+    "date": null,
+    "dateTime": "2026-07-17T19:00:00-07:00"
+   },
+   "end": {
+    "date": null,
+    "dateTime": "2026-07-17T21:00:00-07:00"
+   },
+   "description": "A parody series.",
+   "buttonLink": "https://tickets.example.com/twilight"
+  },
+  {
+   "id": "3",
+   "name": "BICONIC FILM FESTIVAL",
+   "start": {
+    "date": null,
+    "dateTime": "2026-06-24T18:00:00-07:00"
+   },
+   "end": {
+    "date": null,
+    "dateTime": "2026-06-24T22:00:00-07:00"
+   },
+   "description": "A film festival.",
+   "buttonLink": null
+  },
+  {
+   "id": "4",
+   "name": "All Day Comedy Marathon",
+   "start": {
+    "date": "2026-08-15",
+    "dateTime": null
+   },
+   "end": {
+    "date": "2026-08-16",
+    "dateTime": null
+   },
+   "description": "Stand-up all day.",
+   "buttonLink": null
+  }
+ ]
+}

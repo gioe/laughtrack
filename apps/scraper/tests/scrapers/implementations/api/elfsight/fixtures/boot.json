@@ -1,0 +1,17 @@
+{
+ "status": 1,
+ "data": {
+  "widgets": {
+   "WIDGETPID": {
+    "data": {
+     "public_widget_token": "test.jwt.token",
+     "settings": {
+      "integrationGoogleCalendar": {
+       "source": "test-source-uuid"
+      }
+     }
+    }
+   }
+  }
+ }
+}
