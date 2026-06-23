@@ -120,9 +120,56 @@ class TicketTailorScraper(BaseScraper):
             f"{self._log_prefix}: parsed {len(events)} Ticket Tailor event(s)",
             self.logger_context,
         )
+        events = self._filter_events(events)
+        if not events:
+            return []
         if self._single_venue_mode():
             return self._events_to_current_club(events)
         return await self._route_events_to_venues(events)
+
+    def _filter_events(
+        self, events: List[TicketTailorEvent]
+    ) -> List[TicketTailorEvent]:
+        """Apply the opt-in title allow/block filter to parsed events.
+
+        Mixed-use Ticket Tailor venues (event halls that host raves, DJ nights,
+        and private parties alongside an intermittent comedy series) expose
+        every event on the same box office. This filter keeps only the comedy
+        shows when configured via ``scraping_sources.metadata``:
+
+        - ``include_title_patterns`` — keep only events whose title matches at
+          least one pattern (the comedy allowlist, e.g. ``["comedy", "stand[- ]?up"]``).
+        - ``exclude_title_patterns`` — drop events whose title matches any pattern.
+
+        Both are off by default, so existing single-venue / roving Ticket Tailor
+        sources (e.g. West River, Milwaukee Comedy) are unchanged — the method
+        returns the events untouched when neither key is configured. Pattern
+        parsing/compilation (str-or-list, case-insensitive, re.error-guarded) is
+        the shared :meth:`BaseScraper.compile_title_patterns` helper; the
+        include-then-exclude loop mirrors ticketweb / sellingticket / showare.
+        """
+        include = self.compile_title_patterns("include_title_patterns")
+        exclude = self.compile_title_patterns("exclude_title_patterns")
+        if not include and not exclude:
+            return events
+
+        kept: List[TicketTailorEvent] = []
+        for event in events:
+            title = event.title or ""
+            if include and not any(p.search(title) for p in include):
+                continue
+            if exclude and any(p.search(title) for p in exclude):
+                continue
+            kept.append(event)
+
+        dropped = len(events) - len(kept)
+        if dropped:
+            Logger.info(
+                f"{self._log_prefix}: title filter dropped {dropped} of "
+                f"{len(events)} event(s); {len(kept)} kept",
+                self.logger_context,
+            )
+        return kept
 
     def _single_venue_mode(self) -> bool:
         """Attach every listing event to the configured club.
