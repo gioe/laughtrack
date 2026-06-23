@@ -299,10 +299,15 @@ def _build_query(row: ClubRow) -> str:
 
 
 def _street_number(address: str | None) -> str | None:
+    """Leading house number only.
+
+    Anchored to the start of the address so a zip or suite/unit digit run later in
+    the string cannot become a false street-number anchor.
+    """
     if not address:
         return None
-    match = re.search(r"\b\d{1,6}\b", address)
-    return match.group(0) if match else None
+    match = re.match(r"\s*(\d{1,6})\b", address)
+    return match.group(1) if match else None
 
 
 def _validate(row: ClubRow, result: PlaceResult) -> tuple[bool, str]:
@@ -346,8 +351,14 @@ def _validate(row: ClubRow, result: PlaceResult) -> tuple[bool, str]:
     row_tokens = _tokens(row.name)
     result_tokens = _tokens(result.display_name)
     overlap = row_tokens & result_tokens
-    if row_tokens and not overlap:
-        return False, "no name-token overlap"
+    if row_tokens:
+        if not overlap:
+            return False, "no name-token overlap"
+    elif not zip_matches:
+        # A generic name (all weak tokens, e.g. "The Comedy Club") leaves no name
+        # signal to verify the match, so require the stronger zip anchor rather
+        # than accepting on a street-number-only match.
+        return False, "generic name without zip anchor"
 
     return True, "accepted high-confidence text search match"
 

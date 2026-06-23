@@ -117,3 +117,25 @@ def test_validate_rejects_missing_formatted_address():
     ok, reason = mod._validate(_row(), _result(formatted_address=None))
     assert ok is False
     assert "formatted address" in reason
+
+
+def test_validate_generic_name_requires_zip_anchor():
+    # A club whose name collapses to no strong tokens ("The Comedy Club") has no
+    # name signal, so a street-number-only anchor (zip absent in result) must NOT
+    # be accepted...
+    generic = _row(name="The Comedy Club", address="200 Main St", zip_code="10012")
+    no_zip = _result(display_name="Acme Bank", formatted_address="200 Main St, New York, NY, USA")
+    ok, reason = mod._validate(generic, no_zip)
+    assert ok is False
+    assert "generic name without zip anchor" in reason
+    # ...but a matching zip anchor is enough to accept it.
+    with_zip = _result(display_name="Acme Bank", formatted_address="200 Main St, New York, NY 10012, USA")
+    ok2, _ = mod._validate(generic, with_zip)
+    assert ok2 is True
+
+
+def test_street_number_is_leading_only():
+    # A leading house number is captured; a zip/suite digit run is not.
+    assert mod._street_number("117 MacDougal St") == "117"
+    assert mod._street_number("Suite 200, Broadway") is None
+    assert mod._street_number("MacDougal St, NY 10012") is None
