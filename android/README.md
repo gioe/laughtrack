@@ -85,7 +85,42 @@ re-delivers the launch intent and must not re-navigate).
 
 ## Building
 
-Requires JDK 17+ and the Android SDK (set `ANDROID_HOME` / `local.properties`).
+### Prerequisites: JDK 17
+
+This client builds and tests on **JDK 17** — every module pins
+`sourceCompatibility`/`targetCompatibility = VERSION_17` and `jvmTarget = "17"`,
+and CI (`.github/workflows/android.yml`) provisions **Temurin 17** for the
+assemble/test/lint and OpenAPI-drift jobs. Use a JDK 17 distribution locally;
+newer JDKs are not validated against AGP 8.7.3 / Gradle 8.11.1 and may break the
+build.
+
+`JAVA_HOME` must point at a real JDK 17 home before you run `./gradlew`. The
+macOS system stub at `/usr/bin/java` is **not** a JDK — Gradle (and the
+OpenAPI regen scripts) fail at Java-runtime discovery with "Unable to locate a
+Java Runtime" if `JAVA_HOME` is unset and no JDK is on `PATH`. Fresh task
+worktrees inherit the shell environment, not any project-local Java config, so
+`JAVA_HOME` has to be exported in the shell that runs Gradle.
+
+**macOS (Homebrew):**
+
+```sh
+brew install openjdk@17
+# openjdk@17 is keg-only, so export JAVA_HOME at the brew-managed home:
+export JAVA_HOME="$(brew --prefix openjdk@17)/libexec/openjdk.jdk/Contents/Home"
+# (optional) make /usr/libexec/java_home -v 17 resolve it too:
+sudo ln -sfn "$(brew --prefix openjdk@17)/libexec/openjdk.jdk" \
+  /Library/Java/JavaVirtualMachines/openjdk-17.jdk
+```
+
+Add the `export JAVA_HOME=…` line to your shell profile (or set it per-session)
+so every worktree picks it up. Verify with `java -version` (should report
+`17.x`) before building.
+
+> The Android SDK is a separate prerequisite for `assembleDebug` and the
+> `*UnitTest` tasks (`SDK location not found` if missing) — set `ANDROID_HOME`
+> or `sdk.dir` in `local.properties`. The JDK setup above is what lets Gradle
+> start at all; the OpenAPI drift check (`bin/check-openapi-regen-drift.sh`)
+> needs only the JDK, no Android SDK.
 
 ```sh
 cd android
