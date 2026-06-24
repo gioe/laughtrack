@@ -112,13 +112,16 @@ _INVALID_APNS_REASONS = {
     "Unregistered",
 }
 
-# FCM HTTP v1 error codes that mean the token is dead/malformed and should be
-# deactivated (UNREGISTERED = uninstalled/expired, INVALID_ARGUMENT = malformed
-# registration token). SENDER_ID_MISMATCH and auth errors are config problems,
-# not dead tokens, so they are intentionally excluded.
+# FCM HTTP v1 error codes that unambiguously mean the token is dead and should
+# be deactivated. Only UNREGISTERED qualifies (app uninstalled / token expired).
+# INVALID_ARGUMENT is deliberately EXCLUDED: FCM returns 400/INVALID_ARGUMENT for
+# *any* malformed request field, so a server-side payload-shape bug would
+# otherwise mass-deactivate every healthy Android token in a run. Such failures
+# stay non-deactivating (logged as a push error) so the bug is fixed, not papered
+# over by wiping tokens. SENDER_ID_MISMATCH / auth errors are config problems,
+# also excluded.
 _INVALID_FCM_REASONS = {
     "UNREGISTERED",
-    "INVALID_ARGUMENT",
 }
 
 

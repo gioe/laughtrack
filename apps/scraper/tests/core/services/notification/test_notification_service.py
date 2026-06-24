@@ -248,6 +248,30 @@ class TestPlatformRouting:
         fcm.send_show_notification.assert_not_called()
         assert summary["push_sent"] == 1
 
+    def test_null_platform_falls_back_to_apns(self):
+        # Legacy tokens stored before the platform column existed come back with
+        # NULL platform; they must route to APNs, not FCM.
+        row = _make_row(
+            notification_type="push",
+            push_token_id="tok-legacy",
+            push_token="legacy-token",
+            push_platform=None,
+        )
+        apns = MagicMock()
+        apns.send_show_notification.return_value = MagicMock(
+            success=True, invalid_token=False, status_code=200, reason=None
+        )
+        fcm = MagicMock()
+        service = self._service(apns, fcm)
+
+        with patch.object(service, "_fetch_candidates", return_value=[row]):
+            with patch.object(service, "_record_notification"):
+                summary = service.run(radius_miles=50.0, days_ahead=30)
+
+        apns.send_show_notification.assert_called_once()
+        fcm.send_show_notification.assert_not_called()
+        assert summary["push_sent"] == 1
+
     def test_android_fcm_invalid_token_is_deactivated(self):
         row = _make_row(
             notification_type="push",
@@ -347,6 +371,41 @@ class TestFcmPushServicePayload:
         assert result.success is False
         assert result.invalid_token is True
         assert result.reason == "UNREGISTERED"
+
+    def test_send_does_not_deactivate_on_invalid_argument(self):
+        # INVALID_ARGUMENT can be a server-side request-shape bug, not a dead
+        # token — it must NOT trigger deactivation (would mass-wipe healthy
+        # tokens). It surfaces as a non-deactivating failure instead.
+        service = FcmPushService(project_id="proj-123", credentials=MagicMock())
+        response = MagicMock(status_code=400)
+        response.json.return_value = {
+            "error": {
+                "code": 400,
+                "status": "INVALID_ARGUMENT",
+                "details": [
+                    {"@type": "type.googleapis.com/google.firebase.fcm.v1.FcmError", "errorCode": "INVALID_ARGUMENT"}
+                ],
+            }
+        }
+
+        with patch.object(service, "_access_token", return_value="fake-token"):
+            with patch("httpx.Client") as MockClient:
+                client = MockClient.return_value.__enter__.return_value
+                client.post.return_value = response
+                result = service.send_show_notification(
+                    device_token="some-token",
+                    comedian_name="Funny Person",
+                    show_id=42,
+                    show_date=None,
+                    club_name="The Comedy Club",
+                    club_city="New York",
+                    club_state="NY",
+                    show_page_url="https://laugh-track.com/show/42",
+                )
+
+        assert result.success is False
+        assert result.invalid_token is False
+        assert result.reason == "INVALID_ARGUMENT"
 
 
 class TestDryRun:
