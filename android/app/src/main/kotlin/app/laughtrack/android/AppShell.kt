@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavController
+import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -82,10 +83,12 @@ fun AppShell(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("LaughTrack") },
-                actions = { ProfileMenu(navController) },
-            )
+            if (AppShellChrome.showsTopAppBar(currentDestination)) {
+                TopAppBar(
+                    title = { Text("LaughTrack") },
+                    actions = { ProfileMenu(navController) },
+                )
+            }
         },
         bottomBar = {
             NavigationBar {
@@ -245,5 +248,33 @@ fun NavController.switchTab(tab: AppTab) {
 fun NavController.openEntity(route: AppRoute) {
     if (!popBackStack(route, inclusive = false)) {
         navigate(route)
+    }
+}
+
+internal object AppShellChrome {
+    fun showsTopAppBar(route: AppRoute): Boolean = when (route) {
+        AppRoute.Discover,
+        AppRoute.Search,
+        AppRoute.Favorites,
+        AppRoute.ComedianOnboarding,
+        AppRoute.NowPlaying,
+        AppRoute.Profile -> true
+
+        is AppRoute.ShowDetail,
+        is AppRoute.ComedianDetail,
+        is AppRoute.ClubDetail,
+        is AppRoute.PodcastDetail,
+        AppRoute.NotificationCenter -> false
+    }
+
+    fun showsTopAppBar(destination: NavDestination?): Boolean {
+        if (destination == null) return true
+
+        return destination.hasRoute(AppRoute.Discover::class) ||
+            destination.hasRoute(AppRoute.Search::class) ||
+            destination.hasRoute(AppRoute.Favorites::class) ||
+            destination.hasRoute(AppRoute.ComedianOnboarding::class) ||
+            destination.hasRoute(AppRoute.NowPlaying::class) ||
+            destination.hasRoute(AppRoute.Profile::class)
     }
 }
