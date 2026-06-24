@@ -37,6 +37,10 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.navigation.AppTab
+import app.laughtrack.android.feature.detail.ui.ClubDetailScreen
+import app.laughtrack.android.feature.detail.ui.ComedianDetailScreen
+import app.laughtrack.android.feature.detail.ui.PodcastDetailScreen
+import app.laughtrack.android.feature.detail.ui.ShowDetailScreen
 import app.laughtrack.android.feature.home.HomeScreen
 import app.laughtrack.android.feature.library.LibraryScreen
 import app.laughtrack.android.feature.search.ui.SearchScreen
@@ -112,16 +116,31 @@ fun AppShell(
             }
 
             composable<AppRoute.ShowDetail> { entry ->
-                EntityDetailPlaceholder("Show", entry.toRoute<AppRoute.ShowDetail>().id) { navController.popBackStack() }
+                ShowDetailScreen(
+                    id = entry.toRoute<AppRoute.ShowDetail>().id,
+                    onBack = { navController.popBackStack() },
+                    onOpenEntity = navController::openEntity,
+                )
             }
             composable<AppRoute.ComedianDetail> { entry ->
-                EntityDetailPlaceholder("Comedian", entry.toRoute<AppRoute.ComedianDetail>().id) { navController.popBackStack() }
+                ComedianDetailScreen(
+                    id = entry.toRoute<AppRoute.ComedianDetail>().id,
+                    onBack = { navController.popBackStack() },
+                    onOpenEntity = navController::openEntity,
+                )
             }
             composable<AppRoute.ClubDetail> { entry ->
-                EntityDetailPlaceholder("Club", entry.toRoute<AppRoute.ClubDetail>().id) { navController.popBackStack() }
+                ClubDetailScreen(
+                    id = entry.toRoute<AppRoute.ClubDetail>().id,
+                    onBack = { navController.popBackStack() },
+                )
             }
             composable<AppRoute.PodcastDetail> { entry ->
-                EntityDetailPlaceholder("Podcast", entry.toRoute<AppRoute.PodcastDetail>().id) { navController.popBackStack() }
+                PodcastDetailScreen(
+                    id = entry.toRoute<AppRoute.PodcastDetail>().id,
+                    onBack = { navController.popBackStack() },
+                    onOpenEntity = navController::openEntity,
+                )
             }
 
             composable<AppRoute.Profile> {
