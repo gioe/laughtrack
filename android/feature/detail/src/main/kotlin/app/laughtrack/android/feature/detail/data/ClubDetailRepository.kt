@@ -19,13 +19,13 @@ class ClubDetailRepository @Inject constructor(
         val clubResponse = clubsApi.getClub(id)
         val club = clubResponse.body()?.data
             ?: error("Club unavailable (HTTP ${clubResponse.code()})")
-        val showsResponse = clubsApi.getClubShows(
-            id = id,
-            page = 0,
-            size = CLUB_SHOWS_LIMIT,
-        )
-        val shows = showsResponse.body()?.data
-            ?: error("Club shows unavailable (HTTP ${showsResponse.code()})")
+        val shows = runCatching {
+            clubsApi.getClubShows(
+                id = id,
+                page = 0,
+                size = CLUB_SHOWS_LIMIT,
+            ).body()?.data.orEmpty()
+        }.getOrDefault(emptyList())
         return ClubDetailUi(detail = club, upcomingShows = shows)
     }
 

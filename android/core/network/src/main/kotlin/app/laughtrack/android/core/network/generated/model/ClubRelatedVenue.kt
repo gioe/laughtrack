@@ -21,13 +21,13 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Contextual
 
 /**
- * 
  *
- * @param id 
- * @param name 
- * @param imageUrl 
- * @param city 
- * @param state 
+ *
+ * @param id
+ * @param name
+ * @param imageUrl
+ * @param city
+ * @param state
  */
 @Serializable
 
