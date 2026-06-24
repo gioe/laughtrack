@@ -9,11 +9,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -92,7 +93,7 @@ private fun ShowDetailBody(
             Modifier.fillMaxWidth().padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            formatCountdown(detail.date, now)?.let { AssistChip(onClick = {}, label = { Text(it) }) }
+            formatCountdown(detail.date, now)?.let { CountdownBadge(it) }
             Text(detail.name ?: "Show", style = MaterialTheme.typography.headlineSmall)
             InfoRow("When", formatShowDateTime(detail.date))
         }
@@ -112,6 +113,22 @@ private fun ShowDetailBody(
 
         ShowLineupSection(detail.lineup.orEmpty(), onOpenEntity)
         RelatedShowsSection(ui.relatedShows, onOpenEntity)
+    }
+}
+
+/** Read-only countdown pill — intentionally non-interactive (no click semantics for a label). */
+@Composable
+private fun CountdownBadge(text: String) {
+    Surface(
+        color = MaterialTheme.colorScheme.secondaryContainer,
+        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+        shape = RoundedCornerShape(percent = 50),
+    ) {
+        Text(
+            text,
+            style = MaterialTheme.typography.labelLarge,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+        )
     }
 }
 

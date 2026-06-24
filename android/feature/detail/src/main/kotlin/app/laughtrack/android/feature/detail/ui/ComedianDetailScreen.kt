@@ -214,7 +214,9 @@ private fun socialLinks(social: SocialData): List<Pair<String, String>> = buildL
         add("TikTok" to "https://tiktok.com/@${it.trimStart('@')}")
     }
     social.youtubeAccount?.takeIf { it.isNotBlank() }?.let {
-        add("YouTube" to normalizeUrl(it))
+        // youtubeAccount is a bare @handle, not a URL — prefix the host like web
+        // (jsonLd.ts) and iOS do, otherwise normalizeUrl yields https://<handle>.
+        add("YouTube" to "https://www.youtube.com/@${it.trimStart('@')}")
     }
     social.website?.takeIf { it.isNotBlank() }?.let { add("Website" to normalizeUrl(it)) }
     social.linktree?.takeIf { it.isNotBlank() }?.let { add("Linktree" to normalizeUrl(it)) }

@@ -134,6 +134,7 @@ private fun PodcastRelatedRow(data: PodcastDetailResponse, onOpenEntity: (AppRou
 @Composable
 private fun EpisodeRow(episode: PodcastDetailEpisode) {
     val context = LocalContext.current
+    val link = episode.episodeUrl ?: episode.audioUrl
     val meta = listOfNotNull(
         formatReleaseDate(episode.releaseDate),
         formatEpisodeDuration(episode.durationSeconds),
@@ -141,7 +142,7 @@ private fun EpisodeRow(episode: PodcastDetailEpisode) {
     Column(
         Modifier
             .fillMaxWidth()
-            .clickable { context.openUrl(episode.episodeUrl ?: episode.audioUrl) }
+            .then(if (link != null) Modifier.clickable { context.openUrl(link) } else Modifier)
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
