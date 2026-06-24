@@ -3,10 +3,7 @@ package app.laughtrack.android.push
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 /**
@@ -20,10 +17,10 @@ class LaughTrackMessagingService : FirebaseMessagingService() {
     @Inject
     lateinit var pushTokenManager: PushTokenManager
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-
     override fun onNewToken(token: String) {
-        scope.launch { pushTokenManager.register(token) }
+        // onNewToken runs on an FCM background thread; block so the POST completes
+        // before the framework can tear the service down (no leaked service scope).
+        runBlocking { pushTokenManager.register(token) }
     }
 
     override fun onMessageReceived(message: RemoteMessage) {

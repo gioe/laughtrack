@@ -12,6 +12,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import app.laughtrack.android.MainActivity
+import app.laughtrack.android.R
 
 /**
  * Notification channel + posting for comedian-arrival pushes. The tap PendingIntent
@@ -48,7 +49,9 @@ object PushNotifications {
             showId?.let { putExtra("showId", it) }
             url?.let { putExtra("url", it) }
         }
-        val notificationId = showId?.toIntOrNull() ?: 0
+        // Distinct ids so unrelated pushes stack instead of replacing each other
+        // under FLAG_UPDATE_CURRENT; comedian-arrival pushes always carry a showId.
+        val notificationId = showId?.toIntOrNull() ?: (title + body).hashCode()
         val pendingIntent = PendingIntent.getActivity(
             context,
             notificationId,
@@ -57,7 +60,7 @@ object PushNotifications {
         )
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(context.applicationInfo.icon)
+            .setSmallIcon(R.drawable.ic_stat_notification)
             .setContentTitle(title)
             .setContentText(body)
             .setStyle(NotificationCompat.BigTextStyle().bigText(body))
