@@ -9,9 +9,11 @@ import app.laughtrack.android.feature.search.model.SearchQuery
 import app.laughtrack.android.feature.search.model.SearchResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -39,8 +41,24 @@ class SearchViewModel @Inject constructor(
 
     private val loadJobs = mutableMapOf<SearchPivot, Job>()
 
+    // Debounce free-text typing so only the settled query hits the API; immediate
+    // filters (zip/sort) go through updateQuery directly.
+    private val textChanges = MutableSharedFlow<SearchPivot>(extraBufferCapacity = 64)
+
     init {
+        viewModelScope.launch {
+            textChanges.debounce(TEXT_DEBOUNCE_MS).collect { pivot ->
+                if (pivot == _state.value.pivot) reload(pivot)
+            }
+        }
         selectPivot(SearchPivot.SHOWS)
+    }
+
+    /** Free-text edit: reflected in the field immediately, but the query is debounced. */
+    fun onTextChange(text: String) {
+        val pivot = _state.value.pivot
+        updatePivot(pivot) { it.copy(query = it.query.copy(text = text)) }
+        textChanges.tryEmit(pivot)
     }
 
     fun selectPivot(pivot: SearchPivot) {
@@ -97,5 +115,9 @@ class SearchViewModel @Inject constructor(
             val updated = ui.states.toMutableMap().apply { put(pivot, transform(getValue(pivot))) }
             ui.copy(states = updated)
         }
+    }
+
+    private companion object {
+        const val TEXT_DEBOUNCE_MS = 300L
     }
 }

@@ -66,7 +66,7 @@ fun SearchScreen(
                 text = pivotState.query.text,
                 zip = pivotState.query.zip.orEmpty(),
                 popularitySort = pivotState.query.sort == SORT_POPULARITY,
-                onText = { value -> viewModel.updateQuery { it.copy(text = value) } },
+                onText = viewModel::onTextChange,
                 onZip = { value -> viewModel.updateQuery { it.copy(zip = value.ifBlank { null }) } },
                 onTogglePopularity = { enabled ->
                     viewModel.updateQuery { it.copy(sort = if (enabled) SORT_POPULARITY else null) }
@@ -83,6 +83,7 @@ fun SearchScreen(
                     results = results.items,
                     isLoadingMore = results.isLoading,
                     hasMore = results.hasMore,
+                    loadMoreError = results.error,
                     onLoadMore = viewModel::loadMore,
                     onOpen = onOpenEntity,
                 )
@@ -136,13 +137,24 @@ private fun ResultsList(
     results: List<SearchResult>,
     isLoadingMore: Boolean,
     hasMore: Boolean,
+    loadMoreError: String?,
     onLoadMore: () -> Unit,
     onOpen: (AppRoute) -> Unit,
 ) {
     LazyColumn(Modifier.fillMaxSize()) {
         items(results) { result -> ResultRow(result, onOpen) }
-        if (hasMore) {
-            item {
+        when {
+            loadMoreError != null -> item {
+                Column(
+                    Modifier.fillMaxWidth().padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text("Couldn't load more.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    OutlinedButton(onClick = onLoadMore, enabled = !isLoadingMore) { Text("Retry") }
+                }
+            }
+            hasMore -> item {
                 OutlinedButton(
                     onClick = onLoadMore,
                     enabled = !isLoadingMore,
