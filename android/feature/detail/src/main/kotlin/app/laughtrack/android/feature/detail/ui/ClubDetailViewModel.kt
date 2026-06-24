@@ -3,8 +3,8 @@ package app.laughtrack.android.feature.detail.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.laughtrack.android.core.data.UiState
-import app.laughtrack.android.core.network.generated.model.ClubDetail
 import app.laughtrack.android.feature.detail.data.ClubDetailRepository
+import app.laughtrack.android.feature.detail.model.ClubDetailUi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,8 +16,8 @@ import javax.inject.Inject
 class ClubDetailViewModel @Inject constructor(
     private val repository: ClubDetailRepository,
 ) : ViewModel() {
-    private val _state = MutableStateFlow<UiState<ClubDetail>>(UiState.Idle)
-    val state: StateFlow<UiState<ClubDetail>> = _state.asStateFlow()
+    private val _state = MutableStateFlow<UiState<ClubDetailUi>>(UiState.Idle)
+    val state: StateFlow<UiState<ClubDetailUi>> = _state.asStateFlow()
 
     private var loadedId: Int? = null
 

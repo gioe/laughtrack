@@ -18,13 +18,19 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.laughtrack.android.core.data.UiState
-import app.laughtrack.android.core.network.generated.model.ClubDetail
+import app.laughtrack.android.core.navigation.AppRoute
+import app.laughtrack.android.core.network.generated.model.ClubRelatedVenue
+import app.laughtrack.android.core.network.generated.model.Show
+import app.laughtrack.android.feature.detail.model.ClubDetailUi
 import app.laughtrack.android.feature.detail.ui.components.DetailError
 import app.laughtrack.android.feature.detail.ui.components.DetailHero
 import app.laughtrack.android.feature.detail.ui.components.DetailLoading
 import app.laughtrack.android.feature.detail.ui.components.DetailScaffold
 import app.laughtrack.android.feature.detail.ui.components.InfoRow
+import app.laughtrack.android.feature.detail.ui.components.SectionHeader
+import app.laughtrack.android.feature.detail.ui.components.ShowRow
 import app.laughtrack.android.feature.detail.util.dialPhone
+import app.laughtrack.android.feature.detail.util.formatShowDateTime
 import app.laughtrack.android.feature.detail.util.openMap
 import app.laughtrack.android.feature.detail.util.openUrl
 import app.laughtrack.android.feature.detail.util.shareLink
@@ -33,34 +39,52 @@ import app.laughtrack.android.feature.detail.util.shareLink
 fun ClubDetailScreen(
     id: Int,
     onBack: () -> Unit,
+    onOpenEntity: (AppRoute) -> Unit,
     viewModel: ClubDetailViewModel = hiltViewModel(),
 ) {
     LaunchedEffect(id) { viewModel.load(id) }
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val club = (state as? UiState.Success)?.value
+    val ui = (state as? UiState.Success)?.value
+    val club = ui?.detail
 
     DetailScaffold(
         title = club?.name ?: "Venue",
         onBack = onBack,
-        onShare = club?.let { data -> { context.shareLink(data.website, data.name) } },
+        onShare = club?.let { data ->
+            { context.shareLink(data.website, data.name) }
+        },
     ) { modifier ->
         when (state) {
-            is UiState.Failure -> DetailError(onRetry = viewModel::retry, modifier = modifier)
-            is UiState.Success -> ClubDetailBody(club!!, modifier)
+            is UiState.Failure -> DetailError(
+                onRetry = viewModel::retry,
+                modifier = modifier,
+            )
+            is UiState.Success -> ClubDetailBody(ui!!, modifier, onOpenEntity)
             else -> DetailLoading(modifier)
         }
     }
 }
 
 @Composable
-private fun ClubDetailBody(club: ClubDetail, modifier: Modifier) {
+private fun ClubDetailBody(
+    ui: ClubDetailUi,
+    modifier: Modifier,
+    onOpenEntity: (AppRoute) -> Unit,
+) {
+    val club = ui.detail
     val context = LocalContext.current
     Column(
-        modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(bottom = 24.dp),
+        modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
+            .padding(bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        DetailHero(url = club.heroImageUrl.ifBlank { club.imageUrl }, contentDescription = club.name)
+        DetailHero(
+            url = club.heroImageUrl.ifBlank { club.imageUrl },
+            contentDescription = club.name,
+        )
         Text(
             club.name,
             style = MaterialTheme.typography.headlineSmall,
@@ -71,7 +95,9 @@ private fun ClubDetailBody(club: ClubDetail, modifier: Modifier) {
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             InfoRow("Address", club.address)
-            club.phoneNumber?.takeIf { it.isNotBlank() }?.let { InfoRow("Phone", it) }
+            club.phoneNumber
+                ?.takeIf { it.isNotBlank() }
+                ?.let { InfoRow("Phone", it) }
         }
         Column(
             Modifier.fillMaxWidth().padding(horizontal = 16.dp),
@@ -97,6 +123,64 @@ private fun ClubDetailBody(club: ClubDetail, modifier: Modifier) {
                     Text("Call venue")
                 }
             }
+        }
+        ClubUpcomingShowsSection(ui.upcomingShows, onOpenEntity)
+        ClubRelatedVenuesSection(club.relatedVenues.orEmpty(), onOpenEntity)
+    }
+}
+
+@Composable
+private fun ClubUpcomingShowsSection(
+    shows: List<Show>,
+    onOpenEntity: (AppRoute) -> Unit,
+) {
+    Column(
+        Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        SectionHeader("Upcoming", Modifier.padding(horizontal = 16.dp))
+        if (shows.isEmpty()) {
+            Text(
+                "No upcoming shows yet.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 16.dp),
+            )
+            return
+        }
+        shows.forEach { show ->
+            ShowRow(
+                title = show.name ?: show.clubName ?: "Show",
+                subtitle = listOfNotNull(formatShowDateTime(show.date), show.room)
+                    .joinToString(" · ")
+                    .ifBlank { null },
+                imageUrl = show.imageUrl,
+                onClick = { onOpenEntity(AppRoute.ShowDetail(show.id)) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun ClubRelatedVenuesSection(
+    venues: List<ClubRelatedVenue>,
+    onOpenEntity: (AppRoute) -> Unit,
+) {
+    if (venues.isEmpty()) return
+    Column(
+        Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        SectionHeader("Related venues", Modifier.padding(horizontal = 16.dp))
+        venues.forEach { venue ->
+            ShowRow(
+                title = venue.name,
+                subtitle = listOfNotNull(venue.city, venue.state)
+                    .joinToString(", ")
+                    .ifBlank { null },
+                imageUrl = venue.imageUrl,
+                onClick = { onOpenEntity(AppRoute.ClubDetail(venue.id)) },
+            )
         }
     }
 }

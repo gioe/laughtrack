@@ -1,10 +1,16 @@
 package app.laughtrack.android.feature.detail.model
 
+import app.laughtrack.android.core.network.generated.model.ClubDetail
 import app.laughtrack.android.core.network.generated.model.ComedianDetail
 import app.laughtrack.android.core.network.generated.model.ComedianLineup
 import app.laughtrack.android.core.network.generated.model.Show
 import app.laughtrack.android.core.network.generated.model.ShowDetail
 import app.laughtrack.android.core.network.generated.model.UpcomingRun
+
+data class ClubDetailUi(
+    val detail: ClubDetail,
+    val upcomingShows: List<Show>,
+)
 
 /**
  * Show-detail UI model: the generated [ShowDetail] plus its related shows and a

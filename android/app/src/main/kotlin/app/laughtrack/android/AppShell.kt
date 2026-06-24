@@ -151,6 +151,7 @@ fun AppShell(
                     ClubDetailScreen(
                         id = entry.toRoute<AppRoute.ClubDetail>().id,
                         onBack = { navController.popBackStack() },
+                        onOpenEntity = navController::openEntity,
                     )
                 }
                 composable<AppRoute.PodcastDetail> { entry ->
