@@ -31,7 +31,7 @@ data class NotificationsSeenResponseData (
 
     /* The newly-stamped last-seen timestamp (ISO-8601). */
     @SerialName(value = "lastSeenAt")
-    val lastSeenAt: kotlin.String
+    val lastSeenAt: kotlin.String?
 
 ) {
 

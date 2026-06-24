@@ -41,7 +41,7 @@ data class NotificationListResponseData (
 
     /* ISO-8601 timestamp the user last opened the notification center; null if never opened. */
     @SerialName(value = "lastSeenAt")
-    val lastSeenAt: kotlin.String
+    val lastSeenAt: kotlin.String?
 
 ) {
 
