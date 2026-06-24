@@ -3068,9 +3068,23 @@ scraper.
 |---|---|
 | **Scraper key** | `tessitura_tnew` |
 | **Platform** | `custom` |
-| **DB field** | `scraping_sources.source_url` + optional `metadata.events_url` / `metadata.api_url` |
+| **DB field** | `scraping_sources.source_url` + optional `metadata.events_url` / `metadata.api_url` / `metadata.keyword_ids` |
 | **Value format** | TNEW listing page, usually `https://{boxoffice-host}/events?view=list` |
 | **Generic?** | ✅ generic for TNEW storefront event-listing pages |
+
+**Mixed-use PACs (comedy genre filter, OFF by default):** single-purpose comedy
+TNEW storefronts (e.g. The Groundlings) leave `keyword_ids` unset and ingest every
+production. A performing-arts center that runs comedy alongside concerts / theatre /
+ballet / opera sets `metadata.keyword_ids` to its **Comedy genre id(s)** so the
+production-seasons API returns only comedy **server-side** (no client-side
+title heuristic needed — the venue's own genre taxonomy does the filtering).
+- Find the Comedy genre id on the box office's `EventGenres.aspx` page: the
+  "View Comedy" link points at `events?view=list&kid=<id>`; that `<id>` is the
+  `keyword_ids` value. The production-seasons form sends it as `keywordIds`.
+- Accepts a string, int, or list (multiple genres serialize comma-separated).
+  Example: Gallo Center (club 11138) uses `keyword_ids="78"` → 10 comedy
+  performances (Marlon Wayans, Lily Tomlin, Henry Cho, Drew Lynch, …) out of
+  154 across all genres.
 
 **Detection signals:**
 - Box office host serves TNEW assets from `production.tnew-assets.com`.
@@ -3120,7 +3134,8 @@ VALUES (
 - `apps/scraper/src/laughtrack/scrapers/implementations/api/tessitura_tnew/`
 - `apps/scraper/src/laughtrack/core/entities/event/tessitura_tnew.py`
 - Onboarded: The Groundlings Theatre & School (`purchase.groundlings.com`, org
-  `GTAS`, TASK-2946).
+  `GTAS`, TASK-2946); Gallo Center for the Arts (`tickets.galloarts.org`,
+  mixed-use PAC with `keyword_ids="78"` Comedy filter, TASK-3238).
 
 ### EventON (WordPress admin-ajax loader)
 
