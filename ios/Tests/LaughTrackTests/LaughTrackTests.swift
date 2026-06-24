@@ -50,6 +50,23 @@ struct LaughTrackTests {
         #expect(URLComponents(url: emailCallbackURL, resolvingAgainstBaseURL: false)?.queryItems?.first?.value == "email")
     }
 
+    @Test("signInURL embeds the per-flow state nonce on the callbackUrl")
+    func signInURLEmbedsStateOnCallbackUrl() {
+        let withState = AuthRouteConfiguration.signInURL(for: .google, state: "Ab9_-xyz")
+        let callbackParam = URLComponents(url: withState, resolvingAgainstBaseURL: false)?
+            .queryItems?.first(where: { $0.name == "callbackUrl" })?.value
+        let callbackComponents = callbackParam
+            .flatMap(URL.init(string:))
+            .flatMap { URLComponents(url: $0, resolvingAgainstBaseURL: false) }
+        // The nonce rides on the callbackUrl so the web route round-trips it back.
+        #expect(callbackComponents?.queryItems?.first(where: { $0.name == "state" })?.value == "Ab9_-xyz")
+
+        // Default (no state) keeps the callbackUrl free of a state param.
+        let withoutState = AuthRouteConfiguration.nativeCallbackURL(for: .google)
+        #expect(URLComponents(url: withoutState, resolvingAgainstBaseURL: false)?
+            .queryItems?.contains(where: { $0.name == "state" }) == false)
+    }
+
     @Test("bootstrap theme keeps bridge semantics available at launch")
     @MainActor
     func bootstrapThemeExposesExpectedBridgeContracts() {

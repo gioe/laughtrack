@@ -65,6 +65,10 @@ public final class AuthManager: ObservableObject {
     private let appStateStorage: AppStateStorageProtocol
     private let oauthSessionRunner: any OAuthSessionRunning
     private var hasRestoredSession = false
+    // Per-flow CSRF nonce: minted in signIn(with:), required to match on the
+    // returned callback before tokens are stored. @MainActor isolation makes a
+    // plain property safe; the whole signIn flow runs on the main actor.
+    private var pendingState: String?
     nonisolated private static let logger = Logger(
         subsystem: "com.laughtrack.auth",
         category: "AuthManager"
@@ -152,9 +156,12 @@ public final class AuthManager: ObservableObject {
     public func signIn(with provider: AuthProvider) async {
         state = .signingIn(provider)
 
+        let flowState = Self.generateState()
+        pendingState = flowState
+
         do {
             let callbackURL = try await oauthSessionRunner.authenticate(
-                startURL: Self.makeSignInURL(for: provider),
+                startURL: Self.makeSignInURL(for: provider, state: flowState),
                 callbackScheme: Self.callbackScheme
             )
 
@@ -166,6 +173,21 @@ public final class AuthManager: ObservableObject {
                 state = .signedOut(message: Self.message(for: errorMessage))
                 return
             }
+
+            // CSRF / session-fixation guard: the token-bearing callback must echo
+            // the per-flow nonce we minted. A callback whose state is missing or
+            // mismatched (e.g. a hostile laughtrack:// invocation injecting tokens)
+            // is rejected before anything is persisted. Mirrors Android
+            // AuthSessionManager.handleCallback.
+            let returnedState = Self.extractQueryValue(named: "state", from: callbackURL)
+            guard let expectedState = pendingState,
+                  let returnedState,
+                  returnedState == expectedState
+            else {
+                state = .signedOut(message: Self.message(for: nil))
+                return
+            }
+            pendingState = nil
 
             await storeSession(accessToken: accessToken, refreshToken: refreshToken, provider: provider)
         } catch let error as AuthFlowError {
@@ -236,8 +258,19 @@ public final class AuthManager: ObservableObject {
         state = .signedOut(message: message)
     }
 
-    private static func makeSignInURL(for provider: AuthProvider) -> URL {
-        AuthRouteConfiguration.signInURL(for: provider)
+    private static func makeSignInURL(for provider: AuthProvider, state: String) -> URL {
+        AuthRouteConfiguration.signInURL(for: provider, state: state)
+    }
+
+    // 32 bytes of CSPRNG entropy, base64url without padding ([A-Za-z0-9_-]) so
+    // the nonce carries no URL-structural characters and survives the web
+    // round-trip and sanitizer unchanged.
+    private static func generateState() -> String {
+        let bytes = (0..<32).map { _ in UInt8.random(in: UInt8.min...UInt8.max) }
+        return Data(bytes).base64EncodedString()
+            .replacingOccurrences(of: "+", with: "-")
+            .replacingOccurrences(of: "/", with: "_")
+            .replacingOccurrences(of: "=", with: "")
     }
 
     private static func extractQueryValue(named name: String, from url: URL) -> String? {

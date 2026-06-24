@@ -121,6 +121,69 @@ struct AuthManagerTests {
         #expect(await authMiddleware.hasAccessToken)
     }
 
+    @Test("signIn rejects a token callback whose state does not match the pending nonce")
+    @MainActor
+    func signInRejectsMismatchedState() async {
+        let secureStorage = InMemorySecureStorage()
+        let appStateStorage = AppStateStorage(userDefaults: UserDefaults(suiteName: "AuthManagerTests.stateMismatch.\(UUID().uuidString)")!)
+        let authMiddleware = AuthenticationMiddleware(secureStorage: secureStorage)
+        let tokenManager = AuthTokenManager(secureStorage: secureStorage)
+        let runner = MockOAuthSessionRunner()
+        runner.echoState = false
+        let accessToken = Self.jwt(expirationOffset: 7200)
+        runner.callbackURL = URL(
+            string: "laughtrack://auth/callback?provider=google&state=attacker-chosen&accessToken=\(accessToken)&refreshToken=injected"
+        )!
+
+        let manager = AuthManager(
+            tokenManager: tokenManager,
+            authMiddleware: authMiddleware,
+            appStateStorage: appStateStorage,
+            oauthSessionRunner: runner
+        )
+
+        await manager.signIn(with: .google)
+
+        guard case .signedOut = manager.state else {
+            Issue.record("Expected signedOut state after state mismatch")
+            return
+        }
+        #expect(!tokenManager.isAuthenticated)
+        #expect(tokenManager.retrieveAccessToken() == nil)
+        #expect(!(await authMiddleware.hasAccessToken))
+    }
+
+    @Test("signIn rejects a token callback that carries no state")
+    @MainActor
+    func signInRejectsMissingState() async {
+        let secureStorage = InMemorySecureStorage()
+        let appStateStorage = AppStateStorage(userDefaults: UserDefaults(suiteName: "AuthManagerTests.stateMissing.\(UUID().uuidString)")!)
+        let authMiddleware = AuthenticationMiddleware(secureStorage: secureStorage)
+        let tokenManager = AuthTokenManager(secureStorage: secureStorage)
+        let runner = MockOAuthSessionRunner()
+        runner.echoState = false
+        let accessToken = Self.jwt(expirationOffset: 7200)
+        runner.callbackURL = URL(
+            string: "laughtrack://auth/callback?provider=google&accessToken=\(accessToken)&refreshToken=injected"
+        )!
+
+        let manager = AuthManager(
+            tokenManager: tokenManager,
+            authMiddleware: authMiddleware,
+            appStateStorage: appStateStorage,
+            oauthSessionRunner: runner
+        )
+
+        await manager.signIn(with: .google)
+
+        guard case .signedOut = manager.state else {
+            Issue.record("Expected signedOut state when callback omits state")
+            return
+        }
+        #expect(!tokenManager.isAuthenticated)
+        #expect(tokenManager.retrieveAccessToken() == nil)
+    }
+
     @Test("restoreSession clears legacy installs that stored the access token in both slots")
     @MainActor
     func restoreSessionClearsLegacyDualAccessTokenInstall() async {
@@ -651,6 +714,11 @@ private actor RecordingAuthPushDeviceTokenManager: PushDeviceTokenManaging {
 private final class MockOAuthSessionRunner: OAuthSessionRunning {
     var callbackURL = URL(string: "laughtrack://auth/callback")!
     var error: Error?
+    // When true (default), mirror the real web round-trip: extract the per-flow
+    // state from the sign-in URL's callbackUrl and echo it on the returned deep
+    // link, so a faithful flow passes AuthManager's state check. Tests exercising
+    // the CSRF guard set this false and supply their own (wrong/absent) state.
+    var echoState = true
     private(set) var lastStartURL: URL?
     private(set) var lastCallbackScheme: String?
 
@@ -660,6 +728,23 @@ private final class MockOAuthSessionRunner: OAuthSessionRunning {
         if let error {
             throw error
         }
-        return callbackURL
+        guard echoState else { return callbackURL }
+        guard
+            let startComponents = URLComponents(url: startURL, resolvingAgainstBaseURL: false),
+            let callbackParam = startComponents.queryItems?
+                .first(where: { $0.name == "callbackUrl" })?.value,
+            let callbackComponents = URLComponents(string: callbackParam),
+            let state = callbackComponents.queryItems?
+                .first(where: { $0.name == "state" })?.value,
+            var returned = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false)
+        else {
+            return callbackURL
+        }
+        var items = returned.queryItems ?? []
+        if !items.contains(where: { $0.name == "state" }) {
+            items.append(URLQueryItem(name: "state", value: state))
+        }
+        returned.queryItems = items
+        return returned.url ?? callbackURL
     }
 }
