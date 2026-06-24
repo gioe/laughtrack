@@ -39,9 +39,11 @@ class AppShellTest {
             LaughTrackTheme { AppShell() }
         }
 
-        // Always-present shell chrome: the top-bar title and the three tab labels.
+        // Always-present shell chrome: the top-bar title and tab labels. We assert
+        // Search/Favorites (unique strings) plus the title; the Discover tab label
+        // is intentionally not asserted because the Discover/Home start screen also
+        // renders a "Discover" headline, so onNodeWithText would match two nodes.
         composeRule.onNodeWithText("LaughTrack").assertIsDisplayed()
-        composeRule.onNodeWithText("Discover").assertIsDisplayed()
         composeRule.onNodeWithText("Search").assertIsDisplayed()
         composeRule.onNodeWithText("Favorites").assertIsDisplayed()
 
