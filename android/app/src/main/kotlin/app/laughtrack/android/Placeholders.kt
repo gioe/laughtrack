@@ -25,13 +25,11 @@ import app.laughtrack.android.core.ui.components.SkeletonLine
 import app.laughtrack.android.core.ui.components.UiStateContent
 
 /**
- * Temporary tab body used until the real feature screens land (Search → TASK-3260,
- * Favorites → TASK-3261, Profile/Notifications → TASK-3266/3264). [onOpenSample],
- * when provided, navigates into the detail stack so the shell's push/dedup is
- * exercisable before real cards exist.
+ * Temporary tab body used until the real feature screens land (Favorites →
+ * TASK-3261, Notifications → TASK-3264).
  */
 @Composable
-fun PlaceholderScreen(title: String, onOpenSample: (() -> Unit)? = null) {
+fun PlaceholderScreen(title: String) {
     Column(
         Modifier.fillMaxSize().padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -42,9 +40,6 @@ fun PlaceholderScreen(title: String, onOpenSample: (() -> Unit)? = null) {
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        if (onOpenSample != null) {
-            TextButton(onClick = onOpenSample) { Text("Open a sample show") }
-        }
     }
 }
 

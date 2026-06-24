@@ -38,6 +38,7 @@ import androidx.navigation.toRoute
 import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.navigation.AppTab
 import app.laughtrack.android.feature.home.HomeScreen
+import app.laughtrack.android.feature.search.ui.SearchScreen
 
 /**
  * Root app shell: a three-tab bottom bar (Discover/Search/Favorites) over a typed
@@ -102,7 +103,7 @@ fun AppShell(
             // sample affordance exercises the detail stack (push + cycle-dedup) in
             // the shell until those screens provide real cards.
             composable<AppRoute.Search> {
-                PlaceholderScreen("Search", onOpenSample = { navController.openEntity(AppRoute.ShowDetail(1)) })
+                SearchScreen(onOpenEntity = navController::openEntity)
             }
             composable<AppRoute.Favorites> { PlaceholderScreen("Favorites") }
 
