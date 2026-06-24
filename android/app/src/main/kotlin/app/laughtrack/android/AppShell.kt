@@ -48,6 +48,7 @@ import app.laughtrack.android.feature.detail.ui.PodcastDetailScreen
 import app.laughtrack.android.feature.detail.ui.ShowDetailScreen
 import app.laughtrack.android.feature.home.HomeScreen
 import app.laughtrack.android.feature.library.LibraryScreen
+import app.laughtrack.android.feature.notifications.NotificationCenterScreen
 import app.laughtrack.android.feature.onboarding.ui.ComedianOnboardingScreen
 import app.laughtrack.android.feature.search.ui.SearchScreen
 
@@ -179,7 +180,12 @@ fun AppShell(
                         onDeleteAccount = onDeleteAccount,
                     )
                 }
-                composable<AppRoute.NotificationCenter> { PlaceholderScreen("Notifications") }
+                composable<AppRoute.NotificationCenter> {
+                    NotificationCenterScreen(
+                        onOpenEntity = navController::openEntity,
+                        onBack = { navController.popBackStack() },
+                    )
+                }
             }
 
             if (playbackController != null) {
