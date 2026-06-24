@@ -2591,13 +2591,11 @@
             "description": "Whether comedian onboarding has been completed or skipped."
           },
           "zipCode": {
-            "type": "string",
-            "nullable": true,
+            "type": ["string", "null"],
             "description": "Saved profile ZIP code used for Near Me."
           },
           "nearbyDistanceMiles": {
-            "type": "integer",
-            "nullable": true,
+            "type": ["integer", "null"],
             "description": "Saved profile distance in miles used for Near Me."
           },
           "notificationsUnreadCount": {
