@@ -145,6 +145,11 @@ assets and POSTing `/api/products/productionseasons`?
   └── YES → platform: custom → scraper = 'tessitura_tnew' (generic)
               DB: source_url = TNEW list page, usually /events?view=list
 
+Does the ticketing app load `app.spektrix-link.com/clients/<client>/eventsView.json`?
+  └── YES → platform: custom → venue-specific scraper required
+              DB: source_url = full eventsView.json URL
+              (see Spektrix Link section — multi-purpose venues need source-level genre filtering)
+
 Is there a SimpleTix event page link?
   └── YES → platform: SimpleTix → scraper = 'simpletix' (generic)
               DB: scraping_url = full SimpleTix event page URL
@@ -3182,6 +3187,51 @@ VALUES (
   `GTAS`, TASK-2946); Gallo Center for the Arts (`tickets.galloarts.org`,
   mixed-use PAC with `keyword_ids="78"` Comedy filter, TASK-3238).
 
+### Spektrix Link
+
+| | |
+|---|---|
+| **Scraper key** | Venue-specific (e.g. `lesher_center`) |
+| **Platform** | `custom` |
+| **DB field** | `scraping_sources.source_url` |
+| **Value format** | `https://app.spektrix-link.com/clients/<client>/eventsView.json` |
+| **Generic?** | ❌ venue-specific code required |
+
+**Detection signals:**
+- The venue's purchase app loads `https://webcomponents.spektrix.com/stable/...` scripts.
+- Browser network requests include `app.spektrix-link.com/websites/<host>/config.json` and `app.spektrix-link.com/clients/<client>/eventsView.json`.
+- The public CMS page may link to `purchase.<venue-domain>` while the actual event catalog lives on `app.spektrix-link.com`.
+
+**API/source pattern:**
+- `eventsView.json` returns a JSON array of event objects with `id`, `webEventId`, `name`, `description`, `attribute_Genre`, `availableInstanceDates`, and sold-out fields.
+- Store the full `eventsView.json` URL in `source_url`; venue-specific code should fetch it directly with `fetch_json`.
+
+**Key extraction notes:**
+- Multi-purpose civic venues must filter by a reliable source field before transform. Lesher Center uses `attribute_Genre = "Comedy and Improv"`.
+- Expand `availableInstanceDates` into one show per occurrence.
+- Ticket links can be built as `https://purchase.<venue-domain>/EventAvailability?EventId=<id>` for the modern Spektrix Link app.
+- Prices are not present in `eventsView.json`; persist fallback tickets with price `0.0`.
+
+**DB setup:**
+```sql
+UPDATE scraping_sources
+   SET platform = 'custom'::"ScrapingPlatform",
+       scraper_key = '<venue_scraper_key>',
+       source_url = 'https://app.spektrix-link.com/clients/<client>/eventsView.json',
+       metadata = jsonb_build_object('include_genres', jsonb_build_array('Comedy and Improv')),
+       updated_at = NOW()
+ WHERE club_id = <club_id>;
+```
+
+**Failure modes / gotchas:**
+- Do not assume an older `EventDetails.aspx?WebEventId=...` iframe exists; Spektrix Link apps may be React shells with `EventAvailability?EventId=...` routes.
+- Venue-owned CMS pages can be bot-blocked while the Spektrix Link JSON remains reachable.
+- The `/Events` route may render "No events available" even when `eventsView.json` contains events; inspect network JSON directly.
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/scrapers/implementations/venues/lesher_center/`
+- TASK-3251 Lesher Center for the Arts
+
 ### EventON (WordPress admin-ajax loader)
 
 `scraper_key = eventon`, `platform = custom` (EventON has no dedicated
@@ -3679,6 +3729,7 @@ cd apps/scraper && make scrape-club CLUB='My Club'
 | Shopify | `shopify` | No | `scraping_url` (Shopify collection page URL) |
 | BookTix | `booktix` | No | `source_url` or `scraping_url` (BookTix box-office home URL) |
 | ShoWare | `showare` | No | `scraping_url` / `source_url` (ShoWare `default.asp` or venue root URL) |
+| Spektrix Link | venue-specific | **Yes** — filter venue catalog fields | `source_url` (eventsView.json URL) |
 
 ---
 
