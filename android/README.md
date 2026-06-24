@@ -130,6 +130,32 @@ cd android
 ./gradlew connectedCheck       # instrumented tests (needs an emulator/device)
 ```
 
+### Tusk commit/merge test gate for `android/**`
+
+Commits that touch **only** `android/**` resolve to an Android-specific Tusk
+test gate (`path_test_commands["android/**"]` in `tusk/config.json`) instead of
+the global scraper/web `test_command` — it runs `./gradlew testDebugUnitTest`
+from `android/`. A commit that mixes `android/**` with another subtree (e.g. a
+web or `apps/**` file) matches no single pattern and falls through to the global
+command, so split Android-only changes into their own commit to get the Android
+gate.
+
+The gate **degrades gracefully** instead of failing with a cryptic Gradle error
+when prerequisites are missing — it prints a `[tusk android gate] SKIPPED: …`
+message pointing back here and exits 0:
+
+- **No working JDK 17** — `JAVA_HOME` is unset (or points at the macOS
+  `/usr/bin/java` stub) and no real JDK is on `PATH`. Set `JAVA_HOME` per
+  *Prerequisites: JDK 17* above.
+- **No Android SDK** — none of `android/local.properties`, `ANDROID_HOME`, or
+  `ANDROID_SDK_ROOT` is configured (`testDebugUnitTest` would otherwise fail with
+  `SDK location not found`).
+
+With both prerequisites present the gate runs the unit tests for real. CI
+(`.github/workflows/android.yml`) provisions JDK 17 + SDK and is the
+authoritative gate; the local skip only keeps a missing local toolchain from
+blocking an unrelated Android commit.
+
 > **Gradle wrapper jar:** `gradle/wrapper/gradle-wrapper.jar` is a binary and is
 > generated, not authored. On first checkout run `gradle wrapper` once (or open
 > the project in Android Studio, which generates it automatically) so `./gradlew`
