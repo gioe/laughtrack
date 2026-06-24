@@ -93,7 +93,10 @@ class ProfileRepositoryTest {
 
         assertEquals(ProfileMutationResult.SyncFailed, result)
         assertFalse(localPreferences.preferences.first().emailShowNotifications)
-        assertEquals(ProfileNotificationUpdate(emailShowNotifications = true), settingsService.notificationUpdates.single())
+        assertEquals(
+            ProfileNotificationUpdate(emailShowNotifications = true),
+            settingsService.notificationUpdates.single(),
+        )
     }
 
     @Test
