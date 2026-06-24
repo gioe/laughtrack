@@ -133,6 +133,35 @@ class ProfileRepositoryTest {
         assertEquals("94108", localPreferences.preferences.first().zipCode)
     }
 
+    @Test
+    fun signOut_runsEachSessionSideEffectBeforeServerRevocation() = runTest {
+        // The FCM push-token deactivation on sign-out is wired as a
+        // ProfileSessionSideEffect (ProfilePushSessionSideEffect -> DELETE
+        // /me/push-tokens). Lock in that every registered side effect runs, and
+        // runs BEFORE the session is revoked, so a future refactor can't
+        // silently drop it (the regression TASK-3282 feared).
+        val accountService = FakeProfileAccountService(hasSession = true)
+        val firstEffect = RecordingSessionSideEffect(accountService)
+        val secondEffect = RecordingSessionSideEffect(accountService)
+        val repository = ProfileRepository(
+            accountService = accountService,
+            settingsService = FakeProfileSettingsService(),
+            localPreferences = FakeLocalPreferences(),
+            sessionSideEffects = setOf(firstEffect, secondEffect),
+        )
+
+        val result = repository.signOut()
+
+        assertEquals(ProfileMutationResult.Success, result)
+        assertTrue(firstEffect.beforeSignOutCalled)
+        assertTrue(secondEffect.beforeSignOutCalled)
+        // Each side effect observed sign-out as not-yet-called when it ran,
+        // proving it executed before accountService.signOut().
+        assertEquals(false, firstEffect.signOutCalledWhenInvoked)
+        assertEquals(false, secondEffect.signOutCalledWhenInvoked)
+        assertTrue(accountService.signOutCalled)
+    }
+
     private fun profile(
         emailShowNotifications: Boolean = false,
         pushShowNotifications: Boolean = false,
@@ -209,5 +238,26 @@ private class FakeLocalPreferences(
 
     override suspend fun clear() {
         state.value = ProfilePreferences()
+    }
+}
+
+private class RecordingSessionSideEffect(
+    private val accountService: FakeProfileAccountService,
+) : ProfileSessionSideEffect {
+    var beforeSignOutCalled = false
+        private set
+
+    // Snapshots of the account service's call flags AT THE MOMENT beforeSignOut
+    // runs. Both must be false to prove the side effect executed before the
+    // server-side sign-out / account-deletion call.
+    var signOutCalledWhenInvoked: Boolean? = null
+        private set
+    var deleteCalledWhenInvoked: Boolean? = null
+        private set
+
+    override suspend fun beforeSignOut() {
+        beforeSignOutCalled = true
+        signOutCalledWhenInvoked = accountService.signOutCalled
+        deleteCalledWhenInvoked = accountService.deleteCalled
     }
 }
