@@ -17,6 +17,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
+import app.laughtrack.android.core.analytics.AnalyticsEvents
+import app.laughtrack.android.core.analytics.AnalyticsManager
 import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.navigation.LaughTrackDeepLink
 import app.laughtrack.android.core.network.auth.AuthCallbackResult
@@ -48,13 +50,22 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var pushTokenManager: PushTokenManager
 
+    @Inject
+    lateinit var analytics: AnalyticsManager
+
     private var pendingRoute by mutableStateOf<AppRoute?>(null)
     private val signedIn = mutableStateOf(false)
 
     // POST_NOTIFICATIONS runtime prompt (Android 13+). Registered at construction
-    // so it is available before the activity is STARTED.
+    // so it is available before the activity is STARTED. Logs the OS-prompt result
+    // to the push funnel (iOS push_os_prompt_result parity).
     private val requestNotificationPermission =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            analytics.logEvent(
+                AnalyticsEvents.Push.OS_PROMPT_RESULT,
+                mapOf(AnalyticsEvents.Push.Param.GRANTED to granted),
+            )
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -138,6 +149,13 @@ class MainActivity : ComponentActivity() {
             pushTokenManager.syncCurrentToken()
         }
         authSessionManager.getMe().onSuccess { response ->
+            // Set the analytics identity from the server-issued userId (no email-hash
+            // fallback) + cross-client cohort properties.
+            analytics.identify(
+                userId = response.data.userId,
+                onboardingCompleted = response.data.comedianOnboardingCompleted,
+                hasZip = response.data.zipCode.isNotBlank(),
+            )
             if (!response.data.comedianOnboardingCompleted) {
                 pendingRoute = AppRoute.ComedianOnboarding
             }
