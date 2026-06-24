@@ -13,10 +13,9 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 
 /**
  * Instrumented test for the app shell: the three tabs render and profile-menu
- * navigation works. Search/Favorites/Notifications now host DI-backed screens
- * (hiltViewModel), which can't render under the Hilt-free AppShell() harness, so
- * this navigates to the profile-menu Profile surface (ProfileAuthScreen — a plain
- * Composable). Route parsing remains unit-tested in :core:navigation.
+ * actions are discoverable. Search/Favorites/Profile/Notifications host
+ * DI-backed screens (hiltViewModel), which can't render under the Hilt-free
+ * AppShell() harness. Route parsing remains unit-tested in :core:navigation.
  */
 @RunWith(AndroidJUnit4::class)
 class AppShellTest {
@@ -24,7 +23,7 @@ class AppShellTest {
     val composeRule = createComposeRule()
 
     @Test
-    fun renders_tabs_and_opens_profile_surface() {
+    fun renders_tabs_and_profile_menu_actions() {
         composeRule.setContent {
             LaughTrackTheme { AppShell() }
         }
@@ -34,10 +33,9 @@ class AppShellTest {
         composeRule.onNodeWithText("Search").assertIsDisplayed()
         composeRule.onNodeWithText("Favorites").assertIsDisplayed()
 
-        // Open the Hilt-free Profile surface from the profile menu.
+        // Keep the Hilt-free shell harness focused on chrome/menu behavior.
         composeRule.onNodeWithContentDescription("Profile menu").performClick()
-        composeRule.onNodeWithText("Profile").performClick()
-        composeRule.onNodeWithText("Account").assertIsDisplayed()
-        composeRule.onNodeWithText("Continue with Google").assertIsDisplayed()
+        composeRule.onNodeWithText("Profile").assertIsDisplayed()
+        composeRule.onNodeWithText("Notifications").assertIsDisplayed()
     }
 }
