@@ -1,0 +1,40 @@
+package app.laughtrack.android.core.navigation
+
+import kotlinx.serialization.Serializable
+
+/**
+ * Typed navigation destinations, mirroring the iOS AppRoute enum.
+ *
+ * The three tab roots are the top-level graphs; the `*Detail` routes push onto
+ * the active tab's back stack; `Profile` and `NotificationCenter` are reached
+ * from the profile menu (not tabs). Every concrete route is `@Serializable` so
+ * the Navigation-Compose type-safe NavHost API can use them directly.
+ */
+sealed interface AppRoute {
+    @Serializable
+    data object Discover : AppRoute
+
+    @Serializable
+    data object Search : AppRoute
+
+    @Serializable
+    data object Favorites : AppRoute
+
+    @Serializable
+    data class ShowDetail(val id: Int) : AppRoute
+
+    @Serializable
+    data class ComedianDetail(val id: Int) : AppRoute
+
+    @Serializable
+    data class ClubDetail(val id: Int) : AppRoute
+
+    @Serializable
+    data class PodcastDetail(val id: Int) : AppRoute
+
+    @Serializable
+    data object Profile : AppRoute
+
+    @Serializable
+    data object NotificationCenter : AppRoute
+}

@@ -24,6 +24,7 @@ rootProject.name = "LaughTrack"
 
 include(":app")
 include(":core:ui")
+include(":core:navigation")
 include(":core:network")
 include(":core:data")
 include(":feature:home")
