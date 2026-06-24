@@ -2,6 +2,7 @@ package app.laughtrack.android.feature.library
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -172,7 +173,7 @@ private fun GuestLibraryPreview(onOpenProfile: () -> Unit) {
 }
 
 @Composable
-private fun FavoriteSection(title: String, content: @Composable Column.() -> Unit) {
+private fun FavoriteSection(title: String, content: @Composable ColumnScope.() -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(title, style = MaterialTheme.typography.titleLarge)
         Card(modifier = Modifier.fillMaxWidth()) {
