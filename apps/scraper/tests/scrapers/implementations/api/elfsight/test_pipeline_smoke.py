@@ -57,10 +57,11 @@ def test_extract_events_parses_all_when_no_filter():
 
 
 def test_comedy_filter_drops_non_comedy():
-    """comedy_filter keeps improv/comedy events and drops the film festival."""
+    """comedy_filter keeps comedy/parody events and drops the film festival."""
     events = ElfsightExtractor.extract_events(_payload(), PAGE_URL, comedy_filter=True)
     names = {e.name for e in events}
     assert "The BOAT Improv Jam Showcase" in names   # 'improv'
+    assert "Twilight Zone Parody Series" in names     # 'parody'
     assert "All Day Comedy Marathon" in names         # 'comedy'/'stand-up'
     assert "BICONIC FILM FESTIVAL" not in names        # no comedy keyword
 

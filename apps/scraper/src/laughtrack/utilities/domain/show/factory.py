@@ -140,7 +140,7 @@ _DJ_SET_RE = _re.compile(r"\bDJ\b", _re.IGNORECASE)
 # "comedy" alternative), "Celebrity Roast", "Roast Battle", and "Roast of <name>".
 _COMEDY_EVENT_RE = _re.compile(
     r"\b(?:comedy|comedians?|comics?|stand[\s-]?up|improv|sketch|open[\s-]?mic"
-    r"|night\s+of\s+laughs|celebrity\s+roast|roast\s+battle|roast\s+of)\b",
+    r"|parody|night\s+of\s+laughs|celebrity\s+roast|roast\s+battle|roast\s+of)\b",
     _re.IGNORECASE,
 )
 
