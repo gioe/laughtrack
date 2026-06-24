@@ -111,6 +111,53 @@ describe("POST /api/v1/me/push-tokens", () => {
             data: { id: "token-row-1", platform: "ios", isActive: true },
         });
     });
+
+    it("preserves FCM token case for the android platform", async () => {
+        mockResolveAuth.mockResolvedValue({
+            userId: "user-123",
+            profileId: "profile-123",
+        });
+        mockUpsertPushToken.mockResolvedValue({
+            id: "token-row-2",
+            platform: "android",
+            isActive: true,
+        } as never);
+
+        const fcmToken = "cMixedCaseFCMtoken_0123456789";
+        const res = await POST(
+            makeRequest({ token: fcmToken, platform: "android" }),
+        );
+
+        expect(res.status).toBe(200);
+        // FCM tokens are case-sensitive — must NOT be lowercased.
+        expect(mockUpsertPushToken).toHaveBeenCalledWith(
+            expect.objectContaining({
+                where: { token: fcmToken },
+                create: expect.objectContaining({
+                    token: fcmToken,
+                    platform: "android",
+                }),
+                update: expect.objectContaining({ platform: "android" }),
+            }),
+        );
+        expect(await res.json()).toEqual({
+            data: { id: "token-row-2", platform: "android", isActive: true },
+        });
+    });
+
+    it("rejects an unknown platform with 400", async () => {
+        mockResolveAuth.mockResolvedValue({
+            userId: "user-123",
+            profileId: "profile-123",
+        });
+
+        const res = await POST(
+            makeRequest({ token: "ABCDEF1234567890", platform: "web" }),
+        );
+
+        expect(res.status).toBe(400);
+        expect(mockUpsertPushToken).not.toHaveBeenCalled();
+    });
 });
 
 describe("DELETE /api/v1/me/push-tokens", () => {
