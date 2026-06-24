@@ -1,9 +1,11 @@
 package app.laughtrack.android
 
 import android.app.Application
+import android.content.pm.ApplicationInfo
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import dagger.hilt.android.HiltAndroidApp
+import io.sentry.android.core.SentryAndroid
 import javax.inject.Inject
 
 /**
@@ -20,4 +22,25 @@ class LaughTrackApplication : Application(), Configuration.Provider {
         get() = Configuration.Builder()
             .setWorkerFactory(workerFactory)
             .build()
+
+    override fun onCreate() {
+        super.onCreate()
+        initSentry()
+    }
+
+    /**
+     * Initialize Sentry only when a DSN was injected at build time (release builds
+     * via -PsentryDsn / a CI secret). With no DSN the SDK stays dormant, mirroring
+     * the gated Firebase config — no crash reports are sent until provisioned.
+     */
+    private fun initSentry() {
+        val dsn = BuildConfig.SENTRY_DSN
+        if (dsn.isBlank()) return
+        val debuggable = (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
+        SentryAndroid.init(this) { options ->
+            options.dsn = dsn
+            options.release = BuildConfig.VERSION_NAME
+            options.environment = if (debuggable) "debug" else "production"
+        }
+    }
 }
