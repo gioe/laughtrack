@@ -11,6 +11,10 @@ plugins {
     alias(libs.plugins.hilt) apply false
     alias(libs.plugins.ktlint) apply false
     alias(libs.plugins.detekt) apply false
+    // On the classpath but applied conditionally by :app (only when a
+    // google-services.json is present) so a missing Firebase config never breaks
+    // the build — see app/build.gradle.kts.
+    alias(libs.plugins.google.services) apply false
 }
 
 // Point every module's detekt task at the shared config so static-analysis rules
