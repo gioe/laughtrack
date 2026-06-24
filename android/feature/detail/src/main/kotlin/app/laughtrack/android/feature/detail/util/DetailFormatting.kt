@@ -101,7 +101,10 @@ fun formatReleaseDate(raw: String?): String? {
     if (trimmed.isEmpty()) return null
     val formatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(Locale.getDefault())
     return runCatching { java.time.LocalDate.parse(trimmed).format(formatter) }
-        .recoverCatching { parseShowDateTime(trimmed)?.format(formatter) ?: throw DateTimeParseException("", trimmed, 0) }
+        .recoverCatching {
+            parseShowDateTime(trimmed)?.format(formatter)
+                ?: throw DateTimeParseException("", trimmed, 0)
+        }
         .getOrDefault(trimmed)
 }
 

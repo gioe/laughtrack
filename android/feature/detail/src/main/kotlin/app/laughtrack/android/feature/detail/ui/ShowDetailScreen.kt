@@ -2,8 +2,8 @@ package app.laughtrack.android.feature.detail.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
@@ -77,7 +77,6 @@ private fun ShowDetailBody(
     modifier: Modifier,
     onOpenEntity: (AppRoute) -> Unit,
 ) {
-    val context = LocalContext.current
     val detail = ui.detail
     val now = remember { ZonedDateTime.now() }
     Column(
