@@ -158,6 +158,9 @@ public final class AuthManager: ObservableObject {
 
         let flowState = Self.generateState()
         pendingState = flowState
+        // Single-use nonce: clear on every exit path (success, mismatch, error)
+        // so a stale value can't linger between attempts.
+        defer { pendingState = nil }
 
         do {
             let callbackURL = try await oauthSessionRunner.authenticate(
@@ -187,7 +190,6 @@ public final class AuthManager: ObservableObject {
                 state = .signedOut(message: Self.message(for: nil))
                 return
             }
-            pendingState = nil
 
             await storeSession(accessToken: accessToken, refreshToken: refreshToken, provider: provider)
         } catch let error as AuthFlowError {
