@@ -303,6 +303,106 @@ def _make_fake_fetch(showevents_html: str):
     return fake_fetch_html
 
 
+def _date_slider_html(*entries: tuple[str, str, int, str, str]) -> str:
+    boxes = []
+    for edid, month, day, weekday, time in entries:
+        boxes.append(
+            f"""
+<div class="SelectorBox" id="edid{edid}" onclick="LoadSpinner('{edid}'); LoadEvent('1','{edid}');">
+  <div class="DateMonth __edid{edid}">{month}<div></div></div>
+  <div class="DateDay __edid{edid}">{day}<div></div></div>
+  <div class="DateTime __edid{edid}">
+    <span class="WeekDay">{weekday}</span>
+    <span class="WeekDayTime"> - {time}</span>
+  </div>
+</div>
+"""
+        )
+    return "\n".join(boxes)
+
+
+MADE_UP_HTML = (
+    '<div class="clearfix gridrow" id="CurrentEvents" role="list">'
+    + _nest_block("801001", "211001", "Laugh Track City", "MUT Shows",
+                  "Saturdays at 8:00pm", "$20.00")
+    + _nest_block("801002", "211002", "Family Friendly Matinee", "MUT Shows",
+                  "Select Sundays at 2:30pm", "$12.00")
+    + "</div>"
+)
+
+
+MADE_UP_SLIDERS = {
+    "211001": _date_slider_html(
+        ("801001", "Jul", 11, "Sat", "8:00 PM"),
+        ("801003", "Jul", 18, "Sat", "8:00 PM"),
+    ),
+    "211002": _date_slider_html(
+        ("801002", "Jul", 12, "Sun", "2:30 PM"),
+    ),
+}
+
+
+@pytest.mark.asyncio
+async def test_unparseable_recurring_rows_expand_from_detail_date_slider(monkeypatch):
+    """Open-ended recurring listing rows use VBO's concrete detail-page dates."""
+    fetched_urls: list[str] = []
+
+    async def fake_fetch_html(self, url: str, **kwargs) -> str:
+        fetched_urls.append(url)
+        if "loadplugin" in url:
+            return LOADPLUGIN_HTML
+        if "showevents" in url:
+            return MADE_UP_HTML
+        if "load_eventdate_slider" in url:
+            for eid, html in MADE_UP_SLIDERS.items():
+                if f"eid={eid}" in url:
+                    return html
+        raise AssertionError(f"unexpected url {url}")
+
+    monkeypatch.setattr(VboTicketsScraper, "fetch_html", fake_fetch_html)
+    club = _fair_oaks_club({"category_filter": "MUT Shows"})
+    club.name = "Made Up Theatre"
+    club.timezone = "America/Los_Angeles"
+
+    result = await VboTicketsScraper(club).get_data(club.active_scraping_source.source_url)
+
+    assert isinstance(result, VboTicketsPageData)
+    year = date.today().year if date.today().month <= 7 else date.today().year + 1
+    assert [(e.name, e.start_iso) for e in result.event_list] == [
+        ("Laugh Track City", f"{year}-07-11 20:00:00"),
+        ("Laugh Track City", f"{year}-07-18 20:00:00"),
+        ("Family Friendly Matinee", f"{year}-07-12 14:30:00"),
+    ]
+    assert {e.url for e in result.event_list} == {
+        "https://plugin.vbotickets.com/v5.0/event.asp?eid=211001",
+        "https://plugin.vbotickets.com/v5.0/event.asp?eid=211002",
+    }
+    detail_fetches = [url for url in fetched_urls if "load_eventdate_slider" in url]
+    assert len(detail_fetches) == 2
+    assert all("s=e5fc5abd-aeae-4e80-8a9c-0fd090ed40b0" in url for url in detail_fetches)
+
+
+@pytest.mark.asyncio
+async def test_structured_rows_do_not_fetch_detail_date_slider(monkeypatch):
+    """Rows with concrete listing dates stay on the listing-only path."""
+    fetched_urls: list[str] = []
+
+    async def fake_fetch_html(self, url: str, **kwargs) -> str:
+        fetched_urls.append(url)
+        if "loadplugin" in url:
+            return LOADPLUGIN_HTML
+        if "showevents" in url:
+            return SHOWEVENTS_HTML
+        raise AssertionError(f"unexpected url {url}")
+
+    monkeypatch.setattr(VboTicketsScraper, "fetch_html", fake_fetch_html)
+    result = await VboTicketsScraper(_club()).get_data(LOADPLUGIN_URL)
+
+    assert isinstance(result, VboTicketsPageData)
+    assert len(result.event_list) == 2
+    assert not any("load_eventdate_slider" in url for url in fetched_urls)
+
+
 @pytest.mark.asyncio
 async def test_include_title_patterns_keeps_only_comedy(monkeypatch):
     """include_title_patterns keeps only the comedy series on a mixed-use listing."""

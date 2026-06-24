@@ -45,6 +45,10 @@ _SHOWEVENTS_URL = (
     "https://plugin.vbotickets.com/Plugin/events/showevents"
     "?ViewType=list&EventType=current&day=&s={session}"
 )
+_DATE_SLIDER_URL = (
+    "https://plugin.vbotickets.com/v5.0/controls/events.asp"
+    "?a=load_eventdate_slider&eid={eid}&edid={edid}&tza=3&s={session}"
+)
 
 
 class VboTicketsScraper(BaseScraper):
@@ -101,6 +105,14 @@ class VboTicketsScraper(BaseScraper):
             category_filter=category_filter,
             club_name=self.club.name or "",
         )
+        detail_targets = VboTicketsExtractor.extract_detail_expansion_targets(
+            listing_html or "",
+            category_filter=category_filter,
+            club_name=self.club.name or "",
+        )
+        if detail_targets:
+            events.extend(await self._expand_detail_targets(detail_targets, session))
+
         if not events:
             self._warn_empty_extraction(url, html=listing_html)
             return None
@@ -122,6 +134,37 @@ class VboTicketsScraper(BaseScraper):
 
         Logger.info(f"{self._log_prefix}: extracted {len(events)} events from VBO listing", self.logger_context)
         return VboTicketsPageData(event_list=events)
+
+    async def _expand_detail_targets(self, targets, session: str) -> List[VboEvent]:
+        """Fetch VBO date sliders for unresolved recurring listing rows."""
+        events: List[VboEvent] = []
+        for target in targets:
+            slider_url = _DATE_SLIDER_URL.format(
+                eid=target.eid,
+                edid=target.edid,
+                session=session,
+            )
+            try:
+                slider_html = await self.fetch_html(slider_url)
+            except Exception as e:
+                Logger.warn(
+                    f"{self._log_prefix}: failed to fetch VBO date slider for eid={target.eid}: {e}",
+                    self.logger_context,
+                )
+                continue
+
+            expanded = VboTicketsExtractor.extract_events_from_date_slider(
+                slider_html or "",
+                target,
+            )
+            if not expanded:
+                Logger.warn(
+                    f"{self._log_prefix}: no detail-page dates found for {target.name!r} (eid={target.eid})",
+                    self.logger_context,
+                )
+                continue
+            events.extend(expanded)
+        return events
 
     def _filter_events_by_title(self, events: List[VboEvent]) -> List[VboEvent]:
         """Keep/drop events by name via metadata-driven title regexes.

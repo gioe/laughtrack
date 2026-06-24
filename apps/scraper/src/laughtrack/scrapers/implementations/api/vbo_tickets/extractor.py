@@ -1,6 +1,7 @@
 """Event extraction from a VBO Tickets ``showevents`` listing HTML response."""
 
 import re
+from dataclasses import dataclass
 from datetime import date
 from html import unescape
 from typing import Iterable, List, Optional, Set, Union
@@ -22,10 +23,19 @@ _EVENT_BLOCK_RE = re.compile(
 )
 _NAME_RE = re.compile(r'data-event-name="([^"]*)"', re.IGNORECASE)
 _CATEGORY_RE = re.compile(r'data-event-category="([^"]*)"', re.IGNORECASE)
+_EDID_RE = re.compile(r'id="EDID(\d+)"', re.IGNORECASE)
 _EID_RE = re.compile(r"event\.asp\?eid=(\d+)", re.IGNORECASE)
 _DATE_RE = re.compile(r'class="TextEventDate[^"]*">\s*([^<]+?)\s*</div>', re.IGNORECASE)
 _PRICE_RE = re.compile(r'class="EventListPrice">\s*([^<]+?)\s*</div>', re.IGNORECASE)
 _PRICE_NUM_RE = re.compile(r"\$\s*([0-9]+(?:\.[0-9]{2})?)")
+_DATE_SLIDER_BOX_RE = re.compile(
+    r'id="edid(\d+)".*?'
+    r'DateMonth[^>]*>([A-Za-z]+)<.*?'
+    r'DateDay[^>]*>(\d+)<.*?'
+    r'WeekDay">([^<]+)</span>'
+    r'.*?WeekDayTime"> - ([^<]+)</span>',
+    re.DOTALL,
+)
 
 # Free-form date parsing (venues whose admins enter date text by hand rather
 # than using VBO's structured per-occurrence rows). A clock time like "7:00pm",
@@ -37,6 +47,46 @@ _DATE_PARTS_RE = re.compile(r"(\d{1,2})/(\d{1,2})(?:/(\d{4}))?")
 # Stable per-event landing URL (session token deliberately omitted so the
 # persisted show_page_url does not rot when the VBO session expires).
 _EVENT_URL = "https://plugin.vbotickets.com/v5.0/event.asp?eid={eid}"
+
+_MONTH_NUMBERS = {
+    "jan": 1,
+    "january": 1,
+    "feb": 2,
+    "february": 2,
+    "mar": 3,
+    "march": 3,
+    "apr": 4,
+    "april": 4,
+    "may": 5,
+    "jun": 6,
+    "june": 6,
+    "jul": 7,
+    "july": 7,
+    "aug": 8,
+    "august": 8,
+    "sep": 9,
+    "sept": 9,
+    "september": 9,
+    "oct": 10,
+    "october": 10,
+    "nov": 11,
+    "november": 11,
+    "dec": 12,
+    "december": 12,
+}
+
+
+@dataclass(frozen=True)
+class VboDetailExpansionTarget:
+    """Listing row whose dates must come from the per-event VBO date slider."""
+
+    eid: str
+    edid: str
+    name: str
+    date_str: str
+    url: str
+    price_min: Optional[float] = None
+    room: str = ""
 
 
 def _normalize_category_filter(
@@ -118,6 +168,42 @@ def _parse_datetimes(date_line: str, today: date) -> List[str]:
     return out
 
 
+def _parse_price(block: str) -> Optional[float]:
+    price_m = _PRICE_RE.search(block)
+    if not price_m:
+        return None
+    nums = [float(n) for n in _PRICE_NUM_RE.findall(price_m.group(1))]
+    return min(nums) if nums else None
+
+
+def _slider_start_iso(month_name: str, day: int, time_str: str, today: date) -> Optional[str]:
+    month = _MONTH_NUMBERS.get(month_name.strip().lower())
+    if month is None:
+        return None
+    tm = _TIME_RE.search(time_str)
+    if not tm:
+        return None
+    hour = int(tm.group(1))
+    minute = int(tm.group(2) or 0)
+    meridiem = tm.group(3).lower()
+    if meridiem == "pm" and hour != 12:
+        hour += 12
+    if meridiem == "am" and hour == 12:
+        hour = 0
+
+    year = today.year if month >= today.month else today.year + 1
+    try:
+        cand = date(year, month, day)
+    except ValueError:
+        return None
+    if cand < today:
+        try:
+            cand = date(year + 1, month, day)
+        except ValueError:
+            return None
+    return f"{cand.isoformat()} {hour:02d}:{minute:02d}:00"
+
+
 class VboTicketsExtractor:
     """Converts VBO Tickets ListEvents HTML into VboEvent objects."""
 
@@ -161,6 +247,56 @@ class VboTicketsExtractor:
         return events
 
     @staticmethod
+    def extract_detail_expansion_targets(
+        showevents_html: str,
+        category_filter: Optional[Union[str, Iterable[str]]] = None,
+        club_name: str = "",
+        today: Optional[date] = None,
+    ) -> List[VboDetailExpansionTarget]:
+        """Find listing rows that need authoritative per-event slider dates."""
+        allowed = _normalize_category_filter(category_filter)
+        ref_today = today or date.today()
+        targets: List[VboDetailExpansionTarget] = []
+        for block in _EVENT_BLOCK_RE.findall(showevents_html or ""):
+            target = VboTicketsExtractor._parse_detail_expansion_target(
+                block, allowed, club_name, ref_today
+            )
+            if target is not None:
+                targets.append(target)
+        return targets
+
+    @staticmethod
+    def extract_events_from_date_slider(
+        slider_html: str,
+        target: VboDetailExpansionTarget,
+        today: Optional[date] = None,
+    ) -> List[VboEvent]:
+        """Expand one unresolved listing row using VBO's date-slider HTML."""
+        ref_today = today or date.today()
+        events: List[VboEvent] = []
+        seen: Set[str] = set()
+        for match in _DATE_SLIDER_BOX_RE.finditer(slider_html or ""):
+            month = match.group(2).strip()
+            day = int(match.group(3))
+            time_str = match.group(5).strip()
+            start_iso = _slider_start_iso(month, day, time_str, ref_today)
+            if not start_iso or start_iso in seen:
+                continue
+            seen.add(start_iso)
+            events.append(
+                VboEvent(
+                    eid=target.eid,
+                    name=target.name,
+                    date_str=target.date_str,
+                    url=target.url,
+                    price_min=target.price_min,
+                    start_iso=start_iso,
+                    room=target.room,
+                )
+            )
+        return events
+
+    @staticmethod
     def _parse_block(
         block: str,
         allowed_categories: Optional[Set[str]],
@@ -181,12 +317,7 @@ class VboTicketsExtractor:
             if category not in allowed_categories:
                 return []
 
-        price_min = None
-        price_m = _PRICE_RE.search(block)
-        if price_m:
-            nums = [float(n) for n in _PRICE_NUM_RE.findall(price_m.group(1))]
-            if nums:
-                price_min = min(nums)
+        price_min = _parse_price(block)
 
         eid = eid_m.group(1)
         name = unescape((name_m.group(1) if name_m else "").strip())
@@ -211,6 +342,8 @@ class VboTicketsExtractor:
         room = _parse_room(block, club_name)
         occurrences = _parse_datetimes(date_str, today)
         if not occurrences:
+            if _EDID_RE.search(block):
+                return []
             # A non-empty date string we could not parse — surface it rather
             # than dropping the show silently.
             Logger.warn(
@@ -229,3 +362,38 @@ class VboTicketsExtractor:
             )
             for occ in occurrences
         ]
+
+    @staticmethod
+    def _parse_detail_expansion_target(
+        block: str,
+        allowed_categories: Optional[Set[str]],
+        club_name: str,
+        today: date,
+    ) -> Optional[VboDetailExpansionTarget]:
+        eid_m = _EID_RE.search(block)
+        edid_m = _EDID_RE.search(block)
+        name_m = _NAME_RE.search(block)
+        date_m = _DATE_RE.search(block)
+        if not eid_m or not edid_m or not date_m:
+            return None
+
+        if allowed_categories is not None:
+            cat_m = _CATEGORY_RE.search(block)
+            category = (cat_m.group(1).strip().lower() if cat_m else "")
+            if category not in allowed_categories:
+                return None
+
+        date_str = unescape(date_m.group(1).strip())
+        if _VBO_DATE_RE.search(date_str) or _parse_datetimes(date_str, today):
+            return None
+
+        eid = eid_m.group(1)
+        return VboDetailExpansionTarget(
+            eid=eid,
+            edid=edid_m.group(1),
+            name=unescape((name_m.group(1) if name_m else "").strip()),
+            date_str=date_str,
+            url=_EVENT_URL.format(eid=eid),
+            price_min=_parse_price(block),
+            room=_parse_room(block, club_name),
+        )
