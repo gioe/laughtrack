@@ -557,3 +557,48 @@ class TestComedyFilter:
         result = await scraper.get_data("https://www.tickets831.com/")
         assert isinstance(result, JsonLdPageData)
         assert [e.name for e in result.event_list] == ["Richard Villa"]
+
+    @pytest.mark.asyncio
+    async def test_filter_allowlist_path_runs_real_heuristic(self, monkeypatch):
+        """End-to-end coverage of the _filter_comedy glue (descriptions dict,
+        executor offload, kept re-selection) against the REAL select_comedy_titles
+        via its allowlist branch — which short-circuits before any DB call, so no
+        lineup/comedian handler stubbing is needed. Exercises the same
+        comedy_title_allowlist config Fox Theater Salinas uses for the Uncle Louie
+        comedy duo (a local act with no comedy keyword and not in the comedians DB)."""
+        music_event = {
+            "@context": "https://schema.org",
+            "@type": "Event",
+            "name": "Capybara Rave",
+            "description": "",
+            "startDate": "2099-06-26T20:00:00-08:00",
+            "url": "https://www.tickets831.com/tickets/capybara-rave",
+            "location": {"@type": "Place", "name": "SALINAS FOX THEATER"},
+        }
+        comedy_event = {
+            "@context": "https://schema.org",
+            "@type": "Event",
+            "name": "The Uncle Louie Variety Show",
+            "description": "",
+            "startDate": "2099-07-25T19:30:00-08:00",
+            "url": "https://www.tickets831.com/tickets/the-uncle-louie-variety-show",
+            "location": {"@type": "Place", "name": "SALINAS FOX THEATER"},
+        }
+        html = f"<html><head>{_wrap_ldjson([music_event, comedy_event])}</head></html>"
+        scraper = JsonLdScraper(
+            _make_club(
+                metadata={
+                    "comedy_filter": True,
+                    "comedy_title_allowlist": ["uncle louie", "variety show"],
+                }
+            )
+        )
+
+        async def fake_fetch_html(self, url):
+            return html
+
+        monkeypatch.setattr(JsonLdScraper, "fetch_html", fake_fetch_html, raising=False)
+
+        result = await scraper.get_data("https://www.tickets831.com/")
+        assert isinstance(result, JsonLdPageData)
+        assert [e.name for e in result.event_list] == ["The Uncle Louie Variety Show"]
