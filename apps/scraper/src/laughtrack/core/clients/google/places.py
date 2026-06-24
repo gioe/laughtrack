@@ -44,8 +44,12 @@ _FIND_PLACE_FIELD_MASK = "places.id"
 # place_id and filter by true distance. ``websiteUri`` and ``primaryType`` ride
 # along in the same call (no extra billing) to power downstream triage — the
 # website is the entry point for both comedy-likelihood scoring and later
-# scraper onboarding. ``nextPageToken`` is top-level (not under ``places``) so
-# it must be named explicitly in the mask to paginate.
+# scraper onboarding. ``businessStatus`` (OPERATIONAL / CLOSED_PERMANENTLY /
+# CLOSED_TEMPORARILY) rides along too so discovery can drop permanently-closed
+# venues before they become onboarding tasks — it is a Place Details (Pro)
+# field, the same SKU tier ``websiteUri``/``primaryType`` already request, so
+# adding it costs nothing extra. ``nextPageToken`` is top-level (not under
+# ``places``) so it must be named explicitly in the mask to paginate.
 _NEARBY_FIELD_MASK = (
     "nextPageToken,"
     "places.id,"
@@ -53,7 +57,8 @@ _NEARBY_FIELD_MASK = (
     "places.formattedAddress,"
     "places.location,"
     "places.websiteUri,"
-    "places.primaryType"
+    "places.primaryType,"
+    "places.businessStatus"
 )
 
 # Text Search ``locationBias`` circle radius is capped at 50 km by the API.
@@ -92,6 +97,10 @@ class PlacesNearbyVenue:
     ``website`` is Google's ``websiteUri`` and ``primary_type`` its
     ``primaryType`` (both ``None`` when absent) — triage signals for whether a
     hit is a real comedy venue and where its calendar lives.
+    ``business_status`` is Google's ``businessStatus`` (``OPERATIONAL`` /
+    ``CLOSED_PERMANENTLY`` / ``CLOSED_TEMPORARILY``, ``None`` when absent) so
+    discovery can drop permanently-closed venues before they become onboarding
+    tasks.
     """
 
     place_id: str
@@ -101,6 +110,7 @@ class PlacesNearbyVenue:
     lng: float
     website: Optional[str] = None
     primary_type: Optional[str] = None
+    business_status: Optional[str] = None
 
 
 @dataclass
@@ -348,6 +358,7 @@ class GooglePlacesClient:
             address = place.get("formattedAddress")
             website = place.get("websiteUri")
             primary_type = place.get("primaryType")
+            business_status = place.get("businessStatus")
             out.append(
                 PlacesNearbyVenue(
                     place_id=place_id,
@@ -357,6 +368,9 @@ class GooglePlacesClient:
                     lng=float(lng),
                     website=website if isinstance(website, str) and website else None,
                     primary_type=(primary_type if isinstance(primary_type, str) and primary_type else None),
+                    business_status=(
+                        business_status if isinstance(business_status, str) and business_status else None
+                    ),
                 )
             )
         return out

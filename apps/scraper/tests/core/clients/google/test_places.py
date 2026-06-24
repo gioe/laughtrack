@@ -293,6 +293,7 @@ def test_parse_nearby_places_extracts_well_formed_venues():
                 "location": {"latitude": 41.08, "longitude": -81.52},
                 "websiteUri": "https://thecomedyspot.example.com",
                 "primaryType": "comedy_club",
+                "businessStatus": "OPERATIONAL",
             }
         ]
     }
@@ -306,8 +307,38 @@ def test_parse_nearby_places_extracts_well_formed_venues():
             lng=-81.52,
             website="https://thecomedyspot.example.com",
             primary_type="comedy_club",
+            business_status="OPERATIONAL",
         )
     ]
+
+
+def test_parse_nearby_places_captures_closed_permanently_status():
+    # A permanently-closed venue must surface CLOSED_PERMANENTLY so discovery
+    # can drop it before it becomes an onboarding task (TASK-3249).
+    data = {
+        "places": [
+            {
+                "id": "dead",
+                "displayName": {"text": "Starline Social Club"},
+                "location": {"latitude": 37.81, "longitude": -122.27},
+                "businessStatus": "CLOSED_PERMANENTLY",
+            }
+        ]
+    }
+    venues = GooglePlacesClient._parse_nearby_places(data)
+    assert len(venues) == 1
+    assert venues[0].business_status == "CLOSED_PERMANENTLY"
+
+
+def test_parse_nearby_places_business_status_none_when_absent_or_blank():
+    data = {
+        "places": [
+            {"id": "p1", "location": {"latitude": 1.0, "longitude": 2.0}},
+            {"id": "p2", "location": {"latitude": 1.0, "longitude": 2.0}, "businessStatus": ""},
+        ]
+    }
+    venues = GooglePlacesClient._parse_nearby_places(data)
+    assert [v.business_status for v in venues] == [None, None]
 
 
 def test_parse_nearby_places_drops_entries_missing_id_or_coords():
@@ -335,6 +366,18 @@ def test_search_nearby_returns_empty_when_unconfigured(monkeypatch):
 
 def test_search_nearby_returns_empty_for_blank_query(configured_client):
     assert configured_client.search_nearby("", 41.0, -81.0, 30.0) == []
+
+
+def test_search_nearby_requests_business_status_field(configured_client):
+    # businessStatus must be in the field mask so closed venues can be dropped
+    # before filing onboarding tasks (TASK-3249). It rides the same Pro SKU as
+    # websiteUri/primaryType, so requesting it costs nothing extra.
+    body = {"places": [{"id": "p1", "location": {"latitude": 1.0, "longitude": 2.0}}]}
+    with patch("laughtrack.core.clients.google.places.requests.post") as mock_post:
+        mock_post.return_value = _mock_response(200, json_data=body)
+        configured_client.search_nearby("comedy club", 41.0, -81.0, 30.0, max_pages=1)
+    _args, kwargs = mock_post.call_args
+    assert "places.businessStatus" in kwargs["headers"]["X-Goog-FieldMask"]
 
 
 def test_search_nearby_clamps_bias_radius_to_50km(configured_client):
