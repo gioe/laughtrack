@@ -70,7 +70,7 @@ class TestExtractProducts:
 
         events = SquarespaceExtractor.extract_products(
             _items(), _BASE, timezone_name=_TZ,
-            exclude_title_re=re.compile(r"sunday", re.IGNORECASE),
+            exclude_title_res=[re.compile(r"sunday", re.IGNORECASE)],
         )
         assert {e.id for e in events} == {"p1"}
 
