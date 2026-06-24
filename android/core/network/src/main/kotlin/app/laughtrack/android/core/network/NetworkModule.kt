@@ -7,6 +7,7 @@ import app.laughtrack.android.core.network.auth.EncryptedSharedPreferencesTokenS
 import app.laughtrack.android.core.network.auth.RefreshTokenAuthenticator
 import app.laughtrack.android.core.network.auth.TokenStore
 import app.laughtrack.android.core.network.generated.api.AuthApi
+import app.laughtrack.android.core.network.generated.api.FavoritesApi
 import app.laughtrack.android.core.network.generated.infrastructure.ApiClient
 import dagger.Module
 import dagger.Provides
@@ -98,6 +99,16 @@ object NetworkModule {
             baseUrl = BuildConfig.API_BASE_URL,
             okHttpClientBuilder = okHttpClient.newBuilder(),
         ).createService(AuthApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideFavoritesApi(
+        okHttpClient: OkHttpClient,
+    ): FavoritesApi =
+        ApiClient(
+            baseUrl = BuildConfig.API_BASE_URL,
+            okHttpClientBuilder = okHttpClient.newBuilder(),
+        ).createService(FavoritesApi::class.java)
 
     @Provides
     @Singleton

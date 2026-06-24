@@ -38,6 +38,7 @@ class MainActivity : ComponentActivity() {
 
     private var pendingRoute by mutableStateOf<AppRoute?>(null)
     private val authStatus = mutableStateOf("Signed out")
+    private val signedIn = mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,6 +62,7 @@ class MainActivity : ComponentActivity() {
                         onAppleSignIn = { launchAuth(AuthProvider.APPLE) },
                         onSignOut = { signOut() },
                         onDeleteAccount = { deleteAccount() },
+                        signedIn = signedIn.value,
                     )
                 }
             }
@@ -118,6 +120,7 @@ class MainActivity : ComponentActivity() {
 
     private suspend fun refreshSignedInUser() {
         val hasSession = authSessionManager.restoreSession() != null
+        signedIn.value = hasSession
         authStatus.value = authSessionManager.getMe()
             .fold(
                 onSuccess = { response -> "Signed in as ${response.data.email}" },
@@ -130,6 +133,7 @@ class MainActivity : ComponentActivity() {
     private fun signOut() {
         lifecycleScope.launch {
             val revoked = authSessionManager.signOut()
+            signedIn.value = false
             authStatus.value = if (revoked) "Signed out" else "Signed out locally"
         }
     }
@@ -137,6 +141,9 @@ class MainActivity : ComponentActivity() {
     private fun deleteAccount() {
         lifecycleScope.launch {
             val deleted = authSessionManager.deleteAccount()
+            if (deleted) {
+                signedIn.value = false
+            }
             authStatus.value = if (deleted) "Account deleted" else "Delete failed"
         }
     }

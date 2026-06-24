@@ -38,6 +38,7 @@ import androidx.navigation.toRoute
 import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.navigation.AppTab
 import app.laughtrack.android.feature.home.HomeScreen
+import app.laughtrack.android.feature.library.LibraryScreen
 import app.laughtrack.android.feature.search.ui.SearchScreen
 
 /**
@@ -57,6 +58,7 @@ fun AppShell(
     onAppleSignIn: () -> Unit = {},
     onSignOut: () -> Unit = {},
     onDeleteAccount: () -> Unit = {},
+    signedIn: Boolean = false,
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
@@ -99,13 +101,15 @@ fun AppShell(
             modifier = Modifier.fillMaxSize().padding(padding),
         ) {
             composable<AppRoute.Discover> { HomeScreen() }
-            // The real Search/Favorites screens land in TASK-3260 / TASK-3261. The
-            // sample affordance exercises the detail stack (push + cycle-dedup) in
-            // the shell until those screens provide real cards.
             composable<AppRoute.Search> {
                 SearchScreen(onOpenEntity = navController::openEntity)
             }
-            composable<AppRoute.Favorites> { PlaceholderScreen("Favorites") }
+            composable<AppRoute.Favorites> {
+                LibraryScreen(
+                    signedIn = signedIn,
+                    onOpenProfile = { navController.openEntity(AppRoute.Profile) },
+                )
+            }
 
             composable<AppRoute.ShowDetail> { entry ->
                 EntityDetailPlaceholder("Show", entry.toRoute<AppRoute.ShowDetail>().id) { navController.popBackStack() }
