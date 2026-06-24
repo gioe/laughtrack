@@ -21,17 +21,60 @@ domain (shows, clubs, comedians, podcasts) and consume the same Next.js
 
 ```
 android/
-├── app/                # Application + MainActivity, manifest, launcher, DI host
+├── app/                # Application + MainActivity (intent dispatch), AppShell, DI host
 ├── core/
 │   ├── ui/             # Design system: theme tokens (mirrors iOS), Compose theme
-│   ├── network/        # OkHttp/Retrofit + generated OpenAPI client (later tasks)
-│   └── data/           # Repositories, stores, offline queue, shared UiState
+│   ├── navigation/     # AppRoute model + LaughTrackDeepLink (laughtrack:// + FCM routing)
+│   ├── network/        # OkHttp/Retrofit, generated OpenAPI client, AuthSessionManager
+│   ├── data/           # Repositories, stores, offline queue, shared UiState
+│   └── playback/       # Media3/ExoPlayer podcast playback controller
 └── feature/
-    └── home/           # Discover/Home (placeholder; real rails in TASK-3259)
+    ├── home/           # Discover/Home rails + location header
+    ├── search/         # Search across shows, clubs, comedians
+    ├── library/        # Favorites / saved entities
+    ├── detail/         # Show / club / comedian / podcast detail
+    ├── onboarding/     # First-run onboarding
+    ├── notifications/  # Notification center
+    └── profile/        # Profile + settings (location, toggles, sign-out)
 ```
 
-Feature surfaces (search, favorites, detail, playback, notifications, onboarding,
-profile) land as additional `:feature:*` modules in their own tasks.
+These `:core:*` and `:feature:*` modules are all included in
+`settings.gradle.kts` and ship today; individual feature surfaces continue to be
+built out under their own tasks (e.g. Home rails in TASK-3259, Profile in
+TASK-3266).
+
+### API-provider pattern
+
+Each feature module owns a Hilt `@Module` that provides the generated API
+services it needs from `core:network`'s configured `ApiClient` via
+`apiClient.createService(...)`. The `ApiClient` (with its auth interceptor) is the
+single shared, configured client — feature modules never construct their own
+Retrofit/OkHttp stack. Example — `feature/search`'s `SearchApiModule`:
+
+```kotlin
+@Module
+@InstallIn(SingletonComponent::class)
+object SearchApiModule {
+    @Provides @Singleton
+    fun provideShowsApi(apiClient: ApiClient): ShowsApi =
+        apiClient.createService(ShowsApi::class.java)
+}
+```
+
+## Auth & deep links
+
+`MainActivity.handleIntent` dispatches every launch / `onNewIntent` intent two
+ways:
+
+- A `laughtrack://auth/callback` OAuth redirect (matched by
+  `AuthSessionManager.isAuthCallback`) is consumed by **`AuthSessionManager`**
+  (`core:network`) to complete sign-in.
+- Any other `laughtrack://…` VIEW link, or an FCM push data payload, is parsed
+  into an `AppRoute` by **`LaughTrackDeepLink`** (`core:navigation`) and handed to
+  `AppShell` to navigate.
+
+Auth callbacks are handled fresh-start only (a config-change recreation
+re-delivers the launch intent and must not re-navigate).
 
 ## Design tokens
 
@@ -64,6 +107,27 @@ Never commit signing material or `google-services.json` (see `.gitignore`).
 Play upload key + service-account JSON live in CI secrets, mirroring how iOS keeps
 its App Store Connect key out of the repo. Store/Play setup is TASK-3268; the
 Fastlane release lane is TASK-3269.
+
+## OpenAPI client regeneration
+
+The Kotlin client under
+`core/network/src/main/kotlin/app/laughtrack/android/core/network/generated/`
+(`api/`, `model/`, `infrastructure/`) is **generated and committed**, produced by
+openapi-generator 7.11.0 (kotlin / retrofit2 / kotlinx-serialization) from the
+shared spec `ios/Sources/LaughTrackAPIClient/openapi.json`. Do not hand-edit
+generated sources.
+
+```sh
+android/bin/regen-openapi.sh            # regenerate from openapi.json (JDK 17+; pins the generator jar)
+android/bin/check-openapi-regen-drift.sh # CI guard: committed client must match a clean regen
+```
+
+After any `/api/v1` spec edit, run `regen-openapi.sh`, review the diff, and commit
+the regenerated sources **in the same PR as the spec change**. The
+drift check (the Android mirror of `ios/bin/check-openapi-regen-drift.sh`) fails
+when the committed client lags the spec, so a spec edit that skips the Android
+regen is caught rather than silently stranding the app behind the server
+contract.
 
 ## Cross-client parity
 
