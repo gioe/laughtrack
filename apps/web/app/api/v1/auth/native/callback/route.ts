@@ -22,6 +22,16 @@ function safeProvider(raw: string | null): string | null {
     return raw && ALLOWED_PROVIDERS.has(raw) ? raw : null;
 }
 
+// The native app mints a per-flow CSRF nonce in buildSignInUrl and verifies it
+// on the returned deep link. We only round-trip it — never trust it — so it is
+// reduced to the app's base64url alphabet and bounded, matching the
+// "nothing arbitrary rides into the app" rule the rest of this route follows.
+function safeState(raw: string | null): string | null {
+    if (!raw) return null;
+    const cleaned = raw.replace(/[^A-Za-z0-9_-]/g, "").slice(0, 128);
+    return cleaned || null;
+}
+
 function buildCallbackURL(params: Record<string, string | null | undefined>) {
     const url = new URL(CANONICAL_DEEP_LINK);
 
@@ -57,10 +67,15 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     );
     if (!rl.allowed) return rateLimitResponse(rl);
 
+    // Round-tripped back to the app on every redirect so it can match the
+    // pending per-flow nonce (login-CSRF / session-fixation guard).
+    const state = safeState(req.nextUrl.searchParams.get("state"));
+
     const provider = safeProvider(req.nextUrl.searchParams.get("provider"));
     if (!provider) {
         return NextResponse.redirect(
             buildCallbackURL({
+                state,
                 error: "unsupported_provider",
             }),
         );
@@ -72,6 +87,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
         return NextResponse.redirect(
             buildCallbackURL({
                 provider,
+                state,
                 error: oauthError,
             }),
         );
@@ -101,6 +117,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
             return NextResponse.redirect(
                 buildCallbackURL({
                     provider,
+                    state,
                     error: `token_exchange_failed_${response.status}`,
                 }),
             );
@@ -120,6 +137,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
             return NextResponse.redirect(
                 buildCallbackURL({
                     provider,
+                    state,
                     error: "missing_token",
                 }),
             );
@@ -128,6 +146,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
         return NextResponse.redirect(
             buildCallbackURL({
                 provider,
+                state,
                 accessToken: body.accessToken,
                 refreshToken: body.refreshToken,
                 expiresIn: body.expiresIn?.toString(),
@@ -142,6 +161,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
         return NextResponse.redirect(
             buildCallbackURL({
                 provider,
+                state,
                 error: "token_exchange_failed",
             }),
         );

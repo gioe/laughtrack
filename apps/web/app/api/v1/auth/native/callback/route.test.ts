@@ -97,6 +97,55 @@ describe("GET /api/v1/auth/native/callback", () => {
         );
     });
 
+    it("round-trips the state nonce back into the deep link on success", async () => {
+        vi.spyOn(global, "fetch").mockImplementation(
+            async () =>
+                new Response(
+                    JSON.stringify({
+                        accessToken: "access-jwt",
+                        refreshToken: "opaque-refresh",
+                        expiresIn: 900,
+                    }),
+                    {
+                        status: 200,
+                        headers: { "content-type": "application/json" },
+                    },
+                ),
+        );
+
+        const response = await GET(
+            new NextRequest(
+                "https://laughtrack.app/api/v1/auth/native/callback?provider=google&state=Ab9_-xyz",
+                {
+                    headers: {
+                        cookie: "next-auth.session-token=session-cookie",
+                    },
+                },
+            ),
+        );
+
+        expect(response.status).toBe(307);
+        const location = new URL(response.headers.get("location")!);
+        expect(location.protocol).toBe("laughtrack:");
+        // The app's per-flow nonce comes back verbatim so it can match its pending value.
+        expect(location.searchParams.get("state")).toBe("Ab9_-xyz");
+        expect(location.searchParams.get("accessToken")).toBe("access-jwt");
+    });
+
+    it("reduces the round-tripped state to the app's base64url alphabet", async () => {
+        const response = await GET(
+            new NextRequest(
+                // Hostile/garbled state with spaces and structural chars.
+                "https://laughtrack.app/api/v1/auth/native/callback?provider=google&error=OAuthCallback&state=ab+cd%26evil%3Dx",
+            ),
+        );
+
+        const location = new URL(response.headers.get("location")!);
+        // Spaces, &, = and the smuggled payload are stripped; only [A-Za-z0-9_-] survive.
+        expect(location.searchParams.get("state")).toBe("abcdevilx");
+        expect(location.searchParams.get("error")).toBe("OAuthCallback");
+    });
+
     it("accepts email magic-link callbacks and returns the mobile token session", async () => {
         vi.spyOn(global, "fetch").mockImplementation(
             async () =>
