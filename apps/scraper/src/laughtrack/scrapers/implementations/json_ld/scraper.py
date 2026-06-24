@@ -14,16 +14,24 @@ Clean single-responsibility architecture:
 - JsonLdScraper: Orchestrates extraction and transformation
 """
 
+import asyncio
 from typing import Any, Optional, TYPE_CHECKING
 from urllib.parse import urljoin, urlparse, urlunparse
 
 from bs4 import BeautifulSoup
 from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.comedian.handler import ComedianHandler
+from laughtrack.core.entities.lineup.handler import LineupHandler
 from laughtrack.core.entities.show.model import Show
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.utilities.url import URLUtils
-from laughtrack.utilities.domain.show.factory import is_comedy_event
+from laughtrack.scrapers.utils.comedy_filter import (
+    is_comedy_filter_enabled,
+    resolve_allowlist,
+    resolve_min_popularity,
+    select_comedy_titles,
+)
 from .transformer import JsonLdTransformer
 
 if TYPE_CHECKING:
@@ -60,6 +68,13 @@ class JsonLdScraper(BaseScraper):
         super().__init__(club, **kwargs)
         self.transformation_pipeline.register_transformer(JsonLdTransformer(club))
         self._register_host_rps(_JSON_LD_HOST_RPS)
+
+        # Comedy isolation for mixed-use venues (opt-in via metadata.comedy_filter).
+        # The DB-backed lineup/comedian handlers are only constructed when the flag
+        # is set so single-purpose comedy venues pay no DB cost.
+        self._comedy_filter = is_comedy_filter_enabled(self.club.source_metadata)
+        self._lineup_handler = LineupHandler() if self._comedy_filter else None
+        self._comedian_handler = ComedianHandler() if self._comedy_filter else None
 
     async def scrape_async(self) -> list[Show]:
         """Scrape either a single JSON-LD page or metadata-configured detail pages."""
@@ -178,23 +193,19 @@ class JsonLdScraper(BaseScraper):
                 if not event_list:
                     return None
 
-            # Opt-in comedy keyword filter for mixed-use venues (e.g. a music
-            # bar like Cole's Bar whose JSON-LD calendar lists mostly bands
-            # plus a weekly comedy open mic). Mirrors the wix_events
-            # `comedy_filter` flag: schema.org Event JSON-LD carries no genre,
-            # so the title/description keyword match is the only signal. Set the
+            # Opt-in comedy isolation for mixed-use venues (e.g. a music bar like
+            # Cole's Bar, or a multi-use theater like Fox Theater Salinas whose
+            # Ticketor/JSON-LD calendar lists mostly concerts plus the occasional
+            # stand-up night). schema.org Event JSON-LD carries no genre, so this
+            # uses the shared select_comedy_titles heuristic — keyword OR
+            # comedy_title_allowlist OR a known comedian above
+            # min_comedian_popularity — rather than a keyword-only match. That
+            # keeps name-only touring/stand-up titles ("Richard Villa") that
+            # carry no comedy keyword while still dropping concerts/raves. Set the
             # `comedy_filter` metadata flag only on mixed-use venues; all-comedy
             # venues leave it unset and are unaffected.
-            if (self.club.source_metadata or {}).get("comedy_filter"):
-                before = len(event_list)
-                event_list = [
-                    e for e in event_list
-                    if is_comedy_event(e.name, e.description)
-                ]
-                Logger.info(
-                    f"{self._log_prefix}: comedy_filter kept {len(event_list)}/{before} events",
-                    self.logger_context,
-                )
+            if self._comedy_filter:
+                event_list = await self._filter_comedy(event_list)
                 if not event_list:
                     return None
 
@@ -203,6 +214,34 @@ class JsonLdScraper(BaseScraper):
         except Exception as e:
             Logger.error(f"{self._log_prefix}: Error extracting data from {url}: {str(e)}", self.logger_context)
             return None
+
+    async def _filter_comedy(self, events):
+        """Keep only comedy events via the shared select_comedy_titles heuristic.
+
+        Runs in a thread executor because select_comedy_titles makes synchronous
+        DB calls (lineup/comedian handlers) for titles without a keyword signal.
+        Mirrors the ticketleap/etix comedy-filter wiring.
+        """
+        descriptions = {e.name: e.description for e in events if e.name}
+        titles = [e.name for e in events if e.name]
+        loop = asyncio.get_running_loop()
+        comedy_titles = await loop.run_in_executor(
+            None,
+            lambda: select_comedy_titles(
+                titles,
+                lineup_handler=self._lineup_handler,
+                comedian_handler=self._comedian_handler,
+                descriptions=descriptions,
+                min_popularity=resolve_min_popularity(self.club.source_metadata),
+                allowlist=resolve_allowlist(self.club.source_metadata),
+            ),
+        )
+        kept = [e for e in events if e.name in comedy_titles]
+        Logger.info(
+            f"{self._log_prefix}: comedy_filter kept {len(kept)}/{len(events)} events",
+            self.logger_context,
+        )
+        return kept
 
     def _detail_fetch_config(self) -> Optional[dict[str, Any]]:
         raw = (self.club.source_metadata or {}).get("detail_fetch")
