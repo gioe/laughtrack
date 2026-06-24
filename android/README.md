@@ -116,11 +116,45 @@ Add the `export JAVA_HOME=…` line to your shell profile (or set it per-session
 so every worktree picks it up. Verify with `java -version` (should report
 `17.x`) before building.
 
-> The Android SDK is a separate prerequisite for `assembleDebug` and the
-> `*UnitTest` tasks (`SDK location not found` if missing) — set `ANDROID_HOME`
-> or `sdk.dir` in `local.properties`. The JDK setup above is what lets Gradle
-> start at all; the OpenAPI drift check (`bin/check-openapi-regen-drift.sh`)
-> needs only the JDK, no Android SDK.
+### Prerequisites: Android SDK
+
+Gradle also needs an Android SDK for `assembleDebug` and `*UnitTest` tasks. A
+missing SDK fails before tests run with `SDK location not found`. CI provisions
+the SDK with `android-actions/setup-android@v3`; local checkouts should use the
+same command-line SDK layout.
+
+**macOS command-line setup:**
+
+```sh
+mkdir -p "$HOME/Library/Android/sdk/cmdline-tools"
+cd "$HOME/Library/Android/sdk/cmdline-tools"
+curl -L -o commandlinetools-mac.zip \
+  https://dl.google.com/android/repository/commandlinetools-mac-14742923_latest.zip
+unzip commandlinetools-mac.zip
+rm commandlinetools-mac.zip
+mv cmdline-tools latest
+
+export ANDROID_HOME="$HOME/Library/Android/sdk"
+export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH"
+yes | sdkmanager --licenses
+sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+```
+
+Add the `ANDROID_HOME` and `PATH` exports to your shell profile so fresh task
+worktrees inherit them. Alternatively, keep SDK discovery project-local by
+creating `android/local.properties` in each worktree:
+
+```properties
+sdk.dir=/Users/<you>/Library/Android/sdk
+```
+
+`local.properties` is ignored and must not be committed. The project targets
+`compileSdk`/`targetSdk` **35**, requires Android build-tools **35.0.0**, and
+keeps `minSdk` **26**. `connectedCheck` additionally needs a running emulator or
+physical device; JVM unit tests such as `:core:network:testDebugUnitTest` do not.
+
+The JDK setup above is what lets Gradle start at all; the OpenAPI drift check
+(`bin/check-openapi-regen-drift.sh`) needs only the JDK, no Android SDK.
 
 ```sh
 cd android
