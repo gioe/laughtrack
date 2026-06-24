@@ -3,6 +3,7 @@ package app.laughtrack.android.feature.search.data
 import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.network.generated.api.ClubsApi
 import app.laughtrack.android.core.network.generated.api.ComediansApi
+import app.laughtrack.android.core.network.generated.api.PodcastsApi
 import app.laughtrack.android.core.network.generated.api.ShowsApi
 import app.laughtrack.android.feature.search.model.SearchPivot
 import app.laughtrack.android.feature.search.model.SearchQuery
@@ -14,21 +15,21 @@ data class SearchPage(val results: List<SearchResult>, val total: Int)
 
 /**
  * Wraps the generated search APIs and normalizes each entity into [SearchResult].
- * Shows is geo-scoped (zip/distance); Comedians/Clubs are nationwide. Podcasts is
- * not yet searchable (no /podcasts/search in the spec — TASK-3273) and returns an
- * empty page. The X-Timezone header is set globally by the network interceptor.
+ * Shows is geo-scoped (zip/distance); Comedians/Clubs/Podcasts are nationwide.
+ * The X-Timezone header is set globally by the network interceptor.
  */
 class SearchRepository @Inject constructor(
     private val showsApi: ShowsApi,
     private val comediansApi: ComediansApi,
     private val clubsApi: ClubsApi,
+    private val podcastsApi: PodcastsApi,
 ) {
     suspend fun search(pivot: SearchPivot, query: SearchQuery, page: Int, size: Int = PAGE_SIZE): SearchPage =
         when (pivot) {
             SearchPivot.SHOWS -> showsPage(query, page, size)
             SearchPivot.COMEDIANS -> comediansPage(query, page, size)
             SearchPivot.CLUBS -> clubsPage(query, page, size)
-            SearchPivot.PODCASTS -> SearchPage(emptyList(), total = 0)
+            SearchPivot.PODCASTS -> podcastsPage(query, page, size)
         }
 
     private suspend fun showsPage(query: SearchQuery, page: Int, size: Int): SearchPage {
@@ -91,6 +92,27 @@ class SearchRepository @Inject constructor(
                     subtitle = listOfNotNull(club.city, club.state).joinToString(", ").ifBlank { null },
                     imageUrl = club.imageUrl,
                     route = AppRoute.ClubDetail(id),
+                )
+            },
+            total = body.total,
+        )
+    }
+
+    private suspend fun podcastsPage(query: SearchQuery, page: Int, size: Int): SearchPage {
+        val response = podcastsApi.searchPodcasts(
+            q = query.text.ifBlank { null },
+            sort = query.sort,
+            page = page,
+            size = size,
+        )
+        val body = response.body() ?: error("Podcasts search failed (HTTP ${response.code()})")
+        return SearchPage(
+            results = body.data.map { podcast ->
+                SearchResult(
+                    title = podcast.title,
+                    subtitle = "${podcast.episodeCount} episodes",
+                    imageUrl = podcast.imageUrl,
+                    route = AppRoute.PodcastDetail(podcast.id),
                 )
             },
             total = body.total,
