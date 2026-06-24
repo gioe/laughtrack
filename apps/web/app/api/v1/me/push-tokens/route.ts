@@ -16,7 +16,9 @@ const PushTokenSchema = z.object({
         .trim()
         .min(16, "token must be at least 16 characters")
         .max(4096, "token must be at most 4096 characters"),
-    platform: z.literal("ios").optional().default("ios"),
+    // iOS sends APNs hex device tokens (case-insensitive); Android sends FCM
+    // registration tokens, which are case-SENSITIVE and must not be lowercased.
+    platform: z.enum(["ios", "android"]).optional().default("ios"),
 });
 
 async function authenticate(req: NextRequest, prefix: string) {
@@ -79,7 +81,12 @@ async function parseBody(req: NextRequest) {
     return {
         data: {
             platform: parsed.data.platform,
-            token: parsed.data.token.toLowerCase(),
+            // APNs hex tokens are case-insensitive (lowercased for dedupe); FCM
+            // tokens are case-sensitive, so preserve Android tokens verbatim.
+            token:
+                parsed.data.platform === "ios"
+                    ? parsed.data.token.toLowerCase()
+                    : parsed.data.token,
         },
     };
 }

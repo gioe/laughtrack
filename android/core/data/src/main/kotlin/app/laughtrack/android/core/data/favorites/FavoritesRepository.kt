@@ -100,6 +100,30 @@ class FavoritesRepository @Inject constructor(
             queue = { next -> offlineQueue.enqueue(FavoriteEntity.COMEDIAN, uuid, next) },
         )
 
+    suspend fun setComedianFavorite(uuid: String, isFavorite: Boolean): FavoriteToggleResult {
+        val currentValue = _snapshot.value.comedianValues[uuid] ?: false
+        if (currentValue == isFavorite) return FavoriteToggleResult.Updated(isFavorite)
+        return toggle(
+            key = FavoriteEntity.COMEDIAN.name + uuid,
+            currentValue = currentValue,
+            optimistic = { next ->
+                val current = _snapshot.value
+                _snapshot.value = current.copy(
+                    comedianValues = current.comedianValues + (uuid to next),
+                    comedians = if (next) current.comedians else current.comedians.filterNot { it.uuid == uuid },
+                )
+            },
+            serverCall = { next ->
+                if (next) {
+                    favoritesApi.addFavorite(AddFavoriteRequest(uuid))
+                } else {
+                    favoritesApi.removeFavorite(uuid)
+                }
+            },
+            queue = { next -> offlineQueue.enqueue(FavoriteEntity.COMEDIAN, uuid, next) },
+        )
+    }
+
     suspend fun toggleClub(id: Int): FavoriteToggleResult =
         toggle(
             key = FavoriteEntity.CLUB.name + id,

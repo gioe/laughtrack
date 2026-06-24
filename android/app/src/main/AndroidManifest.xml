@@ -4,9 +4,10 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
-    <!-- Location (ACCESS_*_LOCATION) and POST_NOTIFICATIONS are declared by the
-         tasks that introduce them — location header (TASK-3259) and FCM push
-         (TASK-3264) — so each permission ships with the feature that justifies it. -->
+    <!-- POST_NOTIFICATIONS gates FCM notifications on Android 13+ (requested at
+         runtime from MainActivity). Location permissions are declared by the
+         tasks that introduce them. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:name=".LaughTrackApplication"
@@ -44,6 +45,20 @@
                 <action android:name="androidx.media3.session.MediaSessionService" />
             </intent-filter>
         </service>
+
+        <!-- FCM message handler: token refresh + comedian-arrival notifications. -->
+        <service
+            android:name=".push.LaughTrackMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <!-- Channel FCM uses for notification-type messages handled while backgrounded. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="comedian_arrivals" />
     </application>
 
 </manifest>

@@ -21,6 +21,9 @@ sealed interface AppRoute {
     data object Favorites : AppRoute
 
     @Serializable
+    data object ComedianOnboarding : AppRoute
+
+    @Serializable
     data class ShowDetail(val id: Int) : AppRoute
 
     @Serializable

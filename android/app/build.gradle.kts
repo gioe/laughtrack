@@ -2,10 +2,19 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.detekt)
+}
+
+// Apply the Firebase google-services plugin only when a google-services.json is
+// present. FCM needs a provisioned Firebase Android app (json downloaded into
+// app/); until then the plugin is skipped so the build still compiles and runs —
+// firebase-messaging's FirebaseInitProvider simply no-ops without the config.
+if (file("google-services.json").exists()) {
+    apply(plugin = libs.plugins.google.services.get().pluginId)
 }
 
 android {
@@ -64,6 +73,11 @@ dependencies {
     implementation(project(":feature:search"))
     implementation(project(":feature:library"))
     implementation(project(":feature:detail"))
+    implementation(project(":feature:onboarding"))
+    implementation(project(":feature:notifications"))
+
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
