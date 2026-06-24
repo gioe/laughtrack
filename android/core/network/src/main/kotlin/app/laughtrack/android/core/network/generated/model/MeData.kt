@@ -61,11 +61,11 @@ data class MeData (
 
     /* Saved profile ZIP code used for Near Me. */
     @SerialName(value = "zipCode")
-    val zipCode: kotlin.String,
+    val zipCode: kotlin.String?,
 
     /* Saved profile distance in miles used for Near Me. */
     @SerialName(value = "nearbyDistanceMiles")
-    val nearbyDistanceMiles: kotlin.Int,
+    val nearbyDistanceMiles: kotlin.Int?,
 
     /* Opaque server-issued user identifier (User.id, a CUID). Stable across email/displayName changes — iOS clients pass this to analytics setUserID instead of an email hash. Nullable for rollout-window safety: older API responses may omit it, and iOS falls back to a SHA-256 email hash in that case. */
     @SerialName(value = "userId")
@@ -87,4 +87,3 @@ data class MeData (
 
 
 }
-

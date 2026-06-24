@@ -50,6 +50,7 @@ import app.laughtrack.android.feature.home.HomeScreen
 import app.laughtrack.android.feature.library.LibraryScreen
 import app.laughtrack.android.feature.notifications.NotificationCenterScreen
 import app.laughtrack.android.feature.onboarding.ui.ComedianOnboardingScreen
+import app.laughtrack.android.feature.profile.ProfileScreen
 import app.laughtrack.android.feature.search.ui.SearchScreen
 
 /**
@@ -64,11 +65,6 @@ fun AppShell(
     navController: NavHostController = rememberNavController(),
     pendingRoute: AppRoute? = null,
     onRouteConsumed: () -> Unit = {},
-    authStatus: String = "Signed out",
-    onGoogleSignIn: () -> Unit = {},
-    onAppleSignIn: () -> Unit = {},
-    onSignOut: () -> Unit = {},
-    onDeleteAccount: () -> Unit = {},
     signedIn: Boolean = false,
     playbackController: PodcastPlaybackController? = null,
 ) {
@@ -170,15 +166,7 @@ fun AppShell(
                 }
 
                 composable<AppRoute.Profile> {
-                    // Temporary sign-in/out surface until the real Profile screen lands
-                    // (TASK-3266); exercises the TASK-3257 OAuth + session layer.
-                    ProfileAuthScreen(
-                        status = authStatus,
-                        onGoogleSignIn = onGoogleSignIn,
-                        onAppleSignIn = onAppleSignIn,
-                        onSignOut = onSignOut,
-                        onDeleteAccount = onDeleteAccount,
-                    )
+                    ProfileScreen()
                 }
                 composable<AppRoute.NotificationCenter> {
                     NotificationCenterScreen(

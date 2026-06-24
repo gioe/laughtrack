@@ -3,14 +3,12 @@ package app.laughtrack.android
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.getValue
@@ -22,13 +20,13 @@ import androidx.lifecycle.lifecycleScope
 import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.navigation.LaughTrackDeepLink
 import app.laughtrack.android.core.network.auth.AuthCallbackResult
-import app.laughtrack.android.core.network.auth.AuthProvider
 import app.laughtrack.android.core.network.auth.AuthSessionManager
 import app.laughtrack.android.core.playback.PodcastPlaybackController
 import app.laughtrack.android.core.ui.theme.LaughTrackTheme
 import app.laughtrack.android.push.PushNotifications
 import app.laughtrack.android.push.PushTokenManager
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -37,7 +35,7 @@ import javax.inject.Inject
  * intent is dispatched two ways: a `laughtrack://auth/callback` OAuth redirect is
  * consumed by [AuthSessionManager]; any other `laughtrack://…` VIEW link (or FCM
  * push payload) is parsed into an [AppRoute] and handed to [AppShell] to navigate.
- * Sign-in/out controls are surfaced on the Profile destination of the shell.
+ * Sign-in controls are surfaced on the Profile destination of the shell.
  */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -51,7 +49,6 @@ class MainActivity : ComponentActivity() {
     lateinit var pushTokenManager: PushTokenManager
 
     private var pendingRoute by mutableStateOf<AppRoute?>(null)
-    private val authStatus = mutableStateOf("Signed out")
     private val signedIn = mutableStateOf(false)
 
     // POST_NOTIFICATIONS runtime prompt (Android 13+). Registered at construction
@@ -77,11 +74,6 @@ class MainActivity : ComponentActivity() {
                     AppShell(
                         pendingRoute = pendingRoute,
                         onRouteConsumed = { pendingRoute = null },
-                        authStatus = authStatus.value,
-                        onGoogleSignIn = { launchAuth(AuthProvider.GOOGLE) },
-                        onAppleSignIn = { launchAuth(AuthProvider.APPLE) },
-                        onSignOut = { signOut() },
-                        onDeleteAccount = { deleteAccount() },
                         signedIn = signedIn.value,
                         playbackController = playbackController,
                     )
@@ -120,20 +112,17 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun restoreSession() {
+        lifecycleScope.launch {
+            authSessionManager.signedIn.collectLatest { signedIn.value = it }
+        }
         lifecycleScope.launch { refreshSignedInUser() }
-    }
-
-    private fun launchAuth(provider: AuthProvider) {
-        CustomTabsIntent.Builder()
-            .build()
-            .launchUrl(this, Uri.parse(authSessionManager.buildSignInUrl(provider)))
     }
 
     private fun handleAuthRedirect(callbackUrl: String) {
         lifecycleScope.launch {
-            when (val result = authSessionManager.handleCallback(callbackUrl)) {
+            when (authSessionManager.handleCallback(callbackUrl)) {
                 is AuthCallbackResult.Authenticated -> refreshSignedInUser()
-                is AuthCallbackResult.Error -> authStatus.value = "Sign-in failed: ${result.code}"
+                is AuthCallbackResult.Error -> signedIn.value = false
                 AuthCallbackResult.Ignored -> Unit
             }
         }
@@ -148,18 +137,11 @@ class MainActivity : ComponentActivity() {
             maybeRequestNotificationPermission()
             pushTokenManager.syncCurrentToken()
         }
-        authStatus.value = authSessionManager.getMe()
-            .fold(
-                onSuccess = { response ->
-                    if (!response.data.comedianOnboardingCompleted) {
-                        pendingRoute = AppRoute.ComedianOnboarding
-                    }
-                    "Signed in as ${response.data.email}"
-                },
-                // Valid stored tokens but /me failed (offline / server blip) is not a
-                // logout — the tokens are untouched and the next request will use them.
-                onFailure = { if (hasSession) "Signed in" else "Signed out" },
-            )
+        authSessionManager.getMe().onSuccess { response ->
+            if (!response.data.comedianOnboardingCompleted) {
+                pendingRoute = AppRoute.ComedianOnboarding
+            }
+        }
     }
 
     private fun maybeRequestNotificationPermission() {
@@ -169,26 +151,5 @@ class MainActivity : ComponentActivity() {
             Manifest.permission.POST_NOTIFICATIONS,
         ) == PackageManager.PERMISSION_GRANTED
         if (!granted) requestNotificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
-    }
-
-    private fun signOut() {
-        lifecycleScope.launch {
-            // Deactivate this device's push token server-side before clearing the
-            // session, mirroring iOS PushDeviceTokenManager.deactivate on sign-out.
-            pushTokenManager.deactivateCurrentToken()
-            val revoked = authSessionManager.signOut()
-            signedIn.value = false
-            authStatus.value = if (revoked) "Signed out" else "Signed out locally"
-        }
-    }
-
-    private fun deleteAccount() {
-        lifecycleScope.launch {
-            val deleted = authSessionManager.deleteAccount()
-            if (deleted) {
-                signedIn.value = false
-            }
-            authStatus.value = if (deleted) "Account deleted" else "Delete failed"
-        }
     }
 }

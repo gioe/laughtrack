@@ -75,6 +75,7 @@ dependencies {
     implementation(project(":feature:detail"))
     implementation(project(":feature:onboarding"))
     implementation(project(":feature:notifications"))
+    implementation(project(":feature:profile"))
 
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)

@@ -10,6 +10,7 @@ import app.laughtrack.android.core.network.generated.api.AuthApi
 import app.laughtrack.android.core.network.generated.api.ComediansApi
 import app.laughtrack.android.core.network.generated.api.FavoritesApi
 import app.laughtrack.android.core.network.generated.infrastructure.ApiClient
+import app.laughtrack.android.core.network.profile.ProfileSettingsApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -128,6 +129,12 @@ object NetworkModule {
     fun provideComediansApi(
         apiClient: ApiClient,
     ): ComediansApi = apiClient.createService(ComediansApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideProfileSettingsApi(
+        apiClient: ApiClient,
+    ): ProfileSettingsApi = apiClient.createService(ProfileSettingsApi::class.java)
 
     @Provides
     @Singleton

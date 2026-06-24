@@ -2,6 +2,9 @@ package app.laughtrack.android.core.network.auth
 
 import app.laughtrack.android.core.network.generated.api.AuthApi
 import app.laughtrack.android.core.network.generated.model.MeResponse
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import java.net.URI
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -14,12 +17,16 @@ class AuthSessionManager(
     private val websiteBaseUrl: String,
     private val clock: Clock = Clock.systemUTC(),
 ) {
+    private val mutableSignedIn = MutableStateFlow(false)
+    val signedIn: StateFlow<Boolean> = mutableSignedIn.asStateFlow()
+
     fun buildSignInUrl(provider: AuthProvider): String {
         val callbackUrl = "$websiteBaseUrl/api/v1/auth/native/callback?provider=${provider.id}"
         return "$websiteBaseUrl/?nativeAuthProvider=${provider.id}&callbackUrl=${encode(callbackUrl)}"
     }
 
-    suspend fun restoreSession(): SessionTokens? = tokenStore.read()
+    suspend fun restoreSession(): SessionTokens? =
+        tokenStore.read().also { mutableSignedIn.value = it != null }
 
     suspend fun handleCallback(callbackUrl: String): AuthCallbackResult {
         val uri = runCatching { URI(callbackUrl) }.getOrNull()
@@ -49,6 +56,7 @@ class AuthSessionManager(
             expiresAtEpochSeconds = clock.instant().epochSecond + expiresIn,
         )
         tokenStore.save(tokens)
+        mutableSignedIn.value = true
         return AuthCallbackResult.Authenticated(tokens)
     }
 
@@ -63,6 +71,7 @@ class AuthSessionManager(
     suspend fun signOut(): Boolean {
         val response = runCatching { authApi.signout() }.getOrNull()
         tokenStore.clear()
+        mutableSignedIn.value = false
         return response?.isSuccessful == true
     }
 
@@ -70,6 +79,7 @@ class AuthSessionManager(
         val response = runCatching { authApi.deleteMe() }.getOrNull()
         if (response?.isSuccessful == true) {
             tokenStore.clear()
+            mutableSignedIn.value = false
         }
         return response?.isSuccessful == true
     }
