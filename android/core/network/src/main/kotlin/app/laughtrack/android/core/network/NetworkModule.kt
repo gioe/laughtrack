@@ -73,6 +73,22 @@ object NetworkModule {
             .authenticator(refreshTokenAuthenticator)
             .build()
 
+    /**
+     * Shared, fully-configured [ApiClient] (auth interceptor + refresh + X-Timezone,
+     * base URL). Feature modules build their own generated services from it, e.g.
+     * `apiClient.createService(ShowsApi::class.java)`, instead of reaching into
+     * this module's BuildConfig.
+     */
+    @Provides
+    @Singleton
+    fun provideApiClient(
+        okHttpClient: OkHttpClient,
+    ): ApiClient =
+        ApiClient(
+            baseUrl = BuildConfig.API_BASE_URL,
+            okHttpClientBuilder = okHttpClient.newBuilder(),
+        )
+
     @Provides
     @Singleton
     fun provideAuthApi(

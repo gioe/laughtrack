@@ -1,0 +1,103 @@
+package app.laughtrack.android.feature.search.data
+
+import app.laughtrack.android.core.navigation.AppRoute
+import app.laughtrack.android.core.network.generated.api.ClubsApi
+import app.laughtrack.android.core.network.generated.api.ComediansApi
+import app.laughtrack.android.core.network.generated.api.ShowsApi
+import app.laughtrack.android.feature.search.model.SearchPivot
+import app.laughtrack.android.feature.search.model.SearchQuery
+import app.laughtrack.android.feature.search.model.SearchResult
+import javax.inject.Inject
+
+/** One page of normalized results plus the server's total (drives hasMore). */
+data class SearchPage(val results: List<SearchResult>, val total: Int)
+
+/**
+ * Wraps the generated search APIs and normalizes each entity into [SearchResult].
+ * Shows is geo-scoped (zip/distance); Comedians/Clubs are nationwide. Podcasts is
+ * not yet searchable (no /podcasts/search in the spec — TASK-3273) and returns an
+ * empty page. The X-Timezone header is set globally by the network interceptor.
+ */
+class SearchRepository @Inject constructor(
+    private val showsApi: ShowsApi,
+    private val comediansApi: ComediansApi,
+    private val clubsApi: ClubsApi,
+) {
+    suspend fun search(pivot: SearchPivot, query: SearchQuery, page: Int, size: Int = PAGE_SIZE): SearchPage =
+        when (pivot) {
+            SearchPivot.SHOWS -> showsPage(query, page, size)
+            SearchPivot.COMEDIANS -> comediansPage(query, page, size)
+            SearchPivot.CLUBS -> clubsPage(query, page, size)
+            SearchPivot.PODCASTS -> SearchPage(emptyList(), total = 0)
+        }
+
+    private suspend fun showsPage(query: SearchQuery, page: Int, size: Int): SearchPage {
+        val response = showsApi.searchShows(
+            zip = query.zip,
+            distance = query.distance,
+            sort = query.sort,
+            club = query.text.ifBlank { null },
+            page = page,
+            size = size,
+        )
+        val body = response.body() ?: error("Shows search failed (HTTP ${response.code()})")
+        return SearchPage(
+            results = body.data.map { show ->
+                SearchResult(
+                    title = show.name ?: "Show",
+                    subtitle = listOfNotNull(show.clubName, show.clubCity).joinToString(" · ").ifBlank { null },
+                    imageUrl = show.imageUrl,
+                    route = AppRoute.ShowDetail(show.id),
+                )
+            },
+            total = body.total,
+        )
+    }
+
+    private suspend fun comediansPage(query: SearchQuery, page: Int, size: Int): SearchPage {
+        val response = comediansApi.searchComedians(
+            comedian = query.text.ifBlank { null },
+            sort = query.sort,
+            page = page,
+            size = size,
+        )
+        val body = response.body() ?: error("Comedians search failed (HTTP ${response.code()})")
+        return SearchPage(
+            results = body.data.map { comedian ->
+                SearchResult(
+                    title = comedian.name,
+                    subtitle = "${comedian.showCount} shows",
+                    imageUrl = comedian.imageUrl,
+                    route = AppRoute.ComedianDetail(comedian.id),
+                )
+            },
+            total = body.total,
+        )
+    }
+
+    private suspend fun clubsPage(query: SearchQuery, page: Int, size: Int): SearchPage {
+        val response = clubsApi.searchClubs(
+            club = query.text.ifBlank { null },
+            sort = query.sort,
+            page = page,
+            size = size,
+        )
+        val body = response.body() ?: error("Clubs search failed (HTTP ${response.code()})")
+        return SearchPage(
+            results = body.data.mapNotNull { club ->
+                val id = club.id ?: return@mapNotNull null
+                SearchResult(
+                    title = club.name ?: "Club",
+                    subtitle = listOfNotNull(club.city, club.state).joinToString(", ").ifBlank { null },
+                    imageUrl = club.imageUrl,
+                    route = AppRoute.ClubDetail(id),
+                )
+            },
+            total = body.total,
+        )
+    }
+
+    private companion object {
+        const val PAGE_SIZE = 20
+    }
+}
