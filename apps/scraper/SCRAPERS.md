@@ -1705,31 +1705,44 @@ WHERE name = '<Club Name>';
 - Page HTML contains a `window.__BOOTSTRAP__ = { ... }` JS object whose
   `appSettings` and `formData` members are escaped JSON strings
 
-**Single-event model (IMPORTANT):** A TicketSpice form is a SINGLE-EVENT
-ticketing page — one form == one show on one date. There is no multi-date
-calendar; recurring shows post a NEW form per date (`schedules` and `items` in
-`formData` are empty for single-date forms). The scraper therefore parses one
-show per form URL. Once that date passes, `to_show` drops the show, so a stale
-un-updated form stops emitting a past show (it just scrapes 0 until the venue
-posts the next date's form).
+**Single- AND multi-date model (IMPORTANT):** A TicketSpice form sells one OR
+more show dates.
+- **Single-date** forms (e.g. The Stage at Burke / TASK-3207) name the one date
+  in `appSettings.eventStart` and have no date-selection inventory.
+- **Multi-date** forms (e.g. Comedy Uncorked / TASK-3254) sell several dates
+  under ONE form. `appSettings.eventStart` names only the FIRST date; the full
+  set lives in the `formData` `ticketBlock`'s date-selection **`categories`** —
+  each category is a selectable show date (`label` like `"June 27"`,
+  `description` the lineup) with its own priced `levels` (linked by the level's
+  `category` id). The scraper emits ONE Show per dated category, all sharing
+  `show_page_url` = the form URL.
+
+The extractor parses the dated `categories` when present and falls back to the
+single `eventStart` date otherwise — so onboarding is identical for both shapes.
+Once a date passes, `to_show` drops that date, so a stale un-updated form stops
+emitting past shows (it scrapes 0 once every listed date is in the past).
 
 **Where the data lives:** the form HTML embeds `window.__BOOTSTRAP__` near the
 top of the page. Two members are themselves escaped JSON strings:
-- `appSettings` → `formName` (show title), `eventStart` (ISO date at UTC
-  midnight — **date only, no reliable wall-clock time**), `timeZone`, `status`
-  (`1` == published; the scraper skips anything else)
-- `formData` → `ticketBlock.levels[].price` (lowest level becomes the ticket
-  price); `soldOut` flags the whole form sold out and is propagated to the
-  ticket's `sold_out`
+- `appSettings` → `formName` (show title), `eventStart` (ISO timestamp of the
+  FIRST date — used both as the single-date fallback and to derive the
+  wall-clock show time, localized to `timeZone`; UTC-midnight means date-only,
+  no time), `timeZone`, `status` (`1` == published; the scraper skips anything else)
+- `formData` → `ticketBlock.categories[]` (the per-date inventory; a category
+  whose `label` has no month+day, e.g. a "Donation" add-on, is skipped) and
+  `ticketBlock.levels[].price`. Per date the price is the lowest **visible**
+  level tied to that category (hidden back-office levels are ignored); `soldOut`
+  flags the whole form sold out and is propagated to each ticket's `sold_out`
 
-**Show time:** TicketSpice forms carry no show time, so each Show uses
-`metadata.default_show_time` (`HH:MM`, default `19:00`) localized to the club
-timezone — same pattern as the AXS homepage scraper.
+**Show time:** when `eventStart` carries a wall-clock time it is reused for every
+date; otherwise each Show uses `metadata.default_show_time` (`HH:MM`, default
+`19:00`) localized to the club timezone — same pattern as the AXS homepage scraper.
 
 **Key implementation details:**
 - `collect_scraping_targets()` returns the form URL (`metadata.form_url` override,
   else the active source's `source_url` via `club.scraping_url`)
-- `extractor.extract_event()` parses the bootstrap into one `TicketSpiceEvent`
+- `extractor.extract_events()` parses the bootstrap into one `TicketSpiceEvent`
+  per upcoming date (`extract_event()` remains a single-result wrapper)
 - The page is plain server-rendered HTML — a single `fetch_html` suffices (no
   auth, no separate API call)
 
@@ -1743,7 +1756,9 @@ VALUES (
 ```
 
 **Reference implementation:** `apps/scraper/src/laughtrack/scrapers/implementations/api/ticketspice/`
-(first venue: The Stage at Burke Junction — `thestage.ticketspice.com/barley-me-comedy`, TASK-3207)
+(single-date: The Stage at Burke Junction — `thestage.ticketspice.com/barley-me-comedy`, TASK-3207;
+multi-date: Comedy Uncorked at Retzlaff/Hannah Nicole Vineyards —
+`comedy.ticketspice.com/2026-comedy-uncorked-retzlaff-vineyards`, TASK-3254)
 
 ---
 

@@ -38,13 +38,23 @@ def _parse_default_time(raw: Optional[str]) -> time:
 
 @dataclass
 class TicketSpiceEvent(ShowConvertible):
-    """A single show parsed from one TicketSpice ticketing form."""
+    """A single show parsed from one TicketSpice ticketing form.
+
+    A single TicketSpice form can sell *multiple* show dates (a date-selection
+    inventory in ``formData.elements[].categories``); the extractor emits one
+    ``TicketSpiceEvent`` per upcoming date, all sharing the same ``form_url``.
+    ``event_time``, when set, is the wall-clock show time parsed from
+    ``appSettings.eventStart`` (localized to the form timezone) and is applied to
+    every date; when ``None`` the configured ``default_show_time`` is used.
+    """
 
     title: str                      # appSettings.formName, e.g. "Barley & Me ... Comedy Show"
-    event_date: date                # date portion of appSettings.eventStart (no time)
+    event_date: date                # the show date (no time)
     form_url: str                   # the TicketSpice form URL (drives ticket purchase)
-    price: Optional[float] = None   # lowest ticket-level price, if parsed
+    price: Optional[float] = None   # lowest ticket-level price for this date, if parsed
     sold_out: bool = False          # formData.soldOut — whole-form sold-out flag
+    event_time: Optional[time] = None  # wall-clock show time (from eventStart), if known
+    description: Optional[str] = None  # per-date blurb (e.g. the lineup names), if any
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None):
         """Convert to a Show domain object, or None if required fields are
@@ -54,8 +64,10 @@ class TicketSpiceEvent(ShowConvertible):
         if not self.title or not self.event_date or not self.form_url:
             return None
 
-        default_time = _parse_default_time(club.metadata_value("default_show_time"))
-        naive = datetime.combine(self.event_date, default_time)
+        show_time = self.event_time or _parse_default_time(
+            club.metadata_value("default_show_time")
+        )
+        naive = datetime.combine(self.event_date, show_time)
         start_dt = pytz.timezone(club.timezone or "America/Los_Angeles").localize(naive)
 
         # Single-date TicketSpice forms go stale once the show passes; drop them
@@ -79,5 +91,6 @@ class TicketSpiceEvent(ShowConvertible):
             show_page_url=source_url,
             lineup=[],
             tickets=tickets,
+            description=self.description,
             enhanced=enhanced,
         )
