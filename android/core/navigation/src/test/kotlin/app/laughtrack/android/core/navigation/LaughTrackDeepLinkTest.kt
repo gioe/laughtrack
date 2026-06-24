@@ -1,0 +1,45 @@
+package app.laughtrack.android.core.navigation
+
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Test
+
+class LaughTrackDeepLinkTest {
+    @Test
+    fun parses_each_entity_host_singular_and_plural() {
+        assertEquals(AppRoute.ShowDetail(123), LaughTrackDeepLink.route("laughtrack://show/123"))
+        assertEquals(AppRoute.ShowDetail(123), LaughTrackDeepLink.route("laughtrack://shows/123"))
+        assertEquals(AppRoute.ComedianDetail(45), LaughTrackDeepLink.route("laughtrack://comedian/45"))
+        assertEquals(AppRoute.ClubDetail(7), LaughTrackDeepLink.route("laughtrack://clubs/7"))
+        assertEquals(AppRoute.PodcastDetail(9), LaughTrackDeepLink.route("laughtrack://podcast/9"))
+    }
+
+    @Test
+    fun scheme_is_case_insensitive() {
+        assertEquals(AppRoute.ShowDetail(1), LaughTrackDeepLink.route("LaughTrack://show/1"))
+    }
+
+    @Test
+    fun rejects_wrong_scheme_missing_id_unknown_entity_and_garbage() {
+        assertNull(LaughTrackDeepLink.route("https://laugh-track.com/show/1"))
+        assertNull(LaughTrackDeepLink.route("laughtrack://show"))
+        assertNull(LaughTrackDeepLink.route("laughtrack://show/not-a-number"))
+        assertNull(LaughTrackDeepLink.route("laughtrack://widget/1"))
+        assertNull(LaughTrackDeepLink.route("not a uri"))
+        assertNull(LaughTrackDeepLink.route(null))
+        assertNull(LaughTrackDeepLink.route(""))
+    }
+
+    @Test
+    fun push_payload_prefers_url_then_falls_back_to_showId() {
+        assertEquals(
+            AppRoute.ComedianDetail(8),
+            LaughTrackDeepLink.routeFromPush(mapOf("url" to "laughtrack://comedian/8", "showId" to "99")),
+        )
+        assertEquals(
+            AppRoute.ShowDetail(42),
+            LaughTrackDeepLink.routeFromPush(mapOf("showId" to "42")),
+        )
+        assertNull(LaughTrackDeepLink.routeFromPush(emptyMap()))
+    }
+}
