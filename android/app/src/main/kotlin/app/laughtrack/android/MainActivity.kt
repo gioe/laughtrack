@@ -128,7 +128,12 @@ class MainActivity : ComponentActivity() {
         signedIn.value = hasSession
         authStatus.value = authSessionManager.getMe()
             .fold(
-                onSuccess = { response -> "Signed in as ${response.data.email}" },
+                onSuccess = { response ->
+                    if (!response.data.comedianOnboardingCompleted) {
+                        pendingRoute = AppRoute.ComedianOnboarding
+                    }
+                    "Signed in as ${response.data.email}"
+                },
                 // Valid stored tokens but /me failed (offline / server blip) is not a
                 // logout — the tokens are untouched and the next request will use them.
                 onFailure = { if (hasSession) "Signed in" else "Signed out" },

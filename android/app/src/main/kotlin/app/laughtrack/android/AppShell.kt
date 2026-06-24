@@ -48,6 +48,7 @@ import app.laughtrack.android.feature.detail.ui.PodcastDetailScreen
 import app.laughtrack.android.feature.detail.ui.ShowDetailScreen
 import app.laughtrack.android.feature.home.HomeScreen
 import app.laughtrack.android.feature.library.LibraryScreen
+import app.laughtrack.android.feature.onboarding.ui.ComedianOnboardingScreen
 import app.laughtrack.android.feature.search.ui.SearchScreen
 
 /**
@@ -119,6 +120,16 @@ fun AppShell(
                     LibraryScreen(
                         signedIn = signedIn,
                         onOpenProfile = { navController.openEntity(AppRoute.Profile) },
+                    )
+                }
+                composable<AppRoute.ComedianOnboarding> {
+                    ComedianOnboardingScreen(
+                        onComplete = {
+                            navController.navigate(AppRoute.Discover) {
+                                popUpTo(AppRoute.ComedianOnboarding) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        },
                     )
                 }
 

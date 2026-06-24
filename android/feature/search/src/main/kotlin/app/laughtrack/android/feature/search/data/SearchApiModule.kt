@@ -1,7 +1,6 @@
 package app.laughtrack.android.feature.search.data
 
 import app.laughtrack.android.core.network.generated.api.ClubsApi
-import app.laughtrack.android.core.network.generated.api.ComediansApi
 import app.laughtrack.android.core.network.generated.api.ShowsApi
 import app.laughtrack.android.core.network.generated.infrastructure.ApiClient
 import dagger.Module
@@ -23,11 +22,6 @@ object SearchApiModule {
     @Singleton
     fun provideShowsApi(apiClient: ApiClient): ShowsApi =
         apiClient.createService(ShowsApi::class.java)
-
-    @Provides
-    @Singleton
-    fun provideComediansApi(apiClient: ApiClient): ComediansApi =
-        apiClient.createService(ComediansApi::class.java)
 
     @Provides
     @Singleton
