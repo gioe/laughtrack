@@ -51,6 +51,11 @@ fun AppShell(
     navController: NavHostController = rememberNavController(),
     pendingRoute: AppRoute? = null,
     onRouteConsumed: () -> Unit = {},
+    authStatus: String = "Signed out",
+    onGoogleSignIn: () -> Unit = {},
+    onAppleSignIn: () -> Unit = {},
+    onSignOut: () -> Unit = {},
+    onDeleteAccount: () -> Unit = {},
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
@@ -114,7 +119,17 @@ fun AppShell(
                 EntityDetailPlaceholder("Podcast", entry.toRoute<AppRoute.PodcastDetail>().id) { navController.popBackStack() }
             }
 
-            composable<AppRoute.Profile> { PlaceholderScreen("Profile") }
+            composable<AppRoute.Profile> {
+                // Temporary sign-in/out surface until the real Profile screen lands
+                // (TASK-3266); exercises the TASK-3257 OAuth + session layer.
+                ProfileAuthScreen(
+                    status = authStatus,
+                    onGoogleSignIn = onGoogleSignIn,
+                    onAppleSignIn = onAppleSignIn,
+                    onSignOut = onSignOut,
+                    onDeleteAccount = onDeleteAccount,
+                )
+            }
             composable<AppRoute.NotificationCenter> { PlaceholderScreen("Notifications") }
         }
     }
