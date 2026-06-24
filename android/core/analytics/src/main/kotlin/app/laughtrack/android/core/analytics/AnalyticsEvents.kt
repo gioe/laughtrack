@@ -57,7 +57,6 @@ object AnalyticsEvents {
 
         object Param {
             const val PIVOT = "pivot"
-            const val HAS_QUERY = "has_query"
         }
     }
 

@@ -111,6 +111,16 @@ class SearchViewModel @Inject constructor(
 
     private fun reload(pivot: SearchPivot) {
         if (!pivot.isAvailable) return
+        // Log a real user-initiated search (non-empty query) — not the empty-query
+        // browse-load that fires when a pivot tab is first opened. Logged here,
+        // before the network call, so failed searches are counted too.
+        val query = _state.value.states.getValue(pivot).query
+        if (query.text.isNotBlank()) {
+            analytics.logEvent(
+                AnalyticsEvents.Search.PERFORMED,
+                mapOf(AnalyticsEvents.Search.Param.PIVOT to pivot.name.lowercase()),
+            )
+        }
         updatePivot(pivot) { it.copy(results = PagedList<SearchResult>().loading(), loaded = true) }
         fetch(pivot, page = 1)
     }
@@ -122,16 +132,6 @@ class SearchViewModel @Inject constructor(
         loadJobs[pivot] = viewModelScope.launch {
             runCatching { repository.search(pivot, query, page) }
                 .onSuccess { result ->
-                    // Log only the initial query (page 1), not each pagination fetch.
-                    if (page == 1) {
-                        analytics.logEvent(
-                            AnalyticsEvents.Search.PERFORMED,
-                            mapOf(
-                                AnalyticsEvents.Search.Param.PIVOT to pivot.name.lowercase(),
-                                AnalyticsEvents.Search.Param.HAS_QUERY to query.text.isNotBlank(),
-                            ),
-                        )
-                    }
                     updatePivot(pivot) {
                         it.copy(results = it.results.appendPage(page, result.results, result.total))
                     }
