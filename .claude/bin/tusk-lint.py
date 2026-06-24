@@ -8,7 +8,7 @@ Checks the tusk codebase against Key Conventions from CLAUDE.md.
 Prints results grouped by rule and exits with status 1 if any violations found.
 
 The optional ``--task <task_id>`` flag narrows DB-backed rules that support
-scoping (currently Rule 6) to a single task ID. Used by ``tusk commit`` so
+scoping (Rules 6 and 10) to a single task ID. Used by ``tusk commit`` so
 unrelated historical task state cannot block the active commit (Issue #568).
 """
 
@@ -25,8 +25,7 @@ import tempfile
 import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import tusk_loader
-from tusk_underscore_bin_files import get_underscore_bin_files
+import tusk_loader  # loads tusk-generate-manifest.py (rule18), tusk-db-lib.py, tusk-glossary.py
 
 
 def find_files(root, dirs, extensions):
@@ -987,19 +986,49 @@ def _db_path_from_root(root):
     return None
 
 
-def _load_lint_rules(root, is_blocking):
-    """Load lint_rules rows from the DB filtered by is_blocking. Returns [] on any failure."""
+def _load_lint_rules(root, gating):
+    """Load lint_rules rows partitioned by whether they gate the lint exit code.
+
+    A rule gates only when it is blocking AND its enforcement is 'enforcing'.
+    Two orthogonal columns drive the warn-vs-gate decision:
+      * ``is_blocking`` — whether the rule was ever meant to count toward the
+        exit code (the long-standing distinction; Rule 16 vs Rule 17).
+      * ``enforcement`` — 'advisory' stages a rule for observation so its hits
+        warn but never gate, even when ``is_blocking=1``; 'promote' flips it to
+        'enforcing' (Task 711).
+
+    Pass ``gating=True`` for the rules that count toward the exit code
+    (``is_blocking = 1 AND enforcement = 'enforcing'``) and ``gating=False`` for
+    everything else (warn-only). Returns [] on any failure.
+
+    The enforcement column predicate degrades gracefully on a pre-migration DB:
+    if the column is missing the query raises OperationalError and we retry
+    without it, so an un-migrated client still partitions purely on
+    ``is_blocking`` (advisory rules simply aren't available there yet).
+    """
     db_path = _db_path_from_root(root)
     if not db_path:
         return []
     try:
         conn = tusk_loader.load("tusk-db-lib").get_connection(db_path)
         try:
-            rows = conn.execute(
-                "SELECT id, grep_pattern, file_glob, message FROM lint_rules"
-                " WHERE is_blocking = ? ORDER BY id",
-                (1 if is_blocking else 0,),
-            ).fetchall()
+            if gating:
+                where = "is_blocking = 1 AND enforcement = 'enforcing'"
+            else:
+                where = "NOT (is_blocking = 1 AND enforcement = 'enforcing')"
+            try:
+                rows = conn.execute(
+                    "SELECT id, grep_pattern, file_glob, message FROM lint_rules"
+                    f" WHERE {where} ORDER BY id"
+                ).fetchall()
+            except sqlite3.OperationalError:
+                # Pre-migration DB without the enforcement column — fall back to
+                # the is_blocking-only partition.
+                rows = conn.execute(
+                    "SELECT id, grep_pattern, file_glob, message FROM lint_rules"
+                    " WHERE is_blocking = ? ORDER BY id",
+                    (1 if gating else 0,),
+                ).fetchall()
             return [dict(r) for r in rows]
         except sqlite3.OperationalError:
             return []  # lint_rules table not yet created (pre-migration DB)
@@ -1053,14 +1082,24 @@ def _run_lint_rules(root, rules):
 
 
 def rule16_db_rules_blocking(root):
-    """DB-backed lint rules with is_blocking=1 (count toward exit code)."""
-    rules = _load_lint_rules(root, is_blocking=True)
+    """DB-backed lint rules that gate the exit code.
+
+    A rule gates only when ``is_blocking=1 AND enforcement='enforcing'`` — an
+    advisory-enforcement rule, even if blocking, falls through to Rule 17 and
+    warns instead of gating (Task 711).
+    """
+    rules = _load_lint_rules(root, gating=True)
     return _run_lint_rules(root, rules)
 
 
 def rule17_db_rules_advisory(root):
-    """DB-backed lint rules with is_blocking=0 (advisory warnings only)."""
-    rules = _load_lint_rules(root, is_blocking=False)
+    """DB-backed lint rules that warn only (advisory warnings).
+
+    Covers everything that is NOT (``is_blocking=1 AND enforcement='enforcing'``):
+    non-blocking rules and blocking rules still staged at
+    ``enforcement='advisory'`` (Task 711).
+    """
+    rules = _load_lint_rules(root, gating=False)
     return _run_lint_rules(root, rules)
 
 
@@ -1087,23 +1126,9 @@ def _sparse_checkout_active(root):
 
 def rule18_manifest_drift(root):
     """MANIFEST file is out of sync with files distributed by install.sh."""
-    import glob as _glob
-
     # This rule is only meaningful in the tusk source repo.  Target projects
     # don't have a MANIFEST or a bin/tusk shell script.  Mirror rule8's guard.
     if not os.path.isfile(os.path.join(root, "bin", "tusk")):
-        return []
-
-    # In a sparse-checkout worktree, the on-disk enumeration below is a
-    # subset of the canonical source tree — every file outside the cone is
-    # absent on disk but present in MANIFEST. Reporting each as "extra in
-    # MANIFEST but not in source tree" was the issue #904 false-positive
-    # cluster (TASK-480, criterion 2227): a typical sparse worktree scored
-    # 17+ violations, which then triggered tusk commit's auto-`generate-
-    # manifest` retry path and silently destroyed every out-of-cone entry.
-    # Skip the drift check entirely under sparse-checkout — MANIFEST drift
-    # can only be assessed reliably from a full checkout.
-    if _sparse_checkout_active(root):
         return []
 
     manifest_path = os.path.join(root, "MANIFEST")
@@ -1116,61 +1141,28 @@ def rule18_manifest_drift(root):
     except (OSError, json.JSONDecodeError) as exc:
         return [f"  MANIFEST could not be parsed: {exc}"]
 
-    # Generate expected manifest using the same logic as install.sh section 4c
-    # Scripts that are only meaningful in the tusk source repo — not distributed.
-    # Canonical source: bin/dist-excluded.txt (also read by tusk-generate-manifest.py and install.sh).
-    _dist_excl_path = os.path.join(root, "bin", "dist-excluded.txt")
-    try:
-        with open(_dist_excl_path, encoding="utf-8") as _f:
-            _dist_excluded = {line.strip() for line in _f if line.strip()}
-    except OSError as exc:
-        return [f"  bin/dist-excluded.txt could not be read: {exc}"]
+    # The expected manifest comes from the SAME enumeration
+    # tusk-generate-manifest.py writes, so the lint check and the regenerator
+    # can never drift (TASK-707) — previously this rule reimplemented the walk
+    # inline and the two copies could diverge.  That enumeration is sparse-aware:
+    # under sparse-checkout it uses the merged lister — the union of `git
+    # ls-files` (complete tracked set, including cone-excluded files — TASK-706 /
+    # issue #1125) and the on-disk cone walk (materialized untracked-new files —
+    # TASK-708 / issue #1124) — so `tusk commit` catches MANIFEST drift inside a
+    # sparse task worktree (instead of skipping) and stays consistent with the
+    # regenerator even for a just-added, not-yet-committed distributed file.  When
+    # the tracked-file list cannot be read under sparse-checkout, skip rather than
+    # emit the issue #904 false-positive cluster (out-of-cone entries flagged
+    # "extra in MANIFEST").
+    gm = tusk_loader.load("tusk-generate-manifest")  # loads tusk-generate-manifest.py
+    if _sparse_checkout_active(root):
+        lister = gm._merged_lister(root)
+        if lister is None:
+            return []
+    else:
+        lister = gm._disk_lister(root)
+    expected_set = set(gm._enumerate(root, lister))
 
-    expected = []
-
-    expected.append(".claude/bin/tusk")
-
-    for p in sorted(_glob.glob(os.path.join(root, "bin", "tusk-*.py"))):
-        if os.path.basename(p) in _dist_excluded:
-            continue
-        expected.append(".claude/bin/" + os.path.basename(p))
-
-    # Underscore-named bin/ files — canonical list lives in bin/tusk_underscore_bin_files.py.
-    for name in get_underscore_bin_files(root):
-        expected.append(".claude/bin/" + name)
-
-    for name in ["config.default.json", "VERSION", "pricing.json"]:
-        expected.append(".claude/bin/" + name)
-
-    for skill_dir in sorted(_glob.glob(os.path.join(root, "skills", "*/"))):
-        skill_name = os.path.basename(skill_dir.rstrip("/"))
-        for fname in sorted(os.listdir(skill_dir)):
-            full = os.path.join(skill_dir, fname)
-            if os.path.isfile(full):
-                expected.append(".claude/skills/" + skill_name + "/" + fname)
-
-    hooks_src = os.path.join(root, ".claude", "hooks")
-    if os.path.isdir(hooks_src):
-        for fname in sorted(os.listdir(hooks_src)):
-            full = os.path.join(hooks_src, fname)
-            if os.path.isfile(full):
-                expected.append(".claude/hooks/" + fname)
-
-    git_hooks_src = os.path.join(root, "hooks", "git")
-    if os.path.isdir(git_hooks_src):
-        for fname in sorted(os.listdir(git_hooks_src)):
-            full = os.path.join(git_hooks_src, fname)
-            if os.path.isfile(full):
-                expected.append(".claude/bin/hooks/git/" + fname)
-
-    prompts_src = os.path.join(root, "codex-prompts")
-    if os.path.isdir(prompts_src):
-        for fname in sorted(os.listdir(prompts_src)):
-            full = os.path.join(prompts_src, fname)
-            if os.path.isfile(full) and fname.endswith(".md"):
-                expected.append(".codex/prompts/" + fname)
-
-    expected_set = set(expected)
     violations = []
     for path in sorted(expected_set - on_disk):
         violations.append(f"  MANIFEST: missing '{path}' (in source tree but not in MANIFEST)")
@@ -1491,7 +1483,7 @@ def main():
     #                    already prints its own banners.
     #
     # `--task <task_id>` narrows DB-backed rules that opt into scoping
-    # (currently Rule 6) to a single task ID — see _TASK_SCOPE comment above.
+    # (Rules 6 and 10) to a single task ID — see _TASK_SCOPE comment above.
     raw_flags = sys.argv[2:]
     flags = []
     task_scope = None

@@ -3510,6 +3510,68 @@ def migrate_81(db_path: str, config_path: str, script_dir: str) -> None:
     _progress("  Migration 81: added precheck_verdicts table")
 
 
+def migrate_82(db_path: str, config_path: str, script_dir: str) -> None:
+    """Add lint_rules.enforcement so a rule can be staged advisory-only.
+
+    Task 711: today a DB-backed lint rule gates the moment it is added (a
+    blocking rule counts toward the lint exit code, so it blocks tusk commit
+    and tusk merge immediately). That leaves no way to stage a newly-discovered
+    anti-pattern for observation before it starts blocking. The orthogonal
+    `enforcement` column ('advisory'|'enforcing', default 'enforcing') lets a
+    rule warn-only until `tusk lint-rule promote` flips it to enforcing once it
+    has been observed to hold. This is the foundation for auto-proposing rules
+    from retro output. No views project lint_rules columns, so none need
+    recreating.
+
+    Idempotent: guarded with has_column; re-running is a no-op after the column
+    exists. Existing rows default to 'enforcing' so behavior is unchanged for
+    rules added before this migration.
+    """
+    if get_version(db_path) >= 82:
+        _progress("  Migration 82: added lint_rules.enforcement")
+        return
+
+    if not has_column(db_path, "lint_rules", "enforcement"):
+        run_script(
+            db_path,
+            "ALTER TABLE lint_rules ADD COLUMN enforcement TEXT NOT NULL"
+            " DEFAULT 'enforcing'"
+            " CHECK (enforcement IN ('advisory', 'enforcing'));",
+        )
+
+    set_version(db_path, 82)
+    _progress("  Migration 82: added lint_rules.enforcement")
+
+
+def migrate_83(db_path: str, config_path: str, script_dir: str) -> None:
+    """Add lint_rules.source_finding_id for retro-finding provenance.
+
+    Task 712: `tusk lint-rule propose` converts a grep-detectable anti-pattern
+    surfaced by /retro into a staged advisory rule and records which retro
+    finding it came from. The `source_finding_id` column carries that
+    provenance — a nullable reference into retro_findings(id). It is added
+    without an inline FK constraint because ALTER TABLE ADD COLUMN cannot
+    declare one against an existing table; the value is set on insert by
+    `lint-rule propose` and left NULL for rules added any other way. No views
+    project lint_rules columns, so none need recreating.
+
+    Idempotent: guarded with has_column; re-running is a no-op after the column
+    exists.
+    """
+    if get_version(db_path) >= 83:
+        _progress("  Migration 83: added lint_rules.source_finding_id")
+        return
+
+    if not has_column(db_path, "lint_rules", "source_finding_id"):
+        run_script(
+            db_path,
+            "ALTER TABLE lint_rules ADD COLUMN source_finding_id INTEGER;",
+        )
+
+    set_version(db_path, 83)
+    _progress("  Migration 83: added lint_rules.source_finding_id")
+
+
 # ── Migration registry ────────────────────────────────────────────────────────
 
 MIGRATIONS = [
@@ -3594,6 +3656,8 @@ MIGRATIONS = [
     (79, migrate_79),
     (80, migrate_80),
     (81, migrate_81),
+    (82, migrate_82),
+    (83, migrate_83),
 ]
 
 

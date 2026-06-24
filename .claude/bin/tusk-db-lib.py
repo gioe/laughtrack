@@ -47,14 +47,55 @@ def _busy_timeout_ms() -> int:
     return DEFAULT_BUSY_TIMEOUT_MS
 
 
+def open_sqlite(db_path: str, **connect_kwargs) -> sqlite3.Connection:
+    """Open a raw sqlite3 connection, emitting an actionable diagnostic instead
+    of a raw OperationalError traceback when ``db_path``'s parent directory does
+    not exist (issue #1126, generalized to all raw callers by issue #1131).
+
+    "unable to open database file" surfaces when the DB path is unreachable. The
+    only way sqlite cannot open/create the file is when its parent directory does
+    not exist — sqlite creates the file itself when the directory is present. A
+    missing parent dir therefore means we are not inside an initialized tusk
+    project (e.g. tusk run from a stray dir, the wrong directory, or a fresh
+    checkout before ``tusk init``), so print a one-line diagnostic and
+    ``SystemExit(2)``. Any other open failure (a real corruption/permission
+    error against an existing dir) is re-raised unchanged so it is never
+    silently swallowed.
+
+    ``**connect_kwargs`` are forwarded verbatim to ``sqlite3.connect`` — callers
+    that pass ``timeout=2.0`` for fast-fail-on-lock behavior (tusk commit /
+    merge / test-precheck) keep those semantics. This is deliberately distinct
+    from the ``busy_timeout`` PRAGMA ``get_connection`` applies; raw callers that
+    want the bare connection use this helper, while ``get_connection`` layers the
+    row_factory / foreign_keys / busy_timeout setup on top.
+    """
+    try:
+        return sqlite3.connect(db_path, **connect_kwargs)
+    except sqlite3.OperationalError:
+        parent = os.path.dirname(db_path) or "."
+        if not os.path.isdir(parent):
+            cwd = os.getcwd()
+            print(
+                f"tusk: could not locate a tusk database (expected at {db_path}).\n"
+                f"  {cwd} is not inside an initialized tusk project.\n"
+                "  Run from inside a tusk repo, set TUSK_PROJECT=<path> or "
+                "TUSK_DB=<path>, or run 'tusk init' to create one.",
+                file=sys.stderr,
+            )
+            raise SystemExit(2)
+        raise
+
+
 def get_connection(db_path: str) -> sqlite3.Connection:
     """Return a SQLite connection with row_factory, foreign keys, and a
     busy_timeout enabled.
 
     The busy_timeout (issue #946) makes concurrent writers wait for a held
     lock to clear instead of failing instantly with "database is locked".
+    Opens through ``open_sqlite`` so the missing-parent diagnostic (issue #1126)
+    is applied uniformly with the other raw callers.
     """
-    conn = sqlite3.connect(db_path)
+    conn = open_sqlite(db_path)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     conn.execute(f"PRAGMA busy_timeout = {_busy_timeout_ms()}")
