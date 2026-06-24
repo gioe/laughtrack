@@ -18,9 +18,9 @@ from laughtrack.scrapers.implementations.api.the_events_calendar.data import Tri
 API_URL = "https://pritchardlaughlin.com/wp-json/tribe/events/v1/events"
 
 
-def _club() -> Club:
+def _club(metadata: dict | None = None) -> Club:
     _c = Club(id=300, name='Pritchard Laughlin Civic Center', address='7033 Glenn Hwy', website='https://pritchardlaughlin.com', popularity=0, zip_code='43725', phone_number='', visible=True, timezone='America/New_York')
-    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='the_events_calendar', scraper_key='the_events_calendar', source_url=API_URL, external_id=None)
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='the_events_calendar', scraper_key='the_events_calendar', source_url=API_URL, external_id=None, metadata=metadata or {})
     _c.scraping_sources = [_c.active_scraping_source]
     return _c
 
@@ -153,6 +153,142 @@ async def test_get_data_handles_non_numeric_cost(monkeypatch):
     result = await scraper.get_data(API_URL)
     assert result is not None
     assert result.event_list[0].cost_values == ["varies"]
+
+
+# ---------------------------------------------------------------------------
+# Mixed-use venue filtering (event_categories / title patterns) — all OFF by default
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_category_query_appended_when_configured(monkeypatch):
+    """event_categories metadata adds &categories= to the API request (server-side filter)."""
+    scraper = TheEventsCalendarScraper(_club(metadata={"event_categories": "on-the-spot-improv"}))
+    seen_urls = []
+
+    async def fake_fetch_json(self, url: str, **kwargs) -> dict:
+        seen_urls.append(url)
+        return _api_response([_raw_event(id_="1", title="On The Spot Improv")])
+
+    monkeypatch.setattr(TheEventsCalendarScraper, "fetch_json", fake_fetch_json)
+
+    await scraper.get_data(API_URL)
+
+    assert seen_urls
+    assert "&categories=on-the-spot-improv" in seen_urls[0]
+
+
+@pytest.mark.asyncio
+async def test_category_query_supports_list(monkeypatch):
+    """event_categories accepts a list of slugs, joined with commas."""
+    scraper = TheEventsCalendarScraper(_club(metadata={"event_categories": ["comedy", "improv"]}))
+    seen_urls = []
+
+    async def fake_fetch_json(self, url: str, **kwargs) -> dict:
+        seen_urls.append(url)
+        return _api_response([_raw_event(id_="1", title="Comedy Night")])
+
+    monkeypatch.setattr(TheEventsCalendarScraper, "fetch_json", fake_fetch_json)
+
+    await scraper.get_data(API_URL)
+
+    assert "&categories=comedy,improv" in seen_urls[0]
+
+
+@pytest.mark.asyncio
+async def test_no_category_query_by_default(monkeypatch):
+    """No &categories= fragment is added when event_categories is unset."""
+    scraper = TheEventsCalendarScraper(_club())
+    seen_urls = []
+
+    async def fake_fetch_json(self, url: str, **kwargs) -> dict:
+        seen_urls.append(url)
+        return _api_response([_raw_event(id_="1", title="Comedy Night")])
+
+    monkeypatch.setattr(TheEventsCalendarScraper, "fetch_json", fake_fetch_json)
+
+    await scraper.get_data(API_URL)
+
+    assert "categories=" not in seen_urls[0]
+
+
+@pytest.mark.asyncio
+async def test_filters_off_by_default_keep_all_events(monkeypatch):
+    """With no title filters configured, all events pass through untouched."""
+    scraper = TheEventsCalendarScraper(_club())
+
+    async def fake_fetch_json(self, url: str, **kwargs) -> dict:
+        return _api_response([
+            _raw_event(id_="1", title="On The Spot Improv"),
+            _raw_event(id_="2", title="Auditions: On The Spot Improv"),
+            _raw_event(id_="3", title="Winnie the Pooh Kids"),
+        ])
+
+    monkeypatch.setattr(TheEventsCalendarScraper, "fetch_json", fake_fetch_json)
+
+    result = await scraper.get_data(API_URL)
+    assert result is not None
+    assert len(result.event_list) == 3
+
+
+@pytest.mark.asyncio
+async def test_include_title_patterns_keeps_only_matches(monkeypatch):
+    """include_title_patterns keeps only matching titles."""
+    scraper = TheEventsCalendarScraper(
+        _club(metadata={"include_title_patterns": r"^On The Spot Improv$"})
+    )
+
+    async def fake_fetch_json(self, url: str, **kwargs) -> dict:
+        return _api_response([
+            _raw_event(id_="1", title="On The Spot Improv"),
+            _raw_event(id_="2", title="Auditions: On The Spot Improv"),
+            _raw_event(id_="3", title="Improv Workshop with the On the Spot Improv Team"),
+        ])
+
+    monkeypatch.setattr(TheEventsCalendarScraper, "fetch_json", fake_fetch_json)
+
+    result = await scraper.get_data(API_URL)
+    assert result is not None
+    titles = [e.title for e in result.event_list]
+    assert titles == ["On The Spot Improv"]
+
+
+@pytest.mark.asyncio
+async def test_exclude_title_patterns_drops_matches(monkeypatch):
+    """exclude_title_patterns drops matching titles (e.g. auditions/workshops)."""
+    scraper = TheEventsCalendarScraper(
+        _club(metadata={"exclude_title_patterns": ["Auditions", "Workshop"]})
+    )
+
+    async def fake_fetch_json(self, url: str, **kwargs) -> dict:
+        return _api_response([
+            _raw_event(id_="1", title="On The Spot Improv"),
+            _raw_event(id_="2", title="Auditions: On The Spot Improv"),
+            _raw_event(id_="3", title="Improv Workshop with the On the Spot Improv Team"),
+        ])
+
+    monkeypatch.setattr(TheEventsCalendarScraper, "fetch_json", fake_fetch_json)
+
+    result = await scraper.get_data(API_URL)
+    assert result is not None
+    titles = [e.title for e in result.event_list]
+    assert titles == ["On The Spot Improv"]
+
+
+@pytest.mark.asyncio
+async def test_returns_none_when_filters_drop_all(monkeypatch):
+    """get_data() returns None when title filters drop every event."""
+    scraper = TheEventsCalendarScraper(
+        _club(metadata={"include_title_patterns": "Nonexistent Series"})
+    )
+
+    async def fake_fetch_json(self, url: str, **kwargs) -> dict:
+        return _api_response([_raw_event(id_="1", title="On The Spot Improv")])
+
+    monkeypatch.setattr(TheEventsCalendarScraper, "fetch_json", fake_fetch_json)
+
+    result = await scraper.get_data(API_URL)
+    assert result is None
 
 
 # ---------------------------------------------------------------------------

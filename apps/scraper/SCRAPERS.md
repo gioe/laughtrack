@@ -1086,6 +1086,24 @@ FROM clubs c WHERE c.name = 'My Club'
   AND NOT EXISTS (SELECT 1 FROM scraping_sources s WHERE s.club_id = c.id AND s.scraper_key = 'the_events_calendar');
 ```
 
+**Mixed-use venues (comedy filtering):** when a Tribe site programs comedy
+*alongside* theater / concerts / workshops on one calendar, scope the scrape
+to the comedy series via `scraping_sources.metadata`. All three keys are OFF by
+default, so pure-comedy sources need no metadata.
+
+| Metadata key | Type | Effect |
+|---|---|---|
+| `event_categories` | string \| string[] | Tribe event-category **slug(s)**; appended server-side as `&categories=` so the API only returns those categories. |
+| `include_title_patterns` | regex \| regex[] | Keep only events whose title matches ≥1 pattern (client-side). |
+| `exclude_title_patterns` | regex \| regex[] | Drop events whose title matches any pattern (client-side) — e.g. strip `Auditions` / `Workshop` rows that share the comedy category. |
+
+> Find the category slug by hitting the unfiltered feed and reading each event's
+> `categories[].slug`, or `&categories=<slug>` to test. Example (On the Spot
+> Comedy, club 11139 — a studio that also runs MainStage/children's theater):
+> ```json
+> {"event_categories": "on-the-spot-improv", "exclude_title_patterns": ["Auditions", "Workshop"]}
+> ```
+
 ---
 
 ### WordPress Category Posts
