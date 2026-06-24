@@ -2,11 +2,32 @@
 
 import re
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Pattern
+from typing import Any, Dict, List, Optional, Pattern, Sequence
 from zoneinfo import ZoneInfo
 
 from laughtrack.core.entities.event.squarespace import SquarespaceEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+
+
+def _title_allowed(
+    title: str,
+    include_title_res: Optional[Sequence[Pattern[str]]],
+    exclude_title_res: Optional[Sequence[Pattern[str]]],
+) -> bool:
+    """Apply the opt-in include/exclude title filter to one event title.
+
+    include-then-exclude semantics (mirrors ticketweb / sellingticket):
+      - if include patterns are configured, the title must match at least one;
+      - if exclude patterns are configured, the title must match none.
+    Both default to empty/None → every title is allowed (existing venues
+    unaffected).
+    """
+    if include_title_res and not any(p.search(title) for p in include_title_res):
+        return False
+    if exclude_title_res and any(p.search(title) for p in exclude_title_res):
+        return False
+    return True
+
 
 _MONTHS = {
     "jan": 1, "feb": 2, "mar": 3, "apr": 4, "may": 5, "jun": 6,
@@ -44,7 +65,8 @@ class SquarespaceExtractor:
         items: List[Dict[str, Any]],
         base_domain: str,
         timezone_name: str,
-        exclude_title_re: Optional[Pattern[str]] = None,
+        include_title_res: Optional[Sequence[Pattern[str]]] = None,
+        exclude_title_res: Optional[Sequence[Pattern[str]]] = None,
     ) -> List[SquarespaceEvent]:
         """Extract events from a Squarespace **products/store** collection.
 
@@ -72,10 +94,10 @@ class SquarespaceExtractor:
                 event = SquarespaceExtractor._parse_product(raw, base_domain, tz)
                 if not event:
                     continue
-                if exclude_title_re is not None and exclude_title_re.search(event.title):
+                if not _title_allowed(event.title, include_title_res, exclude_title_res):
                     Logger.debug(
-                        f"SquarespaceExtractor: excluding non-show product '{event.title}' "
-                        f"(matched exclude_title_patterns)"
+                        f"SquarespaceExtractor: dropping product '{event.title}' "
+                        f"(title filter)"
                     )
                     continue
                 events.append(event)
@@ -179,17 +201,21 @@ class SquarespaceExtractor:
     def extract_events(
         api_response: List[Dict[str, Any]],
         base_domain: str,
-        exclude_title_re: Optional[Pattern[str]] = None,
+        include_title_res: Optional[Sequence[Pattern[str]]] = None,
+        exclude_title_res: Optional[Sequence[Pattern[str]]] = None,
     ) -> List[SquarespaceEvent]:
         """Extract SquarespaceEvent objects from the GetItemsByMonth API response.
 
         Args:
             api_response: JSON array returned by the GetItemsByMonth endpoint.
             base_domain: Base URL of the venue site (e.g. "https://thedentheatre.com").
-            exclude_title_re: Optional compiled regex; events whose title matches
-                are skipped. Used by venues whose events collection mixes public
-                shows with non-show entries (e.g. improv-theatre class sessions /
-                workshops). Default None keeps every event.
+            include_title_res: Optional compiled regexes; when configured, an
+                event is kept only if its title matches at least one (the comedy
+                allowlist for a mixed-use arts center). Default None keeps every
+                event.
+            exclude_title_res: Optional compiled regexes; events whose title
+                matches any are dropped (e.g. improv-theatre class sessions /
+                workshops). Default None drops nothing.
 
         Returns:
             List of SquarespaceEvent objects.
@@ -203,10 +229,9 @@ class SquarespaceExtractor:
                 event = SquarespaceExtractor._parse_event(raw, base_domain)
                 if not event:
                     continue
-                if exclude_title_re is not None and exclude_title_re.search(event.title):
+                if not _title_allowed(event.title, include_title_res, exclude_title_res):
                     Logger.debug(
-                        f"SquarespaceExtractor: excluding non-show '{event.title}' "
-                        f"(matched exclude_title_patterns)"
+                        f"SquarespaceExtractor: dropping '{event.title}' (title filter)"
                     )
                     continue
                 events.append(event)

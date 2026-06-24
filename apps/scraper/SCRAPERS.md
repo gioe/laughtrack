@@ -901,6 +901,12 @@ VALUES (
 
 **Products-collection mode (TASK-3012):** Some venues sell each show as a dated store product (collection `typeName='products'`, type 13, e.g. `/tickets/p/june-19-2026`) instead of an Events collection, so `GetItemsByMonth` returns `[]`. Onboard with `scraping_url` = the collection PAGE url (e.g. `https://<domain>/tickets`, no `collectionId` param) and `metadata.collection_type='products'`; the scraper then reads the page via `?format=json`, follows `pagination.nextPageUrl`, and parses each product's show date from its `fullUrl` slug (`/tickets/p/june-19-2026`) plus the time from the title (`@8pm`, default 19:00 if absent). Example: Westside Improv Studio (Wheaton, IL).
 
+**Mixed-use venues (comedy title filter, OFF by default):** a community performing-arts center often runs an occasional stand-up comedy night / open mic on the same Squarespace Events collection as films, plays, youth theatre, dance and concerts. Two opt-in `scraping_sources.metadata` title filters isolate comedy (both work in events mode and products mode; pattern parsing via the shared `BaseScraper.compile_title_patterns`, include-then-exclude loop mirrors `ticketweb`/`sellingticket`/`showare`, so existing single-purpose Squarespace venues are unchanged):
+- `include_title_patterns` — keep ONLY events whose title matches at least one regex (the comedy allowlist, e.g. `["comedy", "stand[- ]?up", "comedian", "open mic"]`).
+- `exclude_title_patterns` — drop events whose title matches any regex (e.g. improv-theatre class sessions / workshops; `\bLevel \d`, `Workshop`).
+
+When the live feed currently lists no stand-up night, an include-filtered source yields **0 shows by design** — comedy auto-populates when the next comedy night / open mic is listed (Clayton Club precedent, TASK-3192). Example: Cloverdale Performing Arts Center (club 11140, TASK-3236) — keeps "Comedy Night Featuring …" / "Open Mic Night", drops the films/plays/dance.
+
 **To onboard a new Squarespace venue:**
 1. Navigate in Playwright → capture `browser_network_requests` → find `GetItemsByMonth` call
 2. Extract `collectionId` from the network request URL

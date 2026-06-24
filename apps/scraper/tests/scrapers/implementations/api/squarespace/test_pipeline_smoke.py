@@ -361,7 +361,7 @@ async def test_get_data_returns_none_when_all_events_malformed(monkeypatch):
         return [_raw_event()]  # non-empty array
 
     monkeypatch.setattr(SquarespaceScraper, "fetch_json", fake_fetch_json)
-    monkeypatch.setattr(SquarespaceExtractor, "extract_events", staticmethod(lambda resp, domain, exclude_title_re=None: []))
+    monkeypatch.setattr(SquarespaceExtractor, "extract_events", staticmethod(lambda resp, domain, **kwargs: []))
     monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", lambda url: __import__("asyncio").sleep(0))
 
     result = await scraper.get_data(
@@ -599,7 +599,7 @@ async def test_full_pipeline_transformation_produces_shows(monkeypatch):
     monkeypatch.setattr(
         SquarespaceExtractor,
         "extract_events",
-        staticmethod(lambda resp, domain, exclude_title_re=None: [fake_event]),
+        staticmethod(lambda resp, domain, **kwargs: [fake_event]),
     )
 
     async def fake_fetch_json(self, url: str, **kwargs):
@@ -629,53 +629,98 @@ async def test_full_pipeline_transformation_produces_shows(monkeypatch):
 import re  # noqa: E402
 
 
-def _club_with_exclude(patterns) -> Club:
+def _club_with_metadata(metadata: dict) -> Club:
     c = _club()
     c.active_scraping_source = ScrapingSource(
         id=1, club_id=c.id, platform="custom", scraper_key="squarespace",
-        source_url=SCRAPING_URL, external_id=None, metadata={"exclude_title_patterns": patterns},
+        source_url=SCRAPING_URL, external_id=None, metadata=metadata,
     )
     c.scraping_sources = [c.active_scraping_source]
     return c
 
 
+def _club_with_exclude(patterns) -> Club:
+    return _club_with_metadata({"exclude_title_patterns": patterns})
+
+
+def _compile(patterns):
+    return [re.compile(p, re.IGNORECASE) for p in patterns]
+
+
 def test_extract_events_excludes_titles_matching_regex():
-    """extract_events() drops events whose title matches exclude_title_re."""
+    """extract_events() drops events whose title matches an exclude pattern."""
     raw = [
         _raw_event(event_id="1", title="Imposters BIG Improv Comedy Night"),
         _raw_event(event_id="2", title="Improv Level 1"),
         _raw_event(event_id="3", title="Try Improv! Workshop for Beginners"),
         _raw_event(event_id="4", title="Matt Banwart Live @ Imposters"),
     ]
-    rx = re.compile(r"\bLevel \d|Workshop|Try Improv", re.IGNORECASE)
-    events = SquarespaceExtractor.extract_events(raw, BASE_DOMAIN, exclude_title_re=rx)
+    rx = _compile([r"\bLevel \d|Workshop|Try Improv"])
+    events = SquarespaceExtractor.extract_events(raw, BASE_DOMAIN, exclude_title_res=rx)
     titles = {e.title for e in events}
     assert titles == {"Imposters BIG Improv Comedy Night", "Matt Banwart Live @ Imposters"}
 
 
-def test_extract_events_keeps_all_when_exclude_re_is_none():
-    """Default (no exclude regex) keeps every valid event — existing-venue behavior."""
+def test_extract_events_keeps_all_when_filters_are_none():
+    """Default (no filters) keeps every valid event — existing-venue behavior."""
     raw = [_raw_event(event_id="1", title="Improv Level 1"), _raw_event(event_id="2", title="Comedy Night")]
     events = SquarespaceExtractor.extract_events(raw, BASE_DOMAIN)
     assert {e.title for e in events} == {"Improv Level 1", "Comedy Night"}
 
 
-def test_scraper_builds_exclude_re_from_metadata():
+def test_extract_events_include_keeps_only_matching_titles():
+    """extract_events() with include patterns keeps only matching titles (mixed-use allowlist)."""
+    raw = [
+        _raw_event(event_id="1", title="Comedy Night Featuring Clara Bijl"),
+        _raw_event(event_id="2", title="Elvis Homecoming Tribute"),
+        _raw_event(event_id="3", title="Open Mic Night"),
+        _raw_event(event_id="4", title="The Cottage (a play)"),
+    ]
+    inc = _compile([r"comedy", r"stand[- ]?up", r"comedian", r"open mic"])
+    events = SquarespaceExtractor.extract_events(raw, BASE_DOMAIN, include_title_res=inc)
+    assert {e.title for e in events} == {"Comedy Night Featuring Clara Bijl", "Open Mic Night"}
+
+
+def test_extract_events_include_then_exclude_compose():
+    """include keeps the comedy allowlist, then exclude drops a flagged subset."""
+    raw = [
+        _raw_event(event_id="1", title="Comedy Night - Joe Klocek"),
+        _raw_event(event_id="2", title="Comedy Workshop for Kids"),
+        _raw_event(event_id="3", title="Magic Show"),
+    ]
+    inc = _compile([r"comedy"])
+    exc = _compile([r"workshop"])
+    events = SquarespaceExtractor.extract_events(
+        raw, BASE_DOMAIN, include_title_res=inc, exclude_title_res=exc
+    )
+    assert {e.title for e in events} == {"Comedy Night - Joe Klocek"}
+
+
+def test_scraper_builds_exclude_res_from_metadata():
     scraper = SquarespaceScraper(_club_with_exclude([r"\bLevel \d", "Workshop"]))
-    assert scraper.exclude_title_re is not None
-    assert scraper.exclude_title_re.search("Improv Level 2")
-    assert not scraper.exclude_title_re.search("Harold Night")
+    assert scraper.exclude_title_res
+    assert any(p.search("Improv Level 2") for p in scraper.exclude_title_res)
+    assert not any(p.search("Harold Night") for p in scraper.exclude_title_res)
 
 
-def test_scraper_no_exclude_re_when_metadata_absent():
-    """A club without exclude_title_patterns metadata keeps the default (None)."""
-    assert SquarespaceScraper(_club()).exclude_title_re is None
+def test_scraper_builds_include_res_from_metadata():
+    scraper = SquarespaceScraper(_club_with_metadata({"include_title_patterns": ["comedy", "open mic"]}))
+    assert scraper.include_title_res
+    assert any(p.search("Comedy Night") for p in scraper.include_title_res)
+    assert not any(p.search("Elvis Tribute") for p in scraper.include_title_res)
+
+
+def test_scraper_no_filters_when_metadata_absent():
+    """A club without title-filter metadata keeps the defaults (empty lists)."""
+    scraper = SquarespaceScraper(_club())
+    assert scraper.exclude_title_res == []
+    assert scraper.include_title_res == []
 
 
 def test_scraper_invalid_regex_metadata_is_ignored():
     """A bad regex in metadata is logged and ignored rather than crashing init."""
     scraper = SquarespaceScraper(_club_with_exclude(["valid", "(unclosed["]))
-    assert scraper.exclude_title_re is None
+    assert len(scraper.exclude_title_res) == 1
 
 
 @pytest.mark.asyncio

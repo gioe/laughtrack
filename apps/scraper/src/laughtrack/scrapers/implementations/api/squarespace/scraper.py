@@ -78,28 +78,21 @@ class SquarespaceScraper(BaseScraper):
         # The collection page url with any query stripped (?format=json appended later).
         self.products_url = f"{self.base_domain}{parsed.path}".rstrip("/")
 
-        # Opt-in non-show filter: venues whose events collection mixes public
-        # shows with class sessions/workshops (common for improv theatres) set
-        # scraping_sources.metadata.exclude_title_patterns to a list of regex
-        # strings; any event whose title matches is dropped. Absent/empty → keep
-        # everything (existing venues are unaffected).
-        self.exclude_title_re = self._build_exclude_title_re(club)
+        # Opt-in title filter for mixed-use venues. Two scraping_sources.metadata
+        # keys, both OFF by default (existing venues are unaffected):
+        #   - include_title_patterns — keep ONLY events whose title matches at
+        #     least one pattern (the comedy allowlist; for an arts center whose
+        #     events collection is mostly films/plays/concerts with an occasional
+        #     comedy night, e.g. Cloverdale Performing Arts Center, TASK-3236).
+        #   - exclude_title_patterns — drop events whose title matches any
+        #     pattern (class sessions/workshops on improv-theatre calendars).
+        # Patterns are compiled (str-or-list, case-insensitive, re.error-guarded)
+        # via the shared BaseScraper.compile_title_patterns helper. The
+        # include-then-exclude loop mirrors ticketweb / sellingticket / showare.
+        self.include_title_res = self.compile_title_patterns("include_title_patterns")
+        self.exclude_title_res = self.compile_title_patterns("exclude_title_patterns")
 
         self._register_host_rps(_SQUARESPACE_HOST_RPS)
-
-    @staticmethod
-    def _build_exclude_title_re(club: Club):
-        patterns = (club.source_metadata or {}).get("exclude_title_patterns")
-        if not isinstance(patterns, list):
-            return None
-        valid = [p for p in patterns if isinstance(p, str) and p.strip()]
-        if not valid:
-            return None
-        try:
-            return re.compile("|".join(valid), re.IGNORECASE)
-        except re.error as e:
-            Logger.warn(f"SquarespaceScraper [{club.name}]: invalid exclude_title_patterns: {e}")
-            return None
 
     async def collect_scraping_targets(self) -> List[ScrapingTarget]:
         """Return the fetch targets for this venue.
@@ -152,7 +145,10 @@ class SquarespaceScraper(BaseScraper):
                 return None
 
             events = SquarespaceExtractor.extract_events(
-                response, self.base_domain, exclude_title_re=self.exclude_title_re
+                response,
+                self.base_domain,
+                include_title_res=self.include_title_res,
+                exclude_title_res=self.exclude_title_res,
             )
             if not events:
                 Logger.info(
@@ -229,7 +225,8 @@ class SquarespaceScraper(BaseScraper):
             all_items,
             self.base_domain,
             timezone_name=self.club.timezone or "UTC",
-            exclude_title_re=self.exclude_title_re,
+            include_title_res=self.include_title_res,
+            exclude_title_res=self.exclude_title_res,
         )
         if not events:
             Logger.info(
