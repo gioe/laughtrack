@@ -15,14 +15,17 @@ EVENTS_URL = "https://purchase.groundlings.com/events?view=list"
 API_URL = "https://purchase.groundlings.com/api/products/productionseasons"
 
 
-def _club() -> Club:
+def _club(extra_metadata: dict | None = None) -> Club:
+    metadata = {"api_url": API_URL, "events_url": EVENTS_URL}
+    if extra_metadata:
+        metadata.update(extra_metadata)
     source = ScrapingSource(
         id=1,
         club_id=8836,
         platform="custom",
         scraper_key="tessitura_tnew",
         source_url=EVENTS_URL,
-        metadata={"api_url": API_URL, "events_url": EVENTS_URL},
+        metadata=metadata,
     )
     club = Club(
         id=8836,
@@ -159,6 +162,45 @@ async def test_scraper_posts_browser_equivalent_form(monkeypatch):
     assert parsed["endDate"] == ["2027-03-17T23:59:59-07:00"]
     assert calls["headers"]["requestverificationtoken"] == "token-123"
     assert calls["headers"]["x-requested-with"] == "XMLHttpRequest"
+
+
+async def test_mixed_use_keyword_ids_filter_passed_to_api(monkeypatch):
+    """A PAC with comedy among many genres sends its Comedy genre id server-side."""
+    scraper = TessituraTNEWScraper(_club({"keyword_ids": "78"}))
+    calls = {}
+
+    async def fake_fetch_html(url, **kwargs):
+        return LISTING_HTML
+
+    async def fake_post_form(url, data, **kwargs):
+        calls["data"] = data
+        return json.dumps(PRODUCTIONS)
+
+    monkeypatch.setattr(scraper, "fetch_html", fake_fetch_html)
+    monkeypatch.setattr(scraper, "post_form", fake_post_form)
+
+    await scraper.get_data(EVENTS_URL)
+    parsed = parse_qs(calls["data"], keep_blank_values=True)
+    assert parsed["keywordIds"] == ["78"]
+
+
+async def test_keyword_ids_list_serializes_comma_separated(monkeypatch):
+    scraper = TessituraTNEWScraper(_club({"keyword_ids": ["78", "211"]}))
+    calls = {}
+
+    async def fake_fetch_html(url, **kwargs):
+        return LISTING_HTML
+
+    async def fake_post_form(url, data, **kwargs):
+        calls["data"] = data
+        return json.dumps(PRODUCTIONS)
+
+    monkeypatch.setattr(scraper, "fetch_html", fake_fetch_html)
+    monkeypatch.setattr(scraper, "post_form", fake_post_form)
+
+    await scraper.get_data(EVENTS_URL)
+    parsed = parse_qs(calls["data"], keep_blank_values=True)
+    assert parsed["keywordIds"] == ["78,211"]
 
 
 def test_future_show_has_ticket_url():
