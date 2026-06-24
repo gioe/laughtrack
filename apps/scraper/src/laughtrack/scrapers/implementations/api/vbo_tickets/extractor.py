@@ -28,13 +28,13 @@ _EID_RE = re.compile(r"event\.asp\?eid=(\d+)", re.IGNORECASE)
 _DATE_RE = re.compile(r'class="TextEventDate[^"]*">\s*([^<]+?)\s*</div>', re.IGNORECASE)
 _PRICE_RE = re.compile(r'class="EventListPrice">\s*([^<]+?)\s*</div>', re.IGNORECASE)
 _PRICE_NUM_RE = re.compile(r"\$\s*([0-9]+(?:\.[0-9]{2})?)")
+_DATE_SLIDER_GAP = r'(?:(?!id="edid\d+")[\s\S])*?'
 _DATE_SLIDER_BOX_RE = re.compile(
-    r'id="edid(\d+)".*?'
-    r'DateMonth[^>]*>([A-Za-z]+)<.*?'
-    r'DateDay[^>]*>(\d+)<.*?'
-    r'WeekDay">([^<]+)</span>'
-    r'.*?WeekDayTime"> - ([^<]+)</span>',
-    re.DOTALL,
+    r'id="edid(\d+)"' + _DATE_SLIDER_GAP
+    + r'DateMonth[^>]*>([A-Za-z]+)<' + _DATE_SLIDER_GAP
+    + r'DateDay[^>]*>(\d+)<' + _DATE_SLIDER_GAP
+    + r'WeekDay">([^<]+)</span>' + _DATE_SLIDER_GAP
+    + r'WeekDayTime"> - ([^<]+)</span>'
 )
 
 # Free-form date parsing (venues whose admins enter date text by hand rather

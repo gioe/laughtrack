@@ -321,6 +321,26 @@ def _date_slider_html(*entries: tuple[str, str, int, str, str]) -> str:
     return "\n".join(boxes)
 
 
+def _malformed_date_slider_html() -> str:
+    return """
+<div class="SelectorBox" id="edid801001" onclick="LoadSpinner('801001'); LoadEvent('1','801001');">
+  <div class="DateMonth __edid801001">Jul<div></div></div>
+  <div class="DateDay __edid801001">11<div></div></div>
+  <div class="DateTime __edid801001">
+    <span class="WeekDay">Sat</span>
+  </div>
+</div>
+<div class="SelectorBox" id="edid801003" onclick="LoadSpinner('801003'); LoadEvent('1','801003');">
+  <div class="DateMonth __edid801003">Jul<div></div></div>
+  <div class="DateDay __edid801003">18<div></div></div>
+  <div class="DateTime __edid801003">
+    <span class="WeekDay">Sat</span>
+    <span class="WeekDayTime"> - 8:00 PM</span>
+  </div>
+</div>
+"""
+
+
 MADE_UP_HTML = (
     '<div class="clearfix gridrow" id="CurrentEvents" role="list">'
     + _nest_block("801001", "211001", "Laugh Track City", "MUT Shows",
@@ -380,6 +400,23 @@ async def test_unparseable_recurring_rows_expand_from_detail_date_slider(monkeyp
     detail_fetches = [url for url in fetched_urls if "load_eventdate_slider" in url]
     assert len(detail_fetches) == 2
     assert all("s=e5fc5abd-aeae-4e80-8a9c-0fd090ed40b0" in url for url in detail_fetches)
+
+
+def test_date_slider_parser_skips_malformed_boxes_without_cross_box_pairing():
+    """A malformed slider box must not steal the next box's time."""
+    target = VboTicketsExtractor.extract_detail_expansion_targets(
+        MADE_UP_HTML,
+        category_filter="MUT Shows",
+        club_name="Made Up Theatre",
+    )[0]
+
+    events = VboTicketsExtractor.extract_events_from_date_slider(
+        _malformed_date_slider_html(),
+        target,
+        today=date(2026, 6, 24),
+    )
+
+    assert [e.start_iso for e in events] == ["2026-07-18 20:00:00"]
 
 
 @pytest.mark.asyncio
