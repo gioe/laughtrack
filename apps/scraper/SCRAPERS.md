@@ -2226,6 +2226,8 @@ WHERE id = <club_id>;
 - `scraping_url` **must** be `https://web.ovationtix.com/trs/cal/{clientId}` (server-rendered calendar page). Do NOT use `ci.ovationtix.com/{clientId}` — that is a JS SPA and the HTML contains no production IDs for the scraper to discover.
 - Discovers all production IDs from the calendar HTML, fetches performances and pricing automatically
 
+**Mixed-use venues (comedy filter, off by default):** many OvationTix clients are multi-arts/community theaters that run plays and musicals alongside the occasional stand-up night (e.g. 142 Throckmorton Theatre client 35161, Lucky Penny Community Arts Center client 36167). Opt into comedy isolation via `scraping_sources.metadata = {"comedy_filter": true}` so only comedy productions persist (keyword + known-comedian heuristic; see `scrapers/utils/comedy_filter.py`). OFF by default, so single-purpose comedy OvationTix venues (Comedy @ The Carlson, etc.) are unaffected. Lucky Penny: 8 upcoming productions, the filter keeps only "Comedy Night with Johnny Steele and Friends" and drops the 7 plays/musicals.
+
 **Ticket pricing:** fetched via a separate `Performance({id})` call per upcoming show. Response `sections[].ticketTypeViews` provides per-tier pricing. Format the ticket `type` as `f"{ticketGroupName} - {name}"` (e.g. `"General - Adult"`) to match `OvationTixClient._extract_ticket_data()` and avoid dedup key mismatches.
 
 ---
