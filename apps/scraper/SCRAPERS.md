@@ -1285,12 +1285,21 @@ UPDATE clubs SET scraper = 'json_ld', scraping_url = 'https://myvenue.com/events
   `{"enabled": true, "url_path_prefix": "/shows/"}` collects every `<a href>` under
   that path prefix; `pagination` / typed-field (`object_type`/`url_path`) modes
   also exist.
-- `comedy_filter` (bool) — for **mixed-use venues** (a music bar / arts space whose
-  calendar is mostly non-comedy). When `true`, drops events whose title +
-  description carry no comedy keyword (`is_comedy_event`), mirroring the
-  `wix_events` flag. schema.org Event JSON-LD has no genre field, so the keyword
-  match is the only signal. Leave unset for all-comedy venues so a show titled with
-  only a comedian's name is never dropped.
+- `comedy_filter` (bool) — for **mixed-use venues** (a music bar / arts space / multi-use
+  theater whose calendar is mostly non-comedy). When `true`, isolates comedy via the
+  shared `select_comedy_titles` heuristic (the same one etix/ticketleap use): an event is
+  kept when its title/description matches a comedy keyword (`is_comedy_event`), OR its title
+  contains a `comedy_title_allowlist` substring, OR it names a known comedian whose **stored**
+  popularity clears `min_comedian_popularity`. schema.org Event JSON-LD has no genre field, so
+  these are the only signals. The known-comedian branch keeps name-only stand-up titles
+  ("Richard Villa") that carry no comedy keyword. Leave unset for all-comedy venues so a show
+  titled with only a comedian's name is never dropped.
+- `min_comedian_popularity` (float, default 0.30) — popularity floor for the known-comedian
+  branch of `comedy_filter`. Lower it (e.g. 0.25) when a confirmed-comedy venue books regional
+  comedians whose stored popularity sits just under 0.30.
+- `comedy_title_allowlist` (list of strings) — per-source substring escape hatch for the
+  `comedy_filter` known-comedian/keyword signals to miss (e.g. a local comedy act not in the
+  comedians DB whose title carries no comedy keyword).
 
 **Mixed-use example — Cole's Bar (TASK-2964):** an Opendate music bar whose
 `/shows/<slug>` detail pages embed `MusicEvent` JSON-LD. The homepage lists ~85%
@@ -1298,6 +1307,21 @@ live music plus a weekly "Comedy Open Mic". Onboarded with `scraper_key='json_ld
 `source_url='https://colesbarchicago.com/'`, and
 `metadata={"detail_fetch": {"enabled": true, "url_path_prefix": "/shows/"}, "comedy_filter": true}`
 → scrapes only the comedy open mics.
+
+**Ticketor box-office example — Fox Theater Salinas (TASK-3242):** a multi-use Squarespace
+venue whose own Events page (a hand-authored Squarespace *page*, not an Events collection —
+`GetItemsByMonth` returns `[]`) links out to its **Ticketor** (ticketor.com white-label,
+"Powered by Ticketor", `__VIEWSTATEGENERATOR` ASP.NET markup) box office at
+`tickets831.com`. The Ticketor homepage embeds one schema.org `Event` JSON-LD block per
+upcoming event across **all** its venues. Onboarded with `scraper_key='json_ld'`,
+`source_url='https://www.tickets831.com/'`, and
+`metadata={"location_name_filter": "FOX THEATER", "comedy_filter": true,
+"min_comedian_popularity": 0.25, "comedy_title_allowlist": ["uncle louie", "variety show"]}`
+→ `location_name_filter` isolates this venue from the multi-venue feed; `comedy_filter`
+(popularity floor 0.25 to keep Richard Villa @ 0.27; allowlist to keep the Uncle Louie comedy
+duo) drops the EDM/Latin-music/tribute-band programming. Verified: 2 comedy shows persist.
+Any Ticketor venue (look for "Powered by Ticketor" / a `tickets<areacode>.com` host) onboards
+the same way.
 
 ---
 
