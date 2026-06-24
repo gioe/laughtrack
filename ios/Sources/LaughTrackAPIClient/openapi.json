@@ -2621,8 +2621,7 @@
                 "description": "Number of unread items in this feed (items with isUnread true)."
               },
               "lastSeenAt": {
-                "type": "string",
-                "nullable": true,
+                "type": ["string", "null"],
                 "description": "ISO-8601 timestamp the user last opened the notification center; null if never opened."
               }
             }
@@ -2662,8 +2661,7 @@
             "required": ["lastSeenAt"],
             "properties": {
               "lastSeenAt": {
-                "type": "string",
-                "nullable": true,
+                "type": ["string", "null"],
                 "description": "The newly-stamped last-seen timestamp (ISO-8601)."
               }
             }
