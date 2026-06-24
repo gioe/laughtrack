@@ -1,11 +1,15 @@
 package app.laughtrack.android
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
@@ -13,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.navigation.LaughTrackDeepLink
@@ -21,6 +26,8 @@ import app.laughtrack.android.core.network.auth.AuthProvider
 import app.laughtrack.android.core.network.auth.AuthSessionManager
 import app.laughtrack.android.core.playback.PodcastPlaybackController
 import app.laughtrack.android.core.ui.theme.LaughTrackTheme
+import app.laughtrack.android.push.PushNotifications
+import app.laughtrack.android.push.PushTokenManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -40,13 +47,22 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var playbackController: PodcastPlaybackController
 
+    @Inject
+    lateinit var pushTokenManager: PushTokenManager
+
     private var pendingRoute by mutableStateOf<AppRoute?>(null)
     private val authStatus = mutableStateOf("Signed out")
     private val signedIn = mutableStateOf(false)
 
+    // POST_NOTIFICATIONS runtime prompt (Android 13+). Registered at construction
+    // so it is available before the activity is STARTED.
+    private val requestNotificationPermission =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        PushNotifications.ensureChannel(this)
         // Seed deep-link routing / auth-callback handling only on a fresh start; a
         // config-change recreation re-delivers the launch Intent and must not
         // re-navigate or re-handle the original link (3258). onNewIntent covers
@@ -126,6 +142,12 @@ class MainActivity : ComponentActivity() {
     private suspend fun refreshSignedInUser() {
         val hasSession = authSessionManager.restoreSession() != null
         signedIn.value = hasSession
+        if (hasSession) {
+            // Sync the FCM token while authenticated (no-ops without a Firebase
+            // project), and prompt for the notification permission on Android 13+.
+            maybeRequestNotificationPermission()
+            pushTokenManager.syncCurrentToken()
+        }
         authStatus.value = authSessionManager.getMe()
             .fold(
                 onSuccess = { response ->
@@ -140,8 +162,20 @@ class MainActivity : ComponentActivity() {
             )
     }
 
+    private fun maybeRequestNotificationPermission() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+        val granted = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.POST_NOTIFICATIONS,
+        ) == PackageManager.PERMISSION_GRANTED
+        if (!granted) requestNotificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+    }
+
     private fun signOut() {
         lifecycleScope.launch {
+            // Deactivate this device's push token server-side before clearing the
+            // session, mirroring iOS PushDeviceTokenManager.deactivate on sign-out.
+            pushTokenManager.deactivateCurrentToken()
             val revoked = authSessionManager.signOut()
             signedIn.value = false
             authStatus.value = if (revoked) "Signed out" else "Signed out locally"
