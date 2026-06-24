@@ -97,10 +97,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun restoreSession() {
-        lifecycleScope.launch {
-            authSessionManager.restoreSession()
-            refreshSignedInUser()
-        }
+        lifecycleScope.launch { refreshSignedInUser() }
     }
 
     private fun launchAuth(provider: AuthProvider) {
@@ -120,10 +117,13 @@ class MainActivity : ComponentActivity() {
     }
 
     private suspend fun refreshSignedInUser() {
+        val hasSession = authSessionManager.restoreSession() != null
         authStatus.value = authSessionManager.getMe()
             .fold(
                 onSuccess = { response -> "Signed in as ${response.data.email}" },
-                onFailure = { "Signed out" },
+                // Valid stored tokens but /me failed (offline / server blip) is not a
+                // logout — the tokens are untouched and the next request will use them.
+                onFailure = { if (hasSession) "Signed in" else "Signed out" },
             )
     }
 

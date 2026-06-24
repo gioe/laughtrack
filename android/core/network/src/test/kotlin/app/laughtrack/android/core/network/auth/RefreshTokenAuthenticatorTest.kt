@@ -106,6 +106,53 @@ class RefreshTokenAuthenticatorTest {
         assertEquals("Bearer new-access", retriedMe.getHeader("Authorization"))
     }
 
+    @Test
+    fun clearsTokensAndSurfaces401WhenRefreshFails() = runTest {
+        val store = InMemoryTokenStore(
+            SessionTokens("old-access", "old-refresh", expiresAtEpochSeconds = 1),
+        )
+        val baseUrl = server.url("/api/v1/").toString()
+        val authApi = authedApi(store, baseUrl)
+
+        server.enqueue(MockResponse().setResponseCode(401)) // GET /me
+        server.enqueue(MockResponse().setResponseCode(401)) // POST /auth/refresh fails
+
+        val response = authApi.getMe()
+
+        assertEquals(401, response.code())
+        // A failed refresh must clear the session so the app falls back to sign-in.
+        assertEquals(null, store.read())
+    }
+
+    @Test
+    fun stopsAfterOneRetryWhenRefreshedTokenStillUnauthorized() = runTest {
+        val store = InMemoryTokenStore(
+            SessionTokens("old-access", "old-refresh", expiresAtEpochSeconds = 1),
+        )
+        val baseUrl = server.url("/api/v1/").toString()
+        val authApi = authedApi(store, baseUrl)
+
+        server.enqueue(MockResponse().setResponseCode(401)) // GET /me
+        server.enqueue(
+            jsonResponse("""{"accessToken":"new-access","refreshToken":"new-refresh","expiresIn":900}"""),
+        ) // refresh succeeds
+        server.enqueue(MockResponse().setResponseCode(401)) // retried GET /me still 401
+
+        val response = authApi.getMe()
+
+        // MAX_AUTH_ATTEMPTS guard must stop the retry chain — no infinite refresh loop.
+        assertEquals(401, response.code())
+    }
+
+    private fun authedApi(store: InMemoryTokenStore, baseUrl: String): AuthApi {
+        val refreshApi = apiWithClient(baseUrl, OkHttpClient())
+        val authedClient = OkHttpClient.Builder()
+            .addInterceptor(AuthTokenInterceptor(store) { "UTC" })
+            .authenticator(RefreshTokenAuthenticator(tokenStore = store, refreshApi = refreshApi))
+            .build()
+        return apiWithClient(baseUrl, authedClient)
+    }
+
     private fun apiWithClient(baseUrl: String, okHttpClient: OkHttpClient): AuthApi =
         ApiClient(
             baseUrl = baseUrl,
