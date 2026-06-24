@@ -145,7 +145,8 @@
   "test_command_timeout_sec": 600,
   "baseline_min_sample_size": 10,
   "path_test_commands": {
-    "ios/**": "cd ios && xcodebuild build-for-testing -project LaughTrack.xcodeproj -scheme LaughTrack -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO"
+    "ios/**": "cd ios && xcodebuild build-for-testing -project LaughTrack.xcodeproj -scheme LaughTrack -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO",
+    "android/**": "cd android && if ! { [ -n \"$JAVA_HOME\" ] && \"$JAVA_HOME/bin/java\" -version >/dev/null 2>&1; } && ! java -version >/dev/null 2>&1; then echo '[tusk android gate] SKIPPED: no working JDK 17 — export JAVA_HOME to a real JDK 17 home (the macOS /usr/bin/java stub does not count). See android/README.md > Prerequisites: JDK 17.'; exit 0; fi; if [ ! -f local.properties ] && [ -z \"$ANDROID_HOME\" ] && [ -z \"$ANDROID_SDK_ROOT\" ]; then echo '[tusk android gate] SKIPPED: Android SDK not configured — set ANDROID_HOME/ANDROID_SDK_ROOT or android/local.properties (else: SDK location not found). See android/README.md.'; exit 0; fi; ./gradlew testDebugUnitTest"
   },
   "retro": {
     "auto_apply": false,
