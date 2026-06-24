@@ -503,6 +503,7 @@ def main() -> None:
                 "address": venue.address,
                 "website": venue.website,
                 "primary_type": venue.primary_type,
+                "business_status": venue.business_status,
                 "category_state": classification.category_state,
                 "place_id": venue.place_id,
                 "matched_club_id": classification.club_id,
@@ -541,6 +542,7 @@ _CSV_FIELDS = [
     "address",
     "website",
     "primary_type",
+    "business_status",
     "category_state",
     "place_id",
     "matched_club_id",
@@ -570,6 +572,11 @@ def _render(results, fmt) -> None:
     for r in results:
         loc = r["address"] or ""
         category = f" [{r['category_state']}]" if r.get("category_state") else ""
+        # Flag non-operational venues inline so a human scanning the table sees
+        # CLOSED_PERMANENTLY / CLOSED_TEMPORARILY without reading the JSON. An
+        # OPERATIONAL (or absent) status is the common case and adds no noise.
+        biz = r.get("business_status")
+        closed = f" !{biz}" if biz and biz != "OPERATIONAL" else ""
         suffix = ""
         if r["matched_club_name"]:
             suffix = f"  → club #{r['matched_club_id']} {r['matched_club_name']!r}"
@@ -577,7 +584,7 @@ def _render(results, fmt) -> None:
             suffix = f"  {r['website']}"
         print(
             f"[{tag.get(r['status'], r['status'])}] {r['distance_mi']:>5.1f} mi  "
-            f"{r['name']}{category}{(' — ' + loc) if loc else ''}{suffix}"
+            f"{r['name']}{category}{closed}{(' — ' + loc) if loc else ''}{suffix}"
         )
 
 
