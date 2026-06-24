@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { findSiblingClubs } from "@/lib/data/club/detail/findSiblingClubs";
 import { buildClubHeroImageUrl, buildClubImageUrl } from "@/util/imageUtil";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { withRequestMetrics } from "@/lib/metrics";
@@ -31,6 +32,7 @@ export const GET = withRequestMetrics(async function GET(
                 address: true,
                 zipCode: true,
                 phoneNumber: true,
+                chainId: true,
                 hasImage: true,
                 latitude: true,
                 longitude: true,
@@ -50,6 +52,10 @@ export const GET = withRequestMetrics(async function GET(
             );
         }
 
+        const relatedVenues = club.chainId
+            ? await findSiblingClubs(club.chainId, club.id)
+            : [];
+
         return NextResponse.json(
             {
                 data: {
@@ -65,6 +71,7 @@ export const GET = withRequestMetrics(async function GET(
                     phoneNumber: club.phoneNumber,
                     latitude: club.latitude,
                     longitude: club.longitude,
+                    relatedVenues,
                 },
             },
             { headers: rateLimitHeaders(rl) },

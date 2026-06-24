@@ -561,6 +561,73 @@
         }
       }
     },
+    "/clubs/{id}/shows": {
+      "get": {
+        "operationId": "getClubShows",
+        "summary": "List upcoming shows for a club",
+        "tags": ["clubs"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Zero-indexed page number",
+            "schema": { "type": "integer", "minimum": 0 }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "schema": { "type": "integer", "minimum": 1 }
+          }
+        ],
+        "security": [{ "bearerAuth": [] }, {}],
+        "responses": {
+          "200": {
+            "description": "Club upcoming shows",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ClubShowsResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "headers": {
+              "Retry-After": {
+                "description": "Number of seconds the client should wait before retrying.",
+                "schema": { "type": "integer", "minimum": 0 }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/clubs/search": {
       "get": {
         "operationId": "searchClubs",
@@ -3102,7 +3169,33 @@
           "zipCode": { "type": ["string", "null"] },
           "phoneNumber": { "type": ["string", "null"] },
           "latitude": { "type": ["number", "null"] },
-          "longitude": { "type": ["number", "null"] }
+          "longitude": { "type": ["number", "null"] },
+          "relatedVenues": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ClubRelatedVenue" }
+          }
+        }
+      },
+      "ClubRelatedVenue": {
+        "type": "object",
+        "required": ["id", "name", "imageUrl"],
+        "properties": {
+          "id": { "type": "integer" },
+          "name": { "type": "string" },
+          "city": { "type": ["string", "null"] },
+          "state": { "type": ["string", "null"] },
+          "imageUrl": { "type": "string" }
+        }
+      },
+      "ClubShowsResponse": {
+        "type": "object",
+        "required": ["data", "total"],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Show" }
+          },
+          "total": { "type": "integer" }
         }
       },
       "ClubSearchItem": {

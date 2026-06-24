@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { LINEUP_COMEDIAN_SELECT } from "@/lib/data/comedian/lineupComedianSelect";
 import { PARENT_COMEDIAN_LINEUP_SELECT } from "@/lib/data/comedian/parentComedianSelect";
 import { QueryHelper, SHOW_SORT_MAP } from "@/objects/class/query/QueryHelper";
+import { SortParamValue } from "@/objects/enum/sortParamValue";
 import { ShowDTO } from "@/objects/class/show/show.interface";
 import { filterAndMapLineupItems } from "@/util/comedian/comedianUtil";
 import { computeDistanceMiles } from "@/util/distanceUtil";
@@ -14,6 +15,13 @@ interface ShowsResponse {
     shows: ShowDTO[];
     totalCount: number;
     zipCapTriggered: boolean;
+}
+
+interface ClubShowsOptions {
+    page?: string;
+    size?: string;
+    profileId?: string;
+    userId?: string;
 }
 
 const SHOW_SELECT = {
@@ -203,38 +211,9 @@ export async function findShowsWithCount(
                 0,
                 totalCount - (filteredShows.length - availableShows.length),
             ),
-            shows: availableShows.map((show) => ({
-                id: show.id,
-                date: show.date,
-                name: show.name,
-                description: show.description ?? undefined,
-                room: show.room,
-                address: show.club.address,
-                clubId: show.club.id,
-                clubName: show.club.name,
-                clubCity: show.club.city,
-                clubState: show.club.state,
-                imageUrl: buildClubImageUrl(show.club.name, show.club.hasImage),
-                soldOut: computeShowSoldOut(show.name, show.tickets),
-                lineup: filterAndMapLineupItems(
-                    show.lineupItems,
-                    helper.getUserId(),
-                ),
-                tickets: mapTickets(show.tickets),
-                distanceMiles: computeDistanceMiles(
-                    searchedZip,
-                    show.club.zipCode,
-                ),
-                timezone: show.club.timezone,
-                tags: (show.taggedShows ?? [])
-                    .map((tt) => tt.tag)
-                    .filter(
-                        (tag): tag is { slug: string; name: string } =>
-                            typeof tag?.slug === "string" &&
-                            typeof tag?.name === "string",
-                    )
-                    .map((tag) => ({ slug: tag.slug, name: tag.name })),
-            })),
+            shows: availableShows.map((show) =>
+                mapShowToDTO(show, helper, searchedZip),
+            ),
         };
     } catch (error) {
         if (error instanceof Error) {
@@ -243,4 +222,108 @@ export async function findShowsWithCount(
         }
         throw new Error("An unknown error occurred while fetching shows");
     }
+}
+
+export async function findUpcomingShowsForClub(
+    clubId: number,
+    options: ClubShowsOptions = {},
+): Promise<ShowsResponse> {
+    const helper = new QueryHelper({
+        params: {
+            page: options.page,
+            size: options.size,
+            sort: SortParamValue.DateAsc,
+        },
+        timezone: "UTC",
+        profileId: options.profileId,
+        userId: options.userId,
+    });
+    const whereClause: Prisma.ShowWhereInput = {
+        date: { gte: new Date() },
+        club: {
+            id: clubId,
+            visible: true,
+        },
+        AND: [AVAILABLE_SHOW_WHERE],
+    };
+
+    const totalCount = await db.show.count({ where: whereClause });
+    const filteredShows = await db.show.findMany({
+        where: whereClause,
+        select: {
+            ...SHOW_SELECT,
+            lineupItems: {
+                ...SHOW_SELECT.lineupItems,
+                select: {
+                    role: true,
+                    comedian: {
+                        select: {
+                            ...SHOW_SELECT.lineupItems.select.comedian.select,
+                            ...(helper.getProfileId()
+                                ? {
+                                      favoriteComedians: {
+                                          where: {
+                                              profileId: helper.getProfileId(),
+                                          },
+                                          select: {
+                                              id: true,
+                                          },
+                                      },
+                                  }
+                                : {}),
+                        },
+                    },
+                },
+            },
+        },
+        ...helper.getGenericClauses(totalCount, SHOW_SORT_MAP, [
+            { date: "asc" },
+            { id: "asc" },
+        ]),
+    });
+    const availableShows = filteredShows.filter(
+        (show) => !computeShowSoldOut(show.name, show.tickets),
+    );
+
+    return {
+        zipCapTriggered: false,
+        totalCount: Math.max(
+            0,
+            totalCount - (filteredShows.length - availableShows.length),
+        ),
+        shows: availableShows.map((show) => mapShowToDTO(show, helper)),
+    };
+}
+
+function mapShowToDTO(
+    show: Prisma.ShowGetPayload<{ select: typeof SHOW_SELECT }>,
+    helper: QueryHelper,
+    searchedZip?: string,
+): ShowDTO {
+    return {
+        id: show.id,
+        date: show.date,
+        name: show.name,
+        description: show.description ?? undefined,
+        room: show.room,
+        address: show.club.address,
+        clubId: show.club.id,
+        clubName: show.club.name,
+        clubCity: show.club.city,
+        clubState: show.club.state,
+        imageUrl: buildClubImageUrl(show.club.name, show.club.hasImage),
+        soldOut: computeShowSoldOut(show.name, show.tickets),
+        lineup: filterAndMapLineupItems(show.lineupItems, helper.getUserId()),
+        tickets: mapTickets(show.tickets),
+        distanceMiles: computeDistanceMiles(searchedZip, show.club.zipCode),
+        timezone: show.club.timezone,
+        tags: (show.taggedShows ?? [])
+            .map((tt) => tt.tag)
+            .filter(
+                (tag): tag is { slug: string; name: string } =>
+                    typeof tag?.slug === "string" &&
+                    typeof tag?.name === "string",
+            )
+            .map((tag) => ({ slug: tag.slug, name: tag.name })),
+    };
 }

@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { buildClubImageUrl } from "@/util/imageUtil";
 
 export interface SiblingClubDTO {
+    id: number;
     name: string;
     city: string | null;
     state: string | null;
@@ -19,6 +20,7 @@ export async function findSiblingClubs(
             visible: true,
         },
         select: {
+            id: true,
             name: true,
             city: true,
             state: true,
@@ -28,6 +30,7 @@ export async function findSiblingClubs(
     });
 
     return clubs.map((c) => ({
+        id: c.id,
         name: c.name,
         city: c.city,
         state: c.state,

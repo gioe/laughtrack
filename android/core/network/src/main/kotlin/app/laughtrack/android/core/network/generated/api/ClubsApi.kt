@@ -7,6 +7,7 @@ import okhttp3.RequestBody
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+import app.laughtrack.android.core.network.generated.model.ClubShowsResponse
 import app.laughtrack.android.core.network.generated.model.ClubSearchResponse
 import app.laughtrack.android.core.network.generated.model.ErrorResponse
 import app.laughtrack.android.core.network.generated.model.GetClub200Response
@@ -27,6 +28,23 @@ interface ClubsApi {
      */
     @GET("clubs/{id}")
     suspend fun getClub(@Path("id") id: kotlin.Int): Response<GetClub200Response>
+
+    /**
+     * List upcoming shows for a club
+     * 
+     * Responses:
+     *  - 200: Club upcoming shows
+     *  - 400: Invalid parameters
+     *  - 429: Rate limit exceeded
+     *  - 500: Server error
+     *
+     * @param id 
+     * @param page Zero-indexed page number (optional)
+     * @param size  (optional)
+     * @return [ClubShowsResponse]
+     */
+    @GET("clubs/{id}/shows")
+    suspend fun getClubShows(@Path("id") id: kotlin.Int, @Query("page") page: kotlin.Int? = null, @Query("size") size: kotlin.Int? = null): Response<ClubShowsResponse>
 
     /**
      * List active clubs with upcoming shows

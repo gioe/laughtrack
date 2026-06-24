@@ -15,6 +15,7 @@
 
 package app.laughtrack.android.core.network.generated.model
 
+import app.laughtrack.android.core.network.generated.model.ClubRelatedVenue
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
@@ -33,6 +34,7 @@ import kotlinx.serialization.Contextual
  * @param phoneNumber 
  * @param latitude 
  * @param longitude 
+ * @param relatedVenues 
  */
 @Serializable
 
@@ -66,10 +68,12 @@ data class ClubDetail (
     val latitude: java.math.BigDecimal? = null,
 
     @Contextual @SerialName(value = "longitude")
-    val longitude: java.math.BigDecimal? = null
+    val longitude: java.math.BigDecimal? = null,
+
+    @SerialName(value = "relatedVenues")
+    val relatedVenues: kotlin.collections.List<ClubRelatedVenue>? = null
 
 ) {
 
 
 }
-

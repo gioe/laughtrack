@@ -19,6 +19,9 @@ vi.mock("@/lib/db", () => ({
         },
     },
 }));
+vi.mock("@/lib/data/club/detail/findSiblingClubs", () => ({
+    findSiblingClubs: vi.fn(),
+}));
 vi.mock("@/util/imageUtil", () => ({
     buildClubHeroImageUrl: vi.fn((path?: string | null) =>
         path ? `https://cdn.example.com/${path}` : "",
@@ -30,6 +33,7 @@ vi.mock("@/util/imageUtil", () => ({
 
 import { GET } from "./route";
 import { db } from "@/lib/db";
+import { findSiblingClubs } from "@/lib/data/club/detail/findSiblingClubs";
 import { rateLimitHeaders } from "@/lib/rateLimit";
 import { buildClubHeroImageUrl } from "@/util/imageUtil";
 import {
@@ -40,6 +44,7 @@ import {
 import { expectOpenApiResponse } from "@/test/openapiResponseValidator";
 
 const mockFindUnique = vi.mocked(db.club.findUnique);
+const mockFindSiblingClubs = vi.mocked(findSiblingClubs);
 const mockRateLimitHeaders = vi.mocked(rateLimitHeaders);
 const mockBuildClubHeroImageUrl = vi.mocked(buildClubHeroImageUrl);
 
@@ -50,6 +55,7 @@ function makeRequest(): NextRequest {
 beforeEach(() => {
     vi.clearAllMocks();
     mockRateLimitHeaders.mockReturnValue(RATE_LIMIT_SENTINEL_HEADERS);
+    mockFindSiblingClubs.mockResolvedValue([]);
 });
 
 describe("GET /api/v1/clubs/[id]", () => {
@@ -61,9 +67,19 @@ describe("GET /api/v1/clubs/[id]", () => {
             address: "117 Macdougal St",
             zipCode: "10012",
             phoneNumber: "212-254-3480",
+            chainId: 2,
             hasImage: true,
             imageAssets: [{ heroPath: "clubs/Comedy%20Cellar-hero.jpg" }],
         } as never);
+        mockFindSiblingClubs.mockResolvedValue([
+            {
+                id: 8,
+                name: "Village Underground",
+                city: "New York",
+                state: "NY",
+                imageUrl: "https://cdn.example.com/Village Underground.jpg",
+            },
+        ]);
 
         const res = await GET(makeRequest(), {
             params: Promise.resolve({ id: "7" }),
@@ -89,6 +105,16 @@ describe("GET /api/v1/clubs/[id]", () => {
         expect(body.data.heroImageUrl).toBe(
             "https://cdn.example.com/clubs/Comedy%20Cellar-hero.jpg",
         );
+        expect(body.data.relatedVenues).toEqual([
+            {
+                id: 8,
+                name: "Village Underground",
+                city: "New York",
+                state: "NY",
+                imageUrl: "https://cdn.example.com/Village Underground.jpg",
+            },
+        ]);
+        expect(mockFindSiblingClubs).toHaveBeenCalledWith(2, 7);
         expectOpenApiResponse("/clubs/{id}", 200, body);
     });
 
@@ -100,6 +126,7 @@ describe("GET /api/v1/clubs/[id]", () => {
             address: "117 Macdougal St",
             zipCode: "10012",
             phoneNumber: "212-254-3480",
+            chainId: null,
             hasImage: true,
             imageAssets: [{ heroPath: null }],
         } as never);
