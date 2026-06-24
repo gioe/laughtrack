@@ -1,11 +1,15 @@
 """Generic TicketSpice (Webconnex) ticketing-form scraper.
 
-TicketSpice forms (``<account>.ticketspice.com/<slug>``) are single-event
-ticketing pages: one form == one show on one date. The form HTML embeds its full
-config in a ``window.__BOOTSTRAP__`` JS object — ``appSettings`` (formName,
-eventStart, timeZone, status) and ``formData`` (ticket levels / price). The page
-is plain server-rendered HTML (no auth, no API call needed), so a single
-``fetch_html`` of the form URL is the scrapable seam.
+TicketSpice forms (``<account>.ticketspice.com/<slug>``) are ticketing pages that
+embed their full config in a ``window.__BOOTSTRAP__`` JS object — ``appSettings``
+(formName, eventStart, timeZone, status) and ``formData`` (ticket levels / price,
+and the date-selection inventory). The page is plain server-rendered HTML (no
+auth, no API call needed), so a single ``fetch_html`` of the form URL is the
+scrapable seam.
+
+A form may sell a SINGLE date (``appSettings.eventStart``) or MULTIPLE dates (a
+date-selection ``categories`` inventory inside the ``ticketBlock``). The extractor
+emits one Show per upcoming date, all sharing ``show_page_url`` = the form URL.
 
 Per-venue configuration is the form URL, read from the active scraping source's
 ``source_url`` (falling back to the club's ``scraping_url``). Because TicketSpice
@@ -29,7 +33,7 @@ from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.shared.types import ScrapingTarget
 
 from .data import TicketSpicePageData
-from .extractor import extract_event
+from .extractor import extract_events
 from .transformer import TicketSpiceTransformer
 
 
@@ -71,8 +75,8 @@ class TicketSpiceScraper(BaseScraper):
             self._warn_empty_extraction(target, html=html)
             return None
 
-        event = extract_event(html, form_url=target)
-        if event is None:
+        events = extract_events(html, form_url=target)
+        if not events:
             self._warn_empty_extraction(
                 target,
                 html=html,
@@ -80,8 +84,10 @@ class TicketSpiceScraper(BaseScraper):
             )
             return None
 
+        dates = ", ".join(str(e.event_date) for e in events)
         Logger.info(
-            f"{self._log_prefix}: parsed TicketSpice event '{event.title}' on {event.event_date}",
+            f"{self._log_prefix}: parsed {len(events)} TicketSpice date(s) "
+            f"for '{events[0].title}' ({dates})",
             self.logger_context,
         )
-        return TicketSpicePageData(event_list=[event])
+        return TicketSpicePageData(event_list=events)
