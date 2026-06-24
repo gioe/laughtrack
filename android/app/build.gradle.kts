@@ -32,6 +32,10 @@ android {
 
         // Deep-link / OAuth redirect scheme, mirrored from iOS (laughtrack://).
         manifestPlaceholders["appAuthRedirectScheme"] = "laughtrack"
+
+        // Sentry DSN is empty by default so the SDK stays dormant; release builds
+        // inject it via -PsentryDsn=... (CI secret). See LaughTrackApplication.
+        buildConfigField("String", "SENTRY_DSN", "\"${project.findProperty("sentryDsn") ?: ""}\"")
     }
 
     buildTypes {
@@ -60,6 +64,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -69,6 +74,7 @@ dependencies {
     implementation(project(":core:network"))
     implementation(project(":core:data"))
     implementation(project(":core:playback"))
+    implementation(project(":core:analytics"))
     implementation(project(":feature:home"))
     implementation(project(":feature:search"))
     implementation(project(":feature:library"))
@@ -79,6 +85,8 @@ dependencies {
 
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)
+    implementation(libs.firebase.analytics)
+    implementation(libs.sentry.android)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
