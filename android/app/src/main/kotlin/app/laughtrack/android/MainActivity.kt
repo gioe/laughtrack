@@ -154,7 +154,7 @@ class MainActivity : ComponentActivity() {
             analytics.identify(
                 userId = response.data.userId,
                 onboardingCompleted = response.data.comedianOnboardingCompleted,
-                hasZip = response.data.zipCode.isNotBlank(),
+                hasZip = response.data.zipCode?.isNotBlank() == true,
             )
             if (!response.data.comedianOnboardingCompleted) {
                 pendingRoute = AppRoute.ComedianOnboarding
