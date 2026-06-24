@@ -8,7 +8,11 @@ from unittest.mock import MagicMock, call, patch
 import pytest
 
 from laughtrack.core.services.notification.geo import _haversine_miles
-from laughtrack.core.services.notification.service import ApnsPushService, ComedianArrivalNotificationService
+from laughtrack.core.services.notification.service import (
+    ApnsPushService,
+    ComedianArrivalNotificationService,
+    FcmPushService,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -34,6 +38,7 @@ def _make_row(
     notification_type: str = "email",
     push_token_id: str | None = None,
     push_token: str | None = None,
+    push_platform: str | None = None,
 ) -> dict:
     if show_date is None:
         show_date = datetime(2026, 4, 15, 20, 0, 0, tzinfo=timezone.utc)
@@ -56,6 +61,7 @@ def _make_row(
         "notification_type": notification_type,
         "push_token_id": push_token_id,
         "push_token": push_token,
+        "push_platform": push_platform,
     }
 
 
@@ -183,6 +189,164 @@ class TestRunSendsPushForMatchingComedian:
             status_code=410,
         )
         mock_record.assert_not_called()
+
+
+class TestPlatformRouting:
+    """Sender selection is keyed on the token platform (TASK-3278)."""
+
+    def _service(self, apns, fcm):
+        mock_zip = MagicMock()
+        mock_zip.distance_miles.return_value = 5.0
+        return ComedianArrivalNotificationService(
+            zip_distance=mock_zip,
+            push_sender=apns,
+            fcm_sender=fcm,
+        )
+
+    def test_android_token_routes_to_fcm_not_apns(self):
+        row = _make_row(
+            notification_type="push",
+            push_token_id="tok-a",
+            push_token="fcm-token",
+            push_platform="android",
+        )
+        apns = MagicMock()
+        fcm = MagicMock()
+        fcm.send_show_notification.return_value = MagicMock(
+            success=True, invalid_token=False, status_code=200, reason=None
+        )
+        service = self._service(apns, fcm)
+
+        with patch.object(service, "_fetch_candidates", return_value=[row]):
+            with patch.object(service, "_record_notification"):
+                summary = service.run(radius_miles=50.0, days_ahead=30)
+
+        fcm.send_show_notification.assert_called_once()
+        apns.send_show_notification.assert_not_called()
+        assert fcm.send_show_notification.call_args.kwargs["device_token"] == "fcm-token"
+        assert summary["push_sent"] == 1
+
+    def test_ios_token_routes_to_apns_not_fcm(self):
+        row = _make_row(
+            notification_type="push",
+            push_token_id="tok-i",
+            push_token="apns-token",
+            push_platform="ios",
+        )
+        apns = MagicMock()
+        apns.send_show_notification.return_value = MagicMock(
+            success=True, invalid_token=False, status_code=200, reason=None
+        )
+        fcm = MagicMock()
+        service = self._service(apns, fcm)
+
+        with patch.object(service, "_fetch_candidates", return_value=[row]):
+            with patch.object(service, "_record_notification"):
+                summary = service.run(radius_miles=50.0, days_ahead=30)
+
+        apns.send_show_notification.assert_called_once()
+        fcm.send_show_notification.assert_not_called()
+        assert summary["push_sent"] == 1
+
+    def test_android_fcm_invalid_token_is_deactivated(self):
+        row = _make_row(
+            notification_type="push",
+            push_token_id="tok-a",
+            push_token="dead-fcm-token",
+            push_platform="android",
+        )
+        apns = MagicMock()
+        fcm = MagicMock()
+        fcm.send_show_notification.return_value = MagicMock(
+            success=False, invalid_token=True, status_code=404, reason="UNREGISTERED"
+        )
+        service = self._service(apns, fcm)
+
+        with patch.object(service, "_fetch_candidates", return_value=[row]):
+            with patch.object(service, "_deactivate_push_token") as mock_deactivate:
+                with patch.object(service, "_record_notification") as mock_record:
+                    summary = service.run(radius_miles=50.0, days_ahead=30)
+
+        fcm.send_show_notification.assert_called_once()
+        apns.send_show_notification.assert_not_called()
+        mock_deactivate.assert_called_once_with(
+            token_id="tok-a", reason="UNREGISTERED", status_code=404
+        )
+        mock_record.assert_not_called()
+        assert summary["push_errors"] == 1
+
+
+class TestFcmPushServicePayload:
+    """The FCM data payload matches what the Android client consumes (TASK-3278)."""
+
+    def test_send_builds_data_only_payload_with_show_keys(self):
+        service = FcmPushService(project_id="proj-123", credentials=MagicMock())
+        response = MagicMock(status_code=200)
+
+        with patch.object(service, "_access_token", return_value="fake-token"):
+            with patch("httpx.Client") as MockClient:
+                client = MockClient.return_value.__enter__.return_value
+                client.post.return_value = response
+                result = service.send_show_notification(
+                    device_token="android-token-xyz",
+                    comedian_name="Funny Person",
+                    show_id=42,
+                    show_date=datetime(2026, 4, 15, 20, 0, 0, tzinfo=timezone.utc),
+                    club_name="The Comedy Club",
+                    club_city="New York",
+                    club_state="NY",
+                    show_page_url="https://laugh-track.com/show/42",
+                )
+
+        assert result.success is True
+        args, kwargs = client.post.call_args
+        assert "/v1/projects/proj-123/messages:send" in args[0]
+        assert kwargs["headers"]["authorization"] == "Bearer fake-token"
+
+        message = kwargs["json"]["message"]
+        assert message["token"] == "android-token-xyz"
+        data = message["data"]
+        # Keys LaughTrackMessagingService / routeFromPush read off message.data.
+        assert data["showId"] == "42"  # FCM data values must be strings
+        assert data["url"] == "https://laugh-track.com/show/42"
+        assert data["title"] == "Funny Person is performing near you"
+        assert data["body"] == "The Comedy Club in New York, NY"
+        assert data["showDate"] == "2026-04-15T20:00:00+00:00"
+        # Data-only message: no notification block, so onMessageReceived always
+        # fires (even backgrounded) and the client owns the notification UI.
+        assert "notification" not in message
+
+    def test_send_marks_unregistered_token_invalid(self):
+        service = FcmPushService(project_id="proj-123", credentials=MagicMock())
+        response = MagicMock(status_code=404)
+        response.json.return_value = {
+            "error": {
+                "code": 404,
+                "status": "NOT_FOUND",
+                "details": [
+                    {"@type": "type.googleapis.com/google.firebase.fcm.v1.FcmError", "errorCode": "UNREGISTERED"}
+                ],
+            }
+        }
+
+        with patch.object(service, "_access_token", return_value="fake-token"):
+            with patch("httpx.Client") as MockClient:
+                client = MockClient.return_value.__enter__.return_value
+                client.post.return_value = response
+                result = service.send_show_notification(
+                    device_token="dead-token",
+                    comedian_name="Funny Person",
+                    show_id=42,
+                    show_date=None,
+                    club_name="The Comedy Club",
+                    club_city="New York",
+                    club_state="NY",
+                    show_page_url="https://laugh-track.com/show/42",
+                )
+
+        assert result.success is False
+        assert result.invalid_token is True
+        assert result.reason == "UNREGISTERED"
 
 
 class TestDryRun:

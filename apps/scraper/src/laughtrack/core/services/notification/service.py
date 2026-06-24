@@ -41,7 +41,8 @@ SELECT
     cl.zip_code   AS club_zip,
     {notification_type_sql} AS notification_type,
     {push_token_id_sql} AS push_token_id,
-    {push_token_sql} AS push_token
+    {push_token_sql} AS push_token,
+    {push_platform_sql} AS push_platform
 FROM users u
 JOIN user_profiles up ON up.user_id = u.id
 JOIN favorite_comedians fc ON fc.profile_id = up.id
@@ -70,6 +71,7 @@ _EMAIL_CANDIDATES_SQL = _BASE_CANDIDATES_SELECT_SQL.format(
     notification_type_sql="'email'",
     push_token_id_sql="NULL",
     push_token_sql="NULL",
+    push_platform_sql="NULL",
     push_join_sql="",
 )
 
@@ -77,6 +79,7 @@ _PUSH_CANDIDATES_SQL = _BASE_CANDIDATES_SELECT_SQL.format(
     notification_type_sql="'push'",
     push_token_id_sql="upt.id",
     push_token_sql="upt.token",
+    push_platform_sql="upt.platform",
     push_join_sql="JOIN user_push_tokens upt ON upt.user_id = u.id AND upt.profile_id = up.id AND upt.is_active = true",
 ).replace("up.email_show_notifications = true", "up.push_show_notifications = true").replace(
     "sn.notification_type = 'email'", "sn.notification_type = 'push'"
@@ -107,6 +110,15 @@ _INVALID_APNS_REASONS = {
     "BadDeviceToken",
     "DeviceTokenNotForTopic",
     "Unregistered",
+}
+
+# FCM HTTP v1 error codes that mean the token is dead/malformed and should be
+# deactivated (UNREGISTERED = uninstalled/expired, INVALID_ARGUMENT = malformed
+# registration token). SENDER_ID_MISMATCH and auth errors are config problems,
+# not dead tokens, so they are intentionally excluded.
+_INVALID_FCM_REASONS = {
+    "UNREGISTERED",
+    "INVALID_ARGUMENT",
 }
 
 
@@ -386,12 +398,156 @@ class ApnsPushService:
         return reason if isinstance(reason, str) else None
 
 
+class FcmPushService:
+    """Minimal FCM HTTP v1 client for Android show notifications.
+
+    Mirrors ApnsPushService's send_show_notification(...) contract so the
+    notification service can route per-token by platform. Uses the
+    already-present google-auth dependency for the service-account OAuth2
+    access token rather than pulling in firebase-admin.
+    """
+
+    _SCOPE = "https://www.googleapis.com/auth/firebase.messaging"
+
+    def __init__(self, project_id: str, credentials: object):
+        self._project_id = project_id
+        self._credentials = credentials
+
+    @classmethod
+    def from_env(cls) -> "FcmPushService":
+        try:
+            from google.oauth2 import service_account
+        except ImportError as e:
+            raise RuntimeError("FCM push delivery requires google-auth") from e
+
+        raw_json = os.getenv("FCM_SERVICE_ACCOUNT_JSON")
+        path = os.getenv("FCM_SERVICE_ACCOUNT_PATH") or os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+        info: dict | None = None
+        if raw_json:
+            info = json.loads(raw_json)
+        elif path:
+            with open(path, encoding="utf-8") as f:
+                info = json.load(f)
+        if not info:
+            raise ValueError(
+                "Missing FCM configuration: set FCM_SERVICE_ACCOUNT_JSON, "
+                "FCM_SERVICE_ACCOUNT_PATH, or GOOGLE_APPLICATION_CREDENTIALS"
+            )
+
+        project_id = os.getenv("FCM_PROJECT_ID") or info.get("project_id")
+        if not project_id:
+            raise ValueError(
+                "Missing FCM project id: set FCM_PROJECT_ID or include project_id "
+                "in the service account JSON"
+            )
+
+        credentials = service_account.Credentials.from_service_account_info(
+            info, scopes=[cls._SCOPE]
+        )
+        return cls(project_id=str(project_id), credentials=credentials)
+
+    def send_show_notification(
+        self,
+        device_token: str,
+        comedian_name: str,
+        show_id: int,
+        show_date: object,
+        club_name: str,
+        club_city: str,
+        club_state: str,
+        show_page_url: str,
+    ) -> PushDeliveryResult:
+        try:
+            import httpx
+        except ImportError as e:
+            raise RuntimeError("FCM push delivery requires httpx") from e
+
+        verb = "are" if _is_plural_comedian_label(comedian_name) else "is"
+        title = f"{comedian_name} {verb} performing near you"
+        location = ", ".join(filter(None, [club_city, club_state]))
+        body = f"{club_name}"
+        if location:
+            body = f"{body} in {location}"
+
+        # Data-only message (no notification block) so the Android
+        # FirebaseMessagingService always runs onMessageReceived — even when
+        # backgrounded — and builds the notification + deep-link extras itself
+        # from these keys (LaughTrackMessagingService reads title/body/showId/url
+        # off message.data). FCM data values must all be strings.
+        data = {
+            "title": title,
+            "body": body,
+            "showId": str(show_id),
+            "url": show_page_url,
+        }
+        if hasattr(show_date, "isoformat"):
+            data["showDate"] = show_date.isoformat()
+
+        message = {
+            "message": {
+                "token": device_token,
+                "data": data,
+                "android": {"priority": "high"},
+            }
+        }
+
+        url = f"https://fcm.googleapis.com/v1/projects/{self._project_id}/messages:send"
+        headers = {"authorization": f"Bearer {self._access_token()}"}
+        with httpx.Client(timeout=10.0) as client:
+            response = client.post(url, headers=headers, json=message)
+
+        if 200 <= response.status_code < 300:
+            return PushDeliveryResult(success=True, status_code=response.status_code)
+
+        reason = self._extract_reason(response)
+        return PushDeliveryResult(
+            success=False,
+            invalid_token=response.status_code in (400, 404) and reason in _INVALID_FCM_REASONS,
+            status_code=response.status_code,
+            reason=reason,
+        )
+
+    def _access_token(self) -> str:
+        from google.auth.transport.requests import Request
+
+        if not getattr(self._credentials, "valid", False):
+            self._credentials.refresh(Request())
+        return self._credentials.token
+
+    def _extract_reason(self, response: object) -> str | None:
+        try:
+            data = response.json()
+        except Exception:
+            return None
+        error = data.get("error") if isinstance(data, dict) else None
+        if not isinstance(error, dict):
+            return None
+        # The FCM-specific code (UNREGISTERED, INVALID_ARGUMENT, …) lives in
+        # error.details[].errorCode; fall back to the generic error.status.
+        details = error.get("details")
+        if isinstance(details, list):
+            for detail in details:
+                if isinstance(detail, dict) and isinstance(detail.get("errorCode"), str):
+                    return detail["errorCode"]
+        status = error.get("status")
+        return status if isinstance(status, str) else None
+
+
 class ComedianArrivalNotificationService:
     """Sends notification emails when a favorited comedian has a nearby upcoming show."""
 
-    def __init__(self, zip_distance: ZipCodeDistance | None = None, push_sender: object | None = None):
+    def __init__(
+        self,
+        zip_distance: ZipCodeDistance | None = None,
+        push_sender: object | None = None,
+        fcm_sender: object | None = None,
+    ):
         self._zip_distance = zip_distance or ZipCodeDistance()
+        # APNs sender (iOS tokens). Name kept for backwards-compat with the
+        # existing test seam that injects via push_sender=.
         self._push_sender = push_sender
+        # FCM sender (Android tokens), lazily built from env when first needed.
+        self._fcm_sender = fcm_sender
 
     def _merge_same_show_candidates(self, rows: list[dict]) -> list[dict]:
         """Collapse multiple followed comedians on the same show into one candidate."""
@@ -489,6 +645,7 @@ class ComedianArrivalNotificationService:
             club_zip = row["club_zip"] or ""
             push_token_id = row.get("push_token_id")
             push_token = row.get("push_token")
+            push_platform = row.get("push_platform")
 
             # Distance check
             distance = self._zip_distance.distance_miles(user_zip, club_zip)
@@ -524,7 +681,7 @@ class ComedianArrivalNotificationService:
                     continue
                 if dry_run:
                     try:
-                        self._ensure_push_sender_configured()
+                        self._ensure_push_sender_configured(push_platform)
                     except Exception as e:
                         Logger.error(
                             f"ComedianArrivalNotificationService: dry-run push config check failed "
@@ -542,6 +699,7 @@ class ComedianArrivalNotificationService:
                     continue
                 try:
                     result = self._send_push_notification(
+                        platform=push_platform,
                         device_token=push_token,
                         comedian_name=comedian_name,
                         show_id=show_id,
@@ -704,8 +862,23 @@ class ComedianArrivalNotificationService:
         )
         EmailService.send_email(message)
 
+    def _resolve_push_sender(self, platform: str | None):
+        """Return the sender for a token's platform, building it from env once.
+
+        android -> FCM (HTTP v1); anything else (ios, or legacy NULL) -> APNs.
+        Both senders expose the same send_show_notification(...) contract.
+        """
+        if platform == "android":
+            if self._fcm_sender is None:
+                self._fcm_sender = FcmPushService.from_env()
+            return self._fcm_sender
+        if self._push_sender is None:
+            self._push_sender = ApnsPushService.from_env()
+        return self._push_sender
+
     def _send_push_notification(
         self,
+        platform: str | None,
         device_token: str,
         comedian_name: str,
         show_id: int,
@@ -715,10 +888,7 @@ class ComedianArrivalNotificationService:
         club_state: str,
         show_page_url: str,
     ) -> PushDeliveryResult:
-        sender = self._push_sender
-        if sender is None:
-            sender = ApnsPushService.from_env()
-            self._push_sender = sender
+        sender = self._resolve_push_sender(platform)
         return sender.send_show_notification(
             device_token=device_token,
             comedian_name=comedian_name,
@@ -730,9 +900,8 @@ class ComedianArrivalNotificationService:
             show_page_url=show_page_url,
         )
 
-    def _ensure_push_sender_configured(self) -> None:
-        if self._push_sender is None:
-            self._push_sender = ApnsPushService.from_env()
+    def _ensure_push_sender_configured(self, platform: str | None = None) -> None:
+        self._resolve_push_sender(platform)
 
     def _record_notification(
         self,
