@@ -28,7 +28,10 @@ android {
         versionCode = 1
         versionName = "0.1.0"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        // Custom runner swaps in HiltTestApplication so @HiltAndroidTest
+        // instrumented tests (e.g. AppShellTest) get a real Hilt graph and can
+        // render Hilt-backed destinations instead of crashing under a bare app.
+        testInstrumentationRunner = "app.laughtrack.android.HiltTestRunner"
 
         // Deep-link / OAuth redirect scheme, mirrored from iOS (laughtrack://).
         manifestPlaceholders["appAuthRedirectScheme"] = "laughtrack"
@@ -118,4 +121,6 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    androidTestImplementation(libs.hilt.android.testing)
+    kspAndroidTest(libs.hilt.compiler)
 }
