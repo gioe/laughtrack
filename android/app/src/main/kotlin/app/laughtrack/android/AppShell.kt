@@ -169,6 +169,11 @@ fun NavController.switchTab(tab: AppTab) {
  * is already on the back stack, pop back to it instead of pushing a duplicate.
  * Implements the contract specified and unit-tested by
  * `core:navigation` NavStackDedup.navigate.
+ *
+ * `popBackStack(route, inclusive=false)` pops to the NEAREST matching entry while
+ * the spec's `indexOf` targets the FIRST — these diverge only if the same route
+ * appeared twice on the stack, which this very dedup prevents from ever happening,
+ * so the two stay equivalent in practice.
  */
 fun NavController.openEntity(route: AppRoute) {
     if (!popBackStack(route, inclusive = false)) {

@@ -31,6 +31,14 @@ class LaughTrackDeepLinkTest {
     }
 
     @Test
+    fun universal_link_form_is_intentionally_not_parsed() {
+        // Only the custom laughtrack:// scheme is treated as a deep link; web
+        // universal links (https://laugh-track.com/...) are handled elsewhere.
+        assertNull(LaughTrackDeepLink.route("https://laugh-track.com/show/1"))
+        assertNull(LaughTrackDeepLink.route("http://laugh-track.com/comedian/2"))
+    }
+
+    @Test
     fun push_payload_prefers_url_then_falls_back_to_showId() {
         assertEquals(
             AppRoute.ComedianDetail(8),
@@ -41,5 +49,14 @@ class LaughTrackDeepLinkTest {
             LaughTrackDeepLink.routeFromPush(mapOf("showId" to "42")),
         )
         assertNull(LaughTrackDeepLink.routeFromPush(emptyMap()))
+    }
+
+    @Test
+    fun push_payload_with_invalid_url_falls_back_to_showId() {
+        // A present-but-unparseable url must not short-circuit the numeric showId.
+        assertEquals(
+            AppRoute.ShowDetail(7),
+            LaughTrackDeepLink.routeFromPush(mapOf("url" to "not-a-deep-link", "showId" to "7")),
+        )
     }
 }

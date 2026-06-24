@@ -29,7 +29,13 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        pendingRoute = routeFromIntent(intent)
+        // Seed the deep-link/push route only on a fresh start. On a config-change
+        // recreation Android re-delivers the original launch Intent, so re-deriving
+        // here would yank the user back to the deep link after they'd navigated away.
+        // Links arriving while running are handled by onNewIntent.
+        if (savedInstanceState == null) {
+            pendingRoute = routeFromIntent(intent)
+        }
         setContent {
             LaughTrackTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
@@ -50,9 +56,14 @@ class MainActivity : ComponentActivity() {
 
     /** Resolve a route from a `laughtrack://` VIEW link or an FCM data payload in extras. */
     private fun routeFromIntent(intent: Intent?): AppRoute? {
-        intent?.data?.toString()?.let { LaughTrackDeepLink.route(it)?.let { route -> return route } }
-        val extras = intent?.extras ?: return null
-        val data = extras.keySet().associateWith { extras.getString(it) }
+        if (intent == null) return null
+        intent.data?.toString()?.let { LaughTrackDeepLink.route(it)?.let { route -> return route } }
+        // Push (FCM data message): consult only the keys we route on, not arbitrary
+        // launcher-supplied extras (the activity is exported with a VIEW filter).
+        val data = mapOf(
+            "url" to intent.getStringExtra("url"),
+            "showId" to intent.getStringExtra("showId"),
+        )
         return LaughTrackDeepLink.routeFromPush(data)
     }
 }
