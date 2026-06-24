@@ -162,6 +162,32 @@ class ProfileRepositoryTest {
         assertTrue(accountService.signOutCalled)
     }
 
+    @Test
+    fun deleteAccount_runsEachSessionSideEffectBeforeServerDeletion() = runTest {
+        // Account deletion must also deactivate the push token (same side-effect
+        // path), before the server-side delete call.
+        val accountService = FakeProfileAccountService(hasSession = true)
+        val firstEffect = RecordingSessionSideEffect(accountService)
+        val secondEffect = RecordingSessionSideEffect(accountService)
+        val repository = ProfileRepository(
+            accountService = accountService,
+            settingsService = FakeProfileSettingsService(),
+            localPreferences = FakeLocalPreferences(),
+            sessionSideEffects = setOf(firstEffect, secondEffect),
+        )
+
+        val result = repository.deleteAccount()
+
+        assertEquals(ProfileMutationResult.Success, result)
+        assertTrue(firstEffect.beforeSignOutCalled)
+        assertTrue(secondEffect.beforeSignOutCalled)
+        // Each side effect observed account-deletion as not-yet-called when it
+        // ran, proving it executed before accountService.deleteAccount().
+        assertEquals(false, firstEffect.deleteCalledWhenInvoked)
+        assertEquals(false, secondEffect.deleteCalledWhenInvoked)
+        assertTrue(accountService.deleteCalled)
+    }
+
     private fun profile(
         emailShowNotifications: Boolean = false,
         pushShowNotifications: Boolean = false,
