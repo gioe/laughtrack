@@ -9,7 +9,9 @@ import java.net.URI
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+import java.security.SecureRandom
 import java.time.Clock
+import java.util.Base64
 
 class AuthSessionManager(
     private val tokenStore: TokenStore,
@@ -20,9 +22,30 @@ class AuthSessionManager(
     private val mutableSignedIn = MutableStateFlow(false)
     val signedIn: StateFlow<Boolean> = mutableSignedIn.asStateFlow()
 
+    // Per-flow CSRF nonce: set when we build a sign-in URL, required to match on
+    // the returned callback. Held in memory only — if the process is killed
+    // during the browser OAuth round-trip the pending value is lost and the
+    // callback is rejected (fail-closed); the user simply retries. @Volatile
+    // because buildSignInUrl runs on the caller's thread while handleCallback
+    // runs on a coroutine dispatcher.
+    @Volatile
+    private var pendingState: String? = null
+
     fun buildSignInUrl(provider: AuthProvider): String {
-        val callbackUrl = "$websiteBaseUrl/api/v1/auth/native/callback?provider=${provider.id}"
+        val state = generateState()
+        pendingState = state
+        // state rides on the inner callbackUrl (URL-safe base64, no structural
+        // chars), so it survives the NextAuth round-trip and comes back on the
+        // laughtrack:// redirect for handleCallback to verify.
+        val callbackUrl =
+            "$websiteBaseUrl/api/v1/auth/native/callback?provider=${provider.id}&state=$state"
         return "$websiteBaseUrl/?nativeAuthProvider=${provider.id}&callbackUrl=${encode(callbackUrl)}"
+    }
+
+    private fun generateState(): String {
+        val bytes = ByteArray(32)
+        SecureRandom().nextBytes(bytes)
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
     }
 
     suspend fun restoreSession(): SessionTokens? =
@@ -43,11 +66,23 @@ class AuthSessionManager(
         val query = parseQuery(uri.rawQuery)
         query["error"]?.let { return AuthCallbackResult.Error(it) }
 
+        // CSRF / session-fixation guard: the token-bearing callback must echo the
+        // per-flow nonce minted in buildSignInUrl. A hostile app invoking the
+        // exported laughtrack:// scheme can't know it, so its injected tokens are
+        // rejected here before they ever reach the token store. Not cleared on
+        // mismatch so a real pending flow still completes after attacker noise.
+        val expectedState = pendingState
+        val returnedState = query["state"]
+        if (expectedState == null || returnedState.isNullOrBlank() || returnedState != expectedState) {
+            return AuthCallbackResult.Error("state_mismatch")
+        }
+
         val accessToken = query["accessToken"]
         val refreshToken = query["refreshToken"]
         if (accessToken.isNullOrBlank() || refreshToken.isNullOrBlank()) {
             return AuthCallbackResult.Error("missing_token")
         }
+        pendingState = null
 
         val expiresIn = query["expiresIn"]?.toLongOrNull() ?: DEFAULT_ACCESS_TOKEN_TTL_SECONDS
         val tokens = SessionTokens(

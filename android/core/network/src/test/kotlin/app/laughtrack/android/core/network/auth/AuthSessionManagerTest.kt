@@ -12,9 +12,12 @@ import app.laughtrack.android.core.network.generated.model.SignoutResponse
 import app.laughtrack.android.core.network.generated.model.TokenResponse
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import retrofit2.Response
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneOffset
@@ -23,34 +26,35 @@ class AuthSessionManagerTest {
     private val clock = Clock.fixed(Instant.ofEpochSecond(1_700_000_000), ZoneOffset.UTC)
 
     @Test
-    fun buildSignInUrlTargetsNativeCallback() {
-        val manager = AuthSessionManager(
-            tokenStore = InMemoryTokenStore(),
-            authApi = UnsupportedAuthApi,
-            websiteBaseUrl = "https://www.laugh-track.com",
-            clock = clock,
-        )
+    fun buildSignInUrlTargetsNativeCallbackWithRandomState() {
+        val manager = newManager()
 
-        val expectedCallback =
-            "https%3A%2F%2Fwww.laugh-track.com%2Fapi%2Fv1%2Fauth%2Fnative%2Fcallback%3Fprovider%3Dgoogle"
-        assertEquals(
-            "https://www.laugh-track.com/?nativeAuthProvider=google&callbackUrl=$expectedCallback",
-            manager.buildSignInUrl(AuthProvider.GOOGLE),
+        val state = extractState(manager.buildSignInUrl(AuthProvider.GOOGLE))
+        val decodedCallback = decodeCallbackUrl(manager.buildSignInUrl(AuthProvider.GOOGLE))
+
+        // The inner callbackUrl points at the native callback for the provider
+        // and carries the per-flow state nonce.
+        assertTrue(
+            decodedCallback.startsWith(
+                "https://www.laugh-track.com/api/v1/auth/native/callback?provider=google&state=",
+            ),
+        )
+        assertTrue(state.isNotBlank())
+        // Each sign-in attempt mints a fresh nonce.
+        assertNotEquals(
+            extractState(manager.buildSignInUrl(AuthProvider.GOOGLE)),
+            extractState(manager.buildSignInUrl(AuthProvider.GOOGLE)),
         )
     }
 
     @Test
-    fun handleCallbackStoresTokenPair() = runTest {
+    fun handleCallbackStoresTokenPairWhenStateMatches() = runTest {
         val store = InMemoryTokenStore()
-        val manager = AuthSessionManager(
-            tokenStore = store,
-            authApi = UnsupportedAuthApi,
-            websiteBaseUrl = "https://www.laugh-track.com",
-            clock = clock,
-        )
+        val manager = newManager(store)
+        val state = extractState(manager.buildSignInUrl(AuthProvider.GOOGLE))
 
         val result = manager.handleCallback(
-            "laughtrack://auth/callback?provider=google" +
+            "laughtrack://auth/callback?provider=google&state=$state" +
                 "&accessToken=access-jwt&refreshToken=refresh-token&expiresIn=900",
         )
 
@@ -63,6 +67,52 @@ class AuthSessionManagerTest {
             ),
             store.read(),
         )
+    }
+
+    @Test
+    fun handleCallbackRejectsMismatchedStateWithoutStoringTokens() = runTest {
+        val store = InMemoryTokenStore()
+        val manager = newManager(store)
+        manager.buildSignInUrl(AuthProvider.GOOGLE)
+
+        val result = manager.handleCallback(
+            "laughtrack://auth/callback?provider=google&state=attacker-chosen" +
+                "&accessToken=injected&refreshToken=injected&expiresIn=900",
+        )
+
+        assertEquals(AuthCallbackResult.Error("state_mismatch"), result)
+        assertEquals(null, store.read())
+    }
+
+    @Test
+    fun handleCallbackRejectsCallbackWithNoStateParam() = runTest {
+        val store = InMemoryTokenStore()
+        val manager = newManager(store)
+        manager.buildSignInUrl(AuthProvider.GOOGLE)
+
+        val result = manager.handleCallback(
+            "laughtrack://auth/callback?provider=google" +
+                "&accessToken=injected&refreshToken=injected&expiresIn=900",
+        )
+
+        assertEquals(AuthCallbackResult.Error("state_mismatch"), result)
+        assertEquals(null, store.read())
+    }
+
+    @Test
+    fun handleCallbackRejectsTokensWhenNoSignInWasInitiated() = runTest {
+        val store = InMemoryTokenStore()
+        val manager = newManager(store)
+
+        // No buildSignInUrl() first -> no pending nonce -> a hostile deep link
+        // invoked directly is rejected.
+        val result = manager.handleCallback(
+            "laughtrack://auth/callback?provider=google&state=anything" +
+                "&accessToken=injected&refreshToken=injected&expiresIn=900",
+        )
+
+        assertEquals(AuthCallbackResult.Error("state_mismatch"), result)
+        assertEquals(null, store.read())
     }
 
     @Test
@@ -82,6 +132,22 @@ class AuthSessionManagerTest {
         assertEquals(AuthCallbackResult.Error("OAuthCallback"), result)
         assertEquals(null, store.read())
     }
+
+    private fun newManager(store: TokenStore = InMemoryTokenStore()): AuthSessionManager =
+        AuthSessionManager(
+            tokenStore = store,
+            authApi = UnsupportedAuthApi,
+            websiteBaseUrl = "https://www.laugh-track.com",
+            clock = clock,
+        )
+
+    /** Decode the inner `callbackUrl` param the app embeds in the web sign-in URL. */
+    private fun decodeCallbackUrl(signInUrl: String): String =
+        URLDecoder.decode(signInUrl.substringAfter("callbackUrl="), StandardCharsets.UTF_8.name())
+
+    /** Pull the per-flow `state` nonce out of a built sign-in URL. */
+    private fun extractState(signInUrl: String): String =
+        decodeCallbackUrl(signInUrl).substringAfter("state=")
 
     private object UnsupportedAuthApi : AuthApi {
         override suspend fun deleteMe(): Response<AccountDeletionResponse> = unsupported()
