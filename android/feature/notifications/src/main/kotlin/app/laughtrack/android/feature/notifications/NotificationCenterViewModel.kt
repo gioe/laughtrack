@@ -2,6 +2,8 @@ package app.laughtrack.android.feature.notifications
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.laughtrack.android.core.analytics.AnalyticsEvents
+import app.laughtrack.android.core.analytics.AnalyticsManager
 import app.laughtrack.android.core.data.UiState
 import app.laughtrack.android.core.network.generated.model.NotificationListResponseData
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,6 +16,7 @@ import javax.inject.Inject
 @HiltViewModel
 class NotificationCenterViewModel @Inject constructor(
     private val repository: NotificationsRepository,
+    private val analytics: AnalyticsManager,
 ) : ViewModel() {
     private val _state = MutableStateFlow<UiState<NotificationListResponseData>>(UiState.Idle)
     val state: StateFlow<UiState<NotificationListResponseData>> = _state.asStateFlow()
@@ -29,6 +32,10 @@ class NotificationCenterViewModel @Inject constructor(
             runCatching { repository.getNotifications() }
                 .onSuccess { data ->
                     _state.value = UiState.Success(data)
+                    analytics.logEvent(
+                        AnalyticsEvents.Notifications.VIEWED,
+                        mapOf(AnalyticsEvents.Notifications.Param.UNREAD_COUNT to data.unreadCount),
+                    )
                     repository.markSeen()
                 }
                 .onFailure { _state.value = UiState.Failure(it) }
@@ -38,5 +45,13 @@ class NotificationCenterViewModel @Inject constructor(
     fun retry() {
         loaded = false
         load()
+    }
+
+    /** Logs a notification_card_tapped event before deep-linking to the show. */
+    fun onCardTapped(showId: Int) {
+        analytics.logEvent(
+            AnalyticsEvents.Notifications.CARD_TAPPED,
+            mapOf(AnalyticsEvents.Notifications.Param.SHOW_ID to showId),
+        )
     }
 }

@@ -1,5 +1,6 @@
 package app.laughtrack.android.feature.onboarding
 
+import app.laughtrack.android.core.analytics.AnalyticsManager
 import app.laughtrack.android.core.network.generated.model.ComedianSearchItem
 import app.laughtrack.android.core.network.generated.model.SocialData
 import app.laughtrack.android.feature.onboarding.data.ComedianOnboardingRepository
@@ -43,6 +44,7 @@ class ComedianOnboardingViewModelTest {
         val viewModel = ComedianOnboardingViewModel(
             repository = repository,
             softPushPromptCoordinator = FakeSoftPushPromptCoordinator(),
+            analytics = AnalyticsManager(emptyList()),
         )
 
         advanceUntilIdle()
@@ -65,6 +67,7 @@ class ComedianOnboardingViewModelTest {
         val viewModel = ComedianOnboardingViewModel(
             repository = repository,
             softPushPromptCoordinator = FakeSoftPushPromptCoordinator(),
+            analytics = AnalyticsManager(emptyList()),
         )
 
         advanceUntilIdle()
@@ -86,6 +89,7 @@ class ComedianOnboardingViewModelTest {
         val viewModel = ComedianOnboardingViewModel(
             repository = repository,
             softPushPromptCoordinator = prompt,
+            analytics = AnalyticsManager(emptyList()),
         )
 
         advanceUntilIdle()
@@ -108,6 +112,7 @@ class ComedianOnboardingViewModelTest {
         val viewModel = ComedianOnboardingViewModel(
             repository = repository,
             softPushPromptCoordinator = FakeSoftPushPromptCoordinator(),
+            analytics = AnalyticsManager(emptyList()),
         )
 
         advanceUntilIdle()

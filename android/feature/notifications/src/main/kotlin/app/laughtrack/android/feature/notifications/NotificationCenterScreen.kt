@@ -70,7 +70,14 @@ fun NotificationCenterScreen(
                 if (current.value.items.isEmpty()) {
                     CenteredMessage("No notifications yet.", null, modifier)
                 } else {
-                    NotificationList(current.value.items, onOpenEntity, modifier)
+                    NotificationList(
+                        items = current.value.items,
+                        onCardTap = { showId ->
+                            viewModel.onCardTapped(showId)
+                            onOpenEntity(AppRoute.ShowDetail(showId))
+                        },
+                        modifier = modifier,
+                    )
                 }
             else -> CenteredMessage("Loading…", null, modifier)
         }
@@ -80,13 +87,13 @@ fun NotificationCenterScreen(
 @Composable
 private fun NotificationList(
     items: List<NotificationItem>,
-    onOpenEntity: (AppRoute) -> Unit,
+    onCardTap: (Int) -> Unit,
     modifier: Modifier,
 ) {
     val now = remember { ZonedDateTime.now() }
     LazyColumn(modifier.fillMaxSize()) {
         items(items, key = { it.id }) { item ->
-            NotificationRow(item, now) { onOpenEntity(AppRoute.ShowDetail(item.showId)) }
+            NotificationRow(item, now) { onCardTap(item.showId) }
             HorizontalDivider()
         }
     }

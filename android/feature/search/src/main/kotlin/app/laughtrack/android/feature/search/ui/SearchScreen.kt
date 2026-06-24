@@ -85,7 +85,10 @@ fun SearchScreen(
                     hasMore = results.hasMore,
                     loadMoreError = results.error,
                     onLoadMore = viewModel::loadMore,
-                    onOpen = onOpenEntity,
+                    onOpen = { route ->
+                        viewModel.logResultTapped(route)
+                        onOpenEntity(route)
+                    },
                 )
             }
         }

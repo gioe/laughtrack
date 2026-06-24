@@ -2,6 +2,8 @@ package app.laughtrack.android.feature.onboarding.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.laughtrack.android.core.analytics.AnalyticsEvents
+import app.laughtrack.android.core.analytics.AnalyticsManager
 import app.laughtrack.android.core.network.generated.model.ComedianSearchItem
 import app.laughtrack.android.feature.onboarding.data.ComedianOnboardingRepository
 import app.laughtrack.android.feature.onboarding.push.SoftPushPromptCoordinator
@@ -39,6 +41,7 @@ data class ComedianOnboardingUiState(
 class ComedianOnboardingViewModel @Inject constructor(
     private val repository: ComedianOnboardingRepository,
     private val softPushPromptCoordinator: SoftPushPromptCoordinator,
+    private val analytics: AnalyticsManager,
 ) : ViewModel() {
     private val _state = MutableStateFlow(ComedianOnboardingUiState())
     val state: StateFlow<ComedianOnboardingUiState> = _state.asStateFlow()
@@ -95,6 +98,13 @@ class ComedianOnboardingViewModel @Inject constructor(
                         softPushPromptCoordinator.onFavoriteAdded()
                     ) {
                         _state.update { it.copy(showSoftPushPrompt = true) }
+                        analytics.logEvent(
+                            AnalyticsEvents.Push.SOFT_PROMPT_SHOWN,
+                            mapOf(
+                                AnalyticsEvents.Push.Param.TRIGGER to
+                                    AnalyticsEvents.Push.Trigger.ENGAGEMENT_MOMENT,
+                            ),
+                        )
                     }
                 }
                 .onFailure {
@@ -127,7 +137,22 @@ class ComedianOnboardingViewModel @Inject constructor(
         _state.update { it.copy(showSoftPushPrompt = false) }
     }
 
+    /** User tapped Enable on the soft prompt (before the OS dialog). iOS parity. */
+    fun softPushEnableTapped() {
+        analytics.logEvent(AnalyticsEvents.Push.SOFT_PROMPT_ENABLE_TAPPED)
+    }
+
+    /** OS push-authorization dialog resolved from the onboarding soft prompt. */
+    fun onPushPermissionResult(granted: Boolean) {
+        analytics.logEvent(
+            AnalyticsEvents.Push.OS_PROMPT_RESULT,
+            mapOf(AnalyticsEvents.Push.Param.GRANTED to granted),
+        )
+        dismissSoftPushPrompt()
+    }
+
     fun deferSoftPushPrompt() {
+        analytics.logEvent(AnalyticsEvents.Push.SOFT_PROMPT_DEFER_TAPPED)
         viewModelScope.launch {
             softPushPromptCoordinator.deferPrompt()
             dismissSoftPushPrompt()
@@ -140,6 +165,7 @@ class ComedianOnboardingViewModel @Inject constructor(
             runCatching { repository.completeOnboarding() }
                 .onSuccess {
                     _state.update { it.copy(isSaving = false, isComplete = true) }
+                    analytics.logEvent(AnalyticsEvents.Onboarding.COMPLETED)
                 }
                 .onFailure {
                     _state.update {

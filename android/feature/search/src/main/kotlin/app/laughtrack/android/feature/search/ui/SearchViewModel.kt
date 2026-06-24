@@ -2,6 +2,9 @@ package app.laughtrack.android.feature.search.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.laughtrack.android.core.analytics.AnalyticsEvents
+import app.laughtrack.android.core.analytics.AnalyticsManager
+import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.feature.search.data.SearchRepository
 import app.laughtrack.android.feature.search.model.PagedList
 import app.laughtrack.android.feature.search.model.SearchPivot
@@ -35,6 +38,7 @@ data class SearchUiState(
 @HiltViewModel
 class SearchViewModel @Inject constructor(
     private val repository: SearchRepository,
+    private val analytics: AnalyticsManager,
 ) : ViewModel() {
     private val _state = MutableStateFlow(SearchUiState())
     val state: StateFlow<SearchUiState> = _state.asStateFlow()
@@ -87,6 +91,24 @@ class SearchViewModel @Inject constructor(
         reload(_state.value.pivot)
     }
 
+    /** Logs a card_tapped event for a result before navigation. */
+    fun logResultTapped(route: AppRoute) {
+        val (type, id) = when (route) {
+            is AppRoute.ShowDetail -> "show" to route.id
+            is AppRoute.ComedianDetail -> "comedian" to route.id
+            is AppRoute.ClubDetail -> "club" to route.id
+            is AppRoute.PodcastDetail -> "podcast" to route.id
+            else -> return
+        }
+        analytics.logEvent(
+            AnalyticsEvents.Cards.TAPPED,
+            mapOf(
+                AnalyticsEvents.Cards.Param.ENTITY_TYPE to type,
+                AnalyticsEvents.Cards.Param.ENTITY_ID to id,
+            ),
+        )
+    }
+
     private fun reload(pivot: SearchPivot) {
         if (!pivot.isAvailable) return
         updatePivot(pivot) { it.copy(results = PagedList<SearchResult>().loading(), loaded = true) }
@@ -100,6 +122,16 @@ class SearchViewModel @Inject constructor(
         loadJobs[pivot] = viewModelScope.launch {
             runCatching { repository.search(pivot, query, page) }
                 .onSuccess { result ->
+                    // Log only the initial query (page 1), not each pagination fetch.
+                    if (page == 1) {
+                        analytics.logEvent(
+                            AnalyticsEvents.Search.PERFORMED,
+                            mapOf(
+                                AnalyticsEvents.Search.Param.PIVOT to pivot.name.lowercase(),
+                                AnalyticsEvents.Search.Param.HAS_QUERY to query.text.isNotBlank(),
+                            ),
+                        )
+                    }
                     updatePivot(pivot) {
                         it.copy(results = it.results.appendPage(page, result.results, result.total))
                     }

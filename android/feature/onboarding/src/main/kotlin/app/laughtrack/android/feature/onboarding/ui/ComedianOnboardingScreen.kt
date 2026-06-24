@@ -70,8 +70,8 @@ fun ComedianOnboardingScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
-    ) {
-        viewModel.dismissSoftPushPrompt()
+    ) { granted ->
+        viewModel.onPushPermissionResult(granted)
     }
 
     LaunchedEffect(state.isComplete) {
@@ -86,6 +86,7 @@ fun ComedianOnboardingScreen(
             confirmButton = {
                 Button(
                     onClick = {
+                        viewModel.softPushEnableTapped()
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                             notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                         } else {
