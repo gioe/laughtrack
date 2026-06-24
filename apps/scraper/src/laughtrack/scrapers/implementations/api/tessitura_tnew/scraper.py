@@ -55,6 +55,23 @@ class TessituraTNEWScraper(BaseScraper):
     def _metadata(self) -> dict[str, Any]:
         return getattr(self.club, "source_metadata", None) or {}
 
+    def _keyword_ids(self) -> str:
+        """Optional TNEW genre/keyword filter for mixed-use storefronts.
+
+        Single-purpose comedy storefronts (e.g. Groundlings) leave this empty
+        and ingest every production. A performing-arts center that runs comedy
+        alongside concerts/theatre/ballet sets ``metadata.keyword_ids`` to its
+        Comedy genre id(s) so the production-seasons API returns only comedy
+        server-side (e.g. Gallo Center ``keyword_ids="78"``). Accepts a string,
+        int, or list of ids; serialized comma-separated for the form body.
+        """
+        raw = self._metadata().get("keyword_ids")
+        if raw is None:
+            return ""
+        if isinstance(raw, (list, tuple)):
+            return ",".join(str(part).strip() for part in raw if str(part).strip())
+        return str(raw).strip()
+
     def _config(self) -> Optional[TNEWListingConfig]:
         meta = self._metadata()
         raw_events_url = meta.get("events_url") or self.club.scraping_url
@@ -162,7 +179,7 @@ class TessituraTNEWScraper(BaseScraper):
     ) -> list[dict[str, Any]]:
         body = urlencode(
             {
-                "keywordIds": "",
+                "keywordIds": self._keyword_ids(),
                 "startDate": state.start_date.isoformat(timespec="seconds"),
                 "endDate": state.end_date.isoformat(timespec="seconds"),
             }
