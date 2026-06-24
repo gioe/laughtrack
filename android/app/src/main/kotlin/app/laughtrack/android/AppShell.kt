@@ -1,5 +1,6 @@
 package app.laughtrack.android
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -23,6 +24,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavController
@@ -37,6 +39,9 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.navigation.AppTab
+import app.laughtrack.android.core.playback.NowPlayingScreen
+import app.laughtrack.android.core.playback.PodcastMiniPlayer
+import app.laughtrack.android.core.playback.PodcastPlaybackController
 import app.laughtrack.android.feature.detail.ui.ClubDetailScreen
 import app.laughtrack.android.feature.detail.ui.ComedianDetailScreen
 import app.laughtrack.android.feature.detail.ui.PodcastDetailScreen
@@ -63,6 +68,7 @@ fun AppShell(
     onSignOut: () -> Unit = {},
     onDeleteAccount: () -> Unit = {},
     signedIn: Boolean = false,
+    playbackController: PodcastPlaybackController? = null,
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
@@ -99,62 +105,79 @@ fun AppShell(
             }
         },
     ) { padding ->
-        NavHost(
-            navController = navController,
-            startDestination = AppRoute.Discover,
-            modifier = Modifier.fillMaxSize().padding(padding),
-        ) {
-            composable<AppRoute.Discover> { HomeScreen() }
-            composable<AppRoute.Search> {
-                SearchScreen(onOpenEntity = navController::openEntity)
-            }
-            composable<AppRoute.Favorites> {
-                LibraryScreen(
-                    signedIn = signedIn,
-                    onOpenProfile = { navController.openEntity(AppRoute.Profile) },
-                )
+        Box(Modifier.fillMaxSize().padding(padding)) {
+            NavHost(
+                navController = navController,
+                startDestination = AppRoute.Discover,
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                composable<AppRoute.Discover> { HomeScreen() }
+                composable<AppRoute.Search> {
+                    SearchScreen(onOpenEntity = navController::openEntity)
+                }
+                composable<AppRoute.Favorites> {
+                    LibraryScreen(
+                        signedIn = signedIn,
+                        onOpenProfile = { navController.openEntity(AppRoute.Profile) },
+                    )
+                }
+
+                composable<AppRoute.ShowDetail> { entry ->
+                    ShowDetailScreen(
+                        id = entry.toRoute<AppRoute.ShowDetail>().id,
+                        onBack = { navController.popBackStack() },
+                        onOpenEntity = navController::openEntity,
+                    )
+                }
+                composable<AppRoute.ComedianDetail> { entry ->
+                    ComedianDetailScreen(
+                        id = entry.toRoute<AppRoute.ComedianDetail>().id,
+                        onBack = { navController.popBackStack() },
+                        onOpenEntity = navController::openEntity,
+                    )
+                }
+                composable<AppRoute.ClubDetail> { entry ->
+                    ClubDetailScreen(
+                        id = entry.toRoute<AppRoute.ClubDetail>().id,
+                        onBack = { navController.popBackStack() },
+                    )
+                }
+                composable<AppRoute.PodcastDetail> { entry ->
+                    PodcastDetailScreen(
+                        id = entry.toRoute<AppRoute.PodcastDetail>().id,
+                        onBack = { navController.popBackStack() },
+                        onOpenEntity = navController::openEntity,
+                    )
+                }
+                composable<AppRoute.NowPlaying> {
+                    if (playbackController != null) {
+                        NowPlayingScreen(playbackController = playbackController)
+                    } else {
+                        PlaceholderScreen("Now Playing")
+                    }
+                }
+
+                composable<AppRoute.Profile> {
+                    // Temporary sign-in/out surface until the real Profile screen lands
+                    // (TASK-3266); exercises the TASK-3257 OAuth + session layer.
+                    ProfileAuthScreen(
+                        status = authStatus,
+                        onGoogleSignIn = onGoogleSignIn,
+                        onAppleSignIn = onAppleSignIn,
+                        onSignOut = onSignOut,
+                        onDeleteAccount = onDeleteAccount,
+                    )
+                }
+                composable<AppRoute.NotificationCenter> { PlaceholderScreen("Notifications") }
             }
 
-            composable<AppRoute.ShowDetail> { entry ->
-                ShowDetailScreen(
-                    id = entry.toRoute<AppRoute.ShowDetail>().id,
-                    onBack = { navController.popBackStack() },
-                    onOpenEntity = navController::openEntity,
+            if (playbackController != null) {
+                PodcastMiniPlayer(
+                    playbackController = playbackController,
+                    onExpand = { navController.openEntity(AppRoute.NowPlaying) },
+                    modifier = Modifier.align(Alignment.BottomCenter),
                 )
             }
-            composable<AppRoute.ComedianDetail> { entry ->
-                ComedianDetailScreen(
-                    id = entry.toRoute<AppRoute.ComedianDetail>().id,
-                    onBack = { navController.popBackStack() },
-                    onOpenEntity = navController::openEntity,
-                )
-            }
-            composable<AppRoute.ClubDetail> { entry ->
-                ClubDetailScreen(
-                    id = entry.toRoute<AppRoute.ClubDetail>().id,
-                    onBack = { navController.popBackStack() },
-                )
-            }
-            composable<AppRoute.PodcastDetail> { entry ->
-                PodcastDetailScreen(
-                    id = entry.toRoute<AppRoute.PodcastDetail>().id,
-                    onBack = { navController.popBackStack() },
-                    onOpenEntity = navController::openEntity,
-                )
-            }
-
-            composable<AppRoute.Profile> {
-                // Temporary sign-in/out surface until the real Profile screen lands
-                // (TASK-3266); exercises the TASK-3257 OAuth + session layer.
-                ProfileAuthScreen(
-                    status = authStatus,
-                    onGoogleSignIn = onGoogleSignIn,
-                    onAppleSignIn = onAppleSignIn,
-                    onSignOut = onSignOut,
-                    onDeleteAccount = onDeleteAccount,
-                )
-            }
-            composable<AppRoute.NotificationCenter> { PlaceholderScreen("Notifications") }
         }
     }
 }

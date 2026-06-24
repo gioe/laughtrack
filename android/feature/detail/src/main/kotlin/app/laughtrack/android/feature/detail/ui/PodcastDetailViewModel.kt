@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.laughtrack.android.core.data.UiState
 import app.laughtrack.android.core.network.generated.model.PodcastDetailResponse
+import app.laughtrack.android.core.playback.PodcastPlaybackController
+import app.laughtrack.android.core.playback.PodcastPlaybackItem
 import app.laughtrack.android.feature.detail.data.PodcastDetailRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,6 +17,7 @@ import javax.inject.Inject
 @HiltViewModel
 class PodcastDetailViewModel @Inject constructor(
     private val repository: PodcastDetailRepository,
+    private val playbackController: PodcastPlaybackController,
 ) : ViewModel() {
     private val _state = MutableStateFlow<UiState<PodcastDetailResponse>>(UiState.Idle)
     val state: StateFlow<UiState<PodcastDetailResponse>> = _state.asStateFlow()
@@ -36,5 +39,9 @@ class PodcastDetailViewModel @Inject constructor(
         val id = loadedId ?: return
         loadedId = null
         load(id)
+    }
+
+    fun play(item: PodcastPlaybackItem) {
+        playbackController.play(item)
     }
 }

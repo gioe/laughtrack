@@ -19,6 +19,7 @@ import app.laughtrack.android.core.navigation.LaughTrackDeepLink
 import app.laughtrack.android.core.network.auth.AuthCallbackResult
 import app.laughtrack.android.core.network.auth.AuthProvider
 import app.laughtrack.android.core.network.auth.AuthSessionManager
+import app.laughtrack.android.core.playback.PodcastPlaybackController
 import app.laughtrack.android.core.ui.theme.LaughTrackTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -35,6 +36,9 @@ import javax.inject.Inject
 class MainActivity : ComponentActivity() {
     @Inject
     lateinit var authSessionManager: AuthSessionManager
+
+    @Inject
+    lateinit var playbackController: PodcastPlaybackController
 
     private var pendingRoute by mutableStateOf<AppRoute?>(null)
     private val authStatus = mutableStateOf("Signed out")
@@ -63,6 +67,7 @@ class MainActivity : ComponentActivity() {
                         onSignOut = { signOut() },
                         onDeleteAccount = { deleteAccount() },
                         signedIn = signedIn.value,
+                        playbackController = playbackController,
                     )
                 }
             }

@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -24,7 +25,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.laughtrack.android.core.data.UiState
 import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.network.generated.model.PodcastDetailEpisode
+import app.laughtrack.android.core.network.generated.model.PodcastDetailPodcast
 import app.laughtrack.android.core.network.generated.model.PodcastDetailResponse
+import app.laughtrack.android.core.playback.PodcastPlaybackItem
 import app.laughtrack.android.feature.detail.ui.components.DetailError
 import app.laughtrack.android.feature.detail.ui.components.DetailHero
 import app.laughtrack.android.feature.detail.ui.components.DetailLoading
@@ -33,7 +36,6 @@ import app.laughtrack.android.feature.detail.ui.components.EntityAvatar
 import app.laughtrack.android.feature.detail.ui.components.SectionHeader
 import app.laughtrack.android.feature.detail.util.formatEpisodeDuration
 import app.laughtrack.android.feature.detail.util.formatReleaseDate
-import app.laughtrack.android.feature.detail.util.openUrl
 import app.laughtrack.android.feature.detail.util.shareLink
 
 @Composable
@@ -55,7 +57,7 @@ fun PodcastDetailScreen(
     ) { modifier ->
         when (state) {
             is UiState.Failure -> DetailError(onRetry = viewModel::retry, modifier = modifier)
-            is UiState.Success -> PodcastDetailBody(data!!, modifier, onOpenEntity)
+            is UiState.Success -> PodcastDetailBody(data!!, modifier, onOpenEntity, viewModel::play)
             else -> DetailLoading(modifier)
         }
     }
@@ -66,6 +68,7 @@ private fun PodcastDetailBody(
     data: PodcastDetailResponse,
     modifier: Modifier,
     onOpenEntity: (AppRoute) -> Unit,
+    onPlay: (PodcastPlaybackItem) -> Unit,
 ) {
     val podcast = data.podcast
     Column(
@@ -100,7 +103,7 @@ private fun PodcastDetailBody(
                 modifier = Modifier.padding(horizontal = 16.dp),
             )
         } else {
-            data.episodes.forEach { episode -> EpisodeRow(episode) }
+            data.episodes.forEach { episode -> EpisodeRow(podcast, episode, onPlay) }
         }
     }
 }
@@ -126,15 +129,13 @@ private fun PodcastRelatedRow(data: PodcastDetailResponse, onOpenEntity: (AppRou
     }
 }
 
-/**
- * One episode row. Tapping it opens the episode link for now; the in-app player
- * replaces this when podcast playback lands (see the podcast-playback task — this
- * screen deliberately routes to the external episode URL until then).
- */
 @Composable
-private fun EpisodeRow(episode: PodcastDetailEpisode) {
-    val context = LocalContext.current
-    val link = episode.episodeUrl ?: episode.audioUrl
+private fun EpisodeRow(
+    podcast: PodcastDetailPodcast,
+    episode: PodcastDetailEpisode,
+    onPlay: (PodcastPlaybackItem) -> Unit,
+) {
+    val playbackItem = episode.playbackItem(podcast)
     val meta = listOfNotNull(
         formatReleaseDate(episode.releaseDate),
         formatEpisodeDuration(episode.durationSeconds),
@@ -142,7 +143,7 @@ private fun EpisodeRow(episode: PodcastDetailEpisode) {
     Column(
         Modifier
             .fillMaxWidth()
-            .then(if (link != null) Modifier.clickable { context.openUrl(link) } else Modifier)
+            .then(if (playbackItem != null) Modifier.clickable { onPlay(playbackItem) } else Modifier)
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
@@ -155,5 +156,25 @@ private fun EpisodeRow(episode: PodcastDetailEpisode) {
         meta?.let {
             Text(it, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
+        OutlinedButton(
+            onClick = { playbackItem?.let(onPlay) },
+            enabled = playbackItem != null,
+        ) {
+            Text("Play")
+        }
     }
+}
+
+private fun PodcastDetailEpisode.playbackItem(
+    podcast: PodcastDetailPodcast,
+): PodcastPlaybackItem? {
+    val audio = audioUrl?.takeIf { it.isNotBlank() } ?: return null
+    return PodcastPlaybackItem(
+        episodeId = id,
+        podcastId = podcast.id,
+        podcastTitle = podcast.title,
+        episodeTitle = title,
+        audioUrl = audio,
+        artworkUrl = podcast.imageUrl,
+    )
 }

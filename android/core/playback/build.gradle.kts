@@ -9,7 +9,7 @@ plugins {
 }
 
 android {
-    namespace = "app.laughtrack.android.feature.detail"
+    namespace = "app.laughtrack.android.core.playback"
     compileSdk = 35
 
     defaultConfig {
@@ -32,28 +32,13 @@ android {
 
 dependencies {
     implementation(project(":core:ui"))
-    implementation(project(":core:data"))
-    implementation(project(":core:network"))
-    implementation(project(":core:navigation"))
-    implementation(project(":core:playback"))
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.compose.material.icons.core)
-    implementation(libs.androidx.compose.ui.tooling.preview)
-    implementation(libs.androidx.lifecycle.viewmodel.compose)
-    implementation(libs.androidx.lifecycle.runtime.compose)
-    implementation(libs.androidx.navigation.compose)
-
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.session)
+    implementation(libs.androidx.media3.ui)
     implementation(libs.hilt.android)
-    implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.compiler)
-
-    implementation(libs.kotlinx.coroutines.core)
-
-    debugImplementation(libs.androidx.compose.ui.tooling)
-
-    testImplementation(libs.junit)
-    testImplementation(libs.kotlinx.coroutines.test)
 }
