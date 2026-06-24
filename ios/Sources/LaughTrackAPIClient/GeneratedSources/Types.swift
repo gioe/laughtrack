@@ -156,6 +156,11 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `GET /home/feed`.
     /// - Remark: Generated from `#/paths//home/feed/get(getHomeFeed)`.
     func getHomeFeed(_ input: Operations.GetHomeFeed.Input) async throws -> Operations.GetHomeFeed.Output
+    /// Search podcasts with sorting and pagination
+    ///
+    /// - Remark: HTTP `GET /podcasts/search`.
+    /// - Remark: Generated from `#/paths//podcasts/search/get(searchPodcasts)`.
+    func searchPodcasts(_ input: Operations.SearchPodcasts.Input) async throws -> Operations.SearchPodcasts.Output
     /// Get podcast detail with recent episodes
     ///
     /// Returns podcast metadata, recent episodes, related comedians, and approved comedian appearances per episode.
@@ -516,6 +521,19 @@ extension APIProtocol {
         headers: Operations.GetHomeFeed.Input.Headers = .init()
     ) async throws -> Operations.GetHomeFeed.Output {
         try await getHomeFeed(Operations.GetHomeFeed.Input(
+            query: query,
+            headers: headers
+        ))
+    }
+    /// Search podcasts with sorting and pagination
+    ///
+    /// - Remark: HTTP `GET /podcasts/search`.
+    /// - Remark: Generated from `#/paths//podcasts/search/get(searchPodcasts)`.
+    public func searchPodcasts(
+        query: Operations.SearchPodcasts.Input.Query = .init(),
+        headers: Operations.SearchPodcasts.Input.Headers = .init()
+    ) async throws -> Operations.SearchPodcasts.Output {
+        try await searchPodcasts(Operations.SearchPodcasts.Input(
             query: query,
             headers: headers
         ))
@@ -1477,6 +1495,112 @@ public enum Components {
                 case episodeCount
                 case hosts
                 case isFavorite
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/PodcastSearchItem`.
+        public struct PodcastSearchItem: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/PodcastSearchItem/id`.
+            public var id: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/PodcastSearchItem/slug`.
+            public var slug: Swift.String
+            /// - Remark: Generated from `#/components/schemas/PodcastSearchItem/title`.
+            public var title: Swift.String
+            /// - Remark: Generated from `#/components/schemas/PodcastSearchItem/authorName`.
+            public var authorName: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/PodcastSearchItem/websiteUrl`.
+            public var websiteUrl: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/PodcastSearchItem/feedUrl`.
+            public var feedUrl: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/PodcastSearchItem/imageUrl`.
+            public var imageUrl: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/PodcastSearchItem/description`.
+            public var description: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/PodcastSearchItem/episodeCount`.
+            public var episodeCount: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/PodcastSearchItem/hosts`.
+            public var hosts: [Components.Schemas.PodcastDetailHost]
+            /// - Remark: Generated from `#/components/schemas/PodcastSearchItem/isFavorite`.
+            public var isFavorite: Swift.Bool?
+            /// Creates a new `PodcastSearchItem`.
+            ///
+            /// - Parameters:
+            ///   - id:
+            ///   - slug:
+            ///   - title:
+            ///   - authorName:
+            ///   - websiteUrl:
+            ///   - feedUrl:
+            ///   - imageUrl:
+            ///   - description:
+            ///   - episodeCount:
+            ///   - hosts:
+            ///   - isFavorite:
+            public init(
+                id: Swift.Int,
+                slug: Swift.String,
+                title: Swift.String,
+                authorName: Swift.String? = nil,
+                websiteUrl: Swift.String? = nil,
+                feedUrl: Swift.String? = nil,
+                imageUrl: Swift.String? = nil,
+                description: Swift.String? = nil,
+                episodeCount: Swift.Int,
+                hosts: [Components.Schemas.PodcastDetailHost],
+                isFavorite: Swift.Bool? = nil
+            ) {
+                self.id = id
+                self.slug = slug
+                self.title = title
+                self.authorName = authorName
+                self.websiteUrl = websiteUrl
+                self.feedUrl = feedUrl
+                self.imageUrl = imageUrl
+                self.description = description
+                self.episodeCount = episodeCount
+                self.hosts = hosts
+                self.isFavorite = isFavorite
+            }
+            public enum CodingKeys: String, CodingKey {
+                case id
+                case slug
+                case title
+                case authorName
+                case websiteUrl
+                case feedUrl
+                case imageUrl
+                case description
+                case episodeCount
+                case hosts
+                case isFavorite
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/PodcastSearchResponse`.
+        public struct PodcastSearchResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/PodcastSearchResponse/data`.
+            public var data: [Components.Schemas.PodcastSearchItem]
+            /// - Remark: Generated from `#/components/schemas/PodcastSearchResponse/total`.
+            public var total: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/PodcastSearchResponse/filters`.
+            public var filters: [Components.Schemas.Filter]
+            /// Creates a new `PodcastSearchResponse`.
+            ///
+            /// - Parameters:
+            ///   - data:
+            ///   - total:
+            ///   - filters:
+            public init(
+                data: [Components.Schemas.PodcastSearchItem],
+                total: Swift.Int,
+                filters: [Components.Schemas.Filter]
+            ) {
+                self.data = data
+                self.total = total
+                self.filters = filters
+            }
+            public enum CodingKeys: String, CodingKey {
+                case data
+                case total
+                case filters
             }
         }
         /// - Remark: Generated from `#/components/schemas/PodcastDetailHost`.
@@ -10625,6 +10749,287 @@ public enum Operations {
             /// - Throws: An error if `self` is not `.internalServerError`.
             /// - SeeAlso: `.internalServerError`.
             public var internalServerError: Operations.GetHomeFeed.Output.InternalServerError {
+                get throws {
+                    switch self {
+                    case let .internalServerError(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "internalServerError",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Search podcasts with sorting and pagination
+    ///
+    /// - Remark: HTTP `GET /podcasts/search`.
+    /// - Remark: Generated from `#/paths//podcasts/search/get(searchPodcasts)`.
+    public enum SearchPodcasts {
+        public static let id: Swift.String = "searchPodcasts"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/podcasts/search/GET/query`.
+            public struct Query: Sendable, Hashable {
+                /// Search term matched against podcast title, author, and description
+                ///
+                /// - Remark: Generated from `#/paths/podcasts/search/GET/query/q`.
+                public var q: Swift.String?
+                /// Sort order (e.g. show_count_desc, name_asc); defaults to show_count_desc
+                ///
+                /// - Remark: Generated from `#/paths/podcasts/search/GET/query/sort`.
+                public var sort: Swift.String?
+                /// Zero-indexed page number
+                ///
+                /// - Remark: Generated from `#/paths/podcasts/search/GET/query/page`.
+                public var page: Swift.Int?
+                /// - Remark: Generated from `#/paths/podcasts/search/GET/query/size`.
+                public var size: Swift.Int?
+                /// Include podcasts with no episodes
+                ///
+                /// - Remark: Generated from `#/paths/podcasts/search/GET/query/includeEmpty`.
+                public var includeEmpty: Swift.String?
+                /// Creates a new `Query`.
+                ///
+                /// - Parameters:
+                ///   - q: Search term matched against podcast title, author, and description
+                ///   - sort: Sort order (e.g. show_count_desc, name_asc); defaults to show_count_desc
+                ///   - page: Zero-indexed page number
+                ///   - size:
+                ///   - includeEmpty: Include podcasts with no episodes
+                public init(
+                    q: Swift.String? = nil,
+                    sort: Swift.String? = nil,
+                    page: Swift.Int? = nil,
+                    size: Swift.Int? = nil,
+                    includeEmpty: Swift.String? = nil
+                ) {
+                    self.q = q
+                    self.sort = sort
+                    self.page = page
+                    self.size = size
+                    self.includeEmpty = includeEmpty
+                }
+            }
+            public var query: Operations.SearchPodcasts.Input.Query
+            /// - Remark: Generated from `#/paths/podcasts/search/GET/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.SearchPodcasts.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.SearchPodcasts.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.SearchPodcasts.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - query:
+            ///   - headers:
+            public init(
+                query: Operations.SearchPodcasts.Input.Query = .init(),
+                headers: Operations.SearchPodcasts.Input.Headers = .init()
+            ) {
+                self.query = query
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/podcasts/search/GET/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/podcasts/search/GET/responses/200/content/application\/json`.
+                    case json(Components.Schemas.PodcastSearchResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.PodcastSearchResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.SearchPodcasts.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.SearchPodcasts.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Search results
+            ///
+            /// - Remark: Generated from `#/paths//podcasts/search/get(searchPodcasts)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.SearchPodcasts.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.SearchPodcasts.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/podcasts/search/GET/responses/429/headers`.
+                public struct Headers: Sendable, Hashable {
+                    /// Number of seconds the client should wait before retrying.
+                    ///
+                    /// - Remark: Generated from `#/paths/podcasts/search/GET/responses/429/headers/Retry-After`.
+                    public var retryAfter: Swift.Int?
+                    /// Creates a new `Headers`.
+                    ///
+                    /// - Parameters:
+                    ///   - retryAfter: Number of seconds the client should wait before retrying.
+                    public init(retryAfter: Swift.Int? = nil) {
+                        self.retryAfter = retryAfter
+                    }
+                }
+                /// Received HTTP response headers
+                public var headers: Operations.SearchPodcasts.Output.TooManyRequests.Headers
+                /// - Remark: Generated from `#/paths/podcasts/search/GET/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/podcasts/search/GET/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.SearchPodcasts.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - headers: Received HTTP response headers
+                ///   - body: Received HTTP response body
+                public init(
+                    headers: Operations.SearchPodcasts.Output.TooManyRequests.Headers = .init(),
+                    body: Operations.SearchPodcasts.Output.TooManyRequests.Body
+                ) {
+                    self.headers = headers
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded
+            ///
+            /// - Remark: Generated from `#/paths//podcasts/search/get(searchPodcasts)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.SearchPodcasts.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.SearchPodcasts.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct InternalServerError: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/podcasts/search/GET/responses/500/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/podcasts/search/GET/responses/500/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.SearchPodcasts.Output.InternalServerError.Body
+                /// Creates a new `InternalServerError`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.SearchPodcasts.Output.InternalServerError.Body) {
+                    self.body = body
+                }
+            }
+            /// Server error
+            ///
+            /// - Remark: Generated from `#/paths//podcasts/search/get(searchPodcasts)/responses/500`.
+            ///
+            /// HTTP response code: `500 internalServerError`.
+            case internalServerError(Operations.SearchPodcasts.Output.InternalServerError)
+            /// The associated value of the enum case if `self` is `.internalServerError`.
+            ///
+            /// - Throws: An error if `self` is not `.internalServerError`.
+            /// - SeeAlso: `.internalServerError`.
+            public var internalServerError: Operations.SearchPodcasts.Output.InternalServerError {
                 get throws {
                     switch self {
                     case let .internalServerError(response):
