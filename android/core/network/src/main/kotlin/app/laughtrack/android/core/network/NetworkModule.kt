@@ -90,6 +90,18 @@ object NetworkModule {
             okHttpClientBuilder = okHttpClient.newBuilder(),
         )
 
+    /**
+     * The configured API base URL (e.g. `https://www.laugh-track.com/api/v1`) for
+     * feature modules that need to build raw outbound links the typed client does
+     * not model — notably the Show-detail `/tickets/out` redirect, which logs the
+     * ticket click and 302-redirects to the venue. Exposed so features don't reach
+     * into this module's `BuildConfig` directly.
+     */
+    @Provides
+    @Singleton
+    @Named("apiBaseUrl")
+    fun provideApiBaseUrl(): String = BuildConfig.API_BASE_URL
+
     @Provides
     @Singleton
     fun provideAuthApi(
