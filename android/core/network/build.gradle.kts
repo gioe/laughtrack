@@ -37,7 +37,11 @@ dependencies {
     // auth/session task (TASK-3257). Declared here so module wiring is ready.
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging)
-    implementation(libs.retrofit)
+    // api(), not implementation(): the generated Retrofit interfaces in
+    // generated/api/*.kt return retrofit2.Response<T>, so retrofit2.Response is
+    // part of this module's public ABI. Consumers (:core:data, :feature:search)
+    // that call those APIs need it on their compile classpath transitively.
+    api(libs.retrofit)
     // Converters required by the generated Retrofit client (api/ infrastructure):
     // scalars for raw String/primitive bodies, kotlinx-serialization for JSON.
     implementation(libs.retrofit.converter.scalars)
