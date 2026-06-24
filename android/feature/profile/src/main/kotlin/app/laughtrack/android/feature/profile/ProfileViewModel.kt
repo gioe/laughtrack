@@ -2,6 +2,7 @@ package app.laughtrack.android.feature.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.laughtrack.android.core.analytics.AnalyticsManager
 import app.laughtrack.android.core.data.profile.ProfileAccount
 import app.laughtrack.android.core.data.profile.ProfileAuthProvider
 import app.laughtrack.android.core.data.profile.ProfileMutationResult
@@ -35,6 +36,7 @@ data class ProfileUiState(
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val repository: ProfileRepository,
+    private val analytics: AnalyticsManager,
 ) : ViewModel() {
     private val mutableState = MutableStateFlow(ProfileUiState())
 
@@ -160,6 +162,9 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             mutableState.update { it.copy(isMutating = true, message = null) }
             repository.signOut()
+            // Clear the analytics identity so the next session isn't attributed to
+            // the prior user (mirrors iOS reset() on sign-out).
+            analytics.reset()
             mutableState.value = ProfileUiState(isLoading = false, message = "Signed out.")
         }
     }
@@ -169,6 +174,7 @@ class ProfileViewModel @Inject constructor(
             mutableState.update { it.copy(isMutating = true, message = null) }
             when (repository.deleteAccount()) {
                 ProfileMutationResult.Success -> {
+                    analytics.reset()
                     mutableState.value = ProfileUiState(isLoading = false, message = "Account deleted.")
                 }
                 ProfileMutationResult.InvalidZip -> Unit
