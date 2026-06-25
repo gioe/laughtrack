@@ -3,5 +3,8 @@
     <!-- Mirrors the iOS dark design tokens (canvas / accent-strong). -->
     <color name="canvas">#121212</color>
     <color name="accent_strong">#CD6837</color>
-    <color name="ic_launcher_background">#121212</color>
+    <!-- Matches the dark-brown backing baked into the brand mic icon (sampled
+         from the iOS 1024 master corner) so the padded adaptive foreground
+         blends seamlessly. Intentionally NOT the #121212 app canvas. -->
+    <color name="ic_launcher_background">#1F120B</color>
 </resources>
