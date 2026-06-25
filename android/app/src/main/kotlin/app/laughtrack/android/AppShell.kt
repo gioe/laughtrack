@@ -295,7 +295,8 @@ internal object AppShellTabs {
 internal object AppShellChrome {
     fun showsTopAppBar(route: AppRoute): Boolean =
         when (route) {
-            AppRoute.Discover,
+            AppRoute.Discover -> false
+
             AppRoute.Search,
             AppRoute.Favorites,
             AppRoute.ComedianOnboarding,
@@ -314,8 +315,7 @@ internal object AppShellChrome {
     fun showsTopAppBar(destination: NavDestination?): Boolean {
         if (destination == null) return true
 
-        return destination.hasRoute(AppRoute.Discover::class) ||
-            destination.hasRoute(AppRoute.Search::class) ||
+        return destination.hasRoute(AppRoute.Search::class) ||
             destination.hasRoute(AppRoute.Favorites::class) ||
             destination.hasRoute(AppRoute.ComedianOnboarding::class) ||
             destination.hasRoute(AppRoute.NowPlaying::class) ||
