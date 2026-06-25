@@ -1,0 +1,391 @@
+{
+  "after": {
+    "aliases": [
+      {
+        "alias_name": "Comedy Zone - Jacksonville",
+        "city": "Jacksonville",
+        "club_id": 59,
+        "id": 437,
+        "normalized_alias_name": "comedy zone jacksonville",
+        "normalized_city": "jacksonville",
+        "normalized_state": "fl",
+        "source": "TASK-3457",
+        "state": "FL",
+        "verified": true
+      },
+      {
+        "alias_name": "Comedy Zone - Greenville",
+        "city": "Greenville",
+        "club_id": 73,
+        "id": 436,
+        "normalized_alias_name": "comedy zone greenville",
+        "normalized_city": "greenville",
+        "normalized_state": "sc",
+        "source": "TASK-3457",
+        "state": "SC",
+        "verified": true
+      }
+    ],
+    "clubs": [
+      {
+        "city": "Jacksonville",
+        "closed_at": null,
+        "id": 59,
+        "name": "Jacksonville Comedy Zone",
+        "state": "FL",
+        "status": "active",
+        "total_shows": 466,
+        "visible": true
+      },
+      {
+        "city": "Greenville",
+        "closed_at": null,
+        "id": 73,
+        "name": "Greenville Comedy Zone",
+        "state": "SC",
+        "status": "active",
+        "total_shows": 442,
+        "visible": true
+      },
+      {
+        "city": "Greenville",
+        "closed_at": "2026-06-25T14:38:39.345650+00:00",
+        "id": 9435,
+        "name": "Comedy Zone - Greenville (duplicate of club 73; folded from club 9435)",
+        "state": "SC",
+        "status": "closed",
+        "total_shows": 0,
+        "visible": false
+      },
+      {
+        "city": "Jacksonville",
+        "closed_at": "2026-06-25T14:38:39.345650+00:00",
+        "id": 9866,
+        "name": "Comedy Zone - Jacksonville (duplicate of club 59; folded from club 9866)",
+        "state": "FL",
+        "status": "closed",
+        "total_shows": 0,
+        "visible": false
+      }
+    ],
+    "duplicate_show_summary": [],
+    "remaining_duplicate_references": {
+      "click_events": 0,
+      "club_image_assets": 0,
+      "email_subscriptions": 0,
+      "favorite_clubs": 0,
+      "processed_emails": 0,
+      "production_company_venues": 0,
+      "scraper_run_clubs": 0,
+      "scraping_sources": 0,
+      "shows": 0,
+      "tagged_clubs": 0
+    },
+    "sources": [
+      {
+        "club_id": 59,
+        "enabled": true,
+        "id": 11,
+        "metadata": {
+          "task_1956_disposition": {
+            "canonical_other_club_id": 478,
+            "canonical_se_name": "Secret Island ",
+            "canonical_se_website": "https://www.secretisland.shannonscorner.com",
+            "cleared_external_id": "453",
+            "kind": "manual_seatengine_classic_stale_id",
+            "rationale": "Manually-configured seatengine_classic row for club 59 ('Comedy Zone Jacksonville') had external_id=453 but SE API venue 453 resolves to 'Secret Island ' (website='https://www.secretisland.shannonscorner.com'), which is the auto-discovered club 478. The seatengine_classic scraper consumes source_url (comedyzone.com/events) HTML directly and does not use external_id at runtime, so clearing the wrong id is a no-op for scraping but resolves the (platform, external_id) collision and removes the latent silent-mismap risk that TASK-1951 hit."
+          },
+          "task_2561_canonicalize_source_url": {
+            "previous_source_url": "comedyzone.com/events",
+            "probed_at": "2026-06-01",
+            "probed_location_header": "https://www.comedyzone.com/events",
+            "probed_user_agent": "Mozilla/5.0"
+          }
+        },
+        "platform": "seatengine",
+        "priority": 0,
+        "scraper_key": "seatengine_classic",
+        "source_url": "https://www.comedyzone.com/events",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 59,
+        "enabled": false,
+        "id": 6642,
+        "metadata": {
+          "task_3457_disposition": "moved disabled duplicate source from club 9866 to club 59"
+        },
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "live_nation",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "Z7r9jZa7pa"
+      },
+      {
+        "club_id": 73,
+        "enabled": true,
+        "id": 32,
+        "metadata": {
+          "task_1984_canonical_pointer": {
+            "dupe_club_id": 488,
+            "dupe_source_id": 127,
+            "kind": "same_venue_dupe_canonical",
+            "pattern": "C",
+            "platform": "seatengine",
+            "rationale": "This row is the canonical for the same-venue duplicate-club pair resolved by TASK-1984. The duplicate club 488 ('Greenville Comedy Zone @ Revel Event Center') was hidden and its scraping_source 127 had its seatengine typed id cleared.",
+            "typed_id_kept": 464
+          }
+        },
+        "platform": "seatengine",
+        "priority": 0,
+        "scraper_key": "seatengine",
+        "source_url": "greenvillecomedyzone.com/events",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 73,
+        "enabled": false,
+        "id": 6262,
+        "metadata": {
+          "task_3457_disposition": "moved disabled duplicate source from club 9435 to club 73"
+        },
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "live_nation",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "Z7r9jZad_U"
+      }
+    ]
+  },
+  "before": {
+    "aliases": [],
+    "clubs": [
+      {
+        "city": "Jacksonville",
+        "closed_at": null,
+        "id": 59,
+        "name": "Jacksonville Comedy Zone",
+        "state": "FL",
+        "status": "active",
+        "total_shows": 466,
+        "visible": true
+      },
+      {
+        "city": "Greenville",
+        "closed_at": null,
+        "id": 73,
+        "name": "Greenville Comedy Zone",
+        "state": "SC",
+        "status": "active",
+        "total_shows": 442,
+        "visible": true
+      },
+      {
+        "city": "Greenville",
+        "closed_at": null,
+        "id": 9435,
+        "name": "Comedy Zone - Greenville",
+        "state": "SC",
+        "status": "active",
+        "total_shows": 19,
+        "visible": true
+      },
+      {
+        "city": "Jacksonville",
+        "closed_at": null,
+        "id": 9866,
+        "name": "Comedy Zone - Jacksonville",
+        "state": "FL",
+        "status": "active",
+        "total_shows": 2,
+        "visible": true
+      }
+    ],
+    "duplicate_show_summary": [
+      {
+        "club_id": 9435,
+        "first_show": "2026-07-24T23:00:00+00:00",
+        "last_show": "2026-12-13T02:00:00+00:00",
+        "show_count": 19
+      },
+      {
+        "club_id": 9866,
+        "first_show": "2026-10-16T23:15:00+00:00",
+        "last_show": "2026-10-17T01:45:00+00:00",
+        "show_count": 2
+      }
+    ],
+    "remaining_duplicate_references": {
+      "click_events": 40,
+      "club_image_assets": 0,
+      "email_subscriptions": 0,
+      "favorite_clubs": 0,
+      "processed_emails": 0,
+      "production_company_venues": 0,
+      "scraper_run_clubs": 6,
+      "scraping_sources": 2,
+      "shows": 21,
+      "tagged_clubs": 0
+    },
+    "sources": [
+      {
+        "club_id": 59,
+        "enabled": true,
+        "id": 11,
+        "metadata": {
+          "task_1956_disposition": {
+            "canonical_other_club_id": 478,
+            "canonical_se_name": "Secret Island ",
+            "canonical_se_website": "https://www.secretisland.shannonscorner.com",
+            "cleared_external_id": "453",
+            "kind": "manual_seatengine_classic_stale_id",
+            "rationale": "Manually-configured seatengine_classic row for club 59 ('Comedy Zone Jacksonville') had external_id=453 but SE API venue 453 resolves to 'Secret Island ' (website='https://www.secretisland.shannonscorner.com'), which is the auto-discovered club 478. The seatengine_classic scraper consumes source_url (comedyzone.com/events) HTML directly and does not use external_id at runtime, so clearing the wrong id is a no-op for scraping but resolves the (platform, external_id) collision and removes the latent silent-mismap risk that TASK-1951 hit."
+          },
+          "task_2561_canonicalize_source_url": {
+            "previous_source_url": "comedyzone.com/events",
+            "probed_at": "2026-06-01",
+            "probed_location_header": "https://www.comedyzone.com/events",
+            "probed_user_agent": "Mozilla/5.0"
+          }
+        },
+        "platform": "seatengine",
+        "priority": 0,
+        "scraper_key": "seatengine_classic",
+        "source_url": "https://www.comedyzone.com/events",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 73,
+        "enabled": true,
+        "id": 32,
+        "metadata": {
+          "task_1984_canonical_pointer": {
+            "dupe_club_id": 488,
+            "dupe_source_id": 127,
+            "kind": "same_venue_dupe_canonical",
+            "pattern": "C",
+            "platform": "seatengine",
+            "rationale": "This row is the canonical for the same-venue duplicate-club pair resolved by TASK-1984. The duplicate club 488 ('Greenville Comedy Zone @ Revel Event Center') was hidden and its scraping_source 127 had its seatengine typed id cleared.",
+            "typed_id_kept": 464
+          }
+        },
+        "platform": "seatengine",
+        "priority": 0,
+        "scraper_key": "seatengine",
+        "source_url": "greenvillecomedyzone.com/events",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 9435,
+        "enabled": true,
+        "id": 6262,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "live_nation",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "Z7r9jZad_U"
+      },
+      {
+        "club_id": 9866,
+        "enabled": true,
+        "id": 6642,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "live_nation",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "Z7r9jZa7pa"
+      }
+    ]
+  },
+  "counts": {
+    "aliases_upserted": 2,
+    "click_events_club_repointed": 0,
+    "click_events_repointed_to_existing_show": 40,
+    "club_image_assets_moved": 0,
+    "club_totals_recomputed": 4,
+    "colliding_duplicate_shows_deleted": 21,
+    "conflicting_email_subscriptions_deleted": 0,
+    "conflicting_sent_notifications_deleted": 0,
+    "duplicate_active_club_images_deactivated": 0,
+    "duplicate_clubs_closed": 2,
+    "duplicate_favorite_clubs_deleted": 0,
+    "duplicate_production_company_venues_deleted": 0,
+    "duplicate_sources_moved_to_canonical": 2,
+    "duplicate_tagged_clubs_deleted": 0,
+    "email_subscriptions_moved": 0,
+    "favorite_clubs_inserted": 0,
+    "lineup_items_copied": 3,
+    "noncolliding_shows_moved": 0,
+    "processed_emails_moved": 0,
+    "production_company_venues_inserted": 0,
+    "remaining_duplicate_sources_disabled": 0,
+    "scraper_run_clubs_moved": 6,
+    "sent_notifications_repointed": 0,
+    "tagged_clubs_inserted": 0,
+    "tagged_shows_copied": 12,
+    "tickets_copied": 0
+  },
+  "dry_run": false,
+  "folds": [
+    {
+      "canonical_id": 73,
+      "canonical_name": "Greenville Comedy Zone",
+      "city": "Greenville",
+      "duplicate_id": 9435,
+      "duplicate_name": "Comedy Zone - Greenville",
+      "state": "SC"
+    },
+    {
+      "canonical_id": 59,
+      "canonical_name": "Jacksonville Comedy Zone",
+      "city": "Jacksonville",
+      "duplicate_id": 9866,
+      "duplicate_name": "Comedy Zone - Jacksonville",
+      "state": "FL"
+    }
+  ],
+  "generated_at": "2026-06-25T14:38:38.853676+00:00",
+  "task_id": 3457,
+  "validated": {
+    "clubs": [
+      {
+        "city": "Jacksonville",
+        "id": 59,
+        "name": "Jacksonville Comedy Zone",
+        "state": "FL",
+        "status": "active",
+        "total_shows": 466,
+        "visible": true
+      },
+      {
+        "city": "Jacksonville",
+        "id": 9866,
+        "name": "Comedy Zone - Jacksonville",
+        "state": "FL",
+        "status": "active",
+        "total_shows": 2,
+        "visible": true
+      },
+      {
+        "city": "Greenville",
+        "id": 9435,
+        "name": "Comedy Zone - Greenville",
+        "state": "SC",
+        "status": "active",
+        "total_shows": 19,
+        "visible": true
+      },
+      {
+        "city": "Greenville",
+        "id": 73,
+        "name": "Greenville Comedy Zone",
+        "state": "SC",
+        "status": "active",
+        "total_shows": 442,
+        "visible": true
+      }
+    ]
+  }
+}
