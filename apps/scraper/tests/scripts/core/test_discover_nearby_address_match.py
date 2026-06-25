@@ -88,11 +88,35 @@ def _addr_row(club_id, name, lat, lng, state, club_type="club", visible=True, st
 def test_address_state_parses_comma_formatted_address():
     assert dn._address_state("17105 N Outer 40 Rd, Chesterfield, MO 63005, USA") == "mo"
     assert dn._address_state("24 N Mentor Ave, Pasadena, CA 91106, USA") == "ca"
-    # Too few segments to be confident -> None (disables the fallback).
+    # A unit/suite segment shifts the state past the city slot -> the "ST zip"
+    # scan still finds it (no longer defeated by a fixed segment index).
+    assert dn._address_state("123 Main St, Suite 200, Springfield, IL 62701, USA") == "il"
+    # "ST zip" wins over a bare directional segment standing alone.
+    assert dn._address_state("12 Main St, NE, Townsville, OH 44321, USA") == "oh"
+    # Bare "city, ST" (no street/zip) still yields the state.
+    assert dn._address_state("Chesterfield, MO") == "mo"
+    # No state-shaped segment -> None (disables the fallback).
     assert dn._address_state("17105 North Outer 40 Road") is None
-    assert dn._address_state("Chesterfield, MO") is None
     assert dn._address_state("") is None
     assert dn._address_state(None) is None
+
+
+def test_stale_coord_fallback_does_not_preempt_tighter_exact_match():
+    # Two same-state clubs share the address key: the first is ~14 mi away
+    # (stale-coord-fallback eligible) and the second is within name_match_miles
+    # (the true exact match). The exact match must win regardless of order.
+    addr_index = {
+        "100 main": [
+            _addr_row(1, "Far Stale Row", 38.80, -90.30, "mo"),   # ~14 mi from candidate
+            _addr_row(2, "True Exact Row", 38.6010, -90.4000, "mo"),  # ~0.1 mi
+        ]
+    }
+    v = venue("Main St Venue", "100 Main St, Chesterfield, MO 63005, USA",
+              lat=38.60, lng=-90.40)
+    status, club_id, _ = dn._classify(
+        v, None, by_place_id={}, name_rows=[], name_match_miles=2.0, addr_index=addr_index
+    )
+    assert (status, club_id) == ("likely", 2)
 
 
 def test_stale_coord_address_match_catches_same_state_metro_dup():

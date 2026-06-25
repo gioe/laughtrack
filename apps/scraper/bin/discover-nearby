@@ -206,25 +206,37 @@ _ADDR_STALE_COORD_MILES = 25.0
 
 
 def _address_state(address: str):
-    """Best-effort US state token from a comma-formatted address, lowercased.
+    """Best-effort US state code from a comma-formatted address, lowercased.
 
-    Parses ``"<street>, <city>, <ST> <zip>, USA"`` and returns ``"mo"`` for the
-    state segment, or None when the address isn't structured enough to be
-    confident (fewer than street+city+state segments). The trailing country
-    token (USA / US / United States) is dropped first so the state segment is
-    found reliably. Used only by the stale-coordinate address fallback as a
-    conservative same-location guard — an unparseable state disables the
-    fallback rather than risking a cross-location collapse.
+    Scans the post-street comma segments for a ``"ST zip"`` or bare ``"ST"``
+    shaped segment and returns the two-letter code (e.g. ``"mo"``), so a
+    unit/suite/sublocality segment that shifts the state past a fixed index
+    (``"123 Main St, Suite 200, Springfield, IL 62701, USA"``) doesn't defeat
+    the parse. The ``"ST zip"`` form is preferred over a bare two-letter segment
+    so a directional like ``"NE"`` standing alone can't be mistaken for the
+    state. Returns None when no state-shaped segment is found.
+
+    Assumes US two-letter codes — which Google's ``formattedAddress`` always
+    emits, and which the dedup fallback compares against ``clubs.state``. A
+    full state name on either side simply won't match, disabling the fallback
+    for that row rather than risking a cross-location collapse (conservative).
     """
     if not address:
         return None
-    segs = [s.strip() for s in address.split(",") if s.strip()]
-    if segs and segs[-1].lower() in {"usa", "us", "united states"}:
+    segs = [s.strip().lower() for s in address.split(",") if s.strip()]
+    if segs and segs[-1] in {"usa", "us", "united states"}:
         segs = segs[:-1]
-    if len(segs) < 3:
-        return None
-    state_tokens = segs[2].split()
-    return state_tokens[0].lower() if state_tokens else None
+    # Skip the street segment (segs[0]); a state never appears there.
+    candidates = segs[1:]
+    # Prefer the specific "ST zip" shape, then fall back to a bare "ST" segment.
+    for seg in candidates:
+        m = re.match(r"^([a-z]{2})\s+\d{5}(?:-\d{4})?$", seg)
+        if m:
+            return m.group(1)
+    for seg in candidates:
+        if re.match(r"^[a-z]{2}$", seg):
+            return seg
+    return None
 
 
 def _tile_centers(lat, lng, radius_miles, spacing_miles):
@@ -414,20 +426,29 @@ def _match_by_address(venue, addr_index, name_match_miles, stale_coord_miles=_AD
     addr_key = _normalize_address(venue.address)
     if not (addr_key and addr_index):
         return None
-    venue_state = _address_state(venue.address)
-    for row in addr_index.get(addr_key, ()):
+    rows = addr_index.get(addr_key, ())
+    # Pass 1: a tight proximity-confirmed match takes precedence over the
+    # stale-coord fallback across ALL same-key rows, so an early fallback-eligible
+    # row can't pre-empt a tighter exact match later in the list (preserves the
+    # proximity guard's precedence when several clubs share an address key).
+    for row in rows:
         club_id, club_name, lat, lng = row[:4]
         if _within(venue, lat, lng, name_match_miles):
             return _split_club_match(row, 4)
-        # Proximity past the tight bound. Fall back to a same-state +
-        # within-metro acceptance so a stale-geocode duplicate isn't silently
-        # kept as "new". State is the tail element appended by
-        # _load_existing_clubs; older callers (and hand-built test rows) without
-        # it simply don't qualify for the fallback.
+    # Pass 2: no exact match — accept a same-state + within-metro stale-coord
+    # fallback so a stale-geocode duplicate isn't silently kept as "new". The
+    # candidate and club states are compared as two-letter codes (see
+    # _address_state); a club row whose state is full-name/NULL simply doesn't
+    # qualify. State is the tail element appended by _load_existing_clubs; older
+    # callers (and hand-built test rows) without it don't qualify either.
+    venue_state = _address_state(venue.address)
+    if not venue_state:
+        return None
+    for row in rows:
+        club_id, club_name, lat, lng = row[:4]
         club_state = row[-1] if len(row) > 4 and isinstance(row[-1], str) else None
         if (
-            venue_state
-            and club_state
+            club_state
             and venue_state == club_state
             and lat is not None
             and lng is not None
