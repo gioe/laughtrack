@@ -111,3 +111,34 @@ jobs:
           arch: x86_64
           working-directory: android
           script: gradle connectedDebugAndroidTest --no-daemon --stacktrace
+
+  # Alert on Discord when any job fails on a push to main. Merges to main land
+  # via direct fast-forward push, which bypasses required status checks, so these
+  # jobs run POST-merge and their failure blocks nothing — without this, a red
+  # main (e.g. the uncompilable Android client behind TASK-3287/3298) goes
+  # unnoticed. One job that needs the others fires a single alert for any
+  # failure; mirrors the scraper-ci.yml / ios.yml notify pattern.
+  notify-failure:
+    name: Notify Discord on failure
+    needs: [openapi-drift, build-and-test, instrumented-tests]
+    if: ${{ failure() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    # The workflow-level default working-directory is `android`, which only
+    # exists after a checkout; this job does no checkout, so reset it to the
+    # always-present workspace root.
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
+    steps:
+      - name: Post failure alert to Discord
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          if [ -z "$DISCORD_WEBHOOK_URL" ]; then
+            echo "DISCORD_WEBHOOK_URL not set; skipping Discord failure alert"
+            exit 0
+          fi
+          MSG="[android-ci] Failed on main. View run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          curl -fsS --retry 3 --max-time 10 -X POST "$DISCORD_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -nc --arg c "$MSG" '{content: $c}')"
