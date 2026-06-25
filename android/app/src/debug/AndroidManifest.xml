@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Registers the empty @AndroidEntryPoint host activity used by the
+     @HiltAndroidTest Compose UI tests (AppShellTest). It is declared in the
+     DEBUG source set (the tested variant) rather than androidTest so it is
+     registered under the app-under-test package (…android.debug). The
+     instrumentation runs in that process; a HiltTestActivity declared in the
+     androidTest APK (…android.debug.test) instead fails to launch with
+     "Intent resolved to different process" because the test and app APKs have
+     different package IDs/UIDs.
+
+     Uses a framework no-action-bar theme; the host only provides the window and
+     Compose themes its content via LaughTrackTheme. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <activity
+            android:name="app.laughtrack.android.HiltTestActivity"
+            android:exported="false"
+            android:theme="@android:style/Theme.Material.Light.NoActionBar" />
+    </application>
+
+</manifest>
