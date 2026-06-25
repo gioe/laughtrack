@@ -1,0 +1,634 @@
+{
+  "after": {
+    "aliases": [
+      {
+        "alias_name": "The Stress Factory comedy club, Bridgeport",
+        "city": "Bridgeport",
+        "club_id": 46,
+        "id": 134,
+        "normalized_alias_name": "the stress factory comedy club bridgeport",
+        "normalized_city": "bridgeport",
+        "normalized_state": "ct",
+        "source": "20260515062500: duplicate tour_dates stub 2465",
+        "state": "CT",
+        "verified": true
+      },
+      {
+        "alias_name": "The Stress Factory Bridgeport",
+        "city": "Bridgeport",
+        "club_id": 46,
+        "id": 136,
+        "normalized_alias_name": "the stress factory bridgeport",
+        "normalized_city": "bridgeport",
+        "normalized_state": "ct",
+        "source": "20260515062500: duplicate tour_dates stub 2465",
+        "state": "CT",
+        "verified": true
+      },
+      {
+        "alias_name": "Stress Factory Comedy Club - Bridgeport",
+        "city": "Bridgeport",
+        "club_id": 46,
+        "id": 441,
+        "normalized_alias_name": "stress factory comedy club bridgeport",
+        "normalized_city": "bridgeport",
+        "normalized_state": "ct",
+        "source": "TASK-3459",
+        "state": "CT",
+        "verified": true
+      },
+      {
+        "alias_name": "DC Comedy Loft",
+        "city": "Washington",
+        "club_id": 71,
+        "id": 53,
+        "normalized_alias_name": "dc comedy loft",
+        "normalized_city": "washington",
+        "normalized_state": "dc",
+        "source": "20260513213000: duplicate tour_dates stub 2923",
+        "state": "DC",
+        "verified": true
+      },
+      {
+        "alias_name": "DC Comedy Loft and Bier Baron Tavern",
+        "city": "Washington",
+        "club_id": 71,
+        "id": 443,
+        "normalized_alias_name": "dc comedy loft and bier baron tavern",
+        "normalized_city": "washington",
+        "normalized_state": "dc",
+        "source": "TASK-3459",
+        "state": "DC",
+        "verified": true
+      },
+      {
+        "alias_name": "Helium Comedy Club - Buffalo",
+        "city": "Buffalo",
+        "club_id": 132,
+        "id": 442,
+        "normalized_alias_name": "helium comedy club buffalo",
+        "normalized_city": "buffalo",
+        "normalized_state": "ny",
+        "source": "TASK-3459",
+        "state": "NY",
+        "verified": true
+      }
+    ],
+    "clubs": [
+      {
+        "city": "Bridgeport",
+        "closed_at": null,
+        "id": 46,
+        "name": "Stress Factory Bridgeport",
+        "state": "CT",
+        "status": "active",
+        "total_shows": 610,
+        "visible": true
+      },
+      {
+        "city": "Washington",
+        "closed_at": null,
+        "id": 71,
+        "name": "The Comedy Loft of DC",
+        "state": "DC",
+        "status": "active",
+        "total_shows": 712,
+        "visible": true
+      },
+      {
+        "city": "Buffalo",
+        "closed_at": null,
+        "id": 132,
+        "name": "Helium & Elements Restaurant - Buffalo",
+        "state": "NY",
+        "status": "active",
+        "total_shows": 345,
+        "visible": true
+      },
+      {
+        "city": "Washington",
+        "closed_at": "2026-06-25T17:39:15.828079+00:00",
+        "id": 4508,
+        "name": "DC Comedy Loft and Bier Baron Tavern (duplicate of club 71; folded from club 4508)",
+        "state": "DC",
+        "status": "closed",
+        "total_shows": 0,
+        "visible": false
+      },
+      {
+        "city": "Buffalo",
+        "closed_at": "2026-06-25T17:39:15.828079+00:00",
+        "id": 4969,
+        "name": "Helium Comedy Club - Buffalo (duplicate of club 132; folded from club 4969)",
+        "state": "NY",
+        "status": "closed",
+        "total_shows": 0,
+        "visible": false
+      },
+      {
+        "city": "Bridgeport",
+        "closed_at": "2026-06-25T17:39:15.828079+00:00",
+        "id": 5099,
+        "name": "Stress Factory Comedy Club - Bridgeport (duplicate of club 46; folded from club 5099)",
+        "state": "CT",
+        "status": "closed",
+        "total_shows": 0,
+        "visible": false
+      }
+    ],
+    "duplicate_show_summary": [],
+    "remaining_duplicate_references": {
+      "click_events": 0,
+      "club_image_assets": 0,
+      "email_subscriptions": 0,
+      "favorite_clubs": 0,
+      "processed_emails": 0,
+      "production_company_venues": 0,
+      "scraper_run_clubs": 0,
+      "scraping_sources": 0,
+      "shows": 0,
+      "tagged_clubs": 0
+    },
+    "sources": [
+      {
+        "club_id": 46,
+        "enabled": true,
+        "id": 631,
+        "metadata": {},
+        "platform": "seatengine",
+        "priority": 0,
+        "scraper_key": "seatengine_classic",
+        "source_url": "bridgeport.stressfactory.com/events",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 46,
+        "enabled": false,
+        "id": 4189,
+        "metadata": {
+          "task_3459_disposition": "moved disabled duplicate source from club 5099 to club 46"
+        },
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "Z7r9jZa7Fj"
+      },
+      {
+        "club_id": 71,
+        "enabled": true,
+        "id": 371,
+        "metadata": {},
+        "platform": "seatengine",
+        "priority": 0,
+        "scraper_key": "seatengine_classic",
+        "source_url": "www.dccomedyloft.com/events",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 71,
+        "enabled": false,
+        "id": 3598,
+        "metadata": {
+          "task_3459_disposition": "moved disabled duplicate source from club 4508 to club 71"
+        },
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "Z7r9jZaAdx"
+      },
+      {
+        "club_id": 132,
+        "enabled": true,
+        "id": 55,
+        "metadata": {
+          "task_1984_canonical_pointer": {
+            "dupe_club_id": 1077,
+            "dupe_source_id": 338,
+            "kind": "same_venue_dupe_canonical",
+            "pattern": "B",
+            "platform": "seatengine",
+            "rationale": "This row is the canonical for the same-venue duplicate-club pair resolved by TASK-1984. The duplicate club 1077 ('Helium & Elements Restaurant') was hidden and its scraping_source 338 had its seatengine typed id cleared.",
+            "typed_id_kept": 21
+          }
+        },
+        "platform": "seatengine",
+        "priority": 0,
+        "scraper_key": "seatengine_classic",
+        "source_url": "https://buffalo.heliumcomedy.com/events",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 132,
+        "enabled": false,
+        "id": 4059,
+        "metadata": {
+          "task_3459_disposition": "moved disabled duplicate source from club 4969 to club 132"
+        },
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "Z7r9jZa7tA"
+      },
+      {
+        "club_id": 132,
+        "enabled": false,
+        "id": 1628,
+        "metadata": {
+          "comedian_refs": [
+            {
+              "name": "Justin Silva",
+              "uuid": "0d0d4a3a3b922c141549f642b018d84d"
+            }
+          ],
+          "event_urls": [
+            "https://www.vividseats.com/justin-silva-tickets-buffalo-helium-comedy-club---buffalo-5-31-2026--theater-comedy/production/6729296"
+          ],
+          "first_seen_at": "2026-05-12T22:39:50.295105+00:00",
+          "last_seen_at": "2026-05-13T10:36:11.461401+00:00",
+          "platform_hints": [
+            "vividseats"
+          ],
+          "reference_count": 20,
+          "sample_urls": [
+            "https://www.vividseats.com/justin-silva-tickets--theater-comedy/performer/169406"
+          ],
+          "source": "comedian_websites",
+          "task_2581_disposition": {
+            "disabled_at": "2026-06-02 13:29:14.793375+00",
+            "reason": "TourDatesScraper deleted; BandsInTown-sourced show ingestion dropped per TASK-2581"
+          }
+        },
+        "platform": "tour_dates",
+        "priority": 10,
+        "scraper_key": "tour_dates",
+        "source_url": "tour_dates",
+        "ticketmaster_id": null
+      }
+    ]
+  },
+  "before": {
+    "aliases": [
+      {
+        "alias_name": "The Stress Factory comedy club, Bridgeport",
+        "city": "Bridgeport",
+        "club_id": 46,
+        "id": 134,
+        "normalized_alias_name": "the stress factory comedy club bridgeport",
+        "normalized_city": "bridgeport",
+        "normalized_state": "ct",
+        "source": "20260515062500: duplicate tour_dates stub 2465",
+        "state": "CT",
+        "verified": true
+      },
+      {
+        "alias_name": "The Stress Factory Bridgeport",
+        "city": "Bridgeport",
+        "club_id": 46,
+        "id": 136,
+        "normalized_alias_name": "the stress factory bridgeport",
+        "normalized_city": "bridgeport",
+        "normalized_state": "ct",
+        "source": "20260515062500: duplicate tour_dates stub 2465",
+        "state": "CT",
+        "verified": true
+      },
+      {
+        "alias_name": "DC Comedy Loft",
+        "city": "Washington",
+        "club_id": 71,
+        "id": 53,
+        "normalized_alias_name": "dc comedy loft",
+        "normalized_city": "washington",
+        "normalized_state": "dc",
+        "source": "20260513213000: duplicate tour_dates stub 2923",
+        "state": "DC",
+        "verified": true
+      }
+    ],
+    "clubs": [
+      {
+        "city": "Bridgeport",
+        "closed_at": null,
+        "id": 46,
+        "name": "Stress Factory Bridgeport",
+        "state": "CT",
+        "status": "active",
+        "total_shows": 610,
+        "visible": true
+      },
+      {
+        "city": "Washington",
+        "closed_at": null,
+        "id": 71,
+        "name": "The Comedy Loft of DC",
+        "state": "DC",
+        "status": "active",
+        "total_shows": 712,
+        "visible": true
+      },
+      {
+        "city": "Buffalo",
+        "closed_at": null,
+        "id": 132,
+        "name": "Helium & Elements Restaurant - Buffalo",
+        "state": "NY",
+        "status": "active",
+        "total_shows": 345,
+        "visible": true
+      },
+      {
+        "city": "Washington",
+        "closed_at": null,
+        "id": 4508,
+        "name": "DC Comedy Loft and Bier Baron Tavern",
+        "state": "DC",
+        "status": "active",
+        "total_shows": 13,
+        "visible": true
+      },
+      {
+        "city": "Buffalo",
+        "closed_at": null,
+        "id": 4969,
+        "name": "Helium Comedy Club - Buffalo",
+        "state": "NY",
+        "status": "active",
+        "total_shows": 26,
+        "visible": true
+      },
+      {
+        "city": "Bridgeport",
+        "closed_at": null,
+        "id": 5099,
+        "name": "Stress Factory Comedy Club - Bridgeport",
+        "state": "CT",
+        "status": "active",
+        "total_shows": 18,
+        "visible": true
+      }
+    ],
+    "duplicate_show_summary": [
+      {
+        "club_id": 4508,
+        "first_show": "2026-06-13T23:00:00+00:00",
+        "last_show": "2026-12-20T23:00:00+00:00",
+        "show_count": 13
+      },
+      {
+        "club_id": 4969,
+        "first_show": "2026-08-08T01:15:00+00:00",
+        "last_show": "2026-12-13T02:30:00+00:00",
+        "show_count": 26
+      },
+      {
+        "club_id": 5099,
+        "first_show": "2026-08-02T23:00:00+00:00",
+        "last_show": "2026-11-02T00:00:00+00:00",
+        "show_count": 18
+      }
+    ],
+    "remaining_duplicate_references": {
+      "click_events": 216,
+      "club_image_assets": 0,
+      "email_subscriptions": 0,
+      "favorite_clubs": 0,
+      "processed_emails": 0,
+      "production_company_venues": 0,
+      "scraper_run_clubs": 18,
+      "scraping_sources": 3,
+      "shows": 57,
+      "tagged_clubs": 0
+    },
+    "sources": [
+      {
+        "club_id": 46,
+        "enabled": true,
+        "id": 631,
+        "metadata": {},
+        "platform": "seatengine",
+        "priority": 0,
+        "scraper_key": "seatengine_classic",
+        "source_url": "bridgeport.stressfactory.com/events",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 71,
+        "enabled": true,
+        "id": 371,
+        "metadata": {},
+        "platform": "seatengine",
+        "priority": 0,
+        "scraper_key": "seatengine_classic",
+        "source_url": "www.dccomedyloft.com/events",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 132,
+        "enabled": true,
+        "id": 55,
+        "metadata": {
+          "task_1984_canonical_pointer": {
+            "dupe_club_id": 1077,
+            "dupe_source_id": 338,
+            "kind": "same_venue_dupe_canonical",
+            "pattern": "B",
+            "platform": "seatengine",
+            "rationale": "This row is the canonical for the same-venue duplicate-club pair resolved by TASK-1984. The duplicate club 1077 ('Helium & Elements Restaurant') was hidden and its scraping_source 338 had its seatengine typed id cleared.",
+            "typed_id_kept": 21
+          }
+        },
+        "platform": "seatengine",
+        "priority": 0,
+        "scraper_key": "seatengine_classic",
+        "source_url": "https://buffalo.heliumcomedy.com/events",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 132,
+        "enabled": false,
+        "id": 1628,
+        "metadata": {
+          "comedian_refs": [
+            {
+              "name": "Justin Silva",
+              "uuid": "0d0d4a3a3b922c141549f642b018d84d"
+            }
+          ],
+          "event_urls": [
+            "https://www.vividseats.com/justin-silva-tickets-buffalo-helium-comedy-club---buffalo-5-31-2026--theater-comedy/production/6729296"
+          ],
+          "first_seen_at": "2026-05-12T22:39:50.295105+00:00",
+          "last_seen_at": "2026-05-13T10:36:11.461401+00:00",
+          "platform_hints": [
+            "vividseats"
+          ],
+          "reference_count": 20,
+          "sample_urls": [
+            "https://www.vividseats.com/justin-silva-tickets--theater-comedy/performer/169406"
+          ],
+          "source": "comedian_websites",
+          "task_2581_disposition": {
+            "disabled_at": "2026-06-02 13:29:14.793375+00",
+            "reason": "TourDatesScraper deleted; BandsInTown-sourced show ingestion dropped per TASK-2581"
+          }
+        },
+        "platform": "tour_dates",
+        "priority": 10,
+        "scraper_key": "tour_dates",
+        "source_url": "tour_dates",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 4508,
+        "enabled": true,
+        "id": 3598,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "Z7r9jZaAdx"
+      },
+      {
+        "club_id": 4969,
+        "enabled": true,
+        "id": 4059,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "Z7r9jZa7tA"
+      },
+      {
+        "club_id": 5099,
+        "enabled": true,
+        "id": 4189,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "Z7r9jZa7Fj"
+      }
+    ]
+  },
+  "counts": {
+    "aliases_upserted": 3,
+    "click_events_club_repointed": 0,
+    "click_events_repointed_to_existing_show": 216,
+    "club_image_assets_moved": 0,
+    "club_totals_recomputed": 6,
+    "colliding_duplicate_shows_deleted": 57,
+    "conflicting_email_subscriptions_deleted": 0,
+    "conflicting_sent_notifications_deleted": 0,
+    "duplicate_active_club_images_deactivated": 0,
+    "duplicate_clubs_closed": 3,
+    "duplicate_favorite_clubs_deleted": 0,
+    "duplicate_production_company_venues_deleted": 0,
+    "duplicate_sources_moved_to_canonical": 3,
+    "duplicate_tagged_clubs_deleted": 0,
+    "email_subscriptions_moved": 0,
+    "favorite_clubs_inserted": 0,
+    "lineup_items_copied": 4,
+    "noncolliding_shows_moved": 0,
+    "processed_emails_moved": 0,
+    "production_company_venues_inserted": 0,
+    "remaining_duplicate_sources_disabled": 0,
+    "scraper_run_clubs_moved": 18,
+    "sent_notifications_repointed": 0,
+    "tagged_clubs_inserted": 0,
+    "tagged_shows_copied": 114,
+    "tickets_copied": 0
+  },
+  "dry_run": false,
+  "folds": [
+    {
+      "canonical_id": 46,
+      "canonical_name": "Stress Factory Bridgeport",
+      "city": "Bridgeport",
+      "duplicate_id": 5099,
+      "duplicate_name": "Stress Factory Comedy Club - Bridgeport",
+      "state": "CT"
+    },
+    {
+      "canonical_id": 132,
+      "canonical_name": "Helium & Elements Restaurant - Buffalo",
+      "city": "Buffalo",
+      "duplicate_id": 4969,
+      "duplicate_name": "Helium Comedy Club - Buffalo",
+      "state": "NY"
+    },
+    {
+      "canonical_id": 71,
+      "canonical_name": "The Comedy Loft of DC",
+      "city": "Washington",
+      "duplicate_id": 4508,
+      "duplicate_name": "DC Comedy Loft and Bier Baron Tavern",
+      "state": "DC"
+    }
+  ],
+  "generated_at": "2026-06-25T17:39:13.970872+00:00",
+  "task_id": 3459,
+  "validated": {
+    "clubs": [
+      {
+        "city": "Bridgeport",
+        "id": 5099,
+        "name": "Stress Factory Comedy Club - Bridgeport",
+        "state": "CT",
+        "status": "active",
+        "total_shows": 18,
+        "visible": true
+      },
+      {
+        "city": "Buffalo",
+        "id": 132,
+        "name": "Helium & Elements Restaurant - Buffalo",
+        "state": "NY",
+        "status": "active",
+        "total_shows": 345,
+        "visible": true
+      },
+      {
+        "city": "Washington",
+        "id": 71,
+        "name": "The Comedy Loft of DC",
+        "state": "DC",
+        "status": "active",
+        "total_shows": 712,
+        "visible": true
+      },
+      {
+        "city": "Washington",
+        "id": 4508,
+        "name": "DC Comedy Loft and Bier Baron Tavern",
+        "state": "DC",
+        "status": "active",
+        "total_shows": 13,
+        "visible": true
+      },
+      {
+        "city": "Bridgeport",
+        "id": 46,
+        "name": "Stress Factory Bridgeport",
+        "state": "CT",
+        "status": "active",
+        "total_shows": 610,
+        "visible": true
+      },
+      {
+        "city": "Buffalo",
+        "id": 4969,
+        "name": "Helium Comedy Club - Buffalo",
+        "state": "NY",
+        "status": "active",
+        "total_shows": 26,
+        "visible": true
+      }
+    ]
+  }
+}
