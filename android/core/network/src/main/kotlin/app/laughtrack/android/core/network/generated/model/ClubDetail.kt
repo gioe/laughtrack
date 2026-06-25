@@ -22,19 +22,19 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Contextual
 
 /**
+ * 
  *
- *
- * @param id
- * @param name
- * @param imageUrl
- * @param heroImageUrl
- * @param website
- * @param address
- * @param zipCode
- * @param phoneNumber
- * @param latitude
- * @param longitude
- * @param relatedVenues
+ * @param id 
+ * @param name 
+ * @param imageUrl 
+ * @param heroImageUrl 
+ * @param website 
+ * @param address 
+ * @param zipCode 
+ * @param phoneNumber 
+ * @param latitude 
+ * @param longitude 
+ * @param relatedVenues 
  */
 @Serializable
 
@@ -77,3 +77,4 @@ data class ClubDetail (
 
 
 }
+

@@ -7,8 +7,8 @@ import okhttp3.RequestBody
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-import app.laughtrack.android.core.network.generated.model.ClubShowsResponse
 import app.laughtrack.android.core.network.generated.model.ClubSearchResponse
+import app.laughtrack.android.core.network.generated.model.ClubShowsResponse
 import app.laughtrack.android.core.network.generated.model.ErrorResponse
 import app.laughtrack.android.core.network.generated.model.GetClub200Response
 import app.laughtrack.android.core.network.generated.model.ListClubs200Response
@@ -16,14 +16,14 @@ import app.laughtrack.android.core.network.generated.model.ListClubs200Response
 interface ClubsApi {
     /**
      * Get a single club by ID
-     *
+     * 
      * Responses:
      *  - 200: Club detail
      *  - 400: Non-numeric ID
      *  - 404: Club not found or inactive
      *  - 500: Server error
      *
-     * @param id
+     * @param id 
      * @return [GetClub200Response]
      */
     @GET("clubs/{id}")
@@ -31,14 +31,14 @@ interface ClubsApi {
 
     /**
      * List upcoming shows for a club
-     *
+     * 
      * Responses:
      *  - 200: Club upcoming shows
      *  - 400: Invalid parameters
      *  - 429: Rate limit exceeded
      *  - 500: Server error
      *
-     * @param id
+     * @param id 
      * @param page Zero-indexed page number (optional)
      * @param size  (optional)
      * @return [ClubShowsResponse]
@@ -48,7 +48,7 @@ interface ClubsApi {
 
     /**
      * List active clubs with upcoming shows
-     *
+     * 
      * Responses:
      *  - 200: Club list
      *  - 400: Invalid parameters
@@ -64,7 +64,7 @@ interface ClubsApi {
 
     /**
      * Search clubs with filters and pagination
-     *
+     * 
      * Responses:
      *  - 200: Search results
      *  - 400: Invalid X-Timezone header (non-IANA value)

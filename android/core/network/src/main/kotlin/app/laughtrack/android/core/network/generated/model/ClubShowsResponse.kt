@@ -22,10 +22,10 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Contextual
 
 /**
+ * 
  *
- *
- * @param `data`
- * @param total
+ * @param `data` 
+ * @param total 
  */
 @Serializable
 
@@ -41,3 +41,4 @@ data class ClubShowsResponse (
 
 
 }
+
