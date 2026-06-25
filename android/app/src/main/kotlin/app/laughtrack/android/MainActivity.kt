@@ -19,6 +19,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import app.laughtrack.android.core.analytics.AnalyticsEvents
 import app.laughtrack.android.core.analytics.AnalyticsManager
+import app.laughtrack.android.core.data.favorites.FavoritesRepository
 import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.navigation.LaughTrackDeepLink
 import app.laughtrack.android.core.network.auth.AuthCallbackResult
@@ -53,8 +54,12 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var analytics: AnalyticsManager
 
+    @Inject
+    lateinit var favoritesRepository: FavoritesRepository
+
     private var pendingRoute by mutableStateOf<AppRoute?>(null)
     private val signedIn = mutableStateOf(false)
+    private val hasFavorites = mutableStateOf(false)
 
     // POST_NOTIFICATIONS runtime prompt (Android 13+). Registered at construction
     // so it is available before the activity is STARTED. Logs the OS-prompt result
@@ -86,6 +91,7 @@ class MainActivity : ComponentActivity() {
                         pendingRoute = pendingRoute,
                         onRouteConsumed = { pendingRoute = null },
                         signedIn = signedIn.value,
+                        hasFavorites = hasFavorites.value,
                         playbackController = playbackController,
                     )
                 }
@@ -125,7 +131,22 @@ class MainActivity : ComponentActivity() {
 
     private fun restoreSession() {
         lifecycleScope.launch {
-            authSessionManager.signedIn.collectLatest { signedIn.value = it }
+            authSessionManager.signedIn.collectLatest { isSignedIn ->
+                signedIn.value = isSignedIn
+                // Load (or clear) favorites at the shell level so the Favorites tab's
+                // visibility is known before the user ever visits it — mirrors iOS
+                // AppShellView's auth-keyed favorites task.
+                if (isSignedIn) {
+                    favoritesRepository.refreshSignedInFavorites()
+                } else {
+                    favoritesRepository.resetSignedOut()
+                }
+            }
+        }
+        lifecycleScope.launch {
+            favoritesRepository.snapshot.collectLatest {
+                hasFavorites.value = it.comedians.isNotEmpty()
+            }
         }
         lifecycleScope.launch { refreshSignedInUser() }
     }

@@ -67,10 +67,12 @@ fun AppShell(
     pendingRoute: AppRoute? = null,
     onRouteConsumed: () -> Unit = {},
     signedIn: Boolean = false,
+    hasFavorites: Boolean = false,
     playbackController: PodcastPlaybackController? = null,
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
+    val showFavoritesTab = AppShellTabs.showsFavoritesTab(signedIn, hasFavorites)
 
     // Route a deep link / push target once it is delivered, then clear it so a
     // recomposition or config change doesn't re-navigate.
@@ -78,6 +80,18 @@ fun AppShell(
         pendingRoute?.let {
             navController.openEntity(it)
             onRouteConsumed()
+        }
+    }
+
+    // If the Favorites tab disappears (sign-out, or the user removes their last
+    // favorite) while it is the active destination, fall back to Discover so the
+    // user isn't stranded on a tab with no bottom-bar entry. Mirrors iOS
+    // AppShellView's onChange(of: showFavoritesTab) reset to nearMe.
+    LaunchedEffect(showFavoritesTab) {
+        if (!showFavoritesTab &&
+            currentDestination?.hierarchy?.any { it.hasRoute(AppRoute.Favorites::class) } == true
+        ) {
+            navController.switchTab(AppTab.DISCOVER)
         }
     }
 
@@ -92,7 +106,7 @@ fun AppShell(
         },
         bottomBar = {
             NavigationBar {
-                AppTab.entries.forEach { tab ->
+                AppShellTabs.visibleTabs(signedIn, hasFavorites).forEach { tab ->
                     val selected =
                         currentDestination?.hierarchy?.any {
                             it.hasRoute(tab.rootRoute::class)
@@ -254,6 +268,28 @@ fun NavController.openEntity(route: AppRoute) {
     if (!popBackStack(route, inclusive = false)) {
         navigate(route)
     }
+}
+
+internal object AppShellTabs {
+    /**
+     * Whether the Favorites bottom tab is exposed. Mirrors iOS
+     * `AppShellView.showFavoritesTab`: only a signed-in user who has at least one
+     * favorite (comedian) sees the tab — it is hidden for logged-out users and for
+     * signed-in users with an empty favorites library.
+     */
+    fun showsFavoritesTab(
+        signedIn: Boolean,
+        hasFavorites: Boolean,
+    ): Boolean = signedIn && hasFavorites
+
+    /** Bottom-nav tabs in order, dropping Favorites when it should not be shown. */
+    fun visibleTabs(
+        signedIn: Boolean,
+        hasFavorites: Boolean,
+    ): List<AppTab> =
+        AppTab.entries.filter {
+            it != AppTab.FAVORITES || showsFavoritesTab(signedIn, hasFavorites)
+        }
 }
 
 internal object AppShellChrome {
