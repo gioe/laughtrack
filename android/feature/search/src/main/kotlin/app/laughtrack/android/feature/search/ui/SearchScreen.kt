@@ -1,3 +1,5 @@
+@file:Suppress("FunctionName")
+
 package app.laughtrack.android.feature.search.ui
 
 import androidx.compose.foundation.clickable
@@ -10,10 +12,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
@@ -30,12 +34,12 @@ import app.laughtrack.android.core.ui.components.RemoteImage
 import app.laughtrack.android.core.ui.components.SkeletonLine
 import app.laughtrack.android.feature.search.model.SearchPivot
 import app.laughtrack.android.feature.search.model.SearchResult
+import app.laughtrack.android.feature.search.model.searchResultSummary
 
 /**
  * Search tab: a four-pivot TabRow over per-pivot paginated result lists, mirroring
- * iOS SearchRootView. Shows is geo-scoped (zip filter); Comedians/Clubs are
- * nationwide; Podcasts is disabled until its endpoint ships (TASK-3273). Tapping a
- * result navigates via [onOpenEntity].
+ * iOS SearchRootView. Shows is geo-scoped (zip filter); Comedians, Clubs, and
+ * Podcasts are nationwide. Tapping a result navigates via [onOpenEntity].
  */
 @Composable
 fun SearchScreen(
@@ -82,6 +86,7 @@ fun SearchScreen(
                 else ->
                     ResultsList(
                         results = results.items,
+                        total = results.total,
                         isLoadingMore = results.isLoading,
                         hasMore = results.hasMore,
                         loadMoreError = results.error,
@@ -139,13 +144,25 @@ private fun SearchControls(
 @Composable
 private fun ResultsList(
     results: List<SearchResult>,
+    total: Int,
     isLoadingMore: Boolean,
     hasMore: Boolean,
     loadMoreError: String?,
     onLoadMore: () -> Unit,
     onOpen: (AppRoute) -> Unit,
 ) {
-    LazyColumn(Modifier.fillMaxSize()) {
+    LazyColumn(
+        Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        item {
+            Text(
+                searchResultSummary(loaded = results.size, total = total),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 16.dp).padding(top = 4.dp),
+            )
+        }
         items(results) { result -> ResultRow(result, onOpen) }
         when {
             loadMoreError != null ->
@@ -178,35 +195,50 @@ private fun ResultRow(
     result: SearchResult,
     onOpen: (AppRoute) -> Unit,
 ) {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .clickable { onOpen(result.route) }
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
+    Surface(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        shape = RoundedCornerShape(8.dp),
+        tonalElevation = 1.dp,
     ) {
-        RemoteImage(
-            url = result.imageUrl,
-            contentDescription = result.title,
-            modifier = Modifier.size(56.dp),
-        )
-        Column(Modifier.weight(1f)) {
-            Text(
-                result.title,
-                style = MaterialTheme.typography.titleMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .clickable { onOpen(result.route) }
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            RemoteImage(
+                url = result.artworkUrl,
+                contentDescription = result.title,
+                modifier = Modifier.size(88.dp),
             )
-            result.subtitle?.let {
+            Column(
+                Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
                 Text(
-                    it,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
+                    result.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
+                result.displayMetadata.take(3).forEach { line ->
+                    Text(
+                        line,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
+            Text(
+                ">",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

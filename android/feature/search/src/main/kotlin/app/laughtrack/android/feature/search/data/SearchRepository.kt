@@ -59,7 +59,13 @@ class SearchRepository
                     body.data.map { show ->
                         SearchResult(
                             title = show.name ?: "Show",
-                            subtitle = listOfNotNull(show.clubName, show.clubCity).joinToString(" · ").ifBlank { null },
+                            subtitle = show.clubName,
+                            metadata =
+                                listOfNotNull(
+                                    show.date,
+                                    listOfNotNull(show.clubCity, show.clubState).joinToString(", ").ifBlank { null },
+                                    show.room,
+                                ),
                             imageUrl = show.imageUrl,
                             route = AppRoute.ShowDetail(show.id),
                         )
@@ -87,6 +93,11 @@ class SearchRepository
                         SearchResult(
                             title = comedian.name,
                             subtitle = "${comedian.showCount} shows",
+                            metadata =
+                                listOfNotNull(
+                                    comedian.socialData.instagramAccount?.let { "Instagram: @$it" },
+                                    comedian.socialData.youtubeAccount?.let { "YouTube" },
+                                ),
                             imageUrl = comedian.imageUrl,
                             route = AppRoute.ComedianDetail(comedian.id),
                         )
@@ -115,6 +126,12 @@ class SearchRepository
                         SearchResult(
                             title = club.name ?: "Club",
                             subtitle = listOfNotNull(club.city, club.state).joinToString(", ").ifBlank { null },
+                            metadata =
+                                listOfNotNull(
+                                    club.showCount?.let { "$it shows" },
+                                    club.activeComedianCount?.let { "$it active comedians" },
+                                    club.address,
+                                ),
                             imageUrl = club.imageUrl,
                             route = AppRoute.ClubDetail(id),
                         )
@@ -141,7 +158,12 @@ class SearchRepository
                     body.data.map { podcast ->
                         SearchResult(
                             title = podcast.title,
-                            subtitle = "${podcast.episodeCount} episodes",
+                            subtitle = podcast.authorName,
+                            metadata =
+                                listOfNotNull(
+                                    "${podcast.episodeCount} episodes",
+                                    podcast.hosts.takeIf { it.isNotEmpty() }?.joinToString(", ") { it.name },
+                                ),
                             imageUrl = podcast.imageUrl,
                             route = AppRoute.PodcastDetail(podcast.id),
                         )

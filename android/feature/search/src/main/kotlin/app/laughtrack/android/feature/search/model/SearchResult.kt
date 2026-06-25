@@ -9,9 +9,31 @@ import app.laughtrack.android.core.navigation.AppRoute
 data class SearchResult(
     val title: String,
     val subtitle: String?,
+    val metadata: List<String> = emptyList(),
     val imageUrl: String?,
     val route: AppRoute,
-)
+) {
+    val artworkUrl: String?
+        get() = imageUrl?.trim()?.takeIf { it.isNotEmpty() }
+
+    val hasArtwork: Boolean
+        get() = artworkUrl != null
+
+    val displayMetadata: List<String>
+        get() = listOfNotNull(subtitle?.takeIf { it.isNotBlank() }) + metadata.filter { it.isNotBlank() }
+}
+
+fun searchResultSummary(
+    loaded: Int,
+    total: Int,
+): String {
+    val noun = if (loaded == 1) "result" else "results"
+    return if (total > loaded) {
+        "Showing $loaded of $total results"
+    } else {
+        "Showing $loaded $noun"
+    }
+}
 
 /**
  * Per-pivot query inputs. [zip]/[distance] only apply to the geo-scoped Shows
