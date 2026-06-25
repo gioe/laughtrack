@@ -1,0 +1,187 @@
+{
+  "after": {
+    "aliases": [
+      {
+        "alias_name": "Laugh Factory at Horseshoe Las Vegas",
+        "city": "Las Vegas",
+        "club_id": 172,
+        "id": 445,
+        "normalized_alias_name": "laugh factory at horseshoe las vegas",
+        "normalized_city": "las vegas",
+        "normalized_state": "nv",
+        "source": "TASK-3465",
+        "state": "NV",
+        "verified": true
+      }
+    ],
+    "clubs": [
+      {
+        "city": "Las Vegas",
+        "closed_at": null,
+        "id": 172,
+        "name": "Laugh Factory Las Vegas",
+        "state": "NV",
+        "status": "active",
+        "total_shows": 620,
+        "visible": true
+      },
+      {
+        "city": "Las Vegas",
+        "closed_at": "2026-06-25T19:07:11.246244+00:00",
+        "id": 6810,
+        "name": "Laugh Factory at Horseshoe Las Vegas (duplicate of club 172; folded from club 6810)",
+        "state": "NV",
+        "status": "closed",
+        "total_shows": 0,
+        "visible": false
+      }
+    ],
+    "duplicate_show_summary": [],
+    "remaining_duplicate_references": {
+      "click_events": 0,
+      "club_image_assets": 0,
+      "email_subscriptions": 0,
+      "favorite_clubs": 0,
+      "processed_emails": 0,
+      "production_company_venues": 0,
+      "scraper_run_clubs": 0,
+      "scraping_sources": 0,
+      "shows": 0,
+      "tagged_clubs": 0
+    },
+    "sources": [
+      {
+        "club_id": 172,
+        "enabled": true,
+        "id": 103,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "live_nation",
+        "source_url": "ticketmaster/KovZpZAJalFA",
+        "ticketmaster_id": "KovZpZAJalFA"
+      }
+    ]
+  },
+  "before": {
+    "aliases": [],
+    "clubs": [
+      {
+        "city": "Las Vegas",
+        "closed_at": null,
+        "id": 172,
+        "name": "Laugh Factory Las Vegas",
+        "state": "NV",
+        "status": "active",
+        "total_shows": 620,
+        "visible": true
+      },
+      {
+        "city": "Las Vegas",
+        "closed_at": null,
+        "id": 6810,
+        "name": "Laugh Factory at Horseshoe Las Vegas",
+        "state": "NV",
+        "status": "active",
+        "total_shows": 376,
+        "visible": true
+      }
+    ],
+    "duplicate_show_summary": [
+      {
+        "club_id": 6810,
+        "first_show": "2026-06-15T03:30:00+00:00",
+        "last_show": "2026-12-18T06:30:00+00:00",
+        "show_count": 376
+      }
+    ],
+    "remaining_duplicate_references": {
+      "click_events": 363,
+      "club_image_assets": 0,
+      "email_subscriptions": 0,
+      "favorite_clubs": 0,
+      "processed_emails": 0,
+      "production_company_venues": 0,
+      "scraper_run_clubs": 0,
+      "scraping_sources": 0,
+      "shows": 376,
+      "tagged_clubs": 0
+    },
+    "sources": [
+      {
+        "club_id": 172,
+        "enabled": true,
+        "id": 103,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "live_nation",
+        "source_url": "ticketmaster/KovZpZAJalFA",
+        "ticketmaster_id": "KovZpZAJalFA"
+      }
+    ]
+  },
+  "counts": {
+    "aliases_upserted": 1,
+    "click_events_club_repointed": 0,
+    "click_events_repointed_to_existing_show": 363,
+    "club_image_assets_moved": 0,
+    "club_totals_recomputed": 2,
+    "colliding_duplicate_shows_deleted": 376,
+    "conflicting_email_subscriptions_deleted": 0,
+    "conflicting_sent_notifications_deleted": 0,
+    "duplicate_active_club_images_deactivated": 0,
+    "duplicate_clubs_closed": 1,
+    "duplicate_favorite_clubs_deleted": 0,
+    "duplicate_production_company_venues_deleted": 0,
+    "duplicate_sources_moved_to_canonical": 0,
+    "duplicate_tagged_clubs_deleted": 0,
+    "email_subscriptions_moved": 0,
+    "favorite_clubs_inserted": 0,
+    "lineup_items_copied": 0,
+    "noncolliding_shows_moved": 0,
+    "processed_emails_moved": 0,
+    "production_company_venues_inserted": 0,
+    "remaining_duplicate_sources_disabled": 0,
+    "scraper_run_clubs_moved": 0,
+    "sent_notifications_repointed": 0,
+    "tagged_clubs_inserted": 0,
+    "tagged_shows_copied": 0,
+    "tickets_copied": 0
+  },
+  "dry_run": false,
+  "folds": [
+    {
+      "canonical_id": 172,
+      "canonical_name": "Laugh Factory Las Vegas",
+      "city": "Las Vegas",
+      "duplicate_id": 6810,
+      "duplicate_name": "Laugh Factory at Horseshoe Las Vegas",
+      "state": "NV"
+    }
+  ],
+  "generated_at": "2026-06-25T19:07:10.519889+00:00",
+  "task_id": 3465,
+  "validated": {
+    "clubs": [
+      {
+        "city": "Las Vegas",
+        "id": 6810,
+        "name": "Laugh Factory at Horseshoe Las Vegas",
+        "state": "NV",
+        "status": "active",
+        "total_shows": 376,
+        "visible": true
+      },
+      {
+        "city": "Las Vegas",
+        "id": 172,
+        "name": "Laugh Factory Las Vegas",
+        "state": "NV",
+        "status": "active",
+        "total_shows": 620,
+        "visible": true
+      }
+    ]
+  }
+}
