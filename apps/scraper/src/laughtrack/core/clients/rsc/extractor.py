@@ -41,7 +41,7 @@ def find_json_array(text: str, key: str) -> Optional[list]:
     if arr_start < 0:
         return None
 
-    array_json = _extract_balanced(text, arr_start, "[", "]")
+    array_json = extract_balanced(text, arr_start, "[", "]")
     if not array_json:
         return None
 
@@ -59,7 +59,7 @@ def resolve_references(payload: str) -> str:
     return _RSC_REFERENCE_PATTERN.sub("null", payload)
 
 
-def _extract_balanced(
+def extract_balanced(
     text: str,
     start: int,
     open_ch: str,

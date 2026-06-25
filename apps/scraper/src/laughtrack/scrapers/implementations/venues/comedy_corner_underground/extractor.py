@@ -34,7 +34,7 @@ from typing import Dict, List, Optional
 from bs4 import BeautifulSoup
 
 from laughtrack.core.clients.rsc.extractor import (
-    _extract_balanced,
+    extract_balanced,
     extract_push_payloads,
 )
 from laughtrack.foundation.infrastructure.logger.logger import Logger
@@ -239,7 +239,7 @@ class ComedyCornerExtractor:
         # Deferred text chunks open with "T<hexlen>,[" — balanced-extract each
         # array and keep the ones that actually carry ComedyEvent JSON-LD.
         for marker in re.finditer(r"T[0-9a-f]+,(\[)", flight):
-            array_json = _extract_balanced(flight, marker.start(1), "[", "]")
+            array_json = extract_balanced(flight, marker.start(1), "[", "]")
             if not array_json or "ComedyEvent" not in array_json:
                 continue
             try:
