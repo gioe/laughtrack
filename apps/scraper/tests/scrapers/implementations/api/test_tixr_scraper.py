@@ -346,3 +346,157 @@ async def test_improv_asylum_generic_path_preserves_pixl_fallback(monkeypatch):
     ]
     assert [ticket.price for ticket in event.show.tickets] == [33.54, 37.18]
     scraper.tixr_client.get_event_detail_from_url.assert_not_called()
+
+
+# ---------------------------------------------------------------------------
+# The Black Buzzard (TASK-3384) — Webflow .event-item card variant with
+# absolute (year-bearing) dates resolves through tixr_public_card without
+# fetching Tixr detail pages.
+# ---------------------------------------------------------------------------
+
+BUZZARD_CALENDAR_URL = "https://www.theblackbuzzard.com/"
+BUZZARD_TIXR_URL = "https://tixr.com/e/183458"
+
+
+def _black_buzzard_club() -> Club:
+    club = Club(
+        id=4099,
+        name="The Black Buzzard at Oskar Blues",
+        address="1624 Market St",
+        website="https://www.theblackbuzzard.com",
+        popularity=0,
+        zip_code="80202",
+        phone_number="",
+        visible=True,
+        timezone="America/Denver",
+    )
+    club.active_scraping_source = ScrapingSource(
+        id=1,
+        club_id=club.id,
+        platform="tixr",
+        scraper_key="tixr_public_card",
+        source_url=BUZZARD_CALENDAR_URL,
+        external_id=None,
+    )
+    club.scraping_sources = [club.active_scraping_source]
+    return club
+
+
+def _black_buzzard_card_html() -> str:
+    """Two real Black Buzzard Webflow ``.event-item`` cards from the homepage.
+
+    The card template differs from St. Marks: the title lives in
+    ``.main-title-hover-2``, the absolute date in ``.date-2.lrg``, and the
+    time in the second ``.long-date .date-2.sml`` node. Per-card JSON-LD
+    supplies the offer price keyed by the Tixr ticket URL.
+    """
+    return f"""<html><body>
+<div class="event-item w-dyn-item" role="listitem">
+  <div class="schema w-embed w-script">
+    <script type="application/ld+json">
+    {{
+      "@context": "https://schema.org",
+      "@type": "Event",
+      "name": "Max Meisel, Phil Coan - Stand Up Comedy",
+      "startDate": "Jul 15, 2026",
+      "offers": {{
+        "@type": "Offer",
+        "name": "General Admission",
+        "price": "20.00",
+        "priceCurrency": "USD",
+        "url": "{BUZZARD_TIXR_URL}"
+      }}
+    }}
+    </script>
+  </div>
+  <a class="row-clickto-ticket w-inline-block" href="{BUZZARD_TIXR_URL}" target="_blank"></a>
+  <div class="event-card-2">
+    <div class="div-stack">
+      <div class="content-div date-div">
+        <div class="date-2 lrg" fs-cmsfilter-field="date">Jul 15, 2026</div>
+        <div class="long-date">
+          <div class="date-2 sml">Wednesday</div>
+          <div class="date-2 comma">,</div>
+          <div class="date-2 sml">8:00 pm</div>
+        </div>
+      </div>
+    </div>
+    <div class="div-stack">
+      <div class="content-div info">
+        <div class="main-title-hover-2" fs-cmsfilter-field="artist">Max Meisel, Phil Coan - Stand Up Comedy</div>
+        <div class="headlin-2" fs-cmsfilter-field="venue">The Black Buzzard at Oskar Blues Denver</div>
+      </div>
+      <div class="content-div cta">
+        <a class="desktop-button tix center w-button" href="{BUZZARD_TIXR_URL}" target="_blank">buy TICKETS</a>
+        <a class="desktop-button tix white w-button" href="/events/max-meisel---stand-up-comedy-denver">more info</a>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="event-item w-dyn-item" role="listitem">
+  <a class="row-clickto-ticket w-inline-block" href="https://tixr.com/e/192155" target="_blank"></a>
+  <div class="event-card-2">
+    <div class="div-stack">
+      <div class="content-div date-div">
+        <div class="date-2 lrg" fs-cmsfilter-field="date">Sep 11, 2026</div>
+        <div class="long-date">
+          <div class="date-2 sml">Friday</div>
+          <div class="date-2 comma">,</div>
+          <div class="date-2 sml">7:00 pm</div>
+        </div>
+      </div>
+    </div>
+    <div class="div-stack">
+      <div class="content-div info">
+        <div class="main-title-hover-2" fs-cmsfilter-field="artist">John Caparulo - Stand Up Comedy (Night 1)</div>
+      </div>
+      <div class="content-div cta">
+        <a class="desktop-button tix center w-button" href="https://tixr.com/e/192155" target="_blank">buy TICKETS</a>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>"""
+
+
+@pytest.mark.asyncio
+async def test_black_buzzard_uses_generic_public_card_path(monkeypatch):
+    """The Black Buzzard's Webflow homepage parses through the shared
+    ``TixrPublicCardScraper`` (absolute-dated ``.event-item`` variant) without
+    any fetch against Tixr-hosted event detail pages."""
+    resolver = ScraperResolver()
+    assert resolver.get("tixr_public_card") is TixrPublicCardScraper
+
+    scraper = TixrPublicCardScraper(_black_buzzard_club())
+
+    async def fake_fetch_html(self, url, **kwargs):
+        return _black_buzzard_card_html()
+
+    monkeypatch.setattr(TixrPublicCardScraper, "fetch_html", fake_fetch_html)
+    monkeypatch.setattr(
+        scraper.tixr_client,
+        "get_event_detail_from_url",
+        AsyncMock(side_effect=AssertionError("Tixr detail pages should not be fetched")),
+    )
+
+    result = await scraper.get_data(BUZZARD_CALENDAR_URL)
+
+    assert isinstance(result, TixrPageData)
+    assert result.get_event_count() == 2
+
+    by_id = {event.event_id: event for event in result.event_list}
+    assert set(by_id) == {"183458", "192155"}
+
+    max_meisel = by_id["183458"]
+    assert max_meisel.title == "Max Meisel, Phil Coan - Stand Up Comedy"
+    assert max_meisel.source_url == BUZZARD_TIXR_URL
+    # Absolute-dated card → unambiguous localized datetime (America/Denver, -06:00 in July).
+    assert max_meisel.show.date.isoformat() == "2026-07-15T20:00:00-06:00"
+    # Price comes from the per-card JSON-LD offer keyed by the Tixr URL.
+    assert [ticket.price for ticket in max_meisel.show.tickets] == [20.00]
+
+    caparulo = by_id["192155"]
+    assert caparulo.title == "John Caparulo - Stand Up Comedy (Night 1)"
+    assert caparulo.show.date.isoformat() == "2026-09-11T19:00:00-06:00"
+    # No JSON-LD block for this card → price is None, ticket still emitted.
+    assert [ticket.price for ticket in caparulo.show.tickets] == [None]

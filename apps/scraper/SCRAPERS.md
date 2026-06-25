@@ -620,7 +620,7 @@ When a venue-owned page already contains complete event cards plus Tixr ticket U
 - `scraper_key = 'tixr_public_card'`
 - `source_url = '<venue-owned calendar page URL>'`
 
-`TixrPublicCardScraper` parses the venue page directly and does not call `TixrClient.get_event_detail_from_url()`. Use this for St. Marks Comedy Club and House of Comedy Bloomington style Webflow cards where DataDome blocks Tixr detail enrichment but the public card has enough data to build shows.
+`TixrPublicCardScraper` parses the venue page directly and does not call `TixrClient.get_event_detail_from_url()`. Use this for St. Marks Comedy Club and House of Comedy Bloomington style Webflow cards where DataDome blocks Tixr detail enrichment but the public card has enough data to build shows. It recognizes three venue-owned card templates: the St. Marks `.event-item > a.ticket-links` Webflow cards (month/day-only date, year inferred), the Black Buzzard `.event-item` Webflow variant (`.main-title-hover-2` title + absolute `.date-2.lrg` date like `Aug 21, 2026` + `a.row-clickto-ticket` Tixr link, with per-card JSON-LD `offers.price`), and The Stand NYC `.show_row` Bootstrap cards (date encoded in the show-page slug). When the venue homepage already embeds full Schema.org Event JSON-LD per card, that block supplies the offer price keyed by the Tixr ticket URL. (The Black Buzzard at Oskar Blues — Denver, TASK-3384 — uses this last variant; note its `/events` page is a shared "Bandwagon" Tixr group with other venues, so point `source_url` at the homepage, which carries only the venue's own events.)
 
 **Audit remaining DataDome-dependent Tixr sources:**
 ```sql

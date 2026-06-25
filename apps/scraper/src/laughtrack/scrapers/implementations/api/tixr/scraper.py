@@ -572,12 +572,17 @@ class TixrScraper(BaseScraper):
         """Parse venue-owned public cards that carry complete event data.
 
         Tries Webflow-style cards first (Bloomington, St Marks); if none
-        match, falls through to The Stand NYC's Bootstrap-style ``.show_row``
-        layout. Each format returns events from its own selectors and an
-        empty list when the HTML doesn't match, so the union is safe.
+        match, tries the Black Buzzard Webflow variant (absolute-dated cards
+        with ``.main-title-hover-2`` titles); if neither matches, falls
+        through to The Stand NYC's Bootstrap-style ``.show_row`` layout. Each
+        format returns events from its own selectors and an empty list when
+        the HTML doesn't match, so the union is safe.
         """
         soup = BeautifulSoup(html_content, "html.parser")
         events = self._parse_webflow_public_cards(soup)
+        if events:
+            return events
+        events = self._parse_buzzard_public_cards(soup)
         if events:
             return events
         return self._parse_stand_public_cards(soup)
@@ -641,6 +646,112 @@ class TixrScraper(BaseScraper):
             events.append(TixrEvent.from_tixr_show(show=show, source_url=ticket_url, event_id=event_id))
 
         return events
+
+    def _parse_buzzard_public_cards(self, soup: BeautifulSoup) -> List[TixrEvent]:
+        """Parse The Black Buzzard's Webflow ``.event-item`` card variant.
+
+        Same venue-owned Webflow + Tixr pattern as ``_parse_webflow_public_cards``
+        but with a different card template: the title lives in
+        ``.main-title-hover-2``, the absolute (year-bearing) date in
+        ``.date-2.lrg`` (e.g. ``Aug 21, 2026``), and the time in the second
+        ``.long-date .date-2.sml`` node (e.g. ``8:00 pm``). The Tixr ticket URL
+        is on ``a.row-clickto-ticket`` / ``a.desktop-button.tix``. Because the
+        date carries an explicit year, no current-date year-rollover inference
+        is needed (unlike the month/day-only St. Marks cards). Per-card
+        Schema.org JSON-LD supplies the offer price.
+        """
+        events: List[TixrEvent] = []
+        seen_ids: set[str] = set()
+        jsonld_offer_prices = self._extract_jsonld_offer_prices_by_url(soup)
+
+        for item in soup.select(".event-item"):
+            link = item.select_one(
+                'a.row-clickto-ticket[href*="tixr.com"]'
+            ) or item.select_one('a.desktop-button.tix[href*="tixr.com"]')
+            title_el = item.select_one(".main-title-hover-2")
+            date_el = item.select_one(".date-2.lrg")
+            time_nodes = item.select(".long-date .date-2.sml")
+            time_el = time_nodes[1] if len(time_nodes) >= 2 else None
+
+            if not all((link, title_el, date_el, time_el)):
+                continue
+
+            ticket_url = str(link.get("href") or "").strip()
+            title = title_el.get_text(" ", strip=True)
+            event_id = TixrExtractor.get_event_id(ticket_url) or ""
+            if not title or not ticket_url or (event_id and event_id in seen_ids):
+                continue
+
+            show_date = self._parse_buzzard_card_datetime(
+                date_el.get_text(" ", strip=True),
+                time_el.get_text(" ", strip=True),
+            )
+            if show_date is None:
+                Logger.warn(
+                    f"{self._log_prefix}: Skipping Buzzard card with unparseable date/time "
+                    f"for '{title}' at {ticket_url}",
+                    self.logger_context,
+                )
+                continue
+
+            if event_id:
+                seen_ids.add(event_id)
+
+            show = Show(
+                name=title,
+                club_id=self.club.id,
+                date=show_date,
+                show_page_url=ticket_url,
+                lineup=[],
+                tickets=[
+                    Ticket(
+                        price=jsonld_offer_prices.get(ticket_url),
+                        purchase_url=ticket_url,
+                        sold_out=False,
+                        type="General Admission",
+                    )
+                ],
+                supplied_tags=["event"],
+                description=None,
+                timezone=self.club.timezone,
+                room="",
+            )
+            events.append(TixrEvent.from_tixr_show(show=show, source_url=ticket_url, event_id=event_id))
+
+        return events
+
+    def _parse_buzzard_card_datetime(self, date_text: str, time_text: str) -> Optional[datetime]:
+        """Parse a ``Mon DD, YYYY`` date + ``H:MM pm`` time into a localized datetime.
+
+        The card carries an explicit year, so the value is unambiguous and no
+        year-rollover inference is required.
+        """
+        date_str = " ".join(date_text.split())
+        normalized_time = " ".join(time_text.split()).upper()
+        if not date_str or not normalized_time:
+            return None
+
+        parsed: Optional[datetime] = None
+        for month_format in _MONTH_FORMATS:
+            for time_format in _TIME_FORMATS:
+                try:
+                    parsed = datetime.strptime(
+                        f"{date_str} {normalized_time}", f"{month_format} %d, %Y {time_format}"
+                    )
+                    break
+                except ValueError:
+                    continue
+            if parsed is not None:
+                break
+
+        if parsed is None:
+            return None
+
+        try:
+            tz = pytz.timezone(self.club.timezone or "UTC")
+        except pytz.UnknownTimeZoneError:
+            return None
+        return tz.localize(parsed)
 
     def _extract_jsonld_offer_prices_by_url(self, soup: BeautifulSoup) -> Dict[str, Optional[float]]:
         prices_by_url: Dict[str, Optional[float]] = {}
