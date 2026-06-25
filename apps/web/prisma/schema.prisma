@@ -236,6 +236,11 @@ model ClubAlias {
   clubId              Int      @map("club_id")
   club                Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
   aliasName           String   @map("alias_name")
+  // normalized_* are maintained by the club_aliases_set_normalized trigger
+  // (lt_normalize_alias_key for name/city, lower() for state). Do not write
+  // them from application code — any value supplied is overwritten on
+  // INSERT/UPDATE so the alias dedup key has a single DB-side definition
+  // (TASK-3462). The scraper reads them via GET_CLUBS_BY_LOCATION.
   normalizedAliasName String   @map("normalized_alias_name")
   city                String
   state               String
