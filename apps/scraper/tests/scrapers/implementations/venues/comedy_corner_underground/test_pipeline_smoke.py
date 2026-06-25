@@ -31,10 +31,15 @@ def _club() -> Club:
     return _c
 
 
-def _listing_html(slugs: list[str]) -> str:
-    """Render a minimal StageTime venue listing page with event links."""
+def _listing_html(slugs: list[str], *, legacy_prefix: bool = False) -> str:
+    """Render a minimal StageTime venue listing page with event links.
+
+    StageTime currently serves bare ``/e/{slug}`` event anchors; pass
+    ``legacy_prefix=True`` to render the older ``/v/ccu/e/{slug}`` form.
+    """
+    prefix = "/v/ccu/e/" if legacy_prefix else "/e/"
     links = "\n".join(
-        f'<a class="group block" href="/v/ccu/e/{slug}"><h3>{slug}</h3></a>'
+        f'<a class="group block" href="{prefix}{slug}"><h3>{slug}</h3></a>'
         for slug in slugs
     )
     return f"""<!DOCTYPE html><html><head></head><body>
@@ -159,6 +164,55 @@ def _event_page_html(
     return f"""<!DOCTYPE html><html><head></head><body>
 <script>self.__next_f.push([1,"{push1}"])</script>
 <script>self.__next_f.push([1,"{push2}"])</script>
+</body></html>"""
+
+
+def _event_page_jsonld_html(
+    name: str,
+    slug: str,
+    occurrences: list[str],
+    performers: list[str] | None = None,
+    ticket_url: str | None = None,
+    include_dateless_placeholder: bool = False,
+) -> str:
+    """Build a StageTime event page in the *current* ComedyEvent JSON-LD format.
+
+    StageTime now streams the schema.org ComedyEvent JSON-LD as a deferred RSC
+    text chunk ("T<hexlen>,[{...}]"), one array entry per occurrence. The
+    description intentionally contains a newline so the test exercises the
+    multi-line / multi-push robustness of the parser (TASK-3332).
+    """
+    performers = performers or []
+    ticket_url = ticket_url or f"https://stageti.me/v/ccu/e/{slug}"
+    comedy_events = [
+        {
+            "@context": "https://schema.org",
+            "@type": "ComedyEvent",
+            "name": name,
+            "description": "Live at The Comedy Corner Underground.\nDoors 8:00PM.",
+            "startDate": t,
+            "performer": [
+                {"@type": "PerformingGroup", "name": p} for p in performers
+            ],
+            "offers": {
+                "@type": "Offer",
+                "url": ticket_url,
+                "price": "19.00",
+                "priceCurrency": "USD",
+                "availability": "https://schema.org/InStock",
+            },
+        }
+        for t in occurrences
+    ]
+    if include_dateless_placeholder:
+        comedy_events.append({"@context": "https://schema.org", "@type": "ComedyEvent", "name": name})
+
+    array_str = json.dumps(comedy_events)
+    hexlen = format(len(array_str.encode("utf-8")), "x")
+    chunk = f"26:T{hexlen},{array_str}"
+    push = json.dumps(chunk)[1:-1]
+    return f"""<!DOCTYPE html><html><head></head><body>
+<script>self.__next_f.push([1,"{push}"])</script>
 </body></html>"""
 
 
@@ -328,10 +382,29 @@ async def test_get_data_returns_none_when_all_events_are_open_mic(monkeypatch):
 
 
 def test_extract_event_slugs_returns_slugs():
-    """extract_event_slugs() returns unique slugs from /v/ccu/e/ links."""
+    """extract_event_slugs() returns unique slugs from bare /e/ links."""
     html = _listing_html(["show-a", "show-b", "show-a"])  # duplicate slug
     slugs = ComedyCornerExtractor.extract_event_slugs(html)
     assert slugs == ["show-a", "show-b"]
+
+
+def test_extract_event_slugs_handles_legacy_v_prefix():
+    """Legacy /v/{venue}/e/{slug} listing anchors still extract (TASK-3332)."""
+    html = _listing_html(["show-a", "show-b"], legacy_prefix=True)
+    slugs = ComedyCornerExtractor.extract_event_slugs(html)
+    assert slugs == ["show-a", "show-b"]
+
+
+def test_extract_event_slugs_ignores_non_event_links():
+    """Non-event StageTime links (mic signups, tickets) are not treated as slugs."""
+    html = """<!DOCTYPE html><html><body>
+<a href="/e/real-show">Real Show</a>
+<a href="/v/ccu/mic/1/signup">Mic Signup</a>
+<a href="/v/ccu/tickets">Tickets</a>
+<a href="/v/ccu/request-a-tape">Request a Tape</a>
+</body></html>"""
+    slugs = ComedyCornerExtractor.extract_event_slugs(html)
+    assert slugs == ["real-show"]
 
 
 def test_extract_event_data_returns_correct_fields():
@@ -357,6 +430,41 @@ def test_extract_event_data_returns_correct_fields():
     assert "2026-04-05T01:00:00.000Z" in data["occurrences"]
     assert data["performers"] == ["Jeremiah Coughlan"]
     assert "jeremiah-coughlan" in data["ticket_url"]
+
+
+def test_extract_event_data_parses_comedy_event_jsonld():
+    """Current StageTime format: ComedyEvent JSON-LD deferred text chunk (TASK-3332)."""
+    html = _event_page_jsonld_html(
+        name="MJ Matheson",
+        slug="mj-matheson",
+        occurrences=["2026-06-27T01:00:00.000Z"],
+        performers=["MJ Matheson"],
+    )
+    data = ComedyCornerExtractor.extract_event_data(html)
+
+    assert data is not None
+    assert data["name"] == "MJ Matheson"
+    assert data["occurrences"] == ["2026-06-27T01:00:00.000Z"]
+    assert data["performers"] == ["MJ Matheson"]
+    assert "mj-matheson" in data["ticket_url"]
+    # No isOpenMic/admissionType in JSON-LD — must default, not crash.
+    assert data["is_open_mic"] is False
+
+
+def test_extract_event_data_jsonld_skips_dateless_occurrences():
+    """ComedyEvent entries without a startDate (placeholders) are dropped."""
+    html = _event_page_jsonld_html(
+        name="Buzzer Beater",
+        slug="buzzer-beater",
+        occurrences=["2026-07-17T01:30:00.000Z"],
+        performers=["Teddy Kaste", "Elliot Weber"],
+        include_dateless_placeholder=True,
+    )
+    data = ComedyCornerExtractor.extract_event_data(html)
+
+    assert data is not None
+    assert data["occurrences"] == ["2026-07-17T01:30:00.000Z"]
+    assert data["performers"] == ["Teddy Kaste", "Elliot Weber"]
 
 
 def test_extract_event_data_returns_none_on_empty_html():
