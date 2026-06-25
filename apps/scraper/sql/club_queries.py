@@ -246,11 +246,28 @@ class ClubQueries:
     # deterministic when two same-(city, state) rows happen to normalize to
     # the same core form — non-deterministic ordering across nightly runs
     # would let the same fuzzy hit flip-flop between IDs.
+    # Params (positional): (candidate_name, candidate_city, candidate_state,
+    # location_city, location_state). The alias_matches_candidate flag resolves
+    # the alias dedup key entirely in SQL via lt_normalize_alias_key — the same
+    # function the club_aliases_set_normalized trigger uses to populate the
+    # stored columns — so the scraper never re-implements normalization in
+    # Python and the writer/reader contract cannot drift (TASK-3462). The
+    # candidate (name, city, state) equal the (location_city, location_state)
+    # filter values for the same venue, so callers pass city/state twice.
     GET_CLUBS_BY_LOCATION = """
         SELECT
             c.*,
             '[]'::json AS scraping_sources,
-            COALESCE(alias_list.aliases, '[]'::json) AS aliases
+            COALESCE(alias_list.aliases, '[]'::json) AS aliases,
+            EXISTS (
+                SELECT 1
+                FROM club_aliases ca_match
+                WHERE ca_match.club_id = c.id
+                  AND ca_match.verified = TRUE
+                  AND ca_match.normalized_alias_name = lt_normalize_alias_key(%s)
+                  AND ca_match.normalized_city = lt_normalize_alias_key(%s)
+                  AND ca_match.normalized_state = lower(%s)
+            ) AS alias_matches_candidate
         FROM clubs c
         LEFT JOIN LATERAL (
             SELECT json_agg(

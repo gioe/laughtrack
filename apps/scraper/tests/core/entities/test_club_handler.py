@@ -319,7 +319,7 @@ class TestResolveExistingEventbriteVenueClub:
         source_lookup.assert_called_once_with("297808541")
         mock_exec.assert_called_once_with(
             ClubQueries.GET_CLUBS_BY_LOCATION,
-            ("Buford", "GA"),
+            ("Elixir Brew Co", "Buford", "GA", "Buford", "GA"),
             return_results=True,
         )
         assert result is not None
@@ -362,6 +362,9 @@ class TestClubAliasResolution:
             city="Corpus Christi",
             state="TX",
             eventbrite_id="canonical",
+            # Alias resolution is now done in SQL (GET_CLUBS_BY_LOCATION returns
+            # alias_matches_candidate); the mocked row carries that flag.
+            alias_matches_candidate=True,
             aliases=[
                 {
                     "alias_name": "Mesquite Street",
@@ -610,6 +613,9 @@ class TestUpsertForTicketmasterVenueAliasResolution:
             name="Albany Funny Bone",
             city="Albany",
             state="NY",
+            # GET_CLUBS_BY_LOCATION resolves the alias key in SQL via
+            # lt_normalize_alias_key and returns this flag (TASK-3462).
+            alias_matches_candidate=True,
             aliases=[
                 {
                     "alias_name": "Funny Bone Comedy Club - Albany",
@@ -632,18 +638,21 @@ class TestUpsertForTicketmasterVenueAliasResolution:
         assert "club_aliases" in mock_exec.call_args.args[0]
 
     def test_alias_hit_survives_st_abbreviation_drift(self):
-        """Regression for the bug this task fixes: the stored alias key uses the
-        SQL normalization ('st louis'), while the old Python normalizer expanded
-        it to 'saint louis' and silently missed. The fix must match."""
+        """St./Ft./Mt. venues must still alias-match. As of TASK-3462 the
+        normalization is computed in SQL by lt_normalize_alias_key (the same
+        function the club_aliases trigger uses to store the key), so there is no
+        Python normalizer left to drift — GET_CLUBS_BY_LOCATION returns
+        alias_matches_candidate and the importer just honors it."""
         canonical = _make_club_row(
             id=657,
             name="St. Louis Funny Bone",
             city="St. Louis",
             state="MO",
+            alias_matches_candidate=True,
             aliases=[
                 {
                     "alias_name": "Funny Bone Comedy Club - St. Louis",
-                    # As stored by the fold SQL — no 'st' -> 'saint' expansion.
+                    # As stored by the trigger — no 'st' -> 'saint' expansion.
                     "normalized_alias_name": "funny bone comedy club st louis",
                     "normalized_city": "st louis",
                     "normalized_state": "mo",
@@ -1377,7 +1386,8 @@ class TestUpsertForEventbriteVenueBrandNameSafety:
 
         # The location query was scoped to (San Diego, CA), not (Hollywood, CA).
         location_call_params = mock_exec.call_args_list[0][0][1]
-        assert location_call_params == ("San Diego", "CA")
+        # (candidate_name, candidate_city, candidate_state, location_city, location_state)
+        assert location_call_params == ("Laugh Factory", "San Diego", "CA", "San Diego", "CA")
 
     def test_same_city_distinct_brand_does_not_merge(self):
         """Two genuinely distinct brands sharing a city ('Comedy Cellar' vs
