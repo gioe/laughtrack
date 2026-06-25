@@ -194,6 +194,39 @@ def _normalize_address(address: str):
     return f"{toks[0]} {word}".strip() if word else None
 
 
+# Wider proximity bound for the stale-coordinate address fallback (TASK-3322).
+# An exact street-number+street-word key match whose existing club coords merely
+# disagree (a club geocoded to a metro centroid / wrong rooftop) should still be
+# caught as a duplicate, but only within metro range and same-state — so a
+# genuinely different city sharing a common key (e.g. "100 main") two states or
+# 80+ miles away is not collapsed. 25 mi comfortably covers intra-metro geocode
+# drift (the motivating case, "The Factory" Saint Louis vs Chesterfield, was
+# ~6 mi) without spanning to a distinct same-state city.
+_ADDR_STALE_COORD_MILES = 25.0
+
+
+def _address_state(address: str):
+    """Best-effort US state token from a comma-formatted address, lowercased.
+
+    Parses ``"<street>, <city>, <ST> <zip>, USA"`` and returns ``"mo"`` for the
+    state segment, or None when the address isn't structured enough to be
+    confident (fewer than street+city+state segments). The trailing country
+    token (USA / US / United States) is dropped first so the state segment is
+    found reliably. Used only by the stale-coordinate address fallback as a
+    conservative same-location guard — an unparseable state disables the
+    fallback rather than risking a cross-location collapse.
+    """
+    if not address:
+        return None
+    segs = [s.strip() for s in address.split(",") if s.strip()]
+    if segs and segs[-1].lower() in {"usa", "us", "united states"}:
+        segs = segs[:-1]
+    if len(segs) < 3:
+        return None
+    state_tokens = segs[2].split()
+    return state_tokens[0].lower() if state_tokens else None
+
+
 def _tile_centers(lat, lng, radius_miles, spacing_miles):
     """Grid of search centers covering the radius-mile disk around (lat, lng).
 
@@ -235,7 +268,7 @@ def _load_existing_clubs(dsn):
             cur.execute(
                 """
                 SELECT id, name, address, latitude, longitude, google_place_id,
-                       club_type, visible, status
+                       club_type, visible, status, state
                   FROM clubs
                 """
             )
@@ -246,7 +279,7 @@ def _load_existing_clubs(dsn):
     by_place_id = {}
     name_rows = []
     addr_index = {}
-    for club_id, name, address, lat, lng, place_id, club_type, visible, status in rows:
+    for club_id, name, address, lat, lng, place_id, club_type, visible, status, state in rows:
         flat = float(lat) if lat is not None else None
         flng = float(lng) if lng is not None else None
         club_meta = (club_type or "club", bool(visible), status or "")
@@ -255,7 +288,13 @@ def _load_existing_clubs(dsn):
         name_rows.append((club_id, name, _normalize_name(name), flat, flng, *club_meta))
         addr_key = _normalize_address(address)
         if addr_key:
-            addr_index.setdefault(addr_key, []).append((club_id, name, flat, flng, *club_meta))
+            # State is appended AFTER club_meta so the (id, name, lat, lng, *meta)
+            # prefix _split_club_match reads stays unchanged; the stale-coord
+            # fallback in _match_by_address reads it at the tail (TASK-3322).
+            state_key = (state or "").strip().lower() or None
+            addr_index.setdefault(addr_key, []).append(
+                (club_id, name, flat, flng, *club_meta, state_key)
+            )
     return by_place_id, name_rows, addr_index
 
 
@@ -357,17 +396,45 @@ def _match_by_name(venue, name_rows, name_match_miles):
     return None
 
 
-def _match_by_address(venue, addr_index, name_match_miles):
+def _match_by_address(venue, addr_index, name_match_miles, stale_coord_miles=_ADDR_STALE_COORD_MILES):
     """Existing club at the same street address (number + first street word,
     format-tolerant), proximity-confirmed when coords are available. Catches
     duplicates onboarded under a name variant and/or with a NULL google_place_id,
-    which the name and place_id checks miss. Returns (club_id, club_name) or None."""
+    which the name and place_id checks miss. Returns (club_id, club_name) or None.
+
+    Stale-coordinate fallback (TASK-3322): an exact address-key match whose
+    existing-club coords disagree past ``name_match_miles`` is still accepted as
+    a duplicate when (a) the existing row and the candidate agree on US state and
+    (b) the coords are within the wider ``stale_coord_miles`` metro bound. This
+    catches a real venue whose stored geocode is stale/wrong by a few miles (the
+    motivating miss was "The Factory", stored coords ~6 mi off, kept as "new" and
+    at risk of a duplicate club shell on bulk import) while still rejecting the
+    same common street number in a genuinely different or distant city — the
+    cross-city false positive the proximity guard exists to prevent."""
     addr_key = _normalize_address(venue.address)
     if not (addr_key and addr_index):
         return None
+    venue_state = _address_state(venue.address)
     for row in addr_index.get(addr_key, ()):
         club_id, club_name, lat, lng = row[:4]
         if _within(venue, lat, lng, name_match_miles):
+            return _split_club_match(row, 4)
+        # Proximity past the tight bound. Fall back to a same-state +
+        # within-metro acceptance so a stale-geocode duplicate isn't silently
+        # kept as "new". State is the tail element appended by
+        # _load_existing_clubs; older callers (and hand-built test rows) without
+        # it simply don't qualify for the fallback.
+        club_state = row[-1] if len(row) > 4 and isinstance(row[-1], str) else None
+        if (
+            venue_state
+            and club_state
+            and venue_state == club_state
+            and lat is not None
+            and lng is not None
+            and venue.lat is not None
+            and venue.lng is not None
+            and _haversine_miles(venue.lat, venue.lng, lat, lng) <= stale_coord_miles
+        ):
             return _split_club_match(row, 4)
     return None
 
