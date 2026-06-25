@@ -311,7 +311,10 @@ def _ensure_future_routing(cur: RealDictCursor) -> dict[str, int]:
         -- by the club_aliases_set_normalized trigger (TASK-3462), so this insert
         -- supplies only the raw alias_name/city/state. ON CONFLICT still targets
         -- the trigger-maintained columns (the trigger fires BEFORE the conflict
-        -- check, so the dedup key is set in time).
+        -- check, so the dedup key is set in time). REQUIRES migration
+        -- 20260625140000_club_aliases_normalize_trigger — without it those
+        -- NOT NULL columns are unfilled and this INSERT fails on a NOT NULL
+        -- violation. Prod gets the migration via Vercel migrate-deploy on merge.
         INSERT INTO club_aliases (
             club_id,
             alias_name,

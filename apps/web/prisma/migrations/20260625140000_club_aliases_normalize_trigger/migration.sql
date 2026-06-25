@@ -61,6 +61,17 @@ EXECUTE FUNCTION club_aliases_set_normalized();
 -- One-shot backfill so existing rows are guaranteed to match the function.
 -- For rows written by the existing fold scripts this is a no-op (the names
 -- carry no st/ft/mt tokens), but it makes the invariant hold unconditionally.
+--
+-- Collision safety: a recomputed key could in theory collide with another
+-- row's key under the unique index (normalized_alias_name, normalized_city,
+-- normalized_state) and abort the migration. This cannot happen for the
+-- current data: every historical writer (the fold/reconcile scripts) already
+-- used the identical name expression and lower(state), so the IS DISTINCT FROM
+-- guard matches almost nothing and no key actually changes value. Any row that
+-- DID change to a colliding key would mean two aliases already pointed at the
+-- same (name, city, state) — a pre-existing duplicate that the unique index
+-- would have rejected at write time. If a future drifted row ever surfaces
+-- here, dedup it by hand before re-running rather than weakening the index.
 UPDATE club_aliases
 SET normalized_alias_name = lt_normalize_alias_key(alias_name),
     normalized_city = lt_normalize_alias_key(city),
