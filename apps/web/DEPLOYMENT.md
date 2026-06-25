@@ -179,6 +179,29 @@ Ensure `DATABASE_URL` and `DIRECT_URL` are set in the environment before running
 
 > **Migration timing:** Always run `prisma migrate deploy` **before** the new app version goes live. On Vercel, add it as a build command (`npx prisma migrate deploy && next build`) or run it manually before triggering a deploy. Deploying the new code before the schema is updated will cause runtime errors.
 
+### Pre-merge migration gate (CI)
+
+The `migrations` job in `.github/workflows/web-ci.yml` validates pending migrations **before merge** by running `prisma migrate deploy` against an ephemeral [Neon branch](https://neon.tech/docs/introduction/branching) — an instant copy-on-write clone of prod. Because the branch carries prod's real schema **and data**, a migration whose backfill or new constraint collides with existing rows fails the PR check instead of the prod Vercel deploy. This catches the class of failure that caused the TASK-3462 incident (a `club_aliases` backfill hit duplicate onboarding-seeded alias rows: P3009 / `23505`), which an empty-schema check cannot surface and a from-empty replay cannot reproduce (this repo's migration history is baselined and not replayable from scratch — see the `migrate dev` note above).
+
+**Activate the gate** by adding these to the GitHub repository (Settings → Secrets and variables → Actions). Until `NEON_PROJECT_ID` is set the job is **skipped, not failed** (same pattern as the `e2e` job's `E2E_BASE_URL` gate):
+
+| Kind | Name | Value |
+|---|---|---|
+| Secret | `NEON_API_KEY` | A Neon API key with branch create/delete permission (Neon Console → Account → API keys) |
+| Variable | `NEON_PROJECT_ID` | The Neon project id (Neon Console → Project settings) |
+| Variable | `NEON_PARENT_BRANCH` | The prod branch to copy (e.g. `production` or `main`) |
+| Variable | `NEON_DB_NAME` | The database name (e.g. `neondb`) |
+| Variable | `NEON_DB_ROLE` | The role to connect as |
+
+The job always deletes its ephemeral branch afterward (even on failure).
+
+> **Recovering a failed prod migration (P3009).** Prisma migrations are transactional: if one fails mid-apply, its `_prisma_migrations` row is marked failed and **every subsequent `prisma migrate deploy` (including the Vercel build) is blocked** until you recover. To recover:
+> 1. `cd apps/web && DATABASE_URL=<prod-direct> DIRECT_URL=<prod-direct> npx prisma migrate resolve --rolled-back <migration_name>` — marks the failed (0-steps, fully-rolled-back) migration as rolled back so deploys proceed.
+> 2. Fix the migration SQL so it is safe to re-apply (idempotent `CREATE OR REPLACE` / `DROP ... IF EXISTS`; dedup-before-backfill so a recompute can't violate a unique index — see migration `20260625140000_club_aliases_normalize_trigger`).
+> 3. `npx prisma migrate deploy` to re-apply the corrected migration, then merge the corrected file so `main` matches the applied checksum.
+>
+> The CI gate above exists to prevent ever needing this on prod. See convention #237.
+
 ### Post-Migration: Data Seed Script (Fresh Environments Only)
 
 The email scrapers for Gotham Comedy Club and Comedy Cellar require a one-time data seed that **cannot run inside a Prisma migration** (the shadow DB used by `migrate dev` would fail if those clubs don't exist). This seed is stored separately:
