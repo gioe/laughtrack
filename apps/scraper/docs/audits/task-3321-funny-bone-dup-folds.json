@@ -1,0 +1,2138 @@
+{
+  "after": {
+    "aliases": [
+      {
+        "alias_name": "Funny Bone Comedy Club - Columbus",
+        "city": "Columbus",
+        "club_id": 308,
+        "id": 60,
+        "normalized_alias_name": "funny bone comedy club - columbus",
+        "normalized_city": "columbus",
+        "normalized_state": "oh",
+        "source": "20260513213000: duplicate tour_dates stub 2431",
+        "state": "OH",
+        "verified": true
+      },
+      {
+        "alias_name": "Funny Bone Comedy Club - Columbus",
+        "city": "Columbus",
+        "club_id": 308,
+        "id": 425,
+        "normalized_alias_name": "funny bone comedy club columbus",
+        "normalized_city": "columbus",
+        "normalized_state": "oh",
+        "source": "TASK-3321",
+        "state": "OH",
+        "verified": true
+      },
+      {
+        "alias_name": "Funny Bone Comedy Club - Albany",
+        "city": "Albany",
+        "club_id": 323,
+        "id": 423,
+        "normalized_alias_name": "funny bone comedy club albany",
+        "normalized_city": "albany",
+        "normalized_state": "ny",
+        "source": "TASK-3321",
+        "state": "NY",
+        "verified": true
+      },
+      {
+        "alias_name": "Funny Bone Comedy Club",
+        "city": "Orlando",
+        "club_id": 1027,
+        "id": 20,
+        "normalized_alias_name": "funny bone comedy club",
+        "normalized_city": "orlando",
+        "normalized_state": "fl",
+        "source": "20260513143000: duplicate tour_dates stub 2369",
+        "state": "FL",
+        "verified": true
+      },
+      {
+        "alias_name": "Funny Bone",
+        "city": "Orlando",
+        "club_id": 1027,
+        "id": 21,
+        "normalized_alias_name": "funny bone",
+        "normalized_city": "orlando",
+        "normalized_state": "fl",
+        "source": "20260513213000: duplicate tour_dates stub 3012",
+        "state": "FL",
+        "verified": true
+      },
+      {
+        "alias_name": "Funny Bone Comedy Club - Orlando",
+        "city": "Orlando",
+        "club_id": 1027,
+        "id": 428,
+        "normalized_alias_name": "funny bone comedy club orlando",
+        "normalized_city": "orlando",
+        "normalized_state": "fl",
+        "source": "TASK-3321",
+        "state": "FL",
+        "verified": true
+      },
+      {
+        "alias_name": "Funny Bone Comedy Club - Syracuse",
+        "city": "Syracuse",
+        "club_id": 1028,
+        "id": 430,
+        "normalized_alias_name": "funny bone comedy club syracuse",
+        "normalized_city": "syracuse",
+        "normalized_state": "ny",
+        "source": "TASK-3321",
+        "state": "NY",
+        "verified": true
+      },
+      {
+        "alias_name": "Funny Bone Comedy Club - Virginia Beach",
+        "city": "Virginia Beach",
+        "club_id": 1033,
+        "id": 149,
+        "normalized_alias_name": "funny bone comedy club - virginia beach",
+        "normalized_city": "virginia beach",
+        "normalized_state": "va",
+        "source": "20260515115000: duplicate tour_dates stub 2471",
+        "state": "VA",
+        "verified": true
+      },
+      {
+        "alias_name": "Funny Bone Comedy Club - Virginia Beach",
+        "city": "Virginia Beach",
+        "club_id": 1033,
+        "id": 433,
+        "normalized_alias_name": "funny bone comedy club virginia beach",
+        "normalized_city": "virginia beach",
+        "normalized_state": "va",
+        "source": "TASK-3321",
+        "state": "VA",
+        "verified": true
+      },
+      {
+        "alias_name": "Funny Bone - Richmond",
+        "city": "Richmond",
+        "club_id": 1034,
+        "id": 229,
+        "normalized_alias_name": "funny bone richmond",
+        "normalized_city": "richmond",
+        "normalized_state": "va",
+        "source": "20260516104500: duplicate tour_dates stub 2556",
+        "state": "VA",
+        "verified": true
+      },
+      {
+        "alias_name": "Funny Bone Comedy Club - Richmond",
+        "city": "Richmond",
+        "club_id": 1034,
+        "id": 429,
+        "normalized_alias_name": "funny bone comedy club richmond",
+        "normalized_city": "richmond",
+        "normalized_state": "va",
+        "source": "TASK-3321",
+        "state": "VA",
+        "verified": true
+      },
+      {
+        "alias_name": "Funny Bone - Cleveland",
+        "city": "Cleveland",
+        "club_id": 1050,
+        "id": 227,
+        "normalized_alias_name": "funny bone cleveland",
+        "normalized_city": "cleveland",
+        "normalized_state": "oh",
+        "source": "20260516093000: duplicate tour_dates stub 2552",
+        "state": "OH",
+        "verified": true
+      },
+      {
+        "alias_name": "Funny Bone Comedy Club - Cleveland",
+        "city": "Cleveland",
+        "club_id": 1050,
+        "id": 424,
+        "normalized_alias_name": "funny bone comedy club cleveland",
+        "normalized_city": "cleveland",
+        "normalized_state": "oh",
+        "source": "TASK-3321",
+        "state": "OH",
+        "verified": true
+      },
+      {
+        "alias_name": "Funny Bone - Tampa",
+        "city": "Tampa",
+        "club_id": 1053,
+        "id": 55,
+        "normalized_alias_name": "funny bone - tampa",
+        "normalized_city": "tampa",
+        "normalized_state": "fl",
+        "source": "20260513213000: duplicate tour_dates stub 2544",
+        "state": "FL",
+        "verified": true
+      },
+      {
+        "alias_name": "Funny Bone Comedy Club - Tampa",
+        "city": "Tampa",
+        "club_id": 1053,
+        "id": 431,
+        "normalized_alias_name": "funny bone comedy club tampa",
+        "normalized_city": "tampa",
+        "normalized_state": "fl",
+        "source": "TASK-3321",
+        "state": "FL",
+        "verified": true
+      },
+      {
+        "alias_name": "Funny Bone Comedy Club (formerly Kansas City Improv)",
+        "city": "Kansas City",
+        "club_id": 2462,
+        "id": 111,
+        "normalized_alias_name": "funny bone comedy club (formerly kansas city improv)",
+        "normalized_city": "kansas city",
+        "normalized_state": "mo",
+        "source": "20260515010000: onboard Kansas City Funny Bone Etix",
+        "state": "MO",
+        "verified": true
+      },
+      {
+        "alias_name": "Kansas City Improv",
+        "city": "Kansas City",
+        "club_id": 2462,
+        "id": 112,
+        "normalized_alias_name": "kansas city improv",
+        "normalized_city": "kansas city",
+        "normalized_state": "mo",
+        "source": "20260515010000: onboard Kansas City Funny Bone Etix",
+        "state": "MO",
+        "verified": true
+      },
+      {
+        "alias_name": "Funny Bone Comedy Club",
+        "city": "Kansas City",
+        "club_id": 2462,
+        "id": 113,
+        "normalized_alias_name": "funny bone comedy club",
+        "normalized_city": "kansas city",
+        "normalized_state": "mo",
+        "source": "20260515010000: onboard Kansas City Funny Bone Etix",
+        "state": "MO",
+        "verified": true
+      },
+      {
+        "alias_name": "Funny Bone Comedy Club - Kansas City",
+        "city": "Kansas City",
+        "club_id": 2462,
+        "id": 427,
+        "normalized_alias_name": "funny bone comedy club kansas city",
+        "normalized_city": "kansas city",
+        "normalized_state": "mo",
+        "source": "TASK-3321",
+        "state": "MO",
+        "verified": true
+      },
+      {
+        "alias_name": "Funny Bone - Toledo",
+        "city": "Perrysburg",
+        "club_id": 4504,
+        "id": 432,
+        "normalized_alias_name": "funny bone toledo",
+        "normalized_city": "perrysburg",
+        "normalized_state": "oh",
+        "source": "TASK-3321",
+        "state": "OH",
+        "verified": true
+      },
+      {
+        "alias_name": "Funny Bone Comedy Club - Hartford",
+        "city": "Manchester",
+        "club_id": 4904,
+        "id": 426,
+        "normalized_alias_name": "funny bone comedy club hartford",
+        "normalized_city": "manchester",
+        "normalized_state": "ct",
+        "source": "TASK-3321",
+        "state": "CT",
+        "verified": true
+      }
+    ],
+    "clubs": [
+      {
+        "city": "Columbus",
+        "closed_at": null,
+        "id": 308,
+        "name": "Columbus Funny Bone",
+        "state": "OH",
+        "status": "active",
+        "total_shows": 253,
+        "visible": true
+      },
+      {
+        "city": "Albany",
+        "closed_at": null,
+        "id": 323,
+        "name": "Albany Funny Bone",
+        "state": "NY",
+        "status": "active",
+        "total_shows": 153,
+        "visible": true
+      },
+      {
+        "city": "Orlando",
+        "closed_at": null,
+        "id": 1027,
+        "name": "Orlando Funny Bone",
+        "state": "FL",
+        "status": "active",
+        "total_shows": 304,
+        "visible": true
+      },
+      {
+        "city": "Syracuse",
+        "closed_at": null,
+        "id": 1028,
+        "name": "Syracuse Funny Bone",
+        "state": "NY",
+        "status": "active",
+        "total_shows": 161,
+        "visible": true
+      },
+      {
+        "city": "Virginia Beach",
+        "closed_at": null,
+        "id": 1033,
+        "name": "Virginia Beach Funny Bone",
+        "state": "VA",
+        "status": "active",
+        "total_shows": 242,
+        "visible": true
+      },
+      {
+        "city": "Richmond",
+        "closed_at": null,
+        "id": 1034,
+        "name": "Richmond Funny Bone",
+        "state": "VA",
+        "status": "active",
+        "total_shows": 223,
+        "visible": true
+      },
+      {
+        "city": "Cleveland",
+        "closed_at": null,
+        "id": 1050,
+        "name": "Cleveland Funny Bone",
+        "state": "OH",
+        "status": "active",
+        "total_shows": 182,
+        "visible": true
+      },
+      {
+        "city": "Tampa",
+        "closed_at": null,
+        "id": 1053,
+        "name": "Tampa Funny Bone",
+        "state": "FL",
+        "status": "active",
+        "total_shows": 251,
+        "visible": true
+      },
+      {
+        "city": "Kansas City",
+        "closed_at": null,
+        "id": 2462,
+        "name": "Kansas City Funny Bone",
+        "state": "MO",
+        "status": "active",
+        "total_shows": 79,
+        "visible": true
+      },
+      {
+        "city": "Perrysburg",
+        "closed_at": null,
+        "id": 4504,
+        "name": "Toledo Funny Bone",
+        "state": "OH",
+        "status": "active",
+        "total_shows": 5,
+        "visible": true
+      },
+      {
+        "city": "Manchester",
+        "closed_at": null,
+        "id": 4904,
+        "name": "Hartford Funny Bone",
+        "state": "CT",
+        "status": "active",
+        "total_shows": 4,
+        "visible": true
+      },
+      {
+        "city": "Tampa",
+        "closed_at": "2026-06-25T14:23:47.701969+00:00",
+        "id": 9255,
+        "name": "Funny Bone Comedy Club - Tampa (duplicate of club 1053; folded from club 9255)",
+        "state": "FL",
+        "status": "closed",
+        "total_shows": 0,
+        "visible": false
+      },
+      {
+        "city": "Perrysburg",
+        "closed_at": "2026-06-25T14:23:47.701969+00:00",
+        "id": 9290,
+        "name": "Funny Bone - Toledo (duplicate of club 4504; folded from club 9290)",
+        "state": "OH",
+        "status": "closed",
+        "total_shows": 0,
+        "visible": false
+      },
+      {
+        "city": "Richmond",
+        "closed_at": "2026-06-25T14:23:47.701969+00:00",
+        "id": 9321,
+        "name": "Funny Bone Comedy Club - Richmond (duplicate of club 1034; folded from club 9321)",
+        "state": "VA",
+        "status": "closed",
+        "total_shows": 0,
+        "visible": false
+      },
+      {
+        "city": "Manchester",
+        "closed_at": "2026-06-25T14:23:47.701969+00:00",
+        "id": 9432,
+        "name": "Funny Bone Comedy Club - Hartford (duplicate of club 4904; folded from club 9432)",
+        "state": "CT",
+        "status": "closed",
+        "total_shows": 0,
+        "visible": false
+      },
+      {
+        "city": "Orlando",
+        "closed_at": "2026-06-25T14:23:47.701969+00:00",
+        "id": 9433,
+        "name": "Funny Bone Comedy Club - Orlando (duplicate of club 1027; folded from club 9433)",
+        "state": "FL",
+        "status": "closed",
+        "total_shows": 0,
+        "visible": false
+      },
+      {
+        "city": "Syracuse",
+        "closed_at": "2026-06-25T14:23:47.701969+00:00",
+        "id": 9434,
+        "name": "Funny Bone Comedy Club - Syracuse (duplicate of club 1028; folded from club 9434)",
+        "state": "NY",
+        "status": "closed",
+        "total_shows": 0,
+        "visible": false
+      },
+      {
+        "city": "Albany",
+        "closed_at": "2026-06-25T14:23:47.701969+00:00",
+        "id": 9485,
+        "name": "Funny Bone Comedy Club - Albany (duplicate of club 323; folded from club 9485)",
+        "state": "NY",
+        "status": "closed",
+        "total_shows": 0,
+        "visible": false
+      },
+      {
+        "city": "Kansas City",
+        "closed_at": "2026-06-25T14:23:47.701969+00:00",
+        "id": 9508,
+        "name": "Funny Bone Comedy Club - Kansas City (duplicate of club 2462; folded from club 9508)",
+        "state": "MO",
+        "status": "closed",
+        "total_shows": 0,
+        "visible": false
+      },
+      {
+        "city": "Columbus",
+        "closed_at": "2026-06-25T14:23:47.701969+00:00",
+        "id": 9595,
+        "name": "Funny Bone Comedy Club - Columbus (duplicate of club 308; folded from club 9595)",
+        "state": "OH",
+        "status": "closed",
+        "total_shows": 0,
+        "visible": false
+      },
+      {
+        "city": "Virginia Beach",
+        "closed_at": "2026-06-25T14:23:47.701969+00:00",
+        "id": 9730,
+        "name": "Funny Bone Comedy Club - Virginia Beach (duplicate of club 1033; folded from club 9730)",
+        "state": "VA",
+        "status": "closed",
+        "total_shows": 0,
+        "visible": false
+      },
+      {
+        "city": "Cleveland",
+        "closed_at": "2026-06-25T14:23:47.701969+00:00",
+        "id": 9738,
+        "name": "Funny Bone Comedy Club - Cleveland (duplicate of club 1050; folded from club 9738)",
+        "state": "OH",
+        "status": "closed",
+        "total_shows": 0,
+        "visible": false
+      }
+    ],
+    "duplicate_show_summary": [],
+    "remaining_duplicate_references": {
+      "click_events": 0,
+      "club_image_assets": 0,
+      "email_subscriptions": 0,
+      "favorite_clubs": 0,
+      "processed_emails": 0,
+      "production_company_venues": 0,
+      "scraper_run_clubs": 0,
+      "scraping_sources": 0,
+      "shows": 0,
+      "tagged_clubs": 0
+    },
+    "sources": [
+      {
+        "club_id": 308,
+        "enabled": true,
+        "id": 191,
+        "metadata": {
+          "task_20260617_funny_bone_public_etix_source_repair": {
+            "kind": "ticketmaster_to_funny_bone_public_etix",
+            "previous_platform": "ticketmaster",
+            "previous_scraper_key": "live_nation",
+            "previous_ticketmaster_id": "Z7r9jZadLM",
+            "probe_priced_show_count": 161,
+            "probe_show_count": 162,
+            "public_source_url": "https://columbus.funnybone.com/shows/",
+            "rationale": "The venue-owned Funny Bone public page uses the shared Rockhouse/Etix widget and returns fuller priced inventory than the sparse Ticketmaster/live_nation source.",
+            "verified_at": "2026-06-17"
+          },
+          "task_20260617_funny_bone_public_source_repair": {
+            "kind": "ticketmaster_to_funny_bone_public_etix",
+            "previous_platform": "ticketmaster",
+            "previous_scraper_key": "live_nation",
+            "previous_ticketmaster_id": "Z7r9jZadLM",
+            "probe_priced_show_count": 161,
+            "probe_show_count": 163,
+            "public_source_url": "https://columbus.funnybone.com/shows/",
+            "rationale": "The venue-owned Funny Bone public page returns fuller, priced inventory than the sparse unpriced Ticketmaster/live_nation source.",
+            "verified_at": "2026-06-17"
+          },
+          "task_20260617_funny_bone_public_source_repair_reverted": {
+            "reason": "Production make scrape-club-id path returned HTTP 403 / 0 shows for public Funny Bone source during verification.",
+            "restored_platform": "ticketmaster",
+            "restored_scraper_key": "live_nation",
+            "restored_ticketmaster_id": "Z7r9jZadLM",
+            "reverted_at": "2026-06-17"
+          }
+        },
+        "platform": "etix",
+        "priority": 0,
+        "scraper_key": "etix",
+        "source_url": "https://columbus.funnybone.com/shows/",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 308,
+        "enabled": false,
+        "id": 6403,
+        "metadata": {
+          "task_3321_disposition": "moved disabled duplicate source from club 9595 to club 308"
+        },
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "live_nation",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "Z7r9jZadLM"
+      },
+      {
+        "club_id": 323,
+        "enabled": true,
+        "id": 193,
+        "metadata": {
+          "task_20260617_funny_bone_public_etix_source_repair": {
+            "kind": "ticketmaster_to_funny_bone_public_etix",
+            "previous_platform": "ticketmaster",
+            "previous_scraper_key": "live_nation",
+            "previous_ticketmaster_id": "Z7r9jZa7eK",
+            "probe_priced_show_count": 97,
+            "probe_show_count": 97,
+            "public_source_url": "https://albany.funnybone.com/shows/",
+            "rationale": "The venue-owned Funny Bone public page uses the shared Rockhouse/Etix widget and returns fuller priced inventory than the sparse Ticketmaster/live_nation source.",
+            "verified_at": "2026-06-17"
+          },
+          "task_20260617_funny_bone_public_source_repair": {
+            "kind": "ticketmaster_to_funny_bone_public_etix",
+            "previous_platform": "ticketmaster",
+            "previous_scraper_key": "live_nation",
+            "previous_ticketmaster_id": "Z7r9jZa7eK",
+            "probe_priced_show_count": 97,
+            "probe_show_count": 97,
+            "public_source_url": "https://albany.funnybone.com/shows/",
+            "rationale": "The venue-owned Funny Bone public page returns fuller, priced inventory than the sparse unpriced Ticketmaster/live_nation source.",
+            "verified_at": "2026-06-17"
+          },
+          "task_20260617_funny_bone_public_source_repair_reverted": {
+            "reason": "Production make scrape-club-id path returned HTTP 403 / 0 shows for public Funny Bone source during verification.",
+            "restored_platform": "ticketmaster",
+            "restored_scraper_key": "live_nation",
+            "restored_ticketmaster_id": "Z7r9jZa7eK",
+            "reverted_at": "2026-06-17"
+          }
+        },
+        "platform": "etix",
+        "priority": 0,
+        "scraper_key": "etix",
+        "source_url": "https://albany.funnybone.com/shows/",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 323,
+        "enabled": false,
+        "id": 6305,
+        "metadata": {
+          "task_3321_disposition": "moved disabled duplicate source from club 9485 to club 323"
+        },
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "live_nation",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "Z7r9jZa7eK"
+      },
+      {
+        "club_id": 1027,
+        "enabled": true,
+        "id": 105,
+        "metadata": {
+          "task_20260617_funny_bone_public_etix_source_repair": {
+            "kind": "ticketmaster_to_funny_bone_public_etix",
+            "previous_platform": "ticketmaster",
+            "previous_scraper_key": "live_nation",
+            "previous_ticketmaster_id": "ZFr9jZaA61",
+            "probe_priced_show_count": 168,
+            "probe_show_count": 180,
+            "public_source_url": "https://orlando.funnybone.com/shows/",
+            "rationale": "The venue-owned Funny Bone public page uses the shared Rockhouse/Etix widget and returns fuller priced inventory than the sparse Ticketmaster/live_nation source.",
+            "verified_at": "2026-06-17"
+          },
+          "task_20260617_funny_bone_public_source_repair": {
+            "kind": "ticketmaster_to_funny_bone_public_etix",
+            "previous_platform": "ticketmaster",
+            "previous_scraper_key": "live_nation",
+            "previous_ticketmaster_id": "ZFr9jZaA61",
+            "probe_priced_show_count": 168,
+            "probe_show_count": 180,
+            "public_source_url": "https://orlando.funnybone.com/shows/",
+            "rationale": "The venue-owned Funny Bone public page returns fuller, priced inventory than the sparse unpriced Ticketmaster/live_nation source.",
+            "verified_at": "2026-06-17"
+          },
+          "task_20260617_funny_bone_public_source_repair_reverted": {
+            "reason": "Production make scrape-club-id path returned HTTP 403 / 0 shows for public Funny Bone source during verification.",
+            "restored_platform": "ticketmaster",
+            "restored_scraper_key": "live_nation",
+            "restored_ticketmaster_id": "ZFr9jZaA61",
+            "reverted_at": "2026-06-17"
+          }
+        },
+        "platform": "etix",
+        "priority": 0,
+        "scraper_key": "etix",
+        "source_url": "https://orlando.funnybone.com/shows/",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 1027,
+        "enabled": false,
+        "id": 6260,
+        "metadata": {
+          "task_3321_disposition": "moved disabled duplicate source from club 9433 to club 1027"
+        },
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "live_nation",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "ZFr9jZaA61"
+      },
+      {
+        "club_id": 1028,
+        "enabled": true,
+        "id": 106,
+        "metadata": {
+          "task_20260617_funny_bone_public_etix_source_repair": {
+            "kind": "ticketmaster_to_funny_bone_public_etix",
+            "previous_platform": "ticketmaster",
+            "previous_scraper_key": "live_nation",
+            "previous_ticketmaster_id": "Z7r9jZa7e4",
+            "probe_priced_show_count": 110,
+            "probe_show_count": 110,
+            "public_source_url": "https://syracuse.funnybone.com/shows/",
+            "rationale": "The venue-owned Funny Bone public page uses the shared Rockhouse/Etix widget and returns fuller priced inventory than the sparse Ticketmaster/live_nation source.",
+            "verified_at": "2026-06-17"
+          }
+        },
+        "platform": "etix",
+        "priority": 0,
+        "scraper_key": "etix",
+        "source_url": "https://syracuse.funnybone.com/shows/",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 1028,
+        "enabled": false,
+        "id": 6261,
+        "metadata": {
+          "task_3321_disposition": "moved disabled duplicate source from club 9434 to club 1028"
+        },
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "live_nation",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "Z7r9jZa7e4"
+      },
+      {
+        "club_id": 1033,
+        "enabled": true,
+        "id": 107,
+        "metadata": {},
+        "platform": "etix",
+        "priority": 0,
+        "scraper_key": "etix",
+        "source_url": "https://www.etix.com/ticket/v/31602/funny-bone-comedy-club-virginia-beach",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 1033,
+        "enabled": false,
+        "id": 6517,
+        "metadata": {
+          "task_3321_disposition": "moved disabled duplicate source from club 9730 to club 1033"
+        },
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "live_nation",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "Z7r9jZadLz"
+      },
+      {
+        "club_id": 1034,
+        "enabled": true,
+        "id": 108,
+        "metadata": {
+          "task_20260617_funny_bone_public_etix_source_repair": {
+            "kind": "ticketmaster_to_funny_bone_public_etix",
+            "previous_platform": "ticketmaster",
+            "previous_scraper_key": "live_nation",
+            "previous_ticketmaster_id": "Z7r9jZadVa",
+            "probe_priced_show_count": 138,
+            "probe_show_count": 138,
+            "public_source_url": "https://richmond.funnybone.com/shows/",
+            "rationale": "The venue-owned Funny Bone public page uses the shared Rockhouse/Etix widget and returns fuller priced inventory than the sparse Ticketmaster/live_nation source.",
+            "verified_at": "2026-06-17"
+          },
+          "task_20260617_funny_bone_public_source_repair": {
+            "kind": "ticketmaster_to_funny_bone_public_etix",
+            "previous_platform": "ticketmaster",
+            "previous_scraper_key": "live_nation",
+            "previous_ticketmaster_id": "Z7r9jZadVa",
+            "probe_priced_show_count": 138,
+            "probe_show_count": 138,
+            "public_source_url": "https://richmond.funnybone.com/shows/",
+            "rationale": "The venue-owned Funny Bone public page returns fuller, priced inventory than the sparse unpriced Ticketmaster/live_nation source.",
+            "verified_at": "2026-06-17"
+          },
+          "task_20260617_funny_bone_public_source_repair_reverted": {
+            "reason": "Production make scrape-club-id path returned HTTP 403 / 0 shows for public Funny Bone source during verification.",
+            "restored_platform": "ticketmaster",
+            "restored_scraper_key": "live_nation",
+            "restored_ticketmaster_id": "Z7r9jZadVa",
+            "reverted_at": "2026-06-17"
+          }
+        },
+        "platform": "etix",
+        "priority": 0,
+        "scraper_key": "etix",
+        "source_url": "https://richmond.funnybone.com/shows/",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 1034,
+        "enabled": false,
+        "id": 6160,
+        "metadata": {
+          "task_3321_disposition": "moved disabled duplicate source from club 9321 to club 1034"
+        },
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "live_nation",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "Z7r9jZadVa"
+      },
+      {
+        "club_id": 1034,
+        "enabled": false,
+        "id": 1476,
+        "metadata": {
+          "comedian_refs": [
+            {
+              "name": "Akaash Singh",
+              "uuid": "68756d37a0abf70e0da4d2c18ea82dd2"
+            }
+          ],
+          "event_urls": [
+            "https://concerts50.com/buy/akaash-singh-in-richmond-tickets-may-29-2026"
+          ],
+          "first_seen_at": "2026-05-12T22:15:43.280643+00:00",
+          "last_seen_at": "2026-05-13T10:35:55.947677+00:00",
+          "platform_hints": [
+            "tour_listing"
+          ],
+          "reference_count": 6,
+          "sample_urls": [
+            "https://akaashsinghtour.com/"
+          ],
+          "source": "comedian_websites",
+          "task_2581_disposition": {
+            "disabled_at": "2026-06-02 13:29:14.793375+00",
+            "reason": "TourDatesScraper deleted; BandsInTown-sourced show ingestion dropped per TASK-2581"
+          }
+        },
+        "platform": "tour_dates",
+        "priority": 1,
+        "scraper_key": "tour_dates",
+        "source_url": "tour_dates",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 1050,
+        "enabled": true,
+        "id": 136,
+        "metadata": {
+          "task_20260617_source_repair": {
+            "etix_venue_id": "31603",
+            "fallback_url": "https://cleveland.funnybone.com/shows/",
+            "kind": "ticketmaster_to_etix_fallback",
+            "previous_platform": "ticketmaster",
+            "previous_scraper_key": "live_nation",
+            "previous_ticketmaster_id": "Z7r9jZaAhN",
+            "rationale": "live_nation currently returns 9 shows for Cleveland Funny Bone, while the Etix scraper's Funny Bone public-page fallback returns 119 current shows from the venue calendar.",
+            "retired_live_nation_cleanup": "Future live_nation rows for club 1050 are deleted after Etix is canonical because cross-source stale reconciliation intentionally does not remove them.",
+            "verified_at": "2026-06-17"
+          }
+        },
+        "platform": "etix",
+        "priority": 0,
+        "scraper_key": "etix",
+        "source_url": "https://www.etix.com/ticket/v/31603/funny-bone-comedy-club-cleveland",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 1050,
+        "enabled": false,
+        "id": 6525,
+        "metadata": {
+          "task_3321_disposition": "moved disabled duplicate source from club 9738 to club 1050"
+        },
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "live_nation",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "Z7r9jZaAhN"
+      },
+      {
+        "club_id": 1053,
+        "enabled": true,
+        "id": 550,
+        "metadata": {},
+        "platform": "etix",
+        "priority": 0,
+        "scraper_key": "etix",
+        "source_url": "https://www.etix.com/ticket/v/31600/funny-bone-comedy-club-tampa",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 1053,
+        "enabled": false,
+        "id": 6104,
+        "metadata": {
+          "task_3321_disposition": "moved disabled duplicate source from club 9255 to club 1053"
+        },
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "live_nation",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "Z7r9jZa7pj"
+      },
+      {
+        "club_id": 2462,
+        "enabled": true,
+        "id": 2322,
+        "metadata": {
+          "official_site": "https://kc.funnybone.com/",
+          "source_note": "Funny Bone/Rockhouse public listing with Etix ticket links",
+          "ticketing_backend": "etix",
+          "verified_at": "2026-05-15"
+        },
+        "platform": "etix",
+        "priority": 0,
+        "scraper_key": "etix",
+        "source_url": "https://kc.funnybone.com/",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 2462,
+        "enabled": false,
+        "id": 6325,
+        "metadata": {
+          "task_3321_disposition": "moved disabled duplicate source from club 9508 to club 2462"
+        },
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "live_nation",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "Z7r9jZad1Q"
+      },
+      {
+        "club_id": 2462,
+        "enabled": false,
+        "id": 1470,
+        "metadata": {
+          "comedian_refs": [
+            {
+              "name": "Leslie Jones",
+              "uuid": "6ffc1b783bdf3324535dc7f33c05455b"
+            }
+          ],
+          "event_urls": [
+            "https://concerts50.com/buy/leslie-jones-in-kansas-city-tickets-jul-25-2026"
+          ],
+          "first_seen_at": "2026-05-12T22:15:40.587853+00:00",
+          "last_seen_at": "2026-05-12T22:43:02.816432+00:00",
+          "platform_hints": [
+            "tour_listing"
+          ],
+          "reference_count": 7,
+          "replacement_platform": "etix",
+          "replacement_source_url": "https://kc.funnybone.com/",
+          "sample_urls": [
+            "https://lesliejonestour.com/"
+          ],
+          "source": "comedian_websites",
+          "task_2581_disposition": {
+            "disabled_at": "2026-06-02 13:29:14.793375+00",
+            "reason": "TourDatesScraper deleted; BandsInTown-sourced show ingestion dropped per TASK-2581"
+          },
+          "task_tour_date_onboarding_disposition": "replaced_by_etix_public_source",
+          "verified_at": "2026-05-15"
+        },
+        "platform": "tour_dates",
+        "priority": 10,
+        "scraper_key": "tour_dates",
+        "source_url": "tour_dates",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 4504,
+        "enabled": true,
+        "id": 3594,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "Z7r9jZa7p8"
+      },
+      {
+        "club_id": 4904,
+        "enabled": true,
+        "id": 3994,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "Z7r9jZa7ef"
+      }
+    ]
+  },
+  "before": {
+    "aliases": [
+      {
+        "alias_name": "Funny Bone Comedy Club - Columbus",
+        "city": "Columbus",
+        "club_id": 308,
+        "id": 60,
+        "normalized_alias_name": "funny bone comedy club - columbus",
+        "normalized_city": "columbus",
+        "normalized_state": "oh",
+        "source": "20260513213000: duplicate tour_dates stub 2431",
+        "state": "OH",
+        "verified": true
+      },
+      {
+        "alias_name": "Funny Bone Comedy Club",
+        "city": "Orlando",
+        "club_id": 1027,
+        "id": 20,
+        "normalized_alias_name": "funny bone comedy club",
+        "normalized_city": "orlando",
+        "normalized_state": "fl",
+        "source": "20260513143000: duplicate tour_dates stub 2369",
+        "state": "FL",
+        "verified": true
+      },
+      {
+        "alias_name": "Funny Bone",
+        "city": "Orlando",
+        "club_id": 1027,
+        "id": 21,
+        "normalized_alias_name": "funny bone",
+        "normalized_city": "orlando",
+        "normalized_state": "fl",
+        "source": "20260513213000: duplicate tour_dates stub 3012",
+        "state": "FL",
+        "verified": true
+      },
+      {
+        "alias_name": "Funny Bone Comedy Club - Virginia Beach",
+        "city": "Virginia Beach",
+        "club_id": 1033,
+        "id": 149,
+        "normalized_alias_name": "funny bone comedy club - virginia beach",
+        "normalized_city": "virginia beach",
+        "normalized_state": "va",
+        "source": "20260515115000: duplicate tour_dates stub 2471",
+        "state": "VA",
+        "verified": true
+      },
+      {
+        "alias_name": "Funny Bone - Richmond",
+        "city": "Richmond",
+        "club_id": 1034,
+        "id": 229,
+        "normalized_alias_name": "funny bone richmond",
+        "normalized_city": "richmond",
+        "normalized_state": "va",
+        "source": "20260516104500: duplicate tour_dates stub 2556",
+        "state": "VA",
+        "verified": true
+      },
+      {
+        "alias_name": "Funny Bone - Cleveland",
+        "city": "Cleveland",
+        "club_id": 1050,
+        "id": 227,
+        "normalized_alias_name": "funny bone cleveland",
+        "normalized_city": "cleveland",
+        "normalized_state": "oh",
+        "source": "20260516093000: duplicate tour_dates stub 2552",
+        "state": "OH",
+        "verified": true
+      },
+      {
+        "alias_name": "Funny Bone - Tampa",
+        "city": "Tampa",
+        "club_id": 1053,
+        "id": 55,
+        "normalized_alias_name": "funny bone - tampa",
+        "normalized_city": "tampa",
+        "normalized_state": "fl",
+        "source": "20260513213000: duplicate tour_dates stub 2544",
+        "state": "FL",
+        "verified": true
+      },
+      {
+        "alias_name": "Funny Bone Comedy Club (formerly Kansas City Improv)",
+        "city": "Kansas City",
+        "club_id": 2462,
+        "id": 111,
+        "normalized_alias_name": "funny bone comedy club (formerly kansas city improv)",
+        "normalized_city": "kansas city",
+        "normalized_state": "mo",
+        "source": "20260515010000: onboard Kansas City Funny Bone Etix",
+        "state": "MO",
+        "verified": true
+      },
+      {
+        "alias_name": "Kansas City Improv",
+        "city": "Kansas City",
+        "club_id": 2462,
+        "id": 112,
+        "normalized_alias_name": "kansas city improv",
+        "normalized_city": "kansas city",
+        "normalized_state": "mo",
+        "source": "20260515010000: onboard Kansas City Funny Bone Etix",
+        "state": "MO",
+        "verified": true
+      },
+      {
+        "alias_name": "Funny Bone Comedy Club",
+        "city": "Kansas City",
+        "club_id": 2462,
+        "id": 113,
+        "normalized_alias_name": "funny bone comedy club",
+        "normalized_city": "kansas city",
+        "normalized_state": "mo",
+        "source": "20260515010000: onboard Kansas City Funny Bone Etix",
+        "state": "MO",
+        "verified": true
+      }
+    ],
+    "clubs": [
+      {
+        "city": "Columbus",
+        "closed_at": null,
+        "id": 308,
+        "name": "Columbus Funny Bone",
+        "state": "OH",
+        "status": "active",
+        "total_shows": 253,
+        "visible": true
+      },
+      {
+        "city": "Albany",
+        "closed_at": null,
+        "id": 323,
+        "name": "Albany Funny Bone",
+        "state": "NY",
+        "status": "active",
+        "total_shows": 153,
+        "visible": true
+      },
+      {
+        "city": "Orlando",
+        "closed_at": null,
+        "id": 1027,
+        "name": "Orlando Funny Bone",
+        "state": "FL",
+        "status": "active",
+        "total_shows": 303,
+        "visible": true
+      },
+      {
+        "city": "Syracuse",
+        "closed_at": null,
+        "id": 1028,
+        "name": "Syracuse Funny Bone",
+        "state": "NY",
+        "status": "active",
+        "total_shows": 161,
+        "visible": true
+      },
+      {
+        "city": "Virginia Beach",
+        "closed_at": null,
+        "id": 1033,
+        "name": "Virginia Beach Funny Bone",
+        "state": "VA",
+        "status": "active",
+        "total_shows": 242,
+        "visible": true
+      },
+      {
+        "city": "Richmond",
+        "closed_at": null,
+        "id": 1034,
+        "name": "Richmond Funny Bone",
+        "state": "VA",
+        "status": "active",
+        "total_shows": 222,
+        "visible": true
+      },
+      {
+        "city": "Cleveland",
+        "closed_at": null,
+        "id": 1050,
+        "name": "Cleveland Funny Bone",
+        "state": "OH",
+        "status": "active",
+        "total_shows": 181,
+        "visible": true
+      },
+      {
+        "city": "Tampa",
+        "closed_at": null,
+        "id": 1053,
+        "name": "Tampa Funny Bone",
+        "state": "FL",
+        "status": "active",
+        "total_shows": 251,
+        "visible": true
+      },
+      {
+        "city": "Kansas City",
+        "closed_at": null,
+        "id": 2462,
+        "name": "Kansas City Funny Bone",
+        "state": "MO",
+        "status": "active",
+        "total_shows": 69,
+        "visible": true
+      },
+      {
+        "city": "Perrysburg",
+        "closed_at": null,
+        "id": 4504,
+        "name": "Toledo Funny Bone",
+        "state": "OH",
+        "status": "active",
+        "total_shows": 5,
+        "visible": true
+      },
+      {
+        "city": "Manchester",
+        "closed_at": null,
+        "id": 4904,
+        "name": "Hartford Funny Bone",
+        "state": "CT",
+        "status": "active",
+        "total_shows": 4,
+        "visible": true
+      },
+      {
+        "city": "Tampa",
+        "closed_at": null,
+        "id": 9255,
+        "name": "Funny Bone Comedy Club - Tampa",
+        "state": "FL",
+        "status": "active",
+        "total_shows": 28,
+        "visible": true
+      },
+      {
+        "city": "Perrysburg",
+        "closed_at": null,
+        "id": 9290,
+        "name": "Funny Bone - Toledo",
+        "state": "OH",
+        "status": "active",
+        "total_shows": 0,
+        "visible": false
+      },
+      {
+        "city": "Richmond",
+        "closed_at": null,
+        "id": 9321,
+        "name": "Funny Bone Comedy Club - Richmond",
+        "state": "VA",
+        "status": "active",
+        "total_shows": 47,
+        "visible": true
+      },
+      {
+        "city": "Manchester",
+        "closed_at": null,
+        "id": 9432,
+        "name": "Funny Bone Comedy Club - Hartford",
+        "state": "CT",
+        "status": "active",
+        "total_shows": 0,
+        "visible": false
+      },
+      {
+        "city": "Orlando",
+        "closed_at": null,
+        "id": 9433,
+        "name": "Funny Bone Comedy Club - Orlando",
+        "state": "FL",
+        "status": "active",
+        "total_shows": 54,
+        "visible": true
+      },
+      {
+        "city": "Syracuse",
+        "closed_at": null,
+        "id": 9434,
+        "name": "Funny Bone Comedy Club - Syracuse",
+        "state": "NY",
+        "status": "active",
+        "total_shows": 11,
+        "visible": true
+      },
+      {
+        "city": "Albany",
+        "closed_at": null,
+        "id": 9485,
+        "name": "Funny Bone Comedy Club - Albany",
+        "state": "NY",
+        "status": "active",
+        "total_shows": 6,
+        "visible": true
+      },
+      {
+        "city": "Kansas City",
+        "closed_at": null,
+        "id": 9508,
+        "name": "Funny Bone Comedy Club - Kansas City",
+        "state": "MO",
+        "status": "active",
+        "total_shows": 16,
+        "visible": true
+      },
+      {
+        "city": "Columbus",
+        "closed_at": null,
+        "id": 9595,
+        "name": "Funny Bone Comedy Club - Columbus",
+        "state": "OH",
+        "status": "active",
+        "total_shows": 12,
+        "visible": true
+      },
+      {
+        "city": "Virginia Beach",
+        "closed_at": null,
+        "id": 9730,
+        "name": "Funny Bone Comedy Club - Virginia Beach",
+        "state": "VA",
+        "status": "active",
+        "total_shows": 4,
+        "visible": true
+      },
+      {
+        "city": "Cleveland",
+        "closed_at": null,
+        "id": 9738,
+        "name": "Funny Bone Comedy Club - Cleveland",
+        "state": "OH",
+        "status": "active",
+        "total_shows": 9,
+        "visible": true
+      }
+    ],
+    "duplicate_show_summary": [
+      {
+        "club_id": 9255,
+        "first_show": "2026-06-27T22:30:00+00:00",
+        "last_show": "2026-12-20T23:00:00+00:00",
+        "show_count": 28
+      },
+      {
+        "club_id": 9321,
+        "first_show": "2026-07-10T23:00:00+00:00",
+        "last_show": "2026-11-15T01:45:00+00:00",
+        "show_count": 47
+      },
+      {
+        "club_id": 9433,
+        "first_show": "2026-07-03T23:00:00+00:00",
+        "last_show": "2026-12-20T23:00:00+00:00",
+        "show_count": 54
+      },
+      {
+        "club_id": 9434,
+        "first_show": "2026-07-24T23:00:00+00:00",
+        "last_show": "2026-11-14T23:30:00+00:00",
+        "show_count": 11
+      },
+      {
+        "club_id": 9485,
+        "first_show": "2026-08-02T22:30:00+00:00",
+        "last_show": "2026-11-15T02:15:00+00:00",
+        "show_count": 6
+      },
+      {
+        "club_id": 9508,
+        "first_show": "2026-08-08T02:45:00+00:00",
+        "last_show": "2026-11-22T03:15:00+00:00",
+        "show_count": 16
+      },
+      {
+        "club_id": 9595,
+        "first_show": "2026-08-23T22:30:00+00:00",
+        "last_show": "2026-11-15T02:15:00+00:00",
+        "show_count": 12
+      },
+      {
+        "club_id": 9730,
+        "first_show": "2026-07-15T23:00:00+00:00",
+        "last_show": "2026-12-20T23:30:00+00:00",
+        "show_count": 4
+      },
+      {
+        "club_id": 9738,
+        "first_show": "2026-09-25T23:00:00+00:00",
+        "last_show": "2026-11-08T02:30:00+00:00",
+        "show_count": 9
+      }
+    ],
+    "remaining_duplicate_references": {
+      "click_events": 146,
+      "club_image_assets": 0,
+      "email_subscriptions": 0,
+      "favorite_clubs": 0,
+      "processed_emails": 0,
+      "production_company_venues": 0,
+      "scraper_run_clubs": 27,
+      "scraping_sources": 9,
+      "shows": 187,
+      "tagged_clubs": 0
+    },
+    "sources": [
+      {
+        "club_id": 308,
+        "enabled": true,
+        "id": 191,
+        "metadata": {
+          "task_20260617_funny_bone_public_etix_source_repair": {
+            "kind": "ticketmaster_to_funny_bone_public_etix",
+            "previous_platform": "ticketmaster",
+            "previous_scraper_key": "live_nation",
+            "previous_ticketmaster_id": "Z7r9jZadLM",
+            "probe_priced_show_count": 161,
+            "probe_show_count": 162,
+            "public_source_url": "https://columbus.funnybone.com/shows/",
+            "rationale": "The venue-owned Funny Bone public page uses the shared Rockhouse/Etix widget and returns fuller priced inventory than the sparse Ticketmaster/live_nation source.",
+            "verified_at": "2026-06-17"
+          },
+          "task_20260617_funny_bone_public_source_repair": {
+            "kind": "ticketmaster_to_funny_bone_public_etix",
+            "previous_platform": "ticketmaster",
+            "previous_scraper_key": "live_nation",
+            "previous_ticketmaster_id": "Z7r9jZadLM",
+            "probe_priced_show_count": 161,
+            "probe_show_count": 163,
+            "public_source_url": "https://columbus.funnybone.com/shows/",
+            "rationale": "The venue-owned Funny Bone public page returns fuller, priced inventory than the sparse unpriced Ticketmaster/live_nation source.",
+            "verified_at": "2026-06-17"
+          },
+          "task_20260617_funny_bone_public_source_repair_reverted": {
+            "reason": "Production make scrape-club-id path returned HTTP 403 / 0 shows for public Funny Bone source during verification.",
+            "restored_platform": "ticketmaster",
+            "restored_scraper_key": "live_nation",
+            "restored_ticketmaster_id": "Z7r9jZadLM",
+            "reverted_at": "2026-06-17"
+          }
+        },
+        "platform": "etix",
+        "priority": 0,
+        "scraper_key": "etix",
+        "source_url": "https://columbus.funnybone.com/shows/",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 323,
+        "enabled": true,
+        "id": 193,
+        "metadata": {
+          "task_20260617_funny_bone_public_etix_source_repair": {
+            "kind": "ticketmaster_to_funny_bone_public_etix",
+            "previous_platform": "ticketmaster",
+            "previous_scraper_key": "live_nation",
+            "previous_ticketmaster_id": "Z7r9jZa7eK",
+            "probe_priced_show_count": 97,
+            "probe_show_count": 97,
+            "public_source_url": "https://albany.funnybone.com/shows/",
+            "rationale": "The venue-owned Funny Bone public page uses the shared Rockhouse/Etix widget and returns fuller priced inventory than the sparse Ticketmaster/live_nation source.",
+            "verified_at": "2026-06-17"
+          },
+          "task_20260617_funny_bone_public_source_repair": {
+            "kind": "ticketmaster_to_funny_bone_public_etix",
+            "previous_platform": "ticketmaster",
+            "previous_scraper_key": "live_nation",
+            "previous_ticketmaster_id": "Z7r9jZa7eK",
+            "probe_priced_show_count": 97,
+            "probe_show_count": 97,
+            "public_source_url": "https://albany.funnybone.com/shows/",
+            "rationale": "The venue-owned Funny Bone public page returns fuller, priced inventory than the sparse unpriced Ticketmaster/live_nation source.",
+            "verified_at": "2026-06-17"
+          },
+          "task_20260617_funny_bone_public_source_repair_reverted": {
+            "reason": "Production make scrape-club-id path returned HTTP 403 / 0 shows for public Funny Bone source during verification.",
+            "restored_platform": "ticketmaster",
+            "restored_scraper_key": "live_nation",
+            "restored_ticketmaster_id": "Z7r9jZa7eK",
+            "reverted_at": "2026-06-17"
+          }
+        },
+        "platform": "etix",
+        "priority": 0,
+        "scraper_key": "etix",
+        "source_url": "https://albany.funnybone.com/shows/",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 1027,
+        "enabled": true,
+        "id": 105,
+        "metadata": {
+          "task_20260617_funny_bone_public_etix_source_repair": {
+            "kind": "ticketmaster_to_funny_bone_public_etix",
+            "previous_platform": "ticketmaster",
+            "previous_scraper_key": "live_nation",
+            "previous_ticketmaster_id": "ZFr9jZaA61",
+            "probe_priced_show_count": 168,
+            "probe_show_count": 180,
+            "public_source_url": "https://orlando.funnybone.com/shows/",
+            "rationale": "The venue-owned Funny Bone public page uses the shared Rockhouse/Etix widget and returns fuller priced inventory than the sparse Ticketmaster/live_nation source.",
+            "verified_at": "2026-06-17"
+          },
+          "task_20260617_funny_bone_public_source_repair": {
+            "kind": "ticketmaster_to_funny_bone_public_etix",
+            "previous_platform": "ticketmaster",
+            "previous_scraper_key": "live_nation",
+            "previous_ticketmaster_id": "ZFr9jZaA61",
+            "probe_priced_show_count": 168,
+            "probe_show_count": 180,
+            "public_source_url": "https://orlando.funnybone.com/shows/",
+            "rationale": "The venue-owned Funny Bone public page returns fuller, priced inventory than the sparse unpriced Ticketmaster/live_nation source.",
+            "verified_at": "2026-06-17"
+          },
+          "task_20260617_funny_bone_public_source_repair_reverted": {
+            "reason": "Production make scrape-club-id path returned HTTP 403 / 0 shows for public Funny Bone source during verification.",
+            "restored_platform": "ticketmaster",
+            "restored_scraper_key": "live_nation",
+            "restored_ticketmaster_id": "ZFr9jZaA61",
+            "reverted_at": "2026-06-17"
+          }
+        },
+        "platform": "etix",
+        "priority": 0,
+        "scraper_key": "etix",
+        "source_url": "https://orlando.funnybone.com/shows/",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 1028,
+        "enabled": true,
+        "id": 106,
+        "metadata": {
+          "task_20260617_funny_bone_public_etix_source_repair": {
+            "kind": "ticketmaster_to_funny_bone_public_etix",
+            "previous_platform": "ticketmaster",
+            "previous_scraper_key": "live_nation",
+            "previous_ticketmaster_id": "Z7r9jZa7e4",
+            "probe_priced_show_count": 110,
+            "probe_show_count": 110,
+            "public_source_url": "https://syracuse.funnybone.com/shows/",
+            "rationale": "The venue-owned Funny Bone public page uses the shared Rockhouse/Etix widget and returns fuller priced inventory than the sparse Ticketmaster/live_nation source.",
+            "verified_at": "2026-06-17"
+          }
+        },
+        "platform": "etix",
+        "priority": 0,
+        "scraper_key": "etix",
+        "source_url": "https://syracuse.funnybone.com/shows/",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 1033,
+        "enabled": true,
+        "id": 107,
+        "metadata": {},
+        "platform": "etix",
+        "priority": 0,
+        "scraper_key": "etix",
+        "source_url": "https://www.etix.com/ticket/v/31602/funny-bone-comedy-club-virginia-beach",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 1034,
+        "enabled": true,
+        "id": 108,
+        "metadata": {
+          "task_20260617_funny_bone_public_etix_source_repair": {
+            "kind": "ticketmaster_to_funny_bone_public_etix",
+            "previous_platform": "ticketmaster",
+            "previous_scraper_key": "live_nation",
+            "previous_ticketmaster_id": "Z7r9jZadVa",
+            "probe_priced_show_count": 138,
+            "probe_show_count": 138,
+            "public_source_url": "https://richmond.funnybone.com/shows/",
+            "rationale": "The venue-owned Funny Bone public page uses the shared Rockhouse/Etix widget and returns fuller priced inventory than the sparse Ticketmaster/live_nation source.",
+            "verified_at": "2026-06-17"
+          },
+          "task_20260617_funny_bone_public_source_repair": {
+            "kind": "ticketmaster_to_funny_bone_public_etix",
+            "previous_platform": "ticketmaster",
+            "previous_scraper_key": "live_nation",
+            "previous_ticketmaster_id": "Z7r9jZadVa",
+            "probe_priced_show_count": 138,
+            "probe_show_count": 138,
+            "public_source_url": "https://richmond.funnybone.com/shows/",
+            "rationale": "The venue-owned Funny Bone public page returns fuller, priced inventory than the sparse unpriced Ticketmaster/live_nation source.",
+            "verified_at": "2026-06-17"
+          },
+          "task_20260617_funny_bone_public_source_repair_reverted": {
+            "reason": "Production make scrape-club-id path returned HTTP 403 / 0 shows for public Funny Bone source during verification.",
+            "restored_platform": "ticketmaster",
+            "restored_scraper_key": "live_nation",
+            "restored_ticketmaster_id": "Z7r9jZadVa",
+            "reverted_at": "2026-06-17"
+          }
+        },
+        "platform": "etix",
+        "priority": 0,
+        "scraper_key": "etix",
+        "source_url": "https://richmond.funnybone.com/shows/",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 1034,
+        "enabled": false,
+        "id": 1476,
+        "metadata": {
+          "comedian_refs": [
+            {
+              "name": "Akaash Singh",
+              "uuid": "68756d37a0abf70e0da4d2c18ea82dd2"
+            }
+          ],
+          "event_urls": [
+            "https://concerts50.com/buy/akaash-singh-in-richmond-tickets-may-29-2026"
+          ],
+          "first_seen_at": "2026-05-12T22:15:43.280643+00:00",
+          "last_seen_at": "2026-05-13T10:35:55.947677+00:00",
+          "platform_hints": [
+            "tour_listing"
+          ],
+          "reference_count": 6,
+          "sample_urls": [
+            "https://akaashsinghtour.com/"
+          ],
+          "source": "comedian_websites",
+          "task_2581_disposition": {
+            "disabled_at": "2026-06-02 13:29:14.793375+00",
+            "reason": "TourDatesScraper deleted; BandsInTown-sourced show ingestion dropped per TASK-2581"
+          }
+        },
+        "platform": "tour_dates",
+        "priority": 1,
+        "scraper_key": "tour_dates",
+        "source_url": "tour_dates",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 1050,
+        "enabled": true,
+        "id": 136,
+        "metadata": {
+          "task_20260617_source_repair": {
+            "etix_venue_id": "31603",
+            "fallback_url": "https://cleveland.funnybone.com/shows/",
+            "kind": "ticketmaster_to_etix_fallback",
+            "previous_platform": "ticketmaster",
+            "previous_scraper_key": "live_nation",
+            "previous_ticketmaster_id": "Z7r9jZaAhN",
+            "rationale": "live_nation currently returns 9 shows for Cleveland Funny Bone, while the Etix scraper's Funny Bone public-page fallback returns 119 current shows from the venue calendar.",
+            "retired_live_nation_cleanup": "Future live_nation rows for club 1050 are deleted after Etix is canonical because cross-source stale reconciliation intentionally does not remove them.",
+            "verified_at": "2026-06-17"
+          }
+        },
+        "platform": "etix",
+        "priority": 0,
+        "scraper_key": "etix",
+        "source_url": "https://www.etix.com/ticket/v/31603/funny-bone-comedy-club-cleveland",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 1053,
+        "enabled": true,
+        "id": 550,
+        "metadata": {},
+        "platform": "etix",
+        "priority": 0,
+        "scraper_key": "etix",
+        "source_url": "https://www.etix.com/ticket/v/31600/funny-bone-comedy-club-tampa",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 2462,
+        "enabled": true,
+        "id": 2322,
+        "metadata": {
+          "official_site": "https://kc.funnybone.com/",
+          "source_note": "Funny Bone/Rockhouse public listing with Etix ticket links",
+          "ticketing_backend": "etix",
+          "verified_at": "2026-05-15"
+        },
+        "platform": "etix",
+        "priority": 0,
+        "scraper_key": "etix",
+        "source_url": "https://kc.funnybone.com/",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 2462,
+        "enabled": false,
+        "id": 1470,
+        "metadata": {
+          "comedian_refs": [
+            {
+              "name": "Leslie Jones",
+              "uuid": "6ffc1b783bdf3324535dc7f33c05455b"
+            }
+          ],
+          "event_urls": [
+            "https://concerts50.com/buy/leslie-jones-in-kansas-city-tickets-jul-25-2026"
+          ],
+          "first_seen_at": "2026-05-12T22:15:40.587853+00:00",
+          "last_seen_at": "2026-05-12T22:43:02.816432+00:00",
+          "platform_hints": [
+            "tour_listing"
+          ],
+          "reference_count": 7,
+          "replacement_platform": "etix",
+          "replacement_source_url": "https://kc.funnybone.com/",
+          "sample_urls": [
+            "https://lesliejonestour.com/"
+          ],
+          "source": "comedian_websites",
+          "task_2581_disposition": {
+            "disabled_at": "2026-06-02 13:29:14.793375+00",
+            "reason": "TourDatesScraper deleted; BandsInTown-sourced show ingestion dropped per TASK-2581"
+          },
+          "task_tour_date_onboarding_disposition": "replaced_by_etix_public_source",
+          "verified_at": "2026-05-15"
+        },
+        "platform": "tour_dates",
+        "priority": 10,
+        "scraper_key": "tour_dates",
+        "source_url": "tour_dates",
+        "ticketmaster_id": null
+      },
+      {
+        "club_id": 4504,
+        "enabled": true,
+        "id": 3594,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "Z7r9jZa7p8"
+      },
+      {
+        "club_id": 4904,
+        "enabled": true,
+        "id": 3994,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "ticketmaster_comedy",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "Z7r9jZa7ef"
+      },
+      {
+        "club_id": 9255,
+        "enabled": true,
+        "id": 6104,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "live_nation",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "Z7r9jZa7pj"
+      },
+      {
+        "club_id": 9321,
+        "enabled": true,
+        "id": 6160,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "live_nation",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "Z7r9jZadVa"
+      },
+      {
+        "club_id": 9433,
+        "enabled": true,
+        "id": 6260,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "live_nation",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "ZFr9jZaA61"
+      },
+      {
+        "club_id": 9434,
+        "enabled": true,
+        "id": 6261,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "live_nation",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "Z7r9jZa7e4"
+      },
+      {
+        "club_id": 9485,
+        "enabled": true,
+        "id": 6305,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "live_nation",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "Z7r9jZa7eK"
+      },
+      {
+        "club_id": 9508,
+        "enabled": true,
+        "id": 6325,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "live_nation",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "Z7r9jZad1Q"
+      },
+      {
+        "club_id": 9595,
+        "enabled": true,
+        "id": 6403,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "live_nation",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "Z7r9jZadLM"
+      },
+      {
+        "club_id": 9730,
+        "enabled": true,
+        "id": 6517,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "live_nation",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "Z7r9jZadLz"
+      },
+      {
+        "club_id": 9738,
+        "enabled": true,
+        "id": 6525,
+        "metadata": {},
+        "platform": "ticketmaster",
+        "priority": 0,
+        "scraper_key": "live_nation",
+        "source_url": "https://www.ticketmaster.com",
+        "ticketmaster_id": "Z7r9jZaAhN"
+      }
+    ]
+  },
+  "counts": {
+    "aliases_upserted": 11,
+    "click_events_club_repointed": 17,
+    "click_events_repointed_to_existing_show": 129,
+    "club_image_assets_moved": 0,
+    "club_totals_recomputed": 22,
+    "colliding_duplicate_shows_deleted": 174,
+    "conflicting_email_subscriptions_deleted": 0,
+    "conflicting_sent_notifications_deleted": 0,
+    "duplicate_active_club_images_deactivated": 0,
+    "duplicate_clubs_closed": 11,
+    "duplicate_favorite_clubs_deleted": 0,
+    "duplicate_production_company_venues_deleted": 0,
+    "duplicate_sources_moved_to_canonical": 9,
+    "duplicate_tagged_clubs_deleted": 0,
+    "email_subscriptions_moved": 0,
+    "favorite_clubs_inserted": 0,
+    "lineup_items_copied": 35,
+    "noncolliding_shows_moved": 13,
+    "processed_emails_moved": 0,
+    "production_company_venues_inserted": 0,
+    "remaining_duplicate_sources_disabled": 0,
+    "scraper_run_clubs_moved": 27,
+    "sent_notifications_repointed": 0,
+    "tagged_clubs_inserted": 0,
+    "tagged_shows_copied": 79,
+    "tickets_copied": 0
+  },
+  "dry_run": false,
+  "folds": [
+    {
+      "canonical_id": 323,
+      "canonical_name": "Albany Funny Bone",
+      "city": "Albany",
+      "duplicate_id": 9485,
+      "duplicate_name": "Funny Bone Comedy Club - Albany",
+      "state": "NY"
+    },
+    {
+      "canonical_id": 1050,
+      "canonical_name": "Cleveland Funny Bone",
+      "city": "Cleveland",
+      "duplicate_id": 9738,
+      "duplicate_name": "Funny Bone Comedy Club - Cleveland",
+      "state": "OH"
+    },
+    {
+      "canonical_id": 308,
+      "canonical_name": "Columbus Funny Bone",
+      "city": "Columbus",
+      "duplicate_id": 9595,
+      "duplicate_name": "Funny Bone Comedy Club - Columbus",
+      "state": "OH"
+    },
+    {
+      "canonical_id": 4904,
+      "canonical_name": "Hartford Funny Bone",
+      "city": "Manchester",
+      "duplicate_id": 9432,
+      "duplicate_name": "Funny Bone Comedy Club - Hartford",
+      "state": "CT"
+    },
+    {
+      "canonical_id": 2462,
+      "canonical_name": "Kansas City Funny Bone",
+      "city": "Kansas City",
+      "duplicate_id": 9508,
+      "duplicate_name": "Funny Bone Comedy Club - Kansas City",
+      "state": "MO"
+    },
+    {
+      "canonical_id": 1027,
+      "canonical_name": "Orlando Funny Bone",
+      "city": "Orlando",
+      "duplicate_id": 9433,
+      "duplicate_name": "Funny Bone Comedy Club - Orlando",
+      "state": "FL"
+    },
+    {
+      "canonical_id": 1034,
+      "canonical_name": "Richmond Funny Bone",
+      "city": "Richmond",
+      "duplicate_id": 9321,
+      "duplicate_name": "Funny Bone Comedy Club - Richmond",
+      "state": "VA"
+    },
+    {
+      "canonical_id": 1028,
+      "canonical_name": "Syracuse Funny Bone",
+      "city": "Syracuse",
+      "duplicate_id": 9434,
+      "duplicate_name": "Funny Bone Comedy Club - Syracuse",
+      "state": "NY"
+    },
+    {
+      "canonical_id": 1053,
+      "canonical_name": "Tampa Funny Bone",
+      "city": "Tampa",
+      "duplicate_id": 9255,
+      "duplicate_name": "Funny Bone Comedy Club - Tampa",
+      "state": "FL"
+    },
+    {
+      "canonical_id": 4504,
+      "canonical_name": "Toledo Funny Bone",
+      "city": "Perrysburg",
+      "duplicate_id": 9290,
+      "duplicate_name": "Funny Bone - Toledo",
+      "state": "OH"
+    },
+    {
+      "canonical_id": 1033,
+      "canonical_name": "Virginia Beach Funny Bone",
+      "city": "Virginia Beach",
+      "duplicate_id": 9730,
+      "duplicate_name": "Funny Bone Comedy Club - Virginia Beach",
+      "state": "VA"
+    }
+  ],
+  "generated_at": "2026-06-25T14:23:47.412812+00:00",
+  "task_id": 3321,
+  "validated": {
+    "clubs": [
+      {
+        "city": "Columbus",
+        "id": 308,
+        "name": "Columbus Funny Bone",
+        "state": "OH",
+        "status": "active",
+        "total_shows": 253,
+        "visible": true
+      },
+      {
+        "city": "Manchester",
+        "id": 9432,
+        "name": "Funny Bone Comedy Club - Hartford",
+        "state": "CT",
+        "status": "active",
+        "total_shows": 0,
+        "visible": false
+      },
+      {
+        "city": "Manchester",
+        "id": 4904,
+        "name": "Hartford Funny Bone",
+        "state": "CT",
+        "status": "active",
+        "total_shows": 4,
+        "visible": true
+      },
+      {
+        "city": "Orlando",
+        "id": 1027,
+        "name": "Orlando Funny Bone",
+        "state": "FL",
+        "status": "active",
+        "total_shows": 303,
+        "visible": true
+      },
+      {
+        "city": "Kansas City",
+        "id": 9508,
+        "name": "Funny Bone Comedy Club - Kansas City",
+        "state": "MO",
+        "status": "active",
+        "total_shows": 16,
+        "visible": true
+      },
+      {
+        "city": "Cleveland",
+        "id": 1050,
+        "name": "Cleveland Funny Bone",
+        "state": "OH",
+        "status": "active",
+        "total_shows": 181,
+        "visible": true
+      },
+      {
+        "city": "Tampa",
+        "id": 9255,
+        "name": "Funny Bone Comedy Club - Tampa",
+        "state": "FL",
+        "status": "active",
+        "total_shows": 28,
+        "visible": true
+      },
+      {
+        "city": "Virginia Beach",
+        "id": 1033,
+        "name": "Virginia Beach Funny Bone",
+        "state": "VA",
+        "status": "active",
+        "total_shows": 242,
+        "visible": true
+      },
+      {
+        "city": "Orlando",
+        "id": 9433,
+        "name": "Funny Bone Comedy Club - Orlando",
+        "state": "FL",
+        "status": "active",
+        "total_shows": 54,
+        "visible": true
+      },
+      {
+        "city": "Syracuse",
+        "id": 1028,
+        "name": "Syracuse Funny Bone",
+        "state": "NY",
+        "status": "active",
+        "total_shows": 161,
+        "visible": true
+      },
+      {
+        "city": "Cleveland",
+        "id": 9738,
+        "name": "Funny Bone Comedy Club - Cleveland",
+        "state": "OH",
+        "status": "active",
+        "total_shows": 9,
+        "visible": true
+      },
+      {
+        "city": "Kansas City",
+        "id": 2462,
+        "name": "Kansas City Funny Bone",
+        "state": "MO",
+        "status": "active",
+        "total_shows": 69,
+        "visible": true
+      },
+      {
+        "city": "Perrysburg",
+        "id": 4504,
+        "name": "Toledo Funny Bone",
+        "state": "OH",
+        "status": "active",
+        "total_shows": 5,
+        "visible": true
+      },
+      {
+        "city": "Richmond",
+        "id": 1034,
+        "name": "Richmond Funny Bone",
+        "state": "VA",
+        "status": "active",
+        "total_shows": 222,
+        "visible": true
+      },
+      {
+        "city": "Tampa",
+        "id": 1053,
+        "name": "Tampa Funny Bone",
+        "state": "FL",
+        "status": "active",
+        "total_shows": 251,
+        "visible": true
+      },
+      {
+        "city": "Albany",
+        "id": 9485,
+        "name": "Funny Bone Comedy Club - Albany",
+        "state": "NY",
+        "status": "active",
+        "total_shows": 6,
+        "visible": true
+      },
+      {
+        "city": "Perrysburg",
+        "id": 9290,
+        "name": "Funny Bone - Toledo",
+        "state": "OH",
+        "status": "active",
+        "total_shows": 0,
+        "visible": false
+      },
+      {
+        "city": "Albany",
+        "id": 323,
+        "name": "Albany Funny Bone",
+        "state": "NY",
+        "status": "active",
+        "total_shows": 153,
+        "visible": true
+      },
+      {
+        "city": "Virginia Beach",
+        "id": 9730,
+        "name": "Funny Bone Comedy Club - Virginia Beach",
+        "state": "VA",
+        "status": "active",
+        "total_shows": 4,
+        "visible": true
+      },
+      {
+        "city": "Columbus",
+        "id": 9595,
+        "name": "Funny Bone Comedy Club - Columbus",
+        "state": "OH",
+        "status": "active",
+        "total_shows": 12,
+        "visible": true
+      },
+      {
+        "city": "Richmond",
+        "id": 9321,
+        "name": "Funny Bone Comedy Club - Richmond",
+        "state": "VA",
+        "status": "active",
+        "total_shows": 47,
+        "visible": true
+      },
+      {
+        "city": "Syracuse",
+        "id": 9434,
+        "name": "Funny Bone Comedy Club - Syracuse",
+        "state": "NY",
+        "status": "active",
+        "total_shows": 11,
+        "visible": true
+      }
+    ]
+  }
+}
