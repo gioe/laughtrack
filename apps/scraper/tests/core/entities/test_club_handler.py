@@ -583,6 +583,105 @@ class TestUpsertForTicketmasterVenueParams:
         assert "ON CONFLICT (NAME) DO UPDATE SET" in sql
 
 
+class TestUpsertForTicketmasterVenueAliasResolution:
+    """TASK-3458: the national TM import must reuse the canonical club when a
+    club_aliases row routes the bulk-import name back to it, instead of
+    inserting a duplicate shell (the root cause of the Funny Bone / Comedy Zone
+    fold tasks). Critically, alias matching must survive the st/ft/mt
+    abbreviation drift between the Python normalizer and the SQL that populates
+    club_aliases.normalized_alias_name."""
+
+    def _tm_venue(self, name, city, state):
+        return {
+            "id": "TM-" + name.lower().replace(" ", "-"),
+            "name": name,
+            "address": {"line1": "1 Main St"},
+            "city": {"name": city},
+            "state": {"stateCode": state},
+            "postalCode": "00000",
+            "timezone": "America/New_York",
+        }
+
+    def test_alias_hit_reuses_canonical_without_inserting(self):
+        """'Funny Bone Comedy Club - Albany' must resolve to canonical 'Albany
+        Funny Bone' via its alias and never reach the UPSERT insert."""
+        canonical = _make_club_row(
+            id=323,
+            name="Albany Funny Bone",
+            city="Albany",
+            state="NY",
+            aliases=[
+                {
+                    "alias_name": "Funny Bone Comedy Club - Albany",
+                    "normalized_alias_name": "funny bone comedy club albany",
+                    "normalized_city": "albany",
+                    "normalized_state": "ny",
+                }
+            ],
+        )
+        venue = self._tm_venue("Funny Bone Comedy Club - Albany", "Albany", "NY")
+        handler = ClubHandler()
+
+        with patch.object(handler, "execute_with_cursor", return_value=[canonical]) as mock_exec:
+            result = handler.upsert_for_ticketmaster_venue(venue)
+
+        assert result is not None
+        assert result.id == 323
+        # Only the GET_CLUBS_BY_LOCATION lookup ran — no UPSERT insert.
+        assert mock_exec.call_count == 1
+        assert "club_aliases" in mock_exec.call_args.args[0]
+
+    def test_alias_hit_survives_st_abbreviation_drift(self):
+        """Regression for the bug this task fixes: the stored alias key uses the
+        SQL normalization ('st louis'), while the old Python normalizer expanded
+        it to 'saint louis' and silently missed. The fix must match."""
+        canonical = _make_club_row(
+            id=657,
+            name="St. Louis Funny Bone",
+            city="St. Louis",
+            state="MO",
+            aliases=[
+                {
+                    "alias_name": "Funny Bone Comedy Club - St. Louis",
+                    # As stored by the fold SQL — no 'st' -> 'saint' expansion.
+                    "normalized_alias_name": "funny bone comedy club st louis",
+                    "normalized_city": "st louis",
+                    "normalized_state": "mo",
+                }
+            ],
+        )
+        venue = self._tm_venue("Funny Bone Comedy Club - St. Louis", "St. Louis", "MO")
+        handler = ClubHandler()
+
+        with patch.object(handler, "execute_with_cursor", return_value=[canonical]) as mock_exec:
+            result = handler.upsert_for_ticketmaster_venue(venue)
+
+        assert result is not None
+        assert result.id == 657
+        assert mock_exec.call_count == 1
+
+    def test_alias_same_name_different_city_falls_through_to_upsert(self):
+        """A same-named bulk-import venue in a different city must NOT match the
+        Albany alias — it falls through to the normal UPSERT insert."""
+        other_city = _make_club_row(
+            id=900,
+            name="Funny Bone Comedy Club - Syracuse",
+            city="Syracuse",
+            state="NY",
+        )
+        venue = self._tm_venue("Funny Bone Comedy Club - Syracuse", "Syracuse", "NY")
+        handler = ClubHandler()
+
+        with patch.object(handler, "execute_with_cursor", side_effect=[[], [other_city]]) as mock_exec:
+            result = handler.upsert_for_ticketmaster_venue(venue)
+
+        assert result is not None
+        assert result.id == 900
+        assert mock_exec.call_count == 2
+        assert "club_aliases" in mock_exec.call_args_list[0].args[0]
+        assert mock_exec.call_args_list[1].args[0] == ClubQueries.UPSERT_CLUB_BY_TICKETMASTER_VENUE
+
+
 class TestUpsertForEventbriteVenueConflict:
     """Criterion 669: conflict on name preserves existing scraper and eventbrite_id via COALESCE."""
 
