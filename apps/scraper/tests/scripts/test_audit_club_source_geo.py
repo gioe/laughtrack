@@ -200,6 +200,93 @@ def test_shared_squadup_id_across_geo_flagged(mod):
     assert ("domain", "squadup.com") not in keys
 
 
+# ---- source_venue_geo_mismatch -----------------------------------------
+
+def _tm(value):
+    """Helper: build the venue_locations key for a ticketmaster_id."""
+    return ("ticketmaster_id", value)
+
+
+def test_source_venue_state_mismatch_flagged(mod):
+    """The TASK-3363 case: Rockford IL identity, Hollywood FL TM venue."""
+    rows = [_src(
+        club_id=2844, club_name="Hard Rock Live", city="Rockford", state="IL",
+        ticketmaster_id="KovZpZA6AEaA",
+    )]
+    locs = {_tm("KovZpZA6AEaA"): {
+        "name": "Hard Rock Live", "city": "Hollywood", "state": "FL",
+        "country": "US"}}
+    out = mod._source_venue_geo_mismatch(rows, locs)
+    assert len(out) == 1
+    assert out[0]["mismatch"] == "state"
+    assert out[0]["club_id"] == 2844
+    assert out[0]["venue_state"] == "FL"
+    assert out[0]["venue_city"] == "Hollywood"
+    assert out[0]["venue_id_kind"] == "ticketmaster_id"
+
+
+def test_source_venue_city_mismatch_flagged(mod):
+    """Same state, different city -> lower-confidence city mismatch."""
+    rows = [_src(city="Hollywood", state="FL", ticketmaster_id="V1")]
+    locs = {_tm("V1"): {"name": "X", "city": "Fort Lauderdale", "state": "FL",
+                        "country": "US"}}
+    out = mod._source_venue_geo_mismatch(rows, locs)
+    assert len(out) == 1
+    assert out[0]["mismatch"] == "city"
+
+
+def test_source_venue_matching_geo_not_flagged(mod):
+    rows = [_src(city="Hollywood", state="FL", ticketmaster_id="V1")]
+    locs = {_tm("V1"): {"name": "X", "city": "Hollywood", "state": "FL",
+                        "country": "US"}}
+    assert mod._source_venue_geo_mismatch(rows, locs) == []
+
+
+def test_source_venue_unresolved_id_not_flagged(mod):
+    """An id that resolved to None carries no geo signal."""
+    rows = [_src(city="Rockford", state="IL", ticketmaster_id="V1")]
+    assert mod._source_venue_geo_mismatch(rows, {_tm("V1"): None}) == []
+    # Also: id absent from the resolution map entirely.
+    assert mod._source_venue_geo_mismatch(rows, {}) == []
+
+
+def test_source_venue_no_ticketmaster_id_skipped(mod):
+    rows = [_src(city="Rockford", state="IL", ticketmaster_id=None)]
+    assert mod._source_venue_geo_mismatch(rows, {}) == []
+
+
+def test_source_venue_state_sorts_before_city(mod):
+    rows = [
+        _src(source_id=1, club_id=20, city="Hollywood", state="FL",
+             ticketmaster_id="CITY"),   # city mismatch
+        _src(source_id=2, club_id=10, city="Rockford", state="IL",
+             ticketmaster_id="STATE"),  # state mismatch
+    ]
+    locs = {
+        _tm("CITY"): {"name": "a", "city": "Fort Lauderdale", "state": "FL"},
+        _tm("STATE"): {"name": "b", "city": "Hollywood", "state": "FL"},
+    }
+    out = mod._source_venue_geo_mismatch(rows, locs)
+    assert [r["mismatch"] for r in out] == ["state", "city"]
+
+
+def test_format_csv_source_venue_geo_mismatch(mod):
+    rows = mod._source_venue_geo_mismatch(
+        [_src(club_id=2844, city="Rockford", state="IL",
+              ticketmaster_id="KovZpZA6AEaA")],
+        {_tm("KovZpZA6AEaA"): {"name": "Hard Rock Live", "city": "Hollywood",
+                               "state": "FL", "country": "US"}},
+    )
+    out = mod._format_csv("source_venue_geo_mismatch", rows)
+    header = out.splitlines()[0]
+    assert header.split(",") == [
+        "signal", "mismatch", "club_id", "club_name", "city", "state",
+        "source_id", "platform", "enabled", "venue_id_kind", "venue_id",
+        "venue_name", "venue_city", "venue_state",
+    ]
+    assert "Hollywood" in out
+
+
 # ---- CSV / _flatten_shared ---------------------------------------------
 
 def test_format_csv_website_mismatch(mod):

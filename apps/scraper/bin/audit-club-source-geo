@@ -11,16 +11,16 @@ venue its scraping source targets, with no guard. This audit surfaces those
 mismatches cheaply (pure SQL + domain parsing, no network calls) so they can be
 corrected.
 
-Signals (each is deterministic and offline):
+Signals:
 
-    website_domain_mismatch
+    website_domain_mismatch  (offline, default)
         A *venue-specific* scraping source (i.e. source_url is the venue's own
         site, not a generic ticketing/aggregator host like ticketmaster.com)
         whose registrable domain differs from the club's own `website` domain.
         This is the Red-Room-class detector: the source points at a different
         venue's site than the club claims as its homepage.
 
-    shared_venue_across_geo
+    shared_venue_across_geo  (offline, default)
         A venue-specific source domain, OR a concrete platform venue id
         (seatengine_id / eventbrite_id / ticketmaster_id / ovationtix_id /
         wix_event_id), that maps to 2+ clubs whose (city, state) differ. Two
@@ -29,6 +29,24 @@ Signals (each is deterministic and offline):
         share the same non-null chain_id are legitimate multi-city chains
         (Improv, Funny Bone, City Winery, ...) and are suppressed by default —
         pass --include-chains to see them.
+
+    source_venue_geo_mismatch  (network, opt-in via --signal)
+        Resolves each source's concrete platform venue id (currently
+        ticketmaster_id, via the Ticketmaster Discovery venues API) to the
+        venue's canonical city/state, then flags clubs whose stated city/state
+        disagrees with it. This catches the case the two offline signals MISS:
+        a single corrupted row with a *distinct* venue id and an empty website,
+        so neither domain-comparison nor shared-id-across-clubs fires. Motivating
+        incident (TASK-3363): club 2844 carried a Rockford, IL identity (name /
+        city / state / lat-lng / google_place_id from TASK-3027 Google Places
+        enrichment) but a Hollywood, FL ticketmaster_id (KovZpZA6AEaA) and all
+        its shows — invisible to both offline signals. Because it issues one HTTP
+        call per distinct venue id, this signal is excluded from the default run
+        and must be requested with `--signal source_venue_geo_mismatch`. Requires
+        TICKETMASTER_API_KEY in the environment / .env. The state axis is
+        high-confidence; same-state city differences are frequently just metro
+        naming variants (suburb vs. anchor city), so they are reported with
+        mismatch="city" and should be eyeballed.
 
 Generic ticketing/aggregator hosts carry no venue-specific geo signal, so
 sources on those hosts are excluded from website_domain_mismatch (their
@@ -60,6 +78,7 @@ import io
 import json
 import os
 import sys
+import time
 from pathlib import Path
 from urllib.parse import quote, urlparse
 
@@ -78,7 +97,22 @@ if not ENV_FILE.exists():
 
 load_dotenv(ENV_FILE)
 
-SIGNALS = ("website_domain_mismatch", "shared_venue_across_geo")
+SIGNALS = (
+    "website_domain_mismatch",
+    "shared_venue_across_geo",
+    "source_venue_geo_mismatch",
+)
+
+# Signals that run with no network access. These make up the default set so
+# `make audit-club-geo` stays cheap (pure SQL + domain parsing). The
+# source_venue_geo_mismatch signal issues one Ticketmaster Discovery API call
+# per distinct venue id, so it is opt-in via `--signal source_venue_geo_mismatch`
+# and never runs as part of the default sweep.
+OFFLINE_SIGNALS = ("website_domain_mismatch", "shared_venue_across_geo")
+
+# Ticketmaster Discovery API venue lookup. One call per distinct ticketmaster_id.
+TM_VENUE_URL = "https://app.ticketmaster.com/discovery/v2/venues/{venue_id}.json"
+TM_MIN_DELAY = 0.21  # ~5 req/s, matching the scraper's TicketmasterClient limit
 
 # Hosts that are ticketing platforms / aggregators rather than a single venue's
 # own site. A source_url on one of these tells us nothing about the venue's
@@ -331,6 +365,117 @@ def _shared_venue_across_geo(sources: list, include_chains: bool) -> list:
     return out
 
 
+def _resolve_ticketmaster_venue(venue_id: str, api_key: str, *, timeout: int = 30):
+    """Resolve one Ticketmaster venue id to its canonical location.
+
+    Returns ``{name, city, state, country}`` on success, or ``None`` when the
+    venue cannot be resolved (404, no geo on the record, or a network/parse
+    error). Network failures are logged to stderr and swallowed so a single bad
+    id never aborts the whole sweep.
+    """
+    import requests  # local import: only the network signal needs it
+
+    url = TM_VENUE_URL.format(venue_id=quote(str(venue_id), safe=""))
+    params = {"apikey": api_key}
+    try:
+        resp = requests.get(url, params=params, timeout=timeout)
+        if resp.status_code == 429:
+            # Rate limited despite the pacing delay — back off once and retry.
+            time.sleep(1.0)
+            resp = requests.get(url, params=params, timeout=timeout)
+    except requests.RequestException as exc:
+        print(f"  ! TM venue {venue_id}: request failed ({exc})", file=sys.stderr)
+        return None
+    if resp.status_code == 404:
+        return None
+    if not resp.ok:
+        print(f"  ! TM venue {venue_id}: HTTP {resp.status_code}", file=sys.stderr)
+        return None
+    try:
+        data = resp.json()
+    except ValueError:
+        print(f"  ! TM venue {venue_id}: non-JSON response", file=sys.stderr)
+        return None
+    city = (data.get("city") or {}).get("name")
+    state = (data.get("state") or {}).get("stateCode")
+    country = (data.get("country") or {}).get("countryCode")
+    if not city and not state:
+        return None
+    return {"name": data.get("name"), "city": city, "state": state, "country": country}
+
+
+def _resolve_ticketmaster_venues(venue_ids, api_key: str, *, max_resolve=None) -> dict:
+    """Resolve a set of distinct TM venue ids to locations, rate-limited.
+
+    Returns ``{venue_id: location-or-None}``. Pacing matches the scraper's
+    TicketmasterClient (~5 req/s). ``max_resolve`` caps the number of network
+    calls for spot checks.
+    """
+    ids = sorted(venue_ids)
+    if max_resolve is not None:
+        ids = ids[:max_resolve]
+    total = len(ids)
+    resolved = {}
+    for i, vid in enumerate(ids, 1):
+        if i > 1:
+            time.sleep(TM_MIN_DELAY)
+        resolved[vid] = _resolve_ticketmaster_venue(vid, api_key)
+        if i % 50 == 0 or i == total:
+            print(f"  resolved {i}/{total} TM venue(s)", file=sys.stderr)
+    return resolved
+
+
+def _source_venue_geo_mismatch(sources: list, venue_locations: dict) -> list:
+    """Flag clubs whose stated city/state diverges from the canonical location
+    of the venue their platform id points at.
+
+    ``venue_locations`` maps ``(id_kind, value)`` -> location dict (or ``None``
+    when unresolved). Only resolved entries can flag. Currently the only
+    id_kind is ``ticketmaster_id``; the structure is ready for more platforms.
+    State is the high-confidence axis (mismatch="state"); a same-state city
+    difference (mismatch="city") is reported but is more often a metro-naming
+    variant (suburb vs. anchor city) than real corruption.
+    """
+    out = []
+    for s in sources:
+        tm_id = s.get("ticketmaster_id")
+        if tm_id is None or str(tm_id).strip() == "":
+            continue
+        loc = venue_locations.get(("ticketmaster_id", str(tm_id).strip()))
+        if not loc:
+            continue  # unresolved id carries no geo signal
+        club_state = (s.get("state") or "").strip().upper()
+        club_city = (s.get("city") or "").strip().lower()
+        venue_state = (loc.get("state") or "").strip().upper()
+        venue_city = (loc.get("city") or "").strip().lower()
+        if venue_state and club_state and venue_state != club_state:
+            mismatch = "state"
+        elif (venue_state and club_state and venue_state == club_state
+              and venue_city and club_city and venue_city != club_city):
+            mismatch = "city"
+        else:
+            continue
+        out.append({
+            "signal": "source_venue_geo_mismatch",
+            "mismatch": mismatch,
+            "club_id": s["club_id"],
+            "club_name": s["club_name"],
+            "city": s["city"],
+            "state": s["state"],
+            "source_id": s["source_id"],
+            "platform": s["platform"],
+            "enabled": s["enabled"],
+            "venue_id_kind": "ticketmaster_id",
+            "venue_id": str(tm_id).strip(),
+            "venue_name": loc.get("name"),
+            "venue_city": loc.get("city"),
+            "venue_state": loc.get("state"),
+        })
+    # State mismatches (higher confidence) first, then by club_id.
+    out.sort(key=lambda r: (r["mismatch"] != "state", r["club_id"]))
+    return out
+
+
 def _flatten_shared(rows: list) -> list:
     """Expand shared_venue_across_geo into one CSV row per (group, club)."""
     flat = []
@@ -359,6 +504,10 @@ def _format_csv(signal: str, rows: list) -> str:
         fields = ["signal", "club_id", "club_name", "city", "state", "source_id",
                   "platform", "enabled", "source_domain", "website_domain",
                   "source_url", "website"]
+    elif signal == "source_venue_geo_mismatch":
+        fields = ["signal", "mismatch", "club_id", "club_name", "city", "state",
+                  "source_id", "platform", "enabled", "venue_id_kind", "venue_id",
+                  "venue_name", "venue_city", "venue_state"]
     else:
         rows = _flatten_shared(rows)
         fields = ["signal", "identifier_kind", "identifier", "club_count",
@@ -377,7 +526,9 @@ def main() -> None:
     )
     parser.add_argument(
         "--signal", action="append", choices=SIGNALS,
-        help=f"Restrict to one signal (repeatable). Default: all of {', '.join(SIGNALS)}.",
+        help="Restrict to one signal (repeatable). Default: the offline signals "
+             f"({', '.join(OFFLINE_SIGNALS)}). source_venue_geo_mismatch is "
+             "network-backed and must be requested explicitly.",
     )
     parser.add_argument(
         "--format", choices=("json", "csv"), default="json",
@@ -392,11 +543,17 @@ def main() -> None:
         help="In shared_venue_across_geo, also show groups whose clubs share a "
              "chain_id (legitimate multi-city chains, hidden by default).",
     )
+    parser.add_argument(
+        "--max-resolve", type=int, default=None, metavar="N",
+        help="Cap the number of distinct venue ids resolved via the network "
+             "(source_venue_geo_mismatch only; useful for spot checks).",
+    )
     args = parser.parse_args()
 
     # dict.fromkeys dedups repeated --signal while preserving order (argparse
     # append does not dedup, which would double output rows / summary lines).
-    signals = list(dict.fromkeys(args.signal)) if args.signal else list(SIGNALS)
+    # Default to the offline signals only; the network signal is opt-in.
+    signals = list(dict.fromkeys(args.signal)) if args.signal else list(OFFLINE_SIGNALS)
 
     try:
         import psycopg2  # noqa: F401
@@ -422,6 +579,39 @@ def main() -> None:
     if "shared_venue_across_geo" in signals:
         results["shared_venue_across_geo"] = _shared_venue_across_geo(
             sources, args.include_chains)
+    if "source_venue_geo_mismatch" in signals:
+        api_key = os.environ.get("TICKETMASTER_API_KEY")
+        if not api_key:
+            print(
+                "Error: source_venue_geo_mismatch requires TICKETMASTER_API_KEY "
+                f"in the environment or {ENV_FILE}.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        tm_ids = {
+            str(s["ticketmaster_id"]).strip()
+            for s in sources
+            if s.get("ticketmaster_id") is not None
+            and str(s["ticketmaster_id"]).strip() != ""
+        }
+        print(
+            f"resolving {len(tm_ids)} distinct ticketmaster venue id(s) via the "
+            "TM Discovery API...",
+            file=sys.stderr,
+        )
+        resolved = _resolve_ticketmaster_venues(
+            tm_ids, api_key, max_resolve=args.max_resolve)
+        unresolved = sum(1 for v in resolved.values() if not v)
+        if unresolved:
+            print(
+                f"  ({unresolved}/{len(resolved)} venue id(s) could not be resolved)",
+                file=sys.stderr,
+            )
+        venue_locations = {
+            ("ticketmaster_id", vid): loc for vid, loc in resolved.items()
+        }
+        results["source_venue_geo_mismatch"] = _source_venue_geo_mismatch(
+            sources, venue_locations)
 
     if args.format == "csv":
         chunks = []
