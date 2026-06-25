@@ -24,6 +24,27 @@ def _normalize_venue_text_for_match(value: str) -> str:
     return re.sub(r"[^a-z0-9]+", " ", s).strip()
 
 
+def _normalize_for_alias_key(value: str) -> str:
+    """Normalize a name or city to match how ``club_aliases`` stores its
+    normalized columns, so the importer's pre-insert alias check actually hits
+    the fold-populated rows.
+
+    The fold scripts populate ``normalized_alias_name`` / ``normalized_city``
+    with the SQL expression
+    ``btrim(regexp_replace(replace(lower(x), '&', ' and '), '[^a-z0-9]+', ' ', 'g'))``
+    — lower-case, ``&`` -> ``and``, collapse non-alphanumeric runs to single
+    spaces, trim. It deliberately does **not** expand the ``st``/``ft``/``mt``
+    abbreviations that :func:`_normalize_venue_text_for_match` applies. Comparing
+    a Python-side ``_normalize_venue_text_for_match`` value (which expands
+    ``St`` -> ``saint``) against the stored column silently fails for every
+    ``St.``/``Ft.``/``Mt.`` venue (e.g. "Comedy Club - St. Louis"), so the
+    importer would re-create the duplicate it was supposed to fold (TASK-3458).
+    Mirroring the storage expression here guarantees parity by construction.
+    """
+    s = (value or "").lower().replace("&", " and ")
+    return re.sub(r"[^a-z0-9]+", " ", s).strip()
+
+
 def _normalize_venue_name_for_match(name: str, city: str = "", state: str = "") -> str:
     """Reduce a venue name to a comparable core form for same-(city, state) merge detection.
 
@@ -402,9 +423,14 @@ class ClubHandler(BaseDatabaseHandler[Club]):
         if not city or not state:
             return None
 
-        norm_alias = _normalize_venue_text_for_match(name)
-        norm_city = _normalize_venue_text_for_match(city)
-        norm_state = _normalize_venue_text_for_match(state)
+        # Alias-equality keys must mirror how club_aliases stores its normalized
+        # columns (no st/ft/mt expansion) — see _normalize_for_alias_key. The
+        # name-fuzzy path below keeps _normalize_venue_name_for_match, which is
+        # only ever compared Python-to-Python so its abbreviation expansion is
+        # internally consistent there.
+        norm_alias = _normalize_for_alias_key(name)
+        norm_city = _normalize_for_alias_key(city)
+        norm_state = (state or "").strip().lower()
         norm_target = _normalize_venue_name_for_match(name, city, state)
         if not norm_alias or not norm_city or not norm_state or not norm_target:
             return None
