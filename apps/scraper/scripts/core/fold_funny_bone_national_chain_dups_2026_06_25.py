@@ -325,14 +325,16 @@ def _ensure_future_routing(cur: RealDictCursor) -> dict[str, int]:
     counts: dict[str, int] = {}
     cur.execute(
         """
+        -- normalized_alias_name/normalized_city/normalized_state are populated
+        -- by the club_aliases_set_normalized trigger (TASK-3462), so this insert
+        -- supplies only the raw alias_name/city/state. ON CONFLICT still targets
+        -- the trigger-maintained columns (the trigger fires BEFORE the conflict
+        -- check, so the dedup key is set in time).
         INSERT INTO club_aliases (
             club_id,
             alias_name,
-            normalized_alias_name,
             city,
             state,
-            normalized_city,
-            normalized_state,
             source,
             verified,
             created_at,
@@ -341,11 +343,8 @@ def _ensure_future_routing(cur: RealDictCursor) -> dict[str, int]:
         SELECT
             f.new_id,
             f.alias_name,
-            btrim(regexp_replace(replace(lower(f.alias_name), '&', ' and '), '[^a-z0-9]+', ' ', 'g')),
             f.city,
             f.state,
-            btrim(regexp_replace(lower(f.city), '[^a-z0-9]+', ' ', 'g')),
-            lower(f.state),
             %s,
             TRUE,
             NOW(),
