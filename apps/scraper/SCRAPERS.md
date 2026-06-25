@@ -162,6 +162,12 @@ Is there a BookTix box office at `{org}.booktix.com`?
   └── YES → platform: BookTix → scraper = 'booktix' (generic)
               DB: source_url = https://{org}.booktix.com/dept/main
 
+Is there a `{venue}.multipass.com` box-office page or multipass.com buy links?
+  └── YES → platform: custom → scraper = 'multipass' (generic)
+              DB: source_url = https://{venue}.multipass.com/
+              (see Multipass section — static HTML lists ALL events; scraper
+               filters to upcoming-only and infers the omitted year)
+
 Check browser network requests (browser_navigate + browser_network_requests):
   └── tockify.com/api/tagoptions/<calname>   → platform: Tockify
                                                 → new venue-specific scraper required
@@ -769,6 +775,48 @@ VALUES (
 **Reference implementation:**
 - `apps/scraper/src/laughtrack/scrapers/implementations/api/tugoz/`
 - Masala Comedy Club, TASK-3194.
+
+---
+
+### Multipass
+
+| | |
+|---|---|
+| **Scraper key** | `multipass` |
+| **Platform** | `custom` |
+| **DB field** | `scraping_sources.source_url` |
+| **Value format** | Venue box-office root, `https://{venue}.multipass.com/` |
+| **Generic?** | ✅ Generic — a new Multipass venue needs only a DB row |
+
+**Detection signals:**
+- Buy links point to `{venue}.multipass.com/{slug}` (e.g. `denvercomedy.multipass.com/maceyisaacs`).
+- Page footer / "Powered by multipass" link to `https://www.multipass.com`.
+- The venue's own site (often Wix/Squarespace) lists shows but routes every "Buy Tickets" link to the Multipass subdomain.
+
+**API/source pattern:**
+- The venue subdomain root is server-rendered HTML — no XHR/JSON API hydrates it. A single `fetch_html(source_url)` returns every event.
+- Each show is a `div.eventCard2026` card with `div.title > a` (title + relative `/slug`), `div.eventline.datetime` ("Fri Jul 3 • 8 PM"), `span.eventPrice` ("$18.06"), and an `a.actionButton` ticket link. The `/slug` resolves to the absolute show/ticket URL via the source origin.
+
+**Key extraction notes:**
+- The card date string omits the YEAR; it is inferred from the printed weekday + month/day (nearest occurrence, weekday uniquely disambiguates), handling Dec→Jan rollover.
+- The static HTML contains ALL events (past + future); the live page hides past ones behind a "Show Past Events" toggle. The framework does NOT drop past-dated shows, so the scraper filters to upcoming-only (date ≥ today − 1 day).
+- Price is parsed from `span.eventPrice` ("$NN.NN"); absent price leaves it unknown (not free).
+- Individual event detail pages expose only OpenGraph meta (no JSON-LD), so no detail-page fetch is performed — the listing card is the complete source.
+
+**DB setup:**
+```sql
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, priority, enabled, metadata)
+VALUES (<club_id>, 'custom', 'multipass', 'https://<venue>.multipass.com/', 0, true, '{}');
+```
+
+**Failure modes / gotchas:**
+- Do NOT point `source_url` at the venue's own Wix/Squarespace page — its native events widget is often empty; only the Multipass subdomain carries the data.
+- Past events leak in if the upcoming-only filter is removed; the listing always includes them.
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/scrapers/implementations/api/multipass/`
+- `apps/scraper/src/laughtrack/core/entities/event/multipass.py`
+- Dude, IDK Studios (Denver, TASK-3396): `https://denvercomedy.multipass.com/`, verified 9 shows.
 
 ---
 
