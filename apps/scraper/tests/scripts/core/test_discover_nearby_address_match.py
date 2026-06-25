@@ -79,6 +79,75 @@ def test_address_match_proximity_guard_rejects_same_number_in_another_city():
     assert status == "new"
 
 
+def _addr_row(club_id, name, lat, lng, state, club_type="club", visible=True, status="active"):
+    """Build an addr_index entry matching _load_existing_clubs' shape:
+    (id, name, lat, lng, club_type, visible, status, state)."""
+    return (club_id, name, lat, lng, club_type, visible, status, state)
+
+
+def test_address_state_parses_comma_formatted_address():
+    assert dn._address_state("17105 N Outer 40 Rd, Chesterfield, MO 63005, USA") == "mo"
+    assert dn._address_state("24 N Mentor Ave, Pasadena, CA 91106, USA") == "ca"
+    # Too few segments to be confident -> None (disables the fallback).
+    assert dn._address_state("17105 North Outer 40 Road") is None
+    assert dn._address_state("Chesterfield, MO") is None
+    assert dn._address_state("") is None
+    assert dn._address_state(None) is None
+
+
+def test_stale_coord_address_match_catches_same_state_metro_dup():
+    # TASK-3322 regression: "The Factory" — existing club 4945 has a stale stored
+    # geocode (38.6565,-90.4542) ~6 mi from the candidate's real Chesterfield
+    # rooftop, so the tight proximity gate rejected the exact "17105 outer" key
+    # match and it was kept as "new" (at risk of a duplicate club shell). Same
+    # state + within the wider metro bound now catches it as a dup.
+    addr_index = {"17105 outer": [_addr_row(4945, "The Factory", 38.6565, -90.4542, "mo")]}
+    v = venue(
+        "The Factory",
+        "17105 N Outer 40 Rd, Chesterfield, MO 63005, USA",
+        place_id="PID_FACTORY",
+        lat=38.658,
+        lng=-90.564,
+    )
+    status, club_id, _ = dn._classify(
+        v, None, by_place_id={}, name_rows=[], name_match_miles=2.0, addr_index=addr_index
+    )
+    assert (status, club_id) == ("likely", 4945)
+
+
+def test_stale_coord_fallback_rejects_same_state_distant_city():
+    # Same key + same state but ~70 mi apart (beyond the metro bound) -> a
+    # genuinely different city sharing a common street number, not a stale dup.
+    addr_index = {"100 main": [_addr_row(11, "Main St MO", 38.6, -90.4, "mo")]}
+    v = venue("Other Main", "100 Main St, FarTown, MO 65000, USA", lat=38.0, lng=-91.5)
+    status, _, _ = dn._classify(
+        v, None, by_place_id={}, name_rows=[], name_match_miles=2.0, addr_index=addr_index
+    )
+    assert status == "new"
+
+
+def test_stale_coord_fallback_rejects_cross_state_same_key():
+    # Same key, coords disagree, and the states differ -> not a dup even though
+    # the street key collides.
+    addr_index = {"100 main": [_addr_row(12, "Main St CA", 34.20, -118.20, "ca")]}
+    v = venue("Some Venue", "100 Main St, Elsewhere, NY 10000, USA", lat=40.0, lng=-74.0)
+    status, _, _ = dn._classify(
+        v, None, by_place_id={}, name_rows=[], name_match_miles=2.0, addr_index=addr_index
+    )
+    assert status == "new"
+
+
+def test_stale_coord_fallback_skipped_when_state_unknown():
+    # An addr_index row without a state tail (legacy/hand-built) must not qualify
+    # for the fallback — coords disagree past the tight bound -> stays "new".
+    addr_index = {"100 main": [(9, "Main St Theater", 34.20, -118.20)]}
+    v = venue("Some Venue", "100 Main St, Elsewhere, CA 90000, USA", lat=34.10, lng=-118.10)
+    status, _, _ = dn._classify(
+        v, None, by_place_id={}, name_rows=[], name_match_miles=2.0, addr_index=addr_index
+    )
+    assert status == "new"
+
+
 def test_place_id_match_takes_precedence_as_known():
     v = venue("Whatever", "24 N Mentor Ave", place_id="PID_KNOWN")
     result = dn._classify(
