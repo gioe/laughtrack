@@ -33,6 +33,13 @@ class LaughTrackApplication : Application(), Configuration.Provider {
      * Initialize Sentry only when a DSN was injected at build time (release builds
      * via -PsentryDsn / a CI secret). With no DSN the SDK stays dormant, mirroring
      * the gated Firebase config — no crash reports are sent until provisioned.
+     *
+     * This is the ONLY Sentry initialization path: the SDK's auto-init
+     * ContentProviders (SentryInitProvider/SentryPerformanceProvider) are stripped
+     * from the merged manifest via `tools:node="remove"` in AndroidManifest.xml,
+     * because auto-init crashes any DSN-less build at startup. If this method is
+     * ever removed or short-circuited, Sentry silently stops capturing — there is
+     * no provider fallback. Keep the manifest removal and this method in sync.
      */
     private fun initSentry() {
         val dsn = BuildConfig.SENTRY_DSN
