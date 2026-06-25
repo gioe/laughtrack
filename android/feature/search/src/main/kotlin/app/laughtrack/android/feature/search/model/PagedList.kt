@@ -26,7 +26,11 @@ data class PagedList<T>(
      * — that is how a query/filter change resets pagination — while later pages
      * append.
      */
-    fun appendPage(loadedPage: Int, pageItems: List<T>, total: Int): PagedList<T> =
+    fun appendPage(
+        loadedPage: Int,
+        pageItems: List<T>,
+        total: Int,
+    ): PagedList<T> =
         copy(
             items = if (loadedPage <= 1) pageItems else items + pageItems,
             page = loadedPage,

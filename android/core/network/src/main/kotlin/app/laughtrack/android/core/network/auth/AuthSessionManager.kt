@@ -48,12 +48,12 @@ class AuthSessionManager(
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
     }
 
-    suspend fun restoreSession(): SessionTokens? =
-        tokenStore.read().also { mutableSignedIn.value = it != null }
+    suspend fun restoreSession(): SessionTokens? = tokenStore.read().also { mutableSignedIn.value = it != null }
 
     suspend fun handleCallback(callbackUrl: String): AuthCallbackResult {
-        val uri = runCatching { URI(callbackUrl) }.getOrNull()
-            ?: return AuthCallbackResult.Ignored
+        val uri =
+            runCatching { URI(callbackUrl) }.getOrNull()
+                ?: return AuthCallbackResult.Ignored
 
         if (
             uri.scheme != DEEP_LINK_SCHEME ||
@@ -85,23 +85,25 @@ class AuthSessionManager(
         pendingState = null
 
         val expiresIn = query["expiresIn"]?.toLongOrNull() ?: DEFAULT_ACCESS_TOKEN_TTL_SECONDS
-        val tokens = SessionTokens(
-            accessToken = accessToken,
-            refreshToken = refreshToken,
-            expiresAtEpochSeconds = clock.instant().epochSecond + expiresIn,
-        )
+        val tokens =
+            SessionTokens(
+                accessToken = accessToken,
+                refreshToken = refreshToken,
+                expiresAtEpochSeconds = clock.instant().epochSecond + expiresIn,
+            )
         tokenStore.save(tokens)
         mutableSignedIn.value = true
         return AuthCallbackResult.Authenticated(tokens)
     }
 
-    suspend fun getMe(): Result<MeResponse> = runCatching {
-        val response = authApi.getMe()
-        if (!response.isSuccessful) {
-            error("GET /me failed with HTTP ${response.code()}")
+    suspend fun getMe(): Result<MeResponse> =
+        runCatching {
+            val response = authApi.getMe()
+            if (!response.isSuccessful) {
+                error("GET /me failed with HTTP ${response.code()}")
+            }
+            response.body() ?: error("GET /me returned an empty body")
         }
-        response.body() ?: error("GET /me returned an empty body")
-    }
 
     suspend fun signOut(): Boolean {
         val response = runCatching { authApi.signout() }.getOrNull()
@@ -132,11 +134,9 @@ class AuthSessionManager(
             .toMap()
     }
 
-    private fun encode(value: String): String =
-        URLEncoder.encode(value, StandardCharsets.UTF_8.name())
+    private fun encode(value: String): String = URLEncoder.encode(value, StandardCharsets.UTF_8.name())
 
-    private fun decode(value: String): String =
-        URLDecoder.decode(value, StandardCharsets.UTF_8.name())
+    private fun decode(value: String): String = URLDecoder.decode(value, StandardCharsets.UTF_8.name())
 
     companion object {
         private const val DEEP_LINK_SCHEME = "laughtrack"
@@ -165,6 +165,8 @@ enum class AuthProvider(val id: String) {
 
 sealed interface AuthCallbackResult {
     data class Authenticated(val tokens: SessionTokens) : AuthCallbackResult
+
     data class Error(val code: String) : AuthCallbackResult
+
     data object Ignored : AuthCallbackResult
 }

@@ -21,16 +21,13 @@ import javax.inject.Singleton
 object SearchApiModule {
     @Provides
     @Singleton
-    fun provideShowsApi(apiClient: ApiClient): ShowsApi =
-        apiClient.createService(ShowsApi::class.java)
+    fun provideShowsApi(apiClient: ApiClient): ShowsApi = apiClient.createService(ShowsApi::class.java)
 
     @Provides
     @Singleton
-    fun provideClubsApi(apiClient: ApiClient): ClubsApi =
-        apiClient.createService(ClubsApi::class.java)
+    fun provideClubsApi(apiClient: ApiClient): ClubsApi = apiClient.createService(ClubsApi::class.java)
 
     @Provides
     @Singleton
-    fun providePodcastsApi(apiClient: ApiClient): PodcastsApi =
-        apiClient.createService(PodcastsApi::class.java)
+    fun providePodcastsApi(apiClient: ApiClient): PodcastsApi = apiClient.createService(PodcastsApi::class.java)
 }

@@ -10,7 +10,6 @@ import org.junit.Test
  * A rename on either client breaks dashboards silently; this test is the lockstep.
  */
 class AnalyticsEventsTest {
-
     @Test
     fun `push events mirror the iOS catalog`() {
         assertEquals("push_soft_prompt_shown", AnalyticsEvents.Push.SOFT_PROMPT_SHOWN)
@@ -42,18 +41,19 @@ class AnalyticsEventsTest {
 
     @Test
     fun `every event name is snake_case and within Firebase's 40-char cap`() {
-        val names = listOf(
-            AnalyticsEvents.Push.SOFT_PROMPT_SHOWN,
-            AnalyticsEvents.Push.SOFT_PROMPT_ENABLE_TAPPED,
-            AnalyticsEvents.Push.SOFT_PROMPT_DEFER_TAPPED,
-            AnalyticsEvents.Push.OS_PROMPT_RESULT,
-            AnalyticsEvents.Push.SETTINGS_TOGGLE_CHANGED,
-            AnalyticsEvents.Notifications.VIEWED,
-            AnalyticsEvents.Notifications.CARD_TAPPED,
-            AnalyticsEvents.Onboarding.COMPLETED,
-            AnalyticsEvents.Search.PERFORMED,
-            AnalyticsEvents.Cards.TAPPED,
-        )
+        val names =
+            listOf(
+                AnalyticsEvents.Push.SOFT_PROMPT_SHOWN,
+                AnalyticsEvents.Push.SOFT_PROMPT_ENABLE_TAPPED,
+                AnalyticsEvents.Push.SOFT_PROMPT_DEFER_TAPPED,
+                AnalyticsEvents.Push.OS_PROMPT_RESULT,
+                AnalyticsEvents.Push.SETTINGS_TOGGLE_CHANGED,
+                AnalyticsEvents.Notifications.VIEWED,
+                AnalyticsEvents.Notifications.CARD_TAPPED,
+                AnalyticsEvents.Onboarding.COMPLETED,
+                AnalyticsEvents.Search.PERFORMED,
+                AnalyticsEvents.Cards.TAPPED,
+            )
         val snakeCase = Regex("^[a-z][a-z0-9_]*$")
         names.forEach { name ->
             assertTrue("'$name' is not snake_case", snakeCase.matches(name))

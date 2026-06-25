@@ -9,20 +9,20 @@ import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoSet
 import javax.inject.Inject
 
-class ProfilePushSessionSideEffect @Inject constructor(
-    private val pushTokenManager: PushTokenManager,
-) : ProfileSessionSideEffect {
-    override suspend fun beforeSignOut() {
-        pushTokenManager.deactivateCurrentToken()
+class ProfilePushSessionSideEffect
+    @Inject
+    constructor(
+        private val pushTokenManager: PushTokenManager,
+    ) : ProfileSessionSideEffect {
+        override suspend fun beforeSignOut() {
+            pushTokenManager.deactivateCurrentToken()
+        }
     }
-}
 
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class ProfilePushSessionSideEffectModule {
     @Binds
     @IntoSet
-    abstract fun bindProfilePushSessionSideEffect(
-        sideEffect: ProfilePushSessionSideEffect,
-    ): ProfileSessionSideEffect
+    abstract fun bindProfilePushSessionSideEffect(sideEffect: ProfilePushSessionSideEffect): ProfileSessionSideEffect
 }

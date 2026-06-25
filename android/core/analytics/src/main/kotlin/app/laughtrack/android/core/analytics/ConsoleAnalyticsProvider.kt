@@ -8,7 +8,6 @@ import android.util.Log
  * Log.d, which is stripped/ignored in release, so it is effectively silent there.
  */
 class ConsoleAnalyticsProvider : AnalyticsProvider {
-
     override fun logEvent(event: AnalyticsEvent) {
         Log.d(TAG, "event=${event.name} params=${event.params}")
     }
@@ -17,7 +16,10 @@ class ConsoleAnalyticsProvider : AnalyticsProvider {
         Log.d(TAG, "setUserId=$userId")
     }
 
-    override fun setUserProperty(name: String, value: String?) {
+    override fun setUserProperty(
+        name: String,
+        value: String?,
+    ) {
         Log.d(TAG, "setUserProperty $name=$value")
     }
 

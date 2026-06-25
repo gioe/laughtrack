@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.LinearProgressIndicator
@@ -39,9 +38,10 @@ fun PodcastMiniPlayer(
     val item = state.currentItem ?: return
 
     Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(onClick = onExpand),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .clickable(onClick = onExpand),
     ) {
         Column {
             LinearProgressIndicator(
@@ -102,9 +102,10 @@ fun NowPlayingScreen(
     }
 
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(24.dp),
+        modifier =
+            modifier
+                .fillMaxSize()
+                .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -112,9 +113,10 @@ fun NowPlayingScreen(
             url = item.artworkUrl,
             contentDescription = item.podcastTitle,
             contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(280.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(280.dp),
         )
         Text(
             item.episodeTitle,
@@ -165,11 +167,9 @@ private fun PodcastPlaybackState.progressFraction(): Float {
     return (positionMs.toFloat() / durationMs.toFloat()).coerceIn(0f, 1f)
 }
 
-private fun PodcastPlaybackState.sliderDuration(): Long =
-    durationMs.takeIf { it > 0L } ?: 1L
+private fun PodcastPlaybackState.sliderDuration(): Long = durationMs.takeIf { it > 0L } ?: 1L
 
-private fun Float.cleanRate(): String =
-    if (this % 1f == 0f) toInt().toString() else toString()
+private fun Float.cleanRate(): String = if (this % 1f == 0f) toInt().toString() else toString()
 
 private fun formatTime(ms: Long): String {
     val totalSeconds = (ms / 1_000).coerceAtLeast(0L)

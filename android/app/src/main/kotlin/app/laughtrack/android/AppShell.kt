@@ -93,9 +93,10 @@ fun AppShell(
         bottomBar = {
             NavigationBar {
                 AppTab.entries.forEach { tab ->
-                    val selected = currentDestination?.hierarchy?.any {
-                        it.hasRoute(tab.rootRoute::class)
-                    } == true
+                    val selected =
+                        currentDestination?.hierarchy?.any {
+                            it.hasRoute(tab.rootRoute::class)
+                        } == true
                     NavigationBarItem(
                         selected = selected,
                         onClick = { navController.switchTab(tab) },
@@ -218,11 +219,12 @@ private fun ProfileMenu(navController: NavController) {
 }
 
 private val AppTab.icon: ImageVector
-    get() = when (this) {
-        AppTab.DISCOVER -> Icons.Filled.Home
-        AppTab.SEARCH -> Icons.Filled.Search
-        AppTab.FAVORITES -> Icons.Filled.Favorite
-    }
+    get() =
+        when (this) {
+            AppTab.DISCOVER -> Icons.Filled.Home
+            AppTab.SEARCH -> Icons.Filled.Search
+            AppTab.FAVORITES -> Icons.Filled.Favorite
+        }
 
 /**
  * Switch bottom-nav tabs: pop to the graph start (saving each tab's state),
@@ -255,20 +257,23 @@ fun NavController.openEntity(route: AppRoute) {
 }
 
 internal object AppShellChrome {
-    fun showsTopAppBar(route: AppRoute): Boolean = when (route) {
-        AppRoute.Discover,
-        AppRoute.Search,
-        AppRoute.Favorites,
-        AppRoute.ComedianOnboarding,
-        AppRoute.NowPlaying,
-        AppRoute.Profile -> true
+    fun showsTopAppBar(route: AppRoute): Boolean =
+        when (route) {
+            AppRoute.Discover,
+            AppRoute.Search,
+            AppRoute.Favorites,
+            AppRoute.ComedianOnboarding,
+            AppRoute.NowPlaying,
+            AppRoute.Profile,
+            -> true
 
-        is AppRoute.ShowDetail,
-        is AppRoute.ComedianDetail,
-        is AppRoute.ClubDetail,
-        is AppRoute.PodcastDetail,
-        AppRoute.NotificationCenter -> false
-    }
+            is AppRoute.ShowDetail,
+            is AppRoute.ComedianDetail,
+            is AppRoute.ClubDetail,
+            is AppRoute.PodcastDetail,
+            AppRoute.NotificationCenter,
+            -> false
+        }
 
     fun showsTopAppBar(destination: NavDestination?): Boolean {
         if (destination == null) return true

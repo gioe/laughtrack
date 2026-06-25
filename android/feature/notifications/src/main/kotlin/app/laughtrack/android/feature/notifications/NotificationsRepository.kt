@@ -9,17 +9,19 @@ import javax.inject.Inject
  * and clears the unread badge (`POST /me/notifications/seen`). The generated
  * [AuthApi] hosts both endpoints; it is provided once by core:network.
  */
-class NotificationsRepository @Inject constructor(
-    private val authApi: AuthApi,
-) {
-    suspend fun getNotifications(): NotificationListResponseData {
-        val response = authApi.getMeNotifications()
-        return response.body()?.data
-            ?: error("Notifications unavailable (HTTP ${response.code()})")
-    }
+class NotificationsRepository
+    @Inject
+    constructor(
+        private val authApi: AuthApi,
+    ) {
+        suspend fun getNotifications(): NotificationListResponseData {
+            val response = authApi.getMeNotifications()
+            return response.body()?.data
+                ?: error("Notifications unavailable (HTTP ${response.code()})")
+        }
 
-    /** Stamp the last-seen high-water mark. Failure is non-fatal — the list still renders. */
-    suspend fun markSeen() {
-        runCatching { authApi.markMeNotificationsSeen() }
+        /** Stamp the last-seen high-water mark. Failure is non-fatal — the list still renders. */
+        suspend fun markSeen() {
+            runCatching { authApi.markMeNotificationsSeen() }
+        }
     }
-}

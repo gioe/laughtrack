@@ -14,7 +14,10 @@ object NavStackDedup {
      * Return the new stack after navigating to [route]. If [route] is already on
      * the stack, truncate to that occurrence (pop-back); otherwise append (push).
      */
-    fun navigate(stack: List<AppRoute>, route: AppRoute): List<AppRoute> {
+    fun navigate(
+        stack: List<AppRoute>,
+        route: AppRoute,
+    ): List<AppRoute> {
         val existing = stack.indexOf(route)
         return if (existing >= 0) {
             stack.subList(0, existing + 1).toList()

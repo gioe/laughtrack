@@ -50,9 +50,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -68,11 +68,12 @@ fun ComedianOnboardingScreen(
     viewModel: ComedianOnboardingViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val notificationPermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission(),
-    ) { granted ->
-        viewModel.onPushPermissionResult(granted)
-    }
+    val notificationPermissionLauncher =
+        rememberLauncherForActivityResult(
+            ActivityResultContracts.RequestPermission(),
+        ) { granted ->
+            viewModel.onPushPermissionResult(granted)
+        }
 
     LaunchedEffect(state.isComplete) {
         if (state.isComplete) onComplete()
@@ -128,7 +129,8 @@ fun ComedianOnboardingScreen(
                 fontWeight = FontWeight.Bold,
             )
             Text(
-                "Swipe through suggestions or search by name. Three favorites gives LaughTrack enough signal for better alerts.",
+                "Swipe through suggestions or search by name. " +
+                    "Three favorites gives LaughTrack enough signal for better alerts.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -151,19 +153,21 @@ fun ComedianOnboardingScreen(
             Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
                 when {
                     state.isLoading && state.visibleComedians.isEmpty() -> CircularProgressIndicator()
-                    state.isSearchMode -> SearchResults(
-                        comedians = state.searchResults,
-                        favorites = state.favorites,
-                        onFavorite = viewModel::toggleFavorite,
-                    )
-                    else -> SwipeDeck(
-                        comedians = state.suggestions,
-                        favorites = state.favorites,
-                        passed = state.passed,
-                        onFavorite = viewModel::toggleFavorite,
-                        onPass = viewModel::passComedian,
-                        onMore = viewModel::loadMoreSuggestions,
-                    )
+                    state.isSearchMode ->
+                        SearchResults(
+                            comedians = state.searchResults,
+                            favorites = state.favorites,
+                            onFavorite = viewModel::toggleFavorite,
+                        )
+                    else ->
+                        SwipeDeck(
+                            comedians = state.suggestions,
+                            favorites = state.favorites,
+                            passed = state.passed,
+                            onFavorite = viewModel::toggleFavorite,
+                            onPass = viewModel::passComedian,
+                            onMore = viewModel::loadMoreSuggestions,
+                        )
                 }
             }
         }
@@ -188,7 +192,7 @@ private fun FavoriteProgress(favoriteCount: Int) {
             )
         }
         Text(
-            "${favoriteCount}/3 selected",
+            "$favoriteCount/3 selected",
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.primary,
         )
@@ -305,22 +309,23 @@ private fun ComedianCard(
 ) {
     var dragOffset by remember(comedian.uuid) { mutableFloatStateOf(0f) }
     Card(
-        modifier = modifier
-            .offset { IntOffset(dragOffset.roundToInt(), 0) }
-            .pointerInput(comedian.uuid) {
-                detectHorizontalDragGestures(
-                    onDragEnd = {
-                        when {
-                            dragOffset > SWIPE_THRESHOLD_PX -> onFavorite()
-                            dragOffset < -SWIPE_THRESHOLD_PX -> onPass()
-                        }
-                        dragOffset = 0f
-                    },
-                    onHorizontalDrag = { _, dragAmount ->
-                        dragOffset += dragAmount
-                    },
-                )
-            },
+        modifier =
+            modifier
+                .offset { IntOffset(dragOffset.roundToInt(), 0) }
+                .pointerInput(comedian.uuid) {
+                    detectHorizontalDragGestures(
+                        onDragEnd = {
+                            when {
+                                dragOffset > SWIPE_THRESHOLD_PX -> onFavorite()
+                                dragOffset < -SWIPE_THRESHOLD_PX -> onPass()
+                            }
+                            dragOffset = 0f
+                        },
+                        onHorizontalDrag = { _, dragAmount ->
+                            dragOffset += dragAmount
+                        },
+                    )
+                },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest),
     ) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -370,7 +375,10 @@ private fun ComedianRow(
 }
 
 @Composable
-private fun FavoriteButton(isFavorite: Boolean, onClick: () -> Unit) {
+private fun FavoriteButton(
+    isFavorite: Boolean,
+    onClick: () -> Unit,
+) {
     IconButton(onClick = onClick) {
         Icon(
             Icons.Filled.Favorite,

@@ -109,7 +109,10 @@ private fun PodcastDetailBody(
 }
 
 @Composable
-private fun PodcastRelatedRow(data: PodcastDetailResponse, onOpenEntity: (AppRoute) -> Unit) {
+private fun PodcastRelatedRow(
+    data: PodcastDetailResponse,
+    onOpenEntity: (AppRoute) -> Unit,
+) {
     if (data.relatedComedians.isEmpty()) return
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         SectionHeader("Related comedians", Modifier.padding(horizontal = 16.dp))
@@ -136,10 +139,11 @@ private fun EpisodeRow(
     onPlay: (PodcastPlaybackItem) -> Unit,
 ) {
     val playbackItem = episode.playbackItem(podcast)
-    val meta = listOfNotNull(
-        formatReleaseDate(episode.releaseDate),
-        formatEpisodeDuration(episode.durationSeconds),
-    ).joinToString(" · ").ifBlank { null }
+    val meta =
+        listOfNotNull(
+            formatReleaseDate(episode.releaseDate),
+            formatEpisodeDuration(episode.durationSeconds),
+        ).joinToString(" · ").ifBlank { null }
     Column(
         Modifier
             .fillMaxWidth()
@@ -165,9 +169,7 @@ private fun EpisodeRow(
     }
 }
 
-private fun PodcastDetailEpisode.playbackItem(
-    podcast: PodcastDetailPodcast,
-): PodcastPlaybackItem? {
+private fun PodcastDetailEpisode.playbackItem(podcast: PodcastDetailPodcast): PodcastPlaybackItem? {
     val audio = audioUrl?.takeIf { it.isNotBlank() } ?: return null
     return PodcastPlaybackItem(
         episodeId = id,

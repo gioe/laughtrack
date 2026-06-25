@@ -8,17 +8,17 @@ import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
 class DetailFormattingTest {
-
     private val now = ZonedDateTime.of(2026, 6, 24, 10, 0, 0, 0, ZoneOffset.UTC)
 
     @Test
     fun `ticket outbound url carries params and url-encodes the destination`() {
-        val url = buildTicketOutboundUrl(
-            apiBaseUrl = "https://www.laugh-track.com/api/v1",
-            showId = 10,
-            clubId = 5,
-            destinationUrl = "https://tickets.example.com/buy?seat=A1",
-        )
+        val url =
+            buildTicketOutboundUrl(
+                apiBaseUrl = "https://www.laugh-track.com/api/v1",
+                showId = 10,
+                clubId = 5,
+                destinationUrl = "https://tickets.example.com/buy?seat=A1",
+            )
         assertEquals(
             "https://www.laugh-track.com/api/v1/tickets/out?showId=10&clubId=5&surface=show_detail&url=" +
                 "https%3A%2F%2Ftickets.example.com%2Fbuy%3Fseat%3DA1",

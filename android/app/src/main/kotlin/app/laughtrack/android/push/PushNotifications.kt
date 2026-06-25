@@ -23,13 +23,14 @@ object PushNotifications {
     const val CHANNEL_ID = "comedian_arrivals"
 
     fun ensureChannel(context: Context) {
-        val channel = NotificationChannel(
-            CHANNEL_ID,
-            "Comedian arrivals",
-            NotificationManager.IMPORTANCE_DEFAULT,
-        ).apply {
-            description = "Alerts when a comedian you follow has a show near you."
-        }
+        val channel =
+            NotificationChannel(
+                CHANNEL_ID,
+                "Comedian arrivals",
+                NotificationManager.IMPORTANCE_DEFAULT,
+            ).apply {
+                description = "Alerts when a comedian you follow has a show near you."
+            }
         context.getSystemService(NotificationManager::class.java)
             ?.createNotificationChannel(channel)
     }
@@ -44,30 +45,33 @@ object PushNotifications {
         ensureChannel(context)
         if (!hasPostPermission(context)) return
 
-        val intent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            showId?.let { putExtra("showId", it) }
-            url?.let { putExtra("url", it) }
-        }
+        val intent =
+            Intent(context, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                showId?.let { putExtra("showId", it) }
+                url?.let { putExtra("url", it) }
+            }
         // Distinct ids so unrelated pushes stack instead of replacing each other
         // under FLAG_UPDATE_CURRENT; comedian-arrival pushes always carry a showId.
         val notificationId = showId?.toIntOrNull() ?: (title + body).hashCode()
-        val pendingIntent = PendingIntent.getActivity(
-            context,
-            notificationId,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-        )
+        val pendingIntent =
+            PendingIntent.getActivity(
+                context,
+                notificationId,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            )
 
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_stat_notification)
-            .setContentTitle(title)
-            .setContentText(body)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(body))
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .setAutoCancel(true)
-            .setContentIntent(pendingIntent)
-            .build()
+        val notification =
+            NotificationCompat.Builder(context, CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_stat_notification)
+                .setContentTitle(title)
+                .setContentText(body)
+                .setStyle(NotificationCompat.BigTextStyle().bigText(body))
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setAutoCancel(true)
+                .setContentIntent(pendingIntent)
+                .build()
 
         NotificationManagerCompat.from(context).notify(notificationId, notification)
     }

@@ -7,7 +7,6 @@ import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
 class RelativeTimeTest {
-
     private val now = ZonedDateTime.of(2026, 6, 24, 12, 0, 0, 0, ZoneOffset.UTC)
 
     @Test

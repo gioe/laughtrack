@@ -9,13 +9,15 @@ import javax.inject.Inject
  * Loads Podcast detail from `GET /podcasts/{id}`, which returns the podcast
  * metadata, its episode list, and related comedians in one payload.
  */
-class PodcastDetailRepository @Inject constructor(
-    apiClient: ApiClient,
-) {
-    private val podcastsApi: PodcastsApi = apiClient.createService(PodcastsApi::class.java)
+class PodcastDetailRepository
+    @Inject
+    constructor(
+        apiClient: ApiClient,
+    ) {
+        private val podcastsApi: PodcastsApi = apiClient.createService(PodcastsApi::class.java)
 
-    suspend fun getPodcast(id: Int): PodcastDetailResponse {
-        val response = podcastsApi.getPodcast(id)
-        return response.body() ?: error("Podcast unavailable (HTTP ${response.code()})")
+        suspend fun getPodcast(id: Int): PodcastDetailResponse {
+            val response = podcastsApi.getPodcast(id)
+            return response.body() ?: error("Podcast unavailable (HTTP ${response.code()})")
+        }
     }
-}

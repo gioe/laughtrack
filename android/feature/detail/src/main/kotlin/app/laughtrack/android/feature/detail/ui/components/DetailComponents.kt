@@ -67,7 +67,11 @@ fun DetailScaffold(
 
 /** Full-width hero image used at the top of each detail body. */
 @Composable
-fun DetailHero(url: String?, contentDescription: String?, modifier: Modifier = Modifier) {
+fun DetailHero(
+    url: String?,
+    contentDescription: String?,
+    modifier: Modifier = Modifier,
+) {
     RemoteImage(
         url = url,
         contentDescription = contentDescription,
@@ -77,7 +81,10 @@ fun DetailHero(url: String?, contentDescription: String?, modifier: Modifier = M
 
 /** A bold section header, e.g. "Lineup", "Upcoming", "Episodes". */
 @Composable
-fun SectionHeader(text: String, modifier: Modifier = Modifier) {
+fun SectionHeader(
+    text: String,
+    modifier: Modifier = Modifier,
+) {
     Text(
         text = text,
         style = MaterialTheme.typography.titleMedium,
@@ -88,7 +95,11 @@ fun SectionHeader(text: String, modifier: Modifier = Modifier) {
 
 /** A label/value info row (e.g. "Venue" / club name) for fact lists. */
 @Composable
-fun InfoRow(label: String, value: String, modifier: Modifier = Modifier) {
+fun InfoRow(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+) {
     Column(modifier.fillMaxWidth()) {
         Text(
             label.uppercase(),
@@ -201,7 +212,10 @@ fun DetailLoading(modifier: Modifier = Modifier) {
 
 /** Centered error state with a retry affordance. */
 @Composable
-fun DetailError(onRetry: () -> Unit, modifier: Modifier = Modifier) {
+fun DetailError(
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Column(
         modifier.fillMaxSize().padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),

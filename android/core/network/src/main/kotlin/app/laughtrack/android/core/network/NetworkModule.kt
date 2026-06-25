@@ -33,15 +33,12 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideAuthTokenInterceptor(
-        tokenStore: TokenStore,
-    ): AuthTokenInterceptor = AuthTokenInterceptor(tokenStore)
+    fun provideAuthTokenInterceptor(tokenStore: TokenStore): AuthTokenInterceptor = AuthTokenInterceptor(tokenStore)
 
     @Provides
     @Singleton
     @Named("refresh")
-    fun provideRefreshOkHttpClient(): OkHttpClient =
-        baseOkHttpBuilder().build()
+    fun provideRefreshOkHttpClient(): OkHttpClient = baseOkHttpBuilder().build()
 
     @Provides
     @Singleton
@@ -84,9 +81,7 @@ object NetworkModule {
      */
     @Provides
     @Singleton
-    fun provideApiClient(
-        okHttpClient: OkHttpClient,
-    ): ApiClient =
+    fun provideApiClient(okHttpClient: OkHttpClient): ApiClient =
         ApiClient(
             baseUrl = BuildConfig.API_BASE_URL,
             okHttpClientBuilder = okHttpClient.newBuilder(),
@@ -106,9 +101,7 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideAuthApi(
-        okHttpClient: OkHttpClient,
-    ): AuthApi =
+    fun provideAuthApi(okHttpClient: OkHttpClient): AuthApi =
         ApiClient(
             baseUrl = BuildConfig.API_BASE_URL,
             okHttpClientBuilder = okHttpClient.newBuilder(),
@@ -116,9 +109,7 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideFavoritesApi(
-        okHttpClient: OkHttpClient,
-    ): FavoritesApi =
+    fun provideFavoritesApi(okHttpClient: OkHttpClient): FavoritesApi =
         ApiClient(
             baseUrl = BuildConfig.API_BASE_URL,
             okHttpClientBuilder = okHttpClient.newBuilder(),
@@ -126,15 +117,12 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideComediansApi(
-        apiClient: ApiClient,
-    ): ComediansApi = apiClient.createService(ComediansApi::class.java)
+    fun provideComediansApi(apiClient: ApiClient): ComediansApi = apiClient.createService(ComediansApi::class.java)
 
     @Provides
     @Singleton
-    fun provideProfileSettingsApi(
-        apiClient: ApiClient,
-    ): ProfileSettingsApi = apiClient.createService(ProfileSettingsApi::class.java)
+    fun provideProfileSettingsApi(apiClient: ApiClient): ProfileSettingsApi =
+        apiClient.createService(ProfileSettingsApi::class.java)
 
     @Provides
     @Singleton
@@ -145,17 +133,19 @@ object NetworkModule {
         AuthSessionManager(
             tokenStore = tokenStore,
             authApi = authApi,
-            websiteBaseUrl = BuildConfig.API_BASE_URL
-                .removeSuffix("/api/v1/")
-                .removeSuffix("/api/v1"),
+            websiteBaseUrl =
+                BuildConfig.API_BASE_URL
+                    .removeSuffix("/api/v1/")
+                    .removeSuffix("/api/v1"),
         )
 
     private fun baseOkHttpBuilder(): OkHttpClient.Builder {
-        val loggingLevel = if (BuildConfig.DEBUG) {
-            HttpLoggingInterceptor.Level.BASIC
-        } else {
-            HttpLoggingInterceptor.Level.NONE
-        }
+        val loggingLevel =
+            if (BuildConfig.DEBUG) {
+                HttpLoggingInterceptor.Level.BASIC
+            } else {
+                HttpLoggingInterceptor.Level.NONE
+            }
         return OkHttpClient.Builder()
             .retryOnConnectionFailure(true)
             .addNetworkInterceptor(

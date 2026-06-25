@@ -48,90 +48,101 @@ class AuthSessionManagerTest {
     }
 
     @Test
-    fun handleCallbackStoresTokenPairWhenStateMatches() = runTest {
-        val store = InMemoryTokenStore()
-        val manager = newManager(store)
-        val state = extractState(manager.buildSignInUrl(AuthProvider.GOOGLE))
+    fun handleCallbackStoresTokenPairWhenStateMatches() =
+        runTest {
+            val store = InMemoryTokenStore()
+            val manager = newManager(store)
+            val state = extractState(manager.buildSignInUrl(AuthProvider.GOOGLE))
 
-        val result = manager.handleCallback(
-            "laughtrack://auth/callback?provider=google&state=$state" +
-                "&accessToken=access-jwt&refreshToken=refresh-token&expiresIn=900",
-        )
+            val result =
+                manager.handleCallback(
+                    "laughtrack://auth/callback?provider=google&state=$state" +
+                        "&accessToken=access-jwt&refreshToken=refresh-token&expiresIn=900",
+                )
 
-        assertTrue(result is AuthCallbackResult.Authenticated)
-        assertEquals(
-            SessionTokens(
-                accessToken = "access-jwt",
-                refreshToken = "refresh-token",
-                expiresAtEpochSeconds = 1_700_000_900,
-            ),
-            store.read(),
-        )
-    }
-
-    @Test
-    fun handleCallbackRejectsMismatchedStateWithoutStoringTokens() = runTest {
-        val store = InMemoryTokenStore()
-        val manager = newManager(store)
-        manager.buildSignInUrl(AuthProvider.GOOGLE)
-
-        val result = manager.handleCallback(
-            "laughtrack://auth/callback?provider=google&state=attacker-chosen" +
-                "&accessToken=injected&refreshToken=injected&expiresIn=900",
-        )
-
-        assertEquals(AuthCallbackResult.Error("state_mismatch"), result)
-        assertEquals(null, store.read())
-    }
+            assertTrue(result is AuthCallbackResult.Authenticated)
+            assertEquals(
+                SessionTokens(
+                    accessToken = "access-jwt",
+                    refreshToken = "refresh-token",
+                    expiresAtEpochSeconds = 1_700_000_900,
+                ),
+                store.read(),
+            )
+        }
 
     @Test
-    fun handleCallbackRejectsCallbackWithNoStateParam() = runTest {
-        val store = InMemoryTokenStore()
-        val manager = newManager(store)
-        manager.buildSignInUrl(AuthProvider.GOOGLE)
+    fun handleCallbackRejectsMismatchedStateWithoutStoringTokens() =
+        runTest {
+            val store = InMemoryTokenStore()
+            val manager = newManager(store)
+            manager.buildSignInUrl(AuthProvider.GOOGLE)
 
-        val result = manager.handleCallback(
-            "laughtrack://auth/callback?provider=google" +
-                "&accessToken=injected&refreshToken=injected&expiresIn=900",
-        )
+            val result =
+                manager.handleCallback(
+                    "laughtrack://auth/callback?provider=google&state=attacker-chosen" +
+                        "&accessToken=injected&refreshToken=injected&expiresIn=900",
+                )
 
-        assertEquals(AuthCallbackResult.Error("state_mismatch"), result)
-        assertEquals(null, store.read())
-    }
-
-    @Test
-    fun handleCallbackRejectsTokensWhenNoSignInWasInitiated() = runTest {
-        val store = InMemoryTokenStore()
-        val manager = newManager(store)
-
-        // No buildSignInUrl() first -> no pending nonce -> a hostile deep link
-        // invoked directly is rejected.
-        val result = manager.handleCallback(
-            "laughtrack://auth/callback?provider=google&state=anything" +
-                "&accessToken=injected&refreshToken=injected&expiresIn=900",
-        )
-
-        assertEquals(AuthCallbackResult.Error("state_mismatch"), result)
-        assertEquals(null, store.read())
-    }
+            assertEquals(AuthCallbackResult.Error("state_mismatch"), result)
+            assertEquals(null, store.read())
+        }
 
     @Test
-    fun handleCallbackReturnsErrorWithoutStoringTokens() = runTest {
-        val store = InMemoryTokenStore()
-        val manager = AuthSessionManager(
-            tokenStore = store,
-            authApi = UnsupportedAuthApi,
-            websiteBaseUrl = "https://www.laugh-track.com",
-            clock = clock,
-        )
+    fun handleCallbackRejectsCallbackWithNoStateParam() =
+        runTest {
+            val store = InMemoryTokenStore()
+            val manager = newManager(store)
+            manager.buildSignInUrl(AuthProvider.GOOGLE)
 
-        val result = manager.handleCallback(
-            "laughtrack://auth/callback?provider=apple&error=OAuthCallback",
-        )
+            val result =
+                manager.handleCallback(
+                    "laughtrack://auth/callback?provider=google" +
+                        "&accessToken=injected&refreshToken=injected&expiresIn=900",
+                )
 
-        assertEquals(AuthCallbackResult.Error("OAuthCallback"), result)
-        assertEquals(null, store.read())
-    }
+            assertEquals(AuthCallbackResult.Error("state_mismatch"), result)
+            assertEquals(null, store.read())
+        }
+
+    @Test
+    fun handleCallbackRejectsTokensWhenNoSignInWasInitiated() =
+        runTest {
+            val store = InMemoryTokenStore()
+            val manager = newManager(store)
+
+            // No buildSignInUrl() first -> no pending nonce -> a hostile deep link
+            // invoked directly is rejected.
+            val result =
+                manager.handleCallback(
+                    "laughtrack://auth/callback?provider=google&state=anything" +
+                        "&accessToken=injected&refreshToken=injected&expiresIn=900",
+                )
+
+            assertEquals(AuthCallbackResult.Error("state_mismatch"), result)
+            assertEquals(null, store.read())
+        }
+
+    @Test
+    fun handleCallbackReturnsErrorWithoutStoringTokens() =
+        runTest {
+            val store = InMemoryTokenStore()
+            val manager =
+                AuthSessionManager(
+                    tokenStore = store,
+                    authApi = UnsupportedAuthApi,
+                    websiteBaseUrl = "https://www.laugh-track.com",
+                    clock = clock,
+                )
+
+            val result =
+                manager.handleCallback(
+                    "laughtrack://auth/callback?provider=apple&error=OAuthCallback",
+                )
+
+            assertEquals(AuthCallbackResult.Error("OAuthCallback"), result)
+            assertEquals(null, store.read())
+        }
 
     private fun newManager(store: TokenStore = InMemoryTokenStore()): AuthSessionManager =
         AuthSessionManager(
@@ -146,19 +157,24 @@ class AuthSessionManagerTest {
         URLDecoder.decode(signInUrl.substringAfter("callbackUrl="), StandardCharsets.UTF_8.name())
 
     /** Pull the per-flow `state` nonce out of a built sign-in URL. */
-    private fun extractState(signInUrl: String): String =
-        decodeCallbackUrl(signInUrl).substringAfter("state=")
+    private fun extractState(signInUrl: String): String = decodeCallbackUrl(signInUrl).substringAfter("state=")
 
     private object UnsupportedAuthApi : AuthApi {
         override suspend fun deleteMe(): Response<AccountDeletionResponse> = unsupported()
+
         override suspend fun exchangeToken(): Response<TokenResponse> = unsupported()
+
         override suspend fun getMe(): Response<MeResponse> = unsupported()
+
         override suspend fun getMeNotifications(): Response<NotificationListResponse> = unsupported()
+
         override suspend fun markMeNotificationsSeen(): Response<NotificationsSeenResponse> = unsupported()
-        override suspend fun refreshToken(
-            refreshTokenRequest: RefreshTokenRequest,
-        ): Response<TokenResponse> = unsupported()
+
+        override suspend fun refreshToken(refreshTokenRequest: RefreshTokenRequest): Response<TokenResponse> =
+            unsupported()
+
         override suspend fun signout(): Response<SignoutResponse> = unsupported()
+
         override suspend fun updateMe(meUpdateRequest: MeUpdateRequest): Response<MeUpdateResponse> = unsupported()
 
         private fun unsupported(): Nothing = error("not used in this test")

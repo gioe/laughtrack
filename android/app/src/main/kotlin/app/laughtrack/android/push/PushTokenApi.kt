@@ -15,12 +15,16 @@ import retrofit2.http.POST
  */
 interface PushTokenApi {
     @POST("me/push-tokens")
-    suspend fun register(@Body body: PushTokenRequest): Response<Unit>
+    suspend fun register(
+        @Body body: PushTokenRequest,
+    ): Response<Unit>
 
     // DELETE carries a JSON body (the token to deactivate); @DELETE forbids @Body,
     // so use @HTTP with hasBody=true. The web route reads the token from the body.
     @HTTP(method = "DELETE", path = "me/push-tokens", hasBody = true)
-    suspend fun deactivate(@Body body: PushTokenRequest): Response<Unit>
+    suspend fun deactivate(
+        @Body body: PushTokenRequest,
+    ): Response<Unit>
 }
 
 @Serializable

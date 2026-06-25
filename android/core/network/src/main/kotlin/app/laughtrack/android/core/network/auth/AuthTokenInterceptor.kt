@@ -11,8 +11,9 @@ class AuthTokenInterceptor(
 ) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val tokens = runBlocking { tokenStore.read() }
-        val requestBuilder = chain.request().newBuilder()
-            .header("X-Timezone", timezoneProvider())
+        val requestBuilder =
+            chain.request().newBuilder()
+                .header("X-Timezone", timezoneProvider())
 
         if (tokens?.accessToken?.isNotBlank() == true) {
             requestBuilder.header("Authorization", "Bearer ${tokens.accessToken}")
@@ -21,4 +22,3 @@ class AuthTokenInterceptor(
         return chain.proceed(requestBuilder.build())
     }
 }
-

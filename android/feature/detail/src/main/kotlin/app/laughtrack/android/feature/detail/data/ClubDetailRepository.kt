@@ -10,26 +10,30 @@ import javax.inject.Inject
  * configured [ApiClient] and builds its own generated service from it, matching
  * the rest of the detail repositories.
  */
-class ClubDetailRepository @Inject constructor(
-    apiClient: ApiClient,
-) {
-    private val clubsApi: ClubsApi = apiClient.createService(ClubsApi::class.java)
+class ClubDetailRepository
+    @Inject
+    constructor(
+        apiClient: ApiClient,
+    ) {
+        private val clubsApi: ClubsApi = apiClient.createService(ClubsApi::class.java)
 
-    suspend fun getClub(id: Int): ClubDetailUi {
-        val clubResponse = clubsApi.getClub(id)
-        val club = clubResponse.body()?.data
-            ?: error("Club unavailable (HTTP ${clubResponse.code()})")
-        val shows = runCatching {
-            clubsApi.getClubShows(
-                id = id,
-                page = 0,
-                size = CLUB_SHOWS_LIMIT,
-            ).body()?.data.orEmpty()
-        }.getOrDefault(emptyList())
-        return ClubDetailUi(detail = club, upcomingShows = shows)
-    }
+        suspend fun getClub(id: Int): ClubDetailUi {
+            val clubResponse = clubsApi.getClub(id)
+            val club =
+                clubResponse.body()?.data
+                    ?: error("Club unavailable (HTTP ${clubResponse.code()})")
+            val shows =
+                runCatching {
+                    clubsApi.getClubShows(
+                        id = id,
+                        page = 0,
+                        size = CLUB_SHOWS_LIMIT,
+                    ).body()?.data.orEmpty()
+                }.getOrDefault(emptyList())
+            return ClubDetailUi(detail = club, upcomingShows = shows)
+        }
 
-    private companion object {
-        const val CLUB_SHOWS_LIMIT = 20
+        private companion object {
+            const val CLUB_SHOWS_LIMIT = 20
+        }
     }
-}

@@ -15,11 +15,12 @@ class NavStackDedupTest {
 
     @Test
     fun reopening_an_on_stack_entity_pops_back_to_it() {
-        val stack = listOf<AppRoute>(
-            AppRoute.ShowDetail(1),
-            AppRoute.ComedianDetail(2),
-            AppRoute.ClubDetail(3),
-        )
+        val stack =
+            listOf<AppRoute>(
+                AppRoute.ShowDetail(1),
+                AppRoute.ComedianDetail(2),
+                AppRoute.ClubDetail(3),
+            )
         // Reopening ShowDetail(1) truncates back to it rather than re-pushing.
         assertEquals(
             listOf(AppRoute.ShowDetail(1)),
@@ -29,11 +30,12 @@ class NavStackDedupTest {
 
     @Test
     fun reopening_a_middle_entry_drops_everything_above_it() {
-        val stack = listOf<AppRoute>(
-            AppRoute.ShowDetail(1),
-            AppRoute.ComedianDetail(2),
-            AppRoute.ClubDetail(3),
-        )
+        val stack =
+            listOf<AppRoute>(
+                AppRoute.ShowDetail(1),
+                AppRoute.ComedianDetail(2),
+                AppRoute.ClubDetail(3),
+            )
         assertEquals(
             listOf(AppRoute.ShowDetail(1), AppRoute.ComedianDetail(2)),
             NavStackDedup.navigate(stack, AppRoute.ComedianDetail(2)),

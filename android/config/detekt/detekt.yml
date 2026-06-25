@@ -7,7 +7,37 @@ complexity:
   LongMethod:
     active: true
     threshold: 80
+    # Declarative @Composable UI builders are legitimately long (one call per
+    # rendered element); splitting purely to satisfy a line budget hurts
+    # readability. Length is still enforced on non-Compose logic.
+    ignoreAnnotated: ['Composable']
+  LongParameterList:
+    # Compose hoists all state/callbacks through the parameter list, so screen
+    # and section composables routinely exceed the default budget. Enforced
+    # everywhere else.
+    ignoreAnnotated: ['Composable']
   TooManyFunctions:
+    active: false
+  CyclomaticComplexMethod:
+    # The offline favorite-replay worker (doWork) is a small state machine whose
+    # branch count sits right at the default 15; +3 headroom keeps the rule
+    # meaningful without forcing an artificial extraction.
+    threshold: 18
+  ComplexCondition:
+    # One push-prompt gate ANDs four short-circuiting predicates (the last has a
+    # side effect, so it can't be hoisted into named vals without changing
+    # evaluation order). Allow up to five operands.
+    threshold: 5
+
+naming:
+  FunctionNaming:
+    # @Composable functions are PascalCase by Jetpack Compose convention (mirrors
+    # the ktlint function-naming exemption in .editorconfig).
+    ignoreAnnotated: ['Composable']
+  MatchingDeclarationName:
+    # Theme files (Color.kt / Type.kt) intentionally group multiple tokens and do
+    # not match a single top-level declaration name — same rationale as the
+    # disabled ktlint filename rule.
     active: false
 
 style:
@@ -16,7 +46,18 @@ style:
     active: false
   ForbiddenComment:
     active: false
+  ReturnCount:
+    # Guard-clause early returns are idiomatic in the URL/intent routers and
+    # favorite-toggle helpers here; the default max of 2 is too strict for that
+    # style. Six keeps a ceiling without penalizing readable guard clauses.
+    max: 6
+  UnusedPrivateMember:
+    # @Preview composables are referenced only by the IDE/preview tooling, so
+    # detekt sees them as unused; @Composable likewise covers tooling-invoked UI.
+    ignoreAnnotated: ['Preview', 'Composable']
 
-formatting:
-  # ktlint plugin owns formatting; avoid duplicate findings here.
-  active: false
+# NOTE: no `formatting:` ruleset block here. Those rules ship in the separate
+# detekt-formatting plugin, which we deliberately do NOT apply (ktlint owns
+# formatting). With buildUponDefaultConfig=true, detekt validates config keys
+# against the loaded rulesets and fails with InvalidConfig on a `formatting`
+# section when the plugin is absent — so the ruleset simply must not be named.

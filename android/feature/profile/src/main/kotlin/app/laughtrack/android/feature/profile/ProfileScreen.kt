@@ -52,9 +52,7 @@ import app.laughtrack.android.core.data.profile.ProfilePreferences
 import app.laughtrack.android.core.ui.components.RemoteImage
 
 @Composable
-fun ProfileScreen(
-    viewModel: ProfileViewModel = hiltViewModel(),
-) {
+fun ProfileScreen(viewModel: ProfileViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
 
@@ -84,10 +82,11 @@ fun ProfileScreen(
     }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(24.dp),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp),
     ) {
         Text("Profile", style = MaterialTheme.typography.headlineLarge)
@@ -212,11 +211,15 @@ private fun AccountCard(
 }
 
 @Composable
-private fun Avatar(url: String?, signedIn: Boolean) {
+private fun Avatar(
+    url: String?,
+    signedIn: Boolean,
+) {
     Box(
-        modifier = Modifier
-            .size(56.dp)
-            .clip(CircleShape),
+        modifier =
+            Modifier
+                .size(56.dp)
+                .clip(CircleShape),
         contentAlignment = Alignment.Center,
     ) {
         if (url != null) {
@@ -230,11 +233,12 @@ private fun Avatar(url: String?, signedIn: Boolean) {
                 imageVector = Icons.Filled.Person,
                 contentDescription = null,
                 modifier = Modifier.size(40.dp),
-                tint = if (signedIn) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                },
+                tint =
+                    if (signedIn) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
             )
         }
     }
@@ -253,11 +257,12 @@ private fun LocationSection(
 ) {
     SettingsSection(title = "Location") {
         Text(
-            text = if (preferences.zipCode == null) {
-                "No profile location is saved. Enter a ZIP code to power Near Me."
-            } else {
-                "Near Me is using ZIP ${preferences.zipCode} from your profile."
-            },
+            text =
+                if (preferences.zipCode == null) {
+                    "No profile location is saved. Enter a ZIP code to power Near Me."
+                } else {
+                    "Near Me is using ZIP ${preferences.zipCode} from your profile."
+                },
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

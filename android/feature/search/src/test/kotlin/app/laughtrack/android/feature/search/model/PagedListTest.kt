@@ -21,9 +21,10 @@ class PagedListTest {
 
     @Test
     fun later_pages_append() {
-        val state = PagedList<String>()
-            .appendPage(1, listOf("a", "b"), total = 5)
-            .appendPage(2, listOf("c", "d"), total = 5)
+        val state =
+            PagedList<String>()
+                .appendPage(1, listOf("a", "b"), total = 5)
+                .appendPage(2, listOf("c", "d"), total = 5)
         assertEquals(listOf("a", "b", "c", "d"), state.items)
         assertEquals(2, state.page)
         assertTrue(state.hasMore)
@@ -37,9 +38,10 @@ class PagedListTest {
 
     @Test
     fun reloading_page_one_resets_accumulated_pages() {
-        val loaded = PagedList<String>()
-            .appendPage(1, listOf("a", "b"), total = 5)
-            .appendPage(2, listOf("c"), total = 5)
+        val loaded =
+            PagedList<String>()
+                .appendPage(1, listOf("a", "b"), total = 5)
+                .appendPage(2, listOf("c"), total = 5)
         // A query/filter change re-fetches page 1, which must replace, not append.
         val reset = loaded.appendPage(1, listOf("x"), total = 1)
         assertEquals(listOf("x"), reset.items)

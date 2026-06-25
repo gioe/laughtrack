@@ -46,10 +46,11 @@ fun LibraryScreen(
     }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(24.dp),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text("Favorites", style = MaterialTheme.typography.headlineLarge)
@@ -173,7 +174,10 @@ private fun GuestLibraryPreview(onOpenProfile: () -> Unit) {
 }
 
 @Composable
-private fun FavoriteSection(title: String, content: @Composable ColumnScope.() -> Unit) {
+private fun FavoriteSection(
+    title: String,
+    content: @Composable ColumnScope.() -> Unit,
+) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(title, style = MaterialTheme.typography.titleLarge)
         Card(modifier = Modifier.fillMaxWidth()) {
@@ -232,7 +236,11 @@ private fun ShowRow(show: Show) {
 }
 
 @Composable
-private fun ClubRow(club: FavoriteClubItem, isFavorite: Boolean, onToggle: () -> Unit) {
+private fun ClubRow(
+    club: FavoriteClubItem,
+    isFavorite: Boolean,
+    onToggle: () -> Unit,
+) {
     FavoriteRow(
         title = club.name,
         subtitle = "Club",
@@ -242,7 +250,11 @@ private fun ClubRow(club: FavoriteClubItem, isFavorite: Boolean, onToggle: () ->
 }
 
 @Composable
-private fun PodcastRow(podcast: FavoritePodcastItem, isFavorite: Boolean, onToggle: () -> Unit) {
+private fun PodcastRow(
+    podcast: FavoritePodcastItem,
+    isFavorite: Boolean,
+    onToggle: () -> Unit,
+) {
     FavoriteRow(
         title = podcast.title,
         subtitle = "${podcast.episodeCount} episodes",
@@ -260,15 +272,14 @@ private fun EmptyText(text: String) {
     )
 }
 
-private fun List<Show>.groupByFavoriteComedian(
-    comedians: List<ComedianSearchItem>,
-): Map<String, List<Show>> {
+private fun List<Show>.groupByFavoriteComedian(comedians: List<ComedianSearchItem>): Map<String, List<Show>> {
     val namesByUuid = comedians.associate { it.uuid to it.name }
     val groups = linkedMapOf<String, MutableList<Show>>()
     forEach { show ->
-        val matchingName = show.lineup
-            ?.firstNotNullOfOrNull { lineup -> namesByUuid[lineup.uuid] }
-            ?: "Favorite comedians"
+        val matchingName =
+            show.lineup
+                ?.firstNotNullOfOrNull { lineup -> namesByUuid[lineup.uuid] }
+                ?: "Favorite comedians"
         groups.getOrPut(matchingName) { mutableListOf() }.add(show)
     }
     return groups

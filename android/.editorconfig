@@ -15,6 +15,10 @@ max_line_length = 120
 # Compose theme convention groups tokens in Color.kt / Type.kt, so the file does
 # not match a single top-level declaration name — disable ktlint's filename rule.
 ktlint_standard_filename = disabled
+# @Composable functions are PascalCase by Jetpack Compose convention; ktlint 1.x
+# no longer exempts them automatically, so opt them out of the function-naming
+# rule rather than renaming (which would break the Compose naming contract).
+ktlint_function_naming_ignore_when_annotated_with = Composable
 
 [*.{yml,yaml,toml,json}]
 indent_size = 2

@@ -100,7 +100,11 @@ private fun NotificationList(
 }
 
 @Composable
-private fun NotificationRow(item: NotificationItem, now: ZonedDateTime, onClick: () -> Unit) {
+private fun NotificationRow(
+    item: NotificationItem,
+    now: ZonedDateTime,
+    onClick: () -> Unit,
+) {
     Row(
         Modifier
             .fillMaxWidth()
@@ -138,7 +142,11 @@ private fun UnreadDot(isUnread: Boolean) {
 }
 
 @Composable
-private fun CenteredMessage(message: String, onRetry: (() -> Unit)?, modifier: Modifier) {
+private fun CenteredMessage(
+    message: String,
+    onRetry: (() -> Unit)?,
+    modifier: Modifier,
+) {
     Column(
         modifier.fillMaxSize().padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),

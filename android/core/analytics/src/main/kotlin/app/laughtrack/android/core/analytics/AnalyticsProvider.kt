@@ -10,7 +10,10 @@ interface AnalyticsProvider {
 
     fun setUserId(userId: String?)
 
-    fun setUserProperty(name: String, value: String?)
+    fun setUserProperty(
+        name: String,
+        value: String?,
+    )
 
     /** Clears the analytics identity (sign-out). */
     fun reset()

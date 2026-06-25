@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Tab
@@ -21,7 +22,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -79,17 +79,18 @@ fun SearchScreen(
                 results.error != null && results.items.isEmpty() ->
                     CenteredMessage(results.error, onRetry = viewModel::retry)
                 results.items.isEmpty() -> CenteredMessage("No results yet — try a search.")
-                else -> ResultsList(
-                    results = results.items,
-                    isLoadingMore = results.isLoading,
-                    hasMore = results.hasMore,
-                    loadMoreError = results.error,
-                    onLoadMore = viewModel::loadMore,
-                    onOpen = { route ->
-                        viewModel.logResultTapped(route)
-                        onOpenEntity(route)
-                    },
-                )
+                else ->
+                    ResultsList(
+                        results = results.items,
+                        isLoadingMore = results.isLoading,
+                        hasMore = results.hasMore,
+                        loadMoreError = results.error,
+                        onLoadMore = viewModel::loadMore,
+                        onOpen = { route ->
+                            viewModel.logResultTapped(route)
+                            onOpenEntity(route)
+                        },
+                    )
             }
         }
     }
@@ -147,31 +148,36 @@ private fun ResultsList(
     LazyColumn(Modifier.fillMaxSize()) {
         items(results) { result -> ResultRow(result, onOpen) }
         when {
-            loadMoreError != null -> item {
-                Column(
-                    Modifier.fillMaxWidth().padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Text("Couldn't load more.", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    OutlinedButton(onClick = onLoadMore, enabled = !isLoadingMore) { Text("Retry") }
+            loadMoreError != null ->
+                item {
+                    Column(
+                        Modifier.fillMaxWidth().padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text("Couldn't load more.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        OutlinedButton(onClick = onLoadMore, enabled = !isLoadingMore) { Text("Retry") }
+                    }
                 }
-            }
-            hasMore -> item {
-                OutlinedButton(
-                    onClick = onLoadMore,
-                    enabled = !isLoadingMore,
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
-                ) {
-                    Text(if (isLoadingMore) "Loading…" else "Load more")
+            hasMore ->
+                item {
+                    OutlinedButton(
+                        onClick = onLoadMore,
+                        enabled = !isLoadingMore,
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    ) {
+                        Text(if (isLoadingMore) "Loading…" else "Load more")
+                    }
                 }
-            }
         }
     }
 }
 
 @Composable
-private fun ResultRow(result: SearchResult, onOpen: (AppRoute) -> Unit) {
+private fun ResultRow(
+    result: SearchResult,
+    onOpen: (AppRoute) -> Unit,
+) {
     Row(
         Modifier
             .fillMaxWidth()
@@ -216,7 +222,10 @@ private fun LoadingList() {
 }
 
 @Composable
-private fun CenteredMessage(message: String, onRetry: (() -> Unit)? = null) {
+private fun CenteredMessage(
+    message: String,
+    onRetry: (() -> Unit)? = null,
+) {
     Column(
         Modifier.fillMaxSize().padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),

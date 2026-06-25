@@ -13,25 +13,28 @@ import javax.inject.Named
  * NetworkModule contract prescribes — this avoids re-binding [ShowsApi], which
  * `:feature:search` already provides into the same Hilt graph.
  */
-class ShowDetailRepository @Inject constructor(
-    apiClient: ApiClient,
-    @Named("apiBaseUrl") private val apiBaseUrl: String,
-) {
-    private val showsApi: ShowsApi = apiClient.createService(ShowsApi::class.java)
+class ShowDetailRepository
+    @Inject
+    constructor(
+        apiClient: ApiClient,
+        @Named("apiBaseUrl") private val apiBaseUrl: String,
+    ) {
+        private val showsApi: ShowsApi = apiClient.createService(ShowsApi::class.java)
 
-    suspend fun getShow(id: Int): ShowDetailUi {
-        val response = showsApi.getShow(id)
-        val body = response.body() ?: error("Show unavailable (HTTP ${response.code()})")
-        val detail = body.data
-        return ShowDetailUi(
-            detail = detail,
-            relatedShows = body.relatedShows,
-            ticketOutboundUrl = buildTicketOutboundUrl(
-                apiBaseUrl = apiBaseUrl,
-                showId = detail.id,
-                clubId = detail.club.id,
-                destinationUrl = detail.cta.url,
-            ),
-        )
+        suspend fun getShow(id: Int): ShowDetailUi {
+            val response = showsApi.getShow(id)
+            val body = response.body() ?: error("Show unavailable (HTTP ${response.code()})")
+            val detail = body.data
+            return ShowDetailUi(
+                detail = detail,
+                relatedShows = body.relatedShows,
+                ticketOutboundUrl =
+                    buildTicketOutboundUrl(
+                        apiBaseUrl = apiBaseUrl,
+                        showId = detail.id,
+                        clubId = detail.club.id,
+                        destinationUrl = detail.cta.url,
+                    ),
+            )
+        }
     }
-}

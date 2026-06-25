@@ -9,7 +9,7 @@ import java.time.format.DateTimeParseException
 import java.time.format.FormatStyle
 import java.util.Locale
 
-/**
+/*
  * Pure formatting + URL helpers for the detail screens. Kept free of Android/Compose
  * types so they unit-test on the JVM (mirrors the iOS detail presentation helpers).
  */
@@ -32,14 +32,15 @@ fun buildTicketOutboundUrl(
     val destination = destinationUrl?.trim().orEmpty()
     if (destination.isEmpty()) return null
     val base = apiBaseUrl.trimEnd('/')
-    val params = listOf(
-        "showId" to showId.toString(),
-        "clubId" to clubId.toString(),
-        "surface" to TICKET_SOURCE_SURFACE,
-        "url" to destination,
-    ).joinToString("&") { (key, value) ->
-        "$key=${URLEncoder.encode(value, "UTF-8")}"
-    }
+    val params =
+        listOf(
+            "showId" to showId.toString(),
+            "clubId" to clubId.toString(),
+            "surface" to TICKET_SOURCE_SURFACE,
+            "url" to destination,
+        ).joinToString("&") { (key, value) ->
+            "$key=${URLEncoder.encode(value, "UTF-8")}"
+        }
     return "$base/tickets/out?$params"
 }
 
@@ -61,9 +62,10 @@ fun parseShowDateTime(raw: String): ZonedDateTime? {
 /** Human-readable date/time for a show, e.g. "Fri, Jun 27, 8:00 PM". Falls back to the raw string. */
 fun formatShowDateTime(raw: String): String {
     val parsed = parseShowDateTime(raw) ?: return raw
-    val formatter = DateTimeFormatter
-        .ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)
-        .withLocale(Locale.getDefault())
+    val formatter =
+        DateTimeFormatter
+            .ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)
+            .withLocale(Locale.getDefault())
     return parsed.format(formatter)
 }
 
@@ -71,7 +73,10 @@ fun formatShowDateTime(raw: String): String {
  * A short countdown label from [now] to the show at [raw], e.g. "In 3 days",
  * "In 5 hours", "Starting soon", or "Past show". Null when the date can't be parsed.
  */
-fun formatCountdown(raw: String, now: ZonedDateTime): String? {
+fun formatCountdown(
+    raw: String,
+    now: ZonedDateTime,
+): String? {
     val target = parseShowDateTime(raw) ?: return null
     val until = Duration.between(now, target)
     val days = until.toDays()
@@ -108,4 +113,7 @@ fun formatReleaseDate(raw: String?): String? {
         .getOrDefault(trimmed)
 }
 
-private fun plural(count: Long, unit: String): String = if (count == 1L) unit else "${unit}s"
+private fun plural(
+    count: Long,
+    unit: String,
+): String = if (count == 1L) unit else "${unit}s"

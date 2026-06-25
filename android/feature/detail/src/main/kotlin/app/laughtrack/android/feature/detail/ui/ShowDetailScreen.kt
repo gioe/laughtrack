@@ -133,7 +133,10 @@ private fun CountdownBadge(text: String) {
 }
 
 @Composable
-private fun ShowVenueSection(ui: ShowDetailUi, onOpenEntity: (AppRoute) -> Unit) {
+private fun ShowVenueSection(
+    ui: ShowDetailUi,
+    onOpenEntity: (AppRoute) -> Unit,
+) {
     val club = ui.detail.club
     Column(
         Modifier.fillMaxWidth().padding(horizontal = 16.dp),
@@ -181,7 +184,10 @@ private fun ShowActionsSection(ui: ShowDetailUi) {
 }
 
 @Composable
-private fun ShowLineupSection(lineup: List<ComedianLineup>, onOpenEntity: (AppRoute) -> Unit) {
+private fun ShowLineupSection(
+    lineup: List<ComedianLineup>,
+    onOpenEntity: (AppRoute) -> Unit,
+) {
     if (lineup.isEmpty()) return
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         SectionHeader("Lineup", Modifier.padding(horizontal = 16.dp))
@@ -202,7 +208,10 @@ private fun ShowLineupSection(lineup: List<ComedianLineup>, onOpenEntity: (AppRo
 }
 
 @Composable
-private fun RelatedShowsSection(shows: List<Show>, onOpenEntity: (AppRoute) -> Unit) {
+private fun RelatedShowsSection(
+    shows: List<Show>,
+    onOpenEntity: (AppRoute) -> Unit,
+) {
     if (shows.isEmpty()) return
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         SectionHeader("Can't make it?", Modifier.padding(horizontal = 16.dp))

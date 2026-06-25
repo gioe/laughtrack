@@ -16,6 +16,5 @@ import javax.inject.Singleton
 object PushModule {
     @Provides
     @Singleton
-    fun providePushTokenApi(apiClient: ApiClient): PushTokenApi =
-        apiClient.createService(PushTokenApi::class.java)
+    fun providePushTokenApi(apiClient: ApiClient): PushTokenApi = apiClient.createService(PushTokenApi::class.java)
 }

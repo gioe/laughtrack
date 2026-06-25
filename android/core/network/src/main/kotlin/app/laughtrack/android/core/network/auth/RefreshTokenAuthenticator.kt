@@ -23,7 +23,10 @@ class RefreshTokenAuthenticator(
     // and let losers of the race retry with the token the winner already stored.
     private val refreshMutex = Mutex()
 
-    override fun authenticate(route: Route?, response: Response): Request? {
+    override fun authenticate(
+        route: Route?,
+        response: Response,
+    ): Request? {
         if (responseCount(response) >= MAX_AUTH_ATTEMPTS) return null
 
         return runBlocking {
@@ -38,27 +41,32 @@ class RefreshTokenAuthenticator(
                     return@withLock retryWith(response, current.accessToken)
                 }
 
-                val tokenResponse = refreshApi.refreshToken(
-                    RefreshTokenRequest(refreshToken = current.refreshToken),
-                )
+                val tokenResponse =
+                    refreshApi.refreshToken(
+                        RefreshTokenRequest(refreshToken = current.refreshToken),
+                    )
                 if (!tokenResponse.isSuccessful) {
                     tokenStore.clear()
                     return@withLock null
                 }
 
                 val refreshed = tokenResponse.body() ?: return@withLock null
-                val newTokens = SessionTokens(
-                    accessToken = refreshed.accessToken,
-                    refreshToken = refreshed.refreshToken,
-                    expiresAtEpochSeconds = clock.instant().epochSecond + refreshed.expiresIn,
-                )
+                val newTokens =
+                    SessionTokens(
+                        accessToken = refreshed.accessToken,
+                        refreshToken = refreshed.refreshToken,
+                        expiresAtEpochSeconds = clock.instant().epochSecond + refreshed.expiresIn,
+                    )
                 tokenStore.save(newTokens)
                 retryWith(response, newTokens.accessToken)
             }
         }
     }
 
-    private fun retryWith(response: Response, accessToken: String): Request =
+    private fun retryWith(
+        response: Response,
+        accessToken: String,
+    ): Request =
         response.request.newBuilder()
             .header("Authorization", "Bearer $accessToken")
             .build()
@@ -77,4 +85,3 @@ class RefreshTokenAuthenticator(
         const val MAX_AUTH_ATTEMPTS = 2
     }
 }
-

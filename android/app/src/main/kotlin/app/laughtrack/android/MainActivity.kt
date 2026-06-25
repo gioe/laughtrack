@@ -115,10 +115,11 @@ class MainActivity : ComponentActivity() {
         intent.data?.toString()?.let { LaughTrackDeepLink.route(it)?.let { route -> return route } }
         // Push (FCM data message): consult only the keys we route on, not arbitrary
         // launcher-supplied extras (the activity is exported with a VIEW filter).
-        val data = mapOf(
-            "url" to intent.getStringExtra("url"),
-            "showId" to intent.getStringExtra("showId"),
-        )
+        val data =
+            mapOf(
+                "url" to intent.getStringExtra("url"),
+                "showId" to intent.getStringExtra("showId"),
+            )
         return LaughTrackDeepLink.routeFromPush(data)
     }
 
@@ -164,10 +165,11 @@ class MainActivity : ComponentActivity() {
 
     private fun maybeRequestNotificationPermission() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
-        val granted = ContextCompat.checkSelfPermission(
-            this,
-            Manifest.permission.POST_NOTIFICATIONS,
-        ) == PackageManager.PERMISSION_GRANTED
+        val granted =
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS,
+            ) == PackageManager.PERMISSION_GRANTED
         if (!granted) requestNotificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
     }
 }

@@ -25,13 +25,14 @@ object AnalyticsModule {
     @Singleton
     fun provideAnalyticsProviders(
         @ApplicationContext context: Context,
-    ): List<AnalyticsProvider> = buildList {
-        if (FirebaseApp.getApps(context).isNotEmpty()) {
-            add(FirebaseAnalyticsProvider(FirebaseAnalytics.getInstance(context)))
+    ): List<AnalyticsProvider> =
+        buildList {
+            if (FirebaseApp.getApps(context).isNotEmpty()) {
+                add(FirebaseAnalyticsProvider(FirebaseAnalytics.getInstance(context)))
+            }
+            val debuggable = (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
+            if (debuggable) {
+                add(ConsoleAnalyticsProvider())
+            }
         }
-        val debuggable = (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
-        if (debuggable) {
-            add(ConsoleAnalyticsProvider())
-        }
-    }
 }

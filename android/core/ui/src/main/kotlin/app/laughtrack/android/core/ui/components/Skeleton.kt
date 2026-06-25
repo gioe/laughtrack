@@ -26,7 +26,10 @@ import app.laughtrack.android.core.ui.theme.LaughTrackColors
  * is a convenience for text-line placeholders.
  */
 @Composable
-fun SkeletonBox(modifier: Modifier = Modifier, cornerRadius: Dp = 8.dp) {
+fun SkeletonBox(
+    modifier: Modifier = Modifier,
+    cornerRadius: Dp = 8.dp,
+) {
     val transition = rememberInfiniteTransition(label = "skeleton")
     val alpha by transition.animateFloat(
         initialValue = 0.35f,
@@ -46,6 +49,9 @@ fun SkeletonBox(modifier: Modifier = Modifier, cornerRadius: Dp = 8.dp) {
 }
 
 @Composable
-fun SkeletonLine(modifier: Modifier = Modifier, height: Dp = 14.dp) {
+fun SkeletonLine(
+    modifier: Modifier = Modifier,
+    height: Dp = 14.dp,
+) {
     SkeletonBox(modifier.fillMaxWidth().height(height), cornerRadius = height / 2)
 }

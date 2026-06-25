@@ -11,7 +11,6 @@ import com.google.firebase.analytics.FirebaseAnalytics
 class FirebaseAnalyticsProvider(
     private val firebaseAnalytics: FirebaseAnalytics,
 ) : AnalyticsProvider {
-
     override fun logEvent(event: AnalyticsEvent) {
         firebaseAnalytics.logEvent(event.name, event.params.toBundle())
     }
@@ -20,7 +19,10 @@ class FirebaseAnalyticsProvider(
         firebaseAnalytics.setUserId(userId)
     }
 
-    override fun setUserProperty(name: String, value: String?) {
+    override fun setUserProperty(
+        name: String,
+        value: String?,
+    ) {
         firebaseAnalytics.setUserProperty(name, value)
     }
 

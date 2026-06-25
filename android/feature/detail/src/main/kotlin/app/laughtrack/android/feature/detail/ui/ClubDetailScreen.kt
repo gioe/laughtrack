@@ -51,15 +51,17 @@ fun ClubDetailScreen(
     DetailScaffold(
         title = club?.name ?: "Venue",
         onBack = onBack,
-        onShare = club?.let { data ->
-            { context.shareLink(data.website, data.name) }
-        },
+        onShare =
+            club?.let { data ->
+                { context.shareLink(data.website, data.name) }
+            },
     ) { modifier ->
         when (state) {
-            is UiState.Failure -> DetailError(
-                onRetry = viewModel::retry,
-                modifier = modifier,
-            )
+            is UiState.Failure ->
+                DetailError(
+                    onRetry = viewModel::retry,
+                    modifier = modifier,
+                )
             is UiState.Success -> ClubDetailBody(ui!!, modifier, onOpenEntity)
             else -> DetailLoading(modifier)
         }
@@ -151,9 +153,10 @@ private fun ClubUpcomingShowsSection(
         shows.forEach { show ->
             ShowRow(
                 title = show.name ?: show.clubName ?: "Show",
-                subtitle = listOfNotNull(formatShowDateTime(show.date), show.room)
-                    .joinToString(" · ")
-                    .ifBlank { null },
+                subtitle =
+                    listOfNotNull(formatShowDateTime(show.date), show.room)
+                        .joinToString(" · ")
+                        .ifBlank { null },
                 imageUrl = show.imageUrl,
                 onClick = { onOpenEntity(AppRoute.ShowDetail(show.id)) },
             )
@@ -175,9 +178,10 @@ private fun ClubRelatedVenuesSection(
         venues.forEach { venue ->
             ShowRow(
                 title = venue.name,
-                subtitle = listOfNotNull(venue.city, venue.state)
-                    .joinToString(", ")
-                    .ifBlank { null },
+                subtitle =
+                    listOfNotNull(venue.city, venue.state)
+                        .joinToString(", ")
+                        .ifBlank { null },
                 imageUrl = venue.imageUrl,
                 onClick = { onOpenEntity(AppRoute.ClubDetail(venue.id)) },
             )

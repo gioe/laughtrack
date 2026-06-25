@@ -23,10 +23,11 @@ fun RemoteImage(
     contentScale: ContentScale = ContentScale.Crop,
 ) {
     SubcomposeAsyncImage(
-        model = ImageRequest.Builder(LocalContext.current)
-            .data(url)
-            .crossfade(true)
-            .build(),
+        model =
+            ImageRequest.Builder(LocalContext.current)
+                .data(url)
+                .crossfade(true)
+                .build(),
         contentDescription = contentDescription,
         contentScale = contentScale,
         modifier = modifier,

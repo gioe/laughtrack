@@ -5,4 +5,3 @@ data class SessionTokens(
     val refreshToken: String,
     val expiresAtEpochSeconds: Long,
 )
-

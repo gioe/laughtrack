@@ -12,181 +12,199 @@ import org.junit.Test
 
 class ProfileRepositoryTest {
     @Test
-    fun refreshSignedInProfile_hydratesAccountAndLocalPreferencesFromMe() = runTest {
-        val accountService = FakeProfileAccountService(
-            hasSession = true,
-            me = profile(emailShowNotifications = true, pushShowNotifications = true),
-        )
-        val localPreferences = FakeLocalPreferences()
-        val repository = ProfileRepository(
-            accountService = accountService,
-            settingsService = FakeProfileSettingsService(),
-            localPreferences = localPreferences,
-        )
+    fun refreshSignedInProfile_hydratesAccountAndLocalPreferencesFromMe() =
+        runTest {
+            val accountService =
+                FakeProfileAccountService(
+                    hasSession = true,
+                    me = profile(emailShowNotifications = true, pushShowNotifications = true),
+                )
+            val localPreferences = FakeLocalPreferences()
+            val repository =
+                ProfileRepository(
+                    accountService = accountService,
+                    settingsService = FakeProfileSettingsService(),
+                    localPreferences = localPreferences,
+                )
 
-        val result = repository.refreshSignedInProfile()
+            val result = repository.refreshSignedInProfile()
 
-        assertTrue(result is ProfileRefreshResult.SignedIn)
-        result as ProfileRefreshResult.SignedIn
-        assertEquals("Ada Lovelace", result.account.displayName)
-        assertEquals("ada@example.com", result.account.email)
-        assertEquals("https://example.com/ada.jpg", result.account.avatarUrl)
-        assertEquals(
-            ProfilePreferences(
-                zipCode = "94108",
-                nearbyDistanceMiles = 25,
-                emailShowNotifications = true,
-                pushShowNotifications = true,
-            ),
-            localPreferences.preferences.first(),
-        )
-    }
-
-    @Test
-    fun saveLocation_persistsNormalizedZipAndSyncsServer() = runTest {
-        val settingsService = FakeProfileSettingsService()
-        val localPreferences = FakeLocalPreferences()
-        val repository = ProfileRepository(
-            accountService = FakeProfileAccountService(hasSession = true),
-            settingsService = settingsService,
-            localPreferences = localPreferences,
-        )
-
-        val result = repository.saveLocation("94108-1234", 50)
-
-        assertEquals(ProfileMutationResult.Success, result)
-        assertEquals("94108", localPreferences.preferences.first().zipCode)
-        assertEquals(50, localPreferences.preferences.first().nearbyDistanceMiles)
-        assertEquals(ProfileLocationUpdate("94108", 50), settingsService.locationUpdates.single())
-    }
+            assertTrue(result is ProfileRefreshResult.SignedIn)
+            result as ProfileRefreshResult.SignedIn
+            assertEquals("Ada Lovelace", result.account.displayName)
+            assertEquals("ada@example.com", result.account.email)
+            assertEquals("https://example.com/ada.jpg", result.account.avatarUrl)
+            assertEquals(
+                ProfilePreferences(
+                    zipCode = "94108",
+                    nearbyDistanceMiles = 25,
+                    emailShowNotifications = true,
+                    pushShowNotifications = true,
+                ),
+                localPreferences.preferences.first(),
+            )
+        }
 
     @Test
-    fun saveLocation_rejectsInvalidZipWithoutPersistingOrSyncing() = runTest {
-        val settingsService = FakeProfileSettingsService()
-        val localPreferences = FakeLocalPreferences()
-        val repository = ProfileRepository(
-            accountService = FakeProfileAccountService(hasSession = true),
-            settingsService = settingsService,
-            localPreferences = localPreferences,
-        )
+    fun saveLocation_persistsNormalizedZipAndSyncsServer() =
+        runTest {
+            val settingsService = FakeProfileSettingsService()
+            val localPreferences = FakeLocalPreferences()
+            val repository =
+                ProfileRepository(
+                    accountService = FakeProfileAccountService(hasSession = true),
+                    settingsService = settingsService,
+                    localPreferences = localPreferences,
+                )
 
-        val result = repository.saveLocation("abc", 25)
+            val result = repository.saveLocation("94108-1234", 50)
 
-        assertEquals(ProfileMutationResult.InvalidZip, result)
-        assertEquals(ProfilePreferences(), localPreferences.preferences.first())
-        assertTrue(settingsService.locationUpdates.isEmpty())
-    }
-
-    @Test
-    fun setEmailNotifications_revertsLocalPreferenceWhenServerSyncFails() = runTest {
-        val settingsService = FakeProfileSettingsService(notificationUpdateSucceeds = false)
-        val localPreferences = FakeLocalPreferences(
-            ProfilePreferences(emailShowNotifications = false),
-        )
-        val repository = ProfileRepository(
-            accountService = FakeProfileAccountService(hasSession = true),
-            settingsService = settingsService,
-            localPreferences = localPreferences,
-        )
-
-        val result = repository.setEmailNotifications(true)
-
-        assertEquals(ProfileMutationResult.SyncFailed, result)
-        assertFalse(localPreferences.preferences.first().emailShowNotifications)
-        assertEquals(
-            ProfileNotificationUpdate(emailShowNotifications = true),
-            settingsService.notificationUpdates.single(),
-        )
-    }
+            assertEquals(ProfileMutationResult.Success, result)
+            assertEquals("94108", localPreferences.preferences.first().zipCode)
+            assertEquals(50, localPreferences.preferences.first().nearbyDistanceMiles)
+            assertEquals(ProfileLocationUpdate("94108", 50), settingsService.locationUpdates.single())
+        }
 
     @Test
-    fun signOut_clearsLocalAccountAndPreferencesEvenWhenServerRevocationFails() = runTest {
-        val accountService = FakeProfileAccountService(hasSession = true, signOutSucceeds = false)
-        val localPreferences = FakeLocalPreferences(ProfilePreferences(zipCode = "94108"))
-        val repository = ProfileRepository(
-            accountService = accountService,
-            settingsService = FakeProfileSettingsService(),
-            localPreferences = localPreferences,
-        )
+    fun saveLocation_rejectsInvalidZipWithoutPersistingOrSyncing() =
+        runTest {
+            val settingsService = FakeProfileSettingsService()
+            val localPreferences = FakeLocalPreferences()
+            val repository =
+                ProfileRepository(
+                    accountService = FakeProfileAccountService(hasSession = true),
+                    settingsService = settingsService,
+                    localPreferences = localPreferences,
+                )
 
-        val result = repository.signOut()
+            val result = repository.saveLocation("abc", 25)
 
-        assertEquals(ProfileMutationResult.Success, result)
-        assertTrue(accountService.signOutCalled)
-        assertEquals(ProfilePreferences(), localPreferences.preferences.first())
-    }
-
-    @Test
-    fun deleteAccountOnlyClearsLocalStateAfterSuccessfulServerDeletion() = runTest {
-        val accountService = FakeProfileAccountService(hasSession = true, deleteSucceeds = false)
-        val localPreferences = FakeLocalPreferences(ProfilePreferences(zipCode = "94108"))
-        val repository = ProfileRepository(
-            accountService = accountService,
-            settingsService = FakeProfileSettingsService(),
-            localPreferences = localPreferences,
-        )
-
-        val result = repository.deleteAccount()
-
-        assertEquals(ProfileMutationResult.SyncFailed, result)
-        assertTrue(accountService.deleteCalled)
-        assertEquals("94108", localPreferences.preferences.first().zipCode)
-    }
+            assertEquals(ProfileMutationResult.InvalidZip, result)
+            assertEquals(ProfilePreferences(), localPreferences.preferences.first())
+            assertTrue(settingsService.locationUpdates.isEmpty())
+        }
 
     @Test
-    fun signOut_runsEachSessionSideEffectBeforeServerRevocation() = runTest {
-        // The FCM push-token deactivation on sign-out is wired as a
-        // ProfileSessionSideEffect (ProfilePushSessionSideEffect -> DELETE
-        // /me/push-tokens). Lock in that every registered side effect runs, and
-        // runs BEFORE the session is revoked, so a future refactor can't
-        // silently drop it (the regression TASK-3282 feared).
-        val accountService = FakeProfileAccountService(hasSession = true)
-        val firstEffect = RecordingSessionSideEffect(accountService)
-        val secondEffect = RecordingSessionSideEffect(accountService)
-        val repository = ProfileRepository(
-            accountService = accountService,
-            settingsService = FakeProfileSettingsService(),
-            localPreferences = FakeLocalPreferences(),
-            sessionSideEffects = setOf(firstEffect, secondEffect),
-        )
+    fun setEmailNotifications_revertsLocalPreferenceWhenServerSyncFails() =
+        runTest {
+            val settingsService = FakeProfileSettingsService(notificationUpdateSucceeds = false)
+            val localPreferences =
+                FakeLocalPreferences(
+                    ProfilePreferences(emailShowNotifications = false),
+                )
+            val repository =
+                ProfileRepository(
+                    accountService = FakeProfileAccountService(hasSession = true),
+                    settingsService = settingsService,
+                    localPreferences = localPreferences,
+                )
 
-        val result = repository.signOut()
+            val result = repository.setEmailNotifications(true)
 
-        assertEquals(ProfileMutationResult.Success, result)
-        assertTrue(firstEffect.beforeSignOutCalled)
-        assertTrue(secondEffect.beforeSignOutCalled)
-        // Each side effect observed sign-out as not-yet-called when it ran,
-        // proving it executed before accountService.signOut().
-        assertEquals(false, firstEffect.signOutCalledWhenInvoked)
-        assertEquals(false, secondEffect.signOutCalledWhenInvoked)
-        assertTrue(accountService.signOutCalled)
-    }
+            assertEquals(ProfileMutationResult.SyncFailed, result)
+            assertFalse(localPreferences.preferences.first().emailShowNotifications)
+            assertEquals(
+                ProfileNotificationUpdate(emailShowNotifications = true),
+                settingsService.notificationUpdates.single(),
+            )
+        }
 
     @Test
-    fun deleteAccount_runsEachSessionSideEffectBeforeServerDeletion() = runTest {
-        // Account deletion must also deactivate the push token (same side-effect
-        // path), before the server-side delete call.
-        val accountService = FakeProfileAccountService(hasSession = true)
-        val firstEffect = RecordingSessionSideEffect(accountService)
-        val secondEffect = RecordingSessionSideEffect(accountService)
-        val repository = ProfileRepository(
-            accountService = accountService,
-            settingsService = FakeProfileSettingsService(),
-            localPreferences = FakeLocalPreferences(),
-            sessionSideEffects = setOf(firstEffect, secondEffect),
-        )
+    fun signOut_clearsLocalAccountAndPreferencesEvenWhenServerRevocationFails() =
+        runTest {
+            val accountService = FakeProfileAccountService(hasSession = true, signOutSucceeds = false)
+            val localPreferences = FakeLocalPreferences(ProfilePreferences(zipCode = "94108"))
+            val repository =
+                ProfileRepository(
+                    accountService = accountService,
+                    settingsService = FakeProfileSettingsService(),
+                    localPreferences = localPreferences,
+                )
 
-        val result = repository.deleteAccount()
+            val result = repository.signOut()
 
-        assertEquals(ProfileMutationResult.Success, result)
-        assertTrue(firstEffect.beforeSignOutCalled)
-        assertTrue(secondEffect.beforeSignOutCalled)
-        // Each side effect observed account-deletion as not-yet-called when it
-        // ran, proving it executed before accountService.deleteAccount().
-        assertEquals(false, firstEffect.deleteCalledWhenInvoked)
-        assertEquals(false, secondEffect.deleteCalledWhenInvoked)
-        assertTrue(accountService.deleteCalled)
-    }
+            assertEquals(ProfileMutationResult.Success, result)
+            assertTrue(accountService.signOutCalled)
+            assertEquals(ProfilePreferences(), localPreferences.preferences.first())
+        }
+
+    @Test
+    fun deleteAccountOnlyClearsLocalStateAfterSuccessfulServerDeletion() =
+        runTest {
+            val accountService = FakeProfileAccountService(hasSession = true, deleteSucceeds = false)
+            val localPreferences = FakeLocalPreferences(ProfilePreferences(zipCode = "94108"))
+            val repository =
+                ProfileRepository(
+                    accountService = accountService,
+                    settingsService = FakeProfileSettingsService(),
+                    localPreferences = localPreferences,
+                )
+
+            val result = repository.deleteAccount()
+
+            assertEquals(ProfileMutationResult.SyncFailed, result)
+            assertTrue(accountService.deleteCalled)
+            assertEquals("94108", localPreferences.preferences.first().zipCode)
+        }
+
+    @Test
+    fun signOut_runsEachSessionSideEffectBeforeServerRevocation() =
+        runTest {
+            // The FCM push-token deactivation on sign-out is wired as a
+            // ProfileSessionSideEffect (ProfilePushSessionSideEffect -> DELETE
+            // /me/push-tokens). Lock in that every registered side effect runs, and
+            // runs BEFORE the session is revoked, so a future refactor can't
+            // silently drop it (the regression TASK-3282 feared).
+            val accountService = FakeProfileAccountService(hasSession = true)
+            val firstEffect = RecordingSessionSideEffect(accountService)
+            val secondEffect = RecordingSessionSideEffect(accountService)
+            val repository =
+                ProfileRepository(
+                    accountService = accountService,
+                    settingsService = FakeProfileSettingsService(),
+                    localPreferences = FakeLocalPreferences(),
+                    sessionSideEffects = setOf(firstEffect, secondEffect),
+                )
+
+            val result = repository.signOut()
+
+            assertEquals(ProfileMutationResult.Success, result)
+            assertTrue(firstEffect.beforeSignOutCalled)
+            assertTrue(secondEffect.beforeSignOutCalled)
+            // Each side effect observed sign-out as not-yet-called when it ran,
+            // proving it executed before accountService.signOut().
+            assertEquals(false, firstEffect.signOutCalledWhenInvoked)
+            assertEquals(false, secondEffect.signOutCalledWhenInvoked)
+            assertTrue(accountService.signOutCalled)
+        }
+
+    @Test
+    fun deleteAccount_runsEachSessionSideEffectBeforeServerDeletion() =
+        runTest {
+            // Account deletion must also deactivate the push token (same side-effect
+            // path), before the server-side delete call.
+            val accountService = FakeProfileAccountService(hasSession = true)
+            val firstEffect = RecordingSessionSideEffect(accountService)
+            val secondEffect = RecordingSessionSideEffect(accountService)
+            val repository =
+                ProfileRepository(
+                    accountService = accountService,
+                    settingsService = FakeProfileSettingsService(),
+                    localPreferences = FakeLocalPreferences(),
+                    sessionSideEffects = setOf(firstEffect, secondEffect),
+                )
+
+            val result = repository.deleteAccount()
+
+            assertEquals(ProfileMutationResult.Success, result)
+            assertTrue(firstEffect.beforeSignOutCalled)
+            assertTrue(secondEffect.beforeSignOutCalled)
+            // Each side effect observed account-deletion as not-yet-called when it
+            // ran, proving it executed before accountService.deleteAccount().
+            assertEquals(false, firstEffect.deleteCalledWhenInvoked)
+            assertEquals(false, secondEffect.deleteCalledWhenInvoked)
+            assertTrue(accountService.deleteCalled)
+        }
 
     private fun profile(
         emailShowNotifications: Boolean = false,

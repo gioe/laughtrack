@@ -11,7 +11,6 @@ package app.laughtrack.android.core.analytics
  * names are the ones iOS should adopt when it mirrors them.
  */
 object AnalyticsEvents {
-
     /** Push-permission funnel — mirrors iOS PushAnalyticsEvents exactly. */
     object Push {
         const val SOFT_PROMPT_SHOWN = "push_soft_prompt_shown"

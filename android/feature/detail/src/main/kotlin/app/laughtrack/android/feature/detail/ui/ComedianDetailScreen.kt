@@ -60,9 +60,10 @@ fun ComedianDetailScreen(
     DetailScaffold(
         title = ui?.detail?.name ?: "Comedian",
         onBack = onBack,
-        onShare = ui?.let { data ->
-            { context.shareLink(socialLinks(data.detail.socialData).firstOrNull()?.second, data.detail.name) }
-        },
+        onShare =
+            ui?.let { data ->
+                { context.shareLink(socialLinks(data.detail.socialData).firstOrNull()?.second, data.detail.name) }
+            },
     ) { modifier ->
         when (state) {
             is UiState.Failure -> DetailError(onRetry = viewModel::retry, modifier = modifier)
@@ -124,7 +125,10 @@ private fun ComedianSocialRow(social: SocialData) {
 }
 
 @Composable
-private fun ComedianShowsTab(ui: ComedianDetailUi, onOpenEntity: (AppRoute) -> Unit) {
+private fun ComedianShowsTab(
+    ui: ComedianDetailUi,
+    onOpenEntity: (AppRoute) -> Unit,
+) {
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         if (ui.upcomingRuns.isNotEmpty()) {
             SectionHeader("Upcoming", Modifier.padding(16.dp))
@@ -157,7 +161,10 @@ private fun ComedianShowsTab(ui: ComedianDetailUi, onOpenEntity: (AppRoute) -> U
 }
 
 @Composable
-private fun ComedianPodcastsTab(appearances: List<PodcastAppearance>, onOpenEntity: (AppRoute) -> Unit) {
+private fun ComedianPodcastsTab(
+    appearances: List<PodcastAppearance>,
+    onOpenEntity: (AppRoute) -> Unit,
+) {
     if (appearances.isEmpty()) {
         EmptyTab("No podcast appearances yet.")
         return
@@ -175,7 +182,10 @@ private fun ComedianPodcastsTab(appearances: List<PodcastAppearance>, onOpenEnti
 }
 
 @Composable
-private fun ComedianRelatedTab(ui: ComedianDetailUi, onOpenEntity: (AppRoute) -> Unit) {
+private fun ComedianRelatedTab(
+    ui: ComedianDetailUi,
+    onOpenEntity: (AppRoute) -> Unit,
+) {
     if (ui.coBill.isEmpty()) {
         EmptyTab("No related comedians yet.")
         return
@@ -206,21 +216,22 @@ private fun EmptyTab(message: String) {
 }
 
 /** Maps the comedian's social handles to (label, outbound URL) pairs, in display order. */
-private fun socialLinks(social: SocialData): List<Pair<String, String>> = buildList {
-    social.instagramAccount?.takeIf { it.isNotBlank() }?.let {
-        add("Instagram" to "https://instagram.com/${it.trimStart('@')}")
+private fun socialLinks(social: SocialData): List<Pair<String, String>> =
+    buildList {
+        social.instagramAccount?.takeIf { it.isNotBlank() }?.let {
+            add("Instagram" to "https://instagram.com/${it.trimStart('@')}")
+        }
+        social.tiktokAccount?.takeIf { it.isNotBlank() }?.let {
+            add("TikTok" to "https://tiktok.com/@${it.trimStart('@')}")
+        }
+        social.youtubeAccount?.takeIf { it.isNotBlank() }?.let {
+            // youtubeAccount is a bare @handle, not a URL — prefix the host like web
+            // (jsonLd.ts) and iOS do, otherwise normalizeUrl yields https://<handle>.
+            add("YouTube" to "https://www.youtube.com/@${it.trimStart('@')}")
+        }
+        social.website?.takeIf { it.isNotBlank() }?.let { add("Website" to normalizeUrl(it)) }
+        social.linktree?.takeIf { it.isNotBlank() }?.let { add("Linktree" to normalizeUrl(it)) }
     }
-    social.tiktokAccount?.takeIf { it.isNotBlank() }?.let {
-        add("TikTok" to "https://tiktok.com/@${it.trimStart('@')}")
-    }
-    social.youtubeAccount?.takeIf { it.isNotBlank() }?.let {
-        // youtubeAccount is a bare @handle, not a URL — prefix the host like web
-        // (jsonLd.ts) and iOS do, otherwise normalizeUrl yields https://<handle>.
-        add("YouTube" to "https://www.youtube.com/@${it.trimStart('@')}")
-    }
-    social.website?.takeIf { it.isNotBlank() }?.let { add("Website" to normalizeUrl(it)) }
-    social.linktree?.takeIf { it.isNotBlank() }?.let { add("Linktree" to normalizeUrl(it)) }
-}
 
 private fun normalizeUrl(raw: String): String =
     if (raw.startsWith("http://") || raw.startsWith("https://")) raw else "https://$raw"

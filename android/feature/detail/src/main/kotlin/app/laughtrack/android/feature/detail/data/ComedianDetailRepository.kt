@@ -15,31 +15,42 @@ import javax.inject.Inject
  * three secondary calls run concurrently and degrade to empty lists on failure so
  * one slow/absent endpoint never blanks the whole screen.
  */
-class ComedianDetailRepository @Inject constructor(
-    apiClient: ApiClient,
-) {
-    private val comediansApi: ComediansApi = apiClient.createService(ComediansApi::class.java)
+class ComedianDetailRepository
+    @Inject
+    constructor(
+        apiClient: ApiClient,
+    ) {
+        private val comediansApi: ComediansApi = apiClient.createService(ComediansApi::class.java)
 
-    suspend fun getComedian(id: Int): ComedianDetailUi = coroutineScope {
-        val detailResponse = comediansApi.getComedian(id)
-        val detail = detailResponse.body()?.data
-            ?: error("Comedian unavailable (HTTP ${detailResponse.code()})")
+        suspend fun getComedian(id: Int): ComedianDetailUi =
+            coroutineScope {
+                val detailResponse = comediansApi.getComedian(id)
+                val detail =
+                    detailResponse.body()?.data
+                        ?: error("Comedian unavailable (HTTP ${detailResponse.code()})")
 
-        val upcomingDeferred = async {
-            runCatching { comediansApi.getComedianUpcomingRuns(id).body()?.data }.getOrNull().orEmpty()
-        }
-        val coBillDeferred = async {
-            runCatching { comediansApi.getComedianCoBill(id).body()?.data }.getOrNull().orEmpty()
-        }
-        val pastShowsDeferred = async {
-            runCatching { comediansApi.getComedianPastShows(detail.name).body()?.data }.getOrNull().orEmpty()
-        }
+                val upcomingDeferred =
+                    async {
+                        runCatching { comediansApi.getComedianUpcomingRuns(id).body()?.data }.getOrNull().orEmpty()
+                    }
+                val coBillDeferred =
+                    async {
+                        runCatching { comediansApi.getComedianCoBill(id).body()?.data }.getOrNull().orEmpty()
+                    }
+                val pastShowsDeferred =
+                    async {
+                        runCatching {
+                            comediansApi.getComedianPastShows(
+                                detail.name,
+                            ).body()?.data
+                        }.getOrNull().orEmpty()
+                    }
 
-        ComedianDetailUi(
-            detail = detail,
-            upcomingRuns = upcomingDeferred.await(),
-            pastShows = pastShowsDeferred.await(),
-            coBill = coBillDeferred.await(),
-        )
+                ComedianDetailUi(
+                    detail = detail,
+                    upcomingRuns = upcomingDeferred.await(),
+                    pastShows = pastShowsDeferred.await(),
+                    coBill = coBillDeferred.await(),
+                )
+            }
     }
-}

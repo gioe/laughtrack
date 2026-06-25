@@ -9,23 +9,28 @@ import java.time.ZonedDateTime
  * "5m", "now"), mirroring the iOS notification-center relative timestamps. Pure
  * (no Android types) so it unit-tests on the JVM. Returns null if unparseable.
  */
-fun formatTimeAgo(iso: String?, now: ZonedDateTime): String? {
+fun formatTimeAgo(
+    iso: String?,
+    now: ZonedDateTime,
+): String? {
     val trimmed = iso?.trim().orEmpty()
     if (trimmed.isEmpty()) return null
-    val sent = runCatching { OffsetDateTime.parse(trimmed).toZonedDateTime() }
-        .recoverCatching { ZonedDateTime.parse(trimmed) }
-        .getOrNull()
+    val sent =
+        runCatching { OffsetDateTime.parse(trimmed).toZonedDateTime() }
+            .recoverCatching { ZonedDateTime.parse(trimmed) }
+            .getOrNull()
     return sent?.let { label(Duration.between(it, now).seconds) }
 }
 
 // seconds < MINUTE also covers future timestamps (negative elapsed) → "now".
-private fun label(seconds: Long): String = when {
-    seconds < MINUTE -> "now"
-    seconds < HOUR -> "${seconds / MINUTE}m"
-    seconds < DAY -> "${seconds / HOUR}h"
-    seconds < WEEK -> "${seconds / DAY}d"
-    else -> "${seconds / WEEK}w"
-}
+private fun label(seconds: Long): String =
+    when {
+        seconds < MINUTE -> "now"
+        seconds < HOUR -> "${seconds / MINUTE}m"
+        seconds < DAY -> "${seconds / HOUR}h"
+        seconds < WEEK -> "${seconds / DAY}d"
+        else -> "${seconds / WEEK}w"
+    }
 
 private const val MINUTE = 60L
 private const val HOUR = 60L * MINUTE

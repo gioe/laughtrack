@@ -27,19 +27,14 @@ object DataModule {
 
     @Provides
     @Singleton
-    fun provideProfileAccountService(
-        service: AuthSessionProfileAccountService,
-    ): ProfileAccountService = service
+    fun provideProfileAccountService(service: AuthSessionProfileAccountService): ProfileAccountService = service
 
     @Provides
     @Singleton
-    fun provideProfileSettingsService(
-        service: NetworkProfileSettingsService,
-    ): ProfileSettingsService = service
+    fun provideProfileSettingsService(service: NetworkProfileSettingsService): ProfileSettingsService = service
 
     @Provides
     @Singleton
-    fun provideProfileLocalPreferences(
-        preferences: DataStoreProfileLocalPreferences,
-    ): ProfileLocalPreferences = preferences
+    fun provideProfileLocalPreferences(preferences: DataStoreProfileLocalPreferences): ProfileLocalPreferences =
+        preferences
 }

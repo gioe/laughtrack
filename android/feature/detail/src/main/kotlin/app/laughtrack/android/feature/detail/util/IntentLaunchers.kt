@@ -6,7 +6,7 @@ import android.content.Intent
 import android.net.Uri
 import android.provider.CalendarContract
 
-/**
+/*
  * Thin wrappers over the Android Intents the detail screens fire for outbound
  * actions: opening links/maps/dialers, sharing, and inserting a calendar event.
  * None require a runtime permission — calendar insertion uses the system
@@ -21,15 +21,19 @@ fun Context.openUrl(url: String?) {
 }
 
 /** Shares [url] (with an optional [title]) via the system share sheet. */
-fun Context.shareLink(url: String?, title: String?) {
+fun Context.shareLink(
+    url: String?,
+    title: String?,
+) {
     val target = url?.trim().orEmpty()
     if (target.isEmpty()) return
     val text = if (title.isNullOrBlank()) target else "$title\n$target"
-    val intent = Intent(Intent.ACTION_SEND).apply {
-        type = "text/plain"
-        putExtra(Intent.EXTRA_TEXT, text)
-        title?.let { putExtra(Intent.EXTRA_SUBJECT, it) }
-    }
+    val intent =
+        Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, text)
+            title?.let { putExtra(Intent.EXTRA_SUBJECT, it) }
+        }
     safeStart(Intent.createChooser(intent, title ?: "Share"))
 }
 
@@ -60,14 +64,15 @@ fun Context.addEventToCalendar(
     location: String?,
     description: String?,
 ) {
-    val intent = Intent(Intent.ACTION_INSERT).apply {
-        data = CalendarContract.Events.CONTENT_URI
-        putExtra(CalendarContract.Events.TITLE, title)
-        putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, startMillis)
-        putExtra(CalendarContract.EXTRA_EVENT_END_TIME, endMillis ?: (startMillis + TWO_HOURS_MILLIS))
-        location?.takeIf { it.isNotBlank() }?.let { putExtra(CalendarContract.Events.EVENT_LOCATION, it) }
-        description?.takeIf { it.isNotBlank() }?.let { putExtra(CalendarContract.Events.DESCRIPTION, it) }
-    }
+    val intent =
+        Intent(Intent.ACTION_INSERT).apply {
+            data = CalendarContract.Events.CONTENT_URI
+            putExtra(CalendarContract.Events.TITLE, title)
+            putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, startMillis)
+            putExtra(CalendarContract.EXTRA_EVENT_END_TIME, endMillis ?: (startMillis + TWO_HOURS_MILLIS))
+            location?.takeIf { it.isNotBlank() }?.let { putExtra(CalendarContract.Events.EVENT_LOCATION, it) }
+            description?.takeIf { it.isNotBlank() }?.let { putExtra(CalendarContract.Events.DESCRIPTION, it) }
+        }
     safeStart(intent)
 }
 

@@ -20,14 +20,14 @@ object PushPromptCadence {
         SuppressedBackoff,
     }
 
-    const val RequiredEngagementCount = 3
-    const val MaxDeferrals = 3
+    const val REQUIRED_ENGAGEMENT_COUNT = 3
+    const val MAX_DEFERRALS = 3
     private val BackoffDays = listOf(0L, 3L, 14L)
 
     fun evaluate(input: Input): Decision {
         if (input.hasPresentedThisSession) return Decision.SuppressedAlreadyPresented
-        if (input.deferralCount >= MaxDeferrals) return Decision.SuppressedMaxDeferrals
-        if (input.engagementCount < RequiredEngagementCount) return Decision.SuppressedInsufficientEngagement
+        if (input.deferralCount >= MAX_DEFERRALS) return Decision.SuppressedMaxDeferrals
+        if (input.engagementCount < REQUIRED_ENGAGEMENT_COUNT) return Decision.SuppressedInsufficientEngagement
         if (input.deferralCount > 0) {
             val lastDeferredAt = input.lastDeferredAt ?: return Decision.Eligible
             val backoffIndex = input.deferralCount.coerceAtMost(BackoffDays.lastIndex)
