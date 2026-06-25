@@ -38,6 +38,26 @@ RETURNS TEXT AS $$
     );
 $$ LANGUAGE sql IMMUTABLE;
 
+-- Dedup redundant alias rows BEFORE the trigger/backfill recompute their keys.
+-- Existing data holds pairs that differ only in punctuation ("City Winery
+-- St. Louis" vs "City Winery - St. Louis"; a "Funny Bone Comedy Club - X" stub
+-- alias plus the TASK-3321 fold alias) which collapse to the SAME normalized key
+-- under lt_normalize_alias_key. Recomputing them would violate the unique index
+-- (normalized_alias_name, normalized_city, normalized_state) and abort the
+-- migration (this is exactly the P3009 failure observed on the first prod
+-- deploy). Each colliding pair points at the SAME club_id, so the extra row is
+-- a pure redundant duplicate — delete all but the lowest id per recomputed key.
+-- The club_id = guard means we only ever drop a same-club duplicate; a
+-- collision between DIFFERENT clubs is left in place so it fails loudly and a
+-- human resolves it rather than the migration silently mis-routing a club.
+DELETE FROM club_aliases a
+USING club_aliases b
+WHERE b.id < a.id
+  AND b.club_id = a.club_id
+  AND lt_normalize_alias_key(b.alias_name) = lt_normalize_alias_key(a.alias_name)
+  AND lt_normalize_alias_key(b.city) = lt_normalize_alias_key(a.city)
+  AND lower(COALESCE(b.state, '')) = lower(COALESCE(a.state, ''));
+
 -- Keep club_aliases.normalized_* in lockstep with alias_name/city/state on
 -- every write, regardless of which client (fold script, scraper, ad-hoc SQL)
 -- performed it. normalized_state mirrors the historical lower(state) form.
@@ -59,19 +79,10 @@ FOR EACH ROW
 EXECUTE FUNCTION club_aliases_set_normalized();
 
 -- One-shot backfill so existing rows are guaranteed to match the function.
--- For rows written by the existing fold scripts this is a no-op (the names
--- carry no st/ft/mt tokens), but it makes the invariant hold unconditionally.
---
--- Collision safety: a recomputed key could in theory collide with another
--- row's key under the unique index (normalized_alias_name, normalized_city,
--- normalized_state) and abort the migration. This cannot happen for the
--- current data: every historical writer (the fold/reconcile scripts) already
--- used the identical name expression and lower(state), so the IS DISTINCT FROM
--- guard matches almost nothing and no key actually changes value. Any row that
--- DID change to a colliding key would mean two aliases already pointed at the
--- same (name, city, state) — a pre-existing duplicate that the unique index
--- would have rejected at write time. If a future drifted row ever surfaces
--- here, dedup it by hand before re-running rather than weakening the index.
+-- The dedup step above removed the same-key/same-club duplicates that would
+-- otherwise collide here, so every recomputed key is now unique under
+-- (normalized_alias_name, normalized_city, normalized_state). The IS DISTINCT
+-- FROM guard limits the write to rows whose key actually changes.
 UPDATE club_aliases
 SET normalized_alias_name = lt_normalize_alias_key(alias_name),
     normalized_city = lt_normalize_alias_key(city),
