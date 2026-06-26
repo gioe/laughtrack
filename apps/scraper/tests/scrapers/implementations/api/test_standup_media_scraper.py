@@ -20,8 +20,8 @@ _API_URL = (
 def _record(**overrides) -> dict:
     row = {
         "ShowID": "show-1",
-        "ShowDt": "2026-07-05T00:00:00",
-        "ShowTm": "2026-07-05T19:30:00",
+        "ShowDt": "2099-07-05T00:00:00",
+        "ShowTm": "2099-07-05T19:30:00",
         "ComicName": "Scott James",
         "ShowPrice": 15.0,
         "soldout": 0,
@@ -103,8 +103,8 @@ def test_extractor_dedups_sections_by_showid_keeps_lowest_price():
 
 def test_extractor_distinct_showids_distinct_events():
     records = [
-        _record(ShowID="s1", ShowTm="2026-07-05T19:30:00"),
-        _record(ShowID="s2", ShowTm="2026-07-05T21:00:00", ComicName="Open Mic Night"),
+        _record(ShowID="s1", ShowTm="2099-07-05T19:30:00"),
+        _record(ShowID="s2", ShowTm="2099-07-05T21:00:00", ComicName="Open Mic Night"),
     ]
     events = StandUpMediaExtractor.extract_events(records, _SOURCE_URL)
     assert {e.show_id for e in events} == {"s1", "s2"}
@@ -138,6 +138,16 @@ def test_extractor_soldout_only_when_all_sections_soldout():
 def test_extractor_zero_price_is_unknown():
     events = StandUpMediaExtractor.extract_events([_record(ShowID="s1", ShowPrice=0.0)], _SOURCE_URL)
     assert events[0].price is None
+
+
+def test_extractor_drops_past_showtimes():
+    """Past showtimes are dropped (parity with do314) so re-runs skip stale shows."""
+    records = [
+        _record(ShowID="future", ShowTm="2099-07-05T19:30:00"),
+        _record(ShowID="past", ShowTm="2020-01-01T19:30:00"),
+    ]
+    events = StandUpMediaExtractor.extract_events(records, _SOURCE_URL)
+    assert [e.show_id for e in events] == ["future"]
 
 
 # ---- event.to_show -------------------------------------------------------
@@ -198,8 +208,8 @@ async def test_scrape_async_produces_shows(monkeypatch):
     """End-to-end: targets -> get_data -> transformer pipeline -> Shows."""
     scraper = StandUpMediaScraper(_club())
     records = [
-        _record(ShowID="s1", ShowTm="2026-07-05T19:30:00"),
-        _record(ShowID="s2", ShowTm="2026-07-05T21:00:00", ComicName="Open Mic Night"),
+        _record(ShowID="s1", ShowTm="2099-07-05T19:30:00"),
+        _record(ShowID="s2", ShowTm="2099-07-05T21:00:00", ComicName="Open Mic Night"),
     ]
 
     async def fake_fetch_json(url):

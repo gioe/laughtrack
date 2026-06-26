@@ -3,12 +3,14 @@
 The API returns one record per price section, so a single showtime appears as
 multiple rows sharing one ``ShowID``. ``extract_events`` de-duplicates by
 ``ShowID`` (keeping the cheapest non-zero section price) and drops private
-events and rows missing a usable showtime.
+events, rows missing a usable showtime, and past showtimes.
 """
 
+from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from laughtrack.core.entities.event.standup_media import StandUpMediaEvent
+from laughtrack.foundation.utilities.datetime import DateTimeUtils
 
 
 class StandUpMediaExtractor:
@@ -22,10 +24,13 @@ class StandUpMediaExtractor:
     ) -> List[StandUpMediaEvent]:
         """De-duplicate section rows by ``ShowID`` into one event per showtime.
 
-        Skips records flagged ``isprivate`` (private buyouts), and rows without
-        a ``ShowID`` or a usable ``ShowTm``. The kept price is the lowest
-        positive section ``ShowPrice`` seen for the showtime (``None`` when no
-        positive price is present).
+        Skips records flagged ``isprivate`` (private buyouts), rows without a
+        ``ShowID`` / ``ShowTm`` / ``ComicName``, and showtimes in the past — the
+        GetAllShows feed has only returned upcoming shows so far, but the
+        past-date guard mirrors the do314 extractor so nightly re-runs never
+        re-ingest stale showtimes if the API starts returning history. The kept
+        price is the lowest positive section ``ShowPrice`` for the showtime
+        (``None`` when no positive price is present).
         """
         by_show_id: Dict[str, StandUpMediaEvent] = {}
         for raw in records or []:
@@ -37,6 +42,8 @@ class StandUpMediaExtractor:
             show_tm = (raw.get("ShowTm") or "").strip()
             name = (raw.get("ComicName") or "").strip()
             if not show_id or not show_tm or not name:
+                continue
+            if StandUpMediaExtractor._is_past(show_tm, default_timezone):
                 continue
 
             price = StandUpMediaExtractor._coerce_price(raw.get("ShowPrice"))
@@ -61,6 +68,20 @@ class StandUpMediaExtractor:
                 existing.sold_out = existing.sold_out and sold_out
 
         return list(by_show_id.values())
+
+    @staticmethod
+    def _is_past(show_tm: str, timezone: str) -> bool:
+        """True when the localized showtime is strictly before now.
+
+        Unparseable datetimes return ``False`` (kept) so a parse quirk never
+        silently drops a real show — ``event.to_show`` drops it later if the
+        date truly can't be resolved.
+        """
+        try:
+            resolved = DateTimeUtils.parse_datetime_with_timezone(show_tm, timezone)
+        except (ValueError, TypeError):
+            return False
+        return resolved < datetime.now(resolved.tzinfo)
 
     @staticmethod
     def _coerce_price(value: Any) -> Optional[float]:
