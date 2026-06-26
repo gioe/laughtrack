@@ -396,6 +396,228 @@ def test_resolve_tm_venues_max_resolve_caps(mod, monkeypatch):
     assert len(out) == 1
 
 
+# ---- Eventbrite network helpers (requests mocked) ----------------------
+
+def _eb(value):
+    """Helper: build the venue_locations key for an eventbrite_id."""
+    return ("eventbrite_id", value)
+
+
+def test_resolve_eb_venue_success(mod, monkeypatch):
+    """Eventbrite address.region is the state; address.city is the city."""
+    import requests
+    captured = {}
+
+    def fake_get(url, *a, **k):
+        captured["url"] = url
+        captured["headers"] = k.get("headers")
+        return _FakeResp(200, {"name": "The Bell House",
+                               "address": {"city": "Brooklyn", "region": "NY"}})
+
+    monkeypatch.setattr(requests, "get", fake_get)
+    loc = mod._resolve_eventbrite_venue("12345", "tok")
+    assert loc == {"name": "The Bell House", "city": "Brooklyn", "state": "NY"}
+    # Auth must be a Bearer token; venue id is in the path.
+    assert captured["headers"]["Authorization"] == "Bearer tok"
+    assert captured["url"].endswith("/venues/12345/")
+
+
+def test_resolve_eb_venue_404_returns_none(mod, monkeypatch):
+    import requests
+    monkeypatch.setattr(requests, "get", lambda *a, **k: _FakeResp(404))
+    assert mod._resolve_eventbrite_venue("V1", "tok") is None
+
+
+def test_resolve_eb_venue_non_ok_returns_none(mod, monkeypatch):
+    import requests
+    monkeypatch.setattr(requests, "get", lambda *a, **k: _FakeResp(500))
+    assert mod._resolve_eventbrite_venue("V1", "tok") is None
+
+
+def test_resolve_eb_venue_non_json_returns_none(mod, monkeypatch):
+    import requests
+    monkeypatch.setattr(requests, "get",
+                        lambda *a, **k: _FakeResp(200, raise_json=True))
+    assert mod._resolve_eventbrite_venue("V1", "tok") is None
+
+
+def test_resolve_eb_venue_no_geo_returns_none(mod, monkeypatch):
+    """A record with neither city nor region carries no usable geo signal."""
+    import requests
+    monkeypatch.setattr(requests, "get", lambda *a, **k: _FakeResp(
+        200, {"name": "X", "address": {"city": None, "region": None}}))
+    assert mod._resolve_eventbrite_venue("V1", "tok") is None
+    # Missing address object entirely is also tolerated.
+    monkeypatch.setattr(requests, "get", lambda *a, **k: _FakeResp(
+        200, {"name": "X"}))
+    assert mod._resolve_eventbrite_venue("V1", "tok") is None
+
+
+def test_resolve_eb_venue_request_exception_returns_none(mod, monkeypatch):
+    import requests
+
+    def boom(*a, **k):
+        raise requests.RequestException("network down")
+
+    monkeypatch.setattr(requests, "get", boom)
+    assert mod._resolve_eventbrite_venue("V1", "tok") is None
+
+
+def test_resolve_eb_venue_429_retries_then_succeeds(mod, monkeypatch):
+    import requests
+    calls = {"n": 0}
+
+    def flaky(*a, **k):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return _FakeResp(429)
+        return _FakeResp(200, {"name": "X",
+                               "address": {"city": "Reno", "region": "NV"}})
+
+    monkeypatch.setattr(requests, "get", flaky)
+    monkeypatch.setattr(mod.time, "sleep", lambda *_a, **_k: None)  # no real backoff
+    loc = mod._resolve_eventbrite_venue("V1", "tok")
+    assert calls["n"] == 2
+    assert loc["state"] == "NV"
+
+
+def test_resolve_eb_venues_dedup_and_pacing(mod, monkeypatch):
+    """Driver resolves each id once and paces between calls (not before the first)."""
+    import requests
+    seen = []
+    monkeypatch.setattr(requests, "get", lambda url, *a, **k: (
+        seen.append(url) or _FakeResp(200, {"name": "X",
+                                            "address": {"city": "A", "region": "CA"}})))
+    sleeps = []
+    monkeypatch.setattr(mod.time, "sleep", lambda s: sleeps.append(s))
+    out = mod._resolve_eventbrite_venues({"B", "A"}, "tok")
+    assert set(out) == {"A", "B"}
+    assert len(seen) == 2          # one network call per distinct id
+    assert len(sleeps) == 1        # paced between the 2 calls, none before the first
+
+
+def test_resolve_eb_venues_max_resolve_caps(mod, monkeypatch):
+    import requests
+    seen = []
+    monkeypatch.setattr(requests, "get", lambda url, *a, **k: (
+        seen.append(url) or _FakeResp(200, {"name": "X",
+                                            "address": {"city": "A", "region": "CA"}})))
+    monkeypatch.setattr(mod.time, "sleep", lambda *_a, **_k: None)
+    out = mod._resolve_eventbrite_venues({"A", "B", "C"}, "tok", max_resolve=1)
+    assert len(seen) == 1
+    assert len(out) == 1
+
+
+# ---- source_venue_geo_mismatch: eventbrite + multi-platform ------------
+
+def test_source_venue_eventbrite_state_mismatch_flagged(mod):
+    """eventbrite_id resolving to a different state -> flagged on its own."""
+    rows = [_src(
+        club_id=701, club_name="Drifting Venue", city="Rockford", state="IL",
+        eventbrite_id="EB1",
+    )]
+    locs = {_eb("EB1"): {"name": "Real Venue", "city": "Hollywood", "state": "FL"}}
+    out = mod._source_venue_geo_mismatch(rows, locs)
+    assert len(out) == 1
+    assert out[0]["mismatch"] == "state"
+    assert out[0]["venue_id_kind"] == "eventbrite_id"
+    assert out[0]["venue_id"] == "EB1"
+    assert out[0]["venue_state"] == "FL"
+
+
+def test_source_venue_eventbrite_matching_geo_not_flagged(mod):
+    rows = [_src(city="Brooklyn", state="NY", eventbrite_id="EB1")]
+    locs = {_eb("EB1"): {"name": "X", "city": "Brooklyn", "state": "NY"}}
+    assert mod._source_venue_geo_mismatch(rows, locs) == []
+
+
+def test_source_venue_eventbrite_unresolved_id_not_flagged(mod):
+    rows = [_src(city="Rockford", state="IL", eventbrite_id="EB1")]
+    assert mod._source_venue_geo_mismatch(rows, {_eb("EB1"): None}) == []
+    assert mod._source_venue_geo_mismatch(rows, {}) == []
+
+
+def test_source_venue_ticketmaster_takes_priority_over_eventbrite(mod):
+    """A source carrying both ids uses ticketmaster_id (first in priority)."""
+    rows = [_src(city="Rockford", state="IL",
+                 ticketmaster_id="TM1", eventbrite_id="EB1")]
+    locs = {
+        _tm("TM1"): {"name": "TM Venue", "city": "Hollywood", "state": "FL"},
+        _eb("EB1"): {"name": "EB Venue", "city": "Austin", "state": "TX"},
+    }
+    out = mod._source_venue_geo_mismatch(rows, locs)
+    assert len(out) == 1
+    assert out[0]["venue_id_kind"] == "ticketmaster_id"
+    assert out[0]["venue_state"] == "FL"
+
+
+def test_source_venue_mixed_platforms_sorted(mod):
+    """TM and EB sources mix; state mismatches sort before city, then club_id."""
+    rows = [
+        _src(source_id=1, club_id=20, city="Hollywood", state="FL",
+             ticketmaster_id="TMCITY"),       # city mismatch (TM)
+        _src(source_id=2, club_id=10, city="Rockford", state="IL",
+             eventbrite_id="EBSTATE"),        # state mismatch (EB)
+    ]
+    locs = {
+        _tm("TMCITY"): {"name": "a", "city": "Fort Lauderdale", "state": "FL"},
+        _eb("EBSTATE"): {"name": "b", "city": "Austin", "state": "TX"},
+    }
+    out = mod._source_venue_geo_mismatch(rows, locs)
+    assert [(r["mismatch"], r["venue_id_kind"]) for r in out] == [
+        ("state", "eventbrite_id"), ("city", "ticketmaster_id")]
+
+
+# ---- _normalize_city / benign city-variant suppression -----------------
+
+@pytest.mark.parametrize("a,b", [
+    ("New York", "New York City"),       # club 1042 trailing "City"
+    ("St Petersburg", "Saint Petersburg"),  # club 2507 St -> Saint
+    ("St. Louis", "Saint Louis"),        # club 2509 St. -> Saint
+    ("st louis", "SAINT LOUIS"),         # case-insensitive
+])
+def test_normalize_city_treats_variants_as_equal(mod, a, b):
+    assert mod._normalize_city(a) == mod._normalize_city(b)
+
+
+@pytest.mark.parametrize("a,b", [
+    ("Brooklyn", "Manhattan"),
+    ("Saint Louis", "Saint Paul"),
+    ("Kansas City", "Jersey City"),      # distinct "City" names stay distinct
+])
+def test_normalize_city_keeps_distinct_cities_distinct(mod, a, b):
+    assert mod._normalize_city(a) != mod._normalize_city(b)
+
+
+def test_normalize_city_blank(mod):
+    assert mod._normalize_city("") == ""
+    assert mod._normalize_city(None) == ""
+    assert mod._normalize_city("   ") == ""
+
+
+@pytest.mark.parametrize("club_city,venue_city", [
+    ("New York", "New York City"),       # club 1042
+    ("St Petersburg", "Saint Petersburg"),  # club 2507
+    ("St. Louis", "Saint Louis"),        # club 2509
+])
+def test_source_venue_benign_city_variant_not_flagged(mod, club_city, venue_city):
+    """Known benign same-state city spelling variants must not surface."""
+    rows = [_src(city=club_city, state="NY" if "York" in club_city else "MO",
+                 ticketmaster_id="V1")]
+    state = "NY" if "York" in club_city else "MO"
+    locs = {_tm("V1"): {"name": "X", "city": venue_city, "state": state}}
+    assert mod._source_venue_geo_mismatch(rows, locs) == []
+
+
+def test_source_venue_genuine_city_mismatch_still_flagged(mod):
+    """Normalization must not mask a real same-state different-city corruption."""
+    rows = [_src(city="Hollywood", state="FL", ticketmaster_id="V1")]
+    locs = {_tm("V1"): {"name": "X", "city": "Fort Lauderdale", "state": "FL"}}
+    out = mod._source_venue_geo_mismatch(rows, locs)
+    assert len(out) == 1
+    assert out[0]["mismatch"] == "city"
+
+
 # ---- CSV / _flatten_shared ---------------------------------------------
 
 def test_format_csv_website_mismatch(mod):
