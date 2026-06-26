@@ -1,0 +1,114 @@
+{
+  "next": null,
+  "previous": null,
+  "current": 1,
+  "count": 4,
+  "results": [
+    {
+      "id": 90001,
+      "start_dt": "2027-07-26T19:00:00-0500",
+      "end_dt": "2027-07-26T20:45:00-0500",
+      "event_id": 83034,
+      "timezone": "America/Chicago",
+      "event": {
+        "id": 83034,
+        "title": "Sam Schedler Presents: Pride Weekend Comedy /// Comedy",
+        "absolute_url": "https://dojour.us/e/83034-sam-schedler-presents-pride-weekend-comedy",
+        "call_to_action_url": "https://dojour.us/e/83034/showings",
+        "description": "<p>Join us for Pride Weekend <b>Stand-up</b> presented by Sam Schedler.</p>",
+        "cancelled": false,
+        "upcoming_showing_set": [
+          {
+            "id": 90001,
+            "start_dt": "2027-07-26T19:00:00-0500",
+            "end_dt": "2027-07-26T20:45:00-0500",
+            "timezone": "America/Chicago",
+            "offer": {
+              "id": 83034,
+              "option_set": [
+                {"offer_option_id": 5761, "active": true, "price": 2200},
+                {"offer_option_id": 5762, "active": true, "price": 1800}
+              ]
+            }
+          },
+          {
+            "id": 90002,
+            "start_dt": "2027-07-26T21:00:00-0500",
+            "end_dt": "2027-07-26T22:45:00-0500",
+            "timezone": "America/Chicago",
+            "offer": {
+              "id": 83034,
+              "option_set": [
+                {"offer_option_id": 5763, "active": true, "price": 2200}
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 90010,
+      "start_dt": "2027-08-05T19:00:00-0500",
+      "timezone": "America/Chicago",
+      "event": {
+        "id": 84000,
+        "title": "Stand Up Comedy Open Mic",
+        "absolute_url": "https://dojour.us/e/84000-stand-up-comedy-open-mic",
+        "call_to_action_url": "https://dojour.us/e/84000/showings",
+        "description": "Free weekly open mic.",
+        "cancelled": false,
+        "upcoming_showing_set": [
+          {
+            "id": 90010,
+            "start_dt": "2027-08-05T19:00:00-0500",
+            "timezone": "America/Chicago",
+            "offer": {"id": 84000, "option_set": []}
+          }
+        ]
+      }
+    },
+    {
+      "id": 90020,
+      "start_dt": "2027-09-01T19:00:00-0500",
+      "timezone": "America/Chicago",
+      "event": {
+        "id": 85000,
+        "title": "Cancelled Show",
+        "absolute_url": "https://dojour.us/e/85000-cancelled-show",
+        "call_to_action_url": "https://dojour.us/e/85000/showings",
+        "description": "This one is off.",
+        "cancelled": true,
+        "upcoming_showing_set": [
+          {"id": 90020, "start_dt": "2027-09-01T19:00:00-0500", "timezone": "America/Chicago"}
+        ]
+      }
+    },
+    {
+      "id": 90030,
+      "start_dt": "2027-10-01T20:00:00-0500",
+      "timezone": "America/Chicago",
+      "event": {
+        "id": 86000,
+        "title": "Fumi Abe /// Comedy",
+        "absolute_url": "https://dojour.us/e/86000-fumi-abe",
+        "call_to_action_url": "https://dojour.us/e/86000/showings",
+        "description": "<p>An evening with <i>Fumi Abe</i>.</p>",
+        "cancelled": false,
+        "upcoming_showing_set": [
+          {
+            "id": 90030,
+            "start_dt": "2020-01-01T20:00:00-0600",
+            "timezone": "America/Chicago",
+            "offer": {"id": 86000, "option_set": [{"offer_option_id": 1, "active": true, "price": 2500}]}
+          },
+          {
+            "id": 90031,
+            "start_dt": "2027-10-01T20:00:00-0500",
+            "timezone": "America/Chicago",
+            "offer": {"id": 86000, "option_set": [{"offer_option_id": 2, "active": true, "price": 2500}]}
+          }
+        ]
+      }
+    }
+  ]
+}
