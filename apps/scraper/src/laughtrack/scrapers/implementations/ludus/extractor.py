@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import re
 from datetime import datetime
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from bs4 import BeautifulSoup
 
