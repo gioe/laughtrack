@@ -31,22 +31,30 @@ Signals:
         pass --include-chains to see them.
 
     source_venue_geo_mismatch  (network, opt-in via --signal)
-        Resolves each source's concrete platform venue id (currently
-        ticketmaster_id, via the Ticketmaster Discovery venues API) to the
-        venue's canonical city/state, then flags clubs whose stated city/state
-        disagrees with it. This catches the case the two offline signals MISS:
-        a single corrupted row with a *distinct* venue id and an empty website,
-        so neither domain-comparison nor shared-id-across-clubs fires. Motivating
-        incident (TASK-3363): club 2844 carried a Rockford, IL identity (name /
-        city / state / lat-lng / google_place_id from TASK-3027 Google Places
-        enrichment) but a Hollywood, FL ticketmaster_id (KovZpZA6AEaA) and all
-        its shows — invisible to both offline signals. Because it issues one HTTP
-        call per distinct venue id, this signal is excluded from the default run
-        and must be requested with `--signal source_venue_geo_mismatch`. Requires
-        TICKETMASTER_API_KEY in the environment / .env. The state axis is
-        high-confidence; same-state city differences are frequently just metro
-        naming variants (suburb vs. anchor city), so they are reported with
-        mismatch="city" and should be eyeballed.
+        Resolves each source's concrete platform venue id (ticketmaster_id via
+        the Ticketmaster Discovery venues API; eventbrite_id via the Eventbrite
+        venues API) to the venue's canonical city/state, then flags clubs whose
+        stated city/state disagrees with it. This catches the case the two
+        offline signals MISS: a single corrupted row with a *distinct* venue id
+        and an empty website, so neither domain-comparison nor
+        shared-id-across-clubs fires. Motivating incident (TASK-3363): club 2844
+        carried a Rockford, IL identity (name / city / state / lat-lng /
+        google_place_id from TASK-3027 Google Places enrichment) but a
+        Hollywood, FL ticketmaster_id (KovZpZA6AEaA) and all its shows —
+        invisible to both offline signals. The corruption class (Google Places
+        enrichment matching a same-name venue in another city) is
+        platform-agnostic, so the resolver is wired per platform: each
+        RESOLVABLE_VENUE_ID_KINDS column is resolved with its own API when the
+        credential is present. Because it issues one HTTP call per distinct venue
+        id, this signal is excluded from the default run and must be requested
+        with `--signal source_venue_geo_mismatch`. Requires at least one of
+        TICKETMASTER_API_KEY (for ticketmaster_id) or EVENTBRITE_PRIVATE_TOKEN
+        (for eventbrite_id) in the environment / .env; platforms whose credential
+        is absent are skipped with a warning. The state axis is high-confidence;
+        same-state city differences are frequently just metro naming variants
+        (suburb vs. anchor city) or benign spelling variants (St./Saint,
+        "X City" vs "X"), so they are normalized where known and otherwise
+        reported with mismatch="city" to be eyeballed.
 
 Generic ticketing/aggregator hosts carry no venue-specific geo signal, so
 sources on those hosts are excluded from website_domain_mismatch (their
@@ -113,6 +121,14 @@ OFFLINE_SIGNALS = ("website_domain_mismatch", "shared_venue_across_geo")
 # Ticketmaster Discovery API venue lookup. One call per distinct ticketmaster_id.
 TM_VENUE_URL = "https://app.ticketmaster.com/discovery/v2/venues/{venue_id}.json"
 TM_MIN_DELAY = 0.21  # ~5 req/s, matching the scraper's TicketmasterClient limit
+
+# Eventbrite venues API lookup. One call per distinct eventbrite_id. The
+# eventbrite_id column stores the venue id; the venues endpoint returns the
+# canonical address (city + region/state). Auth is the same private OAuth bearer
+# token the scraper's EventbriteClient uses (EVENTBRITE_PRIVATE_TOKEN), keyed in
+# config as api.eventbrite_token.
+EB_VENUE_URL = "https://www.eventbriteapi.com/v3/venues/{venue_id}/"
+EB_MIN_DELAY = 1.0  # ~1 req/s, matching EventbriteClient.RATE_LIMIT
 
 # Hosts that are ticketing platforms / aggregators rather than a single venue's
 # own site. A source_url on one of these tells us nothing about the venue's
@@ -255,6 +271,16 @@ VENUE_ID_COLUMNS = (
     "seatengine_id", "seatengine_v3_id", "eventbrite_id", "ticketmaster_id",
     "ovationtix_id", "wix_event_id", "squadup_id",
 )
+
+# Subset of VENUE_ID_COLUMNS the network signal can resolve to a canonical
+# city/state, in priority order. Each kind maps to a per-platform resolver
+# wired in main(): ticketmaster_id -> TM Discovery venues API; eventbrite_id ->
+# Eventbrite venues API. The remaining VENUE_ID_COLUMNS (seatengine_id /
+# seatengine_v3_id / ovationtix_id / wix_event_id / squadup_id) have no
+# single-venue geo endpoint wired yet, so they stay offline-only —
+# shared_venue_across_geo still covers cross-club collisions on them. Add a
+# platform here only after wiring its resolver + credential in main().
+RESOLVABLE_VENUE_ID_KINDS = ("ticketmaster_id", "eventbrite_id")
 
 
 def _fetch_sources(cur, include_hidden: bool):
@@ -424,25 +450,121 @@ def _resolve_ticketmaster_venues(venue_ids, api_key: str, *, max_resolve=None) -
     return resolved
 
 
+def _resolve_eventbrite_venue(venue_id: str, token: str, *, timeout: int = 30):
+    """Resolve one Eventbrite venue id to its canonical location.
+
+    Returns ``{name, city, state}`` on success, or ``None`` when the venue
+    cannot be resolved (404, no geo on the record, or a network/parse error).
+    Eventbrite's address ``region`` field is the state/province (the 2-letter
+    code for US venues). Auth is the private OAuth bearer token. Network
+    failures are logged to stderr and swallowed so a single bad id never aborts
+    the sweep — same contract as ``_resolve_ticketmaster_venue``.
+    """
+    import requests  # local import: only the network signal needs it
+
+    url = EB_VENUE_URL.format(venue_id=quote(str(venue_id), safe=""))
+    headers = {"Authorization": f"Bearer {token}"}
+    try:
+        resp = requests.get(url, headers=headers, timeout=timeout)
+        if resp.status_code == 429:
+            # Rate limited despite the pacing delay — back off once and retry.
+            time.sleep(1.0)
+            resp = requests.get(url, headers=headers, timeout=timeout)
+    except requests.RequestException as exc:
+        print(f"  ! EB venue {venue_id}: request failed ({exc})", file=sys.stderr)
+        return None
+    if resp.status_code == 404:
+        return None
+    if not resp.ok:
+        print(f"  ! EB venue {venue_id}: HTTP {resp.status_code}", file=sys.stderr)
+        return None
+    try:
+        data = resp.json()
+    except ValueError:
+        print(f"  ! EB venue {venue_id}: non-JSON response", file=sys.stderr)
+        return None
+    address = data.get("address") or {}
+    city = address.get("city")
+    state = address.get("region")
+    if not city and not state:
+        return None
+    return {"name": data.get("name"), "city": city, "state": state}
+
+
+def _resolve_eventbrite_venues(venue_ids, token: str, *, max_resolve=None) -> dict:
+    """Resolve a set of distinct Eventbrite venue ids to locations, rate-limited.
+
+    Returns ``{venue_id: location-or-None}``. Pacing matches
+    ``EventbriteClient.RATE_LIMIT`` (~1 req/s). ``max_resolve`` caps the number
+    of network calls for spot checks. Mirrors ``_resolve_ticketmaster_venues``.
+    """
+    ids = sorted(venue_ids)
+    if max_resolve is not None:
+        ids = ids[:max_resolve]
+    total = len(ids)
+    resolved = {}
+    for i, vid in enumerate(ids, 1):
+        if i > 1:
+            time.sleep(EB_MIN_DELAY)
+        resolved[vid] = _resolve_eventbrite_venue(vid, token)
+        if i % 50 == 0 or i == total:
+            print(f"  resolved {i}/{total} EB venue(s)", file=sys.stderr)
+    return resolved
+
+
+def _normalize_city(city: str) -> str:
+    """Canonicalize a city name for benign-variant comparison.
+
+    Collapses the known benign spelling variants that otherwise surface as
+    false-positive city mismatches in source_venue_geo_mismatch, without
+    masking genuine cross-city corruption:
+
+      * "St" / "St." abbreviation <-> "Saint"  (St. Louis == Saint Louis,
+        St Petersburg == Saint Petersburg)
+      * a trailing " City" qualifier            (New York == New York City)
+
+    Token-wise so substrings are never touched (e.g. "first" is left alone),
+    and the trailing-"City" drop only applies to multi-token names so a venue
+    literally named "City" is preserved. Returns a lowercase, space-collapsed
+    name (empty string for blank input).
+    """
+    tokens = (city or "").strip().lower().replace(".", " ").split()
+    if not tokens:
+        return ""
+    tokens = ["saint" if t == "st" else t for t in tokens]
+    if len(tokens) > 1 and tokens[-1] == "city":
+        tokens = tokens[:-1]
+    return " ".join(tokens)
+
+
 def _source_venue_geo_mismatch(sources: list, venue_locations: dict) -> list:
     """Flag clubs whose stated city/state diverges from the canonical location
     of the venue their platform id points at.
 
     ``venue_locations`` maps ``(id_kind, value)`` -> location dict (or ``None``
-    when unresolved). Only resolved entries can flag. Currently the only
-    id_kind is ``ticketmaster_id``; the structure is ready for more platforms.
-    State is the high-confidence axis (mismatch="state"); a same-state city
-    difference (mismatch="city") is reported but is more often a metro-naming
-    variant (suburb vs. anchor city) than real corruption.
+    when unresolved). Only resolved entries can flag. Each source is checked
+    against every kind in ``RESOLVABLE_VENUE_ID_KINDS`` in priority order; the
+    first id that resolves decides the verdict (a source realistically carries
+    one platform id, and tm_id wins ties for backward compatibility). State is
+    the high-confidence axis (mismatch="state"); a same-state city difference
+    (mismatch="city") is reported but is more often a metro-naming variant
+    (suburb vs. anchor city) — benign spelling variants are normalized away via
+    ``_normalize_city`` before the city comparison.
     """
     out = []
     for s in sources:
-        tm_id = s.get("ticketmaster_id")
-        if tm_id is None or str(tm_id).strip() == "":
+        resolved = None
+        for id_kind in RESOLVABLE_VENUE_ID_KINDS:
+            raw = s.get(id_kind)
+            if raw is None or str(raw).strip() == "":
+                continue
+            loc = venue_locations.get((id_kind, str(raw).strip()))
+            if loc:
+                resolved = (id_kind, str(raw).strip(), loc)
+                break  # first resolvable id decides; unresolved ids carry no signal
+        if resolved is None:
             continue
-        loc = venue_locations.get(("ticketmaster_id", str(tm_id).strip()))
-        if not loc:
-            continue  # unresolved id carries no geo signal
+        id_kind, venue_id, loc = resolved
         club_state = (s.get("state") or "").strip().upper()
         club_city = (s.get("city") or "").strip().lower()
         venue_state = (loc.get("state") or "").strip().upper()
@@ -450,7 +572,8 @@ def _source_venue_geo_mismatch(sources: list, venue_locations: dict) -> list:
         if venue_state and club_state and venue_state != club_state:
             mismatch = "state"
         elif (venue_state and club_state and venue_state == club_state
-              and venue_city and club_city and venue_city != club_city):
+              and venue_city and club_city
+              and _normalize_city(venue_city) != _normalize_city(club_city)):
             mismatch = "city"
         else:
             continue
@@ -464,8 +587,8 @@ def _source_venue_geo_mismatch(sources: list, venue_locations: dict) -> list:
             "source_id": s["source_id"],
             "platform": s["platform"],
             "enabled": s["enabled"],
-            "venue_id_kind": "ticketmaster_id",
-            "venue_id": str(tm_id).strip(),
+            "venue_id_kind": id_kind,
+            "venue_id": venue_id,
             "venue_name": loc.get("name"),
             "venue_city": loc.get("city"),
             "venue_state": loc.get("state"),
@@ -579,36 +702,60 @@ def main() -> None:
         results["shared_venue_across_geo"] = _shared_venue_across_geo(
             sources, args.include_chains)
     if "source_venue_geo_mismatch" in signals:
-        api_key = os.environ.get("TICKETMASTER_API_KEY")
-        if not api_key:
+        # Per-platform venue resolution: (id_kind, credential env var, resolver,
+        # human label). Each RESOLVABLE_VENUE_ID_KINDS column is resolved with
+        # its own API when ids are present AND the credential is set; platforms
+        # missing the credential are skipped with a warning rather than aborting
+        # the whole signal, so a TM-only or Eventbrite-only environment still
+        # works.
+        platform_resolvers = (
+            ("ticketmaster_id", "TICKETMASTER_API_KEY",
+             _resolve_ticketmaster_venues, "TM Discovery"),
+            ("eventbrite_id", "EVENTBRITE_PRIVATE_TOKEN",
+             _resolve_eventbrite_venues, "Eventbrite venues"),
+        )
+        venue_locations = {}
+        resolved_any = False
+        for id_kind, env_var, resolver, label in platform_resolvers:
+            ids = {
+                str(s[id_kind]).strip()
+                for s in sources
+                if s.get(id_kind) is not None and str(s[id_kind]).strip() != ""
+            }
+            if not ids:
+                continue
+            credential = os.environ.get(env_var)
+            if not credential:
+                print(
+                    f"  skipping {id_kind}: {len(ids)} id(s) present but {env_var} "
+                    f"is not set — cannot resolve via the {label} API.",
+                    file=sys.stderr,
+                )
+                continue
+            resolved_any = True
             print(
-                "Error: source_venue_geo_mismatch requires TICKETMASTER_API_KEY "
-                f"in the environment or {ENV_FILE}.",
+                f"resolving {len(ids)} distinct {id_kind} venue id(s) via the "
+                f"{label} API...",
+                file=sys.stderr,
+            )
+            resolved = resolver(ids, credential, max_resolve=args.max_resolve)
+            unresolved = sum(1 for v in resolved.values() if not v)
+            if unresolved:
+                print(
+                    f"  ({unresolved}/{len(resolved)} {id_kind} could not be resolved)",
+                    file=sys.stderr,
+                )
+            for vid, loc in resolved.items():
+                venue_locations[(id_kind, vid)] = loc
+        if not resolved_any:
+            print(
+                "Error: source_venue_geo_mismatch resolved nothing — no platform "
+                "had both venue ids present and the required credential set "
+                "(TICKETMASTER_API_KEY for ticketmaster_id, EVENTBRITE_PRIVATE_TOKEN "
+                f"for eventbrite_id). Set at least one in {ENV_FILE}.",
                 file=sys.stderr,
             )
             sys.exit(1)
-        tm_ids = {
-            str(s["ticketmaster_id"]).strip()
-            for s in sources
-            if s.get("ticketmaster_id") is not None
-            and str(s["ticketmaster_id"]).strip() != ""
-        }
-        print(
-            f"resolving {len(tm_ids)} distinct ticketmaster venue id(s) via the "
-            "TM Discovery API...",
-            file=sys.stderr,
-        )
-        resolved = _resolve_ticketmaster_venues(
-            tm_ids, api_key, max_resolve=args.max_resolve)
-        unresolved = sum(1 for v in resolved.values() if not v)
-        if unresolved:
-            print(
-                f"  ({unresolved}/{len(resolved)} venue id(s) could not be resolved)",
-                file=sys.stderr,
-            )
-        venue_locations = {
-            ("ticketmaster_id", vid): loc for vid, loc in resolved.items()
-        }
         results["source_venue_geo_mismatch"] = _source_venue_geo_mismatch(
             sources, venue_locations)
 
