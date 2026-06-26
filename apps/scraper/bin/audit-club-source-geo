@@ -398,10 +398,9 @@ def _resolve_ticketmaster_venue(venue_id: str, api_key: str, *, timeout: int = 3
         return None
     city = (data.get("city") or {}).get("name")
     state = (data.get("state") or {}).get("stateCode")
-    country = (data.get("country") or {}).get("countryCode")
     if not city and not state:
         return None
-    return {"name": data.get("name"), "city": city, "state": state, "country": country}
+    return {"name": data.get("name"), "city": city, "state": state}
 
 
 def _resolve_ticketmaster_venues(venue_ids, api_key: str, *, max_resolve=None) -> dict:

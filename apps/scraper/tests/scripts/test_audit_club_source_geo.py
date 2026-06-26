@@ -287,6 +287,115 @@ def test_format_csv_source_venue_geo_mismatch(mod):
     assert "Hollywood" in out
 
 
+# ---- network helpers (requests mocked) ---------------------------------
+
+class _FakeResp:
+    def __init__(self, status_code, payload=None, raise_json=False):
+        self.status_code = status_code
+        self._payload = payload
+        self._raise_json = raise_json
+
+    @property
+    def ok(self):
+        return 200 <= self.status_code < 300
+
+    def json(self):
+        if self._raise_json:
+            raise ValueError("not json")
+        return self._payload
+
+
+def test_resolve_tm_venue_success(mod, monkeypatch):
+    import requests
+    monkeypatch.setattr(requests, "get", lambda *a, **k: _FakeResp(
+        200, {"name": "Hard Rock Live", "city": {"name": "Hollywood"},
+              "state": {"stateCode": "FL"}, "country": {"countryCode": "US"}}))
+    loc = mod._resolve_ticketmaster_venue("V1", "key")
+    assert loc == {"name": "Hard Rock Live", "city": "Hollywood", "state": "FL"}
+
+
+def test_resolve_tm_venue_404_returns_none(mod, monkeypatch):
+    import requests
+    monkeypatch.setattr(requests, "get", lambda *a, **k: _FakeResp(404))
+    assert mod._resolve_ticketmaster_venue("V1", "key") is None
+
+
+def test_resolve_tm_venue_non_ok_returns_none(mod, monkeypatch):
+    import requests
+    monkeypatch.setattr(requests, "get", lambda *a, **k: _FakeResp(500))
+    assert mod._resolve_ticketmaster_venue("V1", "key") is None
+
+
+def test_resolve_tm_venue_non_json_returns_none(mod, monkeypatch):
+    import requests
+    monkeypatch.setattr(requests, "get",
+                        lambda *a, **k: _FakeResp(200, raise_json=True))
+    assert mod._resolve_ticketmaster_venue("V1", "key") is None
+
+
+def test_resolve_tm_venue_no_geo_returns_none(mod, monkeypatch):
+    """A record with neither city nor state carries no usable geo signal."""
+    import requests
+    monkeypatch.setattr(requests, "get", lambda *a, **k: _FakeResp(
+        200, {"name": "X", "city": None, "state": None}))
+    assert mod._resolve_ticketmaster_venue("V1", "key") is None
+
+
+def test_resolve_tm_venue_request_exception_returns_none(mod, monkeypatch):
+    import requests
+
+    def boom(*a, **k):
+        raise requests.RequestException("network down")
+
+    monkeypatch.setattr(requests, "get", boom)
+    assert mod._resolve_ticketmaster_venue("V1", "key") is None
+
+
+def test_resolve_tm_venue_429_retries_then_succeeds(mod, monkeypatch):
+    import requests
+    calls = {"n": 0}
+
+    def flaky(*a, **k):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return _FakeResp(429)
+        return _FakeResp(200, {"name": "X", "city": {"name": "Reno"},
+                               "state": {"stateCode": "NV"}})
+
+    monkeypatch.setattr(requests, "get", flaky)
+    monkeypatch.setattr(mod.time, "sleep", lambda *_a, **_k: None)  # no real backoff
+    loc = mod._resolve_ticketmaster_venue("V1", "key")
+    assert calls["n"] == 2
+    assert loc["state"] == "NV"
+
+
+def test_resolve_tm_venues_dedup_and_pacing(mod, monkeypatch):
+    """Driver resolves each id once and paces between calls (not before the first)."""
+    import requests
+    seen = []
+    monkeypatch.setattr(requests, "get", lambda url, *a, **k: (
+        seen.append(url) or _FakeResp(200, {"name": "X", "city": {"name": "A"},
+                                            "state": {"stateCode": "CA"}})))
+    sleeps = []
+    monkeypatch.setattr(mod.time, "sleep", lambda s: sleeps.append(s))
+    out = mod._resolve_ticketmaster_venues({"B", "A"}, "key")
+    assert set(out) == {"A", "B"}
+    assert len(seen) == 2          # one network call per distinct id
+    assert len(sleeps) == 1        # paced between the 2 calls, none before the first
+
+
+def test_resolve_tm_venues_max_resolve_caps(mod, monkeypatch):
+    import requests
+    seen = []
+    monkeypatch.setattr(requests, "get", lambda url, *a, **k: (
+        seen.append(url) or _FakeResp(200, {"name": "X", "city": {"name": "A"},
+                                            "state": {"stateCode": "CA"}})))
+    monkeypatch.setattr(mod.time, "sleep", lambda *_a, **_k: None)
+    out = mod._resolve_ticketmaster_venues({"A", "B", "C"}, "key", max_resolve=1)
+    assert len(seen) == 1
+    assert len(out) == 1
+
+
 # ---- CSV / _flatten_shared ---------------------------------------------
 
 def test_format_csv_website_mismatch(mod):
