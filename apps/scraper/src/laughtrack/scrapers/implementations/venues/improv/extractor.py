@@ -29,10 +29,67 @@ class ImprovExtractor:
     - process_ticket_url(): Complete ticket URL processing (main orchestrator)
     """
 
+    _TICKETWEB_EXPLICIT_FREE_PATTERN = re.compile(
+        r"\$0\.00\s*\(\s*\$0\.00\s*\+\s*\$0\.00\s+fees?\s*\)",
+        re.IGNORECASE,
+    )
+    _TICKETWEB_UNAVAILABLE_PATTERN = re.compile(
+        r"(no more tickets currently available|tickets currently unavailable|tickets are currently unavailable|"
+        r"currently not available for purchase|join our email waitlist|email waitlist)",
+        re.IGNORECASE,
+    )
+
     @staticmethod
     def _is_trailing_period_suffix_comic_link(url: str) -> bool:
         path = urlparse(url).path.rstrip("/").lower()
         return bool(re.search(r"/comic/[^/]+\+(?:jr|sr)\.$", path))
+
+    @staticmethod
+    def _is_ticketweb_url(url: str) -> bool:
+        hostname = urlparse(url or "").hostname or ""
+        return hostname.lower().endswith("ticketweb.com")
+
+    @staticmethod
+    def _price_is_zero(price) -> bool:
+        if price is None:
+            return False
+        try:
+            normalized = str(price).strip().replace("$", "").replace(",", "")
+            return float(normalized) == 0.0
+        except (TypeError, ValueError):
+            return False
+
+    @staticmethod
+    def _normalize_ticketweb_offers(ticket_html: str, ticket_url: str, ticket_offers: List[dict]) -> List[dict]:
+        """
+        TicketWeb JSON-LD often reports price 0 for unavailable or not-yet-rendered offers.
+
+        Keep zero only when the rendered page has explicit free-ticket selector text.
+        """
+        if not ticket_offers:
+            return ticket_offers
+
+        is_ticketweb_page = ImprovExtractor._is_ticketweb_url(ticket_url) or any(
+            ImprovExtractor._is_ticketweb_url(offer.get("url", "")) for offer in ticket_offers
+        )
+        if not is_ticketweb_page:
+            return ticket_offers
+
+        explicit_free = bool(ImprovExtractor._TICKETWEB_EXPLICIT_FREE_PATTERN.search(ticket_html or ""))
+        unavailable = bool(ImprovExtractor._TICKETWEB_UNAVAILABLE_PATTERN.search(ticket_html or ""))
+
+        normalized_offers = []
+        for offer in ticket_offers:
+            normalized_offer = dict(offer)
+            if unavailable:
+                normalized_offer["availability"] = "https://schema.org/SoldOut"
+                if not explicit_free:
+                    normalized_offer["price"] = None
+            elif ImprovExtractor._price_is_zero(normalized_offer.get("price")) and not explicit_free:
+                normalized_offer["price"] = None
+            normalized_offers.append(normalized_offer)
+
+        return normalized_offers
 
     @staticmethod
     def extract_event_urls(html: str, base_url: str, logger_context: Optional[Dict] = None) -> List[str]:
@@ -83,11 +140,7 @@ class ImprovExtractor:
             # New markup uses anchor elements whose class list contains "item"
             # Example: <a class="item showcase wtimes hasclubline" href="/addison/event/..." ...>
             links = HtmlScraper.find_links_by_class(html=html, class_name="item", base_url=url)
-            filtered_links = [
-                link
-                for link in links
-                if not ImprovExtractor._is_trailing_period_suffix_comic_link(link)
-            ]
+            filtered_links = [link for link in links if not ImprovExtractor._is_trailing_period_suffix_comic_link(link)]
             if len(filtered_links) != len(links):
                 Logger.info(
                     f"Filtered {len(links) - len(filtered_links)} trailing-period suffix comic link(s)",
@@ -198,11 +251,19 @@ class ImprovExtractor:
             improv_events = []
             for event in json_ld_events:
                 ticket_offers = [
-                    {"url": offer.url, "price": offer.price, "name": offer.name or "General Admission", "availability": offer.availability}
+                    {
+                        "url": offer.url,
+                        "price": offer.price,
+                        "name": offer.name or "General Admission",
+                        "availability": offer.availability,
+                    }
                     for offer in (event.offers or [])
                 ]
+                ticket_offers = ImprovExtractor._normalize_ticketweb_offers(ticket_html, ticket_url, ticket_offers)
                 improv_events.append(
-                    ImprovExtractor.create_improv_event(event, ticket_offers=ticket_offers, source_url=ticket_url, logger_context=logger_context)
+                    ImprovExtractor.create_improv_event(
+                        event, ticket_offers=ticket_offers, source_url=ticket_url, logger_context=logger_context
+                    )
                 )
             improv_events = [e for e in improv_events if e is not None]
 
