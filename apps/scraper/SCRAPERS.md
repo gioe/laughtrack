@@ -1642,6 +1642,59 @@ VALUES (<club_id>, 'custom', 'do314',
 
 ---
 
+### iCalendar / Google Calendar (ICS)
+
+| | |
+|---|---|
+| **Scraper key** | `ical` (reference: `Hot Java Bar`) |
+| **Platform** | `custom` (no enum value; resolved by scraper_key) |
+| **DB field** | `scraping_sources.source_url` = the public ICS feed URL |
+| **Value format** | `https://calendar.google.com/calendar/ical/<calendar-id>/public/basic.ics` (or any public `.ics`) |
+| **Generic?** | ✅ Generic for any public ICS feed; most commonly a Google Calendar embed |
+
+**Detection signals:**
+- The venue's own events page embeds a calendar `<iframe src="https://calendar.google.com/calendar/embed?src=<id>...">`. The `src=<id>` (URL-decoded email, e.g. `hotjavaevents@gmail.com`) is the calendar id.
+- Any `.ics` / `text/calendar` link, or a "Add to Google Calendar" / "Subscribe" button.
+
+**API/source pattern:**
+```
+GET https://calendar.google.com/calendar/ical/<url-encoded-calendar-id>/public/basic.ics
+-> text/calendar (RFC 5545): BEGIN:VCALENDAR ... BEGIN:VEVENT ... END:VEVENT ...
+```
+- No auth/params; a plain UA is sufficient. Convert an embed `src=hotjavaevents@gmail.com` to the feed by URL-encoding the id: `.../ical/hotjavaevents%40gmail.com/public/basic.ics`.
+
+**Key extraction notes:**
+- The scraper ships a small RFC 5545 reader (no `icalendar` dependency): line-unfolding (continuation lines start with a space/tab), VEVENT blocks, and `\n`/`\,`/`\;` text unescaping.
+- `DTSTART` is resolved to a timezone-aware datetime across all forms: UTC `...Z`, `TZID=<zone>:...` (localized to that zone), `VALUE=DATE:YYYYMMDD` (club-tz midnight), and floating (club tz).
+- Google's public feed pre-expands recurring events into individual VEVENT instances, so **no RRULE handling is needed**.
+- `STATUS:CANCELLED` events are skipped. A VEVENT `URL` is only used when it is http(s) — non-web junk (e.g. an `messages://` deep link) falls back to `event_page_url`.
+- **Past events are dropped by default** (1-day grace) since ICS feeds always carry recent history; set `include_past_events: true` to keep them.
+
+**Comedy filter + fallback link (`scraping_sources.metadata`):**
+- `{"include_title_patterns": ["comedy", "open mic", "stand-?up"]}` — mixed-use calendars (a bar's ICS carries music, club nights, private meetings) need this to isolate comedy by SUMMARY.
+- `{"exclude_title_patterns": ["watch party"]}` — drop noise.
+- `{"event_page_url": "https://venue.example/events/"}` — per-show fallback link when a VEVENT has no URL.
+
+**DB setup:**
+```sql
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, priority, enabled, metadata)
+VALUES (<club_id>, 'custom', 'ical',
+        'https://calendar.google.com/calendar/ical/<id>/public/basic.ics', 0, true,
+        '{"include_title_patterns": ["comedy", "open mic"], "event_page_url": "<venue events page>"}'::jsonb);
+```
+
+**Failure modes / gotchas:**
+- Mixed-use calendars without an `include_title_patterns` filter pull in non-comedy events — always set it for bars/cafes.
+- The visible upcoming count fluctuates with the feed window (weekly open-mic instances roll off as they pass); a low count is expected, not a failure.
+- `platform` is the curated `ScrapingPlatform` enum; `ical` is not a member → use `custom`.
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/scrapers/implementations/api/ical/`
+- `apps/scraper/src/laughtrack/core/entities/event/ical_event.py`
+- Reference venue/task: JAVA / Hot Java Bar (St. Louis) — TASK-3310.
+
+---
+
 ### Tixologi (Laugh Factory CMS)
 
 | | |
