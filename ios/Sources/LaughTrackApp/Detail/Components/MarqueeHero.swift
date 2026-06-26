@@ -8,25 +8,17 @@ import LaughTrackBridge
 /// host chips stack below.
 struct MarqueeHero: View {
     @Environment(\.appTheme) private var theme
-    @State private var imageLoadFailed = false
-    /// Whether the loaded poster letterboxes (wide wordmark) or cover-crops.
-    /// nil until the bitmap's intrinsic size has been read back from
-    /// ImageCache — the poster shows the loading placeholder in that window
-    /// so a wordmark never flashes cover-cropped first.
-    @State private var posterLetterbox: Bool?
 
     let title: String
     var eyebrow: String? = nil
     let imageURL: String
+    var thumbnailStyle: MarqueeHeroThumbnailStyle = .marqueePoster
     var badges: [DetailHeroBadge] = []
     var actions: [DetailHeroAction] = []
     var hosts: [DetailHeroHost] = []
     var openURL: ((URL) -> Void)? = nil
     var openComedian: ((Int) -> Void)? = nil
     var fallbackSystemImage: String = "ticket.fill"
-
-    private static let posterSize: CGFloat = 196
-    private static let frameInset: CGFloat = 10
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
@@ -60,7 +52,7 @@ struct MarqueeHero: View {
                 .shadow(color: .black.opacity(0.6), radius: 4, x: 0, y: 2)
                 .padding(.horizontal, 24)
 
-            posterWithFrame
+            heroThumbnail
 
             if !badges.isEmpty {
                 HStack(spacing: theme.spacing.sm) {
@@ -171,110 +163,31 @@ struct MarqueeHero: View {
         )
     }
 
-    private var posterWithFrame: some View {
-        let laughTrack = theme.laughTrackTokens
-
-        return ZStack {
-            poster
-                .frame(width: Self.posterSize, height: Self.posterSize)
-                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .stroke(Color.black.opacity(0.55), lineWidth: 1)
-                )
-
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(
-                    laughTrack.colors.accentStrong,
-                    style: StrokeStyle(
-                        lineWidth: 3,
-                        lineCap: .round,
-                        lineJoin: .round,
-                        dash: [0.5, 9]
-                    )
-                )
-                .frame(
-                    width: Self.posterSize + Self.frameInset,
-                    height: Self.posterSize + Self.frameInset
-                )
-                .shadow(color: laughTrack.colors.accentStrong.opacity(0.65), radius: 6)
-                .shadow(color: laughTrack.colors.accentStrong.opacity(0.3), radius: 14)
-        }
-    }
-
     @ViewBuilder
-    private var poster: some View {
-        let laughTrack = theme.laughTrackTokens
-        let url = URL.normalizedExternalURL(imageURL)
-
-        if let url, !imageLoadFailed {
-            CachedAsyncImage(url: url) { image in
-                posterContent(image: image, url: url)
-            } placeholder: {
-                Rectangle().fill(laughTrack.colors.surfaceElevated)
-            } error: { _ in
-                posterFallback
-                    .onAppear { imageLoadFailed = true }
-            }
-        } else {
-            posterFallback
+    private var heroThumbnail: some View {
+        switch thumbnailStyle {
+        case .marqueePoster:
+            MarqueePosterThumbnail(
+                imageURL: imageURL,
+                fallbackSystemImage: fallbackSystemImage
+            )
+        case .framedComedian(let caption):
+            FramedComedianThumbnail(
+                caption: caption,
+                imageURL: imageURL,
+                fallbackSystemImage: fallbackSystemImage
+            )
+        case .clubMarquee:
+            ClubMarqueeThumbnail(
+                imageURL: imageURL,
+                fallbackSystemImage: fallbackSystemImage
+            )
+        case .podcastRail:
+            PodcastRailThumbnail(
+                imageURL: imageURL,
+                fallbackSystemImage: fallbackSystemImage
+            )
         }
-    }
-
-    /// Treatment for a successfully loaded poster. Wide wordmark logos
-    /// (aspect ratio ≥ `MarqueePosterLayout.logoAspectThreshold`) letterbox
-    /// with scaledToFit plus padding on a surfaceMuted backing — mirroring
-    /// the web show header's TASK-2787 treatment (object-contain p-3 on
-    /// surface-muted) — while everything below the threshold keeps the
-    /// original scaledToFill cover crop. The decision needs the bitmap's
-    /// intrinsic size, which CachedAsyncImage's content closure doesn't
-    /// expose; the loaded image is guaranteed to already be in ImageCache by
-    /// the time this renders (the load path stores before flipping to
-    /// .loaded), so the .task query is a memory hit. Until it resolves,
-    /// render the same placeholder as the loading phase — the web hides the
-    /// image until onLoad for the same no-flash reason.
-    @ViewBuilder
-    private func posterContent(image: Image, url: URL) -> some View {
-        let laughTrack = theme.laughTrackTokens
-
-        ZStack {
-            switch posterLetterbox {
-            case nil:
-                Rectangle().fill(laughTrack.colors.surfaceElevated)
-            case true?:
-                laughTrack.colors.surfaceMuted
-                image
-                    .resizable()
-                    .scaledToFit()
-                    .padding(MarqueePosterLayout.letterboxPadding)
-            case false?:
-                image
-                    .resizable()
-                    .scaledToFill()
-            }
-        }
-        .task(id: url) {
-            // Recompute unconditionally: the query is a guaranteed memory
-            // hit, and an id-change re-fire (the hero URL swapped in place
-            // under a persisting view identity) must repair the decision
-            // rather than keep the previous image's treatment.
-            let cached = await ImageCache.shared.image(for: url)
-            posterLetterbox = cached.map {
-                MarqueePosterLayout.shouldLetterbox(imageSize: $0.size)
-            } ?? false
-        }
-    }
-
-    private var posterFallback: some View {
-        let laughTrack = theme.laughTrackTokens
-
-        return Rectangle()
-            .fill(laughTrack.colors.surfaceMuted)
-            .overlay {
-                Image(systemName: fallbackSystemImage)
-                    .font(.system(size: 64, weight: .semibold))
-                    .foregroundStyle(laughTrack.colors.accentStrong)
-            }
     }
 
     @ViewBuilder
@@ -383,6 +296,380 @@ struct MarqueeHero: View {
             .overlay {
                 Image(systemName: "person.fill")
                     .font(.system(size: theme.iconSizes.md, weight: .semibold))
+                    .foregroundStyle(laughTrack.colors.accentStrong)
+            }
+    }
+}
+
+enum MarqueeHeroThumbnailStyle {
+    case marqueePoster
+    case framedComedian(caption: String)
+    case clubMarquee
+    case podcastRail
+}
+
+struct MarqueePosterThumbnail: View {
+    let imageURL: String
+    let fallbackSystemImage: String
+
+    @Environment(\.appTheme) private var theme
+    @State private var imageLoadFailed = false
+    /// Whether the loaded poster letterboxes (wide wordmark) or cover-crops.
+    /// nil until the bitmap's intrinsic size has been read back from
+    /// ImageCache — the poster shows the loading placeholder in that window
+    /// so a wordmark never flashes cover-cropped first.
+    @State private var posterLetterbox: Bool?
+
+    static let posterSize: CGFloat = 196
+    static let frameInset: CGFloat = 10
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        ZStack {
+            poster
+                .frame(width: Self.posterSize, height: Self.posterSize)
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .stroke(Color.black.opacity(0.55), lineWidth: 1)
+                )
+
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .strokeBorder(
+                    laughTrack.colors.accentStrong,
+                    style: StrokeStyle(
+                        lineWidth: 3,
+                        lineCap: .round,
+                        lineJoin: .round,
+                        dash: [0.5, 9]
+                    )
+                )
+                .frame(
+                    width: Self.posterSize + Self.frameInset,
+                    height: Self.posterSize + Self.frameInset
+                )
+                .shadow(color: laughTrack.colors.accentStrong.opacity(0.65), radius: 6)
+                .shadow(color: laughTrack.colors.accentStrong.opacity(0.3), radius: 14)
+        }
+    }
+
+    @ViewBuilder
+    private var poster: some View {
+        let laughTrack = theme.laughTrackTokens
+        let url = URL.normalizedExternalURL(imageURL)
+
+        if let url, !imageLoadFailed {
+            CachedAsyncImage(url: url) { image in
+                posterContent(image: image, url: url)
+            } placeholder: {
+                Rectangle().fill(laughTrack.colors.surfaceElevated)
+            } error: { _ in
+                posterFallback
+                    .onAppear { imageLoadFailed = true }
+            }
+        } else {
+            posterFallback
+        }
+    }
+
+    /// Treatment for a successfully loaded poster. Wide wordmark logos
+    /// (aspect ratio ≥ `MarqueePosterLayout.logoAspectThreshold`) letterbox
+    /// with scaledToFit plus padding on a surfaceMuted backing — mirroring
+    /// the web show header's TASK-2787 treatment (object-contain p-3 on
+    /// surface-muted) — while everything below the threshold keeps the
+    /// original scaledToFill cover crop. The decision needs the bitmap's
+    /// intrinsic size, which CachedAsyncImage's content closure doesn't
+    /// expose; the loaded image is guaranteed to already be in ImageCache by
+    /// the time this renders (the load path stores before flipping to
+    /// .loaded), so the .task query is a memory hit. Until it resolves,
+    /// render the same placeholder as the loading phase — the web hides the
+    /// image until onLoad for the same no-flash reason.
+    @ViewBuilder
+    private func posterContent(image: Image, url: URL) -> some View {
+        let laughTrack = theme.laughTrackTokens
+
+        ZStack {
+            switch posterLetterbox {
+            case nil:
+                Rectangle().fill(laughTrack.colors.surfaceElevated)
+            case true?:
+                laughTrack.colors.surfaceMuted
+                image
+                    .resizable()
+                    .scaledToFit()
+                    .padding(MarqueePosterLayout.letterboxPadding)
+            case false?:
+                image
+                    .resizable()
+                    .scaledToFill()
+            }
+        }
+        .task(id: url) {
+            // Recompute unconditionally: the query is a guaranteed memory
+            // hit, and an id-change re-fire (the hero URL swapped in place
+            // under a persisting view identity) must repair the decision
+            // rather than keep the previous image's treatment.
+            let cached = await ImageCache.shared.image(for: url)
+            posterLetterbox = cached.map {
+                MarqueePosterLayout.shouldLetterbox(imageSize: $0.size)
+            } ?? false
+        }
+    }
+
+    private var posterFallback: some View {
+        DetailThumbnailFallback(systemImage: fallbackSystemImage, iconSize: 64)
+    }
+}
+
+struct FramedComedianThumbnail: View {
+    let caption: String
+    let imageURL: String
+    let fallbackSystemImage: String
+
+    @Environment(\.appTheme) private var theme
+
+    private static let headshotSize: CGFloat = 208
+    private static let cornerRadius: CGFloat = 12
+
+    var body: some View {
+        VStack(spacing: 8) {
+            DetailThumbnailImage(
+                imageURL: imageURL,
+                fallbackSystemImage: fallbackSystemImage,
+                contentMode: .fill
+            )
+            .frame(width: Self.headshotSize, height: Self.headshotSize)
+            .clipShape(RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous)
+                    .stroke(Color.black.opacity(0.58), lineWidth: 1.5)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: Self.cornerRadius + 4, style: .continuous)
+                    .stroke(theme.laughTrackTokens.colors.accentStrong.opacity(0.62), lineWidth: 1)
+                    .padding(-5)
+            )
+            .shadow(color: .black.opacity(0.42), radius: 12, y: 7)
+
+            HeadshotNameplate(name: caption)
+        }
+        .rotationEffect(.degrees(-0.4))
+    }
+}
+
+private struct HeadshotNameplate: View {
+    let name: String
+
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        Text(name.uppercased())
+            .font(.system(size: 13, weight: .semibold, design: .serif))
+            .tracking(0.7)
+            .foregroundStyle(Color.black.opacity(0.76))
+            .lineLimit(1)
+            .minimumScaleFactor(0.65)
+            .padding(.horizontal, 18)
+            .frame(height: 28)
+            .background(
+                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                    .fill(Color(red: 0.88, green: 0.84, blue: 0.75))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 4, style: .continuous)
+                            .stroke(Color.white.opacity(0.35), lineWidth: 1)
+                    )
+            )
+            .shadow(color: .black.opacity(0.30), radius: 5, y: 3)
+            .accessibilityHidden(true)
+    }
+}
+
+struct ClubMarqueeThumbnail: View {
+    let imageURL: String
+    let fallbackSystemImage: String
+
+    @Environment(\.appTheme) private var theme
+
+    private static let clubBulbColor = Color(red: 1.0, green: 0.78, blue: 0.24)
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        ZStack {
+            DetailThumbnailImage(
+                imageURL: imageURL,
+                fallbackSystemImage: fallbackSystemImage,
+                contentMode: .fit
+            )
+            .frame(width: MarqueePosterThumbnail.posterSize, height: MarqueePosterThumbnail.posterSize)
+            .background(laughTrack.colors.surfaceMuted)
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .stroke(Color.black.opacity(0.55), lineWidth: 1)
+            )
+
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .strokeBorder(
+                    Self.clubBulbColor,
+                    style: StrokeStyle(
+                        lineWidth: 2,
+                        lineCap: .round,
+                        lineJoin: .round,
+                        dash: [1.2, 10]
+                    )
+                )
+                .frame(
+                    width: MarqueePosterThumbnail.posterSize + MarqueePosterThumbnail.frameInset,
+                    height: MarqueePosterThumbnail.posterSize + MarqueePosterThumbnail.frameInset
+                )
+                .shadow(color: Self.clubBulbColor.opacity(0.70), radius: 4)
+                .shadow(color: Self.clubBulbColor.opacity(0.34), radius: 9)
+        }
+    }
+}
+
+struct PodcastRailThumbnail: View {
+    let imageURL: String
+    let fallbackSystemImage: String
+
+    @Environment(\.appTheme) private var theme
+
+    private static let coverSize: CGFloat = 150
+    private static let coverCornerRadius: CGFloat = 12
+    private static let stageWidth: CGFloat = 224
+    private static let stageHeight: CGFloat = 210
+
+    var body: some View {
+        ZStack {
+            HomeMarqueeStageBackground(glowOpacity: 0.18)
+
+            VStack(spacing: 12) {
+                podcastCover
+                waveformStrip
+            }
+        }
+        .frame(width: Self.stageWidth, height: Self.stageHeight)
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+    }
+
+    private var podcastCover: some View {
+        DetailThumbnailImage(
+            imageURL: imageURL,
+            fallbackSystemImage: fallbackSystemImage,
+            contentMode: .fill
+        )
+        .frame(width: Self.coverSize, height: Self.coverSize)
+        .clipShape(RoundedRectangle(cornerRadius: Self.coverCornerRadius, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: Self.coverCornerRadius, style: .continuous)
+                .stroke(Color.black.opacity(0.55), lineWidth: 1)
+        )
+        .overlay(alignment: .topTrailing) {
+            rssBadge
+                .padding(7)
+        }
+        .shadow(color: .black.opacity(0.42), radius: 10, y: 6)
+    }
+
+    private var rssBadge: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return ZStack {
+            Circle()
+                .fill(Color.black.opacity(0.72))
+
+            Image(systemName: "dot.radiowaves.left.and.right")
+                .font(.system(size: 13, weight: .heavy))
+                .foregroundStyle(laughTrack.colors.accentStrong)
+        }
+        .frame(width: 30, height: 30)
+        .overlay(
+            Circle()
+                .stroke(laughTrack.colors.accentStrong.opacity(0.92), lineWidth: 1)
+        )
+        .shadow(color: laughTrack.colors.accentStrong.opacity(0.35), radius: 6)
+    }
+
+    private var waveformStrip: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return HStack(spacing: 4) {
+            Image(systemName: "waveform")
+                .font(.system(size: 12, weight: .bold))
+                .foregroundStyle(laughTrack.colors.accentStrong.opacity(0.92))
+
+            HStack(alignment: .center, spacing: 3) {
+                ForEach(0..<9, id: \.self) { index in
+                    Capsule(style: .continuous)
+                        .fill(laughTrack.colors.accentStrong.opacity(0.92))
+                        .frame(width: 3, height: CGFloat([8, 16, 11, 22, 13, 18, 9, 14, 7][index]))
+                }
+            }
+        }
+        .padding(.horizontal, 10)
+        .frame(height: 24)
+        .background(Color.black.opacity(0.36), in: Capsule(style: .continuous))
+    }
+}
+
+private enum DetailThumbnailContentMode {
+    case fill
+    case fit
+}
+
+private struct DetailThumbnailImage: View {
+    let imageURL: String
+    let fallbackSystemImage: String
+    var contentMode: DetailThumbnailContentMode = .fill
+
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+        let url = URL.normalizedExternalURL(imageURL)
+
+        Group {
+            if let url {
+                CachedAsyncImage(url: url) { image in
+                    switch contentMode {
+                    case .fill:
+                        image.resizable().scaledToFill()
+                    case .fit:
+                        image.resizable().scaledToFit()
+                    }
+                } placeholder: {
+                    Rectangle()
+                        .fill(laughTrack.colors.surfaceMuted)
+                        .overlay {
+                            ProgressView()
+                                .tint(laughTrack.colors.accent)
+                        }
+                } error: { _ in
+                    DetailThumbnailFallback(systemImage: fallbackSystemImage)
+                }
+            } else {
+                DetailThumbnailFallback(systemImage: fallbackSystemImage)
+            }
+        }
+    }
+}
+
+private struct DetailThumbnailFallback: View {
+    let systemImage: String
+    var iconSize: CGFloat = 44
+
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        Rectangle()
+            .fill(laughTrack.colors.surfaceMuted)
+            .overlay {
+                Image(systemName: systemImage)
+                    .font(.system(size: iconSize, weight: .semibold))
                     .foregroundStyle(laughTrack.colors.accentStrong)
             }
     }

@@ -12,6 +12,11 @@ data class SearchResult(
     val metadata: List<String> = emptyList(),
     val imageUrl: String?,
     val route: AppRoute,
+    val showDate: String? = null,
+    val showTimezone: String? = null,
+    val showRoom: String? = null,
+    val showPriceLabel: String? = null,
+    val isSoldOut: Boolean = false,
 ) {
     val artworkUrl: String?
         get() = imageUrl?.trim()?.takeIf { it.isNotEmpty() }

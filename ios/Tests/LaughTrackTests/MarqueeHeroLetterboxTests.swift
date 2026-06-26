@@ -1,4 +1,5 @@
 import CoreGraphics
+import Foundation
 import Testing
 @testable import LaughTrackApp
 
@@ -41,5 +42,82 @@ struct MarqueeHeroLetterboxTests {
     func constantsMirrorWeb() {
         #expect(MarqueePosterLayout.logoAspectThreshold == 2)
         #expect(MarqueePosterLayout.letterboxPadding == 12)
+    }
+
+    @Test("detail hero exposes named thumbnail primitive styles")
+    func detailHeroExposesNamedThumbnailPrimitiveStyles() throws {
+        let source = try String(contentsOf: detailComponentSourceURL(named: "MarqueeHero.swift"), encoding: .utf8)
+        let clubBlock = try sourceBlock(
+            in: source,
+            from: "struct ClubMarqueeThumbnail",
+            to: "struct PodcastRailThumbnail"
+        )
+        let comedianBlock = try sourceBlock(
+            in: source,
+            from: "struct FramedComedianThumbnail",
+            to: "struct ClubMarqueeThumbnail"
+        )
+
+        #expect(source.contains("enum MarqueeHeroThumbnailStyle"))
+        #expect(source.contains("case marqueePoster"))
+        #expect(source.contains("case framedComedian"))
+        #expect(source.contains("case clubMarquee"))
+        #expect(source.contains("case podcastRail"))
+        #expect(source.contains("struct FramedComedianThumbnail"))
+        #expect(source.contains("struct ClubMarqueeThumbnail"))
+        #expect(source.contains("struct PodcastRailThumbnail"))
+        #expect(comedianBlock.contains("private static let headshotSize: CGFloat = 208"))
+        #expect(comedianBlock.contains("HeadshotNameplate(name: caption)"))
+        #expect(comedianBlock.contains("Text(name.uppercased())"))
+        #expect(!comedianBlock.contains("ClubWallHeadshotFrame("))
+        #expect(clubBlock.contains("private static let clubBulbColor = Color(red: 1.0, green: 0.78, blue: 0.24)"))
+        #expect(clubBlock.contains("dash: [1.2, 10]"))
+        #expect(!clubBlock.contains("laughTrack.colors.accentStrong"))
+    }
+
+    @Test("entity detail screens select their requested thumbnail primitive")
+    func entityDetailScreensSelectRequestedThumbnailPrimitive() throws {
+        let comedian = try String(contentsOf: detailViewSourceURL(named: "ComedianDetailView.swift"), encoding: .utf8)
+        let club = try String(contentsOf: detailViewSourceURL(named: "ClubDetailView.swift"), encoding: .utf8)
+        let podcast = try String(contentsOf: detailViewSourceURL(named: "PodcastDetailView.swift"), encoding: .utf8)
+        let show = try String(contentsOf: detailViewSourceURL(named: "ShowDetailView.swift"), encoding: .utf8)
+
+        #expect(comedian.contains("thumbnailStyle: .framedComedian(caption: comedian.name)"))
+        #expect(club.contains("thumbnailStyle: .clubMarquee"))
+        #expect(podcast.contains("thumbnailStyle: .podcastRail"))
+        #expect(show.contains("thumbnailStyle: ShowDetailPresentation.heroThumbnailStyle(for: show)"))
+        #expect(show.contains("static func heroThumbnailStyle(for show: Components.Schemas.ShowDetail) -> MarqueeHeroThumbnailStyle"))
+    }
+
+    private func detailComponentSourceURL(named fileName: String, filePath: String = #filePath) throws -> URL {
+        try sourceURL(filePath: filePath, path: "Sources/LaughTrackApp/Detail/Components/\(fileName)")
+    }
+
+    private func detailViewSourceURL(named fileName: String, filePath: String = #filePath) throws -> URL {
+        try sourceURL(filePath: filePath, path: "Sources/LaughTrackApp/Detail/Views/\(fileName)")
+    }
+
+    private func sourceURL(filePath: String, path: String) throws -> URL {
+        let testFileURL = URL(fileURLWithPath: filePath)
+        let iosRoot = testFileURL
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let sourceURL = iosRoot.appendingPathComponent(path)
+        guard FileManager.default.fileExists(atPath: sourceURL.path) else {
+            throw CocoaError(.fileNoSuchFile)
+        }
+        return sourceURL
+    }
+
+    private func sourceBlock(in source: String, from startMarker: String, to endMarker: String) throws -> String {
+        guard
+            let start = source.range(of: startMarker),
+            let end = source.range(of: endMarker, range: start.upperBound..<source.endIndex)
+        else {
+            throw CocoaError(.fileReadCorruptFile)
+        }
+
+        return String(source[start.lowerBound..<end.lowerBound])
     }
 }

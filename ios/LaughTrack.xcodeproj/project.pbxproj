@@ -26,6 +26,7 @@
 		181A795B85D01A9F67BB546F /* DetailLinkCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 362FB74E179068F3F3E96CB7 /* DetailLinkCard.swift */; };
 		19EC027AFC1CFE299CA2976B /* ClubDetailViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6828B86711E4F3F8219EEE5 /* ClubDetailViewTests.swift */; };
 		1A5D6FCCE03D590C5CA528A7 /* ClubsDiscoveryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC9E6D2EAD36D7ADE1013D96 /* ClubsDiscoveryView.swift */; };
+		1B38143AB45F4733A7A41840 /* ClubWallHeadshotFrame.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32112EFCC6DC48D6A76E5863 /* ClubWallHeadshotFrame.swift */; };
 		1B95B72A52E55A1521A3914B /* LaughTrackOfflineOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8FF3C7F0664E4874C83A911 /* LaughTrackOfflineOperation.swift */; };
 		1C7768661C5CFBBC6AA1D19A /* APIClient in Frameworks */ = {isa = PBXBuildFile; productRef = 840EC01CEF9D9E447C26CF81 /* APIClient */; };
 		1D29846232BE8B601CF6C991 /* SharedKit in Frameworks */ = {isa = PBXBuildFile; productRef = 4BE52EFE6EC3A2B61C652F82 /* SharedKit */; };
@@ -388,6 +389,7 @@
 		10BDD51643814940674250AA /* ContentViewNavigationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentViewNavigationTests.swift; sourceTree = "<group>"; };
 		11277FC3FADF5A9B05C97C0C /* TabBarBottomSpacingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarBottomSpacingTests.swift; sourceTree = "<group>"; };
 		11D1764946AE444ED9B200C5 /* ClubsDiscoveryModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClubsDiscoveryModel.swift; sourceTree = "<group>"; };
+		32112EFCC6DC48D6A76E5863 /* ClubWallHeadshotFrame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClubWallHeadshotFrame.swift; sourceTree = "<group>"; };
 		1384478A2C1BDEDDA8C64200 /* DetailModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailModels.swift; sourceTree = "<group>"; };
 		150E1D468A29CD313C7AD85B /* DateRangeDensityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateRangeDensityTests.swift; sourceTree = "<group>"; };
 		15A4C4CDF0A65612934098BF /* OnboardingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingTests.swift; sourceTree = "<group>"; };
@@ -923,6 +925,7 @@
 			isa = PBXGroup;
 			children = (
 				8E0F869A9A6680470A122B0B /* AuthLoadingView.swift */,
+				32112EFCC6DC48D6A76E5863 /* ClubWallHeadshotFrame.swift */,
 				DD8F7FC5CFAE1EB8635F6F55 /* DateRangeFilterSheet.swift */,
 				EBE877FF9B9D76AAC6FFCBA7 /* Demo.swift */,
 				C64E7D37B825D2EB605C8EB2 /* DiscoveryCard.swift */,
@@ -1360,6 +1363,7 @@
 				9009C5A81846DBC1B9A15358 /* AppTab.swift in Sources */,
 				B6400391B2D887C2DD9E88EB /* AuthLoadingView.swift in Sources */,
 				3B430DA4BB446FE59C018E9B /* ClubDetailView.swift in Sources */,
+				1B38143AB45F4733A7A41840 /* ClubWallHeadshotFrame.swift in Sources */,
 				511FC6C382C4400C100D1495 /* ClubsDiscoveryModel.swift in Sources */,
 				1A5D6FCCE03D590C5CA528A7 /* ClubsDiscoveryView.swift in Sources */,
 				5C3CAA72E332C5CE372BEA93 /* ComedianDetailView.swift in Sources */,

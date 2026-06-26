@@ -159,6 +159,34 @@ class FavoritesRepository
                 queue = { next -> offlineQueue.enqueue(FavoriteEntity.CLUB, id.toString(), next) },
             )
 
+        suspend fun setClubFavorite(
+            id: Int,
+            isFavorite: Boolean,
+        ): FavoriteToggleResult {
+            val currentValue = _snapshot.value.clubValues[id] ?: false
+            if (currentValue == isFavorite) return FavoriteToggleResult.Updated(isFavorite)
+            return toggle(
+                key = FavoriteEntity.CLUB.name + id,
+                currentValue = currentValue,
+                optimistic = { next ->
+                    val current = _snapshot.value
+                    _snapshot.value =
+                        current.copy(
+                            clubValues = current.clubValues + (id to next),
+                            clubs = if (next) current.clubs else current.clubs.filterNot { it.id == id },
+                        )
+                },
+                serverCall = { next ->
+                    if (next) {
+                        favoritesApi.addFavoriteClub(AddFavoriteClubRequest(id))
+                    } else {
+                        favoritesApi.removeFavoriteClub(id)
+                    }
+                },
+                queue = { next -> offlineQueue.enqueue(FavoriteEntity.CLUB, id.toString(), next) },
+            )
+        }
+
         suspend fun togglePodcast(id: Int): FavoriteToggleResult =
             toggle(
                 key = FavoriteEntity.PODCAST.name + id,

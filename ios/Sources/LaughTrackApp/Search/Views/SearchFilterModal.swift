@@ -149,7 +149,7 @@ struct SearchFilterModal: View {
         .padding(.top, theme.spacing.xl)
         .padding(.bottom, theme.spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(theme.laughTrackTokens.colors.canvas)
+        .background(LaughTrackAtmosphereBackground())
         .onAppear {
             initialSlugs = selectedSlugs
             didCommit = false

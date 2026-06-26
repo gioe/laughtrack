@@ -163,6 +163,7 @@ struct PodcastDetailView: View {
                         MarqueeHero(
                             title: response.podcast.title,
                             imageURL: response.podcast.imageUrl ?? "",
+                            thumbnailStyle: .podcastRail,
                             badges: PodcastDetailPresentation.heroBadges(for: response.podcast),
                             actions: PodcastDetailPresentation.heroActions(for: response.podcast),
                             hosts: PodcastDetailPresentation.heroHosts(for: response.podcast),
@@ -191,7 +192,7 @@ struct PodcastDetailView: View {
         }
         .ignoresSafeArea(.container, edges: .top)
         .accessibilityIdentifier("laughtrack.podcast-detail-screen")
-        .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
+        .background(LaughTrackAtmosphereBackground().ignoresSafeArea())
         .overlay(alignment: .top) {
             DetailChromeBar(
                 onBack: { coordinator.pop() },

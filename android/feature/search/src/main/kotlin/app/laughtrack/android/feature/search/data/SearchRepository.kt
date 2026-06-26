@@ -5,9 +5,12 @@ import app.laughtrack.android.core.network.generated.api.ClubsApi
 import app.laughtrack.android.core.network.generated.api.ComediansApi
 import app.laughtrack.android.core.network.generated.api.PodcastsApi
 import app.laughtrack.android.core.network.generated.api.ShowsApi
+import app.laughtrack.android.core.network.generated.model.ComedianLineup
+import app.laughtrack.android.core.network.generated.model.Show
 import app.laughtrack.android.feature.search.model.SearchPivot
 import app.laughtrack.android.feature.search.model.SearchQuery
 import app.laughtrack.android.feature.search.model.SearchResult
+import java.math.BigDecimal
 import javax.inject.Inject
 
 /** One page of normalized results plus the server's total (drives hasMore). */
@@ -66,8 +69,18 @@ class SearchRepository
                                     listOfNotNull(show.clubCity, show.clubState).joinToString(", ").ifBlank { null },
                                     show.room,
                                 ),
-                            imageUrl = show.imageUrl,
+                            imageUrl = showSearchArtworkUrl(show),
                             route = AppRoute.ShowDetail(show.id),
+                            showDate = show.date,
+                            showTimezone = show.timezone,
+                            showRoom = show.room,
+                            showPriceLabel =
+                                formatPrice(
+                                    show.tickets
+                                        ?.filter { it.soldOut != true }
+                                        ?.mapNotNull { it.price },
+                                ),
+                            isSoldOut = show.soldOut == true,
                         )
                     },
                 total = body.total,
@@ -174,5 +187,38 @@ class SearchRepository
 
         private companion object {
             const val PAGE_SIZE = 20
+
+            fun formatPrice(prices: List<BigDecimal>?): String? {
+                val sorted = prices?.filter { it >= BigDecimal.ZERO }?.sorted().orEmpty()
+                val lowest = sorted.firstOrNull() ?: return null
+                val highest = sorted.lastOrNull()
+                return when {
+                    lowest.compareTo(BigDecimal.ZERO) == 0 -> "Free"
+                    highest != null && highest != lowest -> "From ${formatSinglePrice(lowest)}"
+                    else -> formatSinglePrice(lowest)
+                }
+            }
+
+            private fun formatSinglePrice(price: BigDecimal): String {
+                val normalized = price.stripTrailingZeros()
+                return "$${normalized.toPlainString()}"
+            }
         }
     }
+
+internal fun showSearchArtworkUrl(show: Show): String? {
+    val headliner =
+        show.lineup
+            ?.map(::effectiveComedian)
+            ?.filter { it.imageUrl.isAbsoluteHttpUrl() }
+            ?.maxByOrNull { it.showCount ?: 0 }
+
+    return headliner?.imageUrl ?: show.imageUrl.takeIf { it.isAbsoluteHttpUrl() }
+}
+
+private fun effectiveComedian(comedian: ComedianLineup): ComedianLineup = comedian.parentComedian ?: comedian
+
+private fun String?.isAbsoluteHttpUrl(): Boolean {
+    val value = this?.trim().orEmpty()
+    return value.startsWith("https://", ignoreCase = true) || value.startsWith("http://", ignoreCase = true)
+}

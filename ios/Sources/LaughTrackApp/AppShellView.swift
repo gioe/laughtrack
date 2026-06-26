@@ -142,7 +142,12 @@ struct AppShellView: View {
         #if os(iOS)
         .toolbar(.hidden, for: .navigationBar)
         #endif
-        .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
+        .background(shellBackground.ignoresSafeArea())
+    }
+
+    @ViewBuilder
+    private var shellBackground: some View {
+        LaughTrackAtmosphereBackground()
     }
 
     private var showFavoritesTab: Bool {
@@ -152,27 +157,37 @@ struct AppShellView: View {
 
     private var tabContent: some View {
         TabView(selection: selectedTabBinding) {
-            HomeView(
-                apiClient: apiClient,
-                signedOutMessage: signedOutMessage,
-                selectedPrimitive: shellState.selectedPrimitive,
-                searchNavigationBridge: searchNavigationBridge,
-                onInitialHomeLoadComplete: onInitialHomeLoadComplete
-            )
-                .tabItem { Label("Discover", systemImage: "sparkles") }
-                .tag(AppTab.nearMe)
+            ZStack {
+                LaughTrackAtmosphereBackground()
+                    .ignoresSafeArea()
 
-            SearchRootView(
-                apiClient: apiClient,
-                favorites: favorites,
-                coordinator: coordinator,
-                searchNavigationBridge: searchNavigationBridge,
-                nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self),
-                isActive: shellState.selectedTab == .search,
-                selectedPrimitive: searchPrimitiveBinding
-            )
-                .tabItem { Label("Search", systemImage: "magnifyingglass") }
-                .tag(AppTab.search)
+                HomeView(
+                    apiClient: apiClient,
+                    signedOutMessage: signedOutMessage,
+                    selectedPrimitive: shellState.selectedPrimitive,
+                    searchNavigationBridge: searchNavigationBridge,
+                    onInitialHomeLoadComplete: onInitialHomeLoadComplete
+                )
+            }
+            .tabItem { Label("Discover", systemImage: "sparkles") }
+            .tag(AppTab.nearMe)
+
+            ZStack {
+                LaughTrackAtmosphereBackground()
+                    .ignoresSafeArea()
+
+                SearchRootView(
+                    apiClient: apiClient,
+                    favorites: favorites,
+                    coordinator: coordinator,
+                    searchNavigationBridge: searchNavigationBridge,
+                    nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self),
+                    isActive: shellState.selectedTab == .search,
+                    selectedPrimitive: searchPrimitiveBinding
+                )
+            }
+            .tabItem { Label("Search", systemImage: "magnifyingglass") }
+            .tag(AppTab.search)
 
             if showFavoritesTab {
                 LibraryView(
@@ -192,6 +207,7 @@ struct AppShellView: View {
         .environmentObject(favorites)
         .tint(podcastPlayer.accentColorOverride ?? theme.colors.primary)
         .animation(.easeInOut(duration: 0.55), value: podcastPlayer.accentColorOverride)
+        .background(shellBackground.ignoresSafeArea())
         .onReceive(searchNavigationBridge.$request.compactMap { $0 }) { _ in
             shellState.selectTab(.search)
         }
@@ -324,7 +340,7 @@ struct AppShellView: View {
         .padding(.top, AccountHeaderLayout.accountHeaderTopPadding(safeAreaTop: safeAreaTop, theme: theme))
         .padding(.bottom, theme.spacing.sm)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(theme.laughTrackTokens.colors.canvas.opacity(0.97))
+        .background(Color.clear)
     }
 
     // The profile button is a menu: "Notifications" opens the notification
@@ -426,6 +442,11 @@ struct AppShellView: View {
             .foregroundStyle(isSelected ? tokens.colors.accentStrong : tokens.colors.textSecondary)
             .padding(.horizontal, 14)
             .frame(height: 34)
+            .background {
+                Capsule()
+                    .fill(Color.black.opacity(0.98))
+                    .shadow(color: .black.opacity(0.28), radius: 8, x: 0, y: 3)
+            }
             .overlay {
                 Capsule()
                     .strokeBorder(

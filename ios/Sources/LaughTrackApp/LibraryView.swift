@@ -54,9 +54,9 @@ struct LibraryView: View {
             isPodcastMiniPlayerVisible: podcastPlayer.currentItem != nil
         )
         .accessibilityIdentifier(LaughTrackViewTestID.favoritesTabScreen)
-        .background(tokens.colors.canvas.ignoresSafeArea())
+        .background(LaughTrackAtmosphereBackground().ignoresSafeArea())
         .navigationTitle(Self.title)
-        .modifier(LaughTrackNavigationChrome(background: tokens.colors.canvas))
+        .modifier(LaughTrackNavigationChrome(background: .clear))
     }
 }
 

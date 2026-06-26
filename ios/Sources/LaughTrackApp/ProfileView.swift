@@ -85,10 +85,10 @@ struct ProfileView: View {
             .padding(.bottom, tokens.spacing.sectionGap)
         }
         .accessibilityIdentifier(LaughTrackViewTestID.profileTabScreen)
-        .background(tokens.colors.canvas.ignoresSafeArea())
+        .background(LaughTrackAtmosphereBackground().ignoresSafeArea())
         .navigationTitle("Profile")
         .profileNavigationTitleDisplayMode()
-        .modifier(LaughTrackNavigationChrome(background: tokens.colors.canvas))
+        .modifier(LaughTrackNavigationChrome(background: .clear))
         .onAppear {
             refreshProfileLocation(from: authManager.currentUser)
             refreshNotificationPreferences(from: authManager.currentUser)

@@ -73,6 +73,35 @@ struct NearbyPreferenceStoreTests {
         #expect(store.preference == nil)
     }
 
+    @Test("feed default preference is display-only and does not replace saved preference")
+    @MainActor
+    func feedDefaultPreferenceIsDisplayOnly() {
+        let store = makeStore(name: "default")
+        let defaultPreference = NearbyPreference(
+            zipCode: "10801",
+            source: .manual,
+            distanceMiles: 25,
+            city: "New Rochelle",
+            state: "NY"
+        )
+
+        store.setDefaultPreference(defaultPreference)
+
+        #expect(store.defaultPreference == defaultPreference)
+        #expect(store.preference == nil)
+
+        store.setManualZip("10012", distanceMiles: 50, city: "New York", state: "NY")
+
+        #expect(store.defaultPreference == defaultPreference)
+        #expect(store.preference == NearbyPreference(
+            zipCode: "10012",
+            source: .manual,
+            distanceMiles: 50,
+            city: "New York",
+            state: "NY"
+        ))
+    }
+
     @MainActor
     private func makeStore(name: String) -> NearbyPreferenceStore {
         let suiteName = "NearbyPreferenceStoreTests.\(name).\(UUID().uuidString)"

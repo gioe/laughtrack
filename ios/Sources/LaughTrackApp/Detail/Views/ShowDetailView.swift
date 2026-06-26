@@ -68,6 +68,7 @@ struct ShowDetailView: View {
                             title: ShowTitlePresentation.title(for: show),
                             eyebrow: show.club.name,
                             imageURL: ShowDetailPresentation.heroImageURL(for: show),
+                            thumbnailStyle: ShowDetailPresentation.heroThumbnailStyle(for: show),
                             badges: ShowDetailPresentation.heroBadges(for: show, now: countdownTick),
                             fallbackSystemImage: "ticket.fill"
                         )
@@ -124,7 +125,7 @@ struct ShowDetailView: View {
         }
         .ignoresSafeArea(.container, edges: .top)
         .accessibilityIdentifier(LaughTrackViewTestID.showDetailScreen)
-        .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
+        .background(LaughTrackAtmosphereBackground().ignoresSafeArea())
         .overlay(alignment: .top) {
             DetailChromeBar(
                 onBack: { coordinator.pop() },
@@ -300,7 +301,21 @@ enum ShowDetailPresentation {
         {
             return headshot
         }
+        let clubImage = show.club.imageUrl.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !clubImage.isEmpty {
+            return clubImage
+        }
         return show.imageUrl
+    }
+
+    static func heroThumbnailStyle(for show: Components.Schemas.ShowDetail) -> MarqueeHeroThumbnailStyle {
+        if
+            let headliner = headliner(in: show),
+            !headliner.imageUrl.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        {
+            return .framedComedian(caption: headliner.name)
+        }
+        return .clubMarquee
     }
 
     private static func optionalFact(label: String, value: String?) -> ShowDetailFact? {

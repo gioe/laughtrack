@@ -58,9 +58,9 @@ struct SearchRootView: View {
             isPodcastMiniPlayerVisible: podcastPlayer.currentItem != nil
         )
         .accessibilityIdentifier(LaughTrackViewTestID.searchTabScreen)
-        .background(tokens.colors.canvas.ignoresSafeArea())
+        .background(Color.clear)
         .navigationTitle("Search")
-        .modifier(LaughTrackNavigationChrome(background: tokens.colors.canvas))
+        .modifier(LaughTrackNavigationChrome(background: .clear))
         .task {
             model.activePivot = selectedPrimitive
             applyRootQueryToActivePivot()
@@ -142,4 +142,3 @@ struct SearchRootView: View {
         )
     }
 }
-

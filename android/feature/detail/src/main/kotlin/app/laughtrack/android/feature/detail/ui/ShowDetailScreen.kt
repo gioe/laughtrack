@@ -1,73 +1,103 @@
 package app.laughtrack.android.feature.detail.ui
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.laughtrack.android.core.data.UiState
 import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.network.generated.model.ComedianLineup
 import app.laughtrack.android.core.network.generated.model.Show
+import app.laughtrack.android.core.network.generated.model.ShowDetail
+import app.laughtrack.android.core.ui.components.RemoteImage
+import app.laughtrack.android.core.ui.theme.LaughTrackColors
 import app.laughtrack.android.feature.detail.model.ShowDetailUi
 import app.laughtrack.android.feature.detail.ui.components.DetailError
-import app.laughtrack.android.feature.detail.ui.components.DetailHero
 import app.laughtrack.android.feature.detail.ui.components.DetailLoading
-import app.laughtrack.android.feature.detail.ui.components.DetailScaffold
-import app.laughtrack.android.feature.detail.ui.components.EntityAvatar
-import app.laughtrack.android.feature.detail.ui.components.InfoRow
-import app.laughtrack.android.feature.detail.ui.components.SectionHeader
 import app.laughtrack.android.feature.detail.ui.components.ShowRow
 import app.laughtrack.android.feature.detail.util.addEventToCalendar
 import app.laughtrack.android.feature.detail.util.formatCountdown
 import app.laughtrack.android.feature.detail.util.formatShowDateTime
 import app.laughtrack.android.feature.detail.util.openUrl
 import app.laughtrack.android.feature.detail.util.parseShowDateTime
-import app.laughtrack.android.feature.detail.util.shareLink
+import java.math.BigDecimal
 import java.time.ZonedDateTime
+
+private val TicketPaper = Color(0xFFF0DFB7)
+private val TicketShade = Color(0xFFE0C993)
+private val TicketInk = Color(0xFF22170B)
+private val TicketMuted = Color(0xFF755F3F)
 
 @Composable
 fun ShowDetailScreen(
     id: Int,
     onBack: () -> Unit,
     onOpenEntity: (AppRoute) -> Unit,
+    onHome: (() -> Unit)? = null,
     viewModel: ShowDetailViewModel = hiltViewModel(),
 ) {
     LaunchedEffect(id) { viewModel.load(id) }
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val context = LocalContext.current
-    val ui = (state as? UiState.Success)?.value
 
-    DetailScaffold(
-        title = ui?.detail?.name ?: "Show",
-        onBack = onBack,
-        onShare = ui?.let { data -> { context.shareLink(data.detail.showPageUrl, data.detail.name) } },
-    ) { modifier ->
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(LaughTrackColors.Canvas),
+    ) {
         when (state) {
-            is UiState.Failure -> DetailError(onRetry = viewModel::retry, modifier = modifier)
-            is UiState.Success -> ShowDetailBody(ui!!, modifier, onOpenEntity)
-            else -> DetailLoading(modifier)
+            is UiState.Failure -> DetailError(onRetry = viewModel::retry, modifier = Modifier.fillMaxSize())
+            is UiState.Success ->
+                ShowDetailBody(
+                    ui = (state as UiState.Success<ShowDetailUi>).value,
+                    onBack = onBack,
+                    onHome = onHome,
+                    onOpenEntity = onOpenEntity,
+                )
+            else -> DetailLoading(Modifier.fillMaxSize())
         }
     }
 }
@@ -75,112 +105,317 @@ fun ShowDetailScreen(
 @Composable
 private fun ShowDetailBody(
     ui: ShowDetailUi,
-    modifier: Modifier,
+    onBack: () -> Unit,
+    onHome: (() -> Unit)?,
     onOpenEntity: (AppRoute) -> Unit,
 ) {
-    val detail = ui.detail
+    val show = ui.detail
     val now = remember { ZonedDateTime.now() }
+    val context = LocalContext.current
     Column(
-        modifier
-            .fillMaxWidth()
+        Modifier
+            .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(bottom = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+            .padding(bottom = 28.dp),
     ) {
-        DetailHero(url = detail.imageUrl, contentDescription = detail.name)
-
+        ShowMarqueeHero(
+            show = show,
+            now = now,
+            onBack = onBack,
+            onHome = onHome,
+        )
         Column(
-            Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            Modifier.padding(horizontal = 8.dp, vertical = 18.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp),
         ) {
-            formatCountdown(detail.date, now)?.let { CountdownBadge(it) }
-            Text(detail.name ?: "Show", style = MaterialTheme.typography.headlineSmall)
-            InfoRow("When", formatShowDateTime(detail.date))
-        }
+            ShowTicketSummary(
+                show = show,
+                ticketOutboundUrl = ui.ticketOutboundUrl,
+                onVenue = { onOpenEntity(AppRoute.ClubDetail(show.club.id)) },
+                onCalendar = {
+                    parseShowDateTime(show.date)?.toInstant()?.toEpochMilli()?.let { start ->
+                        context.addEventToCalendar(
+                            title = show.name ?: show.club.name,
+                            startMillis = start,
+                            endMillis = null,
+                            location = listOfNotNull(show.club.name, show.club.address).joinToString(", "),
+                            description = "Added from LaughTrack.",
+                        )
+                    }
+                },
+                onTickets = { url -> context.openUrl(url) },
+            )
 
-        ShowVenueSection(ui, onOpenEntity)
-        ShowActionsSection(ui)
-
-        detail.description?.takeIf { it.isNotBlank() }?.let { note ->
-            Column(
-                Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                SectionHeader("About")
-                Text(note, style = MaterialTheme.typography.bodyMedium)
+            show.description?.takeIf { it.isNotBlank() }?.let {
+                DetailDarkCard(eyebrow = "EDITOR'S NOTE", title = "About this show") {
+                    Text(
+                        it,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = LaughTrackColors.Foreground,
+                    )
+                }
             }
-        }
 
-        ShowLineupSection(detail.lineup.orEmpty(), onOpenEntity)
-        RelatedShowsSection(ui.relatedShows, onOpenEntity)
+            ShowLineupSection(show.lineup.orEmpty(), onOpenEntity)
+            RelatedShowsSection(ui.relatedShows, onOpenEntity)
+        }
     }
 }
 
-/** Read-only countdown pill — intentionally non-interactive (no click semantics for a label). */
 @Composable
-private fun CountdownBadge(text: String) {
-    Surface(
-        color = MaterialTheme.colorScheme.secondaryContainer,
-        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-        shape = RoundedCornerShape(percent = 50),
+private fun ShowMarqueeHero(
+    show: ShowDetail,
+    now: ZonedDateTime,
+    onBack: () -> Unit,
+    onHome: (() -> Unit)?,
+) {
+    val heroImage = show.headlinerImageUrl() ?: show.imageUrl
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .background(
+                Brush.radialGradient(
+                    colors =
+                        listOf(
+                            LaughTrackColors.Highlight.copy(alpha = 0.55f),
+                            LaughTrackColors.Surface.copy(alpha = 0.96f),
+                            LaughTrackColors.Canvas,
+                        ),
+                ),
+            ),
     ) {
-        Text(
-            text,
-            style = MaterialTheme.typography.labelLarge,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+        Row(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                FloatingChromeButton(onClick = onBack) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                }
+                onHome?.let {
+                    FloatingChromeButton(onClick = it) {
+                        Icon(Icons.Filled.Home, contentDescription = "Home")
+                    }
+                }
+            }
+        }
+
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(top = 92.dp, start = 20.dp, end = 20.dp, bottom = 36.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(18.dp),
+        ) {
+            Text(
+                show.club.name.uppercase(),
+                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Black),
+                color = LaughTrackColors.AccentStrong,
+                letterSpacing = 2.6.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
+            )
+            Text(
+                show.displayTitle().uppercase(),
+                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Black),
+                color = LaughTrackColors.Foreground,
+                textAlign = TextAlign.Center,
+                maxLines = 4,
+                overflow = TextOverflow.Ellipsis,
+            )
+            DottedPoster(url = heroImage, contentDescription = show.displayTitle())
+            formatCountdown(show.date, now)?.let { CountdownBadge(it) }
+        }
+    }
+}
+
+@Composable
+private fun DottedPoster(
+    url: String?,
+    contentDescription: String?,
+) {
+    Box(
+        modifier =
+            Modifier
+                .size(210.dp)
+                .border(3.dp, LaughTrackColors.AccentStrong, RoundedCornerShape(18.dp))
+                .padding(10.dp),
+    ) {
+        RemoteImage(
+            url = url,
+            contentDescription = contentDescription,
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(12.dp))
+                    .border(1.dp, Color.Black.copy(alpha = 0.55f), RoundedCornerShape(12.dp)),
         )
     }
 }
 
 @Composable
-private fun ShowVenueSection(
-    ui: ShowDetailUi,
-    onOpenEntity: (AppRoute) -> Unit,
-) {
-    val club = ui.detail.club
-    Column(
-        Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+private fun CountdownBadge(text: String) {
+    Surface(
+        color = LaughTrackColors.AccentMuted.copy(alpha = 0.72f),
+        contentColor = LaughTrackColors.AccentStrong,
+        shape = RoundedCornerShape(999.dp),
+        modifier = Modifier.border(1.dp, LaughTrackColors.AccentStrong.copy(alpha = 0.42f), RoundedCornerShape(999.dp)),
     ) {
-        InfoRow("Venue", listOfNotNull(club.name, club.address).joinToString(" · "))
-        TextButton(onClick = { onOpenEntity(AppRoute.ClubDetail(club.id)) }) {
-            Text("View venue")
+        Text(
+            text,
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 7.dp),
+        )
+    }
+}
+
+@Composable
+private fun ShowTicketSummary(
+    show: ShowDetail,
+    ticketOutboundUrl: String?,
+    onVenue: () -> Unit,
+    onCalendar: () -> Unit,
+    onTickets: (String) -> Unit,
+) {
+    Surface(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .border(1.dp, TicketMuted.copy(alpha = 0.35f), RoundedCornerShape(18.dp)),
+        color = TicketPaper,
+        shape = RoundedCornerShape(18.dp),
+    ) {
+        Column(Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) {
+            TicketFactRow(
+                label = "When",
+                value = formatShowDateTime(show.date),
+                icon = "▦",
+                onClick = onCalendar,
+                trailing = "›",
+            )
+            TicketDivider()
+            TicketFactRow(
+                label = "Venue",
+                value = show.club.name,
+                icon = "▥",
+                onClick = onVenue,
+                trailing = "›",
+            )
+            TicketPerforation()
+            TicketFactRow(
+                label = "Tickets",
+                value = show.ticketSummary(),
+                icon = "▤",
+                trailingContent = {
+                    if (!show.cta.isSoldOut && ticketOutboundUrl != null) {
+                        Button(
+                            onClick = { onTickets(ticketOutboundUrl) },
+                            colors =
+                                ButtonDefaults.buttonColors(
+                                    containerColor = LaughTrackColors.AccentStrong,
+                                    contentColor = Color.White,
+                                ),
+                            shape = RoundedCornerShape(999.dp),
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                        ) {
+                            Text(
+                                "BUY TICKETS ↗",
+                                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Black),
+                            )
+                        }
+                    } else {
+                        Text(
+                            if (show.cta.isSoldOut) "SOLD OUT" else show.cta.label.uppercase(),
+                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Black),
+                            color = TicketMuted,
+                        )
+                    }
+                },
+            )
         }
     }
 }
 
 @Composable
-private fun ShowActionsSection(ui: ShowDetailUi) {
-    val context = LocalContext.current
-    val detail = ui.detail
-    val cta = detail.cta
+private fun TicketFactRow(
+    label: String,
+    value: String,
+    icon: String,
+    onClick: (() -> Unit)? = null,
+    trailing: String? = null,
+    trailingContent: (@Composable () -> Unit)? = null,
+) {
     Row(
-        Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+                .padding(vertical = 10.dp),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        OutlinedButton(
-            onClick = {
-                val start = parseShowDateTime(detail.date)?.toInstant()?.toEpochMilli() ?: return@OutlinedButton
-                context.addEventToCalendar(
-                    title = detail.name ?: detail.club.name,
-                    startMillis = start,
-                    endMillis = null,
-                    location = listOfNotNull(detail.club.name, detail.club.address).joinToString(", "),
-                    description = "Added from LaughTrack.",
-                )
-            },
-            modifier = Modifier.weight(1f),
+        Surface(
+            modifier = Modifier.size(42.dp),
+            shape = CircleShape,
+            color = TicketShade,
+            contentColor = LaughTrackColors.AccentStrong,
         ) {
-            Text("Add to calendar")
+            Box(contentAlignment = Alignment.Center) {
+                Text(icon, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Black))
+            }
         }
-        Button(
-            onClick = { context.openUrl(ui.ticketOutboundUrl) },
-            enabled = !cta.isSoldOut && ui.ticketOutboundUrl != null,
-            modifier = Modifier.weight(1f),
-        ) {
-            Text(if (cta.isSoldOut) "Sold out" else cta.label)
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(
+                label.uppercase(),
+                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                color = TicketMuted,
+            )
+            Text(
+                value,
+                style =
+                    MaterialTheme.typography.titleLarge.copy(
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Bold,
+                    ),
+                color = TicketInk,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        trailingContent?.invoke()
+        trailing?.let {
+            Text(it, style = MaterialTheme.typography.headlineMedium, color = TicketMuted)
         }
     }
+}
+
+@Composable
+private fun TicketDivider() {
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .padding(start = 58.dp)
+            .height(1.dp)
+            .background(TicketMuted.copy(alpha = 0.25f)),
+    )
+}
+
+@Composable
+private fun TicketPerforation() {
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+            .height(1.dp)
+            .background(TicketMuted.copy(alpha = 0.4f)),
+    )
 }
 
 @Composable
@@ -189,21 +424,58 @@ private fun ShowLineupSection(
     onOpenEntity: (AppRoute) -> Unit,
 ) {
     if (lineup.isEmpty()) return
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        SectionHeader("Lineup", Modifier.padding(horizontal = 16.dp))
+    DetailDarkCard(eyebrow = "ON THE BILL", title = "Lineup") {
         LazyRow(
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(horizontal = 2.dp),
         ) {
             items(lineup) { item ->
-                EntityAvatar(
-                    name = item.name,
-                    imageUrl = item.imageUrl,
-                    subtitle = item.role,
+                LineupMarqueeCard(
+                    item = item,
                     onClick = { onOpenEntity(AppRoute.ComedianDetail(item.id)) },
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun LineupMarqueeCard(
+    item: ComedianLineup,
+    onClick: () -> Unit,
+) {
+    Column(
+        modifier =
+            Modifier
+                .width(116.dp)
+                .clickable(onClick = onClick),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Box(
+            modifier =
+                Modifier
+                    .size(94.dp)
+                    .border(2.dp, LaughTrackColors.AccentStrong, RoundedCornerShape(12.dp))
+                    .padding(5.dp),
+        ) {
+            RemoteImage(
+                url = item.imageUrl,
+                contentDescription = item.name,
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(8.dp)),
+            )
+        }
+        Text(
+            item.name,
+            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+            color = LaughTrackColors.Foreground,
+            textAlign = TextAlign.Center,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 
@@ -213,15 +485,99 @@ private fun RelatedShowsSection(
     onOpenEntity: (AppRoute) -> Unit,
 ) {
     if (shows.isEmpty()) return
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        SectionHeader("Can't make it?", Modifier.padding(horizontal = 16.dp))
-        shows.forEach { show ->
-            ShowRow(
-                title = show.name ?: show.clubName ?: "Show",
-                subtitle = listOfNotNull(show.clubName, show.clubCity).joinToString(" · ").ifBlank { null },
-                imageUrl = show.imageUrl,
-                onClick = { onOpenEntity(AppRoute.ShowDetail(show.id)) },
-            )
+    DetailDarkCard(eyebrow = "MORE SHOWS", title = "More at this venue") {
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            shows.forEach { show ->
+                ShowRow(
+                    title = show.name ?: show.clubName ?: "Show",
+                    subtitle = listOfNotNull(formatShowDateTime(show.date), show.clubCity).joinToString(" · "),
+                    imageUrl = show.imageUrl,
+                    onClick = { onOpenEntity(AppRoute.ShowDetail(show.id)) },
+                    modifier = Modifier.clip(RoundedCornerShape(12.dp)),
+                )
+            }
         }
     }
 }
+
+@Composable
+private fun DetailDarkCard(
+    eyebrow: String,
+    title: String,
+    content: @Composable () -> Unit,
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = LaughTrackColors.SurfaceElevated,
+        shape = RoundedCornerShape(18.dp),
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Text(
+                eyebrow,
+                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Black),
+                color = LaughTrackColors.AccentStrong,
+            )
+            Text(
+                title,
+                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Black),
+                color = LaughTrackColors.Foreground,
+            )
+            content()
+        }
+    }
+}
+
+@Composable
+private fun FloatingChromeButton(
+    onClick: () -> Unit,
+    content: @Composable () -> Unit,
+) {
+    Surface(
+        modifier =
+            Modifier
+                .size(42.dp)
+                .clip(CircleShape)
+                .clickable(onClick = onClick)
+                .border(1.dp, LaughTrackColors.BorderSubtle, CircleShape),
+        color = LaughTrackColors.Surface.copy(alpha = 0.94f),
+        contentColor = LaughTrackColors.Foreground,
+        shape = CircleShape,
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            content()
+        }
+    }
+}
+
+private fun ShowDetail.displayTitle(): String =
+    name?.takeIf { it.isNotBlank() }
+        ?: lineup.orEmpty().takeIf { it.isNotEmpty() }?.joinToString(", ") { it.name }
+        ?: club.name
+
+private fun ShowDetail.headlinerImageUrl(): String? =
+    lineup
+        .orEmpty()
+        .maxWithOrNull(
+            compareBy<ComedianLineup> { it.socialData?.popularity ?: -1 }
+                .thenBy { it.showCount ?: 0 },
+        )?.imageUrl
+        ?.takeIf { it.isNotBlank() }
+
+private fun ShowDetail.ticketSummary(): String {
+    if (cta.isSoldOut || soldOut == true) return "Sold out"
+    val price =
+        tickets
+            .orEmpty()
+            .asSequence()
+            .filter { it.soldOut != true }
+            .mapNotNull { it.price }
+            .minOrNull()
+    return price?.asMoney() ?: "Available"
+}
+
+private fun BigDecimal.asMoney(): String =
+    if (compareTo(BigDecimal.ZERO) == 0) {
+        "Free"
+    } else {
+        "$" + setScale(2, java.math.RoundingMode.HALF_UP).toPlainString()
+    }

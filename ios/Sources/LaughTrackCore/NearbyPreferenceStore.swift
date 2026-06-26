@@ -86,6 +86,7 @@ public struct NearbyPreference: Codable, Equatable {
 @MainActor
 public final class NearbyPreferenceStore: ObservableObject {
     @Published public private(set) var preference: NearbyPreference?
+    @Published public private(set) var defaultPreference: NearbyPreference?
 
     private let appStateStorage: AppStateStorageProtocol
 
@@ -156,6 +157,10 @@ public final class NearbyPreferenceStore: ObservableObject {
     public func clear() {
         preference = nil
         appStateStorage.removeValue(forKey: StorageKey.preference)
+    }
+
+    public func setDefaultPreference(_ preference: NearbyPreference?) {
+        defaultPreference = preference
     }
 
     public nonisolated static func validZip(from zipCode: String) -> String? {

@@ -47,6 +47,7 @@ struct ComedianDetailView: View {
                         MarqueeHero(
                             title: comedian.name,
                             imageURL: comedian.imageUrl,
+                            thumbnailStyle: .framedComedian(caption: comedian.name),
                             actions: comedianHeroActions(socialData: comedian.socialData),
                             openURL: { url in openURL(url) },
                             fallbackSystemImage: "music.mic"
@@ -103,7 +104,7 @@ struct ComedianDetailView: View {
             }
         }
         .ignoresSafeArea(.container, edges: .top)
-        .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
+        .background(LaughTrackAtmosphereBackground().ignoresSafeArea())
         .accessibilityIdentifier(LaughTrackViewTestID.comedianDetailScreen)
         .overlay(alignment: .top) {
             DetailChromeBar(
@@ -1113,7 +1114,7 @@ private struct PodcastAppearanceRoleBadge: View {
         }
         .padding()
     }
-    .background(LaughTrackTheme().laughTrackTokens.colors.canvas)
+    .background(LaughTrackAtmosphereBackground())
     .environment(\.appTheme, LaughTrackTheme())
     .environmentObject(TypedNavigationCoordinator<AppRoute>())
 }

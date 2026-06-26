@@ -119,6 +119,16 @@ struct AppShellViewTests {
         ])
     }
 
+    @Test("shell header lets the Discover spotlight blend through the safe area")
+    func shellHeaderLetsDiscoverSpotlightBlendThroughSafeArea() throws {
+        let source = try String(contentsOf: appShellViewSourceURL(), encoding: .utf8)
+
+        #expect(source.contains("private var shellHeaderBackground"))
+        #expect(source.contains("private let shellSpotlightHue = Color(red: 1.0, green: 0.72, blue: 0.30)"))
+        #expect(source.contains("center: .topLeading"))
+        #expect(!source.contains(".background(theme.laughTrackTokens.colors.canvas.opacity(0.97))"))
+    }
+
     @Test("authenticated shell triggers favorites fetch without visiting the Favorites tab")
     func authenticatedShellTriggersFavoritesFetch() async throws {
         // Regression guard for TASK-1762. The favorites load used to live on
@@ -158,6 +168,20 @@ struct AppShellViewTests {
         await host.settle()
 
         #expect(recorder.getFavoritesCalls >= 1)
+    }
+
+    private func appShellViewSourceURL(filePath: String = #filePath) throws -> URL {
+        let testFileURL = URL(fileURLWithPath: filePath)
+        let iosRoot = testFileURL
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let sourceURL = iosRoot
+            .appendingPathComponent("Sources/LaughTrackApp/AppShellView.swift")
+        guard FileManager.default.fileExists(atPath: sourceURL.path) else {
+            throw CocoaError(.fileNoSuchFile)
+        }
+        return sourceURL
     }
 
     @Test("podcast mini player chrome gates on the shared playback controller")

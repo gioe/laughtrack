@@ -26,6 +26,28 @@ struct ClubRowTests {
         #expect(ClubRow.metadata(for: club) == ["19 active comedians", "8 shows"])
     }
 
+    @Test("club search row uses square sparse yellow bulb artwork treatment")
+    func clubSearchRowUsesSquareSparseYellowBulbArtworkTreatment() throws {
+        let source = try String(contentsOf: clubsDiscoverySourceURL(), encoding: .utf8)
+        let block = try sourceBlock(
+            in: source,
+            from: "struct ClubRow: View",
+            to: "static func title(for club:"
+        )
+
+        #expect(block.contains("private static let posterCornerRadius: CGFloat = 8"))
+        #expect(block.contains("private static let clubBulbColor = Color(red: 1.0, green: 0.78, blue: 0.24)"))
+        #expect(block.contains(".clipShape(RoundedRectangle(cornerRadius: Self.posterCornerRadius, style: .continuous))"))
+        #expect(block.contains("RoundedRectangle(cornerRadius: Self.posterCornerRadius, style: .continuous)"))
+        #expect(block.contains("style: StrokeStyle("))
+        #expect(block.contains("dash: [1.2, 10]"))
+        #expect(block.contains(".strokeBorder("))
+        #expect(block.contains("Self.clubBulbColor,"))
+        #expect(block.contains(".shadow(color: Self.clubBulbColor.opacity(0.70), radius: 4)"))
+        #expect(!block.contains(".clipShape(Circle())"))
+        #expect(!block.contains("Circle()"))
+    }
+
     @Test("browse entity rows fit club artwork without cropping")
     func browseEntityRowsFitClubArtworkWithoutCropping() throws {
         let source = try String(contentsOf: browseComponentsSourceURL(), encoding: .utf8)
@@ -71,6 +93,20 @@ struct ClubRowTests {
             .deletingLastPathComponent()
         let sourceURL = iosRoot
             .appendingPathComponent("Sources/LaughTrackApp/DesignSystem/LaughTrackBrowseComponents.swift")
+        guard FileManager.default.fileExists(atPath: sourceURL.path) else {
+            throw CocoaError(.fileNoSuchFile)
+        }
+        return sourceURL
+    }
+
+    private func clubsDiscoverySourceURL(filePath: String = #filePath) throws -> URL {
+        let testFileURL = URL(fileURLWithPath: filePath)
+        let iosRoot = testFileURL
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let sourceURL = iosRoot
+            .appendingPathComponent("Sources/LaughTrackApp/Search/Views/ClubsDiscoveryView.swift")
         guard FileManager.default.fileExists(atPath: sourceURL.path) else {
             throw CocoaError(.fileNoSuchFile)
         }

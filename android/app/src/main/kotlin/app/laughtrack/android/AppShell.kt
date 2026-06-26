@@ -105,18 +105,20 @@ fun AppShell(
             }
         },
         bottomBar = {
-            NavigationBar {
-                AppShellTabs.visibleTabs(signedIn, hasFavorites).forEach { tab ->
-                    val selected =
-                        currentDestination?.hierarchy?.any {
-                            it.hasRoute(tab.rootRoute::class)
-                        } == true
-                    NavigationBarItem(
-                        selected = selected,
-                        onClick = { navController.switchTab(tab) },
-                        icon = { Icon(tab.icon, contentDescription = tab.label) },
-                        label = { Text(tab.label) },
-                    )
+            if (AppShellChrome.showsBottomBar(currentDestination)) {
+                NavigationBar {
+                    AppShellTabs.visibleTabs(signedIn, hasFavorites).forEach { tab ->
+                        val selected =
+                            currentDestination?.hierarchy?.any {
+                                it.hasRoute(tab.rootRoute::class)
+                            } == true
+                        NavigationBarItem(
+                            selected = selected,
+                            onClick = { navController.switchTab(tab) },
+                            icon = { Icon(tab.icon, contentDescription = tab.label) },
+                            label = { Text(tab.label) },
+                        )
+                    }
                 }
             }
         },
@@ -154,6 +156,12 @@ fun AppShell(
                     ShowDetailScreen(
                         id = entry.toRoute<AppRoute.ShowDetail>().id,
                         onBack = { navController.popBackStack() },
+                        onHome = {
+                            navController.navigate(AppRoute.Discover) {
+                                popUpTo(AppRoute.Discover) { inclusive = false }
+                                launchSingleTop = true
+                            }
+                        },
                         onOpenEntity = navController::openEntity,
                     )
                 }
@@ -295,9 +303,10 @@ internal object AppShellTabs {
 internal object AppShellChrome {
     fun showsTopAppBar(route: AppRoute): Boolean =
         when (route) {
-            AppRoute.Discover -> false
-
+            AppRoute.Discover,
             AppRoute.Search,
+            -> false
+
             AppRoute.Favorites,
             AppRoute.ComedianOnboarding,
             AppRoute.NowPlaying,
@@ -315,10 +324,35 @@ internal object AppShellChrome {
     fun showsTopAppBar(destination: NavDestination?): Boolean {
         if (destination == null) return true
 
-        return destination.hasRoute(AppRoute.Search::class) ||
-            destination.hasRoute(AppRoute.Favorites::class) ||
+        return destination.hasRoute(AppRoute.Favorites::class) ||
             destination.hasRoute(AppRoute.ComedianOnboarding::class) ||
             destination.hasRoute(AppRoute.NowPlaying::class) ||
             destination.hasRoute(AppRoute.Profile::class)
+    }
+
+    fun showsBottomBar(route: AppRoute): Boolean =
+        when (route) {
+            AppRoute.Discover,
+            AppRoute.Search,
+            AppRoute.Favorites,
+            -> true
+
+            AppRoute.ComedianOnboarding,
+            AppRoute.NowPlaying,
+            AppRoute.Profile,
+            is AppRoute.ShowDetail,
+            is AppRoute.ComedianDetail,
+            is AppRoute.ClubDetail,
+            is AppRoute.PodcastDetail,
+            AppRoute.NotificationCenter,
+            -> false
+        }
+
+    fun showsBottomBar(destination: NavDestination?): Boolean {
+        if (destination == null) return true
+
+        return destination.hasRoute(AppRoute.Discover::class) ||
+            destination.hasRoute(AppRoute.Search::class) ||
+            destination.hasRoute(AppRoute.Favorites::class)
     }
 }

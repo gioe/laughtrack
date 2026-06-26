@@ -44,6 +44,7 @@ struct ClubDetailView: View {
                     MarqueeHero(
                         title: club.name,
                         imageURL: ClubDetailHeroPresentation.imageURL(for: club) ?? "",
+                        thumbnailStyle: .clubMarquee,
                         actions: clubHeroActions(club: club),
                         openURL: { url in
                             openURL(url)
@@ -66,7 +67,7 @@ struct ClubDetailView: View {
         }
         .ignoresSafeArea(.container, edges: .top)
         .accessibilityIdentifier(LaughTrackViewTestID.clubDetailScreen)
-        .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
+        .background(LaughTrackAtmosphereBackground().ignoresSafeArea())
         .overlay(alignment: .top) {
             DetailChromeBar(
                 onBack: { coordinator.pop() },

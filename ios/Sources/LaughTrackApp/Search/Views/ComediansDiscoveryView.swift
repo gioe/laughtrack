@@ -170,8 +170,10 @@ struct ComedianRow: View {
     @EnvironmentObject private var loginModalPresenter: LoginModalPresenter
     @Environment(\.appTheme) private var theme
 
-    private static let posterSize: CGFloat = 64
-    private static let posterFrameInset: CGFloat = 5
+    private static let headshotPhotoWidth: CGFloat = 64
+    private static let headshotPhotoHeight: CGFloat = 61
+    private static let headshotFrameWidth: CGFloat = 76
+    private static let headshotFrameHeight: CGFloat = 73
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
@@ -180,14 +182,16 @@ struct ComedianRow: View {
         HStack(spacing: theme.spacing.md) {
             Button(action: openDetail) {
                 HStack(spacing: theme.spacing.md) {
-                    poster
+                    headshot
 
-                    Text(comedian.name)
-                        .font(laughTrack.typography.cardTitle)
-                        .foregroundStyle(laughTrack.colors.textPrimary)
-                        .lineLimit(2)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(comedian.name)
+                            .font(laughTrack.typography.cardTitle)
+                            .foregroundStyle(laughTrack.colors.textPrimary)
+                            .lineLimit(2)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
                     Image(systemName: "chevron.right")
                         .font(.system(size: 13, weight: .semibold))
@@ -229,39 +233,17 @@ struct ComedianRow: View {
         .shadowStyle(laughTrack.shadows.card)
     }
 
-    private var poster: some View {
-        let laughTrack = theme.laughTrackTokens
-
-        return ZStack {
+    private var headshot: some View {
+        ClubWallHeadshotFrame(
+            caption: comedian.name,
+            captionVisibility: .hidden,
+            photoWidth: Self.headshotPhotoWidth,
+            photoHeight: Self.headshotPhotoHeight,
+            frameWidth: Self.headshotFrameWidth,
+            frameHeight: Self.headshotFrameHeight
+        ) {
             posterImage
-                .frame(width: Self.posterSize, height: Self.posterSize)
-                .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 5, style: .continuous)
-                        .stroke(Color.black.opacity(0.55), lineWidth: 1)
-                )
-
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .strokeBorder(
-                    laughTrack.colors.accentStrong,
-                    style: StrokeStyle(
-                        lineWidth: 1.5,
-                        lineCap: .round,
-                        lineJoin: .round,
-                        dash: [0.5, 4.5]
-                    )
-                )
-                .frame(
-                    width: Self.posterSize + Self.posterFrameInset,
-                    height: Self.posterSize + Self.posterFrameInset
-                )
-                .shadow(color: laughTrack.colors.accentStrong.opacity(0.5), radius: 3)
-                .shadow(color: laughTrack.colors.accentStrong.opacity(0.25), radius: 7)
         }
-        .frame(
-            width: Self.posterSize + Self.posterFrameInset,
-            height: Self.posterSize + Self.posterFrameInset
-        )
     }
 
     @ViewBuilder
@@ -299,7 +281,4 @@ struct ComedianRow: View {
             }
     }
 
-    static func upcomingShowsText(for showCount: Int) -> String {
-        "\(showCount) upcoming show\(showCount == 1 ? "" : "s")"
-    }
 }

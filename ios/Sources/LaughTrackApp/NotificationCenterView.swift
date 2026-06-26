@@ -23,8 +23,6 @@ struct NotificationCenterView: View {
     }
 
     var body: some View {
-        let tokens = theme.laughTrackTokens
-
         Group {
             switch model.phase {
             case .idle, .loading:
@@ -68,9 +66,9 @@ struct NotificationCenterView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(tokens.colors.canvas.ignoresSafeArea())
+        .background(LaughTrackAtmosphereBackground().ignoresSafeArea())
         .navigationTitle("Notifications")
-        .modifier(LaughTrackNavigationChrome(background: tokens.colors.canvas))
+        .modifier(LaughTrackNavigationChrome(background: .clear))
         .accessibilityIdentifier(LaughTrackViewTestID.notificationCenterScreen)
         .task {
             await model.loadIfNeeded(apiClient: apiClient)

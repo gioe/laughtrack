@@ -2,12 +2,28 @@ import SwiftUI
 import LaughTrackAPIClient
 import LaughTrackBridge
 
+enum ShowRowPresentation {
+    case standard
+    case compactTicket
+}
+
 struct ShowRow: View {
     @Environment(\.appTheme) private var theme
     @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
 
     let show: Components.Schemas.Show
     var nearbyRadiusMiles: Double?
+    let presentation: ShowRowPresentation
+
+    init(
+        show: Components.Schemas.Show,
+        nearbyRadiusMiles: Double? = nil,
+        presentation: ShowRowPresentation = .standard
+    ) {
+        self.show = show
+        self.nearbyRadiusMiles = nearbyRadiusMiles
+        self.presentation = presentation
+    }
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
@@ -18,13 +34,67 @@ struct ShowRow: View {
         // layout naturally falls through to titleOnlyBlock for shows
         // without a headliner, which covers every open mic.
         return ticketStubRow
-            .background(laughTrack.colors.surfaceElevated)
+            .background(ticketPaper)
             .overlay(
                 RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
-                    .stroke(laughTrack.colors.borderStrong.opacity(0.9), lineWidth: 1)
+                    .stroke(ticketBorder, lineWidth: presentation == .compactTicket ? 1.2 : 1)
             )
             .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
             .shadowStyle(laughTrack.shadows.card)
+    }
+
+    private var ticketPaper: Color {
+        switch presentation {
+        case .standard:
+            theme.laughTrackTokens.colors.surfaceElevated
+        case .compactTicket:
+            Color(red: 0.93, green: 0.87, blue: 0.74)
+        }
+    }
+
+    private var ticketInk: Color {
+        switch presentation {
+        case .standard:
+            theme.laughTrackTokens.colors.textPrimary
+        case .compactTicket:
+            Color(red: 0.15, green: 0.10, blue: 0.05)
+        }
+    }
+
+    private var ticketInkMuted: Color {
+        switch presentation {
+        case .standard:
+            theme.laughTrackTokens.colors.textSecondary
+        case .compactTicket:
+            Color(red: 0.45, green: 0.35, blue: 0.22)
+        }
+    }
+
+    private var ticketBorder: Color {
+        switch presentation {
+        case .standard:
+            theme.laughTrackTokens.colors.borderStrong.opacity(0.9)
+        case .compactTicket:
+            Color(red: 0.58, green: 0.47, blue: 0.31).opacity(0.78)
+        }
+    }
+
+    private var ticketStubBackground: Color {
+        switch presentation {
+        case .standard:
+            theme.laughTrackTokens.colors.surfaceMuted
+        case .compactTicket:
+            Color(red: 0.86, green: 0.78, blue: 0.63)
+        }
+    }
+
+    private var ticketAccent: Color {
+        switch presentation {
+        case .standard:
+            theme.laughTrackTokens.colors.accentStrong
+        case .compactTicket:
+            Color(red: 0.74, green: 0.30, blue: 0.13)
+        }
     }
 
     // MARK: - Ticket-stub row
@@ -36,7 +106,7 @@ struct ShowRow: View {
 
             DashedVerticalLine()
                 .stroke(
-                    theme.laughTrackTokens.colors.borderStrong.opacity(0.6),
+                    ticketInkMuted.opacity(presentation == .compactTicket ? 0.45 : 0.6),
                     style: StrokeStyle(lineWidth: 1, dash: [3, 3])
                 )
                 .frame(width: 1)
@@ -86,21 +156,21 @@ struct ShowRow: View {
         return VStack(alignment: .leading, spacing: theme.spacing.xxs) {
             Text(Self.listTitle(for: show))
                 .font(laughTrack.typography.bodyEmphasis)
-                .foregroundStyle(laughTrack.colors.textPrimary)
+                .foregroundStyle(ticketInk)
                 .lineLimit(2)
                 .fixedSize(horizontal: false, vertical: true)
 
             if !clubName.isEmpty {
                 Text(clubName)
                     .font(laughTrack.typography.metadata)
-                    .foregroundStyle(laughTrack.colors.textSecondary)
+                    .foregroundStyle(ticketInkMuted)
                     .lineLimit(1)
             }
 
             if let roomName {
                 Text(roomName)
                     .font(laughTrack.typography.metadata)
-                    .foregroundStyle(laughTrack.colors.textSecondary)
+                    .foregroundStyle(ticketInkMuted)
                     .lineLimit(1)
             }
         }
@@ -110,8 +180,21 @@ struct ShowRow: View {
         let laughTrack = theme.laughTrackTokens
 
         return ZStack {
-            laughTrack.colors.surfaceElevated
-            laughTrack.colors.accent.opacity(0.035)
+            ticketPaper
+            switch presentation {
+            case .standard:
+                laughTrack.colors.accent.opacity(0.035)
+            case .compactTicket:
+                LinearGradient(
+                    colors: [
+                        Color.white.opacity(0.24),
+                        laughTrack.colors.accentStrong.opacity(0.10),
+                        Color.black.opacity(0.03)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            }
         }
     }
 
@@ -139,14 +222,14 @@ struct ShowRow: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(headliner.name)
                         .font(laughTrack.typography.bodyEmphasis)
-                        .foregroundStyle(laughTrack.colors.textPrimary)
+                        .foregroundStyle(ticketInk)
                         .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
 
                     if !clubName.isEmpty {
                         Text(clubName)
                             .font(laughTrack.typography.metadata)
-                            .foregroundStyle(laughTrack.colors.textSecondary)
+                            .foregroundStyle(ticketInkMuted)
                             .lineLimit(1)
                     }
                 }
@@ -222,7 +305,7 @@ struct ShowRow: View {
 
             Text(label)
                 .font(laughTrack.typography.metadata)
-                .foregroundStyle(laughTrack.colors.textSecondary)
+                .foregroundStyle(ticketInkMuted)
                 .lineLimit(3)
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -315,7 +398,6 @@ struct ShowRow: View {
     }
 
     private var ticketStub: some View {
-        let laughTrack = theme.laughTrackTokens
         let isSoldOut = show.soldOut == true
         let stack = ShowFormatting.dateStack(show.date, timezoneID: show.timezone)
         let monthText = Self.monthAbbreviation(show.date, timezoneID: show.timezone)
@@ -327,36 +409,36 @@ struct ShowRow: View {
             Text(stack.weekday)
                 .font(.system(size: 11, weight: .semibold, design: .rounded))
                 .tracking(1.4)
-                .foregroundStyle(laughTrack.colors.accentStrong)
+                .foregroundStyle(ticketAccent)
 
             Text(stack.day)
                 .font(.system(size: 26, weight: .heavy, design: .rounded))
-                .foregroundStyle(laughTrack.colors.textPrimary)
+                .foregroundStyle(ticketInk)
                 .monospacedDigit()
 
             Text(monthText)
                 .font(.system(size: 11, weight: .semibold, design: .rounded))
                 .tracking(1.2)
-                .foregroundStyle(laughTrack.colors.textSecondary)
+                .foregroundStyle(ticketInkMuted)
 
             Text(stack.time)
                 .font(.system(size: 11, weight: .medium, design: .rounded))
-                .foregroundStyle(laughTrack.colors.textSecondary)
+                .foregroundStyle(ticketInkMuted)
                 .monospacedDigit()
                 .padding(.top, 2)
 
             if let priceText {
                 Text(priceText)
                     .font(.system(size: 13, weight: .semibold, design: .rounded))
-                    .foregroundStyle(laughTrack.colors.accentStrong)
-                    .strikethrough(isSoldOut, color: laughTrack.colors.textSecondary)
+                    .foregroundStyle(ticketAccent)
+                    .strikethrough(isSoldOut, color: ticketInkMuted)
                     .monospacedDigit()
             }
         }
         .frame(width: 88)
         .frame(maxHeight: .infinity)
         .padding(.vertical, theme.spacing.sm)
-        .background(laughTrack.colors.surfaceMuted)
+        .background(ticketStubBackground)
     }
 
     private static let monthStackFormatter: DateFormatter = {

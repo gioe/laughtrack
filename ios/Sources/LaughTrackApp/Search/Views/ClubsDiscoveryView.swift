@@ -160,6 +160,8 @@ struct ClubRow: View {
 
     private static let posterSize: CGFloat = 64
     private static let posterFrameInset: CGFloat = 5
+    private static let posterCornerRadius: CGFloat = 8
+    private static let clubBulbColor = Color(red: 1.0, green: 0.78, blue: 0.24)
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
@@ -201,33 +203,31 @@ struct ClubRow: View {
     }
 
     private var poster: some View {
-        let laughTrack = theme.laughTrackTokens
-
         return ZStack {
             posterImage
                 .frame(width: Self.posterSize, height: Self.posterSize)
-                .clipShape(Circle())
+                .clipShape(RoundedRectangle(cornerRadius: Self.posterCornerRadius, style: .continuous))
                 .overlay(
-                    Circle()
+                    RoundedRectangle(cornerRadius: Self.posterCornerRadius, style: .continuous)
                         .stroke(Color.black.opacity(0.55), lineWidth: 1)
                 )
 
-            Circle()
+            RoundedRectangle(cornerRadius: Self.posterCornerRadius + Self.posterFrameInset / 2, style: .continuous)
                 .strokeBorder(
-                    laughTrack.colors.accentStrong,
+                    Self.clubBulbColor,
                     style: StrokeStyle(
                         lineWidth: 1.5,
                         lineCap: .round,
                         lineJoin: .round,
-                        dash: [0.5, 4.5]
+                        dash: [1.2, 10]
                     )
                 )
                 .frame(
                     width: Self.posterSize + Self.posterFrameInset,
                     height: Self.posterSize + Self.posterFrameInset
                 )
-                .shadow(color: laughTrack.colors.accentStrong.opacity(0.5), radius: 3)
-                .shadow(color: laughTrack.colors.accentStrong.opacity(0.25), radius: 7)
+                .shadow(color: Self.clubBulbColor.opacity(0.70), radius: 4)
+                .shadow(color: Self.clubBulbColor.opacity(0.34), radius: 9)
         }
         .frame(
             width: Self.posterSize + Self.posterFrameInset,

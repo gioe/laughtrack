@@ -5,6 +5,23 @@ import LaughTrackAPIClient
 
 @Suite("Show row")
 struct ShowRowTests {
+    @Test("show row exposes a compact paper ticket presentation for home rails")
+    func showRowExposesCompactPaperTicketPresentationForHomeRails() throws {
+        let source = try String(contentsOf: showRowSourceURL(), encoding: .utf8)
+
+        #expect(source.contains("enum ShowRowPresentation"))
+        #expect(source.contains("case standard"))
+        #expect(source.contains("case compactTicket"))
+        #expect(source.contains("let presentation: ShowRowPresentation"))
+        #expect(source.contains("presentation: ShowRowPresentation = .standard"))
+        #expect(source.contains("private var ticketPaper"))
+        #expect(source.contains("private var ticketInk"))
+        #expect(source.contains("private var ticketInkMuted"))
+        #expect(source.contains("private var ticketBorder"))
+        #expect(source.contains("private var ticketStubBackground"))
+        #expect(source.contains("case .compactTicket"))
+    }
+
     @Test("show row uses the highest show-count lineup comedian image")
     func showRowUsesMostPopularLineupComedianImage() {
         let show = makeShow(lineup: [
@@ -381,5 +398,19 @@ struct ShowRowTests {
             showCount: showCount,
             parentComedian: parentComedian
         )
+    }
+
+    private func showRowSourceURL(filePath: String = #filePath) throws -> URL {
+        let testFileURL = URL(fileURLWithPath: filePath)
+        let iosRoot = testFileURL
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let sourceURL = iosRoot
+            .appendingPathComponent("Sources/LaughTrackApp/Components/ShowRow.swift")
+        guard FileManager.default.fileExists(atPath: sourceURL.path) else {
+            throw CocoaError(.fileNoSuchFile)
+        }
+        return sourceURL
     }
 }

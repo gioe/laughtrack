@@ -123,7 +123,8 @@ struct ShowsListView: View {
                                 } label: {
                                     ShowRow(
                                         show: show,
-                                        nearbyRadiusMiles: model.activeNearbyPreference.map { Double($0.distanceMiles) }
+                                        nearbyRadiusMiles: model.activeNearbyPreference.map { Double($0.distanceMiles) },
+                                        presentation: .compactTicket
                                     )
                                 }
                                 .buttonStyle(.plain)

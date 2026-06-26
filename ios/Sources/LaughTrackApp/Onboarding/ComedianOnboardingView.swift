@@ -47,8 +47,6 @@ struct ComedianOnboardingView: View {
     }
 
     var body: some View {
-        let tokens = theme.laughTrackTokens
-
         ScrollView {
             VStack(alignment: .leading, spacing: theme.spacing.xl) {
                 marqueeHeader
@@ -77,7 +75,7 @@ struct ComedianOnboardingView: View {
             }
             .padding(.bottom, theme.spacing.xxl)
         }
-        .background(tokens.colors.canvas.ignoresSafeArea())
+        .background(LaughTrackAtmosphereBackground().ignoresSafeArea())
         .safeAreaInset(edge: .bottom) {
             continueBar
         }

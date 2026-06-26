@@ -60,7 +60,7 @@ struct LaughTrackApp: App {
                 .environmentObject(authManager)
                 .environmentObject(loginModalPresenter)
                 .environmentObject(clubFavorites)
-                .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
+                .background(LaughTrackAtmosphereBackground().ignoresSafeArea())
                 .preferredColorScheme(.dark)
                 .onAppear {
                     remoteNotificationDelegate.routeHandler = { route in
