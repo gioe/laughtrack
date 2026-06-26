@@ -1,0 +1,87 @@
+{
+  "venue": {
+    "id": 470350,
+    "title": "Apotheosis Comics and Lounge",
+    "permalink": "/venues/apotheosis-comics-and-lounge",
+    "city": "St. Louis",
+    "state": "MO",
+    "zip": "63118"
+  },
+  "event_groups": [
+    {
+      "date": "2026-07-05",
+      "events": [
+        {
+          "id": 17096521,
+          "title": "Apotheosis Comedy Showcase",
+          "permalink": "/events/2026/7/5/apotheosis-comedy-showcase-tickets",
+          "begin_date": "2026-07-05",
+          "begin_time": "2026-07-05T20:00:00-05:00",
+          "end_time": "2026-07-05T22:00:00-05:00",
+          "category": "Comedy",
+          "category_param": "comedy",
+          "buy_url": "https://do314.com/events/2026/7/5/apotheosis-comedy-showcase-tickets/buy",
+          "excerpt": "A monthly stand-up comedy showcase in the lounge.",
+          "is_free": false,
+          "past": false
+        },
+        {
+          "id": 17096999,
+          "title": "Indie Rock Night",
+          "permalink": "/events/2026/7/5/indie-rock-night-tickets",
+          "begin_date": "2026-07-05",
+          "begin_time": "2026-07-05T21:00:00-05:00",
+          "category": "Music",
+          "category_param": "music",
+          "buy_url": "https://do314.com/events/2026/7/5/indie-rock-night-tickets/buy",
+          "excerpt": "Local bands play the lounge.",
+          "is_free": false,
+          "past": false
+        }
+      ]
+    },
+    {
+      "date": "2026-08-02",
+      "events": [
+        {
+          "id": 17253142,
+          "title": "South City Comedy Showcase",
+          "permalink": "/events/2026/8/2/south-city-comedy-showcase-tickets",
+          "begin_date": "2026-08-02",
+          "begin_time": "2026-08-02T20:00:00-05:00",
+          "category": "Comedy",
+          "category_param": "comedy",
+          "buy_url": "",
+          "excerpt": "Stand-up from South City's best.",
+          "is_free": true,
+          "past": false
+        }
+      ]
+    },
+    {
+      "date": "2025-10-04",
+      "events": [
+        {
+          "id": 16853279,
+          "title": "Past Comedy Showcase (already happened)",
+          "permalink": "/events/2025/10/4/south-city-comedy-showcase-tickets",
+          "begin_date": "2025-10-04",
+          "begin_time": "2025-10-04T20:00:00-05:00",
+          "category": "Comedy",
+          "category_param": "comedy",
+          "is_free": false,
+          "past": true
+        },
+        {
+          "id": 16853280,
+          "title": "",
+          "permalink": "/events/2026/9/1/malformed-no-title",
+          "begin_time": "2026-09-01T20:00:00-05:00",
+          "category_param": "comedy",
+          "past": false
+        }
+      ]
+    }
+  ],
+  "paging": {"count": 4}
+}
