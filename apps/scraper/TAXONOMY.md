@@ -238,6 +238,7 @@ Use the decision matrix below to determine whether you need new code:
 | Tixr (when calendar HTML has links) | `tixr` | `scraping_url` |
 | do314 / DoStuff Media | `do314` | `source_url` (the `events.json` feed URL) |
 | iCalendar / Google Calendar (ICS) | `ical` | `source_url` (the public `.ics` feed URL) |
+| Dojour | `dojour` | `source_url` (the `dojour.us/embed/u/<username>` URL) |
 
 #### Venue-specific scrapers (new code required)
 
@@ -290,6 +291,8 @@ When inspecting a new venue's website, use these markers to quickly identify the
 | **Network request** | `/.netlify/functions/availability` | Netlify Functions |
 | **Network request** | `/wp-json/tribe/events/v1/events` | Tribe Events (WP) |
 | **Network request** | `do314.com/venues/{slug}/events.json` (or any DoStuff city site: do312, do617, doLA) | do314 / DoStuff Media |
+| **Network request** | `dojour.us/api/event_instances/user_feed/?username={username}` | Dojour |
+| **Page source** | `<iframe ... src="https://dojour.us/embed/u/{username}">` (AngularJS calendar) | Dojour (`dojour`) |
 | **Page source** | `theshopcalendar.com/widget.js` widget (often inactive) on a venue's own site → check do314 | do314 / DoStuff Media |
 | **Page source** | `<iframe src="calendar.google.com/calendar/embed?src=<id>">` or any `.ics` / "Add to Google Calendar" link | iCalendar / Google Calendar (`ical`) |
 | **Page source** | `<script type="application/ld+json">` + `@type: Event` | JSON-LD |

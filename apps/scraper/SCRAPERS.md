@@ -1642,6 +1642,57 @@ VALUES (<club_id>, 'custom', 'do314',
 
 ---
 
+### Dojour
+
+| | |
+|---|---|
+| **Scraper key** | `dojour` (reference: `Sisyphus Brewing`) |
+| **Platform** | `custom` (no enum value; resolved by scraper_key) |
+| **DB field** | `scraping_sources.source_url` = the venue's Dojour embed/profile URL |
+| **Value format** | `https://dojour.us/embed/u/<username>` (bare `<username>` and `dojour.us/u/<username>` also parse) |
+| **Generic?** | ✅ Generic across the whole Dojour platform — only the `<username>` varies |
+
+**Detection signals:**
+- The venue's own events page embeds an AngularJS calendar iframe: `<iframe ... src="https://dojour.us/embed/u/<username>">`.
+- Network requests to `dojour.us/api/event_instances/user_feed/?username=<username>` and `dojour.us/api/profiles_username/<username>/`.
+
+**API/source pattern:**
+```
+GET https://dojour.us/api/event_instances/user_feed/
+    ?username=<username>&date_min=<YYYY-MM-DD 00:00>&distinct_event=true
+    &exclude_plans=true&page_size=50
+-> {"next": <url|null>, "count": N, "results": [ {instance, "event": {...}}, ... ]}
+```
+- No request params beyond the query string or auth needed; `Mozilla/5.0` UA is sufficient (no bot block observed).
+- `date_min` is stamped to today at scrape time; pagination is followed via the response `next` URL (capped at 20 pages).
+
+**Key extraction notes:**
+- Each `results[].event` carries an `upcoming_showing_set[]` listing every upcoming showtime — the scraper emits **one Show per showing** (a two-night run with a 7pm + 9pm seating yields four Shows), each keyed on the showing's `start_dt`.
+- `start_dt` is ISO 8601 with a **colon-less** offset (e.g. `"2026-06-26T19:00:00-0500"`) → parse with `datetime.fromisoformat()` (Python 3.11 handles the colon-less form).
+- `show_page_url` = `event.absolute_url`; the fallback Ticket uses `event.call_to_action_url` (the showings/buy page).
+- Price = lowest active `offer.option_set[].price`, which is in **cents** (e.g. `2200` → `$22.00`); free events carry no offer options → unknown price (null).
+- `event.cancelled: true` events and past showings (start before now) are dropped.
+- **No category filter:** Dojour exposes no reliable per-event comedy tag, and this scraper is for dedicated comedy rooms whose Dojour calendar IS the comedy room's calendar (a small amount of comedy-adjacent programming — drag bingo, etc. — is accepted rather than risk dropping legit comedians whose titles lack a "Comedy" suffix).
+- Comedian lineups are not pre-announced in the feed — leave lineup empty (no title-derived fabrication).
+
+**DB setup:**
+```sql
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, priority, enabled, metadata)
+VALUES (<club_id>, 'custom', 'dojour',
+        'https://dojour.us/embed/u/<username>', 0, true, '{}'::jsonb);
+```
+
+**Failure modes / gotchas:**
+- `platform` is the curated `ScrapingPlatform` enum; `dojour` is not a member → use `custom`.
+- The discovery hint for Dojour venues often mis-reports "Eventbrite" (a Shopify brewery/restaurant site can carry stray Eventbrite links) — always confirm the embed iframe on the venue's own events page.
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/scrapers/implementations/api/dojour/`
+- `apps/scraper/src/laughtrack/core/entities/event/dojour.py`
+- Reference venue/task: Sisyphus Brewing (Minneapolis) — TASK-3323.
+
+---
+
 ### iCalendar / Google Calendar (ICS)
 
 | | |
