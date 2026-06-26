@@ -123,3 +123,75 @@ async def test_empty_feed_returns_none(monkeypatch):
     monkeypatch.setattr(scraper, "fetch_json", fake_fetch_json)
 
     assert await scraper.get_data(_SOURCE_URL) is None
+
+
+def _event(eid: int, title: str, start_dt: str) -> dict:
+    return {
+        "event": {
+            "id": eid,
+            "title": title,
+            "absolute_url": f"https://dojour.us/e/{eid}",
+            "call_to_action_url": f"https://dojour.us/e/{eid}/showings",
+            "cancelled": False,
+            "upcoming_showing_set": [{"id": eid, "start_dt": start_dt, "timezone": "America/Chicago"}],
+        }
+    }
+
+
+async def test_event_without_showing_set_falls_back_to_row(monkeypatch):
+    """An event missing upcoming_showing_set falls back to the row's own start_dt."""
+    scraper = DojourScraper(_club())
+    payload = {
+        "next": None,
+        "results": [
+            {
+                "id": 700,
+                "start_dt": "2027-12-01T20:00:00-0600",
+                "timezone": "America/Chicago",
+                "offer": {"id": 700, "option_set": [{"active": True, "price": 3000}]},
+                "event": {
+                    "id": 700,
+                    "title": "Fallback Show /// Comedy",
+                    "absolute_url": "https://dojour.us/e/700-fallback",
+                    "call_to_action_url": "https://dojour.us/e/700/showings",
+                    "cancelled": False,
+                    # no upcoming_showing_set key at all
+                },
+            }
+        ],
+    }
+
+    async def fake_fetch_json(url):
+        return payload
+
+    monkeypatch.setattr(scraper, "fetch_json", fake_fetch_json)
+
+    page = await scraper.get_data(_SOURCE_URL)
+    assert isinstance(page, DojourPageData)
+    assert len(page.event_list) == 1
+    ev = page.event_list[0]
+    assert ev.title == "Fallback Show /// Comedy"
+    assert ev.start_dt == "2027-12-01T20:00:00-0600"
+    assert ev.min_price_cents == 3000  # price read from the row-level offer
+
+
+async def test_pagination_follows_next_url(monkeypatch):
+    """get_data follows the response `next` URL and merges all pages."""
+    scraper = DojourScraper(_club())
+    page2_url = "https://dojour.us/api/event_instances/user_feed/?page=2&username=sisyphusbrewing"
+    calls = []
+
+    async def fake_fetch_json(url):
+        calls.append(url)
+        if "page=2" in url:
+            return {"next": None, "results": [_event(2, "B /// Comedy", "2027-11-02T19:00:00-0500")]}
+        return {"next": page2_url, "results": [_event(1, "A /// Comedy", "2027-11-01T19:00:00-0500")]}
+
+    monkeypatch.setattr(scraper, "fetch_json", fake_fetch_json)
+
+    page = await scraper.get_data(_SOURCE_URL)
+    assert isinstance(page, DojourPageData)
+    assert {e.title for e in page.event_list} == {"A /// Comedy", "B /// Comedy"}
+    # Page 1 (built URL) + page 2 (the `next` URL) were both fetched.
+    assert len(calls) == 2
+    assert any("page=2" in u for u in calls)

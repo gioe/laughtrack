@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from laughtrack.core.entities.event.dojour import DojourEvent
+from laughtrack.foundation.utilities.datetime import DateTimeUtils
 
 
 class DojourExtractor:
@@ -65,13 +66,17 @@ class DojourExtractor:
         if not start_dt:
             return None
 
+        tz_name = showing.get("timezone") or default_timezone
+
         # Drop past showings (Dojour's "upcoming" set is usually clean, but a
-        # row-level fallback or a stale cache can carry past dates).
+        # row-level fallback or a stale cache can carry past dates). Localize a
+        # naive start to the showing's timezone first so a colon-/offset-less
+        # date is still comparable (and dropped) rather than slipping through.
         try:
-            parsed_start = datetime.fromisoformat(str(start_dt))
-            if parsed_start.tzinfo is not None and parsed_start < reference:
-                return None
+            parsed_start = DateTimeUtils.parse_datetime_with_timezone(str(start_dt), tz_name)
         except (ValueError, TypeError):
+            return None
+        if parsed_start < reference:
             return None
 
         return DojourEvent(
@@ -82,7 +87,7 @@ class DojourExtractor:
             showings_url=event.get("call_to_action_url") or None,
             description=event.get("description") or None,
             min_price_cents=DojourExtractor._min_price_cents(showing.get("offer")),
-            timezone_name=showing.get("timezone") or default_timezone,
+            timezone_name=tz_name,
         )
 
     @staticmethod

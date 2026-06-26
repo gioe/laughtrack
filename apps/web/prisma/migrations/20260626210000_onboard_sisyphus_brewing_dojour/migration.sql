@@ -53,8 +53,11 @@ INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, priori
 SELECT c.id, 'custom', 'dojour',
        'https://dojour.us/embed/u/sisyphusbrewing',
        0, true, '{}'::jsonb
+-- Locate the club by name OR google_place_id (parity with the clubs guard
+-- above) so a fresh-DB venue that already exists under a slightly different
+-- name still gets its dojour source wired.
 FROM clubs c
-WHERE c.name = 'Sisyphus Brewing'
+WHERE (c.name = 'Sisyphus Brewing' OR c.google_place_id = 'ChIJ48UXUOgys1IRmfBmb6NXjh0')
   AND NOT EXISTS (
     SELECT 1 FROM scraping_sources s
     WHERE s.club_id = c.id AND s.scraper_key = 'dojour'

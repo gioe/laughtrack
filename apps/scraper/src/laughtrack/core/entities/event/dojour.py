@@ -25,6 +25,7 @@ from bs4 import BeautifulSoup
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.show.model import Show
 from laughtrack.core.protocols.show_convertible import ShowConvertible
+from laughtrack.foundation.utilities.datetime import DateTimeUtils
 from laughtrack.utilities.domain.show.factory import ShowFactoryUtils
 
 DOJOUR_BASE_URL = "https://dojour.us"
@@ -64,13 +65,15 @@ class DojourEvent(ShowConvertible):
     def _resolve_date(self) -> Optional[datetime]:
         """Parse the showing start into a timezone-aware datetime.
 
-        Dojour emits offsets without a colon (``-0500``); Python 3.11's
-        ``fromisoformat`` parses that form natively.
+        Dojour emits offsets without a colon (``-0500``), which
+        ``parse_datetime_with_timezone`` handles via ``fromisoformat``; on the
+        rare chance a start lacks an offset, it is localized to the showing's
+        timezone so ``Show.date`` is never naive.
         """
         if not self.start_dt:
             return None
         try:
-            return datetime.fromisoformat(self.start_dt)
+            return DateTimeUtils.parse_datetime_with_timezone(self.start_dt, self.timezone_name)
         except (ValueError, TypeError):
             return None
 
