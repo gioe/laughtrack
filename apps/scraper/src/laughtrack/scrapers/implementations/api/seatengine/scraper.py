@@ -83,9 +83,35 @@ class SeatEngineScraper(BaseScraper):
                 self.logger_context,
             )
             return SeatEngineExtractor.to_page_data([])
+        events_data = self._filter_title_patterns(events_data)
         if self._comedy_filter:
             events_data = await self._filter_comedy(events_data)
         return SeatEngineExtractor.to_page_data(events_data)
+
+    def _filter_title_patterns(self, events: List[JSONDict]) -> List[JSONDict]:
+        """Apply opt-in include/exclude title regexes from source metadata."""
+        include = self.compile_title_patterns("include_title_patterns")
+        exclude = self.compile_title_patterns("exclude_title_patterns")
+        if not include and not exclude:
+            return events
+
+        kept: List[JSONDict] = []
+        for event in events:
+            title = _event_title(event)
+            if include and not any(pattern.search(title) for pattern in include):
+                continue
+            if exclude and any(pattern.search(title) for pattern in exclude):
+                continue
+            kept.append(event)
+
+        dropped = len(events) - len(kept)
+        if dropped:
+            Logger.info(
+                f"{self._log_prefix}: title filter dropped {dropped} of "
+                f"{len(events)} event(s); {len(kept)} kept",
+                self.logger_context,
+            )
+        return kept
 
     async def _filter_comedy(self, events: List[JSONDict]) -> List[JSONDict]:
         """Keep only events whose title qualifies as comedy (opt-in).

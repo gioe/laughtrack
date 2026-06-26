@@ -30,9 +30,9 @@ VENUE_ID = "42"
 VENUE_WEBSITE = "https://joes-comedy.com"
 
 
-def _club(seatengine_id: str = VENUE_ID) -> Club:
+def _club(seatengine_id: str = VENUE_ID, metadata: dict | None = None) -> Club:
     _c = Club(id=999, name="Joe's Comedy Club", address='123 Laugh Lane', website=VENUE_WEBSITE, popularity=0, zip_code='10001', phone_number='', visible=True, timezone='America/New_York')
-    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='seatengine', scraper_key='', source_url='https://joes-comedy.com/shows', external_id=seatengine_id)
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='seatengine', scraper_key='', source_url='https://joes-comedy.com/shows', external_id=seatengine_id, metadata=metadata or {})
     _c.scraping_sources = [_c.active_scraping_source]
     return _c
 
@@ -103,6 +103,25 @@ async def test_get_data_returns_empty_page_data_when_no_events(monkeypatch):
     assert isinstance(result, SeatEnginePageData)
     assert result.event_list == []
     assert not result.is_transformable()
+
+
+@pytest.mark.asyncio
+async def test_exclude_title_patterns_drop_placeholder_events():
+    """exclude_title_patterns drops operational placeholders like BABS construction closures."""
+    scraper = SeatEngineScraper(
+        _club(metadata={"exclude_title_patterns": [r"closed\s+for\s+construction"]})
+    )
+    placeholder = _show_dict(102)
+    placeholder["event"]["name"] = "*CLOSED FOR CONSTRUCTION 6/22-8/26*"
+    scraper.seatengine_client.fetch_events = AsyncMock(
+        return_value=[_show_dict(101), placeholder]
+    )
+
+    result = await scraper.get_data(VENUE_ID)
+
+    assert isinstance(result, SeatEnginePageData)
+    titles = [(e.get("event") or {}).get("name") for e in result.event_list]
+    assert titles == ["Wednesday Night Comedy"]
 
 
 # ---------------------------------------------------------------------------
