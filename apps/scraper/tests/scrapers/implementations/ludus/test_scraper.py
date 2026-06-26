@@ -24,7 +24,7 @@ from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.scrapers.implementations.ludus.extractor import (
     detail_url_for_show,
     embed_url_for_subdomain,
-    extract_comedy_cards,
+    extract_show_cards,
     extract_showtimes,
 )
 from laughtrack.scrapers.implementations.ludus.scraper import LudusScraper
@@ -76,8 +76,8 @@ def test_url_builders():
     )
 
 
-def test_extract_comedy_cards_filters_by_category():
-    cards = extract_comedy_cards(_EMBED, "468")
+def test_extract_show_cards_filters_by_category():
+    cards = extract_show_cards(_EMBED, "468")
     # 3 cards carry category 468; the 2 non-comedy cards are excluded.
     ids = {sid for sid, _ in cards}
     assert "200509131" in ids  # Mitch Fatel
@@ -90,9 +90,24 @@ def test_extract_comedy_cards_filters_by_category():
     assert "Park Theatre" not in titles["200509131"]
 
 
-def test_extract_comedy_cards_other_category_empty():
-    assert extract_comedy_cards(_EMBED, "999") == []
-    assert extract_comedy_cards("", "468") == []
+def test_extract_show_cards_other_category_empty():
+    assert extract_show_cards(_EMBED, "999") == []
+    assert extract_show_cards("", "468") == []
+
+
+def test_extract_show_cards_keep_all_without_category():
+    """Dedicated comedy venue (no category id) -> every card is kept."""
+    # The fixture's 5 cards all carry a data-show-id; with no category filter the
+    # extractor returns all of them regardless of data-event-categories.
+    all_cards = extract_show_cards(_EMBED)
+    none_cards = extract_show_cards(_EMBED, None)
+    assert all_cards == none_cards
+    # Superset of the 3 category-468 cards (the 2 non-comedy cards are now kept).
+    cat_ids = {sid for sid, _ in extract_show_cards(_EMBED, "468")}
+    all_ids = {sid for sid, _ in all_cards}
+    assert cat_ids <= all_ids
+    assert len(all_ids) >= len(cat_ids)
+    assert extract_show_cards("") == []
 
 
 def test_extract_showtimes():
@@ -152,6 +167,89 @@ async def test_full_scrape_builds_shows(monkeypatch, club):
         assert show.tickets[0].purchase_url.startswith(
             "https://parktheatreholland.ludus.com/index.php?show_id="
         )
+
+
+def _dedicated_club(metadata: dict) -> Club:
+    """A category-less dedicated comedy venue (ComedySportz STL style)."""
+    c = Club(
+        id=9200,
+        name="ComedySportz St. Louis",
+        address="2443 Creve Coeur Mill Rd",
+        website="https://www.cszstlouis.com/",
+        popularity=0,
+        zip_code="63043",
+        phone_number="",
+        visible=True,
+        timezone="America/Chicago",
+        city="Maryland Heights",
+        state="MO",
+    )
+    c.active_scraping_source = ScrapingSource(
+        id=2,
+        platform="custom",
+        scraper_key="ludus",
+        source_url="https://hatonahatcomedy.ludus.com/",
+        metadata=metadata,
+    )
+    c.scraping_sources = [c.active_scraping_source]
+    return c
+
+
+def test_filter_titles_include_allowlist_keeps_only_matches():
+    """include_title_patterns keeps the comedy series, drops the class — the
+    ComedySportz STL case where data-event-categories is empty and the keyword
+    comedy_filter would wrongly keep 'Intro to Improv' and drop 'ComedySportz'."""
+    club = _dedicated_club({
+        "ludus_subdomain": "hatonahatcomedy",
+        "include_title_patterns": ["ComedySportz"],
+    })
+    scraper = LudusScraper(club)
+    cards = [("200537127", "ComedySportz"), ("200514417", "Intro to Improv - 101")]
+    kept = scraper._filter_titles(cards)
+    assert kept == [("200537127", "ComedySportz")]
+
+
+def test_filter_titles_exclude_drops_matches():
+    club = _dedicated_club({
+        "ludus_subdomain": "hatonahatcomedy",
+        "exclude_title_patterns": ["Intro to Improv", "Workshop"],
+    })
+    scraper = LudusScraper(club)
+    cards = [("1", "ComedySportz"), ("2", "Intro to Improv - 101"), ("3", "Improv Workshop")]
+    assert scraper._filter_titles(cards) == [("1", "ComedySportz")]
+
+
+def test_filter_titles_noop_without_patterns():
+    """No include/exclude config -> cards pass through untouched (categorized
+    mixed-use venues like Park Theatre are unchanged)."""
+    club = _dedicated_club({"ludus_subdomain": "hatonahatcomedy"})
+    scraper = LudusScraper(club)
+    cards = [("1", "ComedySportz"), ("2", "Intro to Improv - 101")]
+    assert scraper._filter_titles(cards) == cards
+
+
+@pytest.mark.asyncio
+async def test_collect_targets_category_less_with_allowlist(monkeypatch):
+    """End-to-end: a dedicated venue with no category id + an include allowlist
+    keeps only the matching card as a detail target."""
+    embed = (
+        '<div class="show_item" data-show-id="111" data-event-categories="">'
+        '<h2 class="show_item_title">ComedySportz</h2></div>'
+        '<div class="show_item" data-show-id="222" data-event-categories="">'
+        '<h2 class="show_item_title">Intro to Improv - 101</h2></div>'
+    )
+    club = _dedicated_club({
+        "ludus_subdomain": "hatonahatcomedy",
+        "include_title_patterns": ["ComedySportz"],
+    })
+    scraper = LudusScraper(club)
+
+    async def fake_fetch(url):
+        return _DETAIL if "show_id=" in url else embed
+
+    monkeypatch.setattr(scraper, "_fetch", fake_fetch)
+    targets = await scraper.collect_scraping_targets()
+    assert targets == ["https://hatonahatcomedy.ludus.com/index.php?show_id=111"]
 
 
 @pytest.mark.asyncio

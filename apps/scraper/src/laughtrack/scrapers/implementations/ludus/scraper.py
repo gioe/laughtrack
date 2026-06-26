@@ -14,7 +14,14 @@ request; a curl_cffi ``impersonate='chrome120'`` session clears it.
 
 Configuration (``scraping_sources.metadata``):
     - ``ludus_subdomain`` (required) — the venue's Ludus subdomain
-    - ``comedy_category_id`` (required) — the venue-specific comedy category id
+    - ``comedy_category_id`` (optional) — the venue-specific comedy category id.
+      When set, only embed cards tagged with it are kept (mixed-use venue). When
+      omitted, ALL cards are kept (dedicated comedy venue that leaves
+      ``data-event-categories`` empty, e.g. ComedySportz) — pair with the
+      title-pattern allowlist below to drop classes/workshops.
+    - ``include_title_patterns`` / ``exclude_title_patterns`` (optional) — keep
+      only / drop cards whose title matches a regex (case-insensitive). Off by
+      default; the include-then-exclude loop mirrors ticketweb / sellingticket.
     - ``comedy_filter`` (optional) — enable the keyword/comedian mis-tag filter
 """
 
@@ -42,7 +49,7 @@ from .data import LudusPageData
 from .extractor import (
     detail_url_for_show,
     embed_url_for_subdomain,
-    extract_comedy_cards,
+    extract_show_cards,
     extract_showtimes,
 )
 from .transformer import LudusTransformer
@@ -85,13 +92,16 @@ class LudusScraper(BaseScraper):
 
     async def collect_scraping_targets(self) -> List[ScrapingTarget]:
         subdomain = self._subdomain()
-        category_id = self._category_id()
-        if not subdomain or not category_id:
+        if not subdomain:
             Logger.warn(
-                f"{self._log_prefix}: missing ludus_subdomain / comedy_category_id metadata",
+                f"{self._log_prefix}: missing ludus_subdomain metadata",
                 self.logger_context,
             )
             return []
+        # comedy_category_id is optional: present -> mixed-use category filter;
+        # absent -> dedicated comedy venue, keep all cards and scope via the
+        # title-pattern allowlist / comedy filter below.
+        category_id = self._category_id()
 
         embed_url = embed_url_for_subdomain(subdomain)
         html = await self._fetch(embed_url)
@@ -99,9 +109,13 @@ class LudusScraper(BaseScraper):
             self._warn_empty_extraction(embed_url, subject="comedy cards", html=html)
             return []
 
-        cards = extract_comedy_cards(html, category_id)
+        cards = extract_show_cards(html, category_id)
         if not cards:
             self._warn_empty_extraction(embed_url, subject="comedy cards", html=html)
+            return []
+
+        cards = self._filter_titles(cards)
+        if not cards:
             return []
 
         if self._comedy_filter:
@@ -115,6 +129,40 @@ class LudusScraper(BaseScraper):
             self.logger_context,
         )
         return [detail_url_for_show(subdomain, show_id) for show_id, _title in cards]
+
+    def _filter_titles(self, cards: List[tuple]) -> List[tuple]:
+        """Apply the opt-in include/exclude title-pattern filter to embed cards.
+
+        A dedicated comedy venue (no category tags) still lists non-public rows
+        — classes, workshops, camps — on the same embed. ``include_title_patterns``
+        keeps only cards whose title matches at least one regex (the comedy-series
+        allowlist, e.g. ``["ComedySportz"]``); ``exclude_title_patterns`` drops
+        cards whose title matches any regex. Both off by default, so categorized
+        mixed-use venues (Park Theatre) are unchanged. Pattern compilation is the
+        shared :meth:`BaseScraper.compile_title_patterns`; the include-then-exclude
+        loop mirrors ticketweb / sellingticket.
+        """
+        include = self.compile_title_patterns("include_title_patterns")
+        exclude = self.compile_title_patterns("exclude_title_patterns")
+        if not include and not exclude:
+            return cards
+
+        kept: List[tuple] = []
+        for show_id, title in cards:
+            if include and not any(p.search(title) for p in include):
+                continue
+            if exclude and any(p.search(title) for p in exclude):
+                continue
+            kept.append((show_id, title))
+
+        dropped = len(cards) - len(kept)
+        if dropped:
+            Logger.info(
+                f"{self._log_prefix}: title filter dropped {dropped} of "
+                f"{len(cards)} card(s); {len(kept)} kept",
+                self.logger_context,
+            )
+        return kept
 
     async def _filter_comedy(self, cards: List[tuple]) -> List[tuple]:
         """Drop category mis-tags by layering the shared comedy filter on titles.

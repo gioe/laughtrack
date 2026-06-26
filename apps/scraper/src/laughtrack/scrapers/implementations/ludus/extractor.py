@@ -49,21 +49,31 @@ def detail_url_for_show(subdomain: str, show_id: str) -> str:
     return f"https://{subdomain}.ludus.com/index.php?show_id={show_id}"
 
 
-def extract_comedy_cards(html: str, category_id: str) -> List[Tuple[str, str]]:
-    """Return ``(show_id, title)`` for embed cards tagged with ``category_id``.
+def extract_show_cards(html: str, category_id: Optional[str] = None) -> List[Tuple[str, str]]:
+    """Return ``(show_id, title)`` for embed cards.
+
+    When ``category_id`` is provided, keep only cards whose semicolon-separated
+    ``data-event-categories`` contains it — the mixed-use venue case (e.g. Park
+    Theatre, where comedy carries category ``468`` alongside concerts). When
+    ``category_id`` is ``None``/empty, keep ALL cards: this is the dedicated
+    comedy-venue case (e.g. ComedySportz, which leaves ``data-event-categories``
+    empty because every public show is comedy). In keep-all mode, pair with the
+    title-pattern allowlist / comedy filter to drop non-public rows (classes,
+    workshops).
 
     Title is taken from ``h2.show_item_title`` and trimmed at the venue-name
     separator (the listing appends " ★ <Venue>" to every card title).
     """
-    if not html or not category_id:
+    if not html:
         return []
 
     soup = BeautifulSoup(html, "html.parser")
     results: List[Tuple[str, str]] = []
     for card in soup.select("div.show_item"):
-        cats = [c.strip() for c in (card.get("data-event-categories") or "").split(";") if c.strip()]
-        if category_id not in cats:
-            continue
+        if category_id:
+            cats = [c.strip() for c in (card.get("data-event-categories") or "").split(";") if c.strip()]
+            if category_id not in cats:
+                continue
         show_id = (card.get("data-show-id") or "").strip()
         if not show_id:
             continue

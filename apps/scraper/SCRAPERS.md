@@ -2167,9 +2167,13 @@ ON CONFLICT (name) DO UPDATE SET scraping_url = EXCLUDED.scraping_url, website =
 |---|---|
 | **Scraper key** | `ludus` (generic — shared across all Ludus venues) |
 | **Platform** | `custom` |
-| **DB field** | `scraping_sources.source_url` + `metadata` keys `ludus_subdomain` (required), `comedy_category_id` (required), `comedy_filter` (optional) |
-| **Value format** | `metadata`: `{"ludus_subdomain": "parktheatreholland", "comedy_category_id": "468", "comedy_filter": true}` |
+| **DB field** | `scraping_sources.source_url` + `metadata` keys `ludus_subdomain` (required), `comedy_category_id` (optional), `include_title_patterns` / `exclude_title_patterns` (optional), `comedy_filter` (optional) |
+| **Value format** | Mixed-use: `{"ludus_subdomain": "parktheatreholland", "comedy_category_id": "468", "comedy_filter": true}`. Dedicated comedy venue: `{"ludus_subdomain": "hatonahatcomedy", "include_title_patterns": ["ComedySportz"]}` |
 | **Generic?** | ✅ generic — any ludus.com venue onboards via metadata, no new code |
+
+**Two venue shapes:**
+- **Mixed-use** (concerts + an occasional comedy series): set `comedy_category_id` to the venue-specific tag and the extractor keeps only cards whose `data-event-categories` contains it. Layer `comedy_filter: true` to drop category mis-tags.
+- **Dedicated comedy venue** (e.g. ComedySportz, subdomain `hatonahatcomedy`): the venue leaves `data-event-categories` **empty** on every card, so there is no category to filter on. **Omit `comedy_category_id`** — the extractor then keeps ALL cards — and scope to the public comedy shows with `include_title_patterns` (allowlist) and/or `exclude_title_patterns` (drop classes/workshops). Do NOT use the keyword `comedy_filter` here: `select_comedy_titles` drops "ComedySportz" (no comedy keyword) yet keeps "Intro to Improv - 101" (matches the `improv` keyword), i.e. exactly backwards. The include/exclude title patterns compile via the shared `BaseScraper.compile_title_patterns`; the include-then-exclude loop mirrors ticketweb/sellingticket (TASK-3303).
 
 **Detection signals:**
 - Buy links / embedded widget from `*.ludus.com` (formerly Tixato); the venue's own site often only embeds the Ludus widget
