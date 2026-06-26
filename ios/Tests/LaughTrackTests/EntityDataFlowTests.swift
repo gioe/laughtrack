@@ -138,6 +138,34 @@ struct EntityDataFlowTests {
         #expect(model.paginationFailure == .network("Timed out"))
     }
 
+    @Test("search model clears loading state when a debounced reload is cancelled")
+    func searchModelClearsLoadingStateWhenDebouncedReloadIsCancelled() async throws {
+        let model = EntitySearchModel<String, Int>()
+
+        let cancelledReload = Task {
+            await model.reload(query: "nearby", shouldDebounce: true) { _, _ in
+                Issue.record("Cancelled debounced reload should not reach fetch")
+                return .success(.init(items: [], total: 0))
+            }
+        }
+
+        try await Task.sleep(for: .milliseconds(100))
+        cancelledReload.cancel()
+        await cancelledReload.value
+
+        await model.reload(query: "nearby") { page, query in
+            #expect(page == 0)
+            #expect(query == "nearby")
+            return .success(.init(items: [42], total: 1))
+        }
+
+        guard case .success(let page) = model.phase else {
+            Issue.record("Expected cancelled debounce to allow a future reload")
+            return
+        }
+        #expect(page.items == [42])
+    }
+
     @Test("home shows tonight model renders raw API show dates from a 200 home feed")
     func homeShowsTonightModelDecodesRawHomeFeedDates() async {
         let model = HomeShowsTonightModel()

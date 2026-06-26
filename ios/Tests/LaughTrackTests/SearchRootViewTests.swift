@@ -491,6 +491,48 @@ struct SearchRootModelTests {
         #expect(showsModel.requestKey.distance.rawValue == 50)
     }
 
+    @Test("shows discovery applies default nearby preference when no search location exists")
+    func showsDiscoveryAppliesDefaultNearbyPreference() async throws {
+        let showsModel = makeShowsListModel(
+            name: "default-nearby",
+            resolver: MockSearchNearbyLocationResolver(result: .success("10012"))
+        )
+        let preference = NearbyPreference(
+            zipCode: "10801",
+            source: .manual,
+            distanceMiles: 25,
+            city: "New Rochelle",
+            state: "NY"
+        )
+
+        showsModel.applyDefaultNearbyPreference(preference)
+
+        #expect(showsModel.activeNearbyPreference == preference)
+        #expect(showsModel.zipCodeDraft == "10801")
+        #expect(showsModel.requestKey.sanitizedZip == "10801")
+        #expect(showsModel.requestKey.distance.rawValue == 25)
+        #expect(showsModel.activeLocationLabel == "New Rochelle, NY")
+    }
+
+    @Test("shows discovery default nearby preference does not override local search location")
+    func showsDiscoveryDefaultNearbyPreferenceDoesNotOverrideLocalLocation() async throws {
+        let showsModel = makeShowsListModel(
+            name: "default-nearby-preserves-local",
+            resolver: MockSearchNearbyLocationResolver(result: .success("10012"))
+        )
+
+        showsModel.zipCodeDraft = "30309"
+        showsModel.distance = .regional
+        #expect(showsModel.applyManualZip())
+
+        showsModel.applyDefaultNearbyPreference(
+            NearbyPreference(zipCode: "10801", source: .manual, distanceMiles: 25)
+        )
+
+        #expect(showsModel.activeNearbyPreference == NearbyPreference(zipCode: "30309", source: .manual, distanceMiles: 50))
+        #expect(showsModel.requestKey.sanitizedZip == "30309")
+    }
+
     @Test("near me shortcut resolves current location when no nearby preference exists")
     func nearMeShortcutResolvesCurrentLocation() async throws {
         let model = SearchRootModel()

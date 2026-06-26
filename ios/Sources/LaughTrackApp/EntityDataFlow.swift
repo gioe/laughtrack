@@ -147,10 +147,6 @@ class EntitySearchModel<Query: Equatable, Item: Sendable>: ObservableObject {
         if resetResults {
             loadingQuery = query
             phase = .loading
-            if shouldDebounce {
-                try? await Task.sleep(for: .milliseconds(250))
-                guard !Task.isCancelled else { return }
-            }
         } else {
             isLoadingMore = true
         }
@@ -161,6 +157,11 @@ class EntitySearchModel<Query: Equatable, Item: Sendable>: ObservableObject {
             } else {
                 isLoadingMore = false
             }
+        }
+
+        if resetResults, shouldDebounce {
+            try? await Task.sleep(for: .milliseconds(250))
+            guard !Task.isCancelled else { return }
         }
 
         let result = await fetch(page, query)

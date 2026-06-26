@@ -182,6 +182,7 @@ struct AppShellView: View {
                     coordinator: coordinator,
                     searchNavigationBridge: searchNavigationBridge,
                     nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self),
+                    nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self),
                     isActive: shellState.selectedTab == .search,
                     selectedPrimitive: searchPrimitiveBinding
                 )

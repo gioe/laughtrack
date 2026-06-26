@@ -8,6 +8,7 @@ struct SearchRootView: View {
     let favorites: ComedianFavoriteStore
     let coordinator: TypedNavigationCoordinator<AppRoute>
     let searchNavigationBridge: SearchNavigationBridge
+    @ObservedObject private var nearbyPreferenceStore: NearbyPreferenceStore
     let isActive: Bool
     @Binding private var selectedPrimitive: SearchRootModel.Pivot
 
@@ -25,6 +26,7 @@ struct SearchRootView: View {
         coordinator: TypedNavigationCoordinator<AppRoute>,
         searchNavigationBridge: SearchNavigationBridge,
         nearbyLocationController: NearbyLocationController,
+        nearbyPreferenceStore: NearbyPreferenceStore,
         isActive: Bool = true,
         selectedPrimitive: Binding<SearchRootModel.Pivot> = .constant(.shows)
     ) {
@@ -32,6 +34,7 @@ struct SearchRootView: View {
         self.favorites = favorites
         self.coordinator = coordinator
         self.searchNavigationBridge = searchNavigationBridge
+        self.nearbyPreferenceStore = nearbyPreferenceStore
         self.isActive = isActive
         _selectedPrimitive = selectedPrimitive
         _showsModel = StateObject(
@@ -63,7 +66,14 @@ struct SearchRootView: View {
         .modifier(LaughTrackNavigationChrome(background: .clear))
         .task {
             model.activePivot = selectedPrimitive
+            applyDefaultNearbyPreferenceToShows()
             applyRootQueryToActivePivot()
+        }
+        .onChange(of: nearbyPreferenceStore.preference) { _ in
+            applyDefaultNearbyPreferenceToShows()
+        }
+        .onChange(of: nearbyPreferenceStore.defaultPreference) { _ in
+            applyDefaultNearbyPreferenceToShows()
         }
         .onChange(of: model.query) { _ in
             applyRootQueryToActivePivot()
@@ -139,6 +149,12 @@ struct SearchRootView: View {
             comediansModel: comediansModel,
             clubsModel: clubsModel,
             podcastsModel: podcastsModel
+        )
+    }
+
+    private func applyDefaultNearbyPreferenceToShows() {
+        showsModel.applyDefaultNearbyPreference(
+            nearbyPreferenceStore.preference ?? nearbyPreferenceStore.defaultPreference
         )
     }
 }

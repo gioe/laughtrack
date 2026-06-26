@@ -59,11 +59,27 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
             !comedianSearchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
+    var activeLocationLabel: String? {
+        guard let activeNearbyPreference else { return nil }
+
+        if let city = activeNearbyPreference.city, let state = activeNearbyPreference.state {
+            return "\(city), \(state)"
+        }
+        if let city = activeNearbyPreference.city {
+            return city
+        }
+        if let state = activeNearbyPreference.state {
+            return state
+        }
+        return activeNearbyPreference.zipCode
+    }
+
     private let nearbyLocationController: NearbyLocationController
     let pinnedClubName: String?
     let pinnedComedianName: String?
     private var nearbyStatusCancellable: AnyCancellable?
     private var nearbyLoadingCancellable: AnyCancellable?
+    private var hasSearchLocalLocationOverride = false
 
     init(
         nearbyLocationController: NearbyLocationController,
@@ -133,6 +149,23 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
 
     func applySearchSeedNearbyPreference(_ preference: NearbyPreference?) {
         guard let preference, allowsLocationFiltering else { return }
+        hasSearchLocalLocationOverride = true
+        activeNearbyPreference = preference
+        zipCodeDraft = preference.zipCode
+        distance = .from(distanceMiles: preference.distanceMiles)
+        nearbyStatusMessage = nil
+    }
+
+    func applyDefaultNearbyPreference(_ preference: NearbyPreference?) {
+        guard
+            let preference,
+            allowsLocationFiltering,
+            !hasSearchLocalLocationOverride,
+            activeNearbyPreference == nil
+        else {
+            return
+        }
+
         activeNearbyPreference = preference
         zipCodeDraft = preference.zipCode
         distance = .from(distanceMiles: preference.distanceMiles)
@@ -140,6 +173,7 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
     }
 
     func clearLocation() {
+        hasSearchLocalLocationOverride = true
         zipCodeDraft = ""
         nearbyStatusMessage = nil
         activeNearbyPreference = nil
@@ -168,6 +202,7 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
             return false
         }
 
+        hasSearchLocalLocationOverride = true
         activeNearbyPreference = NearbyPreference(
             zipCode: zipCode,
             source: .manual,
@@ -185,6 +220,7 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
         }
 
         activeNearbyPreference = preference
+        hasSearchLocalLocationOverride = true
         zipCodeDraft = preference.zipCode
         distance = .from(distanceMiles: preference.distanceMiles)
         nearbyStatusMessage = nil

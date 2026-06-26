@@ -12,16 +12,13 @@ struct ShowRow: View {
     @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
 
     let show: Components.Schemas.Show
-    var nearbyRadiusMiles: Double?
     let presentation: ShowRowPresentation
 
     init(
         show: Components.Schemas.Show,
-        nearbyRadiusMiles: Double? = nil,
         presentation: ShowRowPresentation = .standard
     ) {
         self.show = show
-        self.nearbyRadiusMiles = nearbyRadiusMiles
         self.presentation = presentation
     }
 
@@ -136,7 +133,7 @@ struct ShowRow: View {
                 titleOnlyBlock
             }
 
-            if isSoldOut || isWithinNearbyRadius || isOpenMic {
+            if isSoldOut || isOpenMic {
                 ticketBodyBadges(isSoldOut: isSoldOut, isOpenMic: isOpenMic)
             }
         }
@@ -150,7 +147,7 @@ struct ShowRow: View {
 
     private var titleOnlyBlock: some View {
         let laughTrack = theme.laughTrackTokens
-        let clubName = show.clubName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let venueLine = Self.venueLine(for: show)
         let roomName = Self.roomLabel(for: show)
 
         return VStack(alignment: .leading, spacing: theme.spacing.xxs) {
@@ -160,8 +157,8 @@ struct ShowRow: View {
                 .lineLimit(2)
                 .fixedSize(horizontal: false, vertical: true)
 
-            if !clubName.isEmpty {
-                Text(clubName)
+            if let venueLine {
+                Text(venueLine)
                     .font(laughTrack.typography.metadata)
                     .foregroundStyle(ticketInkMuted)
                     .lineLimit(1)
@@ -205,7 +202,7 @@ struct ShowRow: View {
         isSoldOut: Bool
     ) -> some View {
         let laughTrack = theme.laughTrackTokens
-        let clubName = show.clubName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let venueLine = Self.venueLine(for: show)
 
         VStack(alignment: .leading, spacing: theme.spacing.xs) {
             HStack(alignment: .center, spacing: theme.spacing.sm) {
@@ -226,8 +223,8 @@ struct ShowRow: View {
                         .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
 
-                    if !clubName.isEmpty {
-                        Text(clubName)
+                    if let venueLine {
+                        Text(venueLine)
                             .font(laughTrack.typography.metadata)
                             .foregroundStyle(ticketInkMuted)
                             .lineLimit(1)
@@ -383,17 +380,6 @@ struct ShowRow: View {
                     )
             }
 
-            if isWithinNearbyRadius {
-                Text("Near you")
-                    .font(laughTrack.typography.metadata)
-                    .foregroundStyle(laughTrack.colors.accentStrong)
-                    .padding(.horizontal, theme.spacing.xs)
-                    .padding(.vertical, 2)
-                    .background(
-                        Capsule(style: .continuous)
-                            .fill(laughTrack.colors.highlight.opacity(0.18))
-                    )
-            }
         }
     }
 
@@ -454,11 +440,6 @@ struct ShowRow: View {
         return monthStackFormatter.string(from: date).uppercased()
     }
 
-    private var isWithinNearbyRadius: Bool {
-        guard let distance = show.distanceMiles, let nearbyRadiusMiles else { return false }
-        return distance <= nearbyRadiusMiles
-    }
-
     static func title(for show: Components.Schemas.Show) -> String {
         ShowTitlePresentation.title(for: show)
     }
@@ -471,6 +452,25 @@ struct ShowRow: View {
         }
 
         return "Comedy show"
+    }
+
+    static func venueLine(for show: Components.Schemas.Show) -> String? {
+        let clubName = show.clubName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard !clubName.isEmpty else { return nil }
+
+        let city = show.clubCity?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let state = show.clubState?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+
+        if !city.isEmpty, !state.isEmpty {
+            return "\(clubName) • \(city), \(state)"
+        }
+        if !city.isEmpty {
+            return "\(clubName) • \(city)"
+        }
+        if !state.isEmpty {
+            return "\(clubName) • \(state)"
+        }
+        return clubName
     }
 
     static func artworkImageURL(for show: Components.Schemas.Show) -> String? {

@@ -123,7 +123,6 @@ struct ShowsListView: View {
                                 } label: {
                                     ShowRow(
                                         show: show,
-                                        nearbyRadiusMiles: model.activeNearbyPreference.map { Double($0.distanceMiles) },
                                         presentation: .compactTicket
                                     )
                                 }
@@ -362,8 +361,8 @@ private struct ShowFiltersPanel: View {
     }
 
     private var zipChipTitle: String {
-        if let activeNearbyPreference = model.activeNearbyPreference {
-            return "Location \(activeNearbyPreference.zipCode)"
+        if let activeLocationLabel = model.activeLocationLabel {
+            return "Location \(activeLocationLabel)"
         }
 
         let draft = model.zipCodeDraft.trimmingCharacters(in: .whitespacesAndNewlines)

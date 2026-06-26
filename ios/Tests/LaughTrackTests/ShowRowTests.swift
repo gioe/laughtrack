@@ -22,6 +22,14 @@ struct ShowRowTests {
         #expect(source.contains("case .compactTicket"))
     }
 
+    @Test("show row does not render proximity badges")
+    func showRowDoesNotRenderProximityBadges() throws {
+        let source = try String(contentsOf: showRowSourceURL(), encoding: .utf8)
+
+        #expect(!source.contains("Near you"))
+        #expect(!source.contains("nearbyRadiusMiles"))
+    }
+
     @Test("show row uses the highest show-count lineup comedian image")
     func showRowUsesMostPopularLineupComedianImage() {
         let show = makeShow(lineup: [
@@ -88,6 +96,30 @@ struct ShowRowTests {
         )
 
         #expect(ShowRow.listTitle(for: show) == "Golden Gate Comedy Night")
+    }
+
+    @Test("show row venue line includes city and state when available")
+    func showRowVenueLineIncludesCityAndState() {
+        let show = makeShow(
+            clubName: "The Grisly Pear Greenwich Village",
+            clubCity: "New York",
+            clubState: "NY",
+            lineup: []
+        )
+
+        #expect(ShowRow.venueLine(for: show) == "The Grisly Pear Greenwich Village • New York, NY")
+    }
+
+    @Test("show row venue line falls back to club name without location")
+    func showRowVenueLineFallsBackToClubNameWithoutLocation() {
+        let show = makeShow(
+            clubName: "The Grisly Pear Greenwich Village",
+            clubCity: nil,
+            clubState: nil,
+            lineup: []
+        )
+
+        #expect(ShowRow.venueLine(for: show) == "The Grisly Pear Greenwich Village")
     }
 
     @Test("show row preserves longer production titles")
@@ -364,6 +396,8 @@ struct ShowRowTests {
     private func makeShow(
         name: String = "Late show",
         clubName: String = "Comedy Cellar",
+        clubCity: String? = nil,
+        clubState: String? = nil,
         room: String? = nil,
         tickets: [Components.Schemas.Ticket] = [],
         tags: [Components.Schemas.Tag]? = nil,
@@ -373,6 +407,8 @@ struct ShowRowTests {
             id: 1,
             clubId: 201,
             clubName: clubName,
+            clubCity: clubCity,
+            clubState: clubState,
             date: Date(timeIntervalSince1970: 1_710_000_000),
             tickets: tickets,
             name: name,
