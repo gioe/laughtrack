@@ -236,6 +236,7 @@ Use the decision matrix below to determine whether you need new code:
 | Squarespace | `squarespace` | `scraping_url` (with collectionId) |
 | ThunderTix | `thundertix` | `scraping_url` |
 | Tixr (when calendar HTML has links) | `tixr` | `scraping_url` |
+| do314 / DoStuff Media | `do314` | `source_url` (the `events.json` feed URL) |
 
 #### Venue-specific scrapers (new code required)
 
@@ -287,6 +288,8 @@ When inspecting a new venue's website, use these markers to quickly identify the
 | **Network request** | `plugin.vbotickets.com` | VBO Tickets |
 | **Network request** | `/.netlify/functions/availability` | Netlify Functions |
 | **Network request** | `/wp-json/tribe/events/v1/events` | Tribe Events (WP) |
+| **Network request** | `do314.com/venues/{slug}/events.json` (or any DoStuff city site: do312, do617, doLA) | do314 / DoStuff Media |
+| **Page source** | `theshopcalendar.com/widget.js` widget (often inactive) on a venue's own site → check do314 | do314 / DoStuff Media |
 | **Page source** | `<script type="application/ld+json">` + `@type: Event` | JSON-LD |
 | **Page source** | `self.__next_f.push()` RSC segments | Next.js RSC (StageTime, Punchup) |
 | **Page source** | `<script id="__NEXT_DATA__">` | Next.js SSR (Vivenu) |
