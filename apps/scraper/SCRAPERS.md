@@ -3262,7 +3262,7 @@ venue has switched checkout platforms before.
 **Detection signals:**
 - The venue site (e.g. `stlouisfunnybone.com`) is a thin ASP.NET front-end (`__VIEWSTATE`) with `/{city}/ShowDetails/{showGuid}/{venueGuid}/...` show links
 - Page JS references `apireservation.standupmedia.com/api/...`, `var locationid = '<guid>'`, `var dbname = '<name>_prod'`
-- The Funny Bone chain's old `{city}.funnybone.com/shows/` etix subdomains are now dead (NXDOMAIN) — the venues migrated to this platform
+- **Per-venue, not chain-wide:** St. Louis specifically moved to StandUp Media (`stlouisfunnybone.com`; its old `stlouis.funnybone.com` subdomain is now NXDOMAIN). The rest of the Funny Bone chain still runs on **etix** at `{city}.funnybone.com/shows/` (DataDome-protected but scraping fine via GHA — e.g. Albany, Columbus, Dayton, Kansas City, Omaha, Orlando, Richmond, Syracuse). Do **not** assume a Funny Bone is on StandUp Media: confirm `var locationid` / `apireservation.standupmedia.com` on the specific venue's page first (conventions #24, #241, #249; TASK-3474 was abandoned after wrongly assuming the whole chain migrated)
 
 **API/source pattern (single JSON fetch):**
 
