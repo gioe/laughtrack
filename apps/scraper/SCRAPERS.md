@@ -3249,6 +3249,41 @@ venue has switched checkout platforms before.
 
 ---
 
+### StandUp Media (Funny Bone / Levity)
+
+| | |
+|---|---|
+| **Scraper key** | `standup_media` (generic — shared across the Funny Bone chain) |
+| **Platform** | `custom` |
+| **DB field** | `scraping_sources.source_url` (venue events page, the ticket fallback) + `metadata` keys `standup_media_location_id` (required) and `standup_media_dbname` (required) |
+| **Value format** | `metadata`: `{"standup_media_location_id": "718bd264-309b-4fa0-a6fa-0b93455f88d0", "standup_media_dbname": "stlouis_prod"}` |
+| **Generic?** | ✅ generic — any StandUp Media venue onboards via metadata, no new code |
+
+**Detection signals:**
+- The venue site (e.g. `stlouisfunnybone.com`) is a thin ASP.NET front-end (`__VIEWSTATE`) with `/{city}/ShowDetails/{showGuid}/{venueGuid}/...` show links
+- Page JS references `apireservation.standupmedia.com/api/...`, `var locationid = '<guid>'`, `var dbname = '<name>_prod'`
+- The Funny Bone chain's old `{city}.funnybone.com/shows/` etix subdomains are now dead (NXDOMAIN) — the venues migrated to this platform
+
+**API/source pattern (single JSON fetch):**
+
+    GET https://apireservation.standupmedia.com/api/Show/GetAllShows/{location_id}/false/{dbname}
+    -> [ {"ShowID", "ShowDt", "ShowTm", "ComicName", "ShowPrice", "soldout", "isprivate", ...}, ... ]
+
+- One record **per price section**, so a single showtime appears as several rows sharing one `ShowID`; the scraper de-duplicates by `ShowID` and keeps the lowest positive `ShowPrice`.
+- `ShowTm` is a naive local datetime string (no offset) — localized with the club timezone.
+- The `false` path segment is the `isprivate` flag (public shows only); rows with `isprivate: true` are also dropped defensively.
+- No anti-bot: the API returns 200 with no special headers.
+
+**Finding the coordinates:** open the venue's events page (`/{city}/events`), view source, and read `var locationid = '<guid>'` (→ `standup_media_location_id`) and `var dbname = '<name>_prod'` (→ `standup_media_dbname`). The location_id also appears as the second GUID in every `ShowDetails` URL.
+
+**DB setup:** see `migrations/20260626_onboard_funnybone_westport_standup_media.sql` for the full idempotent club + `scraping_sources` onboarding (TASK-3315, Westport Funny Bone, location `718bd264-…`, db `stlouis_prod`, 119 shows).
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/scrapers/implementations/api/standup_media/`
+- Event entity: `apps/scraper/src/laughtrack/core/entities/event/standup_media.py`
+
+---
+
 ### BookTix
 
 `scraper_key = booktix`, `platform = custom` (BookTix has no dedicated
