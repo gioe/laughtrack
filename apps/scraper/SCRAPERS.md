@@ -1589,6 +1589,59 @@ GET https://www.squadup.com/api/v3/events
 
 ---
 
+### do314 / DoStuff Media
+
+| | |
+|---|---|
+| **Scraper key** | `do314` (reference: `Apotheosis Comics and Lounge`) |
+| **Platform** | `custom` (no enum value; resolved by scraper_key) |
+| **DB field** | `scraping_sources.source_url` = the venue's `events.json` feed URL |
+| **Value format** | `https://do314.com/venues/<slug>/events.json` |
+| **Generic?** | ✅ Generic across the whole DoStuff Media network (do314, do312, do617, doLA, …) — only the host varies |
+
+**Detection signals:**
+- The venue's own site has no live calendar of its own, but tickets/listings point at a DoStuff city site (`do314.com`, `do312.com`, `do617.com`, `dolasites`…).
+- Page source contains `dostuff`, `Do314`, CSS classes `ds-listing`, `ds-ga-event`, `ds-event-category-<cat>`.
+- A `/venues/<slug>` page links to `/venues/<slug>/month_events`.
+
+**API/source pattern:**
+```
+GET https://do314.com/venues/<slug>/events.json
+-> {"venue": {...}, "event_groups": [{"date": "YYYY-MM-DD", "events": [ {event}, ... ]}], "paging": {...}}
+```
+- No request params or auth needed; `Mozilla/5.0` UA is sufficient (no Cloudflare/DataDome block observed).
+- Events are grouped by day under `event_groups[].events[]` — flatten them.
+
+**Key extraction notes:**
+- `begin_time` is ISO 8601 with UTC offset (e.g. `"2026-07-05T20:00:00-05:00"`) → parse with `datetime.fromisoformat()`. Falls back to `begin_date` localized to the club timezone.
+- `permalink` is **relative** (`/events/.../tickets`) — prefix `https://do314.com` for the `show_page_url`.
+- `buy_url` is the ticket link (used for the fallback Ticket); falls back to the event page URL when empty.
+- `category_param` is do314's own category slug (`comedy`, `music`, …). Mixed-use venues (e.g. a comic shop) host non-comedy events, so the scraper keeps **only `comedy` by default**.
+- `past: true` events are skipped so re-runs surface only upcoming shows.
+- Comedian lineups are not pre-announced in the feed — leave lineup empty (no title-derived fabrication).
+
+**Category filter override (`scraping_sources.metadata`):**
+- `{"do314_include_all_categories": true}` — keep every category.
+- `{"do314_categories": ["comedy", "spoken"]}` — custom allowlist (lower-cased `category_param` values).
+
+**DB setup:**
+```sql
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, priority, enabled, metadata)
+VALUES (<club_id>, 'custom', 'do314',
+        'https://do314.com/venues/<slug>/events.json', 0, true, '{}'::jsonb);
+```
+
+**Failure modes / gotchas:**
+- A venue can legitimately return `event_groups: []` (no upcoming events) — that is 0 shows, not a failure. Comedy at small/seasonal venues is sparse.
+- `platform` is the curated `ScrapingPlatform` enum; `do314` is not a member → use `custom`.
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/scrapers/implementations/api/do314/`
+- `apps/scraper/src/laughtrack/core/entities/event/do314.py`
+- Reference venue/task: Apotheosis Comics and Lounge (St. Louis) — TASK-3307.
+
+---
+
 ### Tixologi (Laugh Factory CMS)
 
 | | |
