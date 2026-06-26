@@ -168,6 +168,13 @@ Is there a `{venue}.multipass.com` box-office page or multipass.com buy links?
               (see Multipass section — static HTML lists ALL events; scraper
                filters to upcoming-only and infers the omitted year)
 
+Is there an app.arts-people.com ticketing page (footer "Ticketing System provided
+by Arts People") or buy links to `app.arts-people.com/index.php?show=<id>`?
+  └── YES → platform: custom → scraper = 'arts_people' (generic)
+              DB: source_url = https://app.arts-people.com/index.php?ticketing=<shortName>
+              (see Arts-People section — multi-purpose dinner theatres set
+               metadata.include_title_patterns to a comedy allowlist)
+
 Check browser network requests (browser_navigate + browser_network_requests):
   └── tockify.com/api/tagoptions/<calname>   → platform: Tockify
                                                 → new venue-specific scraper required
@@ -775,6 +782,70 @@ VALUES (
 **Reference implementation:**
 - `apps/scraper/src/laughtrack/scrapers/implementations/api/tugoz/`
 - Masala Comedy Club, TASK-3194.
+
+---
+
+### Arts-People (Neon One)
+
+| | |
+|---|---|
+| **Scraper key** | `arts_people` |
+| **Platform** | `custom` |
+| **DB field** | `scraping_sources.source_url`; optional `metadata.include_title_patterns` / `metadata.exclude_title_patterns` |
+| **Value format** | `source_url` = `https://app.arts-people.com/index.php?ticketing=<shortName>` |
+| **Generic?** | ✅ Generic — a new Arts-People venue needs only a DB row (+ title filters for mixed-use orgs) |
+
+**Detection signals:**
+- Page footer: "Ticketing System provided by **Arts People**" linking `neonone.com/products/arts-people/`.
+- Buy links point to `app.arts-people.com/index.php?show=<id>` (or `/?show=<id>`).
+- The venue's own site (often a Wix/Squarespace/SPA shell) routes every "Buy tickets" link to `app.arts-people.com/index.php?ticketing=<shortName>`.
+- The ticketing list page sets `shortName = '<slug>'` and `theatreId = '<id>'` in an inline `<script>`.
+
+**API/source pattern (two-phase / html, multi_step):**
+1. List page `index.php?ticketing=<shortName>` — each production is a row in
+   `<table class="htable_front_page">` with a title `<h1>` and a buy link
+   `<a href="/?show=<id>">`. The scraper extracts `(title, ?show=<id> URL)` pairs.
+2. Per-show page `index.php?show=<id>` — bookable performances render inside
+   `<table id="TBLperformances">` as anchor links whose text is the performance
+   date, e.g. `Sat, Jul 11th, 2026 at 7:30 pm`. The production title comes from
+   the `#show_text` heading. One `Show` is produced per dated performance.
+
+**Key extraction notes:**
+- Performance date format: optional weekday, abbreviated **or** full month, day
+  with an optional ordinal suffix, then `at H:MM am/pm` — parsed in the club's
+  timezone (Longmont CO = `America/Denver`). Past performances are dropped.
+- `show_page_url` is the stable `?show=<id>` page (the performance anchor itself
+  is an add-to-cart action URL, not a durable link).
+- Prices ("$15 advanced / $20 day of") are free text, not per-performance
+  structured data, so a fallback ticket with unknown price points at the show page.
+- **Mixed-use filtering:** dinner theatres mix musicals/plays with a comedy
+  series. Set `metadata.include_title_patterns` to a comedy allowlist
+  (e.g. `["comedy","improv","stand[ -]?up","comedian","open mic"]`) so only the
+  comedy production(s) are scraped. Both include/exclude filters are OFF by
+  default, so a pure-comedy Arts-People org is unchanged.
+
+**DB setup:**
+```sql
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, priority, enabled, metadata)
+SELECT c.id, 'custom', 'arts_people',
+       'https://app.arts-people.com/index.php?ticketing=<shortName>', 0, true,
+       '{"include_title_patterns": ["comedy","improv","stand[ -]?up","comedian","open mic"]}'::jsonb
+FROM clubs c
+WHERE c.name = 'My Venue'
+  AND NOT EXISTS (SELECT 1 FROM scraping_sources s WHERE s.club_id = c.id AND s.scraper_key = 'arts_people');
+```
+
+**Failure modes / gotchas:**
+- Do NOT point `source_url` at the venue's own homepage — many are JS SPAs whose
+  show data lives only on the Arts-People ticketing page.
+- An empty `TBLperformances` (between runs of a production) yields 0 performances
+  for that show — expected; other productions still produce shows.
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/scrapers/implementations/api/arts_people/`
+- `apps/scraper/src/laughtrack/core/entities/event/arts_people.py`
+- Jesters Dinner Theatre (Longmont, CO — TASK-3419): `?ticketing=jest`, comedy
+  production "Front deRanged Improv Comedy" (`?show=39668`).
 
 ---
 

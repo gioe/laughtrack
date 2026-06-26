@@ -170,6 +170,7 @@ Open the venue's show listing page in a browser and inspect using these methods 
 | `app.opendate.io/v/{slug}` | OpenDate | html | Venue-specific (ref: `sports_drink`) |
 | `prekindle.com/events/{slug}` | Prekindle | json_ld | `json_ld` scraper (generic) |
 | `squadup.com/events/{slug}` ticket links | SquadUP | external_api | Venue-specific (ref: `sunset_strip`) |
+| `app.arts-people.com/index.php?show={id}` buy links | Arts-People (Neon One) | html | `arts_people` scraper (generic; set source_url) |
 
 #### 1b. Check browser network requests (DevTools or Playwright)
 
@@ -294,6 +295,7 @@ When inspecting a new venue's website, use these markers to quickly identify the
 | **Page source** | `squadup = { userId: [...] }` | SquadUP |
 | **Page source** | `{slug}.stageti.me` links | StageTime |
 | **Page footer** | "Powered by Seat Engine" | SeatEngine |
+| **Page footer** | "Ticketing System provided by Arts People" | Arts-People (Neon One) |
 | **Page footer** | "Powered by Wix" | Wix |
 | **Script src** | `cdn.seatengine.com/assets/application` | SeatEngine Classic |
 
