@@ -41,7 +41,13 @@ SELECT 'Apotheosis Comics and Lounge',
        'America/Chicago', 'US', 'club',
        'ChIJ8f8Xmk-02IcRR-YUfeXL80g',
        true, 'active'
-WHERE NOT EXISTS (SELECT 1 FROM clubs WHERE name = 'Apotheosis Comics and Lounge');
+-- Guard on the stable google_place_id as well as name, so a re-run can't insert
+-- a duplicate if the venue already exists under a slightly different name.
+WHERE NOT EXISTS (
+  SELECT 1 FROM clubs
+  WHERE name = 'Apotheosis Comics and Lounge'
+     OR google_place_id = 'ChIJ8f8Xmk-02IcRR-YUfeXL80g'
+);
 
 -- 2. The do314 scraping source (events.json feed for this venue).
 -- platform is the curated `ScrapingPlatform` enum; do314 is not a member, so use

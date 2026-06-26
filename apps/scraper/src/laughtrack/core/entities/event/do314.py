@@ -78,7 +78,10 @@ class Do314Event(ShowConvertible):
         tickets = []
         ticket_url = self.buy_url or page_url
         if ticket_url:
-            tickets.append(ShowFactoryUtils.create_fallback_ticket(ticket_url))
+            # do314's is_free flag is an explicit "this event is free" signal, so
+            # surface price=0.0 (a real access record) rather than null/unknown.
+            price = 0.0 if self.is_free else None
+            tickets.append(ShowFactoryUtils.create_fallback_ticket(ticket_url, price=price))
 
         return ShowFactoryUtils.create_enhanced_show_base(
             name=self.title or "Comedy Show",

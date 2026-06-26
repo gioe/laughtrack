@@ -105,10 +105,20 @@ async def test_scrape_async_produces_shows(monkeypatch):
     # begin_time is ISO 8601 with offset -> timezone-aware datetime.
     assert isinstance(showcase.date, datetime)
     assert showcase.date.tzinfo is not None
-    # Ticket falls back to the buy_url when present.
+    # Ticket falls back to the buy_url when present; paid event -> unknown price.
     assert showcase.tickets
     assert showcase.tickets[0].purchase_url.endswith(
         "/apotheosis-comedy-showcase-tickets/buy"
+    )
+    assert showcase.tickets[0].price is None
+
+    # The is_free event surfaces an explicit price=0.0 (not null/unknown), and
+    # with no buy_url the ticket falls back to the event page URL.
+    free_show = by_name["South City Comedy Showcase"]
+    assert free_show.tickets
+    assert free_show.tickets[0].price == 0.0
+    assert free_show.tickets[0].purchase_url == (
+        "https://do314.com/events/2026/8/2/south-city-comedy-showcase-tickets"
     )
 
 
