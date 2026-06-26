@@ -78,6 +78,23 @@ def test_extractor_rejects_non_http_url():
     assert events[0].show_page_url == _EVENT_PAGE
 
 
+def test_extractor_skips_nested_valarm():
+    """A nested VALARM's fields must not shadow the VEVENT's own."""
+    ics = (
+        "BEGIN:VCALENDAR\nBEGIN:VEVENT\n"
+        "DTSTART:20260710T010000Z\nUID:x@google.com\n"
+        "SUMMARY:Real Comedy Night\n"
+        "BEGIN:VALARM\nACTION:DISPLAY\nDESCRIPTION:Reminder alarm text\n"
+        "SUMMARY:Alarm summary\nTRIGGER:-PT30M\nEND:VALARM\n"
+        "DESCRIPTION:The real event description\n"
+        "END:VEVENT\nEND:VCALENDAR\n"
+    )
+    events = IcalExtractor.extract_events(ics, "America/Chicago", _EVENT_PAGE)
+    assert len(events) == 1
+    assert events[0].summary == "Real Comedy Night"
+    assert events[0].description == "The real event description"
+
+
 def test_extractor_resolves_timezone_forms():
     """UTC, TZID, and date-only DTSTART values all resolve to aware datetimes."""
     by_title = {e.summary: e for e in IcalExtractor.extract_events(_ics(), "America/Chicago", _EVENT_PAGE)}

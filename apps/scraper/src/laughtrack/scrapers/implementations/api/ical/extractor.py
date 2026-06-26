@@ -66,17 +66,31 @@ class IcalExtractor:
 
     @staticmethod
     def _iter_vevent_blocks(ics_text: str):
-        """Yield lists of unfolded property lines, one list per VEVENT."""
+        """Yield lists of unfolded property lines, one list per VEVENT.
+
+        Nested sub-components (e.g. a VALARM, which can carry its own
+        SUMMARY/DESCRIPTION) are skipped so their fields can't shadow the
+        event's own — only the VEVENT's top-level properties are collected.
+        """
         current: Optional[List[str]] = None
+        nested_depth = 0
         for line in IcalExtractor._unfold(ics_text):
             if line == "BEGIN:VEVENT":
                 current = []
+                nested_depth = 0
             elif line == "END:VEVENT":
                 if current is not None:
                     yield current
                 current = None
+                nested_depth = 0
             elif current is not None:
-                current.append(line)
+                if line.startswith("BEGIN:"):
+                    nested_depth += 1
+                elif line.startswith("END:"):
+                    if nested_depth > 0:
+                        nested_depth -= 1
+                elif nested_depth == 0:
+                    current.append(line)
 
     @staticmethod
     def _parse_property(line: str) -> Tuple[str, Dict[str, str], str]:
