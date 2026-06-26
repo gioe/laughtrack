@@ -1471,6 +1471,20 @@ duo) drops the EDM/Latin-music/tribute-band programming. Verified: 2 comedy show
 Any Ticketor venue (look for "Powered by Ticketor" / a `tickets<areacode>.com` host) onboards
 the same way.
 
+**National-franchise example — The Dinner Detective (TASK-3327):** a franchise of interactive
+true-crime murder-mystery comedy dinner shows with a per-city marketing site at
+`thedinnerdetective.com/<city>/`. Each city's showtimes page —
+`https://www.thedinnerdetective.com/<city>/murder-mystery-tickets-showtimes/` — embeds one
+`TheaterEvent` JSON-LD block per upcoming show (name, `startDate` with offset, `offers.price`,
+and a buy `url` on the **Cloudflare-challenged** `tickets-<city>.thedinnerdetective.com` booking
+subdomain). The venue's OWN site serves these blocks at HTTP 200, so onboard with
+`scraper_key='json_ld'`, `source_url=` the per-city showtimes page, `metadata='{}'` (all-comedy,
+no filter) — **do not** point at the bot-protected booking subdomain. `TheaterEvent` is a
+schema.org Event subtype the extractor already matches. Verified: Minneapolis 5 shows ($73.95);
+St. Paul wired identically but currently lists 0 upcoming shows (genuine empty state — the page
+renders no `TheaterEvent` blocks). Every Dinner Detective city (e.g. Cincinnati, TASK-3346)
+onboards the same way — only the `<city>` slug varies.
+
 ---
 
 ### Odoo website_event
