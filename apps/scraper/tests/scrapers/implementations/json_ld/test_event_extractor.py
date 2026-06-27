@@ -182,6 +182,38 @@ def test_extract_events_can_override_same_as_for_detail_page_events():
     assert events[0].same_as == "https://venue.example.com/comic/detail"
 
 
+def test_same_as_override_supplies_url_for_urlless_detail_event():
+    # City/government arts calendars (e.g. pompanobeacharts.org) emit
+    # detail-page Event JSON-LD with name/startDate/location but no `url`.
+    # JsonLdEvent.from_json_ld requires url, so without same_as_override the
+    # block is dropped. When the detail URL is known (set_same_as_to_detail_url),
+    # it is injected as the event url so the event parses.
+    event = {
+        "@context": "https://schema.org",
+        "@type": "Event",
+        "name": "Live at the Hive: Florida's Funniest Comedians",
+        "startDate": "2099-06-26T00:00-05:00",
+        "endDate": "2099-08-15T00:00-05:00",
+        "location": {"@type": "Place", "name": "The Hive Black Box Theater"},
+        # intentionally no "url"
+    }
+
+    detail_url = "https://www.pompanobeacharts.org/events/live-at-the-hive"
+
+    # Without the override, the url-less block is dropped.
+    assert EventExtractor.extract_events(_wrap_ldjson(event)) == []
+
+    # With the detail URL known, it is injected as the event url.
+    events = EventExtractor.extract_events(
+        _wrap_ldjson(event),
+        same_as_override=detail_url,
+    )
+    assert len(events) == 1
+    assert events[0].url == detail_url
+    assert events[0].same_as == detail_url
+    assert events[0].location.name == "The Hive Black Box Theater"
+
+
 def test_extract_events_handles_offers_list_and_top_level_url():
     obj = {
         "@type": "Event",

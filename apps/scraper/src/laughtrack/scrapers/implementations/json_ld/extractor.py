@@ -302,6 +302,17 @@ class EventExtractor:
             seen.add(event_str)
             # Build using the model factory to tolerate extra keys like '@context'
             try:
+                # When the canonical detail-page URL is known
+                # (set_same_as_to_detail_url), supply it as the event url for
+                # blocks that omit one. Some detail-page Event JSON-LD — e.g.
+                # city/government arts calendars like pompanobeacharts.org —
+                # carries name/startDate/location but no `url`, and
+                # JsonLdEvent.from_json_ld requires url, so the event would be
+                # dropped even though the scraper fetched its canonical page.
+                # Copy before mutating so the caller's dict (and the dedup key
+                # already computed above) is untouched; never overrides a real url.
+                if same_as_override and not event.get("url"):
+                    event = {**event, "url": same_as_override}
                 parsed_event = JsonLdEvent.from_json_ld(event)
                 if same_as_override:
                     parsed_event.same_as = same_as_override
