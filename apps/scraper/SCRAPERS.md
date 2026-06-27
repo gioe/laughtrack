@@ -1124,6 +1124,24 @@ The `<theatre>` slug comes from the embedded CrowdWork links on the venue's site
   whose API already returns IANA names (e.g. Philly Improv → `America/New_York`)
   omit it. Example (Haus of Comedy, TASK-3200, slug `windhausimprov`):
   `metadata = {"rails_to_iana": true, "default_timezone": "America/Los_Angeles"}`.
+- `exclude_title_patterns` / `include_title_patterns` (lists of case-insensitive
+  substrings) — title filters for **training orgs that list classes alongside
+  public shows**. Both default empty (keep everything), so show-only `/shows`
+  venues are unaffected. `exclude` wins over `include`. Use when the clean
+  `/shows` endpoint returns 0 but the venue still runs public events that only
+  appear in the `/all` feed mixed with course registrations.
+
+**Class-vs-show mixed feeds (the `/all` endpoint):** some improv-training venues
+categorize *everything* (including their public jams/showcases) as classes in
+Crowdwork, so `/api/v2/<theatre>/shows` returns 0 while
+`/api/v2/<theatre>/all` returns the real upcoming items mixed with course
+registrations. Point `source_url` at `/all` and drop the classes by title.
+Example (Very Good Improv, TASK-3330, slug `verygoodimprov`):
+`source_url = https://crowdwork.com/api/v2/verygoodimprov/all`,
+`metadata = {"exclude_title_patterns": ["improv 1", "improv 2", "improv 3",
+"workshop", "class", "intensive", "series"]}` → keeps the recurring "Very Good
+Improv Jam!" and student showcases, drops the Improv 101/201 courses and paid
+workshop series. (`/all` returns only upcoming items even without date params.)
 
 ---
 
