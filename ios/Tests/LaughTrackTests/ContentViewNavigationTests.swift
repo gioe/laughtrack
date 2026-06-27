@@ -259,8 +259,8 @@ struct ContentViewNavigationTests {
         #expect(pushed == [.profile])
     }
 
-    @Test("Profile menu routes: Notifications pushes .notifications, Settings still pushes .profile")
-    func profileMenuRoutesResolve() async throws {
+    @Test("Profile drawer routes: Notifications pushes .notifications, Settings still pushes .profile")
+    func profileDrawerRoutesResolve() async throws {
         // Settings preserves the original tap destination.
         #expect(AppRoute.accountHeaderTarget() == .profile)
         // Notifications is a non-tab detail route, like profile.
@@ -272,6 +272,18 @@ struct ContentViewNavigationTests {
         let pushed = decodedRoutes(in: coordinator, as: AppRoute.self)
         // The center opens, then a tapped row deep-links to the show.
         #expect(pushed == [.notifications, .showDetail(555)])
+    }
+
+    @Test("Profile entry point presents a side drawer instead of a popup menu")
+    func profileEntryPointUsesSideDrawer() throws {
+        let source = try String(contentsOf: appShellViewSourceURL(), encoding: .utf8)
+
+        #expect(source.contains("@State private var isAccountDrawerPresented = false"))
+        #expect(source.contains("private func accountSideDrawerOverlay"))
+        #expect(source.contains("private func accountSideDrawer("))
+        #expect(source.contains("LaughTrackViewTestID.accountNotificationsMenuItem"))
+        #expect(source.contains("LaughTrackViewTestID.accountSettingsMenuItem"))
+        #expect(!source.contains("return Menu {"))
     }
 
     @Test("ContentView switches between the near me and profile routes")
@@ -397,5 +409,19 @@ struct ContentViewNavigationTests {
         let coordinator = TypedNavigationCoordinator<AppRoute>()
         routes.forEach { coordinator.push($0) }
         #expect(decodedRoutes(in: coordinator, as: AppRoute.self) == routes)
+    }
+
+    private func appShellViewSourceURL(filePath: String = #filePath) throws -> URL {
+        let testFileURL = URL(fileURLWithPath: filePath)
+        let iosRoot = testFileURL
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let sourceURL = iosRoot
+            .appendingPathComponent("Sources/LaughTrackApp/AppShellView.swift")
+        guard FileManager.default.fileExists(atPath: sourceURL.path) else {
+            throw CocoaError(.fileNoSuchFile)
+        }
+        return sourceURL
     }
 }

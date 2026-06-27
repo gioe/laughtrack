@@ -191,6 +191,24 @@ private final class ProfileSignInOAuthSessionRunner: OAuthSessionRunning {
     var callbackURL = URL(string: "laughtrack://auth/callback")!
 
     func authenticate(startURL: URL, callbackScheme: String) async throws -> URL {
-        callbackURL
+        guard
+            let callbackURLString = URLComponents(url: startURL, resolvingAgainstBaseURL: false)?
+                .queryItems?
+                .first(where: { $0.name == "callbackUrl" })?
+                .value,
+            let nativeCallbackURL = URL(string: callbackURLString),
+            let state = URLComponents(url: nativeCallbackURL, resolvingAgainstBaseURL: false)?
+                .queryItems?
+                .first(where: { $0.name == "state" })?
+                .value
+        else {
+            return callbackURL
+        }
+
+        var components = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false)
+        var queryItems = components?.queryItems ?? []
+        queryItems.append(URLQueryItem(name: "state", value: state))
+        components?.queryItems = queryItems
+        return components?.url ?? callbackURL
     }
 }

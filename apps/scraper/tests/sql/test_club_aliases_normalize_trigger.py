@@ -45,6 +45,14 @@ _MIGRATION_SQL = (
 )
 
 
+def _create_trigger_test_table(cur, table_name: str) -> None:
+    cur.execute(f"CREATE TEMP TABLE {table_name} (LIKE club_aliases INCLUDING ALL)")
+    # The Prisma-generated schema marks updated_at NOT NULL but does not give it
+    # a database default. These trigger tests intentionally omit timestamp
+    # columns so they only exercise alias normalization behavior.
+    cur.execute(f"ALTER TABLE {table_name} ALTER COLUMN updated_at SET DEFAULT NOW()")
+
+
 @pytest.fixture(scope="module")
 def conn():
     if psycopg2 is None:
@@ -117,9 +125,7 @@ def test_trigger_fills_normalized_columns_and_dedups(conn):
     with conn.cursor() as cur:
         # TEMP TABLE LIKE club_aliases copies columns + the unique index but not
         # the FK to clubs, so we can insert without seeding a clubs row.
-        cur.execute(
-            "CREATE TEMP TABLE t_club_aliases (LIKE club_aliases INCLUDING ALL)"
-        )
+        _create_trigger_test_table(cur, "t_club_aliases")
         cur.execute(
             """
             CREATE TRIGGER t_club_aliases_set_normalized
@@ -161,9 +167,7 @@ def test_trigger_overwrites_supplied_normalized_values(conn):
     """A writer that supplies wrong normalized_* values must not win — the trigger
     recomputes them, which is what makes the column a true single source of truth."""
     with conn.cursor() as cur:
-        cur.execute(
-            "CREATE TEMP TABLE t_club_aliases_ow (LIKE club_aliases INCLUDING ALL)"
-        )
+        _create_trigger_test_table(cur, "t_club_aliases_ow")
         cur.execute(
             """
             CREATE TRIGGER t_club_aliases_ow_set_normalized

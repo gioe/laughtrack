@@ -26,11 +26,7 @@ struct AppBootstrapAnalyticsLifecycleTests {
         )
         env.authManager.loadUserRequest = { user }
 
-        let cancellables = AppBootstrap.attachAnalyticsLifecycle(
-            authManager: env.authManager,
-            analytics: env.analytics
-        )
-        defer { _ = cancellables }
+        env.attachAnalyticsLifecycle()
 
         await env.authManager.signIn(with: .google)
 
@@ -64,11 +60,7 @@ struct AppBootstrapAnalyticsLifecycleTests {
         )
         env.authManager.loadUserRequest = { user }
 
-        let cancellables = AppBootstrap.attachAnalyticsLifecycle(
-            authManager: env.authManager,
-            analytics: env.analytics
-        )
-        defer { _ = cancellables }
+        env.attachAnalyticsLifecycle()
 
         await env.authManager.signIn(with: .google)
 
@@ -103,11 +95,7 @@ struct AppBootstrapAnalyticsLifecycleTests {
         )
         env.authManager.loadUserRequest = { user }
 
-        let cancellables = AppBootstrap.attachAnalyticsLifecycle(
-            authManager: env.authManager,
-            analytics: env.analytics
-        )
-        defer { _ = cancellables }
+        env.attachAnalyticsLifecycle()
 
         await env.authManager.signIn(with: .google)
         await env.authManager.signOut()
@@ -134,11 +122,7 @@ struct AppBootstrapAnalyticsLifecycleTests {
         )
         env.authManager.loadUserRequest = { user }
 
-        let cancellables = AppBootstrap.attachAnalyticsLifecycle(
-            authManager: env.authManager,
-            analytics: env.analytics
-        )
-        defer { _ = cancellables }
+        env.attachAnalyticsLifecycle()
 
         // Initial subscription replays nil to the scan accumulator — no
         // setUserID and no reset should fire before any auth transition.
@@ -190,11 +174,7 @@ struct AppBootstrapAnalyticsLifecycleTests {
         )
         env.authManager.loadUserRequest = { initialUser }
 
-        let cancellables = AppBootstrap.attachAnalyticsLifecycle(
-            authManager: env.authManager,
-            analytics: env.analytics
-        )
-        defer { _ = cancellables }
+        env.attachAnalyticsLifecycle()
 
         await env.authManager.signIn(with: .google)
 
@@ -249,11 +229,7 @@ struct AppBootstrapAnalyticsLifecycleTests {
         )
         env.authManager.loadUserRequest = { initialUser }
 
-        let cancellables = AppBootstrap.attachAnalyticsLifecycle(
-            authManager: env.authManager,
-            analytics: env.analytics
-        )
-        defer { _ = cancellables }
+        env.attachAnalyticsLifecycle()
 
         await env.authManager.signIn(with: .google)
 
@@ -314,11 +290,7 @@ struct AppBootstrapAnalyticsLifecycleTests {
         )
         env.authManager.loadUserRequest = { userA }
 
-        let cancellables = AppBootstrap.attachAnalyticsLifecycle(
-            authManager: env.authManager,
-            analytics: env.analytics
-        )
-        defer { _ = cancellables }
+        env.attachAnalyticsLifecycle()
 
         await env.authManager.signIn(with: .google)
         await env.authManager.signOut()
@@ -419,10 +391,21 @@ struct AppBootstrapAnalyticsLifecycleTests {
 }
 
 @MainActor
-private struct AnalyticsLifecycleEnv {
+private final class AnalyticsLifecycleEnv {
     let authManager: AuthManager
     let analytics: LifecycleRecordingAnalyticsManager
     let oauthRunner: AnalyticsLifecycleOAuthRunner
+    private var analyticsLifecycleCancellables: Set<AnyCancellable> = []
+
+    init(
+        authManager: AuthManager,
+        analytics: LifecycleRecordingAnalyticsManager,
+        oauthRunner: AnalyticsLifecycleOAuthRunner
+    ) {
+        self.authManager = authManager
+        self.analytics = analytics
+        self.oauthRunner = oauthRunner
+    }
 
     static func make() -> AnalyticsLifecycleEnv {
         let secureStorage = InMemorySecureStorage()
@@ -447,6 +430,13 @@ private struct AnalyticsLifecycleEnv {
         )
     }
 
+    func attachAnalyticsLifecycle() {
+        analyticsLifecycleCancellables = AppBootstrap.attachAnalyticsLifecycle(
+            authManager: authManager,
+            analytics: analytics
+        )
+    }
+
     static func jwt(expirationOffset: TimeInterval) -> String {
         let header = #"{"alg":"HS256","typ":"JWT"}"#
         let payload = #"{"exp":\#(Int(Date().addingTimeInterval(expirationOffset).timeIntervalSince1970))}"#
@@ -466,7 +456,25 @@ private final class AnalyticsLifecycleOAuthRunner: OAuthSessionRunning, @uncheck
     var callbackURL = URL(string: "laughtrack://auth/callback")!
 
     func authenticate(startURL: URL, callbackScheme: String) async throws -> URL {
-        callbackURL
+        guard
+            let callbackURLString = URLComponents(url: startURL, resolvingAgainstBaseURL: false)?
+                .queryItems?
+                .first(where: { $0.name == "callbackUrl" })?
+                .value,
+            let nativeCallbackURL = URL(string: callbackURLString),
+            let state = URLComponents(url: nativeCallbackURL, resolvingAgainstBaseURL: false)?
+                .queryItems?
+                .first(where: { $0.name == "state" })?
+                .value
+        else {
+            return callbackURL
+        }
+
+        var components = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false)
+        var queryItems = components?.queryItems ?? []
+        queryItems.append(URLQueryItem(name: "state", value: state))
+        components?.queryItems = queryItems
+        return components?.url ?? callbackURL
     }
 }
 

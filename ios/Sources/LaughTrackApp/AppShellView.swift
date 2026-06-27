@@ -113,6 +113,7 @@ struct AppShellView: View {
     @EnvironmentObject private var softPushPromptCoordinator: SoftPushPromptCoordinator
     @StateObject private var searchNavigationBridge = SearchNavigationBridge()
     @State private var didApplyInitialTab = false
+    @State private var isAccountDrawerPresented = false
 
     init(
         apiClient: Client,
@@ -132,17 +133,26 @@ struct AppShellView: View {
 
     var body: some View {
         GeometryReader { proxy in
-            VStack(spacing: 0) {
-                shellHeader(safeAreaTop: proxy.safeAreaInsets.top)
+            ZStack(alignment: .topLeading) {
+                VStack(spacing: 0) {
+                    shellHeader(safeAreaTop: proxy.safeAreaInsets.top)
 
-                tabContent
+                    tabContent
+                }
+                .ignoresSafeArea(edges: .top)
+
+                accountSideDrawerOverlay(
+                    safeAreaTop: proxy.safeAreaInsets.top,
+                    safeAreaBottom: proxy.safeAreaInsets.bottom,
+                    viewportWidth: proxy.size.width
+                )
             }
-            .ignoresSafeArea(edges: .top)
         }
         #if os(iOS)
         .toolbar(.hidden, for: .navigationBar)
         #endif
         .background(shellBackground.ignoresSafeArea())
+        .animation(.easeInOut(duration: 0.24), value: isAccountDrawerPresented)
     }
 
     @ViewBuilder
@@ -344,41 +354,179 @@ struct AppShellView: View {
         .background(Color.clear)
     }
 
-    // The profile button is a menu: "Notifications" opens the notification
+    // The profile button opens a side drawer: "Notifications" opens the notification
     // center and "Settings" preserves the original tap destination (ProfileView).
     // An unread badge overlays the icon, driven by the /me notificationsUnreadCount
     // surfaced through currentUser; it clears once the center marks itself seen.
     private var accountHeaderButton: some View {
         let unreadCount = authManager.currentUser?.notificationsUnreadCount ?? 0
 
-        return Menu {
-            Button {
-                coordinator.push(.notifications)
-            } label: {
-                Label("Notifications", systemImage: "bell")
-            }
-            .accessibilityIdentifier(LaughTrackViewTestID.accountNotificationsMenuItem)
-
-            Button {
-                coordinator.push(AppRoute.accountHeaderTarget())
-            } label: {
-                Label("Settings", systemImage: "gearshape")
-            }
-            .accessibilityIdentifier(LaughTrackViewTestID.accountSettingsMenuItem)
+        return Button {
+            isAccountDrawerPresented = true
         } label: {
             shellHeaderIconLabel(systemImage: "person.crop.circle")
                 .overlay(alignment: .topTrailing) {
                     if unreadCount > 0 {
-                        accountUnreadBadge(count: unreadCount)
+                        accountUnreadBadge(count: unreadCount, floatsOverIcon: true)
                     }
                 }
         }
+        .buttonStyle(.plain)
         .accessibilityLabel("Account")
         .accessibilityIdentifier(LaughTrackViewTestID.accountHeaderButton)
     }
 
     @ViewBuilder
-    private func accountUnreadBadge(count: Int) -> some View {
+    private func accountSideDrawerOverlay(
+        safeAreaTop: CGFloat,
+        safeAreaBottom: CGFloat,
+        viewportWidth: CGFloat
+    ) -> some View {
+        if isAccountDrawerPresented {
+            ZStack(alignment: .leading) {
+                Color.black.opacity(0.42)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        isAccountDrawerPresented = false
+                    }
+                    .accessibilityHidden(true)
+
+                accountSideDrawer(
+                    safeAreaTop: safeAreaTop,
+                    safeAreaBottom: safeAreaBottom,
+                    viewportWidth: viewportWidth
+                )
+                .transition(.move(edge: .leading).combined(with: .opacity))
+            }
+            .zIndex(20)
+        }
+    }
+
+    private func accountSideDrawer(
+        safeAreaTop: CGFloat,
+        safeAreaBottom: CGFloat,
+        viewportWidth: CGFloat
+    ) -> some View {
+        let tokens = theme.laughTrackTokens
+        let drawerWidth = min(max(viewportWidth * 0.82, 286), 360)
+
+        return VStack(alignment: .leading, spacing: theme.spacing.lg) {
+            HStack(spacing: theme.spacing.sm) {
+                shellHeaderIconLabel(systemImage: "person.crop.circle")
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Account")
+                        .font(.system(size: 18, weight: .heavy, design: .rounded))
+                        .foregroundStyle(tokens.colors.textPrimary)
+
+                    Text(authManager.currentSession == nil ? "Guest browsing" : "Signed in")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(tokens.colors.textSecondary)
+                }
+
+                Spacer(minLength: 0)
+
+                Button {
+                    isAccountDrawerPresented = false
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 14, weight: .heavy))
+                        .foregroundStyle(tokens.colors.textSecondary)
+                        .frame(width: 36, height: 36)
+                        .background(Circle().fill(tokens.colors.surfaceMuted.opacity(0.78)))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Close account drawer")
+            }
+
+            VStack(spacing: theme.spacing.xs) {
+                accountDrawerRow(
+                    title: "Notifications",
+                    systemImage: "bell",
+                    badgeCount: authManager.currentUser?.notificationsUnreadCount ?? 0,
+                    accessibilityIdentifier: LaughTrackViewTestID.accountNotificationsMenuItem
+                ) {
+                    isAccountDrawerPresented = false
+                    coordinator.push(.notifications)
+                }
+
+                accountDrawerRow(
+                    title: "Settings",
+                    systemImage: "gearshape",
+                    accessibilityIdentifier: LaughTrackViewTestID.accountSettingsMenuItem
+                ) {
+                    isAccountDrawerPresented = false
+                    coordinator.push(AppRoute.accountHeaderTarget())
+                }
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(.top, safeAreaTop + theme.spacing.lg)
+        .padding(.horizontal, theme.spacing.lg)
+        .padding(.bottom, safeAreaBottom + theme.spacing.lg)
+        .frame(width: drawerWidth)
+        .frame(maxHeight: .infinity, alignment: .topLeading)
+        .background {
+            Rectangle()
+                .fill(tokens.colors.canvas.opacity(0.98))
+                .overlay(alignment: .trailing) {
+                    Rectangle()
+                        .fill(tokens.colors.borderSubtle)
+                        .frame(width: 1)
+                }
+                .shadow(color: .black.opacity(0.2), radius: 24, x: 12, y: 0)
+        }
+        .ignoresSafeArea(edges: .vertical)
+    }
+
+    private func accountDrawerRow(
+        title: String,
+        systemImage: String,
+        badgeCount: Int = 0,
+        accessibilityIdentifier: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        let tokens = theme.laughTrackTokens
+
+        return Button(action: action) {
+            HStack(spacing: theme.spacing.sm) {
+                Image(systemName: systemImage)
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(tokens.colors.accentStrong)
+                    .frame(width: 28)
+
+                Text(title)
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(tokens.colors.textPrimary)
+
+                Spacer(minLength: 0)
+
+                if badgeCount > 0 {
+                    accountUnreadBadge(count: badgeCount, floatsOverIcon: false)
+                }
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .heavy))
+                    .foregroundStyle(tokens.colors.textSecondary.opacity(0.72))
+            }
+            .padding(.horizontal, theme.spacing.md)
+            .frame(height: 56)
+            .background {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(tokens.colors.surfaceElevated.opacity(0.92))
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .stroke(tokens.colors.borderSubtle, lineWidth: 1)
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier(accessibilityIdentifier)
+    }
+
+    @ViewBuilder
+    private func accountUnreadBadge(count: Int, floatsOverIcon: Bool) -> some View {
         let tokens = theme.laughTrackTokens
         Text(count > 9 ? "9+" : "\(count)")
             .font(.system(size: 11, weight: .bold))
@@ -387,7 +535,7 @@ struct AppShellView: View {
             .frame(minWidth: 18, minHeight: 18)
             .background(Circle().fill(tokens.colors.accentStrong))
             .overlay(Circle().stroke(tokens.colors.canvas, lineWidth: 2))
-            .offset(x: 4, y: -4)
+            .offset(x: floatsOverIcon ? 4 : 0, y: floatsOverIcon ? -4 : 0)
             .accessibilityHidden(true)
     }
 

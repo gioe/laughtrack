@@ -123,9 +123,8 @@ struct AppShellViewTests {
     func shellHeaderLetsDiscoverSpotlightBlendThroughSafeArea() throws {
         let source = try String(contentsOf: appShellViewSourceURL(), encoding: .utf8)
 
-        #expect(source.contains("private var shellHeaderBackground"))
-        #expect(source.contains("private let shellSpotlightHue = Color(red: 1.0, green: 0.72, blue: 0.30)"))
-        #expect(source.contains("center: .topLeading"))
+        #expect(source.contains("LaughTrackAtmosphereBackground()"))
+        #expect(source.contains(".background(Color.clear)"))
         #expect(!source.contains(".background(theme.laughTrackTokens.colors.canvas.opacity(0.97))"))
     }
 

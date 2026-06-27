@@ -184,9 +184,9 @@ struct HomeContentSectionTests {
     func discoverPageUsesSharedClubStageChromeBeyondTheTonightRail() throws {
         let source = try String(contentsOf: homeViewSourceURL(), encoding: .utf8)
 
-        #expect(source.contains("private struct HomeDiscoverAtmosphere"))
+        #expect(source.contains("struct LaughTrackAtmosphereBackground"))
         #expect(source.contains("private struct HomeDiscoverRailCard"))
-        #expect(source.contains("private struct HomeMarqueeStageBackground"))
+        #expect(source.contains("struct HomeMarqueeStageBackground"))
         #expect(source.contains("private struct HomeBulbFrame"))
         #expect(source.contains("case spotlight"))
         #expect(source.contains("case scheduleBoard"))
