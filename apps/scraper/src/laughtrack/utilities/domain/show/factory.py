@@ -138,9 +138,19 @@ _DJ_SET_RE = _re.compile(r"\bDJ\b", _re.IGNORECASE)
 # surfaces e.g. "Pig Roast Celebrating Father's Day!" as a comedy show (TASK-3020).
 # Instead, only qualified comedy-roast forms count: "Comedy Roast" (via the bare
 # "comedy" alternative), "Celebrity Roast", "Roast Battle", and "Roast of <name>".
+#
+# Spanish-language comedy keywords (TASK-3349): Spanish-language stand-up venues
+# (e.g. Teatro Trail / Sala Catarsis, Miami) tag their comedy bookings as
+# "comedia" / "comediante" / "humorista" / "monólogo" rather than the English
+# terms above, so the English-only allowlist drops their stand-up entirely. These
+# four are unambiguous comedy signals with no English-title collisions; bare
+# "humor"/"cómico" are deliberately excluded ("humor"/"cómica" appear in children's
+# and dramatic blurbs, and "cómico" risks "comical"/"comically" word-boundary
+# edges the English set already guards against).
 _COMEDY_EVENT_RE = _re.compile(
     r"\b(?:comedy|comedians?|comics?|stand[\s-]?up|improv|sketch|open[\s-]?mic"
-    r"|parody|night\s+of\s+laughs|celebrity\s+roast|roast\s+battle|roast\s+of)\b",
+    r"|parody|night\s+of\s+laughs|celebrity\s+roast|roast\s+battle|roast\s+of"
+    r"|comedias?|comediantes?|humoristas?|mon[oó]logos?)\b",
     _re.IGNORECASE,
 )
 

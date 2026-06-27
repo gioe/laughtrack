@@ -88,6 +88,42 @@ def test_rejects_non_comedy(text):
     assert is_comedy_event(text) is False
 
 
+@pytest.mark.parametrize(
+    "text",
+    [
+        # Spanish-language stand-up keywords (TASK-3349): Teatro Trail / Sala
+        # Catarsis tag comedy as comedia / comediante / humorista / monólogo.
+        "El comediante Kabeto llega a Teatro Trail con su Stand up",
+        "Una noche de comedia en español",
+        "Juan Pablo López, comediante colombiano",
+        "Pedro González en Stand Up Comedy en Español",
+        "Un humorista imperdible",
+        "Monólogo de humor",
+        "Monologo comico",  # accent-insensitive
+    ],
+)
+def test_matches_spanish_comedy_titles(text):
+    assert is_comedy_event(text) is True
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        # Non-comedy Spanish programming at the same mixed-use venue must NOT
+        # surface: a children's puppet show ("humor" alone is not a keyword), an
+        # intimate concert, a dramatic play, and a graduation ceremony (TASK-3349).
+        "La Cucarachita Martina — una historia llena de humor para niños",
+        "Daymé Arocena Concierto Íntimo",
+        "Fresa y Chocolate",
+        "Summer White Coat and Pinning Ceremony",
+        # English word-boundary guards still hold after adding Spanish terms.
+        "comically large prop night",
+    ],
+)
+def test_rejects_spanish_non_comedy(text):
+    assert is_comedy_event(text) is False
+
+
 def test_matches_if_any_field_signals_comedy():
     """A neutral title is rescued by a comedy keyword in a later field (tag/description)."""
     assert is_comedy_event("Friday Lineup", "long-beach", "comedy") is True
