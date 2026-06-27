@@ -101,3 +101,71 @@ async def test_generic_crowdwork_uses_metadata_default_timezone(monkeypatch):
 
     assert result is not None
     assert result.event_list[0].timezone == "America/New_York"
+
+
+async def test_exclude_title_patterns_drops_classes(monkeypatch):
+    """exclude_title_patterns drops class/workshop items, keeps public shows.
+
+    Models Very Good Improv (TASK-3330), whose Crowdwork /all feed mixes course
+    registrations with its public open jam.
+    """
+    scraper = GenericCrowdworkScraper(_club(metadata={"exclude_title_patterns": ["improv 1", "improv 2", "workshop"]}))
+
+    async def fake_fetch_json(url):
+        return {
+            "status": 200,
+            "type": "success",
+            "data": [
+                _show("VGI Improv 201 Spring 2026 - Mon 6:30-9:30pm"),
+                _show("VGI Improv 101 Spring 2026 - Mon 7-9pm"),
+                _show("Love the way you play - summer workshop series"),
+                _show("Very Good Improv Jam!"),
+                _show("Very Good Improv - Spring 2026 - Student Showcase!"),
+            ],
+        }
+
+    monkeypatch.setattr(scraper, "fetch_json", fake_fetch_json)
+
+    result = await scraper.get_data("https://crowdwork.com/api/v2/verygoodimprov/all")
+    assert isinstance(result, CrowdworkPageData)
+    names = sorted({e.name for e in result.event_list})
+    assert names == [
+        "Very Good Improv - Spring 2026 - Student Showcase!",
+        "Very Good Improv Jam!",
+    ]
+
+
+async def test_include_title_patterns_keeps_only_matches(monkeypatch):
+    """include_title_patterns keeps only items whose title matches an allowlisted substring."""
+    scraper = GenericCrowdworkScraper(_club(metadata={"include_title_patterns": ["jam", "showcase"]}))
+
+    async def fake_fetch_json(url):
+        return {
+            "status": 200,
+            "type": "success",
+            "data": [
+                _show("Improv 101 Class"),
+                _show("Friday Night Jam"),
+                _show("Spring Student Showcase"),
+            ],
+        }
+
+    monkeypatch.setattr(scraper, "fetch_json", fake_fetch_json)
+
+    result = await scraper.get_data("https://example.com/all")
+    assert isinstance(result, CrowdworkPageData)
+    assert sorted({e.name for e in result.event_list}) == ["Friday Night Jam", "Spring Student Showcase"]
+
+
+async def test_no_title_filter_keeps_everything(monkeypatch):
+    """With no filter metadata, every item is kept (existing /shows venues unaffected)."""
+    scraper = GenericCrowdworkScraper(_club())
+
+    async def fake_fetch_json(url):
+        return {"status": 200, "type": "success", "data": [_show("Improv 101 Class"), _show("Open Jam")]}
+
+    monkeypatch.setattr(scraper, "fetch_json", fake_fetch_json)
+
+    result = await scraper.get_data("https://example.com/shows")
+    assert isinstance(result, CrowdworkPageData)
+    assert sorted({e.name for e in result.event_list}) == ["Improv 101 Class", "Open Jam"]

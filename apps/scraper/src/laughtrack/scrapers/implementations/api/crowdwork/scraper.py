@@ -39,6 +39,8 @@ class GenericCrowdworkScraper(BaseScraper):
 
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
+        self._include_title_patterns: List[str] = []
+        self._exclude_title_patterns: List[str] = []
         self._configure_from_source_metadata()
         self.transformation_pipeline.register_transformer(self.transformer_cls(club))
 
@@ -55,12 +57,38 @@ class GenericCrowdworkScraper(BaseScraper):
             self.rails_to_iana = RAILS_TO_IANA
         elif isinstance(rails_to_iana, dict):
             self.rails_to_iana = {
-                str(key): str(value)
-                for key, value in rails_to_iana.items()
-                if key is not None and value is not None
+                str(key): str(value) for key, value in rails_to_iana.items() if key is not None and value is not None
             }
         elif rails_to_iana is False:
             self.rails_to_iana = None
+
+        # Optional title filters for venues that list classes/workshops alongside
+        # public shows (e.g. an improv theatre whose Crowdwork `/all` feed mixes
+        # course registrations with its open jams). Both are lists of
+        # case-insensitive substrings; default (both empty) keeps every item, so
+        # existing venues pointed at the show-only `/shows` endpoint are unaffected.
+        self._include_title_patterns = self._normalize_patterns(metadata.get("include_title_patterns"))
+        self._exclude_title_patterns = self._normalize_patterns(metadata.get("exclude_title_patterns"))
+
+    @staticmethod
+    def _normalize_patterns(raw: object) -> List[str]:
+        if isinstance(raw, str):
+            raw = [raw]
+        if isinstance(raw, list):
+            return [str(p).strip().lower() for p in raw if str(p).strip()]
+        return []
+
+    def _title_allowed(self, name: Optional[str]) -> bool:
+        """Apply the optional include/exclude title filters to a show name.
+
+        Exclude wins over include. With no filters configured every title passes.
+        """
+        title = (name or "").lower()
+        if self._exclude_title_patterns and any(p in title for p in self._exclude_title_patterns):
+            return False
+        if self._include_title_patterns and not any(p in title for p in self._include_title_patterns):
+            return False
+        return True
 
     async def get_data(self, url: str) -> Optional[EventListContainer[PhillyImprovShow]]:
         """Fetch Crowdwork API JSON and return expanded performance events."""
@@ -145,6 +173,8 @@ class GenericCrowdworkScraper(BaseScraper):
         performances: List[PhillyImprovShow] = []
         for show in shows_iterable:
             if not isinstance(show, dict):
+                continue
+            if not self._title_allowed(show.get("name")):
                 continue
             performances.extend(
                 extract_performances(
