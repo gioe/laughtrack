@@ -50,6 +50,38 @@ class ShowpassScraper(BaseScraper):
         super().__init__(club, **kwargs)
         self.transformation_pipeline.register_transformer(ShowpassEventTransformer(club))
         self._venue_slug = self._extract_slug(club.scraping_url)
+        self._configure_from_source_metadata()
+
+    def _configure_from_source_metadata(self) -> None:
+        """Read optional title filters for mixed-programming venues.
+
+        A Showpass calendar lists every event for the venue with no event
+        category, so a performing-arts center that mixes stand-up with plays,
+        ballet, and concerts needs a comedy allowlist. Both patterns are lists
+        of case-insensitive substrings matched against the event name; default
+        (both empty) keeps every active event, so single-purpose comedy venues
+        are unaffected.
+        """
+        metadata = self.club.source_metadata or {}
+        self._include_title_patterns = self._normalize_patterns(metadata.get("include_title_patterns"))
+        self._exclude_title_patterns = self._normalize_patterns(metadata.get("exclude_title_patterns"))
+
+    @staticmethod
+    def _normalize_patterns(raw: object) -> List[str]:
+        if isinstance(raw, str):
+            raw = [raw]
+        if isinstance(raw, list):
+            return [str(p).strip().lower() for p in raw if str(p).strip()]
+        return []
+
+    def _title_allowed(self, name: Optional[str]) -> bool:
+        """Apply the optional include/exclude title filters (exclude wins)."""
+        title = (name or "").lower()
+        if self._exclude_title_patterns and any(p in title for p in self._exclude_title_patterns):
+            return False
+        if self._include_title_patterns and not any(p in title for p in self._include_title_patterns):
+            return False
+        return True
 
     @staticmethod
     def _extract_slug(scraping_url: str) -> str:
@@ -112,6 +144,8 @@ class ShowpassScraper(BaseScraper):
                 if not isinstance(item, dict):
                     continue
                 if item.get("status") != "sp_event_active":
+                    continue
+                if not self._title_allowed(item.get("name")):
                     continue
                 events.append(ShowpassEvent.from_api_response(item))
 

@@ -2791,6 +2791,18 @@ NOT `+00:00`. The API returns HTTP 400 for `+00:00` format.
 2. Insert a DB row: `scraper = 'showpass'`, `scraping_url = 'https://www.showpass.com/api/public/venues/{slug}/calendar/'`
 3. Set `website` to the venue's own website URL (used as the show page URL for traffic attribution)
 
+**Comedy filter for mixed-programming venues (TASK-3355):** a Showpass calendar
+lists every event for the venue and carries **no event category**, so a
+performing-arts center that mixes stand-up with plays/ballet/concerts needs a
+comedy allowlist. Set `scraping_sources.metadata.include_title_patterns` (and/or
+`exclude_title_patterns`) to a list of case-insensitive substrings matched
+against the event `name`; exclude wins, and with neither set every active event
+is kept (single-purpose comedy venues are unaffected). Onboarded **Lauderhill
+Performing Arts Center** (slug `lauderhill-performing-arts-center-lpac`) with an
+allowlist anchored on its recurring comedy series (`lauderhill live`, `funny`,
+plus generic `comedy`/`standup`/`comic`) so its ballet/plays/cultural events are
+dropped.
+
 ---
 
 ### TicketLeap
