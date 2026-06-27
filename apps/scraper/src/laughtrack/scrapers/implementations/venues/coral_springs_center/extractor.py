@@ -50,6 +50,12 @@ def _extract_showtime(detail_html: str, default: str = "7:30PM") -> str:
     """
     times = [re.sub(r'\s+', '', t).upper() for t in _TIME_RE.findall(detail_html)]
     if not times:
+        # Fabricating a wall-clock is worse than dropping it silently — log so a
+        # markup change that breaks time parsing surfaces instead of quietly
+        # emitting fabricated default-time shows.
+        Logger.warn(
+            f"CoralSpringsCenterExtractor: no showtime parsed; defaulting to {default}"
+        )
         return default
     counts: dict = {}
     for t in times:
