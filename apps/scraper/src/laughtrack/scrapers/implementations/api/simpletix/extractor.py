@@ -15,6 +15,7 @@ from typing import Dict, List, Optional, Tuple
 
 from dateutil import parser as dateutil_parser
 
+from laughtrack.core.entities.event.event import JsonLdEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.utilities.html.utils import HtmlUtils
 from laughtrack.scrapers.implementations.json_ld.extractor import EventExtractor
@@ -28,6 +29,41 @@ class SimpleTixExtractor:
     )
 
     _TITLE_PATTERN = re.compile(r"<h1[^>]*>(.*?)</h1>", re.DOTALL)
+
+    # Per-event SimpleTix permalinks, e.g. `/e/alex-kumin-...-tickets-273173`.
+    # The numeric id after `-tickets-` is the stable key (the slug is truncated
+    # in organizer-listing links but still resolves once fetched).
+    _EVENT_LINK_PATTERN = re.compile(r"/e/[a-z0-9\-]+-tickets-(\d+)", re.IGNORECASE)
+
+    @staticmethod
+    def extract_listing_event_urls(html: str) -> List[str]:
+        """Enumerate per-event SimpleTix URLs from an organizer/listing page.
+
+        An organizer page (``{org}.simpletix.com/``) lists every show as a
+        ``/e/{slug}-tickets-{id}`` link rather than embedding the showtimes
+        directly. Returns absolute ``www.simpletix.com`` event-page URLs,
+        de-duplicated by the numeric event id (the same event can appear under
+        slightly different truncated slugs), preserving first-seen order.
+        """
+        seen_ids: set = set()
+        urls: List[str] = []
+        for match in SimpleTixExtractor._EVENT_LINK_PATTERN.finditer(html):
+            event_id = match.group(1)
+            if event_id in seen_ids:
+                continue
+            seen_ids.add(event_id)
+            urls.append(f"https://www.simpletix.com{match.group(0)}")
+        return urls
+
+    @staticmethod
+    def extract_jsonld_events(html: str) -> List[JsonLdEvent]:
+        """Extract JSON-LD ``Event`` objects from a SimpleTix event page.
+
+        Single-date SimpleTix events (one-off comedian bookings) render no
+        ``var timeArray`` but still embed JSON-LD ``Event`` data with the
+        startDate. This is the fallback source for those pages.
+        """
+        return EventExtractor.extract_events(html)
 
     @staticmethod
     def extract_time_array(html: str) -> List[Dict]:

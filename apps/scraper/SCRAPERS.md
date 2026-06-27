@@ -1984,21 +1984,28 @@ WHERE name = 'Hyena''s Comedy Nightclub';
 
 **Detection signals:**
 - Venue website links to `simpletix.com/e/...` ticket/event pages
-- The SimpleTix event page embeds `var timeArray = [...]` JavaScript containing show time entries
-- Page HTML may include JSON-LD offer data for ticket pricing
+- The SimpleTix event page embeds `var timeArray = [...]` JavaScript containing show time entries (recurring shows), OR a single-date page that carries only JSON-LD `Event` data
+- A venue with a full rotating calendar links to a SimpleTix organizer page at `{org}.simpletix.com/` that lists many `/e/...` events
+
+**Two page shapes (pick the `source_url` accordingly):**
+1. **Single event page** — `https://www.simpletix.com/e/{event-slug}-tickets-{id}`. Use for a venue whose shows are one recurring SimpleTix event (the dates live in that page's `timeArray`). One `scraping_sources` row per recurring event.
+2. **Organizer / listing page** — `https://{org}.simpletix.com/`. Use for a venue with a full rotating calendar of one-off bookings. The scraper enumerates the listing's per-event `/e/...` links and scrapes each. One `scraping_sources` row covers the whole calendar (TASK-3345, Commonwealth Comedy Club).
 
 **Key implementation details:**
 - Uses the generic `SimpleTixScraper` at `apps/scraper/src/laughtrack/scrapers/implementations/api/simpletix/`
-- `collect_scraping_targets()` returns the club's `scraping_url` as the single target
+- `collect_scraping_targets()` returns the configured `scraping_url` for a single-event URL; for an organizer/listing URL (`{org}.simpletix.com`, no `/e/` path) it fetches the page and enumerates its per-event `/e/...-tickets-{id}` links (de-duped by numeric id)
 - `SimpleTixExtractor` parses `var timeArray = [...]` entries with `Id` and `Time` fields, extracts the page `<h1>` as the event title, and reads the lowest JSON-LD offer price when present
-- Each future `timeArray` entry becomes a show with the SimpleTix page as both show URL and ticket URL
+- **JSON-LD fallback:** when a page has no `timeArray` (single-date bookings), `get_data()` reads JSON-LD `Event` objects via `extract_jsonld_events()`. The JSON-LD `startDate` is a UTC instant, so it is converted to the club's `timezone` local wall-clock (naive) to match the `timeArray` persistence convention
+- Each future entry becomes a show with the SimpleTix event page as both show URL and ticket URL
 
 **DB setup:**
 ```sql
-UPDATE clubs
-SET scraper = 'simpletix',
-    scraping_url = 'https://www.simpletix.com/e/{event-slug}-tickets-{id}'
-WHERE name = '<Club Name>';
+-- Single recurring event:
+--   scraping_sources.source_url = 'https://www.simpletix.com/e/{event-slug}-tickets-{id}'
+-- Full rotating calendar (organizer page):
+--   scraping_sources.source_url = 'https://{org}.simpletix.com/'
+-- Insert a scraping_sources row (scraper_key='simpletix', platform='simpletix');
+-- the venue timezone on the club row drives the JSON-LD wall-clock conversion.
 ```
 
 **Reference implementation:** `apps/scraper/src/laughtrack/scrapers/implementations/api/simpletix/`
