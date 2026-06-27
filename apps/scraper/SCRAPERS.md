@@ -1129,7 +1129,10 @@ The `<theatre>` slug comes from the embedded CrowdWork links on the venue's site
   public shows**. Both default empty (keep everything), so show-only `/shows`
   venues are unaffected. `exclude` wins over `include`. Use when the clean
   `/shows` endpoint returns 0 but the venue still runs public events that only
-  appear in the `/all` feed mixed with course registrations.
+  appear in the `/all` feed mixed with course registrations. **Matching is plain
+  substring containment** (so `"improv 2"` catches the `"Improv 201"` level), not
+  word-boundary — pick the most specific substring (e.g. `"class"` would also
+  match `"masterclass"`/`"classic"`).
 
 **Class-vs-show mixed feeds (the `/all` endpoint):** some improv-training venues
 categorize *everything* (including their public jams/showcases) as classes in

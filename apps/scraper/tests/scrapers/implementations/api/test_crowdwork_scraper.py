@@ -169,3 +169,38 @@ async def test_no_title_filter_keeps_everything(monkeypatch):
     result = await scraper.get_data("https://example.com/shows")
     assert isinstance(result, CrowdworkPageData)
     assert sorted({e.name for e in result.event_list}) == ["Improv 101 Class", "Open Jam"]
+
+
+async def test_exclude_wins_over_include_precedence(monkeypatch):
+    """An item matching BOTH include and exclude lists is dropped (exclude wins)."""
+    scraper = GenericCrowdworkScraper(
+        _club(metadata={"include_title_patterns": ["jam"], "exclude_title_patterns": ["practice"]})
+    )
+
+    async def fake_fetch_json(url):
+        return {
+            "status": 200,
+            "type": "success",
+            "data": [_show("Open Jam"), _show("Practice Jam")],
+        }
+
+    monkeypatch.setattr(scraper, "fetch_json", fake_fetch_json)
+
+    result = await scraper.get_data("https://example.com/all")
+    assert isinstance(result, CrowdworkPageData)
+    # "Practice Jam" matches include ("jam") but also exclude ("practice") -> dropped.
+    assert sorted({e.name for e in result.event_list}) == ["Open Jam"]
+
+
+async def test_bare_string_pattern_coerced_to_list(monkeypatch):
+    """A bare-string pattern (not a list) is coerced and applied."""
+    scraper = GenericCrowdworkScraper(_club(metadata={"exclude_title_patterns": "workshop"}))
+
+    async def fake_fetch_json(url):
+        return {"status": 200, "type": "success", "data": [_show("Summer Workshop"), _show("Open Jam")]}
+
+    monkeypatch.setattr(scraper, "fetch_json", fake_fetch_json)
+
+    result = await scraper.get_data("https://example.com/all")
+    assert isinstance(result, CrowdworkPageData)
+    assert sorted({e.name for e in result.event_list}) == ["Open Jam"]

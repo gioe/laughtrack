@@ -81,7 +81,11 @@ class GenericCrowdworkScraper(BaseScraper):
     def _title_allowed(self, name: Optional[str]) -> bool:
         """Apply the optional include/exclude title filters to a show name.
 
-        Exclude wins over include. With no filters configured every title passes.
+        Matching is case-insensitive **substring** containment (deliberately, so a
+        pattern like ``"improv 2"`` catches the ``"Improv 201"`` course level).
+        That breadth is a footgun — ``"class"`` also matches ``"masterclass"`` —
+        so operators should pick the most specific substring per source. Exclude
+        wins over include; with no filters configured every title passes.
         """
         title = (name or "").lower()
         if self._exclude_title_patterns and any(p in title for p in self._exclude_title_patterns):
