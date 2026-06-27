@@ -15,6 +15,7 @@ import asyncio
 import time
 from datetime import datetime, timedelta
 from typing import List, Optional
+from urllib.parse import urlparse
 
 from laughtrack.core.clients.base import BaseApiClient
 from laughtrack.core.entities.club.model import Club
@@ -84,6 +85,18 @@ class TicketmasterClient(BaseApiClient):
             await asyncio.sleep(sleep_time)
 
         self.last_request_time = time.time()
+
+    @staticmethod
+    def _is_ticketweb_url(url: str) -> bool:
+        hostname = urlparse(url or "").hostname or ""
+        return hostname.lower().endswith("ticketweb.com")
+
+    @classmethod
+    def _normalize_discovery_price(cls, price, event_url: str) -> Optional[float]:
+        parsed_price = float(price)
+        if cls._is_ticketweb_url(event_url) and parsed_price == 0.0:
+            return None
+        return parsed_price
 
     async def fetch_events(self, venue_id: str, **kwargs) -> List[JSONDict]:
         """
@@ -310,6 +323,7 @@ class TicketmasterClient(BaseApiClient):
             # Check sales info
             sales = event_data.get("sales", {})
             public_sales = sales.get("public", {})
+            event_url = event_data.get("url", "")
 
             # Extract price ranges
             price_ranges = event_data.get("priceRanges", [])
@@ -320,6 +334,8 @@ class TicketmasterClient(BaseApiClient):
                         min_price = price_range.get("min", 0)
                         max_price = price_range.get("max", min_price)
                         ticket_type = price_range.get("type", "General Admission")
+                        min_ticket_price = self._normalize_discovery_price(min_price, event_url)
+                        max_ticket_price = self._normalize_discovery_price(max_price, event_url)
 
                         # Check if sold out
                         sold_out = (
@@ -330,8 +346,8 @@ class TicketmasterClient(BaseApiClient):
                         # Create ticket for min price
                         tickets.append(
                             Ticket(
-                                price=float(min_price),
-                                purchase_url=event_data.get("url", ""),
+                                price=min_ticket_price,
+                                purchase_url=event_url,
                                 sold_out=sold_out,
                                 type=f"{ticket_type} (from ${min_price})",
                             )
@@ -341,8 +357,8 @@ class TicketmasterClient(BaseApiClient):
                         if max_price > min_price + 5:  # More than $5 difference
                             tickets.append(
                                 Ticket(
-                                    price=float(max_price),
-                                    purchase_url=event_data.get("url", ""),
+                                    price=max_ticket_price,
+                                    purchase_url=event_url,
                                     sold_out=sold_out,
                                     type=f"{ticket_type} (up to ${max_price})",
                                 )
@@ -395,10 +411,12 @@ class TicketmasterClient(BaseApiClient):
     def _initialize_headers(self) -> dict:
         """Override default headers with JSON-focused defaults for Ticketmaster."""
         headers = BaseHeaders.get_headers(base_type="json")
-        headers.update({
-            "Accept": "application/json",
-            "User-Agent": "LaughtrackScraper/1.0 (Comedy Show Discovery)",
-        })
+        headers.update(
+            {
+                "Accept": "application/json",
+                "User-Agent": "LaughtrackScraper/1.0 (Comedy Show Discovery)",
+            }
+        )
         return headers
 
 

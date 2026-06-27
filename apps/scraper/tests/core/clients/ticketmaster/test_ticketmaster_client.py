@@ -73,9 +73,7 @@ async def test_fetch_events_params_do_not_contain_classification_name(client, mo
 
     await client.fetch_events("KovZ917ARvk")
 
-    assert "classificationName" not in captured_params, (
-        f"classificationName found in API params: {captured_params}"
-    )
+    assert "classificationName" not in captured_params, f"classificationName found in API params: {captured_params}"
 
 
 @pytest.mark.asyncio
@@ -122,17 +120,15 @@ async def test_fetch_events_paginates_until_total_pages(client, monkeypatch):
     assert len(events) == 450
     assert events[0]["id"] == "p0-e0"
     assert events[-1]["id"] == "p2-e49"
-    assert any("450" in m and "3 pages" in m for m in info_messages), (
-        f"expected totalElements/totalPages log, got {info_messages}"
-    )
+    assert any(
+        "450" in m and "3 pages" in m for m in info_messages
+    ), f"expected totalElements/totalPages log, got {info_messages}"
 
 
 @pytest.mark.asyncio
 async def test_fetch_events_single_page_does_not_log_pagination(client, monkeypatch):
     """Venues that fit on one page must not emit the paginating-summary log."""
-    monkeypatch.setattr(
-        tm_module.URLUtils, "build_url", lambda url, params=None: "https://fake/"
-    )
+    monkeypatch.setattr(tm_module.URLUtils, "build_url", lambda url, params=None: "https://fake/")
 
     async def fake_fetch_json(self, url, headers=None):
         return {
@@ -149,9 +145,9 @@ async def test_fetch_events_single_page_does_not_log_pagination(client, monkeypa
     events = await client.fetch_events("KovZ917ARvk")
 
     assert len(events) == 42
-    assert not any("paginating" in m for m in info_messages), (
-        f"single-page response should not emit pagination summary, got {info_messages}"
-    )
+    assert not any(
+        "paginating" in m for m in info_messages
+    ), f"single-page response should not emit pagination summary, got {info_messages}"
 
 
 def test_extract_ticket_data_no_price_ranges_produces_price_none(client):
@@ -178,6 +174,38 @@ def test_extract_ticket_data_null_price_ranges_produces_price_none(client):
 
     assert len(tickets) == 1
     assert tickets[0].price is None, f"Expected price=None, got price={tickets[0].price}"
+
+
+def test_extract_ticket_data_ticketweb_zero_price_is_unknown(client):
+    """TicketWeb Discovery API zeroes are ambiguous unless HTML proves a free ticket."""
+    event_data = {
+        "url": "https://www.ticketweb.com/event/andrew-schulz-ontario-improv-tickets/14938863",
+        "sales": {"public": {"startDateTime": "2026-04-01T19:00:00Z"}},
+        "dates": {"status": {"code": "onsale"}},
+        "priceRanges": [{"type": "standard", "min": 0, "max": 0}],
+    }
+
+    tickets = client._extract_ticket_data_from_api(event_data)
+
+    assert len(tickets) == 1
+    assert tickets[0].price is None
+    assert tickets[0].sold_out is False
+
+
+def test_extract_ticket_data_non_ticketweb_zero_price_is_preserved(client):
+    """Keep explicit zero from non-TicketWeb API events to avoid broad free-ticket regressions."""
+    event_data = {
+        "url": "https://www.ticketmaster.com/event/123",
+        "sales": {"public": {"startDateTime": "2026-04-01T19:00:00Z"}},
+        "dates": {"status": {"code": "onsale"}},
+        "priceRanges": [{"type": "standard", "min": 0, "max": 0}],
+    }
+
+    tickets = client._extract_ticket_data_from_api(event_data)
+
+    assert len(tickets) == 1
+    assert tickets[0].price == 0.0
+    assert tickets[0].sold_out is False
 
 
 def test_extract_room_info_never_returns_the_tm_venue_name(client):
