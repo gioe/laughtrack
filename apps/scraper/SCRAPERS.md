@@ -3902,6 +3902,54 @@ First venue: Grand Comedy Club & Pizzeria (club 8897, grandcomedyclub.com).
 
 ---
 
+### 1234ticket (`1234ticket`)
+
+`scraper_key = 1234ticket`, `platform = custom` (1234ticket has no dedicated
+`ScrapingPlatform` enum value). Generic, serves venues ticketed through the
+1234ticket platform (a small Miami Latin-events network — currently Flamingo
+Theater Bar + La Scala de Miami).
+
+**Datasource (TASK-3350):** the public, unauthenticated feed at
+`https://api.1234ticket.com/api_040/landing-data?search=null&page={N}&limit=50&sortBy=date&sortOrder=asc`
+returns **every** event across **all** the platform's venues as JSON
+(`data.events[]`). curl_cffi/requests suffices — no auth. Each event has:
+- `title` — frequently an abbreviated lowercase first name ("willy", "edy"); the
+  scraper de-slugifies the `link` tail for a readable show name instead, falling
+  back to a multi-word `title` when present.
+- `link` — `https://live.1234ticket.com/events/{slug}-{hash}` (the `show_page_url`).
+- `date` — the show DATE as midnight venue-local in UTC (e.g. `...T04:00:00Z`).
+- `time` — the show TIME-OF-DAY as a true-UTC instant on a throwaway date
+  (e.g. `...T00:30:00Z` = 8:30 PM EDT). The scraper combines `date`'s venue-local
+  calendar date with `time`'s venue-local clock time into a true-UTC datetime
+  (falls back to a 20:00 venue-local default when `time` is missing).
+- `venue` — nested `{id (UUID), name}`.
+
+**Do NOT use** the newer `live.1234ticket.com` Next.js storefront — its
+`api-live` v2 API (`/api/v2/venues/events-by-venue/{id}`) is token-gated and
+returns 403 anonymously. The older `api_040` feed is the public path.
+
+**Config via `scraping_sources.metadata`:** because one feed serves all venues
+and carries **no event category**, set:
+- `venue_id` — the venue UUID (filters the platform-wide feed to this venue);
+  `venue_name` is an alternative.
+- `include_title_patterns` / `exclude_title_patterns` — optional comedy
+  allowlist/denylist (case-insensitive substrings matched against
+  title + description + **de-hyphenated link slug**). These venues mix stand-up
+  with Latin music/dance, so a comedy onboard needs an allowlist anchored on the
+  comedy acts (e.g. recurring `george harris`, `eddy suarez`, `alexis valdes`,
+  plus generic `comedy`/`standup`/`humor`). With no filters every venue event is
+  kept.
+
+Onboarded: **Flamingo Theater Bar** (Miami; `venue_id=6853052c-…`, comedy
+allowlist — 3 comedy shows isolated from 18 platform events). **Caveat:**
+recurring shows (e.g. "El Show De George Harris", "todos los jueves") carry a
+single far-future placeholder `date`/`time` in the source, so they persist with
+a wrong one-off datetime — a source-data limitation, not a scraper bug. The
+shared backend means La Scala de Miami (TASK-3349) onboards with the same
+scraper + its own `venue_id`.
+
+---
+
 ## Implementation Patterns
 
 ### Playwright Network Inspection for JS-Heavy Sites
