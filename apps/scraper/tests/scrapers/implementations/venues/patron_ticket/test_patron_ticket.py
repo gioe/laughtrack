@@ -193,6 +193,26 @@ def test_build_fetch_events_payload_carries_auth_context_and_origin_url():
     }
 
 
+def test_build_fetch_events_payload_honors_method_arg_count_len():
+    """data arg count must equal the method's declared len (TASK-3365, Dad's Garage).
+
+    Salesforce matches a RemoteAction by name AND arity, so a 4-arg fetchEvents
+    install needs 4 positional args (origin URL + 3 empty); a 3-arg install needs
+    3; absent len falls back to 3.
+    """
+    scraper = PatronTicketScraper(_club())
+    base_auth = {"csrf": "C", "vid": "V", "ns": "N", "ver": 52, "authorization": "A"}
+
+    four = scraper.build_fetch_events_payload({**base_auth, "len": 4})
+    assert four["data"] == [f"{_SOURCE_URL}/", "", "", ""]
+
+    three = scraper.build_fetch_events_payload({**base_auth, "len": 3})
+    assert three["data"] == [f"{_SOURCE_URL}/", "", ""]
+
+    absent = scraper.build_fetch_events_payload(base_auth)
+    assert absent["data"] == [f"{_SOURCE_URL}/", "", ""]
+
+
 def test_scraper_collect_targets_returns_configured_source_url_only():
     scraper = PatronTicketScraper(_club())
     assert scraper.collect_scraping_targets_sync() == [_SOURCE_URL]

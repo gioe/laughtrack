@@ -137,13 +137,24 @@ class PatronTicketScraper(BaseScraper):
         """Build the Visualforce Remoting payload for the fetchEvents call.
 
         Exposed for testing. The payload mirrors what the PatronTicket SPA sends
-        from the browser; ``data`` carries the (origin URL, opaque, opaque)
-        positional args the apex method expects.
+        from the browser; ``data`` carries the (origin URL, then opaque) positional
+        args the apex method expects.
+
+        Salesforce Visualforce Remoting matches a RemoteAction by name AND arg
+        count, so the number of positional args must equal the method's declared
+        arity. Newer PatronTicket package versions expose a 4-arg ``fetchEvents``
+        (TASK-3365, Dad's Garage on ver 51.0) where older installs use 3; sending
+        the wrong count yields a 400 "Method 'fetchEvents' not found on controller".
+        The per-method ``len`` is inlined in the page auth config, so honor it:
+        send the origin URL followed by ``len - 1`` empty positional args. Falls
+        back to 3 when ``len`` is absent (matches every pre-existing install).
         """
+        arg_count = auth_config.get("len", 3) or 3
+        data = [f"{self._source_url}/"] + [""] * (arg_count - 1)
         return {
             "action": "PatronTicket.Controller_PublicTicketApp",
             "method": "fetchEvents",
-            "data": [f"{self._source_url}/", "", ""],
+            "data": data,
             "type": "rpc",
             "tid": 5,
             "ctx": {
