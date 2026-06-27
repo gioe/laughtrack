@@ -144,6 +144,13 @@ struct ShowDetailViewTests {
         #expect(coordinator.routes == expectedRoutes)
     }
 
+    @Test("related shows use compact ticket rows")
+    func relatedShowsUseCompactTicketRows() throws {
+        let source = try String(contentsOf: showDetailViewSourceURL(), encoding: .utf8)
+
+        #expect(source.contains("ShowRow(show: related, presentation: .compactTicket)"))
+    }
+
     @Test("re-opening an entity already on the stack pops back to it instead of duplicating")
     func reopeningStackedEntityPopsBackInsteadOfDuplicating() {
         let coordinator = TypedNavigationCoordinator<AppRoute>()
@@ -324,6 +331,21 @@ struct ShowDetailViewTests {
             transport: MockShowDetailTransport(response: response, favoriteRecorder: favoriteRecorder)
         )
     }
+
+    private func showDetailViewSourceURL(filePath: String = #filePath) throws -> URL {
+        let testFileURL = URL(fileURLWithPath: filePath)
+        let iosRoot = testFileURL
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let sourceURL = iosRoot
+            .appendingPathComponent("Sources/LaughTrackApp/Detail/Views/ShowDetailView.swift")
+        guard FileManager.default.fileExists(atPath: sourceURL.path) else {
+            throw CocoaError(.fileNoSuchFile)
+        }
+        return sourceURL
+    }
+
 }
 
 private actor FavoriteOperationRecorder {

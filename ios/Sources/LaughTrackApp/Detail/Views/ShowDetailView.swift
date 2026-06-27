@@ -836,9 +836,9 @@ private struct RelatedShowsSection: View {
         LaughTrackCard(tone: .muted, density: .tight) {
             VStack(alignment: .leading, spacing: 12) {
                 LaughTrackSectionHeader(
-                    eyebrow: "Alternates",
-                    title: "Can’t make it?",
-                    subtitle: "Here are some more shows you might like"
+                    eyebrow: "Can’t make it?",
+                    title: "Shows you might like instead",
+                    subtitle: nil
                 )
 
                 if relatedShows.isEmpty {
@@ -848,7 +848,7 @@ private struct RelatedShowsSection: View {
                         Button {
                             openDetail(related)
                         } label: {
-                            ShowRow(show: related)
+                            ShowRow(show: related, presentation: .compactTicket)
                         }
                         .buttonStyle(.plain)
                     }
