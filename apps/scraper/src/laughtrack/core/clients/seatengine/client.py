@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, List, Optional
 from urllib.parse import urlparse
 
 from curl_cffi.requests import Response
@@ -269,10 +269,20 @@ class SeatEngineClient(BaseApiClient):
         )]
 
     def _build_public_show_url(self, show_id: Any) -> str:
+        ticket_url = self._public_ticket_url()
+        if ticket_url:
+            return ticket_url
+
         base_url = self._public_show_base_url()
         if base_url:
             return f"{base_url}/shows/{show_id}"
         return f"https://services.seatengine.com/api/v1/venues/{self.venue_id}/shows/{show_id}"
+
+    def _public_ticket_url(self) -> str:
+        configured = self.club.metadata_value("public_ticket_url")
+        if configured and URLUtils.is_valid_url(URLUtils.normalize_url(configured)):
+            return URLUtils.normalize_url(configured)
+        return ""
 
     def _public_show_base_url(self) -> str:
         if self.venue_website and URLUtils.is_valid_url(self.venue_website):

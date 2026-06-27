@@ -179,6 +179,32 @@ struct ShowRowTests {
         #expect(stack.time.contains("8:00"))
     }
 
+    @Test("date stack appends timezone abbreviation when venue timezone differs from device timezone")
+    func dateStackAppendsRemoteTimezoneAbbreviation() {
+        let date = Date(timeIntervalSince1970: 1_714_780_800)
+        let stack = ShowFormatting.dateStack(
+            date,
+            timezoneID: "America/Los_Angeles",
+            localTimezone: TimeZone(identifier: "America/New_York")!
+        )
+
+        #expect(stack.time.contains("5:00"))
+        #expect(stack.time.contains("PDT"))
+    }
+
+    @Test("date stack omits timezone abbreviation when venue timezone matches device timezone")
+    func dateStackOmitsLocalTimezoneAbbreviation() {
+        let date = Date(timeIntervalSince1970: 1_714_780_800)
+        let stack = ShowFormatting.dateStack(
+            date,
+            timezoneID: "America/New_York",
+            localTimezone: TimeZone(identifier: "America/New_York")!
+        )
+
+        #expect(stack.time.contains("8:00"))
+        #expect(!stack.time.contains("EDT"))
+    }
+
     @Test("open mic detection reads the tag list without depending on the show name")
     func openMicDetection() {
         // Deliberately use a non-open-mic name so this asserts the tag-based

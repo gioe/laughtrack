@@ -300,6 +300,28 @@ def test_create_show_url_falls_back_to_configured_public_base_without_venue_webs
     assert show.tickets[0].purchase_url == "https://example.com/shows/999"
 
 
+def test_create_show_url_uses_configured_public_ticket_url(monkeypatch, stub_base_init):
+    """public_ticket_url overrides show-specific SeatEngine routes when those routes redirect away."""
+    club = _club()
+    club.active_scraping_source = ScrapingSource(
+        platform="seatengine",
+        scraper_key="seatengine",
+        source_url="comedychateau.seatengine.com/events",
+        seatengine_id=432,
+        metadata={"public_ticket_url": "https://www.thecomedychateau.com/events"},
+    )
+    monkeypatch.setattr(se_client_module.URLUtils, "get_formatted_domain", lambda url: "example.com")
+    monkeypatch.setattr(se_client_module.BaseHeaders, "get_headers", lambda *a, **k: {})
+    client = SeatEngineClient(club)
+    _patch_dates(monkeypatch)
+
+    show = client.create_show(_make_show_dict(show_id=358564))
+
+    assert show is not None
+    assert show.show_page_url == "https://www.thecomedychateau.com/events"
+    assert show.tickets[0].purchase_url == "https://www.thecomedychateau.com/events"
+
+
 def test_create_show_price_from_inventories(monkeypatch, stub_base_init):
     """create_show reads price in cents from inventories[0].price."""
     client = _make_client(monkeypatch)

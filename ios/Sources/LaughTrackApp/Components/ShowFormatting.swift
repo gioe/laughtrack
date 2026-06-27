@@ -46,17 +46,26 @@ enum ShowFormatting {
         return formatter.string(from: date)
     }
 
-    static func dateStack(_ date: Date, timezoneID: String? = nil) -> ShowDateStack {
+    static func dateStack(
+        _ date: Date,
+        timezoneID: String? = nil,
+        localTimezone: TimeZone = .current
+    ) -> ShowDateStack {
         let resolvedTimezone = timezoneID.flatMap(TimeZone.init(identifier:)) ?? TimeZone.current
 
         weekdayStackFormatter.timeZone = resolvedTimezone
         dayStackFormatter.timeZone = resolvedTimezone
         timeStackFormatter.timeZone = resolvedTimezone
+        let time = timeStackFormatter.string(from: date)
+        let timezoneAbbreviation = resolvedTimezone.abbreviation(for: date)
+        let timezoneSuffix = resolvedTimezone.identifier == localTimezone.identifier
+            ? ""
+            : timezoneAbbreviation.map { " \($0)" } ?? ""
 
         return ShowDateStack(
             weekday: weekdayStackFormatter.string(from: date).uppercased(),
             day: dayStackFormatter.string(from: date),
-            time: timeStackFormatter.string(from: date)
+            time: "\(time)\(timezoneSuffix)"
         )
     }
 
