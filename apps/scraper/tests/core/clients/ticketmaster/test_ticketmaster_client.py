@@ -7,7 +7,6 @@ paginates the Discovery API rather than silently truncating at 200 events.
 """
 
 import pytest
-from unittest.mock import AsyncMock, patch
 
 from laughtrack.core.clients.ticketmaster import client as tm_module
 from laughtrack.core.clients.ticketmaster.client import TicketmasterClient
@@ -190,6 +189,46 @@ def test_extract_ticket_data_ticketweb_zero_price_is_unknown(client):
     assert len(tickets) == 1
     assert tickets[0].price is None
     assert tickets[0].sold_out is False
+
+
+def test_extract_ticket_data_ticketweb_html_price_overrides_api_zero(client):
+    event_data = {
+        "url": "https://www.ticketweb.com/event/sample-comedy-tickets/12345",
+        "sales": {"public": {"startDateTime": "2026-04-01T19:00:00Z"}},
+        "dates": {"status": {"code": "onsale"}},
+        "priceRanges": [{"type": "standard", "min": 0, "max": 0}],
+        "_ticketweb_html": """
+            <section>
+              <h2>Select Tickets</h2>
+              <div>General Admission $37.17 ($25.00 + $12.17 fees)</div>
+            </section>
+        """,
+    }
+
+    tickets = client._extract_ticket_data_from_api(event_data)
+
+    assert len(tickets) == 1
+    assert tickets[0].price == 37.17
+    assert tickets[0].sold_out is False
+
+
+def test_extract_ticket_data_ticketweb_unavailable_html_marks_sold_out(client):
+    event_data = {
+        "url": "https://www.ticketweb.com/event/andrew-schulz-ontario-improv-tickets/14938863",
+        "sales": {"public": {"startDateTime": "2026-04-01T19:00:00Z"}},
+        "dates": {"status": {"code": "onsale"}},
+        "priceRanges": [{"type": "standard", "min": 0, "max": 0}],
+        "_ticketweb_html": """
+            <p>No more tickets currently available for purchase.</p>
+            <a>sign up here</a>
+        """,
+    }
+
+    tickets = client._extract_ticket_data_from_api(event_data)
+
+    assert len(tickets) == 1
+    assert tickets[0].price is None
+    assert tickets[0].sold_out is True
 
 
 def test_extract_ticket_data_non_ticketweb_zero_price_is_preserved(client):

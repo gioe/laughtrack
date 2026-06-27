@@ -18,7 +18,7 @@ import asyncio
 from collections import defaultdict
 from datetime import datetime, timedelta
 from typing import List
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
 
 from laughtrack.core.clients.ticketmaster.client import TicketmasterClient
 from laughtrack.core.entities.club.handler import ClubHandler
@@ -27,6 +27,8 @@ from laughtrack.core.entities.show.model import Show
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.infrastructure.config.config_manager import ConfigManager
 from laughtrack.scrapers.base.base_scraper import BaseScraper
+
+_TICKETWEB_HTML_KEY = "_ticketweb_html"
 
 
 class TicketmasterNationalScraper(BaseScraper):
@@ -125,13 +127,11 @@ class TicketmasterNationalScraper(BaseScraper):
         loop = asyncio.get_running_loop()
         persisted = 0
         for start in range(0, len(shows), self._PERSIST_CHUNK_SIZE):
-            chunk = shows[start:start + self._PERSIST_CHUNK_SIZE]
+            chunk = shows[start : start + self._PERSIST_CHUNK_SIZE]
             try:
                 await loop.run_in_executor(
                     None,
-                    lambda c=chunk: service.insert_shows(
-                        c, club_name=self._club.name, scraper_key=self.key
-                    ),
+                    lambda c=chunk: service.insert_shows(c, club_name=self._club.name, scraper_key=self.key),
                 )
                 persisted += len(chunk)
                 Logger.info(
@@ -208,10 +208,7 @@ class TicketmasterNationalScraper(BaseScraper):
                 break
 
             # Only keep events that have at least one embedded venue
-            venue_events = [
-                e for e in page_events
-                if e.get("_embedded", {}).get("venues")
-            ]
+            venue_events = [e for e in page_events if e.get("_embedded", {}).get("venues")]
             events.extend(venue_events)
 
             pagination = data.get("page", {})
@@ -247,10 +244,7 @@ class TicketmasterNationalScraper(BaseScraper):
             TicketmasterEventTransformer,
         )
 
-        comedy_events = [
-            e for e in api_events
-            if TicketmasterEventTransformer._is_comedy_event(e)
-        ]
+        comedy_events = [e for e in api_events if TicketmasterEventTransformer._is_comedy_event(e)]
         dropped = len(api_events) - len(comedy_events)
         if dropped:
             Logger.info(
@@ -273,9 +267,7 @@ class TicketmasterNationalScraper(BaseScraper):
         for venue_id, group in venue_groups.items():
             venue = group[0].get("_embedded", {}).get("venues", [{}])[0]
             try:
-                club = await loop.run_in_executor(
-                    None, self._club_handler.upsert_for_ticketmaster_venue, venue
-                )
+                club = await loop.run_in_executor(None, self._club_handler.upsert_for_ticketmaster_venue, venue)
             except Exception as exc:
                 Logger.error(
                     f"{self._log_prefix}: failed to upsert club for venue {venue_id}: {exc}",
@@ -292,8 +284,38 @@ class TicketmasterNationalScraper(BaseScraper):
 
             client = TicketmasterClient(club, api_key=self._api_key, proxy_pool=self.proxy_pool)
             for event in group:
-                show = client.create_show(event)
+                enriched_event = await self._attach_ticketweb_html(event)
+                show = client.create_show(enriched_event)
                 if show:
                     shows.append(show)
 
         return shows
+
+    async def _attach_ticketweb_html(self, event: dict) -> dict:
+        """Fetch TicketWeb detail HTML for Ticketmaster-discovered TicketWeb URLs.
+
+        Ticketmaster Discovery can report ``priceRanges: 0`` for TicketWeb
+        events even when the TicketWeb page is paid or unavailable. The HTML is
+        the pricing authority for these URLs; failures fall back to API data so
+        the event is still retained.
+        """
+        event_url = event.get("url", "")
+        hostname = urlparse(event_url or "").hostname or ""
+        if not hostname.lower().endswith("ticketweb.com"):
+            return event
+
+        try:
+            html = await self.fetch_html(event_url, timeout=self._REQUEST_TIMEOUT)
+        except Exception as exc:
+            Logger.warn(
+                f"{self._log_prefix}: failed to fetch TicketWeb detail HTML for {event_url}: {exc}",
+                self.logger_context,
+            )
+            return event
+
+        if not html:
+            return event
+
+        enriched_event = dict(event)
+        enriched_event[_TICKETWEB_HTML_KEY] = html
+        return enriched_event

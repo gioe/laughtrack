@@ -22,8 +22,24 @@ from laughtrack.core.entities.show.model import Show
 @pytest.fixture
 def platform_club() -> Club:
     """Minimal 'platform' club row that triggers the national scraper."""
-    _c = Club(id=999, name='Ticketmaster National', address='', website='', popularity=0, zip_code='', phone_number='', visible=True)
-    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='ticketmaster_national', scraper_key='ticketmaster_national', source_url='www.ticketmaster.com', external_id=None)
+    _c = Club(
+        id=999,
+        name="Ticketmaster National",
+        address="",
+        website="",
+        popularity=0,
+        zip_code="",
+        phone_number="",
+        visible=True,
+    )
+    _c.active_scraping_source = ScrapingSource(
+        id=1,
+        club_id=_c.id,
+        platform="ticketmaster_national",
+        scraper_key="ticketmaster_national",
+        source_url="www.ticketmaster.com",
+        external_id=None,
+    )
     _c.scraping_sources = [_c.active_scraping_source]
     return _c
 
@@ -68,8 +84,25 @@ def _make_club(
     ticketmaster_id="KovZpZAEAaEA",
     timezone="America/Los_Angeles",
 ):
-    _c = Club(id=club_id, name=name, address='8433 Sunset Blvd, West Hollywood, CA', website='', popularity=0, zip_code='90069', phone_number='', visible=True, timezone=timezone)
-    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='ticketmaster', scraper_key='live_nation', source_url='www.ticketmaster.com', external_id=ticketmaster_id)
+    _c = Club(
+        id=club_id,
+        name=name,
+        address="8433 Sunset Blvd, West Hollywood, CA",
+        website="",
+        popularity=0,
+        zip_code="90069",
+        phone_number="",
+        visible=True,
+        timezone=timezone,
+    )
+    _c.active_scraping_source = ScrapingSource(
+        id=1,
+        club_id=_c.id,
+        platform="ticketmaster",
+        scraper_key="live_nation",
+        source_url="www.ticketmaster.com",
+        external_id=ticketmaster_id,
+    )
     _c.scraping_sources = [_c.active_scraping_source]
     return _c
 
@@ -129,17 +162,13 @@ async def test_scrape_async_persists_each_event_and_returns_empty(platform_club)
     with patch(_CONFIG_PATCH, return_value="fake_api_key"):
         scraper = TicketmasterNationalScraper(platform_club)
 
-    with patch.object(
-        scraper, "_fetch_national_comedy_events", new=AsyncMock(return_value=api_events)
-    ):
+    with patch.object(scraper, "_fetch_national_comedy_events", new=AsyncMock(return_value=api_events)):
         with patch.object(
             scraper._club_handler,
             "upsert_for_ticketmaster_venue",
             return_value=upserted_club,
         ):
-            with patch.object(
-                scraper, "_persist_in_chunks", new=AsyncMock(return_value=2)
-            ) as mock_persist:
+            with patch.object(scraper, "_persist_in_chunks", new=AsyncMock(return_value=2)) as mock_persist:
                 with patch(
                     "laughtrack.scrapers.implementations.api.ticketmaster_national.scraper.TicketmasterClient"
                 ) as MockClient:
@@ -180,15 +209,9 @@ async def test_scrape_async_skips_venue_on_upsert_failure(platform_club):
     with patch(_CONFIG_PATCH, return_value="fake_api_key"):
         scraper = TicketmasterNationalScraper(platform_club)
 
-    with patch.object(
-        scraper, "_fetch_national_comedy_events", new=AsyncMock(return_value=api_events)
-    ):
-        with patch.object(
-            scraper._club_handler, "upsert_for_ticketmaster_venue", side_effect=_upsert
-        ):
-            with patch.object(
-                scraper, "_persist_in_chunks", new=AsyncMock(return_value=1)
-            ) as mock_persist:
+    with patch.object(scraper, "_fetch_national_comedy_events", new=AsyncMock(return_value=api_events)):
+        with patch.object(scraper._club_handler, "upsert_for_ticketmaster_venue", side_effect=_upsert):
+            with patch.object(scraper, "_persist_in_chunks", new=AsyncMock(return_value=1)) as mock_persist:
                 with patch(
                     "laughtrack.scrapers.implementations.api.ticketmaster_national.scraper.TicketmasterClient"
                 ) as MockClient:
@@ -217,9 +240,7 @@ async def test_persist_in_chunks_batches_by_chunk_size(platform_club):
 
     shows = [MagicMock(spec=Show) for _ in range(5)]
 
-    with patch(
-        "laughtrack.core.entities.show.service.ShowService"
-    ) as MockService:
+    with patch("laughtrack.core.entities.show.service.ShowService") as MockService:
         persisted = await scraper._persist_in_chunks(shows)
 
     insert = MockService.return_value.insert_shows
@@ -252,9 +273,7 @@ async def test_process_events_drops_non_comedy_events(platform_club):
     otherwise their attractions land as fake comedians (e.g. Springsteen)."""
     comedy = _make_api_event(venue_id="V1", event_id="c1")  # no classifications -> comedy
     music = _make_api_event(venue_id="V2", venue_name="Amphitheater", event_id="m1")
-    music["classifications"] = [
-        {"segment": {"name": "Music"}, "genre": {"name": "Rock"}, "subGenre": {"name": "Pop"}}
-    ]
+    music["classifications"] = [{"segment": {"name": "Music"}, "genre": {"name": "Rock"}, "subGenre": {"name": "Pop"}}]
 
     upserted = _make_club(club_id=7)
     mock_show = MagicMock(spec=Show)
@@ -263,9 +282,7 @@ async def test_process_events_drops_non_comedy_events(platform_club):
     with patch(_CONFIG_PATCH, return_value="fake_api_key"):
         scraper = TicketmasterNationalScraper(platform_club)
 
-    with patch.object(
-        scraper._club_handler, "upsert_for_ticketmaster_venue", return_value=upserted
-    ) as mock_upsert:
+    with patch.object(scraper._club_handler, "upsert_for_ticketmaster_venue", return_value=upserted) as mock_upsert:
         with patch(
             "laughtrack.scrapers.implementations.api.ticketmaster_national.scraper.TicketmasterClient"
         ) as MockClient:
@@ -277,6 +294,32 @@ async def test_process_events_drops_non_comedy_events(platform_club):
     upserted_venue = mock_upsert.call_args[0][0]
     assert upserted_venue.get("id") == "V1"
     assert len(shows) == 1
+
+
+@pytest.mark.asyncio
+async def test_process_events_fetches_ticketweb_html_before_create_show(platform_club):
+    ticketweb_url = "https://www.ticketweb.com/event/andrew-schulz-ontario-improv-tickets/14938863"
+    event = _make_api_event(event_url=ticketweb_url)
+    upserted = _make_club(club_id=7)
+    mock_show = MagicMock(spec=Show)
+    mock_show.club_id = 7
+
+    with patch(_CONFIG_PATCH, return_value="fake_api_key"):
+        scraper = TicketmasterNationalScraper(platform_club)
+
+    scraper.fetch_html = AsyncMock(return_value="<p>No more tickets currently available for purchase.</p>")
+
+    with patch.object(scraper._club_handler, "upsert_for_ticketmaster_venue", return_value=upserted):
+        with patch(
+            "laughtrack.scrapers.implementations.api.ticketmaster_national.scraper.TicketmasterClient"
+        ) as MockClient:
+            MockClient.return_value.create_show.return_value = mock_show
+            shows = await scraper._process_events([event])
+
+    assert len(shows) == 1
+    scraper.fetch_html.assert_awaited_once_with(ticketweb_url, timeout=scraper._REQUEST_TIMEOUT)
+    create_show_event = MockClient.return_value.create_show.call_args[0][0]
+    assert create_show_event["_ticketweb_html"] == "<p>No more tickets currently available for purchase.</p>"
 
 
 # ------------------------------------------------------------------ #
@@ -436,10 +479,7 @@ async def test_fetch_national_shards_full_horizon(platform_club):
 
     events = await scraper._fetch_national_comedy_events()
 
-    expected_windows = (
-        TicketmasterNationalScraper._HORIZON_DAYS
-        // TicketmasterNationalScraper._WINDOW_DAYS
-    )
+    expected_windows = TicketmasterNationalScraper._HORIZON_DAYS // TicketmasterNationalScraper._WINDOW_DAYS
     assert len(windows_seen) == expected_windows
     assert len(events) == expected_windows
     # windows are contiguous and non-overlapping

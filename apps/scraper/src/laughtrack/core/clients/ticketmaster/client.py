@@ -12,6 +12,7 @@ Documentation: https://developer.ticketmaster.com/products-and-docs/apis/discove
 """
 
 import asyncio
+import re
 import time
 from datetime import datetime, timedelta
 from typing import List, Optional
@@ -49,6 +50,17 @@ class TicketmasterClient(BaseApiClient):
     DEFAULT_MARKET = "US"  # Default to US market
     _DEFAULT_PAGE_SIZE = 200  # Discovery API maximum
     _MAX_PAGES = 50  # Safety cap: 50 * 200 = 10,000 events per venue
+    _TICKETWEB_HTML_KEY = "_ticketweb_html"
+    _TICKETWEB_PRICE_PATTERN = re.compile(
+        r"\$([0-9][\d,]*(?:\.\d{2})?)\s*"
+        r"\(\s*\$[0-9][\d,]*(?:\.\d{2})?\s*\+\s*\$[0-9][\d,]*(?:\.\d{2})?\s+fees?\s*\)",
+        re.IGNORECASE,
+    )
+    _TICKETWEB_UNAVAILABLE_PATTERN = re.compile(
+        r"(no more tickets currently available|tickets currently unavailable|tickets are currently unavailable|"
+        r"currently not available for purchase|join our email waitlist|email waitlist)",
+        re.IGNORECASE,
+    )
 
     def __init__(self, club: Club, api_key: Optional[str] = None, proxy_pool: Optional[ProxyPool] = None):
         super().__init__(club, proxy_pool=proxy_pool)
@@ -97,6 +109,30 @@ class TicketmasterClient(BaseApiClient):
         if cls._is_ticketweb_url(event_url) and parsed_price == 0.0:
             return None
         return parsed_price
+
+    @classmethod
+    def _extract_ticketweb_tickets_from_html(cls, event_url: str, html: Optional[str]) -> List[Ticket]:
+        if not html or not cls._is_ticketweb_url(event_url):
+            return []
+
+        if cls._TICKETWEB_UNAVAILABLE_PATTERN.search(html):
+            return [Ticket(price=None, purchase_url=event_url, sold_out=True, type="General Admission")]
+
+        prices = []
+        seen = set()
+        for match in cls._TICKETWEB_PRICE_PATTERN.finditer(html):
+            try:
+                price = float(match.group(1).replace(",", ""))
+            except (TypeError, ValueError):
+                continue
+            if price in seen:
+                continue
+            seen.add(price)
+            prices.append(price)
+
+        return [
+            Ticket(price=price, purchase_url=event_url, sold_out=False, type="General Admission") for price in prices
+        ]
 
     async def fetch_events(self, venue_id: str, **kwargs) -> List[JSONDict]:
         """
@@ -291,10 +327,6 @@ class TicketmasterClient(BaseApiClient):
                 if attraction.get("name"):
                     lineup.append(Comedian(name=attraction["name"]))
 
-            # Extract venue information for show page URL
-            venues = event_data.get("_embedded", {}).get("venues", [])
-            venue_name = venues[0].get("name", "") if venues else ""
-
             return {
                 "name": event_data.get("name", ""),
                 "date": formatted_date,
@@ -324,6 +356,12 @@ class TicketmasterClient(BaseApiClient):
             sales = event_data.get("sales", {})
             public_sales = sales.get("public", {})
             event_url = event_data.get("url", "")
+            ticketweb_tickets = self._extract_ticketweb_tickets_from_html(
+                event_url,
+                event_data.get(self._TICKETWEB_HTML_KEY),
+            )
+            if ticketweb_tickets:
+                return ticketweb_tickets
 
             # Extract price ranges
             price_ranges = event_data.get("priceRanges", [])
