@@ -1453,7 +1453,12 @@ UPDATE clubs SET scraper = 'json_ld', scraping_url = 'https://myvenue.com/events
   extract each detail page's Event JSON-LD. Anchor mode:
   `{"enabled": true, "url_path_prefix": "/shows/"}` collects every `<a href>` under
   that path prefix; `pagination` / typed-field (`object_type`/`url_path`) modes
-  also exist.
+  also exist. `set_same_as_to_detail_url: true` records the detail-page URL as the
+  show's `same_as` **and** supplies it as the event `url` for blocks that omit one —
+  some city/government arts calendars (e.g. pompanobeacharts.org) emit detail-page
+  Event JSON-LD with `name`/`startDate`/`location` but no `url`, which
+  `JsonLdEvent.from_json_ld` would otherwise drop (it requires `url`). Set this
+  whenever the detail pages are the canonical show pages.
 - `comedy_filter` (bool) — for **mixed-use venues** (a music bar / arts space / multi-use
   theater whose calendar is mostly non-comedy). When `true`, isolates comedy via the
   shared `select_comedy_titles` heuristic (the same one etix/ticketleap use): an event is
@@ -1476,6 +1481,21 @@ live music plus a weekly "Comedy Open Mic". Onboarded with `scraper_key='json_ld
 `source_url='https://colesbarchicago.com/'`, and
 `metadata={"detail_fetch": {"enabled": true, "url_path_prefix": "/shows/"}, "comedy_filter": true}`
 → scrapes only the comedy open mics.
+
+**City-arts multi-venue example — The Hive Black Box Theater / Pompano Beach Arts (TASK-3360):**
+a municipal performing-arts network (`pompanobeacharts.org`) whose single `/events` page lists
+every program across five rooms (Cultural Center, Ali/The Hive, Amphitheater, Bailey, Blanche
+Ely) as bare `<a href="/events/<slug>">` cards — no Event JSON-LD on the listing. Each detail
+page embeds one `Event` block carrying `name`/`startDate`/`location.name` but **no `url`**.
+The comedy lives in one room (The Hive Black Box Theater runs a recurring "Live at the Hive:
+Florida's Funniest Comedians" stand-up series); the Cultural Center itself hosts no stand-up.
+Onboarded the **Hive** (not the Cultural Center) with `scraper_key='json_ld'`,
+`source_url='https://www.pompanobeacharts.org/events'`, and
+`metadata={"detail_fetch": {"enabled": true, "url_path_prefix": "/events/", "set_same_as_to_detail_url": true},
+"location_name_filter": "The Hive Black Box Theater", "comedy_filter": true}`
+→ `set_same_as_to_detail_url` supplies the missing `url` so the url-less Event parses;
+`location_name_filter` isolates the Hive from the 56-event multi-room feed; `comedy_filter`
+drops the Hive's own dance classes / open mics / concerts. Verified: 1 comedy show persists.
 
 **Ticketor box-office example — Fox Theater Salinas (TASK-3242):** a multi-use Squarespace
 venue whose own Events page (a hand-authored Squarespace *page*, not an Events collection —
