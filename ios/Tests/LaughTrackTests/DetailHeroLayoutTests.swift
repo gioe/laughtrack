@@ -30,14 +30,12 @@ struct DetailHeroLayoutTests {
     // not a hero-layout concern, and keeping a parallel copy here is what shipped a
     // stale expectation (TASK-2536). See TASK-2537.
 
-    @Test("show detail hero renders a countdown badge")
-    func showHeroBadgeIncludesCountdown() {
+    @Test("show detail hero omits countdown badges")
+    func showHeroBadgeOmitsCountdown() {
         let show = Self.showDetail()
         let badges = ShowDetailPresentation.heroBadges(for: show)
 
-        #expect(badges.count == 1)
-        let expected = ShowFormatting.countdown(for: show.date).label
-        #expect(badges.first?.title == expected)
+        #expect(badges.isEmpty)
     }
 
     @Test("show detail summary facts include event operations")

@@ -200,14 +200,12 @@ struct ShowDetailViewTests {
         #expect(ShowLineupPresentation.roleBadge(for: blankRole) == nil)
     }
 
-    @Test("show detail hero renders a countdown badge derived from the show date")
-    func showHeroBadgeIncludesCountdown() {
+    @Test("show detail hero omits countdown badges")
+    func showHeroBadgeOmitsCountdown() {
         let show = DemoContent.showDetailResponse(id: 301)?.data ?? DemoContent.primaryShowDetail.data
         let badges = ShowDetailPresentation.heroBadges(for: show)
 
-        #expect(badges.count == 1)
-        let expected = ShowFormatting.countdown(for: show.date).label
-        #expect(badges.first?.title == expected)
+        #expect(badges.isEmpty)
     }
 
     @Test("show detail summary facts include event operations")

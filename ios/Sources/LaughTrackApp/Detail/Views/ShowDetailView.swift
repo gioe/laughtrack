@@ -22,7 +22,6 @@ struct ShowDetailView: View {
     @StateObject private var calendarWriter = ShowCalendarWriter()
     @State private var feedbackMessage: String?
     @State private var safariURL: URL?
-    @State private var countdownTick: Date = Date()
 
     init(showID: Int, apiClient: Client) {
         self.showID = showID
@@ -55,21 +54,12 @@ struct ShowDetailView: View {
                 let isOpenMic = ShowDetailPresentation.isOpenMic(show)
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
-                        // countdownTick pulses every 60s via the .task below
-                        // so the countdown badge re-derives without waiting
-                        // for a navigation push or pull-to-refresh — the
-                        // future→live→past transition fires while the user is
-                        // sitting on the screen. Done in @State instead of
-                        // wrapping the marquee in TimelineView so the marquee
-                        // sits at the same layout level as the other detail
-                        // views (TimelineView wrapping changes safe-area
-                        // propagation enough to misalign the hero).
                         MarqueeHero(
                             title: ShowTitlePresentation.title(for: show),
                             eyebrow: show.club.name,
                             imageURL: ShowDetailPresentation.heroImageURL(for: show),
                             thumbnailStyle: ShowDetailPresentation.heroThumbnailStyle(for: show),
-                            badges: ShowDetailPresentation.heroBadges(for: show, now: countdownTick),
+                            badges: ShowDetailPresentation.heroBadges(for: show),
                             fallbackSystemImage: "ticket.fill"
                         )
 
@@ -137,14 +127,6 @@ struct ShowDetailView: View {
         .task {
             await model.loadIfNeeded(apiClient: apiClient, favorites: favorites)
         }
-        .task {
-            // Drive the countdown badge transitions while the screen is open.
-            while !Task.isCancelled {
-                try? await Task.sleep(nanoseconds: 60 * 1_000_000_000)
-                if Task.isCancelled { break }
-                countdownTick = Date()
-            }
-        }
         .task(id: showID) {
             // Show-detail open counts as an engagement signal for the push
             // permission cadence. Debounced inside SoftPushPromptCoordinator
@@ -201,33 +183,8 @@ struct ShowDetailFact: Equatable {
 }
 
 enum ShowDetailPresentation {
-    static func heroBadges(for show: Components.Schemas.ShowDetail, now: Date = Date()) -> [DetailHeroBadge] {
-        let countdown = ShowFormatting.countdown(for: show.date, now: now)
-        let isLive = countdown.tone == .live
-        return [
-            DetailHeroBadge(
-                title: isLive ? "LIVE" : countdown.label,
-                systemImage: isLive ? nil : countdownSymbol(countdown.tone),
-                tone: countdownBadgeTone(countdown.tone),
-                isLive: isLive
-            )
-        ]
-    }
-
-    private static func countdownSymbol(_ tone: ShowFormatting.ShowCountdownTone) -> String {
-        switch tone {
-        case .future: return "clock"
-        case .live: return "dot.radiowaves.left.and.right"
-        case .past: return "clock.arrow.circlepath"
-        }
-    }
-
-    private static func countdownBadgeTone(_ tone: ShowFormatting.ShowCountdownTone) -> LaughTrackBadgeTone {
-        switch tone {
-        case .future: return .accent
-        case .live: return .highlight
-        case .past: return .neutral
-        }
+    static func heroBadges(for _: Components.Schemas.ShowDetail) -> [DetailHeroBadge] {
+        []
     }
 
     static func summaryFacts(for show: Components.Schemas.ShowDetail) -> [ShowDetailFact] {
