@@ -1748,6 +1748,60 @@ VALUES (<club_id>, 'custom', 'dojour',
 
 ---
 
+### Indy Systems (`the_lyric`)
+
+| | |
+|---|---|
+| **Scraper key** | `the_lyric` (venue-specific; one Indy tenant) |
+| **DB platform** | `custom` (Indy Systems is not a `ScrapingPlatform` enum member) |
+| **DB fields** | `source_url` = the venue's `…/graphql` proxy · `metadata.indy_site_id` |
+| **Generic?** | ❌ venue-specific so far — reusable per-tenant with a new `key` + `site-id` |
+
+**Detection signals:**
+- A Quasar/Vue SPA whose XHR/fetch calls hit a same-origin `…/graphql` endpoint
+  backed by `api-*.indy.systems`.
+- GraphQL **introspection is disabled** (`__type doesn't exist on type Query`),
+  but field-validation errors still name types (`MovieList`, `ShowingList`,
+  `Showing`) so you can reverse the selection sets.
+
+**Tenant + scope live in request HEADERS, not the URL:**
+- `site-id: <n>` selects the venue (The Lyric is site `7`).
+- `client-type: consumer` grants public reads — **omitting it returns permission
+  code 102**.
+- `content-type: application/json`.
+
+**Data model:** Indy models *every* screening — films AND live events — as a
+"movie". Query plan the `the_lyric` scraper uses:
+1. `currentAndUpcomingMovies { data { id name urlSlug } }` — a `MovieList` whose
+   `data[]` is the ~220-title current+upcoming catalog (not the full 2500+ archive
+   that `movies(siteIds:[…])` returns).
+2. Keep only comedy by event **name** (`comedy/comedian/stand-up/improv/sketch`);
+   drop the film titles and the mixed **"Open Mic"** variety night (default
+   exclude, overridable via `metadata.exclude_title_patterns`).
+3. `publicShowingsForMovie(movieId: ID!) { data { id time } }` — a `ShowingList`
+   whose `data[].time` is the ISO-8601 (offset-aware) showtime. One Show per
+   showing; `show_page_url` → the venue's own `/movie/<urlSlug>` page.
+
+**DB setup (idempotent migration):**
+```sql
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, enabled, priority, metadata)
+SELECT c.id, 'custom'::"ScrapingPlatform", 'the_lyric',
+       'https://www.lyriccinema.com/graphql', TRUE, 0, '{"indy_site_id": 7}'::jsonb
+FROM clubs c WHERE c.name = 'The Lyric' AND NOT EXISTS (...);
+```
+
+**Onboarding a second Indy Systems venue:** the queries + headers are
+tenant-agnostic; only `site-id` and the `/graphql` host change. Generalize by
+extracting the query/header logic into a shared base and giving each venue its
+own `key` + `metadata.indy_site_id` (the `the_lyric` scraper already reads the
+site id from metadata, so most of the work is parameterizing the host).
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/scrapers/implementations/venues/the_lyric/`
+- Reference venue/task: The Lyric (Fort Collins, CO) — TASK-3473 (re-do of TASK-3436).
+
+---
+
 ### iCalendar / Google Calendar (ICS)
 
 | | |
