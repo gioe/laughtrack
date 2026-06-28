@@ -1,8 +1,11 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { Heart, Sparkles, Bell, Globe } from "lucide-react";
-import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
+import { Heart, Sparkles, Bell, Globe, MapPin, Home } from "lucide-react";
+import {
+    ComedianDTO,
+    ComedianHomeLocationDTO,
+} from "@/objects/class/comedian/comedian.interface";
 import { Comedian } from "@/objects/class/comedian/Comedian";
 import { useFavorite } from "@/hooks/useFavorite";
 import { motion, AnimatePresence } from "framer-motion";
@@ -45,6 +48,17 @@ function formatUpcomingShowsStat(showCount: number, cityCount: number) {
     }`;
 }
 
+// Builds a "City, Region" label from the derived home location, where region
+// prefers state and falls back to country. Returns null when there is no city
+// to anchor the label so the pill can be omitted entirely.
+function formatHomeCity(home: ComedianHomeLocationDTO | undefined) {
+    const city = home?.city?.trim();
+    if (!city) return null;
+
+    const region = home?.state?.trim() || home?.country?.trim();
+    return region ? `${city}, ${region}` : city;
+}
+
 const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
     comedian,
 }) => {
@@ -80,6 +94,11 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
               getUpcomingCityCount(comedian),
           )
         : null;
+
+    const homeLocation = comedian.homeLocation;
+    const homeCityLabel = formatHomeCity(homeLocation);
+    const homeClub = homeLocation?.club ?? null;
+    const hasHomeLocation = Boolean(homeCityLabel || homeClub);
 
     const socialLinks = useMemo(() => {
         const stripAt = (s: string | null | undefined) =>
@@ -208,6 +227,51 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
                                     : "Notify me about shows"}
                             </Button>
                         </motion.div>
+                    )}
+
+                    {/* Home-location row — pills omit themselves when the
+                        derived city or home club is missing */}
+                    {hasHomeLocation && (
+                        <motion.ul
+                            initial={{ opacity: 0, y: mv(10) }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{
+                                ...springs.contentEntrance,
+                                delay: mv(0.18),
+                            }}
+                            className="mt-4 flex flex-wrap justify-center gap-2"
+                        >
+                            {homeCityLabel && (
+                                <li>
+                                    <span className="inline-flex items-center gap-2 rounded-full bg-surface/95 text-foreground px-3 py-1.5 text-caption font-dmSans font-semibold shadow-card ring-1 ring-subtle">
+                                        <MapPin
+                                            className="w-4 h-4"
+                                            aria-hidden="true"
+                                        />
+                                        <span className="truncate max-w-[12rem]">
+                                            Based in {homeCityLabel}
+                                        </span>
+                                    </span>
+                                </li>
+                            )}
+                            {homeClub && (
+                                <li>
+                                    <a
+                                        href={`/club/${homeClub.name}`}
+                                        aria-label={`Home club: ${homeClub.name}`}
+                                        className="inline-flex items-center gap-2 rounded-full bg-surface/95 hover:bg-surface-elevated text-foreground px-3 py-1.5 text-caption font-dmSans font-semibold shadow-card ring-1 ring-subtle transition-colors"
+                                    >
+                                        <Home
+                                            className="w-4 h-4"
+                                            aria-hidden="true"
+                                        />
+                                        <span className="truncate max-w-[12rem]">
+                                            Home club: {homeClub.name}
+                                        </span>
+                                    </a>
+                                </li>
+                            )}
+                        </motion.ul>
                     )}
 
                     {/* Social row */}
