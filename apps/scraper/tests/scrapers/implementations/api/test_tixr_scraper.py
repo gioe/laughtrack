@@ -615,6 +615,25 @@ async def test_phil_long_parses_all_cards_without_title_filter(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_phil_long_returns_none_when_title_filter_drops_everything(monkeypatch):
+    """When the comedy allowlist matches none of the cards, get_data returns
+    None (the 'all venue-owned public cards filtered out' branch) — TASK-3472."""
+    club = _phil_long_club()
+    # Allowlist that matches neither the comedy nor the concert card.
+    club.active_scraping_source.metadata = {"include_title_patterns": ["polka night"]}
+    scraper = TixrPublicCardScraper(club)
+
+    async def fake_fetch_html(self, url, **kwargs):
+        return _phil_long_calendar_html()
+
+    monkeypatch.setattr(TixrPublicCardScraper, "fetch_html", fake_fetch_html)
+
+    result = await scraper.get_data(PHIL_LONG_CALENDAR_URL)
+
+    assert result is None
+
+
+@pytest.mark.asyncio
 async def test_black_buzzard_uses_generic_public_card_path(monkeypatch):
     """The Black Buzzard's Webflow homepage parses through the shared
     ``TixrPublicCardScraper`` (absolute-dated ``.event-item`` variant) without

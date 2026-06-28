@@ -41,7 +41,11 @@ INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, priori
 SELECT c.id, 'tixr', 'tixr_public_card',
        'https://phillongmusichall.com/calendar', 0, true,
        jsonb_build_object(
-         'include_title_patterns', jsonb_build_array('comedy', 'comedian', 'stand[ -]?up'),
+         -- Keyword allowlist for the keyword-bearing comedy nights, plus known
+         -- recurring touring comedians whose card title is just their name and
+         -- carries no comedy keyword (e.g. "Zach Rushing") and would otherwise be
+         -- dropped by _apply_title_filter. TASK-3472.
+         'include_title_patterns', jsonb_build_array('comedy', 'comedian', 'stand[ -]?up', 'Zach Rushing'),
          'tixr_source_type', 'venue_public_card',
          'detail_fetch_required', false,
          'datadome_dependent', false,
