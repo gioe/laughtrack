@@ -100,8 +100,10 @@ async def _no_series(self, discovery_url, client_id):
     return []
 
 
-async def _run_scraper(monkeypatch, *, metadata: dict | None = None):
-    payloads = {
+async def _run_scraper(
+    monkeypatch, *, metadata: dict | None = None, payloads: dict | None = None
+):
+    payloads = payloads if payloads is not None else {
         "100": _production_payload(
             production_name="Patton Oswalt: Effervescent",
             performance_id="1001",
@@ -184,3 +186,43 @@ async def test_comedy_filter_keeps_only_comedy_events(monkeypatch):
         "Patton Oswalt: Effervescent",
     ]
     assert sum("Performance(" in call for call in fake_session.calls) == 2
+
+
+@pytest.mark.asyncio
+async def test_exclude_patterns_drop_classes_without_comedy_filter(monkeypatch):
+    """exclude_title_patterns must apply even when comedy_filter is unset (TASK-3480).
+
+    An all-comedy venue that only wants to drop class/camp/workshop listings
+    should be able to set exclude_title_patterns WITHOUT comedy_filter — and a
+    real show whose title carries no comedy keyword ("The Lineup", a generic
+    showcase name) must survive, instead of being eaten by the is_comedy_event
+    keyword gate that comedy_filter would have forced on.
+    """
+    payloads = {
+        "100": _production_payload(
+            production_name="Improv 101: Beginner Workshop",
+            performance_id="1001",
+            description="Eight-week drop-in improv class for adults.",
+        ),
+        "200": _production_payload(
+            production_name="Kids Comedy Camp",
+            performance_id="2001",
+            description="Summer day camp for young performers.",
+        ),
+        "300": _production_payload(
+            production_name="The Lineup",
+            performance_id="3001",
+            description="Tonight's rotating cast takes the stage.",
+        ),
+    }
+    page, fake_session = await _run_scraper(
+        monkeypatch,
+        metadata={"exclude_title_patterns": ["Workshop", "Camp"]},
+        payloads=payloads,
+    )
+
+    assert page is not None
+    # Both class/camp titles dropped by the exclude patterns; the keyword-less
+    # real show ("The Lineup") is kept because comedy_filter is off.
+    assert sorted(event.production_name for event in page.event_list) == ["The Lineup"]
+    assert sum("Performance(" in call for call in fake_session.calls) == 1
