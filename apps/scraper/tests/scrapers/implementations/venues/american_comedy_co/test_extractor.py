@@ -361,11 +361,16 @@ class TestDefaultTimeFallback:
         assert (ev.show_date.hour, ev.show_date.minute) == (20, 0)
         assert ev.price == "15.00"
 
-    def test_default_time_does_not_override_parsed_time(self):
-        """A product that DOES carry a time ignores default_time."""
+    def test_default_time_does_not_override_format_c_title_time(self):
+        """Format C path: date in handle, time in title → title time wins over default_time.
+
+        The title carries a clock but no M/D date, so Format B's date+time parse
+        fails and it falls to Format C; Format C's title-clock fallback must use
+        7pm, not the 20:00 default.
+        """
         product = {
             "id": 51,
-            "title": "6/28 7pm - Capybara Comedy Hour",
+            "title": "7pm Capybara Comedy Hour",
             "handle": "20990628-capybara",
             "tags": [],
             "images": [],
@@ -373,7 +378,9 @@ class TestDefaultTimeFallback:
         }
         events = ShopifyExtractor.extract_events({"products": [product]}, TZ, default_time=(20, 0))
         assert len(events) == 1
-        assert events[0].show_date.hour == 19  # 7pm from title, not the 20:00 default
+        ev = events[0]
+        assert (ev.show_date.year, ev.show_date.month, ev.show_date.day) == (2099, 6, 28)
+        assert ev.show_date.hour == 19  # 7pm from title, not the 20:00 default
 
     def test_default_time_does_not_resurrect_undated_products(self):
         """No date anywhere → still dropped even with default_time set."""
