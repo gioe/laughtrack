@@ -46,9 +46,12 @@ class StandingRoomOnlyExtractor:
         for raw in records:
             if not isinstance(raw, dict):
                 continue
-            event_id = raw.get("Id")
             title = (raw.get("EventTitle") or "").strip()
-            if event_id is None or not title:
+            try:
+                event_id = int(raw.get("Id"))
+            except (TypeError, ValueError):
+                continue
+            if not title:
                 continue
             shows = raw.get("Shows")
             if not isinstance(shows, list):

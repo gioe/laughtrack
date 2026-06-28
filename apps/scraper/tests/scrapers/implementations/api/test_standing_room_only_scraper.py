@@ -142,6 +142,7 @@ def test_extractor_skips_events_missing_id_or_title_or_shows():
     payload = _payload([
         _event(event_id=1, title="Good"),
         {"Id": None, "EventTitle": "No Id", "Shows": [_show()]},
+        {"Id": "abc", "EventTitle": "Non-numeric Id", "Shows": [_show()]},
         {"Id": 2, "EventTitle": "", "Shows": [_show()]},
         {"Id": 3, "EventTitle": "No Shows", "Shows": None},
     ])

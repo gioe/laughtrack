@@ -89,22 +89,23 @@ SELECT
  WHERE (c.google_place_id = 'ChIJ0fvSRuG9JIgRtBFo4npwVsU'
         OR lower(c.name) = lower('One Night Stans Comedy Club'))
    AND NOT EXISTS (
+       -- Guard on the real (club_id, platform, priority) unique constraint so a
+       -- nightly re-run can't pass NOT EXISTS and then hit the constraint.
        SELECT 1
          FROM scraping_sources s
         WHERE s.club_id = c.id
-          AND s.scraper_key = 'standing_room_only'
+          AND s.platform = 'custom'::"ScrapingPlatform"
           AND s.priority = 0
    );
 
 UPDATE scraping_sources s
-   SET platform = 'custom'::"ScrapingPlatform",
-       scraper_key = 'standing_room_only',
+   SET scraper_key = 'standing_room_only',
        source_url = 'https://www.standingroomonlytickets.com/Event/ReadLiveEvents',
        enabled = TRUE,
        updated_at = NOW()
   FROM clubs c
  WHERE s.club_id = c.id
-   AND s.scraper_key = 'standing_room_only'
+   AND s.platform = 'custom'::"ScrapingPlatform"
    AND s.priority = 0
    AND (c.google_place_id = 'ChIJ0fvSRuG9JIgRtBFo4npwVsU'
         OR lower(c.name) = lower('One Night Stans Comedy Club'));
