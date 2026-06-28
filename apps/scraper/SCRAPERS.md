@@ -4071,6 +4071,21 @@ ticketed show's `ticket_url` silently degraded to the venue show page. If
 Comedy Store prices/ticket links vanish again, re-check the calendar's anchor
 host first.
 
+**Onboarding a generic ShowClix/LeapEvents venue (no net-new scraper):** when a
+venue's own site is just a link list pointing each show at a
+`www.showclix.com/event/<slug>` or `events.leapevents.com/event/<slug>` page
+(the two are the same platform — showclix.com 302-redirects to leapevents.com),
+wire the generic **`json_ld`** scraper in `detail_fetch` ANCHOR mode with
+**cross-host `allowed_hosts`** — every ShowClix/LeapEvents event page embeds one
+schema.org `Event` block (name/startDate/location/url). DB setup:
+`scraper_key='json_ld'`, `platform='custom'`, `source_url` = the venue's own
+link-list page, and
+`metadata.detail_fetch = {"enabled": true, "url_path_prefix": "/event/", "allowed_hosts": ["events.leapevents.com", "www.showclix.com"]}`.
+The scraper harvests the external `/event/` anchors off the venue page and parses
+each event page's JSON-LD (url present, so no `set_same_as_to_detail_url`). Add
+`comedy_filter` / `location_name_filter` only for mixed-use or multi-venue feeds.
+Reference: Atlanta Comedy Theater (TASK-3368), 24 comedy shows.
+
 ---
 
 ### ShowSlinger
