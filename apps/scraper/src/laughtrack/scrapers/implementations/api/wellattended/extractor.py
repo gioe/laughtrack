@@ -62,14 +62,17 @@ class WellAttendedExtractor:
         return slugs
 
     @staticmethod
-    def _enclosing_object(flight: str, anchor_start: int, anchor_end: int) -> Optional[str]:
-        """Return the smallest balanced ``{...}`` object that spans the anchor span.
+    def _enclosing_object(flight: str, anchor_start: int, anchor_end: int) -> Optional[dict]:
+        """Return the parsed innermost JSON object that spans the anchor span.
 
-        Stepping back over preceding ``{`` positions, the first one whose balanced
-        block extends past ``anchor_end`` is exactly the enclosing object's opening
-        brace — any nearer ``{`` opens a nested object that closes before the
-        anchor (so its block does not span it). This avoids the
-        ``rfind('{')``-lands-on-a-nested-``{}`` bug.
+        Steps back over preceding ``{`` positions until the balanced block both
+        (a) extends past ``anchor_end`` (spans the anchor) and (b) parses as a JSON
+        object. A nearer ``{`` either opens a nested object that closes before the
+        anchor (fails the span check) or — because the starting brace is found with
+        a non-string-aware ``rfind`` — lands inside a string value containing a
+        literal ``{`` (spans the anchor but won't parse); both are skipped by
+        stepping further back to the real enclosing object. Returns ``None`` when
+        no spanning, parseable object exists.
         """
         search_end = anchor_start
         while True:
@@ -78,7 +81,12 @@ class WellAttendedExtractor:
                 return None
             block = extract_balanced(flight, brace, "{", "}")
             if block and brace + len(block) > anchor_end:
-                return block
+                try:
+                    parsed = json.loads(block)
+                except (json.JSONDecodeError, ValueError):
+                    parsed = None
+                if isinstance(parsed, dict):
+                    return parsed
             search_end = brace
 
     @staticmethod
@@ -86,12 +94,8 @@ class WellAttendedExtractor:
         """Cheapest ticket-tier price in dollars, parsed from the flight (cents)."""
         prices: List[int] = []
         for match in re.finditer(r'"classification"\s*:', flight):
-            obj = WellAttendedExtractor._enclosing_object(flight, match.start(), match.end())
-            if not obj:
-                continue
-            try:
-                tier = json.loads(obj)
-            except (json.JSONDecodeError, ValueError):
+            tier = WellAttendedExtractor._enclosing_object(flight, match.start(), match.end())
+            if tier is None:
                 continue
             price = tier.get("price")
             if isinstance(price, int) and price > 0:
@@ -119,12 +123,8 @@ class WellAttendedExtractor:
         # timezone. Anchoring on start (not thingTitle) + the enclosing-object
         # finder is robust to nested objects preceding any key.
         for match in re.finditer(r'"start"\s*:\s*"\$D[^"]+"', flight):
-            obj = WellAttendedExtractor._enclosing_object(flight, match.start(), match.end())
-            if not obj or '"thingTitle"' not in obj or '"timezone"' not in obj:
-                continue
-            try:
-                occ = json.loads(obj)
-            except (json.JSONDecodeError, ValueError):
+            occ = WellAttendedExtractor._enclosing_object(flight, match.start(), match.end())
+            if occ is None or "thingTitle" not in occ or "timezone" not in occ:
                 continue
 
             if occ.get("deleted") is True or occ.get("shouldBeShown") is False:

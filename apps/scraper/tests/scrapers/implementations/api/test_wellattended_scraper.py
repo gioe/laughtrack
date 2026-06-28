@@ -144,6 +144,25 @@ def test_extract_occurrences_handles_nested_object_before_key():
     assert events[0].start_time_utc == _FUTURE_A
 
 
+def test_extract_occurrences_handles_brace_in_string_before_anchor():
+    """A literal '{' inside a string value before "start" must not drop the occurrence.
+
+    The non-string-aware rfind('{') can land inside such a string, yielding a
+    spanning-but-unparseable block; _enclosing_object steps further back to the
+    real, parseable object.
+    """
+    occ = (
+        '{"_id":"o1","thingTitle":"Set list {improv} night","subtitle":"a {b} c",'
+        '"start":"$D' + _FUTURE_A + '","timezone":"America/Denver",'
+        '"shouldBeShown":true,"deleted":false,"slug":"o1"}'
+    )
+    html = _detail_html([occ])
+    events = WellAttendedExtractor.extract_event_occurrences(html, _ORIGIN, "x")
+    assert len(events) == 1
+    assert events[0].title == "Set list {improv} night"
+    assert events[0].start_time_utc == _FUTURE_A
+
+
 def test_extract_occurrences_drops_past_deleted_hidden_and_dedupes():
     html = _detail_html([
         _occ("future", "Keep", _FUTURE_A),
