@@ -77,9 +77,11 @@ class CoralSpringsCenterScraper(BaseScraper):
                     self.logger_context,
                 )
                 continue
-            event = CoralSpringsCenterExtractor.parse_detail(detail_html or "", detail_url)
-            if event is not None:
-                events.append(event)
+            # parse_detail returns one event per performance date (multi-night
+            # engagements yield several); extend so every night is kept.
+            events.extend(
+                CoralSpringsCenterExtractor.parse_detail(detail_html or "", detail_url)
+            )
 
         if not events:
             self._warn_empty_extraction(
