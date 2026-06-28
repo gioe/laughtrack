@@ -3476,6 +3476,47 @@ Stans Comedy Club, Waterford Township MI, 29 shows).
 
 ---
 
+### WellAttended (`wellattended`)
+
+| | |
+|---|---|
+| **Scraper key** | `wellattended` (generic — any WellAttended venue onboards with only a DB row) |
+| **Platform** | `custom` (WellAttended has no `ScrapingPlatform` enum value) |
+| **DB field** | `scraping_sources.source_url` = the venue's WellAttended root (`https://<venue>.wellattended.com/`) |
+| **Datasource / process** | `rsc` / `multi_step` |
+| **Generic?** | ✅ generic — keyed off the subdomain; no per-venue code |
+
+WellAttended (`<venue>.wellattended.com`) is a **Next.js RSC** ticketing platform.
+A venue's calendar lives on its subdomain root; each show is a `/events/<slug>`
+detail page. There is **no JSON-LD and no `__NEXT_DATA__`** — the showing/occurrence
+and ticket-tier data is embedded in the `self.__next_f.push([1,"..."])` RSC flight.
+
+**Detection signals:**
+- The venue's own site (e.g. `amazingshows.com`) redirects to `<venue>.wellattended.com`
+- Page source has `self.__next_f.push(...)` chunks and `wellattended.com` asset hosts; no JSON-LD `<script type="application/ld+json">`, no `__NEXT_DATA__`
+
+**Flight shape (per `/events/<slug>` detail page):**
+- **Occurrence object** — `{"_id","thingId","thingTitle","start":"$D<UTC ISO>","timezone":"America/Denver","soldCount","remainingCapacity","shouldBeShown","deleted","slug"}`. One per showtime; a multi-night run has several.
+- **Ticket-tier object** — `{"classification","price":<cents>,...}` (price is in **cents**).
+
+**Key implementation details:**
+- Concatenate the flight across **all** `self.__next_f.push` calls first (an object can span chunk boundaries) — use `core/clients/rsc/extractor.extract_push_payloads`.
+- `start` carries the RSC `$D` date marker — strip it to a plain UTC ISO; convert to the club tz.
+- Locate each occurrence by its `"start":"$D…"` anchor and **balance-extract its enclosing object** by stepping back over `{` positions until the balanced block spans the anchor — a naive `rfind('{')` lands on a nested `{}` that precedes a key and extracts nothing (this silently dropped Chipper Lowell during TASK-3471; David Deeble's objects had no leading nested object so it appeared to work).
+- Drop `deleted:true`, `shouldBeShown:false`, and past `start`s; de-dup by `(_id, start)`.
+- Price = cheapest tier `price` / 100 (dollars). `show_page_url`/ticket = the venue's own `/events/<slug>` page.
+
+**DB setup:** see `migrations/20260628_onboard_theatre_of_dreams_wellattended.sql`
+(TASK-3471, Theatre of Dreams Arts & Event Center, shows at The Magic Manor,
+Sedalia CO, 4 upcoming shows).
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/scrapers/implementations/api/wellattended/`
+- Event entity: `apps/scraper/src/laughtrack/core/entities/event/wellattended.py`
+- Shared RSC helpers: `apps/scraper/src/laughtrack/core/clients/rsc/extractor.py`
+
+---
+
 ### BookTix
 
 `scraper_key = booktix`, `platform = custom` (BookTix has no dedicated
