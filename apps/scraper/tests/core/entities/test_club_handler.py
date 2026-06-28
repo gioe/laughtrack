@@ -1032,6 +1032,12 @@ class TestEventbriteTicketmasterUpsertRespectsDispositionMetadata:
             # Must NOT contain a bare unconditional re-enable in this branch.
             assert "ENABLED = TRUE" not in conflict, label
 
+    def test_ticketmaster_conflict_preserves_disabled_ticketmaster_comedy_cutover_rows(self):
+        conflict = self._conflict_clause(ClubQueries.UPSERT_CLUB_BY_TICKETMASTER_VENUE)
+
+        assert "SCRAPING_SOURCES.SCRAPER_KEY = 'TICKETMASTER_COMEDY'" in conflict
+        assert "THEN SCRAPING_SOURCES.ENABLED" in conflict
+
     def test_insert_branch_still_emits_enabled_true_for_new_venues(self):
         # The first-time-discovery path lives in the SELECT inside the
         # upserted_source CTE, BEFORE the (club_id, platform, priority) ON

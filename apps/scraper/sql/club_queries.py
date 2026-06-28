@@ -595,18 +595,24 @@ class ClubQueries:
                 ticketmaster_id = COALESCE(scraping_sources.ticketmaster_id, EXCLUDED.ticketmaster_id),
                 source_url  = COALESCE(NULLIF(scraping_sources.source_url, ''), EXCLUDED.source_url),
                 -- Preserve the existing enabled flag when the row carries any
-                -- task_<id>_disposition stamp; otherwise re-enable.
+                -- task_<id>_disposition stamp; otherwise re-enable. Also keep
+                -- disabled ticketmaster_comedy rows disabled: TASK-3042 moved
+                -- covered per-venue Ticketmaster sources onto the single
+                -- ticketmaster_national source target, and the national upsert
+                -- still resolves venues by those disabled source rows.
                 -- ticketmaster_national paginates the TM Discovery API for US
                 -- Comedy events each nightly and upserts every venue surfaced,
                 -- so without this carve-out any dispositional disable on a
-                -- still-listed TM venue reverts within 24h
-                -- (TASK-1968 / TASK-1978).
+                -- still-listed TM venue reverts within 24h; without the
+                -- ticketmaster_comedy carve-out the cutover itself reverts
+                -- within 24h too (TASK-1968 / TASK-1978 / TASK-3484).
                 enabled     = CASE
                     WHEN EXISTS (
                         SELECT 1
                         FROM jsonb_object_keys(COALESCE(scraping_sources.metadata, '{}'::jsonb)) k
                         WHERE k LIKE 'task_%%_disposition'
                     )
+                    OR scraping_sources.scraper_key = 'ticketmaster_comedy'
                     THEN scraping_sources.enabled
                     ELSE TRUE
                 END
