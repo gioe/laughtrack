@@ -48,6 +48,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.laughtrack.android.core.data.UiState
 import app.laughtrack.android.core.navigation.AppRoute
+import app.laughtrack.android.core.network.generated.model.ComedianHomeLocation
 import app.laughtrack.android.core.network.generated.model.PodcastAppearance
 import app.laughtrack.android.core.network.generated.model.SocialData
 import app.laughtrack.android.core.network.generated.model.UpcomingRun
@@ -59,6 +60,8 @@ import app.laughtrack.android.feature.detail.ui.components.DetailLoading
 import app.laughtrack.android.feature.detail.ui.components.EntityAvatar
 import app.laughtrack.android.feature.detail.ui.components.SectionHeader
 import app.laughtrack.android.feature.detail.ui.components.ShowRow
+import app.laughtrack.android.feature.detail.util.formatHomeCity
+import app.laughtrack.android.feature.detail.util.formatHomeClubName
 import app.laughtrack.android.feature.detail.util.formatShowDateTime
 import app.laughtrack.android.feature.detail.util.openUrl
 
@@ -119,6 +122,7 @@ private fun ComedianDetailBody(
             isFavorite = isFavorite,
             isFavoritePending = isFavoritePending,
             onFavorite = onFavorite,
+            onOpenEntity = onOpenEntity,
         )
 
         Column(
@@ -144,6 +148,7 @@ private fun ComedianHero(
     isFavorite: Boolean,
     isFavoritePending: Boolean,
     onFavorite: () -> Unit,
+    onOpenEntity: (AppRoute) -> Unit,
 ) {
     Box(
         modifier =
@@ -213,6 +218,47 @@ private fun ComedianHero(
                 overflow = TextOverflow.Ellipsis,
             )
             ComedianSocialRow(ui.detail.socialData)
+            ui.detail.homeLocation?.let { homeLocation ->
+                ComedianHomeLocationRow(homeLocation = homeLocation, onOpenEntity = onOpenEntity)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ComedianHomeLocationRow(
+    homeLocation: ComedianHomeLocation,
+    onOpenEntity: (AppRoute) -> Unit,
+) {
+    val cityLabel = formatHomeCity(homeLocation.city, homeLocation.state, homeLocation.country)
+    val clubName = formatHomeClubName(homeLocation.clubName)
+    // Omit the whole row when no derived home location is present.
+    if (cityLabel == null && clubName == null) return
+
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        if (cityLabel != null) {
+            Text(
+                "Based in $cityLabel",
+                style = MaterialTheme.typography.bodyMedium,
+                color = LaughTrackColors.Foreground,
+            )
+        }
+        if (clubName != null) {
+            val clubId = homeLocation.clubId
+            if (clubId != null) {
+                Text(
+                    "Home club: $clubName",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = LaughTrackColors.AccentStrong,
+                    modifier = Modifier.clickable { onOpenEntity(AppRoute.ClubDetail(clubId)) },
+                )
+            } else {
+                Text(
+                    "Home club: $clubName",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = LaughTrackColors.Foreground,
+                )
+            }
         }
     }
 }

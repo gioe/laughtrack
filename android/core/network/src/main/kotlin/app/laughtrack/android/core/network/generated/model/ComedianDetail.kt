@@ -15,6 +15,7 @@
 
 package app.laughtrack.android.core.network.generated.model
 
+import app.laughtrack.android.core.network.generated.model.ComedianHomeLocation
 import app.laughtrack.android.core.network.generated.model.PodcastAppearance
 import app.laughtrack.android.core.network.generated.model.SocialData
 
@@ -31,6 +32,7 @@ import kotlinx.serialization.Contextual
  * @param imageUrl 
  * @param socialData 
  * @param podcastAppearances 
+ * @param homeLocation 
  */
 @Serializable
 
@@ -52,7 +54,10 @@ data class ComedianDetail (
     val socialData: SocialData,
 
     @SerialName(value = "podcastAppearances")
-    val podcastAppearances: kotlin.collections.List<PodcastAppearance>
+    val podcastAppearances: kotlin.collections.List<PodcastAppearance>,
+
+    @SerialName(value = "homeLocation")
+    val homeLocation: ComedianHomeLocation? = null
 
 ) {
 
