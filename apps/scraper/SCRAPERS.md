@@ -64,6 +64,11 @@ Is there an Eventbrite widget or eventbrite.com buy link?
   └── YES → platform: Eventbrite → scraper: eventbrite
               DB: eventbrite_id = organizer ID (11 digits) or venue ID (8-9 digits)
 
+Is there a wl.seetickets.us / wl.eventim.us whitelabel buy link?
+  └── YES → platform: custom → scraper: seetickets_whitelabel
+              DB: source_url = https://wl.eventim.us/?afflky=<KEY>;
+                  metadata.profile_id + metadata.whitelabel_key required
+
 Is there a DICE event-list widget or widgets.dice.fm script?
   └── YES → platform: DICE → scraper: dice (generic)
               DB: source_url = venue-owned calendar page; metadata must include
@@ -2891,6 +2896,60 @@ dropped.
 
 ---
 
+### SeeTickets/Eventim Whitelabel
+
+| | |
+|---|---|
+| **Scraper key** | `seetickets_whitelabel` |
+| **Platform** | `custom` |
+| **DB field** | `source_url`/`scraping_url` + metadata |
+| **Value format** | `source_url = https://wl.eventim.us/?afflky=<KEY>`; metadata `profile_id`, `whitelabel_key`, optional `affiliate_key`, `max_months`, `page_size` |
+| **Generic?** | ✅ generic for SeeTickets/Eventim US whitelabel storefronts |
+
+**Detection signals:**
+- Buy links point at `wl.seetickets.us/event/<slug>/<id>?afflky=<KEY>` or `wl.eventim.us/event/<slug>/<id>?afflky=<KEY>`.
+- The affiliate storefront is `https://wl.eventim.us/?afflky=<KEY>` after the SeeTickets -> Eventim redirect.
+- Rendered cards have `.search-event` containers and `GET TICKETS` anchors with aria labels like `Buy tickets for <NAME> on <Month DD YYYY>`.
+
+**API/source pattern:**
+- The source is Cloudflare-protected and client-rendered; do not use `json_ld` or a single `fetch_html()` page read for the listing.
+- `PlaywrightBrowser.fetch_seetickets_whitelabel_pages()` clears Cloudflare once per browser session, then drives the whitelabel AJAX endpoint:
+  `GET https://wl.eventim.us/wafform.aspx?_act=Search&AJAX=1&_tab=Event&_sea=WhiteLabelEventSearchV3&ProfileID=<id>&WhiteLabelKey=<key>&afflky=<key>&EventStart=<MM/DD/YYYY>&EventStart2=<MM/DD/YYYY>&SortBy=all`
+- Pagination uses `_lfv=<offset>` and `_sft=<offset - page_size>`; the scraper deduplicates by numeric event id.
+
+**Key extraction notes:**
+- List cards expose title, date, location, image, and ticket URL. They do not expose show time, so dates are persisted at local midnight in the club timezone.
+- Event URLs are normalized against `https://wl.eventim.us`.
+- Individual event pages may server-render JSON-LD with exact `startDate`, but per-event fetching is intentionally avoided because hundreds of Cloudflare-cleared renders are not viable nightly.
+
+**DB setup:**
+```sql
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, priority, enabled, metadata)
+SELECT c.id, 'custom', 'seetickets_whitelabel',
+       'https://wl.eventim.us/?afflky=<KEY>', 0, true,
+       jsonb_build_object(
+         'profile_id', '<PROFILE_ID>',
+         'whitelabel_key', '<KEY>',
+         'affiliate_key', '<KEY>',
+         'max_months', 12,
+         'page_size', 15
+       )
+FROM clubs c
+WHERE c.name = '<Venue Name>';
+```
+
+**Failure modes / gotchas:**
+- The direct `WhiteLabelEventSearchV3` URL can return the platform's `Problem / Oops!` shell if opened without the affiliate storefront context.
+- `_lfv` / `_sft` are list offsets, not stable event ids. Stop only when a page introduces no new event ids.
+- This scraper is for dedicated comedy rooms. Mixed-programming whitelabel venues would need title filters before onboarding.
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/foundation/infrastructure/http/playwright_browser.py`
+- `apps/scraper/src/laughtrack/scrapers/implementations/api/seetickets_whitelabel/`
+- First venue: The Port Comedy Club, TASK-3485.
+
+---
+
 ### TicketLeap
 
 | | |
@@ -4508,6 +4567,7 @@ Other related checks:
 | `simpletix` | `scraping_url` (full SimpleTix event page URL) |
 | `thundertix` | `source_url` (+ optional metadata `title_skip_prefixes`) |
 | `showpass` | `scraping_url` (Showpass calendar API base URL: `.../venues/{slug}/calendar/`) |
+| `seetickets_whitelabel` | `source_url`/`scraping_url` (`https://wl.eventim.us/?afflky=<KEY>`) + metadata `profile_id`, `whitelabel_key`, optional `affiliate_key` |
 | `show_slinger` | `scraping_url` (full combo_widget URL with id, secure_code, origin_url) |
 | `ticketleap` | `scraping_url` (org listing URL: `events.ticketleap.com/events/{org_slug}`) |
 | `tock` | `source_url` (business page URL: `exploretock.com/{business_slug}`; optional `metadata.comedy_filter`) |
