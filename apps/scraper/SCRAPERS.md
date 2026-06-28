@@ -1015,7 +1015,7 @@ VALUES (
 
 **Key implementation details:**
 - Response is a **root-level JSON array** (not a dict) — handle accordingly
-- `collectionId` is NOT in page source; find it via Playwright network inspection
+- `collectionId` is NOT in the rendered HTML, but you usually don't need Playwright: `curl -s '<events-page>?format=json' | jq -r '.collection.id, .collection.typeName'` returns it directly (and `typeName` tells you events-stacked vs products mode in the same call). Fall back to Playwright network inspection only if the page blocks `?format=json`.
 - The `crumb` param seen in browser requests is NOT required for `/api/open/` — omit it
 - Timestamps are in **milliseconds**
 - API returns one month at a time — iterate current month + N months ahead
@@ -1032,8 +1032,8 @@ VALUES (
 When the live feed currently lists no stand-up night, an include-filtered source yields **0 shows by design** — comedy auto-populates when the next comedy night / open mic is listed (Clayton Club precedent, TASK-3192). Example: Cloverdale Performing Arts Center (club 11140, TASK-3236) — keeps "Comedy Night Featuring …" / "Open Mic Night", drops the films/plays/dance.
 
 **To onboard a new Squarespace venue:**
-1. Navigate in Playwright → capture `browser_network_requests` → find `GetItemsByMonth` call
-2. Extract `collectionId` from the network request URL
+1. `curl -s '<events-page>?format=json' | jq -r '.collection.id, .collection.typeName'` — read `collection.id` (use Playwright `GetItemsByMonth` network inspection only if `?format=json` is blocked)
+2. Confirm `GetItemsByMonth?collectionId=<id>` returns items for the upcoming months
 3. Insert a DB row with `scraper='squarespace'` and `scraping_url='https://<domain>/api/open/GetItemsByMonth?collectionId=<id>'`
 4. No Python changes needed
 
