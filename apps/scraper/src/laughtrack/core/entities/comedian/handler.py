@@ -648,6 +648,7 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
 
             # Refresh sold_out_shows and total_shows before reading comedian details
             self._refresh_comedian_show_counts(target_uuids)
+            self.update_home_location(target_uuids)
 
             # Get current comedian details
             comedians = self._fetch_comedian_details(target_uuids)
@@ -698,6 +699,7 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
     # Chunking keeps each statement well under Neon's 30s statement_timeout
     # even if a single nightly batch sweeps in an unusually large lineup set.
     _SHOW_COUNTS_REFRESH_CHUNK_SIZE = 250
+    _HOME_LOCATION_REFRESH_CHUNK_SIZE = 250
 
     def _refresh_comedian_show_counts(self, comedian_uuids: List[str]) -> None:
         """Update sold_out_shows and total_shows for the given comedians across all shows.
@@ -722,6 +724,29 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
                 )
         except Exception as e:
             Logger.error(f"Error refreshing comedian show counts: {str(e)}")
+            raise
+
+    def update_home_location(self, comedian_uuids: List[str]) -> None:
+        """Update derived home city and home club for the given comedians.
+
+        Home location is inferred from the full historical lineup_items / shows /
+        clubs graph. Call this after lineup persistence so name-only comedian
+        inserts never write derived location fields before evidence exists.
+        """
+        if not comedian_uuids:
+            return
+
+        chunk_size = self._HOME_LOCATION_REFRESH_CHUNK_SIZE
+        try:
+            for start in range(0, len(comedian_uuids), chunk_size):
+                chunk = comedian_uuids[start:start + chunk_size]
+                self.execute_with_cursor(
+                    ComedianQueries.BATCH_UPDATE_COMEDIAN_HOME_LOCATION,
+                    (chunk,),
+                )
+            Logger.info(f"update_home_location: processed {len(comedian_uuids)} comedians")
+        except Exception as e:
+            Logger.error(f"Error updating comedian home location: {str(e)}")
             raise
 
     def get_all_comedian_uuids(self) -> List[str]:

@@ -46,6 +46,11 @@ function makeComedianRow(
         soldOutShows: number;
         hasImage: boolean;
         visible: boolean;
+        homeCity: string | null;
+        homeState: string | null;
+        homeCountry: string | null;
+        homeClubId: number | null;
+        homeLocationUpdatedAt: Date | null;
         parentComedianId: number | null;
         songkickId: string | null;
         bandsintownId: string | null;
@@ -123,6 +128,11 @@ function makeComedianRow(
         popularity: 80,
         hasImage: true,
         visible: true,
+        homeCity: null,
+        homeState: null,
+        homeCountry: null,
+        homeClubId: null,
+        homeLocationUpdatedAt: null,
         totalShows: 0,
         soldOutShows: 0,
         parentComedianId: null,

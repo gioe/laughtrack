@@ -601,6 +601,37 @@ class TestUpdateShowLineupsStripsdeniedComedians:
         assert "Comic Two" in lineup_names
 
 
+class TestUpdateShowLineupsDerivedMetricOrder:
+    def test_comedian_popularity_refresh_runs_after_lineup_persistence(self):
+        """Derived comedian metrics must run only after lineup_items are persisted."""
+        comic = _make_comedian_stub("Metric Comic", "uuid-metric")
+        show = _make_show_stub(10, [comic])
+
+        h = _make_show_handler()
+        h._extract_valid_show_ids = MagicMock(return_value=[10])
+        h._process_comedian_additions = MagicMock()
+        h.lineup_handler.get_lineup.return_value = {}
+        h.lineup_handler.get_comedians_from_show_names.return_value = {}
+        h.comedian_handler._filter_denied_comedians.return_value = [comic]
+        h.comedian_handler._filter_false_positive_comedians.return_value = [comic]
+        h.comedian_handler.insert_comedians.return_value = []
+        h.calculate_and_update_popularity = MagicMock()
+
+        call_order = []
+        h.lineup_handler.batch_update_lineups.side_effect = (
+            lambda *a, **kw: (call_order.append("lineups"), (1, 0))[1]
+        )
+        h.comedian_handler.update_comedian_popularity.side_effect = (
+            lambda *a, **kw: call_order.append("comedian-metrics")
+        )
+
+        with patch.object(_show_handler_mod.ShowUtils, "collect_comedian_uuids", return_value=["uuid-metric"]):
+            h.update_show_lineups([show])
+
+        assert call_order == ["lineups", "comedian-metrics"]
+        h.comedian_handler.update_comedian_popularity.assert_called_once_with(["uuid-metric"])
+
+
 # ---------------------------------------------------------------------------
 # Tests: update_show_lineups — false-positive comedians stripped from show.lineup
 # ---------------------------------------------------------------------------

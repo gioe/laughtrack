@@ -1,13 +1,10 @@
-import hashlib
 from dataclasses import dataclass, field
 from typing import Optional
 
 from psycopg2.extras import DictRow
 
 from laughtrack.foundation.protocols.database_entity import DatabaseEntity
-from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.utilities.popularity.scorer import PopularityScorer
-from gioe_libs.string_utils import StringUtils
 
 
 @dataclass
@@ -28,6 +25,10 @@ class Comedian(DatabaseEntity):
     website: Optional[str] = None
     linktree: Optional[str] = None
     parent_comedian_id: Optional[int] = None
+    home_city: Optional[str] = None
+    home_state: Optional[str] = None
+    home_country: Optional[str] = None
+    home_club_id: Optional[int] = None
     # Website scraping metadata
     website_discovery_source: Optional[str] = None
     website_last_scraped: Optional[str] = None
@@ -105,6 +106,10 @@ class Comedian(DatabaseEntity):
             website_discovery_source=row.get("website_discovery_source"),
             website_last_scraped=row.get("website_last_scraped"),
             website_scrape_strategy=row.get("website_scrape_strategy"),
+            home_city=row.get("home_city"),
+            home_state=row.get("home_state"),
+            home_country=row.get("home_country"),
+            home_club_id=row.get("home_club_id"),
             has_image=bool(row.get("has_image", False)),
             has_podcast_appearance=bool(row.get("has_podcast_appearance", False)),
             favorite_count=int(row.get("favorite_count") or 0),

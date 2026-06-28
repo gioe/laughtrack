@@ -225,6 +225,7 @@ model Club {
   favorites               FavoriteClub[]
   imageAssets             ClubImageAsset[]
   ticketPurchaseClicks    TicketPurchaseClickEvent[]
+  homeComedians           Comedian[]                 @relation("ComedianHomeClub")
 
   @@index([visible])
   @@index([chainId])
@@ -311,6 +312,12 @@ model Comedian {
   websiteScrapingUrlHealthCheckedAt    DateTime?                         @map("website_scraping_url_health_checked_at") @db.Timestamptz
   tourSourceReviewEvidence             Json?                             @map("tour_source_review_evidence")
   visible                              Boolean                           @default(true)
+  homeCity                             String?                           @map("home_city")
+  homeState                            String?                           @map("home_state")
+  homeCountry                          String?                           @map("home_country")
+  homeClubId                           Int?                              @map("home_club_id")
+  homeLocationUpdatedAt                DateTime?                         @map("home_location_updated_at") @db.Timestamptz
+  homeClub                             Club?                             @relation("ComedianHomeClub", fields: [homeClubId], references: [id], onDelete: SetNull)
   parentComedianId                     Int?                              @map("parent_comedian_id")
   parentComedian                       Comedian?                         @relation("ComedianAliases", fields: [parentComedianId], references: [id])
   alternativeNames                     Comedian[]                        @relation("ComedianAliases")
@@ -326,6 +333,7 @@ model Comedian {
   imageAssets                          ComedianImageAsset[]
 
   @@index([parentComedianId])
+  @@index([homeClubId])
   @@index([visible])
   @@map("comedians")
 }

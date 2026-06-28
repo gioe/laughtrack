@@ -148,6 +148,95 @@ class ComedianQueries:
         WHERE c.uuid = v.comedian_id
     '''
 
+    BATCH_UPDATE_COMEDIAN_HOME_LOCATION = '''
+        WITH target_comedians AS (
+            SELECT uuid
+            FROM comedians
+            WHERE uuid = ANY(%s)
+        ),
+        club_counts AS (
+            SELECT
+                li.comedian_id,
+                cl.id AS club_id,
+                NULLIF(BTRIM(cl.city), '') AS city,
+                NULLIF(BTRIM(cl.state), '') AS state,
+                NULLIF(BTRIM(cl.country), '') AS country,
+                COUNT(DISTINCT li.show_id) AS appearance_count,
+                MAX(s.date) AS last_seen_at
+            FROM lineup_items li
+            JOIN target_comedians tc ON tc.uuid = li.comedian_id
+            JOIN shows s ON s.id = li.show_id
+            JOIN clubs cl ON cl.id = s.club_id
+            GROUP BY
+                li.comedian_id,
+                cl.id,
+                NULLIF(BTRIM(cl.city), ''),
+                NULLIF(BTRIM(cl.state), ''),
+                NULLIF(BTRIM(cl.country), '')
+        ),
+        ranked_clubs AS (
+            SELECT
+                comedian_id,
+                club_id,
+                ROW_NUMBER() OVER (
+                    PARTITION BY comedian_id
+                    ORDER BY appearance_count DESC, last_seen_at DESC, club_id ASC
+                ) AS club_rank
+            FROM club_counts
+        ),
+        city_counts AS (
+            SELECT
+                li.comedian_id,
+                NULLIF(BTRIM(cl.city), '') AS city,
+                NULLIF(BTRIM(cl.state), '') AS state,
+                NULLIF(BTRIM(cl.country), '') AS country,
+                COUNT(DISTINCT li.show_id) AS appearance_count,
+                MAX(s.date) AS last_seen_at
+            FROM lineup_items li
+            JOIN target_comedians tc ON tc.uuid = li.comedian_id
+            JOIN shows s ON s.id = li.show_id
+            JOIN clubs cl ON cl.id = s.club_id
+            WHERE NULLIF(BTRIM(cl.city), '') IS NOT NULL
+            GROUP BY
+                li.comedian_id,
+                NULLIF(BTRIM(cl.city), ''),
+                NULLIF(BTRIM(cl.state), ''),
+                NULLIF(BTRIM(cl.country), '')
+        ),
+        ranked_cities AS (
+            SELECT
+                comedian_id,
+                city,
+                state,
+                country,
+                ROW_NUMBER() OVER (
+                    PARTITION BY comedian_id
+                    ORDER BY
+                        appearance_count DESC,
+                        last_seen_at DESC,
+                        city ASC,
+                        state ASC,
+                        country ASC
+                ) AS city_rank
+            FROM city_counts
+        )
+        UPDATE comedians AS c
+        SET
+            home_city = rc.city,
+            home_state = rc.state,
+            home_country = rc.country,
+            home_club_id = rcl.club_id,
+            home_location_updated_at = NOW()
+        FROM target_comedians tc
+        LEFT JOIN ranked_cities rc
+          ON rc.comedian_id = tc.uuid
+         AND rc.city_rank = 1
+        LEFT JOIN ranked_clubs rcl
+          ON rcl.comedian_id = tc.uuid
+         AND rcl.club_rank = 1
+        WHERE c.uuid = tc.uuid
+    '''
+
     # Comedian recency blends date-decayed show activity with first-party click
     # demand inherited through lineup_items. All ticket-purchase clicks count,
     # including clicks without confirmed purchases: this is an intent signal
