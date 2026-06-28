@@ -54,6 +54,14 @@ struct ComedianDetailView: View {
                         )
 
                         VStack(alignment: .leading, spacing: 20) {
+                            if let homeLocation = comedian.homeLocation,
+                               ComedianHomeLocationPresentation.hasContent(homeLocation) {
+                                ComedianHomeLocationCard(
+                                    homeLocation: homeLocation,
+                                    onOpenClub: { clubID in coordinator.open(.club(clubID)) }
+                                )
+                            }
+
                             if let relatedContentMessage = content.relatedContentMessage {
                                 InlineStatusMessage(message: relatedContentMessage)
                             }
@@ -320,6 +328,85 @@ struct ComedianStatsBar: View {
                 }
             }
         }
+    }
+}
+
+enum ComedianHomeLocationPresentation {
+    /// Trims whitespace and treats empty strings as absent so blank scraper
+    /// values do not render an orphaned "Based in ," label.
+    static func trimmed(_ value: String?) -> String? {
+        guard let value = value?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !value.isEmpty else { return nil }
+        return value
+    }
+
+    /// "City, Region" where region prefers state and falls back to country.
+    /// Returns nil when there is no city to anchor the label.
+    static func cityLabel(for homeLocation: Components.Schemas.ComedianHomeLocation?) -> String? {
+        guard let homeLocation, let city = trimmed(homeLocation.city) else { return nil }
+        if let region = trimmed(homeLocation.state) ?? trimmed(homeLocation.country) {
+            return "\(city), \(region)"
+        }
+        return city
+    }
+
+    /// Whether either the city label or the home club name is present, so the
+    /// card can omit itself entirely when no home location was derived.
+    static func hasContent(_ homeLocation: Components.Schemas.ComedianHomeLocation?) -> Bool {
+        guard let homeLocation else { return false }
+        return cityLabel(for: homeLocation) != nil || trimmed(homeLocation.clubName) != nil
+    }
+}
+
+struct ComedianHomeLocationCard: View {
+    let homeLocation: Components.Schemas.ComedianHomeLocation
+    let onOpenClub: (Int) -> Void
+
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        let cityLabel = ComedianHomeLocationPresentation.cityLabel(for: homeLocation)
+        let clubName = ComedianHomeLocationPresentation.trimmed(homeLocation.clubName)
+
+        LaughTrackCard(density: .tight) {
+            VStack(alignment: .leading, spacing: 12) {
+                if let cityLabel {
+                    row(systemImage: "mappin.and.ellipse", text: "Based in \(cityLabel)")
+                }
+
+                if let clubName {
+                    if let clubID = homeLocation.clubId {
+                        Button {
+                            onOpenClub(clubID)
+                        } label: {
+                            row(systemImage: "building.2", text: "Home club: \(clubName)", isLink: true)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Home club: \(clubName)")
+                    } else {
+                        row(systemImage: "building.2", text: "Home club: \(clubName)")
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func row(systemImage: String, text: String, isLink: Bool = false) -> some View {
+        let laughTrack = theme.laughTrackTokens
+
+        HStack(spacing: 10) {
+            Image(systemName: systemImage)
+                .font(.system(size: theme.iconSizes.sm, weight: .semibold))
+                .foregroundStyle(laughTrack.colors.accentStrong)
+                .frame(width: 24)
+            Text(text)
+                .font(laughTrack.typography.body)
+                .foregroundStyle(isLink ? laughTrack.colors.accentStrong : laughTrack.colors.textPrimary)
+                .multilineTextAlignment(.leading)
+            Spacer(minLength: 0)
+        }
+        .contentShape(Rectangle())
     }
 }
 
