@@ -459,6 +459,148 @@ def _black_buzzard_card_html() -> str:
 </body></html>"""
 
 
+# ---------------------------------------------------------------------------
+# Phil Long Music Hall (TASK-3429) — mixed-use Tixr music hall whose Webflow
+# `.day-card` / `.b-show` calendar carries complete venue-owned cards. Only the
+# stand-up shows survive the opt-in `include_title_patterns` comedy allowlist;
+# Tixr detail pages are never fetched.
+# ---------------------------------------------------------------------------
+
+PHIL_LONG_CALENDAR_URL = "https://www.phillongmusichall.com/calendar"
+PHIL_LONG_COMEDY_TIXR_URL = "https://tixr.com/e/195458"
+PHIL_LONG_CONCERT_TIXR_URL = "https://tixr.com/e/182410"
+
+
+def _phil_long_club() -> Club:
+    club = Club(
+        id=4200,
+        name="Phil Long Music Hall at Bourbon Brothers",
+        address="13071 Bass Pro Dr",
+        website="https://www.phillongmusichall.com",
+        popularity=0,
+        zip_code="80921",
+        phone_number="",
+        visible=True,
+        timezone="America/Denver",
+    )
+    club.active_scraping_source = ScrapingSource(
+        id=1,
+        club_id=club.id,
+        platform="tixr",
+        scraper_key="tixr_public_card",
+        source_url=PHIL_LONG_CALENDAR_URL,
+        external_id=None,
+        metadata={
+            "include_title_patterns": [
+                "comedy",
+                "comedian",
+                "stand[ -]?up",
+            ]
+        },
+    )
+    club.scraping_sources = [club.active_scraping_source]
+    return club
+
+
+def _phil_long_calendar_html() -> str:
+    """One comedy `.day-card` + one concert `.day-card`, matching the real
+    phillongmusichall.com/calendar Webflow markup."""
+    return f"""<html><body>
+<div class="day-card">
+  <div class="event-info">
+    <div class="event-info_dates-and-name">
+      <div class="event-info_dates">
+        <p class="b-venue date">October 23, 2026</p>
+        <div class="calendar_dates-dash">|</div>
+        <p class="b-venue date">8:00 pm</p>
+        <p fs-cmsfilter-field="month" class="b-venue filter">October</p>
+      </div>
+      <div class="b-show">Comedy Night with Don McMillan</div>
+      <div class="event-info_featuring-and-button">
+        <div class="event-info_featuring-wrapper">
+          <p class="b-venue name underline underline-white">Featuring:</p>
+          <p fs-cmsfilter-field="venue" class="b-venue name">Don McMillan</p>
+        </div>
+      </div>
+    </div>
+    <div class="button-group is-right">
+      <a href="{PHIL_LONG_COMEDY_TIXR_URL}" class="button">Get Tickets</a>
+    </div>
+  </div>
+</div>
+<div class="day-card">
+  <div class="event-info">
+    <div class="event-info_dates-and-name">
+      <div class="event-info_dates">
+        <p class="b-venue date">September 19, 2026</p>
+        <div class="calendar_dates-dash">|</div>
+        <p class="b-venue date">7:00 pm</p>
+        <p fs-cmsfilter-field="month" class="b-venue filter">September</p>
+      </div>
+      <div class="b-show">Thunderstruck - A Tribute to ACDC</div>
+    </div>
+    <div class="button-group is-right">
+      <a href="{PHIL_LONG_CONCERT_TIXR_URL}" class="button">Get Tickets</a>
+    </div>
+  </div>
+</div>
+</body></html>"""
+
+
+@pytest.mark.asyncio
+async def test_phil_long_keeps_only_comedy_via_title_filter(monkeypatch):
+    """Phil Long's Webflow `.day-card` calendar parses through the shared
+    public-card path; the opt-in comedy allowlist drops the concert and keeps
+    only the stand-up show, and Tixr detail pages are never fetched."""
+    scraper = TixrPublicCardScraper(_phil_long_club())
+
+    async def fake_fetch_html(self, url, **kwargs):
+        return _phil_long_calendar_html()
+
+    monkeypatch.setattr(TixrPublicCardScraper, "fetch_html", fake_fetch_html)
+    monkeypatch.setattr(
+        scraper.tixr_client,
+        "get_event_detail_from_url",
+        AsyncMock(side_effect=AssertionError("Tixr detail pages should not be fetched")),
+    )
+
+    result = await scraper.get_data(PHIL_LONG_CALENDAR_URL)
+
+    assert isinstance(result, TixrPageData)
+    assert result.get_event_count() == 1
+    event = result.event_list[0]
+    assert event.title == "Comedy Night with Don McMillan"
+    assert event.event_id == "195458"
+    assert event.source_url == PHIL_LONG_COMEDY_TIXR_URL
+    # Absolute-dated card → unambiguous localized datetime (America/Denver, -06:00 in Oct).
+    assert event.show.date.isoformat() == "2026-10-23T20:00:00-06:00"
+    assert event.show.lineup == ["Don McMillan"]
+    scraper.tixr_client.get_event_detail_from_url.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_phil_long_parses_all_cards_without_title_filter(monkeypatch):
+    """Without the opt-in title filter the `.day-card` parser returns every
+    card (the filter is off by default, so pure-comedy Tixr sources are
+    unchanged)."""
+    club = _phil_long_club()
+    club.active_scraping_source.metadata = {}
+    scraper = TixrPublicCardScraper(club)
+
+    async def fake_fetch_html(self, url, **kwargs):
+        return _phil_long_calendar_html()
+
+    monkeypatch.setattr(TixrPublicCardScraper, "fetch_html", fake_fetch_html)
+
+    result = await scraper.get_data(PHIL_LONG_CALENDAR_URL)
+
+    assert isinstance(result, TixrPageData)
+    assert {e.title for e in result.event_list} == {
+        "Comedy Night with Don McMillan",
+        "Thunderstruck - A Tribute to ACDC",
+    }
+
+
 @pytest.mark.asyncio
 async def test_black_buzzard_uses_generic_public_card_path(monkeypatch):
     """The Black Buzzard's Webflow homepage parses through the shared
