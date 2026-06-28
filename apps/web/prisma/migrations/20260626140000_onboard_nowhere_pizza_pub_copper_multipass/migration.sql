@@ -56,6 +56,11 @@ SELECT
 FROM clubs c
 WHERE (c.google_place_id = 'ChIJiR7Eud9faocRhuLBQhKDJ-4' OR c.name = 'Nowhere Pizza & Pub • Copper')
   AND NOT EXISTS (
+      -- Guard on the real (club_id, platform, priority) unique constraint so a
+      -- redeploy can't pass NOT EXISTS and then fail the INSERT on the
+      -- constraint — a failed Prisma migration blocks all future deploys.
       SELECT 1 FROM scraping_sources s
-      WHERE s.club_id = c.id AND s.scraper_key = 'multipass'
+      WHERE s.club_id = c.id
+        AND s.platform = 'custom'::"ScrapingPlatform"
+        AND s.priority = 0
   );
