@@ -318,3 +318,69 @@ class TestFormatC:
         events = ShopifyExtractor.extract_events({"products": [product]}, TZ)
         assert len(events) == 1
         assert events[0].show_date.hour == 19
+
+
+# ---------------------------------------------------------------------------
+# default_time fallback: dated products with no clock time anywhere (TASK-3378)
+# ---------------------------------------------------------------------------
+
+
+class TestDefaultTimeFallback:
+    """Kesha's Comedy House shape: M/D title, Default-Title variant, no time.
+
+    These ad-hoc Shopify venues advertise the showtime only on a flyer image, so
+    no clock time is parseable. The opt-in default_time keeps the dated show.
+    """
+
+    def _dated_no_time_product(self) -> dict:
+        # YYYYMMDD handle pins a far-future year so the inferred-past drop never
+        # fires (convention #11: no test time-bombs); Default-Title variant and a
+        # title with no clock leave the time unresolvable.
+        return {
+            "id": 50,
+            "title": "6/28 Spoken Laugh Lounge",
+            "handle": "20990628-spoken-laugh-lounge",
+            "tags": [],
+            "images": [],
+            "variants": [{"title": "Default Title", "price": "15.00", "available": True}],
+        }
+
+    def test_dropped_without_default_time(self):
+        """Default behavior unchanged: no time anywhere → product dropped."""
+        events = ShopifyExtractor.extract_events({"products": [self._dated_no_time_product()]}, TZ)
+        assert events == []
+
+    def test_kept_with_default_time(self):
+        """default_time supplies the missing clock → one event at that time."""
+        events = ShopifyExtractor.extract_events(
+            {"products": [self._dated_no_time_product()]}, TZ, default_time=(20, 0)
+        )
+        assert len(events) == 1
+        ev = events[0]
+        assert (ev.show_date.year, ev.show_date.month, ev.show_date.day) == (2099, 6, 28)
+        assert (ev.show_date.hour, ev.show_date.minute) == (20, 0)
+        assert ev.price == "15.00"
+
+    def test_default_time_does_not_override_parsed_time(self):
+        """A product that DOES carry a time ignores default_time."""
+        product = {
+            "id": 51,
+            "title": "6/28 7pm - Capybara Comedy Hour",
+            "handle": "20990628-capybara",
+            "tags": [],
+            "images": [],
+            "variants": [{"title": "Default Title", "price": "20.00", "available": True}],
+        }
+        events = ShopifyExtractor.extract_events({"products": [product]}, TZ, default_time=(20, 0))
+        assert len(events) == 1
+        assert events[0].show_date.hour == 19  # 7pm from title, not the 20:00 default
+
+    def test_default_time_does_not_resurrect_undated_products(self):
+        """No date anywhere → still dropped even with default_time set."""
+        product = {
+            "id": 52, "title": "Mike Chase Comedy Showcase", "handle": "mike-chase-comedy-showcase",
+            "tags": [], "images": [],
+            "variants": [{"title": "Default Title", "price": "10.00", "available": True}],
+        }
+        events = ShopifyExtractor.extract_events({"products": [product]}, TZ, default_time=(20, 0))
+        assert events == []

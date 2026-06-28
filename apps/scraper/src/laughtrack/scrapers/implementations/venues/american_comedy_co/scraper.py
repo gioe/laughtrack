@@ -16,9 +16,11 @@ DB setup:
 A second Shopify venue can be onboarded with only a DB row — no Python changes.
 """
 
-from typing import List, Optional
+import re
+from typing import List, Optional, Tuple
 
 from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.event.shopify import parse_clock_time
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.shared.types import ScrapingTarget
@@ -26,6 +28,8 @@ from laughtrack.shared.types import ScrapingTarget
 from .data import ShopifyPageData
 from .extractor import ShopifyExtractor
 from .transformer import ShopifyEventTransformer
+
+_HHMM_RE = re.compile(r"^\s*(\d{1,2}):(\d{2})\s*$")
 
 
 class ShopifyScraper(BaseScraper):
@@ -43,6 +47,23 @@ class ShopifyScraper(BaseScraper):
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
         self.transformation_pipeline.register_transformer(ShopifyEventTransformer(club))
+
+    def _default_time(self) -> Optional[Tuple[int, int]]:
+        """Parse the opt-in ``default_show_time`` metadata into ``(hour, minute)``.
+
+        Accepts 24-hour ``"HH:MM"`` (e.g. ``"20:00"``) or a clock string parsed by
+        ``parse_clock_time`` (e.g. ``"8pm"``). Returns ``None`` when unset/invalid,
+        which preserves the default drop-on-missing-time behavior.
+        """
+        raw = (self.club.source_metadata or {}).get("default_show_time")
+        if not raw:
+            return None
+        match = _HHMM_RE.match(str(raw))
+        if match:
+            hour, minute = int(match.group(1)), int(match.group(2))
+            if 0 <= hour <= 23 and 0 <= minute <= 59:
+                return (hour, minute)
+        return parse_clock_time(str(raw))
 
     async def collect_scraping_targets(self) -> List[ScrapingTarget]:
         """Return the Shopify products.json API URL."""
@@ -67,7 +88,9 @@ class ShopifyScraper(BaseScraper):
                 return None
 
             timezone = self.club.timezone or "America/Los_Angeles"
-            events = ShopifyExtractor.extract_events(response, timezone)
+            events = ShopifyExtractor.extract_events(
+                response, timezone, default_time=self._default_time()
+            )
 
             if not events:
                 self._warn_empty_extraction(url, payload=response)

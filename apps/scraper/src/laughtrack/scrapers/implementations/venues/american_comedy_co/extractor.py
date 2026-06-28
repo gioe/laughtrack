@@ -15,7 +15,7 @@ falls back to Format B.
 """
 
 import re
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, Tuple
 
 from laughtrack.core.entities.event.shopify import (
     ShopifyEvent,
@@ -38,9 +38,20 @@ class ShopifyExtractor:
 
     @staticmethod
     def extract_events(
-        api_response: Dict[str, Any], timezone: str = "America/Los_Angeles"
+        api_response: Dict[str, Any],
+        timezone: str = "America/Los_Angeles",
+        default_time: Optional[Tuple[int, int]] = None,
     ) -> List[ShopifyEvent]:
-        """Extract ShopifyEvent objects from the products.json response."""
+        """Extract ShopifyEvent objects from the products.json response.
+
+        ``default_time`` is an opt-in ``(hour, minute)`` fallback applied only on
+        the Format C path: a product that carries a parseable date but no clock
+        time anywhere (title, variant, body) would otherwise be dropped. Venues
+        that publish dates without times (ad-hoc Shopify stores whose showtime
+        lives only on a flyer image) set ``default_show_time`` in metadata to
+        keep these dated shows. ``None`` preserves the original drop behavior, so
+        existing timed venues are unaffected.
+        """
         products = api_response.get("products", [])
         if not isinstance(products, list):
             return []
@@ -48,7 +59,9 @@ class ShopifyExtractor:
         events: List[ShopifyEvent] = []
         for product in products:
             try:
-                product_events = ShopifyExtractor._parse_product(product, timezone)
+                product_events = ShopifyExtractor._parse_product(
+                    product, timezone, default_time
+                )
                 events.extend(product_events)
             except Exception as e:
                 title = product.get("title", "unknown")
@@ -57,7 +70,9 @@ class ShopifyExtractor:
 
     @staticmethod
     def _parse_product(
-        product: Dict[str, Any], timezone: str
+        product: Dict[str, Any],
+        timezone: str,
+        default_time: Optional[Tuple[int, int]] = None,
     ) -> List[ShopifyEvent]:
         """Parse a single Shopify product into one or more ShopifyEvents."""
         product_id = product.get("id", 0)
@@ -144,7 +159,8 @@ class ShopifyExtractor:
         # --- Format C: date in the handle / numeric "M/D" title; time in the
         # title ("6/26 7pm") or in per-showtime variant titles ("6pm - <act>").
         return ShopifyExtractor._parse_format_c(
-            product_id, title, handle, image_url, body_html, tag_list, variants, timezone
+            product_id, title, handle, image_url, body_html, tag_list, variants,
+            timezone, default_time,
         )
 
     @staticmethod
@@ -170,12 +186,15 @@ class ShopifyExtractor:
         tag_list: List[str],
         variants: List[Dict[str, Any]],
         timezone: str,
+        default_time: Optional[Tuple[int, int]] = None,
     ) -> List[ShopifyEvent]:
         """Build events from a handle/numeric-title date plus a showtime.
 
         Emits one event per variant that carries its own clock time (e.g.
         "6pm - <act>", "7pm - <act>"); when no variant has a time, falls back to
-        a single event using the time embedded in the product title.
+        the time embedded in the product title, then to ``default_time`` (the
+        opt-in ``default_show_time`` metadata) when the product carries a date
+        but no time at all.
         """
         event_date = parse_handle_title_date(handle, title, timezone)
         if not event_date:
@@ -204,8 +223,9 @@ class ShopifyExtractor:
         if events:
             return events
 
-        # No per-variant times — take the time from the product title.
-        clock = parse_clock_time(title)
+        # No per-variant times — take the time from the product title, then fall
+        # back to the opt-in default_time for date-only venues.
+        clock = parse_clock_time(title) or default_time
         if not clock:
             return []
         show_dt = event_date.replace(hour=clock[0], minute=clock[1])
