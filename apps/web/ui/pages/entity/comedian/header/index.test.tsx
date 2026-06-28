@@ -121,4 +121,73 @@ describe("ComedianDetailHeader", () => {
         expect(screen.getByTestId("marquee-poster-fallback")).toBeTruthy();
         expect(screen.queryByAltText("Taylor Tomlinson")).toBeNull();
     });
+
+    it("renders the home city and a linked home club when present", () => {
+        render(
+            <ComedianDetailHeader
+                comedian={{
+                    ...baseComedian,
+                    homeLocation: {
+                        city: "Austin",
+                        state: "TX",
+                        country: "USA",
+                        club: { id: 7, name: "Cap City Comedy Club" },
+                    },
+                }}
+            />,
+        );
+
+        expect(screen.getByText("Based in Austin, TX")).toBeTruthy();
+        const clubLink = screen.getByLabelText(
+            "Home club: Cap City Comedy Club",
+        );
+        expect(clubLink.getAttribute("href")).toBe(
+            "/club/Cap City Comedy Club",
+        );
+    });
+
+    it("falls back to country as the region when state is null", () => {
+        render(
+            <ComedianDetailHeader
+                comedian={{
+                    ...baseComedian,
+                    homeLocation: {
+                        city: "Toronto",
+                        state: null,
+                        country: "Canada",
+                        club: null,
+                    },
+                }}
+            />,
+        );
+
+        expect(screen.getByText("Based in Toronto, Canada")).toBeTruthy();
+        expect(screen.queryByText(/Home club:/)).toBeNull();
+    });
+
+    it("omits the city pill but keeps the home club when city is null", () => {
+        render(
+            <ComedianDetailHeader
+                comedian={{
+                    ...baseComedian,
+                    homeLocation: {
+                        city: null,
+                        state: null,
+                        country: null,
+                        club: { id: 9, name: "The Stand" },
+                    },
+                }}
+            />,
+        );
+
+        expect(screen.queryByText(/Based in/)).toBeNull();
+        expect(screen.getByLabelText("Home club: The Stand")).toBeTruthy();
+    });
+
+    it("renders no home-location pills when the home location is absent", () => {
+        render(<ComedianDetailHeader comedian={baseComedian} />);
+
+        expect(screen.queryByText(/Based in/)).toBeNull();
+        expect(screen.queryByText(/Home club:/)).toBeNull();
+    });
 });
