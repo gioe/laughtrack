@@ -196,6 +196,14 @@ class OvationTixProductionsScraper(BaseScraper):
                     if not is_past_event(e.start_date, self.club.timezone)
                 ]
 
+                # Apply title-exclusion independently of comedy_filter (TASK-3480):
+                # an all-comedy venue that only needs to drop class/camp/workshop
+                # titles can set exclude_title_patterns WITHOUT enabling comedy_filter,
+                # so real shows whose titles lack a comedy keyword are not lost to the
+                # is_comedy_event keyword gate.
+                if self._exclude_title_patterns and upcoming:
+                    upcoming = self._apply_title_exclusions(upcoming)
+
                 if self._comedy_filter and upcoming:
                     upcoming = await self._filter_comedy(upcoming)
 
@@ -242,8 +250,41 @@ class OvationTixProductionsScraper(BaseScraper):
             Logger.error(f"{self._log_prefix}: Error in get_data: {e}", self.logger_context)
             return None
 
+    def _apply_title_exclusions(
+        self, events: List[OvationTixEvent]
+    ) -> List[OvationTixEvent]:
+        """Drop events whose title matches any ``exclude_title_patterns`` entry.
+
+        Runs independently of ``comedy_filter`` (TASK-3480) so an all-comedy
+        venue can exclude class/camp/workshop titles without subjecting its real
+        shows to the ``is_comedy_event`` keyword gate. When ``comedy_filter`` is
+        also enabled this pass runs first, so :meth:`_filter_comedy` no longer
+        needs to re-apply the exclusion list.
+        """
+        kept = [
+            event
+            for event in events
+            if not any(
+                pattern.search(event.production_name or "")
+                for pattern in self._exclude_title_patterns
+            )
+        ]
+        dropped = len(events) - len(kept)
+        if dropped:
+            Logger.info(
+                f"{self._log_prefix}: exclude_title_patterns dropped "
+                f"{dropped}/{len(events)} event(s)",
+                self.logger_context,
+            )
+        return kept
+
     async def _filter_comedy(self, events: List[OvationTixEvent]) -> List[OvationTixEvent]:
-        """Keep only comedy events when a mixed-use OvationTix source opts in."""
+        """Keep only comedy events when a mixed-use OvationTix source opts in.
+
+        ``exclude_title_patterns`` is applied upstream by
+        :meth:`_apply_title_exclusions` (independent of ``comedy_filter``), so
+        this pass only runs the allowlist + keyword gate.
+        """
         allow_subs = [
             value.strip().lower()
             for value in resolve_allowlist(self.club.source_metadata)
@@ -251,7 +292,7 @@ class OvationTixProductionsScraper(BaseScraper):
         ]
         kept = [
             event for event in events
-            if _is_comedy_ovationtix_event(event, allow_subs, self._exclude_title_patterns)
+            if _is_comedy_ovationtix_event(event, allow_subs)
         ]
         Logger.info(
             f"{self._log_prefix}: comedy filter kept {len(kept)}/{len(events)} event(s)",
@@ -263,11 +304,8 @@ class OvationTixProductionsScraper(BaseScraper):
 def _is_comedy_ovationtix_event(
     event: OvationTixEvent,
     allow_subs: List[str],
-    exclude_patterns: List[re.Pattern],
 ) -> bool:
     title = event.production_name or ""
-    if exclude_patterns and any(pattern.search(title) for pattern in exclude_patterns):
-        return False
     if allow_subs and any(value in title.lower() for value in allow_subs):
         return True
     return is_comedy_event(title, event.description)
