@@ -276,6 +276,11 @@ export const GET = withRequestMetrics(async function GET(
                     podcastAppearances: mapPodcastAppearances(
                         dedupePodcastAppearances(comedian.episodeAppearances),
                     ),
+                    // Public OpenAPI contract intentionally flattens the home
+                    // club into clubId/clubName (avoids a nullable nested $ref
+                    // in the generated Swift/Kotlin clients). This differs from
+                    // the internal SSR ComedianHomeLocationDTO, which nests it
+                    // as club: { id, name } — the two shapes are deliberate.
                     homeLocation: {
                         city: comedian.homeCity,
                         state: comedian.homeState,
