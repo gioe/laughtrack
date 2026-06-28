@@ -89,8 +89,14 @@ class TheLyricScraper(BaseScraper):
         return bool(_COMEDY_INCLUDE.search(title))
 
     def _page_url(self, url_slug: str) -> str:
-        """The venue's own /movie/<urlSlug> page, derived from the GraphQL host."""
+        """The venue's own /movie/<urlSlug> page, derived from the GraphQL host.
+
+        Falls back to the venue website if a movie is missing its slug, so we
+        never emit a degenerate ``…/movie/`` URL as the show page / ticket link.
+        """
         base = (self.club.scraping_url or "").split("/graphql", 1)[0].rstrip("/")
+        if not url_slug:
+            return self.club.website or base
         return f"{base}/movie/{url_slug}"
 
     async def get_data(self, target: str) -> Optional[TheLyricPageData]:

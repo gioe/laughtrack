@@ -128,10 +128,12 @@ async def test_scrape_async_produces_comedy_shows(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_exclude_title_patterns_metadata_override(monkeypatch):
-    """A custom exclude list replaces the built-in Open Mic drop."""
-    # Exclude the Comedy Brewers improv night instead; Open Mic still lacks a
-    # comedy keyword filter pass-through so it stays excluded by the include gate
-    # only if it matched — here we prove the override drops a normally-kept title.
+    """metadata.exclude_title_patterns REPLACES the built-in 'Open Mic' default.
+
+    Setting the override to ["Comedy Brewers"] drops the Comedy Brewers improv
+    night (a title that is normally kept), proving the metadata list replaces —
+    not merges with — the default exclusion.
+    """
     scraper = TheLyricScraper(_club(metadata={"indy_site_id": 7, "exclude_title_patterns": ["Comedy Brewers"]}))
     _install_fake_post(scraper, monkeypatch)
 
