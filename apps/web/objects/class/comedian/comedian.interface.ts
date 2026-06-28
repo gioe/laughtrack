@@ -9,6 +9,16 @@ export type { ComedianLineupDTO } from "./comedianLineup.interface";
 // Client
 export interface ComedianInterface extends Favoritable, Entity {}
 
+// Derived "home base" for a comedian. Any field may be null when the
+// scraper has not resolved a home location yet, so consumers must fall
+// back gracefully rather than assume the values are present.
+export interface ComedianHomeLocationDTO {
+    city: string | null;
+    state: string | null;
+    country: string | null;
+    club: { id: number; name: string } | null;
+}
+
 // DB
 export interface ComedianDTO {
     name: string;
@@ -26,6 +36,7 @@ export interface ComedianDTO {
     parentComedian?: ComedianDTO;
     lineupItems?: ComedianLineupItemDTO[];
     podcastAppearances?: PodcastAppearanceDTO[];
+    homeLocation?: ComedianHomeLocationDTO;
 }
 
 export interface UpdateComedianDTO {
