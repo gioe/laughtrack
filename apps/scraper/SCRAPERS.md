@@ -717,6 +717,10 @@ The `--{id}` URL format (`/events/{slug}--{id}`) only embeds `window.pageSetup =
 
 **Why this is separate from `tixr_public_card`:** `tixr_public_card` parses St. Marks / House of Comedy Bloomington style cards that don't share `a.day-card` markup. The day-card path is its own card shape (House of Comedy BC, ...). Comic Strip Edmonton previously used this path, but now routes through the `tixr` Pixl Calendar API path because Pixl exposes the full inventory and sale-tier prices.
 
+> **`day-card` markup is split across two scraper keys — pick by the card's shape, not the class name:**
+> - `<a class="day-card" href="tixr.com/groups/...">` (the card *is* the anchor, foreign cards filtered by `tixr_group_fragment`) → **`tixr_webflow_day_card`**.
+> - `<a class="cal-card-link" href="tixr.com/e/{id}"><div class="day-card">…</div></a>` (a `div.day-card` *wrapped* in the buy-link anchor, title in `.b-show`, absolute date/time in `.event-info_dates p.b-venue.date`, comedy isolated by `include_title_patterns`) → **`tixr_public_card`** (`_parse_b_show_public_cards`, the Phil Long Music Hall variant). The buy link is the wrapping ancestor `<a>`, not a descendant — resolving it as a descendant returns 0 cards.
+
 **DB setup — fresh onboarding (no prior scraping_sources row):**
 ```sql
 INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, enabled, priority, metadata)
