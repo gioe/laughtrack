@@ -71,6 +71,17 @@ def _itunes_on_insert_max_workers() -> int:
         return 4
 
 
+def _home_location_max_scrape_age_days() -> int:
+    """Maximum age of scrape evidence used for derived home location."""
+    try:
+        return max(
+            1,
+            int(os.environ.get("LAUGHTRACK_HOME_LOCATION_MAX_SCRAPE_AGE_DAYS", "365")),
+        )
+    except ValueError:
+        return 365
+
+
 def _itunes_on_insert_inflight_warn_threshold() -> int:
     """In-flight worker count above which a saturation warning is logged.
 
@@ -737,12 +748,13 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
             return
 
         chunk_size = self._HOME_LOCATION_REFRESH_CHUNK_SIZE
+        max_scrape_age_days = _home_location_max_scrape_age_days()
         try:
             for start in range(0, len(comedian_uuids), chunk_size):
                 chunk = comedian_uuids[start:start + chunk_size]
                 self.execute_with_cursor(
                     ComedianQueries.BATCH_UPDATE_COMEDIAN_HOME_LOCATION,
-                    (chunk,),
+                    (chunk, max_scrape_age_days),
                 )
             Logger.info(f"update_home_location: processed {len(comedian_uuids)} comedians")
         except Exception as e:

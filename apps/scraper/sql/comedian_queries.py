@@ -148,31 +148,69 @@ class ComedianQueries:
         WHERE c.uuid = v.comedian_id
     '''
 
+    # Home location uses recently scraped, distinct engagements rather than raw
+    # lineup rows. A venue run can create one row per showtime/listing, so
+    # show_page_url (or date when no URL exists) is the durable engagement key.
+    # Recency weights keep current touring from losing to stale all-time runs.
     BATCH_UPDATE_COMEDIAN_HOME_LOCATION = '''
         WITH target_comedians AS (
             SELECT uuid
             FROM comedians
             WHERE uuid = ANY(%s)
         ),
-        club_counts AS (
+        engagement_rows AS (
             SELECT
                 li.comedian_id,
                 cl.id AS club_id,
                 NULLIF(BTRIM(cl.city), '') AS city,
                 NULLIF(BTRIM(cl.state), '') AS state,
                 NULLIF(BTRIM(cl.country), '') AS country,
-                COUNT(DISTINCT li.show_id) AS appearance_count,
-                MAX(s.date) AS last_seen_at
+                COALESCE(
+                    NULLIF(BTRIM(s.show_page_url), ''),
+                    s.date::date::text
+                ) AS engagement_key,
+                CASE
+                    WHEN s.date >= CURRENT_DATE THEN 4.0
+                    WHEN s.date >= CURRENT_DATE - INTERVAL '90 days' THEN 2.0
+                    WHEN s.date >= CURRENT_DATE - INTERVAL '365 days' THEN 1.0
+                    ELSE 0.25
+                END AS engagement_weight,
+                s.date AS seen_at
             FROM lineup_items li
             JOIN target_comedians tc ON tc.uuid = li.comedian_id
             JOIN shows s ON s.id = li.show_id
             JOIN clubs cl ON cl.id = s.club_id
+            WHERE s.last_scraped_date IS NOT NULL
+              AND s.last_scraped_date >= NOW() - (%s * INTERVAL '1 day')
+        ),
+        distinct_engagements AS (
+            SELECT
+                comedian_id,
+                club_id,
+                city,
+                state,
+                country,
+                engagement_key,
+                MAX(engagement_weight) AS engagement_weight,
+                MAX(seen_at) AS last_seen_at
+            FROM engagement_rows
             GROUP BY
-                li.comedian_id,
-                cl.id,
-                NULLIF(BTRIM(cl.city), ''),
-                NULLIF(BTRIM(cl.state), ''),
-                NULLIF(BTRIM(cl.country), '')
+                comedian_id,
+                club_id,
+                city,
+                state,
+                country,
+                engagement_key
+        ),
+        club_counts AS (
+            SELECT
+                comedian_id,
+                club_id,
+                COUNT(DISTINCT engagement_key) AS engagement_count,
+                SUM(engagement_weight) AS engagement_score,
+                MAX(last_seen_at) AS last_seen_at
+            FROM distinct_engagements
+            GROUP BY comedian_id, club_id
         ),
         ranked_clubs AS (
             SELECT
@@ -180,28 +218,30 @@ class ComedianQueries:
                 club_id,
                 ROW_NUMBER() OVER (
                     PARTITION BY comedian_id
-                    ORDER BY appearance_count DESC, last_seen_at DESC, club_id ASC
+                    ORDER BY
+                        engagement_score DESC,
+                        engagement_count DESC,
+                        last_seen_at DESC,
+                        club_id ASC
                 ) AS club_rank
             FROM club_counts
         ),
         city_counts AS (
             SELECT
-                li.comedian_id,
-                NULLIF(BTRIM(cl.city), '') AS city,
-                NULLIF(BTRIM(cl.state), '') AS state,
-                NULLIF(BTRIM(cl.country), '') AS country,
-                COUNT(DISTINCT li.show_id) AS appearance_count,
-                MAX(s.date) AS last_seen_at
-            FROM lineup_items li
-            JOIN target_comedians tc ON tc.uuid = li.comedian_id
-            JOIN shows s ON s.id = li.show_id
-            JOIN clubs cl ON cl.id = s.club_id
-            WHERE NULLIF(BTRIM(cl.city), '') IS NOT NULL
+                comedian_id,
+                city,
+                state,
+                country,
+                COUNT(DISTINCT engagement_key) AS engagement_count,
+                SUM(engagement_weight) AS engagement_score,
+                MAX(last_seen_at) AS last_seen_at
+            FROM distinct_engagements
+            WHERE city IS NOT NULL
             GROUP BY
-                li.comedian_id,
-                NULLIF(BTRIM(cl.city), ''),
-                NULLIF(BTRIM(cl.state), ''),
-                NULLIF(BTRIM(cl.country), '')
+                comedian_id,
+                city,
+                state,
+                country
         ),
         ranked_cities AS (
             SELECT
@@ -212,7 +252,8 @@ class ComedianQueries:
                 ROW_NUMBER() OVER (
                     PARTITION BY comedian_id
                     ORDER BY
-                        appearance_count DESC,
+                        engagement_score DESC,
+                        engagement_count DESC,
                         last_seen_at DESC,
                         city ASC,
                         state ASC,

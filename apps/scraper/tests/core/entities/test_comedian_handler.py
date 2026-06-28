@@ -296,9 +296,33 @@ class TestBatchUpdateComedianHomeLocationSql:
         """Home club ties must be stable: count, recency, then lowest club id."""
         sql = ComedianQueries.BATCH_UPDATE_COMEDIAN_HOME_LOCATION.lower()
 
-        assert "appearance_count desc" in sql
+        assert "engagement_score desc" in sql
+        assert "engagement_count desc" in sql
         assert "last_seen_at desc" in sql
         assert "club_id asc" in sql
+
+    def test_query_counts_distinct_engagements_not_show_ids(self):
+        """Duplicated showtime rows must not inflate a single run's home-location vote."""
+        sql = ComedianQueries.BATCH_UPDATE_COMEDIAN_HOME_LOCATION.lower()
+
+        assert "engagement_key" in sql
+        assert "count(distinct engagement_key)" in sql
+        assert "count(distinct li.show_id)" not in sql
+
+    def test_query_filters_stale_scrape_evidence(self):
+        """Home location should ignore show rows that have not been scraped recently."""
+        sql = ComedianQueries.BATCH_UPDATE_COMEDIAN_HOME_LOCATION.lower()
+
+        assert "s.last_scraped_date is not null" in sql
+        assert "s.last_scraped_date >= now() - (%s * interval '1 day')" in sql
+
+    def test_query_recency_weights_engagements(self):
+        """Recent and upcoming engagements must outrank stale all-time history."""
+        sql = ComedianQueries.BATCH_UPDATE_COMEDIAN_HOME_LOCATION.lower()
+
+        assert "engagement_weight" in sql
+        assert "current_date" in sql
+        assert "sum(engagement_weight)" in sql
 
     def test_query_has_deterministic_city_tie_breakers(self):
         """Home city ties must be stable across city/state/country."""
@@ -307,7 +331,7 @@ class TestBatchUpdateComedianHomeLocationSql:
         assert "city asc" in sql
         assert "state asc" in sql
         assert "country asc" in sql
-        assert "nullif(btrim(cl.city), '') is not null" in sql
+        assert "where city is not null" in sql
 
 
 class TestUpdateComedianTourIdsSql:
@@ -404,7 +428,20 @@ class TestUpdateHomeLocation:
 
         handler.execute_with_cursor.assert_called_once_with(
             ComedianQueries.BATCH_UPDATE_COMEDIAN_HOME_LOCATION,
-            (["uuid-1", "uuid-2"],),
+            (["uuid-1", "uuid-2"], 365),
+        )
+
+    def test_stale_scrape_window_can_be_configured(self, monkeypatch):
+        """The freshness cutoff is read at call time so operators can retune it."""
+        monkeypatch.setenv("LAUGHTRACK_HOME_LOCATION_MAX_SCRAPE_AGE_DAYS", "180")
+        handler = _make_handler()
+        handler.execute_with_cursor.return_value = None
+
+        handler.update_home_location(["uuid-1"])
+
+        handler.execute_with_cursor.assert_called_once_with(
+            ComedianQueries.BATCH_UPDATE_COMEDIAN_HOME_LOCATION,
+            (["uuid-1"], 180),
         )
 
     def test_empty_input_does_not_query(self):
@@ -431,8 +468,9 @@ class TestUpdateHomeLocation:
         for call in handler.execute_with_cursor.call_args_list:
             query, params = call.args
             assert query == ComedianQueries.BATCH_UPDATE_COMEDIAN_HOME_LOCATION
-            (chunk,) = params
+            chunk, max_scrape_age_days = params
             assert len(chunk) <= chunk_size
+            assert max_scrape_age_days == 365
             seen.extend(chunk)
         assert seen == uuids
 
