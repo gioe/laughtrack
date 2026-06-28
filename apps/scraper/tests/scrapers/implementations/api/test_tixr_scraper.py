@@ -504,46 +504,57 @@ def _phil_long_club() -> Club:
 
 def _phil_long_calendar_html() -> str:
     """One comedy `.day-card` + one concert `.day-card`, matching the real
-    phillongmusichall.com/calendar Webflow markup."""
+    phillongmusichall.com/calendar Webflow markup.
+
+    The live layout wraps each `.day-card` in an `<a class="cal-card-link">`
+    whose href is the Tixr buy link; the in-card "buy tickets" element is a
+    non-link `<div>`, so the parser must resolve the ticket URL from the
+    wrapping ancestor anchor (TASK-3472)."""
     return f"""<html><body>
-<div class="day-card">
-  <div class="event-info">
-    <div class="event-info_dates-and-name">
-      <div class="event-info_dates">
-        <p class="b-venue date">October 23, 2026</p>
-        <div class="calendar_dates-dash">|</div>
-        <p class="b-venue date">8:00 pm</p>
-        <p fs-cmsfilter-field="month" class="b-venue filter">October</p>
-      </div>
-      <div class="b-show">Comedy Night with Don McMillan</div>
-      <div class="event-info_featuring-and-button">
-        <div class="event-info_featuring-wrapper">
-          <p class="b-venue name underline underline-white">Featuring:</p>
-          <p fs-cmsfilter-field="venue" class="b-venue name">Don McMillan</p>
+<a class="cal-card-link w-inline-block" href="{PHIL_LONG_COMEDY_TIXR_URL}">
+  <div class="poster"></div>
+  <div class="day-card">
+    <div class="event-info">
+      <div class="event-info_dates-and-name">
+        <div class="event-info_dates">
+          <p class="b-venue date">October 23, 2026</p>
+          <div class="calendar_dates-dash">|</div>
+          <p class="b-venue date">8:00 pm</p>
+          <p fs-cmsfilter-field="month" class="b-venue filter">October</p>
+        </div>
+        <div class="b-show">Comedy Night with Don McMillan</div>
+        <div class="event-info_featuring-and-button">
+          <div class="event-info_featuring-wrapper">
+            <p class="b-venue name underline underline-white">Featuring:</p>
+            <p fs-cmsfilter-field="venue" class="b-venue name">Don McMillan</p>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="button-group is-right">
-      <a href="{PHIL_LONG_COMEDY_TIXR_URL}" class="button">Get Tickets</a>
-    </div>
-  </div>
-</div>
-<div class="day-card">
-  <div class="event-info">
-    <div class="event-info_dates-and-name">
-      <div class="event-info_dates">
-        <p class="b-venue date">September 19, 2026</p>
-        <div class="calendar_dates-dash">|</div>
-        <p class="b-venue date">7:00 pm</p>
-        <p fs-cmsfilter-field="month" class="b-venue filter">September</p>
+      <div class="button-group is-right">
+        <div class="button is-secondary is-alternate cal"><div>buy tickets</div></div>
       </div>
-      <div class="b-show">Thunderstruck - A Tribute to ACDC</div>
-    </div>
-    <div class="button-group is-right">
-      <a href="{PHIL_LONG_CONCERT_TIXR_URL}" class="button">Get Tickets</a>
     </div>
   </div>
-</div>
+</a>
+<a class="cal-card-link w-inline-block" href="{PHIL_LONG_CONCERT_TIXR_URL}">
+  <div class="poster"></div>
+  <div class="day-card">
+    <div class="event-info">
+      <div class="event-info_dates-and-name">
+        <div class="event-info_dates">
+          <p class="b-venue date">September 19, 2026</p>
+          <div class="calendar_dates-dash">|</div>
+          <p class="b-venue date">7:00 pm</p>
+          <p fs-cmsfilter-field="month" class="b-venue filter">September</p>
+        </div>
+        <div class="b-show">Thunderstruck - A Tribute to ACDC</div>
+      </div>
+      <div class="button-group is-right">
+        <div class="button is-secondary is-alternate cal"><div>buy tickets</div></div>
+      </div>
+    </div>
+  </div>
+</a>
 </body></html>"""
 
 
@@ -574,7 +585,9 @@ async def test_phil_long_keeps_only_comedy_via_title_filter(monkeypatch):
     assert event.source_url == PHIL_LONG_COMEDY_TIXR_URL
     # Absolute-dated card → unambiguous localized datetime (America/Denver, -06:00 in Oct).
     assert event.show.date.isoformat() == "2026-10-23T20:00:00-06:00"
-    assert event.show.lineup == ["Don McMillan"]
+    # Featuring performer is parsed into a Comedian lineup entry (Show.lineup is
+    # List[Comedian]; raw strings fail show-validation — TASK-3472).
+    assert [c.name for c in event.show.lineup] == ["Don McMillan"]
     scraper.tixr_client.get_event_detail_from_url.assert_not_called()
 
 

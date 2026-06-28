@@ -39,7 +39,7 @@ WHERE NOT EXISTS (SELECT 1 FROM clubs WHERE name = 'Phil Long Music Hall at Bour
 --    constraint beyond PK, so guard with NOT EXISTS on (club_id, scraper_key)).
 INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, priority, enabled, metadata)
 SELECT c.id, 'tixr', 'tixr_public_card',
-       'https://www.phillongmusichall.com/calendar', 0, true,
+       'https://phillongmusichall.com/calendar', 0, true,
        jsonb_build_object(
          'include_title_patterns', jsonb_build_array('comedy', 'comedian', 'stand[ -]?up'),
          'tixr_source_type', 'venue_public_card',

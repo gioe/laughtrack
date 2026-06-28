@@ -29,6 +29,7 @@ from bs4 import BeautifulSoup
 
 from laughtrack.core.entities.event.tixr import TixrEvent
 from laughtrack.core.entities.show.model import Show
+from laughtrack.core.entities.comedian.model import Comedian
 from laughtrack.core.entities.ticket.model import Ticket
 from laughtrack.core.clients.tixr import TixrVenueEventTransformer
 from laughtrack.core.entities.club.model import Club
@@ -783,9 +784,16 @@ class TixrScraper(BaseScraper):
         jsonld_offer_prices = self._extract_jsonld_offer_prices_by_url(soup)
 
         for card in soup.select(".day-card"):
-            link = card.select_one('a[href*="tixr.com"]')
             title_el = card.select_one(".b-show")
             date_els = card.select(".event-info_dates p.b-venue.date")
+            # The Tixr buy link is the wrapping ``a.cal-card-link`` anchor on the
+            # live phillongmusichall.com layout — each ``.day-card`` is nested
+            # inside ``<a href="tixr.com/e/{id}">`` and the in-card "buy tickets"
+            # element is a non-link ``<div>``. Fall back to a descendant anchor so
+            # variants that embed the buy link inside the card still resolve.
+            link = card.select_one('a[href*="tixr.com"]') or card.find_parent(
+                lambda tag: tag.name == "a" and "tixr.com" in (tag.get("href") or "")
+            )
 
             if not link or not title_el or len(date_els) < 2:
                 continue
@@ -811,11 +819,11 @@ class TixrScraper(BaseScraper):
             if event_id:
                 seen_ids.add(event_id)
 
-            lineup: List[str] = []
+            lineup: List[Comedian] = []
             for name_el in card.select(".b-venue.name"):
                 name = name_el.get_text(" ", strip=True)
                 if name and not name.lower().startswith("featuring"):
-                    lineup.append(name)
+                    lineup.append(Comedian(name=name))
 
             show = Show(
                 name=title,
