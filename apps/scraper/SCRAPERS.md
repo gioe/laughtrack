@@ -3308,6 +3308,18 @@ Public, no auth required. Returns up to 250 products in a single request — no 
 The extractor tries Format A first, then Format B, then Format C.
 Products where none match are skipped.
 
+**Date-only venues — `default_show_time` (opt-in, TASK-3378):** some ad-hoc Shopify
+stores advertise a show's **date** (an `M/D` product title like `"6/28 Spoken Laugh
+Lounge"`) but publish the **time** only on the flyer image — no clock time appears in
+the title, variants (all `"Default Title"`), or `body_html`. Format C would normally
+drop these for lack of a time. Set `metadata.default_show_time` (24-hour `"HH:MM"` like
+`"20:00"`, or a clock string like `"8pm"`) to supply the missing time so the dated show
+is kept. It is applied **only** on the Format C no-time fallback — a product that carries
+its own time is unaffected, and undated products still drop. Omitted → original
+drop-on-missing-time behavior (existing timed venues are unchanged). Example: Kesha's
+Comedy House (Eastpointe, MI), onboarded with `source_url` = base domain +
+`default_show_time='20:00'`.
+
 **Non-show filtering:** products whose `tags` contain a word-boundary match for
 `class` / `classes` / `merch` / `membership` are excluded (drops classes, workshops,
 merch, memberships). Substrings like "classic comedy" / "masterclass" are **not** swept up.
