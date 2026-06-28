@@ -3411,6 +3411,59 @@ venue has switched checkout platforms before.
 
 ---
 
+### Standing Room Only (`standing_room_only`)
+
+| | |
+|---|---|
+| **Scraper key** | `standing_room_only` (generic — any SRO venue onboards with only a DB row) |
+| **Platform** | `custom` (Standing Room Only has no `ScrapingPlatform` enum value) |
+| **DB field** | `scraping_sources.source_url` = the venue's ReadLiveEvents endpoint (`https://<sro-host>/Event/ReadLiveEvents`) |
+| **Generic?** | ✅ generic — no per-venue metadata; the no-body POST returns exactly that host's events |
+
+Standing Room Only Tickets (`standingroomonlytickets.com`, "sromedia") is an
+ASP.NET box-office platform. The venue's own site (e.g. `onenightstans.club`) is
+a thin front-end whose "buy tickets" buttons POST to a local `/ComedyTickets`
+controller that embeds the SRO widget `…/WebOffice/EventList/{eventId}`.
+
+**Detection signals:**
+- The venue homepage loads images / a widget from `standingroomonlytickets.com`
+- "Buy tickets" JS calls `BuyTickets(<eventId>, '<EventName>')` posting to a `/ComedyTickets/{EventName}` controller
+- The SRO root (`standingroomonlytickets.com`) redirects to `/Account/Login` — the public data is **not** there; it's behind the per-event widget endpoint
+
+**API/source pattern (single JSON POST):**
+
+    POST https://<sro-host>/Event/ReadLiveEvents      (empty body, no headers)
+    -> {"Data": [ {"Id": 522, "EventTitle": "Kate Brindle",
+                    "Shows": [ {"Start": "/Date(1783639800000)/",
+                                "DisplayStartDayAndTime": "Thursday, July 9, 2026 at 7:30 PM",
+                                "IsShowOld": false, ...}, ... ] }, ... ],
+        "Total": 14, ...}
+
+- The **empty-body POST** returns all live events for that SRO host — no Id, no
+  `X-Requested-With`, no session priming required.
+- Each feed entry is a **headliner residency** carrying a `Shows` array (Thu/Fri/Sat
+  runs), so the scraper fans each event out to **one Show per showtime**.
+- `Start` is a .NET `/Date(ms)/` epoch in **UTC milliseconds** — the authoritative
+  show datetime, converted to the club timezone. (`DisplayStartDayAndTime` carries
+  the same wall-clock string with the year.) The scraper drops `IsShowOld: true`
+  rows, past `Start` times, and the .NET min-date sentinel (large negative epoch).
+- `show_page_url` / ticket = `https://<sro-host>/WebOffice/EventList/{eventId}` (the
+  venue's per-event GET pages aren't clean URLs — they POST — so the SRO widget page
+  is the bookable link).
+
+**Finding the host:** read the venue homepage's `standingroomonlytickets.com`
+asset/widget host — that's `<sro-host>`. `source_url` = `https://<sro-host>/Event/ReadLiveEvents`.
+
+**DB setup:** see `migrations/20260627_onboard_one_night_stans_standing_room_only.sql`
+for the full idempotent club + `scraping_sources` onboarding (TASK-3375, One Night
+Stans Comedy Club, Waterford Township MI, 29 shows).
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/scrapers/implementations/api/standing_room_only/`
+- Event entity: `apps/scraper/src/laughtrack/core/entities/event/standing_room_only.py`
+
+---
+
 ### BookTix
 
 `scraper_key = booktix`, `platform = custom` (BookTix has no dedicated
