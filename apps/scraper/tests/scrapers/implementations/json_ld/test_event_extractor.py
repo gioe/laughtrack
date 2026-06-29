@@ -614,8 +614,10 @@ def test_absolute_url_unchanged_when_base_url_supplied():
     assert events[0].url == "https://example.com/events/already-absolute"
 
 
-def test_relative_url_dropped_when_no_base_url():
-    """Without base_url the relative url is left as-is (back-compat: prior behavior)."""
+def test_relative_url_left_unresolved_when_no_base_url():
+    """Without base_url the relative url is left as-is at the extractor layer
+    (back-compat: prior behavior). It only gets dropped later by Show URL-format
+    validation, not here."""
     html = _wrap_ldjson(_relative_url_event())
     events = EventExtractor.extract_events(html)
     assert len(events) == 1
