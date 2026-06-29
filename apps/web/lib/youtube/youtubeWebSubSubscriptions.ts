@@ -89,12 +89,22 @@ export async function renewYouTubeWebSubSubscriptions(
                 },
             );
 
+            const error = response.ok
+                ? undefined
+                : `hub returned status ${response.status}`;
+            if (error) {
+                options.logger?.warn(
+                    `[youtube-websub-renewal] failed channel ${comedian.youtubeChannelId} for ${comedian.name}: ${error}`,
+                );
+            }
+
             results.push({
                 comedianId: comedian.uuid,
                 comedianName: comedian.name,
                 youtubeChannelId: comedian.youtubeChannelId,
                 ok: response.ok,
                 status: response.status,
+                ...(error ? { error } : {}),
             });
         } catch (error) {
             const message = getErrorMessage(error);

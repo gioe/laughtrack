@@ -153,6 +153,48 @@ describe("renewYouTubeWebSubSubscriptions", () => {
         });
     });
 
+    it("logs non-ok hub responses as per-channel failures", async () => {
+        const findMany = vi.fn(async () => [
+            {
+                uuid: "comedian-1",
+                name: "Jane Comic",
+                youtubeChannelId: "UC-one",
+            },
+        ]);
+        const fetchFn: ReturnType<typeof vi.fn<FetchFn>> = vi.fn(
+            async () => new Response("hub rejected", { status: 500 }),
+        );
+        const warn = vi.fn();
+
+        const result = await renewYouTubeWebSubSubscriptions({
+            dbClient: {
+                comedian: { findMany },
+            },
+            fetchFn,
+            callbackUrl: "https://laugh-track.com/api/webhooks/youtube",
+            logger: { warn },
+        });
+
+        expect(warn).toHaveBeenCalledWith(
+            "[youtube-websub-renewal] failed channel UC-one for Jane Comic: hub returned status 500",
+        );
+        expect(result).toEqual({
+            total: 1,
+            succeeded: 0,
+            failed: 1,
+            results: [
+                {
+                    comedianId: "comedian-1",
+                    comedianName: "Jane Comic",
+                    youtubeChannelId: "UC-one",
+                    ok: false,
+                    status: 500,
+                    error: "hub returned status 500",
+                },
+            ],
+        });
+    });
+
     it("resolves the configured public callback URL and YouTube feed topic URL", () => {
         expect(
             resolveYouTubeWebSubCallbackUrl({
