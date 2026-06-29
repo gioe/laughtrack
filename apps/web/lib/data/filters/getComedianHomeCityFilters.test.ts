@@ -71,6 +71,20 @@ describe("getComedianHomeCityFilters", () => {
         expect(result.map((r) => r.label)).toEqual(["New York, NY"]);
     });
 
+    it("merges NULL-state and empty-string-state rows for the same city into one option with summed count", async () => {
+        mockGroupBy.mockResolvedValue([
+            group("London", null, 25),
+            group("London", "", 18),
+        ] as never);
+
+        const result = await getComedianHomeCityFilters();
+
+        // One option (no React dup-key), count is the merged population.
+        expect(result).toEqual([
+            { value: "London", label: "London", count: 43 },
+        ]);
+    });
+
     it("ignores rows with a blank city and falls back to a city-only token when state is blank", async () => {
         mockGroupBy.mockResolvedValue([
             group("   ", "NY", 99), // blank city → dropped

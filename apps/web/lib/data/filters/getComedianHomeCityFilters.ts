@@ -39,18 +39,32 @@ export async function getComedianHomeCityFilters(): Promise<
         _count: { _all: true },
     });
 
-    return groups
-        .map((g) => {
-            const city = (g.homeCity ?? "").trim();
-            const state = (g.homeState ?? "").trim() || null;
-            return {
-                city,
-                value: encodeHomeCityToken(city, state),
+    // Aggregate by token. groupBy keys on the raw (homeCity, homeState) pair,
+    // so a city that appears with homeState=NULL and homeState="" would yield
+    // two rows that both collapse to the same city-only token — summing them
+    // into one option avoids a duplicate <option> (React dup-key) and a count
+    // that under-reports the merged population. (Currently moot: derived
+    // home_state is always populated, but this keeps the dropdown correct if
+    // that ever drifts.)
+    const byToken = new Map<string, HomeCityFilterDTO>();
+    for (const g of groups) {
+        const city = (g.homeCity ?? "").trim();
+        if (city === "") continue;
+        const state = (g.homeState ?? "").trim() || null;
+        const value = encodeHomeCityToken(city, state);
+        const existing = byToken.get(value);
+        if (existing) {
+            existing.count += g._count._all;
+        } else {
+            byToken.set(value, {
+                value,
                 label: state ? `${city}, ${state}` : city,
                 count: g._count._all,
-            };
-        })
-        .filter((g) => g.city !== "" && g.count >= MIN_COMEDIANS_PER_HOME_CITY)
-        .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
-        .map(({ value, label, count }) => ({ value, label, count }));
+            });
+        }
+    }
+
+    return [...byToken.values()]
+        .filter((g) => g.count >= MIN_COMEDIANS_PER_HOME_CITY)
+        .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
 }
