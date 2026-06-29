@@ -92,6 +92,7 @@ targets:
     info:
       path: Sources/LaughTrackNotificationServiceExtension/Info.plist
       properties:
+        CFBundleDisplayName: LaughTrack
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
         NSExtension:
