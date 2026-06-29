@@ -44,6 +44,19 @@ _PRODUCTION_PERFORMANCE_URL_RE = re.compile(
     re.IGNORECASE,
 )
 
+# Bowery Presents migrated its venue pages off inline OvationTix deep-links to
+# an AEG/AXS events feed. The venue page now references one or more
+# ``aegwebprod.blob.core.windows.net/.../events.json`` resources, each of which
+# still carries the underlying ``ci.ovationtix.com/<clientId>/performance/<id>``
+# link in ``event.ticketing.ticketURL`` — so the feed is a drop-in replacement
+# for the dead HTML link-scrape as a *discovery* surface, while the existing
+# per-performance OvationTix fetch continues to supply identity/pricing.
+_AEG_FEED_URL_RE = re.compile(
+    r"https?://aegwebprod\.blob\.core\.windows\.net/"
+    r"json/resources/\d+/events/[a-z0-9]+/events\.json",
+    re.IGNORECASE,
+)
+
 _COMEDY_MARKERS = (
     re.compile(r"\bcomedian(s)?\b", re.IGNORECASE),
     re.compile(r"\bstand[-\s]?up\b", re.IGNORECASE),
@@ -132,6 +145,64 @@ def extract_performance_ids(html: str, client_id: Optional[str] = None) -> List[
         _add(cid, perf_id)
     for cid, perf_id in _PRODUCTION_PERFORMANCE_URL_RE.findall(html):
         _add(cid, perf_id)
+    return ids
+
+
+def extract_aeg_feed_urls(html: str) -> List[str]:
+    """Return the deduplicated AEG ``events.json`` feed URLs referenced on a
+    Bowery Presents venue page, preserving first-occurrence order.
+
+    A Bowery venue page references one or more regional AEG event feeds; the
+    Patchogue calendar lives inside the largest one. We fetch every referenced
+    feed and union the results rather than guessing which one carries the
+    venue, so a Bowery layout change that splits venues across feeds can't
+    silently drop dates.
+    """
+    seen: set = set()
+    urls: List[str] = []
+    for url in _AEG_FEED_URL_RE.findall(html):
+        if url not in seen:
+            seen.add(url)
+            urls.append(url)
+    return urls
+
+
+def performance_ids_from_aeg_feed(feed: JSONDict, client_id: str) -> List[str]:
+    """Extract OvationTix performance IDs for ``client_id`` from an AEG feed.
+
+    Each AEG event keeps the underlying OvationTix purchase link in
+    ``ticketing.ticketURL`` (falling back to ``ticketing.url``). Filtering on
+    the embedded ``ci.ovationtix.com/<clientId>/performance/<id>`` client id is
+    exactly equivalent to filtering by the venue — every event for the venue
+    routes through the same OvationTix client — so no separate AEG ``venueId``
+    needs to be configured. IDs are deduplicated, first-occurrence order
+    preserved.
+    """
+    if not isinstance(feed, dict):
+        return []
+    events = feed.get("events")
+    if not isinstance(events, list):
+        return []
+
+    seen: set = set()
+    ids: List[str] = []
+    for event in events:
+        if not isinstance(event, dict):
+            continue
+        ticketing = event.get("ticketing")
+        if not isinstance(ticketing, dict):
+            continue
+        candidate_url = ticketing.get("ticketURL") or ticketing.get("url") or ""
+        match = _PERFORMANCE_URL_RE.search(candidate_url)
+        if not match:
+            continue
+        if match.group(1) != str(client_id):
+            continue
+        perf_id = match.group(2)
+        if perf_id in seen:
+            continue
+        seen.add(perf_id)
+        ids.append(perf_id)
     return ids
 
 
