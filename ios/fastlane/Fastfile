@@ -1,6 +1,7 @@
 default_platform(:ios)
 
 APP_IDENTIFIER = "app.laughtrack.ios"
+NOTIFICATION_SERVICE_EXTENSION_IDENTIFIER = "app.laughtrack.ios.NotificationServiceExtension"
 SCHEME = "LaughTrack"
 INFO_PLIST_PATH = "Sources/LaughTrackApp/Info.plist"
 PROJECT_YML_PATH = "../project.yml"
@@ -50,9 +51,10 @@ end
 # they share the same marketing version by design, so replacing all is correct.
 def update_project_yml_setting(key, new_value)
   contents = File.read(PROJECT_YML_PATH)
+  raise "#{key} not found in #{PROJECT_YML_PATH}" unless contents.match?(/#{Regexp.escape(key)}:\s*"[^"]*"/)
+
   updated = contents.gsub(/(#{Regexp.escape(key)}:\s*)"[^"]*"/, "\\1\"#{new_value}\"")
-  raise "#{key} not found in #{PROJECT_YML_PATH}" if updated == contents
-  File.write(PROJECT_YML_PATH, updated)
+  File.write(PROJECT_YML_PATH, updated) if updated != contents
 end
 
 # Bump MARKETING_VERSION by semantic component. kind may be :major, :minor, :patch
@@ -126,6 +128,9 @@ platform :ios do
     get_provisioning_profile(
       app_identifier: APP_IDENTIFIER
     )
+    get_provisioning_profile(
+      app_identifier: NOTIFICATION_SERVICE_EXTENSION_IDENTIFIER
+    )
   end
 
   desc "Increment build number (latest from ASC) and bump MARKETING_VERSION semantically. Pass bump: :major | :minor | :patch (default :patch), or skip_marketing_bump:true to bump build only (e.g. for a TestFlight-only hotfix)."
@@ -195,8 +200,12 @@ platform :ios do
     get_provisioning_profile(
       app_identifier: APP_IDENTIFIER
     )
+    app_profile_name = lane_context[SharedValues::SIGH_NAME]
 
-    profile_name = lane_context[SharedValues::SIGH_NAME]
+    get_provisioning_profile(
+      app_identifier: NOTIFICATION_SERVICE_EXTENSION_IDENTIFIER
+    )
+    extension_profile_name = lane_context[SharedValues::SIGH_NAME]
 
     build_app(
       scheme: SCHEME,
@@ -215,7 +224,8 @@ platform :ios do
         signingStyle: "manual",
         teamID: TEAM_ID,
         provisioningProfiles: {
-          APP_IDENTIFIER => profile_name
+          APP_IDENTIFIER => app_profile_name,
+          NOTIFICATION_SERVICE_EXTENSION_IDENTIFIER => extension_profile_name
         }
       }
     )
