@@ -61,6 +61,44 @@ export function isFreeFilterSelected(
     return parseFilterSlugs(filters).some((slug) => slug === FREE_FILTER_SLUG);
 }
 
+/**
+ * Separator inside the comedian `homeCity` URL param token. A comedian's home
+ * city alone is ambiguous (Arlington TX vs Arlington VA; Philadelphia PA vs MS),
+ * so the filter token carries both city and state as `city|state`. The pipe is
+ * safe: no comedian home_city or home_state value contains it. State may be a
+ * country for international comedians (e.g. "Rotterdam|Netherlands"), which is
+ * intentional — home_state holds whatever region label was derived.
+ *
+ * Single source of truth for the encoding: `getComedianHomeCityFilters` builds
+ * tokens with `encodeHomeCityToken`, and `getComedianHomeCityClause` (plus the
+ * raw-SQL show_count path in findComediansWithCount) reads them back with
+ * `decodeHomeCityToken`.
+ */
+export const HOME_CITY_TOKEN_SEPARATOR = "|";
+
+export function encodeHomeCityToken(
+    city: string,
+    state: string | null | undefined,
+): string {
+    return state
+        ? `${city}${HOME_CITY_TOKEN_SEPARATOR}${state}`
+        : city;
+}
+
+export function decodeHomeCityToken(token: string): {
+    city: string;
+    state: string | null;
+} {
+    const sep = token.indexOf(HOME_CITY_TOKEN_SEPARATOR);
+    if (sep === -1) {
+        return { city: token, state: null };
+    }
+    return {
+        city: token.slice(0, sep),
+        state: token.slice(sep + 1) || null,
+    };
+}
+
 type SortEntry = {
     field: string;
     direction: "asc" | "desc";
@@ -227,6 +265,27 @@ export class QueryHelper {
                     },
                 },
             ],
+        };
+    }
+
+    // Filters the comedian search by derived home location. The `homeCity`
+    // param is a `city|state` token (see decodeHomeCityToken) so same-named
+    // cities in different states stay distinct. Returns {} when unset so it can
+    // be spread as a sibling key — `homeCity`/`homeState` are columns no other
+    // comedian clause touches, so no AND-merge is needed (unlike the `name`
+    // clauses). Comedians with no derived home location simply never match.
+    getComedianHomeCityClause(): Prisma.ComedianWhereInput {
+        const raw = this.params.homeCity;
+        if (!raw) {
+            return {};
+        }
+        const { city, state } = decodeHomeCityToken(raw);
+        if (!city) {
+            return {};
+        }
+        return {
+            homeCity: { equals: city },
+            homeState: state ? { equals: state } : null,
         };
     }
 

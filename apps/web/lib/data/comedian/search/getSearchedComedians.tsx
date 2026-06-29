@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { getFilters } from "../../filters/getFilters";
+import { getComedianHomeCityFilters } from "../../filters/getComedianHomeCityFilters";
 import { EntityType } from "@/objects/enum";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { findComediansWithCount } from "./findComediansWithCount";
@@ -12,15 +13,18 @@ export async function getSearchedComedians(
     const helper = new QueryHelper(requestData);
 
     try {
-        const [comediansWithCount, filters] = await Promise.all([
-            findComediansWithCount(helper),
-            getFilters(EntityType.Comedian, requestData.params.filters),
-        ]);
+        const [comediansWithCount, filters, homeCityFilters] =
+            await Promise.all([
+                findComediansWithCount(helper),
+                getFilters(EntityType.Comedian, requestData.params.filters),
+                getComedianHomeCityFilters(),
+            ]);
 
         return {
             data: comediansWithCount.comedians,
             total: comediansWithCount.totalCount,
             filters,
+            homeCityFilters,
         };
     } catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {

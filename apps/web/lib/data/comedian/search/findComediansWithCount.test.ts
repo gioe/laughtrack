@@ -42,6 +42,7 @@ function makeHelper(
         getProfileId: () => profileId,
         getComedianNameClause: () => ({}),
         getComedianFiltersClause: () => ({}),
+        getComedianHomeCityClause: () => ({}),
         // Mirrors the real method's "no fromDate → upcoming-only" default so
         // tests don't need to thread date params through every makeHelper call.
         getDateClause: () => ({ date: { gte: new Date().toISOString() } }),
@@ -790,6 +791,108 @@ describe("findComediansWithCount", () => {
                     v.toISOString().startsWith("2026-05-01"),
             );
             expect(hasDateValue).toBe(true);
+        });
+    });
+
+    describe("home-city filter", () => {
+        it("spreads the home-city clause into the Prisma count + findMany where", async () => {
+            mockCount.mockResolvedValue(1);
+            mockFindMany.mockResolvedValue([makeComedianRow(1)] as never);
+
+            const helper = makeHelper(SortParamValue.PopularityDesc);
+            helper.getComedianHomeCityClause = (() => ({
+                homeCity: { equals: "New York" },
+                homeState: { equals: "NY" },
+            })) as never as typeof helper.getComedianHomeCityClause;
+
+            await findComediansWithCount(helper);
+
+            const countWhere = mockCount.mock.calls[0]?.[0]?.where as Record<
+                string,
+                unknown
+            >;
+            expect(countWhere.homeCity).toEqual({ equals: "New York" });
+            expect(countWhere.homeState).toEqual({ equals: "NY" });
+
+            const findWhere = mockFindMany.mock.calls[0]?.[0]?.where as Record<
+                string,
+                unknown
+            >;
+            expect(findWhere.homeCity).toEqual({ equals: "New York" });
+            expect(findWhere.homeState).toEqual({ equals: "NY" });
+        });
+
+        it("omits home-city predicates when the clause is empty", async () => {
+            mockCount.mockResolvedValue(1);
+            mockFindMany.mockResolvedValue([makeComedianRow(1)] as never);
+
+            // Default makeHelper returns {} from getComedianHomeCityClause.
+            await findComediansWithCount(makeHelper());
+
+            const findWhere = mockFindMany.mock.calls[0]?.[0]?.where as Record<
+                string,
+                unknown
+            >;
+            expect(findWhere.homeCity).toBeUndefined();
+            expect(findWhere.homeState).toBeUndefined();
+        });
+
+        it("applies city + state predicates on the raw-SQL show_count path", async () => {
+            mockCount.mockResolvedValue(1);
+            mockQueryRaw
+                .mockResolvedValueOnce([] as never) // deny list
+                .mockResolvedValueOnce([{ id: 1 }] as never); // sorted IDs
+            mockFindMany.mockResolvedValue([makeComedianRow(1, 3)] as never);
+
+            const helper = makeHelper(
+                SortParamValue.ShowCountDesc,
+                undefined,
+                undefined,
+                undefined,
+                false,
+                { homeCity: "New York|NY" },
+            );
+            await findComediansWithCount(helper);
+
+            const sortedCall = mockQueryRaw.mock.calls[1]?.[0] as {
+                strings: string[];
+                values: unknown[];
+            };
+            const sql = sortedCall.strings.join(" ");
+            expect(sql).toContain('c."home_city"');
+            expect(sql).toContain('c."home_state"');
+            // City + state flow through as bound parameters (no IS NULL branch).
+            expect(sql).not.toContain('c."home_state" IS NULL');
+            expect(sortedCall.values).toEqual(
+                expect.arrayContaining(["New York", "NY"]),
+            );
+        });
+
+        it("matches home_state IS NULL on the raw-SQL path when the token has no state", async () => {
+            mockCount.mockResolvedValue(1);
+            mockQueryRaw
+                .mockResolvedValueOnce([] as never)
+                .mockResolvedValueOnce([{ id: 1 }] as never);
+            mockFindMany.mockResolvedValue([makeComedianRow(1, 3)] as never);
+
+            const helper = makeHelper(
+                SortParamValue.ShowCountDesc,
+                undefined,
+                undefined,
+                undefined,
+                false,
+                { homeCity: "London" },
+            );
+            await findComediansWithCount(helper);
+
+            const sortedCall = mockQueryRaw.mock.calls[1]?.[0] as {
+                strings: string[];
+                values: unknown[];
+            };
+            const sql = sortedCall.strings.join(" ");
+            expect(sql).toContain('c."home_city"');
+            expect(sql).toContain('c."home_state" IS NULL');
+            expect(sortedCall.values).toContain("London");
         });
     });
 });

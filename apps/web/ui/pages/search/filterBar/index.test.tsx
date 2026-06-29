@@ -191,4 +191,63 @@ describe("FilterBar", () => {
             container.querySelector('[data-testid="filter-modal-button"]'),
         ).not.toBeNull();
     });
+
+    describe("home-city filter", () => {
+        const homeCityFilters = [
+            { value: "New York|NY", label: "New York, NY", count: 100 },
+            { value: "Austin|TX", label: "Austin, TX", count: 50 },
+        ];
+
+        it("renders the home-city select with options on AllComedians", () => {
+            const { container } = render(
+                <FilterBar
+                    variant={SearchVariant.AllComedians}
+                    total={5}
+                    filterData={[]}
+                    homeCityFilters={homeCityFilters}
+                />,
+            );
+            const select = container.querySelector(
+                'select[aria-label="Filter by home city"]',
+            );
+            expect(select).not.toBeNull();
+            const options = select?.querySelectorAll("option");
+            // "All home cities" sentinel + one per city.
+            expect(options?.length).toBe(homeCityFilters.length + 1);
+            expect(select?.textContent).toContain("New York, NY (100)");
+            expect(select?.textContent).toContain("Austin, TX (50)");
+        });
+
+        it("omits the home-city select when no home-location data is available", () => {
+            const { container } = render(
+                <FilterBar
+                    variant={SearchVariant.AllComedians}
+                    total={5}
+                    filterData={[]}
+                    homeCityFilters={[]}
+                />,
+            );
+            expect(
+                container.querySelector(
+                    'select[aria-label="Filter by home city"]',
+                ),
+            ).toBeNull();
+        });
+
+        it("does not render the home-city select on non-comedian variants", () => {
+            const { container } = render(
+                <FilterBar
+                    variant={SearchVariant.AllClubs}
+                    total={5}
+                    filterData={[]}
+                    homeCityFilters={homeCityFilters}
+                />,
+            );
+            expect(
+                container.querySelector(
+                    'select[aria-label="Filter by home city"]',
+                ),
+            ).toBeNull();
+        });
+    });
 });
