@@ -92,4 +92,60 @@ describe("renewYouTubeWebSubSubscriptions", () => {
             ],
         });
     });
+
+    it("logs per-channel hub failures and continues renewing later channels", async () => {
+        const findMany = vi.fn(async () => [
+            {
+                uuid: "comedian-1",
+                name: "Jane Comic",
+                youtubeChannelId: "UC-one",
+            },
+            {
+                uuid: "comedian-2",
+                name: "Sam Comic",
+                youtubeChannelId: "UC-two",
+            },
+        ]);
+        const fetchFn: ReturnType<typeof vi.fn<FetchFn>> = vi
+            .fn<FetchFn>()
+            .mockRejectedValueOnce(new Error("hub timeout"))
+            .mockResolvedValueOnce(new Response("", { status: 202 }));
+        const warn = vi.fn();
+
+        const result = await renewYouTubeWebSubSubscriptions({
+            dbClient: {
+                comedian: { findMany },
+            },
+            fetchFn,
+            callbackUrl: "https://laugh-track.com/api/webhooks/youtube",
+            logger: { warn },
+        });
+
+        expect(fetchFn).toHaveBeenCalledTimes(2);
+        expect(warn).toHaveBeenCalledWith(
+            "[youtube-websub-renewal] failed channel UC-one for Jane Comic: hub timeout",
+        );
+        expect(result).toEqual({
+            total: 2,
+            succeeded: 1,
+            failed: 1,
+            results: [
+                {
+                    comedianId: "comedian-1",
+                    comedianName: "Jane Comic",
+                    youtubeChannelId: "UC-one",
+                    ok: false,
+                    status: null,
+                    error: "hub timeout",
+                },
+                {
+                    comedianId: "comedian-2",
+                    comedianName: "Sam Comic",
+                    youtubeChannelId: "UC-two",
+                    ok: true,
+                    status: 202,
+                },
+            ],
+        });
+    });
 });

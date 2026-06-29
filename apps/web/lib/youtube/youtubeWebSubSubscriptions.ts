@@ -24,10 +24,15 @@ interface YouTubeWebSubSubscriptionDbClient {
     };
 }
 
+interface YouTubeWebSubSubscriptionLogger {
+    warn: (message: string) => void;
+}
+
 export interface RenewYouTubeWebSubSubscriptionsOptions {
     dbClient: YouTubeWebSubSubscriptionDbClient;
     fetchFn?: FetchFn;
     callbackUrl: string;
+    logger?: YouTubeWebSubSubscriptionLogger;
 }
 
 export interface YouTubeWebSubSubscriptionResult {
@@ -36,6 +41,7 @@ export interface YouTubeWebSubSubscriptionResult {
     youtubeChannelId: string;
     ok: boolean;
     status: number | null;
+    error?: string;
 }
 
 export interface RenewYouTubeWebSubSubscriptionsResult {
@@ -67,24 +73,42 @@ export async function renewYouTubeWebSubSubscriptions(
             continue;
         }
 
-        const response = await (options.fetchFn ?? fetch)(YOUTUBE_WEBSUB_HUB_URL, {
-            method: "POST",
-            headers: {
-                "content-type": "application/x-www-form-urlencoded",
-            },
-            body: buildSubscribeBody(
-                comedian.youtubeChannelId,
-                options.callbackUrl,
-            ).toString(),
-        });
+        try {
+            const response = await (options.fetchFn ?? fetch)(
+                YOUTUBE_WEBSUB_HUB_URL,
+                {
+                    method: "POST",
+                    headers: {
+                        "content-type": "application/x-www-form-urlencoded",
+                    },
+                    body: buildSubscribeBody(
+                        comedian.youtubeChannelId,
+                        options.callbackUrl,
+                    ).toString(),
+                },
+            );
 
-        results.push({
-            comedianId: comedian.uuid,
-            comedianName: comedian.name,
-            youtubeChannelId: comedian.youtubeChannelId,
-            ok: response.ok,
-            status: response.status,
-        });
+            results.push({
+                comedianId: comedian.uuid,
+                comedianName: comedian.name,
+                youtubeChannelId: comedian.youtubeChannelId,
+                ok: response.ok,
+                status: response.status,
+            });
+        } catch (error) {
+            const message = getErrorMessage(error);
+            options.logger?.warn(
+                `[youtube-websub-renewal] failed channel ${comedian.youtubeChannelId} for ${comedian.name}: ${message}`,
+            );
+            results.push({
+                comedianId: comedian.uuid,
+                comedianName: comedian.name,
+                youtubeChannelId: comedian.youtubeChannelId,
+                ok: false,
+                status: null,
+                error: message,
+            });
+        }
     }
 
     return {
@@ -111,4 +135,12 @@ function buildYouTubeFeedTopicUrl(youtubeChannelId: string): string {
     const url = new URL(YOUTUBE_CHANNEL_FEED_URL);
     url.searchParams.set("channel_id", youtubeChannelId);
     return url.toString();
+}
+
+function getErrorMessage(error: unknown): string {
+    if (error instanceof Error && error.message) {
+        return error.message;
+    }
+
+    return String(error);
 }
