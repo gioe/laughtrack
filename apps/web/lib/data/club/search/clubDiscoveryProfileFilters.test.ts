@@ -65,6 +65,31 @@ describe("club discovery profile filters", () => {
         });
     });
 
+    it("maps festival and producer filters to normalized club type fields", () => {
+        const helper = new QueryHelper({
+            params: { filters: "festival,producer,neighborhood-favorite" },
+            timezone: "America/New_York",
+        });
+
+        expect(helper.getClubTypeFiltersClause()).toEqual({
+            clubType: { in: ["festival", "producer"] },
+        });
+        expect(helper.getClubFiltersClause()).toEqual({
+            AND: [
+                {
+                    taggedClubs: {
+                        some: {
+                            tag: {
+                                slug: { in: ["neighborhood-favorite"] },
+                                type: "club",
+                            },
+                        },
+                    },
+                },
+            ],
+        });
+    });
+
     it("wires discovery profile filters into club search count and page queries", async () => {
         const helper = new QueryHelper({
             params: {

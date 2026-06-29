@@ -39,6 +39,9 @@ export interface ClubDTO {
     // standalone clubs and for individual locations shown under a chain filter.
     chainLocationCount?: number | null;
     clubType?: string;
+    programmingPrimaryShowType?: string | null;
+    programmingMixed?: boolean;
+    programmingLabel?: string;
 }
 
 export interface PaginatedClubResponseDTO {

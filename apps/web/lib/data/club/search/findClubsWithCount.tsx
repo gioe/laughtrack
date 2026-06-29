@@ -4,6 +4,7 @@ import { computeDistanceMiles } from "@/util/distanceUtil";
 import { buildClubImageUrl } from "@/util/imageUtil";
 import { Prisma } from "@prisma/client";
 import { ClubsResponse } from "./interface";
+import { getClubProgrammingLabel } from "@/lib/club/programmingLabels";
 
 const CLUB_SELECT = {
     id: true,
@@ -14,11 +15,18 @@ const CLUB_SELECT = {
     website: true,
     zipCode: true,
     hasImage: true,
+    clubType: true,
     chainId: true,
     chain: {
         select: {
             name: true,
             slug: true,
+        },
+    },
+    discoveryProfile: {
+        select: {
+            primaryShowType: true,
+            mixedProgramming: true,
         },
     },
 } as const;
@@ -117,7 +125,7 @@ export async function findClubsWithCount(
         const baseWhere: Prisma.ClubWhereInput = {
             visible: true,
             status: "active",
-            clubType: { not: "festival" },
+            ...queryHelper.getClubTypeFiltersClause(),
             ...queryHelper.getClubNameClause(),
             ...queryHelper.getClubFiltersClause(),
             // clubDiscoveryProfile-backed programming filters are derived from persisted show_type mix.
@@ -213,6 +221,18 @@ export async function findClubsWithCount(
                 chainSlug: club.chain?.slug ?? null,
                 chainLocationCount:
                     chainLocationCountByFlagship.get(club.id) ?? null,
+                clubType: club.clubType,
+                programmingPrimaryShowType:
+                    club.discoveryProfile?.primaryShowType ?? null,
+                programmingMixed:
+                    club.discoveryProfile?.mixedProgramming ?? false,
+                programmingLabel: getClubProgrammingLabel({
+                    clubType: club.clubType,
+                    primaryShowType:
+                        club.discoveryProfile?.primaryShowType ?? null,
+                    mixedProgramming:
+                        club.discoveryProfile?.mixedProgramming ?? false,
+                }),
             })),
             totalCount,
         };

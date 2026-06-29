@@ -5,6 +5,10 @@ import { SearchParams } from "@/objects/interface/showSearch.interface";
 import { toZonedTime, fromZonedTime, format } from "date-fns-tz";
 import { resolveLocationInput } from "@/util/location/resolveLocation";
 import { SortParamValue } from "@/objects/enum/sortParamValue";
+import {
+    CLUB_PROGRAMMING_CLUB_TYPE_FILTER_SLUGS,
+    MIXED_PROGRAMMING_FILTER_SLUG,
+} from "@/lib/club/programmingLabels";
 
 /**
  * Synthetic slug reserved inside the `filters` URL CSV that flags the Free
@@ -20,7 +24,6 @@ import { SortParamValue } from "@/objects/enum/sortParamValue";
  * qualifies, since the user wants to discover that a free option exists.
  */
 export const FREE_FILTER_SLUG = "free";
-export const MIXED_PROGRAMMING_FILTER_SLUG = "mixed_programming";
 
 const SHOW_TYPE_FILTER_SLUGS = new Set([
     "class_workshop",
@@ -34,6 +37,9 @@ const SHOW_TYPE_FILTER_SLUGS = new Set([
     "theater",
     "variety",
 ]);
+const CLUB_TYPE_FILTER_SLUGS: ReadonlySet<string> = new Set(
+    CLUB_PROGRAMMING_CLUB_TYPE_FILTER_SLUGS,
+);
 
 function parseFilterSlugs(filters: string | null | undefined): string[] {
     if (!filters) return [];
@@ -252,6 +258,7 @@ export class QueryHelper {
         const tagSlugs = parseFilterSlugs(this.params.filters).filter(
             (slug) =>
                 !SHOW_TYPE_FILTER_SLUGS.has(slug) &&
+                !CLUB_TYPE_FILTER_SLUGS.has(slug) &&
                 slug !== MIXED_PROGRAMMING_FILTER_SLUG,
         );
 
@@ -307,6 +314,22 @@ export class QueryHelper {
                         ? profileClauses[0]
                         : { OR: profileClauses },
             },
+        };
+    }
+
+    getClubTypeFiltersClause() {
+        const clubTypeSlugs = parseFilterSlugs(this.params.filters).filter(
+            (slug) => CLUB_TYPE_FILTER_SLUGS.has(slug),
+        );
+
+        if (clubTypeSlugs.length === 0) {
+            return {
+                clubType: { not: "festival" },
+            };
+        }
+
+        return {
+            clubType: { in: clubTypeSlugs },
         };
     }
 

@@ -21,6 +21,7 @@ import {
     searchFilterChipClassName,
     searchFilterChipCompactClassName,
 } from "@/ui/components/params/search/filterChipStyles";
+import { getClubProgrammingFilterOptions } from "@/lib/club/programmingLabels";
 
 // Variants that use infinite scroll — no pagination controls needed
 const INFINITE_SCROLL_VARIANTS = new Set([
@@ -91,8 +92,15 @@ const FilterBar = ({
     );
 
     const activeFilters = useMemo(
-        () => filterData.filter((f) => selectedSlugs.includes(f.slug)),
-        [filterData, selectedSlugs],
+        () => [
+            ...(isClubSearch
+                ? getClubProgrammingFilterOptions(filtersParam).filter((f) =>
+                      selectedSlugs.includes(f.slug),
+                  )
+                : []),
+            ...filterData.filter((f) => selectedSlugs.includes(f.slug)),
+        ],
+        [filterData, filtersParam, isClubSearch, selectedSlugs],
     );
 
     // Comedian search exposes rich modal filters (zip, dates, min-shows) that
@@ -105,7 +113,10 @@ const FilterBar = ({
         : 0;
     const filterButtonCount = activeFilters.length + advancedFilterCount;
     const showFilterButton =
-        filterData.length > 0 || isComedianSearch || isPodcastSearch;
+        filterData.length > 0 ||
+        isClubSearch ||
+        isComedianSearch ||
+        isPodcastSearch;
 
     const removeFilter = (slug: string) => {
         const updated = selectedSlugs.filter((s) => s !== slug).join(",");

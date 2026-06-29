@@ -10,6 +10,7 @@ import { useFilterModal } from "@/hooks";
 import ComedianAdvancedFilters from "./comedianAdvanced";
 import { useUrlParams } from "@/hooks/useUrlParams";
 import { QueryProperty } from "@/objects/enum";
+import ClubProgrammingFilters from "@/ui/components/club/clubProgrammingFilters";
 
 interface FilterModalProps {
     filters: FilterDTO[];
@@ -23,6 +24,7 @@ const FilterModal = ({ filters, total, variant }: FilterModalProps) => {
     const filterModal = useFilterModal();
     const { handleOpen, handleFilterChange, handleClose, selections } =
         useFilters(filters);
+    const isClubSearch = variant === SearchVariant.AllClubs;
     const isPodcastSearch = variant === SearchVariant.AllPodcasts;
 
     useEffect(() => {
@@ -52,6 +54,8 @@ const FilterModal = ({ filters, total, variant }: FilterModalProps) => {
             {variant === SearchVariant.AllComedians && (
                 <ComedianAdvancedFilters />
             )}
+
+            {isClubSearch && <ClubProgrammingFilters />}
 
             {isPodcastSearch && <PodcastAdvancedFilters />}
 
