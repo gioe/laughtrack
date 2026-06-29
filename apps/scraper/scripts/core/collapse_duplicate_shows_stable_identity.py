@@ -89,10 +89,21 @@ RECOVERY_LOG_PATH = _root / "docs" / "audits" / "task-3489-collapse-duplicate-sh
 # Stable-identity grouping. The sid branch is host- and date-agnostic (same
 # club + same /shows/<id> = one performance); the fallback branch is the exact
 # (club, date, room, name) same-slot key with NULL room folded to ''.
-_GROUP_KEY_SQL = """
+#
+# The sid branch is scoped to last_scraped_by='seatengine_classic' OR NULL and
+# uses the delimiter-anchored /shows/([0-9]+)(?:[/?#]|$) regex, mirroring the
+# handler reconciler (GET_SEATENGINE_CLASSIC_SHOWS_BY_CLUB /
+# _extract_seatengine_classic_show_id). Without that scope a non-SeatEngine
+# venue whose URL merely contains /shows/<digits> (where the id is not a
+# per-performance id) would have distinct showtimes grouped by (club, id) and
+# wrongly collapsed (TASK-3491). Such rows fall through to the (date, room,
+# name) same-slot key instead.
+_SEATENGINE_SHOW_ID_RE = "/shows/([0-9]+)(?:[/?#]|$)"
+_GROUP_KEY_SQL = f"""
     CASE
-        WHEN substring(show_page_url from '/shows/([0-9]+)') IS NOT NULL
-            THEN 'sid:' || club_id || ':' || substring(show_page_url from '/shows/([0-9]+)')
+        WHEN (last_scraped_by = 'seatengine_classic' OR last_scraped_by IS NULL)
+             AND substring(show_page_url from '{_SEATENGINE_SHOW_ID_RE}') IS NOT NULL
+            THEN 'sid:' || club_id || ':' || substring(show_page_url from '{_SEATENGINE_SHOW_ID_RE}')
         ELSE 'dt:' || club_id || ':'
              || to_char(date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS') || ':'
              || COALESCE(lower(trim(room)), '') || ':'
@@ -112,11 +123,17 @@ def _json_default(value: Any) -> str:
     return str(value)
 
 
-def _club_filter(club_id: Optional[int]) -> tuple[str, tuple]:
-    """Return a SQL predicate fragment + params scoping to one club (or all)."""
+def _club_filter(club_id: Optional[int], alias: Optional[str] = None) -> tuple[str, tuple]:
+    """Return a SQL predicate fragment + params scoping to one club (or all).
+
+    ``alias`` qualifies the column for queries that join ``shows`` under an alias
+    (e.g. ``alias='s'`` -> ``s.club_id = %s``). Passing it explicitly avoids
+    brittle string rewriting of the returned fragment at the call site.
+    """
     if club_id is None:
         return "TRUE", ()
-    return "club_id = %s", (club_id,)
+    column = f"{alias}.club_id" if alias else "club_id"
+    return f"{column} = %s", (club_id,)
 
 
 def _create_temp_show_map(cur: RealDictCursor, club_id: Optional[int]) -> None:
@@ -237,8 +254,11 @@ def _repoint_children_and_delete(cur: RealDictCursor) -> dict[str, int]:
     )
     counts["tickets_repointed"] = cur.rowcount
 
-    # Drop notifications that would violate the per-channel unique key, then move
-    # the rest onto the survivor.
+    # sent_notifications has a per-channel unique key
+    # (user_id, comedian_id, show_id, notification_type). Two deletes make the
+    # subsequent repoint UPDATE collision-proof:
+    #   1. Drop old-row notifications that collide with one ALREADY on the
+    #      survivor.
     cur.execute(
         """
         DELETE FROM sent_notifications sn
@@ -251,6 +271,26 @@ def _repoint_children_and_delete(cur: RealDictCursor) -> dict[str, int]:
         """
     )
     counts["conflicting_sent_notifications_deleted"] = cur.rowcount
+    #   2. Dedupe AMONG the multiple old rows mapping to the same survivor: keep
+    #      one per (new_show_id, user, comedian, notification_type). Without this
+    #      two old rows carrying the same channel both UPDATE to new_show_id and
+    #      violate the unique key (TASK-3491).
+    cur.execute(
+        """
+        DELETE FROM sent_notifications sn
+        USING (
+            SELECT s2.id,
+                   ROW_NUMBER() OVER (
+                       PARTITION BY m.new_show_id, s2.user_id, s2.comedian_id, s2.notification_type
+                       ORDER BY s2.id
+                   ) AS rn
+            FROM sent_notifications s2
+            JOIN task_3489_show_map m ON m.old_show_id = s2.show_id
+        ) dups
+        WHERE sn.id = dups.id AND dups.rn > 1
+        """
+    )
+    counts["intra_group_sent_notifications_deleted"] = cur.rowcount
     cur.execute(
         """
         UPDATE sent_notifications sn
@@ -292,13 +332,13 @@ def _normalize_safe_null_rooms(cur: RealDictCursor, club_id: Optional[int]) -> i
     forcing both to '' would collide on shows_club_id_date_room_key. Those are
     reported separately as needing manual room assignment.
     """
-    where, params = _club_filter(club_id)
+    where, params = _club_filter(club_id, alias="s")
     cur.execute(
         f"""
         UPDATE shows s
         SET room = ''
         WHERE s.room IS NULL
-          AND {where.replace('club_id', 's.club_id')}
+          AND {where}
           AND NOT EXISTS (
               SELECT 1 FROM shows o
               WHERE o.club_id = s.club_id
@@ -364,11 +404,15 @@ def run(*, apply: bool, club_id: Optional[int]) -> dict[str, Any]:
                 "after": after,
             }
 
-            if apply:
-                _write_recovery_log(payload)
-            else:
+            if not apply:
                 conn.rollback()
-            return payload
+
+    # Write the recovery log only AFTER the transaction has committed cleanly on
+    # context-manager exit — so an applied=true log is never written for a run
+    # whose commit later failed (TASK-3491).
+    if apply:
+        _write_recovery_log(payload)
+    return payload
 
 
 def _write_recovery_log(payload: dict[str, Any]) -> None:
