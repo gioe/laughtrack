@@ -18,6 +18,7 @@ from psycopg2.extras import DictRow
 from sql.show_queries import ShowQueries
 
 from laughtrack.foundation.models.operation_result import DatabaseOperationResult
+from laughtrack.utilities.domain.show.classifier import apply_show_type
 from laughtrack.utilities.domain.show.utils import ShowUtils
 from laughtrack.utilities.domain.show.validator import ShowValidator
 from laughtrack.foundation.infrastructure.database.operation import DatabaseOperationLogger
@@ -263,6 +264,11 @@ class ShowHandler(BaseDatabaseHandler[Show]):
         inserts = sum(1 for result in show_results if result.get("operation_type", "") == self.OPERATION_TYPE_INSERTED)
         updates = sum(1 for result in show_results if result.get("operation_type", "") == self.OPERATION_TYPE_UPDATED)
         return inserts, updates
+
+    def _classify_missing_show_types(self, batch: List[Show]) -> None:
+        """Classify shows at the write boundary while preserving explicit values."""
+        for show in batch:
+            apply_show_type(show)
 
     def _build_items_and_template(self, batch: List[Show]) -> Tuple[List[tuple], str]:
         """Build batch items and the dynamic template for batch insertion."""
@@ -607,6 +613,8 @@ class ShowHandler(BaseDatabaseHandler[Show]):
         if not batch:
             Logger.info("No shows to process in batch")
             return DatabaseOperationResult()
+
+        self._classify_missing_show_types(batch)
 
         # Validate at the write boundary so bad scraper output cannot reach the database.
         batch, validation_errors = ShowValidator.validate_shows(batch)
