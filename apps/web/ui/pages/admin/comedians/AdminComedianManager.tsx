@@ -45,6 +45,7 @@ type ProfileEdit = {
     instagramAccount: string;
     tiktokAccount: string;
     youtubeAccount: string;
+    youtubeChannelId: string;
     linktree: string;
 };
 
@@ -300,6 +301,7 @@ export default function AdminComedianManager({ comedians }: Props) {
             instagramAccount: profileFieldValue(row, "instagramAccount"),
             tiktokAccount: profileFieldValue(row, "tiktokAccount"),
             youtubeAccount: profileFieldValue(row, "youtubeAccount"),
+            youtubeChannelId: profileFieldValue(row, "youtubeChannelId"),
             linktree: profileFieldValue(row, "linktree"),
         };
     }
@@ -310,6 +312,7 @@ export default function AdminComedianManager({ comedians }: Props) {
         "instagramAccount",
         "tiktokAccount",
         "youtubeAccount",
+        "youtubeChannelId",
         "linktree",
     ];
 
@@ -450,6 +453,9 @@ export default function AdminComedianManager({ comedians }: Props) {
                     ),
                     youtubeAccount: normalizedUrl(
                         profileFieldValue(row, "youtubeAccount"),
+                    ),
+                    youtubeChannelId: normalizedUrl(
+                        profileFieldValue(row, "youtubeChannelId"),
                     ),
                     linktree: normalizedUrl(profileFieldValue(row, "linktree")),
                 }),
@@ -1562,6 +1568,30 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                                 )
                                                             }
                                                             placeholder="@handle or channel id"
+                                                            className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                        />
+                                                    </label>
+                                                    <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                        YouTube channel ID
+                                                        <input
+                                                            aria-label="Comedian YouTube channel ID"
+                                                            type="text"
+                                                            value={profileFieldValue(
+                                                                row,
+                                                                "youtubeChannelId",
+                                                            )}
+                                                            onChange={(event) =>
+                                                                updateProfileEdit(
+                                                                    row,
+                                                                    {
+                                                                        youtubeChannelId:
+                                                                            event
+                                                                                .target
+                                                                                .value,
+                                                                    },
+                                                                )
+                                                            }
+                                                            placeholder="UC..."
                                                             className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
                                                         />
                                                     </label>
