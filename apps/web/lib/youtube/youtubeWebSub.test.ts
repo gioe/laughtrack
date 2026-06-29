@@ -7,7 +7,7 @@ describe("parseYouTubeWebSubFeed", () => {
         const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <feed xmlns:yt="http://www.youtube.com/xml/schemas/2015" xmlns="http://www.w3.org/2005/Atom">
   <link rel="hub" href="https://pubsubhubbub.appspot.com"/>
-  <link rel="self" href="https://www.youtube.com/xml/feeds/videos.xml?channel_id=UC-live-channel"/>
+  <link rel="self" href="https://www.youtube.com/feeds/videos.xml?channel_id=UC-live-channel"/>
   <entry>
     <id>yt:video:abc123</id>
     <yt:videoId>abc123</yt:videoId>

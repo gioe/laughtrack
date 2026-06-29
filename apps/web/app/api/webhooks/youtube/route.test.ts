@@ -81,7 +81,7 @@ describe("GET /api/webhooks/youtube", () => {
             makeGetRequest({
                 "hub.mode": "subscribe",
                 "hub.topic":
-                    "https://www.youtube.com/xml/feeds/videos.xml?channel_id=UC-live-channel",
+                    "https://www.youtube.com/feeds/videos.xml?channel_id=UC-live-channel",
                 "hub.challenge": "challenge-token",
             }),
         );
@@ -96,7 +96,7 @@ describe("GET /api/webhooks/youtube", () => {
             makeGetRequest({
                 "hub.mode": "subscribe",
                 "hub.topic":
-                    "https://www.youtube.com/xml/feeds/videos.xml?channel_id=UC-live-channel",
+                    "https://www.youtube.com/feeds/videos.xml?channel_id=UC-live-channel",
             }),
         );
 

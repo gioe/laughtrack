@@ -1,6 +1,6 @@
 const YOUTUBE_WEBSUB_HUB_URL = "https://pubsubhubbub.appspot.com/";
 const YOUTUBE_CHANNEL_FEED_URL =
-    "https://www.youtube.com/xml/feeds/videos.xml";
+    "https://www.youtube.com/feeds/videos.xml";
 const YOUTUBE_WEBSUB_CALLBACK_PATH = "/api/webhooks/youtube";
 
 type FetchFn = (input: string, init?: RequestInit) => Promise<Response>;

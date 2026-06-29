@@ -26,7 +26,7 @@ Verified alternate venue names that resolve to one canonical Club before scraper
 Published image assets for a club from the admin club-image pipeline. Rows preserve the source image URL, Bunny storage paths for original/icon/hero variants, image metadata, and whether the row is the active public asset. `Club.hasImage` remains the migration-era public compatibility flag; URL builders still use the legacy name-keyed Bunny paths for existing club images while publishes can retain versioned asset history.
 
 ### Comedian
-Individual comedian. Has social media stats, popularity, alternate names (aliases), favorites, lineup appearances, and optional canonical YouTube channel id for WebSub live notifications. `youtubeAccount` is the user-facing handle/account value; `youtubeChannelId` stores the canonical channel id used in `https://www.youtube.com/xml/feeds/videos.xml?channel_id=...` topics.
+Individual comedian. Has social media stats, popularity, alternate names (aliases), favorites, lineup appearances, and optional canonical YouTube channel id for WebSub live notifications. `youtubeAccount` is the user-facing handle/account value; `youtubeChannelId` stores the canonical channel id used in `https://www.youtube.com/feeds/videos.xml?channel_id=...` topics.
 
 ### ComedianImageAsset
 Published image assets for a comedian from the official-site image pipeline. Rows preserve the source image URL, Bunny storage paths for original/avatar/hero variants, image metadata, and whether the row is the active public asset. `Comedian.hasImage` remains the migration-era public compatibility flag; URL builders prefer the active stable asset paths when present and fall back to the legacy name-based PNG path while older assets are still in use.

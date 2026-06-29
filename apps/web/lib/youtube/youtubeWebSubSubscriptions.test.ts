@@ -62,7 +62,7 @@ describe("renewYouTubeWebSubSubscriptions", () => {
             new URLSearchParams({
                 "hub.mode": "subscribe",
                 "hub.topic":
-                    "https://www.youtube.com/xml/feeds/videos.xml?channel_id=UC-one",
+                    "https://www.youtube.com/feeds/videos.xml?channel_id=UC-one",
                 "hub.callback": "https://laugh-track.com/api/webhooks/youtube",
                 "hub.verify": "async",
             }),
@@ -72,7 +72,7 @@ describe("renewYouTubeWebSubSubscriptions", () => {
                 "hub.topic",
             ),
         ).toBe(
-            "https://www.youtube.com/xml/feeds/videos.xml?channel_id=UC-two",
+            "https://www.youtube.com/feeds/videos.xml?channel_id=UC-two",
         );
         expect(result).toEqual({
             total: 2,
@@ -209,7 +209,7 @@ describe("renewYouTubeWebSubSubscriptions", () => {
             }),
         ).toBe("https://laugh-track.com/api/webhooks/youtube");
         expect(buildYouTubeFeedTopicUrl("UC-one/two")).toBe(
-            "https://www.youtube.com/xml/feeds/videos.xml?channel_id=UC-one%2Ftwo",
+            "https://www.youtube.com/feeds/videos.xml?channel_id=UC-one%2Ftwo",
         );
     });
 });
