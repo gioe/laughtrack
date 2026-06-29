@@ -67,6 +67,65 @@ def _query(label: str, sql: str, limit_rows: int | None = None) -> None:
         print(f"... ({len(rows) - limit_rows} more rows)")
 
 
+def _run_health_cls(population_cte: str) -> str:
+    """Wrap a `pop(club_id, name, platform, scraper_key)` CTE with run-health
+    classification by joining ``scraper_run_clubs`` (TASK-3520).
+
+    A bare "0 upcoming shows" or "stale last_scraped_date" signal cannot tell a
+    genuinely broken scraper apart from a healthy-but-empty one, because
+    ``shows.last_scraped_date`` only refreshes when a show is written — a venue
+    whose nightly succeeds with 0 events never updates it (TASK-3512). And a club
+    fed by an aggregate scraper (eventbrite organizer / ticketmaster_national)
+    has 0 per-club ``scraper_run_clubs`` rows despite fresh coverage (TASK-3518).
+    This classifies each club in ``pop`` by its actual run history:
+
+    - ``never_run``                 — 0 ``scraper_run_clubs`` rows. The genuine
+      coverage gap (visible+active+enabled source that never ran directly). NB:
+      aggregate-covered venue clubs are excluded by the callers' ``0 upcoming
+      shows`` is FALSE (they have shows), so they don't reach here.
+    - ``broken_bot_block``          — most recent run was bot-blocked (DataDome
+      etc.). Real breakage; coordinate with the proxy/reprobe path.
+    - ``broken_error``              — most recent run failed (success=false).
+    - ``dormant_recently_productive`` — recent runs succeeded and produced shows
+      in the last 30d but there are 0 upcoming now. Usually a month-boundary /
+      current-window source (e.g. json_ld calendars that expose only the current
+      month) that self-heals, or shows that just expired (TASK-3513). NOT dead.
+    - ``dormant_dark``              — recent runs succeeded but produced 0 shows
+      in 30d: a real venue with no current programming on its source (TASK-3512's
+      5 seatengine clubs). NOT a broken scraper.
+
+    Only the ``never_run`` / ``broken_*`` buckets are usually actionable; the
+    ``dormant_*`` buckets are healthy. See conventions #293 / #294.
+    """
+    return f"""
+    WITH {population_cte}
+    rs AS (
+        SELECT
+            pop.*,
+            (SELECT COUNT(*) FROM scraper_run_clubs r WHERE r.club_id = pop.club_id) AS runs,
+            (SELECT r.success FROM scraper_run_clubs r
+                WHERE r.club_id = pop.club_id ORDER BY r.created_at DESC LIMIT 1) AS last_success,
+            (SELECT r.bot_block_detected FROM scraper_run_clubs r
+                WHERE r.club_id = pop.club_id ORDER BY r.created_at DESC LIMIT 1) AS last_block,
+            (SELECT COALESCE(MAX(r.num_shows), 0) FROM scraper_run_clubs r
+                WHERE r.club_id = pop.club_id AND r.created_at > NOW() - INTERVAL '30 days') AS max_shows_30d
+        FROM pop
+    ),
+    cls AS (
+        SELECT
+            rs.*,
+            CASE
+                WHEN runs = 0              THEN 'never_run'
+                WHEN last_block            THEN 'broken_bot_block'
+                WHEN last_success IS FALSE THEN 'broken_error'
+                WHEN max_shows_30d > 0     THEN 'dormant_recently_productive'
+                ELSE                            'dormant_dark'
+            END AS classification
+        FROM rs
+    )
+    """
+
+
 # ---------------------------------------------------------------------------
 # 1. Inventory
 # ---------------------------------------------------------------------------
@@ -168,6 +227,40 @@ _query("Sample dead-source clubs (first 25)", """
     LIMIT 25
 """)
 
+# The raw "dead source" count above over-reports: it cannot tell a broken
+# scraper from a healthy-but-empty venue. Classify by run health so the
+# actionable buckets (never_run / broken_*) are separated from the healthy
+# dormant ones (TASK-3520; conventions #293/#294).
+_DEAD_POP = """
+    pop AS (
+        SELECT c.id AS club_id, c.name,
+               MIN(ss.platform::text) AS platform, MIN(ss.scraper_key) AS scraper_key
+        FROM scraping_sources ss
+        JOIN clubs c ON c.id = ss.club_id
+        WHERE ss.enabled AND c.visible AND c.status = 'active'
+          AND NOT EXISTS (SELECT 1 FROM shows s WHERE s.club_id = ss.club_id AND s.date >= NOW())
+        GROUP BY c.id, c.name
+    ),
+"""
+
+_query(
+    "Dead sources classified by run health (only never_run / broken_* are actionable)",
+    _run_health_cls(_DEAD_POP)
+    + "SELECT classification, COUNT(*) AS clubs FROM cls GROUP BY classification ORDER BY clubs DESC",
+)
+
+_query(
+    "Actionable dead sources (never_run + broken_*) — sample",
+    _run_health_cls(_DEAD_POP)
+    + """
+    SELECT classification, platform, scraper_key, club_id, name
+    FROM cls
+    WHERE classification = 'never_run' OR classification LIKE 'broken_%'
+    ORDER BY classification, club_id
+    LIMIT 40
+    """,
+)
+
 # ---------------------------------------------------------------------------
 # 4. Stale scrapes
 # ---------------------------------------------------------------------------
@@ -193,6 +286,42 @@ _query("Per-platform: oldest scrape touch on any club's shows", """
     GROUP BY platform
     ORDER BY stale_7d DESC, platform
 """)
+
+# stale_30d above is NOT a "scraper is dead" signal on its own: shows.last_scraped_date
+# only refreshes when a show is written, so a venue whose nightly succeeds with 0
+# events stays "stale" forever (TASK-3512: 5 seatengine clubs flagged stale_30d all
+# had 27 successful runs, 0 events, no bot-block). Classify the stale_30d population
+# by run health — dormant_* are healthy, only never_run / broken_* are real breakage.
+_STALE_POP = """
+    pop AS (
+        SELECT c.id AS club_id, c.name,
+               MIN(ss.platform::text) AS platform, MIN(ss.scraper_key) AS scraper_key
+        FROM scraping_sources ss
+        JOIN clubs c ON c.id = ss.club_id
+        WHERE ss.enabled
+          AND (SELECT MAX(s.last_scraped_date) FROM shows s WHERE s.club_id = ss.club_id)
+              < NOW() - INTERVAL '30 days'
+        GROUP BY c.id, c.name
+    ),
+"""
+
+_query(
+    "stale_30d clubs classified by run health (dormant_* are healthy, not dead)",
+    _run_health_cls(_STALE_POP)
+    + "SELECT classification, COUNT(*) AS clubs FROM cls GROUP BY classification ORDER BY clubs DESC",
+)
+
+_query(
+    "Stale clubs that are actually broken (never_run + broken_*) — sample",
+    _run_health_cls(_STALE_POP)
+    + """
+    SELECT classification, platform, scraper_key, club_id, name
+    FROM cls
+    WHERE classification = 'never_run' OR classification LIKE 'broken_%'
+    ORDER BY classification, club_id
+    LIMIT 40
+    """,
+)
 
 # ---------------------------------------------------------------------------
 # 5. Show data quality
