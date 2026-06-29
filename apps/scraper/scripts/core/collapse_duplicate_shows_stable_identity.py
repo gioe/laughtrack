@@ -182,16 +182,20 @@ def _sample_axis_b(cur: RealDictCursor, limit: int = 10) -> list[dict[str, Any]]
     These are the domain-rebrand / start-time-drift collapses (the Fort
     Lauderdale Improv case); surfaced so a reviewer can eyeball them.
     """
+    # Match the actual sid grouping (scope + anchored regex) so this diagnostic
+    # can't mislabel a coincidental dt-group whose URL merely contains
+    # /shows/<digits> as a SeatEngine group.
     cur.execute(
-        """
+        f"""
         SELECT s.club_id,
-               substring(s.show_page_url from '/shows/([0-9]+)') AS seatengine_show_id,
+               substring(s.show_page_url from '{_SEATENGINE_SHOW_ID_RE}') AS seatengine_show_id,
                COUNT(*) AS rows_collapsed,
                COUNT(DISTINCT s.date) AS distinct_dates,
                array_agg(DISTINCT s.show_page_url) AS urls
         FROM task_3489_show_map m
         JOIN shows s ON s.id = m.old_show_id
-        WHERE substring(s.show_page_url from '/shows/([0-9]+)') IS NOT NULL
+        WHERE (s.last_scraped_by = 'seatengine_classic' OR s.last_scraped_by IS NULL)
+          AND substring(s.show_page_url from '{_SEATENGINE_SHOW_ID_RE}') IS NOT NULL
         GROUP BY 1, 2
         HAVING COUNT(DISTINCT s.date) > 1
         ORDER BY rows_collapsed DESC
