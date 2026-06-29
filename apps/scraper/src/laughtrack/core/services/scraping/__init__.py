@@ -97,6 +97,13 @@ _EXECUTOR_SHUTDOWN_TIMEOUT = 30
 _DEFAULT_PER_CLUB_TIMEOUT = 180
 _PER_SCRAPER_TIMEOUT_OVERRIDES: Dict[str, int] = {
     "seatengine_classic": 240,
+    # comedy_store scrapes 60 day-pages and then enriches each show's price by
+    # resolving its ShowClix slug page to a numeric id and calling the seated
+    # API (capped at 10 concurrent). A busy 60-day window carries ~280 shows, so
+    # that fan-out runs ~275s end-to-end — over the 180s default, which made the
+    # orchestrator persist 0 shows while the scrape coroutine finished orphaned
+    # (the venue silently went stale for weeks). 600s gives comfortable headroom.
+    "comedy_store": 600,
     # ticketmaster_national is a single "club" that discovers comedy events
     # across the whole US: it upserts ~1k venue rows AND persists ~10k shows
     # itself (in chunks — see TicketmasterNationalScraper._persist_in_chunks),
