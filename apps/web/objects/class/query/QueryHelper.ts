@@ -20,6 +20,28 @@ import { SortParamValue } from "@/objects/enum/sortParamValue";
  * qualifies, since the user wants to discover that a free option exists.
  */
 export const FREE_FILTER_SLUG = "free";
+export const MIXED_PROGRAMMING_FILTER_SLUG = "mixed_programming";
+
+const SHOW_TYPE_FILTER_SLUGS = new Set([
+    "class_workshop",
+    "improv",
+    "music",
+    "musical_comedy",
+    "open_mic",
+    "podcast",
+    "sketch",
+    "standup",
+    "theater",
+    "variety",
+]);
+
+function parseFilterSlugs(filters: string | null | undefined): string[] {
+    if (!filters) return [];
+    return filters
+        .split(",")
+        .map((slug) => slug.trim())
+        .filter(Boolean);
+}
 
 /**
  * Exact-match check for FREE_FILTER_SLUG inside a `filters` CSV. Required
@@ -30,8 +52,7 @@ export const FREE_FILTER_SLUG = "free";
 export function isFreeFilterSelected(
     filters: string | null | undefined,
 ): boolean {
-    if (!filters) return false;
-    return filters.split(",").some((slug) => slug === FREE_FILTER_SLUG);
+    return parseFilterSlugs(filters).some((slug) => slug === FREE_FILTER_SLUG);
 }
 
 type SortEntry = {
@@ -228,9 +249,13 @@ export class QueryHelper {
     }
 
     getClubFiltersClause() {
-        const filters = this.params.filters;
+        const tagSlugs = parseFilterSlugs(this.params.filters).filter(
+            (slug) =>
+                !SHOW_TYPE_FILTER_SLUGS.has(slug) &&
+                slug !== MIXED_PROGRAMMING_FILTER_SLUG,
+        );
 
-        if (!filters) {
+        if (tagSlugs.length === 0) {
             return {};
         }
 
@@ -241,7 +266,7 @@ export class QueryHelper {
                         some: {
                             tag: {
                                 slug: {
-                                    in: filters.split(","),
+                                    in: tagSlugs,
                                 },
                                 type: "club",
                             },
@@ -249,6 +274,39 @@ export class QueryHelper {
                     },
                 },
             ],
+        };
+    }
+
+    getClubDiscoveryProfileFiltersClause() {
+        const filterSlugs = parseFilterSlugs(this.params.filters);
+        const showTypeSlugs = filterSlugs.filter((slug) =>
+            SHOW_TYPE_FILTER_SLUGS.has(slug),
+        );
+        const useMixedProgramming = filterSlugs.includes(
+            MIXED_PROGRAMMING_FILTER_SLUG,
+        );
+
+        if (showTypeSlugs.length === 0 && !useMixedProgramming) {
+            return {};
+        }
+
+        const profileClauses: Record<string, unknown>[] = [];
+        if (showTypeSlugs.length > 0) {
+            profileClauses.push({
+                primaryShowType: { in: showTypeSlugs },
+            });
+        }
+        if (useMixedProgramming) {
+            profileClauses.push({ mixedProgramming: true });
+        }
+
+        return {
+            discoveryProfile: {
+                is:
+                    profileClauses.length === 1
+                        ? profileClauses[0]
+                        : { OR: profileClauses },
+            },
         };
     }
 
@@ -269,18 +327,10 @@ export class QueryHelper {
 
     // Shows
     getShowTagsClause() {
-        const tags = this.params.filters;
-
-        if (!tags) {
-            return {};
-        }
-
-        // FREE_FILTER_SLUG is not a real Tag — it's a synthetic flag handled
-        // by getFreeShowsClause. Drop it before querying taggedShows so a CSV
-        // of just "free" doesn't AND in an empty-result tag predicate.
-        const tagSlugs = tags
-            .split(",")
-            .filter((slug) => slug && slug !== FREE_FILTER_SLUG);
+        const tagSlugs = parseFilterSlugs(this.params.filters).filter(
+            (slug) =>
+                slug !== FREE_FILTER_SLUG && !SHOW_TYPE_FILTER_SLUGS.has(slug),
+        );
 
         if (tagSlugs.length === 0) {
             return {};
@@ -301,6 +351,22 @@ export class QueryHelper {
                     },
                 },
             ],
+        };
+    }
+
+    getShowTypeClause() {
+        const showTypeSlugs = parseFilterSlugs(this.params.filters).filter(
+            (slug) => SHOW_TYPE_FILTER_SLUGS.has(slug),
+        );
+
+        if (showTypeSlugs.length === 0) {
+            return {};
+        }
+
+        return {
+            showType: {
+                in: showTypeSlugs,
+            },
         };
     }
 

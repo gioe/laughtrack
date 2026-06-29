@@ -120,6 +120,8 @@ export async function findClubsWithCount(
             clubType: { not: "festival" },
             ...queryHelper.getClubNameClause(),
             ...queryHelper.getClubFiltersClause(),
+            // clubDiscoveryProfile-backed programming filters are derived from persisted show_type mix.
+            ...queryHelper.getClubDiscoveryProfileFiltersClause(),
             ...queryHelper.getChainClause(),
             ...(!includeEmpty && {
                 shows: { some: { date: { gt: now } } },
