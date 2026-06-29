@@ -224,12 +224,29 @@ model Club {
   aliases                 ClubAlias[]
   favorites               FavoriteClub[]
   imageAssets             ClubImageAsset[]
+  discoveryProfile        ClubDiscoveryProfile?
   ticketPurchaseClicks    TicketPurchaseClickEvent[]
   homeComedians           Comedian[]                 @relation("ComedianHomeClub")
 
   @@index([visible])
   @@index([chainId])
   @@map("clubs")
+}
+
+model ClubDiscoveryProfile {
+  clubId             Int      @id @map("club_id")
+  primaryShowType    String?  @map("primary_show_type")
+  showTypeCounts     Json     @default("{}") @map("show_type_counts")
+  comedyShowCount    Int      @default(0) @map("comedy_show_count")
+  nonComedyShowCount Int      @default(0) @map("non_comedy_show_count")
+  mixedProgramming   Boolean  @default(false) @map("mixed_programming")
+  confidence         Float    @default(0)
+  computedAt         DateTime @default(now()) @map("computed_at") @db.Timestamptz
+  club               Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@index([primaryShowType])
+  @@index([mixedProgramming])
+  @@map("club_discovery_profiles")
 }
 
 model ClubAlias {

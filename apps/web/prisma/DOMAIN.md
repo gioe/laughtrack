@@ -10,6 +10,9 @@ A comedy club chain/brand (e.g., Improv, Helium, Funny Bone). Groups multiple Cl
 ### Club
 Comedy club venue. Has shows, tags, email subscriptions, and processed emails. Optionally belongs to a Chain via chainId FK. `clubType` is the accepted venue taxonomy: `club` for comedy-first fixed venues, `venue` for mixed-purpose physical hosts with real comedy programming, `festival` for seasonal comedy festivals, `producer` for organizer identities that are not public physical venues, `secret_location` for intentionally undisclosed venue placeholders, and `non_comedy` for hidden discovery placeholders that prevent re-inserting reviewed non-comedy venues. Only `festival` has scraper scheduling semantics today; all other values are classification metadata unless a caller explicitly opts into them. `googlePlaceId` caches the resolved Google Places identifier (text-searched by name + city/state) so the venue can be re-queried without re-resolving; `googlePlaceAttribution` stores the Google Places photo's required author attributions as a JSON array of `{displayName, uri, photoUri}` when a club image is sourced from Places rather than the club website. Both are populated server-side by the scraper's `source_club_images` job — `GOOGLE_PLACES_API_KEY` is read only in the scraper and is never exposed to the web client.
 
+### ClubDiscoveryProfile
+Derived club-level programming summary used for discovery and filtering. One row per Club stores the dominant `primaryShowType`, raw `showTypeCounts`, comedy and non-comedy classified show counts, whether the club has mixed programming, a 0–1 confidence score, and `computedAt`. This table is derived from `shows.showType`; do not treat it as manually-authored venue identity. `clubs.clubType` remains the operational venue/entity taxonomy, while ClubDiscoveryProfile describes the current show mix for user-facing discovery.
+
 ### VenueDenyList
 Reviewed venue discovery rejection keyed by Google Places id. `reason` remains the human-readable audit note, while `googlePrimaryType` stores Google's structured primary type when known and `evidence` stores machine-readable triage details such as legacy reason text, matched club id/type, calendar evidence, or source workflow. `discover-nearby` uses this table to classify denied venues and preserve non-comedy evidence instead of resurfacing them as generic new club candidates.
 
@@ -47,7 +50,7 @@ Accepted or pending graph edge connecting a comedian to a specific podcast episo
 Review queue and audit log for candidate episode appearances. Stores accepted and rejected candidates with source episode ids, confidence, evidence, review status, reviewer, role, and optional canonical episode linkage.
 
 ### Show
-A comedy show at a club on a date. Has lineup items, tickets, and tags. `firstDiscoveredAt` is set by the database default when a scraper inserts a new show and is preserved on later upserts; historical rows may be null so notification candidate queries can exclude pre-existing backlog.
+A comedy show at a club on a date. Has lineup items, tickets, and tags. `showType` is the normalized programming classifier used to derive ClubDiscoveryProfile rows; `unknown` means classification was attempted without enough evidence, while null means unclassified legacy or not-yet-processed data. `firstDiscoveredAt` is set by the database default when a scraper inserts a new show and is preserved on later upserts; historical rows may be null so notification candidate queries can exclude pre-existing backlog.
 
 ### Ticket
 A ticket option for a show (price, purchase URL, type, sold-out flag).
