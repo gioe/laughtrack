@@ -696,6 +696,9 @@ class TestUpsertForTicketmasterVenueAddressDedup:
     """ticketmaster_national must reuse canonical clubs by normalized street
     address only when the name also corroborates the match."""
 
+    def _normalized(self, sql: str) -> str:
+        return " ".join(sql.split()).upper()
+
     def _tm_venue(self, name, street="203 N Genesee St", city="Waukegan", state="IL"):
         return {
             "id": "TM-" + name.lower().replace(" ", "-"),
@@ -754,6 +757,12 @@ class TestUpsertForTicketmasterVenueAddressDedup:
         assert result is None
         assert mock_exec.call_count == 2
         assert mock_exec.call_args_list[1].args[0] == ClubQueries.GET_CLUBS_BY_NORMALIZED_STREET_ADDRESS
+
+    def test_address_lookup_does_not_require_existing_enabled_source(self):
+        sql = self._normalized(ClubQueries.GET_CLUBS_BY_NORMALIZED_STREET_ADDRESS)
+
+        assert "LEFT JOIN LATERAL" in sql
+        assert "JOIN LATERAL ( SELECT SS.ID" not in sql
 
 
 class TestUpsertForEventbriteVenueConflict:

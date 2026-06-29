@@ -92,6 +92,12 @@ class ClubQueries:
         { _PRIMARY_SOURCE_LATERAL }
     """
 
+    _CLUB_SELECT_WITH_OPTIONAL_SOURCES = f"""
+        SELECT c.*, source_list.scraping_sources
+        FROM clubs c
+        { _SCRAPING_SOURCES_LATERAL }
+    """
+
     GET_ALL_CLUBS = f"""
         { _BASE_CLUB_SELECT }
         WHERE c.visible = TRUE
@@ -616,7 +622,7 @@ class ClubQueries:
     """
 
     GET_CLUBS_BY_NORMALIZED_STREET_ADDRESS = f"""
-        SELECT {_BASE_CLUB_SELECT}
+        {_CLUB_SELECT_WITH_OPTIONAL_SOURCES}
         WHERE c.visible = TRUE
           AND NULLIF(regexp_replace(lower(split_part(COALESCE(c.address, ''), ',', 1)), '[^a-z0-9]', '', 'g'), '') =
               NULLIF(regexp_replace(lower(%s), '[^a-z0-9]', '', 'g'), '')
@@ -668,7 +674,7 @@ class ClubQueries:
                 END
             RETURNING club_id
         )
-        SELECT {_BASE_CLUB_SELECT}
+        {_CLUB_SELECT_WITH_OPTIONAL_SOURCES}
         JOIN input_source i ON i.club_id = c.id
     """
 
