@@ -46,3 +46,9 @@ def test_batch_insert_show_writes_and_updates_show_type():
 
     assert "show_type" in insert_columns
     assert "show_type = EXCLUDED.show_type" in conflict_update
+
+
+def test_get_show_details_selects_show_type():
+    select_clause = ShowQueries.GET_SHOW_DETAILS.split("FROM shows", maxsplit=1)[0]
+
+    assert "show_type" in select_clause

@@ -14,7 +14,7 @@ class ShowQueries:
     
     GET_SHOW_DETAILS = """
         SELECT 
-            id, name, show_page_url, description, date, club_id, room, popularity
+            id, name, show_page_url, description, date, club_id, room, popularity, show_type
         FROM shows
         WHERE id = ANY(%s)
         ORDER BY id;
