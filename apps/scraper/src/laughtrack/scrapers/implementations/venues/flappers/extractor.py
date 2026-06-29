@@ -112,10 +112,23 @@ class FlappersEventExtractor:
                     details.lineup_names.append(name)
 
         # --- Ticket tiers ---
+        # Multi-tier shows render <ul id="ticket_choices"> with one <li> per tier.
         ticket_list = soup.find("ul", id="ticket_choices")
         if ticket_list:
             for li in ticket_list.find_all("li"):
                 tier = FlappersEventExtractor._parse_ticket_card(li)
+                if tier:
+                    details.ticket_tiers.append(tier)
+
+        # Single-tier shows render #single_ticket_container (.single-summary)
+        # instead of the multi-tier list. Fall back to it when no tiers were found
+        # so the show still gets a price.
+        if not details.ticket_tiers:
+            single = soup.find(id="single_ticket_container") or soup.find(
+                "div", class_="single-summary"
+            )
+            if single:
+                tier = FlappersEventExtractor._parse_single_summary(single)
                 if tier:
                     details.ticket_tiers.append(tier)
 
@@ -160,6 +173,61 @@ class FlappersEventExtractor:
         if price_div:
             price_text = price_div.get_text(strip=True)
             price_match = _PRICE_RE.search(price_text)
+            if price_match:
+                price = float(price_match.group(1))
+
+        return FlappersTicketTier(
+            price=price,
+            ticket_type=ticket_type,
+            sold_out=sold_out,
+            remaining=remaining,
+        )
+
+    @staticmethod
+    def _parse_single_summary(container: Tag) -> Optional[FlappersTicketTier]:
+        """Parse a single-tier #single_ticket_container (.single-summary) block.
+
+        Markup:
+            <div class="single-summary" data-description="General Admission"
+                 data-left="75" id="single_ticket_container">
+              <div><div class="name">Ticket Type</div>
+                   <div class="muted">General Admission</div></div>
+              <div class="price">$30.00 + $5.00 Service Charge</div>
+            </div>
+
+        The price div may carry a trailing service charge ("$30.00 + $5.00
+        Service Charge"); we take the first dollar amount as the ticket price.
+        """
+        # Ticket type from data-description, falling back to the .muted label.
+        ticket_type = (container.get("data-description") or "").strip()
+        if not ticket_type:
+            muted = container.find("div", class_="muted")
+            if muted:
+                ticket_type = muted.get_text(strip=True)
+        ticket_type = ticket_type or "General Admission"
+
+        # Remaining tickets from data-left.
+        remaining = None
+        data_left = container.get("data-left", "")
+        if data_left:
+            try:
+                remaining = int(data_left)
+            except ValueError:
+                pass
+
+        # Sold out: explicit class, a soldout pill, or zero remaining.
+        classes = container.get("class") or []
+        sold_out = (
+            "is-soldout" in classes
+            or container.find(class_="soldout-pill") is not None
+            or remaining == 0
+        )
+
+        # Price from the first dollar amount in .price (ignore service charge).
+        price = 0.0
+        price_div = container.find("div", class_="price")
+        if price_div:
+            price_match = _PRICE_RE.search(price_div.get_text(strip=True))
             if price_match:
                 price = float(price_match.group(1))
 

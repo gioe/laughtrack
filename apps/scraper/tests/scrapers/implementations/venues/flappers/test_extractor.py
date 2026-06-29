@@ -82,6 +82,25 @@ def _detail_html(
     return f"<html><body>{lineup_html}{tiers_html}{desc_html}</body></html>"
 
 
+def _single_summary_html(
+    price_text: str = "$30.00 + $5.00 Service Charge",
+    desc: str = "General Admission",
+    data_left: str = "75",
+    sold_out: bool = False,
+) -> str:
+    """Single-tier #single_ticket_container layout (no <ul id='ticket_choices'>)."""
+    classes = "single-summary is-soldout" if sold_out else "single-summary"
+    return (
+        "<html><body>"
+        f'<div class="{classes}" id="single_ticket_container" '
+        f'data-description="{desc}" data-left="{data_left}">'
+        '<div><div class="name">Ticket Type</div>'
+        f'<div class="muted">{desc}</div></div>'
+        f'<div class="price">{price_text}</div>'
+        "</div></body></html>"
+    )
+
+
 # ---------------------------------------------------------------------------
 # extract_shows — calendar parsing
 # ---------------------------------------------------------------------------
@@ -264,6 +283,58 @@ class TestExtractShowDetails:
         assert details.lineup_names == []
         assert details.ticket_tiers == []
         assert details.description is None
+
+    # --- single-tier (#single_ticket_container) fallback ---
+
+    def test_single_summary_fallback_extracts_price(self):
+        """Single-tier shows render #single_ticket_container instead of the
+        multi-tier <ul id='ticket_choices'>; the price must still be captured."""
+        details = FlappersEventExtractor.extract_show_details(_single_summary_html())
+        assert len(details.ticket_tiers) == 1
+        tier = details.ticket_tiers[0]
+        assert tier.price == 30.0  # service charge ignored
+        assert tier.ticket_type == "General Admission"
+        assert tier.sold_out is False
+        assert tier.remaining == 75
+
+    def test_single_summary_price_without_service_charge(self):
+        details = FlappersEventExtractor.extract_show_details(
+            _single_summary_html(price_text="$22.50")
+        )
+        assert details.ticket_tiers[0].price == 22.5
+
+    def test_single_summary_sold_out_class(self):
+        details = FlappersEventExtractor.extract_show_details(
+            _single_summary_html(sold_out=True)
+        )
+        assert details.ticket_tiers[0].sold_out is True
+
+    def test_single_summary_zero_remaining_is_sold_out(self):
+        details = FlappersEventExtractor.extract_show_details(
+            _single_summary_html(data_left="0")
+        )
+        assert details.ticket_tiers[0].sold_out is True
+        assert details.ticket_tiers[0].remaining == 0
+
+    def test_single_summary_custom_ticket_type(self):
+        details = FlappersEventExtractor.extract_show_details(
+            _single_summary_html(desc="VIP Booth")
+        )
+        assert details.ticket_tiers[0].ticket_type == "VIP Booth"
+
+    def test_multi_tier_takes_precedence_over_single_summary(self):
+        """When both layouts are present, the multi-tier list wins and the
+        single-summary fallback must not double-count."""
+        multi = _detail_html(tiers=[{"price": "25.00", "desc": "General Admission"}])
+        combined = multi.replace(
+            "</body>",
+            '<div class="single-summary" id="single_ticket_container" '
+            'data-description="General Admission" data-left="10">'
+            '<div class="price">$25.00</div></div></body>',
+        )
+        details = FlappersEventExtractor.extract_show_details(combined)
+        assert len(details.ticket_tiers) == 1
+        assert details.ticket_tiers[0].price == 25.0
 
 
 # ---------------------------------------------------------------------------
