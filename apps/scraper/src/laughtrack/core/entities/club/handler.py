@@ -88,6 +88,32 @@ def _normalize_venue_name_for_match(name: str, city: str = "", state: str = "") 
     return s
 
 
+def _venue_name_tokens_for_match(name: str, city: str = "", state: str = "") -> Set[str]:
+    """Return meaningful venue-name tokens for same-address corroboration."""
+    normalized = _normalize_venue_text_for_match(name)
+    location_tokens = set(_normalize_venue_text_for_match(city).split())
+    location_tokens.update(_normalize_venue_text_for_match(state).split())
+    generic_tokens = {
+        "and",
+        "at",
+        "club",
+        "comedy",
+        "hall",
+        "live",
+        "mainstage",
+        "room",
+        "the",
+        "theater",
+        "theatre",
+        "venue",
+    }
+    return {
+        token
+        for token in normalized.split()
+        if token and token not in generic_tokens and token not in location_tokens
+    }
+
+
 class ClubHandler(BaseDatabaseHandler[Club]):
     """Handler for club database operations."""
 
@@ -465,6 +491,82 @@ class ClubHandler(BaseDatabaseHandler[Club]):
             f"reusing existing row instead of inserting a duplicate."
         )
 
+    def _names_corroborate_same_address(
+        self,
+        candidate_name: str,
+        existing_name: str,
+        city: Optional[str],
+        state: Optional[str],
+    ) -> bool:
+        candidate_core = _normalize_venue_name_for_match(candidate_name, city or "", state or "")
+        existing_core = _normalize_venue_name_for_match(existing_name, city or "", state or "")
+        if candidate_core and existing_core and candidate_core == existing_core:
+            return True
+
+        candidate_tokens = _venue_name_tokens_for_match(candidate_name, city or "", state or "")
+        existing_tokens = _venue_name_tokens_for_match(existing_name, city or "", state or "")
+        if not candidate_tokens or not existing_tokens:
+            return False
+
+        overlap = candidate_tokens & existing_tokens
+        return bool(overlap) and len(overlap) >= min(len(candidate_tokens), len(existing_tokens))
+
+    def _find_ticketmaster_normalized_address_match(
+        self,
+        *,
+        venue_id: str,
+        name: str,
+        street: str,
+        city: Optional[str],
+        state: Optional[str],
+    ) -> tuple[Optional[Club], bool]:
+        if not street:
+            return None, False
+
+        try:
+            results = self.execute_with_cursor(
+                ClubQueries.GET_CLUBS_BY_NORMALIZED_STREET_ADDRESS,
+                (street, city, city, state, state),
+                return_results=True,
+            ) or []
+        except Exception as e:
+            Logger.warn(
+                f"Ticketmaster normalized-address lookup failed for venue {venue_id} "
+                f"'{name}' at '{street}' ({city}, {state}): {e} — falling through to UPSERT"
+            )
+            return None, False
+
+        if not results:
+            return None, False
+
+        corroborated = [
+            row
+            for row in results
+            if self._names_corroborate_same_address(name, row.get("name") or "", city, state)
+        ]
+        if len(corroborated) != 1:
+            candidate_names = ", ".join(
+                f"{row.get('id')}:{row.get('name')}" for row in results
+            )
+            Logger.warn(
+                f"Ticketmaster venue '{name}' (venue.id={venue_id}) shares normalized "
+                f"street address '{street}' with existing club(s) [{candidate_names}] "
+                "but name corroboration was not unique; skipping for manual review."
+            )
+            return None, True
+
+        return Club.from_db_row(corroborated[0]), True
+
+    def _attach_ticketmaster_source_to_club(self, club: Club, venue_id: str) -> Club:
+        results = self.execute_with_cursor(
+            ClubQueries.UPSERT_TICKETMASTER_SOURCE_FOR_CLUB,
+            (club.id, venue_id),
+            return_results=True,
+        )
+        if results:
+            return Club.from_db_row(results[0])
+        return club
+
     def upsert_for_seatengine_venue(self, venue: dict) -> Optional[Club]:
         """
         Upsert a clubs row for a SeatEngine venue discovered via the national
@@ -600,6 +702,23 @@ class ClubHandler(BaseDatabaseHandler[Club]):
         if fuzzy_match is not None:
             self._log_fuzzy_match_reuse("Ticketmaster", name, venue_id, city, state, fuzzy_match)
             return fuzzy_match
+
+        address_match, address_collision = self._find_ticketmaster_normalized_address_match(
+            venue_id=venue_id,
+            name=name,
+            street=street,
+            city=city,
+            state=state,
+        )
+        if address_match is not None:
+            Logger.info(
+                f"Ticketmaster venue '{name}' (venue.id={venue_id}) normalized-address "
+                f"matched to existing club {address_match.id} '{address_match.name}' "
+                f"at '{street}' ({city}, {state}); attaching Ticketmaster source."
+            )
+            return self._attach_ticketmaster_source_to_club(address_match, venue_id)
+        if address_collision:
+            return None
 
         try:
             results = self.execute_with_cursor(
