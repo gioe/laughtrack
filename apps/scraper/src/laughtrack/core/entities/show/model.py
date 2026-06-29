@@ -38,6 +38,7 @@ class Show(DatabaseEntity):
     # NULL for non-organizer shows. Scopes the stale-show reconcile DELETE to one
     # organizer so a sibling source's shows at a shared venue are never deleted.
     scraped_by_organizer_id: Optional[int] = None
+    show_type: Optional[str] = None
     first_discovered_at: Optional[datetime] = None
     id: Optional[int] = None  # Database ID
     operation_type: Optional[str] = None  # 'inserted' or 'updated'
@@ -123,6 +124,7 @@ class Show(DatabaseEntity):
             production_company_id=row.get("production_company_id"),
             last_scraped_by=row.get("last_scraped_by"),
             scraped_by_organizer_id=row.get("scraped_by_organizer_id"),
+            show_type=row.get("show_type"),
             first_discovered_at=row.get("first_discovered_at"),
         )
 
@@ -144,6 +146,7 @@ class Show(DatabaseEntity):
             self.production_company_id,
             self.last_scraped_by,
             self.scraped_by_organizer_id,
+            self.show_type,
         )
 
     def to_unique_key(self) -> tuple:

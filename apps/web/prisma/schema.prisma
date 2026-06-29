@@ -757,6 +757,7 @@ model Show {
   lastScrapedBy        String?                    @map("last_scraped_by")
   firstDiscoveredAt    DateTime?                  @map("first_discovered_at") @db.Timestamptz(6)
   description          String?
+  showType             String?                    @map("show_type")
   room                 String?
   productionCompanyId  Int?                       @map("production_company_id")
   // The Eventbrite organizer (production company) whose /o/ feed most recently
@@ -801,6 +802,7 @@ model Show {
   // to keep for those workflows.
   @@index([lastScrapedBy])
   @@index([firstDiscoveredAt])
+  @@index([showType])
   @@map("shows")
 }
 
