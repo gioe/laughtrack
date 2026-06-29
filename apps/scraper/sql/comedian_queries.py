@@ -223,8 +223,27 @@ class ComedianQueries:
                         engagement_count DESC,
                         last_seen_at DESC,
                         club_id ASC
-                ) AS club_rank
+                ) AS club_rank,
+                -- Touring detection: RANK (not ROW_NUMBER) so every club sharing
+                -- the top (engagement_score, engagement_count) gets club_tie_rank=1.
+                -- The deterministic last_seen_at/club_id tiebreakers are
+                -- DELIBERATELY excluded here so a genuine score+count tie is
+                -- detectable rather than silently broken.
+                RANK() OVER (
+                    PARTITION BY comedian_id
+                    ORDER BY
+                        engagement_score DESC,
+                        engagement_count DESC
+                ) AS club_tie_rank
             FROM club_counts
+        ),
+        -- A comedian has a home club only if exactly ONE club sits at the top
+        -- score+count tie. 2+ tied clubs means no clear anchor -> touring.
+        club_top_ties AS (
+            SELECT comedian_id, COUNT(*) AS top_count
+            FROM ranked_clubs
+            WHERE club_tie_rank = 1
+            GROUP BY comedian_id
         ),
         city_counts AS (
             SELECT
@@ -258,23 +277,45 @@ class ComedianQueries:
                         city ASC,
                         state ASC,
                         country ASC
-                ) AS city_rank
+                ) AS city_rank,
+                -- City touring detection, independent of the club tie: a comedian
+                -- touring many clubs in ONE city still has a clear home city, so
+                -- this ties on the city-level score+count, not the club's.
+                RANK() OVER (
+                    PARTITION BY comedian_id
+                    ORDER BY
+                        engagement_score DESC,
+                        engagement_count DESC
+                ) AS city_tie_rank
             FROM city_counts
+        ),
+        city_top_ties AS (
+            SELECT comedian_id, COUNT(*) AS top_count
+            FROM ranked_cities
+            WHERE city_tie_rank = 1
+            GROUP BY comedian_id
         )
         UPDATE comedians AS c
         SET
-            home_city = rc.city,
-            home_state = rc.state,
-            home_country = rc.country,
-            home_club_id = rcl.club_id,
+            -- NULL home (touring) when 2+ cities/clubs tie for the top
+            -- score+count. Club and city are gated independently so a
+            -- single-city tourer keeps its home city while losing its home club.
+            home_city = CASE WHEN cct.top_count = 1 THEN rc.city END,
+            home_state = CASE WHEN cct.top_count = 1 THEN rc.state END,
+            home_country = CASE WHEN cct.top_count = 1 THEN rc.country END,
+            home_club_id = CASE WHEN clt.top_count = 1 THEN rcl.club_id END,
             home_location_updated_at = NOW()
         FROM target_comedians tc
         LEFT JOIN ranked_cities rc
           ON rc.comedian_id = tc.uuid
          AND rc.city_rank = 1
+        LEFT JOIN city_top_ties cct
+          ON cct.comedian_id = tc.uuid
         LEFT JOIN ranked_clubs rcl
           ON rcl.comedian_id = tc.uuid
          AND rcl.club_rank = 1
+        LEFT JOIN club_top_ties clt
+          ON clt.comedian_id = tc.uuid
         WHERE c.uuid = tc.uuid
     '''
 
