@@ -227,4 +227,54 @@ describe("POST /api/webhooks/youtube", () => {
             data: { isActive: false, revokedAt: expect.any(Date) },
         });
     });
+
+    it("does not resend pushes for duplicate user, comedian, video, and notification type rows", async () => {
+        mockFindComedian.mockResolvedValue({
+            uuid: "comedian-uuid",
+            name: "Jane Comic",
+            youtubeChannelId: "UC-live-channel",
+            favoriteComedians: [
+                {
+                    user: {
+                        userid: "user-1",
+                        pushTokens: [
+                            {
+                                id: "push-token-1",
+                                platform: "ios",
+                                token: "apns-token",
+                            },
+                        ],
+                    },
+                },
+            ],
+        } as never);
+        mockVerifyYouTubeLiveState.mockResolvedValue({
+            status: "live",
+            videoId: "video-123",
+            channelId: "UC-live-channel",
+            title: "Live set",
+            watchUrl: "https://www.youtube.com/watch?v=video-123",
+            actualStartTime: "2026-06-29T20:02:00Z",
+            scheduledStartTime: null,
+        });
+        mockCreateYouTubeLiveNotification.mockRejectedValue({
+            code: "P2002",
+        });
+
+        const res = await POST(makePostRequest(youtubeEntryXml("UC-live-channel")));
+
+        expect(res.status).toBe(202);
+        expect(await res.json()).toEqual({ ok: true, processed: 0 });
+        expect(mockCreateYouTubeLiveNotification).toHaveBeenCalledWith(
+            expect.objectContaining({
+                data: expect.objectContaining({
+                    userId: "user-1",
+                    comedianId: "comedian-uuid",
+                    youtubeVideoId: "video-123",
+                    notificationType: "push",
+                }),
+            }),
+        );
+        expect(mockSendYouTubeLivePushToTokens).not.toHaveBeenCalled();
+    });
 });
