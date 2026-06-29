@@ -164,10 +164,15 @@ class JsonLdScraper(BaseScraper):
                 else None
             )
 
-            # Parse HTML and extract JSON-LD (events only)
+            # Parse HTML and extract JSON-LD (events only). Pass the fetched URL
+            # so root-relative event/offer URLs (e.g. mynorthtickets emits
+            # "/events/...") are resolved to absolute before Show validation,
+            # which would otherwise drop them for "must be a valid URL format"
+            # (TASK-3513, Traverse City Comedy Club).
             event_list = EventExtractor.extract_events(
                 html_content,
                 same_as_override=same_as_override,
+                base_url=normalized_url,
             )
 
             if not event_list:
