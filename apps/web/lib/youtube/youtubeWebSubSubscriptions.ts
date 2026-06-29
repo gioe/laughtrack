@@ -1,6 +1,7 @@
 const YOUTUBE_WEBSUB_HUB_URL = "https://pubsubhubbub.appspot.com/";
 const YOUTUBE_CHANNEL_FEED_URL =
     "https://www.youtube.com/xml/feeds/videos.xml";
+const YOUTUBE_WEBSUB_CALLBACK_PATH = "/api/webhooks/youtube";
 
 type FetchFn = (input: string, init?: RequestInit) => Promise<Response>;
 
@@ -131,7 +132,23 @@ function buildSubscribeBody(
     });
 }
 
-function buildYouTubeFeedTopicUrl(youtubeChannelId: string): string {
+export function resolveYouTubeWebSubCallbackUrl(
+    env: Record<string, string | undefined> = process.env,
+): string {
+    if (env.YOUTUBE_WEBSUB_CALLBACK_URL) {
+        return env.YOUTUBE_WEBSUB_CALLBACK_URL;
+    }
+
+    if (!env.NEXT_PUBLIC_WEBSITE_URL) {
+        throw new Error(
+            "YOUTUBE_WEBSUB_CALLBACK_URL or NEXT_PUBLIC_WEBSITE_URL must be configured",
+        );
+    }
+
+    return `${env.NEXT_PUBLIC_WEBSITE_URL.replace(/\/$/, "")}${YOUTUBE_WEBSUB_CALLBACK_PATH}`;
+}
+
+export function buildYouTubeFeedTopicUrl(youtubeChannelId: string): string {
     const url = new URL(YOUTUBE_CHANNEL_FEED_URL);
     url.searchParams.set("channel_id", youtubeChannelId);
     return url.toString();

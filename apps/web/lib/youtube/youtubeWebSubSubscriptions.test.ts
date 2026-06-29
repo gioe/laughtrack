@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { renewYouTubeWebSubSubscriptions } from "./youtubeWebSubSubscriptions";
+import {
+    buildYouTubeFeedTopicUrl,
+    renewYouTubeWebSubSubscriptions,
+    resolveYouTubeWebSubCallbackUrl,
+} from "./youtubeWebSubSubscriptions";
 
 type FetchFn = (input: string, init?: RequestInit) => Promise<Response>;
 
@@ -147,5 +151,23 @@ describe("renewYouTubeWebSubSubscriptions", () => {
                 },
             ],
         });
+    });
+
+    it("resolves the configured public callback URL and YouTube feed topic URL", () => {
+        expect(
+            resolveYouTubeWebSubCallbackUrl({
+                YOUTUBE_WEBSUB_CALLBACK_URL:
+                    "https://hooks.laugh-track.com/youtube",
+                NEXT_PUBLIC_WEBSITE_URL: "https://laugh-track.com",
+            }),
+        ).toBe("https://hooks.laugh-track.com/youtube");
+        expect(
+            resolveYouTubeWebSubCallbackUrl({
+                NEXT_PUBLIC_WEBSITE_URL: "https://laugh-track.com/",
+            }),
+        ).toBe("https://laugh-track.com/api/webhooks/youtube");
+        expect(buildYouTubeFeedTopicUrl("UC-one/two")).toBe(
+            "https://www.youtube.com/xml/feeds/videos.xml?channel_id=UC-one%2Ftwo",
+        );
     });
 });
