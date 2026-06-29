@@ -89,4 +89,74 @@ describe("sendYouTubeLivePushToTokens", () => {
             }),
         );
     });
+
+    it("deactivates APNs and FCM tokens rejected by invalid-token responses", async () => {
+        const deactivateToken = vi.fn();
+
+        await sendYouTubeLivePushToTokens({
+            input: youtubeLiveInput,
+            tokens: [
+                {
+                    id: "ios-unregistered-row",
+                    platform: "ios",
+                    token: "apns-unregistered",
+                },
+                {
+                    id: "ios-bad-device-token-row",
+                    platform: "ios",
+                    token: "apns-bad-device-token",
+                },
+                {
+                    id: "android-unregistered-row",
+                    platform: "android",
+                    token: "fcm-unregistered",
+                },
+                {
+                    id: "android-invalid-registration-row",
+                    platform: "android",
+                    token: "fcm-invalid-registration",
+                },
+            ],
+            senders: {
+                apns: {
+                    send: vi.fn(async (token: string) =>
+                        token === "apns-unregistered"
+                            ? {
+                                  ok: false as const,
+                                  status: 410,
+                                  reason: "Unregistered",
+                              }
+                            : {
+                                  ok: false as const,
+                                  status: 400,
+                                  reason: "BadDeviceToken",
+                              },
+                    ),
+                },
+                fcm: {
+                    send: vi.fn(async (token: string) =>
+                        token === "fcm-unregistered"
+                            ? {
+                                  ok: false as const,
+                                  errorCode: "UNREGISTERED",
+                              }
+                            : {
+                                  ok: false as const,
+                                  errorCode:
+                                      "messaging/invalid-registration-token",
+                              },
+                    ),
+                },
+            },
+            deactivateToken,
+        });
+
+        expect(deactivateToken).toHaveBeenCalledTimes(4);
+        expect(deactivateToken).toHaveBeenCalledWith("ios-unregistered-row");
+        expect(deactivateToken).toHaveBeenCalledWith("ios-bad-device-token-row");
+        expect(deactivateToken).toHaveBeenCalledWith("android-unregistered-row");
+        expect(deactivateToken).toHaveBeenCalledWith(
+            "android-invalid-registration-row",
+        );
+    });
 });

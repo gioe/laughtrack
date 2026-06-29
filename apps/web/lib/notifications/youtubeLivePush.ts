@@ -84,19 +84,51 @@ export async function sendYouTubeLivePushToTokens(options: SendYouTubeLivePushOp
     await Promise.all(
         options.tokens.map(async (pushToken) => {
             if (pushToken.platform === "android") {
-                await options.senders.fcm.send(pushToken.token, {
+                const result = await options.senders.fcm.send(pushToken.token, {
                     notification: {
                         title: payload.title,
                         body: payload.body,
                     },
                     data: payload.data,
                 });
+                if (isInvalidFcmTokenResponse(result)) {
+                    await options.deactivateToken(pushToken.id);
+                }
                 return;
             }
 
             if (pushToken.platform === "ios") {
-                await options.senders.apns.send(pushToken.token, payload);
+                const result = await options.senders.apns.send(pushToken.token, payload);
+                if (isInvalidApnsTokenResponse(result)) {
+                    await options.deactivateToken(pushToken.id);
+                }
             }
         }),
+    );
+}
+
+export function isInvalidApnsTokenResponse(result: PushSendResult): boolean {
+    if (result.ok) {
+        return false;
+    }
+
+    return (
+        (result.status === 410 && result.reason === "Unregistered") ||
+        (result.status === 400 &&
+            (result.reason === "BadDeviceToken" ||
+                result.reason === "DeviceTokenNotForTopic"))
+    );
+}
+
+export function isInvalidFcmTokenResponse(result: PushSendResult): boolean {
+    if (result.ok) {
+        return false;
+    }
+
+    return (
+        result.errorCode === "UNREGISTERED" ||
+        result.errorCode === "INVALID_ARGUMENT" ||
+        result.errorCode === "messaging/registration-token-not-registered" ||
+        result.errorCode === "messaging/invalid-registration-token"
     );
 }
