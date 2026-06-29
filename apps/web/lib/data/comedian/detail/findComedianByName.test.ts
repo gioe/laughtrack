@@ -124,6 +124,7 @@ function makeComedianRow(
         tiktokAccount: null,
         tiktokFollowers: null,
         youtubeAccount: null,
+        youtubeChannelId: null,
         youtubeFollowers: null,
         website: "https://alice.example.com",
         popularity: 80,

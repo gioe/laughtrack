@@ -306,6 +306,7 @@ model Comedian {
   website                              String?
   popularity                           Float                             @default(0.0)
   youtubeAccount                       String?                           @map("youtube_account")
+  youtubeChannelId                     String?                           @map("youtube_channel_id")
   youtubeFollowers                     Int?                              @map("youtube_followers")
   uuid                                 String                            @unique
   createdAt                            DateTime                          @default(now()) @map("created_at") @db.Timestamptz
@@ -342,6 +343,7 @@ model Comedian {
   lineupItems                          LineupItem[]
   taggedComedians                      TaggedComedian[]
   sentNotifications                    SentNotification[]
+  youtubeLiveNotifications             YouTubeLiveNotification[]
   comedianPodcasts                     ComedianPodcast[]
   podcastCandidateReviews              PodcastCandidateReview[]
   podcastDiscoveryAttempts             ComedianPodcastDiscoveryAttempt[]
@@ -603,18 +605,19 @@ model EpisodeAppearanceReview {
 }
 
 model User {
-  id                String             @id @default(cuid())
-  name              String?
-  email             String             @unique
-  emailVerified     DateTime?
-  image             String?
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-  accounts          Account[]
-  profile           UserProfile?
-  refreshTokens     RefreshToken[]
-  sentNotifications SentNotification[]
-  pushTokens        UserPushToken[]
+  id                       String                    @id @default(cuid())
+  name                     String?
+  email                    String                    @unique
+  emailVerified            DateTime?
+  image                    String?
+  createdAt                DateTime                  @default(now())
+  updatedAt                DateTime                  @updatedAt
+  accounts                 Account[]
+  profile                  UserProfile?
+  refreshTokens            RefreshToken[]
+  sentNotifications        SentNotification[]
+  youtubeLiveNotifications YouTubeLiveNotification[]
+  pushTokens               UserPushToken[]
 
   @@map("users")
 }
@@ -976,6 +979,26 @@ model SentNotification {
   @@unique([userId, comedianId, showId, notificationType], name: "sent_notifications_unique_per_channel")
   @@index([userId])
   @@map("sent_notifications")
+}
+
+model YouTubeLiveNotification {
+  id               Int      @id @default(autoincrement())
+  userId           String   @map("user_id")
+  comedianId       String   @map("comedian_id")
+  youtubeChannelId String   @map("youtube_channel_id")
+  youtubeVideoId   String   @map("youtube_video_id")
+  videoTitle       String?  @map("video_title")
+  videoUrl         String   @map("video_url")
+  notificationType String   @default("push") @map("notification_type")
+  sentAt           DateTime @default(now()) @map("sent_at") @db.Timestamptz
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comedian         Comedian @relation(fields: [comedianId], references: [uuid], onDelete: Cascade)
+
+  @@unique([userId, comedianId, youtubeVideoId, notificationType], name: "youtube_live_notifications_unique_per_channel")
+  @@index([userId])
+  @@index([comedianId])
+  @@index([youtubeChannelId])
+  @@map("youtube_live_notifications")
 }
 
 // Per-API-route request counter, bucketed by the hour. Written by the

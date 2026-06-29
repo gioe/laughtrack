@@ -26,7 +26,7 @@ Verified alternate venue names that resolve to one canonical Club before scraper
 Published image assets for a club from the admin club-image pipeline. Rows preserve the source image URL, Bunny storage paths for original/icon/hero variants, image metadata, and whether the row is the active public asset. `Club.hasImage` remains the migration-era public compatibility flag; URL builders still use the legacy name-keyed Bunny paths for existing club images while publishes can retain versioned asset history.
 
 ### Comedian
-Individual comedian. Has social media stats, popularity, alternate names (aliases), favorites, and lineup appearances.
+Individual comedian. Has social media stats, popularity, alternate names (aliases), favorites, lineup appearances, and optional canonical YouTube channel id for WebSub live notifications. `youtubeAccount` is the user-facing handle/account value; `youtubeChannelId` stores the canonical channel id used in `https://www.youtube.com/xml/feeds/videos.xml?channel_id=...` topics.
 
 ### ComedianImageAsset
 Published image assets for a comedian from the official-site image pipeline. Rows preserve the source image URL, Bunny storage paths for original/avatar/hero variants, image metadata, and whether the row is the active public asset. `Comedian.hasImage` remains the migration-era public compatibility flag; URL builders prefer the active stable asset paths when present and fall back to the legacy name-based PNG path while older assets are still in use.
@@ -68,6 +68,9 @@ Extended user profile (role, zip code, notification preferences, favorite comedi
 
 ### UserPushToken
 Active and revoked APNs device tokens for authenticated native clients. Rows are scoped to both `User` and `UserProfile`, store the platform (`ios`), normalized device token, registration timestamps, and inactive/revoked state. `POST /api/v1/me/push-tokens` upserts the caller's current token; `DELETE /api/v1/me/push-tokens` marks only the caller-owned token inactive without exposing token data across users.
+
+### YouTubeLiveNotification
+Deduplication and history table for YouTube live push notifications. One row records that a specific user was notified about a specific comedian/video pair via a notification channel. Uniqueness on `(userId, comedianId, youtubeVideoId, notificationType)` prevents duplicate sends when YouTube WebSub posts multiple updates for the same live video. Rows store the canonical YouTube channel id, video id, video title, watch URL, notification type, and send timestamp; user and comedian deletes cascade to their notification history.
 
 ### AdminActionAudit
 Durable audit trail for admin mutations. Each row records the actor profile when available, action name, entity type/id, optional reason, before/after JSON snapshots, and creation timestamp. Actor deletion preserves audit rows by nulling the actor reference.
