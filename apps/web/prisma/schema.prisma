@@ -353,6 +353,7 @@ model Comedian {
 
   @@index([parentComedianId])
   @@index([homeClubId])
+  @@index([youtubeChannelId])
   @@index([visible])
   @@map("comedians")
 }

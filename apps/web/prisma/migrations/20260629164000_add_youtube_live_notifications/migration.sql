@@ -1,6 +1,9 @@
 ALTER TABLE comedians
   ADD COLUMN youtube_channel_id TEXT;
 
+CREATE INDEX comedians_youtube_channel_id_idx
+  ON comedians(youtube_channel_id);
+
 CREATE TABLE youtube_live_notifications (
   id SERIAL PRIMARY KEY,
   user_id TEXT NOT NULL,

@@ -71,6 +71,9 @@ describe("YouTube live notification schema", () => {
             /ALTER TABLE comedians\s+ADD COLUMN youtube_channel_id TEXT/,
         );
         expect(MIGRATION_SQL).toContain(
+            "CREATE INDEX comedians_youtube_channel_id_idx",
+        );
+        expect(MIGRATION_SQL).toContain(
             "CREATE TABLE youtube_live_notifications",
         );
     });
