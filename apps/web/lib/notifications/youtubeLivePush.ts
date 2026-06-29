@@ -25,7 +25,7 @@ export interface UserPushTokenForDelivery {
     token: string;
 }
 
-export interface ApnsYouTubeLiveNotification extends YouTubeLivePushPayload {}
+export type ApnsYouTubeLiveNotification = YouTubeLivePushPayload;
 
 export interface FcmYouTubeLiveMessage {
     notification: {
@@ -50,10 +50,16 @@ export type PushSendResult = PushSendSuccess | PushSendFailure;
 
 export interface YouTubeLivePushSenders {
     apns: {
-        send: (token: string, notification: ApnsYouTubeLiveNotification) => Promise<PushSendResult>;
+        send: (
+            token: string,
+            notification: ApnsYouTubeLiveNotification,
+        ) => Promise<PushSendResult>;
     };
     fcm: {
-        send: (token: string, message: FcmYouTubeLiveMessage) => Promise<PushSendResult>;
+        send: (
+            token: string,
+            message: FcmYouTubeLiveMessage,
+        ) => Promise<PushSendResult>;
     };
 }
 
@@ -64,7 +70,9 @@ export interface SendYouTubeLivePushOptions {
     deactivateToken: (tokenId: string) => Promise<void> | void;
 }
 
-export function buildYouTubeLivePushPayload(input: YouTubeLivePushInput): YouTubeLivePushPayload {
+export function buildYouTubeLivePushPayload(
+    input: YouTubeLivePushInput,
+): YouTubeLivePushPayload {
     return {
         title: `${input.comedianName} is live on YouTube`,
         body: input.videoTitle ?? "Watch now on YouTube",
@@ -78,7 +86,9 @@ export function buildYouTubeLivePushPayload(input: YouTubeLivePushInput): YouTub
     };
 }
 
-export async function sendYouTubeLivePushToTokens(options: SendYouTubeLivePushOptions): Promise<void> {
+export async function sendYouTubeLivePushToTokens(
+    options: SendYouTubeLivePushOptions,
+): Promise<void> {
     const payload = buildYouTubeLivePushPayload(options.input);
 
     await Promise.all(
@@ -98,7 +108,10 @@ export async function sendYouTubeLivePushToTokens(options: SendYouTubeLivePushOp
             }
 
             if (pushToken.platform === "ios") {
-                const result = await options.senders.apns.send(pushToken.token, payload);
+                const result = await options.senders.apns.send(
+                    pushToken.token,
+                    payload,
+                );
                 if (isInvalidApnsTokenResponse(result)) {
                     await options.deactivateToken(pushToken.id);
                 }
