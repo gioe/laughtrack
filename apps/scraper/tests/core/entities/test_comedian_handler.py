@@ -333,6 +333,29 @@ class TestBatchUpdateComedianHomeLocationSql:
         assert "country asc" in sql
         assert "where city is not null" in sql
 
+    def test_query_flags_tied_top_clubs_as_touring(self):
+        """A score+count tie at the top club must clear home club (touring), not break the tie arbitrarily."""
+        sql = ComedianQueries.BATCH_UPDATE_COMEDIAN_HOME_LOCATION.lower()
+
+        # RANK() (allows ties) on the substantive keys only — no last_seen_at/club_id —
+        # so a genuine tie is detectable.
+        assert "rank() over" in sql
+        assert "club_tie_rank" in sql
+        assert "club_top_ties" in sql
+        # Home club is only set when exactly one club holds the top tie.
+        assert "home_club_id = case when clt.top_count = 1 then rcl.club_id end" in sql
+
+    def test_query_flags_tied_top_cities_as_touring_independently(self):
+        """City touring is gated on the CITY-level tie, independent of the club tie."""
+        sql = ComedianQueries.BATCH_UPDATE_COMEDIAN_HOME_LOCATION.lower()
+
+        assert "city_tie_rank" in sql
+        assert "city_top_ties" in sql
+        assert "home_city = case when cct.top_count = 1 then rc.city end" in sql
+        # Independent gates: city uses cct, club uses clt.
+        assert "cct.top_count = 1" in sql
+        assert "clt.top_count = 1" in sql
+
 
 class TestUpdateComedianTourIdsSql:
     def test_query_only_fills_missing_platform_ids(self):
