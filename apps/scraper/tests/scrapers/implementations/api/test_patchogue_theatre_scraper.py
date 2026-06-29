@@ -539,3 +539,36 @@ async def test_scraper_discovers_via_aeg_feed_and_filters_comedy(monkeypatch):
     # The AEG feed was fetched, then each discovered performance was probed.
     assert AEG_FEED_URL in fake_session.calls
     assert sum("Performance(" in c for c in fake_session.calls) == 4
+
+
+@pytest.mark.asyncio
+async def test_scraper_falls_back_to_inline_links_when_no_aeg_feed(monkeypatch):
+    """If a Bowery page carries no AEG feed reference but still has legacy inline
+    ci.ovationtix.com links, discovery must fall back to the inline-link scrape
+    and probe those performances — no AEG feed fetch occurs."""
+    bowery_html = (
+        '<html><body>'
+        '<a href="https://ci.ovationtix.com/34780/performance/11795830">Leslie Jones</a>'
+        '</body></html>'
+    )
+    payloads = {"11795830": _performance_payload()}
+
+    async def fake_fetch_html(self, url, headers=None):
+        return bowery_html
+
+    fake_session = _FakeSession(payloads)  # no feeds registered
+
+    async def fake_get_session(self):
+        return fake_session
+
+    monkeypatch.setattr(PatchogueTheatreScraper, "fetch_html", fake_fetch_html)
+    monkeypatch.setattr(PatchogueTheatreScraper, "get_session", fake_get_session)
+
+    scraper = PatchogueTheatreScraper(_club())
+    page = await scraper.get_data(BOWERY_URL)
+
+    assert page is not None
+    assert [e.production_name for e in page.event_list] == ["Leslie Jones: I'm Hot Tour"]
+    # Fallback path: no AEG blob was fetched, only the OvationTix performance.
+    assert not any("aegwebprod" in c for c in fake_session.calls)
+    assert any("Performance(11795830)" in c for c in fake_session.calls)
