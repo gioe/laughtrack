@@ -1,5 +1,4 @@
 import { FilterDTO } from "@/objects/interface";
-import { paramsContainsFilter } from "@/util/filter/util";
 
 export const MIXED_PROGRAMMING_FILTER_SLUG = "mixed_programming";
 
@@ -38,9 +37,10 @@ export interface ClubProgrammingFields {
 export function getClubProgrammingFilterOptions(
     activeFilters: string | null | undefined,
 ): FilterDTO[] {
+    const selectedSlugs = new Set(parseFilterSlugs(activeFilters));
     return CLUB_PROGRAMMING_FILTERS.map((filter) => ({
         ...filter,
-        selected: paramsContainsFilter(activeFilters ?? null, filter.slug),
+        selected: selectedSlugs.has(filter.slug),
     }));
 }
 
@@ -86,4 +86,13 @@ export function getClubProgrammingLabel({
 
 function normalizeValue(value: string | null | undefined): string {
     return value?.trim().toLowerCase() ?? "";
+}
+
+function parseFilterSlugs(filters: string | null | undefined): string[] {
+    return filters
+        ? filters
+              .split(",")
+              .map((slug) => slug.trim())
+              .filter(Boolean)
+        : [];
 }

@@ -64,4 +64,12 @@ describe("club programming labels", () => {
             { slug: "producer", name: "Producers", selected: true },
         ]);
     });
+
+    it("does not mark programming options selected by substring matches", () => {
+        expect(
+            getClubProgrammingFilterOptions(
+                "standup-special,producer-series",
+            ).some((filter) => filter.selected),
+        ).toBe(false);
+    });
 });
