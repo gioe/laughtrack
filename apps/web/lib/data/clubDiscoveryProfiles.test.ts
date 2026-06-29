@@ -60,7 +60,7 @@ describe("buildClubDiscoveryProfile", () => {
         expect(profile.confidence).toBe(0.5);
     });
 
-    it("keeps unknown-heavy windows unknown while still counting classified comedy inventory", () => {
+    it("keeps unknown-heavy windows low-confidence while still counting classified comedy inventory", () => {
         const profile = buildClubDiscoveryProfile({
             clubId: 8,
             rows: showTypeRows(["unknown", "unknown", "unknown", "standup"]),
