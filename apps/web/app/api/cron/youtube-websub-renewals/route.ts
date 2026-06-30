@@ -7,7 +7,7 @@ import {
     resolveYouTubeWebSubCallbackUrl,
 } from "@/lib/youtube/youtubeWebSubSubscriptions";
 
-export const POST = withRequestMetrics(async function POST(req: NextRequest) {
+async function handleYouTubeWebSubRenewals(req: NextRequest) {
     if (!hasValidCronBearer(req)) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -52,7 +52,10 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
             { status: 500 },
         );
     }
-});
+}
+
+export const GET = withRequestMetrics(handleYouTubeWebSubRenewals);
+export const POST = withRequestMetrics(handleYouTubeWebSubRenewals);
 
 function isTruthyParam(value: string | null): boolean {
     return value === "1" || value === "true";

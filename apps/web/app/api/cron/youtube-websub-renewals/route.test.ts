@@ -21,7 +21,7 @@ vi.mock("@/lib/youtube/youtubeWebSubSubscriptions", () => ({
     ),
 }));
 
-import { POST } from "./route";
+import { GET, POST } from "./route";
 import { db } from "@/lib/db";
 import {
     syncYouTubeWebSubSubscriptions,
@@ -37,9 +37,10 @@ const ORIGINAL_CALLBACK_URL = process.env.YOUTUBE_WEBSUB_CALLBACK_URL;
 function makeRequest(
     headers: Record<string, string> = {},
     url = "http://localhost/api/cron/youtube-websub-renewals",
+    method = "POST",
 ): NextRequest {
     return new NextRequest(url, {
-        method: "POST",
+        method,
         headers,
     });
 }
@@ -145,5 +146,33 @@ describe("POST /api/cron/youtube-websub-renewals", () => {
 
         expect(res.status).toBe(200);
         expect(await res.json()).toMatchObject({ gated: true, total: 0 });
+    });
+});
+
+describe("GET /api/cron/youtube-websub-renewals", () => {
+    it("allows Vercel cron invocations with the CRON_SECRET bearer", async () => {
+        mockSync.mockResolvedValue({
+            gated: true,
+            dryRun: false,
+            counts: { subscribe: 0, renew: 0, unsubscribe: 0, skip: 0 },
+            total: 0,
+            succeeded: 0,
+            failed: 0,
+            results: [],
+        });
+
+        const res = await GET(
+            makeRequest(
+                { authorization: "Bearer test-secret-value" },
+                "http://localhost/api/cron/youtube-websub-renewals",
+                "GET",
+            ),
+        );
+
+        expect(res.status).toBe(200);
+        expect(await res.json()).toMatchObject({ gated: true, total: 0 });
+        expect(mockSync).toHaveBeenCalledWith(
+            expect.objectContaining({ dryRun: false }),
+        );
     });
 });
