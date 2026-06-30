@@ -114,6 +114,21 @@ describe("GET /api/webhooks/youtube", () => {
         expect(await res.text()).toBe("challenge-token");
     });
 
+    it("accepts YouTube WebSub topics that include the xml feed path", async () => {
+        const res = await GET(
+            makeGetRequest({
+                secret: "callback-secret",
+                "hub.mode": "subscribe",
+                "hub.topic":
+                    "https://www.youtube.com/xml/feeds/videos.xml?channel_id=UC-live-channel",
+                "hub.challenge": "challenge-token",
+            }),
+        );
+
+        expect(res.status).toBe(200);
+        expect(await res.text()).toBe("challenge-token");
+    });
+
     it("rejects challenge requests with an invalid secret", async () => {
         const res = await GET(
             makeGetRequest({

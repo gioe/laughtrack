@@ -6,7 +6,10 @@ import { parseYouTubeWebSubFeed } from "@/lib/youtube/youtubeWebSub";
 import { buildYouTubeFeedTopicUrl } from "@/lib/youtube/youtubeWebSubSubscriptions";
 
 const YOUTUBE_FEED_ORIGIN = "https://www.youtube.com";
-const YOUTUBE_FEED_PATH = "/feeds/videos.xml";
+const YOUTUBE_FEED_PATHS = new Set([
+    "/feeds/videos.xml",
+    "/xml/feeds/videos.xml",
+]);
 
 export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     if (!hasValidCallbackSecret(req)) {
@@ -147,8 +150,8 @@ function isYouTubeFeedTopic(topic: string): boolean {
     try {
         const url = new URL(topic);
         return (
-            `${url.origin}${url.pathname}` ===
-                `${YOUTUBE_FEED_ORIGIN}${YOUTUBE_FEED_PATH}` &&
+            url.origin === YOUTUBE_FEED_ORIGIN &&
+            YOUTUBE_FEED_PATHS.has(url.pathname) &&
             Boolean(url.searchParams.get("channel_id"))
         );
     } catch {
