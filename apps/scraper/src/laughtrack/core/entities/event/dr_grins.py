@@ -45,6 +45,7 @@ class DrGrinsEvent(ShowConvertible):
     time_str: str
     detail_url: str
     ticket_url: str
+    price: Optional[float] = None
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None):
         """Convert to a Show domain object."""
@@ -67,7 +68,7 @@ class DrGrinsEvent(ShowConvertible):
             return None
 
         ticket_url = self.ticket_url or self.detail_url
-        tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url)]
+        tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url, price=self.price)]
 
         return ShowFactoryUtils.create_enhanced_show_base(
             name=self.title,

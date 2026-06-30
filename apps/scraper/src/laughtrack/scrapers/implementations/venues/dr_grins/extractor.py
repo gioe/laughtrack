@@ -27,6 +27,9 @@ _SHOW_DATE_RE = re.compile(
     re.DOTALL | re.IGNORECASE,
 )
 _TIME_RE = re.compile(r"(\d{1,2}(?::\d{2})?\s*(?:am|pm))", re.IGNORECASE)
+# Public show-date bodies print the price right after each showtime, e.g.
+# "8pm $11.95" or "7:15pm $16.95 • 9:45pm $16.95" (and bare-dollar "8pm $10").
+_PRICE_RE = re.compile(r"\$\s*(\d+(?:\.\d{2})?)")
 
 
 class DrGrinsExtractor:
@@ -73,15 +76,26 @@ class DrGrinsExtractor:
             body = HtmlUtils.strip_tags(match.group("body"), normalize_whitespace=True)
             if not date_str or not body:
                 continue
-            times = _TIME_RE.findall(body)
-            for time_str in times:
+            time_matches = list(_TIME_RE.finditer(body))
+            for idx, time_match in enumerate(time_matches):
+                # Pair each showtime with the price between it and the next
+                # showtime (or end of body), so multi-show days price each
+                # slot independently.
+                segment_end = (
+                    time_matches[idx + 1].start()
+                    if idx + 1 < len(time_matches)
+                    else len(body)
+                )
+                price_match = _PRICE_RE.search(body, time_match.end(), segment_end)
+                price = float(price_match.group(1)) if price_match else None
                 events.append(
                     DrGrinsEvent(
                         title=title,
                         date_str=date_str,
-                        time_str=time_str,
+                        time_str=time_match.group(1),
                         detail_url=detail_url,
                         ticket_url=ticket_url,
+                        price=price,
                     )
                 )
 
