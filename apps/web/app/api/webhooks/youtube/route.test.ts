@@ -10,6 +10,9 @@ vi.mock("@/lib/db", () => ({
         comedian: {
             findFirst: vi.fn(),
         },
+        youTubeWebSubSubscription: {
+            updateMany: vi.fn(),
+        },
         youTubeWebSubEvent: {
             create: vi.fn(),
         },
@@ -23,6 +26,9 @@ import { GET, POST } from "./route";
 import { db } from "@/lib/db";
 
 const mockFindComedian = vi.mocked(db.comedian.findFirst);
+const mockUpdateWebSubSubscription = vi.mocked(
+    db.youTubeWebSubSubscription.updateMany,
+);
 const mockCreateWebSubEvent = vi.mocked(db.youTubeWebSubEvent.create);
 const mockCreateYouTubeLiveNotification = vi.mocked(
     db.youTubeLiveNotification.create,
@@ -75,6 +81,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+    vi.useRealTimers();
     if (ORIGINAL_CALLBACK_SECRET === undefined) {
         delete process.env.YOUTUBE_WEBSUB_CALLBACK_SECRET;
     } else {
@@ -83,7 +90,90 @@ afterEach(() => {
 });
 
 describe("GET /api/webhooks/youtube", () => {
+    it("marks subscribe verification as hub-confirmed and stores the hub lease", async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date("2026-06-30T14:00:00.000Z"));
+        mockUpdateWebSubSubscription.mockResolvedValue({ count: 1 } as never);
+
+        const res = await GET(
+            makeGetRequest({
+                secret: "callback-secret",
+                "hub.mode": "subscribe",
+                "hub.topic":
+                    "https://www.youtube.com/feeds/videos.xml?channel_id=UC-live-channel",
+                "hub.challenge": "challenge-token",
+                "hub.lease_seconds": "3600",
+            }),
+        );
+
+        expect(res.status).toBe(200);
+        expect(await res.text()).toBe("challenge-token");
+        expect(mockUpdateWebSubSubscription).toHaveBeenCalledWith({
+            where: { youtubeChannelId: "UC-live-channel" },
+            data: {
+                status: "subscribed",
+                lastVerifiedAt: new Date("2026-06-30T14:00:00.000Z"),
+                leaseSeconds: 3600,
+                leaseExpiresAt: new Date("2026-06-30T15:00:00.000Z"),
+                subscribedAt: new Date("2026-06-30T14:00:00.000Z"),
+                lastSubscribeError: null,
+            },
+        });
+    });
+
+    it("marks unsubscribe verification as hub-confirmed and unsubscribed", async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date("2026-06-30T14:00:00.000Z"));
+        mockUpdateWebSubSubscription.mockResolvedValue({ count: 1 } as never);
+
+        const res = await GET(
+            makeGetRequest({
+                secret: "callback-secret",
+                "hub.mode": "unsubscribe",
+                "hub.topic":
+                    "https://www.youtube.com/feeds/videos.xml?channel_id=UC-live-channel",
+                "hub.challenge": "challenge-token",
+            }),
+        );
+
+        expect(res.status).toBe(200);
+        expect(await res.text()).toBe("challenge-token");
+        expect(mockUpdateWebSubSubscription).toHaveBeenCalledWith({
+            where: { youtubeChannelId: "UC-live-channel" },
+            data: {
+                status: "unsubscribed",
+                lastVerifiedAt: new Date("2026-06-30T14:00:00.000Z"),
+                unsubscribedAt: new Date("2026-06-30T14:00:00.000Z"),
+            },
+        });
+    });
+
+    it("logs unknown channel verification safely and still echoes the challenge", async () => {
+        const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+        mockUpdateWebSubSubscription.mockResolvedValue({ count: 0 } as never);
+
+        const res = await GET(
+            makeGetRequest({
+                secret: "callback-secret",
+                "hub.mode": "subscribe",
+                "hub.topic":
+                    "https://www.youtube.com/feeds/videos.xml?channel_id=UC-unknown",
+                "hub.challenge": "challenge-token",
+                "hub.lease_seconds": "3600",
+            }),
+        );
+
+        expect(res.status).toBe(200);
+        expect(await res.text()).toBe("challenge-token");
+        expect(warnSpy).toHaveBeenCalledWith(
+            "[youtube-websub-callback] no subscription row found for subscribe verification channel UC-unknown",
+        );
+        warnSpy.mockRestore();
+    });
+
     it("echoes the WebSub challenge when the secret, mode, and YouTube topic are valid", async () => {
+        mockUpdateWebSubSubscription.mockResolvedValue({ count: 1 } as never);
+
         const res = await GET(
             makeGetRequest({
                 secret: "callback-secret",

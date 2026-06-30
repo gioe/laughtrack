@@ -3,7 +3,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { withRequestMetrics } from "@/lib/metrics";
 import { parseYouTubeWebSubFeed } from "@/lib/youtube/youtubeWebSub";
-import { buildYouTubeFeedTopicUrl } from "@/lib/youtube/youtubeWebSubSubscriptions";
+import {
+    buildYouTubeFeedTopicUrl,
+    SUBSCRIPTION_STATUS,
+} from "@/lib/youtube/youtubeWebSubSubscriptions";
 
 const YOUTUBE_FEED_ORIGIN = "https://www.youtube.com";
 const YOUTUBE_FEED_PATHS = new Set([
@@ -19,6 +22,9 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     const challenge = req.nextUrl.searchParams.get("hub.challenge");
     const mode = req.nextUrl.searchParams.get("hub.mode");
     const topic = req.nextUrl.searchParams.get("hub.topic");
+    const leaseSeconds = parseLeaseSeconds(
+        req.nextUrl.searchParams.get("hub.lease_seconds"),
+    );
 
     if (
         !challenge ||
@@ -31,6 +37,13 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
             { status: 400 },
         );
     }
+
+    await reconcileSubscriptionVerification({
+        mode,
+        topic,
+        leaseSeconds,
+        now: new Date(),
+    });
 
     return new NextResponse(challenge, {
         status: 200,
@@ -142,7 +155,9 @@ function hasValidCallbackSecret(req: NextRequest): boolean {
     );
 }
 
-function isSupportedHubMode(mode: string | null): boolean {
+function isSupportedHubMode(
+    mode: string | null,
+): mode is "subscribe" | "unsubscribe" {
     return mode === "subscribe" || mode === "unsubscribe";
 }
 
@@ -157,6 +172,82 @@ function isYouTubeFeedTopic(topic: string): boolean {
     } catch {
         return false;
     }
+}
+
+async function reconcileSubscriptionVerification({
+    mode,
+    topic,
+    leaseSeconds,
+    now,
+}: {
+    mode: "subscribe" | "unsubscribe";
+    topic: string;
+    leaseSeconds: number | null;
+    now: Date;
+}): Promise<void> {
+    const channelId = getTopicChannelId(topic);
+    if (!channelId) {
+        return;
+    }
+
+    const data =
+        mode === "subscribe"
+            ? buildSubscribeVerificationUpdate(now, leaseSeconds)
+            : {
+                  status: SUBSCRIPTION_STATUS.unsubscribed,
+                  lastVerifiedAt: now,
+                  unsubscribedAt: now,
+              };
+
+    const result = await db.youTubeWebSubSubscription.updateMany({
+        where: { youtubeChannelId: channelId },
+        data,
+    });
+
+    if (result.count === 0) {
+        console.warn(
+            `[youtube-websub-callback] no subscription row found for ${mode} verification channel ${channelId}`,
+        );
+    }
+}
+
+function buildSubscribeVerificationUpdate(
+    now: Date,
+    leaseSeconds: number | null,
+) {
+    return {
+        status: SUBSCRIPTION_STATUS.subscribed,
+        lastVerifiedAt: now,
+        ...(leaseSeconds === null
+            ? {}
+            : {
+                  leaseSeconds,
+                  leaseExpiresAt: new Date(now.getTime() + leaseSeconds * 1000),
+              }),
+        subscribedAt: now,
+        lastSubscribeError: null,
+    };
+}
+
+function getTopicChannelId(topic: string): string | null {
+    try {
+        return new URL(topic).searchParams.get("channel_id");
+    } catch {
+        return null;
+    }
+}
+
+function parseLeaseSeconds(value: string | null): number | null {
+    if (!value) {
+        return null;
+    }
+
+    const parsed = Number(value);
+    if (!Number.isInteger(parsed) || parsed <= 0) {
+        return null;
+    }
+
+    return parsed;
 }
 
 function normalizeTopicUrl(topic: string | null): string | null {
