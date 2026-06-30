@@ -1,0 +1,240 @@
+#!/usr/bin/env python3
+"""
+Audit still-visible Eventbrite /o/ organizer feed-clubs that route all their
+shows to distinct per-event venue clubs.
+
+Background (TASK-3519 / TASK-3522, convention #295): an Eventbrite organizer
+feed-club (scraping_sources.source_url contains eventbrite.com/o/) whose feed
+routes 100% of its shows to DISTINCT per-event venue clubs should be
+visible=false — the per-event venue club is the canonical home for the routed
+shows. Web browse (findClubsWithCount) already requires visible=true AND an
+upcoming show, so a visible-but-routing organizer club only ever renders an
+empty state on a direct /club/<slug> URL.
+
+There is NO durable DB link from an organizer club to the venue clubs it routes
+to (bare scraping_sources, no production_company, shows.scraped_by_organizer_id
+is NULL on that path), so "0 own upcoming shows" alone cannot distinguish a true
+router from a genuine-but-empty venue. The only durable "feed is active and
+routing elsewhere" signal is scraper telemetry: scraper_run_clubs.num_shows
+records how many shows the organizer feed produced on a run (attributed to the
+parent organizer per convention #294), even when those shows land on OTHER clubs.
+
+A router is therefore flagged as:
+    visible=true
+    AND status=active
+    AND an enabled eventbrite /o/ scraping source
+    AND 0 own upcoming shows
+    AND MAX(scraper_run_clubs.num_shows) over the trailing 30 days >= 10
+
+The >= 10 threshold sits in a clean production gap (genuine low-volume venues
+produce <= 2 shows; confirmed routers 28-250). Cases in the ambiguous 1..9 band
+are intentionally left for human review rather than auto-hidden.
+
+TASK-3522 shipped a one-shot guard migration
+(migrations/20260629_guard_organizer_feed_club_visibility.sql) that asserts this
+invariant at deploy time, but bin/migrate runs each SQL file exactly once, so the
+guard cannot catch organizer feeds onboarded AFTER it runs. This script makes the
+same predicate durable and re-runnable: run it after onboarding any eventbrite
+/o/ organizer feed; if it returns rows, those organizer clubs are routing
+elsewhere and should be hidden (set visible=false by id).
+
+Usage:
+    python bin/audit-organizer-visibility
+    python bin/audit-organizer-visibility --format json
+    python bin/audit-organizer-visibility --format csv
+    make audit-organizer-visibility
+    make audit-organizer-visibility FORMAT=csv
+
+Exit status: 0 when no routers are still visible (clean), 0 with the rows listed
+otherwise — this is a review list, not a CI gate. Reads DATABASE_URL from
+apps/scraper/.env (same fallback as bin/query and bin/audit-club-source-geo).
+"""
+import argparse
+import csv
+import io
+import json
+import os
+import sys
+from pathlib import Path
+from urllib.parse import quote
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+SCRAPER_ROOT = SCRIPT_DIR.parent
+ENV_FILE = SCRAPER_ROOT / ".env"
+
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    print("Error: python-dotenv is not installed. Run: pip install python-dotenv", file=sys.stderr)
+    sys.exit(1)
+
+if not ENV_FILE.exists():
+    print(f"Warning: .env not found at {ENV_FILE} — falling back to environment variables", file=sys.stderr)
+
+load_dotenv(ENV_FILE)
+
+# Trailing window (days) over which scraper_run_clubs.num_shows is summed to
+# decide whether an organizer feed is still actively producing shows.
+FEED_WINDOW_DAYS = 30
+# num_shows floor (over the window) that marks a feed-club as a confirmed router
+# rather than a genuine-but-empty venue. Clean production gap: genuine <= 2,
+# confirmed routers 28-250 (convention #295).
+ROUTER_NUM_SHOWS_THRESHOLD = 10
+
+# Audit predicate from convention #295 / the TASK-3522 guard migration. Kept
+# verbatim (modulo parameterized window/threshold) so this script and the
+# one-shot migration share a single source of truth.
+AUDIT_SQL = """
+    SELECT c.id,
+           c.name,
+           c.visible,
+           (SELECT COALESCE(MAX(src.num_shows), 0)
+              FROM scraper_run_clubs src
+             WHERE src.club_id = c.id
+               AND src.created_at > NOW() - (%(window_days)s || ' days')::interval) AS max_feed_30d
+      FROM clubs c
+     WHERE c.visible = true
+       AND c.status = 'active'
+       AND EXISTS (SELECT 1 FROM scraping_sources ss
+                    WHERE ss.club_id = c.id
+                      AND ss.platform = 'eventbrite'
+                      AND ss.enabled = true
+                      AND ss.source_url LIKE '%%eventbrite.com/o/%%')
+       AND NOT EXISTS (SELECT 1 FROM shows s
+                        WHERE s.club_id = c.id AND s.date > NOW())
+       AND (SELECT COALESCE(MAX(src.num_shows), 0)
+              FROM scraper_run_clubs src
+             WHERE src.club_id = c.id
+               AND src.created_at > NOW() - (%(window_days)s || ' days')::interval) >= %(threshold)s
+     ORDER BY max_feed_30d DESC, c.id
+"""
+
+
+def _resolve_database_url() -> str:
+    url = os.environ.get("DATABASE_URL")
+    if url:
+        return url
+    host = os.environ.get("DATABASE_HOST")
+    user = os.environ.get("DATABASE_USER")
+    password = os.environ.get("DATABASE_PASSWORD")
+    name = os.environ.get("DATABASE_NAME")
+    port = os.environ.get("DATABASE_PORT", "5432")
+    missing = [
+        var for var, val in (
+            ("DATABASE_HOST", host), ("DATABASE_USER", user),
+            ("DATABASE_PASSWORD", password), ("DATABASE_NAME", name),
+        ) if not val
+    ]
+    if missing:
+        print(
+            "Error: DATABASE_URL not set, and could not compose one from "
+            f"DATABASE_HOST/USER/PASSWORD/NAME/PORT — missing: {', '.join(missing)}. "
+            f"Set DATABASE_URL or the host-family vars in {ENV_FILE}",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    return (
+        f"postgresql://{quote(user, safe='')}:{quote(password, safe='')}"
+        f"@{host}:{port}/{name}?sslmode=require"
+    )
+
+
+def _fetch_routers(cur) -> list:
+    cur.execute(AUDIT_SQL, {
+        "window_days": str(FEED_WINDOW_DAYS),
+        "threshold": ROUTER_NUM_SHOWS_THRESHOLD,
+    })
+    cols = [d[0] for d in cur.description]
+    return [dict(zip(cols, row)) for row in cur.fetchall()]
+
+
+def _format_csv(rows: list) -> str:
+    out = io.StringIO()
+    writer = csv.writer(out)
+    writer.writerow(["id", "name", "visible", "max_feed_30d"])
+    for r in rows:
+        writer.writerow([r["id"], r["name"], r["visible"], r["max_feed_30d"]])
+    return out.getvalue()
+
+
+def _format_table(rows: list) -> str:
+    if not rows:
+        return ""
+    headers = ("id", "name", "max_feed_30d")
+    widths = {h: len(h) for h in headers}
+    for r in rows:
+        widths["id"] = max(widths["id"], len(str(r["id"])))
+        widths["name"] = max(widths["name"], len(str(r["name"])))
+        widths["max_feed_30d"] = max(widths["max_feed_30d"], len(str(r["max_feed_30d"])))
+    line = "  ".join(h.ljust(widths[h]) for h in headers)
+    sep = "  ".join("-" * widths[h] for h in headers)
+    body = [
+        "  ".join((
+            str(r["id"]).ljust(widths["id"]),
+            str(r["name"]).ljust(widths["name"]),
+            str(r["max_feed_30d"]).ljust(widths["max_feed_30d"]),
+        ))
+        for r in rows
+    ]
+    return "\n".join([line, sep, *body])
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        prog="audit-organizer-visibility",
+        description="List still-visible Eventbrite /o/ organizer feed-clubs that "
+                    "route all their shows to distinct venue clubs and should be "
+                    "hidden (convention #295).",
+    )
+    parser.add_argument(
+        "--format", choices=("table", "json", "csv"), default="table",
+        help="Output format (default: table).",
+    )
+    args = parser.parse_args()
+
+    try:
+        import psycopg2  # noqa: F401
+    except ImportError:
+        print("Error: psycopg2 is not installed. Run: pip install psycopg2-binary", file=sys.stderr)
+        sys.exit(1)
+
+    sys.path.insert(0, str(SCRAPER_ROOT / "src"))
+    from laughtrack.foundation.db_util import connect_with_retry  # noqa: E402
+
+    dsn = _resolve_database_url()
+    conn = connect_with_retry(dsn)
+    try:
+        conn.autocommit = True
+        with conn.cursor() as cur:
+            rows = _fetch_routers(cur)
+    finally:
+        conn.close()
+
+    if args.format == "json":
+        print(json.dumps(rows, indent=2, default=str))
+    elif args.format == "csv":
+        sys.stdout.write(_format_csv(rows))
+    else:
+        table = _format_table(rows)
+        if table:
+            print(table)
+
+    if rows:
+        print(
+            f"\n{len(rows)} still-visible organizer feed-club(s) routing shows "
+            f"elsewhere (>= {ROUTER_NUM_SHOWS_THRESHOLD} shows over {FEED_WINDOW_DAYS}d, "
+            "0 own upcoming). Hide each with: "
+            "make query SQL=\"UPDATE clubs SET visible=false WHERE id=<id>\"",
+            file=sys.stderr,
+        )
+    else:
+        print(
+            f"No still-visible organizer feed-clubs route shows elsewhere "
+            f"(>= {ROUTER_NUM_SHOWS_THRESHOLD} shows / {FEED_WINDOW_DAYS}d, 0 own "
+            "upcoming) — invariant holds.",
+            file=sys.stderr,
+        )
+
+
+if __name__ == "__main__":
+    main()
