@@ -34,10 +34,11 @@ def _parse_bubble_millis(ms: int, timezone_name: str) -> Optional[datetime]:
 class JetBookEvent(ShowConvertible):
     """A single upcoming show scraped from a JetBook venue iframe."""
 
-    title: str              # e.g. "Tan Sedan + Mom & Dad Are Fighting Again"
-    start_time_ms: int      # Unix millisecond timestamp from parsedate_start_date
-    slug: str               # Bubble slug, e.g. "tan-sedan---mom--dad-s3zb"
-    description: str = ""   # description_text (may be empty)
+    title: str  # e.g. "Tan Sedan + Mom & Dad Are Fighting Again"
+    start_time_ms: int  # Unix millisecond timestamp from parsedate_start_date
+    slug: str  # Bubble slug, e.g. "tan-sedan---mom--dad-s3zb"
+    description: str = ""  # description_text (may be empty)
+    price: Optional[float] = None
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None):
         """Convert to a Show domain object."""
@@ -54,8 +55,7 @@ class JetBookEvent(ShowConvertible):
         tz_name = club.timezone
         if not tz_name:
             Logger.warn(
-                f"JetBookEvent: club '{club.name}' has no timezone set; "
-                "falling back to UTC for show date conversion"
+                f"JetBookEvent: club '{club.name}' has no timezone set; " "falling back to UTC for show date conversion"
             )
             tz_name = "UTC"
         start_dt = _parse_bubble_millis(self.start_time_ms, tz_name)
@@ -63,7 +63,7 @@ class JetBookEvent(ShowConvertible):
             return None
 
         ticket_url = url or JetBookExtractor.build_ticket_url(self.slug)
-        tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url)]
+        tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url, price=self.price)]
 
         return ShowFactoryUtils.create_enhanced_show_base(
             name=self.title,

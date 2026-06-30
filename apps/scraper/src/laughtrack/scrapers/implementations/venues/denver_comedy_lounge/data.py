@@ -9,6 +9,7 @@ from laughtrack.core.entities.ticket.model import Ticket
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.ports.scraping import EventListContainer
 from laughtrack.utilities.domain.show.factory import ShowFactoryUtils
+from laughtrack.utilities.domain.show.headliner import extract_explicit_headliner_from_title
 
 # Naive-local datetime format the extractor produces from each show slug.
 _DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
@@ -33,6 +34,7 @@ class DenverComedyLoungeShow:
     title: str
     datetime_str: str
     show_page_url: str
+    price: Optional[float] = None
 
     def to_show(
         self,
@@ -53,18 +55,24 @@ class DenverComedyLoungeShow:
             )
             return None
 
-        # On-site Stripe checkout exposes no public price in the page data, so
-        # every show carries one priceless fallback ticket pointing at its own
-        # detail page (preserving the one-ticket-per-show invariant).
+        # The /shows ItemList page carries no price, but each detail page's
+        # Event JSON-LD exposes an Offer price; the scraper hydrates ``price``
+        # from there (None when the detail fetch/parse yields nothing). One
+        # fallback ticket per show preserves the one-ticket-per-show invariant.
         tickets: List[Ticket] = [
-            ShowFactoryUtils.create_fallback_ticket(purchase_url=self.show_page_url)
+            ShowFactoryUtils.create_fallback_ticket(
+                purchase_url=self.show_page_url, price=self.price
+            )
         ]
+        headliner = extract_explicit_headliner_from_title(self.title)
+        lineup = ShowFactoryUtils.create_lineup_from_performers([headliner] if headliner else [])
 
         return ShowFactoryUtils.create_enhanced_show_base(
             name=self.title,
             club=club,
             date=date,
             show_page_url=self.show_page_url,
+            lineup=lineup,
             tickets=tickets,
             room="",
             supplied_tags=["event"],

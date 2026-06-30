@@ -3,6 +3,7 @@ import {
     QueryHelper,
     COMEDIAN_SORT_MAP,
     COMEDIAN_SORT_MAP_ADMIN,
+    decodeHomeCityToken,
 } from "@/objects/class/query/QueryHelper";
 import {
     containsAliasTag,
@@ -272,6 +273,10 @@ export async function findComediansWithCount(
               ? [filtersClauseAnd]
               : [];
 
+        // Home-city filter targets the homeCity/homeState columns, which no
+        // other comedian clause touches — safe to spread as sibling keys.
+        const homeCityClause = helper.getComedianHomeCityClause();
+
         const whereClause: Prisma.ComedianWhereInput = {
             ...filtersClause,
             visible: true,
@@ -281,6 +286,7 @@ export async function findComediansWithCount(
             AND: [...nameFilters, ...filtersAndArray],
             ...lineupItemsClause,
             ...minUpcomingShowsClause,
+            ...homeCityClause,
         };
 
         const upcomingCountSelect = buildUpcomingCountSelect();
@@ -348,6 +354,22 @@ export async function findComediansWithCount(
                           AND t2.type = 'comedian'
                     )`,
                 );
+            }
+
+            // Mirror the Prisma getComedianHomeCityClause on the raw-SQL sort
+            // path — without this the home-city filter would be silently
+            // dropped when sorting by upcoming show count.
+            const homeCityParam = helper.params.homeCity;
+            if (homeCityParam) {
+                const { city, state } = decodeHomeCityToken(homeCityParam);
+                if (city) {
+                    whereConditions.push(Prisma.sql`c."home_city" = ${city}`);
+                    whereConditions.push(
+                        state
+                            ? Prisma.sql`c."home_state" = ${state}`
+                            : Prisma.sql`c."home_state" IS NULL`,
+                    );
+                }
             }
 
             const sortDir =

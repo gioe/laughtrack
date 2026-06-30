@@ -29,6 +29,7 @@ from bs4 import BeautifulSoup
 
 from laughtrack.core.entities.event.tixr import TixrEvent
 from laughtrack.core.entities.show.model import Show
+from laughtrack.core.entities.comedian.model import Comedian
 from laughtrack.core.entities.ticket.model import Ticket
 from laughtrack.core.clients.tixr import TixrVenueEventTransformer
 from laughtrack.core.entities.club.model import Club
@@ -585,7 +586,49 @@ class TixrScraper(BaseScraper):
         events = self._parse_buzzard_public_cards(soup)
         if events:
             return events
+        events = self._parse_b_show_public_cards(soup)
+        if events:
+            return events
         return self._parse_stand_public_cards(soup)
+
+    def _apply_title_filter(self, events: List[TixrEvent]) -> List[TixrEvent]:
+        """Keep only events whose title passes the opt-in metadata title filter.
+
+        Mixed-use venues (e.g. a music hall whose Tixr calendar is mostly
+        concerts/tribute bands with an occasional stand-up night) expose every
+        show on the same calendar. Two ``scraping_sources.metadata`` keys isolate
+        the comedy, matching the established eventbrite / ticketweb / arts_people
+        convention via the shared :meth:`BaseScraper.compile_title_patterns`:
+
+        - ``include_title_patterns`` — keep ONLY events whose title matches at
+          least one pattern (the comedy allowlist).
+        - ``exclude_title_patterns`` — drop events whose title matches any pattern.
+
+        Both are OFF by default, so pure-comedy Tixr sources are unchanged (the
+        method returns the events untouched when neither key is configured).
+        """
+        include = self.compile_title_patterns("include_title_patterns")
+        exclude = self.compile_title_patterns("exclude_title_patterns")
+        if not include and not exclude:
+            return events
+
+        kept: List[TixrEvent] = []
+        for event in events:
+            title = event.title or ""
+            if include and not any(p.search(title) for p in include):
+                continue
+            if exclude and any(p.search(title) for p in exclude):
+                continue
+            kept.append(event)
+
+        dropped = len(events) - len(kept)
+        if dropped:
+            Logger.info(
+                f"{self._log_prefix}: title filter dropped {dropped} of "
+                f"{len(events)} event(s); {len(kept)} kept",
+                self.logger_context,
+            )
+        return kept
 
     def _parse_webflow_public_cards(self, soup: BeautifulSoup) -> List[TixrEvent]:
         events: List[TixrEvent] = []
@@ -703,6 +746,91 @@ class TixrScraper(BaseScraper):
                 date=show_date,
                 show_page_url=ticket_url,
                 lineup=[],
+                tickets=[
+                    Ticket(
+                        price=jsonld_offer_prices.get(ticket_url),
+                        purchase_url=ticket_url,
+                        sold_out=False,
+                        type="General Admission",
+                    )
+                ],
+                supplied_tags=["event"],
+                description=None,
+                timezone=self.club.timezone,
+                room="",
+            )
+            events.append(TixrEvent.from_tixr_show(show=show, source_url=ticket_url, event_id=event_id))
+
+        return events
+
+    def _parse_b_show_public_cards(self, soup: BeautifulSoup) -> List[TixrEvent]:
+        """Parse the Phil Long Music Hall style Webflow ``.day-card`` variant.
+
+        Each upcoming show is a ``div.day-card`` whose buy button is an
+        ``a[href*="tixr.com"]`` (short-form ``tixr.com/e/{id}``). The card carries
+        complete, year-bearing data, so Tixr detail pages are never fetched:
+        - title in ``.b-show``;
+        - an absolute date in the first ``.event-info_dates p.b-venue.date``
+          (e.g. ``October 23, 2026``) and the start time in the second
+          (e.g. ``8:00 pm``) — both reuse :meth:`_parse_buzzard_card_datetime`;
+        - an optional ``Featuring:`` performer in ``.b-venue.name``.
+
+        Multi-purpose music halls list mostly concerts here, so callers pair this
+        with the opt-in ``include_title_patterns`` comedy allowlist
+        (:meth:`_apply_title_filter`).
+        """
+        events: List[TixrEvent] = []
+        seen_ids: set[str] = set()
+        jsonld_offer_prices = self._extract_jsonld_offer_prices_by_url(soup)
+
+        for card in soup.select(".day-card"):
+            title_el = card.select_one(".b-show")
+            date_els = card.select(".event-info_dates p.b-venue.date")
+            # The Tixr buy link is the wrapping ``a.cal-card-link`` anchor on the
+            # live phillongmusichall.com layout — each ``.day-card`` is nested
+            # inside ``<a href="tixr.com/e/{id}">`` and the in-card "buy tickets"
+            # element is a non-link ``<div>``. Fall back to a descendant anchor so
+            # variants that embed the buy link inside the card still resolve.
+            link = card.select_one('a[href*="tixr.com"]') or card.find_parent(
+                lambda tag: tag.name == "a" and "tixr.com" in (tag.get("href") or "")
+            )
+
+            if not link or not title_el or len(date_els) < 2:
+                continue
+
+            ticket_url = str(link.get("href") or "").strip()
+            title = title_el.get_text(" ", strip=True)
+            event_id = TixrExtractor.get_event_id(ticket_url) or ""
+            if not title or not ticket_url or (event_id and event_id in seen_ids):
+                continue
+
+            show_date = self._parse_buzzard_card_datetime(
+                date_els[0].get_text(" ", strip=True),
+                date_els[1].get_text(" ", strip=True),
+            )
+            if show_date is None:
+                Logger.warn(
+                    f"{self._log_prefix}: Skipping .day-card with unparseable date/time "
+                    f"for '{title}' at {ticket_url}",
+                    self.logger_context,
+                )
+                continue
+
+            if event_id:
+                seen_ids.add(event_id)
+
+            lineup: List[Comedian] = []
+            for name_el in card.select(".b-venue.name"):
+                name = name_el.get_text(" ", strip=True)
+                if name and not name.lower().startswith("featuring"):
+                    lineup.append(Comedian(name=name))
+
+            show = Show(
+                name=title,
+                club_id=self.club.id,
+                date=show_date,
+                show_page_url=ticket_url,
+                lineup=lineup,
                 tickets=[
                     Ticket(
                         price=jsonld_offer_prices.get(ticket_url),
@@ -998,6 +1126,15 @@ class TixrPublicCardScraper(TixrScraper):
                 Logger.warn(
                     f"{self._log_prefix}: Found {tixr_url_count} Tixr URL(s) but no parseable "
                     f"venue-owned public cards at {normalized_url}",
+                    self.logger_context,
+                )
+                return None
+
+            events = self._apply_title_filter(events)
+            if not events:
+                Logger.info(
+                    f"{self._log_prefix}: All venue-owned public cards filtered out by "
+                    f"title patterns at {normalized_url}",
                     self.logger_context,
                 )
                 return None

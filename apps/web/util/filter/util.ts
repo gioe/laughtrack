@@ -53,6 +53,7 @@ export type ParamTypeMap = {
     filters: string;
     includeEmpty: boolean;
     chain: string;
+    homeCity: string;
     minUpcomingShows: number;
 };
 
@@ -168,6 +169,13 @@ export const paramConfigs: {
     },
     chain: {
         key: QueryProperty.Chain,
+        defaultValue: "",
+        parse: (value: string | null) => value ?? "",
+        stringify: (value: string) => value,
+        validate: (value: string) => value.length > 0 || value === "",
+    },
+    homeCity: {
+        key: QueryProperty.HomeCity,
         defaultValue: "",
         parse: (value: string | null) => value ?? "",
         stringify: (value: string) => value,

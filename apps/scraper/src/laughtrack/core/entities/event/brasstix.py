@@ -20,6 +20,7 @@ class BrassTixEvent(ShowConvertible):
     ticket_url: str
     show_name: str
     availability_label: str = ""
+    price: Optional[float] = None
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None):
         try:
@@ -33,7 +34,7 @@ class BrassTixEvent(ShowConvertible):
         tickets = [
             ShowFactoryUtils.create_fallback_ticket(
                 purchase_url,
-                price=None,
+                price=self.price,
                 sold_out=False,
             )
         ]

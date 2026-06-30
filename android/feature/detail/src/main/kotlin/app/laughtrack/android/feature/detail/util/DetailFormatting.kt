@@ -117,3 +117,24 @@ private fun plural(
     count: Long,
     unit: String,
 ): String = if (count == 1L) unit else "${unit}s"
+
+/** Trims whitespace and treats blank strings as absent. */
+private fun blankToNull(value: String?): String? = value?.trim()?.takeIf { it.isNotEmpty() }
+
+/**
+ * "City, Region" label for a comedian's derived home location, where region
+ * prefers state and falls back to country. Returns null when there is no city
+ * to anchor the label so the row can be omitted.
+ */
+fun formatHomeCity(
+    city: String?,
+    state: String?,
+    country: String?,
+): String? {
+    val resolvedCity = blankToNull(city) ?: return null
+    val region = blankToNull(state) ?: blankToNull(country)
+    return if (region != null) "$resolvedCity, $region" else resolvedCity
+}
+
+/** The displayable home club name, or null when blank/absent. */
+fun formatHomeClubName(clubName: String?): String? = blankToNull(clubName)

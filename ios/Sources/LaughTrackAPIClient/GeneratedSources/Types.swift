@@ -3057,6 +3057,8 @@ public enum Components {
             public var socialData: Components.Schemas.SocialData
             /// - Remark: Generated from `#/components/schemas/ComedianDetail/podcastAppearances`.
             public var podcastAppearances: [Components.Schemas.PodcastAppearance]
+            /// - Remark: Generated from `#/components/schemas/ComedianDetail/homeLocation`.
+            public var homeLocation: Components.Schemas.ComedianHomeLocation?
             /// Creates a new `ComedianDetail`.
             ///
             /// - Parameters:
@@ -3066,13 +3068,15 @@ public enum Components {
             ///   - imageUrl:
             ///   - socialData:
             ///   - podcastAppearances:
+            ///   - homeLocation:
             public init(
                 id: Swift.Int,
                 uuid: Swift.String,
                 name: Swift.String,
                 imageUrl: Swift.String,
                 socialData: Components.Schemas.SocialData,
-                podcastAppearances: [Components.Schemas.PodcastAppearance]
+                podcastAppearances: [Components.Schemas.PodcastAppearance],
+                homeLocation: Components.Schemas.ComedianHomeLocation? = nil
             ) {
                 self.id = id
                 self.uuid = uuid
@@ -3080,6 +3084,7 @@ public enum Components {
                 self.imageUrl = imageUrl
                 self.socialData = socialData
                 self.podcastAppearances = podcastAppearances
+                self.homeLocation = homeLocation
             }
             public enum CodingKeys: String, CodingKey {
                 case id
@@ -3088,6 +3093,50 @@ public enum Components {
                 case imageUrl
                 case socialData
                 case podcastAppearances
+                case homeLocation
+            }
+        }
+        /// Derived home base for a comedian. Every field is nullable; the whole object is optional so existing clients that do not request it are unaffected.
+        ///
+        /// - Remark: Generated from `#/components/schemas/ComedianHomeLocation`.
+        public struct ComedianHomeLocation: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/ComedianHomeLocation/city`.
+            public var city: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/ComedianHomeLocation/state`.
+            public var state: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/ComedianHomeLocation/country`.
+            public var country: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/ComedianHomeLocation/clubId`.
+            public var clubId: Swift.Int?
+            /// - Remark: Generated from `#/components/schemas/ComedianHomeLocation/clubName`.
+            public var clubName: Swift.String?
+            /// Creates a new `ComedianHomeLocation`.
+            ///
+            /// - Parameters:
+            ///   - city:
+            ///   - state:
+            ///   - country:
+            ///   - clubId:
+            ///   - clubName:
+            public init(
+                city: Swift.String? = nil,
+                state: Swift.String? = nil,
+                country: Swift.String? = nil,
+                clubId: Swift.Int? = nil,
+                clubName: Swift.String? = nil
+            ) {
+                self.city = city
+                self.state = state
+                self.country = country
+                self.clubId = clubId
+                self.clubName = clubName
+            }
+            public enum CodingKeys: String, CodingKey {
+                case city
+                case state
+                case country
+                case clubId
+                case clubName
             }
         }
         /// - Remark: Generated from `#/components/schemas/PodcastAppearance`.

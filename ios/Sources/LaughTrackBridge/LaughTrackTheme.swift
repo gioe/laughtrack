@@ -267,15 +267,15 @@ public struct LaughTrackTheme: AppThemeProtocol {
 
         let semanticTypography = LaughTrackSemanticTypographyTokens(
             hero: .custom("Chivo-Black", size: 34),
-            screenTitle: .custom("Gilroy-Bold", size: 28),
-            sectionTitle: .custom("Gilroy-Bold", size: 22),
-            cardTitle: .custom("Gilroy-Bold", size: 20),
+            screenTitle: .custom("Urbanist-Bold", size: 28),
+            sectionTitle: .custom("Urbanist-Bold", size: 22),
+            cardTitle: .custom("Urbanist-Bold", size: 20),
             body: .custom("DMSans-Regular", size: 17),
             bodyEmphasis: .custom("DMSans-Medium", size: 17),
             metadata: .custom("DMSans-Medium", size: 13),
             eyebrow: .custom("DMSans-SemiBold", size: 12),
             action: .custom("DMSans-SemiBold", size: 16),
-            numericHighlight: .custom("Gilroy-Bold", size: 26)
+            numericHighlight: .custom("Urbanist-Bold", size: 26)
         )
 
         let semanticSpacing = LaughTrackSemanticSpacingTokens(

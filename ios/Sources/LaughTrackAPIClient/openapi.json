@@ -3257,7 +3257,19 @@
           "podcastAppearances": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/PodcastAppearance" }
-          }
+          },
+          "homeLocation": { "$ref": "#/components/schemas/ComedianHomeLocation" }
+        }
+      },
+      "ComedianHomeLocation": {
+        "type": "object",
+        "description": "Derived home base for a comedian. Every field is nullable; the whole object is optional so existing clients that do not request it are unaffected.",
+        "properties": {
+          "city": { "type": ["string", "null"] },
+          "state": { "type": ["string", "null"] },
+          "country": { "type": ["string", "null"] },
+          "clubId": { "type": ["integer", "null"] },
+          "clubName": { "type": ["string", "null"] }
         }
       },
       "PodcastAppearance": {

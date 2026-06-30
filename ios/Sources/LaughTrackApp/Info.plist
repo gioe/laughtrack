@@ -47,11 +47,7 @@
 		<string>DMSans-Regular.ttf</string>
 		<string>DMSans-Medium.ttf</string>
 		<string>DMSans-SemiBold.ttf</string>
-		<string>Gilroy-Light.ttf</string>
-		<string>Gilroy-Regular.ttf</string>
-		<string>Gilroy-Medium.ttf</string>
-		<string>Gilroy-Bold.ttf</string>
-		<string>Gilroy-Heavy.ttf</string>
+		<string>Urbanist-Bold.ttf</string>
 	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>

@@ -18,13 +18,19 @@ vi.mock("next/cache", () => ({
     revalidateTag: vi.fn(),
 }));
 
+vi.mock("@/lib/youtube/youtubeChannelResolver", () => ({
+    resolveYouTubeChannelId: vi.fn(),
+}));
+
 import { PATCH, POST, PUT } from "./route";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { resolveYouTubeChannelId } from "@/lib/youtube/youtubeChannelResolver";
 
 const mockAuth = vi.mocked(auth);
 const mockTransaction = vi.mocked(db.$transaction);
 const mockFindUserProfile = vi.mocked(db.userProfile.findFirst);
+const mockResolveYouTubeChannelId = vi.mocked(resolveYouTubeChannelId);
 
 const adminSession = {
     profile: {
@@ -50,6 +56,11 @@ function makeComedian(overrides: Record<string, unknown> = {}) {
         name: "Alias Comic",
         website: null,
         websiteScrapingUrl: null,
+        instagramAccount: null,
+        tiktokAccount: null,
+        youtubeAccount: null,
+        youtubeChannelId: null,
+        linktree: null,
         hasImage: false,
         imageAssets: [],
         popularity: 12,
@@ -65,6 +76,11 @@ function makeComedian(overrides: Record<string, unknown> = {}) {
 
 beforeEach(() => {
     vi.clearAllMocks();
+    mockResolveYouTubeChannelId.mockResolvedValue({
+        status: "failed",
+        reason: "not_found",
+        sourceUrl: "https://www.youtube.com/@missing",
+    });
     mockFindUserProfile.mockResolvedValue({
         id: "profile-1",
         userid: "user-1",
@@ -505,6 +521,186 @@ describe("PUT /api/admin/comedians", () => {
         expect(body.comedian.websiteScrapingUrl).toBe(
             "https://alias.example.com/tour",
         );
+    });
+
+    it("resolves a YouTube channel ID when a YouTube account is saved without one", async () => {
+        mockAuth.mockResolvedValue(adminSession as never);
+        mockResolveYouTubeChannelId.mockResolvedValueOnce({
+            status: "resolved",
+            channelId: "UC-resolved-channel",
+            sourceUrl: "https://www.youtube.com/@AliasComic",
+        });
+        const auditCreate = vi.fn();
+        const update = vi.fn();
+        const findUnique = vi
+            .fn()
+            .mockResolvedValueOnce(makeComedian())
+            .mockResolvedValueOnce(null)
+            .mockResolvedValueOnce(
+                makeComedian({
+                    youtubeAccount: "AliasComic",
+                    youtubeChannelId: "UC-resolved-channel",
+                }),
+            );
+        const txQueryRaw = vi.fn().mockResolvedValueOnce([]);
+        mockTransaction.mockImplementation(async (callback) =>
+            callback({
+                comedian: { findUnique, update },
+                $queryRaw: txQueryRaw,
+                adminActionAudit: { create: auditCreate },
+            } as never),
+        );
+
+        const res = await PUT(
+            makeRequest({
+                comedianId: 2,
+                name: "Alias Comic",
+                youtubeAccount: "@AliasComic",
+                youtubeChannelId: null,
+            }),
+        );
+        const body = await res.json();
+
+        expect(res.status).toBe(200);
+        expect(mockResolveYouTubeChannelId).toHaveBeenCalledWith("AliasComic");
+        expect(update).toHaveBeenCalledWith({
+            where: { id: 2 },
+            data: expect.objectContaining({
+                youtubeAccount: "AliasComic",
+                youtubeChannelId: "UC-resolved-channel",
+            }),
+        });
+        expect(body.comedian.youtubeChannelId).toBe("UC-resolved-channel");
+    });
+
+    it("preserves an explicit YouTube channel ID instead of resolving over it", async () => {
+        mockAuth.mockResolvedValue(adminSession as never);
+        const update = vi.fn();
+        const findUnique = vi
+            .fn()
+            .mockResolvedValueOnce(
+                makeComedian({
+                    youtubeAccount: "old-account",
+                    youtubeChannelId: "UC-manual-channel",
+                }),
+            )
+            .mockResolvedValueOnce(null)
+            .mockResolvedValueOnce(
+                makeComedian({
+                    youtubeAccount: "AliasComic",
+                    youtubeChannelId: "UC-manual-channel",
+                }),
+            );
+        mockTransaction.mockImplementation(async (callback) =>
+            callback({
+                comedian: { findUnique, update },
+                $queryRaw: vi.fn().mockResolvedValueOnce([]),
+                adminActionAudit: { create: vi.fn() },
+            } as never),
+        );
+
+        const res = await PUT(
+            makeRequest({
+                comedianId: 2,
+                name: "Alias Comic",
+                youtubeAccount: "@AliasComic",
+                youtubeChannelId: "UC-manual-channel",
+            }),
+        );
+
+        expect(res.status).toBe(200);
+        expect(mockResolveYouTubeChannelId).not.toHaveBeenCalled();
+        expect(update).toHaveBeenCalledWith({
+            where: { id: 2 },
+            data: expect.objectContaining({
+                youtubeAccount: "AliasComic",
+                youtubeChannelId: "UC-manual-channel",
+            }),
+        });
+    });
+
+    it("clears an existing YouTube channel ID when the admin empties it", async () => {
+        mockAuth.mockResolvedValue(adminSession as never);
+        const update = vi.fn();
+        const findUnique = vi
+            .fn()
+            .mockResolvedValueOnce(
+                makeComedian({
+                    youtubeAccount: "AliasComic",
+                    youtubeChannelId: "UC-manual-channel",
+                }),
+            )
+            .mockResolvedValueOnce(null)
+            .mockResolvedValueOnce(
+                makeComedian({
+                    youtubeAccount: "AliasComic",
+                    youtubeChannelId: null,
+                }),
+            );
+        mockTransaction.mockImplementation(async (callback) =>
+            callback({
+                comedian: { findUnique, update },
+                $queryRaw: vi.fn().mockResolvedValueOnce([]),
+                adminActionAudit: { create: vi.fn() },
+            } as never),
+        );
+
+        const res = await PUT(
+            makeRequest({
+                comedianId: 2,
+                name: "Alias Comic",
+                youtubeAccount: "@AliasComic",
+                youtubeChannelId: null,
+            }),
+        );
+
+        expect(res.status).toBe(200);
+        expect(mockResolveYouTubeChannelId).not.toHaveBeenCalled();
+        expect(update).toHaveBeenCalledWith({
+            where: { id: 2 },
+            data: expect.objectContaining({
+                youtubeAccount: "AliasComic",
+                youtubeChannelId: null,
+            }),
+        });
+    });
+
+    it("does not write a channel ID when YouTube account resolution fails", async () => {
+        mockAuth.mockResolvedValue(adminSession as never);
+        mockResolveYouTubeChannelId.mockResolvedValueOnce({
+            status: "failed",
+            reason: "not_found",
+            sourceUrl: "https://www.youtube.com/@AliasComic",
+        });
+        const update = vi.fn();
+        const findUnique = vi
+            .fn()
+            .mockResolvedValueOnce(makeComedian())
+            .mockResolvedValueOnce(null)
+            .mockResolvedValueOnce(
+                makeComedian({ youtubeAccount: "AliasComic" }),
+            );
+        mockTransaction.mockImplementation(async (callback) =>
+            callback({
+                comedian: { findUnique, update },
+                $queryRaw: vi.fn().mockResolvedValueOnce([]),
+                adminActionAudit: { create: vi.fn() },
+            } as never),
+        );
+
+        const res = await PUT(
+            makeRequest({
+                comedianId: 2,
+                name: "Alias Comic",
+                youtubeAccount: "@AliasComic",
+                youtubeChannelId: null,
+            }),
+        );
+
+        expect(res.status).toBe(200);
+        const updateArgs = update.mock.calls[0]?.[0];
+        expect(updateArgs).toMatchObject({ where: { id: 2 } });
+        expect(updateArgs.data).not.toHaveProperty("youtubeChannelId");
     });
 
     it("rejects updates that would collide with another comedian uuid", async () => {

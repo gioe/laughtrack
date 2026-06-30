@@ -15,7 +15,7 @@ which nothing read until now.
 - `run_type = 'verify'` — single-club verify runs (`scrape_shows --club-id`/`--club`),
   with `clubs_processed = 1`. Because they hold child rows for only one club, leaving
   them tagged `'scraper'` made a verify run landing as rn=1/rn=2 between two nightlies
-  silently mask a zero-drop for every *other* club (root cause of the missed ImprovCity
+  silently mask a zero-drop for every _other_ club (root cause of the missed ImprovCity
   alert — TASK-2824 / TASK-2831), and skewed the success-rate / error-count baselines.
 
 Every dashboard panel and alert comparison window filters on `run_type = 'scraper'`,
@@ -40,6 +40,7 @@ verify scrape that returned shows is still valid evidence the club is not dark.
 - `api-requests.json` — the **API Requests** dashboard, reading the
   `api_request_metrics` hourly counter table (written by the `withRequestMetrics`
   handler wrapper). Panels:
+
   - Requests per route over time
   - Top routes by volume
   - Requests by status_class over time
@@ -52,10 +53,21 @@ verify scrape that returned shows is still valid evidence the club is not dark.
   `dfnjxqagicw74a` occurrence in the JSON. Import the same way:
   Grafana → Dashboards → New → Import → upload `api-requests.json`.
 
+- `youtube-websub.json` — the **YouTube WebSub** dashboard. Panels:
+
+  - WebSub callbacks received by event status over time
+  - Subscription renewal failures plus oldest expiring active lease
+  - YouTube Data API verification outcomes by status
+  - YouTube live push delivery counts for sent, failed, and suppressed events
+
+  Import it like `scraper-health.json`: Grafana → Dashboards → New → Import →
+  upload `youtube-websub.json` → select the Neon datasource for the `${datasource}`
+  variable.
+
 ## One-time setup
 
-1. **Create the read-only Neon role** (least-privilege; SELECT only on the three
-   scraper-health tables):
+1. **Create the read-only Neon role** (least-privilege; SELECT only on the
+   scraper/API/WebSub observability tables):
 
    ```bash
    psql "$DIRECT_URL" -f apps/web/prisma/scripts/create_grafana_readonly_role.sql
@@ -83,7 +95,7 @@ widen/narrow by editing those bounds):
    `scraper_runs.success_rate` is more than 10 percentage points below the
    trailing average.
 2. **Club dropped to zero shows** — fires when a club returned shows in the
-   previous run but zero in the latest run. The query matches the *transition*
+   previous run but zero in the latest run. The query matches the _transition_
    (prev > 0, latest = 0), so it fires **exactly once** per drop: on the next run
    the previous run is itself zero, the condition no longer holds, and the alert
    resolves. One alert instance per club (the `club` label).
@@ -126,9 +138,10 @@ failures and regressions.
    `contactPoints` block with the `#laughtrack` channel's incoming-webhook URL
    (do **not** append `/slack`). Keep the secret out of git.
 3. **Provision the rules.**
-   - *Self-hosted Grafana:* drop `scraper-health-alerts.yaml` in
+
+   - _Self-hosted Grafana:_ drop `scraper-health-alerts.yaml` in
      `/etc/grafana/provisioning/alerting/` and restart.
-   - *Grafana Cloud* (no **file** provisioning): rules added to the YAML do
+   - _Grafana Cloud_ (no **file** provisioning): rules added to the YAML do
      **not** reach Grafana Cloud on merge. The preferred path is the
      **Alerting provisioning HTTP API** — the `GRAFANA_ACCOUNT_TOKEN` in
      `apps/scraper/.env` has provisioning rights (verified TASK-2843, which
@@ -148,20 +161,22 @@ failures and regressions.
      Build `new-rule.json` by cloning an existing rule's `data` pipeline
      (query A = the YAML rule's `rawSql` against the Neon datasource,
      reduce(last) expression, threshold(>0) expression), set `folderUID` /
-     `ruleGroup` from the template, labels `service=scraper-health,
-     severity=warning`, `noDataState: OK`, and
+     `ruleGroup` from the template, labels `service=scraper-health` and
+     `severity=warning`, `noDataState: OK`, and
      `notification_settings.receiver: "Discord Hook"`. Manual UI creation
      (**Alerting → Alert rules → New** with the same pieces) remains the
      fallback when no token is at hand.
+
    - **TASK-2831 re-provisioning (after this merge).** Tagging single-club runs
      `run_type='verify'` needs no rule edits for rules 1–3: they already whitelist
      `run_type='scraper'`, so verify rows drop out automatically the moment the
-     writer change deploys. Two pieces of SQL *did* change and must be re-applied
+     writer change deploys. Two pieces of SQL _did_ change and must be re-applied
      in Grafana Cloud (they are not auto-provisioned): **rule 4**'s `history`
      subquery now reads `run_type IN ('scraper','verify')` so a recent verify run
      still proves a club is not dark (re-POST it via the provisioning API above),
      and the **bot-block-by-provider** panel in `scraper-health.json` now joins
      `scraper_runs` to exclude verify-run blocks (re-import the dashboard).
+
 4. **Route to Discord.** Provisioned notification `policies` replace the org root
    policy, so the YAML leaves that block commented out. Add a notification-policy
    route in the UI instead: matcher `service = scraper-health` → contact point

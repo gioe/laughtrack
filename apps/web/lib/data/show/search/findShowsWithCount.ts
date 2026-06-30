@@ -141,6 +141,7 @@ export async function findShowsWithCount(
 
             // Match any shows with tags matching the display of the provided filter
             ...helper.getShowTagsClause(),
+            ...helper.getShowTypeClause(),
 
             // Free filter: when the FREE_FILTER_SLUG is in the filters CSV,
             // narrow to shows with at least one ticket priced 0 or NULL.

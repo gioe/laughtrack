@@ -18,6 +18,7 @@ from psycopg2.extras import DictRow
 from sql.show_queries import ShowQueries
 
 from laughtrack.foundation.models.operation_result import DatabaseOperationResult
+from laughtrack.utilities.domain.show.classifier import apply_show_type
 from laughtrack.utilities.domain.show.utils import ShowUtils
 from laughtrack.utilities.domain.show.validator import ShowValidator
 from laughtrack.foundation.infrastructure.database.operation import DatabaseOperationLogger
@@ -264,6 +265,11 @@ class ShowHandler(BaseDatabaseHandler[Show]):
         updates = sum(1 for result in show_results if result.get("operation_type", "") == self.OPERATION_TYPE_UPDATED)
         return inserts, updates
 
+    def _classify_missing_show_types(self, batch: List[Show]) -> None:
+        """Classify shows at the write boundary while preserving explicit values."""
+        for show in batch:
+            apply_show_type(show)
+
     def _build_items_and_template(self, batch: List[Show]) -> Tuple[List[tuple], str]:
         """Build batch items and the dynamic template for batch insertion."""
         items = [show.to_tuple() for show in batch]
@@ -289,9 +295,22 @@ class ShowHandler(BaseDatabaseHandler[Show]):
         if len(non_empty_rooms) > 1:
             return self._NO_CANONICAL_ROOM
 
-        if existing_rows:
-            return existing_rows[0].get("room")
-        return incoming_room or ""
+        # Canonicalize onto the single non-empty room when one exists (matching
+        # its exact stored value so the upsert hits that row's conflict key).
+        for row in existing_rows:
+            room = row.get("room")
+            if isinstance(room, str) and room.strip():
+                return room
+
+        # All existing rooms are NULL/empty. Return "" — NEVER NULL. Postgres
+        # treats NULL as distinct in the (club_id, date, room) unique index, so
+        # rewriting an incoming "" to a legacy NULL room would make the upsert's
+        # ON CONFLICT miss and INSERT a fresh NULL row on every scrape (the
+        # root cause of TASK-3489's per-run duplicate accretion — e.g. 75 NULL
+        # rows for one Bricktown showtime). Writing "" lets repeated scrapes
+        # converge on a single row. Legacy NULL rows are swept by the
+        # collapse_duplicate_shows_stable_identity backfill.
+        return ""
 
     def _suppress_room_matching_club_name(self, batch: List[Show]) -> int:
         """Blank out room values that merely repeat the club's name.
@@ -594,6 +613,8 @@ class ShowHandler(BaseDatabaseHandler[Show]):
         if not batch:
             Logger.info("No shows to process in batch")
             return DatabaseOperationResult()
+
+        self._classify_missing_show_types(batch)
 
         # Validate at the write boundary so bad scraper output cannot reach the database.
         batch, validation_errors = ShowValidator.validate_shows(batch)

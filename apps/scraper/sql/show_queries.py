@@ -14,7 +14,7 @@ class ShowQueries:
     
     GET_SHOW_DETAILS = """
         SELECT 
-            id, name, show_page_url, description, date, club_id, room, popularity
+            id, name, show_page_url, description, date, club_id, room, popularity, show_type
         FROM shows
         WHERE id = ANY(%s)
         ORDER BY id;
@@ -23,7 +23,7 @@ class ShowQueries:
     BATCH_INSERT_SHOWS = '''
         INSERT INTO shows (
             name, show_page_url, description, date, club_id, last_scraped_date, room,
-            production_company_id, last_scraped_by, scraped_by_organizer_id
+            production_company_id, last_scraped_by, scraped_by_organizer_id, show_type
         )
         VALUES %s
         ON CONFLICT (club_id, date, room)
@@ -41,7 +41,8 @@ class ShowQueries:
             -- wins. An organizer stamps its id; a non-organizer re-scrape sets it
             -- NULL, correctly clearing the claim so that organizer's reconcile no
             -- longer matches the row (TASK-2861).
-            scraped_by_organizer_id = EXCLUDED.scraped_by_organizer_id
+            scraped_by_organizer_id = EXCLUDED.scraped_by_organizer_id,
+            show_type = EXCLUDED.show_type
         RETURNING
             id, club_id, room, date,
             CASE

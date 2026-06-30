@@ -1032,3 +1032,57 @@ private final class PastShowsCallCount: @unchecked Sendable {
         return current
     }
 }
+
+@Suite("Comedian home location presentation")
+struct ComedianHomeLocationPresentationTests {
+    @Test("city label joins city with state, preferring state over country")
+    func cityLabelPrefersState() {
+        let home = Components.Schemas.ComedianHomeLocation(
+            city: "Austin", state: "TX", country: "USA", clubId: 7, clubName: "Cap City"
+        )
+        #expect(ComedianHomeLocationPresentation.cityLabel(for: home) == "Austin, TX")
+    }
+
+    @Test("city label falls back to country when state is nil")
+    func cityLabelFallsBackToCountry() {
+        let home = Components.Schemas.ComedianHomeLocation(
+            city: "Toronto", state: nil, country: "Canada", clubId: nil, clubName: nil
+        )
+        #expect(ComedianHomeLocationPresentation.cityLabel(for: home) == "Toronto, Canada")
+    }
+
+    @Test("city label is just the city when no region is present")
+    func cityLabelCityOnly() {
+        let home = Components.Schemas.ComedianHomeLocation(
+            city: "Brooklyn", state: "  ", country: nil, clubId: nil, clubName: nil
+        )
+        #expect(ComedianHomeLocationPresentation.cityLabel(for: home) == "Brooklyn")
+    }
+
+    @Test("city label is nil when the city is blank or absent")
+    func cityLabelNilWithoutCity() {
+        #expect(ComedianHomeLocationPresentation.cityLabel(for: nil) == nil)
+        let blank = Components.Schemas.ComedianHomeLocation(
+            city: "   ", state: "TX", country: nil, clubId: nil, clubName: nil
+        )
+        #expect(ComedianHomeLocationPresentation.cityLabel(for: blank) == nil)
+    }
+
+    @Test("hasContent is true when only the home club is present")
+    func hasContentClubOnly() {
+        let home = Components.Schemas.ComedianHomeLocation(
+            city: nil, state: nil, country: nil, clubId: 9, clubName: "The Stand"
+        )
+        #expect(ComedianHomeLocationPresentation.hasContent(home))
+        #expect(ComedianHomeLocationPresentation.cityLabel(for: home) == nil)
+    }
+
+    @Test("hasContent is false when every field is null or blank")
+    func hasContentFalseWhenEmpty() {
+        #expect(!ComedianHomeLocationPresentation.hasContent(nil))
+        let empty = Components.Schemas.ComedianHomeLocation(
+            city: nil, state: nil, country: nil, clubId: nil, clubName: "  "
+        )
+        #expect(!ComedianHomeLocationPresentation.hasContent(empty))
+    }
+}

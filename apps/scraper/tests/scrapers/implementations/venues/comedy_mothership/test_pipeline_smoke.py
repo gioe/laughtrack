@@ -7,6 +7,7 @@ ComedyMothershipEvent.to_show() transformation path.
 """
 
 import importlib.util
+import re
 
 import pytest
 
@@ -28,6 +29,7 @@ from laughtrack.scrapers.implementations.venues.comedy_mothership import (
 )
 from laughtrack.scrapers.implementations.venues.comedy_mothership.scraper import (
     ComedyMothershipScraper,
+    _extract_min_price,
 )
 
 SHOWS_URL = "https://comedymothership.com/shows"
@@ -438,12 +440,16 @@ async def test_get_data_returns_none_when_fetch_fails(monkeypatch):
 async def test_get_data_stops_pagination_on_empty_page(monkeypatch):
     """get_data() stops fetching further pages when a page returns no events."""
     scraper = ComedyMothershipScraper(_club())
-    call_count = 0
+    listing_calls = 0
 
     async def fake_fetch(session, url, **kwargs):
-        nonlocal call_count
-        call_count += 1
-        if call_count == 1:
+        nonlocal listing_calls
+        # Detail pages (/shows/<id>) are fetched during price enrichment;
+        # return empty so enrichment no-ops and only listing pages are counted.
+        if re.search(r"/shows/\d+", url):
+            return ""
+        listing_calls += 1
+        if listing_calls == 1:
             return _fixture_html()
         # Subsequent pages are empty → pagination should stop
         return "<html><body></body></html>"
@@ -454,4 +460,130 @@ async def test_get_data_stops_pagination_on_empty_page(monkeypatch):
 
     assert result is not None
     assert len(result.event_list) == 3
-    assert call_count == 2  # fetched page 1 (events) and page 2 (empty → stop)
+    assert listing_calls == 2  # fetched page 1 (events) and page 2 (empty → stop)
+
+
+# ---------------------------------------------------------------------------
+# Detail-page price extraction unit tests
+# ---------------------------------------------------------------------------
+
+
+def _detail_html(show_id="100001", ga="40.00", booth="50.00") -> str:
+    """
+    Minimal detail page mirroring the real Next.js RSC flight payload, where
+    the embedded SquadUP event object is an *escaped* JSON string (quotes as \").
+    """
+    return (
+        '<!DOCTYPE html><html><body><script>self.__next_f.push([1,"'
+        '8:[\\"$\\",\\"$L1f\\",null,{\\"event\\":{\\"id\\":' + show_id + ','
+        '\\"event_dates\\":[{\\"id\\":1,\\"price_tiers\\":['
+        '{\\"id\\":10,\\"name\\":\\"General Admission\\",\\"price\\":\\"' + ga + '\\"},'
+        '{\\"id\\":11,\\"name\\":\\"Booth\\",\\"price\\":\\"' + booth + '\\"}'
+        ']}]}}"])</script></body></html>'
+    )
+
+
+def test_extract_min_price_returns_min_tier():
+    """_extract_min_price() returns the smallest tier price from the flight payload."""
+    assert _extract_min_price(_detail_html(ga="40.00", booth="50.00")) == 40.0
+
+
+def test_extract_min_price_booth_cheaper_than_ga():
+    """_extract_min_price() picks the cheaper tier regardless of ordering."""
+    assert _extract_min_price(_detail_html(ga="50.00", booth="35.00")) == 35.0
+
+
+def test_extract_min_price_none_when_no_price_tiers():
+    """_extract_min_price() returns None when the page has no price_tiers block."""
+    assert _extract_min_price("<html><body>No tiers here</body></html>") is None
+
+
+def test_extract_min_price_none_on_empty_input():
+    """_extract_min_price() returns None for empty/None input."""
+    assert _extract_min_price("") is None
+    assert _extract_min_price(None) is None
+
+
+def test_extract_min_price_handles_unescaped_json():
+    """_extract_min_price() also parses a plain (unescaped) JSON price_tiers block."""
+    html = (
+        '{"event":{"event_dates":[{"price_tiers":'
+        '[{"name":"GA","price":"40.00"},{"name":"Booth","price":"50.00"}]}]}}'
+    )
+    assert _extract_min_price(html) == 40.0
+
+
+def test_extract_min_price_handles_bare_number_form():
+    """_extract_min_price() parses a bare-number price (no surrounding quotes)."""
+    html = (
+        '{"event":{"event_dates":[{"price_tiers":'
+        '[{"name":"GA","price":40.00},{"name":"Booth","price":50}]}]}}'
+    )
+    assert _extract_min_price(html) == 40.0
+
+
+# ---------------------------------------------------------------------------
+# Price enrichment integration tests
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_get_data_threads_price_onto_events(monkeypatch):
+    """get_data() fetches detail pages and threads the min tier price onto events."""
+    scraper = ComedyMothershipScraper(_club())
+
+    async def fake_fetch(session, url, **kwargs):
+        m = re.search(r"/shows/(\d+)", url)
+        if m:
+            return _detail_html(show_id=m.group(1), ga="40.00", booth="50.00")
+        return _fixture_html()
+
+    monkeypatch.setattr(_scraper_mod, "HttpClient", type("HC", (), {"fetch_html": staticmethod(fake_fetch)}))
+
+    result = await scraper.get_data(SHOWS_URL)
+
+    assert result is not None
+    assert len(result.event_list) == 3
+    assert all(e.price == 40.0 for e in result.event_list)
+    # And the price survives into the Show ticket.
+    show = result.event_list[0].to_show(_club())
+    assert show is not None
+    assert show.tickets[0].price == 40.0
+
+
+@pytest.mark.asyncio
+async def test_get_data_degrades_to_none_on_detail_failure(monkeypatch):
+    """A failing detail fetch leaves that show price-less without sinking the run."""
+    scraper = ComedyMothershipScraper(_club())
+
+    async def fake_fetch(session, url, **kwargs):
+        if re.search(r"/shows/\d+", url):
+            raise RuntimeError("detail page blocked")
+        return _fixture_html()
+
+    monkeypatch.setattr(_scraper_mod, "HttpClient", type("HC", (), {"fetch_html": staticmethod(fake_fetch)}))
+
+    result = await scraper.get_data(SHOWS_URL)
+
+    assert result is not None
+    assert len(result.event_list) == 3
+    assert all(e.price is None for e in result.event_list)
+
+
+def test_to_show_price_defaults_to_none():
+    """to_show() leaves the ticket price-less when no price was enriched."""
+    event = _make_event()
+    show = event.to_show(_club())
+
+    assert show is not None
+    assert show.tickets[0].price is None
+
+
+def test_to_show_threads_price_into_ticket():
+    """to_show() puts an enriched event.price onto the ticket."""
+    event = _make_event()
+    event.price = 40.0
+    show = event.to_show(_club())
+
+    assert show is not None
+    assert show.tickets[0].price == 40.0

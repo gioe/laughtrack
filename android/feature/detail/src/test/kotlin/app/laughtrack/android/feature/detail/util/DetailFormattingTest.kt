@@ -72,4 +72,24 @@ class DetailFormattingTest {
         assertNull(formatReleaseDate(""))
         assertEquals("whenever", formatReleaseDate("whenever"))
     }
+
+    @Test
+    fun `home city joins city with region, preferring state then country`() {
+        assertEquals("Austin, TX", formatHomeCity("Austin", "TX", "USA"))
+        assertEquals("Toronto, Canada", formatHomeCity("Toronto", null, "Canada"))
+        assertEquals("Brooklyn", formatHomeCity("Brooklyn", "  ", null))
+    }
+
+    @Test
+    fun `home city is null when the city is blank or absent`() {
+        assertNull(formatHomeCity(null, "TX", "USA"))
+        assertNull(formatHomeCity("   ", "TX", "USA"))
+    }
+
+    @Test
+    fun `home club name trims and nulls blanks`() {
+        assertEquals("The Stand", formatHomeClubName("  The Stand  "))
+        assertNull(formatHomeClubName(null))
+        assertNull(formatHomeClubName("   "))
+    }
 }

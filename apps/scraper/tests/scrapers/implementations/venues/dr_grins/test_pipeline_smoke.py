@@ -95,8 +95,42 @@ def test_extract_events_expands_each_public_show_time():
         ("May 9", "7:15pm"),
         ("May 9", "9:45pm"),
     ]
+    # Each showtime is paired with the price printed right after it.
+    assert [event.price for event in events] == [11.95, 16.95, 16.95, 21.95, 21.95]
     assert all(event.detail_url == DETAIL_URL for event in events)
     assert all(event.ticket_url == TICKET_URL for event in events)
+
+
+def test_extract_events_parses_bare_dollar_price_and_carries_to_ticket():
+    """Whole-dollar prices ("8pm $10") parse, and to_show forwards them."""
+    html = """
+    <html><body>
+      <div class="feature-title">Whole Dollar Comic</div>
+      <div class="show-date"><span class="bold">Jul&nbsp;2</span>&nbsp;&nbsp8pm&nbsp;$10</div>
+    </body></html>
+    """
+    events = DrGrinsExtractor.extract_events(html, detail_url=DETAIL_URL)
+
+    assert len(events) == 1
+    assert events[0].price == 10.0
+
+    show = events[0].to_show(_club())
+    assert show is not None
+    assert show.tickets[0].price == 10.0
+
+
+def test_extract_events_leaves_price_none_when_absent():
+    """A show-date body without a price yields price=None (not a fabricated 0)."""
+    html = """
+    <html><body>
+      <div class="feature-title">Priceless Comic</div>
+      <div class="show-date"><span class="bold">Jul&nbsp;2</span>&nbsp;&nbsp8pm</div>
+    </body></html>
+    """
+    events = DrGrinsExtractor.extract_events(html, detail_url=DETAIL_URL)
+
+    assert len(events) == 1
+    assert events[0].price is None
 
 
 @pytest.mark.asyncio

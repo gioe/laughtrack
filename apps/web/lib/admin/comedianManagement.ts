@@ -21,6 +21,7 @@ export type AdminComedianListItem = {
     instagramAccount: string | null;
     tiktokAccount: string | null;
     youtubeAccount: string | null;
+    youtubeChannelId: string | null;
     linktree: string | null;
     hasImage: boolean;
     activeImageAsset: {
@@ -119,6 +120,7 @@ export async function listAdminComedians(): Promise<AdminComedianListResult> {
                 instagramAccount: true,
                 tiktokAccount: true,
                 youtubeAccount: true,
+                youtubeChannelId: true,
                 linktree: true,
                 hasImage: true,
                 imageAssets: {
@@ -292,6 +294,7 @@ export async function listAdminComedians(): Promise<AdminComedianListResult> {
                 instagramAccount: comedian.instagramAccount,
                 tiktokAccount: comedian.tiktokAccount,
                 youtubeAccount: comedian.youtubeAccount,
+                youtubeChannelId: comedian.youtubeChannelId,
                 linktree: comedian.linktree,
                 hasImage: comedian.hasImage,
                 activeImageAsset: activeImageAsset

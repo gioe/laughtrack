@@ -550,11 +550,11 @@ class TestUpsertForTicketmasterVenueParams:
         handler = ClubHandler()
         row = _make_club_row(name="The Comedy Store")
         with patch.object(handler, "_find_fuzzy_match_in_location", return_value=None), \
-             patch.object(handler, "execute_with_cursor", return_value=[row]) as mock_exec:
+             patch.object(handler, "execute_with_cursor", side_effect=[[], [row]]) as mock_exec:
             handler.upsert_for_ticketmaster_venue(self._VENUE)
 
-        sql_arg = mock_exec.call_args[0][0]
-        params = mock_exec.call_args[0][1]
+        sql_arg = mock_exec.call_args_list[1].args[0]
+        params = mock_exec.call_args_list[1].args[1]
         assert sql_arg == ClubQueries.UPSERT_CLUB_BY_TICKETMASTER_VENUE
         assert len(params) == 7
         assert params[0] == "KovZpZAEAaEA"       # venue_id (identity lookup)
@@ -681,14 +681,88 @@ class TestUpsertForTicketmasterVenueAliasResolution:
         venue = self._tm_venue("Funny Bone Comedy Club - Syracuse", "Syracuse", "NY")
         handler = ClubHandler()
 
-        with patch.object(handler, "execute_with_cursor", side_effect=[[], [other_city]]) as mock_exec:
+        with patch.object(handler, "execute_with_cursor", side_effect=[[], [], [other_city]]) as mock_exec:
             result = handler.upsert_for_ticketmaster_venue(venue)
 
         assert result is not None
         assert result.id == 900
-        assert mock_exec.call_count == 2
+        assert mock_exec.call_count == 3
         assert "club_aliases" in mock_exec.call_args_list[0].args[0]
-        assert mock_exec.call_args_list[1].args[0] == ClubQueries.UPSERT_CLUB_BY_TICKETMASTER_VENUE
+        assert mock_exec.call_args_list[1].args[0] == ClubQueries.GET_CLUBS_BY_NORMALIZED_STREET_ADDRESS
+        assert mock_exec.call_args_list[2].args[0] == ClubQueries.UPSERT_CLUB_BY_TICKETMASTER_VENUE
+
+
+class TestUpsertForTicketmasterVenueAddressDedup:
+    """ticketmaster_national must reuse canonical clubs by normalized street
+    address only when the name also corroborates the match."""
+
+    def _normalized(self, sql: str) -> str:
+        return " ".join(sql.split()).upper()
+
+    def _tm_venue(self, name, street="203 N Genesee St", city="Waukegan", state="IL"):
+        return {
+            "id": "TM-" + name.lower().replace(" ", "-"),
+            "name": name,
+            "address": {"line1": street},
+            "city": {"name": city},
+            "state": {"stateCode": state},
+            "postalCode": "60085",
+            "timezone": "America/Chicago",
+        }
+
+    def test_same_address_name_match_attaches_source_to_existing_club(self):
+        canonical = _make_club_row(
+            id=4738,
+            name="Genesee Theatre",
+            address="203 N. Genesee Street, Waukegan, IL",
+            city="Waukegan",
+            state="IL",
+        )
+        handler = ClubHandler()
+
+        with patch.object(
+            handler,
+            "execute_with_cursor",
+            side_effect=[[], [canonical], [canonical]],
+        ) as mock_exec:
+            result = handler.upsert_for_ticketmaster_venue(self._tm_venue("Genesee Theatre"))
+
+        assert result is not None
+        assert result.id == 4738
+        assert mock_exec.call_count == 3
+        assert mock_exec.call_args_list[1].args[0] == ClubQueries.GET_CLUBS_BY_NORMALIZED_STREET_ADDRESS
+        assert mock_exec.call_args_list[2].args[0] == ClubQueries.UPSERT_TICKETMASTER_SOURCE_FOR_CLUB
+        assert mock_exec.call_args_list[2].args[1][0] == 4738
+
+    def test_same_address_distinct_name_is_ambiguous_and_skipped(self):
+        shared_address_club = _make_club_row(
+            id=9001,
+            name="Mohegan Sun Arena",
+            address="1 Mohegan Sun Blvd, Uncasville, CT",
+            city="Uncasville",
+            state="CT",
+        )
+        handler = ClubHandler()
+
+        with patch.object(handler, "execute_with_cursor", side_effect=[[], [shared_address_club]]) as mock_exec:
+            result = handler.upsert_for_ticketmaster_venue(
+                self._tm_venue(
+                    "Comix Roadhouse",
+                    street="1 Mohegan Sun Boulevard",
+                    city="Uncasville",
+                    state="CT",
+                )
+            )
+
+        assert result is None
+        assert mock_exec.call_count == 2
+        assert mock_exec.call_args_list[1].args[0] == ClubQueries.GET_CLUBS_BY_NORMALIZED_STREET_ADDRESS
+
+    def test_address_lookup_does_not_require_existing_enabled_source(self):
+        sql = self._normalized(ClubQueries.GET_CLUBS_BY_NORMALIZED_STREET_ADDRESS)
+
+        assert "LEFT JOIN LATERAL" in sql
+        assert "JOIN LATERAL ( SELECT SS.ID" not in sql
 
 
 class TestUpsertForEventbriteVenueConflict:
@@ -1770,10 +1844,10 @@ class TestTicketmasterVenueCityStateExtraction:
         }
         row = _make_ticketmaster_club_row(name="Radio City Music Hall", city="New York", state="NY")
         handler = ClubHandler()
-        with patch.object(handler, "execute_with_cursor", return_value=[row]) as mock_exec:
+        with patch.object(handler, "execute_with_cursor", side_effect=[[], [], [row]]) as mock_exec:
             handler.upsert_for_ticketmaster_venue(venue)
 
-        params = mock_exec.call_args[0][1]
+        params = mock_exec.call_args_list[2].args[1]
         # New CTE shape: (venue_id, name, address, zip_code, city, state, timezone)
         assert params[4] == "New York"  # city
         assert params[5] == "NY"        # state

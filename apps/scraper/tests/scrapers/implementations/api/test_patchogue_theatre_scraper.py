@@ -10,8 +10,10 @@ from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.ovationtix import OvationTixEvent
 from laughtrack.scrapers.implementations.api.patchogue_theatre.extractor import (
     event_from_performance_response,
+    extract_aeg_feed_urls,
     extract_performance_ids,
     is_comedy_relevant,
+    performance_ids_from_aeg_feed,
 )
 from laughtrack.scrapers.implementations.api.patchogue_theatre.scraper import (
     PatchogueTheatreScraper,
@@ -248,12 +250,15 @@ class _FakeResponse:
 
 
 class _FakeSession:
-    def __init__(self, payloads_by_perf: Dict[str, Dict]):
+    def __init__(self, payloads_by_perf: Dict[str, Dict], feeds_by_url: Dict[str, Dict] = None):
         self._payloads = payloads_by_perf
+        self._feeds = feeds_by_url or {}
         self.calls = []
 
     async def get(self, url, headers=None):
         self.calls.append(url)
+        if url in self._feeds:
+            return _FakeResponse(self._feeds[url])
         for perf_id, payload in self._payloads.items():
             if f"Performance({perf_id})" in url:
                 return _FakeResponse(payload)
@@ -331,19 +336,24 @@ async def test_scraper_returns_only_comedy_events_for_known_perf_set(monkeypatch
 
 
 @pytest.mark.asyncio
-async def test_scraper_returns_none_when_bowery_has_no_links(monkeypatch):
+async def test_scraper_returns_none_when_page_has_no_feeds_or_links(monkeypatch):
+    """A page with neither an AEG feed reference nor a legacy inline OvationTix
+    link yields no performances — and no OvationTix Performance() call is made."""
     async def fake_fetch_html(self, url, headers=None):
         return "<html>no events listed</html>"
 
+    fake_session = _FakeSession({})
+
+    async def fake_get_session(self):
+        return fake_session
+
     monkeypatch.setattr(PatchogueTheatreScraper, "fetch_html", fake_fetch_html)
-    monkeypatch.setattr(
-        PatchogueTheatreScraper,
-        "get_session",
-        lambda self: (_ for _ in ()).throw(AssertionError("should not fetch API")),
-    )
+    monkeypatch.setattr(PatchogueTheatreScraper, "get_session", fake_get_session)
 
     scraper = PatchogueTheatreScraper(_club())
     assert await scraper.get_data(BOWERY_URL) is None
+    # No AEG feed URL and no inline link → nothing to fetch.
+    assert fake_session.calls == []
 
 
 def test_scraper_raises_without_required_source_config():
@@ -376,3 +386,189 @@ async def test_discover_urls_raises_when_source_url_is_empty():
     scraper = PatchogueTheatreScraper(club)
     with pytest.raises(ValueError, match="source_url"):
         await scraper.discover_urls()
+
+
+# --------------------------------------------------------------------------
+# AEG feed discovery (Bowery migrated off inline OvationTix links in 2026)
+# --------------------------------------------------------------------------
+
+AEG_FEED_URL = (
+    "https://aegwebprod.blob.core.windows.net/json/resources/8/events/"
+    "7301mbln09/events.json"
+)
+
+
+def test_extract_aeg_feed_urls_dedupes_and_preserves_order():
+    html = (
+        f'<script>var a="{AEG_FEED_URL}";</script>'
+        '<link href="https://aegwebprod.blob.core.windows.net/json/resources/8/'
+        'events/208lbnmkq5/events.json">'
+        f'<img data-src="{AEG_FEED_URL}">'  # duplicate of the first
+    )
+    urls = extract_aeg_feed_urls(html)
+    assert urls == [
+        AEG_FEED_URL,
+        "https://aegwebprod.blob.core.windows.net/json/resources/8/events/"
+        "208lbnmkq5/events.json",
+    ]
+
+
+def test_extract_aeg_feed_urls_returns_empty_when_absent():
+    assert extract_aeg_feed_urls("<html><body>no feed here</body></html>") == []
+
+
+def _aeg_event(headliner: str, perf_id: str, client_id: str = CLIENT_ID) -> Dict:
+    return {
+        "eventId": perf_id,
+        "title": {"headlinersText": headliner, "eventTitleText": headliner},
+        "eventDateTimeISO": "2026-09-26T20:00:00-04:00",
+        "ticketing": {
+            "ticketURL": f"https://ci.ovationtix.com/{client_id}/performance/{perf_id}",
+            "url": f"https://ci.ovationtix.com/{client_id}/performance/{perf_id}",
+            "eventUrl": "https://www.axs.com/events/123/tickets",
+        },
+        "venue": {"venueId": "124771", "title": "Patchogue Theatre"},
+    }
+
+
+def test_performance_ids_from_aeg_feed_filters_by_client_and_dedupes():
+    feed = {
+        "events": [
+            _aeg_event("Ben Bankas", "11805262"),
+            _aeg_event("Leslie Jones", "11795830"),
+            _aeg_event("Some Other Venue Act", "22222222", client_id="99999"),
+            _aeg_event("Ben Bankas again", "11805262"),  # duplicate perf id
+        ]
+    }
+    assert performance_ids_from_aeg_feed(feed, CLIENT_ID) == ["11805262", "11795830"]
+
+
+def test_performance_ids_from_aeg_feed_handles_url_fallback_and_bad_shapes():
+    feed = {
+        "events": [
+            {"ticketing": {"url": "https://ci.ovationtix.com/34780/performance/777"}},
+            {"ticketing": {}},  # no link
+            {"no_ticketing": True},  # missing key
+            "not-a-dict",  # junk
+        ]
+    }
+    assert performance_ids_from_aeg_feed(feed, CLIENT_ID) == ["777"]
+    assert performance_ids_from_aeg_feed({}, CLIENT_ID) == []
+    assert performance_ids_from_aeg_feed({"events": "nope"}, CLIENT_ID) == []
+
+
+@pytest.mark.asyncio
+async def test_scraper_discovers_via_aeg_feed_and_filters_comedy(monkeypatch):
+    """The Bowery page now references an AEG feed instead of inline links; the
+    scraper must read perf IDs from the feed, then comedy-filter on the
+    per-performance OvationTix payloads (whose descriptions remain rich)."""
+    bowery_html = f'<html><body><script>feed="{AEG_FEED_URL}"</script></body></html>'
+
+    feed = {
+        "events": [
+            _aeg_event("Leslie Jones", "11795830"),
+            _aeg_event("Ben Bankas", "11805262"),
+            _aeg_event("Amy Grant", "11796941"),
+            _aeg_event("Little Shop of Horrors", "11810284"),
+        ]
+    }
+    payloads = {
+        "11795830": _performance_payload(),  # Leslie Jones — comedy
+        "11805262": {
+            "id": 11805262,
+            "startDate": "2026-09-26 20:00",
+            "ticketsAvailable": True,
+            "availableToPurchaseOnWeb": True,
+            "production": {
+                "id": 1275146,
+                "productionName": "Ben Bankas",
+                "description": "Stand-up comedian Ben Bankas live in Patchogue.",
+            },
+            "sections": [],
+        },
+        "11796941": {  # Amy Grant — music, filtered out
+            "id": 11796941,
+            "startDate": "2026-06-21 19:00",
+            "ticketsAvailable": True,
+            "availableToPurchaseOnWeb": True,
+            "production": {
+                "id": 1272686,
+                "productionName": "Amy Grant: The Me That Remains Tour",
+                "description": "Christian music legend on tour.",
+            },
+            "sections": [],
+        },
+        "11810284": {  # Little Shop — "comedy" but no stand-up vocabulary
+            "id": 11810284,
+            "startDate": "2026-08-30 19:00",
+            "ticketsAvailable": True,
+            "availableToPurchaseOnWeb": True,
+            "production": {
+                "id": 1276199,
+                "productionName": "Little Shop of Horrors",
+                "description": LITTLE_SHOP_DESC,
+            },
+            "sections": [],
+        },
+    }
+
+    async def fake_fetch_html(self, url, headers=None):
+        assert url == BOWERY_URL
+        return bowery_html
+
+    fake_session = _FakeSession(payloads, feeds_by_url={AEG_FEED_URL: feed})
+
+    async def fake_get_session(self):
+        return fake_session
+
+    monkeypatch.setattr(PatchogueTheatreScraper, "fetch_html", fake_fetch_html)
+    monkeypatch.setattr(PatchogueTheatreScraper, "get_session", fake_get_session)
+    # Force keyword-only comedy detection so the test does not depend on the DB
+    # comedian list.
+    monkeypatch.setattr(
+        "laughtrack.scrapers.implementations.api.patchogue_theatre.extractor._get_known_comedian_names",
+        lambda: (),
+    )
+
+    scraper = PatchogueTheatreScraper(_club())
+    page = await scraper.get_data(BOWERY_URL)
+
+    assert page is not None
+    names = sorted(e.production_name for e in page.event_list)
+    assert names == ["Ben Bankas", "Leslie Jones: I'm Hot Tour"]
+    # The AEG feed was fetched, then each discovered performance was probed.
+    assert AEG_FEED_URL in fake_session.calls
+    assert sum("Performance(" in c for c in fake_session.calls) == 4
+
+
+@pytest.mark.asyncio
+async def test_scraper_falls_back_to_inline_links_when_no_aeg_feed(monkeypatch):
+    """If a Bowery page carries no AEG feed reference but still has legacy inline
+    ci.ovationtix.com links, discovery must fall back to the inline-link scrape
+    and probe those performances — no AEG feed fetch occurs."""
+    bowery_html = (
+        '<html><body>'
+        '<a href="https://ci.ovationtix.com/34780/performance/11795830">Leslie Jones</a>'
+        '</body></html>'
+    )
+    payloads = {"11795830": _performance_payload()}
+
+    async def fake_fetch_html(self, url, headers=None):
+        return bowery_html
+
+    fake_session = _FakeSession(payloads)  # no feeds registered
+
+    async def fake_get_session(self):
+        return fake_session
+
+    monkeypatch.setattr(PatchogueTheatreScraper, "fetch_html", fake_fetch_html)
+    monkeypatch.setattr(PatchogueTheatreScraper, "get_session", fake_get_session)
+
+    scraper = PatchogueTheatreScraper(_club())
+    page = await scraper.get_data(BOWERY_URL)
+
+    assert page is not None
+    assert [e.production_name for e in page.event_list] == ["Leslie Jones: I'm Hot Tour"]
+    # Fallback path: no AEG blob was fetched, only the OvationTix performance.
+    assert not any("aegwebprod" in c for c in fake_session.calls)
+    assert any("Performance(11795830)" in c for c in fake_session.calls)

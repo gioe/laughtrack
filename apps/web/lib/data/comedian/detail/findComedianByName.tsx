@@ -23,6 +23,15 @@ function buildComedianSelect() {
         website: true,
         popularity: true,
         hasImage: true,
+        homeCity: true,
+        homeState: true,
+        homeCountry: true,
+        homeClub: {
+            select: {
+                id: true,
+                name: true,
+            },
+        },
         lineupItems: {
             select: {
                 id: true,
@@ -237,6 +246,17 @@ export async function findComedianByName(
                     dedupePodcastAppearances(comedianData.episodeAppearances),
                 ),
             ),
+            homeLocation: {
+                city: comedianData.homeCity,
+                state: comedianData.homeState,
+                country: comedianData.homeCountry,
+                club: comedianData.homeClub
+                    ? {
+                          id: comedianData.homeClub.id,
+                          name: comedianData.homeClub.name,
+                      }
+                    : null,
+            },
         };
     } catch (error) {
         if (error instanceof Error) {

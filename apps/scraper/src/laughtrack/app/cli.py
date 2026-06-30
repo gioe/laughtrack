@@ -7,6 +7,7 @@ Commands:
     audit-show                  Dry-run lineup comparison for a specific show.
     manage-subscriptions        Manage email subscription tracking for clubs.
     notify-comedian-arrivals    Send email and push notifications when followed comedians have nearby shows.
+    notify-youtube-live         Send push notifications for verified-live YouTube WebSub events.
 
 Run any command with --help for full usage details.
 """
@@ -19,12 +20,14 @@ _COMMANDS = {
     "audit-show": "laughtrack.app.commands.audit_show",
     "manage-subscriptions": "laughtrack.app.commands.manage_subscriptions",
     "notify-comedian-arrivals": "laughtrack.app.commands.notify_comedian_arrivals",
+    "notify-youtube-live": "laughtrack.app.commands.notify_youtube_live",
 }
 
 _HELP = {
     "audit-show": "Dry-run lineup comparison for a specific show.",
     "manage-subscriptions": "Manage email subscription tracking for clubs.",
     "notify-comedian-arrivals": "Send email and push notifications when followed comedians have nearby shows.",
+    "notify-youtube-live": "Send push notifications for verified-live YouTube WebSub events.",
 }
 
 
@@ -46,6 +49,7 @@ def main() -> None:
         sys.exit(2)
 
     import importlib
+
     mod = importlib.import_module(_COMMANDS[command])
     mod.main(sys.argv[2:])
 

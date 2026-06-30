@@ -102,6 +102,22 @@ This was observed live on TASK-2621 (the rebase against f9f755e08 +
 b8b05c9f7 produced the conflict; manual recovery as above succeeded
 on the first re-apply).
 
+### Heavily-stale feature branch (many commits behind) touching project.pbxproj
+
+When a feature branch's only commit regenerated `project.pbxproj` and the
+branch is now far behind `origin/main` (e.g. an abandoned-then-resumed task
+whose branch is hundreds of commits stale), do NOT rebase — the stale
+generated hex IDs conflict on nearly every line and the manual anchor
+recovery above becomes impractical at that scale. Instead: extract any new
+binary assets from the old commit (`git show <sha>:<path> > /tmp/...`),
+`git reset --hard origin/main`, re-apply the small logical change (the
+`project.yml` / `Info.plist` / source edits) on top of current main, then
+`xcodegen generate` to regenerate the pbxproj deterministically against the
+current tree. Verify with `swift build` + `swift test` + a sim launch before
+merging. This was observed live on TASK-2758 (an 18-day-old, 839-commit-stale
+Gilroy→Urbanist font-swap branch; reset + re-apply + regen merged cleanly
+where a rebase would have conflicted on the whole pbxproj).
+
 ### iOS Simulator Cold Start Dominates `test_sim` Wall Time
 
 A "test_sim hung" report on a HostedView suite is almost always cold-start

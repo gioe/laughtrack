@@ -35,6 +35,7 @@ const comedians: AdminComedianListItem[] = [
         instagramAccount: "parentcomic",
         tiktokAccount: null,
         youtubeAccount: null,
+        youtubeChannelId: null,
         linktree: null,
         hasImage: true,
         activeImageAsset: {
@@ -109,6 +110,7 @@ const comedians: AdminComedianListItem[] = [
         instagramAccount: null,
         tiktokAccount: null,
         youtubeAccount: null,
+        youtubeChannelId: null,
         linktree: null,
         hasImage: false,
         activeImageAsset: null,
@@ -891,6 +893,7 @@ describe("AdminComedianManager", () => {
                         instagramAccount: null,
                         tiktokAccount: null,
                         youtubeAccount: null,
+                        youtubeChannelId: null,
                         linktree: null,
                     }),
                 }),
@@ -908,6 +911,7 @@ describe("AdminComedianManager", () => {
                     instagramAccount: "aliashandle",
                     tiktokAccount: "aliastok",
                     youtubeAccount: "@AliasComic",
+                    youtubeChannelId: "UC-alias-channel",
                     linktree: "https://linktr.ee/alias",
                 },
             }),
@@ -926,6 +930,10 @@ describe("AdminComedianManager", () => {
         fireEvent.change(
             screen.getAllByLabelText("Comedian YouTube handle")[0],
             { target: { value: "@AliasComic" } },
+        );
+        fireEvent.change(
+            screen.getAllByLabelText("Comedian YouTube channel ID")[0],
+            { target: { value: "UC-alias-channel" } },
         );
         fireEvent.change(screen.getAllByLabelText("Comedian Linktree URL")[0], {
             target: { value: "https://linktr.ee/alias" },
@@ -947,6 +955,7 @@ describe("AdminComedianManager", () => {
                         instagramAccount: "@aliashandle",
                         tiktokAccount: "aliastok",
                         youtubeAccount: "@AliasComic",
+                        youtubeChannelId: "UC-alias-channel",
                         linktree: "https://linktr.ee/alias",
                     }),
                 }),

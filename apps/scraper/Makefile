@@ -127,7 +127,7 @@ check-env:
 		fi \
 	fi
 
-.PHONY: test test-all test-venues test-core test-infrastructure test-utils test-critical help help-full help-install help-test help-lint hdiscover help-clean help-linting help-testing help-scraping help-setup help-analysis help-viz help-maintenance help-update help-updates help-workflows help-discovery help-info help-cleanup scrape-all scrape-club scrape-club-id diagnose-club scrape-interactive scrape-types list-scrapers list-clubs update-popularity update-club-enrichment update-comedian-stats sync-club-images audit-cdn-images migrate migrate-dry-run dashboard visualize-metrics scraper-status daily-scrape full-maintenance install install-dev install-optional seatengine-api-tool seatengine-check seatengine-audit check-scraping-priorities check-scraping-source-invariants check-stale-scraper-keys check-show-attribution clean lint lint-check format format-check lint-fix lint-fix-imports lint-fix-whitespace check-venv check-env setup-venv arch-lint run-script lookup-bandsintown-ids discover-clubs discover-nearby query find-aliases audit-club-geo
+.PHONY: test test-all test-venues test-core test-infrastructure test-utils test-critical help help-full help-install help-test help-lint hdiscover help-clean help-linting help-testing help-scraping help-setup help-analysis help-viz help-maintenance help-update help-updates help-workflows help-discovery help-info help-cleanup scrape-all scrape-club scrape-club-id diagnose-club scrape-interactive scrape-types list-scrapers list-clubs update-popularity update-club-enrichment update-comedian-stats sync-club-images audit-cdn-images migrate migrate-dry-run dashboard visualize-metrics scraper-status daily-scrape full-maintenance install install-dev install-optional seatengine-api-tool seatengine-check seatengine-audit check-scraping-priorities check-scraping-source-invariants check-stale-scraper-keys check-show-attribution clean lint lint-check format format-check lint-fix lint-fix-imports lint-fix-whitespace check-venv check-env setup-venv arch-lint run-script lookup-bandsintown-ids discover-clubs discover-nearby query find-aliases audit-club-geo audit-organizer-visibility
 
 # =============================================================================
 # HELP & DOCUMENTATION
@@ -244,6 +244,8 @@ help-analyze:
 	@echo "  check-scraping-source-invariants - Detect (1) clubs with future shows but no enabled scraping_sources and (2) active visible clubs missing any enabled scraping_sources row"
 	@echo "  check-stale-scraper-keys - Detect enabled scraper keys with no recent write activity"
 	@echo "  check-show-attribution - Detect shows.last_scraped_by values missing from scrapers.key"
+	@echo "  audit-club-geo       - Flag clubs whose geo identity drifted from their scraping source's venue"
+	@echo "  audit-organizer-visibility - List still-visible eventbrite /o/ organizer feed-clubs routing shows elsewhere (conv #295)"
 
 help-workflow:
 	@echo "🔄 AUTOMATED WORKFLOWS:"
@@ -865,6 +867,23 @@ find-aliases: check-env
 #        make audit-club-geo ARGS="--include-hidden --include-chains"
 audit-club-geo: check-env
 	@$(activate_venv) $(PYTHON) bin/audit-club-source-geo \
+		$(if $(FORMAT),--format $(FORMAT),) \
+		$(ARGS)
+
+# List still-visible Eventbrite /o/ organizer feed-clubs that route all their
+# shows to distinct per-event venue clubs and should be hidden (convention #295).
+# Re-runnable companion to the one-shot TASK-3522 guard migration: bin/migrate
+# runs each SQL file once, so that guard cannot catch organizer feeds onboarded
+# afterwards. Run this after onboarding any eventbrite /o/ organizer feed; any
+# rows it returns are routing elsewhere and should be set visible=false by id.
+# Flags: visible=true, status=active, enabled /o/ source, 0 own upcoming shows,
+# MAX(scraper_run_clubs.num_shows) over the trailing 30d >= 10.
+#
+# Usage: make audit-organizer-visibility
+#        make audit-organizer-visibility FORMAT=csv
+#        make audit-organizer-visibility FORMAT=json
+audit-organizer-visibility: check-env
+	@$(activate_venv) $(PYTHON) bin/audit-organizer-visibility \
 		$(if $(FORMAT),--format $(FORMAT),) \
 		$(ARGS)
 

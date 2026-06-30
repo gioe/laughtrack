@@ -40,11 +40,14 @@ The atexit handler is a last-resort safety net only.
 
 import asyncio
 import atexit
+import calendar
 import concurrent.futures
 import logging
+import re
 import weakref
+from datetime import date
 from typing import Optional
-from urllib.parse import urlparse
+from urllib.parse import urlencode, urlparse
 
 from laughtrack.foundation.infrastructure.http.protection.aws_waf_solver import (
     AWS_WAF_MARKERS,
@@ -251,6 +254,10 @@ _CONTENT_RETRY_LOAD_STATE_TIMEOUT_MS = 5_000
 _CONTENT_NAV_RACE_PREFIX = "page.content"
 _CONTENT_NAV_RACE_MARKER = "navigating"
 
+_SEETICKETS_EVENT_ID_RE = re.compile(r"/event/[^\"'\s>]+/(\d+)\?afflky=", re.IGNORECASE)
+_SEETICKETS_EVENT_CARD_SELECTOR = 'a[aria-label^="Buy tickets for"][href*="/event/"]'
+_SEETICKETS_RENDER_WAIT_MS = 15_000
+
 
 async def _safe_content(page: object) -> str:
     """Call ``page.content()`` with bounded retry on the nav-race error.
@@ -314,6 +321,20 @@ def _parse_proxy(proxy_url: str) -> dict:
         return proxy_dict
     except Exception:
         return {"server": proxy_url}
+
+
+def _month_window(start: date, month_index: int) -> tuple[date, date]:
+    """Return the bounded calendar window for ``month_index`` months after ``start``."""
+    month_zero_based = start.month - 1 + month_index
+    year = start.year + month_zero_based // 12
+    month = month_zero_based % 12 + 1
+    first = start if month_index == 0 else date(year, month, 1)
+    last = date(year, month, calendar.monthrange(year, month)[1])
+    return first, last
+
+
+def _seetickets_event_ids(html: str) -> set[str]:
+    return set(_SEETICKETS_EVENT_ID_RE.findall(html or ""))
 
 
 class _QuietShutdownFilter(logging.Filter):
@@ -1211,3 +1232,134 @@ class PlaywrightBrowser:
             finally:
                 if context is not None:
                     await context.close()
+
+    async def fetch_seetickets_whitelabel_pages(
+        self,
+        *,
+        profile_id: str,
+        whitelabel_key: str,
+        affiliate_key: Optional[str] = None,
+        base_url: str = "https://wl.eventim.us",
+        max_months: int = 12,
+        page_size: int = 15,
+        max_pages: int = 40,
+        proxy_url: Optional[str] = None,
+    ) -> list[str]:
+        """Fetch rendered SeeTickets/Eventim whitelabel event-list pages.
+
+        The whitelabel storefront populates event cards client-side behind
+        Cloudflare. This keeps one Playwright context alive, waits for rendered
+        event anchors, and drives the same AJAX month windows and pagination the
+        storefront uses, returning only pages that introduce new event ids.
+        """
+        profile_id = str(profile_id or "").strip()
+        whitelabel_key = str(whitelabel_key or "").strip()
+        affiliate_key = str(affiliate_key or whitelabel_key).strip()
+        if not profile_id or not whitelabel_key:
+            return []
+
+        base_url = (base_url or "https://wl.eventim.us").rstrip("/")
+        proxy_dict = _parse_proxy(proxy_url) if proxy_url else None
+        today = date.today()
+        pages: list[str] = []
+        seen_event_ids: set[str] = set()
+
+        async with self._browser_lock:
+            await self._launch_if_needed_locked()
+            context = None
+            try:
+                context = await self._browser.new_context(
+                    viewport=self._viewport,
+                    locale=self._locale,
+                    java_script_enabled=True,
+                    proxy=proxy_dict,
+                    user_agent=_USER_AGENT,
+                )
+                page = await context.new_page()
+                await page.add_init_script(_STEALTH_SCRIPT)
+
+                for month_index in range(max(0, max_months)):
+                    start, end = _month_window(today, month_index)
+                    for page_index in range(max(1, max_pages)):
+                        offset = page_index * page_size
+                        url = self._seetickets_whitelabel_ajax_url(
+                            base_url=base_url,
+                            profile_id=profile_id,
+                            whitelabel_key=whitelabel_key,
+                            affiliate_key=affiliate_key,
+                            event_start=start,
+                            event_end=end,
+                            offset=offset,
+                            page_size=page_size,
+                        )
+                        await page.goto(
+                            url,
+                            wait_until="domcontentloaded",
+                            timeout=self._timeout_ms,
+                        )
+                        try:
+                            await page.wait_for_selector(
+                                _SEETICKETS_EVENT_CARD_SELECTOR,
+                                timeout=_SEETICKETS_RENDER_WAIT_MS,
+                            )
+                        except Exception:
+                            pass
+
+                        html = await _safe_content(page)
+                        if any(m in html.lower() for m in _CLOUDFLARE_CHALLENGE_MARKERS):
+                            html = await self._wait_for_cloudflare_challenge(page, html)
+                            try:
+                                await page.wait_for_selector(
+                                    _SEETICKETS_EVENT_CARD_SELECTOR,
+                                    timeout=_SEETICKETS_RENDER_WAIT_MS,
+                                )
+                                html = await _safe_content(page)
+                            except Exception:
+                                pass
+
+                        event_ids = _seetickets_event_ids(html)
+                        new_event_ids = event_ids - seen_event_ids
+                        if not new_event_ids:
+                            break
+
+                        pages.append(html)
+                        seen_event_ids.update(event_ids)
+                        if len(event_ids) < page_size:
+                            break
+                return pages
+            finally:
+                if context is not None:
+                    await context.close()
+
+    @staticmethod
+    def _seetickets_whitelabel_ajax_url(
+        *,
+        base_url: str,
+        profile_id: str,
+        whitelabel_key: str,
+        affiliate_key: str,
+        event_start: date,
+        event_end: date,
+        offset: int,
+        page_size: int,
+    ) -> str:
+        params = {
+            "_act": "Search",
+            "AJAX": "1",
+            "_tab": "Event",
+            "_sea": "WhiteLabelEventSearchV3",
+            "s": "",
+            "ProfileID": profile_id,
+            "WhiteLabelKey": whitelabel_key,
+            "afflky": affiliate_key,
+            "EventStart": event_start.strftime("%m/%d/%Y"),
+            "EventStart2": event_end.strftime("%m/%d/%Y"),
+            "Tag": "",
+            "pastevents": "",
+            "SortBy": "all",
+            "redrawSearchBar": "true",
+        }
+        if offset > 0:
+            params["_lfv"] = str(offset)
+            params["_sft"] = str(max(0, offset - page_size))
+        return f"{base_url}/wafform.aspx?{urlencode(params)}"

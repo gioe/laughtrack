@@ -18,6 +18,7 @@ from laughtrack.core.entities.show.model import Show
 from laughtrack.core.protocols.show_convertible import ShowConvertible
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.utilities.domain.show.factory import ShowFactoryUtils
+from laughtrack.utilities.domain.show.headliner import extract_explicit_headliner_from_title
 
 # VBO event names frequently carry a trailing " M/D" date suffix (e.g.
 # "Macho Mule Comedy Show  6/16"); strip it so the show name is clean.
@@ -83,13 +84,15 @@ class VboEvent(ShowConvertible):
         tickets = [
             ShowFactoryUtils.create_fallback_ticket(show_url, price=self.price_min)
         ]
+        headliner = extract_explicit_headliner_from_title(name)
+        lineup = ShowFactoryUtils.create_lineup_from_performers([headliner] if headliner else [])
 
         return ShowFactoryUtils.create_enhanced_show_base(
             name=name,
             club=club,
             date=start_date,
             show_page_url=show_url,
-            lineup=[],
+            lineup=lineup,
             tickets=tickets,
             room=self.room,
             supplied_tags=["event"],

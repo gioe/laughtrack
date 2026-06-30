@@ -1,5 +1,11 @@
 {
   "buildCommand": "export DIRECT_URL=\"${DIRECT_URL:-$DATABASE_URL}\" && prisma migrate deploy && npm run build",
+  "crons": [
+    {
+      "path": "/api/cron/youtube-websub-renewals",
+      "schedule": "0 9 * * *"
+    }
+  ],
   "framework": "nextjs",
   "installCommand": "npm install",
   "outputDirectory": ".next"

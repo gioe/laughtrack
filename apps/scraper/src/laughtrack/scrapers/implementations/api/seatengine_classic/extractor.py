@@ -4,12 +4,19 @@ HTML extractor for classic SeatEngine venue pages.
 Classic SeatEngine (cdn.seatengine.com) renders events server-side.
 Each event-list-item block has one of two layouts:
 
-Layout 1 — multiple show times grouped under one event:
+Layout 1 — show times grouped by date under one event. A multi-night
+engagement renders ONE event-times-group div PER date, so all groups
+must be iterated (an early version captured only the first and dropped
+every other night — TASK-3488):
   <h3 class="el-header"><a href="/events/128084">EVENT_NAME</a></h3>
   <div class="event-times-group">
     <h6 class="event-date align-right">Sun, Mar 22, 2026</h6>
     <a class="event-btn-inline" href="/shows/363997"> 3:00 PM</a>   <!-- available -->
     <span class="event-btn-inline inactive"> 8:00 PM</span>         <!-- soldout -->
+  </div>
+  <div class="event-times-group">
+    <h6 class="event-date align-right">Mon, Mar 23, 2026</h6>
+    <a class="event-btn-inline" href="/shows/363998"> 7:00 PM</a>
   </div>
 
 Layout 2 — single show with a buy-tickets button:
@@ -57,11 +64,21 @@ class SeatEngineClassicExtractor:
 
             labels = SeatEngineClassicExtractor._location_labels(item)
 
-            times_group = item.find("div", class_="event-times-group")
-            if times_group:
-                extracted = SeatEngineClassicExtractor._extract_layout1(
-                    item, times_group, event_name, base_url
-                )
+            # A multi-night engagement renders one event-times-group div per
+            # date (each with its own h6.event-date and showtime buttons). The
+            # old code used .find() and captured only the FIRST group, dropping
+            # every other night. Iterate ALL groups so each distinct showtime
+            # becomes its own show (TASK-3488).
+            times_groups = item.find_all("div", class_="event-times-group")
+            if times_groups:
+                extracted = []
+                for times_group in times_groups:
+                    assert isinstance(times_group, Tag)
+                    extracted.extend(
+                        SeatEngineClassicExtractor._extract_layout1(
+                            item, times_group, event_name, base_url
+                        )
+                    )
             else:
                 show = SeatEngineClassicExtractor._extract_layout2(
                     item, event_name, base_url

@@ -25,6 +25,7 @@ export function toSearchParams(
         size: pick("size"),
         includeEmpty: pick("includeEmpty"),
         chain: pick("chain"),
+        homeCity: pick("homeCity"),
         minUpcomingShows: pick("minUpcomingShows"),
     };
 }

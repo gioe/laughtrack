@@ -16,6 +16,7 @@ passing test into a time-bomb failure.
 
 from __future__ import annotations
 
+import asyncio
 import json
 from datetime import datetime, timezone
 from pathlib import Path
@@ -34,16 +35,37 @@ IFRAME_URL = "https://jetbook.co/o_iframe/improv-collective-srzaf"
 
 # Far-future epoch ms — 2099-01-01T00:00:00Z. Prevents the extractor's
 # "future-only" filter from rejecting fixtures as time passes.
-FAR_FUTURE_MS = int(
-    datetime(2099, 1, 1, tzinfo=timezone.utc).timestamp() * 1000
-)
+FAR_FUTURE_MS = int(datetime(2099, 1, 1, tzinfo=timezone.utc).timestamp() * 1000)
 
 
 def _club() -> Club:
-    _c = Club(id=794, name='The Improv Collective', address='1215 Baker Street', website='https://improvcollective.fun', popularity=0, zip_code='92626', phone_number='', visible=True, timezone='America/Los_Angeles')
-    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url=IFRAME_URL, external_id=None)
+    _c = Club(
+        id=794,
+        name="The Improv Collective",
+        address="1215 Baker Street",
+        website="https://improvcollective.fun",
+        popularity=0,
+        zip_code="92626",
+        phone_number="",
+        visible=True,
+        timezone="America/Los_Angeles",
+    )
+    _c.active_scraping_source = ScrapingSource(
+        id=1, club_id=_c.id, platform="custom", scraper_key="", source_url=IFRAME_URL, external_id=None
+    )
     _c.scraping_sources = [_c.active_scraping_source]
     return _c
+
+
+class _PriceFetcherJetBookScraper(JetBookScraper):
+    """Test seam for detail-price enrichment without launching Playwright."""
+
+    def __init__(self, club: Club, price_fetcher):
+        super().__init__(club)
+        self._price_fetcher = price_fetcher
+
+    async def _fetch_detail_ticket_price(self, event: JetBookEvent) -> float | None:
+        return await self._price_fetcher(self, event)
 
 
 def _event_source(
@@ -70,12 +92,14 @@ def _event_source(
     }
 
 
+def _mget_body(sources: list[dict]) -> str:
+    """Wrap ticket _source dicts in the Bubble mget response shape."""
+    return json.dumps({"docs": [{"_id": f"ticket-{i}", "_source": source} for i, source in enumerate(sources)]})
+
+
 def _msearch_body(sources: list[dict]) -> str:
     """Wrap event _source dicts in the full Bubble msearch response shape."""
-    hits = [
-        {"_id": src["_id"], "_source": src}
-        for src in sources
-    ]
+    hits = [{"_id": src["_id"], "_source": src} for src in sources]
     return json.dumps({"responses": [{"hits": {"hits": hits}}]})
 
 
@@ -118,9 +142,7 @@ def test_parse_msearch_filters_past_events_by_default():
 def test_parse_msearch_includes_past_when_flag_set():
     past_ms = 1_000_000_000
     body = _msearch_body([_event_source(start_ms=past_ms)])
-    events = JetBookExtractor.parse_msearch_responses(
-        [body], include_past=True
-    )
+    events = JetBookExtractor.parse_msearch_responses([body], include_past=True)
     assert len(events) == 1
 
 
@@ -140,22 +162,34 @@ def test_parse_msearch_skips_non_event_records():
         "Slug": "some-venue",
         # Missing parsedate_start_date — not an event
     }
-    body = json.dumps({"responses": [{"hits": {"hits": [
-        {"_id": "venue-999", "_source": not_an_event},
-        {"_id": "evt-1", "_source": _event_source(record_id="evt-1")},
-    ]}}]})
+    body = json.dumps(
+        {
+            "responses": [
+                {
+                    "hits": {
+                        "hits": [
+                            {"_id": "venue-999", "_source": not_an_event},
+                            {"_id": "evt-1", "_source": _event_source(record_id="evt-1")},
+                        ]
+                    }
+                }
+            ]
+        }
+    )
     events = JetBookExtractor.parse_msearch_responses([body])
     assert len(events) == 1
     assert events[0].title == "Tan Sedan"
 
 
 def test_parse_msearch_sorts_by_start_time():
-    later = FAR_FUTURE_MS + 86_400_000   # +1 day
+    later = FAR_FUTURE_MS + 86_400_000  # +1 day
     earlier = FAR_FUTURE_MS
-    body = _msearch_body([
-        _event_source(record_id="b", name="Later", slug="later-x", start_ms=later),
-        _event_source(record_id="a", name="Earlier", slug="earlier-x", start_ms=earlier),
-    ])
+    body = _msearch_body(
+        [
+            _event_source(record_id="b", name="Later", slug="later-x", start_ms=later),
+            _event_source(record_id="a", name="Earlier", slug="earlier-x", start_ms=earlier),
+        ]
+    )
     events = JetBookExtractor.parse_msearch_responses([body])
     assert [e.title for e in events] == ["Earlier", "Later"]
 
@@ -171,12 +205,32 @@ def test_parse_msearch_handles_empty_input():
 
 
 def test_build_ticket_url():
-    assert (
-        JetBookExtractor.build_ticket_url("some-slug")
-        == "https://jetbook.co/e/some-slug"
-    )
+    assert JetBookExtractor.build_ticket_url("some-slug") == "https://jetbook.co/e/some-slug"
     assert JetBookExtractor.build_ticket_url("") is None
     assert JetBookExtractor.build_ticket_url("  ") is None
+
+
+def test_parse_mget_ticket_price_uses_lowest_non_free_price():
+    body = _mget_body(
+        [
+            {"price_number": 15, "isfree_boolean": False},
+            {"price_number": 5, "isfree_boolean": False},
+            {"price_number": 0, "isfree_boolean": True},
+        ]
+    )
+
+    assert JetBookExtractor.parse_mget_ticket_price([body]) == 5.0
+
+
+def test_parse_mget_ticket_price_returns_none_when_no_paid_tickets():
+    body = _mget_body(
+        [
+            {"price_number": 0, "isfree_boolean": True},
+            {"ticket_price_number": 5, "amount_number": 40},
+        ]
+    )
+
+    assert JetBookExtractor.parse_mget_ticket_price([body]) is None
 
 
 # ---------------------------------------------------------------------------
@@ -192,9 +246,7 @@ def test_real_msearch_fixture_parses():
     """
     fixture_path = FIXTURE_DIR / "msearch_sample.json"
     body = fixture_path.read_text()
-    events = JetBookExtractor.parse_msearch_responses(
-        [body], include_past=True
-    )
+    events = JetBookExtractor.parse_msearch_responses([body], include_past=True)
     assert len(events) == 1
     ev = events[0]
     assert ev.title
@@ -215,14 +267,62 @@ async def test_get_data_returns_page_data_with_events(monkeypatch):
     async def fake_capture(self, url: str) -> list[str]:
         return [body]
 
-    monkeypatch.setattr(
-        JetBookScraper, "_capture_msearch_responses", fake_capture
-    )
+    monkeypatch.setattr(JetBookScraper, "_capture_msearch_responses", fake_capture)
 
     result = await scraper.get_data(IFRAME_URL)
     assert isinstance(result, JetBookPageData)
     assert len(result.event_list) == 1
     assert result.event_list[0].title == "Tan Sedan"
+
+
+@pytest.mark.asyncio
+async def test_get_data_attaches_detail_page_ticket_prices(monkeypatch):
+    body = _msearch_body(
+        [
+            _event_source(record_id="evt-1", slug="first-event"),
+            _event_source(record_id="evt-2", slug="second-event"),
+        ]
+    )
+
+    async def fake_capture(self, url: str) -> list[str]:
+        return [body]
+
+    async def fake_detail_price(self, event: JetBookEvent) -> float | None:
+        return {"first-event": 12.0, "second-event": 18.0}[event.slug]
+
+    scraper = _PriceFetcherJetBookScraper(_club(), fake_detail_price)
+    monkeypatch.setattr(JetBookScraper, "_capture_msearch_responses", fake_capture)
+
+    result = await scraper.get_data(IFRAME_URL)
+
+    assert result is not None
+    assert [event.price for event in result.event_list] == [12.0, 18.0]
+
+
+@pytest.mark.asyncio
+async def test_detail_price_enrichment_uses_concurrent_page_pool(monkeypatch):
+    events = [
+        _make_event(slug="first-event"),
+        _make_event(slug="second-event"),
+        _make_event(slug="third-event"),
+    ]
+    active = 0
+    max_active = 0
+
+    async def fake_detail_price(self, event: JetBookEvent) -> float | None:
+        nonlocal active, max_active
+        active += 1
+        max_active = max(max_active, active)
+        await asyncio.sleep(0.01)
+        active -= 1
+        return 9.0
+
+    scraper = _PriceFetcherJetBookScraper(_club(), fake_detail_price)
+
+    await scraper._attach_detail_ticket_prices(events)
+
+    assert max_active > 1
+    assert [event.price for event in events] == [9.0, 9.0, 9.0]
 
 
 @pytest.mark.asyncio
@@ -232,9 +332,7 @@ async def test_get_data_returns_none_when_no_responses(monkeypatch):
     async def fake_capture(self, url: str) -> list[str]:
         return []
 
-    monkeypatch.setattr(
-        JetBookScraper, "_capture_msearch_responses", fake_capture
-    )
+    monkeypatch.setattr(JetBookScraper, "_capture_msearch_responses", fake_capture)
 
     assert await scraper.get_data(IFRAME_URL) is None
 
@@ -248,9 +346,7 @@ async def test_get_data_returns_none_when_no_bookable_events(monkeypatch):
     async def fake_capture(self, url: str) -> list[str]:
         return [body]
 
-    monkeypatch.setattr(
-        JetBookScraper, "_capture_msearch_responses", fake_capture
-    )
+    monkeypatch.setattr(JetBookScraper, "_capture_msearch_responses", fake_capture)
 
     assert await scraper.get_data(IFRAME_URL) is None
 
@@ -262,9 +358,7 @@ async def test_get_data_returns_none_on_capture_exception(monkeypatch):
     async def fake_capture(self, url: str) -> list[str]:
         raise RuntimeError("Playwright exploded")
 
-    monkeypatch.setattr(
-        JetBookScraper, "_capture_msearch_responses", fake_capture
-    )
+    monkeypatch.setattr(JetBookScraper, "_capture_msearch_responses", fake_capture)
 
     assert await scraper.get_data(IFRAME_URL) is None
 
@@ -292,12 +386,14 @@ def _make_event(
     slug: str = "tan-sedan-abc1",
     start_ms: int = FAR_FUTURE_MS,
     description: str = "",
+    price: float | None = None,
 ) -> JetBookEvent:
     return JetBookEvent(
         title=title,
         start_time_ms=start_ms,
         slug=slug,
         description=description,
+        price=price,
     )
 
 
@@ -314,14 +410,19 @@ def test_to_show_builds_ticket_url_from_slug():
     assert show.tickets[0].purchase_url == "https://jetbook.co/e/my-event-xy"
 
 
+def test_to_show_carries_detail_page_price_to_ticket():
+    show = _make_event(price=5.0).to_show(_club())
+
+    assert show is not None
+    assert show.tickets[0].price == 5.0
+
+
 def test_to_show_parses_start_time_in_club_timezone():
     """Unix ms → localized datetime. Compare via UTC to avoid DST ambiguity
     (pytz lacks far-future DST rules, so LA may be interpreted as PST/PDT
     depending on the year's tzdata)."""
     start_utc = datetime(2099, 7, 4, 22, 0, tzinfo=timezone.utc)
-    show = _make_event(
-        start_ms=int(start_utc.timestamp() * 1000)
-    ).to_show(_club())
+    show = _make_event(start_ms=int(start_utc.timestamp() * 1000)).to_show(_club())
 
     assert show is not None
     assert show.date.tzinfo is not None
@@ -362,9 +463,7 @@ def test_to_show_falls_back_to_utc_when_club_timezone_missing():
     club.timezone = ""  # simulate missing timezone
 
     start_utc = datetime(2099, 7, 4, 22, 0, tzinfo=timezone.utc)
-    show = _make_event(
-        start_ms=int(start_utc.timestamp() * 1000)
-    ).to_show(club)
+    show = _make_event(start_ms=int(start_utc.timestamp() * 1000)).to_show(club)
 
     assert show is not None
     # With UTC fallback the localized date should equal the original UTC hour.

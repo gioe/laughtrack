@@ -1,6 +1,7 @@
 """JSON-LD data extraction utilities."""
 
 from typing import Any, Iterable, List, Set
+from urllib.parse import urljoin, urlparse
 
 from bs4 import BeautifulSoup
 from bs4.element import Tag
@@ -20,14 +21,20 @@ class EventExtractor:
         html_content: str,
         *,
         same_as_override: str | None = None,
+        base_url: str | None = None,
     ) -> List[JsonLdEvent]:
         """
         Extract JSON-LD data from HTML content.
 
         Args:
             html_content: HTML content to parse
-            extract_events_only: If True, recursively extract only Event/ComedyEvent objects.
-                                If False, return all JSON-LD objects as-is.
+            same_as_override: Canonical detail-page URL supplied as the event url
+                for blocks that omit one.
+            base_url: The URL the HTML was fetched from. When provided, relative
+                event/offer ``url`` values (e.g. mynorthtickets emits
+                ``"/events/..."``) are resolved against it before validation, so
+                events on sites that emit root-relative URLs are not dropped for
+                "must be a valid URL format" (TASK-3513).
 
         Returns:
             List of Event dictionaries found in the HTML (all objects or events only)
@@ -45,6 +52,7 @@ class EventExtractor:
                 microdata_events,
                 same_as_override=same_as_override,
                 source_label="microdata",
+                base_url=base_url,
             )
 
         json_objects = JSONUtils.parse_json_ld_contents(script_contents)
@@ -53,12 +61,14 @@ class EventExtractor:
                 microdata_events,
                 same_as_override=same_as_override,
                 source_label="microdata",
+                base_url=base_url,
             )
 
         # For non-event-only extraction, return all JSON-LD objects that look like events
         json_ld_events = EventExtractor._extract_events_from_data(
             json_objects,
             same_as_override=same_as_override,
+            base_url=base_url,
         )
         if not microdata_events:
             return json_ld_events
@@ -67,6 +77,7 @@ class EventExtractor:
             microdata_events,
             same_as_override=same_as_override,
             source_label="microdata",
+            base_url=base_url,
         )
         return EventExtractor._dedupe_events(json_ld_events + microdata_parsed)
 
@@ -264,12 +275,14 @@ class EventExtractor:
         json_ld_data: List[JSONDict],
         *,
         same_as_override: str | None = None,
+        base_url: str | None = None,
     ) -> List[JsonLdEvent]:
         """
         Extract events from already-parsed JSON-LD data using recursive logic.
 
         Args:
             json_ld_data: List of already-parsed JSON-LD objects
+            base_url: see :meth:`extract_events`.
 
         Returns:
             List of Event dictionaries found in the data
@@ -282,7 +295,39 @@ class EventExtractor:
             all_events,
             same_as_override=same_as_override,
             source_label="JSON-LD",
+            base_url=base_url,
         )
+
+    @staticmethod
+    def _resolve_relative_event_urls(event: dict[str, Any], base_url: str) -> dict[str, Any]:
+        """Return a copy of ``event`` with root-relative ``url``/offer urls made absolute.
+
+        Some venues' JSON-LD emits root-relative event URLs (e.g. mynorthtickets
+        renders ``"url": "/events/<slug>"``). Those reach Show validation as
+        ``show_page_url`` / ticket ``purchase_url`` and are rejected for "must be
+        a valid URL format", silently dropping otherwise-valid upcoming shows
+        (TASK-3513, Traverse City Comedy Club 1058). Resolve them against the
+        page they were fetched from. Absolute URLs (with a netloc) are left
+        untouched, so this is a no-op for the common case. The event dict is
+        copied before mutation so the caller's dict and the dedup key are intact.
+        """
+        def _abs(value: Any) -> Any:
+            if isinstance(value, str) and value and not urlparse(value).netloc:
+                return urljoin(base_url, value)
+            return value
+
+        patched = dict(event)
+        if "url" in patched:
+            patched["url"] = _abs(patched["url"])
+        offers = patched.get("offers")
+        if isinstance(offers, dict) and "url" in offers:
+            patched["offers"] = {**offers, "url": _abs(offers.get("url"))}
+        elif isinstance(offers, list):
+            patched["offers"] = [
+                {**o, "url": _abs(o.get("url"))} if isinstance(o, dict) and "url" in o else o
+                for o in offers
+            ]
+        return patched
 
     @staticmethod
     def _events_from_dicts(
@@ -290,6 +335,7 @@ class EventExtractor:
         *,
         same_as_override: str | None = None,
         source_label: str,
+        base_url: str | None = None,
     ) -> List[JsonLdEvent]:
         # Deduplicate events by their string representation
         seen = set()
@@ -302,6 +348,12 @@ class EventExtractor:
             seen.add(event_str)
             # Build using the model factory to tolerate extra keys like '@context'
             try:
+                # Resolve root-relative event/offer URLs against the fetched page
+                # before validation so they don't fail Show's URL-format check
+                # (TASK-3513). No-op when base_url is absent or the URL is already
+                # absolute.
+                if base_url:
+                    event = EventExtractor._resolve_relative_event_urls(event, base_url)
                 # When the canonical detail-page URL is known
                 # (set_same_as_to_detail_url), supply it as the event url for
                 # blocks that omit one. Some detail-page Event JSON-LD — e.g.

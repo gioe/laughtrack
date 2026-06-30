@@ -224,11 +224,29 @@ model Club {
   aliases                 ClubAlias[]
   favorites               FavoriteClub[]
   imageAssets             ClubImageAsset[]
+  discoveryProfile        ClubDiscoveryProfile?
   ticketPurchaseClicks    TicketPurchaseClickEvent[]
+  homeComedians           Comedian[]                 @relation("ComedianHomeClub")
 
   @@index([visible])
   @@index([chainId])
   @@map("clubs")
+}
+
+model ClubDiscoveryProfile {
+  clubId             Int      @id @map("club_id")
+  primaryShowType    String?  @map("primary_show_type")
+  showTypeCounts     Json     @default("{}") @map("show_type_counts")
+  comedyShowCount    Int      @default(0) @map("comedy_show_count")
+  nonComedyShowCount Int      @default(0) @map("non_comedy_show_count")
+  mixedProgramming   Boolean  @default(false) @map("mixed_programming")
+  confidence         Float    @default(0)
+  computedAt         DateTime @default(now()) @map("computed_at") @db.Timestamptz
+  club               Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@index([primaryShowType])
+  @@index([mixedProgramming])
+  @@map("club_discovery_profiles")
 }
 
 model ClubAlias {
@@ -288,6 +306,9 @@ model Comedian {
   website                              String?
   popularity                           Float                             @default(0.0)
   youtubeAccount                       String?                           @map("youtube_account")
+  youtubeChannelId                     String?                           @map("youtube_channel_id")
+  youtubeLiveFeedEnabled               Boolean                           @default(false) @map("youtube_live_feed_enabled")
+  youtubeLiveNotificationsEnabled      Boolean                           @default(false) @map("youtube_live_notifications_enabled")
   youtubeFollowers                     Int?                              @map("youtube_followers")
   uuid                                 String                            @unique
   createdAt                            DateTime                          @default(now()) @map("created_at") @db.Timestamptz
@@ -311,6 +332,12 @@ model Comedian {
   websiteScrapingUrlHealthCheckedAt    DateTime?                         @map("website_scraping_url_health_checked_at") @db.Timestamptz
   tourSourceReviewEvidence             Json?                             @map("tour_source_review_evidence")
   visible                              Boolean                           @default(true)
+  homeCity                             String?                           @map("home_city")
+  homeState                            String?                           @map("home_state")
+  homeCountry                          String?                           @map("home_country")
+  homeClubId                           Int?                              @map("home_club_id")
+  homeLocationUpdatedAt                DateTime?                         @map("home_location_updated_at") @db.Timestamptz
+  homeClub                             Club?                             @relation("ComedianHomeClub", fields: [homeClubId], references: [id], onDelete: SetNull)
   parentComedianId                     Int?                              @map("parent_comedian_id")
   parentComedian                       Comedian?                         @relation("ComedianAliases", fields: [parentComedianId], references: [id])
   alternativeNames                     Comedian[]                        @relation("ComedianAliases")
@@ -318,6 +345,9 @@ model Comedian {
   lineupItems                          LineupItem[]
   taggedComedians                      TaggedComedian[]
   sentNotifications                    SentNotification[]
+  youtubeLiveNotifications             YouTubeLiveNotification[]
+  youtubeWebSubEvents                  YouTubeWebSubEvent[]
+  youtubeWebSubSubscriptions           YouTubeWebSubSubscription[]
   comedianPodcasts                     ComedianPodcast[]
   podcastCandidateReviews              PodcastCandidateReview[]
   podcastDiscoveryAttempts             ComedianPodcastDiscoveryAttempt[]
@@ -326,6 +356,8 @@ model Comedian {
   imageAssets                          ComedianImageAsset[]
 
   @@index([parentComedianId])
+  @@index([homeClubId])
+  @@index([youtubeChannelId])
   @@index([visible])
   @@map("comedians")
 }
@@ -578,61 +610,64 @@ model EpisodeAppearanceReview {
 }
 
 model User {
-  id                String             @id @default(cuid())
-  name              String?
-  email             String             @unique
-  emailVerified     DateTime?
-  image             String?
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-  accounts          Account[]
-  profile           UserProfile?
-  refreshTokens     RefreshToken[]
-  sentNotifications SentNotification[]
-  pushTokens        UserPushToken[]
+  id                       String                    @id @default(cuid())
+  name                     String?
+  email                    String                    @unique
+  emailVerified            DateTime?
+  image                    String?
+  createdAt                DateTime                  @default(now())
+  updatedAt                DateTime                  @updatedAt
+  accounts                 Account[]
+  profile                  UserProfile?
+  refreshTokens            RefreshToken[]
+  sentNotifications        SentNotification[]
+  youtubeLiveNotifications YouTubeLiveNotification[]
+  pushTokens               UserPushToken[]
 
   @@map("users")
 }
 
 model UserProfile {
-  id                          String                     @id @default(cuid())
-  role                        String                     @default("user")
-  emailShowNotifications      Boolean                    @default(false) @map("email_show_notifications")
-  pushShowNotifications       Boolean                    @default(false) @map("push_show_notifications")
-  comedianOnboardingCompleted Boolean                    @default(false) @map("comedian_onboarding_completed")
-  zipCode                     String?                    @map("zip_code")
-  nearbyDistanceMiles         Int?                       @map("nearby_distance_miles")
+  id                           String                     @id @default(cuid())
+  role                         String                     @default("user")
+  emailShowNotifications       Boolean                    @default(false) @map("email_show_notifications")
+  pushShowNotifications        Boolean                    @default(false) @map("push_show_notifications")
+  pushYoutubeLiveNotifications Boolean                    @default(false) @map("push_youtube_live_notifications")
+  comedianOnboardingCompleted  Boolean                    @default(false) @map("comedian_onboarding_completed")
+  zipCode                      String?                    @map("zip_code")
+  nearbyDistanceMiles          Int?                       @map("nearby_distance_miles")
   // High-water mark for the notification center: notifications with
   // sentAt > this timestamp are "unread". Opening the center stamps it to
   // now() (POST /api/v1/me/notifications/seen), which clears the unread badge.
   // NULL means the user has never opened the center, so every notification
   // counts as unread.
-  notificationsLastSeenAt     DateTime?                  @map("notifications_last_seen_at") @db.Timestamptz
-  userid                      String                     @unique @map("user_id")
-  adminActionAudits           AdminActionAudit[]
-  favoriteClubs               FavoriteClub[]
-  favoriteComedians           FavoriteComedian[]
-  favoritePodcasts            FavoritePodcast[]
-  pushTokens                  UserPushToken[]
-  ticketPurchaseClicks        TicketPurchaseClickEvent[]
-  user                        User                       @relation(fields: [userid], references: [id])
+  notificationsLastSeenAt      DateTime?                  @map("notifications_last_seen_at") @db.Timestamptz
+  userid                       String                     @unique @map("user_id")
+  adminActionAudits            AdminActionAudit[]
+  favoriteClubs                FavoriteClub[]
+  favoriteComedians            FavoriteComedian[]
+  favoritePodcasts             FavoritePodcast[]
+  pushTokens                   UserPushToken[]
+  ticketPurchaseClicks         TicketPurchaseClickEvent[]
+  user                         User                       @relation(fields: [userid], references: [id])
 
   @@map("user_profiles")
 }
 
 model UserPushToken {
-  id               String      @id @default(cuid())
-  userId           String      @map("user_id")
-  profileId        String      @map("profile_id")
-  platform         String      @default("ios")
-  token            String      @unique
-  isActive         Boolean     @default(true) @map("is_active")
-  revokedAt        DateTime?   @map("revoked_at") @db.Timestamptz
-  lastRegisteredAt DateTime    @default(now()) @map("last_registered_at") @db.Timestamptz
-  createdAt        DateTime    @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt        DateTime    @updatedAt @map("updated_at") @db.Timestamptz
-  user             User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  profile          UserProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  id                                String                            @id @default(cuid())
+  userId                            String                            @map("user_id")
+  profileId                         String                            @map("profile_id")
+  platform                          String                            @default("ios")
+  token                             String                            @unique
+  isActive                          Boolean                           @default(true) @map("is_active")
+  revokedAt                         DateTime?                         @map("revoked_at") @db.Timestamptz
+  lastRegisteredAt                  DateTime                          @default(now()) @map("last_registered_at") @db.Timestamptz
+  createdAt                         DateTime                          @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                         DateTime                          @updatedAt @map("updated_at") @db.Timestamptz
+  user                              User                              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profile                           UserProfile                       @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  youtubeLiveNotificationDeliveries YouTubeLiveNotificationDelivery[]
 
   @@index([userId, isActive])
   @@index([profileId, isActive])
@@ -749,6 +784,7 @@ model Show {
   lastScrapedBy        String?                    @map("last_scraped_by")
   firstDiscoveredAt    DateTime?                  @map("first_discovered_at") @db.Timestamptz(6)
   description          String?
+  showType             String?                    @map("show_type")
   room                 String?
   productionCompanyId  Int?                       @map("production_company_id")
   // The Eventbrite organizer (production company) whose /o/ feed most recently
@@ -793,6 +829,7 @@ model Show {
   // to keep for those workflows.
   @@index([lastScrapedBy])
   @@index([firstDiscoveredAt])
+  @@index([showType])
   @@map("shows")
 }
 
@@ -949,6 +986,120 @@ model SentNotification {
   @@unique([userId, comedianId, showId, notificationType], name: "sent_notifications_unique_per_channel")
   @@index([userId])
   @@map("sent_notifications")
+}
+
+model YouTubeWebSubSetting {
+  id                   Int      @id @default(1)
+  feedIngestionEnabled Boolean  @default(false) @map("feed_ingestion_enabled")
+  pushDeliveryEnabled  Boolean  @default(false) @map("push_delivery_enabled")
+  createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt            DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@map("youtube_websub_settings")
+}
+
+model YouTubeWebSubSubscription {
+  id                      Int       @id @default(autoincrement())
+  comedianId              String    @map("comedian_id")
+  youtubeChannelId        String    @map("youtube_channel_id")
+  topicUrl                String    @map("topic_url")
+  callbackUrl             String?   @map("callback_url")
+  status                  String    @default("pending")
+  leaseSeconds            Int?      @map("lease_seconds")
+  leaseExpiresAt          DateTime? @map("lease_expires_at") @db.Timestamptz
+  subscribedAt            DateTime? @map("subscribed_at") @db.Timestamptz
+  unsubscribedAt          DateTime? @map("unsubscribed_at") @db.Timestamptz
+  lastSubscribeAttemptAt  DateTime? @map("last_subscribe_attempt_at") @db.Timestamptz
+  lastSubscribeStatusCode Int?      @map("last_subscribe_status_code")
+  lastSubscribeError      String?   @map("last_subscribe_error")
+  lastVerifiedAt          DateTime? @map("last_verified_at") @db.Timestamptz
+  lastNotificationAt      DateTime? @map("last_notification_at") @db.Timestamptz
+  createdAt               DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt               DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  comedian                Comedian  @relation(fields: [comedianId], references: [uuid], onDelete: Cascade)
+
+  @@unique([youtubeChannelId], name: "youtube_websub_subscriptions_youtube_channel_id_key")
+  @@index([comedianId])
+  @@index([status, leaseExpiresAt])
+  @@map("youtube_websub_subscriptions")
+}
+
+model YouTubeWebSubEvent {
+  id                       Int                       @id @default(autoincrement())
+  comedianId               String?                   @map("comedian_id")
+  youtubeChannelId         String?                   @map("youtube_channel_id")
+  youtubeVideoId           String?                   @map("youtube_video_id")
+  videoTitle               String?                   @map("video_title")
+  videoUrl                 String?                   @map("video_url")
+  topicUrl                 String?                   @map("topic_url")
+  eventStatus              String                    @default("received") @map("event_status")
+  verificationStatus       String?                   @map("verification_status")
+  liveBroadcastContent     String?                   @map("live_broadcast_content")
+  scheduledStartTime       DateTime?                 @map("scheduled_start_time") @db.Timestamptz
+  actualStartTime          DateTime?                 @map("actual_start_time") @db.Timestamptz
+  publishedAt              DateTime?                 @map("published_at") @db.Timestamptz
+  feedUpdatedAt            DateTime?                 @map("feed_updated_at") @db.Timestamptz
+  verifiedAt               DateTime?                 @map("verified_at") @db.Timestamptz
+  failureReason            String?                   @map("failure_reason")
+  suppressionReason        String?                   @map("suppression_reason")
+  payloadXml               String                    @map("payload_xml")
+  payloadJson              Json                      @default("{}") @map("payload_json")
+  receivedAt               DateTime                  @default(now()) @map("received_at") @db.Timestamptz
+  createdAt                DateTime                  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                DateTime                  @updatedAt @map("updated_at") @db.Timestamptz
+  comedian                 Comedian?                 @relation(fields: [comedianId], references: [uuid], onDelete: SetNull)
+  youtubeLiveNotifications YouTubeLiveNotification[]
+
+  @@index([receivedAt])
+  @@index([youtubeChannelId, receivedAt])
+  @@index([youtubeVideoId])
+  @@index([eventStatus, receivedAt])
+  @@index([verificationStatus, receivedAt])
+  @@map("youtube_websub_events")
+}
+
+model YouTubeLiveNotification {
+  id                   Int                               @id @default(autoincrement())
+  userId               String                            @map("user_id")
+  comedianId           String                            @map("comedian_id")
+  youtubeChannelId     String                            @map("youtube_channel_id")
+  youtubeVideoId       String                            @map("youtube_video_id")
+  videoTitle           String?                           @map("video_title")
+  videoUrl             String                            @map("video_url")
+  notificationType     String                            @default("push") @map("notification_type")
+  youtubeWebSubEventId Int?                              @map("youtube_websub_event_id")
+  sentAt               DateTime                          @default(now()) @map("sent_at") @db.Timestamptz
+  user                 User                              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comedian             Comedian                          @relation(fields: [comedianId], references: [uuid], onDelete: Cascade)
+  youtubeWebSubEvent   YouTubeWebSubEvent?               @relation(fields: [youtubeWebSubEventId], references: [id], onDelete: SetNull)
+  deliveries           YouTubeLiveNotificationDelivery[]
+
+  @@unique([userId, comedianId, youtubeVideoId, notificationType], name: "youtube_live_notifications_unique_per_channel")
+  @@index([userId])
+  @@index([comedianId])
+  @@index([youtubeChannelId])
+  @@index([youtubeWebSubEventId])
+  @@map("youtube_live_notifications")
+}
+
+model YouTubeLiveNotificationDelivery {
+  id                        Int                     @id @default(autoincrement())
+  youtubeLiveNotificationId Int                     @map("youtube_live_notification_id")
+  pushTokenId               String?                 @map("push_token_id")
+  platform                  String?
+  deliveryStatus            String                  @default("pending") @map("delivery_status")
+  statusCode                Int?                    @map("status_code")
+  failureReason             String?                 @map("failure_reason")
+  attemptedAt               DateTime                @default(now()) @map("attempted_at") @db.Timestamptz
+  createdAt                 DateTime                @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                 DateTime                @updatedAt @map("updated_at") @db.Timestamptz
+  youtubeLiveNotification   YouTubeLiveNotification @relation(fields: [youtubeLiveNotificationId], references: [id], onDelete: Cascade)
+  pushToken                 UserPushToken?          @relation(fields: [pushTokenId], references: [id], onDelete: SetNull)
+
+  @@index([youtubeLiveNotificationId])
+  @@index([pushTokenId])
+  @@index([deliveryStatus, attemptedAt])
+  @@map("youtube_live_notification_deliveries")
 }
 
 // Per-API-route request counter, bucketed by the hour. Written by the

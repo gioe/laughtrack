@@ -140,6 +140,57 @@ class TestComedianInsertTuple:
         assert comedian.instagram_followers not in t
         assert comedian.tiktok_followers not in t
 
+    def test_home_location_fields_not_in_insert_tuple(self):
+        """Home location is derived from lineups, not name-stub insertion input."""
+        comedian = _make_full_comedian("Maria Bamford")
+        comedian.uuid = "uuid-home"
+        comedian.home_city = "Los Angeles"
+        comedian.home_state = "CA"
+        comedian.home_country = "US"
+        comedian.home_club_id = 123
+
+        t = comedian.to_insert_tuple()
+
+        assert "Los Angeles" not in t
+        assert "CA" not in t
+        assert "US" not in t
+        assert 123 not in t
+
+    def test_from_db_row_reads_home_location_fields(self):
+        """Comedian.from_db_row should preserve nullable home location columns."""
+        row = {
+            "name": "Maria Bamford",
+            "uuid": "uuid-home",
+            "instagram_followers": None,
+            "tiktok_followers": None,
+            "youtube_followers": None,
+            "sold_out_shows": 0,
+            "total_shows": 0,
+            "instagram_account": None,
+            "tiktok_account": None,
+            "youtube_account": None,
+            "website": None,
+            "linktree": None,
+            "parent_comedian_id": None,
+            "website_discovery_source": None,
+            "website_last_scraped": None,
+            "website_scrape_strategy": None,
+            "has_image": False,
+            "has_podcast_appearance": False,
+            "favorite_count": 0,
+            "home_city": "Los Angeles",
+            "home_state": "CA",
+            "home_country": "US",
+            "home_club_id": 123,
+        }
+
+        comedian = Comedian.from_db_row(row)
+
+        assert comedian.home_city == "Los Angeles"
+        assert comedian.home_state == "CA"
+        assert comedian.home_country == "US"
+        assert comedian.home_club_id == 123
+
 
 # ---------------------------------------------------------------------------
 # Helpers — ComedianHandler construction
@@ -217,6 +268,93 @@ class TestBatchUpdateComedianShowCountsSql:
         assert "from tickets group by show_id" not in normalized, (
             "Reintroduced unbounded tickets GROUP BY — would scan all tickets every call"
         )
+
+
+class TestBatchUpdateComedianHomeLocationSql:
+    def test_query_updates_home_location_columns(self):
+        """Query must persist both home city fields and home club foreign key."""
+        sql = ComedianQueries.BATCH_UPDATE_COMEDIAN_HOME_LOCATION.lower()
+
+        assert "update comedians" in sql
+        assert "home_city" in sql
+        assert "home_state" in sql
+        assert "home_country" in sql
+        assert "home_club_id" in sql
+        assert "home_location_updated_at" in sql
+
+    def test_query_derives_from_lineup_show_club_history(self):
+        """Home location must derive from canonical lineup_items -> shows -> clubs history."""
+        sql = ComedianQueries.BATCH_UPDATE_COMEDIAN_HOME_LOCATION.lower()
+
+        assert "lineup_items" in sql
+        assert "join shows" in sql
+        assert "join clubs" in sql
+        assert "uuid = any(%s)" in sql
+        assert "tc.uuid = li.comedian_id" in sql
+
+    def test_query_has_deterministic_club_tie_breakers(self):
+        """Home club ties must be stable: count, recency, then lowest club id."""
+        sql = ComedianQueries.BATCH_UPDATE_COMEDIAN_HOME_LOCATION.lower()
+
+        assert "engagement_score desc" in sql
+        assert "engagement_count desc" in sql
+        assert "last_seen_at desc" in sql
+        assert "club_id asc" in sql
+
+    def test_query_counts_distinct_engagements_not_show_ids(self):
+        """Duplicated showtime rows must not inflate a single run's home-location vote."""
+        sql = ComedianQueries.BATCH_UPDATE_COMEDIAN_HOME_LOCATION.lower()
+
+        assert "engagement_key" in sql
+        assert "count(distinct engagement_key)" in sql
+        assert "count(distinct li.show_id)" not in sql
+
+    def test_query_filters_stale_scrape_evidence(self):
+        """Home location should ignore show rows that have not been scraped recently."""
+        sql = ComedianQueries.BATCH_UPDATE_COMEDIAN_HOME_LOCATION.lower()
+
+        assert "s.last_scraped_date is not null" in sql
+        assert "s.last_scraped_date >= now() - (%s * interval '1 day')" in sql
+
+    def test_query_recency_weights_engagements(self):
+        """Recent and upcoming engagements must outrank stale all-time history."""
+        sql = ComedianQueries.BATCH_UPDATE_COMEDIAN_HOME_LOCATION.lower()
+
+        assert "engagement_weight" in sql
+        assert "current_date" in sql
+        assert "sum(engagement_weight)" in sql
+
+    def test_query_has_deterministic_city_tie_breakers(self):
+        """Home city ties must be stable across city/state/country."""
+        sql = ComedianQueries.BATCH_UPDATE_COMEDIAN_HOME_LOCATION.lower()
+
+        assert "city asc" in sql
+        assert "state asc" in sql
+        assert "country asc" in sql
+        assert "where city is not null" in sql
+
+    def test_query_flags_tied_top_clubs_as_touring(self):
+        """A score+count tie at the top club must clear home club (touring), not break the tie arbitrarily."""
+        sql = ComedianQueries.BATCH_UPDATE_COMEDIAN_HOME_LOCATION.lower()
+
+        # RANK() (allows ties) on the substantive keys only — no last_seen_at/club_id —
+        # so a genuine tie is detectable.
+        assert "rank() over" in sql
+        assert "club_tie_rank" in sql
+        assert "club_top_ties" in sql
+        # Home club is only set when exactly one club holds the top tie.
+        assert "home_club_id = case when clt.top_count = 1 then rcl.club_id end" in sql
+
+    def test_query_flags_tied_top_cities_as_touring_independently(self):
+        """City touring is gated on the CITY-level tie, independent of the club tie."""
+        sql = ComedianQueries.BATCH_UPDATE_COMEDIAN_HOME_LOCATION.lower()
+
+        assert "city_tie_rank" in sql
+        assert "city_top_ties" in sql
+        assert "home_city = case when cct.top_count = 1 then rc.city end" in sql
+        # Independent gates: city uses cct, club uses clt.
+        assert "cct.top_count = 1" in sql
+        assert "clt.top_count = 1" in sql
 
 
 class TestUpdateComedianTourIdsSql:
@@ -303,8 +441,73 @@ class TestRefreshComedianShowCounts:
             handler._refresh_comedian_show_counts(["uuid-1"])
 
 
+class TestUpdateHomeLocation:
+    def test_single_chunk_passes_uuids_to_execute_with_cursor(self):
+        """A list smaller than the chunk size produces exactly one statement."""
+        handler = _make_handler()
+        handler.execute_with_cursor.return_value = None
+
+        handler.update_home_location(["uuid-1", "uuid-2"])
+
+        handler.execute_with_cursor.assert_called_once_with(
+            ComedianQueries.BATCH_UPDATE_COMEDIAN_HOME_LOCATION,
+            (["uuid-1", "uuid-2"], 365),
+        )
+
+    def test_stale_scrape_window_can_be_configured(self, monkeypatch):
+        """The freshness cutoff is read at call time so operators can retune it."""
+        monkeypatch.setenv("LAUGHTRACK_HOME_LOCATION_MAX_SCRAPE_AGE_DAYS", "180")
+        handler = _make_handler()
+        handler.execute_with_cursor.return_value = None
+
+        handler.update_home_location(["uuid-1"])
+
+        handler.execute_with_cursor.assert_called_once_with(
+            ComedianQueries.BATCH_UPDATE_COMEDIAN_HOME_LOCATION,
+            (["uuid-1"], 180),
+        )
+
+    def test_empty_input_does_not_query(self):
+        """No UUIDs means no home-location recompute statement."""
+        handler = _make_handler()
+
+        handler.update_home_location([])
+
+        handler.execute_with_cursor.assert_not_called()
+
+    def test_large_input_is_chunked(self):
+        """Home-location recompute should use bounded statements like show counts."""
+        handler = _make_handler()
+        handler.execute_with_cursor.return_value = None
+
+        chunk_size = ComedianHandler._HOME_LOCATION_REFRESH_CHUNK_SIZE
+        uuids = [f"uuid-{i}" for i in range(chunk_size * 2 + 5)]
+
+        handler.update_home_location(uuids)
+
+        expected_calls = (len(uuids) + chunk_size - 1) // chunk_size
+        assert handler.execute_with_cursor.call_count == expected_calls
+        seen = []
+        for call in handler.execute_with_cursor.call_args_list:
+            query, params = call.args
+            assert query == ComedianQueries.BATCH_UPDATE_COMEDIAN_HOME_LOCATION
+            chunk, max_scrape_age_days = params
+            assert len(chunk) <= chunk_size
+            assert max_scrape_age_days == 365
+            seen.extend(chunk)
+        assert seen == uuids
+
+    def test_exception_from_execute_with_cursor_propagates(self):
+        """A DB error in execute_with_cursor bubbles up from update_home_location."""
+        handler = _make_handler()
+        handler.execute_with_cursor.side_effect = RuntimeError("home location DB error")
+
+        with pytest.raises(RuntimeError, match="home location DB error"):
+            handler.update_home_location(["uuid-1"])
+
+
 # ---------------------------------------------------------------------------
-# update_comedian_popularity — show count refresh integration
+# update_comedian_popularity — derived metric refresh integration
 # ---------------------------------------------------------------------------
 
 class TestUpdateComedianPopularityRefreshShowCounts:
@@ -319,27 +522,29 @@ class TestUpdateComedianPopularityRefreshShowCounts:
         handler._fetch_comedian_details = MagicMock(return_value=comedians)
         handler._fetch_recency_scores = MagicMock(return_value=recency_map)
         handler._refresh_comedian_show_counts = MagicMock()
+        handler.update_home_location = MagicMock()
         handler.execute_batch_operation = MagicMock(return_value=[{"id": "ok"}])
         return handler
 
-    def test_refresh_show_counts_called_before_fetch_details(self):
-        """_refresh_comedian_show_counts must be called before _fetch_comedian_details."""
+    def test_derived_show_metrics_called_before_fetch_details(self):
+        """Show counts and home location must be refreshed before _fetch_comedian_details."""
         uuids = ["uuid-A"]
         comedians = [self._make_comedian("uuid-A")]
         handler = self._setup_handler(uuids, comedians, {})
 
         call_order = []
         handler._refresh_comedian_show_counts.side_effect = lambda *a, **kw: call_order.append("refresh")
+        handler.update_home_location.side_effect = lambda *a, **kw: call_order.append("home")
         handler._fetch_comedian_details.side_effect = lambda *a, **kw: (call_order.append("fetch"), comedians)[1]
 
         handler.update_comedian_popularity()
 
-        assert call_order == ["refresh", "fetch"], (
-            "show counts must be refreshed before comedian details are fetched"
+        assert call_order == ["refresh", "home", "fetch"], (
+            "derived show metrics must be refreshed before comedian details are fetched"
         )
 
-    def test_refresh_show_counts_receives_target_uuids(self):
-        """_refresh_comedian_show_counts is called with the resolved target UUIDs."""
+    def test_derived_show_metrics_receive_target_uuids(self):
+        """Derived metric refreshes are called with the resolved target UUIDs."""
         uuids = ["uuid-1", "uuid-2"]
         comedians = [self._make_comedian(u) for u in uuids]
         handler = self._setup_handler(uuids, comedians, {})
@@ -347,6 +552,7 @@ class TestUpdateComedianPopularityRefreshShowCounts:
         handler.update_comedian_popularity()
 
         handler._refresh_comedian_show_counts.assert_called_once_with(uuids)
+        handler.update_home_location.assert_called_once_with(uuids)
 
     def test_exception_from_refresh_show_counts_propagates(self):
         """A DB error in _refresh_comedian_show_counts bubbles up from update_comedian_popularity."""
@@ -356,6 +562,16 @@ class TestUpdateComedianPopularityRefreshShowCounts:
         handler._refresh_comedian_show_counts.side_effect = RuntimeError("show count DB error")
 
         with pytest.raises(RuntimeError, match="show count DB error"):
+            handler.update_comedian_popularity()
+
+    def test_exception_from_update_home_location_propagates(self):
+        """A DB error in update_home_location bubbles up from update_comedian_popularity."""
+        uuids = ["uuid-1"]
+        comedians = [self._make_comedian("uuid-1")]
+        handler = self._setup_handler(uuids, comedians, {})
+        handler.update_home_location.side_effect = RuntimeError("home location DB error")
+
+        with pytest.raises(RuntimeError, match="home location DB error"):
             handler.update_comedian_popularity()
 
 

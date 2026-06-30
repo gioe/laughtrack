@@ -64,6 +64,11 @@ Is there an Eventbrite widget or eventbrite.com buy link?
   └── YES → platform: Eventbrite → scraper: eventbrite
               DB: eventbrite_id = organizer ID (11 digits) or venue ID (8-9 digits)
 
+Is there a wl.seetickets.us / wl.eventim.us whitelabel buy link?
+  └── YES → platform: custom → scraper: seetickets_whitelabel
+              DB: source_url = https://wl.eventim.us/?afflky=<KEY>;
+                  metadata.profile_id + metadata.whitelabel_key required
+
 Is there a DICE event-list widget or widgets.dice.fm script?
   └── YES → platform: DICE → scraper: dice (generic)
               DB: source_url = venue-owned calendar page; metadata must include
@@ -636,7 +641,13 @@ When a venue-owned page already contains complete event cards plus Tixr ticket U
 - `scraper_key = 'tixr_public_card'`
 - `source_url = '<venue-owned calendar page URL>'`
 
-`TixrPublicCardScraper` parses the venue page directly and does not call `TixrClient.get_event_detail_from_url()`. Use this for St. Marks Comedy Club and House of Comedy Bloomington style Webflow cards where DataDome blocks Tixr detail enrichment but the public card has enough data to build shows. It recognizes three venue-owned card templates: the St. Marks `.event-item > a.ticket-links` Webflow cards (month/day-only date, year inferred), the Black Buzzard `.event-item` Webflow variant (`.main-title-hover-2` title + absolute `.date-2.lrg` date like `Aug 21, 2026` + `a.row-clickto-ticket` Tixr link, with per-card JSON-LD `offers.price`), and The Stand NYC `.show_row` Bootstrap cards (date encoded in the show-page slug). When the venue homepage already embeds full Schema.org Event JSON-LD per card, that block supplies the offer price keyed by the Tixr ticket URL. (The Black Buzzard at Oskar Blues — Denver, TASK-3384 — uses this last variant; note its `/events` page is a shared "Bandwagon" Tixr group with other venues, so point `source_url` at the homepage, which carries only the venue's own events.)
+`TixrPublicCardScraper` parses the venue page directly and does not call `TixrClient.get_event_detail_from_url()`. Use this for St. Marks Comedy Club and House of Comedy Bloomington style Webflow cards where DataDome blocks Tixr detail enrichment but the public card has enough data to build shows. It recognizes four venue-owned card templates: the St. Marks `.event-item > a.ticket-links` Webflow cards (month/day-only date, year inferred), the Black Buzzard `.event-item` Webflow variant (`.main-title-hover-2` title + absolute `.date-2.lrg` date like `Aug 21, 2026` + `a.row-clickto-ticket` Tixr link, with per-card JSON-LD `offers.price`), The Stand NYC `.show_row` Bootstrap cards (date encoded in the show-page slug), and the Phil Long Music Hall `.day-card` Webflow variant (title in `.b-show`, absolute date + time in the two `.event-info_dates p.b-venue.date` nodes like `October 23, 2026` / `8:00 pm`, optional `Featuring:` performer in `.b-venue.name`, Tixr buy link via `a[href*="tixr.com"]`). When the venue homepage already embeds full Schema.org Event JSON-LD per card, that block supplies the offer price keyed by the Tixr ticket URL. (The Black Buzzard at Oskar Blues — Denver, TASK-3384 — uses the second variant; note its `/events` page is a shared "Bandwagon" Tixr group with other venues, so point `source_url` at the homepage, which carries only the venue's own events.)
+
+**Comedy title filter for mixed-use Tixr music halls:** `tixr_public_card` (and the generic `tixr` detail path is unaffected) supports the same opt-in `scraping_sources.metadata` title filters as eventbrite / ticketweb / arts_people, via `TixrScraper._apply_title_filter` + the shared `BaseScraper.compile_title_patterns`:
+- `include_title_patterns: ['<regex>', ...]` — keep ONLY events whose title matches at least one pattern (the comedy allowlist).
+- `exclude_title_patterns: ['<regex>', ...]` — drop events whose title matches any pattern.
+
+Both are OFF by default, so pure-comedy Tixr sources are unchanged. Use the include allowlist for a concert-first music hall that only occasionally books stand-up (Phil Long Music Hall at Bourbon Brothers — Colorado Springs, TASK-3429 — `include_title_patterns = ['comedy','comedian','stand[ -]?up']`; not Ticketmaster-ticketed, so `ticketmaster_national` does not cover it).
 
 **Audit remaining DataDome-dependent Tixr sources:**
 ```sql
@@ -713,6 +724,10 @@ The `--{id}` URL format (`/events/{slug}--{id}`) only embeds `window.pageSetup =
 **Detection signals:** Venue-owned Webflow homepage where each show is rendered as `<a class="day-card">` whose `href` points at a Tixr group URL (e.g. `tixr.com/groups/<slug>/events/...`). Selectors and date/time formats are identical across these venues; the only per-venue input is the Tixr group fragment used to filter foreign cards on shared homepages.
 
 **Why this is separate from `tixr_public_card`:** `tixr_public_card` parses St. Marks / House of Comedy Bloomington style cards that don't share `a.day-card` markup. The day-card path is its own card shape (House of Comedy BC, ...). Comic Strip Edmonton previously used this path, but now routes through the `tixr` Pixl Calendar API path because Pixl exposes the full inventory and sale-tier prices.
+
+> **`day-card` markup is split across two scraper keys — pick by the card's shape, not the class name:**
+> - `<a class="day-card" href="tixr.com/groups/...">` (the card *is* the anchor, foreign cards filtered by `tixr_group_fragment`) → **`tixr_webflow_day_card`**.
+> - `<a class="cal-card-link" href="tixr.com/e/{id}"><div class="day-card">…</div></a>` (a `div.day-card` *wrapped* in the buy-link anchor, title in `.b-show`, absolute date/time in `.event-info_dates p.b-venue.date`, comedy isolated by `include_title_patterns`) → **`tixr_public_card`** (`_parse_b_show_public_cards`, the Phil Long Music Hall variant). The buy link is the wrapping ancestor `<a>`, not a descendant — resolving it as a descendant returns 0 cards.
 
 **DB setup — fresh onboarding (no prior scraping_sources row):**
 ```sql
@@ -1748,6 +1763,60 @@ VALUES (<club_id>, 'custom', 'dojour',
 - `apps/scraper/src/laughtrack/scrapers/implementations/api/dojour/`
 - `apps/scraper/src/laughtrack/core/entities/event/dojour.py`
 - Reference venue/task: Sisyphus Brewing (Minneapolis) — TASK-3323.
+
+---
+
+### Indy Systems (`the_lyric`)
+
+| | |
+|---|---|
+| **Scraper key** | `the_lyric` (venue-specific; one Indy tenant) |
+| **DB platform** | `custom` (Indy Systems is not a `ScrapingPlatform` enum member) |
+| **DB fields** | `source_url` = the venue's `…/graphql` proxy · `metadata.indy_site_id` |
+| **Generic?** | ❌ venue-specific so far — reusable per-tenant with a new `key` + `site-id` |
+
+**Detection signals:**
+- A Quasar/Vue SPA whose XHR/fetch calls hit a same-origin `…/graphql` endpoint
+  backed by `api-*.indy.systems`.
+- GraphQL **introspection is disabled** (`__type doesn't exist on type Query`),
+  but field-validation errors still name types (`MovieList`, `ShowingList`,
+  `Showing`) so you can reverse the selection sets.
+
+**Tenant + scope live in request HEADERS, not the URL:**
+- `site-id: <n>` selects the venue (The Lyric is site `7`).
+- `client-type: consumer` grants public reads — **omitting it returns permission
+  code 102**.
+- `content-type: application/json`.
+
+**Data model:** Indy models *every* screening — films AND live events — as a
+"movie". Query plan the `the_lyric` scraper uses:
+1. `currentAndUpcomingMovies { data { id name urlSlug } }` — a `MovieList` whose
+   `data[]` is the ~220-title current+upcoming catalog (not the full 2500+ archive
+   that `movies(siteIds:[…])` returns).
+2. Keep only comedy by event **name** (`comedy/comedian/stand-up/improv/sketch`);
+   drop the film titles and the mixed **"Open Mic"** variety night (default
+   exclude, overridable via `metadata.exclude_title_patterns`).
+3. `publicShowingsForMovie(movieId: ID!) { data { id time } }` — a `ShowingList`
+   whose `data[].time` is the ISO-8601 (offset-aware) showtime. One Show per
+   showing; `show_page_url` → the venue's own `/movie/<urlSlug>` page.
+
+**DB setup (idempotent migration):**
+```sql
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, enabled, priority, metadata)
+SELECT c.id, 'custom'::"ScrapingPlatform", 'the_lyric',
+       'https://www.lyriccinema.com/graphql', TRUE, 0, '{"indy_site_id": 7}'::jsonb
+FROM clubs c WHERE c.name = 'The Lyric' AND NOT EXISTS (...);
+```
+
+**Onboarding a second Indy Systems venue:** the queries + headers are
+tenant-agnostic; only `site-id` and the `/graphql` host change. Generalize by
+extracting the query/header logic into a shared base and giving each venue its
+own `key` + `metadata.indy_site_id` (the `the_lyric` scraper already reads the
+site id from metadata, so most of the work is parameterizing the host).
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/scrapers/implementations/venues/the_lyric/`
+- Reference venue/task: The Lyric (Fort Collins, CO) — TASK-3473 (re-do of TASK-3436).
 
 ---
 
@@ -2920,6 +2989,60 @@ dropped.
 
 ---
 
+### SeeTickets/Eventim Whitelabel
+
+| | |
+|---|---|
+| **Scraper key** | `seetickets_whitelabel` |
+| **Platform** | `custom` |
+| **DB field** | `source_url`/`scraping_url` + metadata |
+| **Value format** | `source_url = https://wl.eventim.us/?afflky=<KEY>`; metadata `profile_id`, `whitelabel_key`, optional `affiliate_key`, `max_months`, `page_size` |
+| **Generic?** | ✅ generic for SeeTickets/Eventim US whitelabel storefronts |
+
+**Detection signals:**
+- Buy links point at `wl.seetickets.us/event/<slug>/<id>?afflky=<KEY>` or `wl.eventim.us/event/<slug>/<id>?afflky=<KEY>`.
+- The affiliate storefront is `https://wl.eventim.us/?afflky=<KEY>` after the SeeTickets -> Eventim redirect.
+- Rendered cards have `.search-event` containers and `GET TICKETS` anchors with aria labels like `Buy tickets for <NAME> on <Month DD YYYY>`.
+
+**API/source pattern:**
+- The source is Cloudflare-protected and client-rendered; do not use `json_ld` or a single `fetch_html()` page read for the listing.
+- `PlaywrightBrowser.fetch_seetickets_whitelabel_pages()` clears Cloudflare once per browser session, then drives the whitelabel AJAX endpoint:
+  `GET https://wl.eventim.us/wafform.aspx?_act=Search&AJAX=1&_tab=Event&_sea=WhiteLabelEventSearchV3&ProfileID=<id>&WhiteLabelKey=<key>&afflky=<key>&EventStart=<MM/DD/YYYY>&EventStart2=<MM/DD/YYYY>&SortBy=all`
+- Pagination uses `_lfv=<offset>` and `_sft=<offset - page_size>`; the scraper deduplicates by numeric event id.
+
+**Key extraction notes:**
+- List cards expose title, date, location, image, and ticket URL. They do not expose show time, so dates are persisted at local midnight in the club timezone.
+- Event URLs are normalized against `https://wl.eventim.us`.
+- Individual event pages may server-render JSON-LD with exact `startDate`, but per-event fetching is intentionally avoided because hundreds of Cloudflare-cleared renders are not viable nightly.
+
+**DB setup:**
+```sql
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, priority, enabled, metadata)
+SELECT c.id, 'custom', 'seetickets_whitelabel',
+       'https://wl.eventim.us/?afflky=<KEY>', 0, true,
+       jsonb_build_object(
+         'profile_id', '<PROFILE_ID>',
+         'whitelabel_key', '<KEY>',
+         'affiliate_key', '<KEY>',
+         'max_months', 12,
+         'page_size', 15
+       )
+FROM clubs c
+WHERE c.name = '<Venue Name>';
+```
+
+**Failure modes / gotchas:**
+- The direct `WhiteLabelEventSearchV3` URL can return the platform's `Problem / Oops!` shell if opened without the affiliate storefront context.
+- `_lfv` / `_sft` are list offsets, not stable event ids. Stop only when a page introduces no new event ids.
+- This scraper is for dedicated comedy rooms. Mixed-programming whitelabel venues would need title filters before onboarding.
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/foundation/infrastructure/http/playwright_browser.py`
+- `apps/scraper/src/laughtrack/scrapers/implementations/api/seetickets_whitelabel/`
+- First venue: The Port Comedy Club, TASK-3485.
+
+---
+
 ### TicketLeap
 
 | | |
@@ -3566,6 +3689,47 @@ Stans Comedy Club, Waterford Township MI, 29 shows).
 **Reference implementation:**
 - `apps/scraper/src/laughtrack/scrapers/implementations/api/standing_room_only/`
 - Event entity: `apps/scraper/src/laughtrack/core/entities/event/standing_room_only.py`
+
+---
+
+### WellAttended (`wellattended`)
+
+| | |
+|---|---|
+| **Scraper key** | `wellattended` (generic — any WellAttended venue onboards with only a DB row) |
+| **Platform** | `custom` (WellAttended has no `ScrapingPlatform` enum value) |
+| **DB field** | `scraping_sources.source_url` = the venue's WellAttended root (`https://<venue>.wellattended.com/`) |
+| **Datasource / process** | `rsc` / `multi_step` |
+| **Generic?** | ✅ generic — keyed off the subdomain; no per-venue code |
+
+WellAttended (`<venue>.wellattended.com`) is a **Next.js RSC** ticketing platform.
+A venue's calendar lives on its subdomain root; each show is a `/events/<slug>`
+detail page. There is **no JSON-LD and no `__NEXT_DATA__`** — the showing/occurrence
+and ticket-tier data is embedded in the `self.__next_f.push([1,"..."])` RSC flight.
+
+**Detection signals:**
+- The venue's own site (e.g. `amazingshows.com`) redirects to `<venue>.wellattended.com`
+- Page source has `self.__next_f.push(...)` chunks and `wellattended.com` asset hosts; no JSON-LD `<script type="application/ld+json">`, no `__NEXT_DATA__`
+
+**Flight shape (per `/events/<slug>` detail page):**
+- **Occurrence object** — `{"_id","thingId","thingTitle","start":"$D<UTC ISO>","timezone":"America/Denver","soldCount","remainingCapacity","shouldBeShown","deleted","slug"}`. One per showtime; a multi-night run has several.
+- **Ticket-tier object** — `{"classification","price":<cents>,...}` (price is in **cents**).
+
+**Key implementation details:**
+- Concatenate the flight across **all** `self.__next_f.push` calls first (an object can span chunk boundaries) — use `core/clients/rsc/extractor.extract_push_payloads`.
+- `start` carries the RSC `$D` date marker — strip it to a plain UTC ISO; convert to the club tz.
+- Locate each occurrence by its `"start":"$D…"` anchor and **balance-extract its enclosing object** by stepping back over `{` positions until the balanced block spans the anchor — a naive `rfind('{')` lands on a nested `{}` that precedes a key and extracts nothing (this silently dropped Chipper Lowell during TASK-3471; David Deeble's objects had no leading nested object so it appeared to work).
+- Drop `deleted:true`, `shouldBeShown:false`, and past `start`s; de-dup by `(_id, start)`.
+- Price = cheapest tier `price` / 100 (dollars). `show_page_url`/ticket = the venue's own `/events/<slug>` page.
+
+**DB setup:** see `migrations/20260628_onboard_theatre_of_dreams_wellattended.sql`
+(TASK-3471, Theatre of Dreams Arts & Event Center, shows at The Magic Manor,
+Sedalia CO, 4 upcoming shows).
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/scrapers/implementations/api/wellattended/`
+- Event entity: `apps/scraper/src/laughtrack/core/entities/event/wellattended.py`
+- Shared RSC helpers: `apps/scraper/src/laughtrack/core/clients/rsc/extractor.py`
 
 ---
 
@@ -4541,6 +4705,7 @@ Other related checks:
 | `simpletix` | `scraping_url` (full SimpleTix event page URL) |
 | `thundertix` | `source_url` (+ optional metadata `title_skip_prefixes`) |
 | `showpass` | `scraping_url` (Showpass calendar API base URL: `.../venues/{slug}/calendar/`) |
+| `seetickets_whitelabel` | `source_url`/`scraping_url` (`https://wl.eventim.us/?afflky=<KEY>`) + metadata `profile_id`, `whitelabel_key`, optional `affiliate_key` |
 | `show_slinger` | `scraping_url` (full combo_widget URL with id, secure_code, origin_url) |
 | `ticketleap` | `scraping_url` (org listing URL: `events.ticketleap.com/events/{org_slug}`) |
 | `tock` | `source_url` (business page URL: `exploretock.com/{business_slug}`; optional `metadata.comedy_filter`) |

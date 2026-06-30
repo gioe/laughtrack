@@ -79,7 +79,11 @@ class DetailPagePriceMixin:
         subject = self._detail_price_log_subject
         try:
             await self.rate_limiter.await_if_needed(url)
-            html = await self.fetch_html(url)
+            # Price-only enrichment: the detail page just needs its JSON-LD
+            # offers, and a failed/blocked fetch degrades to price-unknown
+            # below. Opt out of the Playwright fallback so a bot-blocked detail
+            # page never spins a headless browser per URL (TASK-3544/3542).
+            html = await self.fetch_html(url, skip_js_fallback=True)
         except Exception as e:
             self._detail_price_tasks.pop(url, None)
             Logger.warn(

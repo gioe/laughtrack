@@ -1,0 +1,112 @@
+{
+  "after": {
+    "remaining_null_room_slot_conflicts": 0
+  },
+  "applied": true,
+  "before": {
+    "map": {
+      "duplicate_rows": 1208,
+      "groups_collapsed": 1127
+    },
+    "top_offenders": [
+      {
+        "club_id": 2,
+        "club_name": "New York Comedy Club Midtown",
+        "duplicate_rows": 304
+      },
+      {
+        "club_id": 53,
+        "club_name": "Fort Lauderdale Improv",
+        "duplicate_rows": 189
+      },
+      {
+        "club_id": 6,
+        "club_name": "The Grisly Pear Greenwich Village",
+        "duplicate_rows": 146
+      },
+      {
+        "club_id": 45,
+        "club_name": "Stress Factory",
+        "duplicate_rows": 136
+      },
+      {
+        "club_id": 52,
+        "club_name": "Atlantic City Comedy Club",
+        "duplicate_rows": 63
+      },
+      {
+        "club_id": 43,
+        "club_name": "Brokerage Comedy Club",
+        "duplicate_rows": 57
+      },
+      {
+        "club_id": 42,
+        "club_name": "McGuire's Comedy Club",
+        "duplicate_rows": 56
+      },
+      {
+        "club_id": 46,
+        "club_name": "Stress Factory Bridgeport",
+        "duplicate_rows": 53
+      },
+      {
+        "club_id": 47,
+        "club_name": "Comedy In Harlem",
+        "duplicate_rows": 53
+      },
+      {
+        "club_id": 13,
+        "club_name": "Eastville Comedy Club Brooklyn",
+        "duplicate_rows": 52
+      },
+      {
+        "club_id": 8,
+        "club_name": "West Side Comedy Club",
+        "duplicate_rows": 36
+      },
+      {
+        "club_id": 44,
+        "club_name": "Governors' Comedy Club",
+        "duplicate_rows": 30
+      },
+      {
+        "club_id": 14,
+        "club_name": "Comedy Village",
+        "duplicate_rows": 18
+      },
+      {
+        "club_id": 33,
+        "club_name": "Irvine Improv",
+        "duplicate_rows": 5
+      },
+      {
+        "club_id": 36,
+        "club_name": "Pittsburgh Improv",
+        "duplicate_rows": 5
+      },
+      {
+        "club_id": 34,
+        "club_name": "Milwaukee Improv",
+        "duplicate_rows": 4
+      },
+      {
+        "club_id": 38,
+        "club_name": "San Jose Improv",
+        "duplicate_rows": 1
+      }
+    ]
+  },
+  "club_scope": null,
+  "counts": {
+    "click_events_repointed": 0,
+    "conflicting_sent_notifications_deleted": 0,
+    "duplicate_shows_deleted": 1208,
+    "lineup_items_repointed": 17,
+    "sent_notifications_repointed": 0,
+    "survivor_rooms_normalized": 1111,
+    "tagged_shows_repointed": 236,
+    "tickets_repointed": 622
+  },
+  "generated_at": "2026-06-29T11:37:30.360424+00:00",
+  "task": "TASK-3490"
+}

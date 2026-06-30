@@ -1,0 +1,187 @@
+{
+    "title": "YouTube WebSub",
+    "uid": "youtube-websub",
+    "tags": ["youtube", "websub", "laughtrack"],
+    "editable": true,
+    "schemaVersion": 39,
+    "version": 1,
+    "refresh": "",
+    "time": {
+        "from": "now-7d",
+        "to": "now"
+    },
+    "annotations": {
+        "list": []
+    },
+    "templating": {
+        "list": [
+            {
+                "name": "datasource",
+                "label": "Datasource",
+                "type": "datasource",
+                "query": "grafana-postgresql-datasource",
+                "refresh": 1,
+                "hide": 0,
+                "regex": "",
+                "current": {}
+            }
+        ]
+    },
+    "panels": [
+        {
+            "id": 1,
+            "title": "WebSub callbacks received",
+            "type": "timeseries",
+            "datasource": {
+                "type": "grafana-postgresql-datasource",
+                "uid": "${datasource}"
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 0
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "short",
+                    "min": 0,
+                    "custom": {
+                        "drawStyle": "bars",
+                        "stacking": {
+                            "mode": "normal"
+                        }
+                    }
+                },
+                "overrides": []
+            },
+            "options": {},
+            "targets": [
+                {
+                    "refId": "A",
+                    "format": "time_series",
+                    "rawQuery": true,
+                    "datasource": {
+                        "type": "grafana-postgresql-datasource",
+                        "uid": "${datasource}"
+                    },
+                    "rawSql": "SELECT date_trunc('hour', received_at) AS \"time\", event_status AS metric, COUNT(*) AS callbacks FROM youtube_websub_events WHERE $__timeFilter(received_at) GROUP BY 1, 2 ORDER BY 1"
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "title": "Subscription renewal health",
+            "type": "table",
+            "datasource": {
+                "type": "grafana-postgresql-datasource",
+                "uid": "${datasource}"
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 0
+            },
+            "fieldConfig": {
+                "defaults": {},
+                "overrides": []
+            },
+            "options": {},
+            "targets": [
+                {
+                    "refId": "A",
+                    "format": "table",
+                    "rawQuery": true,
+                    "datasource": {
+                        "type": "grafana-postgresql-datasource",
+                        "uid": "${datasource}"
+                    },
+                    "rawSql": "SELECT 'renewal_failures_in_range' AS metric, COUNT(*)::text AS value FROM youtube_websub_subscriptions WHERE last_subscribe_error IS NOT NULL AND $__timeFilter(COALESCE(last_subscribe_attempt_at, updated_at)) UNION ALL SELECT 'oldest_expiring_active_lease' AS metric, COALESCE(MIN(lease_expires_at)::text, 'none') AS value FROM youtube_websub_subscriptions WHERE status = 'active' AND lease_expires_at IS NOT NULL UNION ALL SELECT 'active_leases_expiring_next_24h' AS metric, COUNT(*)::text AS value FROM youtube_websub_subscriptions WHERE status = 'active' AND lease_expires_at IS NOT NULL AND lease_expires_at <= NOW() + INTERVAL '24 hours'"
+                }
+            ]
+        },
+        {
+            "id": 3,
+            "title": "Verification outcomes",
+            "type": "timeseries",
+            "datasource": {
+                "type": "grafana-postgresql-datasource",
+                "uid": "${datasource}"
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 8
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "short",
+                    "min": 0,
+                    "custom": {
+                        "drawStyle": "bars",
+                        "stacking": {
+                            "mode": "normal"
+                        }
+                    }
+                },
+                "overrides": []
+            },
+            "options": {},
+            "targets": [
+                {
+                    "refId": "A",
+                    "format": "time_series",
+                    "rawQuery": true,
+                    "datasource": {
+                        "type": "grafana-postgresql-datasource",
+                        "uid": "${datasource}"
+                    },
+                    "rawSql": "SELECT date_trunc('hour', COALESCE(verified_at, received_at)) AS \"time\", COALESCE(verification_status, 'unverified') AS metric, COUNT(*) AS outcomes FROM youtube_websub_events WHERE $__timeFilter(COALESCE(verified_at, received_at)) GROUP BY 1, 2 ORDER BY 1"
+                }
+            ]
+        },
+        {
+            "id": 4,
+            "title": "YouTube live push delivery",
+            "type": "timeseries",
+            "datasource": {
+                "type": "grafana-postgresql-datasource",
+                "uid": "${datasource}"
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 8
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "short",
+                    "min": 0,
+                    "custom": {
+                        "drawStyle": "bars",
+                        "stacking": {
+                            "mode": "normal"
+                        }
+                    }
+                },
+                "overrides": []
+            },
+            "options": {},
+            "targets": [
+                {
+                    "refId": "A",
+                    "format": "time_series",
+                    "rawQuery": true,
+                    "datasource": {
+                        "type": "grafana-postgresql-datasource",
+                        "uid": "${datasource}"
+                    },
+                    "rawSql": "SELECT date_trunc('hour', d.attempted_at) AS \"time\", d.delivery_status AS metric, COUNT(*) AS pushes FROM youtube_live_notification_deliveries d JOIN youtube_live_notifications n ON n.id = d.youtube_live_notification_id WHERE d.delivery_status IN ('sent', 'failed') AND $__timeFilter(d.attempted_at) GROUP BY 1, 2 UNION ALL SELECT date_trunc('hour', received_at) AS \"time\", 'suppressed' AS metric, COUNT(*) AS pushes FROM youtube_websub_events WHERE suppression_reason IS NOT NULL AND $__timeFilter(received_at) GROUP BY 1 ORDER BY 1"
+                }
+            ]
+        }
+    ]
+}

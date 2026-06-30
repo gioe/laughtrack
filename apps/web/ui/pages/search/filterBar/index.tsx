@@ -15,12 +15,14 @@ import { getSortOptionsForEntityType } from "@/util/sort";
 import { useUrlParams } from "@/hooks/useUrlParams";
 import { FilterDTO } from "@/objects/interface";
 import { ChainFilterDTO } from "@/lib/data/filters/getChainFilters";
+import { HomeCityFilterDTO } from "@/lib/data/filters/getComedianHomeCityFilters";
 import { X } from "lucide-react";
 import { useMemo } from "react";
 import {
     searchFilterChipClassName,
     searchFilterChipCompactClassName,
 } from "@/ui/components/params/search/filterChipStyles";
+import { getClubProgrammingFilterOptions } from "@/lib/club/programmingLabels";
 
 // Variants that use infinite scroll — no pagination controls needed
 const INFINITE_SCROLL_VARIANTS = new Set([
@@ -53,6 +55,7 @@ interface FilterBarProps {
     total: number;
     filterData: FilterDTO[];
     chainFilters?: ChainFilterDTO[];
+    homeCityFilters?: HomeCityFilterDTO[];
     isAdmin?: boolean;
 }
 
@@ -72,6 +75,7 @@ const FilterBar = ({
     total,
     filterData,
     chainFilters,
+    homeCityFilters,
     isAdmin,
 }: FilterBarProps) => {
     const { getTypedParam, setTypedParam } = useUrlParams();
@@ -91,8 +95,15 @@ const FilterBar = ({
     );
 
     const activeFilters = useMemo(
-        () => filterData.filter((f) => selectedSlugs.includes(f.slug)),
-        [filterData, selectedSlugs],
+        () => [
+            ...(isClubSearch
+                ? getClubProgrammingFilterOptions(filtersParam).filter((f) =>
+                      selectedSlugs.includes(f.slug),
+                  )
+                : []),
+            ...filterData.filter((f) => selectedSlugs.includes(f.slug)),
+        ],
+        [filterData, filtersParam, isClubSearch, selectedSlugs],
     );
 
     // Comedian search exposes rich modal filters (zip, dates, min-shows) that
@@ -105,7 +116,10 @@ const FilterBar = ({
         : 0;
     const filterButtonCount = activeFilters.length + advancedFilterCount;
     const showFilterButton =
-        filterData.length > 0 || isComedianSearch || isPodcastSearch;
+        filterData.length > 0 ||
+        isClubSearch ||
+        isComedianSearch ||
+        isPodcastSearch;
 
     const removeFilter = (slug: string) => {
         const updated = selectedSlugs.filter((s) => s !== slug).join(",");
@@ -116,6 +130,12 @@ const FilterBar = ({
     const activeChain = useMemo(
         () => chainFilters?.find((c) => c.slug === chainParam) ?? null,
         [chainFilters, chainParam],
+    );
+
+    const homeCityParam: string = getTypedParam("homeCity") ?? "";
+    const activeHomeCity = useMemo(
+        () => homeCityFilters?.find((h) => h.value === homeCityParam) ?? null,
+        [homeCityFilters, homeCityParam],
     );
 
     return (
@@ -180,6 +200,41 @@ const FilterBar = ({
                                     </select>
                                 )}
 
+                            {/* Home-city filter — comedian search only. Omitted
+                                entirely when no comedian has a derived home
+                                location, so it never renders an empty control. */}
+                            {isComedianSearch &&
+                                homeCityFilters &&
+                                homeCityFilters.length > 0 && (
+                                    <select
+                                        value={homeCityParam}
+                                        onChange={(e) =>
+                                            setTypedParam(
+                                                "homeCity",
+                                                e.target.value,
+                                            )
+                                        }
+                                        className={`${searchFilterChipClassName} cursor-pointer`}
+                                        aria-label="Filter by home city"
+                                    >
+                                        <option
+                                            value=""
+                                            className="bg-card text-foreground"
+                                        >
+                                            All home cities
+                                        </option>
+                                        {homeCityFilters.map((city) => (
+                                            <option
+                                                key={city.value}
+                                                value={city.value}
+                                                className="bg-card text-foreground"
+                                            >
+                                                {city.label} ({city.count})
+                                            </option>
+                                        ))}
+                                    </select>
+                                )}
+
                             {/* "Include all" toggles the `includeEmpty` flag, which by
                                 default hides results with weak signal: clubs/comedians
                                 with no upcoming shows, and podcasts with no LaughTrack
@@ -228,7 +283,7 @@ const FilterBar = ({
                 </div>
 
                 {/* Active filter chips */}
-                {(activeFilters.length > 0 || activeChain) && (
+                {(activeFilters.length > 0 || activeChain || activeHomeCity) && (
                     <div className="flex flex-wrap items-center gap-2 mt-2 pt-2 border-t border-black/5">
                         <span className="text-xs text-copper/60 font-dmSans">
                             Filtered by:
@@ -239,6 +294,15 @@ const FilterBar = ({
                                 className={searchFilterChipCompactClassName}
                             >
                                 {activeChain.name}
+                                <X size={12} />
+                            </button>
+                        )}
+                        {activeHomeCity && (
+                            <button
+                                onClick={() => setTypedParam("homeCity", "")}
+                                className={searchFilterChipCompactClassName}
+                            >
+                                {activeHomeCity.label}
                                 <X size={12} />
                             </button>
                         )}

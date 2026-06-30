@@ -55,6 +55,7 @@ class ComedyMothershipEvent(ShowConvertible):
     timezone: str           # "America/Chicago"
     performers: List[str] = field(default_factory=list)
     sold_out: bool = False
+    price: Optional[float] = None  # Min tier price from the detail page (None if unavailable)
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None) -> Optional[Show]:
         """Convert a ComedyMothershipEvent to a Show domain object."""
@@ -88,9 +89,19 @@ class ComedyMothershipEvent(ShowConvertible):
             return None
 
         ticket_url = url or f"https://comedymothership.com/shows/{self.show_id}"
+        # Price comes from the per-show detail page: the full SquadUP event
+        # object is embedded in the page's Next.js RSC flight payload at
+        # event.event_dates[].price_tiers[].price. The scraper fetches each
+        # detail page in get_data() and threads the min-tier price onto
+        # self.price (TASK-3538). It stays None when the fetch/parse fails,
+        # so the ticket degrades to price-less rather than fabricating a value.
         tickets = []
         if ticket_url:
-            tickets.append(ShowFactoryUtils.create_fallback_ticket(ticket_url, sold_out=self.sold_out))
+            tickets.append(
+                ShowFactoryUtils.create_fallback_ticket(
+                    ticket_url, price=self.price, sold_out=self.sold_out
+                )
+            )
 
         return ShowFactoryUtils.create_enhanced_show_base(
             name=self.title or "Comedy Show",

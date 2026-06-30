@@ -30,8 +30,8 @@ Capture the output — it's typically 200-500 lines, organized into nine section
 
 1. Inventory (clubs / sources / shows)
 2. Per-scraper productivity (last 7 days)
-3. Zero-output scrapers (enabled sources with 0 upcoming shows)
-4. Stale scrapes (never_scraped / stale_2d / stale_7d / stale_30d)
+3. Zero-output scrapers (enabled sources with 0 upcoming shows) — **plus a "Dead sources classified by run health" sub-query** that buckets each into `never_run` / `broken_bot_block` / `broken_error` / `dormant_recently_productive` / `dormant_dark` (TASK-3520). The raw per-platform `dead_sources` count over-reports; read the classification instead.
+4. Stale scrapes (never_scraped / stale_2d / stale_7d / stale_30d) — **plus a "stale_30d clubs classified by run health" sub-query.** `stale_30d` on its own is NOT a "dead scraper" signal: `shows.last_scraped_date` only refreshes when a show is written, so a venue whose nightly succeeds with 0 events stays "stale" forever (conventions #293/#294).
 5. Show data quality (missing fields, no tickets, no lineup)
 6. Ticket data quality (NULL price, sold-out, etc.)
 7. Anomalous dates (midnight, far-future, far-past)
@@ -48,11 +48,10 @@ Walk the output top-to-bottom. Use these thresholds — they're calibrated to th
 |---|---|
 | Per-scraper `pct_null_price` (Section 6) | **≥ 50%** with ≥ 50 tickets |
 | Per-scraper `pct_empty` lineup (Section 9) | **≥ 80%** with ≥ 50 upcoming shows |
-| `dead_sources` for a platform (Section 3) | **≥ 30%** of that platform's enabled sources |
+| `broken_bot_block` / `broken_error` clubs in the run-health classification (Sections 3 & 4) | **≥ 1** — most recent run actually failed or was bot-blocked. This is the real "scraper is broken" signal (replaces the raw `dead_sources` / `stale_30d` heuristics, which over-report). |
+| `never_run` clubs in the run-health classification (Sections 3 & 4) | **≥ 1** — visible+active club with an enabled source and 0 `scraper_run_clubs` rows AND 0 shows = genuine coverage gap. (NB: aggregate-covered venue clubs — eventbrite organizer / `ticketmaster_national` — are NOT here; they have shows. TASK-3518.) |
 | `shows_per_source` for a platform (Section 2) | **< 10** when global median is ~70 |
 | `shows_without_tickets` for any scraper (Section 5) | **any non-zero** — these shows are invisible in the UI per the "tickets are access records" invariant |
-| `never_scraped` clubs for a platform (Section 4) | **≥ 1** — config exists but cron never touched it |
-| `stale_30d` for a platform (Section 4) | **≥ 1** — scraper has been silently dead for a month |
 
 ### 🟡 Worth investigating (degraded, not broken)
 
@@ -60,16 +59,17 @@ Walk the output top-to-bottom. Use these thresholds — they're calibrated to th
 |---|---|
 | `pct_null_price` per scraper | 10-50% |
 | `pct_empty` lineup per scraper | 30-80% |
-| `pct_midnight` per scraper (Section 7) | ≥ 50% with ≥ 20 upcoming shows — possible time-parsing bug, but some platforms (RSVP-only / day-card events) legitimately don't carry showtime |
+| `pct_midnight` per scraper (Section 7) | ≥ 50% with ≥ 20 upcoming shows — possible time-parsing bug, but some platforms (RSVP-only / day-card events) legitimately don't carry showtime. The query buckets by **club-local** time (`date AT TIME ZONE club.timezone`), so an evening showtime no longer masquerades as midnight (see the gotcha below) |
 | `all_sold_out_shows` for any scraper | ≥ 10 — could be real, or scraper miscoding unavailable inventory |
-| `stale_7d` for a platform | ≥ 1 |
+| `dormant_dark` clubs in the run-health classification | many — real venues with no current programming on their source; not broken, but a long-dark cluster on one platform is worth a spot-check |
+| `stale_7d` for a platform | ≥ 1 — but confirm via the run-health classification before treating as broken (see Sections 3 & 4) |
 | Disabled `scraping_sources` rows still present | Any — should be deleted not disabled (`check_scraping_source_invariants.py`) |
 | Chain with `active_visible` clubs but `upcoming_shows` < 10 × clubs | Possible scraper outage at a chain level |
 
 ### 🟢 Healthy signals to confirm
 
 - Total upcoming-show count matches recent baseline (last known: ~26k).
-- All major platforms (`seatengine`, `eventbrite`, `ticketmaster`, `custom`) have `enabled_sources > 0` and 0 dead sources.
+- All major platforms (`seatengine`, `eventbrite`, `ticketmaster`, `custom`) have `enabled_sources > 0` and **0 `never_run` / `broken_*` clubs in the run-health classification** (a high `dormant_*` count is healthy, not a problem).
 - No shows with `missing_url` or `no_attribution` (Section 5).
 - No shows with `very_old` or `very_far_future` dates (Section 7).
 - `<null>` `last_scraped_by` rows in Section 2 are all in the past (i.e., `upcoming_touched = 0`).
@@ -121,4 +121,5 @@ Offer (don't auto-execute):
 - "Shows with no tickets" is a meaningful invariant violation per `feedback_tickets_are_access_records`: every show should emit ≥ 1 ticket, even free / RSVP-only events. The UI hides ticketless shows.
 - Zero-priced tickets are NOT a violation by themselves — they're how free events are represented. Only escalate if combined with other red flags (e.g., a scraper with both 100% zero-price *and* 100% sold-out).
 - The `midnight_upcoming` count includes legitimate all-day / open-mic / RSVP-only events. Use the per-scraper rate (`pct_midnight`) rather than the absolute count.
+- **Midnight is measured in club-local time, not UTC** (TASK-3516). `shows.date` is a UTC `timestamptz`; a bare `date::time` reads the time-of-day in UTC, which mislabels every evening show west of UTC as "midnight" (7pm Central / 6pm Mountain / 5pm Pacific / 8pm-EDT all map to 00:00 UTC). The Section 7 queries convert via `date AT TIME ZONE club.timezone` first, so only true local-midnight shows count. If you hand-roll a midnight check, do the same — otherwise zanies, esthers_follies, fareharbor (all confirmed correct) and any other non-UTC venue will trip a false time-parse alarm.
 - This skill does NOT trigger scrapes. To re-run a scraper for one club, use `make -C apps/scraper club ID=<n>` (per `feedback_use_make_commands`).

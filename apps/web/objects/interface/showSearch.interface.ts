@@ -11,5 +11,6 @@ export interface SearchParams {
     size?: string;
     includeEmpty?: string;
     chain?: string;
+    homeCity?: string;
     minUpcomingShows?: string;
 }

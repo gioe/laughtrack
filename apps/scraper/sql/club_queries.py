@@ -92,6 +92,12 @@ class ClubQueries:
         { _PRIMARY_SOURCE_LATERAL }
     """
 
+    _CLUB_SELECT_WITH_OPTIONAL_SOURCES = f"""
+        SELECT c.*, source_list.scraping_sources
+        FROM clubs c
+        { _SCRAPING_SOURCES_LATERAL }
+    """
+
     GET_ALL_CLUBS = f"""
         { _BASE_CLUB_SELECT }
         WHERE c.visible = TRUE
@@ -613,6 +619,63 @@ class ClubQueries:
         -- though the final query no longer references it.
         SELECT rc.*, '[]'::json AS scraping_sources
         FROM resolved_club rc
+    """
+
+    GET_CLUBS_BY_NORMALIZED_STREET_ADDRESS = f"""
+        {_CLUB_SELECT_WITH_OPTIONAL_SOURCES}
+        WHERE c.visible = TRUE
+          AND NULLIF(regexp_replace(lower(split_part(COALESCE(c.address, ''), ',', 1)), '[^a-z0-9]', '', 'g'), '') =
+              NULLIF(regexp_replace(lower(%s), '[^a-z0-9]', '', 'g'), '')
+          AND (%s::text IS NULL OR lower(trim(COALESCE(c.city, ''))) = lower(trim(%s::text)))
+          AND (%s::text IS NULL OR lower(trim(COALESCE(c.state, ''))) = lower(trim(%s::text)))
+        ORDER BY c.id
+    """
+
+    UPSERT_TICKETMASTER_SOURCE_FOR_CLUB = f"""
+        WITH input_source AS (
+            SELECT
+                %s::int AS club_id,
+                %s::text AS ticketmaster_id
+        ),
+        upserted_source AS (
+            INSERT INTO scraping_sources (
+                club_id, platform, scraper_key, ticketmaster_id, source_url,
+                priority, enabled, metadata
+            )
+            SELECT
+                club_id,
+                'ticketmaster',
+                'live_nation',
+                ticketmaster_id,
+                'https://www.ticketmaster.com',
+                1,
+                TRUE,
+                '{{}}'::jsonb
+            FROM input_source
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM scraping_sources s
+                WHERE s.platform = 'ticketmaster'
+                  AND s.enabled
+                  AND s.ticketmaster_id = input_source.ticketmaster_id
+            )
+            ON CONFLICT (club_id, platform, priority) DO UPDATE SET
+                scraper_key = COALESCE(scraping_sources.scraper_key, EXCLUDED.scraper_key),
+                ticketmaster_id = COALESCE(scraping_sources.ticketmaster_id, EXCLUDED.ticketmaster_id),
+                source_url = COALESCE(NULLIF(scraping_sources.source_url, ''), EXCLUDED.source_url),
+                enabled = CASE
+                    WHEN EXISTS (
+                        SELECT 1
+                        FROM jsonb_object_keys(COALESCE(scraping_sources.metadata, '{{}}'::jsonb)) k
+                        WHERE k LIKE 'task_%%_disposition'
+                    )
+                    THEN scraping_sources.enabled
+                    ELSE TRUE
+                END
+            RETURNING club_id
+        )
+        {_CLUB_SELECT_WITH_OPTIONAL_SOURCES}
+        JOIN input_source i ON i.club_id = c.id
     """
 
     # Discovery-only venue upsert: inserts/updates the clubs row but does

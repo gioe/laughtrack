@@ -9,6 +9,7 @@ from typing import Any, Dict, List, Optional
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.show.model import Show
 from laughtrack.core.protocols.show_convertible import ShowConvertible
+from laughtrack.utilities.domain.show.headliner import extract_explicit_headliner_from_title
 from laughtrack.utilities.domain.show.factory import ShowFactoryUtils
 
 
@@ -67,13 +68,15 @@ class WixEventsEvent(ShowConvertible):
             tickets.append(ShowFactoryUtils.create_fallback_ticket(show_page_url, sold_out=is_sold_out))
 
         name = self.title.strip() if self.title else "Comedy Show"
+        headliner = extract_explicit_headliner_from_title(name)
+        lineup = ShowFactoryUtils.create_lineup_from_performers([headliner] if headliner else [])
 
         return ShowFactoryUtils.create_enhanced_show_base(
             name=name,
             club=club,
             date=start_date,
             show_page_url=show_page_url,
-            lineup=[],
+            lineup=lineup,
             tickets=tickets,
             description=self.description if self.description else None,
             room="",

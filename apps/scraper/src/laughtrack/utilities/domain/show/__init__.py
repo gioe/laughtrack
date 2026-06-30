@@ -7,7 +7,15 @@ and contain business logic specific to the comedy show domain.
 
 from .enhancement import ShowEnhancement
 from .factory import ShowFactoryUtils
+from .classifier import apply_show_type, classify_show_type
 from .utils import ShowUtils
 from .validator import ShowValidator
 
-__all__ = ["ShowUtils", "ShowEnhancement", "ShowValidator", "ShowFactoryUtils"]
+__all__ = [
+    "ShowUtils",
+    "ShowEnhancement",
+    "ShowValidator",
+    "ShowFactoryUtils",
+    "apply_show_type",
+    "classify_show_type",
+]

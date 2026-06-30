@@ -148,6 +148,177 @@ class ComedianQueries:
         WHERE c.uuid = v.comedian_id
     '''
 
+    # Home location uses recently scraped, distinct engagements rather than raw
+    # lineup rows. A venue run can create one row per showtime/listing, so
+    # show_page_url (or date when no URL exists) is the durable engagement key.
+    # Recency weights keep current touring from losing to stale all-time runs.
+    BATCH_UPDATE_COMEDIAN_HOME_LOCATION = '''
+        WITH target_comedians AS (
+            SELECT uuid
+            FROM comedians
+            WHERE uuid = ANY(%s)
+        ),
+        engagement_rows AS (
+            SELECT
+                li.comedian_id,
+                cl.id AS club_id,
+                NULLIF(BTRIM(cl.city), '') AS city,
+                NULLIF(BTRIM(cl.state), '') AS state,
+                NULLIF(BTRIM(cl.country), '') AS country,
+                COALESCE(
+                    NULLIF(BTRIM(s.show_page_url), ''),
+                    s.date::date::text
+                ) AS engagement_key,
+                CASE
+                    WHEN s.date >= CURRENT_DATE THEN 4.0
+                    WHEN s.date >= CURRENT_DATE - INTERVAL '90 days' THEN 2.0
+                    WHEN s.date >= CURRENT_DATE - INTERVAL '365 days' THEN 1.0
+                    ELSE 0.25
+                END AS engagement_weight,
+                s.date AS seen_at
+            FROM lineup_items li
+            JOIN target_comedians tc ON tc.uuid = li.comedian_id
+            JOIN shows s ON s.id = li.show_id
+            JOIN clubs cl ON cl.id = s.club_id
+            WHERE s.last_scraped_date IS NOT NULL
+              AND s.last_scraped_date >= NOW() - (%s * INTERVAL '1 day')
+        ),
+        distinct_engagements AS (
+            SELECT
+                comedian_id,
+                club_id,
+                city,
+                state,
+                country,
+                engagement_key,
+                MAX(engagement_weight) AS engagement_weight,
+                MAX(seen_at) AS last_seen_at
+            FROM engagement_rows
+            GROUP BY
+                comedian_id,
+                club_id,
+                city,
+                state,
+                country,
+                engagement_key
+        ),
+        club_counts AS (
+            SELECT
+                comedian_id,
+                club_id,
+                COUNT(DISTINCT engagement_key) AS engagement_count,
+                SUM(engagement_weight) AS engagement_score,
+                MAX(last_seen_at) AS last_seen_at
+            FROM distinct_engagements
+            GROUP BY comedian_id, club_id
+        ),
+        ranked_clubs AS (
+            SELECT
+                comedian_id,
+                club_id,
+                ROW_NUMBER() OVER (
+                    PARTITION BY comedian_id
+                    ORDER BY
+                        engagement_score DESC,
+                        engagement_count DESC,
+                        last_seen_at DESC,
+                        club_id ASC
+                ) AS club_rank,
+                -- Touring detection: RANK (not ROW_NUMBER) so every club sharing
+                -- the top (engagement_score, engagement_count) gets club_tie_rank=1.
+                -- The deterministic last_seen_at/club_id tiebreakers are
+                -- DELIBERATELY excluded here so a genuine score+count tie is
+                -- detectable rather than silently broken.
+                RANK() OVER (
+                    PARTITION BY comedian_id
+                    ORDER BY
+                        engagement_score DESC,
+                        engagement_count DESC
+                ) AS club_tie_rank
+            FROM club_counts
+        ),
+        -- A comedian has a home club only if exactly ONE club sits at the top
+        -- score+count tie. 2+ tied clubs means no clear anchor -> touring.
+        club_top_ties AS (
+            SELECT comedian_id, COUNT(*) AS top_count
+            FROM ranked_clubs
+            WHERE club_tie_rank = 1
+            GROUP BY comedian_id
+        ),
+        city_counts AS (
+            SELECT
+                comedian_id,
+                city,
+                state,
+                country,
+                COUNT(DISTINCT engagement_key) AS engagement_count,
+                SUM(engagement_weight) AS engagement_score,
+                MAX(last_seen_at) AS last_seen_at
+            FROM distinct_engagements
+            WHERE city IS NOT NULL
+            GROUP BY
+                comedian_id,
+                city,
+                state,
+                country
+        ),
+        ranked_cities AS (
+            SELECT
+                comedian_id,
+                city,
+                state,
+                country,
+                ROW_NUMBER() OVER (
+                    PARTITION BY comedian_id
+                    ORDER BY
+                        engagement_score DESC,
+                        engagement_count DESC,
+                        last_seen_at DESC,
+                        city ASC,
+                        state ASC,
+                        country ASC
+                ) AS city_rank,
+                -- City touring detection, independent of the club tie: a comedian
+                -- touring many clubs in ONE city still has a clear home city, so
+                -- this ties on the city-level score+count, not the club's.
+                RANK() OVER (
+                    PARTITION BY comedian_id
+                    ORDER BY
+                        engagement_score DESC,
+                        engagement_count DESC
+                ) AS city_tie_rank
+            FROM city_counts
+        ),
+        city_top_ties AS (
+            SELECT comedian_id, COUNT(*) AS top_count
+            FROM ranked_cities
+            WHERE city_tie_rank = 1
+            GROUP BY comedian_id
+        )
+        UPDATE comedians AS c
+        SET
+            -- NULL home (touring) when 2+ cities/clubs tie for the top
+            -- score+count. Club and city are gated independently so a
+            -- single-city tourer keeps its home city while losing its home club.
+            home_city = CASE WHEN cct.top_count = 1 THEN rc.city END,
+            home_state = CASE WHEN cct.top_count = 1 THEN rc.state END,
+            home_country = CASE WHEN cct.top_count = 1 THEN rc.country END,
+            home_club_id = CASE WHEN clt.top_count = 1 THEN rcl.club_id END,
+            home_location_updated_at = NOW()
+        FROM target_comedians tc
+        LEFT JOIN ranked_cities rc
+          ON rc.comedian_id = tc.uuid
+         AND rc.city_rank = 1
+        LEFT JOIN city_top_ties cct
+          ON cct.comedian_id = tc.uuid
+        LEFT JOIN ranked_clubs rcl
+          ON rcl.comedian_id = tc.uuid
+         AND rcl.club_rank = 1
+        LEFT JOIN club_top_ties clt
+          ON clt.comedian_id = tc.uuid
+        WHERE c.uuid = tc.uuid
+    '''
+
     # Comedian recency blends date-decayed show activity with first-party click
     # demand inherited through lineup_items. All ticket-purchase clicks count,
     # including clicks without confirmed purchases: this is an intent signal

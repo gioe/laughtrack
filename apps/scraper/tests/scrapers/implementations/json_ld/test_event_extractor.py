@@ -559,3 +559,66 @@ def test_unparseable_event_is_logged_not_silently_dropped(caplog):
     assert "Mystery Headliner" in message  # event name
     assert "Event" in message              # event @type
     assert "ValueError" in message         # the failing exception
+
+
+def _relative_url_event():
+    return {
+        "@context": "http://schema.org",
+        "@type": "Event",
+        "name": "Comedy w/Dave Landau + Derek Richards",
+        "startDate": "2026-08-21T20:00:00-04:00",
+        # mynorthtickets (Traverse City Comedy Club 1058) emits a root-relative url
+        "url": "/events/comedy-wdave-landau-derek-richards-8-21-2026",
+        "location": {
+            "@type": "Place",
+            "name": "Traverse City Comedy Club",
+            "address": {"streetAddress": "123 Front St", "addressLocality": "Traverse City",
+                        "addressRegion": "MI", "postalCode": "49684", "addressCountry": "US"},
+        },
+        "offers": {"@type": "Offer", "price": "35.15", "priceCurrency": "USD"},
+    }
+
+
+def test_relative_event_url_resolved_against_base_url():
+    """TASK-3513: root-relative JSON-LD event urls are made absolute against the
+    fetched page so they survive Show URL-format validation instead of being
+    silently dropped (Traverse City Comedy Club / mynorthtickets)."""
+    html = _wrap_ldjson(_relative_url_event())
+    base = "https://mynorthtickets.com/organizations/traverse-city-comedy-club"
+
+    events = EventExtractor.extract_events(html, base_url=base)
+    assert len(events) == 1
+    assert events[0].url == "https://mynorthtickets.com/events/comedy-wdave-landau-derek-richards-8-21-2026"
+
+
+def test_relative_offer_url_resolved_against_base_url():
+    """A root-relative offers.url is also resolved (used as the ticket purchase_url)."""
+    event = _relative_url_event()
+    event["offers"] = {"@type": "Offer", "url": "/checkout/abc", "price": "35.15", "priceCurrency": "USD"}
+    html = _wrap_ldjson(event)
+    base = "https://mynorthtickets.com/organizations/traverse-city-comedy-club"
+
+    events = EventExtractor.extract_events(html, base_url=base)
+    assert len(events) == 1
+    assert events[0].offers[0].url == "https://mynorthtickets.com/checkout/abc"
+
+
+def test_absolute_url_unchanged_when_base_url_supplied():
+    """base_url is a no-op for already-absolute urls (the common case)."""
+    event = _relative_url_event()
+    event["url"] = "https://example.com/events/already-absolute"
+    html = _wrap_ldjson(event)
+
+    events = EventExtractor.extract_events(html, base_url="https://mynorthtickets.com/x")
+    assert len(events) == 1
+    assert events[0].url == "https://example.com/events/already-absolute"
+
+
+def test_relative_url_left_unresolved_when_no_base_url():
+    """Without base_url the relative url is left as-is at the extractor layer
+    (back-compat: prior behavior). It only gets dropped later by Show URL-format
+    validation, not here."""
+    html = _wrap_ldjson(_relative_url_event())
+    events = EventExtractor.extract_events(html)
+    assert len(events) == 1
+    assert events[0].url == "/events/comedy-wdave-landau-derek-richards-8-21-2026"

@@ -7,6 +7,7 @@ import {
     buildComedianImageUrls,
 } from "@/lib/data/comedian/imageAssets";
 import type { Prisma } from "@prisma/client";
+import { resolveYouTubeChannelId } from "@/lib/youtube/youtubeChannelResolver";
 import crypto from "crypto";
 import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
@@ -23,6 +24,7 @@ type ComedianSnapshot = {
     instagramAccount: string | null;
     tiktokAccount: string | null;
     youtubeAccount: string | null;
+    youtubeChannelId: string | null;
     linktree: string | null;
     hasImage: boolean;
     imageAssets: Array<{
@@ -171,6 +173,7 @@ const putSchema = z
         instagramAccount: z.string().trim().max(255).nullable().optional(),
         tiktokAccount: z.string().trim().max(255).nullable().optional(),
         youtubeAccount: z.string().trim().max(255).nullable().optional(),
+        youtubeChannelId: z.string().trim().max(255).nullable().optional(),
         linktree: z.string().trim().url().max(2000).nullable().optional(),
         reason: z.string().trim().max(1000).optional(),
     })
@@ -223,6 +226,7 @@ function snapshotForAudit(comedian: ComedianSnapshot) {
         instagramAccount: comedian.instagramAccount,
         tiktokAccount: comedian.tiktokAccount,
         youtubeAccount: comedian.youtubeAccount,
+        youtubeChannelId: comedian.youtubeChannelId,
         linktree: comedian.linktree,
         hasImage: Boolean(comedian.hasImage),
         activeImageAsset: comedian.imageAssets?.[0] ?? null,
@@ -255,6 +259,7 @@ function serializeComedian(
         instagramAccount: comedian.instagramAccount,
         tiktokAccount: comedian.tiktokAccount,
         youtubeAccount: comedian.youtubeAccount,
+        youtubeChannelId: comedian.youtubeChannelId,
         linktree: comedian.linktree,
         hasImage: Boolean(comedian.hasImage),
         activeImageAsset: activeImageAsset
@@ -355,6 +360,7 @@ const comedianSnapshotSelect = {
     instagramAccount: true,
     tiktokAccount: true,
     youtubeAccount: true,
+    youtubeChannelId: true,
     linktree: true,
     hasImage: true,
     imageAssets: {
@@ -1052,6 +1058,10 @@ export const PUT = withRequestMetrics(async function PUT(req: NextRequest) {
         "youtubeAccount" in parsed.data
             ? normalizeOptionalHandle(parsed.data.youtubeAccount)
             : undefined;
+    const youtubeChannelId =
+        "youtubeChannelId" in parsed.data
+            ? normalizeOptionalUrl(parsed.data.youtubeChannelId)
+            : undefined;
     const linktree =
         "linktree" in parsed.data
             ? normalizeOptionalUrl(parsed.data.linktree)
@@ -1081,6 +1091,24 @@ export const PUT = withRequestMetrics(async function PUT(req: NextRequest) {
                     };
                 }
 
+                const shouldResolveYoutubeChannelId =
+                    Boolean(youtubeAccount) &&
+                    (youtubeChannelId === undefined ||
+                        (youtubeChannelId === null &&
+                            !before.youtubeChannelId));
+                const youtubeChannelResolution = shouldResolveYoutubeChannelId
+                    ? await resolveYouTubeChannelId(youtubeAccount)
+                    : null;
+                const nextYoutubeChannelId =
+                    youtubeChannelId ??
+                    (youtubeChannelId === null && before.youtubeChannelId
+                        ? null
+                        : youtubeChannelResolution?.status === "resolved"
+                          ? youtubeChannelResolution.channelId
+                          : youtubeChannelId === null && youtubeAccount === null
+                            ? null
+                            : undefined);
+
                 await tx.comedian.update({
                     where: { id: before.id },
                     data: {
@@ -1098,6 +1126,9 @@ export const PUT = withRequestMetrics(async function PUT(req: NextRequest) {
                             : {}),
                         ...(youtubeAccount !== undefined
                             ? { youtubeAccount }
+                            : {}),
+                        ...(nextYoutubeChannelId !== undefined
+                            ? { youtubeChannelId: nextYoutubeChannelId }
                             : {}),
                         ...(linktree !== undefined ? { linktree } : {}),
                     },

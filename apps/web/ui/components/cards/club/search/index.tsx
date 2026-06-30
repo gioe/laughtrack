@@ -89,6 +89,12 @@ const ClubSearchCard: React.FC<ClubSearchCardProps> = ({ club }) => {
                     </p>
                 )}
 
+                {club.programmingLabel && (
+                    <p className="text-xs font-semibold text-copper text-center font-dmSans">
+                        {club.programmingLabel}
+                    </p>
+                )}
+
                 <div className="flex flex-wrap justify-center gap-1.5">
                     {typeof club.chainLocationCount === "number" &&
                         club.chainLocationCount > 1 && (

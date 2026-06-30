@@ -39,6 +39,9 @@ function makeComedianRow(
         tiktokAccount: string | null;
         tiktokFollowers: number | null;
         youtubeAccount: string | null;
+        youtubeChannelId: string | null;
+        youtubeLiveFeedEnabled: boolean;
+        youtubeLiveNotificationsEnabled: boolean;
         youtubeFollowers: number | null;
         website: string | null;
         popularity: number;
@@ -46,6 +49,12 @@ function makeComedianRow(
         soldOutShows: number;
         hasImage: boolean;
         visible: boolean;
+        homeCity: string | null;
+        homeState: string | null;
+        homeCountry: string | null;
+        homeClubId: number | null;
+        homeClub: { id: number; name: string } | null;
+        homeLocationUpdatedAt: Date | null;
         parentComedianId: number | null;
         songkickId: string | null;
         bandsintownId: string | null;
@@ -118,11 +127,20 @@ function makeComedianRow(
         tiktokAccount: null,
         tiktokFollowers: null,
         youtubeAccount: null,
+        youtubeChannelId: null,
+        youtubeLiveFeedEnabled: false,
+        youtubeLiveNotificationsEnabled: false,
         youtubeFollowers: null,
         website: "https://alice.example.com",
         popularity: 80,
         hasImage: true,
         visible: true,
+        homeCity: null,
+        homeState: null,
+        homeCountry: null,
+        homeClubId: null,
+        homeClub: null,
+        homeLocationUpdatedAt: null,
         totalShows: 0,
         soldOutShows: 0,
         parentComedianId: null,
@@ -242,7 +260,45 @@ describe("findComedianByName", () => {
 
             expect(result.showCount).toBe(0);
         });
+    });
 
+    describe("homeLocation", () => {
+        it("maps derived home city and linked home club onto the DTO", async () => {
+            const row = makeComedianRow({
+                homeCity: "Austin",
+                homeState: "TX",
+                homeCountry: "USA",
+                homeClubId: 201,
+                homeClub: { id: 201, name: "Comedy Club" },
+            });
+            mockFindFirst.mockResolvedValue(row);
+
+            const result = await findComedianByName(makeHelper());
+
+            expect(result.homeLocation).toEqual({
+                city: "Austin",
+                state: "TX",
+                country: "USA",
+                club: { id: 201, name: "Comedy Club" },
+            });
+        });
+
+        it("falls back to a null club and null fields when home location is unset", async () => {
+            const row = makeComedianRow();
+            mockFindFirst.mockResolvedValue(row);
+
+            const result = await findComedianByName(makeHelper());
+
+            expect(result.homeLocation).toEqual({
+                city: null,
+                state: null,
+                country: null,
+                club: null,
+            });
+        });
+    });
+
+    describe("dates", () => {
         it("maps upcoming show city data into dates for header city counts", async () => {
             const row = makeComedianRow();
             mockFindFirst.mockResolvedValue(row);
@@ -713,7 +769,8 @@ describe("findComedianByName", () => {
                             title: "Episode A",
                             releaseDate,
                             episodeUrl: "https://example.com/guest-high-id",
-                            audioUrl: "https://cdn.example.com/guest-high-id.mp3",
+                            audioUrl:
+                                "https://cdn.example.com/guest-high-id.mp3",
                             durationSeconds: 3000,
                         },
                     },

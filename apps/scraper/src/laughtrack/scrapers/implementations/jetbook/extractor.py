@@ -152,6 +152,39 @@ class JetBookExtractor:
         return events
 
     @staticmethod
+    def parse_mget_ticket_price(response_bodies: Iterable[str]) -> Optional[float]:
+        """Return the lowest non-free ticket price from captured mget bodies."""
+        prices: list[float] = []
+        for body in response_bodies:
+            if not body:
+                continue
+            try:
+                doc = json.loads(body)
+            except Exception:
+                continue
+
+            docs = doc.get("docs", [])
+            if not isinstance(docs, list):
+                continue
+            for item in docs:
+                if not isinstance(item, dict):
+                    continue
+                source = item.get("_source")
+                if not isinstance(source, dict):
+                    continue
+                if source.get("isfree_boolean") is True:
+                    continue
+
+                raw_price = source.get("price_number")
+                if not isinstance(raw_price, (int, float)):
+                    continue
+                price = float(raw_price)
+                if price > 0:
+                    prices.append(price)
+
+        return min(prices) if prices else None
+
+    @staticmethod
     def build_ticket_url(slug: str) -> Optional[str]:
         """Build the per-event detail URL from a JetBook slug.
 

@@ -96,6 +96,84 @@ describe("GET /api/v1/comedians/[id]", () => {
         });
     });
 
+    it("maps derived home location (city + home club) into the detail response", async () => {
+        mockFindUnique.mockResolvedValue({
+            id: 226475,
+            uuid: "comedian-uuid",
+            name: "Marcus D. Wiley",
+            visible: true,
+            linktree: null,
+            instagramAccount: null,
+            instagramFollowers: null,
+            tiktokAccount: null,
+            tiktokFollowers: null,
+            youtubeAccount: null,
+            youtubeFollowers: null,
+            website: null,
+            popularity: 0.6,
+            hasImage: false,
+            homeCity: "Houston",
+            homeState: "TX",
+            homeCountry: "USA",
+            homeClub: { id: 42, name: "The Secret Group" },
+            episodeAppearances: [],
+        } as never);
+
+        const res = await GET(makeRequest(), {
+            params: Promise.resolve({ id: "226475" }),
+        });
+        const body = await res.json();
+
+        expect(res.status).toBe(200);
+        expectOpenApiResponse("/comedians/{id}", 200, body);
+        expect(body.data.homeLocation).toEqual({
+            city: "Houston",
+            state: "TX",
+            country: "USA",
+            clubId: 42,
+            clubName: "The Secret Group",
+        });
+    });
+
+    it("nulls home location fields and club when the comedian has no derived home", async () => {
+        mockFindUnique.mockResolvedValue({
+            id: 226475,
+            uuid: "comedian-uuid",
+            name: "Marcus D. Wiley",
+            visible: true,
+            linktree: null,
+            instagramAccount: null,
+            instagramFollowers: null,
+            tiktokAccount: null,
+            tiktokFollowers: null,
+            youtubeAccount: null,
+            youtubeFollowers: null,
+            website: null,
+            popularity: 0.6,
+            hasImage: false,
+            homeCity: null,
+            homeState: null,
+            homeCountry: null,
+            homeClub: null,
+            episodeAppearances: [],
+        } as never);
+
+        const res = await GET(makeRequest(), {
+            params: Promise.resolve({ id: "226475" }),
+        });
+        const body = await res.json();
+
+        expect(res.status).toBe(200);
+        expectOpenApiResponse("/comedians/{id}", 200, body);
+        expect(body.data.homeLocation).toEqual({
+            city: null,
+            state: null,
+            country: null,
+            clubId: null,
+            clubName: null,
+        });
+    });
+
     it("returns podcast appearance episode DTOs for the iOS OpenAPI contract", async () => {
         mockFindUnique.mockResolvedValue({
             id: 226475,

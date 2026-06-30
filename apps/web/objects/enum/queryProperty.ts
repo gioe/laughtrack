@@ -61,4 +61,5 @@ export enum QueryProperty {
     MaxEndDate = "maxEndDate",
     IncludeEmpty = "includeEmpty",
     Chain = "chain",
+    HomeCity = "homeCity",
 }
