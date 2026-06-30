@@ -1,33 +1,32 @@
+import { timingSafeEqual } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { withRequestMetrics } from "@/lib/metrics";
 import { db } from "@/lib/db";
+import { withRequestMetrics } from "@/lib/metrics";
 import { parseYouTubeWebSubFeed } from "@/lib/youtube/youtubeWebSub";
-import { verifyYouTubeLiveState } from "@/lib/youtube/youtubeLiveVerifier";
-import {
-    sendYouTubeLivePushToTokens,
-    type UserPushTokenForDelivery,
-    type YouTubeLivePushInput,
-    type YouTubeLivePushSenders,
-} from "@/lib/notifications/youtubeLivePush";
+import { buildYouTubeFeedTopicUrl } from "@/lib/youtube/youtubeWebSubSubscriptions";
 
-const YOUTUBE_LIVE_NOTIFICATION_TYPE = "push";
-
-const youtubeLivePushSenders: YouTubeLivePushSenders = {
-    apns: {
-        send: async () => ({ ok: true }),
-    },
-    fcm: {
-        send: async () => ({ ok: true }),
-    },
-};
+const YOUTUBE_FEED_ORIGIN = "https://www.youtube.com";
+const YOUTUBE_FEED_PATH = "/feeds/videos.xml";
 
 export const GET = withRequestMetrics(async function GET(req: NextRequest) {
+    if (!hasValidCallbackSecret(req)) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const challenge = req.nextUrl.searchParams.get("hub.challenge");
     const mode = req.nextUrl.searchParams.get("hub.mode");
     const topic = req.nextUrl.searchParams.get("hub.topic");
 
-    if (!challenge || !mode || !topic) {
-        return NextResponse.json({ error: "missing_challenge" }, { status: 400 });
+    if (
+        !challenge ||
+        !isSupportedHubMode(mode) ||
+        !topic ||
+        !isYouTubeFeedTopic(topic)
+    ) {
+        return NextResponse.json(
+            { error: "invalid_verification_request" },
+            { status: 400 },
+        );
     }
 
     return new NextResponse(challenge, {
@@ -37,139 +36,163 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
 });
 
 export const POST = withRequestMetrics(async function POST(req: NextRequest) {
-    const xml = await req.text();
-    const entries = parseYouTubeWebSubFeed(xml).filter(
-        (entry) => entry.videoId && entry.channelId,
-    );
-
-    let processed = 0;
-
-    for (const entry of entries) {
-        const videoId = entry.videoId as string;
-        const channelId = entry.channelId as string;
-        const comedian = await findComedianForChannel(channelId);
-
-        if (!comedian) {
-            continue;
-        }
-
-        const verification = await verifyYouTubeLiveState(videoId, {
-            apiKey:
-                process.env.YOUTUBE_DATA_API_KEY ??
-                process.env.YOUTUBE_API_KEY ??
-                "",
-        });
-
-        if (verification.status !== "live") {
-            continue;
-        }
-
-        if (verification.channelId && verification.channelId !== channelId) {
-            continue;
-        }
-
-        const pushInput: YouTubeLivePushInput = {
-            comedianId: comedian.uuid,
-            comedianName: comedian.name,
-            youtubeVideoId: verification.videoId,
-            youtubeChannelId: channelId,
-            videoTitle: verification.title ?? entry.title,
-            watchUrl: verification.watchUrl,
-        };
-
-        for (const favorite of comedian.favoriteComedians) {
-            const tokens: UserPushTokenForDelivery[] =
-                favorite.user.pushTokens.map((token) => ({
-                    id: token.id,
-                    platform: token.platform,
-                    token: token.token,
-                }));
-
-            if (!tokens.length) {
-                continue;
-            }
-
-            try {
-                await db.youTubeLiveNotification.create({
-                    data: {
-                        userId: favorite.user.userid,
-                        comedianId: comedian.uuid,
-                        youtubeChannelId: channelId,
-                        youtubeVideoId: verification.videoId,
-                        videoTitle: pushInput.videoTitle,
-                        videoUrl: verification.watchUrl,
-                        notificationType: YOUTUBE_LIVE_NOTIFICATION_TYPE,
-                    },
-                });
-            } catch (error) {
-                if (isUniqueConstraintError(error)) {
-                    continue;
-                }
-                throw error;
-            }
-
-            await sendYouTubeLivePushToTokens({
-                input: pushInput,
-                tokens,
-                senders: youtubeLivePushSenders,
-                deactivateToken: deactivatePushToken,
-            });
-            processed += 1;
-        }
+    if (!hasValidCallbackSecret(req)) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    return NextResponse.json({ ok: true, processed }, { status: 202 });
-});
+    const payloadXml = await req.text();
+    const topicUrl = normalizeTopicUrl(
+        req.nextUrl.searchParams.get("hub.topic"),
+    );
 
-function findComedianForChannel(channelId: string) {
-    return db.comedian.findFirst({
-        where: { youtubeChannelId: channelId },
-        select: {
-            uuid: true,
-            name: true,
-            youtubeChannelId: true,
-            favoriteComedians: {
-                where: {
-                    user: {
-                        pushShowNotifications: true,
-                        pushTokens: { some: { isActive: true } },
-                    },
+    if (!looksLikeCompleteXml(payloadXml)) {
+        await db.youTubeWebSubEvent.create({
+            data: {
+                topicUrl,
+                eventStatus: "failed",
+                failureReason: "malformed_xml",
+                payloadXml,
+                payloadJson: {
+                    error: "malformed_xml",
                 },
-                select: {
-                    user: {
-                        select: {
-                            userid: true,
-                            pushTokens: {
-                                where: { isActive: true },
-                                select: {
-                                    id: true,
-                                    platform: true,
-                                    token: true,
-                                },
-                            },
-                        },
+            },
+        });
+
+        return NextResponse.json(
+            { ok: false, stored: 1, error: "malformed_xml" },
+            { status: 202 },
+        );
+    }
+
+    const entries = parseYouTubeWebSubFeed(payloadXml);
+
+    if (entries.length === 0) {
+        await db.youTubeWebSubEvent.create({
+            data: {
+                topicUrl,
+                eventStatus: "received",
+                payloadXml,
+                payloadJson: {
+                    entries: [],
+                },
+            },
+        });
+
+        return NextResponse.json({ ok: true, stored: 1 }, { status: 202 });
+    }
+
+    let stored = 0;
+    for (const entry of entries) {
+        const comedian = entry.channelId
+            ? await db.comedian.findFirst({
+                  where: { youtubeChannelId: entry.channelId },
+                  select: { uuid: true },
+              })
+            : null;
+
+        await db.youTubeWebSubEvent.create({
+            data: {
+                comedianId: comedian?.uuid,
+                youtubeChannelId: entry.channelId,
+                youtubeVideoId: entry.videoId,
+                videoTitle: entry.title,
+                videoUrl: entry.link,
+                topicUrl: topicUrl ?? buildTopicUrl(entry.channelId),
+                eventStatus: "received",
+                publishedAt: parseDate(entry.publishedAt),
+                feedUpdatedAt: parseDate(entry.updatedAt),
+                payloadXml,
+                payloadJson: {
+                    entry: {
+                        videoId: entry.videoId,
+                        channelId: entry.channelId,
+                        title: entry.title,
+                        link: entry.link,
+                        publishedAt: entry.publishedAt,
+                        updatedAt: entry.updatedAt,
                     },
                 },
             },
-        },
-    });
-}
+        });
+        stored += 1;
+    }
 
-async function deactivatePushToken(tokenId: string): Promise<void> {
-    await db.userPushToken.updateMany({
-        where: { id: tokenId },
-        data: {
-            isActive: false,
-            revokedAt: new Date(),
-        },
-    });
-}
+    return NextResponse.json({ ok: true, stored }, { status: 202 });
+});
 
-function isUniqueConstraintError(error: unknown): boolean {
+function hasValidCallbackSecret(req: NextRequest): boolean {
+    const expected = process.env.YOUTUBE_WEBSUB_CALLBACK_SECRET;
+    const supplied =
+        req.nextUrl.searchParams.get("secret") ??
+        req.nextUrl.searchParams.get("hub.verify_token");
+
+    if (!expected || !supplied) {
+        return false;
+    }
+
+    const suppliedBuf = Buffer.from(supplied);
+    const expectedBuf = Buffer.from(expected);
+
     return (
-        typeof error === "object" &&
-        error !== null &&
-        "code" in error &&
-        error.code === "P2002"
+        suppliedBuf.length === expectedBuf.length &&
+        timingSafeEqual(suppliedBuf, expectedBuf)
     );
+}
+
+function isSupportedHubMode(mode: string | null): boolean {
+    return mode === "subscribe" || mode === "unsubscribe";
+}
+
+function isYouTubeFeedTopic(topic: string): boolean {
+    try {
+        const url = new URL(topic);
+        return (
+            `${url.origin}${url.pathname}` ===
+                `${YOUTUBE_FEED_ORIGIN}${YOUTUBE_FEED_PATH}` &&
+            Boolean(url.searchParams.get("channel_id"))
+        );
+    } catch {
+        return false;
+    }
+}
+
+function normalizeTopicUrl(topic: string | null): string | null {
+    return topic && isYouTubeFeedTopic(topic) ? topic : null;
+}
+
+function buildTopicUrl(channelId: string | null): string | null {
+    return channelId ? buildYouTubeFeedTopicUrl(channelId) : null;
+}
+
+function parseDate(value: string | null): Date | null {
+    if (!value) {
+        return null;
+    }
+
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function looksLikeCompleteXml(xml: string): boolean {
+    const trimmed = xml.trim();
+    if (!trimmed) {
+        return false;
+    }
+
+    const withoutDeclaration = trimmed.replace(/^<\?xml\b[\s\S]*?\?>\s*/i, "");
+    const rootMatch = /^<([a-zA-Z_][\w:.-]*)\b[\s\S]*<\/\1>\s*$/.exec(
+        withoutDeclaration,
+    );
+    if (!rootMatch) {
+        return false;
+    }
+
+    return (
+        countMatches(withoutDeclaration, /<entry\b/gi) ===
+        countMatches(withoutDeclaration, /<\/entry>/gi)
+    );
+}
+
+function countMatches(value: string, pattern: RegExp): number {
+    return Array.from(value.matchAll(pattern)).length;
 }

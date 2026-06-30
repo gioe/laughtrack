@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 
 vi.mock("@/lib/metrics", () => ({
@@ -10,35 +10,25 @@ vi.mock("@/lib/db", () => ({
         comedian: {
             findFirst: vi.fn(),
         },
-        youTubeLiveNotification: {
+        youTubeWebSubEvent: {
             create: vi.fn(),
         },
-        userPushToken: {
-            updateMany: vi.fn(),
+        youTubeLiveNotification: {
+            create: vi.fn(),
         },
     },
 }));
 
-vi.mock("@/lib/notifications/youtubeLivePush", () => ({
-    sendYouTubeLivePushToTokens: vi.fn(),
-}));
-
-vi.mock("@/lib/youtube/youtubeLiveVerifier", () => ({
-    verifyYouTubeLiveState: vi.fn(),
-}));
-
 import { GET, POST } from "./route";
 import { db } from "@/lib/db";
-import { sendYouTubeLivePushToTokens } from "@/lib/notifications/youtubeLivePush";
-import { verifyYouTubeLiveState } from "@/lib/youtube/youtubeLiveVerifier";
 
 const mockFindComedian = vi.mocked(db.comedian.findFirst);
+const mockCreateWebSubEvent = vi.mocked(db.youTubeWebSubEvent.create);
 const mockCreateYouTubeLiveNotification = vi.mocked(
     db.youTubeLiveNotification.create,
 );
-const mockUpdatePushTokens = vi.mocked(db.userPushToken.updateMany);
-const mockSendYouTubeLivePushToTokens = vi.mocked(sendYouTubeLivePushToTokens);
-const mockVerifyYouTubeLiveState = vi.mocked(verifyYouTubeLiveState);
+
+const ORIGINAL_CALLBACK_SECRET = process.env.YOUTUBE_WEBSUB_CALLBACK_SECRET;
 
 function makeGetRequest(params: Record<string, string> = {}): NextRequest {
     const url = new URL("http://localhost/api/webhooks/youtube");
@@ -49,21 +39,29 @@ function makeGetRequest(params: Record<string, string> = {}): NextRequest {
     return new NextRequest(url.toString());
 }
 
-function makePostRequest(body: string): NextRequest {
-    return new NextRequest("http://localhost/api/webhooks/youtube", {
+function makePostRequest(
+    body: string,
+    params: Record<string, string> = { secret: "callback-secret" },
+): NextRequest {
+    const url = new URL("http://localhost/api/webhooks/youtube");
+    for (const [key, value] of Object.entries(params)) {
+        url.searchParams.set(key, value);
+    }
+
+    return new NextRequest(url.toString(), {
         method: "POST",
         headers: { "content-type": "application/atom+xml" },
         body,
     });
 }
 
-function youtubeEntryXml(channelId = "UC-unknown-channel"): string {
+function youtubeEntryXml(channelId = "UC-live-channel"): string {
     return `<?xml version="1.0" encoding="UTF-8"?>
 <feed xmlns:yt="http://www.youtube.com/xml/schemas/2015" xmlns="http://www.w3.org/2005/Atom">
   <entry>
     <yt:videoId>video-123</yt:videoId>
     <yt:channelId>${channelId}</yt:channelId>
-    <title>Live set</title>
+    <title>Live set &amp; Q&amp;A</title>
     <link rel="alternate" href="https://www.youtube.com/watch?v=video-123"/>
     <published>2026-06-29T20:00:00+00:00</published>
     <updated>2026-06-29T20:01:30+00:00</updated>
@@ -73,12 +71,22 @@ function youtubeEntryXml(channelId = "UC-unknown-channel"): string {
 
 beforeEach(() => {
     vi.clearAllMocks();
+    process.env.YOUTUBE_WEBSUB_CALLBACK_SECRET = "callback-secret";
+});
+
+afterEach(() => {
+    if (ORIGINAL_CALLBACK_SECRET === undefined) {
+        delete process.env.YOUTUBE_WEBSUB_CALLBACK_SECRET;
+    } else {
+        process.env.YOUTUBE_WEBSUB_CALLBACK_SECRET = ORIGINAL_CALLBACK_SECRET;
+    }
 });
 
 describe("GET /api/webhooks/youtube", () => {
-    it("echoes the WebSub challenge when required parameters are present", async () => {
+    it("echoes the WebSub challenge when the secret, mode, and YouTube topic are valid", async () => {
         const res = await GET(
             makeGetRequest({
+                secret: "callback-secret",
                 "hub.mode": "subscribe",
                 "hub.topic":
                     "https://www.youtube.com/feeds/videos.xml?channel_id=UC-live-channel",
@@ -91,9 +99,40 @@ describe("GET /api/webhooks/youtube", () => {
         expect(await res.text()).toBe("challenge-token");
     });
 
-    it("rejects challenge requests missing the challenge parameter", async () => {
+    it("accepts hub.verify_token as the callback secret parameter", async () => {
         const res = await GET(
             makeGetRequest({
+                "hub.verify_token": "callback-secret",
+                "hub.mode": "unsubscribe",
+                "hub.topic":
+                    "https://www.youtube.com/feeds/videos.xml?channel_id=UC-live-channel",
+                "hub.challenge": "challenge-token",
+            }),
+        );
+
+        expect(res.status).toBe(200);
+        expect(await res.text()).toBe("challenge-token");
+    });
+
+    it("rejects challenge requests with an invalid secret", async () => {
+        const res = await GET(
+            makeGetRequest({
+                secret: "wrong-secret-here",
+                "hub.mode": "subscribe",
+                "hub.topic":
+                    "https://www.youtube.com/feeds/videos.xml?channel_id=UC-live-channel",
+                "hub.challenge": "challenge-token",
+            }),
+        );
+
+        expect(res.status).toBe(401);
+        expect(await res.json()).toEqual({ error: "Unauthorized" });
+    });
+
+    it("rejects challenge requests missing required WebSub fields", async () => {
+        const res = await GET(
+            makeGetRequest({
+                secret: "callback-secret",
                 "hub.mode": "subscribe",
                 "hub.topic":
                     "https://www.youtube.com/feeds/videos.xml?channel_id=UC-live-channel",
@@ -101,180 +140,109 @@ describe("GET /api/webhooks/youtube", () => {
         );
 
         expect(res.status).toBe(400);
-        expect(await res.json()).toEqual({ error: "missing_challenge" });
+        expect(await res.json()).toEqual({
+            error: "invalid_verification_request",
+        });
     });
 });
 
 describe("POST /api/webhooks/youtube", () => {
-    it("ignores malformed XML without sending pushes", async () => {
-        const res = await POST(makePostRequest("<feed><entry>"));
-
-        expect(res.status).toBe(202);
-        expect(await res.json()).toEqual({ ok: true, processed: 0 });
-        expect(mockFindComedian).not.toHaveBeenCalled();
-        expect(mockCreateYouTubeLiveNotification).not.toHaveBeenCalled();
-        expect(mockSendYouTubeLivePushToTokens).not.toHaveBeenCalled();
-    });
-
-    it("ignores unknown YouTube channels without sending pushes", async () => {
-        mockFindComedian.mockResolvedValue(null as never);
+    it("stores raw XML and parsed channel and video metadata without sending notifications", async () => {
+        mockFindComedian.mockResolvedValue({ uuid: "comedian-uuid" } as never);
+        mockCreateWebSubEvent.mockResolvedValue({ id: 1 } as never);
 
         const res = await POST(makePostRequest(youtubeEntryXml()));
 
         expect(res.status).toBe(202);
-        expect(await res.json()).toEqual({ ok: true, processed: 0 });
-        expect(mockFindComedian).toHaveBeenCalledWith(
-            expect.objectContaining({
-                where: { youtubeChannelId: "UC-unknown-channel" },
-            }),
-        );
-        expect(mockCreateYouTubeLiveNotification).not.toHaveBeenCalled();
-        expect(mockSendYouTubeLivePushToTokens).not.toHaveBeenCalled();
-    });
-
-    it("creates a dedupe row and sends pushes for opted-in followers with active tokens", async () => {
-        mockFindComedian.mockResolvedValue({
-            uuid: "comedian-uuid",
-            name: "Jane Comic",
-            youtubeChannelId: "UC-live-channel",
-            favoriteComedians: [
-                {
-                    user: {
-                        userid: "user-1",
-                        pushTokens: [
-                            {
-                                id: "push-token-1",
-                                platform: "ios",
-                                token: "apns-token",
-                            },
-                        ],
-                    },
-                },
-            ],
-        } as never);
-        mockVerifyYouTubeLiveState.mockResolvedValue({
-            status: "live",
-            videoId: "video-123",
-            channelId: "UC-live-channel",
-            title: "Live set",
-            watchUrl: "https://www.youtube.com/watch?v=video-123",
-            actualStartTime: "2026-06-29T20:02:00Z",
-            scheduledStartTime: null,
-        });
-        mockCreateYouTubeLiveNotification.mockResolvedValue({ id: 1 } as never);
-        mockSendYouTubeLivePushToTokens.mockResolvedValue(undefined);
-
-        const res = await POST(makePostRequest(youtubeEntryXml("UC-live-channel")));
-
-        expect(res.status).toBe(202);
-        expect(await res.json()).toEqual({ ok: true, processed: 1 });
+        expect(await res.json()).toEqual({ ok: true, stored: 1 });
         expect(mockFindComedian).toHaveBeenCalledWith({
             where: { youtubeChannelId: "UC-live-channel" },
-            select: expect.objectContaining({
-                uuid: true,
-                name: true,
-                youtubeChannelId: true,
-                favoriteComedians: expect.objectContaining({
-                    where: {
-                        user: {
-                            pushShowNotifications: true,
-                            pushTokens: { some: { isActive: true } },
-                        },
+            select: { uuid: true },
+        });
+        expect(mockCreateWebSubEvent).toHaveBeenCalledWith({
+            data: expect.objectContaining({
+                comedianId: "comedian-uuid",
+                youtubeChannelId: "UC-live-channel",
+                youtubeVideoId: "video-123",
+                videoTitle: "Live set & Q&A",
+                videoUrl: "https://www.youtube.com/watch?v=video-123",
+                topicUrl:
+                    "https://www.youtube.com/feeds/videos.xml?channel_id=UC-live-channel",
+                eventStatus: "received",
+                publishedAt: new Date("2026-06-29T20:00:00+00:00"),
+                feedUpdatedAt: new Date("2026-06-29T20:01:30+00:00"),
+                payloadXml: youtubeEntryXml(),
+                payloadJson: {
+                    entry: {
+                        videoId: "video-123",
+                        channelId: "UC-live-channel",
+                        title: "Live set & Q&A",
+                        link: "https://www.youtube.com/watch?v=video-123",
+                        publishedAt: "2026-06-29T20:00:00+00:00",
+                        updatedAt: "2026-06-29T20:01:30+00:00",
                     },
-                }),
+                },
             }),
         });
-        expect(mockVerifyYouTubeLiveState).toHaveBeenCalledWith(
-            "video-123",
-            expect.objectContaining({ apiKey: expect.any(String) }),
-        );
-        expect(mockCreateYouTubeLiveNotification).toHaveBeenCalledWith({
-            data: {
-                userId: "user-1",
-                comedianId: "comedian-uuid",
-                youtubeChannelId: "UC-live-channel",
-                youtubeVideoId: "video-123",
-                videoTitle: "Live set",
-                videoUrl: "https://www.youtube.com/watch?v=video-123",
-                notificationType: "push",
-            },
-        });
-        expect(mockSendYouTubeLivePushToTokens).toHaveBeenCalledWith({
-            input: {
-                comedianId: "comedian-uuid",
-                comedianName: "Jane Comic",
-                youtubeVideoId: "video-123",
-                youtubeChannelId: "UC-live-channel",
-                videoTitle: "Live set",
-                watchUrl: "https://www.youtube.com/watch?v=video-123",
-            },
-            tokens: [
-                {
-                    id: "push-token-1",
-                    platform: "ios",
-                    token: "apns-token",
-                },
-            ],
-            senders: expect.any(Object),
-            deactivateToken: expect.any(Function),
-        });
+        expect(mockCreateYouTubeLiveNotification).not.toHaveBeenCalled();
+    });
 
-        const deactivateToken = mockSendYouTubeLivePushToTokens.mock.calls[0][0]
-            .deactivateToken;
-        await deactivateToken("push-token-1");
-        expect(mockUpdatePushTokens).toHaveBeenCalledWith({
-            where: { id: "push-token-1" },
-            data: { isActive: false, revokedAt: expect.any(Date) },
+    it("uses a valid hub.topic query value when supplied", async () => {
+        mockFindComedian.mockResolvedValue(null as never);
+        mockCreateWebSubEvent.mockResolvedValue({ id: 1 } as never);
+
+        const topic =
+            "https://www.youtube.com/feeds/videos.xml?channel_id=UC-topic";
+        const res = await POST(
+            makePostRequest(youtubeEntryXml("UC-feed"), {
+                secret: "callback-secret",
+                "hub.topic": topic,
+            }),
+        );
+
+        expect(res.status).toBe(202);
+        expect(mockCreateWebSubEvent).toHaveBeenCalledWith({
+            data: expect.objectContaining({
+                youtubeChannelId: "UC-feed",
+                topicUrl: topic,
+            }),
         });
     });
 
-    it("does not resend pushes for duplicate user, comedian, video, and notification type rows", async () => {
-        mockFindComedian.mockResolvedValue({
-            uuid: "comedian-uuid",
-            name: "Jane Comic",
-            youtubeChannelId: "UC-live-channel",
-            favoriteComedians: [
-                {
-                    user: {
-                        userid: "user-1",
-                        pushTokens: [
-                            {
-                                id: "push-token-1",
-                                platform: "ios",
-                                token: "apns-token",
-                            },
-                        ],
-                    },
-                },
-            ],
-        } as never);
-        mockVerifyYouTubeLiveState.mockResolvedValue({
-            status: "live",
-            videoId: "video-123",
-            channelId: "UC-live-channel",
-            title: "Live set",
-            watchUrl: "https://www.youtube.com/watch?v=video-123",
-            actualStartTime: "2026-06-29T20:02:00Z",
-            scheduledStartTime: null,
-        });
-        mockCreateYouTubeLiveNotification.mockRejectedValue({
-            code: "P2002",
-        });
+    it("rejects POST requests with an invalid secret before storing the payload", async () => {
+        const res = await POST(
+            makePostRequest(youtubeEntryXml(), { secret: "wrong-secret-here" }),
+        );
 
-        const res = await POST(makePostRequest(youtubeEntryXml("UC-live-channel")));
+        expect(res.status).toBe(401);
+        expect(await res.json()).toEqual({ error: "Unauthorized" });
+        expect(mockCreateWebSubEvent).not.toHaveBeenCalled();
+        expect(mockCreateYouTubeLiveNotification).not.toHaveBeenCalled();
+    });
+
+    it("records malformed XML without sending notifications", async () => {
+        mockCreateWebSubEvent.mockResolvedValue({ id: 1 } as never);
+
+        const res = await POST(makePostRequest("<feed><entry>"));
 
         expect(res.status).toBe(202);
-        expect(await res.json()).toEqual({ ok: true, processed: 0 });
-        expect(mockCreateYouTubeLiveNotification).toHaveBeenCalledWith(
-            expect.objectContaining({
-                data: expect.objectContaining({
-                    userId: "user-1",
-                    comedianId: "comedian-uuid",
-                    youtubeVideoId: "video-123",
-                    notificationType: "push",
-                }),
-            }),
-        );
-        expect(mockSendYouTubeLivePushToTokens).not.toHaveBeenCalled();
+        expect(await res.json()).toEqual({
+            ok: false,
+            stored: 1,
+            error: "malformed_xml",
+        });
+        expect(mockFindComedian).not.toHaveBeenCalled();
+        expect(mockCreateWebSubEvent).toHaveBeenCalledWith({
+            data: {
+                topicUrl: null,
+                eventStatus: "failed",
+                failureReason: "malformed_xml",
+                payloadXml: "<feed><entry>",
+                payloadJson: {
+                    error: "malformed_xml",
+                },
+            },
+        });
+        expect(mockCreateYouTubeLiveNotification).not.toHaveBeenCalled();
     });
 });
