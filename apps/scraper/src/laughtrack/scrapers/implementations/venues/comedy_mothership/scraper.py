@@ -47,8 +47,12 @@ _DEFAULT_PRICE_FETCH_CONCURRENCY = 5
 
 # Locate each price_tiers array. ``\\*"`` tolerates the escaped (\") or plain
 # (") quoting of the flight payload so the same pattern works on either form.
+# The value quote is optional (``\\*"?``) so a bare-number serialization
+# (``"price":40.00``) is parsed too, not just the observed quoted-string form
+# (``"price":"40.00"``) — otherwise a SquadUP format change would silently
+# degrade every show to price-less.
 _PRICE_TIERS_RE = re.compile(r"price_tiers")
-_TIER_PRICE_RE = re.compile(r'\\*"price\\*"\s*:\s*\\*"(\d+(?:\.\d+)?)\\*"')
+_TIER_PRICE_RE = re.compile(r'\\*"price\\*"\s*:\s*\\*"?(\d+(?:\.\d+)?)\\*"?')
 
 
 def _balanced_bracket_slice(text: str, start: int, max_len: int = 8000) -> Optional[str]:

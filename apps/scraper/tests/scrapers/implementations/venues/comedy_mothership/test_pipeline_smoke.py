@@ -513,6 +513,15 @@ def test_extract_min_price_handles_unescaped_json():
     assert _extract_min_price(html) == 40.0
 
 
+def test_extract_min_price_handles_bare_number_form():
+    """_extract_min_price() parses a bare-number price (no surrounding quotes)."""
+    html = (
+        '{"event":{"event_dates":[{"price_tiers":'
+        '[{"name":"GA","price":40.00},{"name":"Booth","price":50}]}]}}'
+    )
+    assert _extract_min_price(html) == 40.0
+
+
 # ---------------------------------------------------------------------------
 # Price enrichment integration tests
 # ---------------------------------------------------------------------------
