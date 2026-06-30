@@ -88,6 +88,12 @@ class ComedyMothershipEvent(ShowConvertible):
             return None
 
         ticket_url = url or f"https://comedymothership.com/shows/{self.show_id}"
+        # Price is unavailable from any server-rendered payload: the shows
+        # listing HTML carries date/title/time/room/sold-out only, and the
+        # per-show detail page renders prices client-side via the SquadUP
+        # embed (no JSON-LD Offer or data-price). So the ticket stays priceless
+        # (None) rather than carrying a fabricated value (TASK-3514, verified
+        # 2026-06-29).
         tickets = []
         if ticket_url:
             tickets.append(ShowFactoryUtils.create_fallback_ticket(ticket_url, sold_out=self.sold_out))

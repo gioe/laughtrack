@@ -80,6 +80,10 @@ class FriendlySkyEvent(ShowConvertible):
             ticket_url = f"{self.base_url}/event?e={self.hash_event_id}&g={self.hash_id}"
         show_page_url = ticket_url
 
+        # The FriendlySky games API exposes no price: each game object carries
+        # only scheduling/venue/SEO fields (verified live 2026-06-29, TASK-3514
+        # — Delirious returned 155 games with zero price-like keys). Prices live
+        # behind the per-event seg checkout flow, so the ticket stays priceless.
         tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url)]
 
         return ShowFactoryUtils.create_enhanced_show_base(

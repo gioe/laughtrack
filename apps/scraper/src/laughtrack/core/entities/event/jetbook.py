@@ -63,6 +63,12 @@ class JetBookEvent(ShowConvertible):
             return None
 
         ticket_url = url or JetBookExtractor.build_ticket_url(self.slug)
+        # The msearch event record carries no price: per-ticket prices live in
+        # separate Bubble ticket objects, referenced only as LOOKUP ids in
+        # ``list_tickets_list_custom_v2_tickets`` and resolvable solely via an
+        # extra /elasticsearch/mget call (verified 2026-06-29, TASK-3514). The
+        # event payload's only price-adjacent field, ``avg_per_ticket_number``,
+        # is 0. So the ticket stays priceless (None) rather than guessing.
         tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url)]
 
         return ShowFactoryUtils.create_enhanced_show_base(
