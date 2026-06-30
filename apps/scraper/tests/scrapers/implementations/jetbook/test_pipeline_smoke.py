@@ -57,6 +57,17 @@ def _club() -> Club:
     return _c
 
 
+class _PriceFetcherJetBookScraper(JetBookScraper):
+    """Test seam for detail-price enrichment without launching Playwright."""
+
+    def __init__(self, club: Club, price_fetcher):
+        super().__init__(club)
+        self._price_fetcher = price_fetcher
+
+    async def _fetch_detail_ticket_price(self, event: JetBookEvent) -> float | None:
+        return await self._price_fetcher(self, event)
+
+
 def _event_source(
     *,
     record_id: str = "evt-001",
@@ -266,7 +277,6 @@ async def test_get_data_returns_page_data_with_events(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_get_data_attaches_detail_page_ticket_prices(monkeypatch):
-    scraper = JetBookScraper(_club())
     body = _msearch_body(
         [
             _event_source(record_id="evt-1", slug="first-event"),
@@ -280,8 +290,8 @@ async def test_get_data_attaches_detail_page_ticket_prices(monkeypatch):
     async def fake_detail_price(self, event: JetBookEvent) -> float | None:
         return {"first-event": 12.0, "second-event": 18.0}[event.slug]
 
+    scraper = _PriceFetcherJetBookScraper(_club(), fake_detail_price)
     monkeypatch.setattr(JetBookScraper, "_capture_msearch_responses", fake_capture)
-    monkeypatch.setattr(JetBookScraper, "_fetch_detail_ticket_price", fake_detail_price)
 
     result = await scraper.get_data(IFRAME_URL)
 
@@ -291,7 +301,6 @@ async def test_get_data_attaches_detail_page_ticket_prices(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_detail_price_enrichment_uses_concurrent_page_pool(monkeypatch):
-    scraper = JetBookScraper(_club())
     events = [
         _make_event(slug="first-event"),
         _make_event(slug="second-event"),
@@ -308,7 +317,7 @@ async def test_detail_price_enrichment_uses_concurrent_page_pool(monkeypatch):
         active -= 1
         return 9.0
 
-    monkeypatch.setattr(JetBookScraper, "_fetch_detail_ticket_price", fake_detail_price)
+    scraper = _PriceFetcherJetBookScraper(_club(), fake_detail_price)
 
     await scraper._attach_detail_ticket_prices(events)
 
