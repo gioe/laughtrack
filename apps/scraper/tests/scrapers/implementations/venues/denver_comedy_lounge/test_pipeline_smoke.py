@@ -145,6 +145,28 @@ def test_transformation_pipeline_produces_shows_with_tickets():
         )
 
 
+def test_transformation_pipeline_extracts_lineup_from_comedy_special_title():
+    """A detail title with an explicit Comedy Special signal creates a lineup item."""
+    scraper = DenverComedyLoungeScraper(_club())
+    page_data = DenverComedyLoungePageData(
+        event_list=[
+            DenverComedyLoungeExtractor._build_show(
+                {
+                    "item": {
+                        "name": "Garage Sale - Korey David Comedy Special — Jul 31",
+                        "url": "https://denvercomedylounge.com/shows/thursday-8pm-2099-07-31",
+                    }
+                }
+            )
+        ]
+    )
+
+    shows = scraper.transformation_pipeline.transform(page_data)
+
+    assert len(shows) == 1
+    assert [comedian.name for comedian in shows[0].lineup] == ["Korey David"]
+
+
 # A per-show detail page: Event JSON-LD with an offers array (lowest is GA $21).
 _DETAIL_HTML = """
 <html><head>

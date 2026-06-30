@@ -5,6 +5,7 @@ Jazz-first / mixed-use Wix venues opt into comedy filtering via the source's
 field, so the filter is a title+description comedy-keyword match.
 """
 
+from laughtrack.core.entities.club.model import Club
 from laughtrack.scrapers.implementations.api.wix_events.extractor import WixEventsExtractor
 
 
@@ -21,6 +22,20 @@ def _raw_event(event_id, title, description=""):
 
 def _api_response(events):
     return {"events": events, "hasMore": False}
+
+
+def _club() -> Club:
+    return Club(
+        id=19,
+        name="Bushwick Comedy Club",
+        address="259 Melrose St",
+        website="https://www.bushwickcomedy.com",
+        popularity=0,
+        zip_code="11206",
+        phone_number="",
+        visible=True,
+        timezone="America/New_York",
+    )
 
 
 def test_filter_off_keeps_all_events():
@@ -60,3 +75,25 @@ def test_filter_keeps_event_when_description_signals_comedy():
     events = WixEventsExtractor.extract_events(resp, comedy_filter=True)
     assert len(events) == 1
     assert events[0].id == "1"
+
+
+def test_to_show_extracts_lineup_from_explicit_headliner_title():
+    event = WixEventsExtractor.extract_events(
+        _api_response([_raw_event("1", "Matt Misci LIVE at Nicks 7/18")])
+    )[0]
+
+    show = event.to_show(_club())
+
+    assert show is not None
+    assert [comedian.name for comedian in show.lineup] == ["Matt Misci"]
+
+
+def test_to_show_keeps_generic_wix_show_lineup_empty():
+    event = WixEventsExtractor.extract_events(
+        _api_response([_raw_event("1", "Friday Night Showcase (8:00 PM)")])
+    )[0]
+
+    show = event.to_show(_club())
+
+    assert show is not None
+    assert show.lineup == []

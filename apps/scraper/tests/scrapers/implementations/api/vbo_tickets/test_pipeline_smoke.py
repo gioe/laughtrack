@@ -144,8 +144,23 @@ def test_to_show_parses_date_strips_trailing_date_and_sets_price():
     assert show.date.year == 2099 and show.date.month == 6 and show.date.day == 16
     assert show.date.hour == 19
     assert show.show_page_url == "https://plugin.vbotickets.com/v5.0/event.asp?eid=175043"
+    assert show.lineup == []
     assert len(show.tickets) == 1
     assert show.tickets[0].price == 15.0
+
+
+def test_to_show_rejects_exact_title_as_headliner_without_explicit_signal():
+    """Exact two-word titles are risky for VBO's mixed comedy/music feeds."""
+    event = VboEvent(
+        eid="200",
+        name="Williamson Branch",
+        date_str="Tue, 6/16/2099 @ 7:00 PM",
+        url="https://plugin.vbotickets.com/v5.0/event.asp?eid=200",
+        price_min=15.0,
+    )
+    show = event.to_show(_club())
+    assert show is not None
+    assert show.lineup == []
 
 
 def test_to_show_returns_none_on_unparseable_date():

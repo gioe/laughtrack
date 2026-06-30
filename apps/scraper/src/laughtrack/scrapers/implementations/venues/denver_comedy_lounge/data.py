@@ -9,6 +9,7 @@ from laughtrack.core.entities.ticket.model import Ticket
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.ports.scraping import EventListContainer
 from laughtrack.utilities.domain.show.factory import ShowFactoryUtils
+from laughtrack.utilities.domain.show.headliner import extract_explicit_headliner_from_title
 
 # Naive-local datetime format the extractor produces from each show slug.
 _DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
@@ -63,12 +64,15 @@ class DenverComedyLoungeShow:
                 purchase_url=self.show_page_url, price=self.price
             )
         ]
+        headliner = extract_explicit_headliner_from_title(self.title)
+        lineup = ShowFactoryUtils.create_lineup_from_performers([headliner] if headliner else [])
 
         return ShowFactoryUtils.create_enhanced_show_base(
             name=self.title,
             club=club,
             date=date,
             show_page_url=self.show_page_url,
+            lineup=lineup,
             tickets=tickets,
             room="",
             supplied_tags=["event"],
