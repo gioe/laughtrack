@@ -1021,7 +1021,6 @@ model YouTubeWebSubSubscription {
   @@unique([youtubeChannelId], name: "youtube_websub_subscriptions_youtube_channel_id_key")
   @@index([comedianId])
   @@index([status, leaseExpiresAt])
-  @@index([youtubeChannelId])
   @@map("youtube_websub_subscriptions")
 }
 
