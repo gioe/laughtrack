@@ -75,14 +75,16 @@ _EMAIL_CANDIDATES_SQL = _BASE_CANDIDATES_SELECT_SQL.format(
     push_join_sql="",
 )
 
-_PUSH_CANDIDATES_SQL = _BASE_CANDIDATES_SELECT_SQL.format(
-    notification_type_sql="'push'",
-    push_token_id_sql="upt.id",
-    push_token_sql="upt.token",
-    push_platform_sql="upt.platform",
-    push_join_sql="JOIN user_push_tokens upt ON upt.user_id = u.id AND upt.profile_id = up.id AND upt.is_active = true",
-).replace("up.email_show_notifications = true", "up.push_show_notifications = true").replace(
-    "sn.notification_type = 'email'", "sn.notification_type = 'push'"
+_PUSH_CANDIDATES_SQL = (
+    _BASE_CANDIDATES_SELECT_SQL.format(
+        notification_type_sql="'push'",
+        push_token_id_sql="upt.id",
+        push_token_sql="upt.token",
+        push_platform_sql="upt.platform",
+        push_join_sql="JOIN user_push_tokens upt ON upt.user_id = u.id AND upt.profile_id = up.id AND upt.is_active = true",
+    )
+    .replace("up.email_show_notifications = true", "up.push_show_notifications = true")
+    .replace("sn.notification_type = 'email'", "sn.notification_type = 'push'")
 )
 
 _CANDIDATES_SQL = f"""
@@ -104,6 +106,81 @@ SET is_active = false,
     revoked_at = NOW(),
     updated_at = NOW()
 WHERE id = %s
+"""
+
+_YOUTUBE_LIVE_CANDIDATES_SQL = """
+SELECT
+    ywe.id AS event_id,
+    u.id AS user_id,
+    c.uuid AS comedian_uuid,
+    c.name AS comedian_name,
+    ywe.youtube_channel_id,
+    ywe.youtube_video_id,
+    ywe.video_title,
+    ywe.video_url,
+    upt.id AS push_token_id,
+    upt.token AS push_token,
+    upt.platform AS push_platform
+FROM youtube_websub_events ywe
+JOIN comedians c ON c.uuid = ywe.comedian_id
+JOIN favorite_comedians fc ON fc.comedian_id = c.uuid
+JOIN user_profiles up ON up.id = fc.profile_id
+JOIN users u ON u.id = up.user_id
+JOIN user_push_tokens upt
+  ON upt.user_id = u.id
+ AND upt.profile_id = up.id
+ AND upt.is_active = true
+LEFT JOIN youtube_live_notifications yn
+  ON yn.user_id = u.id
+ AND yn.comedian_id = c.uuid
+ AND yn.youtube_video_id = ywe.youtube_video_id
+ AND yn.notification_type = 'push'
+WHERE ywe.event_status = 'verified'
+  AND ywe.verification_status = 'live'
+  AND ywe.youtube_channel_id IS NOT NULL
+  AND ywe.youtube_video_id IS NOT NULL
+  AND ywe.video_url IS NOT NULL
+  AND c.youtube_live_notifications_enabled = true
+  AND up.push_youtube_live_notifications = true
+  AND yn.id IS NULL
+ORDER BY ywe.verified_at ASC NULLS LAST, ywe.received_at ASC, u.id, upt.id
+LIMIT %s
+"""
+
+_YOUTUBE_LIVE_GLOBAL_ENABLED_SQL = """
+SELECT push_delivery_enabled
+FROM youtube_websub_settings
+WHERE id = 1
+"""
+
+_INSERT_YOUTUBE_LIVE_NOTIFICATION_SQL = """
+INSERT INTO youtube_live_notifications (
+    user_id,
+    comedian_id,
+    youtube_channel_id,
+    youtube_video_id,
+    video_title,
+    video_url,
+    notification_type,
+    youtube_websub_event_id,
+    sent_at
+)
+VALUES (%s, %s, %s, %s, %s, %s, 'push', %s, NOW())
+ON CONFLICT (user_id, comedian_id, youtube_video_id, notification_type) DO NOTHING
+RETURNING id
+"""
+
+_INSERT_YOUTUBE_LIVE_DELIVERY_SQL = """
+INSERT INTO youtube_live_notification_deliveries (
+    youtube_live_notification_id,
+    push_token_id,
+    platform,
+    delivery_status,
+    status_code,
+    failure_reason,
+    attempted_at
+)
+VALUES (%s, %s, %s, %s, %s, %s, NOW())
 """
 
 _INVALID_APNS_REASONS = {
@@ -190,8 +267,7 @@ def _build_email_html(
     e_location = html_module.escape(", ".join(filter(None, [club_city, club_state])))
     e_date_str = html_module.escape(date_str)
     ticket_line = (
-        '<p><a href="%s" style="color:#1a73e8;">View show and buy tickets</a></p>'
-        % html_module.escape(show_page_url)
+        '<p><a href="%s" style="color:#1a73e8;">View show and buy tickets</a></p>' % html_module.escape(show_page_url)
         if show_page_url
         else ""
     )
@@ -277,11 +353,7 @@ class ApnsPushService:
             if "-----BEGIN" not in private_key:
                 stripped = "".join(private_key.split())
                 body = "\n".join(textwrap.wrap(stripped, 64))
-                private_key = (
-                    "-----BEGIN PRIVATE KEY-----\n"
-                    f"{body}\n"
-                    "-----END PRIVATE KEY-----\n"
-                )
+                private_key = "-----BEGIN PRIVATE KEY-----\n" f"{body}\n" "-----END PRIVATE KEY-----\n"
 
         missing = [
             name
@@ -340,6 +412,59 @@ class ApnsPushService:
         }
         if hasattr(show_date, "isoformat"):
             payload["showDate"] = show_date.isoformat()
+
+        headers = {
+            "authorization": f"bearer {self._auth_token()}",
+            "apns-topic": self._bundle_id,
+            "apns-push-type": "alert",
+            "apns-priority": "10",
+        }
+        url = f"https://{self._host}/3/device/{device_token}"
+        with httpx.Client(http2=True, timeout=10.0) as client:
+            response = client.post(url, headers=headers, json=payload)
+
+        if 200 <= response.status_code < 300:
+            return PushDeliveryResult(success=True, status_code=response.status_code)
+
+        reason = self._extract_reason(response)
+        return PushDeliveryResult(
+            success=False,
+            invalid_token=response.status_code in (400, 410) and reason in _INVALID_APNS_REASONS,
+            status_code=response.status_code,
+            reason=reason,
+        )
+
+    def send_youtube_live_notification(
+        self,
+        device_token: str,
+        comedian_id: str,
+        comedian_name: str,
+        youtube_channel_id: str,
+        youtube_video_id: str,
+        video_title: str | None,
+        watch_url: str,
+    ) -> PushDeliveryResult:
+        try:
+            import httpx
+        except ImportError as e:
+            raise RuntimeError("APNs push delivery requires httpx with HTTP/2 support") from e
+
+        title = f"{comedian_name} is live on YouTube"
+        body = video_title or "Watch now on YouTube"
+        payload = {
+            "aps": {
+                "alert": {
+                    "title": title,
+                    "body": body,
+                },
+                "sound": "default",
+            },
+            "type": "youtube_live",
+            "comedianId": comedian_id,
+            "youtubeChannelId": youtube_channel_id,
+            "youtubeVideoId": youtube_video_id,
+            "url": watch_url,
+        }
 
         headers = {
             "authorization": f"bearer {self._auth_token()}",
@@ -440,13 +565,10 @@ class FcmPushService:
         project_id = os.getenv("FCM_PROJECT_ID") or info.get("project_id")
         if not project_id:
             raise ValueError(
-                "Missing FCM project id: set FCM_PROJECT_ID or include project_id "
-                "in the service account JSON"
+                "Missing FCM project id: set FCM_PROJECT_ID or include project_id " "in the service account JSON"
             )
 
-        credentials = service_account.Credentials.from_service_account_info(
-            info, scopes=[cls._SCOPE]
-        )
+        credentials = service_account.Credentials.from_service_account_info(info, scopes=[cls._SCOPE])
         return cls(project_id=str(project_id), credentials=credentials)
 
     def send_show_notification(
@@ -534,6 +656,328 @@ class FcmPushService:
                     return detail["errorCode"]
         status = error.get("status")
         return status if isinstance(status, str) else None
+
+    def send_youtube_live_notification(
+        self,
+        device_token: str,
+        comedian_id: str,
+        comedian_name: str,
+        youtube_channel_id: str,
+        youtube_video_id: str,
+        video_title: str | None,
+        watch_url: str,
+    ) -> PushDeliveryResult:
+        try:
+            import httpx
+        except ImportError as e:
+            raise RuntimeError("FCM push delivery requires httpx") from e
+
+        data = {
+            "title": f"{comedian_name} is live on YouTube",
+            "body": video_title or "Watch now on YouTube",
+            "type": "youtube_live",
+            "comedianId": comedian_id,
+            "youtubeChannelId": youtube_channel_id,
+            "youtubeVideoId": youtube_video_id,
+            "url": watch_url,
+        }
+        message = {
+            "message": {
+                "token": device_token,
+                "data": data,
+                "android": {"priority": "high"},
+            }
+        }
+
+        url = f"https://fcm.googleapis.com/v1/projects/{self._project_id}/messages:send"
+        headers = {"authorization": f"Bearer {self._access_token()}"}
+        with httpx.Client(timeout=10.0) as client:
+            response = client.post(url, headers=headers, json=message)
+
+        if 200 <= response.status_code < 300:
+            return PushDeliveryResult(success=True, status_code=response.status_code)
+
+        reason = self._extract_reason(response)
+        return PushDeliveryResult(
+            success=False,
+            invalid_token=response.status_code in (400, 404) and reason in _INVALID_FCM_REASONS,
+            status_code=response.status_code,
+            reason=reason,
+        )
+
+
+class YouTubeLiveNotificationService:
+    """Sends push notifications when verified YouTube WebSub events go live."""
+
+    def __init__(self, push_sender: object | None = None, fcm_sender: object | None = None):
+        self._push_sender = push_sender
+        self._fcm_sender = fcm_sender
+
+    def run(self, limit: int = 50, dry_run: bool = False) -> Dict[str, int]:
+        summary = {
+            "global_gated": 0,
+            "candidates": 0,
+            "push_would_send": 0,
+            "push_sent": 0,
+            "push_errors": 0,
+            "duplicates": 0,
+            "errors": 0,
+        }
+
+        Logger.info(f"YouTubeLiveNotificationService: starting run (limit={limit}, dry_run={dry_run})")
+
+        try:
+            if not self._is_global_enabled():
+                summary["global_gated"] = 1
+                Logger.info("YouTubeLiveNotificationService: skipped — global push delivery disabled")
+                return summary
+        except Exception as e:
+            Logger.error(f"YouTubeLiveNotificationService: failed to read global gate: {e}")
+            summary["errors"] += 1
+            return summary
+
+        try:
+            rows = self._fetch_candidates(limit=limit)
+        except Exception as e:
+            Logger.error(f"YouTubeLiveNotificationService: failed to fetch candidates: {e}")
+            summary["errors"] += 1
+            return summary
+
+        summary["candidates"] = len(rows)
+
+        for row in rows:
+            event_id = row["event_id"]
+            user_id = row["user_id"]
+            comedian_uuid = row["comedian_uuid"]
+            comedian_name = row["comedian_name"]
+            youtube_channel_id = row["youtube_channel_id"]
+            youtube_video_id = row["youtube_video_id"]
+            video_title = row.get("video_title")
+            video_url = row["video_url"]
+            push_token_id = row.get("push_token_id")
+            push_token = row.get("push_token")
+            push_platform = row.get("push_platform")
+
+            if not push_token_id or not push_token:
+                Logger.warn(
+                    f"YouTubeLiveNotificationService: skipping user={user_id} "
+                    f"event={event_id}: candidate missing active device token"
+                )
+                summary["push_errors"] += 1
+                summary["errors"] += 1
+                continue
+
+            if dry_run:
+                try:
+                    self._ensure_push_sender_configured(push_platform)
+                except Exception as e:
+                    Logger.error(
+                        f"YouTubeLiveNotificationService: dry-run push config check failed "
+                        f"for user={user_id} token_id={push_token_id} event={event_id}: {e}"
+                    )
+                    summary["push_errors"] += 1
+                    summary["errors"] += 1
+                    continue
+                summary["push_would_send"] += 1
+                continue
+
+            try:
+                notification_id = self._record_notification(
+                    user_id=user_id,
+                    comedian_id=comedian_uuid,
+                    youtube_channel_id=youtube_channel_id,
+                    youtube_video_id=youtube_video_id,
+                    video_title=video_title,
+                    video_url=video_url,
+                    youtube_websub_event_id=event_id,
+                )
+            except Exception as e:
+                Logger.error(
+                    f"YouTubeLiveNotificationService: failed to record notification "
+                    f"for user={user_id} event={event_id}: {e}"
+                )
+                summary["push_errors"] += 1
+                summary["errors"] += 1
+                continue
+
+            if notification_id is None:
+                summary["duplicates"] += 1
+                continue
+
+            try:
+                result = self._send_push_notification(
+                    platform=push_platform,
+                    device_token=push_token,
+                    comedian_id=comedian_uuid,
+                    comedian_name=comedian_name,
+                    youtube_channel_id=youtube_channel_id,
+                    youtube_video_id=youtube_video_id,
+                    video_title=video_title,
+                    watch_url=video_url,
+                )
+            except Exception as e:
+                Logger.error(
+                    f"YouTubeLiveNotificationService: failed to send push to user={user_id} "
+                    f"token_id={push_token_id} event={event_id}: {e}"
+                )
+                self._record_delivery(
+                    youtube_live_notification_id=notification_id,
+                    push_token_id=push_token_id,
+                    platform=push_platform,
+                    status="failed",
+                    status_code=None,
+                    failure_reason=str(e),
+                )
+                summary["push_errors"] += 1
+                summary["errors"] += 1
+                continue
+
+            if result.success:
+                self._record_delivery(
+                    youtube_live_notification_id=notification_id,
+                    push_token_id=push_token_id,
+                    platform=push_platform,
+                    status="sent",
+                    status_code=result.status_code,
+                    failure_reason=None,
+                )
+                summary["push_sent"] += 1
+                continue
+
+            self._record_delivery(
+                youtube_live_notification_id=notification_id,
+                push_token_id=push_token_id,
+                platform=push_platform,
+                status="failed",
+                status_code=result.status_code,
+                failure_reason=result.reason,
+            )
+            if result.invalid_token:
+                self._deactivate_push_token(
+                    token_id=push_token_id,
+                    reason=result.reason or "unknown",
+                    status_code=result.status_code or 0,
+                )
+            summary["push_errors"] += 1
+            summary["errors"] += 1
+
+        Logger.info(
+            f"YouTubeLiveNotificationService: done — candidates={summary['candidates']} "
+            f"push_would_send={summary['push_would_send']} push_sent={summary['push_sent']} "
+            f"push_errors={summary['push_errors']} duplicates={summary['duplicates']} "
+            f"errors={summary['errors']}"
+        )
+        return summary
+
+    def _is_global_enabled(self) -> bool:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(_YOUTUBE_LIVE_GLOBAL_ENABLED_SQL)
+                row = cur.fetchone()
+        return bool(row and row[0])
+
+    def _fetch_candidates(self, limit: int = 50) -> list[dict]:
+        rows: list[dict] = []
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(_YOUTUBE_LIVE_CANDIDATES_SQL, (limit,))
+                cols = [d[0] for d in cur.description]
+                for raw in cur.fetchall():
+                    rows.append(dict(zip(cols, raw)))
+        return rows
+
+    def _resolve_push_sender(self, platform: str | None):
+        if platform == "android":
+            if self._fcm_sender is None:
+                self._fcm_sender = FcmPushService.from_env()
+            return self._fcm_sender
+        if self._push_sender is None:
+            self._push_sender = ApnsPushService.from_env()
+        return self._push_sender
+
+    def _ensure_push_sender_configured(self, platform: str | None = None) -> None:
+        self._resolve_push_sender(platform)
+
+    def _send_push_notification(
+        self,
+        platform: str | None,
+        device_token: str,
+        comedian_id: str,
+        comedian_name: str,
+        youtube_channel_id: str,
+        youtube_video_id: str,
+        video_title: str | None,
+        watch_url: str,
+    ) -> PushDeliveryResult:
+        sender = self._resolve_push_sender(platform)
+        return sender.send_youtube_live_notification(
+            device_token=device_token,
+            comedian_id=comedian_id,
+            comedian_name=comedian_name,
+            youtube_channel_id=youtube_channel_id,
+            youtube_video_id=youtube_video_id,
+            video_title=video_title,
+            watch_url=watch_url,
+        )
+
+    def _record_notification(
+        self,
+        user_id: str,
+        comedian_id: str,
+        youtube_channel_id: str,
+        youtube_video_id: str,
+        video_title: str | None,
+        video_url: str,
+        youtube_websub_event_id: int,
+    ) -> int | None:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    _INSERT_YOUTUBE_LIVE_NOTIFICATION_SQL,
+                    (
+                        user_id,
+                        comedian_id,
+                        youtube_channel_id,
+                        youtube_video_id,
+                        video_title,
+                        video_url,
+                        youtube_websub_event_id,
+                    ),
+                )
+                row = cur.fetchone()
+        return int(row[0]) if row else None
+
+    def _record_delivery(
+        self,
+        youtube_live_notification_id: int,
+        push_token_id: str,
+        platform: str | None,
+        status: str,
+        status_code: int | None,
+        failure_reason: str | None,
+    ) -> None:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    _INSERT_YOUTUBE_LIVE_DELIVERY_SQL,
+                    (
+                        youtube_live_notification_id,
+                        push_token_id,
+                        platform,
+                        status,
+                        status_code,
+                        failure_reason,
+                    ),
+                )
+
+    def _deactivate_push_token(self, token_id: str, reason: str, status_code: int) -> None:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(_DEACTIVATE_PUSH_TOKEN_SQL, (token_id,))
+        Logger.warn(
+            f"YouTubeLiveNotificationService: deactivated push token id={token_id} "
+            f"after push status={status_code} reason={reason}"
+        )
 
 
 class ComedianArrivalNotificationService:

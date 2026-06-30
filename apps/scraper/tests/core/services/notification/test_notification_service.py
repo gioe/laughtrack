@@ -12,12 +12,14 @@ from laughtrack.core.services.notification.service import (
     ApnsPushService,
     ComedianArrivalNotificationService,
     FcmPushService,
+    PushDeliveryResult,
+    YouTubeLiveNotificationService,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_row(
     user_id: str = "user-1",
@@ -69,6 +71,7 @@ def _make_row(
 # Tests
 # ---------------------------------------------------------------------------
 
+
 class TestHaversineKnownDistance:
     def test_nyc_to_la(self):
         """NYC (40.7128, -74.006) to LA (34.0522, -118.2437) is ~2448 miles."""
@@ -90,9 +93,7 @@ class TestRunSendsEmailForMatchingComedian:
         service = ComedianArrivalNotificationService(zip_distance=mock_zip)
 
         with patch.object(service, "_fetch_candidates", return_value=[row]):
-            with patch(
-                "laughtrack.core.services.notification.service.EmailService"
-            ) as MockEmail:
+            with patch("laughtrack.core.services.notification.service.EmailService") as MockEmail:
                 with patch.object(service, "_record_notification") as mock_record:
                     summary = service.run(radius_miles=50.0, days_ahead=30)
 
@@ -293,9 +294,7 @@ class TestPlatformRouting:
 
         fcm.send_show_notification.assert_called_once()
         apns.send_show_notification.assert_not_called()
-        mock_deactivate.assert_called_once_with(
-            token_id="tok-a", reason="UNREGISTERED", status_code=404
-        )
+        mock_deactivate.assert_called_once_with(token_id="tok-a", reason="UNREGISTERED", status_code=404)
         mock_record.assert_not_called()
         assert summary["push_errors"] == 1
 
@@ -407,6 +406,242 @@ class TestFcmPushServicePayload:
         assert result.invalid_token is False
         assert result.reason == "INVALID_ARGUMENT"
 
+    def test_send_youtube_live_builds_data_only_payload(self):
+        service = FcmPushService(project_id="proj-123", credentials=MagicMock())
+        response = MagicMock(status_code=200)
+
+        with patch.object(service, "_access_token", return_value="fake-token"):
+            with patch("httpx.Client") as MockClient:
+                client = MockClient.return_value.__enter__.return_value
+                client.post.return_value = response
+                result = service.send_youtube_live_notification(
+                    device_token="android-token-xyz",
+                    comedian_id="comedian-uuid",
+                    comedian_name="Jane Comic",
+                    youtube_channel_id="UC-live-channel",
+                    youtube_video_id="live-video",
+                    video_title="Late set from the club",
+                    watch_url="https://www.youtube.com/watch?v=live-video",
+                )
+
+        assert result.success is True
+        message = client.post.call_args.kwargs["json"]["message"]
+        assert message["token"] == "android-token-xyz"
+        data = message["data"]
+        assert data["type"] == "youtube_live"
+        assert data["title"] == "Jane Comic is live on YouTube"
+        assert data["body"] == "Late set from the club"
+        assert data["comedianId"] == "comedian-uuid"
+        assert data["youtubeChannelId"] == "UC-live-channel"
+        assert data["youtubeVideoId"] == "live-video"
+        assert data["url"] == "https://www.youtube.com/watch?v=live-video"
+        assert "notification" not in message
+
+
+class TestApnsPushServicePayload:
+    def test_send_youtube_live_builds_alert_payload(self):
+        service = ApnsPushService(
+            team_id="TEAM12345",
+            key_id="KEYID67890",
+            private_key_pem="unused",
+            bundle_id="com.example.app",
+            use_sandbox=True,
+        )
+        response = MagicMock(status_code=200)
+
+        with patch.object(service, "_auth_token", return_value="fake-token"):
+            with patch("httpx.Client") as MockClient:
+                client = MockClient.return_value.__enter__.return_value
+                client.post.return_value = response
+                result = service.send_youtube_live_notification(
+                    device_token="apns-token",
+                    comedian_id="comedian-uuid",
+                    comedian_name="Jane Comic",
+                    youtube_channel_id="UC-live-channel",
+                    youtube_video_id="live-video",
+                    video_title=None,
+                    watch_url="https://www.youtube.com/watch?v=live-video",
+                )
+
+        assert result.success is True
+        payload = client.post.call_args.kwargs["json"]
+        assert payload["aps"]["alert"]["title"] == "Jane Comic is live on YouTube"
+        assert payload["aps"]["alert"]["body"] == "Watch now on YouTube"
+        assert payload["type"] == "youtube_live"
+        assert payload["comedianId"] == "comedian-uuid"
+        assert payload["youtubeChannelId"] == "UC-live-channel"
+        assert payload["youtubeVideoId"] == "live-video"
+        assert payload["url"] == "https://www.youtube.com/watch?v=live-video"
+
+
+class TestYouTubeLiveNotificationService:
+    def _row(self, **overrides):
+        row = {
+            "event_id": 42,
+            "user_id": "user-1",
+            "comedian_uuid": "comedian-uuid",
+            "comedian_name": "Jane Comic",
+            "youtube_channel_id": "UC-live-channel",
+            "youtube_video_id": "live-video",
+            "video_title": "Late set from the club",
+            "video_url": "https://www.youtube.com/watch?v=live-video",
+            "push_token_id": "tok-ios",
+            "push_token": "apns-token",
+            "push_platform": "ios",
+        }
+        row.update(overrides)
+        return row
+
+    def _service(self, apns=None, fcm=None):
+        return YouTubeLiveNotificationService(push_sender=apns, fcm_sender=fcm)
+
+    def test_global_gate_skips_candidate_fetch(self):
+        service = self._service()
+
+        with patch.object(service, "_is_global_enabled", return_value=False):
+            with patch.object(service, "_fetch_candidates") as mock_fetch:
+                summary = service.run()
+
+        mock_fetch.assert_not_called()
+        assert summary["global_gated"] == 1
+        assert summary["candidates"] == 0
+        assert summary["push_sent"] == 0
+
+    def test_candidate_sql_requires_comedian_user_and_token_gates(self):
+        service = self._service()
+        conn = MagicMock()
+        conn.__enter__.return_value = conn
+        cur = conn.cursor.return_value.__enter__.return_value
+        cur.description = []
+        cur.fetchall.return_value = []
+
+        with patch(
+            "laughtrack.core.services.notification.service.get_connection",
+            return_value=conn,
+        ):
+            service._fetch_candidates(limit=25)
+
+        sql_arg = cur.execute.call_args.args[0]
+        params_arg = cur.execute.call_args.args[1]
+        assert "c.youtube_live_notifications_enabled = true" in sql_arg
+        assert "up.push_youtube_live_notifications = true" in sql_arg
+        assert "JOIN user_push_tokens upt" in sql_arg
+        assert "upt.is_active = true" in sql_arg
+        assert "yn.id IS NULL" in sql_arg
+        assert params_arg == (25,)
+
+    def test_sends_youtube_live_push_and_records_delivery(self):
+        apns = MagicMock()
+        apns.send_youtube_live_notification.return_value = PushDeliveryResult(success=True, status_code=200)
+        service = self._service(apns=apns)
+
+        with patch.object(service, "_is_global_enabled", return_value=True):
+            with patch.object(service, "_fetch_candidates", return_value=[self._row()]):
+                with patch.object(service, "_record_notification", return_value=501) as mock_record:
+                    with patch.object(service, "_record_delivery") as mock_delivery:
+                        summary = service.run()
+
+        apns.send_youtube_live_notification.assert_called_once_with(
+            device_token="apns-token",
+            comedian_id="comedian-uuid",
+            comedian_name="Jane Comic",
+            youtube_channel_id="UC-live-channel",
+            youtube_video_id="live-video",
+            video_title="Late set from the club",
+            watch_url="https://www.youtube.com/watch?v=live-video",
+        )
+        mock_record.assert_called_once_with(
+            user_id="user-1",
+            comedian_id="comedian-uuid",
+            youtube_channel_id="UC-live-channel",
+            youtube_video_id="live-video",
+            video_title="Late set from the club",
+            video_url="https://www.youtube.com/watch?v=live-video",
+            youtube_websub_event_id=42,
+        )
+        mock_delivery.assert_called_once_with(
+            youtube_live_notification_id=501,
+            push_token_id="tok-ios",
+            platform="ios",
+            status="sent",
+            status_code=200,
+            failure_reason=None,
+        )
+        assert summary["candidates"] == 1
+        assert summary["push_sent"] == 1
+        assert summary["push_errors"] == 0
+
+    def test_android_routes_to_fcm_sender(self):
+        fcm = MagicMock()
+        fcm.send_youtube_live_notification.return_value = PushDeliveryResult(success=True, status_code=200)
+        service = self._service(fcm=fcm)
+
+        with patch.object(service, "_is_global_enabled", return_value=True):
+            with patch.object(
+                service,
+                "_fetch_candidates",
+                return_value=[
+                    self._row(
+                        push_token_id="tok-android",
+                        push_token="fcm-token",
+                        push_platform="android",
+                    )
+                ],
+            ):
+                with patch.object(service, "_record_notification", return_value=501):
+                    with patch.object(service, "_record_delivery"):
+                        summary = service.run()
+
+        fcm.send_youtube_live_notification.assert_called_once()
+        assert fcm.send_youtube_live_notification.call_args.kwargs["device_token"] == "fcm-token"
+        assert summary["push_sent"] == 1
+
+    def test_duplicate_notification_record_skips_push_send(self):
+        apns = MagicMock()
+        service = self._service(apns=apns)
+
+        with patch.object(service, "_is_global_enabled", return_value=True):
+            with patch.object(service, "_fetch_candidates", return_value=[self._row()]):
+                with patch.object(service, "_record_notification", return_value=None):
+                    summary = service.run()
+
+        apns.send_youtube_live_notification.assert_not_called()
+        assert summary["duplicates"] == 1
+        assert summary["push_sent"] == 0
+
+    def test_failed_push_records_delivery_and_deactivates_invalid_token(self):
+        apns = MagicMock()
+        apns.send_youtube_live_notification.return_value = PushDeliveryResult(
+            success=False,
+            invalid_token=True,
+            status_code=410,
+            reason="Unregistered",
+        )
+        service = self._service(apns=apns)
+
+        with patch.object(service, "_is_global_enabled", return_value=True):
+            with patch.object(service, "_fetch_candidates", return_value=[self._row()]):
+                with patch.object(service, "_record_notification", return_value=501):
+                    with patch.object(service, "_record_delivery") as mock_delivery:
+                        with patch.object(service, "_deactivate_push_token") as mock_deactivate:
+                            summary = service.run()
+
+        mock_delivery.assert_called_once_with(
+            youtube_live_notification_id=501,
+            push_token_id="tok-ios",
+            platform="ios",
+            status="failed",
+            status_code=410,
+            failure_reason="Unregistered",
+        )
+        mock_deactivate.assert_called_once_with(
+            token_id="tok-ios",
+            reason="Unregistered",
+            status_code=410,
+        )
+        assert summary["push_errors"] == 1
+        assert summary["errors"] == 1
+
 
 class TestDryRun:
     def test_dry_run_counts_email_without_sending_or_recording(self):
@@ -418,9 +653,7 @@ class TestDryRun:
         service = ComedianArrivalNotificationService(zip_distance=mock_zip)
 
         with patch.object(service, "_fetch_candidates", return_value=[row]):
-            with patch(
-                "laughtrack.core.services.notification.service.EmailService"
-            ) as MockEmail:
+            with patch("laughtrack.core.services.notification.service.EmailService") as MockEmail:
                 with patch.object(service, "_record_notification") as mock_record:
                     summary = service.run(radius_miles=50.0, dry_run=True)
 
@@ -471,9 +704,7 @@ class TestRunSkipsIfOutsideRadius:
         service = ComedianArrivalNotificationService(zip_distance=mock_zip)
 
         with patch.object(service, "_fetch_candidates", return_value=[row]):
-            with patch(
-                "laughtrack.core.services.notification.service.EmailService"
-            ) as MockEmail:
+            with patch("laughtrack.core.services.notification.service.EmailService") as MockEmail:
                 with patch.object(service, "_record_notification") as mock_record:
                     summary = service.run(radius_miles=50.0, days_ahead=30)
 
@@ -492,9 +723,7 @@ class TestRunSkipsIfOutsideRadius:
         service = ComedianArrivalNotificationService(zip_distance=mock_zip)
 
         with patch.object(service, "_fetch_candidates", return_value=[row]):
-            with patch(
-                "laughtrack.core.services.notification.service.EmailService"
-            ) as MockEmail:
+            with patch("laughtrack.core.services.notification.service.EmailService") as MockEmail:
                 with patch.object(service, "_record_notification") as mock_record:
                     summary = service.run(radius_miles=50.0, days_ahead=30)
 
@@ -515,9 +744,7 @@ class TestRunSkipsIfDistanceUnknown:
         service = ComedianArrivalNotificationService(zip_distance=mock_zip)
 
         with patch.object(service, "_fetch_candidates", return_value=[row]):
-            with patch(
-                "laughtrack.core.services.notification.service.EmailService"
-            ) as MockEmail:
+            with patch("laughtrack.core.services.notification.service.EmailService") as MockEmail:
                 with patch.object(service, "_record_notification") as mock_record:
                     summary = service.run(radius_miles=50.0, days_ahead=30)
 
@@ -542,9 +769,7 @@ class TestRunRecordsSentNotification:
         service = ComedianArrivalNotificationService(zip_distance=mock_zip)
 
         with patch.object(service, "_fetch_candidates", return_value=[row]):
-            with patch(
-                "laughtrack.core.services.notification.service.EmailService"
-            ):
+            with patch("laughtrack.core.services.notification.service.EmailService"):
                 with patch.object(service, "_record_notification") as mock_record:
                     service.run(radius_miles=50.0, days_ahead=30)
 
@@ -704,9 +929,7 @@ class TestRunMultipleCandidates:
         service = ComedianArrivalNotificationService(zip_distance=mock_zip)
 
         with patch.object(service, "_fetch_candidates", return_value=[row1, row2]):
-            with patch(
-                "laughtrack.core.services.notification.service.EmailService"
-            ) as MockEmail:
+            with patch("laughtrack.core.services.notification.service.EmailService") as MockEmail:
                 with patch.object(service, "_record_notification") as mock_record:
                     summary = service.run(radius_miles=50.0)
 
@@ -755,9 +978,7 @@ class TestRunMultipleCandidates:
         service = ComedianArrivalNotificationService(zip_distance=mock_zip)
 
         with patch.object(service, "_fetch_candidates", return_value=[row]):
-            with patch(
-                "laughtrack.core.services.notification.service.EmailService"
-            ) as MockEmail:
+            with patch("laughtrack.core.services.notification.service.EmailService") as MockEmail:
                 MockEmail.send_email.side_effect = Exception("SMTP failure")
                 with patch.object(service, "_record_notification") as mock_record:
                     summary = service.run(radius_miles=50.0, days_ahead=30)
@@ -822,11 +1043,7 @@ class TestApnsPemNormalization:
         normalized = service._private_key_pem
         assert normalized.startswith("-----BEGIN PRIVATE KEY-----\n")
         assert normalized.rstrip().endswith("-----END PRIVATE KEY-----")
-        body_lines = [
-            line
-            for line in normalized.splitlines()
-            if line and not line.startswith("-----")
-        ]
+        body_lines = [line for line in normalized.splitlines() if line and not line.startswith("-----")]
         assert all(len(line) <= 64 for line in body_lines)
         assert "".join(body_lines) == bare_base64
 
