@@ -596,6 +596,33 @@ class TestYouTubeLiveNotificationService:
         assert fcm.send_youtube_live_notification.call_args.kwargs["device_token"] == "fcm-token"
         assert summary["push_sent"] == 1
 
+    def test_sends_to_every_active_token_for_same_user_and_video(self):
+        apns = MagicMock()
+        apns.send_youtube_live_notification.return_value = PushDeliveryResult(success=True, status_code=200)
+        fcm = MagicMock()
+        fcm.send_youtube_live_notification.return_value = PushDeliveryResult(success=True, status_code=200)
+        service = self._service(apns=apns, fcm=fcm)
+
+        with patch.object(service, "_is_global_enabled", return_value=True):
+            with patch.object(
+                service,
+                "_fetch_candidates",
+                return_value=[
+                    self._row(push_token_id="tok-ios", push_token="apns-token", push_platform="ios"),
+                    self._row(push_token_id="tok-android", push_token="fcm-token", push_platform="android"),
+                ],
+            ):
+                with patch.object(service, "_record_notification", return_value=501) as mock_record:
+                    with patch.object(service, "_record_delivery") as mock_delivery:
+                        summary = service.run()
+
+        mock_record.assert_called_once()
+        apns.send_youtube_live_notification.assert_called_once()
+        fcm.send_youtube_live_notification.assert_called_once()
+        assert mock_delivery.call_count == 2
+        assert summary["candidates"] == 1
+        assert summary["push_sent"] == 2
+
     def test_duplicate_notification_record_skips_push_send(self):
         apns = MagicMock()
         service = self._service(apns=apns)

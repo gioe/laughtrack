@@ -743,6 +743,7 @@ class YouTubeLiveNotificationService:
             summary["errors"] += 1
             return summary
 
+        rows = self._merge_same_youtube_live_candidates(rows)
         summary["candidates"] = len(rows)
 
         for row in rows:
@@ -754,31 +755,22 @@ class YouTubeLiveNotificationService:
             youtube_video_id = row["youtube_video_id"]
             video_title = row.get("video_title")
             video_url = row["video_url"]
-            push_token_id = row.get("push_token_id")
-            push_token = row.get("push_token")
-            push_platform = row.get("push_platform")
-
-            if not push_token_id or not push_token:
-                Logger.warn(
-                    f"YouTubeLiveNotificationService: skipping user={user_id} "
-                    f"event={event_id}: candidate missing active device token"
-                )
-                summary["push_errors"] += 1
-                summary["errors"] += 1
-                continue
+            push_tokens = row.get("push_tokens") or []
 
             if dry_run:
-                try:
-                    self._ensure_push_sender_configured(push_platform)
-                except Exception as e:
-                    Logger.error(
-                        f"YouTubeLiveNotificationService: dry-run push config check failed "
-                        f"for user={user_id} token_id={push_token_id} event={event_id}: {e}"
-                    )
-                    summary["push_errors"] += 1
-                    summary["errors"] += 1
-                    continue
-                summary["push_would_send"] += 1
+                for push_token_row in push_tokens:
+                    try:
+                        self._ensure_push_sender_configured(push_token_row.get("push_platform"))
+                    except Exception as e:
+                        Logger.error(
+                            f"YouTubeLiveNotificationService: dry-run push config check failed "
+                            f"for user={user_id} token_id={push_token_row.get('push_token_id')} "
+                            f"event={event_id}: {e}"
+                        )
+                        summary["push_errors"] += 1
+                        summary["errors"] += 1
+                        continue
+                    summary["push_would_send"] += 1
                 continue
 
             try:
@@ -804,62 +796,76 @@ class YouTubeLiveNotificationService:
                 summary["duplicates"] += 1
                 continue
 
-            try:
-                result = self._send_push_notification(
-                    platform=push_platform,
-                    device_token=push_token,
-                    comedian_id=comedian_uuid,
-                    comedian_name=comedian_name,
-                    youtube_channel_id=youtube_channel_id,
-                    youtube_video_id=youtube_video_id,
-                    video_title=video_title,
-                    watch_url=video_url,
-                )
-            except Exception as e:
-                Logger.error(
-                    f"YouTubeLiveNotificationService: failed to send push to user={user_id} "
-                    f"token_id={push_token_id} event={event_id}: {e}"
-                )
+            for push_token_row in push_tokens:
+                push_token_id = push_token_row.get("push_token_id")
+                push_token = push_token_row.get("push_token")
+                push_platform = push_token_row.get("push_platform")
+
+                if not push_token_id or not push_token:
+                    Logger.warn(
+                        f"YouTubeLiveNotificationService: skipping user={user_id} "
+                        f"event={event_id}: candidate missing active device token"
+                    )
+                    summary["push_errors"] += 1
+                    summary["errors"] += 1
+                    continue
+
+                try:
+                    result = self._send_push_notification(
+                        platform=push_platform,
+                        device_token=push_token,
+                        comedian_id=comedian_uuid,
+                        comedian_name=comedian_name,
+                        youtube_channel_id=youtube_channel_id,
+                        youtube_video_id=youtube_video_id,
+                        video_title=video_title,
+                        watch_url=video_url,
+                    )
+                except Exception as e:
+                    Logger.error(
+                        f"YouTubeLiveNotificationService: failed to send push to user={user_id} "
+                        f"token_id={push_token_id} event={event_id}: {e}"
+                    )
+                    self._record_delivery(
+                        youtube_live_notification_id=notification_id,
+                        push_token_id=push_token_id,
+                        platform=push_platform,
+                        status="failed",
+                        status_code=None,
+                        failure_reason=str(e),
+                    )
+                    summary["push_errors"] += 1
+                    summary["errors"] += 1
+                    continue
+
+                if result.success:
+                    self._record_delivery(
+                        youtube_live_notification_id=notification_id,
+                        push_token_id=push_token_id,
+                        platform=push_platform,
+                        status="sent",
+                        status_code=result.status_code,
+                        failure_reason=None,
+                    )
+                    summary["push_sent"] += 1
+                    continue
+
                 self._record_delivery(
                     youtube_live_notification_id=notification_id,
                     push_token_id=push_token_id,
                     platform=push_platform,
                     status="failed",
-                    status_code=None,
-                    failure_reason=str(e),
+                    status_code=result.status_code,
+                    failure_reason=result.reason,
                 )
+                if result.invalid_token:
+                    self._deactivate_push_token(
+                        token_id=push_token_id,
+                        reason=result.reason or "unknown",
+                        status_code=result.status_code or 0,
+                    )
                 summary["push_errors"] += 1
                 summary["errors"] += 1
-                continue
-
-            if result.success:
-                self._record_delivery(
-                    youtube_live_notification_id=notification_id,
-                    push_token_id=push_token_id,
-                    platform=push_platform,
-                    status="sent",
-                    status_code=result.status_code,
-                    failure_reason=None,
-                )
-                summary["push_sent"] += 1
-                continue
-
-            self._record_delivery(
-                youtube_live_notification_id=notification_id,
-                push_token_id=push_token_id,
-                platform=push_platform,
-                status="failed",
-                status_code=result.status_code,
-                failure_reason=result.reason,
-            )
-            if result.invalid_token:
-                self._deactivate_push_token(
-                    token_id=push_token_id,
-                    reason=result.reason or "unknown",
-                    status_code=result.status_code or 0,
-                )
-            summary["push_errors"] += 1
-            summary["errors"] += 1
 
         Logger.info(
             f"YouTubeLiveNotificationService: done — candidates={summary['candidates']} "
@@ -868,6 +874,29 @@ class YouTubeLiveNotificationService:
             f"errors={summary['errors']}"
         )
         return summary
+
+    def _merge_same_youtube_live_candidates(self, rows: list[dict]) -> list[dict]:
+        merged: dict[tuple[object, object, object, object], dict] = {}
+        for row in rows:
+            key = (
+                row["event_id"],
+                row["user_id"],
+                row["comedian_uuid"],
+                row["youtube_video_id"],
+            )
+            existing = merged.get(key)
+            token_row = {
+                "push_token_id": row.get("push_token_id"),
+                "push_token": row.get("push_token"),
+                "push_platform": row.get("push_platform"),
+            }
+            if existing is None:
+                merged_row = dict(row)
+                merged_row["push_tokens"] = [token_row]
+                merged[key] = merged_row
+                continue
+            existing["push_tokens"].append(token_row)
+        return list(merged.values())
 
     def _is_global_enabled(self) -> bool:
         with get_connection() as conn:
