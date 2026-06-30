@@ -1421,6 +1421,12 @@ UPDATE clubs SET scraper = 'comedy_magic_club', scraping_url = 'https://myvenue.
   (`price` 0 → free).
 - `start_date` is parsed with `datetime.fromisoformat` (preserves the embedded
   offset); a naive timestamp is localized to the club timezone.
+- Some EventPrime feeds emit a real time for most rows but `00:00` for a subset
+  whose public permalink still carries `em_start_time` in EventPrime post-meta.
+  `EventPrimeScraper` detail-fetches only upcoming midnight rows, with bounded
+  concurrency and `skip_js_fallback=True`, then combines the feed date with the
+  detail-page time. Non-midnight feed rows are not refetched. If a detail page
+  fails or marks `em_all_day=1`, the event safely remains at midnight.
 - The endpoint returns the venue's **entire** event history (past + future), so
   the extractor **drops past occurrences** — only upcoming shows are emitted.
 - Optional `metadata.comedy_filter=true` for mixed-use venues (drops non-comedy
