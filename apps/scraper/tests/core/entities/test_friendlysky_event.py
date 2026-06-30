@@ -62,3 +62,17 @@ def test_to_show_falls_back_to_calendar_url_when_url_name_missing():
     expected = "https://tickets.deliriouscomedyclub.com/event?e=EKR&g=ABC123"
     assert show.show_page_url == expected
     assert show.tickets[0].purchase_url == expected
+
+
+def test_to_show_price_defaults_to_none():
+    show = _event().to_show(_club())
+
+    assert show is not None
+    assert show.tickets[0].price is None
+
+
+def test_to_show_threads_enriched_price_into_ticket():
+    show = _event(price=39.95).to_show(_club())
+
+    assert show is not None
+    assert show.tickets[0].price == 39.95

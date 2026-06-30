@@ -25,10 +25,13 @@ Pipeline:
   3. transformation_pipeline    → FriendlySkyEvent.to_show() → Show objects
 """
 
+import asyncio
+import os
 from typing import List, Optional
 from urllib.parse import urlparse
 
 from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.event.friendlysky import FriendlySkyEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 
@@ -43,6 +46,21 @@ _FRIENDLYSKY_HEADERS = {
     "source": "ONLINE",
     "accept": "application/json",
 }
+
+# Per-event price chain. The games API carries no price, but two unauthenticated
+# JSON calls per event recover it (only _FRIENDLYSKY_HEADERS, no cookies/auth):
+#   1. /rest/pkgs?_branch=findByGameIdAndUrlName&hashGameId={hashId}&urlName=tickets
+#      → data.hashId = package hash
+#   2. /rest/onlinePageDispatcher/firstPage?hashPkgId={pkgHash}
+#      → data.targetPkgItems[*].item.price (min face = starting price)
+# These are internal SPA endpoints (no public contract) — degrade to price-less
+# per event on any failure so one bad event never sinks the run.
+_PKGS_PATH = (
+    "/rest/pkgs?_branch=findByGameIdAndUrlName"
+    "&hashGameId={hash_id}&urlName=tickets&_s=1"
+)
+_FIRSTPAGE_PATH = "/rest/onlinePageDispatcher/firstPage?hashPkgId={pkg_hash}"
+_DEFAULT_PRICE_FETCH_CONCURRENCY = 5
 
 
 class DeliriousComedyClubScraper(BaseScraper):
@@ -95,6 +113,8 @@ class DeliriousComedyClubScraper(BaseScraper):
                 self._warn_empty_extraction(f"FriendlySky API {url}", payload=response)
                 return None
 
+            await self._enrich_prices(events, base_url)
+
             Logger.info(
                 f"{self._log_prefix}: extracted {len(events)} game(s) from API",
                 self.logger_context,
@@ -107,3 +127,56 @@ class DeliriousComedyClubScraper(BaseScraper):
                 self.logger_context,
             )
             return None
+
+    async def _enrich_prices(
+        self, events: List[FriendlySkyEvent], base_url: str
+    ) -> None:
+        """Set ``event.price`` to the min face price via the 2-call package chain.
+
+        For each event: GET /rest/pkgs (→ package hash) then GET firstPage
+        (→ min targetPkgItems face price), reusing ``self.fetch_json`` with the
+        FriendlySky headers. Concurrency is bounded by a semaphore so the
+        ~2-per-event extra fetches stay within budget, and every per-event
+        failure is swallowed so the event keeps its price-less ticket rather
+        than sinking the run.
+        """
+        try:
+            concurrency = int(
+                os.environ.get(
+                    "DELIRIOUS_PRICE_CONCURRENCY", _DEFAULT_PRICE_FETCH_CONCURRENCY
+                )
+            )
+        except (TypeError, ValueError):
+            concurrency = _DEFAULT_PRICE_FETCH_CONCURRENCY
+        concurrency = max(1, concurrency)
+        sem = asyncio.Semaphore(concurrency)
+
+        async def _fetch_one(event: FriendlySkyEvent) -> None:
+            if not event.hash_id:
+                return
+            async with sem:
+                try:
+                    pkgs_url = base_url + _PKGS_PATH.format(hash_id=event.hash_id)
+                    pkgs_response = await self.fetch_json(
+                        pkgs_url, headers=_FRIENDLYSKY_HEADERS
+                    )
+                    pkg_hash = DeliriousExtractor.extract_package_hash(pkgs_response)
+                    if not pkg_hash:
+                        return
+
+                    firstpage_url = base_url + _FIRSTPAGE_PATH.format(pkg_hash=pkg_hash)
+                    firstpage_response = await self.fetch_json(
+                        firstpage_url, headers=_FRIENDLYSKY_HEADERS
+                    )
+                    price = DeliriousExtractor.extract_min_price(firstpage_response)
+                except Exception as e:
+                    Logger.debug(
+                        f"{self._log_prefix}: price fetch failed for game "
+                        f"{event.hash_id}: {e}",
+                        self.logger_context,
+                    )
+                    return
+            if price is not None:
+                event.price = price
+
+        await asyncio.gather(*(_fetch_one(event) for event in events))
