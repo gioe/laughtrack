@@ -143,3 +143,79 @@ def test_transformation_pipeline_produces_shows_with_tickets():
         assert show.tickets[0].purchase_url.startswith(
             "https://denvercomedylounge.com/shows/"
         )
+
+
+# A per-show detail page: Event JSON-LD with an offers array (lowest is GA $21).
+_DETAIL_HTML = """
+<html><head>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Event","name":"Friday Night Comedy",
+ "offers":[
+   {"@type":"Offer","name":"General Admission","price":21,"priceCurrency":"USD"},
+   {"@type":"Offer","name":"Front Row","price":31,"priceCurrency":"USD"}
+ ]}
+</script>
+</head><body></body></html>
+"""
+
+
+def test_extract_offer_price_returns_lowest_positive_offer():
+    """The lowest positive Offer price is the representative ticket price."""
+    assert DenverComedyLoungeExtractor.extract_offer_price(_DETAIL_HTML) == 21.0
+
+
+def test_extract_offer_price_none_without_offers():
+    """A detail page without offers (e.g. the ItemList page) yields None."""
+    assert DenverComedyLoungeExtractor.extract_offer_price(FIXTURE_HTML) is None
+    assert DenverComedyLoungeExtractor.extract_offer_price("") is None
+
+
+def test_extract_offer_price_zero_only_offers_is_free():
+    """Offers that all parse to 0 mean an explicitly free show (0.0, not None)."""
+    free_html = """
+    <html><head><script type="application/ld+json">
+    {"@type":"Event","offers":[{"@type":"Offer","price":0,"priceCurrency":"USD"}]}
+    </script></head><body></body></html>
+    """
+    assert DenverComedyLoungeExtractor.extract_offer_price(free_html) == 0.0
+
+
+@pytest.mark.asyncio
+async def test_get_data_hydrates_price_from_detail_pages(monkeypatch):
+    """get_data() fetches each detail page and attaches its Offer price."""
+    scraper = DenverComedyLoungeScraper(_club())
+
+    async def _dispatch_fetch_html(url):
+        # Listing URL → ItemList page; per-show detail URLs → Event w/ offers.
+        return FIXTURE_HTML if url == SHOWS_URL else _DETAIL_HTML
+
+    monkeypatch.setattr(scraper, "fetch_html", _dispatch_fetch_html)
+
+    result = await scraper.get_data(SHOWS_URL)
+
+    assert result is not None
+    assert len(result.event_list) == 2
+    assert all(show.price == 21.0 for show in result.event_list)
+
+    # Price flows through to the ticket.
+    shows = scraper.transformation_pipeline.transform(result)
+    assert all(show.tickets[0].price == 21.0 for show in shows)
+
+
+@pytest.mark.asyncio
+async def test_get_data_leaves_price_none_when_detail_fetch_fails(monkeypatch):
+    """A failing detail fetch leaves price None without dropping the show."""
+    scraper = DenverComedyLoungeScraper(_club())
+
+    async def _failing_detail_fetch(url):
+        if url == SHOWS_URL:
+            return FIXTURE_HTML
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(scraper, "fetch_html", _failing_detail_fetch)
+
+    result = await scraper.get_data(SHOWS_URL)
+
+    assert result is not None
+    assert len(result.event_list) == 2
+    assert all(show.price is None for show in result.event_list)

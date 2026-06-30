@@ -33,6 +33,7 @@ class DenverComedyLoungeShow:
     title: str
     datetime_str: str
     show_page_url: str
+    price: Optional[float] = None
 
     def to_show(
         self,
@@ -53,11 +54,14 @@ class DenverComedyLoungeShow:
             )
             return None
 
-        # On-site Stripe checkout exposes no public price in the page data, so
-        # every show carries one priceless fallback ticket pointing at its own
-        # detail page (preserving the one-ticket-per-show invariant).
+        # The /shows ItemList page carries no price, but each detail page's
+        # Event JSON-LD exposes an Offer price; the scraper hydrates ``price``
+        # from there (None when the detail fetch/parse yields nothing). One
+        # fallback ticket per show preserves the one-ticket-per-show invariant.
         tickets: List[Ticket] = [
-            ShowFactoryUtils.create_fallback_ticket(purchase_url=self.show_page_url)
+            ShowFactoryUtils.create_fallback_ticket(
+                purchase_url=self.show_page_url, price=self.price
+            )
         ]
 
         return ShowFactoryUtils.create_enhanced_show_base(

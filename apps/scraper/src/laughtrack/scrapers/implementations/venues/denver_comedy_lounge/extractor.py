@@ -109,5 +109,58 @@ class DenverComedyLoungeExtractor:
             hour += 12
         return hour
 
+    @staticmethod
+    def extract_offer_price(html_content: str) -> Optional[float]:
+        """Return the lowest schema.org Offer price from a /shows/<slug> detail page.
+
+        The /shows ItemList page carries only name + URL, but each per-show
+        detail page server-renders an ``Event`` JSON-LD block with an
+        ``offers`` array (``{"@type":"Offer","price":21,"priceCurrency":"USD"}``).
+        Return the lowest positive offer price as the representative ticket
+        price, ``0.0`` only when every offer is explicitly free, and ``None``
+        when no parseable offer price is present.
+        """
+        if not html_content:
+            return None
+
+        script_contents = HtmlScraper.get_json_ld_script_contents(html_content)
+        if not script_contents:
+            return None
+
+        json_objects = JSONUtils.parse_json_ld_contents(script_contents)
+        prices: List[float] = []
+        for obj in json_objects:
+            if not isinstance(obj, dict):
+                continue
+            offers = obj.get("offers")
+            if offers is None:
+                continue
+            offer_list = offers if isinstance(offers, list) else [offers]
+            for offer in offer_list:
+                if not isinstance(offer, dict):
+                    continue
+                price = DenverComedyLoungeExtractor._coerce_price(offer.get("price"))
+                if price is not None:
+                    prices.append(price)
+
+        if not prices:
+            return None
+        positive = [p for p in prices if p > 0]
+        if positive:
+            return min(positive)
+        # Every offer parsed to 0 — the show is genuinely free.
+        return 0.0
+
+    @staticmethod
+    def _coerce_price(value: Any) -> Optional[float]:
+        """Coerce a JSON-LD Offer price to a non-negative float, else None."""
+        if value is None or isinstance(value, bool):
+            return None
+        try:
+            price = float(value)
+        except (TypeError, ValueError):
+            return None
+        return price if price >= 0 else None
+
 
 __all__ = ["DenverComedyLoungeExtractor"]
