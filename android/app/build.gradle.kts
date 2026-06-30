@@ -1,3 +1,6 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -17,6 +20,23 @@ if (file("google-services.json").exists()) {
     apply(plugin = libs.plugins.google.services.get().pluginId)
 }
 
+// Release signing material. Local releases read a gitignored
+// app/keystore.properties (storeFile/storePassword/keyAlias/keyPassword); CI
+// reads the same values from environment variables injected from GitHub Actions
+// secrets (see .github/workflows/android-release.yml). Both are optional so
+// debug builds and `assembleRelease` on a machine without the upload key still
+// configure cleanly — the signingConfig is only attached to the release build
+// type when material is actually present (releaseSigningConfig below).
+val keystorePropertiesFile = rootProject.file("app/keystore.properties")
+val keystoreProperties = Properties().apply {
+    if (keystorePropertiesFile.exists()) {
+        FileInputStream(keystorePropertiesFile).use { load(it) }
+    }
+}
+
+fun signingValue(propKey: String, envKey: String): String? =
+    keystoreProperties.getProperty(propKey) ?: System.getenv(envKey)
+
 android {
     namespace = "app.laughtrack.android"
     compileSdk = 35
@@ -25,8 +45,12 @@ android {
         applicationId = "app.laughtrack.android"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        // Version source of truth is gradle.properties (VERSION_CODE / VERSION_NAME),
+        // mirroring ios/project.yml's CURRENT_PROJECT_VERSION / MARKETING_VERSION split.
+        // -PVERSION_CODE / -PVERSION_NAME override at build time so the Fastlane lane can
+        // inject an auto-incremented Play build number without editing this file.
+        versionCode = (project.findProperty("VERSION_CODE") as String?)?.toInt() ?: 1
+        versionName = project.findProperty("VERSION_NAME") as String? ?: "0.1.0"
 
         // Custom runner swaps in HiltTestApplication so @HiltAndroidTest
         // instrumented tests (e.g. AppShellTest) get a real Hilt graph and can
@@ -41,6 +65,29 @@ android {
         buildConfigField("String", "SENTRY_DSN", "\"${project.findProperty("sentryDsn") ?: ""}\"")
     }
 
+    // Resolve the release upload key once: storeFile path comes from
+    // keystore.properties (local) or ANDROID_KEYSTORE_PATH (CI). keyPassword
+    // defaults to the store password (the keystore generated for this app uses a
+    // single password for both). When no material is present, releaseSigningName
+    // stays null and the release build type is left unsigned (so a contributor
+    // can still run `assembleRelease` locally without the upload key).
+    val releaseStoreFile = signingValue("storeFile", "ANDROID_KEYSTORE_PATH")
+    val releaseStorePassword = signingValue("storePassword", "ANDROID_KEYSTORE_PASSWORD")
+    val releaseKeyAlias = signingValue("keyAlias", "ANDROID_KEY_ALIAS")
+    val releaseKeyPassword = signingValue("keyPassword", "ANDROID_KEY_PASSWORD") ?: releaseStorePassword
+    val hasReleaseSigning = releaseStoreFile != null && releaseStorePassword != null && releaseKeyAlias != null
+
+    signingConfigs {
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = file(releaseStoreFile!!)
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+    }
+
     buildTypes {
         debug {
             applicationIdSuffix = ".debug"
@@ -53,6 +100,13 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            // Only attach the release signingConfig when signing material was
+            // resolved above; otherwise leave it unsigned so local release builds
+            // still configure. The Fastlane internal/production lanes always run
+            // with material present, producing a signed AAB.
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 
