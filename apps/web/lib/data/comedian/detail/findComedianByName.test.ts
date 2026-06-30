@@ -39,6 +39,9 @@ function makeComedianRow(
         tiktokAccount: string | null;
         tiktokFollowers: number | null;
         youtubeAccount: string | null;
+        youtubeChannelId: string | null;
+        youtubeLiveFeedEnabled: boolean;
+        youtubeLiveNotificationsEnabled: boolean;
         youtubeFollowers: number | null;
         website: string | null;
         popularity: number;
@@ -125,6 +128,8 @@ function makeComedianRow(
         tiktokFollowers: null,
         youtubeAccount: null,
         youtubeChannelId: null,
+        youtubeLiveFeedEnabled: false,
+        youtubeLiveNotificationsEnabled: false,
         youtubeFollowers: null,
         website: "https://alice.example.com",
         popularity: 80,
@@ -764,7 +769,8 @@ describe("findComedianByName", () => {
                             title: "Episode A",
                             releaseDate,
                             episodeUrl: "https://example.com/guest-high-id",
-                            audioUrl: "https://cdn.example.com/guest-high-id.mp3",
+                            audioUrl:
+                                "https://cdn.example.com/guest-high-id.mp3",
                             durationSeconds: 3000,
                         },
                     },
