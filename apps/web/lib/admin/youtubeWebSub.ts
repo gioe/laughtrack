@@ -59,6 +59,9 @@ const DEFAULT_SETTINGS: YouTubeWebSubSettingsView = {
     pushDeliveryEnabled: false,
 };
 
+// Singleton id for youtube_websub_settings (schema default is 1). Read keys off
+// the same identity the PATCH handler writes (upsert where id=1).
+const SETTINGS_ID = 1;
 const COMEDIAN_LIMIT = 250;
 const EVENT_LIMIT = 100;
 
@@ -67,9 +70,9 @@ function toIso(value: Date | null | undefined): string | null {
 }
 
 export async function getYouTubeWebSubSettings(): Promise<YouTubeWebSubSettingsView> {
-    const setting = await db.youTubeWebSubSetting.findFirst({
+    const setting = await db.youTubeWebSubSetting.findUnique({
+        where: { id: SETTINGS_ID },
         select: { feedIngestionEnabled: true, pushDeliveryEnabled: true },
-        orderBy: { id: "asc" },
     });
     return setting ?? DEFAULT_SETTINGS;
 }
