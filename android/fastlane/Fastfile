@@ -130,11 +130,26 @@ platform :android do
        "pass rollout: '0.1' for a staged rollout."
   lane :production do |options|
     rollout = options[:rollout] || "1"
+    # Promote whatever build is currently the highest on Play, NOT the value in
+    # gradle.properties: the internal lane rewrites gradle.properties in place but
+    # never commits it, so on a fresh CI checkout the file still holds the
+    # committed (stale) code. highest_play_version_code is the real
+    # already-uploaded build. (Review TASK-3269: stale-promote bug.)
+    version_code = highest_play_version_code
+    if version_code.nil?
+      UI.user_error!("No build found on any Play track to promote. Run the `internal` lane first.")
+    end
     upload_to_play_store(
-      track: "production",
+      # Source track the build currently lives on (uploaded by the internal lane),
+      # promoted to production. Setting `track` to production would make supply look
+      # for the build on the production edit, where it does not yet exist.
+      track: "internal",
       track_promote_to: "production",
-      version_code: read_gradle_property("VERSION_CODE").to_i,
+      version_code: version_code,
       rollout: rollout,
+      # A partial rollout must be staged as inProgress; a full (1.0) rollout is a
+      # completed release. Some supply versions reject a <1 rollout without this.
+      release_status: rollout.to_f < 1 ? "inProgress" : "completed",
       skip_upload_aab: true,
       skip_upload_apk: true,
       skip_upload_metadata: true,
@@ -142,6 +157,6 @@ platform :android do
       skip_upload_screenshots: true,
       skip_upload_changelogs: true,
     )
-    UI.success("Promoted versionCode #{read_gradle_property('VERSION_CODE')} to production (rollout #{rollout})")
+    UI.success("Promoted versionCode #{version_code} from internal to production (rollout #{rollout})")
   end
 end
