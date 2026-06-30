@@ -22,6 +22,18 @@ struct ShowsListChromeVisibility: Equatable {
     var showsDateControl: Bool { true }
 }
 
+enum ShowsListStandout {
+    static func resolveID(in shows: [Components.Schemas.Show]) -> Int? {
+        let scored = shows.compactMap { show -> (id: Int, score: Double)? in
+            guard let score = show.popularityScore, score > 0 else { return nil }
+            return (show.id, score)
+        }
+        guard let best = scored.max(by: { $0.score < $1.score }) else { return nil }
+        let topCount = scored.filter { $0.score == best.score }.count
+        return topCount == 1 ? best.id : nil
+    }
+}
+
 struct ShowsListView: View {
     let apiClient: Client
     @ObservedObject var model: ShowsListModel
@@ -117,13 +129,14 @@ struct ShowsListView: View {
                         VStack(alignment: .leading, spacing: theme.spacing.md) {
                             SearchResultsSummary(count: result.items.count, total: result.total)
 
+                            let standoutShowID = ShowsListStandout.resolveID(in: result.items)
                             ForEach(result.items, id: \.id) { show in
                                 Button {
                                     coordinator.open(.show(show.id))
                                 } label: {
                                     ShowRow(
                                         show: show,
-                                        presentation: .compactTicket
+                                        presentation: show.id == standoutShowID ? .compactTicketProminent : .compactTicket
                                     )
                                 }
                                 .buttonStyle(.plain)

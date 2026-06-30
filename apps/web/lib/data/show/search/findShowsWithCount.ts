@@ -305,6 +305,7 @@ function mapShowToDTO(
         id: show.id,
         date: show.date,
         name: show.name,
+        popularityScore: show.popularity,
         description: show.description ?? undefined,
         room: show.room,
         address: show.club.address,

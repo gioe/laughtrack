@@ -32,6 +32,8 @@ struct SearchRootViewTests {
         #expect(SearchRootModel.Pivot.shows.queryPrompt == "Search shows")
         #expect(SearchRootModel.Pivot.podcasts.queryPrompt == "Search podcast titles")
         #expect(ShowDistanceOption.allCases.map(\.title) == ["10 mi", "25 mi", "50 mi", "100 mi"])
+        #expect(ShowSortOption.allCases.map(\.title) == ["Earliest", "Latest", "Low price", "High price"])
+        #expect(!ShowSortOption.allCases.map(\.rawValue).contains("popularity_desc"))
         #expect(!showsModel.dateRange.isActive)
 
         model.query = "Comedy Cellar"

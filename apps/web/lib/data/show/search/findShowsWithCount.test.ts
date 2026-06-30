@@ -148,7 +148,11 @@ beforeEach(() => {
 describe("findShowsWithCount", () => {
     describe("happy path", () => {
         it("returns totalCount and mapped shows", async () => {
-            const fakeShow = makeShow({ id: 42, name: "Friday Night Laughs" });
+            const fakeShow = makeShow({
+                id: 42,
+                name: "Friday Night Laughs",
+                popularity: 42,
+            });
             mockCount.mockResolvedValue(3);
             mockFindMany.mockResolvedValue([fakeShow]);
 
@@ -158,6 +162,7 @@ describe("findShowsWithCount", () => {
             expect(result.shows).toHaveLength(1);
             expect(result.shows[0].id).toBe(42);
             expect(result.shows[0].name).toBe("Friday Night Laughs");
+            expect(result.shows[0].popularityScore).toBe(42);
         });
 
         it("returns empty shows array when count is 0", async () => {

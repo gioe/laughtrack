@@ -12,6 +12,7 @@ struct ShowRowTests {
         #expect(source.contains("enum ShowRowPresentation"))
         #expect(source.contains("case standard"))
         #expect(source.contains("case compactTicket"))
+        #expect(source.contains("case compactTicketProminent"))
         #expect(source.contains("let presentation: ShowRowPresentation"))
         #expect(source.contains("presentation: ShowRowPresentation = .standard"))
         #expect(source.contains("private var ticketPaper"))
@@ -19,6 +20,7 @@ struct ShowRowTests {
         #expect(source.contains("private var ticketInkMuted"))
         #expect(source.contains("private var ticketBorder"))
         #expect(source.contains("private var ticketStubBackground"))
+        #expect(source.contains("private var ticketEdgeAccent"))
         #expect(source.contains("case .compactTicket"))
     }
 

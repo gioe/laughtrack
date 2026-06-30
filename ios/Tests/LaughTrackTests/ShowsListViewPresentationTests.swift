@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import LaughTrackAPIClient
 @testable import LaughTrackApp
 
 @Suite("Shows list view presentation")
@@ -9,12 +10,36 @@ struct ShowsListViewPresentationTests {
         let source = try String(contentsOf: showsListViewSourceURL(), encoding: .utf8)
         let rowBlock = try sourceBlock(
             in: source,
-            from: "ForEach(result.items, id: \\.id) { show in",
+            from: "let standoutShowID = ShowsListStandout.resolveID(in: result.items)",
             to: ".accessibilityIdentifier(LaughTrackViewTestID.showsSearchResultButton(show.id))"
         )
 
         #expect(rowBlock.contains("ShowRow("))
-        #expect(rowBlock.contains("presentation: .compactTicket"))
+        #expect(rowBlock.contains("let standoutShowID = ShowsListStandout.resolveID(in: result.items)"))
+        #expect(rowBlock.contains("show.id == standoutShowID ? .compactTicketProminent : .compactTicket"))
+    }
+
+    @Test("standout resolver picks the single highest positive popularity score")
+    func standoutResolverPicksSingleHighestPositiveScore() {
+        let shows = [
+            makeShow(id: 1, popularityScore: 0.2),
+            makeShow(id: 2, popularityScore: 0.9),
+            makeShow(id: 3, popularityScore: 0.4),
+        ]
+
+        #expect(ShowsListStandout.resolveID(in: shows) == 2)
+    }
+
+    @Test("standout resolver returns nil when there is no clear positive winner")
+    func standoutResolverReturnsNilWithoutClearPositiveWinner() {
+        #expect(ShowsListStandout.resolveID(in: [
+            makeShow(id: 1, popularityScore: nil),
+            makeShow(id: 2, popularityScore: 0),
+        ]) == nil)
+        #expect(ShowsListStandout.resolveID(in: [
+            makeShow(id: 1, popularityScore: 0.8),
+            makeShow(id: 2, popularityScore: 0.8),
+        ]) == nil)
     }
 
     private func showsListViewSourceURL(filePath: String = #filePath) throws -> URL {
@@ -39,5 +64,16 @@ struct ShowsListViewPresentationTests {
     private enum SourceBlockError: Error {
         case missingStart(String)
         case missingEnd(String)
+    }
+
+    private func makeShow(id: Int, popularityScore: Double?) -> Components.Schemas.Show {
+        Components.Schemas.Show(
+            id: id,
+            clubId: 20,
+            date: Date(timeIntervalSince1970: 1_710_000_000),
+            name: "Show \(id)",
+            popularityScore: popularityScore,
+            imageUrl: "https://example.com/show-\(id).jpg"
+        )
     }
 }

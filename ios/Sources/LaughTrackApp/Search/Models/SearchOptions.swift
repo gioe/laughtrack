@@ -20,7 +20,6 @@ enum ShowDistanceOption: Int, CaseIterable, Identifiable {
 enum ShowSortOption: String, CaseIterable, Identifiable {
     case earliest = "date_asc"
     case latest = "date_desc"
-    case popular = "popularity_desc"
     case budget = "price_asc"
     case premium = "price_desc"
 
@@ -32,8 +31,6 @@ enum ShowSortOption: String, CaseIterable, Identifiable {
             return "Earliest"
         case .latest:
             return "Latest"
-        case .popular:
-            return "Popular"
         case .budget:
             return "Low price"
         case .premium:
