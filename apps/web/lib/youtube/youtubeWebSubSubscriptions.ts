@@ -254,6 +254,13 @@ export async function syncYouTubeWebSubSubscriptions(
             continue;
         }
         const channelId = comedian.youtubeChannelId;
+        // A WebSub subscription is keyed by channel, not comedian. If two
+        // Comedian records share one youtubeChannelId, plan a single action for
+        // that channel — otherwise we'd fire duplicate hub calls and upserts for
+        // the same channel in one run.
+        if (eligibleChannelIds.has(channelId)) {
+            continue;
+        }
         eligibleChannelIds.add(channelId);
 
         const existing = subscriptionByChannel.get(channelId);

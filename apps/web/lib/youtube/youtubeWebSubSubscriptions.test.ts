@@ -311,6 +311,33 @@ describe("syncYouTubeWebSubSubscriptions renew/skip/unsubscribe", () => {
         ]);
     });
 
+    it("plans a single action per channel when two comedians share a channel ID", async () => {
+        const { dbClient, upsert } = makeDbClient({
+            feedIngestionEnabled: true,
+            comedians: [
+                { uuid: "c1", name: "Primary", youtubeChannelId: "UC-dup" },
+                { uuid: "c2", name: "Duplicate", youtubeChannelId: "UC-dup" },
+            ],
+            subscriptions: [],
+        });
+        const fetchFn = okFetch(202);
+
+        const result = await syncYouTubeWebSubSubscriptions({
+            dbClient,
+            fetchFn,
+            callbackUrl: CALLBACK_URL,
+            now: NOW,
+        });
+
+        expect(fetchFn).toHaveBeenCalledTimes(1);
+        expect(upsert).toHaveBeenCalledTimes(1);
+        expect(result.counts.subscribe).toBe(1);
+        // the row is pinned to the first comedian record encountered
+        expect(upsert.mock.calls[0][0].create).toMatchObject({
+            comedianId: "c1",
+        });
+    });
+
     it("unsubscribes active subscriptions whose comedian is no longer eligible and leaves failed orphans alone", async () => {
         const { dbClient, update, upsert } = makeDbClient({
             feedIngestionEnabled: true,
