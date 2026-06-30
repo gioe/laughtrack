@@ -2996,7 +2996,7 @@ dropped.
 | **Scraper key** | `seetickets_whitelabel` |
 | **Platform** | `custom` |
 | **DB field** | `source_url`/`scraping_url` + metadata |
-| **Value format** | `source_url = https://wl.eventim.us/?afflky=<KEY>`; metadata `profile_id`, `whitelabel_key`, optional `affiliate_key`, `max_months`, `page_size` |
+| **Value format** | `source_url = https://wl.eventim.us/?afflky=<KEY>`; metadata `profile_id`, `whitelabel_key`, optional `affiliate_key`, `max_months`, `page_size`, `detail_concurrency` |
 | **Generic?** | ✅ generic for SeeTickets/Eventim US whitelabel storefronts |
 
 **Detection signals:**
@@ -3011,9 +3011,9 @@ dropped.
 - Pagination uses `_lfv=<offset>` and `_sft=<offset - page_size>`; the scraper deduplicates by numeric event id.
 
 **Key extraction notes:**
-- List cards expose title, date, location, image, and ticket URL. They do not expose show time, so dates are persisted at local midnight in the club timezone.
+- List cards expose title, date, location, image, and ticket URL but NO show time — so each event's detail page is fetched to recover the real time (TASK-3546).
 - Event URLs are normalized against `https://wl.eventim.us`.
-- Individual event pages may server-render JSON-LD with exact `startDate`, but per-event fetching is intentionally avoided because hundreds of Cloudflare-cleared renders are not viable nightly.
+- Showtime enrichment: `_attach_detail_page_times` fetches each event's detail page (bounded by `detail_concurrency`, default 8) with `skip_js_fallback=True` — a cheap `fetch_html` (no per-page Playwright/Cloudflare clear, convention #296), parses the timed JSON-LD `startDate`, and degrades to the date-only midnight value on any per-event failure. The earlier "per-event fetching intentionally avoided" note no longer applies now that the fetch skips the Playwright fallback.
 
 **DB setup:**
 ```sql
