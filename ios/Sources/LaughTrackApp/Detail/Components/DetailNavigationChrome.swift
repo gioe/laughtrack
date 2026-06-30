@@ -82,6 +82,27 @@ struct EntityDetailNavigationChrome: ViewModifier {
     }
 }
 
+struct DetailAtmosphereScrollContent: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .background(Color.clear)
+            #if os(iOS)
+            .scrollContentBackground(.hidden)
+            #endif
+    }
+}
+
+struct DetailAtmosphereRouteBackground: ViewModifier {
+    func body(content: Content) -> some View {
+        ZStack {
+            LaughTrackAtmosphereBackground()
+                .ignoresSafeArea()
+
+            content
+        }
+    }
+}
+
 private struct DetailNavigationTitle: View {
     @Environment(\.appTheme) private var theme
 
@@ -138,18 +159,14 @@ struct DetailChromeBar: View {
 }
 
 /// Top fade behind the sticky chrome so scrolled detail content dims out
-/// before it reaches the status bar clock. Canvas and heroStart share the
-/// same espresso tone, so the scrim blends into the marquee at rest and
-/// into the canvas once content scrolls underneath.
+/// before it reaches the status bar clock. It stays transparent over the
+/// detail page's single atmosphere layer to avoid a visible seam between
+/// the header controls and the hero content.
 struct DetailStatusBarScrim: View {
-    @Environment(\.appTheme) private var theme
-
     var body: some View {
-        let canvas = theme.laughTrackTokens.colors.canvas
-
         LinearGradient(
             stops: DetailNavigationChrome.statusBarScrimStops.map {
-                .init(color: canvas.opacity($0.opacity), location: $0.location)
+                .init(color: Color.black.opacity($0.opacity * 0.24), location: $0.location)
             },
             startPoint: .top,
             endPoint: .bottom

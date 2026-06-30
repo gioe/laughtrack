@@ -41,3 +41,37 @@ public enum AuthRouteConfiguration {
         return components.url!
     }
 }
+
+#if DEBUG
+public struct DebugTestAuthConfiguration: Equatable, Sendable {
+    public let email: String
+    public let secret: String
+    public let endpointURL: URL
+
+    public static func resolve(
+        environment: [String: String] = ProcessInfo.processInfo.environment
+    ) -> DebugTestAuthConfiguration? {
+        let email = trimmed(
+            environment["LAUGHTRACK_TEST_AUTH_EMAIL"]
+        ) ?? "admin@laugh-track.com"
+        guard let secret = trimmed(environment["LAUGHTRACK_TEST_AUTH_SECRET"]) else {
+            return nil
+        }
+        return DebugTestAuthConfiguration(
+            email: email,
+            secret: secret,
+            endpointURL: AuthRouteConfiguration.websiteBaseURL
+                .appendingPathComponent("api")
+                .appendingPathComponent("v1")
+                .appendingPathComponent("auth")
+                .appendingPathComponent("test-token")
+        )
+    }
+
+    private static func trimmed(_ value: String?) -> String? {
+        guard let value else { return nil }
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+}
+#endif

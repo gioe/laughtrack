@@ -152,6 +152,7 @@ struct HomeContentSectionTests {
         #expect(carouselBlock.contains("UIScreen.main.bounds.width - 64"))
         #expect(carouselBlock.contains(".frame(width: pageWidth"))
         #expect(carouselBlock.contains(".clipped()"))
+        #expect(carouselBlock.contains(".frame(height: 456)"))
         #expect(carouselBlock.contains(".highPriorityGesture(pagerDragGesture(pageWidth: pageWidth))"))
         #expect(heroBlock.contains(".scaledToFill()"))
         #expect(source.contains("HomeDiscoverHeader("))
@@ -238,6 +239,27 @@ struct HomeContentSectionTests {
         #expect(promptBlock.contains("return \"Default area - \\(displayPreference.distanceMiles) mi\""))
         #expect(!railBlock.contains("cityTitle"))
         #expect(!source.contains("Shows tonight near"))
+    }
+
+    @Test("discover location sheet uses compact form-first layout")
+    func discoverLocationSheetUsesCompactFormFirstLayout() throws {
+        let source = try String(contentsOf: homeViewSourceURL(), encoding: .utf8)
+        let block = try sourceBlock(
+            in: source,
+            from: "private struct HomeLocationEditorSheet",
+            to: "private func applyZip()"
+        )
+
+        #expect(block.contains("sheetHeader"))
+        #expect(block.contains("zipControl"))
+        #expect(block.contains("distanceControl"))
+        #expect(block.contains("messageArea"))
+        #expect(block.contains("actionStack"))
+        #expect(block.contains(".presentationDetents([.height(430), .large])"))
+        #expect(block.contains("Text(\"Choose where Discover looks for shows, clubs, and comedians.\")"))
+        #expect(!block.contains("private static let pinIconSize"))
+        #expect(!block.contains("pinWithFrame"))
+        #expect(!block.contains("Text(\"Nearby\")"))
     }
 
     @Test("discover comedian cards use club wall framed headshots")
@@ -339,6 +361,9 @@ struct HomeContentSectionTests {
         #expect(block.contains(".font(.system(size: 9, weight: .semibold, design: .rounded))"))
         #expect(block.contains(".padding(.horizontal, 12)"))
         #expect(block.contains(".padding(.vertical, 5)"))
+        #expect(block.contains("HomeShowsTonightPageIndicator("))
+        #expect(block.contains("pageIndicatorCount"))
+        #expect(block.contains("selectedPageIndex"))
     }
 
     @Test("tonight hero caption follows the comedian used for artwork")

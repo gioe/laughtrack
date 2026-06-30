@@ -188,11 +188,12 @@ struct PodcastDetailView: View {
                         .padding(.vertical, theme.spacing.lg)
                     }
                 }
+                .modifier(DetailAtmosphereScrollContent())
             }
         }
         .ignoresSafeArea(.container, edges: .top)
         .accessibilityIdentifier("laughtrack.podcast-detail-screen")
-        .background(LaughTrackAtmosphereBackground().ignoresSafeArea())
+        .modifier(DetailAtmosphereRouteBackground())
         .overlay(alignment: .top) {
             DetailChromeBar(
                 onBack: { coordinator.pop() },

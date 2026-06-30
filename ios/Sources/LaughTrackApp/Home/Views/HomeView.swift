@@ -702,13 +702,19 @@ private struct HomeLocationEditorSheet: View {
     @Environment(\.appTheme) private var theme
 
     var body: some View {
-        VStack(spacing: 0) {
-            marqueeHeader
-            formBody
+        VStack(alignment: .leading, spacing: theme.spacing.lg) {
+            sheetHeader
+            zipControl
+            distanceControl
+            messageArea
+            actionStack
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, theme.spacing.lg)
+        .padding(.top, theme.spacing.lg)
+        .padding(.bottom, theme.spacing.xl)
         .background(sheetBackground)
-        .presentationDetents([.medium, .large])
+        .presentationDetents([.height(430), .large])
     }
 
     private var sheetBackground: some View {
@@ -729,49 +735,34 @@ private struct HomeLocationEditorSheet: View {
         }
     }
 
-    private static let pinIconSize: CGFloat = 72
-    private static let pinFrameInset: CGFloat = 8
-
-    private var marqueeHeader: some View {
+    private var sheetHeader: some View {
         let laughTrack = theme.laughTrackTokens
 
-        return VStack(spacing: 10) {
-            chromeBar
-
-            Text("Nearby")
-                .font(.system(size: 11, weight: .semibold, design: .rounded))
-                .tracking(2.2)
-                .textCase(.uppercase)
+        return HStack(alignment: .top, spacing: theme.spacing.md) {
+            Image(systemName: "mappin.and.ellipse")
+                .font(.system(size: 24, weight: .semibold))
                 .foregroundStyle(laughTrack.colors.accentStrong)
+                .frame(width: 44, height: 44)
+                .background(laughTrack.colors.surfaceElevated.opacity(0.92))
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+                )
 
-            pinWithFrame
-                .padding(.vertical, 4)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Set your location")
+                    .font(.system(size: 22, weight: .heavy, design: .rounded))
+                    .foregroundStyle(laughTrack.colors.textPrimary)
+                    .accessibilityIdentifier(LaughTrackViewTestID.homeLocationSheet)
 
-            Text("Set your location")
-                .font(.system(size: 24, weight: .heavy, design: .rounded))
-                .tracking(0.4)
-                .textCase(.uppercase)
-                .multilineTextAlignment(.center)
-                .foregroundStyle(.white)
-                .shadow(color: .black.opacity(0.6), radius: 4, x: 0, y: 2)
-                .accessibilityIdentifier(LaughTrackViewTestID.homeLocationSheet)
+                Text("Choose where Discover looks for shows, clubs, and comedians.")
+                    .font(laughTrack.typography.body)
+                    .foregroundStyle(laughTrack.colors.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
 
-            Text("Where should Discover scout for shows, clubs, and comedians?")
-                .font(laughTrack.typography.body)
-                .foregroundStyle(laughTrack.colors.textSecondary)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.horizontal, theme.spacing.xl)
-        }
-        .padding(.bottom, theme.spacing.md)
-        .frame(maxWidth: .infinity)
-    }
-
-    private var chromeBar: some View {
-        let laughTrack = theme.laughTrackTokens
-
-        return HStack {
-            Spacer()
+            Spacer(minLength: 0)
 
             Button {
                 isPresented = false
@@ -787,138 +778,102 @@ private struct HomeLocationEditorSheet: View {
             .buttonStyle(.plain)
             .accessibilityLabel("Close")
         }
-        .padding(.top, theme.spacing.md)
-        .padding(.horizontal, theme.spacing.lg)
     }
 
-    private var pinWithFrame: some View {
+    private var zipControl: some View {
         let laughTrack = theme.laughTrackTokens
 
-        return ZStack {
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(laughTrack.colors.heroStart)
-                .frame(width: Self.pinIconSize, height: Self.pinIconSize)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .stroke(Color.black.opacity(0.55), lineWidth: 1)
-                )
-                .overlay(
-                    Image(systemName: "mappin.and.ellipse")
-                        .font(.system(size: 36, weight: .semibold))
-                        .foregroundStyle(laughTrack.colors.accentStrong)
-                        .shadow(color: laughTrack.colors.accentStrong.opacity(0.6), radius: 6)
-                )
+        return LaughTrackSearchField(placeholder: "10012", text: $model.zipCodeDraft) {
+            Button {
+                applyZip()
+            } label: {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: theme.iconSizes.md, weight: .semibold))
+                    .foregroundStyle(laughTrack.colors.accent)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Apply ZIP")
+        }
+        .modifier(SearchFieldInputBehavior())
+        #if os(iOS)
+        .keyboardType(UIKeyboardType.numberPad)
+        #endif
+        .onSubmit(applyZip)
+        .accessibilityLabel("Discover location ZIP code")
+        .accessibilityIdentifier(LaughTrackViewTestID.homeLocationZipField)
+    }
 
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .strokeBorder(
-                    laughTrack.colors.accentStrong,
-                    style: StrokeStyle(
-                        lineWidth: 2.5,
-                        lineCap: .round,
-                        lineJoin: .round,
-                        dash: [0.5, 7]
-                    )
-                )
-                .frame(
-                    width: Self.pinIconSize + Self.pinFrameInset,
-                    height: Self.pinIconSize + Self.pinFrameInset
-                )
-                .shadow(color: laughTrack.colors.accentStrong.opacity(0.65), radius: 5)
-                .shadow(color: laughTrack.colors.accentStrong.opacity(0.3), radius: 11)
+    private var distanceControl: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return VStack(alignment: .leading, spacing: theme.spacing.xs) {
+            Text("Distance")
+                .font(laughTrack.typography.metadata)
+                .foregroundStyle(laughTrack.colors.textSecondary)
+                .textCase(.uppercase)
+
+            LaughTrackChipPicker(
+                options: SettingsNearbyPreferenceModel.distanceOptions,
+                selection: $model.distanceMiles,
+                accessibilityLabel: "Distance",
+                accessibilityIdentifier: LaughTrackViewTestID.homeLocationDistancePicker
+            ) { "\($0) mi" }
         }
     }
 
-    private var formBody: some View {
+    @ViewBuilder
+    private var messageArea: some View {
         let laughTrack = theme.laughTrackTokens
 
-        return VStack(alignment: .leading, spacing: theme.spacing.lg) {
-            LaughTrackSearchField(placeholder: "10012", text: $model.zipCodeDraft) {
-                Button {
-                    applyZip()
-                } label: {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: theme.iconSizes.md, weight: .semibold))
-                        .foregroundStyle(laughTrack.colors.accent)
+        if let validationMessage = model.validationMessage {
+            Text(validationMessage)
+                .font(laughTrack.typography.body)
+                .foregroundStyle(laughTrack.colors.danger)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+
+        if let statusMessage = model.statusMessage {
+            InlineStatusMessage(message: statusMessage)
+
+            if statusMessage == NearbyLocationError.denied.recoveryMessage {
+                LaughTrackButton("Open Settings", systemImage: "gearshape", tone: .secondary, density: .compact, fullWidth: false) {
+                    openAppSettings()
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Apply ZIP")
             }
-            .modifier(SearchFieldInputBehavior())
-            #if os(iOS)
-            .keyboardType(UIKeyboardType.numberPad)
-            #endif
-            .onSubmit(applyZip)
-            .accessibilityLabel("Discover location ZIP code")
-            .accessibilityIdentifier(LaughTrackViewTestID.homeLocationZipField)
+        }
+    }
 
-            VStack(alignment: .leading, spacing: theme.spacing.sm) {
-                Text("Distance")
-                    .font(laughTrack.typography.metadata)
-                    .foregroundStyle(laughTrack.colors.textSecondary)
-                    .textCase(.uppercase)
-
-                LaughTrackChipPicker(
-                    options: SettingsNearbyPreferenceModel.distanceOptions,
-                    selection: $model.distanceMiles,
-                    accessibilityLabel: "Distance",
-                    accessibilityIdentifier: LaughTrackViewTestID.homeLocationDistancePicker
-                ) { "\($0) mi" }
+    private var actionStack: some View {
+        VStack(spacing: theme.spacing.sm) {
+            LaughTrackButton("Apply ZIP", systemImage: "checkmark", density: .compact) {
+                applyZip()
             }
+            .accessibilityIdentifier(LaughTrackViewTestID.homeLocationApplyButton)
 
-            VStack(spacing: theme.spacing.sm) {
-                LaughTrackButton("Apply ZIP", systemImage: "checkmark", density: .compact) {
-                    applyZip()
-                }
-                .accessibilityIdentifier(LaughTrackViewTestID.homeLocationApplyButton)
-
-                LaughTrackButton(
-                    model.isResolvingCurrentLocation ? "Finding ZIP..." : "Use my location",
-                    systemImage: "location.fill",
-                    tone: .secondary,
-                    density: .compact
-                ) {
-                    Task {
-                        let didUpdate = await model.useCurrentLocation()
-                        if didUpdate {
-                            isPresented = false
-                        }
-                    }
-                }
-                .disabled(model.isResolvingCurrentLocation)
-                .accessibilityIdentifier(LaughTrackViewTestID.homeLocationCurrentButton)
-
-                if model.nearbyPreference != nil {
-                    LaughTrackButton("Clear location", systemImage: "location.slash", tone: .tertiary, density: .compact) {
-                        model.clearNearbyPreference()
+            LaughTrackButton(
+                model.isResolvingCurrentLocation ? "Finding ZIP..." : "Use my location",
+                systemImage: "location.fill",
+                tone: .secondary,
+                density: .compact
+            ) {
+                Task {
+                    let didUpdate = await model.useCurrentLocation()
+                    if didUpdate {
                         isPresented = false
                     }
-                    .accessibilityIdentifier(LaughTrackViewTestID.homeLocationClearButton)
                 }
             }
+            .disabled(model.isResolvingCurrentLocation)
+            .accessibilityIdentifier(LaughTrackViewTestID.homeLocationCurrentButton)
 
-            if let validationMessage = model.validationMessage {
-                Text(validationMessage)
-                    .font(laughTrack.typography.body)
-                    .foregroundStyle(laughTrack.colors.danger)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-
-            if let statusMessage = model.statusMessage {
-                InlineStatusMessage(message: statusMessage)
-
-                if statusMessage == NearbyLocationError.denied.recoveryMessage {
-                    LaughTrackButton("Open Settings", systemImage: "gearshape", tone: .secondary, density: .compact, fullWidth: false) {
-                        openAppSettings()
-                    }
+            if model.nearbyPreference != nil {
+                LaughTrackButton("Clear location", systemImage: "location.slash", tone: .tertiary, density: .compact) {
+                    model.clearNearbyPreference()
+                    isPresented = false
                 }
+                .accessibilityIdentifier(LaughTrackViewTestID.homeLocationClearButton)
             }
-
-            Spacer(minLength: 0)
         }
-        .padding(.horizontal, theme.spacing.xl)
-        .padding(.top, theme.spacing.lg)
-        .padding(.bottom, theme.spacing.xl)
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func applyZip() {
@@ -1079,12 +1034,7 @@ private struct HomeShowsTonightCarousel: View {
                 .clipped()
                 .highPriorityGesture(pagerDragGesture(pageWidth: pageWidth))
             }
-            .frame(height: 400)
-
-            HomeShowsTonightPageIndicator(
-                count: shows.count,
-                selectedIndex: selectedShowIndex
-            )
+            .frame(height: 456)
         }
         #else
         ScrollView(.horizontal, showsIndicators: false) {
@@ -1101,7 +1051,12 @@ private struct HomeShowsTonightCarousel: View {
             Button {
                 coordinator.open(.show(show.id))
             } label: {
-                HomeShowsTonightHeroCard(show: show, width: pageWidth)
+                HomeShowsTonightHeroCard(
+                    show: show,
+                    width: pageWidth,
+                    pageIndicatorCount: shows.count,
+                    selectedPageIndex: selectedShowIndex
+                )
                     .frame(width: pageWidth)
             }
             .frame(width: pageWidth)
@@ -1187,6 +1142,8 @@ private struct HomeShowsTonightPageIndicator: View {
 private struct HomeShowsTonightHeroCard: View {
     let show: Components.Schemas.Show
     var width: CGFloat?
+    var pageIndicatorCount = 0
+    var selectedPageIndex = 0
 
     @Environment(\.appTheme) private var theme
 
@@ -1241,6 +1198,11 @@ private struct HomeShowsTonightHeroCard: View {
                         .shadow(color: laughTrack.colors.accentStrong.opacity(0.45), radius: 6, y: 2)
                         .padding(.top, 4)
                 }
+
+                HomeShowsTonightPageIndicator(
+                    count: pageIndicatorCount,
+                    selectedIndex: selectedPageIndex
+                )
             }
             .frame(maxWidth: .infinity)
         }

@@ -106,6 +106,26 @@ MISSING_META_HTML = """
 </body></html>
 """
 
+DATE_RANGE_MULTI_TIME_HTML = """
+<html><body>
+<section class="month-section" data-month-section="July 2099">
+  <article class="show-card">
+    <a class="poster" href="/show/preacher-lawson"></a>
+    <div class="show-body">
+      <div class="show-copy">
+        <p class="status status-on-sale">On Sale</p>
+        <h3><a href="/show/preacher-lawson">Preacher Lawson</a></h3>
+        <p class="meta">Fri-Sat</p>
+        <p class="meta">Jul 10-11</p>
+        <p class="time"><time>7:00 PM &amp; 9:30 PM</time></p>
+      </div>
+      <a class="show-link pill pill-secondary" href="/show/preacher-lawson">Buy Tickets</a>
+    </div>
+  </article>
+</section>
+</body></html>
+"""
+
 
 # ---------------------------------------------------------------------------
 # Extractor tests
@@ -159,6 +179,22 @@ def test_extract_show_page_url():
 
     assert events[0].show_page_url == "https://empirecomedyme.com/show/open-mic"
     assert events[2].show_page_url == "https://empirecomedyme.com/show/late-show"
+
+
+def test_extract_date_range_with_multiple_times():
+    """Extractor expands date ranges with multiple times into one event per performance."""
+    events = EmpireEventExtractor.extract_events(DATE_RANGE_MULTI_TIME_HTML)
+
+    assert [event.date_time for event in events] == [
+        datetime(2099, 7, 10, 19, 0),
+        datetime(2099, 7, 10, 21, 30),
+        datetime(2099, 7, 11, 19, 0),
+        datetime(2099, 7, 11, 21, 30),
+    ]
+    assert {event.name for event in events} == {"Preacher Lawson"}
+    assert {event.show_page_url for event in events} == {
+        "https://empirecomedyme.com/show/preacher-lawson"
+    }
 
 
 def test_extract_empty_page_returns_empty_list():

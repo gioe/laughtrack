@@ -10,6 +10,8 @@ import {
     rateLimitHeaders,
     rateLimitResponse,
 } from "@/lib/rateLimit";
+import { buildComedianImageUrls } from "@/lib/data/comedian/imageAssets";
+import { DEFAULT_SHOW_TIMEZONE } from "@/util/dateUtil";
 
 /**
  * One notification-center item. Today the only notification type is the
@@ -25,6 +27,7 @@ interface NotificationItem {
     body: string;
     comedianId: string;
     comedianName: string;
+    comedianImageUrl: string;
     showId: number;
     showPageUrl: string | null;
     showDate: string | null;
@@ -41,6 +44,66 @@ interface NotificationItem {
 // of the notification center. The cap counts pre-grouping rows; email+push for
 // the same event collapse afterward, so the rendered item count can be lower.
 const NOTIFICATIONS_FETCH_LIMIT = 100;
+
+function formatNotificationTitle(comedianName: string): string {
+    return `${comedianName} is performing near you`;
+}
+
+function formatNotificationSubtitle({
+    clubName,
+    showDate,
+    timezone,
+}: {
+    clubName: string;
+    showDate: Date | null | undefined;
+    timezone?: string | null;
+}): string {
+    const time = showDate ? formatPerformanceTime(showDate, timezone) : "";
+    if (clubName && time) return `${clubName} at ${time}`;
+    return clubName || time;
+}
+
+function formatPerformanceTime(
+    showDate: Date,
+    timezone?: string | null,
+): string {
+    const parts = new Intl.DateTimeFormat("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+        timeZone: timezone || DEFAULT_SHOW_TIMEZONE,
+        timeZoneName: "short",
+    }).formatToParts(showDate);
+    const getPart = (type: Intl.DateTimeFormatPartTypes) =>
+        parts.find((part) => part.type === type)?.value ?? "";
+    const hour = getPart("hour");
+    const minute = getPart("minute");
+    const dayPeriod = getPart("dayPeriod").toLowerCase();
+    const timeZoneName = getPart("timeZoneName");
+
+    return [hour && minute ? `${hour}:${minute}` : "", dayPeriod, timeZoneName]
+        .filter(Boolean)
+        .join(" ");
+}
+
+function compareNotificationItems(
+    a: NotificationItem,
+    b: NotificationItem,
+): number {
+    const sentDiff = Date.parse(b.sentAt) - Date.parse(a.sentAt);
+    if (sentDiff !== 0) return sentDiff;
+
+    if (a.showDate && b.showDate) {
+        const showDiff = Date.parse(a.showDate) - Date.parse(b.showDate);
+        if (showDiff !== 0) return showDiff;
+    } else if (a.showDate) {
+        return -1;
+    } else if (b.showDate) {
+        return 1;
+    }
+
+    return a.id.localeCompare(b.id);
+}
 
 const NotificationPreferenceUpdateSchema = z
     .object({
@@ -99,12 +162,34 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
             showId: true,
             notificationType: true,
             sentAt: true,
-            comedian: { select: { name: true } },
+            comedian: {
+                select: {
+                    name: true,
+                    hasImage: true,
+                    imageAssets: {
+                        where: { isActive: true },
+                        orderBy: { publishedAt: "desc" },
+                        take: 1,
+                        select: {
+                            avatarPath: true,
+                            heroPath: true,
+                            isActive: true,
+                        },
+                    },
+                },
+            },
             show: {
                 select: {
                     date: true,
                     showPageUrl: true,
-                    club: { select: { name: true, city: true, state: true } },
+                    club: {
+                        select: {
+                            name: true,
+                            city: true,
+                            state: true,
+                            timezone: true,
+                        },
+                    },
                 },
             },
         },
@@ -123,20 +208,27 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
         }
 
         const comedianName = row.comedian?.name ?? "A comedian you follow";
+        const comedianImageUrl = row.comedian
+            ? buildComedianImageUrls({
+                  name: comedianName,
+                  hasImage: row.comedian.hasImage,
+                  activeAsset: row.comedian.imageAssets?.[0] ?? null,
+              }).avatarUrl
+            : "";
         const club = row.show?.club;
         const clubName = club?.name ?? "";
-        const location = [club?.city, club?.state]
-            .filter(Boolean)
-            .join(", ");
 
         groups.set(key, {
             id: key,
-            title: `${comedianName} is performing near you`,
-            // Join only the non-empty segments so a missing club name (or
-            // missing location) never leaves a dangling " · " separator.
-            body: [clubName, location].filter(Boolean).join(" · "),
+            title: formatNotificationTitle(comedianName),
+            body: formatNotificationSubtitle({
+                clubName,
+                showDate: row.show?.date,
+                timezone: club?.timezone,
+            }),
             comedianId: row.comedianId,
             comedianName,
+            comedianImageUrl,
             showId: row.showId,
             showPageUrl: row.show?.showPageUrl ?? null,
             showDate: row.show?.date ? row.show.date.toISOString() : null,
@@ -151,7 +243,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
         });
     }
 
-    const items = Array.from(groups.values());
+    const items = Array.from(groups.values()).sort(compareNotificationItems);
     const unreadCount = items.filter((item) => item.isUnread).length;
 
     return NextResponse.json(

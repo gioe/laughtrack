@@ -11,8 +11,11 @@ struct MarqueeHero: View {
 
     let title: String
     var eyebrow: String? = nil
+    var titleTopPadding: CGFloat = 18
     let imageURL: String
     var thumbnailStyle: MarqueeHeroThumbnailStyle = .marqueePoster
+    var thumbnailCaption: String? = nil
+    var thumbnailHeadshots: [DetailHeroHeadshot] = []
     var badges: [DetailHeroBadge] = []
     var actions: [DetailHeroAction] = []
     var hosts: [DetailHeroHost] = []
@@ -51,6 +54,7 @@ struct MarqueeHero: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .shadow(color: .black.opacity(0.6), radius: 4, x: 0, y: 2)
                 .padding(.horizontal, 24)
+                .padding(.top, titleTopPadding)
 
             heroThumbnail
 
@@ -94,7 +98,6 @@ struct MarqueeHero: View {
         .padding(.top, Self.statusBarOffset)
         .padding(.bottom, theme.spacing.lg)
         .frame(maxWidth: .infinity)
-        .background(marqueeBackground)
     }
 
     /// Status-bar clearance. Each detail view applies
@@ -131,38 +134,6 @@ struct MarqueeHero: View {
         #endif
     }
 
-    private var marqueeBackground: some View {
-        let laughTrack = theme.laughTrackTokens
-
-        return ZStack {
-            laughTrack.colors.heroStart
-
-            RadialGradient(
-                colors: [
-                    laughTrack.colors.accent.opacity(0.18),
-                    laughTrack.colors.accent.opacity(0.0)
-                ],
-                center: .center,
-                startRadius: 20,
-                endRadius: 260
-            )
-        }
-        .mask(
-            LinearGradient(
-                stops: [
-                    .init(color: .black.opacity(0), location: 0),
-                    .init(color: .black.opacity(0.5), location: 0.06),
-                    .init(color: .black, location: 0.16),
-                    .init(color: .black, location: 0.84),
-                    .init(color: .black.opacity(0.5), location: 0.94),
-                    .init(color: .black.opacity(0), location: 1)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-        )
-    }
-
     @ViewBuilder
     private var heroThumbnail: some View {
         switch thumbnailStyle {
@@ -171,12 +142,19 @@ struct MarqueeHero: View {
                 imageURL: imageURL,
                 fallbackSystemImage: fallbackSystemImage
             )
-        case .framedComedian(let caption):
-            FramedComedianThumbnail(
-                caption: caption,
-                imageURL: imageURL,
-                fallbackSystemImage: fallbackSystemImage
-            )
+        case .framedComedian:
+            if thumbnailHeadshots.count > 1 {
+                FramedComedianCarouselThumbnail(
+                    headshots: thumbnailHeadshots,
+                    fallbackSystemImage: fallbackSystemImage
+                )
+            } else {
+                FramedComedianThumbnail(
+                    imageURL: imageURL,
+                    fallbackSystemImage: fallbackSystemImage,
+                    caption: thumbnailCaption
+                )
+            }
         case .clubMarquee:
             ClubMarqueeThumbnail(
                 imageURL: imageURL,
@@ -303,9 +281,15 @@ struct MarqueeHero: View {
 
 enum MarqueeHeroThumbnailStyle {
     case marqueePoster
-    case framedComedian(caption: String)
+    case framedComedian
     case clubMarquee
     case podcastRail
+}
+
+struct DetailHeroHeadshot: Identifiable, Hashable {
+    let id: String
+    let name: String
+    let imageURL: String
 }
 
 struct MarqueePosterThumbnail: View {
@@ -423,65 +407,127 @@ struct MarqueePosterThumbnail: View {
 }
 
 struct FramedComedianThumbnail: View {
-    let caption: String
     let imageURL: String
     let fallbackSystemImage: String
+    let caption: String?
 
     @Environment(\.appTheme) private var theme
 
     private static let headshotSize: CGFloat = 208
+    private static let frameWidth: CGFloat = 244
+    private static let frameHeight: CGFloat = 278
     private static let cornerRadius: CGFloat = 12
 
     var body: some View {
-        VStack(spacing: 8) {
-            DetailThumbnailImage(
-                imageURL: imageURL,
-                fallbackSystemImage: fallbackSystemImage,
-                contentMode: .fill
-            )
-            .frame(width: Self.headshotSize, height: Self.headshotSize)
-            .clipShape(RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous)
-                    .stroke(Color.black.opacity(0.58), lineWidth: 1.5)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: Self.cornerRadius + 4, style: .continuous)
-                    .stroke(theme.laughTrackTokens.colors.accentStrong.opacity(0.62), lineWidth: 1)
-                    .padding(-5)
-            )
-            .shadow(color: .black.opacity(0.42), radius: 12, y: 7)
-
-            HeadshotNameplate(name: caption)
+        if
+            let caption = caption?.trimmingCharacters(in: .whitespacesAndNewlines),
+            !caption.isEmpty
+        {
+            ClubWallHeadshotFrame(
+                caption: caption,
+                photoWidth: Self.headshotSize,
+                photoHeight: Self.headshotSize,
+                frameWidth: Self.frameWidth,
+                frameHeight: Self.frameHeight,
+                captionFontSize: 14,
+                captionWidth: Self.headshotSize,
+                captionHeight: 24,
+                rotationDegrees: -0.4
+            ) {
+                thumbnailImage
+            }
+        } else {
+            thumbnailImage
+                .frame(width: Self.headshotSize, height: Self.headshotSize)
+                .clipShape(RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous)
+                        .stroke(Color.black.opacity(0.58), lineWidth: 1.5)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: Self.cornerRadius + 4, style: .continuous)
+                        .stroke(theme.laughTrackTokens.colors.accentStrong.opacity(0.62), lineWidth: 1)
+                        .padding(-5)
+                )
+                .shadow(color: .black.opacity(0.42), radius: 12, y: 7)
+                .rotationEffect(.degrees(-0.4))
         }
-        .rotationEffect(.degrees(-0.4))
+    }
+
+    private var thumbnailImage: some View {
+        DetailThumbnailImage(
+            imageURL: imageURL,
+            fallbackSystemImage: fallbackSystemImage,
+            contentMode: .fill
+        )
     }
 }
 
-private struct HeadshotNameplate: View {
-    let name: String
+private struct FramedComedianCarouselThumbnail: View {
+    let headshots: [DetailHeroHeadshot]
+    let fallbackSystemImage: String
 
-    @Environment(\.appTheme) private var theme
+    @State private var selectedIndex = 0
+    @State private var pauseAutoAdvanceUntil = Date.distantPast
+
+    private static let autoAdvanceInterval: UInt64 = 2_500_000_000
+    private static let manualPauseDuration: TimeInterval = 5
 
     var body: some View {
-        Text(name.uppercased())
-            .font(.system(size: 13, weight: .semibold, design: .serif))
-            .tracking(0.7)
-            .foregroundStyle(Color.black.opacity(0.76))
-            .lineLimit(1)
-            .minimumScaleFactor(0.65)
-            .padding(.horizontal, 18)
-            .frame(height: 28)
-            .background(
-                RoundedRectangle(cornerRadius: 4, style: .continuous)
-                    .fill(Color(red: 0.88, green: 0.84, blue: 0.75))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 4, style: .continuous)
-                            .stroke(Color.white.opacity(0.35), lineWidth: 1)
-                    )
+        let selected = headshots[min(max(selectedIndex, 0), headshots.count - 1)]
+
+        ZStack {
+            FramedComedianThumbnail(
+                imageURL: selected.imageURL,
+                fallbackSystemImage: fallbackSystemImage,
+                caption: selected.name
             )
-            .shadow(color: .black.opacity(0.30), radius: 5, y: 3)
-            .accessibilityHidden(true)
+            .id(selected.id)
+            .transition(
+                .asymmetric(
+                    insertion: .move(edge: .trailing).combined(with: .opacity),
+                    removal: .move(edge: .leading).combined(with: .opacity)
+                )
+            )
+        }
+        .animation(.spring(response: 0.38, dampingFraction: 0.84), value: selected.id)
+        .highPriorityGesture(swipeGesture)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(selected.name), \(selectedIndex + 1) of \(headshots.count)")
+        .task {
+            await autoAdvance()
+        }
+    }
+
+    private var swipeGesture: some Gesture {
+        DragGesture(minimumDistance: 20)
+            .onEnded { value in
+                guard abs(value.translation.width) > abs(value.translation.height) else { return }
+                pauseAutoAdvanceUntil = Date().addingTimeInterval(Self.manualPauseDuration)
+                if value.translation.width < -32 {
+                    advance()
+                } else if value.translation.width > 32 {
+                    retreat()
+                }
+            }
+    }
+
+    private func autoAdvance() async {
+        while !Task.isCancelled {
+            try? await Task.sleep(nanoseconds: Self.autoAdvanceInterval)
+            guard !Task.isCancelled, Date() >= pauseAutoAdvanceUntil else { continue }
+            advance()
+        }
+    }
+
+    private func advance() {
+        guard headshots.count > 1 else { return }
+        selectedIndex = (selectedIndex + 1) % headshots.count
+    }
+
+    private func retreat() {
+        guard headshots.count > 1 else { return }
+        selectedIndex = (selectedIndex - 1 + headshots.count) % headshots.count
     }
 }
 

@@ -91,6 +91,19 @@ class ShowclixEventData:
     forceConsecutiveSeats: bool
     forceConsecutiveSeatsMessage: str
 
+    @staticmethod
+    def _as_mapping(value) -> Dict:
+        """Coerce a Showclix collection field to a dict for iteration.
+
+        The seated-events API serialises *empty* collections as a JSON array
+        (``[]``) rather than an object (``{}``). GA-only events carry no
+        seating sections, so ``event_sections`` and ``sections`` come back as
+        empty lists — calling ``.items()`` on them raised
+        ``'list' object has no attribute 'items'`` and dropped the price for
+        every GA event. Treat any non-dict value as an empty mapping.
+        """
+        return value if isinstance(value, dict) else {}
+
     @classmethod
     def from_dict(cls, data: Dict) -> "ShowclixEventData":
         """
@@ -116,7 +129,7 @@ class ShowclixEventData:
 
         # Parse all_levels data
         all_levels = {}
-        for level_id, level_data in data["all_levels"].items():
+        for level_id, level_data in cls._as_mapping(data["all_levels"]).items():
             all_levels[level_id] = ShowclixPriceLevel(
                 level_id=level_data["level_id"],
                 level=level_data["level"],
@@ -128,7 +141,7 @@ class ShowclixEventData:
 
         # Parse event_sections data
         event_sections = {}
-        for section_id, section_data in data["event_sections"].items():
+        for section_id, section_data in cls._as_mapping(data["event_sections"]).items():
             event_sections[section_id] = ShowclixEventSection(
                 arbitrary_id=section_data["arbitrary_id"],
                 event_id=section_data["event_id"],
@@ -141,7 +154,7 @@ class ShowclixEventData:
 
         # Parse sections data
         sections = {}
-        for section_id, section_data in data["sections"].items():
+        for section_id, section_data in cls._as_mapping(data["sections"]).items():
             sections[section_id] = ShowclixSection(
                 section_id=section_data["section_id"],
                 venue_id=section_data["venue_id"],

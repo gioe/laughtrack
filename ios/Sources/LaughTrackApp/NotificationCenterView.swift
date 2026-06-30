@@ -17,6 +17,7 @@ struct NotificationCenterView: View {
     @Environment(\.serviceContainer) private var serviceContainer
 
     @StateObject private var model = NotificationCenterModel()
+    @State private var openDropdownID: String?
 
     private var analytics: (any AnalyticsManagerProtocol)? {
         serviceContainer.resolveOptional(AnalyticsManagerProtocol.self)
@@ -42,10 +43,15 @@ struct NotificationCenterView: View {
                     message: "When a comedian you follow has a show near you, you'll see it here.",
                     retry: nil
                 )
-            case .loaded(let items):
+            case .loaded:
                 ScrollView {
                     LazyVStack(spacing: theme.spacing.sm) {
-                        ForEach(items) { item in
+                        NotificationSortPicker(
+                            selection: $model.sort,
+                            openDropdownID: $openDropdownID
+                        )
+
+                        ForEach(model.sortedItems) { item in
                             Button {
                                 analytics?.track(
                                     NotificationsAnalyticsEvents.cardTapped,
@@ -68,8 +74,23 @@ struct NotificationCenterView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(LaughTrackAtmosphereBackground().ignoresSafeArea())
         .navigationTitle("Notifications")
+        .navigationBarTitleDisplayMode(.inline)
         .modifier(LaughTrackNavigationChrome(background: .clear))
         .accessibilityIdentifier(LaughTrackViewTestID.notificationCenterScreen)
+        .overlayPreferenceValue(PillDropdownAnchorKey.self) { anchors in
+            GeometryReader { proxy in
+                PillDropdownOverlay(
+                    id: NotificationSortPicker.dropdownID,
+                    options: NotificationSortOption.allCases,
+                    selected: $model.sort,
+                    triggerLabel: { $0.title },
+                    optionLabel: { $0.title },
+                    openDropdownID: $openDropdownID,
+                    anchors: anchors,
+                    proxy: proxy
+                )
+            }
+        }
         .task {
             await model.loadIfNeeded(apiClient: apiClient)
             // Opening the center is the "seen" signal — but only mark seen once
@@ -94,6 +115,28 @@ struct NotificationCenterView: View {
     }
 }
 
+private struct NotificationSortPicker: View {
+    static let dropdownID = "notifications-sort"
+
+    @Binding var selection: NotificationSortOption
+    @Binding var openDropdownID: String?
+
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        PillDropdownTrigger(
+            id: Self.dropdownID,
+            selected: selection,
+            triggerLabel: { "Sort: \($0.title)" },
+            accessibilityLabel: { "Sort notifications by \($0.title)" },
+            openDropdownID: $openDropdownID
+        )
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.bottom, theme.spacing.xs)
+        .accessibilityIdentifier("laughtrack.notifications.sort-picker")
+    }
+}
+
 private struct NotificationRow: View {
     let item: NotificationCenterItem
 
@@ -103,12 +146,7 @@ private struct NotificationRow: View {
         let tokens = theme.laughTrackTokens
 
         HStack(alignment: .top, spacing: theme.spacing.sm) {
-            // Unread dot keeps the read/unread distinction visible for the
-            // current session even though opening the center clears the badge.
-            Circle()
-                .fill(item.isUnread ? tokens.colors.accentStrong : Color.clear)
-                .frame(width: 8, height: 8)
-                .padding(.top, 6)
+            comedianAvatar
 
             VStack(alignment: .leading, spacing: theme.spacing.xs) {
                 Text(item.title)
@@ -120,19 +158,8 @@ private struct NotificationRow: View {
                         .foregroundStyle(tokens.colors.textSecondary)
                 }
                 HStack(spacing: theme.spacing.xs) {
-                    ForEach(item.channels, id: \.self) { channel in
-                        Text(channel.uppercased())
-                            .font(laughTrackMetadata)
-                            .foregroundStyle(tokens.colors.accent)
-                            .padding(.horizontal, theme.spacing.xs)
-                            .padding(.vertical, 2)
-                            .overlay(
-                                Capsule(style: .continuous)
-                                    .stroke(tokens.colors.borderSubtle, lineWidth: 1)
-                            )
-                    }
-                    if let relative = relativeSentAt {
-                        Text(relative)
+                    ForEach(item.metadataLabels(relativeSentAt: relativeSentAt), id: \.self) { label in
+                        Text(label)
                             .font(laughTrackMetadata)
                             .foregroundStyle(tokens.colors.textSecondary)
                     }
@@ -161,6 +188,51 @@ private struct NotificationRow: View {
 
     private var laughTrackBody: Font { theme.laughTrackTokens.typography.body }
     private var laughTrackMetadata: Font { theme.laughTrackTokens.typography.metadata }
+
+    private var comedianAvatar: some View {
+        let tokens = theme.laughTrackTokens
+
+        return ZStack {
+            Circle()
+                .fill(tokens.colors.surfaceMuted)
+
+            if let url = item.comedianImageURL {
+                CachedAsyncImage(url: url) { image in
+                    image
+                        .resizable()
+                        .scaledToFill()
+                } placeholder: {
+                    avatarFallback
+                } error: { _ in
+                    avatarFallback
+                }
+            } else {
+                avatarFallback
+            }
+        }
+        .frame(width: 50, height: 50)
+        .clipShape(Circle())
+        .overlay(Circle().stroke(tokens.colors.borderStrong.opacity(0.45), lineWidth: 1))
+        .shadowStyle(tokens.shadows.card)
+        .overlay(alignment: .topTrailing) {
+            if item.isUnread {
+                Circle()
+                    .fill(tokens.colors.accentStrong)
+                    .frame(width: 10, height: 10)
+                    .overlay(Circle().stroke(tokens.colors.surfaceElevated, lineWidth: 2))
+                    .offset(x: 1, y: -1)
+            }
+        }
+        .accessibilityHidden(true)
+    }
+
+    private var avatarFallback: some View {
+        let tokens = theme.laughTrackTokens
+
+        return Image(systemName: "person.fill")
+            .font(.system(size: 20, weight: .semibold))
+            .foregroundStyle(tokens.colors.accentStrong)
+    }
 
     // Shared formatter — reused across every row body eval rather than
     // allocated per render (matches the static ISO formatters in the model).

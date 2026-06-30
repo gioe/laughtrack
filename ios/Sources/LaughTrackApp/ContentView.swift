@@ -259,7 +259,7 @@ struct ContentView: View {
 
             return .signedOutShell(message: message)
         case .authenticated:
-            guard hasLoadedCurrentUser else {
+            guard hasLoadedCurrentUser || currentUser != nil else {
                 return .loading
             }
 

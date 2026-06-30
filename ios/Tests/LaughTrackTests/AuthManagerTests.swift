@@ -74,6 +74,69 @@ struct AuthManagerTests {
         #expect(await authMiddleware.hasAccessToken)
     }
 
+    @Test("DEBUG test sign-in stores native token pair without starting a web auth session")
+    @MainActor
+    func debugTestSignInStoresReturnedTokens() async {
+        let secureStorage = InMemorySecureStorage()
+        let appStateStorage = AppStateStorage(userDefaults: UserDefaults(suiteName: "AuthManagerTests.debugTestSignIn.\(UUID().uuidString)")!)
+        let authMiddleware = AuthenticationMiddleware(secureStorage: secureStorage)
+        let tokenManager = AuthTokenManager(secureStorage: secureStorage)
+        let runner = MockOAuthSessionRunner()
+        let accessToken = Self.jwt(expirationOffset: 7200)
+        let refreshToken = "opaque-refresh-token-\(UUID().uuidString)"
+
+        let manager = AuthManager(
+            tokenManager: tokenManager,
+            authMiddleware: authMiddleware,
+            appStateStorage: appStateStorage,
+            oauthSessionRunner: runner
+        )
+
+        await manager.signInWithTestTokens(accessToken: accessToken, refreshToken: refreshToken)
+
+        guard case .authenticated(let session) = manager.state else {
+            Issue.record("Expected authenticated state")
+            return
+        }
+
+        #expect(session.provider == nil)
+        #expect(tokenManager.retrieveAccessToken() == accessToken)
+        #expect(tokenManager.retrieveRefreshToken() == refreshToken)
+        #expect(await authMiddleware.hasAccessToken)
+        #expect(runner.lastStartURL == nil)
+    }
+
+    @Test("debug test auth config requires a secret")
+    func debugTestAuthConfigRequiresSecret() {
+        let config = DebugTestAuthConfiguration.resolve(environment: [
+            "LAUGHTRACK_TEST_AUTH_EMAIL": "admin@laugh-track.com"
+        ])
+
+        #expect(config == nil)
+    }
+
+    @Test("debug test auth config defaults to the shared notification account")
+    func debugTestAuthConfigDefaultsEmail() throws {
+        let config = try #require(DebugTestAuthConfiguration.resolve(environment: [
+            "LAUGHTRACK_TEST_AUTH_SECRET": "local-secret"
+        ]))
+
+        #expect(config.email == "admin@laugh-track.com")
+        #expect(config.secret == "local-secret")
+        #expect(config.endpointURL.path == "/api/v1/auth/test-token")
+    }
+
+    @Test("debug test auth config trims explicit values")
+    func debugTestAuthConfigTrimsValues() throws {
+        let config = try #require(DebugTestAuthConfiguration.resolve(environment: [
+            "LAUGHTRACK_TEST_AUTH_EMAIL": "  tester@example.com  ",
+            "LAUGHTRACK_TEST_AUTH_SECRET": "  staging-secret  "
+        ]))
+
+        #expect(config.email == "tester@example.com")
+        #expect(config.secret == "staging-secret")
+    }
+
     @Test("native email auth provider starts expected magic-link flow")
     @MainActor
     func nativeEmailAuthProviderStartsExpectedFlow() async {

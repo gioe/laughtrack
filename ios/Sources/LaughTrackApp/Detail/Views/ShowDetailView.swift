@@ -56,9 +56,10 @@ struct ShowDetailView: View {
                     VStack(alignment: .leading, spacing: 0) {
                         MarqueeHero(
                             title: ShowTitlePresentation.title(for: show),
-                            eyebrow: show.club.name,
                             imageURL: ShowDetailPresentation.heroImageURL(for: show),
                             thumbnailStyle: ShowDetailPresentation.heroThumbnailStyle(for: show),
+                            thumbnailCaption: ShowDetailPresentation.heroThumbnailCaption(for: show),
+                            thumbnailHeadshots: ShowDetailPresentation.heroHeadshots(for: show),
                             badges: ShowDetailPresentation.heroBadges(for: show),
                             fallbackSystemImage: "ticket.fill"
                         )
@@ -110,12 +111,13 @@ struct ShowDetailView: View {
                         .padding(.vertical, theme.spacing.lg)
                     }
                 }
+                .modifier(DetailAtmosphereScrollContent())
                 .safariSheet(url: $safariURL)
             }
         }
         .ignoresSafeArea(.container, edges: .top)
         .accessibilityIdentifier(LaughTrackViewTestID.showDetailScreen)
-        .background(LaughTrackAtmosphereBackground().ignoresSafeArea())
+        .modifier(DetailAtmosphereRouteBackground())
         .overlay(alignment: .top) {
             DetailChromeBar(
                 onBack: { coordinator.pop() },
@@ -253,7 +255,7 @@ enum ShowDetailPresentation {
     /// fall back to the show's own image (venue photo / show poster) otherwise.
     static func heroImageURL(for show: Components.Schemas.ShowDetail) -> String {
         if
-            let headshot = headliner(in: show)?.imageUrl.trimmingCharacters(in: .whitespacesAndNewlines),
+            let headshot = heroHeadliner(in: show)?.imageUrl.trimmingCharacters(in: .whitespacesAndNewlines),
             !headshot.isEmpty
         {
             return headshot
@@ -266,13 +268,65 @@ enum ShowDetailPresentation {
     }
 
     static func heroThumbnailStyle(for show: Components.Schemas.ShowDetail) -> MarqueeHeroThumbnailStyle {
-        if
-            let headliner = headliner(in: show),
-            !headliner.imageUrl.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        {
-            return .framedComedian(caption: headliner.name)
+        if heroHeadliner(in: show) != nil {
+            return .framedComedian
         }
         return .clubMarquee
+    }
+
+    static func heroThumbnailCaption(for show: Components.Schemas.ShowDetail) -> String? {
+        heroHeadliner(in: show)?.name
+    }
+
+    static func heroHeadshots(for show: Components.Schemas.ShowDetail) -> [DetailHeroHeadshot] {
+        guard
+            !isOpenMic(show),
+            let lineup = show.lineup,
+            !lineup.isEmpty,
+            let headliner = heroHeadliner(in: show)
+        else {
+            return []
+        }
+
+        let usable = lineup.compactMap { comedian -> DetailHeroHeadshot? in
+            let imageURL = comedian.imageUrl.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !imageURL.isEmpty else { return nil }
+            return DetailHeroHeadshot(
+                id: comedian.uuid,
+                name: comedian.name,
+                imageURL: imageURL
+            )
+        }
+        guard usable.count > 1 else { return usable }
+
+        return usable.sorted { lhs, rhs in
+            if lhs.id == headliner.uuid { return true }
+            if rhs.id == headliner.uuid { return false }
+            let lhsIndex = lineup.firstIndex { $0.uuid == lhs.id } ?? Int.max
+            let rhsIndex = lineup.firstIndex { $0.uuid == rhs.id } ?? Int.max
+            return lhsIndex < rhsIndex
+        }
+    }
+
+    private static func heroHeadliner(in show: Components.Schemas.ShowDetail) -> Components.Schemas.ComedianLineup? {
+        guard !isOpenMic(show), let lineup = show.lineup, !lineup.isEmpty else {
+            return nil
+        }
+        let imageLineup = lineup.filter {
+            !$0.imageUrl.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+        guard !imageLineup.isEmpty else { return nil }
+        return imageLineup.enumerated().sorted { lhs, rhs in
+            let lhsPop = lhs.element.socialData?.popularity ?? -1
+            let rhsPop = rhs.element.socialData?.popularity ?? -1
+            if lhsPop != rhsPop { return lhsPop > rhsPop }
+            let lhsCount = lhs.element.showCount ?? 0
+            let rhsCount = rhs.element.showCount ?? 0
+            if lhsCount != rhsCount { return lhsCount > rhsCount }
+            let lhsOriginal = lineup.firstIndex { $0.uuid == lhs.element.uuid } ?? lhs.offset
+            let rhsOriginal = lineup.firstIndex { $0.uuid == rhs.element.uuid } ?? rhs.offset
+            return lhsOriginal < rhsOriginal
+        }.first?.element
     }
 
     private static func optionalFact(label: String, value: String?) -> ShowDetailFact? {

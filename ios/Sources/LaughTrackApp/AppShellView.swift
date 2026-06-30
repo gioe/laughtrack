@@ -137,7 +137,7 @@ struct AppShellView: View {
                 VStack(spacing: 0) {
                     shellHeader(safeAreaTop: proxy.safeAreaInsets.top)
 
-                    tabContent
+                    tabContent(safeAreaTop: proxy.safeAreaInsets.top)
                 }
                 .ignoresSafeArea(edges: .top)
 
@@ -165,11 +165,10 @@ struct AppShellView: View {
         return !favorites.savedFavoriteComedians.isEmpty
     }
 
-    private var tabContent: some View {
+    private func tabContent(safeAreaTop: CGFloat) -> some View {
         TabView(selection: selectedTabBinding) {
             ZStack {
-                LaughTrackAtmosphereBackground()
-                    .ignoresSafeArea()
+                shellAlignedTabBackground(safeAreaTop: safeAreaTop)
 
                 HomeView(
                     apiClient: apiClient,
@@ -183,8 +182,7 @@ struct AppShellView: View {
             .tag(AppTab.nearMe)
 
             ZStack {
-                LaughTrackAtmosphereBackground()
-                    .ignoresSafeArea()
+                shellAlignedTabBackground(safeAreaTop: safeAreaTop)
 
                 SearchRootView(
                     apiClient: apiClient,
@@ -307,6 +305,18 @@ struct AppShellView: View {
         }
     }
 
+    private func shellAlignedTabBackground(safeAreaTop: CGFloat) -> some View {
+        let headerHeight = AccountHeaderLayout.headerHeight(safeAreaTop: safeAreaTop, theme: theme)
+
+        return GeometryReader { proxy in
+            LaughTrackAtmosphereBackground()
+                .frame(width: proxy.size.width, height: proxy.size.height + headerHeight)
+                .offset(y: -headerHeight)
+        }
+            .ignoresSafeArea()
+            .accessibilityHidden(true)
+    }
+
     private var selectedTabBinding: Binding<AppTab> {
         Binding(
             get: { shellState.selectedTab },
@@ -412,17 +422,13 @@ struct AppShellView: View {
 
         return VStack(alignment: .leading, spacing: theme.spacing.lg) {
             HStack(spacing: theme.spacing.sm) {
-                shellHeaderIconLabel(systemImage: "person.crop.circle")
+                accountDrawerAvatar
 
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Account")
-                        .font(.system(size: 18, weight: .heavy, design: .rounded))
-                        .foregroundStyle(tokens.colors.textPrimary)
-
-                    Text(authManager.currentSession == nil ? "Guest browsing" : "Signed in")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(tokens.colors.textSecondary)
-                }
+                Text(accountDrawerTitle)
+                    .font(.system(size: 18, weight: .heavy, design: .rounded))
+                    .foregroundStyle(tokens.colors.textPrimary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.82)
 
                 Spacer(minLength: 0)
 
@@ -478,6 +484,32 @@ struct AppShellView: View {
                 .shadow(color: .black.opacity(0.2), radius: 24, x: 12, y: 0)
         }
         .ignoresSafeArea(edges: .vertical)
+    }
+
+    private var accountDrawerAvatar: some View {
+        let user = authManager.currentUser
+
+        return LaughTrackAvatar(
+            style: .url(
+                user?.avatarURL,
+                fallback: user == nil ? "person.crop.circle.badge.plus" : "person.crop.circle.fill"
+            ),
+            size: AccountHeaderLayout.buttonSize,
+            highlighted: true
+        )
+    }
+
+    private var accountDrawerTitle: String {
+        guard let user = authManager.currentUser else {
+            return "Account"
+        }
+
+        let displayName = user.displayName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if !displayName.isEmpty {
+            return displayName
+        }
+
+        return user.email
     }
 
     private func accountDrawerRow(
@@ -636,6 +668,12 @@ enum AccountHeaderLayout {
     static func accountHeaderTopPadding(safeAreaTop: CGFloat, theme: AppThemeProtocol) -> CGFloat {
         let overlap = safeAreaTop > tallSafeAreaThreshold ? tallSafeAreaOverlap : 0
         return max(theme.spacing.xs, safeAreaTop - overlap + theme.spacing.xs)
+    }
+
+    static func headerHeight(safeAreaTop: CGFloat, theme: AppThemeProtocol) -> CGFloat {
+        accountHeaderTopPadding(safeAreaTop: safeAreaTop, theme: theme) +
+            buttonSize +
+            theme.spacing.sm
     }
 }
 

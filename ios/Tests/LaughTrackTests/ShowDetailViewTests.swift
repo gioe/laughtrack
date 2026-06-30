@@ -207,6 +207,73 @@ struct ShowDetailViewTests {
         #expect(ShowLineupPresentation.roleBadge(for: blankRole) == nil)
     }
 
+    @Test("show detail hero headshots start with inferred headliner and keep lineup images")
+    func showHeroHeadshotsStartWithInferredHeadliner() {
+        var show = DemoContent.showDetailResponse(id: 301)?.data ?? DemoContent.primaryShowDetail.data
+        show.lineup = [
+            detailLineupComedian(
+                name: "Feature Comic",
+                imageUrl: "https://example.com/feature.jpg",
+                uuid: "feature",
+                id: 902,
+                popularity: 0.42,
+                showCount: 40
+            ),
+            detailLineupComedian(
+                name: "Headliner Comic",
+                imageUrl: "https://example.com/headliner.jpg",
+                uuid: "headliner",
+                id: 901,
+                popularity: 0.98,
+                showCount: 20
+            ),
+            detailLineupComedian(
+                name: "No Image Comic",
+                imageUrl: "   ",
+                uuid: "no-image",
+                id: 903,
+                popularity: 0.99,
+                showCount: 50
+            )
+        ]
+
+        let headshots = ShowDetailPresentation.heroHeadshots(for: show)
+
+        #expect(headshots.map(\.name) == ["Headliner Comic", "Feature Comic"])
+        #expect(headshots.map(\.imageURL) == [
+            "https://example.com/headliner.jpg",
+            "https://example.com/feature.jpg"
+        ])
+        #expect(ShowDetailPresentation.heroThumbnailCaption(for: show) == "Headliner Comic")
+    }
+
+    @Test("show detail hero headshots are empty for open mics or image-less lineups")
+    func showHeroHeadshotsEmptyForOpenMicOrNoImages() {
+        var openMic = DemoContent.showDetailResponse(id: 301)?.data ?? DemoContent.primaryShowDetail.data
+        openMic.tags = [.init(slug: "open-mic", name: "Open Mic")]
+        openMic.lineup = [
+            detailLineupComedian(
+                name: "Open Mic Comic",
+                imageUrl: "https://example.com/open.jpg",
+                uuid: "open",
+                id: 904
+            )
+        ]
+
+        var noImages = DemoContent.showDetailResponse(id: 301)?.data ?? DemoContent.primaryShowDetail.data
+        noImages.lineup = [
+            detailLineupComedian(
+                name: "Blank",
+                imageUrl: " ",
+                uuid: "blank",
+                id: 905
+            )
+        ]
+
+        #expect(ShowDetailPresentation.heroHeadshots(for: openMic).isEmpty)
+        #expect(ShowDetailPresentation.heroHeadshots(for: noImages).isEmpty)
+    }
+
     @Test("show detail hero omits countdown badges")
     func showHeroBadgeOmitsCountdown() {
         let show = DemoContent.showDetailResponse(id: 301)?.data ?? DemoContent.primaryShowDetail.data
@@ -354,6 +421,24 @@ private actor FavoriteOperationRecorder {
     func record(_ operation: String) {
         operations.append(operation)
     }
+}
+
+private func detailLineupComedian(
+    name: String,
+    imageUrl: String,
+    uuid: String,
+    id: Int,
+    popularity: Double = 0,
+    showCount: Int = 0
+) -> Components.Schemas.ComedianLineup {
+    Components.Schemas.ComedianLineup(
+        name: name,
+        imageUrl: imageUrl,
+        uuid: uuid,
+        id: id,
+        socialData: .init(id: id, popularity: popularity),
+        showCount: showCount
+    )
 }
 
 private struct MockShowDetailTransport: ClientTransport {

@@ -199,6 +199,12 @@ public final class AuthManager: ObservableObject {
         }
     }
 
+    #if DEBUG
+    public func signInWithTestTokens(accessToken: String, refreshToken: String) async {
+        await storeSession(accessToken: accessToken, refreshToken: refreshToken, provider: nil)
+    }
+    #endif
+
     public func signOut() async {
         // Revoke server-side refresh tokens while we still have a valid Bearer
         // access token. Transport or auth failures must not block the local
@@ -227,7 +233,7 @@ public final class AuthManager: ObservableObject {
         await clearSession(message: "Your session expired. Sign in again.")
     }
 
-    private func storeSession(accessToken: String, refreshToken: String, provider: AuthProvider) async {
+    private func storeSession(accessToken: String, refreshToken: String, provider: AuthProvider?) async {
         do {
             try tokenManager.storeTokens(accessToken: accessToken, refreshToken: refreshToken)
             await authMiddleware.setTokens(accessToken: accessToken, refreshToken: refreshToken)

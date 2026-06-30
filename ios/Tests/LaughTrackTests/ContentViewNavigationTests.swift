@@ -68,6 +68,23 @@ struct ContentViewNavigationTests {
         ) == .signedOutShell(message: nil))
     }
 
+    @Test("authenticated background profile refresh keeps shell visible")
+    func authenticatedBackgroundProfileRefreshKeepsShellVisible() async throws {
+        let session = AuthSessionMetadata(provider: nil, signedInAt: Date(), expiresAt: nil)
+        let user = AuthenticatedUser(
+            displayName: "Maya",
+            email: "maya@example.com",
+            avatarURL: nil,
+            comedianOnboardingCompleted: true
+        )
+
+        #expect(ContentView.rootSurface(
+            authState: .authenticated(session),
+            hasLoadedCurrentUser: false,
+            currentUser: user
+        ) == .authenticatedShell)
+    }
+
     @Test("first-launch signed-out user sees auth choice gate")
     func firstLaunchSignedOutUserSeesAuthChoiceGate() async throws {
         #expect(ContentView.rootSurface(

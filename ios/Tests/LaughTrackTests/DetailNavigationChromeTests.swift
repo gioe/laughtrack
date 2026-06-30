@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 @testable import LaughTrackApp
 
@@ -31,5 +32,43 @@ struct DetailNavigationChromeTests {
         // to render as a single top-down fade.
         let locations = stops.map(\.location)
         #expect(locations == locations.sorted())
+    }
+
+    @Test("detail status bar scrim stays transparent over the page atmosphere")
+    func detailStatusBarScrimStaysTransparentOverPageAtmosphere() throws {
+        let source = try String(contentsOf: detailNavigationChromeSourceURL(), encoding: .utf8)
+        let block = try sourceBlock(
+            in: source,
+            from: "struct DetailStatusBarScrim",
+            to: "struct DetailBackButton"
+        )
+
+        #expect(block.contains("LinearGradient("))
+        #expect(!block.contains("LaughTrackAtmosphereBackground()"))
+        #expect(!block.contains("theme.laughTrackTokens.colors.canvas"))
+    }
+
+    private func detailNavigationChromeSourceURL(filePath: String = #filePath) throws -> URL {
+        let testFileURL = URL(fileURLWithPath: filePath)
+        let iosRoot = testFileURL
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let sourceURL = iosRoot.appendingPathComponent("Sources/LaughTrackApp/Detail/Components/DetailNavigationChrome.swift")
+        guard FileManager.default.fileExists(atPath: sourceURL.path) else {
+            throw CocoaError(.fileNoSuchFile)
+        }
+        return sourceURL
+    }
+
+    private func sourceBlock(in source: String, from startMarker: String, to endMarker: String) throws -> String {
+        guard
+            let start = source.range(of: startMarker),
+            let end = source.range(of: endMarker, range: start.upperBound..<source.endIndex)
+        else {
+            throw CocoaError(.fileReadCorruptFile)
+        }
+
+        return String(source[start.lowerBound..<end.lowerBound])
     }
 }

@@ -225,6 +225,9 @@ Check page source:
         → platform: Humanitix → scraper: json_ld (generic; set scraping_url to host URL)
   └── tickets.{venue}.com subdomain + api.ninkashi.com network requests
         → platform: Ninkashi → scraper: ninkashi (generic; set scraping_url to subdomain)
+  └── window.__NUXT__ payload with watch-comedy-live Firebase event data
+        → platform: custom → venue-specific scraper required
+              (see Rumor's Comedy Club Nuxt section — use source_url = /events)
 
 Is there a ShowSlinger widget or app.showslinger.com buy link?
   └── YES → platform: ShowSlinger → scraper: show_slinger
@@ -1853,7 +1856,96 @@ returns 0 events; dead end, do not readopt.
 
 ---
 
-### Punchup venue sites (The Creek and The Cave, West Side, Comedy Key West)
+### Comix Roadhouse Webflow Detail Pages
+
+| | |
+|---|---|
+| **Scraper key** | `comix_roadhouse` |
+| **Platform** | `custom` |
+| **DB field** | `scraping_sources.source_url` |
+| **Value format** | Venue-owned comedy calendar URL, currently `https://www.comixroadhouse.com/calendar/in-the-comedy-club` |
+| **Generic?** | ❌ venue-specific code required |
+
+**Detection signals:**
+- Webflow page source on `www.comixroadhouse.com`.
+- Listing cards link to `/comics/<slug>` from `a.schedule-event`.
+- Detail pages contain one `a.schedule-event.com` per performance with date, time, and Leap Events ticket URL.
+
+**API/source pattern:**
+- Fetch the server-rendered listing page from `scraping_sources.source_url`.
+- Follow Webflow pagination via `a.w-pagination-next`.
+- Fetch each `/comics/<slug>` detail page and parse the schedule rows directly.
+
+**Key extraction notes:**
+- The listing page only carries date ranges like `Sep 24 - 26`; detail pages are the source of truth for individual performance dates/times.
+- Ticket URLs are `https://events.leapevents.com/event/...` links on each detail schedule row.
+- Prices and sold-out state are not exposed in listing/detail HTML, so tickets use fallback unknown-price records.
+- The comedy-club calendar can include non-comedy utility pages; the scraper filters obvious music/karaoke/line-dancing pages by title before fetching details.
+
+**DB setup:**
+```sql
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, priority, enabled, metadata)
+VALUES (<club_id>, 'custom'::"ScrapingPlatform", 'comix_roadhouse',
+        'https://www.comixroadhouse.com/calendar/in-the-comedy-club', 0, TRUE, '{}'::jsonb);
+```
+
+**Failure modes / gotchas:**
+- Do not use `/calendar/headliners` as the source; it omits some comedy-club events.
+- Webflow pagination is required or later events will be missed.
+- Detail pages must be fetched; listing date ranges are not enough to build performance rows.
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/scrapers/implementations/venues/comix_roadhouse/`
+- Reference venue: Comix Roadhouse at Mohegan Sun
+
+---
+
+### Rumor's Comedy Club Nuxt / Watch Comedy Live
+
+| | |
+|---|---|
+| **Scraper key** | `rumors_comedy_club` |
+| **Platform** | `custom` |
+| **DB field** | `scraping_sources.source_url` |
+| **Value format** | Venue-owned events URL, currently `https://rumorscomedyclub.com/events` |
+| **Generic?** | ❌ venue-specific code required |
+
+**Detection signals:**
+- Nuxt SSR page source contains `window.__NUXT__=(function(...){return ...})(...)`.
+- Payload contains `watch-comedy-live.appspot.com` Firebase media URLs and `events` objects with nested `shows`.
+- Frontend routes show links as `/events/<event_id>/<show_id>`.
+
+**API/source pattern:**
+- Fetch the server-rendered events page from `scraping_sources.source_url`.
+- Parse the `window.__NUXT__` payload; no browser rendering is required for the current page.
+- The event list lives under a `data[]` entry with an `events` array.
+
+**Key extraction notes:**
+- Each payload event has an `id`, `name`, `startDate`, `endDate`, optional comedian bio, and a `shows[]` array.
+- Each `shows[]` row is one performance with `id`, local datetime string `date`, `ticketPrice`, `type`, `totalTickets`, and optional `ticketsSold`.
+- Skip `isSimpleEvent` rows (e.g. closure notices) and shows where `ticketsSold >= totalTickets`.
+- Ticket URL is synthesized as `https://rumorscomedyclub.com/events/<event_id>/<show_id>`.
+- Timezone is `America/Winnipeg`; prices are Canadian-dollar face values from the payload.
+
+**DB setup:**
+```sql
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, priority, enabled, metadata)
+VALUES (<club_id>, 'custom'::"ScrapingPlatform", 'rumors_comedy_club',
+        'https://rumorscomedyclub.com/events', 0, TRUE, '{}'::jsonb);
+```
+
+**Failure modes / gotchas:**
+- The Nuxt payload is JavaScript object syntax with positional aliases, not JSON; do not use `json.loads()` directly on the script body.
+- The site can include sold-out performances in SSR data; filter them before emitting events.
+- If the frontend moves away from SSR payloads, inspect Nuxt chunks for the Firebase collection query before changing the scraper.
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/scrapers/implementations/venues/rumors_comedy_club/`
+- Reference venue: Rumor's Comedy Club, Winnipeg
+
+---
+
+### Punchup venue sites (The Creek and The Cave, West Side, Comedy Key West, Side Splitters)
 
 The Creek and The Cave (Austin) rebuilt on the **Punchup** platform in June
 2026 (previously a venue-owned S3 monthly-JSON feed at
@@ -1872,10 +1964,11 @@ Tixologi (`event.tixologi.com/event/<id>/tickets`).
 enrich each show's `tixologi_event_id` against the public no-auth
 `api-v2.tixologi.com` ticket-types endpoint so `PunchupShow._build_tickets`
 emits per-tier priced tickets from `initial_price` — west_side (original),
-creek_and_cave (TASK-2840), comedy_key_west (TASK-2851). The latter two guard
-each show individually (a Tixologi outage degrades that show to the priceless
-fallback, not a dropped calendar) and cap in-flight requests at 10;
-consolidation of the duplicated machinery is tracked as TASK-2848.
+creek_and_cave (TASK-2840), comedy_key_west (TASK-2851), and side_splitters.
+The newer venue implementations guard each show individually (a Tixologi outage
+degrades that show to the priceless fallback, not a dropped calendar) and cap
+in-flight requests at 10; consolidation of the duplicated machinery is tracked
+as TASK-2848.
 
 ---
 
@@ -4333,6 +4426,51 @@ Confirm shows are scraped with correct dates (timestamps ÷ 1000 → seconds), t
 
 ---
 
+### Venetian AEM Entertainment
+
+| | |
+|---|---|
+| **Scraper key** | `venetian_entertainment` |
+| **Platform** | `custom` |
+| **DB field** | `scraping_sources.source_url` plus metadata `venue_category` |
+| **Value format** | `https://www.venetianlasvegas.com/entertainment.html`; `venue_category` is an AEM category slug such as `the-palazzo-theatre` |
+| **Generic?** | ❌ venue-specific code required |
+
+**Detection signals:**
+- Venetian entertainment pages are Adobe AEM/Vue pages with `<vue-component data-component="fragment-grid">`.
+- The all-shows grid uses `data-query="allEntertainment"` and AEM content fragment paths under `/content/dam/vlv/content-fragments/events/`.
+
+**API/source pattern:**
+- Client source calls the AEM persisted query through:
+  `https://www.venetianlasvegas.com/graphql/execute.json/venetian/allEntertainment%3Btoday%3DYYYY-MM-DD`
+- The scraper stores the human page URL in `source_url` and constructs the persisted-query URL at runtime with the current scrape date.
+- The same source feeds multiple physical rooms; split rows with metadata `venue_category`:
+  `the-palazzo-theatre` for Palazzo Theatre and `the-venetian-theatre` for The Venetian Theatre.
+
+**Key extraction notes:**
+- Keep only items whose categories contain both `type/comedy` and the configured venue category.
+- Expand each exact `dates[]` value with the single exact `times` value. Skip vague time labels such as `Varies` / `Various Times`.
+- Use the AEM detail path as `show_page_url` and the primary Ticketmaster URL as the fallback ticket purchase URL. The feed does not expose prices.
+
+**DB setup:**
+```sql
+UPDATE scraping_sources
+   SET platform = 'custom',
+       scraper_key = 'venetian_entertainment',
+       source_url = 'https://www.venetianlasvegas.com/entertainment.html',
+       metadata = jsonb_build_object('venue_category', 'the-palazzo-theatre')
+ WHERE club_id = <palazzo_club_id> AND priority = 0;
+```
+
+**Failure modes / gotchas:**
+- Calling the persisted query without `today` returns an empty list.
+- The feed includes resort promos, dining, nightlife, music, and Broadway-style shows; do not ingest the whole response.
+- Switching from another scraper key leaves old future rows under the old `last_scraped_by` until a cleanup migration removes rows matched by club/date.
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/scrapers/implementations/venues/venetian_entertainment/`
+- Initial reference venues: Palazzo Theatre at The Venetian Resort (`4826`) and The Venetian Theatre at The Venetian Resort (`4870`).
+
 ## Maintenance Invariants
 
 Repeatable database invariants live under `scripts/core/check_*.py` and are
@@ -4410,4 +4548,7 @@ Other related checks:
 | `shopify` | `scraping_url` (Shopify collection page URL) |
 | `booktix` | `source_url` or `scraping_url` (BookTix box-office home URL) |
 | `east_austin_comedy` | `scraping_url` (homepage anchor; unused at runtime) |
+| `comix_roadhouse` | `source_url` (Comix Webflow comedy-club calendar URL) |
+| `rumors_comedy_club` | `source_url` (Rumor's Nuxt events URL) |
+| `venetian_entertainment` | `source_url` (Venetian entertainment page) + metadata `venue_category` |
 | All venue-specific | `scraping_url` (venue calendar page or API URL) |

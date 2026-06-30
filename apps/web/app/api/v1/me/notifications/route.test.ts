@@ -161,11 +161,26 @@ function notificationRow(overrides: Record<string, unknown> = {}) {
         showId: 555,
         notificationType: "push",
         sentAt: new Date("2026-06-20T12:00:00.000Z"),
-        comedian: { name: "Taylor Tomlinson" },
+        comedian: {
+            name: "Taylor Tomlinson",
+            hasImage: true,
+            imageAssets: [
+                {
+                    avatarPath: "comedian-images/taylor/avatar.webp",
+                    heroPath: "comedian-images/taylor/hero.webp",
+                    isActive: true,
+                },
+            ],
+        },
         show: {
             date: new Date("2026-07-01T02:00:00.000Z"),
             showPageUrl: "https://laugh-track.com/show/555",
-            club: { name: "The Comedy Store", city: "Los Angeles", state: "CA" },
+            club: {
+                name: "The Comedy Store",
+                city: "Los Angeles",
+                state: "CA",
+                timezone: "America/Los_Angeles",
+            },
         },
         ...overrides,
     };
@@ -271,9 +286,11 @@ describe("GET /api/v1/me/notifications", () => {
         expect(body.data.items[0]).toMatchObject({
             id: "comedian-uuid-1:555",
             title: "Taylor Tomlinson is performing near you",
-            body: "The Comedy Store · Los Angeles, CA",
+            body: "The Comedy Store at 7:00 pm PDT",
             comedianId: "comedian-uuid-1",
             comedianName: "Taylor Tomlinson",
+            comedianImageUrl:
+                "https://test.b-cdn.net/comedian-images/taylor/avatar.webp",
             showId: 555,
             showPageUrl: "https://laugh-track.com/show/555",
             clubName: "The Comedy Store",
@@ -346,6 +363,64 @@ describe("GET /api/v1/me/notifications", () => {
         expect(byId["comedian-uuid-1:555"]).toBe(false);
     });
 
+    it("sorts items by newest notification send time, then soonest show time", async () => {
+        mockResolveAuth.mockResolvedValue({
+            userId: "user-1",
+            profileId: "profile-1",
+        });
+        mockFindNotifications.mockResolvedValue([
+            notificationRow({
+                showId: 101,
+                sentAt: new Date("2026-06-20T12:00:00.000Z"),
+                show: {
+                    date: new Date("2026-08-10T02:00:00.000Z"),
+                    showPageUrl: "https://laugh-track.com/show/101",
+                    club: {
+                        name: "Late Show Club",
+                        city: "Los Angeles",
+                        state: "CA",
+                        timezone: "America/Los_Angeles",
+                    },
+                },
+            }),
+            notificationRow({
+                showId: 103,
+                sentAt: new Date("2026-06-20T12:00:00.000Z"),
+                show: {
+                    date: new Date("2026-07-01T02:00:00.000Z"),
+                    showPageUrl: "https://laugh-track.com/show/103",
+                    club: {
+                        name: "Sooner Show Club",
+                        city: "Los Angeles",
+                        state: "CA",
+                        timezone: "America/Los_Angeles",
+                    },
+                },
+            }),
+            notificationRow({
+                showId: 102,
+                sentAt: new Date("2026-06-20T13:00:00.000Z"),
+                show: {
+                    date: new Date("2026-09-01T02:00:00.000Z"),
+                    showPageUrl: "https://laugh-track.com/show/102",
+                    club: {
+                        name: "Newest Send Club",
+                        city: "Los Angeles",
+                        state: "CA",
+                        timezone: "America/Los_Angeles",
+                    },
+                },
+            }),
+        ] as never);
+
+        const res = await GET(makeGetRequest());
+
+        const body = await res.json();
+        expect(
+            body.data.items.map((item: { showId: number }) => item.showId),
+        ).toEqual([102, 103, 101]);
+    });
+
     it("falls back gracefully when comedian/club fields are missing", async () => {
         mockResolveAuth.mockResolvedValue({
             userId: "user-1",
@@ -390,7 +465,10 @@ describe("GET /api/v1/me/notifications", () => {
         const res = await GET(makeGetRequest());
 
         const body = await res.json();
-        expect(body.data.items[0].body).toBe("Los Angeles, CA");
+        expect(body.data.items[0].title).toBe(
+            "Taylor Tomlinson is performing near you",
+        );
+        expect(body.data.items[0].body).toBe("");
     });
 
     it("caps the history fetch with a take limit", async () => {

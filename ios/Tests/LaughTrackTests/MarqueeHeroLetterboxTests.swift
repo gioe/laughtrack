@@ -63,13 +63,14 @@ struct MarqueeHeroLetterboxTests {
         #expect(source.contains("case framedComedian"))
         #expect(source.contains("case clubMarquee"))
         #expect(source.contains("case podcastRail"))
+        #expect(source.contains("var titleTopPadding: CGFloat = 18"))
+        #expect(source.contains("var thumbnailCaption: String? = nil"))
         #expect(source.contains("struct FramedComedianThumbnail"))
         #expect(source.contains("struct ClubMarqueeThumbnail"))
         #expect(source.contains("struct PodcastRailThumbnail"))
         #expect(comedianBlock.contains("private static let headshotSize: CGFloat = 208"))
-        #expect(comedianBlock.contains("HeadshotNameplate(name: caption)"))
-        #expect(comedianBlock.contains("Text(name.uppercased())"))
-        #expect(!comedianBlock.contains("ClubWallHeadshotFrame("))
+        #expect(comedianBlock.contains("caption: caption"))
+        #expect(comedianBlock.contains("ClubWallHeadshotFrame("))
         #expect(clubBlock.contains("private static let clubBulbColor = Color(red: 1.0, green: 0.78, blue: 0.24)"))
         #expect(clubBlock.contains("dash: [1.2, 10]"))
         #expect(!clubBlock.contains("laughTrack.colors.accentStrong"))
@@ -82,11 +83,36 @@ struct MarqueeHeroLetterboxTests {
         let podcast = try String(contentsOf: detailViewSourceURL(named: "PodcastDetailView.swift"), encoding: .utf8)
         let show = try String(contentsOf: detailViewSourceURL(named: "ShowDetailView.swift"), encoding: .utf8)
 
-        #expect(comedian.contains("thumbnailStyle: .framedComedian(caption: comedian.name)"))
+        #expect(comedian.contains("thumbnailStyle: .framedComedian"))
+        #expect(comedian.contains("thumbnailCaption: comedian.name"))
         #expect(club.contains("thumbnailStyle: .clubMarquee"))
         #expect(podcast.contains("thumbnailStyle: .podcastRail"))
         #expect(show.contains("thumbnailStyle: ShowDetailPresentation.heroThumbnailStyle(for: show)"))
         #expect(show.contains("static func heroThumbnailStyle(for show: Components.Schemas.ShowDetail) -> MarqueeHeroThumbnailStyle"))
+        #expect(show.contains("thumbnailCaption: ShowDetailPresentation.heroThumbnailCaption(for: show)"))
+        #expect(show.contains("static func heroThumbnailCaption(for show: Components.Schemas.ShowDetail) -> String?"))
+        #expect(!show.contains("eyebrow: show.club.name"))
+        #expect(!show.contains("titleTopPadding:"))
+    }
+
+    @Test("detail marquee hero leaves its container transparent over page atmosphere")
+    func detailMarqueeHeroLeavesContainerTransparent() throws {
+        let source = try String(contentsOf: detailComponentSourceURL(named: "MarqueeHero.swift"), encoding: .utf8)
+
+        #expect(!source.contains(".background(marqueeBackground)"))
+        #expect(!source.contains("laughTrack.colors.heroStart"))
+    }
+
+    @Test("entity detail scroll views use clear content over the shared atmosphere")
+    func entityDetailScrollViewsUseClearContentOverSharedAtmosphere() throws {
+        for fileName in ["ClubDetailView.swift", "ComedianDetailView.swift", "PodcastDetailView.swift", "ShowDetailView.swift"] {
+            let source = try String(contentsOf: detailViewSourceURL(named: fileName), encoding: .utf8)
+
+            #expect(source.contains("ScrollView {"), "\(fileName) should render detail content in a scroll view")
+            #expect(source.contains(".modifier(DetailAtmosphereScrollContent())"), "\(fileName) should keep scroll content transparent")
+            #expect(source.contains(".modifier(DetailAtmosphereRouteBackground())"), "\(fileName) should use the shared route atmosphere")
+            #expect(!source.contains(".background(LaughTrackAtmosphereBackground().ignoresSafeArea())"), "\(fileName) should not attach a per-view atmosphere background")
+        }
     }
 
     private func detailComponentSourceURL(named fileName: String, filePath: String = #filePath) throws -> URL {

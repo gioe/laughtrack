@@ -47,7 +47,8 @@ struct ComedianDetailView: View {
                         MarqueeHero(
                             title: comedian.name,
                             imageURL: comedian.imageUrl,
-                            thumbnailStyle: .framedComedian(caption: comedian.name),
+                            thumbnailStyle: .framedComedian,
+                            thumbnailCaption: comedian.name,
                             actions: comedianHeroActions(socialData: comedian.socialData),
                             openURL: { url in openURL(url) },
                             fallbackSystemImage: "music.mic"
@@ -101,10 +102,11 @@ struct ComedianDetailView: View {
                         .padding(.vertical, theme.spacing.lg)
                     }
                 }
+                .modifier(DetailAtmosphereScrollContent())
             }
         }
         .ignoresSafeArea(.container, edges: .top)
-        .background(LaughTrackAtmosphereBackground().ignoresSafeArea())
+        .modifier(DetailAtmosphereRouteBackground())
         .accessibilityIdentifier(LaughTrackViewTestID.comedianDetailScreen)
         .overlay(alignment: .top) {
             DetailChromeBar(

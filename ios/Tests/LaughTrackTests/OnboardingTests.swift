@@ -10,8 +10,8 @@ import LaughTrackCore
 @Suite("Onboarding")
 @MainActor
 struct OnboardingTests {
-    @Test("incomplete authenticated users route to onboarding only after profile load")
-    func incompleteAuthenticatedUsersRouteToOnboardingAfterProfileLoad() {
+    @Test("incomplete authenticated users keep onboarding visible during profile refresh")
+    func incompleteAuthenticatedUsersKeepOnboardingVisibleDuringProfileRefresh() {
         let session = AuthSessionMetadata(provider: .apple, signedInAt: Date(), expiresAt: nil)
         let incompleteUser = AuthenticatedUser(
             displayName: "Maya",
@@ -24,7 +24,7 @@ struct OnboardingTests {
             authState: .authenticated(session),
             hasLoadedCurrentUser: false,
             currentUser: incompleteUser
-        ) == .loading)
+        ) == .comedianOnboarding)
         #expect(ContentView.rootSurface(
             authState: .authenticated(session),
             hasLoadedCurrentUser: true,

@@ -44,6 +44,9 @@ struct LaughTrackLoginModalView: View {
                     ForEach(Self.signedOutAuthOptions) { option in
                         SignedOutAuthOptionButton(option: option, action: signIn)
                     }
+                    #if DEBUG
+                    DebugTestAuthButton()
+                    #endif
                 }
 
                 Spacer(minLength: 0)

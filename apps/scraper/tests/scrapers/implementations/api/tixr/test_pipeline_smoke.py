@@ -28,6 +28,7 @@ from laughtrack.scrapers.implementations.api.tixr.extractor import TixrExtractor
 CALENDAR_URL = "https://www.hahacomedyclub.com/calendar"
 IMPROV_ASYLUM_TIXR_URL = "https://www.tixr.com/groups/improvasylum"
 COMIC_STRIP_EDMONTON_PIXL_API_URL = "https://www.pixlcalendar.com/api/events/comic-strip-edmonton"
+HOUSE_OF_COMEDY_BC_PIXL_API_URL = "https://www.pixlcalendar.com/api/events/house-of-comedy-bc"
 STAND_SCRAPING_URL = "thestandnyc.com"
 STAND_PUBLIC_SHOWS_URL = "https://thestandnyc.com/shows"
 STAND_TIXR_URL = "https://www.tixr.com/groups/thestandnyc/events/the-stand-presents-josh-ocean-thomas--187376"
@@ -68,6 +69,31 @@ def _comic_strip_edmonton_club() -> Club:
         source_url=COMIC_STRIP_EDMONTON_PIXL_API_URL,
         external_id=None,
         metadata={"pixl_calendar_api_url": COMIC_STRIP_EDMONTON_PIXL_API_URL},
+    )
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
+
+
+def _house_of_comedy_bc_club() -> Club:
+    _c = Club(
+        id=2357,
+        name="House of Comedy British Columbia",
+        address="530 Columbia St",
+        website="https://bc.houseofcomedy.net/",
+        popularity=0,
+        zip_code="V3L 1B1",
+        phone_number="",
+        visible=True,
+        timezone="America/Vancouver",
+    )
+    _c.active_scraping_source = ScrapingSource(
+        id=1,
+        club_id=_c.id,
+        platform="custom",
+        scraper_key="tixr",
+        source_url=HOUSE_OF_COMEDY_BC_PIXL_API_URL,
+        external_id=None,
+        metadata={"pixl_calendar_api_url": HOUSE_OF_COMEDY_BC_PIXL_API_URL},
     )
     _c.scraping_sources = [_c.active_scraping_source]
     return _c
@@ -236,6 +262,39 @@ def _comic_strip_edmonton_pixl_response() -> dict:
                         "name": "VIP",
                         "currentPrice": 32.95,
                         "state": "SOLD_OUT",
+                    },
+                ],
+            }
+        ]
+    }
+
+
+def _house_of_comedy_bc_pixl_response() -> dict:
+    return {
+        "events": [
+            {
+                "id": "8cb1428b-a962-4eaa-922f-420b80b461a5",
+                "title": "Drew Behm",
+                "description": "Headline comedy in New Westminster",
+                "start": "2026-07-03T02:30:00.000Z",
+                "end": "2026-07-03T04:00:00.000Z",
+                "price": 18,
+                "venue": "House of Comedy BC - Main Room",
+                "ticketUrl": "https://www.tixr.com/groups/comicstripbc/events/drew-behm-188517",
+                "status": "available",
+                "timezone": "America/Los_Angeles",
+                "sales": [
+                    {
+                        "id": 2145988,
+                        "name": "General Admission",
+                        "currentPrice": 18,
+                        "state": "OPEN",
+                    },
+                    {
+                        "id": 2145989,
+                        "name": "Preferred Seating",
+                        "currentPrice": 25,
+                        "state": "OPEN",
                     },
                 ],
             }
@@ -829,6 +888,43 @@ async def test_get_data_uses_configured_pixl_calendar_api_without_tixr_detail_fe
     assert [ticket.type for ticket in event.show.tickets] == ["General Admission", "VIP"]
     assert [ticket.price for ticket in event.show.tickets] == [22.95, 32.95]
     assert [ticket.sold_out for ticket in event.show.tickets] == [False, True]
+    scraper.tixr_client.get_event_detail_from_url.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_get_data_uses_house_of_comedy_bc_pixl_calendar_api_without_tixr_detail_fetch(monkeypatch):
+    """House of Comedy BC can use the same Pixl source shape as Comic Strip Edmonton."""
+    scraper = TixrScraper(_house_of_comedy_bc_club())
+
+    async def fail_fetch_calendar_html(url):
+        raise AssertionError(f"Pixl Calendar source should not fetch HTML: {url}")
+
+    pixl_url_seen: list[str] = []
+
+    async def fake_fetch_json(url, **kwargs):
+        pixl_url_seen.append(url)
+        return _house_of_comedy_bc_pixl_response()
+
+    monkeypatch.setattr(scraper, "_fetch_calendar_html", fail_fetch_calendar_html)
+    monkeypatch.setattr(scraper, "fetch_json", fake_fetch_json)
+    scraper.tixr_client.get_event_detail_from_url = AsyncMock(
+        side_effect=AssertionError("Tixr detail pages should not be fetched for Pixl events")
+    )
+
+    assert await scraper.collect_scraping_targets() == [HOUSE_OF_COMEDY_BC_PIXL_API_URL]
+
+    result = await scraper.get_data(HOUSE_OF_COMEDY_BC_PIXL_API_URL)
+
+    assert pixl_url_seen == [HOUSE_OF_COMEDY_BC_PIXL_API_URL]
+    assert isinstance(result, TixrPageData)
+    assert len(result.event_list) == 1
+    event = result.event_list[0]
+    assert event.title == "Drew Behm"
+    assert event.event_id == "188517"
+    assert event.show.date.isoformat() == "2026-07-02T19:30:00-07:00"
+    assert event.show.show_page_url == "https://www.tixr.com/groups/comicstripbc/events/drew-behm-188517"
+    assert [ticket.type for ticket in event.show.tickets] == ["General Admission", "Preferred Seating"]
+    assert [ticket.price for ticket in event.show.tickets] == [18.0, 25.0]
     scraper.tixr_client.get_event_detail_from_url.assert_not_called()
 
 

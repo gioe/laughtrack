@@ -1132,6 +1132,10 @@ public enum Components {
             ///
             /// - Remark: Generated from `#/components/schemas/NotificationItem/comedianName`.
             public var comedianName: Swift.String
+            /// Avatar image URL for the comedian, or an empty string when unavailable.
+            ///
+            /// - Remark: Generated from `#/components/schemas/NotificationItem/comedianImageUrl`.
+            public var comedianImageUrl: Swift.String?
             /// Show id; the tap target deep-links to show detail.
             ///
             /// - Remark: Generated from `#/components/schemas/NotificationItem/showId`.
@@ -1176,6 +1180,7 @@ public enum Components {
             ///   - body: Reconstructed subtitle: club name and location joined by a separator.
             ///   - comedianId: Comedian UUID the notification is about.
             ///   - comedianName: Comedian display name.
+            ///   - comedianImageUrl: Avatar image URL for the comedian, or an empty string when unavailable.
             ///   - showId: Show id; the tap target deep-links to show detail.
             ///   - showPageUrl: Canonical show page URL.
             ///   - showDate: ISO-8601 show date; null if the show row was purged.
@@ -1191,6 +1196,7 @@ public enum Components {
                 body: Swift.String,
                 comedianId: Swift.String,
                 comedianName: Swift.String,
+                comedianImageUrl: Swift.String? = nil,
                 showId: Swift.Int,
                 showPageUrl: Swift.String? = nil,
                 showDate: Swift.String? = nil,
@@ -1206,6 +1212,7 @@ public enum Components {
                 self.body = body
                 self.comedianId = comedianId
                 self.comedianName = comedianName
+                self.comedianImageUrl = comedianImageUrl
                 self.showId = showId
                 self.showPageUrl = showPageUrl
                 self.showDate = showDate
@@ -1222,6 +1229,7 @@ public enum Components {
                 case body
                 case comedianId
                 case comedianName
+                case comedianImageUrl
                 case showId
                 case showPageUrl
                 case showDate

@@ -125,6 +125,11 @@ struct AppShellViewTests {
 
         #expect(source.contains("LaughTrackAtmosphereBackground()"))
         #expect(source.contains(".background(Color.clear)"))
+        #expect(source.contains("shellAlignedTabBackground(safeAreaTop: safeAreaTop)"))
+        #expect(source.contains("let headerHeight = AccountHeaderLayout.headerHeight(safeAreaTop: safeAreaTop, theme: theme)"))
+        #expect(source.contains("GeometryReader { proxy in"))
+        #expect(source.contains(".frame(width: proxy.size.width, height: proxy.size.height + headerHeight)"))
+        #expect(source.contains(".offset(y: -headerHeight)"))
         #expect(!source.contains(".background(theme.laughTrackTokens.colors.canvas.opacity(0.97))"))
     }
 
@@ -250,14 +255,32 @@ struct AppShellViewTests {
         #expect(AppRoute.accountHeaderTarget() == .profile)
     }
 
+    @Test("account drawer header uses profile identity without status copy")
+    func accountDrawerHeaderUsesProfileIdentityWithoutStatusCopy() throws {
+        let source = try String(contentsOf: appShellViewSourceURL(), encoding: .utf8)
+
+        #expect(source.contains("private var accountDrawerAvatar: some View"))
+        #expect(source.contains("LaughTrackAvatar("))
+        #expect(source.contains("user?.avatarURL"))
+        #expect(source.contains("private var accountDrawerTitle: String"))
+        #expect(source.contains("user.displayName?.trimmingCharacters(in: .whitespacesAndNewlines)"))
+        #expect(source.contains("return user.email"))
+        #expect(source.contains("Text(accountDrawerTitle)"))
+        #expect(!source.contains("Text(\"Account\")"))
+        #expect(!source.contains("\"Signed in\""))
+        #expect(!source.contains("\"Guest browsing\""))
+    }
+
     @Test("shell account header layout trims tall safe area gap while preserving touch target")
     func shellAccountHeaderLayoutTrimsTallSafeAreaGapWhilePreservingTouchTarget() async throws {
         let theme = LaughTrackTheme()
         let compactTop = AccountHeaderLayout.accountHeaderTopPadding(safeAreaTop: 24, theme: theme)
         let tallTop = AccountHeaderLayout.accountHeaderTopPadding(safeAreaTop: 59, theme: theme)
+        let tallHeight = AccountHeaderLayout.headerHeight(safeAreaTop: 59, theme: theme)
 
         #expect(compactTop > 24)
         #expect(tallTop - compactTop == 17)
+        #expect(tallHeight == tallTop + AccountHeaderLayout.buttonSize + theme.spacing.sm)
         #expect(AccountHeaderLayout.buttonSize >= 44)
     }
 }

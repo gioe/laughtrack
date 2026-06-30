@@ -2704,6 +2704,7 @@
           "body": { "type": "string", "description": "Reconstructed subtitle: club name and location joined by a separator." },
           "comedianId": { "type": "string", "description": "Comedian UUID the notification is about." },
           "comedianName": { "type": "string", "description": "Comedian display name." },
+          "comedianImageUrl": { "type": "string", "description": "Avatar image URL for the comedian, or an empty string when unavailable." },
           "showId": { "type": "integer", "description": "Show id; the tap target deep-links to show detail." },
           "showPageUrl": { "type": "string", "nullable": true, "description": "Canonical show page URL." },
           "showDate": { "type": "string", "nullable": true, "description": "ISO-8601 show date; null if the show row was purged." },

@@ -180,6 +180,9 @@ struct ProfileView: View {
                                 }
                             }
                         }
+                        #if DEBUG
+                        DebugTestAuthButton()
+                        #endif
                     }
                 }
             }

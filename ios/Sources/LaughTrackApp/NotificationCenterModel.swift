@@ -1,6 +1,116 @@
 import Foundation
 import LaughTrackAPIClient
 
+enum NotificationSortOption: String, CaseIterable, Identifiable {
+    case recentlySent
+    case upcomingShow
+    case unreadFirst
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .recentlySent:
+            return "Recent"
+        case .upcomingShow:
+            return "Upcoming"
+        case .unreadFirst:
+            return "Unread"
+        }
+    }
+
+    func sorted(_ items: [NotificationCenterItem]) -> [NotificationCenterItem] {
+        items.sorted { lhs, rhs in
+            switch self {
+            case .recentlySent:
+                return Self.compareBySentAtThenShowDate(lhs, rhs)
+            case .upcomingShow:
+                return Self.compareByShowDateThenSentAt(lhs, rhs)
+            case .unreadFirst:
+                if lhs.isUnread != rhs.isUnread {
+                    return lhs.isUnread && !rhs.isUnread
+                }
+                return Self.compareBySentAtThenShowDate(lhs, rhs)
+            }
+        }
+    }
+
+    private static func compareBySentAtThenShowDate(
+        _ lhs: NotificationCenterItem,
+        _ rhs: NotificationCenterItem
+    ) -> Bool {
+        switch compareDescending(lhs.sentAt, rhs.sentAt) {
+        case .orderedAscending:
+            return true
+        case .orderedDescending:
+            return false
+        case .orderedSame:
+            return compareByShowDateThenId(lhs, rhs)
+        }
+    }
+
+    private static func compareByShowDateThenSentAt(
+        _ lhs: NotificationCenterItem,
+        _ rhs: NotificationCenterItem
+    ) -> Bool {
+        switch compareAscending(lhs.showDate, rhs.showDate) {
+        case .orderedAscending:
+            return true
+        case .orderedDescending:
+            return false
+        case .orderedSame:
+            switch compareDescending(lhs.sentAt, rhs.sentAt) {
+            case .orderedAscending:
+                return true
+            case .orderedDescending:
+                return false
+            case .orderedSame:
+                return lhs.id < rhs.id
+            }
+        }
+    }
+
+    private static func compareByShowDateThenId(
+        _ lhs: NotificationCenterItem,
+        _ rhs: NotificationCenterItem
+    ) -> Bool {
+        switch compareAscending(lhs.showDate, rhs.showDate) {
+        case .orderedAscending:
+            return true
+        case .orderedDescending:
+            return false
+        case .orderedSame:
+            return lhs.id < rhs.id
+        }
+    }
+
+    private static func compareAscending(_ lhs: Date?, _ rhs: Date?) -> ComparisonResult {
+        switch (lhs, rhs) {
+        case let (lhs?, rhs?):
+            return lhs.compare(rhs)
+        case (.some, nil):
+            return .orderedAscending
+        case (nil, .some):
+            return .orderedDescending
+        case (nil, nil):
+            return .orderedSame
+        }
+    }
+
+    private static func compareDescending(_ lhs: Date?, _ rhs: Date?) -> ComparisonResult {
+        switch (lhs, rhs) {
+        case let (lhs?, rhs?):
+            return rhs.compare(lhs)
+        case (.some, nil):
+            return .orderedAscending
+        case (nil, .some):
+            return .orderedDescending
+        case (nil, nil):
+            return .orderedSame
+        }
+    }
+}
+
 /// One row in the notification center, mapped from the generated
 /// `NotificationItem`. The model owns the API mapping so the view stays
 /// rendering-only and the mapping is unit-testable without hosting any SwiftUI.
@@ -10,6 +120,8 @@ struct NotificationCenterItem: Identifiable, Equatable {
     let body: String
     let showId: Int
     let channels: [String]
+    let comedianImageURL: URL?
+    let showDate: Date?
     /// Parsed from the ISO-8601 `sentAt`; nil if it could not be parsed.
     let sentAt: Date?
     let isUnread: Bool
@@ -20,6 +132,8 @@ struct NotificationCenterItem: Identifiable, Equatable {
         body = item.body
         showId = item.showId
         channels = item.channels
+        comedianImageURL = URL.normalizedExternalURL(item.comedianImageUrl)
+        showDate = NotificationCenterItem.parseTimestamp(item.showDate ?? "")
         sentAt = NotificationCenterItem.parseTimestamp(item.sentAt)
         isUnread = item.isUnread
     }
@@ -31,6 +145,8 @@ struct NotificationCenterItem: Identifiable, Equatable {
         body: String,
         showId: Int,
         channels: [String],
+        comedianImageURL: URL? = nil,
+        showDate: Date? = nil,
         sentAt: Date?,
         isUnread: Bool
     ) {
@@ -39,6 +155,8 @@ struct NotificationCenterItem: Identifiable, Equatable {
         self.body = body
         self.showId = showId
         self.channels = channels
+        self.comedianImageURL = comedianImageURL
+        self.showDate = showDate
         self.sentAt = sentAt
         self.isUnread = isUnread
     }
@@ -50,9 +168,21 @@ struct NotificationCenterItem: Identifiable, Equatable {
             body: body,
             showId: showId,
             channels: channels,
+            comedianImageURL: comedianImageURL,
+            showDate: showDate,
             sentAt: sentAt,
             isUnread: false
         )
+    }
+
+    var isForUpcomingShow: Bool {
+        guard let showDate else { return true }
+        return showDate > Date()
+    }
+
+    func metadataLabels(relativeSentAt: String?) -> [String] {
+        guard let relativeSentAt else { return [] }
+        return [relativeSentAt]
     }
 
     private static let isoFormatter: ISO8601DateFormatter = {
@@ -80,6 +210,12 @@ final class NotificationCenterModel: ObservableObject {
 
     @Published private(set) var phase: Phase = .idle
     @Published private(set) var unreadCount: Int = 0
+    @Published var sort: NotificationSortOption = .recentlySent
+
+    var sortedItems: [NotificationCenterItem] {
+        guard case .loaded(let items) = phase else { return [] }
+        return sort.sorted(items)
+    }
 
     func loadIfNeeded(apiClient: Client) async {
         if case .idle = phase {
@@ -94,8 +230,11 @@ final class NotificationCenterModel: ObservableObject {
             switch output {
             case .ok(let ok):
                 let response = try ok.body.json
-                unreadCount = response.data.unreadCount
-                phase = .loaded(response.data.items.map(NotificationCenterItem.init(item:)))
+                let items = response.data.items
+                    .map(NotificationCenterItem.init(item:))
+                    .filter(\.isForUpcomingShow)
+                unreadCount = items.filter(\.isUnread).count
+                phase = .loaded(items)
             case .unauthorized, .unprocessableContent:
                 phase = .failure("Sign in to see your notifications.")
             case .tooManyRequests:
