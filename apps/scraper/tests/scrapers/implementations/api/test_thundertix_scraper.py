@@ -274,7 +274,7 @@ def _scraper_with_detail_pages(monkeypatch, html_by_url: dict, fetched: list):
     """Build a GenericThunderTixScraper whose detail-page fetches are stubbed."""
     scraper = GenericThunderTixScraper(_club(source_url="https://theannoyance.thundertix.com"))
 
-    async def fake_fetch_html(self, url: str):
+    async def fake_fetch_html(self, url: str, **kwargs):
         fetched.append(url)
         result = html_by_url[url]
         if isinstance(result, Exception):
