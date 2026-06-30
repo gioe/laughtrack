@@ -18,7 +18,8 @@ Pipeline
 --------
 1. Launch a headless Chromium browser via Playwright.
 2. Navigate to ``club.scraping_url`` (the JetBook iframe URL) and wait
-   for ``networkidle`` so the initial batch of msearch requests completes.
+   for the first ``/elasticsearch/msearch`` response so the initial batch
+   has started.
 3. Scroll to the bottom of the page and click the "Show more" button
    iteratively (via ``evaluate()`` — the standard Playwright click times
    out against Bubble's non-standard button implementation) to trigger
@@ -46,13 +47,21 @@ from .extractor import JetBookExtractor
 from .transformer import JetBookEventTransformer
 
 _PAGE_LOAD_TIMEOUT_MS = 60_000
-_NETWORK_IDLE_TIMEOUT_MS = 15_000
+_INITIAL_MSEARCH_TIMEOUT_MS = 15_000
+_TRAILING_MSEARCH_TIMEOUT_MS = 15_000
 _POST_SCROLL_WAIT_MS = 800
 _POST_SHOW_MORE_WAIT_MS = 2500
+_POST_SHOW_MORE_MISS_WAIT_MS = 1000
 _MAX_SHOW_MORE_CLICKS = 40
+_MAX_SHOW_MORE_MISSES = 8
+_MAX_LISTING_CAPTURE_ATTEMPTS = 3
+_LISTING_RETRY_MIN_RESPONSE_BODIES = 4
+_LISTING_RETRY_EVENT_THRESHOLD = 30
 _DETAIL_PRICE_PAGE_POOL_SIZE = 4
+_DETAIL_PRICE_MAX_EVENTS = 24
 _DETAIL_PAGE_LOAD_TIMEOUT_MS = 60_000
-_DETAIL_NETWORK_IDLE_TIMEOUT_MS = 10_000
+_DETAIL_MGET_TIMEOUT_MS = 8_000
+_DETAIL_BLOCKED_RESOURCE_TYPES = {"font", "image", "media"}
 
 # Total runtime budget for a single _capture_msearch_responses() call.
 # Covers page load + the "Show more" click loop + trailing networkidle.
@@ -84,23 +93,60 @@ class JetBookScraper(BaseScraper):
 
     async def _get_data_within_budget(self, url: str) -> Optional[JetBookPageData]:
         started_at = asyncio.get_running_loop().time()
-        try:
-            response_bodies = await asyncio.wait_for(
-                self._capture_msearch_responses(url),
-                timeout=_CAPTURE_TOTAL_BUDGET_S,
+        response_bodies: list[str] = []
+        events: list[JetBookEvent] = []
+        for attempt in range(_MAX_LISTING_CAPTURE_ATTEMPTS):
+            remaining_budget_s = _CAPTURE_TOTAL_BUDGET_S - (asyncio.get_running_loop().time() - started_at)
+            if remaining_budget_s <= 0:
+                break
+
+            try:
+                candidate_bodies = await asyncio.wait_for(
+                    self._capture_msearch_responses(url),
+                    timeout=remaining_budget_s,
+                )
+            except asyncio.TimeoutError:
+                Logger.warn(
+                    f"{self._log_prefix}: Playwright capture exceeded {_CAPTURE_TOTAL_BUDGET_S}s budget for {url}",
+                    self.logger_context,
+                )
+                if attempt + 1 >= _MAX_LISTING_CAPTURE_ATTEMPTS:
+                    break
+                continue
+            except Exception as e:
+                Logger.error(
+                    f"{self._log_prefix}: Playwright capture failed for {url}: {e}",
+                    self.logger_context,
+                )
+                if attempt + 1 >= _MAX_LISTING_CAPTURE_ATTEMPTS:
+                    break
+                continue
+
+            candidate_events = JetBookExtractor.parse_msearch_responses(candidate_bodies)
+            if len(candidate_events) > len(events):
+                response_bodies = candidate_bodies
+                events = candidate_events
+
+            should_retry_empty_capture = attempt + 1 < _MAX_LISTING_CAPTURE_ATTEMPTS and not candidate_bodies
+            should_retry_partial_listing = (
+                attempt + 1 < _MAX_LISTING_CAPTURE_ATTEMPTS
+                and len(candidate_bodies) >= _LISTING_RETRY_MIN_RESPONSE_BODIES
+                and 0 < len(candidate_events) < _LISTING_RETRY_EVENT_THRESHOLD
             )
-        except asyncio.TimeoutError:
-            Logger.warn(
-                f"{self._log_prefix}: Playwright capture exceeded {_CAPTURE_TOTAL_BUDGET_S}s budget for {url}",
-                self.logger_context,
-            )
-            return None
-        except Exception as e:
-            Logger.error(
-                f"{self._log_prefix}: Playwright capture failed for {url}: {e}",
-                self.logger_context,
-            )
-            return None
+            if not (should_retry_empty_capture or should_retry_partial_listing):
+                break
+
+            if should_retry_empty_capture:
+                Logger.warn(
+                    f"{self._log_prefix}: JetBook listing capture returned no msearch responses at {url}; retrying",
+                    self.logger_context,
+                )
+            else:
+                Logger.warn(
+                    f"{self._log_prefix}: JetBook listing capture returned only {len(candidate_events)} events "
+                    f"from {len(candidate_bodies)} msearch response(s) at {url}; retrying",
+                    self.logger_context,
+                )
 
         if not response_bodies:
             Logger.warn(
@@ -109,7 +155,6 @@ class JetBookScraper(BaseScraper):
             )
             return None
 
-        events = JetBookExtractor.parse_msearch_responses(response_bodies)
         if not events:
             Logger.info(
                 f"{self._log_prefix}: no bookable upcoming events found at {url}",
@@ -126,8 +171,16 @@ class JetBookScraper(BaseScraper):
             )
         else:
             try:
+                detail_price_events = events[:_DETAIL_PRICE_MAX_EVENTS]
+                if len(detail_price_events) < len(events):
+                    Logger.warn(
+                        f"{self._log_prefix}: limiting JetBook detail-price capture to "
+                        f"{len(detail_price_events)} of {len(events)} events for {url}; "
+                        "remaining events will use price-less fallback tickets",
+                        self.logger_context,
+                    )
                 await asyncio.wait_for(
-                    self._attach_detail_ticket_prices(events),
+                    self._attach_detail_ticket_prices(detail_price_events),
                     timeout=remaining_budget_s,
                 )
             except asyncio.TimeoutError:
@@ -166,6 +219,8 @@ class JetBookScraper(BaseScraper):
             try:
                 context = await browser.new_context()
                 page = await context.new_page()
+                loop = asyncio.get_running_loop()
+                first_msearch_seen = loop.create_future()
 
                 async def _on_response(response) -> None:
                     # Tight suffix match — avoids matching unrelated paths
@@ -176,15 +231,21 @@ class JetBookScraper(BaseScraper):
                         except Exception:
                             # Response may be closed before we can read it.
                             pass
+                        if not first_msearch_seen.done():
+                            first_msearch_seen.set_result(None)
 
                 page.on("response", _on_response)
 
                 try:
                     await page.goto(
                         url,
-                        wait_until="networkidle",
+                        wait_until="domcontentloaded",
                         timeout=_PAGE_LOAD_TIMEOUT_MS,
                     )
+                    try:
+                        await asyncio.wait_for(first_msearch_seen, timeout=_INITIAL_MSEARCH_TIMEOUT_MS / 1000)
+                    except Exception:
+                        pass
                 except Exception as e:
                     Logger.warn(
                         f"{self._log_prefix}: initial navigation to {url} failed: {e}",
@@ -193,6 +254,7 @@ class JetBookScraper(BaseScraper):
 
                 # Scroll + click "Show more" until no more results load.
                 clicks = 0
+                misses = 0
                 for _ in range(_MAX_SHOW_MORE_CLICKS):
                     await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
                     await page.wait_for_timeout(_POST_SCROLL_WAIT_MS)
@@ -218,7 +280,12 @@ class JetBookScraper(BaseScraper):
                         }
                         """)
                     if not clicked:
-                        break
+                        misses += 1
+                        if misses >= _MAX_SHOW_MORE_MISSES:
+                            break
+                        await page.wait_for_timeout(_POST_SHOW_MORE_MISS_WAIT_MS)
+                        continue
+                    misses = 0
                     clicks += 1
                     await page.wait_for_timeout(_POST_SHOW_MORE_WAIT_MS)
 
@@ -234,9 +301,9 @@ class JetBookScraper(BaseScraper):
                     )
 
                 try:
-                    await page.wait_for_load_state("networkidle", timeout=_NETWORK_IDLE_TIMEOUT_MS)
+                    await asyncio.wait_for(first_msearch_seen, timeout=_TRAILING_MSEARCH_TIMEOUT_MS / 1000)
                 except Exception:
-                    # Networkidle timeout is non-fatal — keep whatever we
+                    # A trailing wait timeout is non-fatal — keep whatever we
                     # collected so far.
                     pass
             finally:
@@ -322,15 +389,29 @@ class JetBookScraper(BaseScraper):
 
         bodies: list[str] = []
         page = await context.new_page()
+        loop = asyncio.get_running_loop()
+        price_seen = loop.create_future()
         try:
+            async def _route_request(route) -> None:
+                request = route.request
+                if request.resource_type in _DETAIL_BLOCKED_RESOURCE_TYPES:
+                    await route.abort()
+                    return
+                await route.continue_()
 
             async def _on_response(response) -> None:
                 if response.url.endswith("/elasticsearch/mget") and response.status == 200:
                     try:
-                        bodies.append(await response.text())
+                        body = await response.text()
+                        bodies.append(body)
                     except Exception:
                         pass
+                    else:
+                        price = JetBookExtractor.parse_mget_ticket_price([body])
+                        if price is not None and not price_seen.done():
+                            price_seen.set_result(price)
 
+            await page.route("**/*", _route_request)
             page.on("response", _on_response)
             try:
                 await page.goto(
@@ -339,8 +420,8 @@ class JetBookScraper(BaseScraper):
                     timeout=_DETAIL_PAGE_LOAD_TIMEOUT_MS,
                 )
                 try:
-                    await page.wait_for_load_state("networkidle", timeout=_DETAIL_NETWORK_IDLE_TIMEOUT_MS)
-                except Exception:
+                    return await asyncio.wait_for(price_seen, timeout=_DETAIL_MGET_TIMEOUT_MS / 1000)
+                except (asyncio.TimeoutError, Exception):
                     pass
             except Exception as e:
                 Logger.warn(

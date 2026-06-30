@@ -68,6 +68,65 @@ class _PriceFetcherJetBookScraper(JetBookScraper):
         return await self._price_fetcher(self, event)
 
 
+class _FakeJetBookResponse:
+    def __init__(self, body: str):
+        self.url = "https://jetbook.co/elasticsearch/mget"
+        self.status = 200
+        self._body = body
+
+    async def text(self) -> str:
+        return self._body
+
+
+class _FakeJetBookDetailPage:
+    def __init__(self, response_bodies: list[str]):
+        self._response_bodies = response_bodies
+        self._response_handler = None
+        self.networkidle_waits = 0
+        self.closed = False
+
+    def on(self, event_name: str, handler) -> None:
+        assert event_name == "response"
+        self._response_handler = handler
+
+    async def route(self, pattern: str, handler) -> None:
+        assert pattern == "**/*"
+        self.route_handler = handler
+
+    async def goto(self, url: str, wait_until: str, timeout: int) -> None:
+        assert url == "https://jetbook.co/e/tan-sedan-abc1"
+        assert wait_until == "domcontentloaded"
+        assert timeout > 0
+        if not self._response_bodies:
+            return
+        assert self._response_handler is not None
+        await self._response_handler(_FakeJetBookResponse(self._response_bodies[0]))
+        loop = asyncio.get_running_loop()
+        for response_body in self._response_bodies[1:]:
+            assert self._response_handler is not None
+            loop.call_soon(asyncio.create_task, self._response_handler(_FakeJetBookResponse(response_body)))
+
+    async def wait_for_load_state(self, state: str, timeout: int) -> None:
+        self.networkidle_waits += 1
+
+    async def close(self) -> None:
+        self.closed = True
+
+
+class _FakeJetBookDetailContext:
+    def __init__(self, response_bodies: list[str] | str | None):
+        if response_bodies is None:
+            bodies = []
+        elif isinstance(response_bodies, str):
+            bodies = [response_bodies]
+        else:
+            bodies = response_bodies
+        self.page = _FakeJetBookDetailPage(bodies)
+
+    async def new_page(self):
+        return self.page
+
+
 def _event_source(
     *,
     record_id: str = "evt-001",
@@ -267,7 +326,11 @@ async def test_get_data_returns_page_data_with_events(monkeypatch):
     async def fake_capture(self, url: str) -> list[str]:
         return [body]
 
+    async def fake_attach_prices(self, events: list[JetBookEvent]) -> None:
+        return None
+
     monkeypatch.setattr(JetBookScraper, "_capture_msearch_responses", fake_capture)
+    monkeypatch.setattr(JetBookScraper, "_attach_detail_ticket_prices", fake_attach_prices)
 
     result = await scraper.get_data(IFRAME_URL)
     assert isinstance(result, JetBookPageData)
@@ -300,6 +363,90 @@ async def test_get_data_attaches_detail_page_ticket_prices(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_get_data_retries_suspicious_partial_listing_capture(monkeypatch):
+    partial_body = _msearch_body([_event_source(record_id="evt-1", slug="first-event")])
+    complete_body = _msearch_body(
+        [
+            _event_source(record_id="evt-1", slug="first-event"),
+            _event_source(record_id="evt-2", slug="second-event"),
+        ]
+    )
+    captures = [[partial_body, "", "", ""], [complete_body]]
+
+    async def fake_capture(self, url: str) -> list[str]:
+        return captures.pop(0)
+
+    async def fake_attach_prices(self, events: list[JetBookEvent]) -> None:
+        return None
+
+    scraper = JetBookScraper(_club())
+    monkeypatch.setattr(JetBookScraper, "_capture_msearch_responses", fake_capture)
+    monkeypatch.setattr(JetBookScraper, "_attach_detail_ticket_prices", fake_attach_prices)
+
+    result = await scraper.get_data(IFRAME_URL)
+
+    assert result is not None
+    assert [event.slug for event in result.event_list] == ["first-event", "second-event"]
+    assert captures == []
+
+
+@pytest.mark.asyncio
+async def test_get_data_retries_empty_listing_capture(monkeypatch):
+    complete_body = _msearch_body([_event_source(record_id="evt-1", slug="first-event")])
+    captures = [[], [complete_body]]
+
+    async def fake_capture(self, url: str) -> list[str]:
+        return captures.pop(0)
+
+    async def fake_attach_prices(self, events: list[JetBookEvent]) -> None:
+        return None
+
+    scraper = JetBookScraper(_club())
+    monkeypatch.setattr(JetBookScraper, "_capture_msearch_responses", fake_capture)
+    monkeypatch.setattr(JetBookScraper, "_attach_detail_ticket_prices", fake_attach_prices)
+
+    result = await scraper.get_data(IFRAME_URL)
+
+    assert result is not None
+    assert [event.slug for event in result.event_list] == ["first-event"]
+    assert captures == []
+
+
+@pytest.mark.asyncio
+async def test_get_data_caps_detail_price_capture_without_dropping_events(monkeypatch):
+    import laughtrack.scrapers.implementations.jetbook.scraper as jetbook_scraper
+
+    body = _msearch_body(
+        [
+            _event_source(record_id="evt-1", slug="first-event"),
+            _event_source(record_id="evt-2", slug="second-event", start_ms=FAR_FUTURE_MS + 1),
+            _event_source(record_id="evt-3", slug="third-event", start_ms=FAR_FUTURE_MS + 2),
+        ]
+    )
+    enriched_slugs: list[str] = []
+
+    async def fake_capture(self, url: str) -> list[str]:
+        return [body]
+
+    async def fake_attach_prices(self, events: list[JetBookEvent]) -> None:
+        enriched_slugs.extend(event.slug for event in events)
+        for event in events:
+            event.price = 5.0
+
+    monkeypatch.setattr(jetbook_scraper, "_DETAIL_PRICE_MAX_EVENTS", 2)
+    monkeypatch.setattr(JetBookScraper, "_capture_msearch_responses", fake_capture)
+    monkeypatch.setattr(JetBookScraper, "_attach_detail_ticket_prices", fake_attach_prices)
+
+    scraper = JetBookScraper(_club())
+    result = await scraper.get_data(IFRAME_URL)
+
+    assert result is not None
+    assert [event.slug for event in result.event_list] == ["first-event", "second-event", "third-event"]
+    assert enriched_slugs == ["first-event", "second-event"]
+    assert [event.price for event in result.event_list] == [5.0, 5.0, None]
+
+
+@pytest.mark.asyncio
 async def test_detail_price_enrichment_uses_concurrent_page_pool(monkeypatch):
     events = [
         _make_event(slug="first-event"),
@@ -323,6 +470,48 @@ async def test_detail_price_enrichment_uses_concurrent_page_pool(monkeypatch):
 
     assert max_active > 1
     assert [event.price for event in events] == [9.0, 9.0, 9.0]
+
+
+@pytest.mark.asyncio
+async def test_detail_price_capture_returns_after_mget_without_networkidle():
+    body = _mget_body([{"price_number": 7, "isfree_boolean": False}])
+    context = _FakeJetBookDetailContext(body)
+    scraper = JetBookScraper(_club())
+
+    price = await scraper._fetch_detail_ticket_price_with_context(_make_event(), context)
+
+    assert price == 7.0
+    assert context.page.networkidle_waits == 0
+    assert context.page.closed is True
+
+
+@pytest.mark.asyncio
+async def test_detail_price_capture_waits_past_price_less_mget():
+    price_less_body = _mget_body([{"isfree_boolean": True, "price_number": 0}])
+    priced_body = _mget_body([{"price_number": 11, "isfree_boolean": False}])
+    context = _FakeJetBookDetailContext([price_less_body, priced_body])
+    scraper = JetBookScraper(_club())
+
+    price = await scraper._fetch_detail_ticket_price_with_context(_make_event(), context)
+
+    assert price == 11.0
+    assert context.page.networkidle_waits == 0
+    assert context.page.closed is True
+
+
+@pytest.mark.asyncio
+async def test_detail_price_capture_returns_none_when_mget_missing(monkeypatch):
+    import laughtrack.scrapers.implementations.jetbook.scraper as jetbook_scraper
+
+    monkeypatch.setattr(jetbook_scraper, "_DETAIL_MGET_TIMEOUT_MS", 1)
+    context = _FakeJetBookDetailContext(None)
+    scraper = JetBookScraper(_club())
+
+    price = await scraper._fetch_detail_ticket_price_with_context(_make_event(), context)
+
+    assert price is None
+    assert context.page.networkidle_waits == 0
+    assert context.page.closed is True
 
 
 @pytest.mark.asyncio
