@@ -161,8 +161,8 @@ failures and regressions.
      Build `new-rule.json` by cloning an existing rule's `data` pipeline
      (query A = the YAML rule's `rawSql` against the Neon datasource,
      reduce(last) expression, threshold(>0) expression), set `folderUID` /
-     `ruleGroup` from the template, labels `service=scraper-health,
-severity=warning`, `noDataState: OK`, and
+     `ruleGroup` from the template, labels `service=scraper-health` and
+     `severity=warning`, `noDataState: OK`, and
      `notification_settings.receiver: "Discord Hook"`. Manual UI creation
      (**Alerting → Alert rules → New** with the same pieces) remains the
      fallback when no token is at hand.
