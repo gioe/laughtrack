@@ -59,7 +59,7 @@ Walk the output top-to-bottom. Use these thresholds — they're calibrated to th
 |---|---|
 | `pct_null_price` per scraper | 10-50% |
 | `pct_empty` lineup per scraper | 30-80% |
-| `pct_midnight` per scraper (Section 7) | ≥ 50% with ≥ 20 upcoming shows — possible time-parsing bug, but some platforms (RSVP-only / day-card events) legitimately don't carry showtime |
+| `pct_midnight` per scraper (Section 7) | ≥ 50% with ≥ 20 upcoming shows — possible time-parsing bug, but some platforms (RSVP-only / day-card events) legitimately don't carry showtime. The query buckets by **club-local** time (`date AT TIME ZONE club.timezone`), so an evening showtime no longer masquerades as midnight (see the gotcha below) |
 | `all_sold_out_shows` for any scraper | ≥ 10 — could be real, or scraper miscoding unavailable inventory |
 | `dormant_dark` clubs in the run-health classification | many — real venues with no current programming on their source; not broken, but a long-dark cluster on one platform is worth a spot-check |
 | `stale_7d` for a platform | ≥ 1 — but confirm via the run-health classification before treating as broken (see Sections 3 & 4) |
@@ -121,4 +121,5 @@ Offer (don't auto-execute):
 - "Shows with no tickets" is a meaningful invariant violation per `feedback_tickets_are_access_records`: every show should emit ≥ 1 ticket, even free / RSVP-only events. The UI hides ticketless shows.
 - Zero-priced tickets are NOT a violation by themselves — they're how free events are represented. Only escalate if combined with other red flags (e.g., a scraper with both 100% zero-price *and* 100% sold-out).
 - The `midnight_upcoming` count includes legitimate all-day / open-mic / RSVP-only events. Use the per-scraper rate (`pct_midnight`) rather than the absolute count.
+- **Midnight is measured in club-local time, not UTC** (TASK-3516). `shows.date` is a UTC `timestamptz`; a bare `date::time` reads the time-of-day in UTC, which mislabels every evening show west of UTC as "midnight" (7pm Central / 6pm Mountain / 5pm Pacific / 8pm-EDT all map to 00:00 UTC). The Section 7 queries convert via `date AT TIME ZONE club.timezone` first, so only true local-midnight shows count. If you hand-roll a midnight check, do the same — otherwise zanies, esthers_follies, fareharbor (all confirmed correct) and any other non-UTC venue will trip a false time-parse alarm.
 - This skill does NOT trigger scrapes. To re-run a scraper for one club, use `make -C apps/scraper club ID=<n>` (per `feedback_use_make_commands`).

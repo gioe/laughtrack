@@ -431,24 +431,38 @@ _query("Suspicious shows where ALL tickets are sold out", """
 
 _section("7. ANOMALOUS DATES")
 
+# ``shows.date`` is a UTC ``timestamptz``. A bare ``date::time`` reads the
+# time-of-day in UTC, which mislabels every evening show west of UTC as
+# "midnight" (7pm Central / 6pm Mountain / 5pm Pacific / 8pm-EDT all map to
+# 00:00 UTC) — the false "time-parse miss" signature that flagged zanies,
+# esthers_follies, and fareharbor (TASK-3516, all confirmed correct). Convert
+# to the club's local wall-clock via ``AT TIME ZONE`` before the midnight test
+# so only genuinely time-less shows (true local 00:00) are counted.
 _query("Shows with implausible dates", """
     SELECT
-        COUNT(*) FILTER (WHERE date < '2024-01-01')                       AS very_old,
-        COUNT(*) FILTER (WHERE date > NOW() + INTERVAL '2 years')         AS very_far_future,
-        COUNT(*) FILTER (WHERE date::time = '00:00:00' AND date >= NOW()) AS midnight_upcoming
-    FROM shows
+        COUNT(*) FILTER (WHERE s.date < '2024-01-01')               AS very_old,
+        COUNT(*) FILTER (WHERE s.date > NOW() + INTERVAL '2 years') AS very_far_future,
+        COUNT(*) FILTER (
+            WHERE (s.date AT TIME ZONE COALESCE(c.timezone, 'UTC'))::time = '00:00:00'
+              AND s.date >= NOW()
+        ) AS midnight_upcoming
+    FROM shows s
+    LEFT JOIN clubs c ON c.id = s.club_id
 """)
 
 _query("Per-scraper: midnight-time rate on upcoming shows (sorted by worst)", """
     SELECT
-        last_scraped_by,
-        COUNT(*)                                                                                  AS upcoming,
-        COUNT(*) FILTER (WHERE date::time = '00:00:00')                                           AS midnight,
-        ROUND(100.0 * COUNT(*) FILTER (WHERE date::time = '00:00:00') / NULLIF(COUNT(*), 0), 1)   AS pct_midnight
-    FROM shows
-    WHERE date >= NOW()
-    GROUP BY last_scraped_by
-    HAVING COUNT(*) >= 5 AND COUNT(*) FILTER (WHERE date::time = '00:00:00') > 0
+        s.last_scraped_by,
+        COUNT(*)                                                                                       AS upcoming,
+        COUNT(*) FILTER (WHERE (s.date AT TIME ZONE COALESCE(c.timezone, 'UTC'))::time = '00:00:00')    AS midnight,
+        ROUND(100.0 * COUNT(*) FILTER (WHERE (s.date AT TIME ZONE COALESCE(c.timezone, 'UTC'))::time = '00:00:00')
+              / NULLIF(COUNT(*), 0), 1)                                                                 AS pct_midnight
+    FROM shows s
+    LEFT JOIN clubs c ON c.id = s.club_id
+    WHERE s.date >= NOW()
+    GROUP BY s.last_scraped_by
+    HAVING COUNT(*) >= 5
+       AND COUNT(*) FILTER (WHERE (s.date AT TIME ZONE COALESCE(c.timezone, 'UTC'))::time = '00:00:00') > 0
     ORDER BY pct_midnight DESC
     LIMIT 20
 """)
