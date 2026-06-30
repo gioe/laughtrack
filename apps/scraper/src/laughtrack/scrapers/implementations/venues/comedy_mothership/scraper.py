@@ -216,6 +216,11 @@ class ComedyMothershipScraper(BaseScraper):
                         headers=None,
                         logger_context=self.logger_context,
                         scraper_key=self.key,
+                        # Price enrichment only needs the server-rendered RSC
+                        # payload and degrades to a price-less ticket on
+                        # failure — never pay a per-show Chromium launch
+                        # (TASK-3542).
+                        skip_js_fallback=True,
                     )
                 except Exception as e:
                     Logger.debug(
