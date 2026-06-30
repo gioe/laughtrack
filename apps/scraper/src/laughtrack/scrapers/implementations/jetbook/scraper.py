@@ -245,7 +245,17 @@ class JetBookScraper(BaseScraper):
         return bodies
 
     async def _attach_detail_ticket_prices(self, events: list[JetBookEvent]) -> None:
-        """Populate event.price from each event detail page using a bounded pool."""
+        """Populate event.price from each event detail page using a bounded pool.
+
+        Note: unlike the curl-cffi price-enrichment scrapers (comedy_mothership,
+        delirious, DetailPagePriceMixin) which opt out of the Playwright fallback
+        via skip_js_fallback, JetBook MUST drive a real headless browser here.
+        Bubble.io renders the ticket page client-side and the price only appears
+        in a runtime ``/elasticsearch/mget`` XHR captured from a live page — there
+        is no server-rendered payload a plain fetch could read. The browser is the
+        primary fetch mechanism, not a fallback, so skip_js_fallback does not apply
+        (TASK-3544 audit).
+        """
         if not events:
             return
 
