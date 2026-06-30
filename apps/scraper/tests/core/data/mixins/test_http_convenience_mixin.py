@@ -208,6 +208,38 @@ class TestFetchJson:
         assert "skip_js_fallback" not in call_kwargs
 
     @pytest.mark.asyncio
+    async def test_skip_js_fallback_reraises_on_non_200_without_browser(self):
+        """skip_js_fallback=True still re-raises non-200 (no raise_on_failure knob here).
+
+        The scrapers rely on this: their per-event try/except converts the
+        re-raise into a graceful price-less degrade. The browser must never run.
+        """
+        mock_response = MagicMock()
+        mock_response.status_code = 403
+        mock_response.text = ""
+        mock_response.raise_for_status.side_effect = RuntimeError("403")
+
+        mock_session = AsyncMock()
+        mock_session.get.return_value = mock_response
+
+        mock_browser = AsyncMock()
+        mock_browser.fetch_html = AsyncMock(return_value="<pre>{}</pre>")
+
+        mixin = _ConcreteMixin()
+        mixin.get_session = AsyncMock(return_value=mock_session)
+
+        with patch(
+            "laughtrack.core.data.mixins.http_convenience_mixin._get_js_browser",
+            return_value=mock_browser,
+        ):
+            with pytest.raises(RuntimeError):
+                await mixin.fetch_json(
+                    "https://example.com/api", skip_js_fallback=True
+                )
+
+        mock_browser.fetch_html.assert_not_called()
+
+    @pytest.mark.asyncio
     async def test_raises_on_403_when_fallback_disabled(self):
         """HTTP 403 with PLAYWRIGHT_FALLBACK disabled raises via raise_for_status.
 

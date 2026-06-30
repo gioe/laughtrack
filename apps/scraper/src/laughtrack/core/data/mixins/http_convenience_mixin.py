@@ -90,12 +90,15 @@ class HttpConvenienceMixin(AsyncHttpMixin):
         logger_context = getattr(self, "logger_context", None) or {}
         normalized_url = URLUtils.normalize_url(url)
         proxy_url = kwargs.pop("proxy_url", None)
-        # When True, never launch the Playwright headless browser — a
-        # non-200/empty/bot-block response just returns None. Used by cheap
-        # secondary fetches that degrade gracefully on failure (e.g. per-event
-        # price enrichment), where a per-call Chromium launch is pure overhead
-        # at scale (TASK-3542). Popped before request_kwargs so it is never
-        # forwarded to session.get.
+        # When True, never launch the Playwright headless browser. An
+        # empty/bot-block 200 returns None; a non-200 still re-raises via
+        # raise_for_status to preserve the retry contract (unlike
+        # HttpClient.fetch_html, fetch_json has no raise_on_failure knob and
+        # always re-raises non-200 when no rescue occurs). Callers wanting
+        # graceful degradation wrap the call in try/except — used by cheap
+        # secondary fetches (e.g. per-event price enrichment) where a per-call
+        # Chromium launch is pure overhead at scale (TASK-3542). Popped before
+        # request_kwargs so it is never forwarded to session.get.
         skip_js_fallback = kwargs.pop("skip_js_fallback", False)
         # Auto-apply the residential proxy for allowlisted JSON scrapers
         # (e.g. tixr/ticketweb storefront APIs) so fetch_json reaches parity
