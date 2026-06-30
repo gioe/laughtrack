@@ -180,3 +180,16 @@ class DeliriousComedyClubScraper(BaseScraper):
                 event.price = price
 
         await asyncio.gather(*(_fetch_one(event) for event in events))
+
+        # Surface a wholesale break: per-event failures only log at debug, and
+        # the Grafana scraper-health alerts watch show/ticket counts, not price
+        # coverage — so if the internal SPA endpoints change shape or start
+        # blocking, a full price regression would otherwise be invisible.
+        enriched = sum(1 for event in events if event.price is not None)
+        if events and enriched == 0:
+            Logger.warn(
+                f"{self._log_prefix}: price enrichment recovered 0/{len(events)} "
+                "prices — the FriendlySky package chain may have changed or "
+                "started blocking",
+                self.logger_context,
+            )

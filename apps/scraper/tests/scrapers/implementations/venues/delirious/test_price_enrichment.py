@@ -216,6 +216,27 @@ async def test_get_data_degrades_to_none_on_fetch_exception(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_get_data_per_event_independence_on_mixed_outcome(monkeypatch):
+    """One event's failed chain must not stop another event from being priced."""
+    scraper = DeliriousComedyClubScraper(_club())
+
+    def pkgs_router(url):
+        # GAME2's package lookup fails (empty data); GAME1 succeeds.
+        if "hashGameId=GAME2" in url:
+            return {"data": {}}
+        return _pkgs_envelope()
+
+    _route_fetch(monkeypatch, scraper, pkgs=pkgs_router)
+
+    result = await scraper.get_data(API_URL)
+
+    assert result is not None
+    by_id = {e.hash_id: e for e in result.event_list}
+    assert by_id["GAME1"].price == 39.95
+    assert by_id["GAME2"].price is None
+
+
+@pytest.mark.asyncio
 async def test_get_data_respects_concurrency_env(monkeypatch):
     monkeypatch.setenv("DELIRIOUS_PRICE_CONCURRENCY", "1")
     scraper = DeliriousComedyClubScraper(_club())
