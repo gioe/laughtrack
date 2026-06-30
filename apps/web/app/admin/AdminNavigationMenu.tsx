@@ -5,6 +5,7 @@ import {
     Building2,
     Menu,
     Podcast,
+    Radio,
     UserRound,
     UsersRound,
     Workflow,
@@ -56,6 +57,12 @@ const ADMIN_NAV_ITEMS: AdminNavItem[] = [
         href: "/admin/podcasts",
         description: "Ownership review",
         icon: Podcast,
+    },
+    {
+        label: "YouTube WebSub",
+        href: "/admin/youtube-websub",
+        description: "Live feed rollout and events",
+        icon: Radio,
     },
 ];
 
