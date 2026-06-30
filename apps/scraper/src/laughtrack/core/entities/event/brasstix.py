@@ -20,6 +20,7 @@ class BrassTixEvent(ShowConvertible):
     ticket_url: str
     show_name: str
     availability_label: str = ""
+    price: Optional[float] = None
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None):
         try:
@@ -30,14 +31,10 @@ class BrassTixEvent(ShowConvertible):
         timezone_name = club.timezone or "America/New_York"
         show_date = naive.replace(tzinfo=ZoneInfo(timezone_name))
         purchase_url = url or self.ticket_url
-        # The inline-JS calendar entries expose no price — each object carries
-        # only title/subtitle/eventid/start/url/colors/ShowName (verified
-        # 2026-06-29, TASK-3514). Price is only revealed on the payment1.php
-        # checkout page, so the ticket stays priceless (None).
         tickets = [
             ShowFactoryUtils.create_fallback_ticket(
                 purchase_url,
-                price=None,
+                price=self.price,
                 sold_out=False,
             )
         ]
