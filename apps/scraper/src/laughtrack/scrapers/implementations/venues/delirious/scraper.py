@@ -157,8 +157,14 @@ class DeliriousComedyClubScraper(BaseScraper):
             async with sem:
                 try:
                     pkgs_url = base_url + _PKGS_PATH.format(hash_id=event.hash_id)
+                    # The cheap JSON package chain degrades to a price-less
+                    # ticket on failure and never needs a headless browser, so
+                    # opt out of the Playwright fallback — at ~2 fetches/event
+                    # over the full calendar a per-call Chromium launch on a
+                    # blocked endpoint would be a real operational cost
+                    # (TASK-3542).
                     pkgs_response = await self.fetch_json(
-                        pkgs_url, headers=_FRIENDLYSKY_HEADERS
+                        pkgs_url, headers=_FRIENDLYSKY_HEADERS, skip_js_fallback=True
                     )
                     pkg_hash = DeliriousExtractor.extract_package_hash(pkgs_response)
                     if not pkg_hash:
@@ -166,7 +172,9 @@ class DeliriousComedyClubScraper(BaseScraper):
 
                     firstpage_url = base_url + _FIRSTPAGE_PATH.format(pkg_hash=pkg_hash)
                     firstpage_response = await self.fetch_json(
-                        firstpage_url, headers=_FRIENDLYSKY_HEADERS
+                        firstpage_url,
+                        headers=_FRIENDLYSKY_HEADERS,
+                        skip_js_fallback=True,
                     )
                     price = DeliriousExtractor.extract_min_price(firstpage_response)
                 except Exception as e:
