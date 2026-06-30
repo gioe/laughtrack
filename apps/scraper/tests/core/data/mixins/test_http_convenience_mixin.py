@@ -156,6 +156,58 @@ class TestFetchJson:
         assert result == {"ok": True}
 
     @pytest.mark.asyncio
+    async def test_skip_js_fallback_suppresses_browser_on_bot_block(self):
+        """skip_js_fallback=True returns None without launching the browser."""
+        bot_html = "<html><title>Just a moment...</title></html>"
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.text = bot_html
+
+        mock_session = AsyncMock()
+        mock_session.get.return_value = mock_response
+
+        mock_browser = AsyncMock()
+        mock_browser.fetch_html = AsyncMock(return_value="<pre>{}</pre>")
+
+        mixin = _ConcreteMixin()
+        mixin.get_session = AsyncMock(return_value=mock_session)
+
+        with patch(
+            "laughtrack.core.data.mixins.http_convenience_mixin._get_js_browser",
+            return_value=mock_browser,
+        ):
+            result = await mixin.fetch_json(
+                "https://example.com/api", skip_js_fallback=True
+            )
+
+        mock_browser.fetch_html.assert_not_called()
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_skip_js_fallback_does_not_forward_kwarg_to_session_get(self):
+        """skip_js_fallback is popped before request_kwargs, never sent to session.get."""
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.text = '{"ok": true}'
+        mock_response.json.return_value = {"ok": True}
+
+        mock_session = AsyncMock()
+        mock_session.get.return_value = mock_response
+
+        mixin = _ConcreteMixin()
+        mixin.get_session = AsyncMock(return_value=mock_session)
+
+        with _NO_JS_FALLBACK:
+            result = await mixin.fetch_json(
+                "https://example.com/api", skip_js_fallback=True
+            )
+
+        assert result == {"ok": True}
+        # The reserved flag must not leak into the underlying GET call.
+        _, call_kwargs = mock_session.get.call_args
+        assert "skip_js_fallback" not in call_kwargs
+
+    @pytest.mark.asyncio
     async def test_raises_on_403_when_fallback_disabled(self):
         """HTTP 403 with PLAYWRIGHT_FALLBACK disabled raises via raise_for_status.
 

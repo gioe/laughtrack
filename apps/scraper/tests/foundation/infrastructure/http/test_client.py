@@ -247,6 +247,73 @@ class TestFetchHtmlFallback:
         assert result is None
 
     @pytest.mark.asyncio
+    async def test_skip_js_fallback_suppresses_browser_on_bot_block(self):
+        """skip_js_fallback=True returns None without launching the browser."""
+        bot_html = "<html><title>Just a moment...</title></html>"
+        session = AsyncMock()
+        session.get.return_value = _make_response(200, text=bot_html)
+        mock_browser = _make_browser_mock()
+
+        with patch("laughtrack.foundation.infrastructure.http.client._get_js_browser", return_value=mock_browser):
+            result = await HttpClient.fetch_html(
+                session, "https://example.com/page", skip_js_fallback=True
+            )
+
+        mock_browser.fetch_html.assert_not_called()
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_skip_js_fallback_suppresses_browser_on_non_200(self):
+        """skip_js_fallback=True returns None on a 4xx without the browser."""
+        session = AsyncMock()
+        session.get.return_value = _make_response(403)
+        mock_browser = _make_browser_mock()
+
+        with patch("laughtrack.foundation.infrastructure.http.client._get_js_browser", return_value=mock_browser):
+            result = await HttpClient.fetch_html(
+                session, "https://example.com/page", skip_js_fallback=True
+            )
+
+        mock_browser.fetch_html.assert_not_called()
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_skip_js_fallback_still_returns_good_html(self):
+        """skip_js_fallback=True does not affect a clean 200 response."""
+        good_html = "<html><body>Show listings here</body></html>"
+        session = AsyncMock()
+        session.get.return_value = _make_response(200, text=good_html)
+        mock_browser = _make_browser_mock()
+
+        with patch("laughtrack.foundation.infrastructure.http.client._get_js_browser", return_value=mock_browser):
+            result = await HttpClient.fetch_html(
+                session, "https://example.com/page", skip_js_fallback=True
+            )
+
+        mock_browser.fetch_html.assert_not_called()
+        assert result == good_html
+
+    @pytest.mark.asyncio
+    async def test_skip_js_fallback_raises_on_failure_when_requested(self):
+        """skip_js_fallback honors raise_on_failure for non-200 responses."""
+        session = AsyncMock()
+        resp = _make_response(403)
+        resp.raise_for_status = MagicMock(side_effect=RuntimeError("403"))
+        session.get.return_value = resp
+        mock_browser = _make_browser_mock()
+
+        with patch("laughtrack.foundation.infrastructure.http.client._get_js_browser", return_value=mock_browser):
+            with pytest.raises(RuntimeError):
+                await HttpClient.fetch_html(
+                    session,
+                    "https://example.com/page",
+                    raise_on_failure=True,
+                    skip_js_fallback=True,
+                )
+
+        mock_browser.fetch_html.assert_not_called()
+
+    @pytest.mark.asyncio
     async def test_fallback_returns_none_on_playwright_exception(self):
         session = AsyncMock()
         session.get.return_value = _make_response(403)

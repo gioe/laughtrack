@@ -90,6 +90,13 @@ class HttpConvenienceMixin(AsyncHttpMixin):
         logger_context = getattr(self, "logger_context", None) or {}
         normalized_url = URLUtils.normalize_url(url)
         proxy_url = kwargs.pop("proxy_url", None)
+        # When True, never launch the Playwright headless browser — a
+        # non-200/empty/bot-block response just returns None. Used by cheap
+        # secondary fetches that degrade gracefully on failure (e.g. per-event
+        # price enrichment), where a per-call Chromium launch is pure overhead
+        # at scale (TASK-3542). Popped before request_kwargs so it is never
+        # forwarded to session.get.
+        skip_js_fallback = kwargs.pop("skip_js_fallback", False)
         # Auto-apply the residential proxy for allowlisted JSON scrapers
         # (e.g. tixr/ticketweb storefront APIs) so fetch_json reaches parity
         # with the fetch_html auto-routing in HttpClient.fetch_html.
@@ -133,7 +140,7 @@ class HttpConvenienceMixin(AsyncHttpMixin):
             if fallback_reason is None:
                 return response.json()
 
-            browser = _get_js_browser()
+            browser = None if skip_js_fallback else _get_js_browser()
             rescued: Any = None
             if browser is not None:
                 Logger.info(

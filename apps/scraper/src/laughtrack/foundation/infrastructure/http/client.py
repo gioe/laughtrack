@@ -469,6 +469,7 @@ class HttpClient:
         proxy_url: Optional[str] = None,
         raise_on_failure: bool = False,
         allow_empty_body: bool = False,
+        skip_js_fallback: bool = False,
         **request_kwargs: Any,
     ) -> Tuple[Optional[str], Response, bool]:
         """
@@ -578,6 +579,17 @@ class HttpClient:
         if fallback_reason is None:
             return response.text, response, False
 
+        # Caller opted this request out of the Playwright fallback. A fallback
+        # reason was detected, but we return without launching a headless
+        # browser. Used by cheap price-enrichment GETs that only need the
+        # server-rendered payload and degrade gracefully to a price-less ticket
+        # on failure — a per-event Chromium launch there is pure overhead and,
+        # at high per-run fetch counts, a real operational cost (TASK-3542).
+        if skip_js_fallback:
+            if raise_on_failure and response.status_code != 200:
+                response.raise_for_status()
+            return None, response, False
+
         # ------------------------------------------------------------------
         # Automatic JS fallback
         # ------------------------------------------------------------------
@@ -672,6 +684,7 @@ class HttpClient:
         raise_on_failure: bool = False,
         allow_empty_body: bool = False,
         scraper_key: Optional[str] = None,
+        skip_js_fallback: bool = False,
         **request_kwargs: Any,
     ) -> Optional[str]:
         """
@@ -701,6 +714,13 @@ class HttpClient:
                 ``None`` immediately without warning or triggering the
                 Playwright fallback.  Use this when the caller knows an
                 empty body is a valid application-level signal.
+            skip_js_fallback: When True, never launch the Playwright headless
+                browser — any non-200/empty/bot-block response returns
+                ``None`` directly (still honoring ``raise_on_failure`` for
+                non-200). Use for cheap secondary fetches that only need the
+                server-rendered payload and degrade gracefully on failure
+                (e.g. per-event price enrichment), where a per-call Chromium
+                launch would be pure overhead at scale.
             scraper_key: Identifier of the calling scraper (matches
                 ``BaseScraper.key``).  When provided and ``proxy_url`` is
                 ``None``, the residential-proxy allowlist
@@ -737,6 +757,7 @@ class HttpClient:
             proxy_url=effective_proxy_url,
             raise_on_failure=raise_on_failure,
             allow_empty_body=allow_empty_body,
+            skip_js_fallback=skip_js_fallback,
             **request_kwargs,
         )
 
@@ -775,6 +796,7 @@ class HttpClient:
         proxy_url: Optional[str] = None,
         allow_empty_body: bool = False,
         scraper_key: Optional[str] = None,
+        skip_js_fallback: bool = False,
     ) -> Optional[JSONDict]:
         """
         Fetch JSON data from a URL with standardized error handling.
@@ -833,6 +855,7 @@ class HttpClient:
             logger_context=logger_context,
             proxy_url=effective_proxy_url,
             allow_empty_body=allow_empty_body,
+            skip_js_fallback=skip_js_fallback,
         )
 
         # When we auto-applied the residential proxy and still got nothing,
