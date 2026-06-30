@@ -1,0 +1,9 @@
+# Play Console package identity + service-account credentials for `supply`.
+#
+# json_key_file points at the Play service-account JSON. Locally, drop the file
+# at android/play-service-account.json (gitignored). In CI the
+# android-release.yml workflow writes the file from the PLAY_SERVICE_ACCOUNT_JSON
+# secret and exports SUPPLY_JSON_KEY, which fastlane reads automatically — so the
+# ENV fallback below resolves there without committing anything.
+json_key_file(ENV["SUPPLY_JSON_KEY"] || "play-service-account.json")
+package_name("app.laughtrack.android")

@@ -16,3 +16,13 @@ google-services.json
 keystore.properties
 *.jks
 play-service-account.json
+
+# Fastlane — secrets + generated artifacts (mirrors root .gitignore's ios/fastlane
+# block). fastlane auto-loads fastlane/.env for the env vars read by the Fastfile.
+fastlane/.env
+fastlane/.env.*
+!fastlane/.env.example
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/README.md
+fastlane/test_output/

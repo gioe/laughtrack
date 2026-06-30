@@ -1,0 +1,147 @@
+default_platform(:android)
+
+PACKAGE_NAME = "app.laughtrack.android"
+# Version source of truth, mirroring how the iOS Fastfile treats project.yml.
+# gradle.properties carries VERSION_NAME (marketing) + VERSION_CODE (Play build
+# number); app/build.gradle.kts reads them (overridable with -PVERSION_*). The
+# Fastfile runs from android/fastlane/, so gradle.properties is one level up.
+GRADLE_PROPERTIES_PATH = "../gradle.properties"
+AAB_PATH = "../app/build/outputs/bundle/release/app-release.aab"
+
+# Read a `KEY=value` line from gradle.properties. Raises if absent so a renamed
+# or missing key fails loudly instead of silently shipping the wrong version.
+def read_gradle_property(key)
+  contents = File.read(GRADLE_PROPERTIES_PATH)
+  match = contents.match(/^#{Regexp.escape(key)}=(.*)$/)
+  raise "#{key} not found in #{GRADLE_PROPERTIES_PATH}" if match.nil?
+  match[1].strip
+end
+
+# Rewrite a single `KEY=value` line in gradle.properties in place.
+def update_gradle_property(key, new_value)
+  contents = File.read(GRADLE_PROPERTIES_PATH)
+  unless contents.match?(/^#{Regexp.escape(key)}=.*$/)
+    raise "#{key} not found in #{GRADLE_PROPERTIES_PATH}"
+  end
+  updated = contents.gsub(/^(#{Regexp.escape(key)}=).*$/, "\\1#{new_value}")
+  File.write(GRADLE_PROPERTIES_PATH, updated) if updated != contents
+end
+
+# Bump MARKETING (VERSION_NAME) by semantic component — mirrors the iOS
+# bump_marketing_version. kind may be :major, :minor, :patch (default :patch).
+# Three segments required so a malformed value can't silently produce the wrong
+# semantics.
+def bump_marketing_version(current, kind)
+  parts = current.to_s.split(".")
+  if parts.length != 3
+    raise "VERSION_NAME must be MAJOR.MINOR.PATCH (got #{current.inspect}). " \
+          "Edit #{GRADLE_PROPERTIES_PATH} to a three-segment value before bumping."
+  end
+  major, minor, patch = parts.map(&:to_i)
+  case (kind || :patch).to_sym
+  when :major then [major + 1, 0, 0].join(".")
+  when :minor then [major, minor + 1, 0].join(".")
+  when :patch then [major, minor, patch + 1].join(".")
+  else raise "Unknown bump: #{kind.inspect}. Expected :major, :minor, or :patch."
+  end
+end
+
+# Highest versionCode already present on Play across the public tracks, or nil
+# when the app has no uploads yet (first release) or the API can't be reached.
+# google_play_track_version_codes raises if a track has never had a release, so
+# each lookup is guarded independently.
+def highest_play_version_code
+  tracks = %w[internal alpha beta production]
+  codes = tracks.flat_map do |track|
+    begin
+      google_play_track_version_codes(package_name: PACKAGE_NAME, track: track)
+    rescue StandardError
+      []
+    end
+  end.compact
+  codes.empty? ? nil : codes.max
+end
+
+platform :android do
+  desc "Run unit tests + static analysis (parity with the iOS `test` lane)"
+  lane :test do
+    gradle(task: "testDebugUnitTest ktlintCheck detekt", project_dir: "..")
+  end
+
+  desc "Bump VERSION_CODE (Play build number) and optionally VERSION_NAME. " \
+       "VERSION_CODE = max(existing Play codes, current) + 1. " \
+       "Pass bump: :major | :minor | :patch to also raise the marketing version " \
+       "(default: leave VERSION_NAME unchanged)."
+  lane :bump_build_number do |options|
+    current_code = read_gradle_property("VERSION_CODE").to_i
+    baseline = [highest_play_version_code, current_code].compact.max
+    new_code = baseline + 1
+    update_gradle_property("VERSION_CODE", new_code.to_s)
+
+    current_version = read_gradle_property("VERSION_NAME")
+    if options[:bump]
+      new_version = bump_marketing_version(current_version, options[:bump])
+      update_gradle_property("VERSION_NAME", new_version)
+      UI.success("Bumped VERSION_NAME #{current_version} → #{new_version}, VERSION_CODE → #{new_code}")
+    else
+      UI.success("Bumped VERSION_CODE #{current_code} → #{new_code} (VERSION_NAME unchanged at #{current_version})")
+    end
+
+    new_code
+  end
+
+  desc "Assemble a signed release AAB. Reads VERSION_CODE / VERSION_NAME from " \
+       "gradle.properties and signing material from keystore.properties or env."
+  lane :build do
+    gradle(
+      task: "bundle",
+      build_type: "Release",
+      project_dir: "..",
+      properties: {
+        "VERSION_CODE" => read_gradle_property("VERSION_CODE"),
+        "VERSION_NAME" => read_gradle_property("VERSION_NAME"),
+      },
+    )
+  end
+
+  desc "Bump the build number, build a signed AAB, and upload it to the Play " \
+       "internal-test track. The internal track needs no review, so this is the " \
+       "first stop for every release."
+  lane :internal do |options|
+    bump_build_number(bump: options[:bump])
+    build
+    upload_to_play_store(
+      track: "internal",
+      aab: AAB_PATH,
+      release_status: "completed",
+      # The store listing (title/description/screenshots) is managed in the Play
+      # Console, not from this repo, so skip every metadata surface — supply only
+      # ships the binary.
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      skip_upload_changelogs: true,
+    )
+    UI.success("Uploaded versionCode #{read_gradle_property('VERSION_CODE')} to the internal track")
+  end
+
+  desc "Promote the latest internal-track build to production. Run after the " \
+       "internal build has been validated. Uploads at 100% rollout by default; " \
+       "pass rollout: '0.1' for a staged rollout."
+  lane :production do |options|
+    rollout = options[:rollout] || "1"
+    upload_to_play_store(
+      track: "production",
+      track_promote_to: "production",
+      version_code: read_gradle_property("VERSION_CODE").to_i,
+      rollout: rollout,
+      skip_upload_aab: true,
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      skip_upload_changelogs: true,
+    )
+    UI.success("Promoted versionCode #{read_gradle_property('VERSION_CODE')} to production (rollout #{rollout})")
+  end
+end
