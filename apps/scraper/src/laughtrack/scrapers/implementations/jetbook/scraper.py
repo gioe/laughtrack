@@ -37,6 +37,7 @@ import asyncio
 from typing import List, Optional
 
 from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.event.jetbook import JetBookEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 
@@ -49,6 +50,9 @@ _NETWORK_IDLE_TIMEOUT_MS = 15_000
 _POST_SCROLL_WAIT_MS = 800
 _POST_SHOW_MORE_WAIT_MS = 2500
 _MAX_SHOW_MORE_CLICKS = 40
+_DETAIL_PRICE_PAGE_POOL_SIZE = 4
+_DETAIL_PAGE_LOAD_TIMEOUT_MS = 60_000
+_DETAIL_NETWORK_IDLE_TIMEOUT_MS = 10_000
 
 # Total runtime budget for a single _capture_msearch_responses() call.
 # Covers page load + the "Show more" click loop + trailing networkidle.
@@ -65,9 +69,7 @@ class JetBookScraper(BaseScraper):
 
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
-        self.transformation_pipeline.register_transformer(
-            JetBookEventTransformer(club)
-        )
+        self.transformation_pipeline.register_transformer(JetBookEventTransformer(club))
 
     async def get_data(self, url: str) -> Optional[JetBookPageData]:
         """Render the JetBook iframe and extract upcoming events.
@@ -78,6 +80,10 @@ class JetBookScraper(BaseScraper):
         Returns:
             JetBookPageData with extracted events, or None on failure.
         """
+        return await self._get_data_within_budget(url)
+
+    async def _get_data_within_budget(self, url: str) -> Optional[JetBookPageData]:
+        started_at = asyncio.get_running_loop().time()
         try:
             response_bodies = await asyncio.wait_for(
                 self._capture_msearch_responses(url),
@@ -85,8 +91,7 @@ class JetBookScraper(BaseScraper):
             )
         except asyncio.TimeoutError:
             Logger.warn(
-                f"{self._log_prefix}: Playwright capture exceeded "
-                f"{_CAPTURE_TOTAL_BUDGET_S}s budget for {url}",
+                f"{self._log_prefix}: Playwright capture exceeded {_CAPTURE_TOTAL_BUDGET_S}s budget for {url}",
                 self.logger_context,
             )
             return None
@@ -112,9 +117,34 @@ class JetBookScraper(BaseScraper):
             )
             return None
 
+        remaining_budget_s = _CAPTURE_TOTAL_BUDGET_S - (asyncio.get_running_loop().time() - started_at)
+        if remaining_budget_s <= 0:
+            Logger.warn(
+                f"{self._log_prefix}: no JetBook detail-price budget remains for {url}; "
+                "returning price-less listing events",
+                self.logger_context,
+            )
+        else:
+            try:
+                await asyncio.wait_for(
+                    self._attach_detail_ticket_prices(events),
+                    timeout=remaining_budget_s,
+                )
+            except asyncio.TimeoutError:
+                Logger.warn(
+                    f"{self._log_prefix}: JetBook detail-price capture exceeded remaining "
+                    f"{remaining_budget_s:.1f}s budget for {url}; returning price-less fallback tickets where needed",
+                    self.logger_context,
+                )
+            except Exception as e:
+                Logger.warn(
+                    f"{self._log_prefix}: JetBook detail-price capture failed for {url}: {e}; "
+                    "returning price-less fallback tickets where needed",
+                    self.logger_context,
+                )
+
         Logger.info(
-            f"{self._log_prefix}: extracted {len(events)} events from "
-            f"{len(response_bodies)} msearch response(s)",
+            f"{self._log_prefix}: extracted {len(events)} events from " f"{len(response_bodies)} msearch response(s)",
             self.logger_context,
         )
         return JetBookPageData(event_list=events)
@@ -140,10 +170,7 @@ class JetBookScraper(BaseScraper):
                 async def _on_response(response) -> None:
                     # Tight suffix match — avoids matching unrelated paths
                     # that happen to contain both substrings.
-                    if (
-                        response.url.endswith("/elasticsearch/msearch")
-                        and response.status == 200
-                    ):
+                    if response.url.endswith("/elasticsearch/msearch") and response.status == 200:
                         try:
                             bodies.append(await response.text())
                         except Exception:
@@ -167,9 +194,7 @@ class JetBookScraper(BaseScraper):
                 # Scroll + click "Show more" until no more results load.
                 clicks = 0
                 for _ in range(_MAX_SHOW_MORE_CLICKS):
-                    await page.evaluate(
-                        "window.scrollTo(0, document.body.scrollHeight)"
-                    )
+                    await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
                     await page.wait_for_timeout(_POST_SCROLL_WAIT_MS)
 
                     # Standard Playwright .click() times out against Bubble's
@@ -178,8 +203,7 @@ class JetBookScraper(BaseScraper):
                     # Scope the selector to actual interactive elements so a
                     # parent div whose innerText happens to equal "Show more"
                     # never becomes the click target.
-                    clicked = await page.evaluate(
-                        """
+                    clicked = await page.evaluate("""
                         () => {
                             const candidates = Array.from(
                                 document.querySelectorAll('button, a, [role="button"]')
@@ -192,8 +216,7 @@ class JetBookScraper(BaseScraper):
                             candidates[0].click();
                             return true;
                         }
-                        """
-                    )
+                        """)
                     if not clicked:
                         break
                     clicks += 1
@@ -211,9 +234,7 @@ class JetBookScraper(BaseScraper):
                     )
 
                 try:
-                    await page.wait_for_load_state(
-                        "networkidle", timeout=_NETWORK_IDLE_TIMEOUT_MS
-                    )
+                    await page.wait_for_load_state("networkidle", timeout=_NETWORK_IDLE_TIMEOUT_MS)
                 except Exception:
                     # Networkidle timeout is non-fatal — keep whatever we
                     # collected so far.
@@ -222,3 +243,102 @@ class JetBookScraper(BaseScraper):
                 await browser.close()
 
         return bodies
+
+    async def _attach_detail_ticket_prices(self, events: list[JetBookEvent]) -> None:
+        """Populate event.price from each event detail page using a bounded pool."""
+        if not events:
+            return
+
+        semaphore = asyncio.Semaphore(_DETAIL_PRICE_PAGE_POOL_SIZE)
+        fetcher = type(self)._fetch_detail_ticket_price
+        if fetcher is not JetBookScraper._fetch_detail_ticket_price:
+
+            async def enrich_without_browser_pool(event: JetBookEvent) -> None:
+                async with semaphore:
+                    try:
+                        event.price = await self._fetch_detail_ticket_price(event)
+                    except Exception as e:
+                        Logger.warn(
+                            f"{self._log_prefix}: JetBook detail-price fetch failed for {event.slug}: {e}",
+                            self.logger_context,
+                        )
+
+            await asyncio.gather(*(enrich_without_browser_pool(event) for event in events))
+            return
+
+        from playwright.async_api import async_playwright  # lazy import
+
+        async with async_playwright() as pw:
+            browser = await pw.chromium.launch(headless=True)
+            try:
+                context = await browser.new_context()
+                self._detail_price_context = context
+
+                async def enrich(event: JetBookEvent) -> None:
+                    async with semaphore:
+                        try:
+                            event.price = await self._fetch_detail_ticket_price(event)
+                        except Exception as e:
+                            Logger.warn(
+                                f"{self._log_prefix}: JetBook detail-price fetch failed for {event.slug}: {e}",
+                                self.logger_context,
+                            )
+
+                await asyncio.gather(*(enrich(event) for event in events))
+            finally:
+                if hasattr(self, "_detail_price_context"):
+                    delattr(self, "_detail_price_context")
+                await browser.close()
+
+    async def _fetch_detail_ticket_price(self, event: JetBookEvent) -> Optional[float]:
+        context = getattr(self, "_detail_price_context", None)
+        if context is not None:
+            return await self._fetch_detail_ticket_price_with_context(event, context)
+
+        from playwright.async_api import async_playwright  # lazy import
+
+        async with async_playwright() as pw:
+            browser = await pw.chromium.launch(headless=True)
+            try:
+                context = await browser.new_context()
+                return await self._fetch_detail_ticket_price_with_context(event, context)
+            finally:
+                await browser.close()
+
+    async def _fetch_detail_ticket_price_with_context(self, event: JetBookEvent, context) -> Optional[float]:
+        ticket_url = JetBookExtractor.build_ticket_url(event.slug)
+        if not ticket_url:
+            return None
+
+        bodies: list[str] = []
+        page = await context.new_page()
+        try:
+
+            async def _on_response(response) -> None:
+                if response.url.endswith("/elasticsearch/mget") and response.status == 200:
+                    try:
+                        bodies.append(await response.text())
+                    except Exception:
+                        pass
+
+            page.on("response", _on_response)
+            try:
+                await page.goto(
+                    ticket_url,
+                    wait_until="domcontentloaded",
+                    timeout=_DETAIL_PAGE_LOAD_TIMEOUT_MS,
+                )
+                try:
+                    await page.wait_for_load_state("networkidle", timeout=_DETAIL_NETWORK_IDLE_TIMEOUT_MS)
+                except Exception:
+                    pass
+            except Exception as e:
+                Logger.warn(
+                    f"{self._log_prefix}: JetBook detail navigation failed for " f"{ticket_url}: {e}",
+                    self.logger_context,
+                )
+                return None
+        finally:
+            await page.close()
+
+        return JetBookExtractor.parse_mget_ticket_price(bodies)
