@@ -200,8 +200,54 @@ blocking an unrelated Android commit.
 
 Never commit signing material or `google-services.json` (see `.gitignore`).
 Play upload key + service-account JSON live in CI secrets, mirroring how iOS keeps
-its App Store Connect key out of the repo. Store/Play setup is TASK-3268; the
-Fastlane release lane is TASK-3269.
+its App Store Connect key out of the repo. Store/Play setup is TASK-3268.
+
+## Release (Fastlane + Play)
+
+Distribution to Google Play is automated with [Fastlane](https://fastlane.tools)
+`supply`, mirroring the iOS setup. The config lives in `android/fastlane/`
+(`Fastfile`, `Appfile`) and runs through bundler (`android/Gemfile`).
+
+**Versioning.** `gradle.properties` is the single source of truth, splitting the
+user-facing marketing version from the Play build number (the same split as
+`ios/project.yml`'s `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION`):
+
+- `VERSION_NAME` — semantic `MAJOR.MINOR.PATCH` shown to users.
+- `VERSION_CODE` — monotonically-increasing integer Play requires per upload.
+
+`app/build.gradle.kts` reads both and honours `-PVERSION_CODE=…` / `-PVERSION_NAME=…`
+overrides. The `bump_build_number` lane sets `VERSION_CODE` to
+`max(highest code already on Play, current) + 1`, so the build number can never
+collide with or regress below what Play has seen.
+
+**Lanes** (run from `android/`):
+
+```sh
+bundle install                              # one-time: install fastlane
+bundle exec fastlane internal               # bump code, build signed AAB, upload to the internal track
+bundle exec fastlane internal bump:minor    # also raise VERSION_NAME (patch|minor|major)
+bundle exec fastlane production rollout:0.1  # promote the current build to production (staged 10%)
+bundle exec fastlane test                   # unit tests + ktlint + detekt (parity with iOS `test`)
+```
+
+**Signing.** The release build type is signed with the Play **upload key**. Locally,
+provide either an `app/keystore.properties` file (`storeFile`, `storePassword`,
+`keyAlias`, `keyPassword`) or the `ANDROID_KEYSTORE_PATH` / `ANDROID_KEYSTORE_PASSWORD`
+/ `ANDROID_KEY_ALIAS` env vars (see `fastlane/.env.example`). When no material is
+present the release build configures unsigned, so `assembleRelease` still works for
+a contributor without the key.
+
+**CI.** `.github/workflows/android-release.yml` is a `workflow_dispatch` job (pick a
+track + optional marketing bump). It decodes the keystore and writes the
+service-account JSON from these repo secrets (provisioned in TASK-3268), then runs
+the matching lane:
+
+| Secret | Used for |
+| --- | --- |
+| `PLAY_SERVICE_ACCOUNT_JSON` | `supply` auth to the Play Developer API |
+| `ANDROID_UPLOAD_KEYSTORE_B64` | base64 of the upload keystore, decoded at build time |
+| `ANDROID_KEYSTORE_PASSWORD` | keystore + key password |
+| `ANDROID_KEY_ALIAS` | key alias (`upload`) |
 
 ## OpenAPI client regeneration
 

@@ -1,0 +1,107 @@
+name: Android Release
+
+# Manual release to Google Play via Fastlane `supply`. Distribution is never
+# automatic on push (mirrors iOS, whose release/beta lanes run on demand) — a
+# maintainer dispatches this with a target track. Signing material and the Play
+# service-account come from repo secrets, never the repo (provisioned in
+# TASK-3268): PLAY_SERVICE_ACCOUNT_JSON, ANDROID_UPLOAD_KEYSTORE_B64,
+# ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS.
+on:
+  workflow_dispatch:
+    inputs:
+      track:
+        description: "Play track to release to"
+        type: choice
+        default: internal
+        options:
+          - internal
+          - production
+      marketing_bump:
+        description: "Marketing version bump (VERSION_NAME). 'none' keeps it; otherwise semver component."
+        type: choice
+        default: none
+        options:
+          - none
+          - patch
+          - minor
+          - major
+      production_rollout:
+        description: "Production rollout fraction (only used for the production track), e.g. 0.1 or 1"
+        type: string
+        default: "1"
+
+concurrency:
+  group: android-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build + upload to Play (${{ github.event.inputs.track }})
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.11.1"
+
+      - name: Set up Ruby + bundler
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+          working-directory: android
+
+      # The gradle-wrapper.jar is not committed (see android/README.md), so
+      # generate it with the managed Gradle before fastlane — fastlane's gradle
+      # action shells out to ./gradlew, which needs the wrapper present.
+      - name: Generate Gradle wrapper
+        run: gradle wrapper --gradle-version 8.11.1 --no-daemon
+
+      # Decode signing + Play credentials from secrets into gitignored files the
+      # Gradle build (keystore) and fastlane supply (service account) read. Both
+      # land under android/ and are removed implicitly when the runner is torn
+      # down; the keystore path is exported for app/build.gradle.kts.
+      - name: Materialize signing key + Play service account
+        env:
+          ANDROID_UPLOAD_KEYSTORE_B64: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_B64 }}
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -z "$ANDROID_UPLOAD_KEYSTORE_B64" ] || [ -z "$PLAY_SERVICE_ACCOUNT_JSON" ]; then
+            echo "::error::Missing ANDROID_UPLOAD_KEYSTORE_B64 or PLAY_SERVICE_ACCOUNT_JSON secret"
+            exit 1
+          fi
+          echo "$ANDROID_UPLOAD_KEYSTORE_B64" | base64 --decode > upload-keystore.jks
+          printf '%s' "$PLAY_SERVICE_ACCOUNT_JSON" > play-service-account.json
+
+      - name: Fastlane release
+        env:
+          # Signing — read by app/build.gradle.kts
+          ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/android/upload-keystore.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          # Play service account — read by fastlane supply (Appfile json_key_file)
+          SUPPLY_JSON_KEY: ${{ github.workspace }}/android/play-service-account.json
+        run: |
+          BUMP_OPT=""
+          if [ "${{ github.event.inputs.marketing_bump }}" != "none" ]; then
+            BUMP_OPT="bump:${{ github.event.inputs.marketing_bump }}"
+          fi
+          if [ "${{ github.event.inputs.track }}" = "production" ]; then
+            bundle exec fastlane production rollout:${{ github.event.inputs.production_rollout }}
+          else
+            bundle exec fastlane internal $BUMP_OPT
+          fi
