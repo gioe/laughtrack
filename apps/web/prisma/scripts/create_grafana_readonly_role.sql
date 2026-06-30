@@ -2,9 +2,9 @@
 --
 -- Grafana Cloud connects to Neon as a dedicated `grafana_ro` role — NOT the application's
 -- DB role — with SELECT limited to the observability tables only (scraper_runs,
--- scraper_run_clubs, scraper_run_errors, api_request_metrics). There is no blanket schema
--- grant, so the role cannot read users, sessions, or any other table even if the
--- datasource is misconfigured.
+-- scraper_run_clubs, scraper_run_errors, api_request_metrics, and YouTube WebSub
+-- health tables). There is no blanket schema grant, so the role cannot read users,
+-- sessions, or any other table even if the datasource is misconfigured.
 --
 -- Run manually against the Neon production database when onboarding Grafana:
 --   psql "$DIRECT_URL" -f prisma/scripts/create_grafana_readonly_role.sql
@@ -39,12 +39,16 @@ BEGIN
     REVOKE ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public FROM grafana_ro;
 
     -- Schema access + SELECT on ONLY the observability tables (least privilege):
-    -- the three scraper-health tables plus the per-route API request counter.
+    -- scraper/API health plus aggregate YouTube WebSub ingestion/delivery health.
     GRANT USAGE ON SCHEMA public TO grafana_ro;
     GRANT SELECT ON
         public.scraper_runs,
         public.scraper_run_clubs,
         public.scraper_run_errors,
-        public.api_request_metrics
+        public.api_request_metrics,
+        public.youtube_websub_events,
+        public.youtube_websub_subscriptions,
+        public.youtube_live_notifications,
+        public.youtube_live_notification_deliveries
         TO grafana_ro;
 END $$;
