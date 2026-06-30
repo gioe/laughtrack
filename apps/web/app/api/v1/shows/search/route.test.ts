@@ -57,6 +57,7 @@ describe("GET /api/v1/shows/search", () => {
                     name: "Show",
                     date: new Date("2026-07-04T20:00:00.000Z"),
                     imageUrl: "https://cdn.example.com/show.jpg",
+                    popularityScore: 42,
                     soldOut: false,
                     lineup: [],
                 },
@@ -76,6 +77,7 @@ describe("GET /api/v1/shows/search", () => {
         expect(body.data[0].imageUrl).toBe(
             "https://cdn.example.com/show.jpg",
         );
+        expect(body.data[0].popularityScore).toBe(42);
         expect(body.data[0].soldOut).toBe(false);
     });
 

@@ -3004,6 +3004,7 @@
             "items": { "$ref": "#/components/schemas/Ticket" }
           },
           "name": { "type": ["string", "null"] },
+          "popularityScore": { "type": ["number", "null"] },
           "socialData": { "$ref": "#/components/schemas/SocialData" },
           "lineup": {
             "type": "array",

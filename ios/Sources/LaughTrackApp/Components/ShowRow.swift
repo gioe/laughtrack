@@ -5,6 +5,7 @@ import LaughTrackBridge
 enum ShowRowPresentation {
     case standard
     case compactTicket
+    case compactTicketProminent
 }
 
 struct ShowRow: View {
@@ -34,10 +35,24 @@ struct ShowRow: View {
             .background(ticketPaper)
             .overlay(
                 RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
-                    .stroke(ticketBorder, lineWidth: presentation == .compactTicket ? 1.2 : 1)
+                    .stroke(ticketBorder, lineWidth: ticketBorderLineWidth)
             )
+            .overlay(alignment: .leading) {
+                if presentation == .compactTicketProminent {
+                    ticketEdgeAccent
+                        .frame(width: 4)
+                }
+            }
             .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
             .shadowStyle(laughTrack.shadows.card)
+            .shadow(
+                color: presentation == .compactTicketProminent
+                    ? Color(red: 0.40, green: 0.18, blue: 0.06).opacity(0.12)
+                    : .clear,
+                radius: 8,
+                x: 0,
+                y: 4
+            )
     }
 
     private var ticketPaper: Color {
@@ -46,6 +61,8 @@ struct ShowRow: View {
             theme.laughTrackTokens.colors.surfaceElevated
         case .compactTicket:
             Color(red: 0.93, green: 0.87, blue: 0.74)
+        case .compactTicketProminent:
+            Color(red: 0.96, green: 0.89, blue: 0.70)
         }
     }
 
@@ -53,7 +70,7 @@ struct ShowRow: View {
         switch presentation {
         case .standard:
             theme.laughTrackTokens.colors.textPrimary
-        case .compactTicket:
+        case .compactTicket, .compactTicketProminent:
             Color(red: 0.15, green: 0.10, blue: 0.05)
         }
     }
@@ -64,6 +81,8 @@ struct ShowRow: View {
             theme.laughTrackTokens.colors.textSecondary
         case .compactTicket:
             Color(red: 0.45, green: 0.35, blue: 0.22)
+        case .compactTicketProminent:
+            Color(red: 0.39, green: 0.27, blue: 0.12)
         }
     }
 
@@ -73,6 +92,19 @@ struct ShowRow: View {
             theme.laughTrackTokens.colors.borderStrong.opacity(0.9)
         case .compactTicket:
             Color(red: 0.58, green: 0.47, blue: 0.31).opacity(0.78)
+        case .compactTicketProminent:
+            Color(red: 0.59, green: 0.23, blue: 0.10).opacity(0.78)
+        }
+    }
+
+    private var ticketBorderLineWidth: CGFloat {
+        switch presentation {
+        case .standard:
+            1
+        case .compactTicket:
+            1.2
+        case .compactTicketProminent:
+            1.5
         }
     }
 
@@ -82,6 +114,8 @@ struct ShowRow: View {
             theme.laughTrackTokens.colors.surfaceMuted
         case .compactTicket:
             Color(red: 0.86, green: 0.78, blue: 0.63)
+        case .compactTicketProminent:
+            Color(red: 0.88, green: 0.76, blue: 0.49)
         }
     }
 
@@ -91,7 +125,13 @@ struct ShowRow: View {
             theme.laughTrackTokens.colors.accentStrong
         case .compactTicket:
             Color(red: 0.74, green: 0.30, blue: 0.13)
+        case .compactTicketProminent:
+            Color(red: 0.63, green: 0.24, blue: 0.08)
         }
+    }
+
+    private var ticketEdgeAccent: Color {
+        Color(red: 0.67, green: 0.27, blue: 0.10).opacity(0.9)
     }
 
     // MARK: - Ticket-stub row
@@ -187,6 +227,17 @@ struct ShowRow: View {
                         Color.white.opacity(0.24),
                         laughTrack.colors.accentStrong.opacity(0.10),
                         Color.black.opacity(0.03)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            case .compactTicketProminent:
+                LinearGradient(
+                    colors: [
+                        Color.white.opacity(0.30),
+                        laughTrack.colors.accentStrong.opacity(0.13),
+                        Color(red: 0.91, green: 0.62, blue: 0.22).opacity(0.12),
+                        Color.black.opacity(0.025)
                     ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing

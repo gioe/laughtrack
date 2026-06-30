@@ -2243,6 +2243,8 @@ public enum Components {
             public var tickets: [Components.Schemas.Ticket]?
             /// - Remark: Generated from `#/components/schemas/Show/name`.
             public var name: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/Show/popularityScore`.
+            public var popularityScore: Swift.Double?
             /// - Remark: Generated from `#/components/schemas/Show/socialData`.
             public var socialData: Components.Schemas.SocialData?
             /// - Remark: Generated from `#/components/schemas/Show/lineup`.
@@ -2274,6 +2276,7 @@ public enum Components {
             ///   - date:
             ///   - tickets:
             ///   - name:
+            ///   - popularityScore:
             ///   - socialData:
             ///   - lineup:
             ///   - tags:
@@ -2293,6 +2296,7 @@ public enum Components {
                 date: Foundation.Date,
                 tickets: [Components.Schemas.Ticket]? = nil,
                 name: Swift.String? = nil,
+                popularityScore: Swift.Double? = nil,
                 socialData: Components.Schemas.SocialData? = nil,
                 lineup: [Components.Schemas.ComedianLineup]? = nil,
                 tags: [Components.Schemas.Tag]? = nil,
@@ -2312,6 +2316,7 @@ public enum Components {
                 self.date = date
                 self.tickets = tickets
                 self.name = name
+                self.popularityScore = popularityScore
                 self.socialData = socialData
                 self.lineup = lineup
                 self.tags = tags
@@ -2332,6 +2337,7 @@ public enum Components {
                 case date
                 case tickets
                 case name
+                case popularityScore
                 case socialData
                 case lineup
                 case tags
