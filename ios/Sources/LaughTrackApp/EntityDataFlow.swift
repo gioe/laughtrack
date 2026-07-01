@@ -48,6 +48,22 @@ struct DiscoverySearchPage<Item: Sendable>: Sendable {
     let total: Int
     let page: Int
     let filters: [Components.Schemas.Filter]
+    /// Home-city filter options surfaced by comedian search; empty for other entities.
+    let homeCityFilters: [Components.Schemas.HomeCityFilter]
+
+    init(
+        items: [Item],
+        total: Int,
+        page: Int,
+        filters: [Components.Schemas.Filter],
+        homeCityFilters: [Components.Schemas.HomeCityFilter] = []
+    ) {
+        self.items = items
+        self.total = total
+        self.page = page
+        self.filters = filters
+        self.homeCityFilters = homeCityFilters
+    }
 
     var canLoadMore: Bool {
         items.count < total
@@ -58,15 +74,19 @@ struct DiscoverySearchResponse<Item: Sendable>: Sendable {
     let items: [Item]
     let total: Int
     let filters: [Components.Schemas.Filter]
+    /// Home-city filter options surfaced by comedian search; empty for other entities.
+    let homeCityFilters: [Components.Schemas.HomeCityFilter]
 
     init(
         items: [Item],
         total: Int,
-        filters: [Components.Schemas.Filter] = []
+        filters: [Components.Schemas.Filter] = [],
+        homeCityFilters: [Components.Schemas.HomeCityFilter] = []
     ) {
         self.items = items
         self.total = total
         self.filters = filters
+        self.homeCityFilters = homeCityFilters
     }
 }
 
@@ -169,7 +189,8 @@ class EntitySearchModel<Query: Equatable, Item: Sendable>: ObservableObject {
                     items: resetResults ? response.items : existingItems + response.items,
                     total: response.total,
                     page: page,
-                    filters: response.filters
+                    filters: response.filters,
+                    homeCityFilters: response.homeCityFilters
                 )
             )
             loadedQuery = query

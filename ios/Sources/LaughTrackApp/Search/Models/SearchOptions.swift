@@ -179,17 +179,21 @@ struct PrimitiveDiscoveryQuery: Hashable {
     /// single enum.
     let sort: String
     let includeEmpty: Bool
+    /// Selected home-city `city|state` token (comedian search only); nil = all cities.
+    let homeCity: String?
 
     init(
         text: String,
         filters: [String],
         sort: String,
-        includeEmpty: Bool = false
+        includeEmpty: Bool = false,
+        homeCity: String? = nil
     ) {
         self.text = text
         self.filters = filters
         self.sort = sort
         self.includeEmpty = includeEmpty
+        self.homeCity = homeCity
     }
 
     var filtersParam: String? {
@@ -203,6 +207,7 @@ struct PrimitiveDiscoveryQuery: Hashable {
             "filters=\(filtersParam ?? "")",
             "sort=\(sort)",
             "includeEmpty=\(includeEmpty)",
+            "homeCity=\(homeCity ?? "")",
         ].joined(separator: "|")
     }
 }

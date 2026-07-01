@@ -11,6 +11,8 @@ final class ComediansDiscoveryModel: EntitySearchModel<PrimitiveDiscoveryQuery, 
     @Published var selectedFilterSlugs: Set<String> = []
     @Published var sort: PrimitiveSortOption = .mostPopular
     @Published var includeEmpty: Bool = false
+    /// Selected home-city `city|state` token; nil = all home cities.
+    @Published var homeCity: String?
 
     func reload(
         apiClient: Client,
@@ -44,7 +46,8 @@ final class ComediansDiscoveryModel: EntitySearchModel<PrimitiveDiscoveryQuery, 
             text: searchText.trimmingCharacters(in: .whitespacesAndNewlines),
             filters: selectedFilterSlugs.sorted(),
             sort: sort.rawValue,
-            includeEmpty: includeEmpty
+            includeEmpty: includeEmpty,
+            homeCity: homeCity
         )
     }
 
@@ -77,7 +80,8 @@ final class ComediansDiscoveryModel: EntitySearchModel<PrimitiveDiscoveryQuery, 
                         filters: query.filtersParam,
                         page: page,
                         size: Self.pageSize,
-                        includeEmpty: query.includeEmpty ? "true" : nil
+                        includeEmpty: query.includeEmpty ? "true" : nil,
+                        homeCity: query.homeCity
                     ),
                     headers: .init(xTimezone: TimeZone.current.identifier)
                 )
@@ -93,7 +97,8 @@ final class ComediansDiscoveryModel: EntitySearchModel<PrimitiveDiscoveryQuery, 
                 let pageResponse = DiscoverySearchResponse(
                     items: items,
                     total: response.total,
-                    filters: response.filters
+                    filters: response.filters,
+                    homeCityFilters: response.homeCityFilters
                 )
                 await MainPageCache.set(pageResponse, forKey: cacheKey, in: cache, ttl: cacheTTL, persistentCache: nil)
                 return .success(pageResponse)
