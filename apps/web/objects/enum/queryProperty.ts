@@ -62,4 +62,5 @@ export enum QueryProperty {
     IncludeEmpty = "includeEmpty",
     Chain = "chain",
     HomeCity = "homeCity",
+    HomeClub = "homeClub",
 }

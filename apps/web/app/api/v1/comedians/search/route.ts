@@ -17,6 +17,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     const size = sp.get("size") ?? undefined;
     const includeEmpty = sp.get("includeEmpty") ?? undefined;
     const homeCity = sp.get("homeCity") ?? undefined;
+    const homeClub = sp.get("homeClub") ?? undefined;
 
     const tzResult = readTimezoneHeader(req);
     if (!tzResult.ok) {
@@ -39,6 +40,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                 filters,
                 includeEmpty,
                 homeCity,
+                homeClub,
                 // QueryHelper uses 1-indexed pages; API is 0-indexed
                 page:
                     page !== null && page !== undefined
@@ -59,6 +61,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                 total: result.total,
                 filters: result.filters,
                 homeCityFilters: result.homeCityFilters,
+                homeClubFilters: result.homeClubFilters,
             },
             { headers: rateLimitHeaders(rl) },
         );

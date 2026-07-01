@@ -273,9 +273,11 @@ export async function findComediansWithCount(
               ? [filtersClauseAnd]
               : [];
 
-        // Home-city filter targets the homeCity/homeState columns, which no
-        // other comedian clause touches — safe to spread as sibling keys.
+        // Home-city / home-club filters target the homeCity/homeState /
+        // homeClubId columns, which no other comedian clause touches — safe to
+        // spread as sibling keys.
         const homeCityClause = helper.getComedianHomeCityClause();
+        const homeClubClause = helper.getComedianHomeClubClause();
 
         const whereClause: Prisma.ComedianWhereInput = {
             ...filtersClause,
@@ -287,6 +289,7 @@ export async function findComediansWithCount(
             ...lineupItemsClause,
             ...minUpcomingShowsClause,
             ...homeCityClause,
+            ...homeClubClause,
         };
 
         const upcomingCountSelect = buildUpcomingCountSelect();
@@ -368,6 +371,19 @@ export async function findComediansWithCount(
                         state
                             ? Prisma.sql`c."home_state" = ${state}`
                             : Prisma.sql`c."home_state" IS NULL`,
+                    );
+                }
+            }
+
+            // Mirror the Prisma getComedianHomeClubClause on the raw-SQL sort
+            // path too — otherwise the home-club filter would be silently
+            // dropped when sorting by upcoming show count.
+            const homeClubParam = helper.params.homeClub;
+            if (homeClubParam) {
+                const homeClubId = Number(homeClubParam);
+                if (Number.isInteger(homeClubId) && homeClubId > 0) {
+                    whereConditions.push(
+                        Prisma.sql`c."home_club_id" = ${homeClubId}`,
                     );
                 }
             }
