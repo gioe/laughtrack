@@ -36,6 +36,7 @@ import kotlinx.serialization.Contextual
  * @param clubState 
  * @param tickets 
  * @param name 
+ * @param popularityScore 
  * @param socialData 
  * @param lineup 
  * @param tags 
@@ -76,6 +77,9 @@ data class Show (
 
     @SerialName(value = "name")
     val name: kotlin.String? = null,
+
+    @Contextual @SerialName(value = "popularityScore")
+    val popularityScore: java.math.BigDecimal? = null,
 
     @SerialName(value = "socialData")
     val socialData: SocialData? = null,

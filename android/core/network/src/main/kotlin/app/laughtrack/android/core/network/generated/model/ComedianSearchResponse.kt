@@ -17,6 +17,7 @@ package app.laughtrack.android.core.network.generated.model
 
 import app.laughtrack.android.core.network.generated.model.ComedianSearchItem
 import app.laughtrack.android.core.network.generated.model.Filter
+import app.laughtrack.android.core.network.generated.model.HomeCityFilter
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
@@ -28,6 +29,7 @@ import kotlinx.serialization.Contextual
  * @param `data` 
  * @param total 
  * @param filters 
+ * @param homeCityFilters Available comedian home-city filter options. Empty when no home-location data qualifies; clients omit the control in that case.
  */
 @Serializable
 
@@ -40,7 +42,11 @@ data class ComedianSearchResponse (
     val total: kotlin.Int,
 
     @SerialName(value = "filters")
-    val filters: kotlin.collections.List<Filter>
+    val filters: kotlin.collections.List<Filter>,
+
+    /* Available comedian home-city filter options. Empty when no home-location data qualifies; clients omit the control in that case. */
+    @SerialName(value = "homeCityFilters")
+    val homeCityFilters: kotlin.collections.List<HomeCityFilter>
 
 ) {
 
