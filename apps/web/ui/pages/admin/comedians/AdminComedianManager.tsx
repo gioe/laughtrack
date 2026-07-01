@@ -1439,7 +1439,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                 <div
                                     id={`comedian-row-${row.id}`}
                                     hidden={!rowOpen}
-                                    className={`mt-4 grid min-w-0 items-start gap-5 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] 2xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(280px,0.75fr)] ${
+                                    className={`mt-4 min-w-0 space-y-5 ${
                                         rowOpen ? "" : "hidden"
                                     }`}
                                 >
@@ -1501,8 +1501,16 @@ export default function AdminComedianManager({ comedians }: Props) {
                                             </span>
                                         )}
                                     </div>
-                                    <div className="col-span-full rounded-md border border-copper/20 bg-coconut-cream/35 p-4 font-dmSans">
-                                        <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+                                    <div
+                                        role="group"
+                                        aria-label={`Comedian editor for ${row.name}`}
+                                        className="col-span-full rounded-md border border-copper/20 bg-coconut-cream/35 p-4 font-dmSans"
+                                    >
+                                        <div
+                                            role="group"
+                                            aria-label={`Name and blocklist status for ${row.name}`}
+                                            className="grid min-w-0 gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end"
+                                        >
                                             <div className="min-w-0 space-y-3">
                                                 <label className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
                                                     Display name
@@ -1550,1552 +1558,1575 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                         Save record
                                                     </Button>
                                                 </div>
-                                                <div className="rounded-md border border-copper/20 bg-coconut-cream/35 p-3">
-                                                    <button
-                                                        type="button"
-                                                        aria-expanded={
-                                                            socialOpen
+                                            </div>
+                                            <div>
+                                                <div className="mb-2 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                    Blocklist state
+                                                </div>
+                                                <label className="inline-flex w-fit items-center gap-2 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body font-semibold text-cedar">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={false}
+                                                        disabled={
+                                                            disabled ||
+                                                            pendingId === row.id
                                                         }
-                                                        aria-controls={`comedian-social-${row.id}`}
-                                                        onClick={() =>
-                                                            toggleSocialSection(
-                                                                row.id,
+                                                        onChange={() =>
+                                                            void blockComedian(
+                                                                row,
                                                             )
                                                         }
-                                                        className="flex w-full items-center gap-2 text-left"
-                                                    >
-                                                        {socialOpen ? (
-                                                            <ChevronDown className="h-4 w-4 shrink-0 text-cedar" />
-                                                        ) : (
-                                                            <ChevronRight className="h-4 w-4 shrink-0 text-cedar" />
-                                                        )}
-                                                        <span className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                            Social media
-                                                        </span>
-                                                    </button>
+                                                        aria-label={`Blocked status for ${row.name}`}
+                                                        className="h-4 w-4 accent-red-800 disabled:accent-soft-charcoal"
+                                                    />
+                                                    Blocked
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div
+                                            role="list"
+                                            aria-label={`Comedian detail sections for ${row.name}`}
+                                            className="mt-4 space-y-3"
+                                        >
+                                            <div
+                                                role="listitem"
+                                                className="rounded-md border border-copper/20 bg-coconut-cream/35 p-3"
+                                            >
+                                                <button
+                                                    type="button"
+                                                    aria-expanded={socialOpen}
+                                                    aria-controls={`comedian-social-${row.id}`}
+                                                    onClick={() =>
+                                                        toggleSocialSection(
+                                                            row.id,
+                                                        )
+                                                    }
+                                                    className="flex w-full items-center gap-2 text-left"
+                                                >
                                                     {socialOpen ? (
-                                                        <div
-                                                            id={`comedian-social-${row.id}`}
-                                                            className="mt-3 grid gap-3"
-                                                        >
-                                                            <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                                Website
-                                                                <input
-                                                                    aria-label="Comedian website"
-                                                                    type="url"
-                                                                    value={profileFieldValue(
+                                                        <ChevronDown className="h-4 w-4 shrink-0 text-cedar" />
+                                                    ) : (
+                                                        <ChevronRight className="h-4 w-4 shrink-0 text-cedar" />
+                                                    )}
+                                                    <span className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                        Social media
+                                                    </span>
+                                                </button>
+                                                {socialOpen ? (
+                                                    <div
+                                                        id={`comedian-social-${row.id}`}
+                                                        className="mt-3 grid gap-3"
+                                                    >
+                                                        <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                            Website
+                                                            <input
+                                                                aria-label="Comedian website"
+                                                                type="url"
+                                                                value={profileFieldValue(
+                                                                    row,
+                                                                    "website",
+                                                                )}
+                                                                onChange={(
+                                                                    event,
+                                                                ) =>
+                                                                    updateProfileEdit(
                                                                         row,
-                                                                        "website",
-                                                                    )}
-                                                                    onChange={(
-                                                                        event,
-                                                                    ) =>
-                                                                        updateProfileEdit(
-                                                                            row,
-                                                                            {
-                                                                                website:
-                                                                                    event
-                                                                                        .target
-                                                                                        .value,
-                                                                            },
-                                                                        )
-                                                                    }
-                                                                    placeholder="https://example.com"
-                                                                    className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
-                                                                />
-                                                            </label>
-                                                            <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                                Tour scrape URL
-                                                                <input
-                                                                    aria-label="Comedian website scraping URL"
-                                                                    type="url"
-                                                                    value={profileFieldValue(
+                                                                        {
+                                                                            website:
+                                                                                event
+                                                                                    .target
+                                                                                    .value,
+                                                                        },
+                                                                    )
+                                                                }
+                                                                placeholder="https://example.com"
+                                                                className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                            />
+                                                        </label>
+                                                        <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                            Tour scrape URL
+                                                            <input
+                                                                aria-label="Comedian website scraping URL"
+                                                                type="url"
+                                                                value={profileFieldValue(
+                                                                    row,
+                                                                    "websiteScrapingUrl",
+                                                                )}
+                                                                onChange={(
+                                                                    event,
+                                                                ) =>
+                                                                    updateProfileEdit(
                                                                         row,
-                                                                        "websiteScrapingUrl",
-                                                                    )}
-                                                                    onChange={(
-                                                                        event,
-                                                                    ) =>
-                                                                        updateProfileEdit(
-                                                                            row,
-                                                                            {
-                                                                                websiteScrapingUrl:
-                                                                                    event
-                                                                                        .target
-                                                                                        .value,
-                                                                            },
-                                                                        )
-                                                                    }
-                                                                    placeholder="https://example.com/tour"
-                                                                    className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
-                                                                />
-                                                            </label>
-                                                            <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                                Instagram
-                                                                <input
-                                                                    aria-label="Comedian Instagram handle"
-                                                                    type="text"
-                                                                    value={profileFieldValue(
+                                                                        {
+                                                                            websiteScrapingUrl:
+                                                                                event
+                                                                                    .target
+                                                                                    .value,
+                                                                        },
+                                                                    )
+                                                                }
+                                                                placeholder="https://example.com/tour"
+                                                                className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                            />
+                                                        </label>
+                                                        <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                            Instagram
+                                                            <input
+                                                                aria-label="Comedian Instagram handle"
+                                                                type="text"
+                                                                value={profileFieldValue(
+                                                                    row,
+                                                                    "instagramAccount",
+                                                                )}
+                                                                onChange={(
+                                                                    event,
+                                                                ) =>
+                                                                    updateProfileEdit(
                                                                         row,
-                                                                        "instagramAccount",
-                                                                    )}
-                                                                    onChange={(
-                                                                        event,
-                                                                    ) =>
-                                                                        updateProfileEdit(
-                                                                            row,
-                                                                            {
-                                                                                instagramAccount:
-                                                                                    event
-                                                                                        .target
-                                                                                        .value,
-                                                                            },
-                                                                        )
-                                                                    }
-                                                                    placeholder="handle (without @)"
-                                                                    className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
-                                                                />
-                                                            </label>
-                                                            <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                                TikTok
-                                                                <input
-                                                                    aria-label="Comedian TikTok handle"
-                                                                    type="text"
-                                                                    value={profileFieldValue(
+                                                                        {
+                                                                            instagramAccount:
+                                                                                event
+                                                                                    .target
+                                                                                    .value,
+                                                                        },
+                                                                    )
+                                                                }
+                                                                placeholder="handle (without @)"
+                                                                className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                            />
+                                                        </label>
+                                                        <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                            TikTok
+                                                            <input
+                                                                aria-label="Comedian TikTok handle"
+                                                                type="text"
+                                                                value={profileFieldValue(
+                                                                    row,
+                                                                    "tiktokAccount",
+                                                                )}
+                                                                onChange={(
+                                                                    event,
+                                                                ) =>
+                                                                    updateProfileEdit(
                                                                         row,
-                                                                        "tiktokAccount",
-                                                                    )}
-                                                                    onChange={(
-                                                                        event,
-                                                                    ) =>
-                                                                        updateProfileEdit(
-                                                                            row,
-                                                                            {
-                                                                                tiktokAccount:
-                                                                                    event
-                                                                                        .target
-                                                                                        .value,
-                                                                            },
-                                                                        )
-                                                                    }
-                                                                    placeholder="handle (without @)"
-                                                                    className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
-                                                                />
-                                                            </label>
-                                                            <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                                YouTube
-                                                                <input
-                                                                    aria-label="Comedian YouTube handle"
-                                                                    type="text"
-                                                                    value={profileFieldValue(
+                                                                        {
+                                                                            tiktokAccount:
+                                                                                event
+                                                                                    .target
+                                                                                    .value,
+                                                                        },
+                                                                    )
+                                                                }
+                                                                placeholder="handle (without @)"
+                                                                className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                            />
+                                                        </label>
+                                                        <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                            YouTube
+                                                            <input
+                                                                aria-label="Comedian YouTube handle"
+                                                                type="text"
+                                                                value={profileFieldValue(
+                                                                    row,
+                                                                    "youtubeAccount",
+                                                                )}
+                                                                onChange={(
+                                                                    event,
+                                                                ) =>
+                                                                    updateProfileEdit(
                                                                         row,
-                                                                        "youtubeAccount",
-                                                                    )}
-                                                                    onChange={(
-                                                                        event,
-                                                                    ) =>
-                                                                        updateProfileEdit(
-                                                                            row,
-                                                                            {
-                                                                                youtubeAccount:
-                                                                                    event
-                                                                                        .target
-                                                                                        .value,
-                                                                            },
-                                                                        )
-                                                                    }
-                                                                    placeholder="@handle or channel id"
-                                                                    className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
-                                                                />
-                                                            </label>
-                                                            <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                                YouTube channel
-                                                                ID
-                                                                <input
-                                                                    aria-label="Comedian YouTube channel ID"
-                                                                    type="text"
-                                                                    value={profileFieldValue(
+                                                                        {
+                                                                            youtubeAccount:
+                                                                                event
+                                                                                    .target
+                                                                                    .value,
+                                                                        },
+                                                                    )
+                                                                }
+                                                                placeholder="@handle or channel id"
+                                                                className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                            />
+                                                        </label>
+                                                        <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                            YouTube channel ID
+                                                            <input
+                                                                aria-label="Comedian YouTube channel ID"
+                                                                type="text"
+                                                                value={profileFieldValue(
+                                                                    row,
+                                                                    "youtubeChannelId",
+                                                                )}
+                                                                onChange={(
+                                                                    event,
+                                                                ) =>
+                                                                    updateProfileEdit(
                                                                         row,
-                                                                        "youtubeChannelId",
-                                                                    )}
-                                                                    onChange={(
-                                                                        event,
-                                                                    ) =>
-                                                                        updateProfileEdit(
-                                                                            row,
-                                                                            {
-                                                                                youtubeChannelId:
-                                                                                    event
-                                                                                        .target
-                                                                                        .value,
-                                                                            },
-                                                                        )
-                                                                    }
-                                                                    placeholder="UC..."
-                                                                    className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
-                                                                />
-                                                            </label>
-                                                            <div className="rounded-md border border-copper/20 bg-white p-3">
-                                                                <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                                    YouTube
-                                                                    WebSub
-                                                                </div>
-                                                                <div className="mt-2 grid gap-2 font-dmSans text-caption text-soft-charcoal sm:grid-cols-2">
-                                                                    <div>
-                                                                        <span className="font-semibold text-cedar">
-                                                                            Subscription
-                                                                        </span>{" "}
-                                                                        {row.subscriptionStatus ??
-                                                                            "none"}
-                                                                    </div>
-                                                                    <div>
-                                                                        <span className="font-semibold text-cedar">
-                                                                            Recent
-                                                                            event
-                                                                        </span>{" "}
-                                                                        {row.recentEventStatus ??
-                                                                            "none"}
-                                                                    </div>
-                                                                    {row.lastSubscribeError ? (
-                                                                        <div className="sm:col-span-2 text-red-700">
-                                                                            {
-                                                                                row.lastSubscribeError
-                                                                            }
-                                                                        </div>
-                                                                    ) : null}
-                                                                </div>
-                                                                <div className="mt-3 flex flex-wrap gap-3">
-                                                                    <label className="inline-flex w-fit items-center gap-2 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body font-semibold text-cedar">
-                                                                        <input
-                                                                            type="checkbox"
-                                                                            checked={
-                                                                                row.youtubeLiveFeedEnabled ??
-                                                                                false
-                                                                            }
-                                                                            disabled={
-                                                                                disabled ||
-                                                                                !row.youtubeChannelId ||
-                                                                                savingWebSubKey ===
-                                                                                    `${row.uuid}:youtubeLiveFeedEnabled`
-                                                                            }
-                                                                            onChange={(
-                                                                                event,
-                                                                            ) =>
-                                                                                void saveYouTubeWebSubFlag(
-                                                                                    row,
-                                                                                    "youtubeLiveFeedEnabled",
-                                                                                    event
-                                                                                        .target
-                                                                                        .checked,
-                                                                                )
-                                                                            }
-                                                                            aria-label={`Live feed for ${row.name}`}
-                                                                            className="h-4 w-4 accent-copper-dark disabled:accent-soft-charcoal"
-                                                                        />
-                                                                        Live
-                                                                        feed
-                                                                    </label>
-                                                                    <label className="inline-flex w-fit items-center gap-2 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body font-semibold text-cedar">
-                                                                        <input
-                                                                            type="checkbox"
-                                                                            checked={
-                                                                                row.youtubeLiveNotificationsEnabled ??
-                                                                                false
-                                                                            }
-                                                                            disabled={
-                                                                                disabled ||
-                                                                                !row.youtubeChannelId ||
-                                                                                savingWebSubKey ===
-                                                                                    `${row.uuid}:youtubeLiveNotificationsEnabled`
-                                                                            }
-                                                                            onChange={(
-                                                                                event,
-                                                                            ) =>
-                                                                                void saveYouTubeWebSubFlag(
-                                                                                    row,
-                                                                                    "youtubeLiveNotificationsEnabled",
-                                                                                    event
-                                                                                        .target
-                                                                                        .checked,
-                                                                                )
-                                                                            }
-                                                                            aria-label={`Notifications for ${row.name}`}
-                                                                            className="h-4 w-4 accent-copper-dark disabled:accent-soft-charcoal"
-                                                                        />
-                                                                        Notifications
-                                                                    </label>
-                                                                    {!row.youtubeChannelId ? (
-                                                                        <span className="self-center font-dmSans text-caption text-soft-charcoal">
-                                                                            Add
-                                                                            a
-                                                                            YouTube
-                                                                            channel
-                                                                            ID
-                                                                            to
-                                                                            enable
-                                                                            WebSub.
-                                                                        </span>
-                                                                    ) : null}
-                                                                </div>
+                                                                        {
+                                                                            youtubeChannelId:
+                                                                                event
+                                                                                    .target
+                                                                                    .value,
+                                                                        },
+                                                                    )
+                                                                }
+                                                                placeholder="UC..."
+                                                                className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                            />
+                                                        </label>
+                                                        <div className="rounded-md border border-copper/20 bg-white p-3">
+                                                            <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                                YouTube WebSub
                                                             </div>
-                                                            <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                                Linktree
-                                                                <input
-                                                                    aria-label="Comedian Linktree URL"
-                                                                    type="url"
-                                                                    value={profileFieldValue(
-                                                                        row,
-                                                                        "linktree",
-                                                                    )}
-                                                                    onChange={(
-                                                                        event,
-                                                                    ) =>
-                                                                        updateProfileEdit(
-                                                                            row,
-                                                                            {
-                                                                                linktree:
-                                                                                    event
-                                                                                        .target
-                                                                                        .value,
-                                                                            },
-                                                                        )
-                                                                    }
-                                                                    placeholder="https://linktr.ee/..."
-                                                                    className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
-                                                                />
-                                                            </label>
+                                                            <div className="mt-2 grid gap-2 font-dmSans text-caption text-soft-charcoal sm:grid-cols-2">
+                                                                <div>
+                                                                    <span className="font-semibold text-cedar">
+                                                                        Subscription
+                                                                    </span>{" "}
+                                                                    {row.subscriptionStatus ??
+                                                                        "none"}
+                                                                </div>
+                                                                <div>
+                                                                    <span className="font-semibold text-cedar">
+                                                                        Recent
+                                                                        event
+                                                                    </span>{" "}
+                                                                    {row.recentEventStatus ??
+                                                                        "none"}
+                                                                </div>
+                                                                {row.lastSubscribeError ? (
+                                                                    <div className="sm:col-span-2 text-red-700">
+                                                                        {
+                                                                            row.lastSubscribeError
+                                                                        }
+                                                                    </div>
+                                                                ) : null}
+                                                            </div>
+                                                            <div className="mt-3 flex flex-wrap gap-3">
+                                                                <label className="inline-flex w-fit items-center gap-2 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body font-semibold text-cedar">
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={
+                                                                            row.youtubeLiveFeedEnabled ??
+                                                                            false
+                                                                        }
+                                                                        disabled={
+                                                                            disabled ||
+                                                                            !row.youtubeChannelId ||
+                                                                            savingWebSubKey ===
+                                                                                `${row.uuid}:youtubeLiveFeedEnabled`
+                                                                        }
+                                                                        onChange={(
+                                                                            event,
+                                                                        ) =>
+                                                                            void saveYouTubeWebSubFlag(
+                                                                                row,
+                                                                                "youtubeLiveFeedEnabled",
+                                                                                event
+                                                                                    .target
+                                                                                    .checked,
+                                                                            )
+                                                                        }
+                                                                        aria-label={`Live feed for ${row.name}`}
+                                                                        className="h-4 w-4 accent-copper-dark disabled:accent-soft-charcoal"
+                                                                    />
+                                                                    Live feed
+                                                                </label>
+                                                                <label className="inline-flex w-fit items-center gap-2 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body font-semibold text-cedar">
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={
+                                                                            row.youtubeLiveNotificationsEnabled ??
+                                                                            false
+                                                                        }
+                                                                        disabled={
+                                                                            disabled ||
+                                                                            !row.youtubeChannelId ||
+                                                                            savingWebSubKey ===
+                                                                                `${row.uuid}:youtubeLiveNotificationsEnabled`
+                                                                        }
+                                                                        onChange={(
+                                                                            event,
+                                                                        ) =>
+                                                                            void saveYouTubeWebSubFlag(
+                                                                                row,
+                                                                                "youtubeLiveNotificationsEnabled",
+                                                                                event
+                                                                                    .target
+                                                                                    .checked,
+                                                                            )
+                                                                        }
+                                                                        aria-label={`Notifications for ${row.name}`}
+                                                                        className="h-4 w-4 accent-copper-dark disabled:accent-soft-charcoal"
+                                                                    />
+                                                                    Notifications
+                                                                </label>
+                                                                {!row.youtubeChannelId ? (
+                                                                    <span className="self-center font-dmSans text-caption text-soft-charcoal">
+                                                                        Add a
+                                                                        YouTube
+                                                                        channel
+                                                                        ID to
+                                                                        enable
+                                                                        WebSub.
+                                                                    </span>
+                                                                ) : null}
+                                                            </div>
                                                         </div>
-                                                    ) : null}
-                                                </div>
+                                                        <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                            Linktree
+                                                            <input
+                                                                aria-label="Comedian Linktree URL"
+                                                                type="url"
+                                                                value={profileFieldValue(
+                                                                    row,
+                                                                    "linktree",
+                                                                )}
+                                                                onChange={(
+                                                                    event,
+                                                                ) =>
+                                                                    updateProfileEdit(
+                                                                        row,
+                                                                        {
+                                                                            linktree:
+                                                                                event
+                                                                                    .target
+                                                                                    .value,
+                                                                        },
+                                                                    )
+                                                                }
+                                                                placeholder="https://linktr.ee/..."
+                                                                className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                            />
+                                                        </label>
+                                                    </div>
+                                                ) : null}
                                             </div>
 
                                             <div
-                                                role="group"
-                                                aria-label={`Parent and blocklist for ${row.name}`}
-                                                className="min-w-0 space-y-3 border-t border-copper/20 pt-4 xl:border-l xl:border-t-0 xl:pl-5 xl:pt-0"
+                                                role="listitem"
+                                                className="rounded-md border border-copper/20 bg-coconut-cream/35 p-3"
                                             >
-                                                <div className="rounded-md border border-copper/20 bg-coconut-cream/35 p-3">
-                                                    <button
-                                                        type="button"
-                                                        aria-expanded={
-                                                            relationshipOpen
-                                                        }
-                                                        aria-controls={`comedian-relationship-${row.id}`}
-                                                        onClick={() =>
-                                                            toggleChildrenSection(
-                                                                row.id,
-                                                            )
-                                                        }
-                                                        className="flex w-full items-center gap-2 text-left"
-                                                    >
-                                                        {relationshipOpen ? (
-                                                            <ChevronDown className="h-4 w-4 shrink-0 text-cedar" />
-                                                        ) : (
-                                                            <ChevronRight className="h-4 w-4 shrink-0 text-cedar" />
-                                                        )}
-                                                        <span className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                            Relationship (
-                                                            {children.length.toLocaleString()}{" "}
-                                                            children)
-                                                        </span>
-                                                    </button>
+                                                <button
+                                                    type="button"
+                                                    aria-expanded={
+                                                        relationshipOpen
+                                                    }
+                                                    aria-controls={`comedian-relationship-${row.id}`}
+                                                    onClick={() =>
+                                                        toggleChildrenSection(
+                                                            row.id,
+                                                        )
+                                                    }
+                                                    className="flex w-full items-center gap-2 text-left"
+                                                >
                                                     {relationshipOpen ? (
-                                                        <div
-                                                            id={`comedian-relationship-${row.id}`}
-                                                            className="mt-3 space-y-3"
-                                                        >
-                                                            <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                                Current parent
-                                                            </div>
-                                                            {parent ? (
-                                                                <div className="flex max-w-full items-center gap-2 rounded-md border border-green-700/40 bg-green-50 px-3 py-2 font-dmSans text-body font-semibold text-green-950">
-                                                                    <span className="min-w-0 truncate">
-                                                                        {
-                                                                            parent.name
-                                                                        }
-                                                                    </span>
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() =>
-                                                                            setSelectedParents(
-                                                                                (
-                                                                                    current,
-                                                                                ) => ({
-                                                                                    ...current,
-                                                                                    [row.id]:
-                                                                                        null,
-                                                                                }),
-                                                                            )
-                                                                        }
-                                                                        className="ml-auto shrink-0 rounded-sm p-1 text-green-950 hover:bg-green-100"
-                                                                        aria-label={`Clear parent for ${row.name}`}
-                                                                    >
-                                                                        <X className="h-4 w-4" />
-                                                                    </button>
-                                                                </div>
-                                                            ) : (
-                                                                <div className="rounded-md border border-soft-charcoal/20 bg-gray-50 px-3 py-2 font-dmSans text-body text-soft-charcoal">
-                                                                    No parent
-                                                                    assigned
-                                                                </div>
-                                                            )}
-
-                                                            <label className="grid gap-1 font-dmSans text-body font-semibold text-cedar">
-                                                                Find parent
-                                                                <input
-                                                                    type="search"
-                                                                    value={
-                                                                        parentSearches[
-                                                                            row
-                                                                                .id
-                                                                        ] ?? ""
+                                                        <ChevronDown className="h-4 w-4 shrink-0 text-cedar" />
+                                                    ) : (
+                                                        <ChevronRight className="h-4 w-4 shrink-0 text-cedar" />
+                                                    )}
+                                                    <span className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                        Relationship (
+                                                        {children.length.toLocaleString()}{" "}
+                                                        children)
+                                                    </span>
+                                                </button>
+                                                {relationshipOpen ? (
+                                                    <div
+                                                        id={`comedian-relationship-${row.id}`}
+                                                        className="mt-3 space-y-3"
+                                                    >
+                                                        <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                            Current parent
+                                                        </div>
+                                                        {parent ? (
+                                                            <div className="flex max-w-full items-center gap-2 rounded-md border border-green-700/40 bg-green-50 px-3 py-2 font-dmSans text-body font-semibold text-green-950">
+                                                                <span className="min-w-0 truncate">
+                                                                    {
+                                                                        parent.name
                                                                     }
-                                                                    onChange={(
-                                                                        event,
-                                                                    ) =>
-                                                                        setParentSearches(
+                                                                </span>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() =>
+                                                                        setSelectedParents(
                                                                             (
                                                                                 current,
                                                                             ) => ({
                                                                                 ...current,
                                                                                 [row.id]:
-                                                                                    event
-                                                                                        .target
-                                                                                        .value,
+                                                                                    null,
                                                                             }),
                                                                         )
                                                                     }
-                                                                    className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
-                                                                    placeholder="Search parent name"
-                                                                />
-                                                            </label>
-                                                            {candidates.length >
-                                                                0 && (
-                                                                <div className="flex flex-wrap gap-2">
-                                                                    {candidates.map(
-                                                                        (
-                                                                            candidate,
-                                                                        ) => (
-                                                                            <button
-                                                                                key={
-                                                                                    candidate.id
-                                                                                }
-                                                                                type="button"
-                                                                                onClick={() =>
-                                                                                    setSelectedParents(
-                                                                                        (
-                                                                                            current,
-                                                                                        ) => ({
-                                                                                            ...current,
-                                                                                            [row.id]:
-                                                                                                {
-                                                                                                    id: candidate.id,
-                                                                                                    name: candidate.name,
-                                                                                                },
-                                                                                        }),
-                                                                                    )
-                                                                                }
-                                                                                className="rounded-md border border-copper/40 bg-white px-3 py-2 font-dmSans text-body font-semibold text-cedar hover:bg-copper/10"
-                                                                            >
-                                                                                {
-                                                                                    candidate.name
-                                                                                }
-                                                                            </button>
-                                                                        ),
-                                                                    )}
-                                                                </div>
-                                                            )}
-                                                            <Button
-                                                                type="button"
-                                                                variant="outline"
-                                                                className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                                                                disabled={
-                                                                    disabled ||
-                                                                    !isParentDirty(
-                                                                        row,
-                                                                    ) ||
-                                                                    pendingId ===
+                                                                    className="ml-auto shrink-0 rounded-sm p-1 text-green-950 hover:bg-green-100"
+                                                                    aria-label={`Clear parent for ${row.name}`}
+                                                                >
+                                                                    <X className="h-4 w-4" />
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="rounded-md border border-soft-charcoal/20 bg-gray-50 px-3 py-2 font-dmSans text-body text-soft-charcoal">
+                                                                No parent
+                                                                assigned
+                                                            </div>
+                                                        )}
+
+                                                        <label className="grid gap-1 font-dmSans text-body font-semibold text-cedar">
+                                                            Find parent
+                                                            <input
+                                                                type="search"
+                                                                value={
+                                                                    parentSearches[
                                                                         row.id
+                                                                    ] ?? ""
                                                                 }
-                                                                onClick={() =>
-                                                                    void saveParent(
-                                                                        row,
+                                                                onChange={(
+                                                                    event,
+                                                                ) =>
+                                                                    setParentSearches(
+                                                                        (
+                                                                            current,
+                                                                        ) => ({
+                                                                            ...current,
+                                                                            [row.id]:
+                                                                                event
+                                                                                    .target
+                                                                                    .value,
+                                                                        }),
                                                                     )
                                                                 }
-                                                            >
-                                                                <Save className="h-4 w-4" />
-                                                                Save
-                                                                relationship
-                                                            </Button>
-                                                            {children.length >
-                                                            0 ? (
-                                                                <ul className="divide-y divide-copper/15 overflow-hidden rounded-md border border-copper/20 bg-white">
-                                                                    {children.map(
-                                                                        (
-                                                                            child,
-                                                                        ) => (
-                                                                            <li
-                                                                                key={
-                                                                                    child.id
-                                                                                }
-                                                                                className="flex flex-wrap items-center gap-3 px-3 py-2 sm:flex-nowrap"
-                                                                            >
-                                                                                <ComedianRowHeadshot
-                                                                                    row={
-                                                                                        child
-                                                                                    }
-                                                                                />
-                                                                                <span className="min-w-0 flex-1 break-words font-urbanist-bold text-body text-cedar">
-                                                                                    {
-                                                                                        child.name
-                                                                                    }
-                                                                                </span>
-                                                                                <span className="shrink-0 font-dmSans text-caption font-semibold text-soft-charcoal">
-                                                                                    ID{" "}
-                                                                                    {
-                                                                                        child.id
-                                                                                    }
-                                                                                </span>
-                                                                                <Button
-                                                                                    type="button"
-                                                                                    variant="outline"
-                                                                                    className="shrink-0 gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                                                                                    disabled={
-                                                                                        disabled ||
-                                                                                        pendingId ===
-                                                                                            child.id
-                                                                                    }
-                                                                                    onClick={() =>
-                                                                                        void saveParent(
-                                                                                            child,
-                                                                                            null,
-                                                                                        )
-                                                                                    }
-                                                                                >
-                                                                                    <X className="h-4 w-4" />
-                                                                                    Remove
-                                                                                    parent
-                                                                                </Button>
-                                                                            </li>
-                                                                        ),
-                                                                    )}
-                                                                </ul>
-                                                            ) : (
-                                                                <div className="rounded-md border border-soft-charcoal/20 bg-white px-3 py-2 font-dmSans text-body text-soft-charcoal">
-                                                                    No child
-                                                                    profiles.
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    ) : null}
-                                                </div>
-                                                <div className="border-t border-copper/20 pt-4">
-                                                    <div className="mb-3 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                        Blocklist state
-                                                    </div>
-                                                    <label className="inline-flex w-fit items-center gap-2 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body font-semibold text-cedar">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={false}
+                                                                className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                                placeholder="Search parent name"
+                                                            />
+                                                        </label>
+                                                        {candidates.length >
+                                                            0 && (
+                                                            <div className="flex flex-wrap gap-2">
+                                                                {candidates.map(
+                                                                    (
+                                                                        candidate,
+                                                                    ) => (
+                                                                        <button
+                                                                            key={
+                                                                                candidate.id
+                                                                            }
+                                                                            type="button"
+                                                                            onClick={() =>
+                                                                                setSelectedParents(
+                                                                                    (
+                                                                                        current,
+                                                                                    ) => ({
+                                                                                        ...current,
+                                                                                        [row.id]:
+                                                                                            {
+                                                                                                id: candidate.id,
+                                                                                                name: candidate.name,
+                                                                                            },
+                                                                                    }),
+                                                                                )
+                                                                            }
+                                                                            className="rounded-md border border-copper/40 bg-white px-3 py-2 font-dmSans text-body font-semibold text-cedar hover:bg-copper/10"
+                                                                        >
+                                                                            {
+                                                                                candidate.name
+                                                                            }
+                                                                        </button>
+                                                                    ),
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
                                                             disabled={
                                                                 disabled ||
+                                                                !isParentDirty(
+                                                                    row,
+                                                                ) ||
                                                                 pendingId ===
                                                                     row.id
                                                             }
-                                                            onChange={() =>
-                                                                void blockComedian(
+                                                            onClick={() =>
+                                                                void saveParent(
                                                                     row,
                                                                 )
                                                             }
-                                                            aria-label={`Blocked status for ${row.name}`}
-                                                            className="h-4 w-4 accent-red-800 disabled:accent-soft-charcoal"
-                                                        />
-                                                        Blocked
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="mt-5 rounded-md border border-copper/20 bg-coconut-cream/35 p-3">
-                                            <button
-                                                type="button"
-                                                aria-expanded={podcastOpen}
-                                                aria-controls={`comedian-podcasts-${row.id}`}
-                                                onClick={() =>
-                                                    togglePodcastSection(row.id)
-                                                }
-                                                className="flex w-full items-center gap-2 text-left"
-                                            >
-                                                {podcastOpen ? (
-                                                    <ChevronDown className="h-4 w-4 shrink-0 text-cedar" />
-                                                ) : (
-                                                    <ChevronRight className="h-4 w-4 shrink-0 text-cedar" />
-                                                )}
-                                                <span className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                    Podcast (
-                                                    {acceptedPodcasts.length.toLocaleString()}{" "}
-                                                    attributed,{" "}
-                                                    {pendingPodcastCandidateReviews.length.toLocaleString()}{" "}
-                                                    pending)
-                                                </span>
-                                            </button>
-                                            {podcastOpen ? (
-                                                <div
-                                                    id={`comedian-podcasts-${row.id}`}
-                                                    className="mt-3 space-y-5"
-                                                >
-                                                    <div>
-                                                        <div className="mb-3 text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                            Podcast RSS
-                                                        </div>
-                                                        {acceptedPodcasts.length >
-                                                        0 ? (
-                                                            <div className="grid gap-3 lg:grid-cols-2">
-                                                                {acceptedPodcasts.map(
-                                                                    (
-                                                                        podcast,
-                                                                    ) => {
-                                                                        const feedValue =
-                                                                            podcastFeedValue(
-                                                                                row,
-                                                                                podcast,
-                                                                            );
-                                                                        const feedDirty =
-                                                                            feedValue.trim() !==
-                                                                            (podcast.feedUrl ??
-                                                                                "");
-                                                                        return (
-                                                                            <div
-                                                                                key={
-                                                                                    podcast.id
+                                                        >
+                                                            <Save className="h-4 w-4" />
+                                                            Save relationship
+                                                        </Button>
+                                                        {children.length > 0 ? (
+                                                            <ul className="divide-y divide-copper/15 overflow-hidden rounded-md border border-copper/20 bg-white">
+                                                                {children.map(
+                                                                    (child) => (
+                                                                        <li
+                                                                            key={
+                                                                                child.id
+                                                                            }
+                                                                            className="flex flex-wrap items-center gap-3 px-3 py-2 sm:flex-nowrap"
+                                                                        >
+                                                                            <ComedianRowHeadshot
+                                                                                row={
+                                                                                    child
                                                                                 }
-                                                                                className="space-y-2"
+                                                                            />
+                                                                            <span className="min-w-0 flex-1 break-words font-urbanist-bold text-body text-cedar">
+                                                                                {
+                                                                                    child.name
+                                                                                }
+                                                                            </span>
+                                                                            <span className="shrink-0 font-dmSans text-caption font-semibold text-soft-charcoal">
+                                                                                ID{" "}
+                                                                                {
+                                                                                    child.id
+                                                                                }
+                                                                            </span>
+                                                                            <Button
+                                                                                type="button"
+                                                                                variant="outline"
+                                                                                className="shrink-0 gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                                disabled={
+                                                                                    disabled ||
+                                                                                    pendingId ===
+                                                                                        child.id
+                                                                                }
+                                                                                onClick={() =>
+                                                                                    void saveParent(
+                                                                                        child,
+                                                                                        null,
+                                                                                    )
+                                                                                }
                                                                             >
-                                                                                <div className="flex flex-wrap items-center gap-2">
-                                                                                    <div className="font-semibold text-cedar">
-                                                                                        {
-                                                                                            podcast.title
-                                                                                        }
-                                                                                    </div>
-                                                                                    <a
-                                                                                        href={`/podcast/${podcast.slug}`}
-                                                                                        target="_blank"
-                                                                                        className="inline-flex items-center gap-1 text-caption font-semibold text-copper-dark hover:underline"
-                                                                                    >
-                                                                                        Public
-                                                                                        <ExternalLink className="h-3.5 w-3.5" />
-                                                                                    </a>
-                                                                                    {podcast.feedUrl && (
-                                                                                        <a
-                                                                                            href={
-                                                                                                podcast.feedUrl
-                                                                                            }
-                                                                                            target="_blank"
-                                                                                            rel="noreferrer"
-                                                                                            className="inline-flex items-center gap-1 text-caption font-semibold text-copper-dark hover:underline"
-                                                                                        >
-                                                                                            RSS
-                                                                                            <ExternalLink className="h-3.5 w-3.5" />
-                                                                                        </a>
-                                                                                    )}
-                                                                                </div>
-                                                                                <label className="grid gap-1 text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                                                    RSS
-                                                                                    feed
-                                                                                    for{" "}
-                                                                                    {
-                                                                                        podcast.title
-                                                                                    }
-                                                                                    <input
-                                                                                        aria-label={`RSS feed for ${podcast.title}`}
-                                                                                        type="url"
-                                                                                        value={
-                                                                                            feedValue
-                                                                                        }
-                                                                                        onChange={(
-                                                                                            event,
-                                                                                        ) =>
-                                                                                            updatePodcastFeedValue(
-                                                                                                row,
-                                                                                                podcast,
-                                                                                                event
-                                                                                                    .target
-                                                                                                    .value,
-                                                                                            )
-                                                                                        }
-                                                                                        placeholder="https://example.com/rss.xml"
-                                                                                        className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
-                                                                                    />
-                                                                                </label>
-                                                                                <div className="flex flex-wrap gap-2">
-                                                                                    <Button
-                                                                                        type="button"
-                                                                                        variant="outline"
-                                                                                        className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                                                                                        disabled={
-                                                                                            disabled ||
-                                                                                            pendingId ===
-                                                                                                row.id ||
-                                                                                            !feedDirty ||
-                                                                                            !feedValue.trim()
-                                                                                        }
-                                                                                        onClick={() =>
-                                                                                            void savePodcastFeedUrl(
-                                                                                                row,
-                                                                                                podcast,
-                                                                                                feedValue.trim(),
-                                                                                            )
-                                                                                        }
-                                                                                    >
-                                                                                        <Save className="h-4 w-4" />
-                                                                                        Save
-                                                                                        RSS
-                                                                                    </Button>
-                                                                                    <Button
-                                                                                        type="button"
-                                                                                        variant="outline"
-                                                                                        className="gap-2 border-red-800/40 bg-white text-red-950 hover:bg-red-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                                                                                        disabled={
-                                                                                            disabled ||
-                                                                                            pendingId ===
-                                                                                                row.id ||
-                                                                                            !podcast.feedUrl
-                                                                                        }
-                                                                                        onClick={() =>
-                                                                                            void savePodcastFeedUrl(
-                                                                                                row,
-                                                                                                podcast,
-                                                                                                null,
-                                                                                            )
-                                                                                        }
-                                                                                    >
-                                                                                        <X className="h-4 w-4" />
-                                                                                        Remove
-                                                                                        RSS
-                                                                                    </Button>
-                                                                                </div>
-                                                                            </div>
-                                                                        );
-                                                                    },
+                                                                                <X className="h-4 w-4" />
+                                                                                Remove
+                                                                                parent
+                                                                            </Button>
+                                                                        </li>
+                                                                    ),
                                                                 )}
-                                                            </div>
+                                                            </ul>
                                                         ) : (
-                                                            <div className="max-w-3xl space-y-2">
-                                                                <label className="grid gap-1 text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                                    RSS feed URL
-                                                                    <input
-                                                                        aria-label={`RSS feed URL for ${row.name}`}
-                                                                        type="url"
-                                                                        value={manualPodcastFeedValue(
-                                                                            row,
-                                                                        )}
-                                                                        onChange={(
-                                                                            event,
-                                                                        ) =>
-                                                                            setManualPodcastFeedUrls(
-                                                                                (
-                                                                                    current,
-                                                                                ) => ({
-                                                                                    ...current,
-                                                                                    [row.id]:
-                                                                                        event
-                                                                                            .target
-                                                                                            .value,
-                                                                                }),
-                                                                            )
-                                                                        }
-                                                                        placeholder="https://example.com/rss.xml"
-                                                                        className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
-                                                                    />
-                                                                </label>
-                                                                <Button
-                                                                    type="button"
-                                                                    variant="outline"
-                                                                    className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                                                                    disabled={
-                                                                        disabled ||
-                                                                        pendingId ===
-                                                                            row.id ||
-                                                                        !manualPodcastFeedValue(
-                                                                            row,
-                                                                        ).trim()
-                                                                    }
-                                                                    onClick={() =>
-                                                                        void addManualPodcastFeed(
-                                                                            row,
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    <Save className="h-4 w-4" />
-                                                                    Save RSS
-                                                                </Button>
+                                                            <div className="rounded-md border border-soft-charcoal/20 bg-white px-3 py-2 font-dmSans text-body text-soft-charcoal">
+                                                                No child
+                                                                profiles.
                                                             </div>
                                                         )}
                                                     </div>
-                                                    {pendingPodcastCandidateReviews.length >
-                                                        0 && (
-                                                        <div className="border-t border-copper/20 pt-4">
+                                                ) : null}
+                                            </div>
+
+                                            <div
+                                                role="listitem"
+                                                className="rounded-md border border-copper/20 bg-coconut-cream/35 p-3"
+                                            >
+                                                <button
+                                                    type="button"
+                                                    aria-expanded={podcastOpen}
+                                                    aria-controls={`comedian-podcasts-${row.id}`}
+                                                    onClick={() =>
+                                                        togglePodcastSection(
+                                                            row.id,
+                                                        )
+                                                    }
+                                                    className="flex w-full items-center gap-2 text-left"
+                                                >
+                                                    {podcastOpen ? (
+                                                        <ChevronDown className="h-4 w-4 shrink-0 text-cedar" />
+                                                    ) : (
+                                                        <ChevronRight className="h-4 w-4 shrink-0 text-cedar" />
+                                                    )}
+                                                    <span className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                        Podcast (
+                                                        {acceptedPodcasts.length.toLocaleString()}{" "}
+                                                        attributed,{" "}
+                                                        {pendingPodcastCandidateReviews.length.toLocaleString()}{" "}
+                                                        pending)
+                                                    </span>
+                                                </button>
+                                                {podcastOpen ? (
+                                                    <div
+                                                        id={`comedian-podcasts-${row.id}`}
+                                                        className="mt-3 space-y-5"
+                                                    >
+                                                        <div>
                                                             <div className="mb-3 text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                                Podcast host
-                                                                reviews
+                                                                Podcast RSS
                                                             </div>
-                                                            <div className="grid gap-3">
-                                                                {pendingPodcastCandidateReviews.map(
-                                                                    (
-                                                                        review,
-                                                                    ) => {
-                                                                        const podcast =
-                                                                            review.podcast;
-                                                                        const isBlocked =
-                                                                            Boolean(
-                                                                                podcast?.denyListEntry,
-                                                                            );
-                                                                        return (
-                                                                            <div
-                                                                                key={
-                                                                                    review.id
-                                                                                }
-                                                                                className="grid gap-3 rounded-md border border-copper/20 bg-white/80 p-3 lg:grid-cols-[minmax(0,1fr)_auto]"
-                                                                            >
-                                                                                <div className="min-w-0">
+                                                            {acceptedPodcasts.length >
+                                                            0 ? (
+                                                                <div className="grid gap-3 lg:grid-cols-2">
+                                                                    {acceptedPodcasts.map(
+                                                                        (
+                                                                            podcast,
+                                                                        ) => {
+                                                                            const feedValue =
+                                                                                podcastFeedValue(
+                                                                                    row,
+                                                                                    podcast,
+                                                                                );
+                                                                            const feedDirty =
+                                                                                feedValue.trim() !==
+                                                                                (podcast.feedUrl ??
+                                                                                    "");
+                                                                            return (
+                                                                                <div
+                                                                                    key={
+                                                                                        podcast.id
+                                                                                    }
+                                                                                    className="space-y-2"
+                                                                                >
                                                                                     <div className="flex flex-wrap items-center gap-2">
-                                                                                        <div className="font-dmSans text-body font-semibold text-cedar">
-                                                                                            {podcast?.title ??
-                                                                                                review.sourcePodcastId}
-                                                                                        </div>
-                                                                                        <span className="rounded-md border border-soft-charcoal/20 bg-gray-50 px-2 py-1 font-dmSans text-caption font-semibold text-soft-charcoal">
+                                                                                        <div className="font-semibold text-cedar">
                                                                                             {
-                                                                                                review.candidateStatus
-                                                                                            }
-                                                                                        </span>
-                                                                                        {isBlocked && (
-                                                                                            <span className="rounded-md border border-red-700/30 bg-red-50 px-2 py-1 font-dmSans text-caption font-semibold text-red-900">
-                                                                                                Blocked
-                                                                                            </span>
-                                                                                        )}
-                                                                                        <span className="font-dmSans text-caption text-soft-charcoal">
-                                                                                            {formatPercent(
-                                                                                                review.confidence,
-                                                                                            )}
-                                                                                        </span>
-                                                                                    </div>
-                                                                                    {podcast?.authorName && (
-                                                                                        <div className="mt-1 font-dmSans text-caption text-soft-charcoal">
-                                                                                            by{" "}
-                                                                                            {
-                                                                                                podcast.authorName
+                                                                                                podcast.title
                                                                                             }
                                                                                         </div>
-                                                                                    )}
-                                                                                    <div className="mt-2 flex flex-wrap gap-3 font-dmSans text-caption">
-                                                                                        {podcast && (
-                                                                                            <a
-                                                                                                href={`/podcast/${podcast.slug}`}
-                                                                                                target="_blank"
-                                                                                                className="inline-flex items-center gap-1 text-copper-dark hover:underline"
-                                                                                            >
-                                                                                                Public
-                                                                                                page
-                                                                                                <ExternalLink className="h-3.5 w-3.5" />
-                                                                                            </a>
-                                                                                        )}
-                                                                                        {podcast?.feedUrl ? (
+                                                                                        <a
+                                                                                            href={`/podcast/${podcast.slug}`}
+                                                                                            target="_blank"
+                                                                                            className="inline-flex items-center gap-1 text-caption font-semibold text-copper-dark hover:underline"
+                                                                                        >
+                                                                                            Public
+                                                                                            <ExternalLink className="h-3.5 w-3.5" />
+                                                                                        </a>
+                                                                                        {podcast.feedUrl && (
                                                                                             <a
                                                                                                 href={
                                                                                                     podcast.feedUrl
                                                                                                 }
                                                                                                 target="_blank"
                                                                                                 rel="noreferrer"
-                                                                                                className="inline-flex max-w-full items-center gap-1 text-copper-dark hover:underline"
+                                                                                                className="inline-flex items-center gap-1 text-caption font-semibold text-copper-dark hover:underline"
                                                                                             >
-                                                                                                <span className="truncate">
-                                                                                                    RSS:{" "}
-                                                                                                    {
-                                                                                                        podcast.feedUrl
-                                                                                                    }
-                                                                                                </span>
-                                                                                                <ExternalLink className="h-3.5 w-3.5 shrink-0" />
-                                                                                            </a>
-                                                                                        ) : (
-                                                                                            <span className="text-soft-charcoal">
                                                                                                 RSS
-                                                                                                feed
-                                                                                                missing
-                                                                                            </span>
-                                                                                        )}
-                                                                                        {podcast?.websiteUrl && (
-                                                                                            <a
-                                                                                                href={
-                                                                                                    podcast.websiteUrl
-                                                                                                }
-                                                                                                target="_blank"
-                                                                                                rel="noreferrer"
-                                                                                                className="inline-flex max-w-full items-center gap-1 text-copper-dark hover:underline"
-                                                                                            >
-                                                                                                Website
-                                                                                                <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                                                                                                <ExternalLink className="h-3.5 w-3.5" />
                                                                                             </a>
                                                                                         )}
                                                                                     </div>
+                                                                                    <label className="grid gap-1 text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                                                        RSS
+                                                                                        feed
+                                                                                        for{" "}
+                                                                                        {
+                                                                                            podcast.title
+                                                                                        }
+                                                                                        <input
+                                                                                            aria-label={`RSS feed for ${podcast.title}`}
+                                                                                            type="url"
+                                                                                            value={
+                                                                                                feedValue
+                                                                                            }
+                                                                                            onChange={(
+                                                                                                event,
+                                                                                            ) =>
+                                                                                                updatePodcastFeedValue(
+                                                                                                    row,
+                                                                                                    podcast,
+                                                                                                    event
+                                                                                                        .target
+                                                                                                        .value,
+                                                                                                )
+                                                                                            }
+                                                                                            placeholder="https://example.com/rss.xml"
+                                                                                            className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                                                        />
+                                                                                    </label>
+                                                                                    <div className="flex flex-wrap gap-2">
+                                                                                        <Button
+                                                                                            type="button"
+                                                                                            variant="outline"
+                                                                                            className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                                            disabled={
+                                                                                                disabled ||
+                                                                                                pendingId ===
+                                                                                                    row.id ||
+                                                                                                !feedDirty ||
+                                                                                                !feedValue.trim()
+                                                                                            }
+                                                                                            onClick={() =>
+                                                                                                void savePodcastFeedUrl(
+                                                                                                    row,
+                                                                                                    podcast,
+                                                                                                    feedValue.trim(),
+                                                                                                )
+                                                                                            }
+                                                                                        >
+                                                                                            <Save className="h-4 w-4" />
+                                                                                            Save
+                                                                                            RSS
+                                                                                        </Button>
+                                                                                        <Button
+                                                                                            type="button"
+                                                                                            variant="outline"
+                                                                                            className="gap-2 border-red-800/40 bg-white text-red-950 hover:bg-red-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                                            disabled={
+                                                                                                disabled ||
+                                                                                                pendingId ===
+                                                                                                    row.id ||
+                                                                                                !podcast.feedUrl
+                                                                                            }
+                                                                                            onClick={() =>
+                                                                                                void savePodcastFeedUrl(
+                                                                                                    row,
+                                                                                                    podcast,
+                                                                                                    null,
+                                                                                                )
+                                                                                            }
+                                                                                        >
+                                                                                            <X className="h-4 w-4" />
+                                                                                            Remove
+                                                                                            RSS
+                                                                                        </Button>
+                                                                                    </div>
                                                                                 </div>
-                                                                                <div className="flex flex-wrap items-center gap-2 lg:justify-end">
-                                                                                    <Button
-                                                                                        type="button"
-                                                                                        variant="outline"
-                                                                                        className="gap-2 border-green-800/40 bg-white text-green-950 hover:bg-green-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                                                                                        disabled={
-                                                                                            disabled ||
-                                                                                            pendingId ===
-                                                                                                row.id ||
-                                                                                            isBlocked
-                                                                                        }
-                                                                                        onClick={() =>
-                                                                                            void reviewPodcastCandidate(
-                                                                                                row,
-                                                                                                review,
-                                                                                                "podcast-review-accept-host",
-                                                                                            )
-                                                                                        }
-                                                                                    >
-                                                                                        <Save className="h-4 w-4" />
-                                                                                        Accept
-                                                                                        as
-                                                                                        host
-                                                                                    </Button>
-                                                                                    <Button
-                                                                                        type="button"
-                                                                                        variant="outline"
-                                                                                        className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                                                                                        disabled={
-                                                                                            disabled ||
-                                                                                            pendingId ===
-                                                                                                row.id ||
-                                                                                            isBlocked
-                                                                                        }
-                                                                                        onClick={() =>
-                                                                                            void reviewPodcastCandidate(
-                                                                                                row,
-                                                                                                review,
-                                                                                                "podcast-review-reject-host",
-                                                                                            )
-                                                                                        }
-                                                                                    >
-                                                                                        <X className="h-4 w-4" />
-                                                                                        Reject
-                                                                                        as
-                                                                                        host
-                                                                                    </Button>
-                                                                                </div>
-                                                                            </div>
-                                                                        );
-                                                                    },
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            ) : null}
-                                        </div>
-                                    </div>
-                                    <div className="col-span-full space-y-4">
-                                        <div className="rounded-md border border-copper/20 bg-coconut-cream/35 p-3">
-                                            <button
-                                                type="button"
-                                                aria-expanded={imageOpen}
-                                                aria-controls={`comedian-images-${row.id}`}
-                                                onClick={() =>
-                                                    toggleImageSection(row.id)
-                                                }
-                                                className="flex w-full items-center gap-2 text-left"
-                                            >
-                                                {imageOpen ? (
-                                                    <ChevronDown className="h-4 w-4 shrink-0 text-cedar" />
-                                                ) : (
-                                                    <ChevronRight className="h-4 w-4 shrink-0 text-cedar" />
-                                                )}
-                                                <span className="min-w-0">
-                                                    <span className="block font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                        Current image
-                                                    </span>
-                                                    <span className="mt-1 block font-dmSans text-body font-semibold text-cedar">
-                                                        {row.activeImageAsset
-                                                            ? "Active asset"
-                                                            : row.hasImage
-                                                              ? "Image available"
-                                                              : "No current image"}
-                                                    </span>
-                                                </span>
-                                            </button>
-
-                                            {imageOpen ? (
-                                                <div
-                                                    id={`comedian-images-${row.id}`}
-                                                    className="mt-3"
-                                                >
-                                                    <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-                                                        <div className="min-w-0 space-y-3 rounded-md border border-copper/20 bg-white/80 p-3">
-                                                            <div className="flex items-center justify-between gap-2">
-                                                                <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                                    Headshot
+                                                                            );
+                                                                        },
+                                                                    )}
                                                                 </div>
-                                                                {currentAvatar ? (
-                                                                    <a
-                                                                        href={
-                                                                            currentAvatar
-                                                                        }
-                                                                        target="_blank"
-                                                                        rel="noreferrer"
-                                                                        className="inline-flex items-center gap-1 font-dmSans text-caption font-semibold text-copper-dark hover:underline"
-                                                                    >
-                                                                        Open
-                                                                        <ExternalLink className="h-3.5 w-3.5" />
-                                                                    </a>
-                                                                ) : null}
-                                                            </div>
-                                                            {currentAvatar ? (
-                                                                <img
-                                                                    src={
-                                                                        currentAvatar
-                                                                    }
-                                                                    alt={`${row.name} current headshot image`}
-                                                                    className="h-24 w-24 rounded-md border border-copper/20 object-cover"
-                                                                />
-                                                            ) : manualImageUrlValue(
-                                                                  row,
-                                                              )
-                                                                  .headshotFile ? null : (
-                                                                <div className="flex h-24 w-24 items-center justify-center rounded-md border border-dashed border-soft-charcoal/30 bg-gray-50 font-dmSans text-caption text-soft-charcoal">
-                                                                    Empty
-                                                                </div>
-                                                            )}
-                                                            <div className="grid gap-1">
-                                                                <label
-                                                                    htmlFor={`headshot-url-${row.id}`}
-                                                                    className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal"
-                                                                >
-                                                                    Headshot
-                                                                    image URL
-                                                                </label>
-                                                                <div className="flex flex-wrap gap-2 sm:flex-nowrap">
-                                                                    <input
-                                                                        id={`headshot-url-${row.id}`}
-                                                                        aria-label="Headshot image URL"
-                                                                        type="url"
-                                                                        value={
-                                                                            manualImageUrlValue(
+                                                            ) : (
+                                                                <div className="max-w-3xl space-y-2">
+                                                                    <label className="grid gap-1 text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                                        RSS feed
+                                                                        URL
+                                                                        <input
+                                                                            aria-label={`RSS feed URL for ${row.name}`}
+                                                                            type="url"
+                                                                            value={manualPodcastFeedValue(
                                                                                 row,
-                                                                            )
-                                                                                .headshot
-                                                                        }
-                                                                        onChange={(
-                                                                            event,
-                                                                        ) =>
-                                                                            updateManualImageUrls(
-                                                                                row,
-                                                                                {
-                                                                                    headshot:
-                                                                                        event
-                                                                                            .target
-                                                                                            .value,
-                                                                                    headshotFile:
-                                                                                        null,
-                                                                                },
-                                                                            )
-                                                                        }
-                                                                        placeholder="https://example.com/headshot.jpg"
-                                                                        className="w-full min-w-0 flex-1 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
-                                                                    />
+                                                                            )}
+                                                                            onChange={(
+                                                                                event,
+                                                                            ) =>
+                                                                                setManualPodcastFeedUrls(
+                                                                                    (
+                                                                                        current,
+                                                                                    ) => ({
+                                                                                        ...current,
+                                                                                        [row.id]:
+                                                                                            event
+                                                                                                .target
+                                                                                                .value,
+                                                                                    }),
+                                                                                )
+                                                                            }
+                                                                            placeholder="https://example.com/rss.xml"
+                                                                            className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                                        />
+                                                                    </label>
                                                                     <Button
                                                                         type="button"
                                                                         variant="outline"
-                                                                        aria-label="Save headshot URL"
-                                                                        className="shrink-0 gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                        className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
                                                                         disabled={
                                                                             disabled ||
                                                                             pendingId ===
                                                                                 row.id ||
-                                                                            !manualImageUrlValue(
+                                                                            !manualPodcastFeedValue(
                                                                                 row,
-                                                                            ).headshot.trim() ||
-                                                                            manualImageUrlValue(
-                                                                                row,
-                                                                            ).headshot.trim() ===
-                                                                                currentAvatar
+                                                                            ).trim()
                                                                         }
                                                                         onClick={() =>
-                                                                            void publishImage(
+                                                                            void addManualPodcastFeed(
                                                                                 row,
-                                                                                "headshot",
                                                                             )
                                                                         }
                                                                     >
                                                                         <Save className="h-4 w-4" />
-                                                                        Save URL
+                                                                        Save RSS
                                                                     </Button>
-                                                                </div>
-                                                            </div>
-                                                            <span className="font-dmSans text-caption normal-case tracking-normal text-soft-charcoal">
-                                                                1:1 square, at
-                                                                least 600x600
-                                                            </span>
-                                                            <input
-                                                                id={`headshot-file-${row.id}`}
-                                                                aria-label="Upload headshot file"
-                                                                type="file"
-                                                                accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
-                                                                className="sr-only"
-                                                                onChange={async (
-                                                                    event,
-                                                                ) => {
-                                                                    const file =
-                                                                        event
-                                                                            .target
-                                                                            .files?.[0] ??
-                                                                        null;
-                                                                    event.target.value =
-                                                                        "";
-                                                                    if (!file)
-                                                                        return;
-                                                                    await stageImageFile(
-                                                                        row,
-                                                                        "headshot",
-                                                                        file,
-                                                                    );
-                                                                }}
-                                                            />
-                                                            <Button
-                                                                type="button"
-                                                                variant="outline"
-                                                                className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                                                                disabled={
-                                                                    disabled ||
-                                                                    pendingId ===
-                                                                        row.id
-                                                                }
-                                                                onClick={() => {
-                                                                    const input =
-                                                                        document.getElementById(
-                                                                            `headshot-file-${row.id}`,
-                                                                        ) as HTMLInputElement | null;
-                                                                    input?.click();
-                                                                }}
-                                                            >
-                                                                <Upload className="h-4 w-4" />
-                                                                Choose headshot
-                                                                file
-                                                            </Button>
-                                                            {manualImageUrlValue(
-                                                                row,
-                                                            ).headshotFile ? (
-                                                                <div className="grid gap-2 rounded-md border border-copper/30 bg-coconut-cream/40 p-3">
-                                                                    <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                                        Pending
-                                                                        headshot
-                                                                    </div>
-                                                                    <StagedPreview
-                                                                        file={
-                                                                            manualImageUrlValue(
-                                                                                row,
-                                                                            )
-                                                                                .headshotFile as File
-                                                                        }
-                                                                        alt={`${row.name} pending headshot`}
-                                                                        className="h-24 w-24 rounded-md border border-copper/30 object-cover"
-                                                                    />
-                                                                    <div className="flex flex-wrap gap-2">
-                                                                        <Button
-                                                                            type="button"
-                                                                            className="gap-2 bg-copper-dark text-white hover:bg-cedar disabled:bg-gray-300 disabled:text-soft-charcoal disabled:opacity-100"
-                                                                            disabled={
-                                                                                disabled ||
-                                                                                pendingId ===
-                                                                                    row.id
-                                                                            }
-                                                                            onClick={() =>
-                                                                                void publishImage(
-                                                                                    row,
-                                                                                    "headshot",
-                                                                                )
-                                                                            }
-                                                                        >
-                                                                            <Upload className="h-4 w-4" />
-                                                                            Publish
-                                                                            to
-                                                                            Bunny
-                                                                        </Button>
-                                                                        <Button
-                                                                            type="button"
-                                                                            variant="outline"
-                                                                            className="gap-2 border-soft-charcoal/40 bg-white text-cedar hover:bg-gray-50"
-                                                                            disabled={
-                                                                                disabled ||
-                                                                                pendingId ===
-                                                                                    row.id
-                                                                            }
-                                                                            onClick={() =>
-                                                                                discardStagedFile(
-                                                                                    row,
-                                                                                    "headshot",
-                                                                                )
-                                                                            }
-                                                                        >
-                                                                            <X className="h-4 w-4" />
-                                                                            Discard
-                                                                        </Button>
-                                                                    </div>
-                                                                </div>
-                                                            ) : null}
-                                                            {imageStatusByRow[
-                                                                row.id
-                                                            ] ? (
-                                                                <p
-                                                                    className={
-                                                                        imageStatusByRow[
-                                                                            row
-                                                                                .id
-                                                                        ]
-                                                                            .kind ===
-                                                                        "error"
-                                                                            ? "rounded-md border border-red-700/30 bg-red-50 px-3 py-2 font-dmSans text-caption font-semibold text-red-900"
-                                                                            : "rounded-md border border-green-700/30 bg-green-50 px-3 py-2 font-dmSans text-caption font-semibold text-green-900"
-                                                                    }
-                                                                >
-                                                                    {
-                                                                        imageStatusByRow[
-                                                                            row
-                                                                                .id
-                                                                        ]
-                                                                            .message
-                                                                    }
-                                                                </p>
-                                                            ) : null}
-                                                            {row
-                                                                .activeImageAsset
-                                                                ?.avatarPath ? (
-                                                                <Button
-                                                                    type="button"
-                                                                    variant="outline"
-                                                                    className="gap-2 border-red-800/40 bg-white text-red-950 hover:bg-red-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                                                                    disabled={
-                                                                        disabled ||
-                                                                        pendingId ===
-                                                                            row.id
-                                                                    }
-                                                                    onClick={() =>
-                                                                        void removeImage(
-                                                                            row,
-                                                                            "thumbnail",
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    <Trash2 className="h-4 w-4" />
-                                                                    Remove
-                                                                    thumbnail
-                                                                </Button>
-                                                            ) : null}
-                                                        </div>
-
-                                                        <div className="min-w-0 space-y-3 rounded-md border border-copper/20 bg-white/80 p-3">
-                                                            <div className="flex items-center justify-between gap-2">
-                                                                <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                                    Hero
-                                                                </div>
-                                                                {currentHero ? (
-                                                                    <a
-                                                                        href={
-                                                                            currentHero
-                                                                        }
-                                                                        target="_blank"
-                                                                        rel="noreferrer"
-                                                                        className="inline-flex items-center gap-1 font-dmSans text-caption font-semibold text-copper-dark hover:underline"
-                                                                    >
-                                                                        Open
-                                                                        <ExternalLink className="h-3.5 w-3.5" />
-                                                                    </a>
-                                                                ) : null}
-                                                            </div>
-                                                            {currentHero ? (
-                                                                <img
-                                                                    src={
-                                                                        currentHero
-                                                                    }
-                                                                    alt={`${row.name} current hero image`}
-                                                                    className="h-24 w-40 rounded-md border border-copper/20 object-cover"
-                                                                />
-                                                            ) : manualImageUrlValue(
-                                                                  row,
-                                                              )
-                                                                  .heroFile ? null : (
-                                                                <div className="flex h-24 w-40 items-center justify-center rounded-md border border-dashed border-soft-charcoal/30 bg-gray-50 font-dmSans text-caption text-soft-charcoal">
-                                                                    Empty
                                                                 </div>
                                                             )}
-                                                            <div className="grid gap-1">
-                                                                <label
-                                                                    htmlFor={`hero-url-${row.id}`}
-                                                                    className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal"
-                                                                >
-                                                                    Hero image
-                                                                    URL
-                                                                </label>
-                                                                <div className="flex flex-wrap gap-2 sm:flex-nowrap">
-                                                                    <input
-                                                                        id={`hero-url-${row.id}`}
-                                                                        aria-label="Hero image URL"
-                                                                        type="url"
-                                                                        value={
-                                                                            manualImageUrlValue(
-                                                                                row,
-                                                                            )
-                                                                                .hero
-                                                                        }
-                                                                        onChange={(
-                                                                            event,
-                                                                        ) =>
-                                                                            updateManualImageUrls(
-                                                                                row,
-                                                                                {
-                                                                                    hero: event
-                                                                                        .target
-                                                                                        .value,
-                                                                                    heroFile:
-                                                                                        null,
-                                                                                },
-                                                                            )
-                                                                        }
-                                                                        placeholder="https://example.com/hero.jpg"
-                                                                        className="w-full min-w-0 flex-1 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
-                                                                    />
-                                                                    <Button
-                                                                        type="button"
-                                                                        variant="outline"
-                                                                        aria-label="Save hero URL"
-                                                                        className="shrink-0 gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                                                                        disabled={
-                                                                            disabled ||
-                                                                            pendingId ===
-                                                                                row.id ||
-                                                                            !manualImageUrlValue(
-                                                                                row,
-                                                                            ).hero.trim() ||
-                                                                            manualImageUrlValue(
-                                                                                row,
-                                                                            ).hero.trim() ===
-                                                                                currentHero
-                                                                        }
-                                                                        onClick={() =>
-                                                                            void publishImage(
-                                                                                row,
-                                                                                "hero",
-                                                                            )
-                                                                        }
-                                                                    >
-                                                                        <Save className="h-4 w-4" />
-                                                                        Save URL
-                                                                    </Button>
+                                                        </div>
+                                                        {pendingPodcastCandidateReviews.length >
+                                                            0 && (
+                                                            <div className="border-t border-copper/20 pt-4">
+                                                                <div className="mb-3 text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                                    Podcast host
+                                                                    reviews
+                                                                </div>
+                                                                <div className="grid gap-3">
+                                                                    {pendingPodcastCandidateReviews.map(
+                                                                        (
+                                                                            review,
+                                                                        ) => {
+                                                                            const podcast =
+                                                                                review.podcast;
+                                                                            const isBlocked =
+                                                                                Boolean(
+                                                                                    podcast?.denyListEntry,
+                                                                                );
+                                                                            return (
+                                                                                <div
+                                                                                    key={
+                                                                                        review.id
+                                                                                    }
+                                                                                    className="grid gap-3 rounded-md border border-copper/20 bg-white/80 p-3 lg:grid-cols-[minmax(0,1fr)_auto]"
+                                                                                >
+                                                                                    <div className="min-w-0">
+                                                                                        <div className="flex flex-wrap items-center gap-2">
+                                                                                            <div className="font-dmSans text-body font-semibold text-cedar">
+                                                                                                {podcast?.title ??
+                                                                                                    review.sourcePodcastId}
+                                                                                            </div>
+                                                                                            <span className="rounded-md border border-soft-charcoal/20 bg-gray-50 px-2 py-1 font-dmSans text-caption font-semibold text-soft-charcoal">
+                                                                                                {
+                                                                                                    review.candidateStatus
+                                                                                                }
+                                                                                            </span>
+                                                                                            {isBlocked && (
+                                                                                                <span className="rounded-md border border-red-700/30 bg-red-50 px-2 py-1 font-dmSans text-caption font-semibold text-red-900">
+                                                                                                    Blocked
+                                                                                                </span>
+                                                                                            )}
+                                                                                            <span className="font-dmSans text-caption text-soft-charcoal">
+                                                                                                {formatPercent(
+                                                                                                    review.confidence,
+                                                                                                )}
+                                                                                            </span>
+                                                                                        </div>
+                                                                                        {podcast?.authorName && (
+                                                                                            <div className="mt-1 font-dmSans text-caption text-soft-charcoal">
+                                                                                                by{" "}
+                                                                                                {
+                                                                                                    podcast.authorName
+                                                                                                }
+                                                                                            </div>
+                                                                                        )}
+                                                                                        <div className="mt-2 flex flex-wrap gap-3 font-dmSans text-caption">
+                                                                                            {podcast && (
+                                                                                                <a
+                                                                                                    href={`/podcast/${podcast.slug}`}
+                                                                                                    target="_blank"
+                                                                                                    className="inline-flex items-center gap-1 text-copper-dark hover:underline"
+                                                                                                >
+                                                                                                    Public
+                                                                                                    page
+                                                                                                    <ExternalLink className="h-3.5 w-3.5" />
+                                                                                                </a>
+                                                                                            )}
+                                                                                            {podcast?.feedUrl ? (
+                                                                                                <a
+                                                                                                    href={
+                                                                                                        podcast.feedUrl
+                                                                                                    }
+                                                                                                    target="_blank"
+                                                                                                    rel="noreferrer"
+                                                                                                    className="inline-flex max-w-full items-center gap-1 text-copper-dark hover:underline"
+                                                                                                >
+                                                                                                    <span className="truncate">
+                                                                                                        RSS:{" "}
+                                                                                                        {
+                                                                                                            podcast.feedUrl
+                                                                                                        }
+                                                                                                    </span>
+                                                                                                    <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                                                                                                </a>
+                                                                                            ) : (
+                                                                                                <span className="text-soft-charcoal">
+                                                                                                    RSS
+                                                                                                    feed
+                                                                                                    missing
+                                                                                                </span>
+                                                                                            )}
+                                                                                            {podcast?.websiteUrl && (
+                                                                                                <a
+                                                                                                    href={
+                                                                                                        podcast.websiteUrl
+                                                                                                    }
+                                                                                                    target="_blank"
+                                                                                                    rel="noreferrer"
+                                                                                                    className="inline-flex max-w-full items-center gap-1 text-copper-dark hover:underline"
+                                                                                                >
+                                                                                                    Website
+                                                                                                    <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                                                                                                </a>
+                                                                                            )}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+                                                                                        <Button
+                                                                                            type="button"
+                                                                                            variant="outline"
+                                                                                            className="gap-2 border-green-800/40 bg-white text-green-950 hover:bg-green-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                                            disabled={
+                                                                                                disabled ||
+                                                                                                pendingId ===
+                                                                                                    row.id ||
+                                                                                                isBlocked
+                                                                                            }
+                                                                                            onClick={() =>
+                                                                                                void reviewPodcastCandidate(
+                                                                                                    row,
+                                                                                                    review,
+                                                                                                    "podcast-review-accept-host",
+                                                                                                )
+                                                                                            }
+                                                                                        >
+                                                                                            <Save className="h-4 w-4" />
+                                                                                            Accept
+                                                                                            as
+                                                                                            host
+                                                                                        </Button>
+                                                                                        <Button
+                                                                                            type="button"
+                                                                                            variant="outline"
+                                                                                            className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                                            disabled={
+                                                                                                disabled ||
+                                                                                                pendingId ===
+                                                                                                    row.id ||
+                                                                                                isBlocked
+                                                                                            }
+                                                                                            onClick={() =>
+                                                                                                void reviewPodcastCandidate(
+                                                                                                    row,
+                                                                                                    review,
+                                                                                                    "podcast-review-reject-host",
+                                                                                                )
+                                                                                            }
+                                                                                        >
+                                                                                            <X className="h-4 w-4" />
+                                                                                            Reject
+                                                                                            as
+                                                                                            host
+                                                                                        </Button>
+                                                                                    </div>
+                                                                                </div>
+                                                                            );
+                                                                        },
+                                                                    )}
                                                                 </div>
                                                             </div>
-                                                            <span className="font-dmSans text-caption normal-case tracking-normal text-soft-charcoal">
-                                                                16:9
-                                                                (2000x1125), at
-                                                                least 600x600
-                                                            </span>
-                                                            <input
-                                                                id={`hero-file-${row.id}`}
-                                                                aria-label="Upload hero file"
-                                                                type="file"
-                                                                accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
-                                                                className="sr-only"
-                                                                onChange={async (
-                                                                    event,
-                                                                ) => {
-                                                                    const file =
-                                                                        event
-                                                                            .target
-                                                                            .files?.[0] ??
-                                                                        null;
-                                                                    event.target.value =
-                                                                        "";
-                                                                    if (!file)
-                                                                        return;
-                                                                    await stageImageFile(
-                                                                        row,
-                                                                        "hero",
-                                                                        file,
-                                                                    );
-                                                                }}
-                                                            />
-                                                            <Button
-                                                                type="button"
-                                                                variant="outline"
-                                                                className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                                                                disabled={
-                                                                    disabled ||
-                                                                    pendingId ===
-                                                                        row.id
-                                                                }
-                                                                onClick={() => {
-                                                                    const input =
-                                                                        document.getElementById(
-                                                                            `hero-file-${row.id}`,
-                                                                        ) as HTMLInputElement | null;
-                                                                    input?.click();
-                                                                }}
-                                                            >
-                                                                <Upload className="h-4 w-4" />
-                                                                Choose hero file
-                                                            </Button>
-                                                            {manualImageUrlValue(
-                                                                row,
-                                                            ).heroFile ? (
-                                                                <div className="grid gap-2 rounded-md border border-copper/30 bg-coconut-cream/40 p-3">
-                                                                    <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                                        Pending
-                                                                        hero
-                                                                    </div>
-                                                                    <StagedPreview
-                                                                        file={
-                                                                            manualImageUrlValue(
-                                                                                row,
-                                                                            )
-                                                                                .heroFile as File
-                                                                        }
-                                                                        alt={`${row.name} pending hero`}
-                                                                        className="h-24 w-40 rounded-md border border-copper/30 object-cover"
-                                                                    />
-                                                                    <div className="flex flex-wrap gap-2">
-                                                                        <Button
-                                                                            type="button"
-                                                                            className="gap-2 bg-copper-dark text-white hover:bg-cedar disabled:bg-gray-300 disabled:text-soft-charcoal disabled:opacity-100"
-                                                                            disabled={
-                                                                                disabled ||
-                                                                                pendingId ===
-                                                                                    row.id
-                                                                            }
-                                                                            onClick={() =>
-                                                                                void publishImage(
-                                                                                    row,
-                                                                                    "hero",
-                                                                                )
-                                                                            }
-                                                                        >
-                                                                            <Upload className="h-4 w-4" />
-                                                                            Publish
-                                                                            to
-                                                                            Bunny
-                                                                        </Button>
-                                                                        <Button
-                                                                            type="button"
-                                                                            variant="outline"
-                                                                            className="gap-2 border-soft-charcoal/40 bg-white text-cedar hover:bg-gray-50"
-                                                                            disabled={
-                                                                                disabled ||
-                                                                                pendingId ===
-                                                                                    row.id
-                                                                            }
-                                                                            onClick={() =>
-                                                                                discardStagedFile(
-                                                                                    row,
-                                                                                    "hero",
-                                                                                )
-                                                                            }
-                                                                        >
-                                                                            <X className="h-4 w-4" />
-                                                                            Discard
-                                                                        </Button>
-                                                                    </div>
-                                                                </div>
-                                                            ) : null}
-                                                            {row
-                                                                .activeImageAsset
-                                                                ?.heroPath ? (
-                                                                <Button
-                                                                    type="button"
-                                                                    variant="outline"
-                                                                    className="gap-2 border-red-800/40 bg-white text-red-950 hover:bg-red-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                                                                    disabled={
-                                                                        disabled ||
-                                                                        pendingId ===
-                                                                            row.id
-                                                                    }
-                                                                    onClick={() =>
-                                                                        void removeImage(
-                                                                            row,
-                                                                            "hero",
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    <Trash2 className="h-4 w-4" />
-                                                                    Remove hero
-                                                                </Button>
-                                                            ) : null}
-                                                        </div>
+                                                        )}
                                                     </div>
-
-                                                    <Button
+                                                ) : null}
+                                                <div
+                                                    role="listitem"
+                                                    className="rounded-md border border-copper/20 bg-coconut-cream/35 p-3"
+                                                >
+                                                    <button
                                                         type="button"
-                                                        variant="outline"
-                                                        className="mt-3 gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                                                        disabled={
-                                                            disabled ||
-                                                            pendingId ===
-                                                                row.id ||
-                                                            (!imageSlotHasInput(
-                                                                row,
-                                                                "headshot",
-                                                            ) &&
-                                                                !imageSlotHasInput(
-                                                                    row,
-                                                                    "hero",
-                                                                ))
+                                                        aria-expanded={
+                                                            imageOpen
                                                         }
+                                                        aria-controls={`comedian-images-${row.id}`}
                                                         onClick={() =>
-                                                            void publishImage(
-                                                                row,
+                                                            toggleImageSection(
+                                                                row.id,
                                                             )
                                                         }
+                                                        className="flex w-full items-center gap-2 text-left"
                                                     >
-                                                        <Upload className="h-4 w-4" />
-                                                        Upload changed images
-                                                    </Button>
+                                                        {imageOpen ? (
+                                                            <ChevronDown className="h-4 w-4 shrink-0 text-cedar" />
+                                                        ) : (
+                                                            <ChevronRight className="h-4 w-4 shrink-0 text-cedar" />
+                                                        )}
+                                                        <span className="min-w-0">
+                                                            <span className="block font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                                Current image
+                                                            </span>
+                                                            <span className="mt-1 block font-dmSans text-body font-semibold text-cedar">
+                                                                {row.activeImageAsset
+                                                                    ? "Active asset"
+                                                                    : row.hasImage
+                                                                      ? "Image available"
+                                                                      : "No current image"}
+                                                            </span>
+                                                        </span>
+                                                    </button>
 
-                                                    {row.activeImageAsset ? (
-                                                        <div className="mt-3 font-dmSans text-caption text-soft-charcoal">
-                                                            Source{" "}
-                                                            {formatDimensions(
-                                                                row
-                                                                    .activeImageAsset
-                                                                    .width,
-                                                                row
-                                                                    .activeImageAsset
-                                                                    .height,
+                                                    {imageOpen ? (
+                                                        <div
+                                                            id={`comedian-images-${row.id}`}
+                                                            className="mt-3"
+                                                        >
+                                                            <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+                                                                <div className="min-w-0 space-y-3 rounded-md border border-copper/20 bg-white/80 p-3">
+                                                                    <div className="flex items-center justify-between gap-2">
+                                                                        <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                                            Headshot
+                                                                        </div>
+                                                                        {currentAvatar ? (
+                                                                            <a
+                                                                                href={
+                                                                                    currentAvatar
+                                                                                }
+                                                                                target="_blank"
+                                                                                rel="noreferrer"
+                                                                                className="inline-flex items-center gap-1 font-dmSans text-caption font-semibold text-copper-dark hover:underline"
+                                                                            >
+                                                                                Open
+                                                                                <ExternalLink className="h-3.5 w-3.5" />
+                                                                            </a>
+                                                                        ) : null}
+                                                                    </div>
+                                                                    {currentAvatar ? (
+                                                                        <img
+                                                                            src={
+                                                                                currentAvatar
+                                                                            }
+                                                                            alt={`${row.name} current headshot image`}
+                                                                            className="h-24 w-24 rounded-md border border-copper/20 object-cover"
+                                                                        />
+                                                                    ) : manualImageUrlValue(
+                                                                          row,
+                                                                      )
+                                                                          .headshotFile ? null : (
+                                                                        <div className="flex h-24 w-24 items-center justify-center rounded-md border border-dashed border-soft-charcoal/30 bg-gray-50 font-dmSans text-caption text-soft-charcoal">
+                                                                            Empty
+                                                                        </div>
+                                                                    )}
+                                                                    <div className="grid gap-1">
+                                                                        <label
+                                                                            htmlFor={`headshot-url-${row.id}`}
+                                                                            className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal"
+                                                                        >
+                                                                            Headshot
+                                                                            image
+                                                                            URL
+                                                                        </label>
+                                                                        <div className="flex flex-wrap gap-2 sm:flex-nowrap">
+                                                                            <input
+                                                                                id={`headshot-url-${row.id}`}
+                                                                                aria-label="Headshot image URL"
+                                                                                type="url"
+                                                                                value={
+                                                                                    manualImageUrlValue(
+                                                                                        row,
+                                                                                    )
+                                                                                        .headshot
+                                                                                }
+                                                                                onChange={(
+                                                                                    event,
+                                                                                ) =>
+                                                                                    updateManualImageUrls(
+                                                                                        row,
+                                                                                        {
+                                                                                            headshot:
+                                                                                                event
+                                                                                                    .target
+                                                                                                    .value,
+                                                                                            headshotFile:
+                                                                                                null,
+                                                                                        },
+                                                                                    )
+                                                                                }
+                                                                                placeholder="https://example.com/headshot.jpg"
+                                                                                className="w-full min-w-0 flex-1 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                                            />
+                                                                            <Button
+                                                                                type="button"
+                                                                                variant="outline"
+                                                                                aria-label="Save headshot URL"
+                                                                                className="shrink-0 gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                                disabled={
+                                                                                    disabled ||
+                                                                                    pendingId ===
+                                                                                        row.id ||
+                                                                                    !manualImageUrlValue(
+                                                                                        row,
+                                                                                    ).headshot.trim() ||
+                                                                                    manualImageUrlValue(
+                                                                                        row,
+                                                                                    ).headshot.trim() ===
+                                                                                        currentAvatar
+                                                                                }
+                                                                                onClick={() =>
+                                                                                    void publishImage(
+                                                                                        row,
+                                                                                        "headshot",
+                                                                                    )
+                                                                                }
+                                                                            >
+                                                                                <Save className="h-4 w-4" />
+                                                                                Save
+                                                                                URL
+                                                                            </Button>
+                                                                        </div>
+                                                                    </div>
+                                                                    <span className="font-dmSans text-caption normal-case tracking-normal text-soft-charcoal">
+                                                                        1:1
+                                                                        square,
+                                                                        at least
+                                                                        600x600
+                                                                    </span>
+                                                                    <input
+                                                                        id={`headshot-file-${row.id}`}
+                                                                        aria-label="Upload headshot file"
+                                                                        type="file"
+                                                                        accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
+                                                                        className="sr-only"
+                                                                        onChange={async (
+                                                                            event,
+                                                                        ) => {
+                                                                            const file =
+                                                                                event
+                                                                                    .target
+                                                                                    .files?.[0] ??
+                                                                                null;
+                                                                            event.target.value =
+                                                                                "";
+                                                                            if (
+                                                                                !file
+                                                                            )
+                                                                                return;
+                                                                            await stageImageFile(
+                                                                                row,
+                                                                                "headshot",
+                                                                                file,
+                                                                            );
+                                                                        }}
+                                                                    />
+                                                                    <Button
+                                                                        type="button"
+                                                                        variant="outline"
+                                                                        className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                        disabled={
+                                                                            disabled ||
+                                                                            pendingId ===
+                                                                                row.id
+                                                                        }
+                                                                        onClick={() => {
+                                                                            const input =
+                                                                                document.getElementById(
+                                                                                    `headshot-file-${row.id}`,
+                                                                                ) as HTMLInputElement | null;
+                                                                            input?.click();
+                                                                        }}
+                                                                    >
+                                                                        <Upload className="h-4 w-4" />
+                                                                        Choose
+                                                                        headshot
+                                                                        file
+                                                                    </Button>
+                                                                    {manualImageUrlValue(
+                                                                        row,
+                                                                    )
+                                                                        .headshotFile ? (
+                                                                        <div className="grid gap-2 rounded-md border border-copper/30 bg-coconut-cream/40 p-3">
+                                                                            <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                                                Pending
+                                                                                headshot
+                                                                            </div>
+                                                                            <StagedPreview
+                                                                                file={
+                                                                                    manualImageUrlValue(
+                                                                                        row,
+                                                                                    )
+                                                                                        .headshotFile as File
+                                                                                }
+                                                                                alt={`${row.name} pending headshot`}
+                                                                                className="h-24 w-24 rounded-md border border-copper/30 object-cover"
+                                                                            />
+                                                                            <div className="flex flex-wrap gap-2">
+                                                                                <Button
+                                                                                    type="button"
+                                                                                    className="gap-2 bg-copper-dark text-white hover:bg-cedar disabled:bg-gray-300 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                                    disabled={
+                                                                                        disabled ||
+                                                                                        pendingId ===
+                                                                                            row.id
+                                                                                    }
+                                                                                    onClick={() =>
+                                                                                        void publishImage(
+                                                                                            row,
+                                                                                            "headshot",
+                                                                                        )
+                                                                                    }
+                                                                                >
+                                                                                    <Upload className="h-4 w-4" />
+                                                                                    Publish
+                                                                                    to
+                                                                                    Bunny
+                                                                                </Button>
+                                                                                <Button
+                                                                                    type="button"
+                                                                                    variant="outline"
+                                                                                    className="gap-2 border-soft-charcoal/40 bg-white text-cedar hover:bg-gray-50"
+                                                                                    disabled={
+                                                                                        disabled ||
+                                                                                        pendingId ===
+                                                                                            row.id
+                                                                                    }
+                                                                                    onClick={() =>
+                                                                                        discardStagedFile(
+                                                                                            row,
+                                                                                            "headshot",
+                                                                                        )
+                                                                                    }
+                                                                                >
+                                                                                    <X className="h-4 w-4" />
+                                                                                    Discard
+                                                                                </Button>
+                                                                            </div>
+                                                                        </div>
+                                                                    ) : null}
+                                                                    {imageStatusByRow[
+                                                                        row.id
+                                                                    ] ? (
+                                                                        <p
+                                                                            className={
+                                                                                imageStatusByRow[
+                                                                                    row
+                                                                                        .id
+                                                                                ]
+                                                                                    .kind ===
+                                                                                "error"
+                                                                                    ? "rounded-md border border-red-700/30 bg-red-50 px-3 py-2 font-dmSans text-caption font-semibold text-red-900"
+                                                                                    : "rounded-md border border-green-700/30 bg-green-50 px-3 py-2 font-dmSans text-caption font-semibold text-green-900"
+                                                                            }
+                                                                        >
+                                                                            {
+                                                                                imageStatusByRow[
+                                                                                    row
+                                                                                        .id
+                                                                                ]
+                                                                                    .message
+                                                                            }
+                                                                        </p>
+                                                                    ) : null}
+                                                                    {row
+                                                                        .activeImageAsset
+                                                                        ?.avatarPath ? (
+                                                                        <Button
+                                                                            type="button"
+                                                                            variant="outline"
+                                                                            className="gap-2 border-red-800/40 bg-white text-red-950 hover:bg-red-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                            disabled={
+                                                                                disabled ||
+                                                                                pendingId ===
+                                                                                    row.id
+                                                                            }
+                                                                            onClick={() =>
+                                                                                void removeImage(
+                                                                                    row,
+                                                                                    "thumbnail",
+                                                                                )
+                                                                            }
+                                                                        >
+                                                                            <Trash2 className="h-4 w-4" />
+                                                                            Remove
+                                                                            thumbnail
+                                                                        </Button>
+                                                                    ) : null}
+                                                                </div>
+
+                                                                <div className="min-w-0 space-y-3 rounded-md border border-copper/20 bg-white/80 p-3">
+                                                                    <div className="flex items-center justify-between gap-2">
+                                                                        <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                                            Hero
+                                                                        </div>
+                                                                        {currentHero ? (
+                                                                            <a
+                                                                                href={
+                                                                                    currentHero
+                                                                                }
+                                                                                target="_blank"
+                                                                                rel="noreferrer"
+                                                                                className="inline-flex items-center gap-1 font-dmSans text-caption font-semibold text-copper-dark hover:underline"
+                                                                            >
+                                                                                Open
+                                                                                <ExternalLink className="h-3.5 w-3.5" />
+                                                                            </a>
+                                                                        ) : null}
+                                                                    </div>
+                                                                    {currentHero ? (
+                                                                        <img
+                                                                            src={
+                                                                                currentHero
+                                                                            }
+                                                                            alt={`${row.name} current hero image`}
+                                                                            className="h-24 w-40 rounded-md border border-copper/20 object-cover"
+                                                                        />
+                                                                    ) : manualImageUrlValue(
+                                                                          row,
+                                                                      )
+                                                                          .heroFile ? null : (
+                                                                        <div className="flex h-24 w-40 items-center justify-center rounded-md border border-dashed border-soft-charcoal/30 bg-gray-50 font-dmSans text-caption text-soft-charcoal">
+                                                                            Empty
+                                                                        </div>
+                                                                    )}
+                                                                    <div className="grid gap-1">
+                                                                        <label
+                                                                            htmlFor={`hero-url-${row.id}`}
+                                                                            className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal"
+                                                                        >
+                                                                            Hero
+                                                                            image
+                                                                            URL
+                                                                        </label>
+                                                                        <div className="flex flex-wrap gap-2 sm:flex-nowrap">
+                                                                            <input
+                                                                                id={`hero-url-${row.id}`}
+                                                                                aria-label="Hero image URL"
+                                                                                type="url"
+                                                                                value={
+                                                                                    manualImageUrlValue(
+                                                                                        row,
+                                                                                    )
+                                                                                        .hero
+                                                                                }
+                                                                                onChange={(
+                                                                                    event,
+                                                                                ) =>
+                                                                                    updateManualImageUrls(
+                                                                                        row,
+                                                                                        {
+                                                                                            hero: event
+                                                                                                .target
+                                                                                                .value,
+                                                                                            heroFile:
+                                                                                                null,
+                                                                                        },
+                                                                                    )
+                                                                                }
+                                                                                placeholder="https://example.com/hero.jpg"
+                                                                                className="w-full min-w-0 flex-1 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                                            />
+                                                                            <Button
+                                                                                type="button"
+                                                                                variant="outline"
+                                                                                aria-label="Save hero URL"
+                                                                                className="shrink-0 gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                                disabled={
+                                                                                    disabled ||
+                                                                                    pendingId ===
+                                                                                        row.id ||
+                                                                                    !manualImageUrlValue(
+                                                                                        row,
+                                                                                    ).hero.trim() ||
+                                                                                    manualImageUrlValue(
+                                                                                        row,
+                                                                                    ).hero.trim() ===
+                                                                                        currentHero
+                                                                                }
+                                                                                onClick={() =>
+                                                                                    void publishImage(
+                                                                                        row,
+                                                                                        "hero",
+                                                                                    )
+                                                                                }
+                                                                            >
+                                                                                <Save className="h-4 w-4" />
+                                                                                Save
+                                                                                URL
+                                                                            </Button>
+                                                                        </div>
+                                                                    </div>
+                                                                    <span className="font-dmSans text-caption normal-case tracking-normal text-soft-charcoal">
+                                                                        16:9
+                                                                        (2000x1125),
+                                                                        at least
+                                                                        600x600
+                                                                    </span>
+                                                                    <input
+                                                                        id={`hero-file-${row.id}`}
+                                                                        aria-label="Upload hero file"
+                                                                        type="file"
+                                                                        accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
+                                                                        className="sr-only"
+                                                                        onChange={async (
+                                                                            event,
+                                                                        ) => {
+                                                                            const file =
+                                                                                event
+                                                                                    .target
+                                                                                    .files?.[0] ??
+                                                                                null;
+                                                                            event.target.value =
+                                                                                "";
+                                                                            if (
+                                                                                !file
+                                                                            )
+                                                                                return;
+                                                                            await stageImageFile(
+                                                                                row,
+                                                                                "hero",
+                                                                                file,
+                                                                            );
+                                                                        }}
+                                                                    />
+                                                                    <Button
+                                                                        type="button"
+                                                                        variant="outline"
+                                                                        className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                        disabled={
+                                                                            disabled ||
+                                                                            pendingId ===
+                                                                                row.id
+                                                                        }
+                                                                        onClick={() => {
+                                                                            const input =
+                                                                                document.getElementById(
+                                                                                    `hero-file-${row.id}`,
+                                                                                ) as HTMLInputElement | null;
+                                                                            input?.click();
+                                                                        }}
+                                                                    >
+                                                                        <Upload className="h-4 w-4" />
+                                                                        Choose
+                                                                        hero
+                                                                        file
+                                                                    </Button>
+                                                                    {manualImageUrlValue(
+                                                                        row,
+                                                                    )
+                                                                        .heroFile ? (
+                                                                        <div className="grid gap-2 rounded-md border border-copper/30 bg-coconut-cream/40 p-3">
+                                                                            <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                                                Pending
+                                                                                hero
+                                                                            </div>
+                                                                            <StagedPreview
+                                                                                file={
+                                                                                    manualImageUrlValue(
+                                                                                        row,
+                                                                                    )
+                                                                                        .heroFile as File
+                                                                                }
+                                                                                alt={`${row.name} pending hero`}
+                                                                                className="h-24 w-40 rounded-md border border-copper/30 object-cover"
+                                                                            />
+                                                                            <div className="flex flex-wrap gap-2">
+                                                                                <Button
+                                                                                    type="button"
+                                                                                    className="gap-2 bg-copper-dark text-white hover:bg-cedar disabled:bg-gray-300 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                                    disabled={
+                                                                                        disabled ||
+                                                                                        pendingId ===
+                                                                                            row.id
+                                                                                    }
+                                                                                    onClick={() =>
+                                                                                        void publishImage(
+                                                                                            row,
+                                                                                            "hero",
+                                                                                        )
+                                                                                    }
+                                                                                >
+                                                                                    <Upload className="h-4 w-4" />
+                                                                                    Publish
+                                                                                    to
+                                                                                    Bunny
+                                                                                </Button>
+                                                                                <Button
+                                                                                    type="button"
+                                                                                    variant="outline"
+                                                                                    className="gap-2 border-soft-charcoal/40 bg-white text-cedar hover:bg-gray-50"
+                                                                                    disabled={
+                                                                                        disabled ||
+                                                                                        pendingId ===
+                                                                                            row.id
+                                                                                    }
+                                                                                    onClick={() =>
+                                                                                        discardStagedFile(
+                                                                                            row,
+                                                                                            "hero",
+                                                                                        )
+                                                                                    }
+                                                                                >
+                                                                                    <X className="h-4 w-4" />
+                                                                                    Discard
+                                                                                </Button>
+                                                                            </div>
+                                                                        </div>
+                                                                    ) : null}
+                                                                    {row
+                                                                        .activeImageAsset
+                                                                        ?.heroPath ? (
+                                                                        <Button
+                                                                            type="button"
+                                                                            variant="outline"
+                                                                            className="gap-2 border-red-800/40 bg-white text-red-950 hover:bg-red-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                            disabled={
+                                                                                disabled ||
+                                                                                pendingId ===
+                                                                                    row.id
+                                                                            }
+                                                                            onClick={() =>
+                                                                                void removeImage(
+                                                                                    row,
+                                                                                    "hero",
+                                                                                )
+                                                                            }
+                                                                        >
+                                                                            <Trash2 className="h-4 w-4" />
+                                                                            Remove
+                                                                            hero
+                                                                        </Button>
+                                                                    ) : null}
+                                                                </div>
+                                                            </div>
+
+                                                            <Button
+                                                                type="button"
+                                                                variant="outline"
+                                                                className="mt-3 gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                disabled={
+                                                                    disabled ||
+                                                                    pendingId ===
+                                                                        row.id ||
+                                                                    (!imageSlotHasInput(
+                                                                        row,
+                                                                        "headshot",
+                                                                    ) &&
+                                                                        !imageSlotHasInput(
+                                                                            row,
+                                                                            "hero",
+                                                                        ))
+                                                                }
+                                                                onClick={() =>
+                                                                    void publishImage(
+                                                                        row,
+                                                                    )
+                                                                }
+                                                            >
+                                                                <Upload className="h-4 w-4" />
+                                                                Upload changed
+                                                                images
+                                                            </Button>
+
+                                                            {row.activeImageAsset ? (
+                                                                <div className="mt-3 font-dmSans text-caption text-soft-charcoal">
+                                                                    Source{" "}
+                                                                    {formatDimensions(
+                                                                        row
+                                                                            .activeImageAsset
+                                                                            .width,
+                                                                        row
+                                                                            .activeImageAsset
+                                                                            .height,
+                                                                    )}
+                                                                </div>
+                                                            ) : null}
+
+                                                            {row.hasImage && (
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="outline"
+                                                                    className="mt-3 gap-2 border-red-800/40 bg-white text-red-950 hover:bg-red-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                    disabled={
+                                                                        disabled ||
+                                                                        pendingId ===
+                                                                            row.id
+                                                                    }
+                                                                    onClick={() =>
+                                                                        void removeImage(
+                                                                            row,
+                                                                            "all",
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <Trash2 className="h-4 w-4" />
+                                                                    Remove all
+                                                                    images
+                                                                </Button>
                                                             )}
                                                         </div>
                                                     ) : null}
-
-                                                    {row.hasImage && (
-                                                        <Button
-                                                            type="button"
-                                                            variant="outline"
-                                                            className="mt-3 gap-2 border-red-800/40 bg-white text-red-950 hover:bg-red-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                                                            disabled={
-                                                                disabled ||
-                                                                pendingId ===
-                                                                    row.id
-                                                            }
-                                                            onClick={() =>
-                                                                void removeImage(
-                                                                    row,
-                                                                    "all",
-                                                                )
-                                                            }
-                                                        >
-                                                            <Trash2 className="h-4 w-4" />
-                                                            Remove all images
-                                                        </Button>
-                                                    )}
                                                 </div>
-                                            ) : null}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

@@ -285,6 +285,47 @@ describe("AdminComedianManager", () => {
         ).toBeTruthy();
     });
 
+    it("renders comedian editing controls as one panel with a top summary and section list", () => {
+        render(<AdminComedianManager comedians={comedians} />);
+        expandAllRows();
+
+        const panel = document.getElementById("comedian-row-1");
+        expect(panel).toBeTruthy();
+        const editor = within(panel!).getByRole("group", {
+            name: "Comedian editor for Parent Comic",
+        });
+        const topRow = within(editor).getByRole("group", {
+            name: "Name and blocklist status for Parent Comic",
+        });
+        const sections = within(editor).getByRole("list", {
+            name: "Comedian detail sections for Parent Comic",
+        });
+
+        expect(within(topRow).getByLabelText("Comedian name")).toBeTruthy();
+        expect(
+            within(topRow).getByRole("checkbox", {
+                name: "Blocked status for Parent Comic",
+            }),
+        ).toBeTruthy();
+        expect(
+            within(sections).getByRole("button", { name: /^Social media/ }),
+        ).toBeTruthy();
+        expect(
+            within(sections).getByRole("button", { name: /^Relationship/ }),
+        ).toBeTruthy();
+        expect(
+            within(sections).getByRole("button", { name: /^Podcast/ }),
+        ).toBeTruthy();
+        expect(
+            within(sections).getByRole("button", { name: /^Current image/ }),
+        ).toBeTruthy();
+        expect(
+            screen.queryByRole("group", {
+                name: "Parent and blocklist for Parent Comic",
+            }),
+        ).toBeNull();
+    });
+
     it("uploads a headshot URL without requiring a hero", async () => {
         vi.mocked(global.fetch).mockResolvedValueOnce({
             ok: true,
@@ -1413,12 +1454,12 @@ describe("AdminComedianManager", () => {
             screen.queryByRole("button", { name: "Add to blocklist" }),
         ).toBeNull();
 
-        const parentBlocklistGroup = screen.getByRole("group", {
-            name: "Parent and blocklist for Alias Comic",
+        const blocklistGroup = screen.getByRole("group", {
+            name: "Name and blocklist status for Alias Comic",
         });
 
         fireEvent.click(
-            within(parentBlocklistGroup).getByRole("checkbox", {
+            within(blocklistGroup).getByRole("checkbox", {
                 name: "Blocked status for Alias Comic",
             }),
         );
