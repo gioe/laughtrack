@@ -1198,11 +1198,6 @@ private fun showDateParts(show: Show): ShowDateParts =
         )
     }
 
-private fun showMetadata(show: Show): String =
-    listOfNotNull(formatShowTime(show), formatPrice(show.tickets?.mapNotNull { it.price }))
-        .joinToString(" - ")
-        .ifBlank { show.clubCity ?: "" }
-
 private fun formatShowTime(show: Show): String? =
     runCatching {
         val zone = show.timezone?.let(ZoneId::of) ?: ZoneId.systemDefault()
