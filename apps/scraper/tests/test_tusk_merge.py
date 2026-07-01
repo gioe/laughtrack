@@ -2,7 +2,6 @@ import importlib.util
 import subprocess
 from pathlib import Path
 
-
 REPO_ROOT = Path(__file__).resolve().parents[3]
 MODULE_PATH = REPO_ROOT / ".claude" / "bin" / "tusk-merge.py"
 
@@ -59,6 +58,7 @@ def test_no_checkout_fast_forward_updates_local_default_ref(monkeypatch):
     monkeypatch.setattr(module, "_run_tusk_subcommand", lambda *_: _ok(["tusk"]))
     monkeypatch.setattr(module, "_try_pop_stash", lambda *_: None)
     monkeypatch.setattr(module, "_warn_branch_auto_stash", lambda *_: None)
+
     def fake_close_completed_task(*args, **kwargs):
         close_kwargs.update(kwargs)
         return 0
@@ -93,9 +93,7 @@ def test_no_checkout_fast_forward_updates_local_default_ref(monkeypatch):
     assert close_kwargs["merge_base_sha"] == "base-sha"
 
 
-def test_fast_forward_local_default_ref_leaves_files_and_index_untouched(
-    monkeypatch, tmp_path
-):
+def test_fast_forward_local_default_ref_leaves_files_and_index_untouched(monkeypatch, tmp_path):
     module = _load_module()
     repo = tmp_path / "repo"
     _init_repo(repo)
