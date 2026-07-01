@@ -469,6 +469,82 @@ def _same_path(left: str | None, right: str | None) -> bool:
     return os.path.realpath(left) == os.path.realpath(right)
 
 
+def _run_git(cwd: str, args: list[str]) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        ["git", "-C", cwd, *args],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+
+
+def _force_session_workspace_warnings(
+    task_id: int, workspace_path: str | None, repo_root: str | None
+) -> list[str]:
+    """Return advisory warnings for risky --force-session workspace state.
+
+    These checks run while task-start is already choosing to reuse an existing
+    session, so they are deliberately best-effort: a missing worktree, broken
+    git executable, or failed object scan must not prevent the caller from
+    resuming the task.
+    """
+    if not workspace_path:
+        return []
+
+    warnings: list[str] = []
+
+    try:
+        status = _run_git(workspace_path, ["status", "--porcelain"])
+        if status.returncode == 0 and status.stdout.strip():
+            detail = status.stdout.strip()
+            warnings.append(
+                "recorded task workspace is dirty; recoverable work may be "
+                f"present at {workspace_path}:\n{detail}"
+            )
+    except (OSError, subprocess.SubprocessError):
+        pass
+
+    if not repo_root:
+        return warnings
+
+    try:
+        branch_result = _run_git(workspace_path, ["branch", "--show-current"])
+        branch = branch_result.stdout.strip() if branch_result.returncode == 0 else ""
+        if not branch:
+            return warnings
+
+        commits, recovered_via = _git_helpers.find_task_commits_with_recovery(
+            task_id, repo_root
+        )
+        if not commits:
+            return warnings
+
+        missing = []
+        for sha in commits:
+            contains = _run_git(
+                repo_root, ["merge-base", "--is-ancestor", sha, branch]
+            )
+            if contains.returncode != 0:
+                missing.append(sha)
+
+        if missing:
+            count = len(missing)
+            noun = "commit" if count == 1 else "commits"
+            recovered = f" recovered via {recovered_via}" if recovered_via else ""
+            preview = ", ".join(missing[:3])
+            if len(missing) > 3:
+                preview += ", ..."
+            warnings.append(
+                f"recorded task branch {branch} at {workspace_path} does not "
+                f"contain {count} existing [TASK-{task_id}] {noun}{recovered}: "
+                f"{preview}"
+            )
+    except (OSError, subprocess.SubprocessError, RuntimeError):
+        pass
+
+    return warnings
+
+
 def main(argv: list[str]) -> int:
     db_path = argv[0]
     # argv[1] is config_path (unused but kept for dispatch consistency)
@@ -722,6 +798,10 @@ def main(argv: list[str]) -> int:
                     f"(session {session_id}); reusing it due to --force-session.",
                     file=sys.stderr,
                 )
+                for warning in _force_session_workspace_warnings(
+                    task_id, workspace_path, current_root or workspace_path
+                ):
+                    print(f"Warning: {warning}", file=sys.stderr)
             # Update agent_name on reused session if --agent was passed
             if agent_name is not None:
                 conn.execute(
