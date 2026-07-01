@@ -2501,137 +2501,231 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                         )}
                                                     </div>
                                                 ) : null}
-                                                <div
-                                                    role="listitem"
-                                                    className="rounded-md border border-copper/20 bg-coconut-cream/35 p-3"
+                                            </div>
+                                            <div
+                                                role="listitem"
+                                                className="rounded-md border border-copper/20 bg-coconut-cream/35 p-3"
+                                            >
+                                                <button
+                                                    type="button"
+                                                    aria-expanded={imageOpen}
+                                                    aria-controls={`comedian-images-${row.id}`}
+                                                    onClick={() =>
+                                                        toggleImageSection(
+                                                            row.id,
+                                                        )
+                                                    }
+                                                    className="flex w-full items-center gap-2 text-left"
                                                 >
-                                                    <button
-                                                        type="button"
-                                                        aria-expanded={
-                                                            imageOpen
-                                                        }
-                                                        aria-controls={`comedian-images-${row.id}`}
-                                                        onClick={() =>
-                                                            toggleImageSection(
-                                                                row.id,
-                                                            )
-                                                        }
-                                                        className="flex w-full items-center gap-2 text-left"
-                                                    >
-                                                        {imageOpen ? (
-                                                            <ChevronDown className="h-4 w-4 shrink-0 text-cedar" />
-                                                        ) : (
-                                                            <ChevronRight className="h-4 w-4 shrink-0 text-cedar" />
-                                                        )}
-                                                        <span className="min-w-0">
-                                                            <span className="block font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                                Current image
-                                                            </span>
-                                                            <span className="mt-1 block font-dmSans text-body font-semibold text-cedar">
-                                                                {row.activeImageAsset
-                                                                    ? "Active asset"
-                                                                    : row.hasImage
-                                                                      ? "Image available"
-                                                                      : "No current image"}
-                                                            </span>
-                                                        </span>
-                                                    </button>
-
                                                     {imageOpen ? (
-                                                        <div
-                                                            id={`comedian-images-${row.id}`}
-                                                            className="mt-3"
-                                                        >
-                                                            <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-                                                                <div className="min-w-0 space-y-3 rounded-md border border-copper/20 bg-white/80 p-3">
-                                                                    <div className="flex items-center justify-between gap-2">
-                                                                        <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                                            Headshot
-                                                                        </div>
-                                                                        {currentAvatar ? (
-                                                                            <a
-                                                                                href={
-                                                                                    currentAvatar
-                                                                                }
-                                                                                target="_blank"
-                                                                                rel="noreferrer"
-                                                                                className="inline-flex items-center gap-1 font-dmSans text-caption font-semibold text-copper-dark hover:underline"
-                                                                            >
-                                                                                Open
-                                                                                <ExternalLink className="h-3.5 w-3.5" />
-                                                                            </a>
-                                                                        ) : null}
+                                                        <ChevronDown className="h-4 w-4 shrink-0 text-cedar" />
+                                                    ) : (
+                                                        <ChevronRight className="h-4 w-4 shrink-0 text-cedar" />
+                                                    )}
+                                                    <span className="min-w-0">
+                                                        <span className="block font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                            Current image
+                                                        </span>
+                                                        <span className="mt-1 block font-dmSans text-body font-semibold text-cedar">
+                                                            {row.activeImageAsset
+                                                                ? "Active asset"
+                                                                : row.hasImage
+                                                                  ? "Image available"
+                                                                  : "No current image"}
+                                                        </span>
+                                                    </span>
+                                                </button>
+
+                                                {imageOpen ? (
+                                                    <div
+                                                        id={`comedian-images-${row.id}`}
+                                                        className="mt-3"
+                                                    >
+                                                        <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+                                                            <div className="min-w-0 space-y-3 rounded-md border border-copper/20 bg-white/80 p-3">
+                                                                <div className="flex items-center justify-between gap-2">
+                                                                    <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                                        Headshot
                                                                     </div>
                                                                     {currentAvatar ? (
-                                                                        <img
-                                                                            src={
+                                                                        <a
+                                                                            href={
                                                                                 currentAvatar
                                                                             }
-                                                                            alt={`${row.name} current headshot image`}
-                                                                            className="h-24 w-24 rounded-md border border-copper/20 object-cover"
-                                                                        />
-                                                                    ) : manualImageUrlValue(
-                                                                          row,
-                                                                      )
-                                                                          .headshotFile ? null : (
-                                                                        <div className="flex h-24 w-24 items-center justify-center rounded-md border border-dashed border-soft-charcoal/30 bg-gray-50 font-dmSans text-caption text-soft-charcoal">
-                                                                            Empty
-                                                                        </div>
-                                                                    )}
-                                                                    <div className="grid gap-1">
-                                                                        <label
-                                                                            htmlFor={`headshot-url-${row.id}`}
-                                                                            className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal"
+                                                                            target="_blank"
+                                                                            rel="noreferrer"
+                                                                            className="inline-flex items-center gap-1 font-dmSans text-caption font-semibold text-copper-dark hover:underline"
                                                                         >
-                                                                            Headshot
-                                                                            image
+                                                                            Open
+                                                                            <ExternalLink className="h-3.5 w-3.5" />
+                                                                        </a>
+                                                                    ) : null}
+                                                                </div>
+                                                                {currentAvatar ? (
+                                                                    <img
+                                                                        src={
+                                                                            currentAvatar
+                                                                        }
+                                                                        alt={`${row.name} current headshot image`}
+                                                                        className="h-24 w-24 rounded-md border border-copper/20 object-cover"
+                                                                    />
+                                                                ) : manualImageUrlValue(
+                                                                      row,
+                                                                  )
+                                                                      .headshotFile ? null : (
+                                                                    <div className="flex h-24 w-24 items-center justify-center rounded-md border border-dashed border-soft-charcoal/30 bg-gray-50 font-dmSans text-caption text-soft-charcoal">
+                                                                        Empty
+                                                                    </div>
+                                                                )}
+                                                                <div className="grid gap-1">
+                                                                    <label
+                                                                        htmlFor={`headshot-url-${row.id}`}
+                                                                        className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal"
+                                                                    >
+                                                                        Headshot
+                                                                        image
+                                                                        URL
+                                                                    </label>
+                                                                    <div className="flex flex-wrap gap-2 sm:flex-nowrap">
+                                                                        <input
+                                                                            id={`headshot-url-${row.id}`}
+                                                                            aria-label="Headshot image URL"
+                                                                            type="url"
+                                                                            value={
+                                                                                manualImageUrlValue(
+                                                                                    row,
+                                                                                )
+                                                                                    .headshot
+                                                                            }
+                                                                            onChange={(
+                                                                                event,
+                                                                            ) =>
+                                                                                updateManualImageUrls(
+                                                                                    row,
+                                                                                    {
+                                                                                        headshot:
+                                                                                            event
+                                                                                                .target
+                                                                                                .value,
+                                                                                        headshotFile:
+                                                                                            null,
+                                                                                    },
+                                                                                )
+                                                                            }
+                                                                            placeholder="https://example.com/headshot.jpg"
+                                                                            className="w-full min-w-0 flex-1 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                                        />
+                                                                        <Button
+                                                                            type="button"
+                                                                            variant="outline"
+                                                                            aria-label="Save headshot URL"
+                                                                            className="shrink-0 gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                            disabled={
+                                                                                disabled ||
+                                                                                pendingId ===
+                                                                                    row.id ||
+                                                                                !manualImageUrlValue(
+                                                                                    row,
+                                                                                ).headshot.trim() ||
+                                                                                manualImageUrlValue(
+                                                                                    row,
+                                                                                ).headshot.trim() ===
+                                                                                    currentAvatar
+                                                                            }
+                                                                            onClick={() =>
+                                                                                void publishImage(
+                                                                                    row,
+                                                                                    "headshot",
+                                                                                )
+                                                                            }
+                                                                        >
+                                                                            <Save className="h-4 w-4" />
+                                                                            Save
                                                                             URL
-                                                                        </label>
-                                                                        <div className="flex flex-wrap gap-2 sm:flex-nowrap">
-                                                                            <input
-                                                                                id={`headshot-url-${row.id}`}
-                                                                                aria-label="Headshot image URL"
-                                                                                type="url"
-                                                                                value={
-                                                                                    manualImageUrlValue(
-                                                                                        row,
-                                                                                    )
-                                                                                        .headshot
-                                                                                }
-                                                                                onChange={(
-                                                                                    event,
-                                                                                ) =>
-                                                                                    updateManualImageUrls(
-                                                                                        row,
-                                                                                        {
-                                                                                            headshot:
-                                                                                                event
-                                                                                                    .target
-                                                                                                    .value,
-                                                                                            headshotFile:
-                                                                                                null,
-                                                                                        },
-                                                                                    )
-                                                                                }
-                                                                                placeholder="https://example.com/headshot.jpg"
-                                                                                className="w-full min-w-0 flex-1 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
-                                                                            />
+                                                                        </Button>
+                                                                    </div>
+                                                                </div>
+                                                                <span className="font-dmSans text-caption normal-case tracking-normal text-soft-charcoal">
+                                                                    1:1 square,
+                                                                    at least
+                                                                    600x600
+                                                                </span>
+                                                                <input
+                                                                    id={`headshot-file-${row.id}`}
+                                                                    aria-label="Upload headshot file"
+                                                                    type="file"
+                                                                    accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
+                                                                    className="sr-only"
+                                                                    onChange={async (
+                                                                        event,
+                                                                    ) => {
+                                                                        const file =
+                                                                            event
+                                                                                .target
+                                                                                .files?.[0] ??
+                                                                            null;
+                                                                        event.target.value =
+                                                                            "";
+                                                                        if (
+                                                                            !file
+                                                                        )
+                                                                            return;
+                                                                        await stageImageFile(
+                                                                            row,
+                                                                            "headshot",
+                                                                            file,
+                                                                        );
+                                                                    }}
+                                                                />
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="outline"
+                                                                    className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                    disabled={
+                                                                        disabled ||
+                                                                        pendingId ===
+                                                                            row.id
+                                                                    }
+                                                                    onClick={() => {
+                                                                        const input =
+                                                                            document.getElementById(
+                                                                                `headshot-file-${row.id}`,
+                                                                            ) as HTMLInputElement | null;
+                                                                        input?.click();
+                                                                    }}
+                                                                >
+                                                                    <Upload className="h-4 w-4" />
+                                                                    Choose
+                                                                    headshot
+                                                                    file
+                                                                </Button>
+                                                                {manualImageUrlValue(
+                                                                    row,
+                                                                )
+                                                                    .headshotFile ? (
+                                                                    <div className="grid gap-2 rounded-md border border-copper/30 bg-coconut-cream/40 p-3">
+                                                                        <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                                            Pending
+                                                                            headshot
+                                                                        </div>
+                                                                        <StagedPreview
+                                                                            file={
+                                                                                manualImageUrlValue(
+                                                                                    row,
+                                                                                )
+                                                                                    .headshotFile as File
+                                                                            }
+                                                                            alt={`${row.name} pending headshot`}
+                                                                            className="h-24 w-24 rounded-md border border-copper/30 object-cover"
+                                                                        />
+                                                                        <div className="flex flex-wrap gap-2">
                                                                             <Button
                                                                                 type="button"
-                                                                                variant="outline"
-                                                                                aria-label="Save headshot URL"
-                                                                                className="shrink-0 gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                                className="gap-2 bg-copper-dark text-white hover:bg-cedar disabled:bg-gray-300 disabled:text-soft-charcoal disabled:opacity-100"
                                                                                 disabled={
                                                                                     disabled ||
                                                                                     pendingId ===
-                                                                                        row.id ||
-                                                                                    !manualImageUrlValue(
-                                                                                        row,
-                                                                                    ).headshot.trim() ||
-                                                                                    manualImageUrlValue(
-                                                                                        row,
-                                                                                    ).headshot.trim() ===
-                                                                                        currentAvatar
+                                                                                        row.id
                                                                                 }
                                                                                 onClick={() =>
                                                                                     void publishImage(
@@ -2640,267 +2734,265 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                                                     )
                                                                                 }
                                                                             >
-                                                                                <Save className="h-4 w-4" />
-                                                                                Save
-                                                                                URL
+                                                                                <Upload className="h-4 w-4" />
+                                                                                Publish
+                                                                                to
+                                                                                Bunny
+                                                                            </Button>
+                                                                            <Button
+                                                                                type="button"
+                                                                                variant="outline"
+                                                                                className="gap-2 border-soft-charcoal/40 bg-white text-cedar hover:bg-gray-50"
+                                                                                disabled={
+                                                                                    disabled ||
+                                                                                    pendingId ===
+                                                                                        row.id
+                                                                                }
+                                                                                onClick={() =>
+                                                                                    discardStagedFile(
+                                                                                        row,
+                                                                                        "headshot",
+                                                                                    )
+                                                                                }
+                                                                            >
+                                                                                <X className="h-4 w-4" />
+                                                                                Discard
                                                                             </Button>
                                                                         </div>
                                                                     </div>
-                                                                    <span className="font-dmSans text-caption normal-case tracking-normal text-soft-charcoal">
-                                                                        1:1
-                                                                        square,
-                                                                        at least
-                                                                        600x600
-                                                                    </span>
-                                                                    <input
-                                                                        id={`headshot-file-${row.id}`}
-                                                                        aria-label="Upload headshot file"
-                                                                        type="file"
-                                                                        accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
-                                                                        className="sr-only"
-                                                                        onChange={async (
-                                                                            event,
-                                                                        ) => {
-                                                                            const file =
-                                                                                event
-                                                                                    .target
-                                                                                    .files?.[0] ??
-                                                                                null;
-                                                                            event.target.value =
-                                                                                "";
-                                                                            if (
-                                                                                !file
-                                                                            )
-                                                                                return;
-                                                                            await stageImageFile(
-                                                                                row,
-                                                                                "headshot",
-                                                                                file,
-                                                                            );
-                                                                        }}
-                                                                    />
+                                                                ) : null}
+                                                                {imageStatusByRow[
+                                                                    row.id
+                                                                ] ? (
+                                                                    <p
+                                                                        className={
+                                                                            imageStatusByRow[
+                                                                                row
+                                                                                    .id
+                                                                            ]
+                                                                                .kind ===
+                                                                            "error"
+                                                                                ? "rounded-md border border-red-700/30 bg-red-50 px-3 py-2 font-dmSans text-caption font-semibold text-red-900"
+                                                                                : "rounded-md border border-green-700/30 bg-green-50 px-3 py-2 font-dmSans text-caption font-semibold text-green-900"
+                                                                        }
+                                                                    >
+                                                                        {
+                                                                            imageStatusByRow[
+                                                                                row
+                                                                                    .id
+                                                                            ]
+                                                                                .message
+                                                                        }
+                                                                    </p>
+                                                                ) : null}
+                                                                {row
+                                                                    .activeImageAsset
+                                                                    ?.avatarPath ? (
                                                                     <Button
                                                                         type="button"
                                                                         variant="outline"
-                                                                        className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                        className="gap-2 border-red-800/40 bg-white text-red-950 hover:bg-red-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
                                                                         disabled={
                                                                             disabled ||
                                                                             pendingId ===
                                                                                 row.id
                                                                         }
-                                                                        onClick={() => {
-                                                                            const input =
-                                                                                document.getElementById(
-                                                                                    `headshot-file-${row.id}`,
-                                                                                ) as HTMLInputElement | null;
-                                                                            input?.click();
-                                                                        }}
+                                                                        onClick={() =>
+                                                                            void removeImage(
+                                                                                row,
+                                                                                "thumbnail",
+                                                                            )
+                                                                        }
                                                                     >
-                                                                        <Upload className="h-4 w-4" />
-                                                                        Choose
-                                                                        headshot
-                                                                        file
+                                                                        <Trash2 className="h-4 w-4" />
+                                                                        Remove
+                                                                        thumbnail
                                                                     </Button>
-                                                                    {manualImageUrlValue(
-                                                                        row,
-                                                                    )
-                                                                        .headshotFile ? (
-                                                                        <div className="grid gap-2 rounded-md border border-copper/30 bg-coconut-cream/40 p-3">
-                                                                            <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                                                Pending
-                                                                                headshot
-                                                                            </div>
-                                                                            <StagedPreview
-                                                                                file={
-                                                                                    manualImageUrlValue(
-                                                                                        row,
-                                                                                    )
-                                                                                        .headshotFile as File
-                                                                                }
-                                                                                alt={`${row.name} pending headshot`}
-                                                                                className="h-24 w-24 rounded-md border border-copper/30 object-cover"
-                                                                            />
-                                                                            <div className="flex flex-wrap gap-2">
-                                                                                <Button
-                                                                                    type="button"
-                                                                                    className="gap-2 bg-copper-dark text-white hover:bg-cedar disabled:bg-gray-300 disabled:text-soft-charcoal disabled:opacity-100"
-                                                                                    disabled={
-                                                                                        disabled ||
-                                                                                        pendingId ===
-                                                                                            row.id
-                                                                                    }
-                                                                                    onClick={() =>
-                                                                                        void publishImage(
-                                                                                            row,
-                                                                                            "headshot",
-                                                                                        )
-                                                                                    }
-                                                                                >
-                                                                                    <Upload className="h-4 w-4" />
-                                                                                    Publish
-                                                                                    to
-                                                                                    Bunny
-                                                                                </Button>
-                                                                                <Button
-                                                                                    type="button"
-                                                                                    variant="outline"
-                                                                                    className="gap-2 border-soft-charcoal/40 bg-white text-cedar hover:bg-gray-50"
-                                                                                    disabled={
-                                                                                        disabled ||
-                                                                                        pendingId ===
-                                                                                            row.id
-                                                                                    }
-                                                                                    onClick={() =>
-                                                                                        discardStagedFile(
-                                                                                            row,
-                                                                                            "headshot",
-                                                                                        )
-                                                                                    }
-                                                                                >
-                                                                                    <X className="h-4 w-4" />
-                                                                                    Discard
-                                                                                </Button>
-                                                                            </div>
-                                                                        </div>
-                                                                    ) : null}
-                                                                    {imageStatusByRow[
-                                                                        row.id
-                                                                    ] ? (
-                                                                        <p
-                                                                            className={
-                                                                                imageStatusByRow[
-                                                                                    row
-                                                                                        .id
-                                                                                ]
-                                                                                    .kind ===
-                                                                                "error"
-                                                                                    ? "rounded-md border border-red-700/30 bg-red-50 px-3 py-2 font-dmSans text-caption font-semibold text-red-900"
-                                                                                    : "rounded-md border border-green-700/30 bg-green-50 px-3 py-2 font-dmSans text-caption font-semibold text-green-900"
+                                                                ) : null}
+                                                            </div>
+
+                                                            <div className="min-w-0 space-y-3 rounded-md border border-copper/20 bg-white/80 p-3">
+                                                                <div className="flex items-center justify-between gap-2">
+                                                                    <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                                        Hero
+                                                                    </div>
+                                                                    {currentHero ? (
+                                                                        <a
+                                                                            href={
+                                                                                currentHero
                                                                             }
+                                                                            target="_blank"
+                                                                            rel="noreferrer"
+                                                                            className="inline-flex items-center gap-1 font-dmSans text-caption font-semibold text-copper-dark hover:underline"
                                                                         >
-                                                                            {
-                                                                                imageStatusByRow[
-                                                                                    row
-                                                                                        .id
-                                                                                ]
-                                                                                    .message
-                                                                            }
-                                                                        </p>
+                                                                            Open
+                                                                            <ExternalLink className="h-3.5 w-3.5" />
+                                                                        </a>
                                                                     ) : null}
-                                                                    {row
-                                                                        .activeImageAsset
-                                                                        ?.avatarPath ? (
+                                                                </div>
+                                                                {currentHero ? (
+                                                                    <img
+                                                                        src={
+                                                                            currentHero
+                                                                        }
+                                                                        alt={`${row.name} current hero image`}
+                                                                        className="h-24 w-40 rounded-md border border-copper/20 object-cover"
+                                                                    />
+                                                                ) : manualImageUrlValue(
+                                                                      row,
+                                                                  )
+                                                                      .heroFile ? null : (
+                                                                    <div className="flex h-24 w-40 items-center justify-center rounded-md border border-dashed border-soft-charcoal/30 bg-gray-50 font-dmSans text-caption text-soft-charcoal">
+                                                                        Empty
+                                                                    </div>
+                                                                )}
+                                                                <div className="grid gap-1">
+                                                                    <label
+                                                                        htmlFor={`hero-url-${row.id}`}
+                                                                        className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal"
+                                                                    >
+                                                                        Hero
+                                                                        image
+                                                                        URL
+                                                                    </label>
+                                                                    <div className="flex flex-wrap gap-2 sm:flex-nowrap">
+                                                                        <input
+                                                                            id={`hero-url-${row.id}`}
+                                                                            aria-label="Hero image URL"
+                                                                            type="url"
+                                                                            value={
+                                                                                manualImageUrlValue(
+                                                                                    row,
+                                                                                )
+                                                                                    .hero
+                                                                            }
+                                                                            onChange={(
+                                                                                event,
+                                                                            ) =>
+                                                                                updateManualImageUrls(
+                                                                                    row,
+                                                                                    {
+                                                                                        hero: event
+                                                                                            .target
+                                                                                            .value,
+                                                                                        heroFile:
+                                                                                            null,
+                                                                                    },
+                                                                                )
+                                                                            }
+                                                                            placeholder="https://example.com/hero.jpg"
+                                                                            className="w-full min-w-0 flex-1 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                                        />
                                                                         <Button
                                                                             type="button"
                                                                             variant="outline"
-                                                                            className="gap-2 border-red-800/40 bg-white text-red-950 hover:bg-red-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                            aria-label="Save hero URL"
+                                                                            className="shrink-0 gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
                                                                             disabled={
                                                                                 disabled ||
                                                                                 pendingId ===
-                                                                                    row.id
+                                                                                    row.id ||
+                                                                                !manualImageUrlValue(
+                                                                                    row,
+                                                                                ).hero.trim() ||
+                                                                                manualImageUrlValue(
+                                                                                    row,
+                                                                                ).hero.trim() ===
+                                                                                    currentHero
                                                                             }
                                                                             onClick={() =>
-                                                                                void removeImage(
+                                                                                void publishImage(
                                                                                     row,
-                                                                                    "thumbnail",
+                                                                                    "hero",
                                                                                 )
                                                                             }
                                                                         >
-                                                                            <Trash2 className="h-4 w-4" />
-                                                                            Remove
-                                                                            thumbnail
-                                                                        </Button>
-                                                                    ) : null}
-                                                                </div>
-
-                                                                <div className="min-w-0 space-y-3 rounded-md border border-copper/20 bg-white/80 p-3">
-                                                                    <div className="flex items-center justify-between gap-2">
-                                                                        <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                                            Hero
-                                                                        </div>
-                                                                        {currentHero ? (
-                                                                            <a
-                                                                                href={
-                                                                                    currentHero
-                                                                                }
-                                                                                target="_blank"
-                                                                                rel="noreferrer"
-                                                                                className="inline-flex items-center gap-1 font-dmSans text-caption font-semibold text-copper-dark hover:underline"
-                                                                            >
-                                                                                Open
-                                                                                <ExternalLink className="h-3.5 w-3.5" />
-                                                                            </a>
-                                                                        ) : null}
-                                                                    </div>
-                                                                    {currentHero ? (
-                                                                        <img
-                                                                            src={
-                                                                                currentHero
-                                                                            }
-                                                                            alt={`${row.name} current hero image`}
-                                                                            className="h-24 w-40 rounded-md border border-copper/20 object-cover"
-                                                                        />
-                                                                    ) : manualImageUrlValue(
-                                                                          row,
-                                                                      )
-                                                                          .heroFile ? null : (
-                                                                        <div className="flex h-24 w-40 items-center justify-center rounded-md border border-dashed border-soft-charcoal/30 bg-gray-50 font-dmSans text-caption text-soft-charcoal">
-                                                                            Empty
-                                                                        </div>
-                                                                    )}
-                                                                    <div className="grid gap-1">
-                                                                        <label
-                                                                            htmlFor={`hero-url-${row.id}`}
-                                                                            className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal"
-                                                                        >
-                                                                            Hero
-                                                                            image
+                                                                            <Save className="h-4 w-4" />
+                                                                            Save
                                                                             URL
-                                                                        </label>
-                                                                        <div className="flex flex-wrap gap-2 sm:flex-nowrap">
-                                                                            <input
-                                                                                id={`hero-url-${row.id}`}
-                                                                                aria-label="Hero image URL"
-                                                                                type="url"
-                                                                                value={
-                                                                                    manualImageUrlValue(
-                                                                                        row,
-                                                                                    )
-                                                                                        .hero
-                                                                                }
-                                                                                onChange={(
-                                                                                    event,
-                                                                                ) =>
-                                                                                    updateManualImageUrls(
-                                                                                        row,
-                                                                                        {
-                                                                                            hero: event
-                                                                                                .target
-                                                                                                .value,
-                                                                                            heroFile:
-                                                                                                null,
-                                                                                        },
-                                                                                    )
-                                                                                }
-                                                                                placeholder="https://example.com/hero.jpg"
-                                                                                className="w-full min-w-0 flex-1 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
-                                                                            />
+                                                                        </Button>
+                                                                    </div>
+                                                                </div>
+                                                                <span className="font-dmSans text-caption normal-case tracking-normal text-soft-charcoal">
+                                                                    16:9
+                                                                    (2000x1125),
+                                                                    at least
+                                                                    600x600
+                                                                </span>
+                                                                <input
+                                                                    id={`hero-file-${row.id}`}
+                                                                    aria-label="Upload hero file"
+                                                                    type="file"
+                                                                    accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
+                                                                    className="sr-only"
+                                                                    onChange={async (
+                                                                        event,
+                                                                    ) => {
+                                                                        const file =
+                                                                            event
+                                                                                .target
+                                                                                .files?.[0] ??
+                                                                            null;
+                                                                        event.target.value =
+                                                                            "";
+                                                                        if (
+                                                                            !file
+                                                                        )
+                                                                            return;
+                                                                        await stageImageFile(
+                                                                            row,
+                                                                            "hero",
+                                                                            file,
+                                                                        );
+                                                                    }}
+                                                                />
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="outline"
+                                                                    className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                    disabled={
+                                                                        disabled ||
+                                                                        pendingId ===
+                                                                            row.id
+                                                                    }
+                                                                    onClick={() => {
+                                                                        const input =
+                                                                            document.getElementById(
+                                                                                `hero-file-${row.id}`,
+                                                                            ) as HTMLInputElement | null;
+                                                                        input?.click();
+                                                                    }}
+                                                                >
+                                                                    <Upload className="h-4 w-4" />
+                                                                    Choose hero
+                                                                    file
+                                                                </Button>
+                                                                {manualImageUrlValue(
+                                                                    row,
+                                                                ).heroFile ? (
+                                                                    <div className="grid gap-2 rounded-md border border-copper/30 bg-coconut-cream/40 p-3">
+                                                                        <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                                            Pending
+                                                                            hero
+                                                                        </div>
+                                                                        <StagedPreview
+                                                                            file={
+                                                                                manualImageUrlValue(
+                                                                                    row,
+                                                                                )
+                                                                                    .heroFile as File
+                                                                            }
+                                                                            alt={`${row.name} pending hero`}
+                                                                            className="h-24 w-40 rounded-md border border-copper/30 object-cover"
+                                                                        />
+                                                                        <div className="flex flex-wrap gap-2">
                                                                             <Button
                                                                                 type="button"
-                                                                                variant="outline"
-                                                                                aria-label="Save hero URL"
-                                                                                className="shrink-0 gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                                className="gap-2 bg-copper-dark text-white hover:bg-cedar disabled:bg-gray-300 disabled:text-soft-charcoal disabled:opacity-100"
                                                                                 disabled={
                                                                                     disabled ||
                                                                                     pendingId ===
-                                                                                        row.id ||
-                                                                                    !manualImageUrlValue(
-                                                                                        row,
-                                                                                    ).hero.trim() ||
-                                                                                    manualImageUrlValue(
-                                                                                        row,
-                                                                                    ).hero.trim() ===
-                                                                                        currentHero
+                                                                                        row.id
                                                                                 }
                                                                                 onClick={() =>
                                                                                     void publishImage(
@@ -2909,223 +3001,126 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                                                     )
                                                                                 }
                                                                             >
-                                                                                <Save className="h-4 w-4" />
-                                                                                Save
-                                                                                URL
+                                                                                <Upload className="h-4 w-4" />
+                                                                                Publish
+                                                                                to
+                                                                                Bunny
+                                                                            </Button>
+                                                                            <Button
+                                                                                type="button"
+                                                                                variant="outline"
+                                                                                className="gap-2 border-soft-charcoal/40 bg-white text-cedar hover:bg-gray-50"
+                                                                                disabled={
+                                                                                    disabled ||
+                                                                                    pendingId ===
+                                                                                        row.id
+                                                                                }
+                                                                                onClick={() =>
+                                                                                    discardStagedFile(
+                                                                                        row,
+                                                                                        "hero",
+                                                                                    )
+                                                                                }
+                                                                            >
+                                                                                <X className="h-4 w-4" />
+                                                                                Discard
                                                                             </Button>
                                                                         </div>
                                                                     </div>
-                                                                    <span className="font-dmSans text-caption normal-case tracking-normal text-soft-charcoal">
-                                                                        16:9
-                                                                        (2000x1125),
-                                                                        at least
-                                                                        600x600
-                                                                    </span>
-                                                                    <input
-                                                                        id={`hero-file-${row.id}`}
-                                                                        aria-label="Upload hero file"
-                                                                        type="file"
-                                                                        accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
-                                                                        className="sr-only"
-                                                                        onChange={async (
-                                                                            event,
-                                                                        ) => {
-                                                                            const file =
-                                                                                event
-                                                                                    .target
-                                                                                    .files?.[0] ??
-                                                                                null;
-                                                                            event.target.value =
-                                                                                "";
-                                                                            if (
-                                                                                !file
-                                                                            )
-                                                                                return;
-                                                                            await stageImageFile(
-                                                                                row,
-                                                                                "hero",
-                                                                                file,
-                                                                            );
-                                                                        }}
-                                                                    />
+                                                                ) : null}
+                                                                {row
+                                                                    .activeImageAsset
+                                                                    ?.heroPath ? (
                                                                     <Button
                                                                         type="button"
                                                                         variant="outline"
-                                                                        className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                        className="gap-2 border-red-800/40 bg-white text-red-950 hover:bg-red-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
                                                                         disabled={
                                                                             disabled ||
                                                                             pendingId ===
                                                                                 row.id
                                                                         }
-                                                                        onClick={() => {
-                                                                            const input =
-                                                                                document.getElementById(
-                                                                                    `hero-file-${row.id}`,
-                                                                                ) as HTMLInputElement | null;
-                                                                            input?.click();
-                                                                        }}
+                                                                        onClick={() =>
+                                                                            void removeImage(
+                                                                                row,
+                                                                                "hero",
+                                                                            )
+                                                                        }
                                                                     >
-                                                                        <Upload className="h-4 w-4" />
-                                                                        Choose
+                                                                        <Trash2 className="h-4 w-4" />
+                                                                        Remove
                                                                         hero
-                                                                        file
                                                                     </Button>
-                                                                    {manualImageUrlValue(
-                                                                        row,
-                                                                    )
-                                                                        .heroFile ? (
-                                                                        <div className="grid gap-2 rounded-md border border-copper/30 bg-coconut-cream/40 p-3">
-                                                                            <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                                                Pending
-                                                                                hero
-                                                                            </div>
-                                                                            <StagedPreview
-                                                                                file={
-                                                                                    manualImageUrlValue(
-                                                                                        row,
-                                                                                    )
-                                                                                        .heroFile as File
-                                                                                }
-                                                                                alt={`${row.name} pending hero`}
-                                                                                className="h-24 w-40 rounded-md border border-copper/30 object-cover"
-                                                                            />
-                                                                            <div className="flex flex-wrap gap-2">
-                                                                                <Button
-                                                                                    type="button"
-                                                                                    className="gap-2 bg-copper-dark text-white hover:bg-cedar disabled:bg-gray-300 disabled:text-soft-charcoal disabled:opacity-100"
-                                                                                    disabled={
-                                                                                        disabled ||
-                                                                                        pendingId ===
-                                                                                            row.id
-                                                                                    }
-                                                                                    onClick={() =>
-                                                                                        void publishImage(
-                                                                                            row,
-                                                                                            "hero",
-                                                                                        )
-                                                                                    }
-                                                                                >
-                                                                                    <Upload className="h-4 w-4" />
-                                                                                    Publish
-                                                                                    to
-                                                                                    Bunny
-                                                                                </Button>
-                                                                                <Button
-                                                                                    type="button"
-                                                                                    variant="outline"
-                                                                                    className="gap-2 border-soft-charcoal/40 bg-white text-cedar hover:bg-gray-50"
-                                                                                    disabled={
-                                                                                        disabled ||
-                                                                                        pendingId ===
-                                                                                            row.id
-                                                                                    }
-                                                                                    onClick={() =>
-                                                                                        discardStagedFile(
-                                                                                            row,
-                                                                                            "hero",
-                                                                                        )
-                                                                                    }
-                                                                                >
-                                                                                    <X className="h-4 w-4" />
-                                                                                    Discard
-                                                                                </Button>
-                                                                            </div>
-                                                                        </div>
-                                                                    ) : null}
-                                                                    {row
-                                                                        .activeImageAsset
-                                                                        ?.heroPath ? (
-                                                                        <Button
-                                                                            type="button"
-                                                                            variant="outline"
-                                                                            className="gap-2 border-red-800/40 bg-white text-red-950 hover:bg-red-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                                                                            disabled={
-                                                                                disabled ||
-                                                                                pendingId ===
-                                                                                    row.id
-                                                                            }
-                                                                            onClick={() =>
-                                                                                void removeImage(
-                                                                                    row,
-                                                                                    "hero",
-                                                                                )
-                                                                            }
-                                                                        >
-                                                                            <Trash2 className="h-4 w-4" />
-                                                                            Remove
-                                                                            hero
-                                                                        </Button>
-                                                                    ) : null}
-                                                                </div>
+                                                                ) : null}
                                                             </div>
+                                                        </div>
 
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            className="mt-3 gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                            disabled={
+                                                                disabled ||
+                                                                pendingId ===
+                                                                    row.id ||
+                                                                (!imageSlotHasInput(
+                                                                    row,
+                                                                    "headshot",
+                                                                ) &&
+                                                                    !imageSlotHasInput(
+                                                                        row,
+                                                                        "hero",
+                                                                    ))
+                                                            }
+                                                            onClick={() =>
+                                                                void publishImage(
+                                                                    row,
+                                                                )
+                                                            }
+                                                        >
+                                                            <Upload className="h-4 w-4" />
+                                                            Upload changed
+                                                            images
+                                                        </Button>
+
+                                                        {row.activeImageAsset ? (
+                                                            <div className="mt-3 font-dmSans text-caption text-soft-charcoal">
+                                                                Source{" "}
+                                                                {formatDimensions(
+                                                                    row
+                                                                        .activeImageAsset
+                                                                        .width,
+                                                                    row
+                                                                        .activeImageAsset
+                                                                        .height,
+                                                                )}
+                                                            </div>
+                                                        ) : null}
+
+                                                        {row.hasImage && (
                                                             <Button
                                                                 type="button"
                                                                 variant="outline"
-                                                                className="mt-3 gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                className="mt-3 gap-2 border-red-800/40 bg-white text-red-950 hover:bg-red-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
                                                                 disabled={
                                                                     disabled ||
                                                                     pendingId ===
-                                                                        row.id ||
-                                                                    (!imageSlotHasInput(
-                                                                        row,
-                                                                        "headshot",
-                                                                    ) &&
-                                                                        !imageSlotHasInput(
-                                                                            row,
-                                                                            "hero",
-                                                                        ))
+                                                                        row.id
                                                                 }
                                                                 onClick={() =>
-                                                                    void publishImage(
+                                                                    void removeImage(
                                                                         row,
+                                                                        "all",
                                                                     )
                                                                 }
                                                             >
-                                                                <Upload className="h-4 w-4" />
-                                                                Upload changed
+                                                                <Trash2 className="h-4 w-4" />
+                                                                Remove all
                                                                 images
                                                             </Button>
-
-                                                            {row.activeImageAsset ? (
-                                                                <div className="mt-3 font-dmSans text-caption text-soft-charcoal">
-                                                                    Source{" "}
-                                                                    {formatDimensions(
-                                                                        row
-                                                                            .activeImageAsset
-                                                                            .width,
-                                                                        row
-                                                                            .activeImageAsset
-                                                                            .height,
-                                                                    )}
-                                                                </div>
-                                                            ) : null}
-
-                                                            {row.hasImage && (
-                                                                <Button
-                                                                    type="button"
-                                                                    variant="outline"
-                                                                    className="mt-3 gap-2 border-red-800/40 bg-white text-red-950 hover:bg-red-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                                                                    disabled={
-                                                                        disabled ||
-                                                                        pendingId ===
-                                                                            row.id
-                                                                    }
-                                                                    onClick={() =>
-                                                                        void removeImage(
-                                                                            row,
-                                                                            "all",
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    <Trash2 className="h-4 w-4" />
-                                                                    Remove all
-                                                                    images
-                                                                </Button>
-                                                            )}
-                                                        </div>
-                                                    ) : null}
-                                                </div>
+                                                        )}
+                                                    </div>
+                                                ) : null}
                                             </div>
                                         </div>
                                     </div>

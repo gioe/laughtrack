@@ -319,6 +319,20 @@ describe("AdminComedianManager", () => {
         expect(
             within(sections).getByRole("button", { name: /^Current image/ }),
         ).toBeTruthy();
+        const sectionItems = Array.from(
+            sections.querySelectorAll<HTMLElement>(
+                ":scope > [role='listitem']",
+            ),
+        );
+        expect(sectionItems).toHaveLength(4);
+        expect(
+            within(sectionItems[2]).getByRole("button", { name: /^Podcast/ }),
+        ).toBeTruthy();
+        expect(
+            within(sectionItems[3]).getByRole("button", {
+                name: /^Current image/,
+            }),
+        ).toBeTruthy();
         expect(
             screen.queryByRole("group", {
                 name: "Parent and blocklist for Parent Comic",
