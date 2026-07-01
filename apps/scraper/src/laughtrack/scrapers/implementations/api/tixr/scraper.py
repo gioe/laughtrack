@@ -589,6 +589,9 @@ class TixrScraper(BaseScraper):
         events = self._parse_b_show_public_cards(soup)
         if events:
             return events
+        events = self._parse_gocf_public_cards(soup)
+        if events:
+            return events
         return self._parse_stand_public_cards(soup)
 
     def _apply_title_filter(self, events: List[TixrEvent]) -> List[TixrEvent]:
@@ -848,6 +851,81 @@ class TixrScraper(BaseScraper):
 
         return events
 
+    def _parse_gocf_public_cards(self, soup: BeautifulSoup) -> List[TixrEvent]:
+        """Parse Great Outdoors Comedy Festival Webflow show cards.
+
+        GOCF's site renders complete show data on venue-owned Webflow cards:
+        date/city pills, headliner/subheadliner text, and a Tixr ticket URL.
+        The Tixr event page itself is DataDome-blocked, so this path avoids
+        detail-page enrichment and keeps ``COL=`` in the URL because the same
+        Tixr event id can represent multiple dated ticket collections.
+        """
+        events: List[TixrEvent] = []
+        seen_urls: set[str] = set()
+        city_filter = str(self.club.metadata_value("gocf_city") or "").strip().lower()
+
+        for card in soup.select(".show-card-content"):
+            ticket_link = card.select_one('a[href*="tixr.com/groups/gocf/events/"]')
+            pills = card.select(".show-card-pill-wrap .show-card-pill")
+            date_el = pills[0] if len(pills) >= 1 else None
+            city_el = (
+                card.select_one(".show-card-pill-wrap .pill.yellow-3.show-card-pill")
+                or (pills[1] if len(pills) >= 2 else None)
+            )
+            headliner_el = card.select_one("h2.secondary-heading")
+            if not ticket_link or not date_el or not city_el or not headliner_el:
+                continue
+
+            city = city_el.get_text(" ", strip=True)
+            if city_filter and city.lower() != city_filter:
+                continue
+
+            ticket_url = self._strip_tracking_params(str(ticket_link.get("href") or "").strip())
+            title = headliner_el.get_text(" ", strip=True)
+            if not ticket_url or not title or ticket_url in seen_urls:
+                continue
+
+            show_date = self._parse_gocf_card_datetime(date_el.get_text(" ", strip=True))
+            if show_date is None:
+                Logger.warn(
+                    f"{self._log_prefix}: Skipping GOCF card with unparseable date/time "
+                    f"for '{title}' at {ticket_url}",
+                    self.logger_context,
+                )
+                continue
+
+            seen_urls.add(ticket_url)
+            lineup_names = [title]
+            for name_el in card.select("h3.tertiary-heading"):
+                name = str(name_el.get("aria-label") or "").strip() or name_el.get_text(" ", strip=True)
+                if name:
+                    lineup_names.append(name)
+            sold_out = "sold out" in ticket_link.get_text(" ", strip=True).lower()
+
+            show = Show(
+                name=title,
+                club_id=self.club.id,
+                date=show_date,
+                show_page_url=ticket_url,
+                lineup=[Comedian(name=name) for name in lineup_names],
+                tickets=[
+                    Ticket(
+                        price=None,
+                        purchase_url=ticket_url,
+                        sold_out=sold_out,
+                        type="General Admission",
+                    )
+                ],
+                supplied_tags=["event"],
+                description=None,
+                timezone=self.club.timezone,
+                room="",
+            )
+            event_id = TixrExtractor.get_event_id(ticket_url) or ""
+            events.append(TixrEvent.from_tixr_show(show=show, source_url=ticket_url, event_id=event_id))
+
+        return events
+
     def _parse_buzzard_card_datetime(self, date_text: str, time_text: str) -> Optional[datetime]:
         """Parse a ``Mon DD, YYYY`` date + ``H:MM pm`` time into a localized datetime.
 
@@ -880,6 +958,27 @@ class TixrScraper(BaseScraper):
         except pytz.UnknownTimeZoneError:
             return None
         return tz.localize(parsed)
+
+    def _parse_gocf_card_datetime(self, text: str) -> Optional[datetime]:
+        parts = " ".join(text.split()).rsplit(" ", 2)
+        if len(parts) != 3:
+            return None
+        date_text, hour_text, meridiem = parts
+        return self._parse_buzzard_card_datetime(date_text, f"{hour_text} {meridiem}")
+
+    @staticmethod
+    def _strip_tracking_params(url: str) -> str:
+        if not url:
+            return ""
+        parsed = urlparse(url)
+        if not parsed.query:
+            return url
+        kept = [
+            part for part in parsed.query.split("&")
+            if not part.startswith("_gl=")
+        ]
+        query = "&".join(kept)
+        return parsed._replace(query=query).geturl()
 
     def _extract_jsonld_offer_prices_by_url(self, soup: BeautifulSoup) -> Dict[str, Optional[float]]:
         prices_by_url: Dict[str, Optional[float]] = {}

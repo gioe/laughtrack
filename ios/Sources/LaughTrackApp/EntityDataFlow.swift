@@ -107,10 +107,6 @@ class EntitySearchModel<Query: Equatable, Item: Sendable>: ObservableObject {
             return
         }
 
-        if loadingQuery == query, case .loading = phase {
-            return
-        }
-
         await load(page: 0, query: query, shouldDebounce: shouldDebounce, fetch: fetch, resetResults: true)
     }
 

@@ -224,16 +224,18 @@ describe("AdminComedianManager", () => {
                 .getByAltText("Parent Comic current headshot image")
                 .className.includes("h-24"),
         ).toBe(true);
+        expect(screen.queryByText("Hero")).toBeNull();
+        expect(screen.queryByLabelText("Hero image URL")).toBeNull();
+        expect(screen.queryByLabelText("Upload hero file")).toBeNull();
         expect(
-            screen
-                .getByAltText("Parent Comic current hero image")
-                .getAttribute("src"),
-        ).toBe("https://test.b-cdn.net/comedian-images/1/hero.jpg");
+            screen.queryByRole("button", { name: "Save hero URL" }),
+        ).toBeNull();
         expect(
-            screen
-                .getByAltText("Parent Comic current hero image")
-                .className.includes("w-40"),
-        ).toBe(true);
+            screen.queryByRole("button", { name: "Remove hero" }),
+        ).toBeNull();
+        expect(
+            screen.queryByAltText("Parent Comic current hero image"),
+        ).toBeNull();
         expect(
             screen.getByAltText("Parent Comic headshot").getAttribute("src"),
         ).toBe("https://test.b-cdn.net/comedian-images/1/avatar.jpg");
@@ -259,7 +261,16 @@ describe("AdminComedianManager", () => {
         expect(
             screen.getAllByLabelText("Comedian Instagram handle").length,
         ).toBeGreaterThan(0);
-        expect(screen.getAllByText("YouTube WebSub").length).toBeGreaterThan(0);
+        const youtubeGroup = screen.getAllByRole("group", {
+            name: "YouTube",
+        })[0];
+        expect(
+            within(youtubeGroup).getByLabelText("Comedian YouTube handle"),
+        ).toBeTruthy();
+        expect(
+            within(youtubeGroup).getByLabelText("Comedian YouTube channel ID"),
+        ).toBeTruthy();
+        expect(within(youtubeGroup).getByText("YouTube WebSub")).toBeTruthy();
     });
 
     it("keeps podcast details collapsed until the Podcast section is opened", () => {
@@ -486,56 +497,7 @@ describe("AdminComedianManager", () => {
         expect(global.fetch).not.toHaveBeenCalled();
     });
 
-    it("uploads a hero URL without resubmitting the current headshot", async () => {
-        vi.mocked(global.fetch).mockResolvedValueOnce({
-            ok: true,
-            json: async () => ({
-                ok: true,
-                comedianId: 1,
-                asset: {
-                    id: 303,
-                    sourceImageUrl: "https://new.example.com/hero.jpg",
-                    originalPath: "comedian-images/1/original.jpg",
-                    avatarPath: "comedian-images/1/avatar.jpg",
-                    heroPath: "comedian-images/1/hero-new.jpg",
-                    avatarUrl:
-                        "https://test.b-cdn.net/comedian-images/1/avatar.jpg",
-                    heroUrl:
-                        "https://test.b-cdn.net/comedian-images/1/hero-new.jpg",
-                    mimeType: "image/jpeg",
-                    width: 2400,
-                    height: 1350,
-                },
-            }),
-        } as never);
-        render(<AdminComedianManager comedians={comedians} />);
-        expandAllRows();
-
-        fireEvent.change(screen.getAllByLabelText("Hero image URL")[1], {
-            target: { value: "https://new.example.com/hero.jpg" },
-        });
-        const heroButton = screen.getAllByRole("button", {
-            name: "Save hero URL",
-        })[1];
-
-        expect(heroButton.hasAttribute("disabled")).toBe(false);
-        fireEvent.click(heroButton);
-
-        await waitFor(() => {
-            expect(global.fetch).toHaveBeenCalledWith(
-                "/api/admin/comedians/images/publish",
-                expect.objectContaining({
-                    method: "POST",
-                    body: JSON.stringify({
-                        comedianId: 1,
-                        heroImageUrl: "https://new.example.com/hero.jpg",
-                    }),
-                }),
-            );
-        });
-    });
-
-    it("removes existing headshot and hero images", async () => {
+    it("removes existing images", async () => {
         vi.mocked(global.fetch).mockResolvedValueOnce({
             ok: true,
             json: async () => ({
@@ -582,7 +544,7 @@ describe("AdminComedianManager", () => {
                 asset: {
                     id: 101,
                     avatarPath: null,
-                    heroPath: "comedian-images/1/hero.jpg",
+                    heroPath: null,
                 },
             }),
         } as never);
@@ -611,84 +573,11 @@ describe("AdminComedianManager", () => {
             ).toBeNull();
         });
         expect(
-            screen.getByAltText("Parent Comic current hero image"),
-        ).toBeTruthy();
-        expect(
             screen.getByText("Parent Comic thumbnail removed."),
         ).toBeTruthy();
     });
 
-    it("removes only the existing hero image", async () => {
-        vi.mocked(global.fetch).mockResolvedValueOnce({
-            ok: true,
-            json: async () => ({
-                ok: true,
-                comedianId: 1,
-                hasImage: true,
-                asset: {
-                    id: 101,
-                    avatarPath: "comedian-images/1/avatar.jpg",
-                    heroPath: null,
-                },
-            }),
-        } as never);
-        render(<AdminComedianManager comedians={comedians} />);
-        expandAllRows();
-
-        fireEvent.click(screen.getByRole("button", { name: "Remove hero" }));
-
-        await waitFor(() => {
-            expect(global.fetch).toHaveBeenCalledWith(
-                "/api/admin/comedians/images",
-                expect.objectContaining({
-                    method: "DELETE",
-                    body: JSON.stringify({ comedianId: 1, slot: "hero" }),
-                }),
-            );
-        });
-        expect(
-            screen.getByAltText("Parent Comic current headshot image"),
-        ).toBeTruthy();
-        await waitFor(() => {
-            expect(
-                screen.queryByAltText("Parent Comic current hero image"),
-            ).toBeNull();
-        });
-        expect(screen.getByText("Parent Comic hero removed.")).toBeTruthy();
-    });
-
-    it("surfaces ratio validation errors for manual image urls", async () => {
-        vi.mocked(global.fetch).mockResolvedValueOnce({
-            ok: false,
-            status: 400,
-            json: async () => ({
-                error: "Hero source 1200x1200 must be close to a 16:9 ratio",
-                code: "INVALID_ASPECT_RATIO",
-            }),
-        } as never);
-        render(<AdminComedianManager comedians={comedians} />);
-        expandAllRows();
-
-        fireEvent.change(screen.getAllByLabelText("Hero image URL")[0], {
-            target: { value: "https://alias.example.com/hero.jpg" },
-        });
-        fireEvent.click(
-            screen.getAllByRole("button", { name: "Save hero URL" })[0],
-        );
-
-        await waitFor(() =>
-            expect(
-                screen.getAllByText(
-                    "Hero source 1200x1200 must be close to a 16:9 ratio",
-                ).length,
-            ).toBeGreaterThan(0),
-        );
-        expect(
-            screen.queryByAltText("Alias Comic current hero image"),
-        ).toBeNull();
-    });
-
-    it("uploads manually entered headshot and hero image urls to Bunny CDN", async () => {
+    it("uploads manually entered headshot image urls to Bunny CDN", async () => {
         vi.mocked(global.fetch).mockResolvedValueOnce({
             ok: true,
             json: async () => ({
@@ -716,9 +605,6 @@ describe("AdminComedianManager", () => {
         fireEvent.change(screen.getAllByLabelText("Headshot image URL")[0], {
             target: { value: "https://alias.example.com/headshot.jpg" },
         });
-        fireEvent.change(screen.getAllByLabelText("Hero image URL")[0], {
-            target: { value: "https://alias.example.com/hero.jpg" },
-        });
         fireEvent.click(
             screen.getAllByRole("button", { name: "Upload changed images" })[0],
         );
@@ -732,14 +618,14 @@ describe("AdminComedianManager", () => {
                         comedianId: 2,
                         headshotImageUrl:
                             "https://alias.example.com/headshot.jpg",
-                        heroImageUrl: "https://alias.example.com/hero.jpg",
                     }),
                 }),
             );
         });
         await waitFor(() =>
             expect(
-                screen.getAllByText("Alias Comic images published.").length,
+                screen.getAllByText("Alias Comic headshot image published.")
+                    .length,
             ).toBeGreaterThan(0),
         );
     });
@@ -755,11 +641,10 @@ describe("AdminComedianManager", () => {
                     sourceImageUrl: "https://alias.example.com/headshot.jpg",
                     originalPath: "comedian-images/2/original.jpg",
                     avatarPath: "comedian-images/2/avatar.jpg",
-                    heroPath: "comedian-images/2/hero.jpg",
+                    heroPath: null,
                     avatarUrl:
                         "https://test.b-cdn.net/comedian-images/2/avatar.jpg",
-                    heroUrl:
-                        "https://test.b-cdn.net/comedian-images/2/hero.jpg",
+                    heroUrl: null,
                     mimeType: "image/jpeg",
                     width: 1200,
                     height: 1600,
@@ -777,9 +662,6 @@ describe("AdminComedianManager", () => {
         fireEvent.change(screen.getAllByLabelText("Headshot image URL")[0], {
             target: { value: "https://alias.example.com/headshot.jpg" },
         });
-        fireEvent.change(screen.getAllByLabelText("Hero image URL")[0], {
-            target: { value: "https://alias.example.com/hero.jpg" },
-        });
         fireEvent.click(
             screen.getAllByRole("button", { name: "Upload changed images" })[0],
         );
@@ -793,7 +675,6 @@ describe("AdminComedianManager", () => {
                         comedianId: 2,
                         headshotImageUrl:
                             "https://alias.example.com/headshot.jpg",
-                        heroImageUrl: "https://alias.example.com/hero.jpg",
                     }),
                 }),
             );
@@ -804,16 +685,15 @@ describe("AdminComedianManager", () => {
             ).getAttribute("src"),
         ).toBe("https://test.b-cdn.net/comedian-images/2/avatar.jpg");
         expect(
-            screen
-                .getByAltText("Alias Comic current hero image")
-                .getAttribute("src"),
-        ).toBe("https://test.b-cdn.net/comedian-images/2/hero.jpg");
+            screen.queryByAltText("Alias Comic current hero image"),
+        ).toBeNull();
         expect(screen.getByDisplayValue("https://alias.example.com")).toBe(
             websiteInput,
         );
         await waitFor(() =>
             expect(
-                screen.getAllByText("Alias Comic images published.").length,
+                screen.getAllByText("Alias Comic headshot image published.")
+                    .length,
             ).toBeGreaterThan(0),
         );
     });

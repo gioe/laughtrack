@@ -7,6 +7,7 @@ field, so the filter is a title+description comedy-keyword match.
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.scrapers.implementations.api.wix_events.extractor import WixEventsExtractor
+from laughtrack.utilities.domain.show.utils import ShowUtils
 
 
 def _raw_event(event_id, title, description=""):
@@ -18,6 +19,12 @@ def _raw_event(event_id, title, description=""):
         "scheduling": {"config": {"startDate": "2026-06-20T20:00:00Z", "timeZoneId": "America/Los_Angeles"}},
         "registration": {},
     }
+
+
+def _raw_event_at_location(event_id, title, location_name):
+    event = _raw_event(event_id, title)
+    event["location"] = {"name": location_name}
+    return event
 
 
 def _api_response(events):
@@ -97,3 +104,23 @@ def test_to_show_keeps_generic_wix_show_lineup_empty():
 
     assert show is not None
     assert show.lineup == []
+
+
+def test_to_show_uses_wix_location_name_as_room_for_same_time_events():
+    events = WixEventsExtractor.extract_events(
+        _api_response([
+            _raw_event_at_location("1", "Comedy at Brigantine Country Club", "Brigantine Country Club"),
+            _raw_event_at_location("2", "Comedy at Resorts", "Resorts Casino - Starlight Ballroom"),
+        ])
+    )
+
+    shows = [event.to_show(_club()) for event in events]
+    assert all(show is not None for show in shows)
+    deduped, duplicate_details = ShowUtils.deduplicate_shows_with_details(shows)
+
+    assert [show.room for show in deduped] == [
+        "Brigantine Country Club",
+        "Resorts Casino - Starlight Ballroom",
+    ]
+    assert len(deduped) == 2
+    assert duplicate_details == []

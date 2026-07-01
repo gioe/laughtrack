@@ -40,7 +40,10 @@ class LineupQueries:
                 trim(regexp_replace(lower(c.name), '[^[:alnum:]]+', ' ', 'g')) as normalized_name
             FROM comedians c
             WHERE c.name IS NOT NULL
-              AND array_length(regexp_split_to_array(trim(c.name), '[[:space:]]+'), 1) >= 2
+              AND (
+                  array_length(regexp_split_to_array(trim(c.name), '[[:space:]]+'), 1) >= 2
+                  OR trim(c.name) ~ '[[:alpha:]][[:alpha:]''’]*[-''’][[:alpha:]''’]*'
+              )
               AND lower(trim(c.name)) NOT IN (
                   'tba',
                   'tbd',

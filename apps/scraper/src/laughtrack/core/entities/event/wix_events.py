@@ -28,6 +28,7 @@ class WixEventsEvent(ShowConvertible):
     slug: str
     scheduling: Dict[str, Any]
     registration: Dict[str, Any]
+    location: Dict[str, Any] = field(default_factory=dict)
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None) -> Optional[Show]:
         """Convert a WixEventsEvent to a Show."""
@@ -70,6 +71,7 @@ class WixEventsEvent(ShowConvertible):
         name = self.title.strip() if self.title else "Comedy Show"
         headliner = extract_explicit_headliner_from_title(name)
         lineup = ShowFactoryUtils.create_lineup_from_performers([headliner] if headliner else [])
+        room = self._location_name()
 
         return ShowFactoryUtils.create_enhanced_show_base(
             name=name,
@@ -79,7 +81,13 @@ class WixEventsEvent(ShowConvertible):
             lineup=lineup,
             tickets=tickets,
             description=self.description if self.description else None,
-            room="",
+            room=room,
             supplied_tags=["event"],
             enhanced=enhanced,
         )
+
+    def _location_name(self) -> str:
+        if not isinstance(self.location, dict):
+            return ""
+        name = self.location.get("name")
+        return name.strip() if isinstance(name, str) else ""

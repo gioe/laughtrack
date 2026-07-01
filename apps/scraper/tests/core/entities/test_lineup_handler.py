@@ -241,6 +241,22 @@ class TestGetComediansFromShowNamesHappyPath:
         assert len(result["Alice Smith and Bob Jones"]) == 2
         assert result["Alice Smith and Bob Jones"] == [c1, c2]
 
+    def test_preserves_known_single_token_punctuated_name_matches(self):
+        h = _make_lineup_handler()
+        h.execute_batch_operation.return_value = [
+            {"show_name": "Steve-O: Crash & Burn", "name": "Steve-O", "uuid": "uuid-steve-o"},
+        ]
+
+        def _fake_from_db_row(row):
+            return SimpleNamespace(name=row["name"], uuid=row["uuid"])
+
+        with patch.object(_lineup_handler_mod.Comedian, "from_db_row", side_effect=_fake_from_db_row):
+            result = h.get_comedians_from_show_names([("Steve-O: Crash & Burn",)])
+
+        assert result == {
+            "Steve-O: Crash & Burn": [SimpleNamespace(name="Steve-O", uuid="uuid-steve-o")]
+        }
+
     def test_filters_generic_fragment_matches_from_show_titles(self):
         h = _make_lineup_handler()
         h.execute_batch_operation.return_value = [

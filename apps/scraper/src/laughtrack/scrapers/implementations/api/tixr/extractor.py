@@ -35,7 +35,7 @@ class TixrExtractor:
 
     # Extracts the trailing numeric event ID from a long-form URL slug.
     # Matches the final -\d+ sequence (single-dash format with a digit ID).
-    _LONG_URL_ID_RE = re.compile(r'-(\d+)$')
+    _LONG_URL_ID_RE = re.compile(r'-(\d+)(?:[/?#].*)?$')
 
     _PAGINATION_HINTS: tuple[str, ...] = (
         "more shows",

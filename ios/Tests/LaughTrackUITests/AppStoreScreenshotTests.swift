@@ -32,37 +32,41 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         sleep(2)
         snapshot("02_SearchShows")
 
-        // Filter pills sit at the top of the search header.
-        // Centers from accessibility frames: Shows ~105, Comedians ~188, Clubs ~270 at y~69.
-        tap(x: 188, y: 69)
+        // Filter pills sit at the top of the search header. Use identifiers
+        // instead of coordinates so the flow survives pill-width changes.
+        tapPrimitive("comedians")
         sleep(2)
         snapshot("03_SearchComedians")
 
-        tap(x: 270, y: 69)
+        tapPrimitive("clubs")
         sleep(2)
         snapshot("04_SearchClubs")
 
-        // Tap the first club row. The list scrolls below the filter chips
-        // (sort, distance pills, "Showing N of M") so the first card sits
-        // around y=520 on iPhone 16 Pro Max.
-        tap(x: 220, y: 525)
+        // App Store screenshots should feature The Comedy Store instead of
+        // whichever LA/SF venue happens to sort first in production.
+        searchFor("Comedy Store")
+        tapButton(containingLabel: "The Comedy Store")
         sleep(3)
         snapshot("05_ClubDetail")
 
-        // Tap the first show row inside the club detail. Show rows render
-        // below the venue header / website / maps row / sort+filter row.
-        tap(x: 220, y: 615)
+        // Nested show rows on club detail do not expose the search-result
+        // button identifier in the UI-test accessibility tree; the first
+        // Comedy Store show row is visible below the calendar controls.
+        tap(x: 220, y: 665)
         sleep(3)
         snapshot("06_ShowDetail")
 
-        // Back to club, back to clubs list — navbar back button at ~(35, 75).
-        tap(x: 35, y: 75)
-        sleep(1)
-        tap(x: 35, y: 75)
+        // Restart before the remaining search-tab captures so the shared
+        // search query is clear and the flow does not depend on back-stack
+        // coordinates from the detail screens.
+        app.terminate()
+        app.launch()
+        sleep(5)
+        tap(x: 220, y: 915)
         sleep(2)
 
         // Switch to Comedians filter for the comedian detail.
-        tap(x: 188, y: 69)
+        tapPrimitive("comedians")
         sleep(2)
 
         // Tap the first comedian row.
@@ -70,21 +74,55 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         sleep(3)
         snapshot("07_ComedianDetail")
 
-        // Back to comedians list, then switch to Podcasts pill (the 4th pivot,
-        // only rendered on the Search tab — geo-scoped tabs show only 3).
-        // With 4 pills the row is Shows ~105, Comedians ~188, Clubs ~270,
-        // Podcasts ~342 at y~69 (extrapolated from the 82pt cadence; Podcasts
-        // is wider than Clubs, so its center sits slightly closer than +82).
-        tap(x: 35, y: 75)
+        // Restart again before the podcast captures; the comedian detail has
+        // its own Shows/Podcasts segmented control, so coordinate taps there
+        // are not the global Search tab pivots.
+        app.terminate()
+        app.launch()
+        sleep(5)
+        tap(x: 220, y: 915)
         sleep(2)
-        tap(x: 342, y: 69)
+
+        // Switch to Podcasts pill (the 4th pivot, only rendered on the Search
+        // tab). It starts partially offscreen on iPhone 16 Pro Max, so reveal
+        // it before tapping by identifier.
+        scrollPrimitiveFiltersLeft()
+        tapPrimitive("podcasts")
         sleep(3)
         snapshot("08_SearchPodcasts")
 
         // Tap the first podcast row. Mirrors the comedian/club row offset on
         // the search list (~y=525 below the search header + sort/filter row).
         tap(x: 220, y: 525)
-        sleep(3)
+        sleep(5)
         snapshot("09_PodcastDetail")
+    }
+
+    private func searchFor(_ query: String) {
+        let field = app.textFields.firstMatch
+        XCTAssertTrue(field.waitForExistence(timeout: 10), "Expected search field to be visible")
+        field.tap()
+        field.typeText(query)
+        sleep(3)
+    }
+
+    private func tapButton(containingLabel text: String) {
+        let predicate = NSPredicate(format: "label CONTAINS[c] %@", text)
+        let button = app.buttons.matching(predicate).firstMatch
+        XCTAssertTrue(button.waitForExistence(timeout: 10), "Expected button containing label '\(text)'")
+        button.tap()
+    }
+
+    private func tapPrimitive(_ primitive: String) {
+        let button = app.buttons["laughtrack.primitive-filter.\(primitive)"]
+        XCTAssertTrue(button.waitForExistence(timeout: 10), "Expected \(primitive) primitive filter")
+        button.tap()
+    }
+
+    private func scrollPrimitiveFiltersLeft() {
+        let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.07))
+        let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.45, dy: 0.07))
+        start.press(forDuration: 0.1, thenDragTo: end)
+        sleep(1)
     }
 }

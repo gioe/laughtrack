@@ -16,6 +16,7 @@ from .model import LineupItem
 
 
 _NAME_WORD_RE = re.compile(r"[A-Za-z][A-Za-z'’-]*")
+_SINGLE_TOKEN_NAME_PUNCTUATION_RE = re.compile(r"[A-Za-z][A-Za-z'’-]*[-'’][A-Za-z'’-]*")
 
 
 def _is_credible_show_name_comedian_match(show_name: str, comedian_name: str) -> bool:
@@ -28,7 +29,8 @@ def _is_credible_show_name_comedian_match(show_name: str, comedian_name: str) ->
     if detect_false_positive(cleaned_name):
         return False
 
-    if len(_NAME_WORD_RE.findall(cleaned_name)) < 2:
+    name_words = _NAME_WORD_RE.findall(cleaned_name)
+    if len(name_words) < 2 and not _SINGLE_TOKEN_NAME_PUNCTUATION_RE.fullmatch(cleaned_name):
         return False
 
     escaped_name = re.escape(cleaned_name)

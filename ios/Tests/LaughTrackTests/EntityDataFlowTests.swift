@@ -166,6 +166,38 @@ struct EntityDataFlowTests {
         #expect(page.items == [42])
     }
 
+    @Test("search model allows same-query reload after an in-flight reload is cancelled")
+    func searchModelAllowsSameQueryReloadAfterInFlightReloadIsCancelled() async throws {
+        let model = EntitySearchModel<String, Int>()
+        let firstFetchStarted = AsyncStream<Void>.makeStream()
+
+        let cancelledReload = Task {
+            await model.reload(query: "tonight", shouldDebounce: true) { _, _ in
+                firstFetchStarted.continuation.yield(())
+                try? await Task.sleep(for: .milliseconds(200))
+                return .success(.init(items: [1], total: 1))
+            }
+        }
+
+        for await _ in firstFetchStarted.stream {
+            break
+        }
+        cancelledReload.cancel()
+
+        await model.reload(query: "tonight") { page, query in
+            #expect(page == 0)
+            #expect(query == "tonight")
+            return .success(.init(items: [42], total: 1))
+        }
+        await cancelledReload.value
+
+        guard case .success(let page) = model.phase else {
+            Issue.record("Expected same-query reload to recover from the cancelled in-flight load")
+            return
+        }
+        #expect(page.items == [42])
+    }
+
     @Test("home shows tonight model renders raw API show dates from a 200 home feed")
     func homeShowsTonightModelDecodesRawHomeFeedDates() async {
         let model = HomeShowsTonightModel()

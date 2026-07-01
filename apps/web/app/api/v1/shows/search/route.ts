@@ -13,8 +13,8 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
 
     const sp = req.nextUrl.searchParams;
     const zip = sp.get("zip") ?? undefined;
-    const from = sp.get("from");
-    const to = sp.get("to");
+    const from = sp.get("fromDate") ?? sp.get("from");
+    const to = sp.get("toDate") ?? sp.get("to");
     const page = sp.get("page");
     const size = sp.get("size") ?? undefined;
     const comedian = sp.get("comedian") ?? undefined;

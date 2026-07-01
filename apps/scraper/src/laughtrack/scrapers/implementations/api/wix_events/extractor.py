@@ -46,4 +46,5 @@ class WixEventsExtractor:
             slug=raw.get("slug", ""),
             scheduling=raw.get("scheduling", {}),
             registration=raw.get("registration", {}),
+            location=raw.get("location", {}),
         )

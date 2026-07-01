@@ -33,6 +33,15 @@ STAND_SCRAPING_URL = "thestandnyc.com"
 STAND_PUBLIC_SHOWS_URL = "https://thestandnyc.com/shows"
 STAND_TIXR_URL = "https://www.tixr.com/groups/thestandnyc/events/the-stand-presents-josh-ocean-thomas--187376"
 STAND_FREE_TIXR_URL = "https://www.tixr.com/groups/thestandnyc/events/free-comedy-night--187377"
+GOCF_HALIFAX_URL = "https://www.greatoutdoorscomedyfestival.com/cities/halifax"
+GOCF_MATT_RIFE_TIXR_URL = (
+    "https://www.tixr.com/groups/gocf/events/"
+    "great-outdoors-comedy-festival-2026-halifax-152718?sort=RECOMMENDED&COL=13492&A=L"
+)
+GOCF_HALIFAX_TIXR_URL = (
+    "https://www.tixr.com/groups/gocf/events/"
+    "great-outdoors-comedy-festival-2026-halifax-152718?sort=RECOMMENDED&COL=16248&A=L"
+)
 
 
 def _club(scraping_url: str = CALENDAR_URL) -> Club:
@@ -135,6 +144,35 @@ def _rose_city_group_api_club() -> Club:
 def _stand_club() -> Club:
     _c = Club(id=99, name='The Stand', address='', website='https://thestandnyc.com', popularity=0, zip_code='', phone_number='', visible=True, timezone='America/New_York')
     _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url=STAND_SCRAPING_URL, external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
+
+
+def _gocf_halifax_club() -> Club:
+    _c = Club(
+        id=998,
+        name="Great Outdoors Comedy Festival Halifax",
+        address="Garrison Grounds, Halifax, NS, Canada",
+        website=GOCF_HALIFAX_URL,
+        popularity=0,
+        zip_code="",
+        phone_number="",
+        visible=True,
+        timezone="America/Halifax",
+        city="Halifax",
+        state="NS",
+        status="active",
+        club_type="festival",
+    )
+    _c.active_scraping_source = ScrapingSource(
+        id=1,
+        club_id=_c.id,
+        platform="tixr",
+        scraper_key="tixr_public_card",
+        source_url=GOCF_HALIFAX_URL,
+        external_id=None,
+        metadata={"gocf_city": "Halifax"},
+    )
     _c.scraping_sources = [_c.active_scraping_source]
     return _c
 
@@ -369,6 +407,65 @@ def _stand_public_card_html_with_free_title_and_missing_ticket_text() -> str:
 </body></html>"""
 
 
+def _gocf_public_card_html() -> str:
+    return f"""
+<html><body>
+  <div class="show-card-content fade-in stagger">
+    <div class="w-layout-hflex pill-wrap show-card-pill-wrap">
+      <div class="pill yellow-2 show-card-pill">Aug 6, 2026 7:30 PM</div>
+      <div class="pill yellow-2 show-card-pill">Halifax</div>
+    </div>
+    <div class="w-dyn-list"><div role="list" class="w-dyn-items">
+      <div role="listitem" class="w-dyn-item">
+        <h2 class="secondary-heading comedian-name light">Matt Rife</h2>
+      </div>
+    </div></div>
+    <div class="w-layout-hflex button-flex">
+      <a href="{GOCF_MATT_RIFE_TIXR_URL}" class="btn w-button">Get tickets</a>
+      <a href="/shows/halifax-august-6---matt-rife" class="btn outline w-button">learn more</a>
+    </div>
+  </div>
+  <div class="show-card-content fade-in stagger full">
+    <div class="w-layout-hflex pill-wrap show-card-pill-wrap">
+      <div class="pill yellow-2 show-card-pill">Aug 8, 2026 7:30 PM</div>
+      <a href="/shows/halifax-august-8---andrew-schulz-lucas-zelnick-kam-patterson-mark-gagnon"
+         class="pill yellow-3 show-card-pill">Halifax</a>
+    </div>
+    <div class="w-dyn-list"><div role="list" class="w-dyn-items">
+      <div role="listitem" class="w-dyn-item">
+        <h2 class="secondary-heading sm light">Andrew Schulz</h2>
+      </div>
+    </div></div>
+    <div class="w-dyn-list"><div role="list" class="w-dyn-items">
+      <div role="listitem" class="w-dyn-item">
+        <h3 class="tertiary-heading light no-marg">Lucas Zelnick</h3>
+      </div>
+      <div role="listitem" class="w-dyn-item">
+        <h3 class="tertiary-heading light no-marg">Kam Patterson</h3>
+      </div>
+      <div role="listitem" class="w-dyn-item">
+        <h3 class="tertiary-heading light no-marg">Mark Gagnon</h3>
+      </div>
+    </div></div>
+    <div class="w-layout-hflex button-flex">
+      <a href="{GOCF_HALIFAX_TIXR_URL}" class="btn w-button">Get tickets</a>
+      <a href="/shows/halifax-august-8---andrew-schulz-lucas-zelnick-kam-patterson-mark-gagnon"
+         class="btn outline w-button">learn more</a>
+    </div>
+  </div>
+  <div class="show-card-content fade-in stagger">
+    <div class="w-layout-hflex pill-wrap show-card-pill-wrap">
+      <div class="pill yellow-2 show-card-pill">Jul 17, 2026 7:30 PM</div>
+      <a href="/shows/winnipeg" class="pill yellow-3 show-card-pill">Winnipeg</a>
+    </div>
+    <h2 class="secondary-heading sm light">Jim Gaffigan</h2>
+    <a href="https://www.tixr.com/groups/gocf/events/great-outdoors-comedy-festival-2026-winnipeg-149724"
+       class="btn w-button">Get tickets</a>
+  </div>
+</body></html>
+"""
+
+
 # ---------------------------------------------------------------------------
 # TixrExtractor unit tests
 # ---------------------------------------------------------------------------
@@ -506,6 +603,11 @@ def test_get_event_id_short_form():
 def test_get_event_id_long_form():
     """get_event_id() returns the numeric ID from a long-form Tixr URL."""
     assert TixrExtractor.get_event_id("https://www.tixr.com/groups/venue/events/comedy-show-177558") == "177558"
+
+
+def test_get_event_id_long_form_with_query_params():
+    """get_event_id() ignores collection/query params on long-form Tixr URLs."""
+    assert TixrExtractor.get_event_id(GOCF_MATT_RIFE_TIXR_URL) == "152718"
 
 
 def test_get_event_id_double_dash_url():
@@ -793,6 +895,47 @@ async def test_public_card_scraper_skips_stand_sold_out_cards(monkeypatch):
     assert result is not None
     assert result.get_event_count() == 1
     assert [event.title for event in result.event_list] == ["The Stand Presents: Josh Ocean Thomas"]
+
+
+@pytest.mark.asyncio
+async def test_public_card_scraper_parses_gocf_show_cards_and_city_filter(monkeypatch):
+    """GOCF's Webflow city page carries complete show cards plus Tixr ticket URLs."""
+    scraper = TixrPublicCardScraper(_gocf_halifax_club())
+
+    async def fake_fetch_html(self, url, **kwargs):
+        return _gocf_public_card_html()
+
+    monkeypatch.setattr(TixrPublicCardScraper, "fetch_html", fake_fetch_html)
+    monkeypatch.setattr(
+        scraper.tixr_client,
+        "get_event_detail_from_url",
+        AsyncMock(side_effect=AssertionError("Tixr detail pages should not be fetched")),
+    )
+
+    result = await scraper.get_data(GOCF_HALIFAX_URL)
+
+    assert isinstance(result, TixrPageData)
+    assert result.get_event_count() == 2
+    by_title = {event.title: event for event in result.event_list}
+
+    matt = by_title["Matt Rife"]
+    assert matt.event_id == "152718"
+    assert matt.show.date.isoformat() == "2026-08-06T19:30:00-03:00"
+    assert matt.show.show_page_url == GOCF_MATT_RIFE_TIXR_URL
+    assert [comedian.name for comedian in matt.show.lineup] == ["Matt Rife"]
+
+    schulz = by_title["Andrew Schulz"]
+    assert schulz.event_id == "152718"
+    assert schulz.show.date.isoformat() == "2026-08-08T19:30:00-03:00"
+    assert schulz.show.show_page_url == GOCF_HALIFAX_TIXR_URL
+    assert [comedian.name for comedian in schulz.show.lineup] == [
+        "Andrew Schulz",
+        "Lucas Zelnick",
+        "Kam Patterson",
+        "Mark Gagnon",
+    ]
+    assert schulz.show.tickets[0].purchase_url == GOCF_HALIFAX_TIXR_URL
+    scraper.tixr_client.get_event_detail_from_url.assert_not_called()
 
 
 @pytest.mark.asyncio

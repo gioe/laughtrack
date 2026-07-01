@@ -38,6 +38,10 @@ function makeRequest(): NextRequest {
     return new NextRequest("http://localhost/api/v1/shows/search");
 }
 
+function makeRequestWithQuery(query: string): NextRequest {
+    return new NextRequest(`http://localhost/api/v1/shows/search?${query}`);
+}
+
 beforeEach(() => {
     vi.clearAllMocks();
     mockResolveAuth.mockResolvedValue(null);
@@ -74,11 +78,31 @@ describe("GET /api/v1/shows/search", () => {
         expect(body.total).toBe(1);
         expect(body.zipCapTriggered).toBe(false);
         expect(body.data[0].clubId).toBe(7);
-        expect(body.data[0].imageUrl).toBe(
-            "https://cdn.example.com/show.jpg",
-        );
+        expect(body.data[0].imageUrl).toBe("https://cdn.example.com/show.jpg");
         expect(body.data[0].popularityScore).toBe(42);
         expect(body.data[0].soldOut).toBe(false);
+    });
+
+    it("passes canonical fromDate and toDate params through to show search", async () => {
+        mockGetSearchedShows.mockResolvedValue({
+            data: [],
+            total: 0,
+            filters: [],
+            zipCapTriggered: false,
+        } as never);
+
+        await GET(
+            makeRequestWithQuery("fromDate=2026-06-30&toDate=2026-06-30"),
+        );
+
+        expect(mockGetSearchedShows).toHaveBeenCalledWith(
+            expect.objectContaining({
+                params: expect.objectContaining({
+                    fromDate: "2026-06-30",
+                    toDate: "2026-06-30",
+                }),
+            }),
+        );
     });
 
     it("returns 500 with rate-limit headers when the search helper fails unexpectedly", async () => {
