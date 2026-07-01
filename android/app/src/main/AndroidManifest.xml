@@ -6,9 +6,12 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <!-- POST_NOTIFICATIONS gates FCM notifications on Android 13+ (requested at
-         runtime from MainActivity). Location permissions are declared by the
-         tasks that introduce them. -->
+         runtime from MainActivity). -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Coarse/fine location power the Home "Use location" ZIP resolution
+         (FusedLocationProvider + Geocoder), requested at runtime from HomeScreen. -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
         android:name=".LaughTrackApplication"
