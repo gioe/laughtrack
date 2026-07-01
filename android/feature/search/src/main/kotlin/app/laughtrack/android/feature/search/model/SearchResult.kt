@@ -54,4 +54,6 @@ data class SearchQuery(
     val distance: Int? = null,
     val from: String? = null,
     val to: String? = null,
+    // Selected comedian home-city `city|state` token; null = all home cities.
+    val homeCity: String? = null,
 )
