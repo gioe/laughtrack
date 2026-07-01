@@ -17,7 +17,7 @@ Invoked with an optional issue number, full URL, or cluster selector:
 - no argument to default to the newest open issue
 
 Parse flags first:
-- `--cluster <name>` sets `$CLUSTER`. Valid values: `worktree`, `merge`, `review-diff`, `summary`, `docs`, `test-precheck`, `small-fix`, `triage-needed`.
+- `--cluster <name>` sets `$CLUSTER`. Any `cluster:<name>` label currently present on the repo is accepted — the skill does not validate against a closed list, so new clusters added to GitHub work immediately without a skill edit. Run `gh label list --repo gioe/tusk --search "cluster:"` to see the current set if you're unsure which clusters exist.
 - `--batch` is valid only with `--cluster`.
 - A number or full URL must not be combined with `--cluster`; if both are present, stop and ask the user to choose one mode.
 
@@ -64,7 +64,7 @@ When invoked as `/address-issue --cluster worktree --batch`, do **not** treat th
 
    On `edit`, update the grouping and show the table again. On `cancel`, stop.
 
-6. For each approved group, run Steps 2-10 using the canonical issue as the primary issue. In Step 4's task description, append:
+6. **Per-group loop.** For each approved group, run Steps 2-9 using the canonical issue as the primary issue. In Step 4's task description, append:
 
    ```markdown
    ## Covered GitHub Issues
@@ -79,7 +79,33 @@ When invoked as `/address-issue --cluster worktree --batch`, do **not** treat th
    gh issue close <covered_number> --repo <owner/repo> --comment "Resolved by the same root-cause fix as #<canonical> in <commit_sha>. Tracked as tusk task #<task_id>."
    ```
 
-   Apply Shared gh Failure Handling to every close/comment call. Continue to the next root-cause group only after Steps 8-10 complete for the current group.
+   Apply Shared gh Failure Handling to every close/comment call.
+
+   **Run Step 10's per-group sub-steps inline.** After Step 9 closes the issue(s), close the /tusk skill-run and print the per-task rollup from the stable checkout captured before task-worktree handoff:
+
+   ```bash
+   cd "$ADDRESS_ISSUE_PRIMARY_CWD"
+   "$ADDRESS_ISSUE_TUSK_BIN" skill-run finish <run_id>
+   "$ADDRESS_ISSUE_TUSK_BIN" task-summary <task_id> --format markdown
+   ```
+
+   This matters because `tusk merge` may remove the task worktree before the post-merge finalization commands run; launching those commands from the removed worktree can fail before tusk starts. The per-task rollup gives each task its identity/cost/duration/diff/criteria block before the next group starts. **Do NOT invoke `/retro <task_id>` per group** — retro is deferred to Step 7 below.
+
+   Continue to the next root-cause group only after the per-group sub-steps above complete for the current group. Accumulate every merged task ID into a `BATCH_TASK_IDS` list as you go — Step 7 reads it.
+
+7. **End-of-batch consolidated retro (issue #832).** After every approved group has completed Steps 2-9 plus the per-group portion of Step 10, run `/retro` exactly **once** for the entire batch session — not once per group. Per-group `/retro` is intentionally redundant: each retro re-fetches config + backlog + retro-themes and re-analyses the same growing conversation tail, producing partial overlap with earlier retros and N skill-runs for N groups. One consolidated retro covering all merged task IDs is cheaper and produces fewer redundant findings.
+
+   Pass the most recently merged task ID as the retro's `<task_id>` argument so cost attribution lands on a real task (issue #805), and explicitly name every merged task ID in the surrounding conversation so the retro analysis covers the full batch:
+
+   ```
+   Read file: <base_directory>/../retro/SKILL.md
+   ```
+
+   Hand off to /retro with a short preface like:
+
+   > Batch session covered tusk tasks: TASK-<id1>, TASK-<id2>, …, TASK-<idN>. Running consolidated retro keyed to TASK-<idN>.
+
+   This is the **batch-mode override of Step 10's `/retro <task_id>` invocation**. Single-issue (non-batch) invocations of `/address-issue` still run `/retro` exactly once at Step 10 below as usual.
 
 ## Step 2: Fetch the Issue
 
@@ -90,6 +116,30 @@ Use `gh` to fetch the issue. Detect the repo from the argument:
 ```bash
 gh issue view <number> --repo <owner/repo> --json number,title,body,labels,comments,state
 ```
+
+### REST fallback for transient GraphQL HTTP 401 (issue #1055)
+
+`gh issue view --json` routes through GitHub's **GraphQL** API, which intermittently rejects keyring-sourced tokens with `HTTP 401: Requires authentication (https://api.github.com/graphql)` even when `gh auth status` shows a valid login and the immediately preceding `gh issue list` succeeded. The REST API accepts the same token without issue.
+
+When `gh issue view` exits non-zero **and** its stderr contains an HTTP 401 mentioning `api.github.com/graphql`, retry via the REST endpoints instead of stopping:
+
+```bash
+gh api repos/<owner>/<repo>/issues/<number>
+gh api repos/<owner>/<repo>/issues/<number>/comments
+```
+
+Map the REST fields onto what the rest of the skill consumes:
+
+| Skill field | REST source |
+|-------------|-------------|
+| `number` | `.number` (from the issue endpoint) |
+| `title` | `.title` |
+| `state` | `.state` (REST returns lowercase `open`/`closed` — uppercase it before the Step 2 closed-state check that compares against `"CLOSED"`) |
+| `labels[].name` | `.labels[].name` |
+| `body` | `.body` |
+| `comments` | the `/comments` array (each element's `.body`, `.user.login`) |
+
+Only fall back on this specific GraphQL 401 signature. For other failures (404 not found, network errors, auth genuinely missing), surface the error and stop as usual.
 
 If the issue is already closed (`state: "CLOSED"`), warn the user:
 
@@ -120,6 +170,8 @@ Using the issue `title`, `body`, and `labels`, determine:
 | **complexity** | Estimate from the issue body length and scope. Short reproduction steps with a clear fix → `S`; broad feature request → `M`; major architectural change → `L`. |
 
 Generate **3–7 acceptance criteria** from the issue body — concrete, testable conditions. For bug issues, always include a criterion that the failure case is resolved and a regression test criterion.
+
+Keep issue-provided requirements in the task fields above, but route durable investigation findings that are not requirements through context atoms after insertion. Use `memory`, `assumption`, `question`, `risk`, `decision`, or `entry_point` as narrowly as possible. Examples: a non-blocking ambiguity from Step 4.5 is a `question`; a likely failure mode is a `risk`; a stable file/function to inspect first is an `entry_point`. Do **not** write directly to `task_context_items`.
 
 ### Failing Test Polarity Convention
 
@@ -241,6 +293,10 @@ Use at most **3 tool calls** total (Grep, Read, or Bash read-only) regardless of
 
 **Sandbox state-mutating reproductions — tusk-on-tusk hazard.** "Invoking the affected code path directly" above means *read-only* invocation by default — running the live command with a known input (e.g. `tusk task-list`, `tusk config`, `--help` flags, `tusk task-get <id>`) is what surfaces the regex/dispatcher/silent-failure bugs grep alone misses; that remains the recommended default. The hazard is when the only way to demonstrate the issue is a state-mutating command (`tusk task-insert`, `tusk task-update`, `tusk review approve|request-changes|add-comment`, `tusk criteria done`, `tusk merge`, `tusk task-done`) and the affected code path IS `tusk` itself — invoking it directly mutates the orchestrator's live database, the same hazard Step 4.1's sandbox prevents. Concrete incident: TASK-209's post-fix `bin/tusk review request-changes 1 --note "test rationale"` repro overwrote review #1 (a stale March review on a long-closed task). For write-mutating reproductions, in order of preference: (1) prefer `--dry-run` if the tool offers it; (2) copy the live DB and pin tusk to the copy (`cp "$(tusk path)" /tmp/tusk-throwaway.db && TUSK_DB=/tmp/tusk-throwaway.db tusk <cmd>`) so writes land in the throwaway — `TUSK_DB` pins only the DB path, so `tusk` stays on PATH and the repo-root walk-up still works; (3) defer the live check to `tusk criteria done` after task creation, where the spec runs as part of the implementation cycle. Do **not** invoke state-mutating tusk subcommands directly against the orchestrator's DB during this step.
 
+**Don't trust local source files when origin may be ahead.** Before reading source to confirm a bug is still present, spend one of the 3 tool calls on `git log --grep="TASK-" -n 20 -- <affected_file>` to see whether any recent in-flight task touched the area. If recent TASK-tagged commits exist, also run `git fetch origin <default> 2>/dev/null && git log <default>..origin/<default> --oneline | head` to confirm local default branch isn't stale relative to origin — a fresh fetch may already carry the fix. Original incident: TASK-419 (issue #833) — the fix had shipped on origin/main via TASK-412 ~1.5h before #833 was filed by an instance running an older tusk version; the Step 4.6 grep read the stale local source and confirmed the bug "still exists," proceeding to create a duplicate task that had to be abandoned. The reporter-side staleness is one layer (the filer's tusk version was behind); this guard catches the orchestrator-side staleness (your local checkout is behind what already shipped).
+
+**Staleness recovery — one-liner.** When the staleness check above detects local default branch behind origin, run `tusk sync-main` instead of doing the four-step manual recovery (stash, fetch, ff-pull, stash pop, migrate) by hand. The helper resolves the default branch, fetches it, stashes by unique-name reference (mirroring `tusk test-precheck`'s pattern so concurrent invocations cannot collide and a pop never lands on a stale unrelated entry), fast-forwards via `git merge --ff-only origin/<default>`, pops the stash by ref, and runs `tusk migrate` to apply any schema migrations the new commits brought in. Emits a single JSON object: `{success, default_branch, fetched_commits, stashed, migrated}` — exit 0 on success, exit 1 on a recoverable failure (stderr names the failed step). If the helper exits non-zero with a diverged-branch hint (the ff-only merge refused), surface the message verbatim — local commits cannot be auto-rebased through this path.
+
 If you find clear evidence the issue is already addressed (the bug is fixed, the proposed feature is already shipped and wired up, or the code path described no longer exists), surface this before proceeding:
 
 > **Already-resolved note:** This issue may already be addressed — [brief explanation]. Do you still want to create a task?
@@ -291,8 +347,8 @@ For `bug` and `defect` task types, resolve the `test_present` value scored by St
 | 4 | Section present, sandbox-executed, **exit ≠ 0** | No command-error signature (none of the rows below match) | `"yes"` | Bug observed to fail under our own execution — the canonical positive case; `"yes"` means we observed the bug fail. |
 | 5 | Section present, sandbox-executed, **exit 0**, implementer chose `keep` (Step 4.1.c) | Any (irrelevant) | `"unverifiable"` | The spec's self-skip guard fired in the sandbox tempdir (typically `git diff` against a missing `.git` parent); the spec was attempted but didn't reach validation logic — equivalent in epistemic value to a user-typed skip. Preserves the invariant that `"yes"` means we observed the bug fail under our own execution. |
 | 6 | Section present, sandbox-executed, **exit 0**, implementer chose `discard` (Step 4.1.c) | Any (irrelevant) | `"no"` | Spec discarded as no-longer-failing; treat as if no `## Failing Test` section was supplied. |
-| 7 | Section present, sandbox-executed, **command error — *malformed spec*** | Stderr contains `command not found` / `syntax error`, OR exit 126/127 with stderr matching neither the empty nor `No such file or directory` environmental signature | `"no"` | Spec was actually run and demonstrably malformed — distinct from the skip path because the spec was executed, not merely unsandboxable. |
-| 8 | Section present, sandbox-executed, **command error — *environmental*** | Either: (a) exit 126 or 127 with stderr empty or containing `No such file or directory`, NOT `command not found` / `syntax error`; OR (b) exit 1 or 2 from a POSIX text utility (`grep`/`awk`/`sed`/`find`/`cat`/...) with a `<tool>: ... No such file or directory` stderr line — issue #659. The 1/2 case covers text tools that handle missing inputs internally rather than letting exec fail with 127. | `"unverifiable"` | Spec invokes a tool or relative path unreachable from the sandbox tempdir (typically a project-relative path like `bin/tusk`, `tests/...`, or files referenced by a text-tool command whose first token IS on PATH — so the Step 4.1.a fast-path didn't fire); same epistemic situation as the fast-path skip. |
+| 7 | Section present, sandbox-executed, **command error — *malformed spec*** | Stderr contains `syntax error`; OR `command not found` naming the spec's **own effective first token** (or an on-PATH token); OR exit 126/127 with stderr matching neither the empty nor `No such file or directory` environmental signature | `"no"` | Spec was actually run and demonstrably malformed — distinct from the skip path because the spec was executed, not merely unsandboxable. A `command not found` is malformed only when the missing command is the spec's own; see row 8(c) for the downstream-tool case. |
+| 8 | Section present, sandbox-executed, **command error — *environmental*** | Any of: (a) exit 126 or 127 with stderr empty or containing `No such file or directory`, NOT `syntax error`; OR (b) exit 1 or 2 from a POSIX text utility (`grep`/`awk`/`sed`/`find`/`cat`/...) with a `<tool>: ... No such file or directory` stderr line — issue #659. The 1/2 case covers text tools that handle missing inputs internally rather than letting exec fail with 127; OR (c) `command not found` naming a **downstream tool** whose basename is off `/usr/bin:/bin` and is **not** the effective first token — issue #1114. The canonical case is the throwaway-DB pattern (`cp "$(tusk path)" /tmp/x.db && tusk …`): `cp` runs on-PATH, then the sandbox-stripped project `tusk` reports `command not found`. | `"unverifiable"` | Spec invokes a tool or relative path unreachable from the sandbox tempdir (typically a project-relative path like `bin/tusk`, `tests/...`, files referenced by a text-tool command, or a downstream project binary the sandbox stripped from PATH); same epistemic situation as the fast-path skip. |
 | 9 | Section present, sandbox-executed, **command error — *interpreter-wrapper-bypass*** | Exit nonzero AND NOT 126/127; stderr contains a canonical missing-executable signature — Python's `FileNotFoundError: ... '<token>'`, Python `-m` form's `<python3 path>: No module named <token>` (skip the `command -v` PATH check — `<token>` is a Python module name, not an executable, and module reachability depends on Python site-packages which `env -i` strips), Node's `spawn <token> ENOENT`, Ruby's `Errno::ENOENT: ... <token>`, Perl's `Can't exec "<token>"`, or a generic `<token>: No such file or directory` — naming a token whose basename does not resolve on `/usr/bin:/bin` | `"unverifiable"` | The wrapper interpreter (`python3`, `node`, `ruby`, `perl`, etc.) ran cleanly on the sandbox PATH but the body's inner subprocess could not reach the project tool; same epistemic situation as the fast-path skip. |
 
 ## Step 5: Present Proposed Task for Review
@@ -317,6 +373,9 @@ When `test_present` is `"unverifiable"`, suffix that contribution with the value
 1. <criterion 1>
 2. <criterion 2>
 ...
+
+**Durable Context:**
+- `<type>`: <handoff fact from issue analysis, if any>
 ```
 
 Then ask the user to choose, **bolding the option that matches the Model Recommendation**. For a Decline recommendation, replace "confirm" with "proceed anyway" in the prompt:
@@ -356,10 +415,24 @@ Check for semantic duplicates against the backlog from Step 3. If a likely dupli
 
 > Possible duplicate: existing task #<id> — "<summary>". Proceed anyway?
 
-If confirmed (or no duplicate found), insert with:
+If confirmed (or no duplicate found), write the full task description to a
+temporary UTF-8 file first, then insert with `--description-file`. The issue
+body is untrusted text from GitHub and may contain shell metacharacters such as
+`$0`, `$SHELL`, backticks, or `$(...)`; do not pass it as an interpolated shell
+argument. Use the Write tool or another non-interpolating file write so the
+file contents are exactly:
+
+```text
+GitHub Issue #<N>: <url>
+
+<body>
+```
+
+Then run:
 
 ```bash
-tusk task-insert "<summary>" "<description>" \
+tusk task-insert "<summary>" \
+  --description-file "<description_file>" \
   --priority "<priority>" \
   --domain "<domain>" \
   --task-type "<task_type>" \
@@ -409,15 +482,41 @@ This criterion will be validated by running the spec as a shell command when `tu
 
 **Exit code 0** — success. Note the `task_id` from the JSON output.
 
+After a successful insert, write any durable context atoms confirmed in Step 5:
+
+```bash
+tusk context add <task_id> --source create_task --type risk --content "<content>"
+```
+
+Use the confirmed type for each atom (`memory`, `assumption`, `question`, `risk`, `decision`, or `entry_point`) and note the returned context item IDs.
+
 **Exit code 1** — heuristic duplicate found. Report the matched task and stop:
 
-> Skipped — duplicate of existing task #<id> (similarity <score>). Run `/tusk <id>` to work on it instead.
+> Skipped — duplicate of existing task #<id> (similarity <score>).
+
+Then branch on the duplicate task's current status before handing off:
+
+- **To Do duplicate** — run `/tusk <id>` to start normal work on the existing task.
+- **In Progress duplicate** — run `/resume-task <id>` instead of `/tusk <id>`, or explicitly reuse the existing open session and open skill-run if you have already fetched them. Do not start a fresh `/tusk <id>` run for an In Progress duplicate: `tusk task-start <id> --force --skill tusk` opens a new skill-run row and can orphan the prior open skill-run.
+- **Done duplicate** — do not create or resume work. Surface the completed task as the resolution path.
 
 **Exit code 2** — error. Report and stop.
 
 ## Step 7: Begin Work (Steps 1–11 Only)
 
 **Dirty checkout guard.** Before the `/tusk` handoff, preserve the current checkout exactly as-is. The development work must happen in the task-owned workspace that `/tusk` Step 2 creates with `tusk task-worktree create <id> <brief-description-slug>`; do not run `tusk branch` directly from the current checkout, and do not allow dirty unrelated files in the current checkout to be auto-stashed as part of address-issue startup. If task-worktree creation is unavailable or fails, stop and surface the failure instead of falling back to branch-first work. Only proceed once you are operating from the returned `workspace_path` or an already-recorded workspace for this task.
+
+Before invoking `/tusk`, capture a stable checkout and tusk binary for post-merge commands:
+
+```bash
+ADDRESS_ISSUE_PRIMARY_CWD=$(pwd)
+ADDRESS_ISSUE_TUSK_BIN="$ADDRESS_ISSUE_PRIMARY_CWD/bin/tusk"
+if [ ! -x "$ADDRESS_ISSUE_TUSK_BIN" ]; then
+  ADDRESS_ISSUE_TUSK_BIN=$(command -v tusk)
+fi
+```
+
+Use these values for the post-merge `skill-run finish` and `task-summary` calls in Step 10. `tusk merge` may remove the task worktree before those commands run; if the next tool call launches from that removed worktree, process creation can fail before tusk starts. The primary checkout remains usable after task-worktree cleanup.
 
 Immediately invoke the `/tusk` workflow for the newly created task. Follow the "Begin Work on a Task" instructions from the tusk skill:
 
@@ -429,7 +528,7 @@ Then execute those instructions starting at **"Begin Work on a Task (with task I
 
 **IMPORTANT: Execute /tusk steps 1–11 only. Do NOT execute step 12 (merge/retro).** Stop after step 11 (`/review-commits` or the lint step) — this skill owns merge, issue close, and retro as steps 8–10 below.
 
-**Mid-task criteria management** (mark done, group with commits, skip inapplicable, skip-verify) follows /tusk's Step 7 verbatim. In particular: if a criterion does not apply to the implementation path you chose (e.g., the issue describes "do X OR document why exempt" and you did X), use `tusk criteria skip <cid> --reason "..."`, NOT `tusk criteria done <cid> --skip-verify` — the latter stamps the criterion with an unrelated commit hash and pollutes the audit trail.
+**Mid-task criteria management** (mark done, group with commits, skip inapplicable, skip-verify) follows /tusk's Step 7 verbatim. In particular: if a criterion does not apply to the implementation path you chose (e.g., the issue describes "do X OR document why exempt" and you did X), use `tusk criteria skip <cid> --reason "..."`, NOT `tusk criteria done <cid> --skip-verify` — the latter stamps the criterion with an unrelated commit hash and pollutes the audit trail. The commit-time scope guard from /tusk Step 7 also applies — issue-derived edits must be covered by `task_scope`; add justified scope rows before staging, and reserve `TUSK_SCOPE_GUARD_BYPASS=1` or `tusk commit --skip-verify` for exceptional cases where the guard cannot express the change.
 
 Hold onto the `session_id` returned by `tusk task-start` in step 1 of the /tusk workflow — it is required in step 8 below.
 
@@ -496,25 +595,35 @@ Then capture the commit SHA for Step 9 via `git log --oneline -1` (first token).
 gh issue close <number> --repo <owner/repo> --comment "Resolved in <commit_sha> — <pr_url_or_branch>. Tracked as tusk task #<task_id>."
 ```
 
+**Avoid backticks and unescaped `$` in the comment body — no automatic guard covers this surface** — `--comment` values (and the `--body` of any `gh issue comment` fallback) are shell arguments, so zsh and bash expand backticks and `$VAR` / `$(...)` even inside double quotes. Drop markdown code ticks around identifiers (write `_resolve_stable_tusk_bin` and `bin/tusk-merge.py` as plain text, not in backticks) and avoid literal dollar signs unless every metacharacter is escaped deliberately. **Note:** `tusk commit` enforces this at the boundary via `_validate_message_metacharacters` (issue #881), and the shared `reject_shell_metacharacters` guard now covers every other tusk text-arg surface too — task-insert/update, criteria add (issue #1106), and progress/context/jot/review (issue #1107, with the jot **category** positional closed in issue #1108). The operator-authored DB-write surfaces (`tusk conventions add`/`update`, `glossary set-definition`/`add`, `lint-rule add`/`update` message) are intentionally exempt — documented, not guarded — since they legitimately carry literal shell-syntax examples and have no agent-relay corruption vector. `gh` is the lone external exception: it is a tool tusk does not wrap, so the substitution hazard on its `--comment`/`--body` values remains entirely manual to avoid here (and on the `gh issue comment`/`gh pr comment` calls in `/review-commits`).
+
 Use the `commit_sha` from Step 8 (include the PR URL if available, else the branch name). On failure, apply **Shared gh Failure Handling** from Step 5 — the already-closed retry posts the resolution note as a standalone comment and continues to Step 10.
 
 ### Step 10: Retro
 
-After `tusk merge` exits 0, close out the `/tusk` skill-run opened in Step 7 (its `run_id` came from `tusk task-start` inside the `/tusk` Step 1 invocation — you captured it as `skill_run.run_id` in the returned JSON) so its cost is captured before `/retro` starts its own run:
+After `tusk merge` exits 0, first switch back to the stable checkout captured in Step 7:
 
 ```bash
-tusk skill-run finish <run_id>
+cd "$ADDRESS_ISSUE_PRIMARY_CWD"
 ```
 
-Then emit the canonical end-of-run summary so the user sees the identity/cost/duration/diff/criteria rollup before the retro findings:
+Then close out the `/tusk` skill-run opened in Step 7 (its `run_id` came from `tusk task-start` inside the `/tusk` Step 1 invocation — you captured it as `skill_run.run_id` in the returned JSON) using the stable tusk binary, so its cost is captured before `/retro` starts its own run:
 
 ```bash
-tusk task-summary <task_id> --format markdown
+"$ADDRESS_ISSUE_TUSK_BIN" skill-run finish <run_id>
+```
+
+Emit the canonical end-of-run summary from the same stable checkout:
+
+```bash
+"$ADDRESS_ISSUE_TUSK_BIN" task-summary <task_id> --format markdown
 ```
 
 Show it verbatim — do not re-render or summarize. `/retro` Step LR-3 assumes this block has already been printed and intentionally does not re-emit it.
 
-Invoke `/retro` immediately — do not ask "shall I run retro?". Read and follow:
+Do not launch `skill-run finish` or `task-summary` from the task worktree after merge. `tusk merge` may remove that worktree as part of cleanup; if the caller's CWD has been removed, the shell or tool host can fail with "No such file or directory" before tusk receives control.
+
+Invoke `/retro <task_id>` immediately — do not ask "shall I run retro?". Pass the task id explicitly so `/retro` attributes cost to the task you just finalized rather than picking up whichever sibling worktree closed last (issue #805). Read and follow:
 
 ```
 Read file: <base_directory>/../retro/SKILL.md

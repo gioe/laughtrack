@@ -32,6 +32,35 @@ This returns a JSON object with two keys:
 - **`config`** — full project config (domains, task_types, agents, priorities, complexity, etc.). Store for use when assigning metadata. If a field is an empty list (e.g., `"domains": []`), that field has no validation — use your best judgment or leave it NULL.
 - **`backlog`** — all open tasks as an array of objects. Hold in context for Step 3. The heuristic dupe checker (`tusk dupes check`) catches textually similar tasks, but you can catch **semantic** duplicates that differ in wording — e.g., "Implement password reset flow" vs. existing "Add forgot password endpoint" — which the heuristic would miss.
 
+## Step 2.5: Bundled-Scope Pre-Check
+
+Before drafting tasks, scan the input for **bundled-scope markers** that signal "this looks like one task but it's really N tasks glued together" (issue #782, original incident TASK-2178: a single L task `Add comedy-specific flourishes: room-history memory tile on comedian detail + clip-preview play button` had a description literally reading `(1) Room-history memory tile... (2) Clip-preview play button... Both require backend data coordinated with frontend presentation.` — accepted as-is, then decomposed and abandoned at /tusk pickup with zero code shipped).
+
+A bundle is suspected if **any** of these patterns appears in the summary or description:
+
+| Marker | Where | Example |
+|---|---|---|
+| ` + ` between two named features | summary | `Add A + B` |
+| `: ` followed by a connector list | summary | `flourishes: X, Y, and Z` |
+| Numbered enumeration `(1)` / `(2)` / `1.` / `2.` introducing distinct deliverables | description | `(1) memory tile (2) play button` |
+| Quantity-connector phrases: `both X and Y`, `X as well as Y`, `two <nouns>`, `three <nouns>`, `each of` | description | `Both require backend data...` |
+
+**Inverse — do NOT fire** on incidental connectives where one side is naturally subordinate to the other:
+
+| Allowed pattern | Why it's not a bundle |
+|---|---|
+| `add X and update Y's docs` | Y's docs is a natural completion of X, not a sibling deliverable |
+| `fix bug X and add regression test` | The regression test is verification of the fix, not a sibling feature |
+| `refactor module and rename file` | The rename is incidental to the refactor |
+
+When any bundling marker fires, surface an informational advisory naming the matched pattern verbatim — this is a heads-up, not a gate. The commit-time scope guard is the real enforcement boundary; bundled tasks fail loudly at commit time when the agent tries to commit the second deliverable outside the originally-named files, so this prompt is a UX courtesy that lets the operator decide before the draft instead of after the rejected commit.
+
+> Heads up — input appears to bundle multiple deliverables (matched: `<verbatim quote of the marker>`). The scope guard will likely reject mid-task commits that wander outside the originally-named files, so a bundled task will hit friction at commit time. Consider splitting now.
+>
+> Options: **Show me the proposal first** *(default)* (continue to Step 3 unchanged; revisit after seeing the draft) / **Split** (decompose into N sibling tasks now) / **Keep as one** (proceed with the bundle as a single task).
+
+On **Split**, treat each deliverable as its own task during Step 3. On **Show me first** or **Keep as one**, continue to Step 3 unchanged; the operator can revisit after Step 4's review.
+
 ## Step 3: Analyze and Decompose
 
 Break the input into discrete, actionable tasks. For each task, determine:
@@ -39,7 +68,7 @@ Break the input into discrete, actionable tasks. For each task, determine:
 | Field | How to Determine |
 |-------|-----------------|
 | **summary** | Clear, imperative sentence describing the deliverable (e.g., "Add login endpoint with JWT authentication"). Aim for ~100 chars; hard cap **150 chars** (enforced in Step 3.7). |
-| **description** | Expanded context from the input — motivation, constraints, links to source material. Hard cap **1200 chars** (enforced in Step 3.7) — move acceptance criteria and step-by-step details out into the criteria list. |
+| **description** | Concise motivation and constraints from the input. Hard cap **1200 chars** (enforced in Step 3.7) — move acceptance criteria and step-by-step details out into the criteria list, and move durable handoff facts into context atoms. |
 | **priority** | Infer from language cues: "critical"/"urgent"/"blocking" → `Highest`/`High`; "nice to have"/"eventually" → `Low`/`Lowest`; default to `Medium`. Must be one of the configured priorities. |
 | **domain** | Match to a configured domain based on the task's subject area. Leave NULL if no domains are configured or none fit. |
 | **task_type** | Categorize as one of the configured task types (bug, feature, refactor, test, docs, infrastructure). Default to `feature` for new work, `bug` for fixes. For `test` and `docs`: use as `task_type` only when writing tests or docs **is the primary deliverable** — otherwise use acceptance criteria. See **Task Type Decision Guide** below. |
@@ -64,6 +93,36 @@ Each task carries three text fields with distinct intents — keep them sharp. B
 - **Avoid:** "bin/tusk:1456 sets the user_version pragma"
 - **Good:** "Migration 55 added `tasks.fixes_task_id`; views need to be recreated to pick it up"
 - **Avoid:** "See line 88 of bin/tusk-migrate.py for the migration logic"
+
+**Paths are scope hints (TASK-471 / TASK-475).** Any file path you name in the description or criteria is **interpreted as a scope hint** — the commit-time scope guard (and the `task-insert` auto-extractor that seeds `task_scope`) read those paths as "this task is authorized to touch them." Be deliberate: only name paths the task will actually edit. Cite an external design doc by title or by section anchor, not by repo-relative path, unless the task will also modify it. Padding the description with unrelated path citations widens the implicit scope and undermines the guard's ability to flag accidental sprawl mid-task.
+
+### Durable context atoms
+
+Some input is useful future memory but is neither the task deliverable nor a completion condition. Route that information to `tusk context add` after task insertion instead of stuffing it into the description or criteria.
+
+Use the smallest durable unit:
+
+| Information | Write as |
+|-------------|----------|
+| A requirement that must ship | Task summary/description, or a separate task if independently shippable |
+| A condition that proves completion | Acceptance criterion |
+| An assumption future agents must preserve | `--type assumption` |
+| A known risk or trigger condition | `--type risk` |
+| An unanswered non-blocking ambiguity | `--type question` |
+| A chosen design/product direction | `--type decision` |
+| A reusable handoff fact that is not a requirement | `--type memory` |
+| A stable starting point for pickup | `--type entry_point` |
+
+Collect candidate context atoms while decomposing, keyed to the task they belong to. Keep each atom compact and self-contained. Do **not** write directly to `task_context_items`; use the first-class CLI:
+
+```bash
+tusk context add <task_id> --source create_task --type assumption --content "<durable assumption>"
+tusk context add <task_id> --source create_task --type risk --content "<future risk and trigger condition>"
+tusk context add <task_id> --source create_task --type question --content "<open question and why it is not blocking now>"
+tusk context add <task_id> --source create_task --type decision --content "<durable decision>"
+tusk context add <task_id> --source create_task --type memory --content "<handoff fact>"
+tusk context add <task_id> --source create_task --type entry_point --content "<stable file/module/symbol to inspect first>"
+```
 
 ### Task Type Decision Guide
 
@@ -166,6 +225,46 @@ For each proposed task, count `len(summary)` and `len(description)`. If **either
 
 Apply the user's chosen fix, recount lengths against the same caps (150 / 1200), and only proceed to Step 4 once **every** task is within both limits. Do not skip this validation — a task that exceeds either cap must not reach `tusk task-insert`.
 
+## Step 3.8: Extract Scope Hints
+
+Before presenting the task list, ask `tusk scope-hint` to derive the **proposed scope** for each task — the set of paths the task is authorized to touch, plus any signals that the task is unbounded (refactor / cross-cutting). Surfacing scope at planning time is what makes the commit-time scope guard actionable: the operator sees what scope the task will have *before* it ships, instead of discovering the boundary the first time a mid-task commit gets rejected.
+
+For each proposed task, run:
+
+```bash
+tusk scope-hint \
+  --summary "<summary>" \
+  --description "<description>" \
+  --task-type "<task_type>" \
+  --domain "<domain>" \
+  --criterion "<criterion 1 text>" [--criterion "<criterion 2 text>" ...] \
+  --typed-spec "<typed-criterion spec 1>" [--typed-spec "<typed-criterion spec 2>" ...]
+```
+
+The command returns JSON of the shape:
+
+```json
+{
+  "scope": ["bin/foo.py", "tests/integration/test_foo.py"],
+  "creates": ["bin/foo.py"],
+  "unbounded": false,
+  "rationale": {
+    "scope": "extracted from summary/description/criteria/specs",
+    "creates": "description names a path as a new file/script"
+  }
+}
+```
+
+Three signals to act on:
+
+- **`scope`** — file paths extracted from the prose. These are paths the task is expected to touch. They will be passed to `tusk task-insert` as `--scope` only when you want them recorded as `operator_declared`; otherwise, the `task-insert` auto-extractor will record the same set as `auto_derived` rows at insert time without an explicit flag (see Step 5). Either way, the operator should review the list — if any path looks accidental (a citation, an external link, a path the task does NOT mean to modify), edit the description in Step 4's review loop to remove it.
+
+- **`creates`** — paths the description explicitly marks as new files (e.g. `"Create a new file bin/foo.py"`). These deserve `--creates` rather than `--scope` so the scope source is recorded accurately (the file does not exist yet — `auto_derived` would imply it does). Surface to the operator: *"This task proposes creating bin/foo.py — confirm?"*
+
+- **`unbounded`** — `true` when the task is a refactor or contains cross-cutting signal phrases (`"across all"`, `"every skill"`, `"sweep through"`, etc.). An unbounded task short-circuits the commit-time scope guard, so flag it for explicit confirmation before insertion: *"This looks unbounded (`rationale.unbounded`). Pass `--unbounded` to short-circuit the scope guard, or split into per-area tasks instead?"*
+
+The hint is advisory — the operator can confirm, edit, or override every suggestion in Step 4. Treat it as a starting point, not a verdict. If the suggested scope is clearly wrong (e.g. extracted a URL fragment that looked like a path), drop it.
+
 ## Step 4: Present Task List for Review
 
 ### Single-task fast path
@@ -177,11 +276,16 @@ If analysis produced **exactly 1 task**, use the compact inline format instead o
 
 **Add login endpoint with JWT auth** (High · api · feature · M · backend)
 > Implement POST /auth/login that validates credentials and returns a JWT token. Include refresh token support.
+>
+> **Proposed scope** (from `tusk scope-hint`):
+> - touches: `apps/api/auth/login.py`, `tests/integration/test_login.py`
+> - creates: `apps/api/auth/login.py`
+> - unbounded: no
 ```
 
 Then ask:
 
-> Create this task? You can **confirm**, **edit** (e.g., "change priority to Medium"), or **remove** it.
+> Create this task? You can **confirm**, **edit** (e.g., "change priority to Medium" or "remove tests/integration/test_login.py from scope"), or **remove** it.
 
 ### Multi-task presentation
 
@@ -199,9 +303,13 @@ If analysis produced **2 or more tasks**, show the full numbered table:
 
 **1. Add login endpoint with JWT auth**
 > Implement POST /auth/login that validates credentials and returns a JWT token. Include refresh token support.
+>
+> **Proposed scope:** touches `apps/api/auth/login.py`, `tests/integration/test_login.py` · creates `apps/api/auth/login.py` · unbounded: no
 
 **2. Add signup page with form validation**
 > Create signup form with email, password, and confirm password fields. Validate on blur and on submit.
+>
+> **Proposed scope:** touches `apps/web/signup.tsx`, `tests/integration/test_signup.py` · creates `apps/web/signup.tsx` · unbounded: no
 ```
 
 Then ask:
@@ -209,12 +317,16 @@ Then ask:
 > Does this look right? You can:
 > - **Confirm** to create all tasks
 > - **Remove** specific numbers (e.g., "remove 3")
-> - **Edit** a task (e.g., "change 2 priority to High")
+> - **Edit** a task (e.g., "change 2 priority to High", "remove tests/integration/test_signup.py from 2's scope", "mark 1 as unbounded")
 > - **Add** a task you think is missing
+
+When the operator amends scope (e.g. *"remove tests/integration/test_signup.py from 2's scope"*), update the in-memory `scope` / `creates` / `unbounded` set you got from `tusk scope-hint`; don't re-run the hint — the operator's edits override the heuristic.
 
 ### For both paths
 
 Wait for explicit user approval before proceeding. Do NOT insert anything until the user confirms.
+
+If the proposal has candidate context atoms, show them under the affected task as **Durable context** so the operator can confirm, edit, or remove them before insertion. Make clear that these will be written with `tusk context add --source create_task` after the task row exists, not embedded into the description.
 
 ## Step 5: Deduplicate, Insert, and Generate Criteria
 
@@ -223,6 +335,8 @@ For each approved task, generate **2–5 acceptance criteria** — concrete, tes
 ### Test-first default
 
 **Default to `criterion_type=test` with a proposed pytest node ID** (e.g. `tests/integration/test_foo.py::TestBar::test_baz`) for any criterion that names a behavior, output shape, edge case, or invariant. The test does not need to exist yet — pinning the node ID at planning time forces the author to enumerate input cases before any code is written, and the criterion's contract becomes executable rather than prose.
+
+When a pytest test lives inside a class, the node ID must include the class segment: `tests/path/test_file.py::TestClassName::test_method_name`, not just `tests/path/test_file.py::test_method_name`. Pytest treats the shorter form as a module-level function and returns "not found" even though the class-contained test exists. If the source text names only the method, inspect the test file or infer the class from the surrounding context before writing the verification spec.
 
 Prose criteria can be satisfied by partial implementations that match the wording but miss edge cases. Pinning a test name forecloses that gap: `/tusk` cannot mark the criterion done until the named pytest invocation exits 0, so the implementer either writes the test or amends the criterion deliberately. There is no quiet path from "looks plausible" to "marked done."
 
@@ -282,6 +396,32 @@ JSON=$(printf '%s' "$SPEC" | tusk typed-criteria-build --type code --text "apps/
 
 For `test` and `code`, `spec` is a shell command — exit 0 = pass; use `! …` to invert. For `file`, `spec` is a glob (recursive `**` works).
 
+### Code criterion portability — avoid `wc -l | grep -q "^N$"` (issue #889)
+
+`code`-type specs run on whatever host marks the criterion done (commonly macOS for local dev, Linux for CI). `wc -l` output differs between the two: GNU coreutils prints `3`, BSD wc prints `       3` (leading whitespace padded to column 8). A spec like `... | wc -l | grep -q "^3$"` is **portable-broken** — it exits nonzero on macOS for whitespace reasons even when the count is correct. The criterion ends up semantically satisfied but unable to auto-verify, forcing `tusk criteria done <cid> --skip-verify`. Original incident: TASK-474 / criterion 2197 / issue #889.
+
+**Do not generate** specs matching this anti-pattern:
+
+```bash
+# WRONG — BSD wc on macOS prints leading spaces; ^N$ fails
+grep -l "<pattern>" A B C | wc -l | grep -q "^3$"
+```
+
+**Use one of these portable forms instead:**
+
+```bash
+# OK — strip whitespace before comparing
+test "$(grep -l "<pattern>" A B C | wc -l | tr -d '[:space:]')" = "3"
+
+# OK — awk normalises the field width
+[ "$(grep -l "<pattern>" A B C | wc -l | awk '{print $1}')" = "3" ]
+
+# Best — when you only care that ALL named files match, drop the count entirely
+grep -l "<pattern>" A B C | sort -u | diff -q - <(printf 'A\nB\nC\n' | sort -u)
+```
+
+Same hazard class applies to any text-tool output that may differ between GNU and BSD: `du`, `df`, `stat`, `date -r` formatting. When in doubt, pipe through `tr -d '[:space:]'` or `awk '{print $1}'` before string-comparing the result.
+
 ### Manual fallback
 
 Reach for plain `--criteria` only when the check requires genuine human judgment and cannot be encoded as a test, code grep, or file glob. The test-first default does **not** apply in these cases:
@@ -325,7 +465,7 @@ Before inserting, apply these rules to every generated criterion:
 
 Revise the criterion and present it to the user for approval before proceeding to insertion.
 
-Then insert the task with criteria in a single call using `tusk task-insert`. This validates enum values against config, runs a heuristic duplicate check internally, and inserts the task + criteria in one transaction:
+Then insert the task with criteria in a single call using `tusk task-insert`. This validates enum values against config, runs a heuristic duplicate check internally, and inserts the task + criteria in one transaction. Pass the scope decisions confirmed in Step 4 as `--scope` / `--creates` / `--unbounded` flags — the operator's review is the gate, not the heuristic:
 
 ```bash
 tusk task-insert "<summary>" "<description>" \
@@ -336,8 +476,25 @@ tusk task-insert "<summary>" "<description>" \
   --complexity "<complexity>" \
   --criteria "<criterion 1>" \
   --criteria "<criterion 2>" \
-  --criteria "<criterion 3>"
+  --criteria "<criterion 3>" \
+  --creates "<creates path>" \
+  --scope "<additional scope path operator confirmed>"
 ```
+
+**Scope-flag rules** (consumed from the confirmed Step 3.8 + Step 4 state):
+
+- **`--unbounded`** — pass when the operator confirmed the task is cross-cutting. When set, omit `--scope` and `--creates` entirely; the unbounded sentinel short-circuits the commit-time scope guard regardless of the other rows.
+- **`--creates "<path>"`** — repeat once per path the operator confirmed as newly-created. These should be paths that do not yet exist on disk.
+- **`--scope "<path>"`** — repeat once per **additional** path the operator explicitly authorized that the description does not name. Paths the description already names will be auto-extracted by `task-insert` as `auto_derived` rows; do not re-list them under `--scope` (it would create duplicate scope rows with different source attribution, which clutters audit trails).
+- **Removed scope** — if the operator dropped a path the description still mentions, edit the description before insertion so the auto-extractor does not re-introduce it. The auto-extractor is path-agnostic; it cannot tell that a path was deliberately excluded.
+
+After insertion succeeds, confirm the derived scope was recorded as expected:
+
+```bash
+tusk scope list <task_id>
+```
+
+Show the resulting list to the operator so they can sanity-check the final state before moving on. If anything looks wrong (auto-extractor picked up an unintended path, `--unbounded` was omitted by mistake), the operator can amend immediately via `tusk scope add` / `tusk scope` rather than discovering the gap when the first commit gets rejected.
 
 If the task was linked to a source task in Step 3.6, append `--fixes-task-id <N>` so the follow-up relationship is persisted to `tasks.fixes_task_id`:
 
@@ -358,6 +515,14 @@ Omit `--domain` or `--assignee` entirely if the value is NULL/empty — do not p
 ### Exit code 0 — Success
 
 The command prints JSON with `task_id` and `criteria_ids`. Use the `task_id` for dependency proposals in Step 7.
+
+After a successful insert, write any operator-approved durable context atoms for that task:
+
+```bash
+tusk context add <task_id> --source create_task --type memory --content "<content>"
+```
+
+Use the confirmed type for each atom (`memory`, `assumption`, `question`, `risk`, `decision`, or `entry_point`) and capture the returned context item IDs for the final summary. Skip this step when the proposal had no durable context atoms or the operator removed them.
 
 ### Exit code 1 — Duplicate found → Skip
 

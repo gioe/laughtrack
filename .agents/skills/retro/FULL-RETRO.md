@@ -6,16 +6,18 @@ Thorough retro for medium-to-large tasks. Includes subsumption analysis, depende
 
 **Check for custom focus areas first.** Attempt to read `<base_directory>/FOCUS.md`.
 - If the file exists: use the categories defined in it for Step 3 instead of the defaults.
-- If the file does not exist: use the default categories A–D defined in Step 3.
+- If the file does not exist: use the default categories A/B/C/D defined in Step 3.
 
 Analyze the full conversation context. Look for:
 
 - **Friction points** — confusing instructions, missing context, repeated mistakes
 - **Workarounds** — manual steps that could be automated or codified into skills
-- **Tangential issues** — test failures, tech debt, bugs discovered out of scope
-- **Incomplete work** — deferred decisions, TODOs, partial implementations
+- **Context-window tangents** — issues noticed in the context that was pulled into the session, but unrelated to the work just shipped
+- **Task-adjacent follow-up** — issues noticed in the context window that are related to the task or changed area, but were not part of what just shipped
 - **Failed approaches** — strategies that didn't work and why
-- **Lint Rules** — concrete, grep-detectable anti-patterns observed in this session (max 3). Only if an actual mistake occurred that a grep rule could prevent.
+- **Mechanical guard opportunities** — observed mistakes that can be mechanically prevented with a grep-detectable lint rule (max 3). First identify the underlying issue in another category; use this only when the proposed response is "add a lint rule."
+- **Debugging velocity** — if this was a bug or diagnosis task, ask what would have reduced time-to-root-cause, then classify the resulting finding into A, B, C, or F.
+- **Documentation drift** — project docs that should change because of what just shipped. Inspect whether changed commands, config keys, workflows, schemas, prompt/skill behavior, install behavior, user-facing output, or operational gotchas are reflected in the durable docs future task runs will read (`AGENTS.md`/`AGENTS.md`, `README.md`, `docs/`, `.codex/prompts/`, and distributed `skills/` files).
 
 Review the entire session, not just the most recent messages.
 
@@ -33,7 +35,7 @@ tusk retro-signals $RETRO_TASK_ID
 
 Parse the JSON. The fields consumed by the steps below are:
 
-- **`review_themes`** — `(category, severity)` pairs with ≥ 2 occurrences across this task's review passes, plus a short sample comment. Each theme is a candidate Category A (conventions) or Category D (lint rules) finding. Seed Step 3 directly from this list — **do not** re-query `review_comments` with SQL.
+- **`review_themes`** — `(category, severity)` pairs with ≥ 2 occurrences across this task's review passes, plus a short sample comment. Each theme is a candidate finding for Category A, B, C, or D; if it also describes a concrete grep-detectable mistake, attach a lint-rule action. Seed Step 3 directly from this list — **do not** re-query `review_comments` with SQL.
 - **`reopen_count`** — integer count of `to_status='To Do'` transitions on this task. When > 0, render a `**Reopened N times**` line in Step 4's "Rework Context" section so the reviewer pauses on whether the close actually stuck.
 - **`rework_chain`** — `{fixes, fixed_by}`. `fixes` is the upstream task this one was filed to address (via `fixes_task_id`); `fixed_by` is the downstream follow-ups that were filed to fix *this* one. When either list is non-empty, render the entries in Step 4's "Rework Context" section and append the explicit "**Was the root cause addressed?**" prompt — recurring fix chains are the strongest signal that an earlier pass treated symptoms rather than the underlying issue.
 
@@ -69,6 +71,10 @@ Consume `tool_errors` from this same `tusk retro-signals` JSON — **do not** op
 
 This signal drives the full retro only — the lightweight retro path (XS/S in `SKILL.md`) is intentionally unchanged to keep it lean.
 
+- **`context_health`** — context-atom handoff health for the task. Shape: `{active_counts, active_items, missing_entry_points, inactive_items}`. `active_items` contains active risks/questions/assumptions; `missing_entry_points` mirrors task-brief's missing entry-point warning; `inactive_items` contains resolved/superseded atoms that may reveal stale or already-closed context. Drives Step 4's "Context Snapshot" section and Step 3's durable-unit routing. These rows are memory signals, not backlog tasks by default.
+
+Consume `context_health` from this same `tusk retro-signals` JSON — Do **not** issue separate SQL against `task_context_items`. Approved context updates must use `tusk context add`, `tusk context resolve`, or `tusk context supersede`.
+
 If the task has no review activity at all, `review_themes` will be an empty array. In that case, **omit** the "Review Theme Summary" section from Step 4 silently — do not add a "(none)" placeholder.
 
 ## Step 2c: Cross-retro Themes (from Step 0b output)
@@ -95,31 +101,44 @@ If `<base_directory>/FOCUS.md` was found in Step 1, use those categories.
 
 Otherwise organize into the default four categories:
 
-- **A**: Process improvements — skill/AGENTS.md/tooling friction, confusing instructions, missing conventions
-- **B**: Tangential issues — out-of-scope bugs, tech debt, architectural concerns
-- **C**: Follow-up work — incomplete items, deferred decisions, edge cases
-- **D**: Lint Rules — concrete, grep-detectable anti-patterns (max 3). Only if an actual mistake occurred that a grep rule could prevent. Applied inline when possible (step 5d); task creation is the fallback.
-- **E**: Debugging Velocity — only if the session involved fixing a bug or diagnosing unexpected behavior. Reflect on: (1) what information was missing that delayed diagnosis; what tool, log, or trace would have surfaced the root cause immediately; whether a test would have caught this before it became a bug. (2) Did fixing this bug change the conditions under which adjacent issues matter? (e.g., removing noise that was masking a separate signal, raising the quality bar in a way that exposes nearby gaps.) If so, those adjacent issues are in scope for this category even if they predate the session — "predated the session" is not sufficient grounds for dismissal when the fix elevated their relevance. If no bug was present, this category is empty. Findings must be concrete (tasks or skill/AGENTS.md patches) — not generic advice like "add more logging."
+- **A**: Tusk workflow failures — failures, confusing behavior, missing safeguards, or broken handoffs in tusk itself that should be filed as tusk issues. This includes CLI, skill, prompt, hook, DB, install, review, merge, task lifecycle, or automation behavior that made the task harder or less reliable.
+- **B**: Context-window tangents — issues noticed in the context that was pulled into the session, but unrelated to the work just shipped. Use this for bugs, tech debt, architectural concerns, stale patterns, or suspicious nearby behavior worth addressing later. Do not use this for unfinished scoped work (Category C) or docs that need updating because of the shipped change (Category D).
+- **C**: Task-adjacent follow-up — issues noticed in the context window that are related to the task or changed area, but were not part of what just shipped. Use this for adjacent edge cases, parity work, secondary workflows, or deferred decisions that should be addressed later. Category B is for unrelated context-window issues.
+- **D**: Project Documentation Updates — project documentation that should change because of what just shipped. Inspect the task summary, commit list, and diff for changed commands, config keys, workflows, schemas, prompt/skill behavior, install behavior, user-facing output, or operational gotchas. Check whether the relevant durable docs were updated in the same task: `AGENTS.md`/`AGENTS.md`, `README.md`, `docs/`, `.codex/prompts/`, and distributed `skills/` files. If the docs are stale or missing, create a concrete doc follow-up or propose an inline doc patch. If behavior changed and no docs need updates, explicitly mark this category empty with the reason.
 
-If a category has no findings, note that explicitly — an empty category is a positive signal.
+After categorizing findings, run two cross-cutting checks:
+
+- **Debugging velocity lens** — if the session involved fixing a bug or diagnosing unexpected behavior, ask what would have reduced time-to-root-cause: a test, log, trace, command, tusk safeguard, clearer handoff, or documentation. Classify any resulting finding into Category A, B, C, or D; do not create a separate debugging category.
+- **Mechanical guard action route** — if any finding describes an actual mistake that can be prevented by a concrete grep-detectable pattern, mark its proposed action as "add lint rule" and capture the pattern, file glob, and message. Do not use this for general advice or style preferences. Applied inline when possible (step 5d); task creation is the fallback.
+- **Context atom route** — for every finding, ask whether the smallest durable unit is a task, a criterion on an existing task, or a context atom. Use a context atom for durable memory that should help a future handoff but is not shippable backlog work: assumptions, questions, risks, decisions, entry points, or compact memory. Context atoms should reduce backlog noise, not create it.
+
+For each default category, explicitly record `none` or list the findings. An empty category is a positive signal.
 
 ### Seeding from `review_themes`
 
-For each entry in `review_themes` (from Step 2b), add one candidate finding to either Category A or Category D based on the theme's `category`/`severity` signal and its sample comment:
+For each entry in `review_themes` (from Step 2b), add one candidate finding to Category A, B, C, or D based on the theme's `category`/`severity` signal and its sample comment. If the same theme also points at a concrete grep-detectable mistake, add an "add lint rule" proposed action to that finding.
 
-- **Category A (conventions)** — the recurring comment describes a heuristic, preference, or convention the reviewer keeps repeating (e.g. "always pass `encoding='utf-8'` to `subprocess.run`", "prefer `pathlib.Path` over `os.path`"). Rule-like guidance that can be captured via `tusk conventions add` belongs here.
-- **Category D (lint rules)** — the recurring comment points at a concrete grep-detectable anti-pattern (e.g. "don't call `sqlite3` directly", "bare `except:` in *.py files"). Only promote to D if an actual mistake occurred that a grep rule would have caught — general advice stays in A.
+- **Category A (tusk workflow failure)** — the recurring comment describes a failure or missing safeguard in tusk itself. Heuristics or preferences that are not tusk failures should not be promoted to Category A; record them as Category C follow-up work or attach a lint-rule action only when they fit those definitions.
+- **Lint-rule action** — the recurring comment points at a concrete grep-detectable anti-pattern (e.g. "don't call `sqlite3` directly", "bare `except:` in *.py files"). Only attach this action if an actual mistake occurred that a grep rule would have caught.
 
 Use the `count` and `sample` fields to show the reviewer why this theme crossed the noise floor. Don't invent themes that aren't in `review_themes` — the aggregation already filtered to recurrence ≥ 2.
 
 ### 3a: Classify Each Finding
 
-For each finding, determine whether it is a **tusk-issue** or a **project-issue**:
+For each finding, record its **durable unit**:
+
+- **task** — shippable backlog work requiring its own branch/worktree/review.
+- **criterion** — an observable completion condition that belongs on an existing open task.
+- **context_atom** — durable handoff memory that should be written, resolved, or superseded through `tusk context`.
+
+For task findings, determine whether it is a **tusk-issue** or a **project-issue**:
 
 - **tusk-issue** — a bug, limitation, or improvement in tusk itself: the CLI, a skill, DB schema, or installed tooling (e.g., a skill instruction is confusing, a `tusk` command misbehaves, a missing feature in the tool)
 - **project-issue** — specific to the current project: its code, architecture, conventions, or processes
 
-Label each finding with its classification. This drives the routing in Step 5b.
+Label each finding with its durable unit and, for task findings, its classification. This drives the routing in Step 5b.
+
+Category A findings are always **tusk-issues**. Category D findings are normally **project-issues** unless the missing documentation is in tusk's distributed docs/prompts/skills.
 
 ### 3b: Pre-filter Duplicates
 
@@ -195,11 +214,25 @@ Brief (2-3 sentence) overview of what the session accomplished.
 | Tool | Errors | Sample |
 |------|-------:|--------|
 
+### Context Snapshot (omit if no active_items, no inactive_items, and missing_entry_points is false)
+
+> **Durable memory** — these rows are context atoms, not backlog work. Promote to tasks only when the item requires a shippable change.
+
+- **Missing entry points**: yes/no
+
+**Active risks/questions/assumptions** (from `context_health.active_items` — omit table if empty)
+| ID | Type | Source | Content |
+|----|------|--------|---------|
+
+**Resolved/superseded context** (from `context_health.inactive_items` — omit table if empty)
+| ID | Type | Status | Content |
+|----|------|--------|---------|
+
 ### <Category name from Step 3> (N findings)
 1. **<title>** — <description>
-   → Proposed: <summary> | <priority> | <task_type> | <domain>
+   → Proposed: <durable unit> | <summary/action> | <priority> | <task_type> | <domain>
 
-(Repeat for each category. Use the resolved category names — from FOCUS.md if present, or defaults A/B/C/D/E. Omit empty categories.)
+(Repeat for each category. Use the resolved category names — from FOCUS.md if present, or defaults A/B/C/D. Omit empty categories, but only after explicitly checking and recording `none` during Step 3.)
 
 ### Duplicates Already Tracked (omit if none)
 | Finding | Matched Task | Similarity |
@@ -246,6 +279,13 @@ Brief (2-3 sentence) overview of what the session accomplished.
 - The "Soft warning" callout is mandatory whenever the section is rendered — same rule as Session Shape: it's what flags this as context rather than a proposed action.
 - Never promote an Errors-encountered row into a Proposed Action, a subsumption, or a lint rule. One-off tool errors are frequently benign (a typo in a Bash command, a Read against a file that was already stale) — the reviewer is the one who decides whether a pattern warrants follow-up, and if so, they create the task manually via `/create-task`.
 
+**Context Snapshot rendering rules:**
+- If `context_health.active_items` is empty, `context_health.inactive_items` is empty, and `context_health.missing_entry_points` is false, omit the entire section silently.
+- Render this section before the category findings so the reviewer can decide whether a finding should update context instead of creating backlog work.
+- If `missing_entry_points` is true, include the section even when both tables are empty; propose an `entry_point` context atom only if the task produced a durable file/module starting point future agents should read.
+- Each active row renders `id`, `type`, `source`, and `content` verbatim from `context_health.active_items`. Each inactive row renders `id`, `type`, `status`, and `content` from `context_health.inactive_items`.
+- The durable-memory callout is mandatory whenever the section is rendered.
+
 Then ask the user to **confirm**, **remove** specific numbers, **edit** a task, **reject subsumption**, **add** a finding, or **skip**. Wait for explicit approval before inserting.
 
 ## Step 5: Apply Approved Changes
@@ -264,13 +304,29 @@ tusk "UPDATE tasks SET description = $(tusk sql-quote "$AMENDED_DESC"), updated_
 
 ### 5b: Insert New Tasks / File Issues
 
-Route each approved finding based on its classification from Step 3a:
+Route each approved finding based on its durable unit from Step 3a:
+
+**criteria** — add the finding to the best matching open task:
+```bash
+tusk criteria add <task_id> "<criterion>"
+```
+Do **not** create a new task for this finding.
+
+**context_atom** — write through the first-class context CLI:
+```bash
+tusk context add <task_id> --type risk --content "<finding summary>" --source retro
+tusk context resolve <context_item_id>
+tusk context supersede <context_item_id>
+```
+Choose `memory`, `assumption`, `question`, `risk`, `decision`, or `entry_point` as narrowly as possible. Use `resolve` when the finding closes an active question/risk/assumption; use `supersede` when the finding replaces stale context. Do **not** use direct SQL for context atoms.
+
+**task** — route based on its classification from Step 3a:
 
 **tusk-issues** — file a GitHub issue via:
 ```bash
 tusk report-issue --title "<finding title>" --cluster triage-needed --context "<finding description>"
 ```
-Choose a more specific cluster (`worktree`, `merge`, `review-diff`, `summary`, `docs`, `test-precheck`, or `small-fix`) when it is clear from the finding; use `triage-needed` only as the fallback. Do **not** call `tusk task-insert` for tusk-issues. Track the count of issues filed for Step 6.
+Pick the most specific `cluster:<name>` label that fits the finding — the CLI accepts any cluster name currently labelled on the repo, so new clusters work immediately. Run `gh label list --repo gioe/tusk --search "cluster:"` to see the current set. Use `triage-needed` only as the fallback. Do **not** call `tusk task-insert` for tusk-issues. Track the count of issues filed for Step 6.
 
 **Include a `## Failing Test` section** in `--context` whenever a concrete test can be derived from the finding. This matters because `/address-issue` Factor 0 treats a missing failing test as the highest-priority signal to Defer — issues filed without one will be deprioritized automatically. Format:
 
@@ -292,7 +348,7 @@ tusk task-insert "<finding title>" "<finding description> [Note: GitHub issue co
 ```
 Note in Step 6 that the issue was tracked as a local task rather than filed on GitHub.
 
-**project-issues** — **Category A and Category E findings:** Before inserting, follow step 5e to check for an inline skill patch. Only call `tusk task-insert` for a Category A or E finding here if step 5e was skipped, if no target file was identified, or if the user chose to defer (include the proposed diff in the description).
+**project-issues** — If the approved finding's proposed action is "add convention", or if it is a **Category D** documentation finding, follow step 5e before inserting. Only call `tusk task-insert` for a routed finding here if step 5e was skipped, if no target file was identified, or if the user chose to defer (include the proposed command or diff in the description).
 
 ```bash
 tusk task-insert "<summary>" "<description>" --priority "<priority>" --domain "<domain>" --task-type "<task_type>" --assignee "<assignee>" --complexity "<complexity>" \
@@ -314,23 +370,23 @@ Present a numbered table for approval:
 
 Then insert approved dependencies with `tusk deps add <task_id> <depends_on_id> [--type contingent]`.
 
-### 5d: Apply Lint Rules Inline (only if lint rule findings exist)
+### 5d: Apply Lint Rules Inline (only if lint-rule action candidates exist)
 
-Apply this step if there are lint rule findings — Category D when using defaults, or a "Lint Rules" section when using a custom FOCUS.md.
+Apply this step if any approved finding has a proposed "add lint rule" action. With custom FOCUS.md categories, also apply this step for entries in a "Lint Rules" section.
 
 The bar is high — only proceed if you observed an **actual mistake** that a grep rule would have caught. Do not apply lint rules for general advice.
 
-For each lint rule finding, attempt **inline application** first:
+For each grep-detectable anti-pattern you surfaced, **emit a `tusk lint-rule propose` call** rather than instructing the operator to run `tusk lint-rule add` by hand. `propose` stages the rule **advisory** — its hits warn but never gate `tusk lint`/`commit`/`merge` until someone runs `tusk lint-rule promote <id>` once the pattern is observed to hold — and records provenance back to the originating retro finding via `--finding-id`. This keeps a newly-proposed rule from blocking work before it has been validated.
 
 1. **Present the proposed rule** — show the exact command and ask for approval:
 
    > Found lint rule candidate: [finding description]
-   > Command: `tusk lint-rule add '<pattern>' '<file_glob>' '<message>'`
-   > Apply this rule now? (Reversible with `tusk lint-rule remove <id>`.)
+   > Command: `tusk lint-rule propose '<pattern>' '<file_glob>' '<message>'`
+   > Stage this advisory rule now? (Reversible with `tusk lint-rule remove <id>`; promote later with `tusk lint-rule promote <id>`.)
 
-2. **If the user approves** — run the command immediately:
+2. **If the user approves** — run the command immediately. If you have already recorded the originating finding, pass its id so the proposed rule carries provenance:
    ```bash
-   tusk lint-rule add '<pattern>' '<file_glob>' '<message>'
+   tusk lint-rule propose '<pattern>' '<file_glob>' '<message>' [--finding-id <finding_id>]
    ```
    - **Success**: note the rule ID returned. **Do not create a task** for this finding.
    - **Error or unavailable**: fall back to task creation (step 3).
@@ -338,26 +394,26 @@ For each lint rule finding, attempt **inline application** first:
 3. **If the user declines**, or **if inline application fails**, create a task as a fallback:
    ```bash
    tusk task-insert "Add lint rule: <short description>" \
-     "Run: tusk lint-rule add '<pattern>' '<file_glob>' '<message>'" \
+     "Run: tusk lint-rule propose '<pattern>' '<file_glob>' '<message>'" \
      --priority "Low" --task-type "<task_type>" --complexity "XS" \
-     --criteria "tusk lint-rule add has been run with the specified pattern, glob, and message"
+     --criteria "tusk lint-rule propose has been run with the specified pattern, glob, and message"
    ```
 
 For `<task_type>`: use the project's config `task_types` array (already fetched via `tusk setup` in Step 0). Pick the entry that best fits a maintenance/tooling task (e.g., `maintenance`, `chore`, `tech-debt`, `infra` — whatever is closest in your project's list). If no entry is a clear fit, omit `--task-type` entirely.
 
 Fill in `<pattern>` (grep regex), `<file_glob>` (e.g., `*.md` or `bin/tusk-*.py`), and `<message>` (human-readable warning) with the specific values from your finding.
 
-### 5e: Skill-Patch for Category A and Category E Findings (only if Category A or Category E findings exist)
+### 5e: Inline Convention/Doc Actions
 
-Before creating tasks for Category A (process improvement) or Category E (debugging velocity) findings, check if any can be applied as inline patches to an existing skill or AGENTS.md. Run this step **before** 5b for Category A and Category E findings.
+Before creating tasks for routed project-issue findings, check whether the approved action can be applied inline as a convention or documentation patch. Run this step **before** 5b for findings whose proposed action is "add convention" or whose category is D.
 
 Initialize an empty list `$AUTO_APPLIED` for the Step 6 summary — auto-apply gate hits in step 3 below append one line per applied edit.
 
-For each approved Category A finding:
+For each approved project-issue finding routed here:
 
 1. **Classify the finding as rule-like or narrative:**
    - **Rule-like**: a single heuristic, invariant, or convention — e.g., "always quote file paths in zsh". These belong in the conventions DB.
-   - **Narrative/reference**: multi-step procedures, workflow descriptions, or anything requiring more than one sentence. These belong as a patch to a skill file or AGENTS.md.
+   - **Narrative/reference**: multi-step procedures, workflow descriptions, or anything requiring more than one sentence. These belong as a patch to a skill file, agent doc, README, or file under `docs/`.
 
 2. **If the finding is rule-like** — propose adding a convention via `tusk conventions add`:
    a. Draft the exact convention text (one concise sentence) and a comma-separated list of relevant topic tags.
@@ -379,10 +435,12 @@ For each approved Category A finding:
 
 3. **If the finding is narrative/reference** — identify a target file:
    - A skill name matching a directory in `.agents/skills/` (list them with `ls .agents/skills/`)
-   - The string `AGENTS.md`
+   - The string `AGENTS.md` or `AGENTS.md`
+   - `README.md`
+   - A specific file under `docs/`
 
    **If a target file is identified**:
-   a. Read the file (`Read .agents/skills/<name>/SKILL.md` or `Read AGENTS.md`)
+   a. Read the file (`Read .agents/skills/<name>/SKILL.md`, `Read AGENTS.md`, `Read AGENTS.md`, `Read README.md`, or the specific `docs/<path>.md`)
    b. Produce a **concrete proposed edit** — the exact text to add, change, or remove. Show the specific diff, not a vague description.
 
    c. **Auto-apply gate (only for skill-frontmatter edits).** Before showing the three-option prompt, read the `retro` config once:
@@ -395,7 +453,7 @@ For each approved Category A finding:
 
       If `retro.auto_apply` is `true`, the proposed edit qualifies for auto-apply only when **ALL** of the following hold:
 
-      - **Frontmatter-only**: every changed line lies inside the YAML frontmatter block (between the opening `---` and closing `---` at the top of `.agents/skills/<name>/SKILL.md`), and each changed line is either a `description:` line or a `#`-prefixed comment line. Body changes (anything below the closing `---`), `name:` / `allowed-tools:` / other frontmatter fields, and `AGENTS.md` edits never qualify.
+      - **Frontmatter-only**: every changed line lies inside the YAML frontmatter block (between the opening `---` and closing `---` at the top of `.agents/skills/<name>/SKILL.md`), and each changed line is either a `description:` line or a `#`-prefixed comment line. Body changes (anything below the closing `---`), `name:` / `allowed-tools:` / other frontmatter fields, and agent-doc/project-doc edits never qualify.
       - **Size budget**: the total character count of the diff (sum of `old_string` length + `new_string` length, or for additions just the `new_string` length) is strictly less than `retro.auto_apply_max_chars` (default 200).
       - **Additive or character-level**: either (a) the change is a pure addition — `new_string` extends `old_string` with appended content and contains no deletions — or (b) the change is character-level on a single line — exactly one frontmatter line is modified, and the modification only inserts or replaces characters within that line (no full-line removals, no multi-line removals).
 
@@ -405,8 +463,8 @@ For each approved Category A finding:
 
    d. Otherwise, present the patch with three options:
 
-      > **Skill Patch Proposal** — [finding title]
-      > File: `.agents/skills/<name>/SKILL.md`
+      > **Skill/Doc Patch Proposal** — [finding title]
+      > File: `<target file>`
       >
       > ```diff
       > - [existing text to replace]
@@ -431,6 +489,8 @@ The /tusk skill already printed the task summary block (`tusk task-summary <id> 
 **Session**: <what was accomplished>
 **Findings**: N findings by category (use resolved category names)
 **Created**: N tasks (#id, #id)
+**Criteria added**: N (omit line if zero)
+**Context atoms updated**: N added, R resolved, S superseded (omit line if all zero)
 **GitHub issues filed**: N (tusk-issues routed via tusk report-issue — omit line if zero)
 **Lint rules**: K applied inline, M deferred as tasks
 **Auto-applied**: P frontmatter edits — <one entry per item from $AUTO_APPLIED, format: `path/to/SKILL.md (brief description)`> (omit line if P == 0)
@@ -449,7 +509,7 @@ tusk -header -column "SELECT id, summary, priority, domain, task_type, status FR
 
 ### 6a: Record approved findings for cross-retro theme detection
 
-Before closing the skill run, write one `retro_findings` row per **approved** finding — every new task created in 5b, every GitHub issue filed, every lint rule applied in 5d, every convention or skill patch applied in 5e. Subsumptions (5a) are recorded as well, with `action_taken: subsumed:TASK-<id>` so the merge-into target is captured. Duplicates and user-rejected findings are **not** recorded — only approved, actioned findings feed the cross-retro signal.
+Before closing the skill run, write one `retro_findings` row per **approved** finding — every new task created in 5b, every criterion added, every context atom updated, every GitHub issue filed, every lint rule applied in 5d, every convention or skill patch applied in 5e. Subsumptions (5a) are recorded as well, with `action_taken: subsumed:TASK-<id>` so the merge-into target is captured. Duplicates and user-rejected findings are **not** recorded — only approved, actioned findings feed the cross-retro signal.
 
 For each approved finding, run:
 
@@ -464,10 +524,13 @@ tusk retro-finding add \
 
 `<action_taken>` vocabulary (pick whichever fits; omit `--action-taken` if none do):
 - `task:TASK-<id>` — a new task was created via `tusk task-insert`
+- `criterion:<id>` — an acceptance criterion was added via `tusk criteria add`
+- `context:<id>` — a context atom was added, resolved, or superseded via `tusk context`
 - `issue:<url>` — a GitHub issue was filed via `tusk report-issue`
-- `lint:<id>` — a lint rule was added via `tusk lint-rule add`
+- `lint:<id>` — a lint rule was staged via `tusk lint-rule propose` (advisory) or added via `tusk lint-rule add`
 - `convention:<id>` — a convention was added via `tusk conventions add`
-- `skill-patch:<file>` — an inline edit was applied to a skill or AGENTS.md
+- `skill-patch:<file>` — an inline edit was applied to a skill or agent doc
+- `doc-patch:<file>` — an inline edit was applied to README.md or a file under docs/
 - `subsumed:TASK-<id>` — folded into an existing task via 5a
 - `documented` — recorded without a concrete action (e.g. noted for context)
 

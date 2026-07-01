@@ -65,6 +65,8 @@ tusk -header -column "SELECT id, summary, status, priority, complexity, assignee
 tusk chain scope <head_task_id1> [<head_task_id2> ...]
 ```
 
+Multiple heads need **not** share a common downstream task. Independent strands (e.g. `A->B`, `C->D`, `E` standalone — the typical shape when `/objective` hands you all of an objective's ready roots) are accepted: `scope`, `frontier`, `frontier-check`, `validate-scope`, and `status` all compute the **union** of the per-head sub-DAGs and drive every strand in the same waves (issue #1133). Pass the whole non-converging head set in one `/chain` invocation rather than splitting it.
+
 Parse the returned JSON. The `head_task_ids` array lists all head IDs. Fetch assignees for all scope task IDs:
 
 ```bash
@@ -139,7 +141,7 @@ Task tool call (for EACH head task):
   prompt: <AGENT-PROMPT.md content with {placeholders} filled from task details>
 ```
 
-Do not rely on a runtime isolation hint for task separation. The filled agent prompt starts the task, calls `tusk task-worktree create`, and moves execution into the recorded task workspace before any file changes. If a workspace is already recorded for that task, the agent resumes there instead of creating another branch.
+Each filled prompt calls `tusk task-worktree create` and works in the recorded workspace (reusing one if already present) — the workspace plus commit-time scope guard handle isolation, no runtime hint needed.
 
 After spawning, store the **agent task ID** and **output file path** returned by the Task tool (this is separate from the tusk task ID). Keep a running list of all output file paths across the entire chain — these are needed for the post-chain retro in Step 6. Monitor until all head tasks reach Done status or all agents have finished.
 
@@ -255,7 +257,7 @@ Task tool call (for EACH frontier task):
   prompt: <AGENT-PROMPT.md content with {placeholders} filled from task details>
 ```
 
-Do not rely on a runtime isolation hint for task separation. Each agent owns the workspace returned by `tusk task-worktree create` for its task, and an existing recorded workspace must be reused rather than creating an overlapping branch.
+Per Step 3's isolation contract, each agent owns its `tusk task-worktree create` workspace — reuse an existing recorded one rather than create an overlapping branch.
 
 ### 4d. Monitor Wave Completion
 
@@ -339,11 +341,11 @@ After all waves are complete, do a single VERSION bump and CHANGELOG update cove
 
 2. Bump VERSION and update CHANGELOG in one step each:
    ```bash
-   new_version=$(tusk version-bump)
-   tusk changelog-add $new_version <task_id1> [<task_id2> ...]
+   tusk version-bump
+   tusk changelog-add <task_id1> [<task_id2> ...]
    ```
    `tusk version-bump` reads VERSION, increments by 1, writes it back, stages it, and prints the new version number.
-   `tusk changelog-add` prepends a dated `## [N] - YYYY-MM-DD` heading to CHANGELOG.md with a bullet for each task ID, stages CHANGELOG.md, then outputs the inserted block to stdout for review.
+   `tusk changelog-add` prepends a dated `## [N] - YYYY-MM-DD` heading to CHANGELOG.md with a bullet for each task ID, stages CHANGELOG.md, then outputs the inserted block to stdout for review. The version is sourced from the just-staged VERSION file — omit it from the args to avoid drift (issue #814).
 
 3. Review the changelog output, then commit, push, and merge:
    ```bash

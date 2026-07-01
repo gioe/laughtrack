@@ -76,10 +76,10 @@ On success the helper prints a single JSON object with `review_id`, `task_id`, `
 REVIEW_ID=$(printf '%s' "$REVIEW_BEGIN_JSON" | jq -r .review_id)
 DIFF_RANGE=$(printf '%s' "$REVIEW_BEGIN_JSON" | jq -r .range)
 DIFF_LINES=$(printf '%s' "$REVIEW_BEGIN_JSON" | jq -r .diff_lines)
-# diff_lines_meaningful subtracts auto-generated lockfile sections
-# (package-lock.json, yarn.lock, Cargo.lock, go.sum, ...) and is the value
-# to use when deciding inline-vs-agent routing (issue #761). Falls back to
-# diff_lines if the field is absent from older callers.
+# diff_lines_meaningful subtracts generated review-noise sections:
+# lockfiles (package-lock.json, yarn.lock, Cargo.lock, go.sum, ...)
+# and generated API clients. Use it for inline-vs-agent routing.
+# Falls back to diff_lines if the field is absent from older callers.
 DIFF_LINES_MEANINGFUL=$(printf '%s' "$REVIEW_BEGIN_JSON" | jq -r '.diff_lines_meaningful // .diff_lines')
 ```
 
@@ -96,7 +96,7 @@ Only when the diff is non-empty and a review has been started in Step 3, proceed
 > **Important:** Background reviewer agents run in an **isolated sandbox** and do **not** inherit the parent session's tool permissions. Approving Bash in this conversation does not grant Bash access to spawned agents. The `permissions.allow` block in `.claude/settings.json` is the only reliable way to grant tool access in agent sandboxes — it applies to all subagents spawned from this project, regardless of what is auto-approved in the current session.
 
 **Inline-review path (no agent spawned).** Use the inline path when *any* of the following is true:
-- The diff is small — `$DIFF_LINES_MEANINGFUL` is below ~200 (auto-generated lockfile sections are already subtracted from this count, so a feature with ~50 lines of source plus a 1450-line `package-lock.json` is routed inline rather than to an agent) — or it contains only non-code files (`.md`, `.json`, `.yaml`).
+- The diff is small — `$DIFF_LINES_MEANINGFUL` is below ~200 (auto-generated lockfile and generated API-client sections are already subtracted from this count, so a feature with ~50 lines of source plus a 1450-line `package-lock.json` or 350 lines of regenerated client code is routed inline rather than to an agent) — or it contains only non-code files (`.md`, `.json`, `.yaml`).
 - The diff has exactly one non-`.md`/`.json`/`.yaml`/`.yml` file AND that file is new at the diff base (no prior history — `git diff --name-status "$DIFF_RANGE"` reports `A` for it) AND `$DIFF_LINES_MEANINGFUL` is below ~400 (issue #835). A single self-contained new script is cognitively far easier to review inline than a 200-line cross-file refactor, because there is no surrounding behavior to cross-check. Example: a new `apps/scraper/bin/probe-tixr` Python file dominated by docstrings and `--help` text (~90% string content), plus a 22-line Makefile target and a 26-line `CONTRIBUTING.md` prose addition — totals ~316 meaningful lines but contains zero cross-file refactor signals and routes inline rather than to an agent.
 - `review.reviewer` is absent from config (the review record is unassigned and no agent is configured to handle it).
 - Tusk is running under a Codex install AND the user did not explicitly opt into subagent-based review for this `/review-commits` invocation. Codex session policy disallows spawning subagents unless the operator asks for one, so the inline path is the safe default — it keeps the real-diff review workflow without violating session policy.
@@ -399,7 +399,7 @@ Otherwise, loop while `can_retry` is true:
 
 2. **Branch on diff size to decide review strategy.**
 
-   **For small or documentation-only diffs (`$DIFF_LINES_MEANINGFUL` below ~200, or only non-code files), when `review.reviewer` is absent from config, or when Tusk is running under a Codex install without an explicit subagent opt-in:** skip agent spawning and perform an inline review. Read the diff yourself, evaluate it against the reviewer focus area, and record the result directly (approve or request-changes + add-comment). The meaningful count subtracts auto-generated lockfile sections (issue #761) so a single `npm install --save-dev` does not push a small feature into agent-based review. After recording the inline decision, skip to step 3.
+   **For small or documentation-only diffs (`$DIFF_LINES_MEANINGFUL` below ~200, or only non-code files), when `review.reviewer` is absent from config, or when Tusk is running under a Codex install without an explicit subagent opt-in:** skip agent spawning and perform an inline review. Read the diff yourself, evaluate it against the reviewer focus area, and record the result directly (approve or request-changes + add-comment). The meaningful count subtracts generated review-noise sections (lockfiles and generated API clients), so regenerated dependency or client code does not push a small hand-authored feature into agent-based review. After recording the inline decision, skip to step 3.
 
    To detect the Codex case, read the `install-mode` marker (Claude installs are marked `claude-…`; Codex installs are marked `codex-…`) and check whether the user's `/review-commits` invocation contains an explicit subagent opt-in phrase:
 
