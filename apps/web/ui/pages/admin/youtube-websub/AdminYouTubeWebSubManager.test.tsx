@@ -10,32 +10,8 @@ import {
     waitFor,
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type {
-    YouTubeWebSubComedianRow,
-    YouTubeWebSubEventRow,
-    YouTubeWebSubSettingsView,
-} from "@/lib/admin/youtubeWebSub";
+import type { YouTubeWebSubEventRow } from "@/lib/admin/youtubeWebSub";
 import AdminYouTubeWebSubManager from "./AdminYouTubeWebSubManager";
-
-const settings: YouTubeWebSubSettingsView = {
-    feedIngestionEnabled: false,
-    pushDeliveryEnabled: false,
-};
-
-const comedians: YouTubeWebSubComedianRow[] = [
-    {
-        uuid: "comedian-1",
-        name: "Jane Comic",
-        youtubeChannelId: "UC-1",
-        youtubeLiveFeedEnabled: false,
-        youtubeLiveNotificationsEnabled: false,
-        subscriptionStatus: "subscribed",
-        leaseExpiresAt: "2026-07-05T00:00:00.000Z",
-        lastSubscribeError: null,
-        recentEventStatus: "received",
-        recentEventAt: "2026-06-29T00:00:00.000Z",
-    },
-];
 
 const events: YouTubeWebSubEventRow[] = [
     {
@@ -64,105 +40,15 @@ beforeEach(() => {
 });
 
 describe("AdminYouTubeWebSubManager", () => {
-    it("renders global toggles, comedian flags, and the event listing", () => {
-        render(
-            <AdminYouTubeWebSubManager
-                settings={settings}
-                comedians={comedians}
-                events={events}
-            />,
-        );
+    it("renders the event listing without comedian feed rows or global feature toggles", () => {
+        render(<AdminYouTubeWebSubManager events={events} />);
 
-        expect(
-            (
-                screen.getByLabelText(
-                    "Feed ingestion enabled",
-                ) as HTMLInputElement
-            ).checked,
-        ).toBe(false);
-        expect(
-            (
-                screen.getByLabelText(
-                    "Push delivery enabled",
-                ) as HTMLInputElement
-            ).checked,
-        ).toBe(false);
-        expect(
-            screen.getByLabelText("Live feed for Jane Comic"),
-        ).toBeTruthy();
+        expect(screen.queryByLabelText("Feed ingestion enabled")).toBeNull();
+        expect(screen.queryByLabelText("Push delivery enabled")).toBeNull();
+        expect(screen.queryByText("Comedian feeds")).toBeNull();
         // event row content
         expect(screen.getByText("Live tonight")).toBeTruthy();
         expect(screen.getByText("vid-1")).toBeTruthy();
-    });
-
-    it("PATCHes the global setting when a toggle is flipped", async () => {
-        const fetchMock = vi.mocked(fetch);
-        fetchMock.mockResolvedValueOnce(
-            new Response(
-                JSON.stringify({
-                    ok: true,
-                    settings: {
-                        feedIngestionEnabled: true,
-                        pushDeliveryEnabled: false,
-                    },
-                }),
-                { status: 200 },
-            ),
-        );
-
-        render(
-            <AdminYouTubeWebSubManager
-                settings={settings}
-                comedians={comedians}
-                events={events}
-            />,
-        );
-
-        fireEvent.click(screen.getByLabelText("Feed ingestion enabled"));
-
-        await waitFor(() => {
-            expect(fetchMock).toHaveBeenCalledWith(
-                "/api/admin/youtube-websub",
-                expect.objectContaining({ method: "PATCH" }),
-            );
-        });
-        const body = JSON.parse(
-            (fetchMock.mock.calls[0][1]?.body as string) ?? "{}",
-        );
-        expect(body).toEqual({ feedIngestionEnabled: true });
-        await waitFor(() => {
-            expect(
-                (
-                    screen.getByLabelText(
-                        "Feed ingestion enabled",
-                    ) as HTMLInputElement
-                ).checked,
-            ).toBe(true);
-        });
-    });
-
-    it("PATCHes the per-comedian flag to the comedian endpoint", async () => {
-        const fetchMock = vi.mocked(fetch);
-        fetchMock.mockResolvedValueOnce(
-            new Response(JSON.stringify({ ok: true }), { status: 200 }),
-        );
-
-        render(
-            <AdminYouTubeWebSubManager
-                settings={settings}
-                comedians={comedians}
-                events={events}
-            />,
-        );
-
-        fireEvent.click(screen.getByLabelText("Live feed for Jane Comic"));
-
-        await waitFor(() => {
-            expect(fetchMock).toHaveBeenCalledWith(
-                "/api/admin/youtube-websub/comedians/comedian-1",
-                expect.objectContaining({ method: "PATCH" }),
-            );
-        });
     });
 
     it("loads and renders the raw payload, parsed IDs, verification, and suppression on view", async () => {
@@ -197,13 +83,7 @@ describe("AdminYouTubeWebSubManager", () => {
             ),
         );
 
-        render(
-            <AdminYouTubeWebSubManager
-                settings={settings}
-                comedians={comedians}
-                events={events}
-            />,
-        );
+        render(<AdminYouTubeWebSubManager events={events} />);
 
         fireEvent.click(screen.getByRole("button", { name: "View payload" }));
 

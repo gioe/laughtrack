@@ -50,6 +50,9 @@ type ProfileEdit = {
 };
 
 type ProfileField = keyof ProfileEdit;
+type YouTubeWebSubComedianFlag =
+    | "youtubeLiveFeedEnabled"
+    | "youtubeLiveNotificationsEnabled";
 
 type ManualImageUrls = {
     headshot: string;
@@ -197,6 +200,7 @@ export default function AdminComedianManager({ comedians }: Props) {
         Record<number, string>
     >({});
     const [pendingId, setPendingId] = useState<number | null>(null);
+    const [savingWebSubKey, setSavingWebSubKey] = useState<string | null>(null);
     const [imageStatusByRow, setImageStatusByRow] = useState<
         Record<number, { kind: "ok" | "error"; message: string }>
     >({});
@@ -588,6 +592,59 @@ export default function AdminComedianManager({ comedians }: Props) {
         setStatus({
             kind: "ok",
             message: `${row.name} removed from blocklist.`,
+        });
+        startTransition(() => router.refresh());
+    }
+
+    async function saveYouTubeWebSubFlag(
+        row: AdminComedianListItem,
+        flag: YouTubeWebSubComedianFlag,
+        value: boolean,
+    ) {
+        const key = `${row.uuid}:${flag}`;
+        setSavingWebSubKey(key);
+        setStatus({ kind: "idle" });
+
+        let res: Response;
+        try {
+            res = await fetch(
+                `/api/admin/youtube-websub/comedians/${encodeURIComponent(row.uuid)}`,
+                {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ [flag]: value }),
+                },
+            );
+        } catch (error) {
+            setSavingWebSubKey(null);
+            setStatus({
+                kind: "error",
+                message:
+                    error instanceof Error ? error.message : "Network error",
+            });
+            return;
+        }
+
+        setSavingWebSubKey(null);
+        if (!res.ok) {
+            const body = await res.json().catch(() => ({}));
+            setStatus({
+                kind: "error",
+                message: body.error ?? `Request failed (${res.status})`,
+            });
+            return;
+        }
+
+        setRows((current) =>
+            current.map((currentRow) =>
+                currentRow.uuid === row.uuid
+                    ? { ...currentRow, [flag]: value }
+                    : currentRow,
+            ),
+        );
+        setStatus({
+            kind: "ok",
+            message: `${row.name} YouTube WebSub flag saved.`,
         });
         startTransition(() => router.refresh());
     }
@@ -1595,6 +1652,103 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                             className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
                                                         />
                                                     </label>
+                                                    <div className="rounded-md border border-copper/20 bg-white p-3">
+                                                        <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                            YouTube WebSub
+                                                        </div>
+                                                        <div className="mt-2 grid gap-2 font-dmSans text-caption text-soft-charcoal sm:grid-cols-2">
+                                                            <div>
+                                                                <span className="font-semibold text-cedar">
+                                                                    Subscription
+                                                                </span>{" "}
+                                                                {row.subscriptionStatus ??
+                                                                    "none"}
+                                                            </div>
+                                                            <div>
+                                                                <span className="font-semibold text-cedar">
+                                                                    Recent event
+                                                                </span>{" "}
+                                                                {row.recentEventStatus ??
+                                                                    "none"}
+                                                            </div>
+                                                            {row.lastSubscribeError ? (
+                                                                <div className="sm:col-span-2 text-red-700">
+                                                                    {
+                                                                        row.lastSubscribeError
+                                                                    }
+                                                                </div>
+                                                            ) : null}
+                                                        </div>
+                                                        <div className="mt-3 flex flex-wrap gap-3">
+                                                            <label className="inline-flex w-fit items-center gap-2 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body font-semibold text-cedar">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={
+                                                                        row.youtubeLiveFeedEnabled ??
+                                                                        false
+                                                                    }
+                                                                    disabled={
+                                                                        disabled ||
+                                                                        !row.youtubeChannelId ||
+                                                                        savingWebSubKey ===
+                                                                            `${row.uuid}:youtubeLiveFeedEnabled`
+                                                                    }
+                                                                    onChange={(
+                                                                        event,
+                                                                    ) =>
+                                                                        void saveYouTubeWebSubFlag(
+                                                                            row,
+                                                                            "youtubeLiveFeedEnabled",
+                                                                            event
+                                                                                .target
+                                                                                .checked,
+                                                                        )
+                                                                    }
+                                                                    aria-label={`Live feed for ${row.name}`}
+                                                                    className="h-4 w-4 accent-copper-dark disabled:accent-soft-charcoal"
+                                                                />
+                                                                Live feed
+                                                            </label>
+                                                            <label className="inline-flex w-fit items-center gap-2 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body font-semibold text-cedar">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={
+                                                                        row.youtubeLiveNotificationsEnabled ??
+                                                                        false
+                                                                    }
+                                                                    disabled={
+                                                                        disabled ||
+                                                                        !row.youtubeChannelId ||
+                                                                        savingWebSubKey ===
+                                                                            `${row.uuid}:youtubeLiveNotificationsEnabled`
+                                                                    }
+                                                                    onChange={(
+                                                                        event,
+                                                                    ) =>
+                                                                        void saveYouTubeWebSubFlag(
+                                                                            row,
+                                                                            "youtubeLiveNotificationsEnabled",
+                                                                            event
+                                                                                .target
+                                                                                .checked,
+                                                                        )
+                                                                    }
+                                                                    aria-label={`Notifications for ${row.name}`}
+                                                                    className="h-4 w-4 accent-copper-dark disabled:accent-soft-charcoal"
+                                                                />
+                                                                Notifications
+                                                            </label>
+                                                            {!row.youtubeChannelId ? (
+                                                                <span className="self-center font-dmSans text-caption text-soft-charcoal">
+                                                                    Add a
+                                                                    YouTube
+                                                                    channel ID
+                                                                    to enable
+                                                                    WebSub.
+                                                                </span>
+                                                            ) : null}
+                                                        </div>
+                                                    </div>
                                                     <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
                                                         Linktree
                                                         <input

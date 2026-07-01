@@ -24,6 +24,11 @@ describe("AdminNavigationMenu", () => {
         expect(
             screen.getByRole("link", { name: /Podcasts/ }).getAttribute("href"),
         ).toBe("/admin/podcasts");
+        expect(
+            screen
+                .getByRole("link", { name: /Feature Flags/ })
+                .getAttribute("href"),
+        ).toBe("/admin/feature-flags");
 
         fireEvent.pointerDown(document.body);
 

@@ -35,7 +35,14 @@ const comedians: AdminComedianListItem[] = [
         instagramAccount: "parentcomic",
         tiktokAccount: null,
         youtubeAccount: null,
-        youtubeChannelId: null,
+        youtubeChannelId: "UC-parent",
+        youtubeLiveFeedEnabled: false,
+        youtubeLiveNotificationsEnabled: true,
+        subscriptionStatus: "subscribed",
+        leaseExpiresAt: "2026-07-05T00:00:00.000Z",
+        lastSubscribeError: null,
+        recentEventStatus: "received",
+        recentEventAt: "2026-06-29T00:00:00.000Z",
         linktree: null,
         hasImage: true,
         activeImageAsset: {
@@ -958,6 +965,38 @@ describe("AdminComedianManager", () => {
                         youtubeChannelId: "UC-alias-channel",
                         linktree: "https://linktr.ee/alias",
                     }),
+                }),
+            );
+        });
+    });
+
+    it("renders and saves YouTube WebSub flags inside the comedian row", async () => {
+        vi.mocked(global.fetch).mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
+                ok: true,
+                comedian: {
+                    uuid: "uuid-1",
+                    youtubeLiveFeedEnabled: true,
+                    youtubeLiveNotificationsEnabled: true,
+                },
+            }),
+        } as never);
+        render(<AdminComedianManager comedians={comedians} />);
+        expandAllRows();
+
+        expect(screen.getAllByText("YouTube WebSub").length).toBeGreaterThan(0);
+        expect(screen.getByText("subscribed")).toBeTruthy();
+        expect(screen.getByText("received")).toBeTruthy();
+
+        fireEvent.click(screen.getByLabelText("Live feed for Parent Comic"));
+
+        await waitFor(() => {
+            expect(global.fetch).toHaveBeenCalledWith(
+                "/api/admin/youtube-websub/comedians/uuid-1",
+                expect.objectContaining({
+                    method: "PATCH",
+                    body: JSON.stringify({ youtubeLiveFeedEnabled: true }),
                 }),
             );
         });
