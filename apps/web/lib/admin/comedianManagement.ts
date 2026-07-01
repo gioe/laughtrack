@@ -22,6 +22,13 @@ export type AdminComedianListItem = {
     tiktokAccount: string | null;
     youtubeAccount: string | null;
     youtubeChannelId: string | null;
+    youtubeLiveFeedEnabled?: boolean;
+    youtubeLiveNotificationsEnabled?: boolean;
+    subscriptionStatus?: string | null;
+    leaseExpiresAt?: string | null;
+    lastSubscribeError?: string | null;
+    recentEventStatus?: string | null;
+    recentEventAt?: string | null;
     linktree: string | null;
     hasImage: boolean;
     activeImageAsset: {
@@ -121,6 +128,22 @@ export async function listAdminComedians(): Promise<AdminComedianListResult> {
                 tiktokAccount: true,
                 youtubeAccount: true,
                 youtubeChannelId: true,
+                youtubeLiveFeedEnabled: true,
+                youtubeLiveNotificationsEnabled: true,
+                youtubeWebSubSubscriptions: {
+                    select: {
+                        status: true,
+                        leaseExpiresAt: true,
+                        lastSubscribeError: true,
+                    },
+                    orderBy: { updatedAt: "desc" },
+                    take: 1,
+                },
+                youtubeWebSubEvents: {
+                    select: { eventStatus: true, receivedAt: true },
+                    orderBy: { receivedAt: "desc" },
+                    take: 1,
+                },
                 linktree: true,
                 hasImage: true,
                 imageAssets: {
@@ -279,6 +302,8 @@ export async function listAdminComedians(): Promise<AdminComedianListResult> {
             const latestTicketUrl =
                 latestTicketShow?.tickets[0]?.purchaseUrl ?? null;
             const activeImageAsset = comedian.imageAssets[0] ?? null;
+            const subscription = comedian.youtubeWebSubSubscriptions[0] ?? null;
+            const recentEvent = comedian.youtubeWebSubEvents[0] ?? null;
             const imageUrls = buildComedianImageUrls({
                 name: comedian.name,
                 hasImage: comedian.hasImage,
@@ -295,6 +320,14 @@ export async function listAdminComedians(): Promise<AdminComedianListResult> {
                 tiktokAccount: comedian.tiktokAccount,
                 youtubeAccount: comedian.youtubeAccount,
                 youtubeChannelId: comedian.youtubeChannelId,
+                youtubeLiveFeedEnabled: comedian.youtubeLiveFeedEnabled,
+                youtubeLiveNotificationsEnabled:
+                    comedian.youtubeLiveNotificationsEnabled,
+                subscriptionStatus: subscription?.status ?? null,
+                leaseExpiresAt: serializeDate(subscription?.leaseExpiresAt),
+                lastSubscribeError: subscription?.lastSubscribeError ?? null,
+                recentEventStatus: recentEvent?.eventStatus ?? null,
+                recentEventAt: serializeDate(recentEvent?.receivedAt),
                 linktree: comedian.linktree,
                 hasImage: comedian.hasImage,
                 activeImageAsset: activeImageAsset

@@ -127,10 +127,11 @@ interface ComediansApi {
      * @param page Zero-indexed page number (optional)
      * @param size  (optional)
      * @param includeEmpty Include comedians with no upcoming shows (optional)
+     * @param homeCity Filter to comedians whose home city matches this &#39;city|state&#39; token (from the values in homeCityFilters). (optional)
      * @param xTimezone IANA timezone identifier (defaults to UTC) (optional, default to "UTC")
      * @return [ComedianSearchResponse]
      */
     @GET("comedians/search")
-    suspend fun searchComedians(@Query("comedian") comedian: kotlin.String? = null, @Query("sort") sort: kotlin.String? = null, @Query("filters") filters: kotlin.String? = null, @Query("page") page: kotlin.Int? = null, @Query("size") size: kotlin.Int? = null, @Query("includeEmpty") includeEmpty: kotlin.String? = null, @Header("X-Timezone") xTimezone: kotlin.String? = "UTC"): Response<ComedianSearchResponse>
+    suspend fun searchComedians(@Query("comedian") comedian: kotlin.String? = null, @Query("sort") sort: kotlin.String? = null, @Query("filters") filters: kotlin.String? = null, @Query("page") page: kotlin.Int? = null, @Query("size") size: kotlin.Int? = null, @Query("includeEmpty") includeEmpty: kotlin.String? = null, @Query("homeCity") homeCity: kotlin.String? = null, @Header("X-Timezone") xTimezone: kotlin.String? = "UTC"): Response<ComedianSearchResponse>
 
 }

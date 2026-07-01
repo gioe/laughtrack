@@ -1936,6 +1936,37 @@ public enum Components {
                 case selected
             }
         }
+        /// A selectable comedian home-city option. 'value' is the 'city|state' token to pass back as the homeCity query param; 'label' is the human-readable city; 'count' is the number of matching comedians.
+        ///
+        /// - Remark: Generated from `#/components/schemas/HomeCityFilter`.
+        public struct HomeCityFilter: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/HomeCityFilter/value`.
+            public var value: Swift.String
+            /// - Remark: Generated from `#/components/schemas/HomeCityFilter/label`.
+            public var label: Swift.String
+            /// - Remark: Generated from `#/components/schemas/HomeCityFilter/count`.
+            public var count: Swift.Int
+            /// Creates a new `HomeCityFilter`.
+            ///
+            /// - Parameters:
+            ///   - value:
+            ///   - label:
+            ///   - count:
+            public init(
+                value: Swift.String,
+                label: Swift.String,
+                count: Swift.Int
+            ) {
+                self.value = value
+                self.label = label
+                self.count = count
+            }
+            public enum CodingKeys: String, CodingKey {
+                case value
+                case label
+                case count
+            }
+        }
         /// - Remark: Generated from `#/components/schemas/Ticket`.
         public struct Ticket: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/Ticket/price`.
@@ -3418,25 +3449,33 @@ public enum Components {
             public var total: Swift.Int
             /// - Remark: Generated from `#/components/schemas/ComedianSearchResponse/filters`.
             public var filters: [Components.Schemas.Filter]
+            /// Available comedian home-city filter options. Empty when no home-location data qualifies; clients omit the control in that case.
+            ///
+            /// - Remark: Generated from `#/components/schemas/ComedianSearchResponse/homeCityFilters`.
+            public var homeCityFilters: [Components.Schemas.HomeCityFilter]
             /// Creates a new `ComedianSearchResponse`.
             ///
             /// - Parameters:
             ///   - data:
             ///   - total:
             ///   - filters:
+            ///   - homeCityFilters: Available comedian home-city filter options. Empty when no home-location data qualifies; clients omit the control in that case.
             public init(
                 data: [Components.Schemas.ComedianSearchItem],
                 total: Swift.Int,
-                filters: [Components.Schemas.Filter]
+                filters: [Components.Schemas.Filter],
+                homeCityFilters: [Components.Schemas.HomeCityFilter]
             ) {
                 self.data = data
                 self.total = total
                 self.filters = filters
+                self.homeCityFilters = homeCityFilters
             }
             public enum CodingKeys: String, CodingKey {
                 case data
                 case total
                 case filters
+                case homeCityFilters
             }
         }
         /// - Remark: Generated from `#/components/schemas/ZipLookupResponse`.
@@ -8603,6 +8642,10 @@ public enum Operations {
                 ///
                 /// - Remark: Generated from `#/paths/comedians/search/GET/query/includeEmpty`.
                 public var includeEmpty: Swift.String?
+                /// Filter to comedians whose home city matches this 'city|state' token (from the values in homeCityFilters).
+                ///
+                /// - Remark: Generated from `#/paths/comedians/search/GET/query/homeCity`.
+                public var homeCity: Swift.String?
                 /// Creates a new `Query`.
                 ///
                 /// - Parameters:
@@ -8612,13 +8655,15 @@ public enum Operations {
                 ///   - page: Zero-indexed page number
                 ///   - size:
                 ///   - includeEmpty: Include comedians with no upcoming shows
+                ///   - homeCity: Filter to comedians whose home city matches this 'city|state' token (from the values in homeCityFilters).
                 public init(
                     comedian: Swift.String? = nil,
                     sort: Swift.String? = nil,
                     filters: Swift.String? = nil,
                     page: Swift.Int? = nil,
                     size: Swift.Int? = nil,
-                    includeEmpty: Swift.String? = nil
+                    includeEmpty: Swift.String? = nil,
+                    homeCity: Swift.String? = nil
                 ) {
                     self.comedian = comedian
                     self.sort = sort
@@ -8626,6 +8671,7 @@ public enum Operations {
                     self.page = page
                     self.size = size
                     self.includeEmpty = includeEmpty
+                    self.homeCity = homeCity
                 }
             }
             public var query: Operations.SearchComedians.Input.Query

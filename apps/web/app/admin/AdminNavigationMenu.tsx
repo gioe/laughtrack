@@ -3,6 +3,7 @@
 import {
     Activity,
     Building2,
+    Flag,
     Menu,
     Podcast,
     Radio,
@@ -45,6 +46,12 @@ const ADMIN_NAV_ITEMS: AdminNavItem[] = [
         href: "/admin/api-requests",
         description: "Request metrics by route",
         icon: Activity,
+    },
+    {
+        label: "Feature Flags",
+        href: "/admin/feature-flags",
+        description: "Rollout switches",
+        icon: Flag,
     },
     {
         label: "Comedians",

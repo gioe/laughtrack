@@ -35,7 +35,14 @@ const comedians: AdminComedianListItem[] = [
         instagramAccount: "parentcomic",
         tiktokAccount: null,
         youtubeAccount: null,
-        youtubeChannelId: null,
+        youtubeChannelId: "UC-parent",
+        youtubeLiveFeedEnabled: false,
+        youtubeLiveNotificationsEnabled: true,
+        subscriptionStatus: "subscribed",
+        leaseExpiresAt: "2026-07-05T00:00:00.000Z",
+        lastSubscribeError: null,
+        recentEventStatus: "received",
+        recentEventAt: "2026-06-29T00:00:00.000Z",
         linktree: null,
         hasImage: true,
         activeImageAsset: {
@@ -139,6 +146,24 @@ function expandAllRows() {
         .forEach((toggle) => fireEvent.click(toggle));
 }
 
+function expandAllSocialSections() {
+    screen
+        .queryAllByRole("button", { name: /^Social media/ })
+        .forEach((toggle) => {
+            if (toggle.getAttribute("aria-expanded") === "false") {
+                fireEvent.click(toggle);
+            }
+        });
+}
+
+function expandAllPodcastSections() {
+    screen.queryAllByRole("button", { name: /^Podcast/ }).forEach((toggle) => {
+        if (toggle.getAttribute("aria-expanded") === "false") {
+            fireEvent.click(toggle);
+        }
+    });
+}
+
 beforeEach(() => {
     vi.clearAllMocks();
     global.fetch = vi.fn().mockResolvedValue({
@@ -178,6 +203,9 @@ describe("AdminComedianManager", () => {
         render(<AdminComedianManager comedians={comedians} />);
         expandAllRows();
 
+        expect(
+            screen.getAllByRole("button", { name: /^Current image/ }).length,
+        ).toBeGreaterThan(0);
         expect(screen.getByText("Active asset")).toBeTruthy();
         expect(screen.getAllByText("Current image").length).toBeGreaterThan(0);
         expect(screen.getAllByText("No current image").length).toBeGreaterThan(
@@ -209,6 +237,52 @@ describe("AdminComedianManager", () => {
         expect(
             screen.getByAltText("Parent Comic headshot").getAttribute("src"),
         ).toBe("https://test.b-cdn.net/comedian-images/1/avatar.jpg");
+    });
+
+    it("keeps social media details collapsed until the Social media section is opened", () => {
+        render(<AdminComedianManager comedians={comedians} />);
+        expandAllRows();
+
+        const socialToggle = screen.getAllByRole("button", {
+            name: /^Social media/,
+        })[0];
+        expect(socialToggle.getAttribute("aria-expanded")).toBe("false");
+        expect(screen.queryByLabelText("Comedian website")).toBeNull();
+        expect(screen.queryByLabelText("Comedian Instagram handle")).toBeNull();
+        expect(screen.queryByText("YouTube WebSub")).toBeNull();
+
+        fireEvent.click(socialToggle);
+
+        expect(
+            screen.getAllByLabelText("Comedian website").length,
+        ).toBeGreaterThan(0);
+        expect(
+            screen.getAllByLabelText("Comedian Instagram handle").length,
+        ).toBeGreaterThan(0);
+        expect(screen.getAllByText("YouTube WebSub").length).toBeGreaterThan(0);
+    });
+
+    it("keeps podcast details collapsed until the Podcast section is opened", () => {
+        render(<AdminComedianManager comedians={comedians} />);
+        expandAllRows();
+
+        const podcastToggle = screen.getAllByRole("button", {
+            name: /^Podcast \(1 attributed, 1 pending\)/,
+        })[0];
+        expect(podcastToggle.getAttribute("aria-expanded")).toBe("false");
+        expect(screen.queryByText("Podcast RSS")).toBeNull();
+        expect(screen.queryByText("Podcast host reviews")).toBeNull();
+        expect(
+            screen.queryByLabelText("RSS feed for Parent Podcast"),
+        ).toBeNull();
+
+        fireEvent.click(podcastToggle);
+
+        expect(screen.getByText("Podcast RSS")).toBeTruthy();
+        expect(screen.getByText("Podcast host reviews")).toBeTruthy();
+        expect(
+            screen.getByLabelText("RSS feed for Parent Podcast"),
+        ).toBeTruthy();
     });
 
     it("uploads a headshot URL without requiring a hero", async () => {
@@ -639,6 +713,7 @@ describe("AdminComedianManager", () => {
         } as never);
         render(<AdminComedianManager comedians={comedians} />);
         expandAllRows();
+        expandAllSocialSections();
 
         const websiteInput = screen.getAllByLabelText("Comedian website")[0];
         fireEvent.change(websiteInput, {
@@ -725,6 +800,9 @@ describe("AdminComedianManager", () => {
     it("saves a parent relationship", async () => {
         render(<AdminComedianManager comedians={comedians} />);
         expandAllRows();
+        fireEvent.click(
+            screen.getAllByRole("button", { name: /^Relationship/ })[0],
+        );
 
         const parentInputs =
             screen.getAllByPlaceholderText("Search parent name");
@@ -757,7 +835,7 @@ describe("AdminComedianManager", () => {
         await waitFor(() => expect(mocks.refresh).toHaveBeenCalled());
     });
 
-    it("nests children under the parent's Children sub-dropdown instead of as top-level rows", () => {
+    it("groups parent selection and children under one Relationship dropdown", () => {
         render(
             <AdminComedianManager
                 comedians={[
@@ -778,17 +856,20 @@ describe("AdminComedianManager", () => {
             screen.queryByRole("heading", { level: 2, name: "Alias Comic" }),
         ).toBeNull();
 
-        // Expand the parent and the Children sub-dropdown.
+        // Expand the parent and the Relationship sub-dropdown.
         expandAllRows();
-        fireEvent.click(screen.getByRole("button", { name: /^Children/ }));
+        fireEvent.click(screen.getByRole("button", { name: /^Relationship/ }));
 
+        expect(screen.getByText("Current parent")).toBeTruthy();
+        expect(screen.getByText("Find parent")).toBeTruthy();
         expect(screen.getByText("Alias Comic")).toBeTruthy();
         expect(
             screen.getByRole("button", { name: "Remove parent" }),
         ).toBeTruthy();
+        expect(screen.queryByRole("button", { name: /^Children/ })).toBeNull();
     });
 
-    it("removes a child parent relationship via the Children sub-dropdown and promotes the child to the top level", async () => {
+    it("removes a child parent relationship via the Relationship dropdown and promotes the child to the top level", async () => {
         vi.mocked(global.fetch).mockResolvedValueOnce({
             ok: true,
             json: async () => ({
@@ -811,7 +892,7 @@ describe("AdminComedianManager", () => {
             />,
         );
         expandAllRows();
-        fireEvent.click(screen.getByRole("button", { name: /^Children/ }));
+        fireEvent.click(screen.getByRole("button", { name: /^Relationship/ }));
 
         fireEvent.click(screen.getByRole("button", { name: "Remove parent" }));
 
@@ -862,6 +943,7 @@ describe("AdminComedianManager", () => {
             />,
         );
         expandAllRows();
+        expandAllSocialSections();
 
         const nameInputs = screen.getAllByLabelText("Comedian name");
         fireEvent.change(nameInputs[0], {
@@ -918,6 +1000,7 @@ describe("AdminComedianManager", () => {
         } as never);
         render(<AdminComedianManager comedians={comedians} />);
         expandAllRows();
+        expandAllSocialSections();
 
         fireEvent.change(
             screen.getAllByLabelText("Comedian Instagram handle")[0],
@@ -963,6 +1046,39 @@ describe("AdminComedianManager", () => {
         });
     });
 
+    it("renders and saves YouTube WebSub flags inside the comedian row", async () => {
+        vi.mocked(global.fetch).mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
+                ok: true,
+                comedian: {
+                    uuid: "uuid-1",
+                    youtubeLiveFeedEnabled: true,
+                    youtubeLiveNotificationsEnabled: true,
+                },
+            }),
+        } as never);
+        render(<AdminComedianManager comedians={comedians} />);
+        expandAllRows();
+        expandAllSocialSections();
+
+        expect(screen.getAllByText("YouTube WebSub").length).toBeGreaterThan(0);
+        expect(screen.getByText("subscribed")).toBeTruthy();
+        expect(screen.getByText("received")).toBeTruthy();
+
+        fireEvent.click(screen.getByLabelText("Live feed for Parent Comic"));
+
+        await waitFor(() => {
+            expect(global.fetch).toHaveBeenCalledWith(
+                "/api/admin/youtube-websub/comedians/uuid-1",
+                expect.objectContaining({
+                    method: "PATCH",
+                    body: JSON.stringify({ youtubeLiveFeedEnabled: true }),
+                }),
+            );
+        });
+    });
+
     it("lets comedian rows collapse and expand", () => {
         render(<AdminComedianManager comedians={comedians} />);
 
@@ -981,7 +1097,10 @@ describe("AdminComedianManager", () => {
 
         expect(toggle.getAttribute("aria-expanded")).toBe("true");
         expect(panel!.hidden).toBe(false);
-        expect(within(panel!).getByText("Podcast RSS")).toBeTruthy();
+        expect(
+            within(panel!).getByRole("button", { name: /^Podcast/ }),
+        ).toBeTruthy();
+        expect(within(panel!).queryByText("Podcast RSS")).toBeNull();
 
         fireEvent.click(toggle);
 
@@ -1009,6 +1128,7 @@ describe("AdminComedianManager", () => {
         } as never);
         render(<AdminComedianManager comedians={comedians} />);
         expandAllRows();
+        expandAllPodcastSections();
 
         expect(screen.getAllByText("Parent Podcast").length).toBeGreaterThan(0);
         expect(
@@ -1065,6 +1185,7 @@ describe("AdminComedianManager", () => {
         } as never);
         render(<AdminComedianManager comedians={comedians} />);
         expandAllRows();
+        expandAllPodcastSections();
 
         fireEvent.click(
             screen.getAllByRole("button", { name: "Remove RSS" })[0],
@@ -1101,6 +1222,7 @@ describe("AdminComedianManager", () => {
         } as never);
         render(<AdminComedianManager comedians={comedians} />);
         expandAllRows();
+        expandAllPodcastSections();
 
         const input = screen.getByLabelText("RSS feed URL for Alias Comic");
         fireEvent.change(input, {
@@ -1158,6 +1280,7 @@ describe("AdminComedianManager", () => {
             />,
         );
         expandAllRows();
+        expandAllPodcastSections();
 
         expect(screen.getByText("1 podcasts")).toBeTruthy();
         expect(screen.getAllByText("Wild Ride! with Steve-O")).toHaveLength(1);
@@ -1190,6 +1313,7 @@ describe("AdminComedianManager", () => {
         } as never);
         render(<AdminComedianManager comedians={comedians} />);
         expandAllRows();
+        expandAllPodcastSections();
 
         expect(screen.getByText("Podcast host reviews")).toBeTruthy();
         expect(screen.getByText("Candidate Podcast")).toBeTruthy();
@@ -1235,6 +1359,7 @@ describe("AdminComedianManager", () => {
         } as never);
         render(<AdminComedianManager comedians={comedians} />);
         expandAllRows();
+        expandAllPodcastSections();
 
         expect(
             screen.queryByRole("button", { name: "Block podcast" }),

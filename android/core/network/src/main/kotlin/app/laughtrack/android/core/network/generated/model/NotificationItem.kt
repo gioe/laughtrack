@@ -32,6 +32,7 @@ import kotlinx.serialization.Contextual
  * @param channels Delivery channels that fired for this event, e.g. [\"push\", \"email\"].
  * @param sentAt ISO-8601 timestamp of the most recent delivery in the group.
  * @param isUnread Whether this item's latest send is newer than the last-seen mark.
+ * @param comedianImageUrl Avatar image URL for the comedian, or an empty string when unavailable.
  * @param showPageUrl Canonical show page URL.
  * @param showDate ISO-8601 show date; null if the show row was purged.
  * @param clubName Venue name.
@@ -77,6 +78,10 @@ data class NotificationItem (
     /* Whether this item's latest send is newer than the last-seen mark. */
     @SerialName(value = "isUnread")
     val isUnread: kotlin.Boolean,
+
+    /* Avatar image URL for the comedian, or an empty string when unavailable. */
+    @SerialName(value = "comedianImageUrl")
+    val comedianImageUrl: kotlin.String? = null,
 
     /* Canonical show page URL. */
     @SerialName(value = "showPageUrl")

@@ -1013,6 +1013,12 @@
             "schema": { "type": "string" }
           },
           {
+            "name": "homeCity",
+            "in": "query",
+            "description": "Filter to comedians whose home city matches this 'city|state' token (from the values in homeCityFilters).",
+            "schema": { "type": "string" }
+          },
+          {
             "name": "X-Timezone",
             "in": "header",
             "description": "IANA timezone identifier (defaults to UTC)",
@@ -2951,6 +2957,16 @@
           "selected": { "type": "boolean" }
         }
       },
+      "HomeCityFilter": {
+        "type": "object",
+        "description": "A selectable comedian home-city option. 'value' is the 'city|state' token to pass back as the homeCity query param; 'label' is the human-readable city; 'count' is the number of matching comedians.",
+        "required": ["value", "label", "count"],
+        "properties": {
+          "value": { "type": "string" },
+          "label": { "type": "string" },
+          "count": { "type": "integer" }
+        }
+      },
       "Ticket": {
         "type": "object",
         "properties": {
@@ -3357,7 +3373,7 @@
       },
       "ComedianSearchResponse": {
         "type": "object",
-        "required": ["data", "total", "filters"],
+        "required": ["data", "total", "filters", "homeCityFilters"],
         "properties": {
           "data": {
             "type": "array",
@@ -3367,6 +3383,11 @@
           "filters": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/Filter" }
+          },
+          "homeCityFilters": {
+            "type": "array",
+            "description": "Available comedian home-city filter options. Empty when no home-location data qualifies; clients omit the control in that case.",
+            "items": { "$ref": "#/components/schemas/HomeCityFilter" }
           }
         }
       },

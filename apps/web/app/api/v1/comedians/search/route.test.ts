@@ -68,6 +68,9 @@ const mockSearchResult = {
     ],
     total: 1,
     filters: [{ id: 9, slug: "stand-up", name: "Stand-up", selected: false }],
+    homeCityFilters: [
+        { value: "New York|NY", label: "New York, NY", count: 12 },
+    ],
 };
 
 beforeEach(() => {
@@ -106,6 +109,25 @@ describe("GET /api/v1/comedians/search", () => {
         expect(body.data[0].socialData.instagramFollowers).toBe(
             1000000,
         );
+    });
+
+    it("threads the homeCity token to the search helper and returns homeCityFilters", async () => {
+        mockResolveAuth.mockResolvedValue("PROFILE_MISSING");
+        mockGetSearchedComedians.mockResolvedValue(mockSearchResult as never);
+
+        const res = await GET(makeRequest({ homeCity: "New York|NY" }));
+        const body = await res.json();
+
+        expect(res.status).toBe(200);
+        expectOpenApiResponse("/comedians/search", 200, body);
+        expect(mockGetSearchedComedians).toHaveBeenCalledWith(
+            expect.objectContaining({
+                params: expect.objectContaining({ homeCity: "New York|NY" }),
+            }),
+        );
+        expect(body.homeCityFilters).toEqual([
+            { value: "New York|NY", label: "New York, NY", count: 12 },
+        ]);
     });
 
     it("degrades PROFILE_MISSING to anonymous search", async () => {

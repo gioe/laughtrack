@@ -25,6 +25,17 @@ type ComedianSnapshot = {
     tiktokAccount: string | null;
     youtubeAccount: string | null;
     youtubeChannelId: string | null;
+    youtubeLiveFeedEnabled?: boolean;
+    youtubeLiveNotificationsEnabled?: boolean;
+    youtubeWebSubSubscriptions?: Array<{
+        status: string;
+        leaseExpiresAt: Date | null;
+        lastSubscribeError: string | null;
+    }>;
+    youtubeWebSubEvents?: Array<{
+        eventStatus: string;
+        receivedAt: Date;
+    }>;
     linktree: string | null;
     hasImage: boolean;
     imageAssets: Array<{
@@ -227,6 +238,22 @@ function snapshotForAudit(comedian: ComedianSnapshot) {
         tiktokAccount: comedian.tiktokAccount,
         youtubeAccount: comedian.youtubeAccount,
         youtubeChannelId: comedian.youtubeChannelId,
+        youtubeLiveFeedEnabled: comedian.youtubeLiveFeedEnabled,
+        youtubeLiveNotificationsEnabled:
+            comedian.youtubeLiveNotificationsEnabled,
+        subscriptionStatus:
+            comedian.youtubeWebSubSubscriptions?.[0]?.status ?? null,
+        leaseExpiresAt: serializeDate(
+            comedian.youtubeWebSubSubscriptions?.[0]?.leaseExpiresAt,
+        ),
+        lastSubscribeError:
+            comedian.youtubeWebSubSubscriptions?.[0]?.lastSubscribeError ??
+            null,
+        recentEventStatus:
+            comedian.youtubeWebSubEvents?.[0]?.eventStatus ?? null,
+        recentEventAt: serializeDate(
+            comedian.youtubeWebSubEvents?.[0]?.receivedAt,
+        ),
         linktree: comedian.linktree,
         hasImage: Boolean(comedian.hasImage),
         activeImageAsset: comedian.imageAssets?.[0] ?? null,
@@ -361,6 +388,22 @@ const comedianSnapshotSelect = {
     tiktokAccount: true,
     youtubeAccount: true,
     youtubeChannelId: true,
+    youtubeLiveFeedEnabled: true,
+    youtubeLiveNotificationsEnabled: true,
+    youtubeWebSubSubscriptions: {
+        select: {
+            status: true,
+            leaseExpiresAt: true,
+            lastSubscribeError: true,
+        },
+        orderBy: { updatedAt: "desc" },
+        take: 1,
+    },
+    youtubeWebSubEvents: {
+        select: { eventStatus: true, receivedAt: true },
+        orderBy: { receivedAt: "desc" },
+        take: 1,
+    },
     linktree: true,
     hasImage: true,
     imageAssets: {

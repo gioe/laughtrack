@@ -42,6 +42,21 @@ function comedianRow(name: string) {
         tiktokAccount: null,
         youtubeAccount: null,
         youtubeChannelId: null,
+        youtubeLiveFeedEnabled: true,
+        youtubeLiveNotificationsEnabled: false,
+        youtubeWebSubSubscriptions: [
+            {
+                status: "subscribed",
+                leaseExpiresAt: new Date("2026-07-05T00:00:00.000Z"),
+                lastSubscribeError: null,
+            },
+        ],
+        youtubeWebSubEvents: [
+            {
+                eventStatus: "received",
+                receivedAt: new Date("2026-06-29T00:00:00.000Z"),
+            },
+        ],
         linktree: null,
         parentComedian: null,
         comedianPodcasts: [],
@@ -90,6 +105,14 @@ describe("listAdminComedians", () => {
         expect(mockFindMany).toHaveBeenCalledWith(
             expect.objectContaining({
                 select: expect.objectContaining({
+                    youtubeLiveFeedEnabled: true,
+                    youtubeLiveNotificationsEnabled: true,
+                    youtubeWebSubSubscriptions: expect.objectContaining({
+                        take: 1,
+                    }),
+                    youtubeWebSubEvents: expect.objectContaining({
+                        take: 1,
+                    }),
                     podcastCandidateReviews: expect.objectContaining({
                         where: { candidateStatus: "pending" },
                     }),
@@ -99,5 +122,24 @@ describe("listAdminComedians", () => {
                 }),
             }),
         );
+    });
+
+    it("maps YouTube WebSub state onto comedian rows", async () => {
+        mockFindMany.mockResolvedValueOnce([
+            comedianRow("WebSub Comic"),
+        ] as never);
+        mockQueryRaw.mockResolvedValueOnce([] as never);
+
+        const result = await listAdminComedians();
+
+        expect(result.comedians[0]).toMatchObject({
+            youtubeLiveFeedEnabled: true,
+            youtubeLiveNotificationsEnabled: false,
+            subscriptionStatus: "subscribed",
+            leaseExpiresAt: "2026-07-05T00:00:00.000Z",
+            lastSubscribeError: null,
+            recentEventStatus: "received",
+            recentEventAt: "2026-06-29T00:00:00.000Z",
+        });
     });
 });
