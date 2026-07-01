@@ -1762,6 +1762,34 @@ def _resolve_local_ref_sha(ref: str) -> str | None:
     return sha or None
 
 
+def _fast_forward_local_default_ref(default_branch: str, target_sha: str | None) -> bool:
+    """Move the local default-branch ref to the pushed no-checkout merge tip.
+
+    The no-checkout path pushes ``<feature>:<default>`` while the default
+    branch is checked out in another worktree. Git updates
+    ``refs/remotes/origin/<default>`` but leaves ``refs/heads/<default>`` where
+    it was, so the next task-worktree create sees the primary checkout as
+    behind origin. Updating the ref directly keeps future branch creation based
+    on the shipped tip without touching the other worktree's files or index.
+    """
+    if not target_sha:
+        return False
+    old_sha = _resolve_local_ref_sha(default_branch)
+    args = ["git", "update-ref", f"refs/heads/{default_branch}", target_sha]
+    if old_sha:
+        args.append(old_sha)
+    result = run(args, check=False)
+    if result.returncode == 0:
+        return True
+    detail = result.stderr.strip() or result.stdout.strip() or "unknown error"
+    print(
+        f"Warning: pushed origin/{default_branch} but could not fast-forward "
+        f"local {default_branch} to {target_sha}: {detail}",
+        file=sys.stderr,
+    )
+    return False
+
+
 def _resolve_merge_base(feature_branch: str, default_branch: str) -> str | None:
     """Return the merge-base of ``feature_branch`` and the default-branch tip.
 
@@ -2200,6 +2228,7 @@ def _complete_no_checkout_fast_forward(
         f"no-checkout fast-forward push from {branch_name} to {default_branch}.",
         file=sys.stderr,
     )
+    pushed_no_checkout = False
     if use_rebase:
         rebase_target = f"origin/{default_branch}"
         print(f"Rebasing {branch_name} onto {rebase_target}...", file=sys.stderr)
@@ -2363,6 +2392,7 @@ def _complete_no_checkout_fast_forward(
                 check=False,
             )
             if result.returncode == 0:
+                pushed_no_checkout = True
                 break
             if (
                 use_rebase
@@ -2473,6 +2503,8 @@ def _complete_no_checkout_fast_forward(
     # ref (no-checkout pushes don't rewrite SHAs; the local branch is the
     # source of truth). Issue #849.
     merge_commit_sha = _resolve_local_ref_sha(branch_name)
+    if pushed_no_checkout:
+        _fast_forward_local_default_ref(default_branch, merge_commit_sha)
     # Use the pre-push merge-base captured above. Re-resolving here would
     # collapse to the tip because origin/<default_branch> got advanced by
     # the push. Migration 72, TASK-452.
