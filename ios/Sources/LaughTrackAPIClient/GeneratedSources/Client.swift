@@ -2401,6 +2401,13 @@ public struct Client: APIProtocol {
                     name: "includeEmpty",
                     value: input.query.includeEmpty
                 )
+                try converter.setQueryItemAsURI(
+                    in: &request,
+                    style: .form,
+                    explode: true,
+                    name: "homeCity",
+                    value: input.query.homeCity
+                )
                 try converter.setHeaderFieldAsURI(
                     in: &request.headerFields,
                     name: "X-Timezone",
