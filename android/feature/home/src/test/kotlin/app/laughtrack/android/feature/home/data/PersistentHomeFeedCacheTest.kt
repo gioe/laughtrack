@@ -1,0 +1,84 @@
+package app.laughtrack.android.feature.home.data
+
+import app.laughtrack.android.core.network.generated.model.HomeFeed
+import app.laughtrack.android.core.network.generated.model.HomeFeedHero
+import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.TemporaryFolder
+import java.io.File
+
+/**
+ * Exercises the real disk-backed [PersistentHomeFeedCache] (not the fake used by
+ * HomeViewModelTest) via its internal directory constructor pointed at a temp
+ * folder — the project's plain-JVM test convention, no Robolectric. Covers the
+ * two cache lifecycle guarantees: stale-schema entries and undecodable files are
+ * both discarded on read so a poison file never fails every subsequent read.
+ */
+class PersistentHomeFeedCacheTest {
+    @get:Rule
+    val tmp = TemporaryFolder()
+
+    /** The cache stores one file per (zip, distance) under its [directory]. */
+    private fun newCache(): Pair<PersistentHomeFeedCache, File> {
+        val directory = tmp.newFolder("home-feed-cache")
+        val cache = PersistentHomeFeedCache(directory)
+        val entryFile = File(directory, "home-feed-default-default.json")
+        return cache to entryFile
+    }
+
+    @Test
+    fun get_discards_and_deletes_entry_with_mismatched_schema_version() =
+        runTest {
+            val (cache, entryFile) = newCache()
+            entryFile.parentFile!!.mkdirs()
+            // Well-formed, not-yet-expired entry, but tagged with a stale schema version.
+            entryFile.writeText(
+                """{"schemaVersion":"home-feed-v0-OLD","expiresAtMillis":${Long.MAX_VALUE},"feedJson":"{}"}""",
+            )
+
+            assertNull(cache.get(zip = null, distance = null))
+            assertFalse("stale-schema entry should be deleted on read", entryFile.exists())
+        }
+
+    @Test
+    fun get_deletes_corrupt_undecodable_cache_file() =
+        runTest {
+            val (cache, entryFile) = newCache()
+            entryFile.parentFile!!.mkdirs()
+            entryFile.writeText("this is not valid json at all {{{")
+
+            assertNull(cache.get(zip = null, distance = null))
+            assertFalse("corrupt file should be deleted so reads don't keep failing", entryFile.exists())
+        }
+
+    @Test
+    fun get_returns_a_valid_cached_feed_and_keeps_the_file() =
+        runTest {
+            // Positive control: proves the discard tests aren't passing vacuously
+            // (a get() that always returned null would fail here).
+            val (cache, entryFile) = newCache()
+            cache.set(zip = null, distance = null, feed = emptyFeed())
+
+            val loaded = cache.get(zip = null, distance = null)
+
+            assertEquals(emptyFeed(), loaded)
+            assertTrue("a valid current-schema entry must survive a read", entryFile.exists())
+        }
+
+    private fun emptyFeed(): HomeFeed =
+        HomeFeed(
+            hero = HomeFeedHero(shows = emptyList(), zipCode = "10001", city = "New York", state = "NY"),
+            trendingComedians = emptyList(),
+            comediansNearYou = emptyList(),
+            showsTonight = emptyList(),
+            moreNearYou = emptyList(),
+            trendingThisWeek = emptyList(),
+            trendingPodcasts = emptyList(),
+            popularClubs = emptyList(),
+        )
+}

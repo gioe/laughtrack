@@ -18,77 +18,82 @@ import javax.inject.Singleton
  * A [SCHEMA_VERSION] tag guards the payload: bumping it (after a HomeFeed model
  * change) makes stale entries fail validation and be discarded on the next read,
  * mirroring the iOS PersistentMainPageCache schema-version check.
+ *
+ * The primary constructor takes the storage [directory] directly so the disk
+ * logic is unit-testable against a temp folder; the Hilt [Inject] constructor
+ * resolves it from the app cache dir.
  */
 @Singleton
-class PersistentHomeFeedCache
+class PersistentHomeFeedCache internal constructor(
+    private val directory: File,
+) : HomeFeedCache {
     @Inject
     constructor(
         @ApplicationContext context: Context,
-    ) : HomeFeedCache {
-        private val directory = File(context.cacheDir, "LaughTrackHomeFeedCache")
+    ) : this(File(context.cacheDir, "LaughTrackHomeFeedCache"))
 
-        override suspend fun get(
-            zip: String?,
-            distance: Int?,
-        ): HomeFeed? =
-            withContext(Dispatchers.IO) {
-                val file = fileFor(zip, distance)
-                if (!file.exists()) return@withContext null
+    override suspend fun get(
+        zip: String?,
+        distance: Int?,
+    ): HomeFeed? =
+        withContext(Dispatchers.IO) {
+            val file = fileFor(zip, distance)
+            if (!file.exists()) return@withContext null
 
-                runCatching {
-                    val entry = json.decodeFromString<Entry>(file.readText())
-                    if (entry.schemaVersion != SCHEMA_VERSION ||
-                        entry.expiresAtMillis <= System.currentTimeMillis()
-                    ) {
-                        file.delete()
-                        null
-                    } else {
-                        json.decodeFromString<HomeFeed>(entry.feedJson)
-                    }
-                }.onFailure {
-                    // Corrupt/undecodable entry (e.g. model drift without a SCHEMA_VERSION
-                    // bump): drop the poison file so it doesn't fail every read until the
-                    // next successful set().
+            runCatching {
+                val entry = json.decodeFromString<Entry>(file.readText())
+                if (entry.schemaVersion != SCHEMA_VERSION ||
+                    entry.expiresAtMillis <= System.currentTimeMillis()
+                ) {
                     file.delete()
-                }.getOrNull()
-            }
-
-        override suspend fun set(
-            zip: String?,
-            distance: Int?,
-            feed: HomeFeed,
-        ) {
-            withContext(Dispatchers.IO) {
-                directory.mkdirs()
-                val entry =
-                    Entry(
-                        schemaVersion = SCHEMA_VERSION,
-                        expiresAtMillis = System.currentTimeMillis() + CACHE_TTL_MILLIS,
-                        feedJson = json.encodeToString(feed),
-                    )
-                fileFor(zip, distance).writeText(json.encodeToString(entry))
-            }
+                    null
+                } else {
+                    json.decodeFromString<HomeFeed>(entry.feedJson)
+                }
+            }.onFailure {
+                // Corrupt/undecodable entry (e.g. model drift without a SCHEMA_VERSION
+                // bump): drop the poison file so it doesn't fail every read until the
+                // next successful set().
+                file.delete()
+            }.getOrNull()
         }
 
-        private fun fileFor(
-            zip: String?,
-            distance: Int?,
-        ): File {
-            val zipPart = zip?.filter(Char::isDigit)?.takeIf { it.isNotBlank() } ?: "default"
-            val distancePart = distance?.toString() ?: "default"
-            return File(directory, "home-feed-$zipPart-$distancePart.json")
+    override suspend fun set(
+        zip: String?,
+        distance: Int?,
+        feed: HomeFeed,
+    ) {
+        withContext(Dispatchers.IO) {
+            directory.mkdirs()
+            val entry =
+                Entry(
+                    schemaVersion = SCHEMA_VERSION,
+                    expiresAtMillis = System.currentTimeMillis() + CACHE_TTL_MILLIS,
+                    feedJson = json.encodeToString(feed),
+                )
+            fileFor(zip, distance).writeText(json.encodeToString(entry))
         }
-
-        private companion object {
-            const val CACHE_TTL_MILLIS = 60L * 60L * 1000L
-            const val SCHEMA_VERSION = "home-feed-v1"
-            val json = Serializer.kotlinxSerializationJson
-        }
-
-        @Serializable
-        private data class Entry(
-            val schemaVersion: String,
-            val expiresAtMillis: Long,
-            val feedJson: String,
-        )
     }
+
+    private fun fileFor(
+        zip: String?,
+        distance: Int?,
+    ): File {
+        val zipPart = zip?.filter(Char::isDigit)?.takeIf { it.isNotBlank() } ?: "default"
+        val distancePart = distance?.toString() ?: "default"
+        return File(directory, "home-feed-$zipPart-$distancePart.json")
+    }
+
+    private companion object {
+        const val CACHE_TTL_MILLIS = 60L * 60L * 1000L
+        const val SCHEMA_VERSION = "home-feed-v1"
+        val json = Serializer.kotlinxSerializationJson
+    }
+
+    @Serializable
+    private data class Entry(
+        val schemaVersion: String,
+        val expiresAtMillis: Long,
+        val feedJson: String,
+    )
+}
