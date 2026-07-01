@@ -195,10 +195,11 @@ private const val SORT_EARLIEST = "date_asc"
 
 /**
  * Pure mapping from a Home shortcut seed to the Shows-pivot query, carrying the
- * seed's location (zip/distance) and layering the shortcut's date window on top:
- * Tonight = [today, today+1), This Week = [today, today+7), Near Me = no date
- * bound (just the geo scope). All sort earliest-first. [today] is injected so the
- * date math is deterministically testable.
+ * seed's location (zip/distance) and layering the shortcut's date window on top.
+ * The server treats [from]/[to] as INCLUSIVE end-of-day bounds (mirrors iOS
+ * applyShortcutFilters), so Tonight = today..tomorrow, This Week = today..+7 days,
+ * Near Me = no date bound (just the geo scope). All sort earliest-first. [today]
+ * is injected so the date math is deterministically testable.
  */
 internal fun buildShortcutQuery(
     seed: SearchSeed,

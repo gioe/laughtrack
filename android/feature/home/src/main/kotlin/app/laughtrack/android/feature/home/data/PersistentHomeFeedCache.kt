@@ -45,6 +45,11 @@ class PersistentHomeFeedCache
                     } else {
                         json.decodeFromString<HomeFeed>(entry.feedJson)
                     }
+                }.onFailure {
+                    // Corrupt/undecodable entry (e.g. model drift without a SCHEMA_VERSION
+                    // bump): drop the poison file so it doesn't fail every read until the
+                    // next successful set().
+                    file.delete()
                 }.getOrNull()
             }
 
