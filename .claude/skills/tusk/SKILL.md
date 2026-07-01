@@ -256,11 +256,7 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
     tusk commit <task_id> "<message>" "<file>" --skip-verify
     ```
 
-    **If the commit removes a file from git tracking** (any staged deletion — `git rm <file>`, `git rm --cached <file>`, or `rm <file>` followed by `git add <file>` — all produce identical `deleted: <path>` index entries), do NOT use `tusk commit` — it retries gitignored paths with `git add -f`, which re-adds the file and defeats the deletion. Use `git commit` directly:
-    ```bash
-    git commit -m "[TASK-<id>] <message>" --trailer "Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
-    ```
-    Then mark criteria done with `tusk criteria done <cid> --skip-verify`.
+    **If the commit removes a file from git tracking** (any staged deletion — `git rm <file>`, `git rm --cached <file>`, or `rm <file>` followed by `git add <file>` — all produce identical `deleted: <path>` index entries), `tusk commit` is expected to preserve that deletion, including when the same commit also stages tracked files blocked by `.gitignore`. If it still fails with a deletion-related `pathspec did not match any files` error, treat it as a `tusk commit` bug: capture the exact command/output and use the path-limited fallback above rather than retrying with broad `git add -A`.
 
     **If `tusk commit` exits 6 (blocking lint violation)** — the commit did NOT land. A non-advisory lint rule fired (Rule 1 raw sqlite3, Rule 3 hardcoded DB path, Rule 11 bad SKILL.md frontmatter, Rule 16 DB-backed blocking rules, Rules 18/19 MANIFEST drift, Rule 21 multi-trailing-newlines, etc.). The violating rule's output is printed verbatim — fix it, then retry `tusk commit`. Advisory-only rules (Rule 13 VERSION bump missing, Rule 15 big-bang commits, Rule 17 DB-backed advisory, etc.) still print WARN lines but do NOT exit non-zero and do NOT block. If the violation is a known false positive or pre-existing state you can't resolve in this commit, bypass with `--skip-lint` (lint only) or widen to `--skip-verify` (lint, tests, and pre-commit hooks):
     ```bash

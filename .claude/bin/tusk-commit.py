@@ -1855,6 +1855,17 @@ def _run_commit(argv: list[str], state: dict) -> int:
                         f"Error: git add -f also failed:\n  {r_force.stderr.strip()}"
                     )
                 if retry_ok and non_blocked:
+                    refreshed_staged_deletions = _get_staged_deletions(repo_root)
+                    non_blocked = [
+                        f for f in non_blocked
+                        if (
+                            os.path.relpath(f, repo_root)
+                            if os.path.isabs(f)
+                            else f
+                        )
+                        not in refreshed_staged_deletions
+                    ]
+                if retry_ok and non_blocked:
                     r_rest = run(
                         ["git", "add", "--"] + non_blocked,
                         check=False, cwd=repo_root,
