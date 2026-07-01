@@ -49,6 +49,18 @@ struct ComediansDiscoveryView: View {
                         openDropdownID: $openDropdownID
                     )
 
+                    // Comedian search only: hidden entirely when the response carries no
+                    // home-city options (no home-location data), mirroring web.
+                    if !currentHomeCityFilters.isEmpty {
+                        PillDropdownTrigger(
+                            id: "comedians-home-city",
+                            selected: homeCitySelection.wrappedValue,
+                            triggerLabel: { $0.triggerLabel },
+                            accessibilityLabel: { "Home city \($0.triggerLabel)" },
+                            openDropdownID: $openDropdownID
+                        )
+                    }
+
                     PillSheetTrigger(
                         title: model.selectedFilterSlugs.count > 0 ? filterCountTitle : "Filters",
                         systemImage: "line.3.horizontal.decrease",
@@ -139,6 +151,19 @@ struct ComediansDiscoveryView: View {
                     anchors: anchors,
                     proxy: proxy
                 )
+
+                if !currentHomeCityFilters.isEmpty {
+                    PillDropdownOverlay(
+                        id: "comedians-home-city",
+                        options: homeCityOptions,
+                        selected: homeCitySelection,
+                        triggerLabel: { $0.triggerLabel },
+                        optionLabel: { $0.optionLabel },
+                        openDropdownID: $openDropdownID,
+                        anchors: anchors,
+                        proxy: proxy
+                    )
+                }
             }
         }
     }
@@ -146,6 +171,29 @@ struct ComediansDiscoveryView: View {
     private var currentFilters: [Components.Schemas.Filter] {
         guard case .success(let result) = model.phase else { return [] }
         return result.filters
+    }
+
+    private var currentHomeCityFilters: [Components.Schemas.HomeCityFilter] {
+        guard case .success(let result) = model.phase else { return [] }
+        return result.homeCityFilters
+    }
+
+    private var homeCityOptions: [HomeCityOption] {
+        [.all] + currentHomeCityFilters.map(HomeCityOption.city)
+    }
+
+    /// Maps the model's `homeCity` token to/from the single-select option so
+    /// picking a city (or "All home cities") re-queries with the new token.
+    private var homeCitySelection: Binding<HomeCityOption> {
+        Binding(
+            get: {
+                guard let token = model.homeCity,
+                      let match = currentHomeCityFilters.first(where: { $0.value == token })
+                else { return .all }
+                return .city(match)
+            },
+            set: { model.homeCity = $0.token }
+        )
     }
 
     private var currentTotal: Int {
@@ -156,6 +204,39 @@ struct ComediansDiscoveryView: View {
     private var filterCountTitle: String {
         let count = model.selectedFilterSlugs.count
         return "\(count) filter\(count == 1 ? "" : "s")"
+    }
+}
+
+/// Single-select option for the comedian home-city filter: either "all home
+/// cities" (clears the filter) or a specific city from the response's
+/// `homeCityFilters`. Wraps `HomeCityFilter` so the nullable "all" case can flow
+/// through the non-optional `PillDropdown` single-select control.
+private enum HomeCityOption: Hashable, Identifiable {
+    case all
+    case city(Components.Schemas.HomeCityFilter)
+
+    var id: String { token ?? "__all_home_cities__" }
+
+    /// The `city|state` token sent as the `homeCity` query param; nil for "all".
+    var token: String? {
+        if case .city(let filter) = self { return filter.value }
+        return nil
+    }
+
+    /// Compact label shown on the pill trigger.
+    var triggerLabel: String {
+        switch self {
+        case .all: return "Home city"
+        case .city(let filter): return filter.label
+        }
+    }
+
+    /// Full label shown in the dropdown option list (mirrors web "label (count)").
+    var optionLabel: String {
+        switch self {
+        case .all: return "All home cities"
+        case .city(let filter): return "\(filter.label) (\(filter.count))"
+        }
     }
 }
 
