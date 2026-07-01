@@ -130,7 +130,10 @@ fun AppShell(
                 modifier = Modifier.fillMaxSize(),
             ) {
                 composable<AppRoute.Discover> {
-                    HomeScreen(onOpenEntity = navController::openEntity)
+                    HomeScreen(
+                        onOpenEntity = navController::openEntity,
+                        onNavigateToSearch = { navController.switchTab(AppTab.SEARCH) },
+                    )
                 }
                 composable<AppRoute.Search> {
                     SearchScreen(onOpenEntity = navController::openEntity)

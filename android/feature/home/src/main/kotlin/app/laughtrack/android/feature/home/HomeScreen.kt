@@ -2,6 +2,11 @@
 
 package app.laughtrack.android.feature.home
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -32,36 +37,43 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.laughtrack.android.core.data.UiState
+import app.laughtrack.android.core.data.search.SearchShortcut
 import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.network.generated.model.ClubListItem
 import app.laughtrack.android.core.network.generated.model.ComedianLineup
@@ -85,14 +97,28 @@ import java.util.Locale
 @Composable
 fun HomeScreen(
     onOpenEntity: (AppRoute) -> Unit,
+    onNavigateToSearch: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
+    val onShortcut: (SearchShortcut) -> Unit = { shortcut ->
+        viewModel.requestShortcut(shortcut)
+        onNavigateToSearch()
+    }
+
     when (state.feed) {
         is UiState.Failure -> HomeError(onRetry = viewModel::retry, modifier = modifier)
-        is UiState.Success -> HomeContent(state = state, onOpenEntity = onOpenEntity, modifier = modifier)
+        is UiState.Success ->
+            HomeContent(
+                state = state,
+                onOpenEntity = onOpenEntity,
+                onManualZip = viewModel::setManualZip,
+                onUseLocation = viewModel::useDeviceLocation,
+                onShortcut = onShortcut,
+                modifier = modifier,
+            )
         else -> HomeLoading(modifier)
     }
 }
@@ -101,6 +127,9 @@ fun HomeScreen(
 private fun HomeContent(
     state: HomeUiState,
     onOpenEntity: (AppRoute) -> Unit,
+    onManualZip: (String) -> Unit,
+    onUseLocation: () -> Unit,
+    onShortcut: (SearchShortcut) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -126,7 +155,17 @@ private fun HomeContent(
                 DiscoverHeader(onOpenEntity = onOpenEntity)
             }
             item {
-                LocationPrompt(title = state.locationTitle, subtitle = state.locationSubtitle)
+                LocationHeader(
+                    title = state.locationTitle,
+                    subtitle = state.locationSubtitle,
+                    zip = state.zip,
+                    isResolving = state.isResolvingLocation,
+                    onManualZip = onManualZip,
+                    onUseLocation = onUseLocation,
+                )
+            }
+            item {
+                ShortcutRow(onShortcut = onShortcut)
             }
             item {
                 ShowsTonightRail(
@@ -254,11 +293,28 @@ private fun PrimitiveChip(title: String) {
     }
 }
 
+/**
+ * Interactive location header: shows the ZIP/city the feed is scoped to, a manual
+ * ZIP field, and a "Use location" button that requests coarse/fine location and
+ * reverse-geocodes the device position to a ZIP. Mirrors the iOS HomeView header.
+ */
 @Composable
-private fun LocationPrompt(
+private fun LocationHeader(
     title: String,
     subtitle: String,
+    zip: String?,
+    isResolving: Boolean,
+    onManualZip: (String) -> Unit,
+    onUseLocation: () -> Unit,
 ) {
+    val context = LocalContext.current
+    val permissionLauncher =
+        rememberLauncherForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions(),
+        ) { grants ->
+            if (grants.values.any { it }) onUseLocation()
+        }
+
     Surface(
         color = LaughTrackColors.SurfaceElevated,
         shape = RoundedCornerShape(12.dp),
@@ -267,45 +323,135 @@ private fun LocationPrompt(
                 .fillMaxWidth()
                 .border(1.dp, LaughTrackColors.BorderSubtle, RoundedCornerShape(12.dp)),
     ) {
-        Row(
+        Column(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Box(
-                modifier =
-                    Modifier
-                        .size(34.dp)
-                        .clip(CircleShape)
-                        .background(LaughTrackColors.AccentStrong.copy(alpha = 0.14f)),
-                contentAlignment = Alignment.Center,
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(
-                    imageVector = Icons.Filled.LocationOn,
-                    contentDescription = null,
-                    tint = LaughTrackColors.AccentStrong,
-                    modifier = Modifier.size(19.dp),
-                )
+                Box(
+                    modifier =
+                        Modifier
+                            .size(34.dp)
+                            .clip(CircleShape)
+                            .background(LaughTrackColors.AccentStrong.copy(alpha = 0.14f)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.LocationOn,
+                        contentDescription = null,
+                        tint = LaughTrackColors.AccentStrong,
+                        modifier = Modifier.size(19.dp),
+                    )
+                }
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    Text(title, style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        subtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(title, style = MaterialTheme.typography.titleMedium)
-                Text(
-                    subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                var zipText by remember(zip) { mutableStateOf(zip.orEmpty()) }
+                OutlinedTextField(
+                    value = zipText,
+                    onValueChange = { entry ->
+                        zipText = entry.filter(Char::isDigit).take(ZIP_LENGTH)
+                        if (zipText.length == ZIP_LENGTH) onManualZip(zipText)
+                    },
+                    label = { Text("ZIP") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.weight(1f),
                 )
+                Button(
+                    onClick = {
+                        if (hasLocationPermission(context)) {
+                            onUseLocation()
+                        } else {
+                            permissionLauncher.launch(
+                                arrayOf(
+                                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                                    Manifest.permission.ACCESS_FINE_LOCATION,
+                                ),
+                            )
+                        }
+                    },
+                    enabled = !isResolving,
+                ) {
+                    Text(if (isResolving) "Locating…" else "Use location")
+                }
             }
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        }
+    }
+}
+
+private fun hasLocationPermission(context: Context): Boolean =
+    ContextCompat.checkSelfPermission(
+        context,
+        Manifest.permission.ACCESS_COARSE_LOCATION,
+    ) == PackageManager.PERMISSION_GRANTED ||
+        ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+        ) == PackageManager.PERMISSION_GRANTED
+
+@Composable
+private fun ShortcutRow(onShortcut: (SearchShortcut) -> Unit) {
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        ShortcutChip("Tonight") { onShortcut(SearchShortcut.TONIGHT) }
+        ShortcutChip("This Week") { onShortcut(SearchShortcut.THIS_WEEK) }
+        ShortcutChip("Near Me") { onShortcut(SearchShortcut.NEAR_ME) }
+    }
+}
+
+@Composable
+private fun ShortcutChip(
+    label: String,
+    onClick: () -> Unit,
+) {
+    Surface(
+        shape = RoundedCornerShape(999.dp),
+        color = LaughTrackColors.AccentStrong.copy(alpha = 0.12f),
+        modifier =
+            Modifier
+                .height(36.dp)
+                .clip(RoundedCornerShape(999.dp))
+                .clickable(onClick = onClick)
+                .border(1.dp, LaughTrackColors.AccentMuted, RoundedCornerShape(999.dp)),
+    ) {
+        Box(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
             )
         }
     }
 }
+
+private const val ZIP_LENGTH = 5
 
 @Composable
 private fun ShowsTonightRail(

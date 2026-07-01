@@ -1,6 +1,8 @@
 package app.laughtrack.android.feature.home
 
 import app.laughtrack.android.core.data.UiState
+import app.laughtrack.android.core.data.search.SearchShortcut
+import app.laughtrack.android.core.data.search.SearchShortcutCoordinator
 import app.laughtrack.android.core.network.generated.model.ClubListItem
 import app.laughtrack.android.core.network.generated.model.ComedianListItem
 import app.laughtrack.android.core.network.generated.model.HomeFeed
@@ -8,7 +10,9 @@ import app.laughtrack.android.core.network.generated.model.HomeFeedHero
 import app.laughtrack.android.core.network.generated.model.HomeFeedPodcast
 import app.laughtrack.android.core.network.generated.model.Show
 import app.laughtrack.android.core.network.generated.model.SocialData
+import app.laughtrack.android.feature.home.data.HomeFeedCache
 import app.laughtrack.android.feature.home.data.HomeFeedRepository
+import app.laughtrack.android.feature.home.location.HomeLocationResolver
 import app.laughtrack.android.feature.home.ui.HomeViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -19,6 +23,8 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -42,7 +48,7 @@ class HomeViewModelTest {
     fun load_replaces_skeleton_state_with_feed_content() =
         runTest {
             val repository = FakeHomeFeedRepository(feed = homeFeed())
-            val viewModel = HomeViewModel(repository)
+            val viewModel = viewModel(repository)
 
             assertEquals(UiState.Loading, viewModel.state.value.feed)
             advanceUntilIdle()
@@ -66,7 +72,7 @@ class HomeViewModelTest {
                     failuresBeforeSuccess = 1,
                     feed = homeFeed(),
                 )
-            val viewModel = HomeViewModel(repository)
+            val viewModel = viewModel(repository)
             advanceUntilIdle()
 
             assertTrue(viewModel.state.value.feed is UiState.Failure)
@@ -78,22 +84,128 @@ class HomeViewModelTest {
             assertEquals(2, repository.loads)
         }
 
+    @Test
+    fun cached_feed_survives_network_failure() =
+        runTest {
+            // Cache holds a prior snapshot; the network always fails. The user keeps
+            // seeing the cached feed instead of an error (criterion: re-render from cache).
+            val repository = FakeHomeFeedRepository(failuresBeforeSuccess = Int.MAX_VALUE, feed = homeFeed())
+            val cache = FakeHomeFeedCache(stored = homeFeed())
+            val viewModel = viewModel(repository, cache)
+            advanceUntilIdle()
+
+            assertTrue(viewModel.state.value.feed is UiState.Success)
+        }
+
+    @Test
+    fun successful_load_writes_through_to_cache() =
+        runTest {
+            val cache = FakeHomeFeedCache()
+            val viewModel = viewModel(FakeHomeFeedRepository(feed = homeFeed()), cache)
+            advanceUntilIdle()
+
+            assertEquals(1, cache.sets)
+        }
+
+    @Test
+    fun manual_zip_reloads_feed_scoped_to_that_zip() =
+        runTest {
+            val repository = FakeHomeFeedRepository(feed = homeFeed())
+            val viewModel = viewModel(repository)
+            advanceUntilIdle()
+
+            viewModel.setManualZip("90210")
+            advanceUntilIdle()
+
+            assertEquals("90210", repository.lastZip)
+            assertEquals(2, repository.loads)
+        }
+
+    @Test
+    fun use_device_location_reloads_with_resolved_zip() =
+        runTest {
+            val repository = FakeHomeFeedRepository(feed = homeFeed())
+            val resolver = FakeLocationResolver(zip = "60614")
+            val viewModel = viewModel(repository, resolver = resolver)
+            advanceUntilIdle()
+
+            viewModel.useDeviceLocation()
+            advanceUntilIdle()
+
+            assertEquals("60614", repository.lastZip)
+            assertTrue(repository.loads >= 2)
+        }
+
+    @Test
+    fun request_shortcut_publishes_seed_with_location_context() =
+        runTest {
+            val coordinator = SearchShortcutCoordinator()
+            val repository = FakeHomeFeedRepository(feed = homeFeed())
+            val viewModel = viewModel(repository, coordinator = coordinator)
+            advanceUntilIdle()
+            assertNull(coordinator.seed.value)
+
+            viewModel.setManualZip("10001")
+            advanceUntilIdle()
+            viewModel.requestShortcut(SearchShortcut.TONIGHT)
+
+            val seed = coordinator.seed.value
+            assertNotNull(seed)
+            assertEquals(SearchShortcut.TONIGHT, seed?.shortcut)
+            assertEquals("10001", seed?.zip)
+            assertEquals(HomeFeedRepository.DEFAULT_DISTANCE_MILES, seed?.distanceMiles)
+        }
+
+    private fun viewModel(
+        repository: HomeFeedRepository,
+        cache: HomeFeedCache = FakeHomeFeedCache(),
+        resolver: HomeLocationResolver = FakeLocationResolver(),
+        coordinator: SearchShortcutCoordinator = SearchShortcutCoordinator(),
+    ) = HomeViewModel(repository, cache, resolver, coordinator)
+
     private class FakeHomeFeedRepository(
         private val failuresBeforeSuccess: Int = 0,
         private val feed: HomeFeed,
     ) : HomeFeedRepository {
         var loads = 0
+        var lastZip: String? = null
 
         override suspend fun getHomeFeed(
             zip: String?,
             distance: Int?,
         ): HomeFeed {
             loads += 1
+            lastZip = zip
             if (loads <= failuresBeforeSuccess) {
                 throw IOException("Home feed failed")
             }
             return feed
         }
+    }
+
+    private class FakeHomeFeedCache(
+        private val stored: HomeFeed? = null,
+    ) : HomeFeedCache {
+        var sets = 0
+
+        override suspend fun get(
+            zip: String?,
+            distance: Int?,
+        ): HomeFeed? = stored
+
+        override suspend fun set(
+            zip: String?,
+            distance: Int?,
+            feed: HomeFeed,
+        ) {
+            sets += 1
+        }
+    }
+
+    private class FakeLocationResolver(
+        private val zip: String? = null,
+    ) : HomeLocationResolver {
+        override suspend fun resolveZip(): String? = zip
     }
 
     private fun homeFeed(): HomeFeed {
