@@ -57,6 +57,20 @@ class PersistentHomeFeedCacheTest {
         }
 
     @Test
+    fun get_discards_and_deletes_an_expired_entry() =
+        runTest {
+            val (cache, entryFile) = newCache()
+            entryFile.parentFile!!.mkdirs()
+            // Current schema, but the expiry timestamp is already in the past.
+            entryFile.writeText(
+                """{"schemaVersion":"home-feed-v1","expiresAtMillis":1,"feedJson":"{}"}""",
+            )
+
+            assertNull(cache.get(zip = null, distance = null))
+            assertFalse("expired entry should be deleted on read", entryFile.exists())
+        }
+
+    @Test
     fun get_returns_a_valid_cached_feed_and_keeps_the_file() =
         runTest {
             // Positive control: proves the discard tests aren't passing vacuously
