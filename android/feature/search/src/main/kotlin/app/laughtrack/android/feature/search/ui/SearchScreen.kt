@@ -31,6 +31,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -40,6 +42,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,6 +58,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.laughtrack.android.core.navigation.AppRoute
+import app.laughtrack.android.core.network.generated.model.HomeCityFilter
 import app.laughtrack.android.core.ui.components.RemoteImage
 import app.laughtrack.android.core.ui.components.SkeletonLine
 import app.laughtrack.android.core.ui.theme.LaughTrackColors
@@ -113,10 +119,15 @@ fun SearchScreen(
                         text = pivotState.query.text,
                         zip = pivotState.query.zip.orEmpty(),
                         popularitySort = pivotState.query.sort == SORT_POPULARITY,
+                        homeCity = pivotState.query.homeCity,
+                        homeCityFilters = pivotState.homeCityFilters,
                         onText = viewModel::onTextChange,
                         onZip = { value -> viewModel.updateQuery { it.copy(zip = value.ifBlank { null }) } },
                         onTogglePopularity = { enabled ->
                             viewModel.updateQuery { it.copy(sort = if (enabled) SORT_POPULARITY else null) }
+                        },
+                        onSelectHomeCity = { token ->
+                            viewModel.updateQuery { it.copy(homeCity = token) }
                         },
                     )
                 }
@@ -252,9 +263,12 @@ private fun SearchControls(
     text: String,
     zip: String,
     popularitySort: Boolean,
+    homeCity: String?,
+    homeCityFilters: List<HomeCityFilter>,
     onText: (String) -> Unit,
     onZip: (String) -> Unit,
     onTogglePopularity: (Boolean) -> Unit,
+    onSelectHomeCity: (String?) -> Unit,
 ) {
     Surface(
         color = LaughTrackColors.SurfaceElevated,
@@ -291,6 +305,15 @@ private fun SearchControls(
                 }
                 SearchFilterPill(if (pivot == SearchPivot.SHOWS) "Earliest" else "Popular")
                 SearchFilterPill("Any date")
+                // Comedian-only home-city filter, hidden until the response carries
+                // options (no home-location data -> no control), mirroring iOS.
+                if (pivot == SearchPivot.COMEDIANS && homeCityFilters.isNotEmpty()) {
+                    HomeCityFilterPill(
+                        selectedToken = homeCity,
+                        filters = homeCityFilters,
+                        onSelect = onSelectHomeCity,
+                    )
+                }
                 FilterChip(
                     selected = popularitySort,
                     onClick = { onTogglePopularity(!popularitySort) },
@@ -329,6 +352,67 @@ private fun SearchFilterPill(label: String) {
     }
 }
 
+/**
+ * Single-select home-city filter: a pill that opens a [DropdownMenu] of
+ * "All home cities" (clears the filter) plus one entry per option. Mirrors the
+ * iOS PillDropdown behavior; [onSelect] receives the `city|state` token (or null
+ * for "all").
+ */
+@Composable
+private fun HomeCityFilterPill(
+    selectedToken: String?,
+    filters: List<HomeCityFilter>,
+    onSelect: (String?) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Box {
+        Surface(
+            color = LaughTrackColors.Surface,
+            shape = RoundedCornerShape(999.dp),
+            modifier =
+                Modifier
+                    .border(1.dp, LaughTrackColors.BorderSubtle, RoundedCornerShape(999.dp))
+                    .clickable { expanded = true },
+        ) {
+            Text(
+                homeCityTriggerLabel(selectedToken, filters),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                maxLines = 1,
+            )
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            homeCityMenuOptions(filters).forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(option.label) },
+                    onClick = {
+                        expanded = false
+                        onSelect(option.token)
+                    },
+                )
+            }
+        }
+    }
+}
+
+/** One home-city dropdown entry: [token] is the `city|state` value (null = all). */
+internal data class HomeCityMenuOption(val token: String?, val label: String)
+
+/**
+ * The dropdown entries: an "All home cities" sentinel that clears the filter,
+ * followed by one "Label (count)" entry per option (mirrors web/iOS).
+ */
+internal fun homeCityMenuOptions(filters: List<HomeCityFilter>): List<HomeCityMenuOption> =
+    listOf(HomeCityMenuOption(token = null, label = "All home cities")) +
+        filters.map { HomeCityMenuOption(token = it.value, label = "${it.label} (${it.count})") }
+
+/** Compact pill label: the selected city's name, or "Home city" when none is set. */
+internal fun homeCityTriggerLabel(
+    selectedToken: String?,
+    filters: List<HomeCityFilter>,
+): String = filters.firstOrNull { it.value == selectedToken }?.label ?: "Home city"
+
 private fun queryPrompt(pivot: SearchPivot): String =
     when (pivot) {
         SearchPivot.SHOWS -> "Search nearby comedy"
@@ -337,6 +421,10 @@ private fun queryPrompt(pivot: SearchPivot): String =
         SearchPivot.PODCASTS -> "Search podcast titles"
     }
 
+// A LazyListScope section builder that hoists list state + callbacks the same way
+// a @Composable does, so it legitimately exceeds the param budget (detekt exempts
+// @Composable for this reason; this extension isn't annotated but is the same shape).
+@Suppress("LongParameterList")
 private fun LazyListScope.resultsContent(
     pivot: SearchPivot,
     results: List<SearchResult>,
