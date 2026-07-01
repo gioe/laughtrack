@@ -56,7 +56,7 @@ struct ComediansDiscoveryView: View {
                             id: "comedians-home-city",
                             selected: homeCitySelection.wrappedValue,
                             triggerLabel: { $0.triggerLabel },
-                            accessibilityLabel: { "Home city \($0.triggerLabel)" },
+                            accessibilityLabel: { $0.accessibilityLabel },
                             openDropdownID: $openDropdownID
                         )
                     }
@@ -121,6 +121,14 @@ struct ComediansDiscoveryView: View {
         .task(id: DiscoveryLoadTaskKey(isActive: isActive, query: model.requestKey)) {
             guard isActive else { return }
             await model.reload(apiClient: apiClient, favorites: favorites, cache: pageCache)
+        }
+        .onChange(of: currentHomeCityFilters.map(\.value)) { availableTokens in
+            // Drop a selected home-city token once the latest response no longer
+            // offers it (a narrower query dropped it, or the control just hid on an
+            // empty list) so it can't strand a stale filter with no way to clear it.
+            if let token = model.homeCity, !availableTokens.contains(token) {
+                model.homeCity = nil
+            }
         }
         .sheet(isPresented: $isFilterEditorPresented) {
             SearchFilterModal(
@@ -236,6 +244,15 @@ private enum HomeCityOption: Hashable, Identifiable {
         switch self {
         case .all: return "All home cities"
         case .city(let filter): return "\(filter.label) (\(filter.count))"
+        }
+    }
+
+    /// VoiceOver label for the pill trigger (avoids the "Home city Home city"
+    /// doubling the plain `triggerLabel` would produce for the `.all` case).
+    var accessibilityLabel: String {
+        switch self {
+        case .all: return "Home city filter"
+        case .city(let filter): return "Home city \(filter.label)"
         }
     }
 }
