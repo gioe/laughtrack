@@ -146,6 +146,16 @@ function expandAllRows() {
         .forEach((toggle) => fireEvent.click(toggle));
 }
 
+function expandAllImageSections() {
+    screen
+        .queryAllByRole("button", { name: /^Current image/ })
+        .forEach((toggle) => {
+            if (toggle.getAttribute("aria-expanded") === "false") {
+                fireEvent.click(toggle);
+            }
+        });
+}
+
 function expandAllSocialSections() {
     screen
         .queryAllByRole("button", { name: /^Social media/ })
@@ -214,6 +224,17 @@ describe("AdminComedianManager", () => {
         expect(
             screen.queryByRole("button", { name: "Discover images" }),
         ).toBeNull();
+        expect(
+            screen
+                .getAllByRole("button", { name: /^Current image/ })[0]
+                .getAttribute("aria-expanded"),
+        ).toBe("false");
+        expect(
+            screen.queryByAltText("Parent Comic current headshot image"),
+        ).toBeNull();
+
+        expandAllImageSections();
+
         expect(
             screen
                 .getByAltText("Parent Comic current headshot image")
@@ -374,6 +395,7 @@ describe("AdminComedianManager", () => {
         } as never);
         render(<AdminComedianManager comedians={comedians} />);
         expandAllRows();
+        expandAllImageSections();
 
         fireEvent.change(screen.getAllByLabelText("Headshot image URL")[0], {
             target: { value: "https://alias.example.com/headshot.jpg" },
@@ -432,6 +454,7 @@ describe("AdminComedianManager", () => {
         } as never);
         render(<AdminComedianManager comedians={comedians} />);
         expandAllRows();
+        expandAllImageSections();
 
         const file = new File([new Uint8Array([1, 2, 3])], "headshot.jpg", {
             type: "image/jpeg",
@@ -476,6 +499,7 @@ describe("AdminComedianManager", () => {
 
         render(<AdminComedianManager comedians={comedians} />);
         expandAllRows();
+        expandAllImageSections();
 
         const file = new File([new Uint8Array([1, 2, 3])], "headshot.jpg", {
             type: "image/jpeg",
@@ -509,6 +533,7 @@ describe("AdminComedianManager", () => {
         } as never);
         render(<AdminComedianManager comedians={comedians} />);
         expandAllRows();
+        expandAllImageSections();
 
         fireEvent.click(
             screen.getByRole("button", { name: "Remove all images" }),
@@ -550,6 +575,7 @@ describe("AdminComedianManager", () => {
         } as never);
         render(<AdminComedianManager comedians={comedians} />);
         expandAllRows();
+        expandAllImageSections();
 
         fireEvent.click(
             screen.getByRole("button", { name: "Remove thumbnail" }),
@@ -601,6 +627,7 @@ describe("AdminComedianManager", () => {
         } as never);
         render(<AdminComedianManager comedians={comedians} />);
         expandAllRows();
+        expandAllImageSections();
 
         fireEvent.change(screen.getAllByLabelText("Headshot image URL")[0], {
             target: { value: "https://alias.example.com/headshot.jpg" },
@@ -653,6 +680,7 @@ describe("AdminComedianManager", () => {
         } as never);
         render(<AdminComedianManager comedians={comedians} />);
         expandAllRows();
+        expandAllImageSections();
         expandAllSocialSections();
 
         const websiteInput = screen.getAllByLabelText("Comedian website")[0];
@@ -894,7 +922,7 @@ describe("AdminComedianManager", () => {
             },
         );
         fireEvent.click(
-            screen.getAllByRole("button", { name: "Save record" })[0],
+            screen.getAllByRole("button", { name: "Update Comedian" })[0],
         );
 
         await waitFor(() => {
@@ -916,6 +944,43 @@ describe("AdminComedianManager", () => {
                 }),
             );
         });
+    });
+
+    it("shows global save progress and completion for social media updates", async () => {
+        let resolveSave: (value: unknown) => void = () => {};
+        const savePromise = new Promise((resolve) => {
+            resolveSave = resolve;
+        });
+        vi.mocked(global.fetch).mockReturnValueOnce(savePromise as never);
+        render(<AdminComedianManager comedians={comedians} />);
+        expandAllRows();
+        expandAllSocialSections();
+
+        fireEvent.change(
+            screen.getAllByLabelText("Comedian Instagram handle")[0],
+            { target: { value: "@aliashandle" } },
+        );
+        fireEvent.click(
+            screen.getAllByRole("button", { name: "Update Comedian" })[0],
+        );
+
+        expect(screen.getByText("Updating comedian")).toBeTruthy();
+
+        resolveSave({
+            ok: true,
+            json: async () => ({
+                ok: true,
+                comedian: {
+                    ...comedians[1],
+                    instagramAccount: "aliashandle",
+                },
+            }),
+        });
+
+        await waitFor(() =>
+            expect(screen.queryByText("Updating comedian")).toBeNull(),
+        );
+        expect(screen.getByText("Alias Comic record saved.")).toBeTruthy();
     });
 
     it("saves social media handles via the inline record edit", async () => {

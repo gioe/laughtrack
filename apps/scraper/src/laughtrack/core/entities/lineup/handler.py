@@ -17,10 +17,27 @@ from .model import LineupItem
 
 _NAME_WORD_RE = re.compile(r"[A-Za-z][A-Za-z'’-]*")
 _SINGLE_TOKEN_NAME_PUNCTUATION_RE = re.compile(r"[A-Za-z][A-Za-z'’-]*[-'’][A-Za-z'’-]*")
+_INTERSTITIAL_NICKNAME_PATTERN = r'(?:\s+(?:"[^"]+"|“[^”]+”|\'[^\']+\'|‘[^’]+’|\([^)]*\)))*\s+'
+_SINGLE_TOKEN_MIN_TOTAL_SHOWS = 5
 
 
-def _is_credible_show_name_comedian_match(show_name: str, comedian_name: str) -> bool:
+def _is_high_confidence_single_token_comedian(row: dict) -> bool:
+    if not row.get("visible"):
+        return False
+    if int(row.get("total_shows") or 0) >= _SINGLE_TOKEN_MIN_TOTAL_SHOWS:
+        return True
+    return any(
+        row.get(field)
+        for field in ("instagram_followers", "tiktok_followers", "youtube_followers")
+    )
+
+
+def _is_credible_show_name_comedian_match(show_name: str, row: dict) -> bool:
     """Return whether a show-title substring match is credible enough for enrichment."""
+    if row.get("visible") is False:
+        return False
+
+    comedian_name = row.get("match_name") or row.get("name")
     cleaned_name = (comedian_name or "").strip()
     cleaned_show_name = (show_name or "").strip()
     if not cleaned_name or not cleaned_show_name:
@@ -30,18 +47,27 @@ def _is_credible_show_name_comedian_match(show_name: str, comedian_name: str) ->
         return False
 
     name_words = _NAME_WORD_RE.findall(cleaned_name)
-    if len(name_words) < 2 and not _SINGLE_TOKEN_NAME_PUNCTUATION_RE.fullmatch(cleaned_name):
+    if (
+        len(name_words) < 2
+        and not _SINGLE_TOKEN_NAME_PUNCTUATION_RE.fullmatch(cleaned_name)
+        and not _is_high_confidence_single_token_comedian(row)
+    ):
         return False
 
     escaped_name = re.escape(cleaned_name)
-    return (
-        re.search(
-            rf"(?<![A-Za-z0-9]){escaped_name}(?![A-Za-z0-9])",
-            cleaned_show_name,
-            re.IGNORECASE,
-        )
-        is not None
+    exact_match_pattern = rf"(?<![A-Za-z0-9]){escaped_name}(?![A-Za-z0-9])"
+    if re.search(exact_match_pattern, cleaned_show_name, re.IGNORECASE):
+        return True
+
+    if len(name_words) < 2:
+        return False
+
+    nickname_match_pattern = (
+        r"(?<![A-Za-z0-9])"
+        + _INTERSTITIAL_NICKNAME_PATTERN.join(re.escape(word) for word in name_words)
+        + r"(?![A-Za-z0-9])"
     )
+    return re.search(nickname_match_pattern, cleaned_show_name, re.IGNORECASE) is not None
 
 
 class LineupHandler(BaseDatabaseHandler[LineupItem]):
@@ -150,10 +176,17 @@ class LineupHandler(BaseDatabaseHandler[LineupItem]):
                 return {}
 
             show_comedians_map = {}
+            seen_comedian_keys_by_show_name = {}
             for row in results:
                 show_name = row["show_name"]
-                if not _is_credible_show_name_comedian_match(show_name, row["name"]):
+                if not _is_credible_show_name_comedian_match(show_name, row):
                     continue
+
+                comedian_key = row.get("uuid") or row.get("name")
+                seen_comedian_keys = seen_comedian_keys_by_show_name.setdefault(show_name, set())
+                if comedian_key in seen_comedian_keys:
+                    continue
+                seen_comedian_keys.add(comedian_key)
 
                 comedian = Comedian.from_db_row(row)
                 if show_name not in show_comedians_map:

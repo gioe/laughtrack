@@ -257,6 +257,106 @@ class TestGetComediansFromShowNamesHappyPath:
             "Steve-O: Crash & Burn": [SimpleNamespace(name="Steve-O", uuid="uuid-steve-o")]
         }
 
+    def test_preserves_visible_high_confidence_single_token_name_matches(self):
+        h = _make_lineup_handler()
+        h.execute_batch_operation.return_value = [
+            {
+                "show_name": "Godfrey",
+                "name": "Godfrey",
+                "uuid": "uuid-godfrey",
+                "visible": True,
+                "total_shows": 56,
+                "instagram_followers": 845000,
+                "tiktok_followers": 381900,
+                "youtube_followers": 605000,
+            },
+        ]
+
+        def _fake_from_db_row(row):
+            return SimpleNamespace(name=row["name"], uuid=row["uuid"])
+
+        with patch.object(_lineup_handler_mod.Comedian, "from_db_row", side_effect=_fake_from_db_row):
+            result = h.get_comedians_from_show_names([("Godfrey",)])
+
+        assert result == {
+            "Godfrey": [SimpleNamespace(name="Godfrey", uuid="uuid-godfrey")]
+        }
+
+    def test_rejects_hidden_single_token_name_matches(self):
+        h = _make_lineup_handler()
+        h.execute_batch_operation.return_value = [
+            {
+                "show_name": "Blue",
+                "name": "Blue",
+                "uuid": "uuid-blue",
+                "visible": False,
+                "total_shows": 20,
+                "instagram_followers": 100000,
+                "tiktok_followers": None,
+                "youtube_followers": None,
+            },
+        ]
+
+        result = h.get_comedians_from_show_names([("Blue",)])
+
+        assert result == {}
+
+    def test_rejects_hidden_multi_word_name_matches(self):
+        h = _make_lineup_handler()
+        h.execute_batch_operation.return_value = [
+            {
+                "show_name": "The Christi Show",
+                "name": "THE CHRISTI SHOW",
+                "uuid": "uuid-christi-show",
+                "visible": False,
+                "total_shows": 5,
+            },
+        ]
+
+        result = h.get_comedians_from_show_names([("The Christi Show",)])
+
+        assert result == {}
+
+    def test_attaches_parent_when_hidden_child_alias_matches_show_name(self):
+        h = _make_lineup_handler()
+        h.execute_batch_operation.return_value = [
+            {
+                "show_name": "Johnny Stage Name",
+                "match_name": "Johnny Stage Name",
+                "name": "John Parent",
+                "uuid": "uuid-parent",
+                "visible": True,
+                "total_shows": 12,
+            },
+        ]
+
+        def _fake_from_db_row(row):
+            return SimpleNamespace(name=row["name"], uuid=row["uuid"])
+
+        with patch.object(_lineup_handler_mod.Comedian, "from_db_row", side_effect=_fake_from_db_row):
+            result = h.get_comedians_from_show_names([("Johnny Stage Name",)])
+
+        assert result == {
+            "Johnny Stage Name": [SimpleNamespace(name="John Parent", uuid="uuid-parent")]
+        }
+
+    def test_deduplicates_repeated_candidate_rows_for_same_show_and_comedian(self):
+        h = _make_lineup_handler()
+        h.execute_batch_operation.return_value = [
+            {"show_name": "Godfrey", "name": "Godfrey", "uuid": "uuid-godfrey", "visible": True, "total_shows": 56},
+            {"show_name": "Godfrey", "name": "Godfrey", "uuid": "uuid-godfrey", "visible": True, "total_shows": 56},
+        ]
+
+        def _fake_from_db_row(row):
+            return SimpleNamespace(name=row["name"], uuid=row["uuid"])
+
+        with patch.object(_lineup_handler_mod.Comedian, "from_db_row", side_effect=_fake_from_db_row):
+            result = h.get_comedians_from_show_names([("Godfrey",), ("Godfrey",)])
+
+        assert result == {
+            "Godfrey": [SimpleNamespace(name="Godfrey", uuid="uuid-godfrey")]
+        }
+
     def test_filters_generic_fragment_matches_from_show_titles(self):
         h = _make_lineup_handler()
         h.execute_batch_operation.return_value = [
@@ -314,6 +414,29 @@ class TestGetComediansFromShowNamesHappyPath:
             SimpleNamespace(name="Caleb Synan", uuid="uuid-caleb"),
             SimpleNamespace(name="Des Mulrooney", uuid="uuid-des"),
         ]
+
+    def test_preserves_full_name_matches_with_quoted_nickname_between_names(self):
+        h = _make_lineup_handler()
+        h.execute_batch_operation.return_value = [
+            {
+                "show_name": 'Dave "MEAT DAVE" Williamson',
+                "name": "Dave Williamson",
+                "uuid": "uuid-dave-williamson",
+                "visible": True,
+            },
+        ]
+
+        def _fake_from_db_row(row):
+            return SimpleNamespace(name=row["name"], uuid=row["uuid"])
+
+        with patch.object(_lineup_handler_mod.Comedian, "from_db_row", side_effect=_fake_from_db_row):
+            result = h.get_comedians_from_show_names([('Dave "MEAT DAVE" Williamson',)])
+
+        assert result == {
+            'Dave "MEAT DAVE" Williamson': [
+                SimpleNamespace(name="Dave Williamson", uuid="uuid-dave-williamson")
+            ]
+        }
 
 
 # ---------------------------------------------------------------------------

@@ -14,13 +14,20 @@ import {
     ChevronDown,
     ChevronRight,
     ExternalLink,
+    Loader2,
     Save,
     Trash2,
     Upload,
     X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState, useTransition } from "react";
+import {
+    useEffect,
+    useMemo,
+    useState,
+    useTransition,
+    type ReactNode,
+} from "react";
 
 type Props = {
     comedians: AdminComedianListItem[];
@@ -111,8 +118,35 @@ function ComedianRowHeadshot({ row }: { row: AdminComedianListItem }) {
         <img
             src={src}
             alt={`${row.name} headshot`}
-            className="h-10 w-10 shrink-0 rounded-full border border-copper/20 object-cover"
+            className="h-11 w-11 shrink-0 rounded-md border border-copper/25 object-cover"
         />
+    );
+}
+
+function SummaryPill({
+    label,
+    value,
+    tone = "neutral",
+}: {
+    label: string;
+    value: ReactNode;
+    tone?: "neutral" | "good" | "warn";
+}) {
+    const toneClass =
+        tone === "good"
+            ? "border-green-700/25 bg-green-50 text-green-950"
+            : tone === "warn"
+              ? "border-red-700/25 bg-red-50 text-red-950"
+              : "border-copper/20 bg-white text-cedar";
+    return (
+        <span
+            className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 font-dmSans text-caption ${toneClass}`}
+        >
+            <span className="font-semibold uppercase text-soft-charcoal">
+                {label}
+            </span>
+            <span className="font-semibold">{value}</span>
+        </span>
     );
 }
 
@@ -191,7 +225,7 @@ export default function AdminComedianManager({ comedians }: Props) {
         () => new Set<number>(),
     );
     const [openImageSections, setOpenImageSections] = useState<Set<number>>(
-        () => new Set<number>(comedians.map((comedian) => comedian.id)),
+        () => new Set<number>(),
     );
     const [openSocialSections, setOpenSocialSections] = useState<Set<number>>(
         () => new Set<number>(),
@@ -1259,6 +1293,35 @@ export default function AdminComedianManager({ comedians }: Props) {
 
     return (
         <div className="space-y-4">
+            {(pendingId !== null || savingWebSubKey !== null) && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-[1px]">
+                    <div
+                        role="status"
+                        aria-live="polite"
+                        className="flex items-center gap-3 rounded-md border border-copper/25 bg-white px-5 py-4 font-dmSans text-body font-semibold text-cedar shadow-2xl"
+                    >
+                        <Loader2 className="h-5 w-5 animate-spin text-copper-dark" />
+                        Updating comedian
+                    </div>
+                </div>
+            )}
+            {status.kind !== "idle" && (
+                <div
+                    role="status"
+                    aria-live="polite"
+                    className="fixed inset-x-0 top-4 z-[60] px-4"
+                >
+                    <p
+                        className={
+                            status.kind === "ok"
+                                ? "mx-auto max-w-4xl rounded-md border border-green-700/30 bg-green-50 px-4 py-3 text-center font-dmSans text-body font-semibold text-green-900 shadow-xl"
+                                : "mx-auto max-w-4xl rounded-md border border-red-700/30 bg-red-50 px-4 py-3 text-center font-dmSans text-body font-semibold text-red-900 shadow-xl"
+                        }
+                    >
+                        {status.message}
+                    </p>
+                </div>
+            )}
             <AdminToolbar>
                 <AdminSearchField
                     label="Search comedians"
@@ -1300,17 +1363,6 @@ export default function AdminComedianManager({ comedians }: Props) {
                 </div>
             </AdminToolbar>
 
-            {status.kind === "ok" && (
-                <p className="rounded-md border border-green-700/30 bg-green-50 px-3 py-2 font-dmSans text-body text-green-900">
-                    {status.message}
-                </p>
-            )}
-            {status.kind === "error" && (
-                <p className="rounded-md border border-red-700/30 bg-red-50 px-3 py-2 font-dmSans text-body text-red-900">
-                    {status.message}
-                </p>
-            )}
-
             <AdminPagination
                 page={currentPage}
                 pageSize={pageSize}
@@ -1349,7 +1401,7 @@ export default function AdminComedianManager({ comedians }: Props) {
 
                         if (row.isBlocked) {
                             return (
-                                <li key={row.id} className="px-4 py-4">
+                                <li key={row.id} className="px-4 py-3">
                                     <button
                                         type="button"
                                         aria-expanded={rowOpen}
@@ -1357,7 +1409,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                         onClick={() =>
                                             toggleComedianRow(row.id)
                                         }
-                                        className="flex w-full items-center gap-3 text-left"
+                                        className="flex w-full items-center gap-3 rounded-md px-2 py-2 text-left transition-colors hover:bg-red-50/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-copper/40"
                                     >
                                         {rowOpen ? (
                                             <ChevronDown className="h-4 w-4 shrink-0 text-cedar" />
@@ -1365,10 +1417,19 @@ export default function AdminComedianManager({ comedians }: Props) {
                                             <ChevronRight className="h-4 w-4 shrink-0 text-cedar" />
                                         )}
                                         <ComedianRowHeadshot row={row} />
-                                        <h2 className="min-w-0 flex-1 break-words font-urbanist-bold text-h3 text-cedar">
-                                            {row.name}
-                                        </h2>
-                                        <span className="shrink-0 rounded-full border border-red-700/30 bg-red-50 px-2 py-1 font-dmSans text-caption font-semibold text-red-900">
+                                        <span className="min-w-0 flex-1">
+                                            <span
+                                                role="heading"
+                                                aria-level={2}
+                                                className="block break-words font-urbanist-bold text-h3 leading-tight text-cedar"
+                                            >
+                                                {row.name}
+                                            </span>
+                                            <span className="mt-1 block font-dmSans text-caption font-semibold text-soft-charcoal">
+                                                ID {row.id}
+                                            </span>
+                                        </span>
+                                        <span className="shrink-0 rounded-md border border-red-700/30 bg-red-50 px-2.5 py-1 font-dmSans text-caption font-semibold text-red-900">
                                             Blocked
                                         </span>
                                     </button>
@@ -1414,13 +1475,13 @@ export default function AdminComedianManager({ comedians }: Props) {
                         }
 
                         return (
-                            <li key={row.id} className="px-4 py-4">
+                            <li key={row.id} className="px-4 py-3">
                                 <button
                                     type="button"
                                     aria-expanded={rowOpen}
                                     aria-controls={`comedian-row-${row.id}`}
                                     onClick={() => toggleComedianRow(row.id)}
-                                    className="flex w-full items-center gap-3 text-left"
+                                    className="flex w-full items-center gap-3 rounded-md px-2 py-2 text-left transition-colors hover:bg-coconut-cream/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-copper/40"
                                 >
                                     {rowOpen ? (
                                         <ChevronDown className="h-4 w-4 shrink-0 text-cedar" />
@@ -1428,11 +1489,28 @@ export default function AdminComedianManager({ comedians }: Props) {
                                         <ChevronRight className="h-4 w-4 shrink-0 text-cedar" />
                                     )}
                                     <ComedianRowHeadshot row={row} />
-                                    <h2 className="min-w-0 flex-1 break-words font-urbanist-bold text-h3 text-cedar">
-                                        {row.name}
-                                    </h2>
-                                    <span className="shrink-0 font-dmSans text-caption font-semibold text-soft-charcoal">
-                                        ID {row.id}
+                                    <span className="min-w-0 flex-1">
+                                        <span
+                                            role="heading"
+                                            aria-level={2}
+                                            className="block break-words font-urbanist-bold text-h3 leading-tight text-cedar"
+                                        >
+                                            {row.name}
+                                        </span>
+                                        <span className="mt-1 flex flex-wrap gap-x-3 gap-y-1 font-dmSans text-caption text-soft-charcoal">
+                                            <span>ID {row.id}</span>
+                                            <span>
+                                                {row.totalShows.toLocaleString()}{" "}
+                                                shows
+                                            </span>
+                                            <span>
+                                                {acceptedPodcasts.length.toLocaleString()}{" "}
+                                                podcasts
+                                            </span>
+                                        </span>
+                                    </span>
+                                    <span className="shrink-0 rounded-md border border-green-700/25 bg-green-50 px-2.5 py-1 font-dmSans text-caption font-semibold text-green-950">
+                                        Active
                                     </span>
                                 </button>
                                 <div
@@ -1442,73 +1520,90 @@ export default function AdminComedianManager({ comedians }: Props) {
                                         rowOpen ? "" : "hidden"
                                     }`}
                                 >
-                                    <div className="col-span-full flex flex-wrap gap-x-6 gap-y-1 border-b border-copper/20 pb-4 font-dmSans text-body text-soft-charcoal">
-                                        <span>ID {row.id}</span>
-                                        <span>
-                                            Popularity{" "}
-                                            {row.popularity.toLocaleString()}
-                                        </span>
-                                        <span>
-                                            {row.totalShows.toLocaleString()}{" "}
-                                            shows
-                                        </span>
-                                        <span>
-                                            {row.childCount.toLocaleString()}{" "}
-                                            children
-                                        </span>
-                                        <span>
-                                            {acceptedPodcasts.length.toLocaleString()}{" "}
-                                            podcasts
-                                        </span>
-                                        <span>Not blocked</span>
-                                        {row.latestTicketPurchase ? (
-                                            <span className="inline-flex min-w-0 items-center gap-1">
-                                                <a
-                                                    href={
-                                                        row.latestTicketPurchase
-                                                            .url
-                                                    }
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    className="inline-flex min-w-0 items-center gap-1 font-semibold text-copper-dark hover:underline"
-                                                >
-                                                    <span>
-                                                        Latest ticket purchase
+                                    <div className="col-span-full rounded-md border border-copper/20 bg-coconut-cream/35 p-3">
+                                        <div className="flex flex-wrap gap-2">
+                                            <SummaryPill
+                                                label="ID"
+                                                value={row.id}
+                                            />
+                                            <SummaryPill
+                                                label="Popularity"
+                                                value={row.popularity.toLocaleString()}
+                                            />
+                                            <SummaryPill
+                                                label="Shows"
+                                                value={row.totalShows.toLocaleString()}
+                                            />
+                                            <SummaryPill
+                                                label="Children"
+                                                value={row.childCount.toLocaleString()}
+                                            />
+                                            <SummaryPill
+                                                label="Podcasts"
+                                                value={acceptedPodcasts.length.toLocaleString()}
+                                            />
+                                            <SummaryPill
+                                                label="State"
+                                                value="Not blocked"
+                                                tone="good"
+                                            />
+                                        </div>
+                                        <div className="mt-3 font-dmSans text-caption text-soft-charcoal">
+                                            {row.latestTicketPurchase ? (
+                                                <span className="inline-flex min-w-0 flex-wrap items-center gap-1">
+                                                    <a
+                                                        href={
+                                                            row
+                                                                .latestTicketPurchase
+                                                                .url
+                                                        }
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        className="inline-flex min-w-0 items-center gap-1 font-semibold text-copper-dark hover:underline"
+                                                    >
+                                                        <span>
+                                                            Latest ticket
+                                                            purchase
+                                                        </span>
+                                                        <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                                                    </a>
+                                                    <span className="text-soft-charcoal">
+                                                        ·{" "}
+                                                        {row
+                                                            .latestTicketPurchase
+                                                            .showName ??
+                                                            "Untitled show"}{" "}
+                                                        ·{" "}
+                                                        {
+                                                            row
+                                                                .latestTicketPurchase
+                                                                .clubName
+                                                        }{" "}
+                                                        ·{" "}
+                                                        {formatDate(
+                                                            row
+                                                                .latestTicketPurchase
+                                                                .showDate,
+                                                        )}
                                                     </span>
-                                                    <ExternalLink className="h-3.5 w-3.5 shrink-0" />
-                                                </a>
-                                                <span className="text-soft-charcoal">
-                                                    ·{" "}
-                                                    {row.latestTicketPurchase
-                                                        .showName ??
-                                                        "Untitled show"}{" "}
-                                                    ·{" "}
-                                                    {
-                                                        row.latestTicketPurchase
-                                                            .clubName
-                                                    }{" "}
-                                                    ·{" "}
-                                                    {formatDate(
-                                                        row.latestTicketPurchase
-                                                            .showDate,
-                                                    )}
                                                 </span>
-                                            </span>
-                                        ) : (
-                                            <span>
-                                                No ticket purchase link found.
-                                            </span>
-                                        )}
+                                            ) : (
+                                                <span>
+                                                    No ticket purchase link
+                                                    found.
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
                                     <div
                                         role="group"
                                         aria-label={`Comedian editor for ${row.name}`}
-                                        className="col-span-full rounded-md border border-copper/20 bg-coconut-cream/35 p-4 font-dmSans"
+                                        className="col-span-full rounded-md border border-copper/20 bg-white p-4 font-dmSans shadow-sm"
                                     >
                                         <div
                                             role="group"
                                             aria-label={`Name and blocklist status for ${row.name}`}
-                                            className="grid min-w-0 gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end"
+                                            className="grid min-w-0 gap-4 rounded-md border border-copper/15 bg-coconut-cream/35 p-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-end"
                                         >
                                             <div className="min-w-0 space-y-3">
                                                 <label className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
@@ -1589,7 +1684,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                         >
                                             <div
                                                 role="listitem"
-                                                className="rounded-md border border-copper/20 bg-coconut-cream/35 p-3"
+                                                className="overflow-hidden rounded-md border border-copper/20 bg-white"
                                             >
                                                 <button
                                                     type="button"
@@ -1600,7 +1695,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                             row.id,
                                                         )
                                                     }
-                                                    className="flex w-full items-center gap-2 text-left"
+                                                    className="flex w-full items-center gap-2 bg-coconut-cream/45 px-3 py-3 text-left transition-colors hover:bg-coconut-cream/70"
                                                 >
                                                     {socialOpen ? (
                                                         <ChevronDown className="h-4 w-4 shrink-0 text-cedar" />
@@ -1614,7 +1709,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                 {socialOpen ? (
                                                     <div
                                                         id={`comedian-social-${row.id}`}
-                                                        className="mt-3 grid gap-3"
+                                                        className="grid gap-3 border-t border-copper/15 p-3"
                                                     >
                                                         <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
                                                             Website
@@ -1904,13 +1999,40 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                                 className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
                                                             />
                                                         </label>
+                                                        <div className="flex justify-end">
+                                                            <Button
+                                                                type="button"
+                                                                className="gap-2 bg-copper-dark text-white hover:bg-cedar disabled:bg-gray-300 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                disabled={
+                                                                    disabled ||
+                                                                    pendingId ===
+                                                                        row.id ||
+                                                                    !isRecordDirty(
+                                                                        row,
+                                                                    ) ||
+                                                                    !normalizedAdminName(
+                                                                        nameValue(
+                                                                            row,
+                                                                        ),
+                                                                    )
+                                                                }
+                                                                onClick={() =>
+                                                                    void saveComedianRecord(
+                                                                        row,
+                                                                    )
+                                                                }
+                                                            >
+                                                                <Save className="h-4 w-4" />
+                                                                Update Comedian
+                                                            </Button>
+                                                        </div>
                                                     </div>
                                                 ) : null}
                                             </div>
 
                                             <div
                                                 role="listitem"
-                                                className="rounded-md border border-copper/20 bg-coconut-cream/35 p-3"
+                                                className="overflow-hidden rounded-md border border-copper/20 bg-white"
                                             >
                                                 <button
                                                     type="button"
@@ -1923,7 +2045,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                             row.id,
                                                         )
                                                     }
-                                                    className="flex w-full items-center gap-2 text-left"
+                                                    className="flex w-full items-center gap-2 bg-coconut-cream/45 px-3 py-3 text-left transition-colors hover:bg-coconut-cream/70"
                                                 >
                                                     {relationshipOpen ? (
                                                         <ChevronDown className="h-4 w-4 shrink-0 text-cedar" />
@@ -1939,7 +2061,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                 {relationshipOpen ? (
                                                     <div
                                                         id={`comedian-relationship-${row.id}`}
-                                                        className="mt-3 space-y-3"
+                                                        className="space-y-3 border-t border-copper/15 p-3"
                                                     >
                                                         <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
                                                             Current parent
@@ -2124,7 +2246,7 @@ export default function AdminComedianManager({ comedians }: Props) {
 
                                             <div
                                                 role="listitem"
-                                                className="rounded-md border border-copper/20 bg-coconut-cream/35 p-3"
+                                                className="overflow-hidden rounded-md border border-copper/20 bg-white"
                                             >
                                                 <button
                                                     type="button"
@@ -2135,7 +2257,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                             row.id,
                                                         )
                                                     }
-                                                    className="flex w-full items-center gap-2 text-left"
+                                                    className="flex w-full items-center gap-2 bg-coconut-cream/45 px-3 py-3 text-left transition-colors hover:bg-coconut-cream/70"
                                                 >
                                                     {podcastOpen ? (
                                                         <ChevronDown className="h-4 w-4 shrink-0 text-cedar" />
@@ -2153,7 +2275,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                 {podcastOpen ? (
                                                     <div
                                                         id={`comedian-podcasts-${row.id}`}
-                                                        className="mt-3 space-y-5"
+                                                        className="space-y-5 border-t border-copper/15 p-3"
                                                     >
                                                         <div>
                                                             <div className="mb-3 text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
@@ -2510,7 +2632,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                             </div>
                                             <div
                                                 role="listitem"
-                                                className="rounded-md border border-copper/20 bg-coconut-cream/35 p-3"
+                                                className="overflow-hidden rounded-md border border-copper/20 bg-white"
                                             >
                                                 <button
                                                     type="button"
@@ -2521,7 +2643,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                             row.id,
                                                         )
                                                     }
-                                                    className="flex w-full items-center gap-2 text-left"
+                                                    className="flex w-full items-center gap-2 bg-coconut-cream/45 px-3 py-3 text-left transition-colors hover:bg-coconut-cream/70"
                                                 >
                                                     {imageOpen ? (
                                                         <ChevronDown className="h-4 w-4 shrink-0 text-cedar" />
@@ -2545,7 +2667,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                 {imageOpen ? (
                                                     <div
                                                         id={`comedian-images-${row.id}`}
-                                                        className="mt-3"
+                                                        className="border-t border-copper/15 p-3"
                                                     >
                                                         <div className="grid min-w-0 gap-3 lg:max-w-3xl">
                                                             <div className="min-w-0 space-y-3 rounded-md border border-copper/20 bg-white/80 p-3">
