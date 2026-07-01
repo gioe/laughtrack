@@ -250,4 +250,63 @@ describe("FilterBar", () => {
             ).toBeNull();
         });
     });
+
+    describe("home-club filter", () => {
+        const homeClubFilters = [
+            { value: "20", label: "Comedy Store", count: 12 },
+            { value: "10", label: "The Setup", count: 4 },
+        ];
+
+        it("renders the home-club select with options on AllComedians", () => {
+            const { container } = render(
+                <FilterBar
+                    variant={SearchVariant.AllComedians}
+                    total={5}
+                    filterData={[]}
+                    homeClubFilters={homeClubFilters}
+                />,
+            );
+            const select = container.querySelector(
+                'select[aria-label="Filter by home club"]',
+            );
+            expect(select).not.toBeNull();
+            const options = select?.querySelectorAll("option");
+            // "All home clubs" sentinel + one per club.
+            expect(options?.length).toBe(homeClubFilters.length + 1);
+            expect(select?.textContent).toContain("Comedy Store (12)");
+            expect(select?.textContent).toContain("The Setup (4)");
+        });
+
+        it("omits the home-club select when no home-club data is available", () => {
+            const { container } = render(
+                <FilterBar
+                    variant={SearchVariant.AllComedians}
+                    total={5}
+                    filterData={[]}
+                    homeClubFilters={[]}
+                />,
+            );
+            expect(
+                container.querySelector(
+                    'select[aria-label="Filter by home club"]',
+                ),
+            ).toBeNull();
+        });
+
+        it("does not render the home-club select on non-comedian variants", () => {
+            const { container } = render(
+                <FilterBar
+                    variant={SearchVariant.AllClubs}
+                    total={5}
+                    filterData={[]}
+                    homeClubFilters={homeClubFilters}
+                />,
+            );
+            expect(
+                container.querySelector(
+                    'select[aria-label="Filter by home club"]',
+                ),
+            ).toBeNull();
+        });
+    });
 });
