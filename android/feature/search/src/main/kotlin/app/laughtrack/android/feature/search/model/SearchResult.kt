@@ -41,13 +41,17 @@ fun searchResultSummary(
 }
 
 /**
- * Per-pivot query inputs. [zip]/[distance] only apply to the geo-scoped Shows
- * pivot; [text] filters comedians/clubs (and the club name for shows); [sort] is
- * the server sort key. Changing any field resets pagination and re-queries.
+ * Per-pivot query inputs. [zip]/[distance]/[from]/[to] only apply to the
+ * geo-scoped Shows pivot; [text] filters comedians/clubs (and the club name for
+ * shows); [sort] is the server sort key. [from]/[to] are inclusive YYYY-MM-DD
+ * bounds used by the Home date-window shortcuts (Tonight / This Week). Changing
+ * any field resets pagination and re-queries.
  */
 data class SearchQuery(
     val text: String = "",
     val sort: String? = null,
     val zip: String? = null,
     val distance: Int? = null,
+    val from: String? = null,
+    val to: String? = null,
 )

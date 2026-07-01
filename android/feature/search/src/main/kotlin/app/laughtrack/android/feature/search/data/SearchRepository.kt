@@ -50,6 +50,8 @@ class SearchRepository
             val response =
                 showsApi.searchShows(
                     zip = query.zip,
+                    from = query.from,
+                    to = query.to,
                     distance = query.distance,
                     sort = query.sort,
                     club = query.text.ifBlank { null },
