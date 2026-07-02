@@ -1967,6 +1967,37 @@ public enum Components {
                 case count
             }
         }
+        /// A selectable comedian home-club option. 'value' is the club-id token to pass back as the homeClub query param; 'label' is the human-readable club name; 'count' is the number of matching comedians.
+        ///
+        /// - Remark: Generated from `#/components/schemas/HomeClubFilter`.
+        public struct HomeClubFilter: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/HomeClubFilter/value`.
+            public var value: Swift.String
+            /// - Remark: Generated from `#/components/schemas/HomeClubFilter/label`.
+            public var label: Swift.String
+            /// - Remark: Generated from `#/components/schemas/HomeClubFilter/count`.
+            public var count: Swift.Int
+            /// Creates a new `HomeClubFilter`.
+            ///
+            /// - Parameters:
+            ///   - value:
+            ///   - label:
+            ///   - count:
+            public init(
+                value: Swift.String,
+                label: Swift.String,
+                count: Swift.Int
+            ) {
+                self.value = value
+                self.label = label
+                self.count = count
+            }
+            public enum CodingKeys: String, CodingKey {
+                case value
+                case label
+                case count
+            }
+        }
         /// - Remark: Generated from `#/components/schemas/Ticket`.
         public struct Ticket: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/Ticket/price`.
@@ -3453,6 +3484,10 @@ public enum Components {
             ///
             /// - Remark: Generated from `#/components/schemas/ComedianSearchResponse/homeCityFilters`.
             public var homeCityFilters: [Components.Schemas.HomeCityFilter]
+            /// Available comedian home-club filter options. Empty when no home-club data qualifies; clients omit the control in that case.
+            ///
+            /// - Remark: Generated from `#/components/schemas/ComedianSearchResponse/homeClubFilters`.
+            public var homeClubFilters: [Components.Schemas.HomeClubFilter]
             /// Creates a new `ComedianSearchResponse`.
             ///
             /// - Parameters:
@@ -3460,22 +3495,26 @@ public enum Components {
             ///   - total:
             ///   - filters:
             ///   - homeCityFilters: Available comedian home-city filter options. Empty when no home-location data qualifies; clients omit the control in that case.
+            ///   - homeClubFilters: Available comedian home-club filter options. Empty when no home-club data qualifies; clients omit the control in that case.
             public init(
                 data: [Components.Schemas.ComedianSearchItem],
                 total: Swift.Int,
                 filters: [Components.Schemas.Filter],
-                homeCityFilters: [Components.Schemas.HomeCityFilter]
+                homeCityFilters: [Components.Schemas.HomeCityFilter],
+                homeClubFilters: [Components.Schemas.HomeClubFilter]
             ) {
                 self.data = data
                 self.total = total
                 self.filters = filters
                 self.homeCityFilters = homeCityFilters
+                self.homeClubFilters = homeClubFilters
             }
             public enum CodingKeys: String, CodingKey {
                 case data
                 case total
                 case filters
                 case homeCityFilters
+                case homeClubFilters
             }
         }
         /// - Remark: Generated from `#/components/schemas/ZipLookupResponse`.
@@ -8646,6 +8685,10 @@ public enum Operations {
                 ///
                 /// - Remark: Generated from `#/paths/comedians/search/GET/query/homeCity`.
                 public var homeCity: Swift.String?
+                /// Filter to comedians whose home club matches this club-id token (from the values in homeClubFilters).
+                ///
+                /// - Remark: Generated from `#/paths/comedians/search/GET/query/homeClub`.
+                public var homeClub: Swift.String?
                 /// Creates a new `Query`.
                 ///
                 /// - Parameters:
@@ -8656,6 +8699,7 @@ public enum Operations {
                 ///   - size:
                 ///   - includeEmpty: Include comedians with no upcoming shows
                 ///   - homeCity: Filter to comedians whose home city matches this 'city|state' token (from the values in homeCityFilters).
+                ///   - homeClub: Filter to comedians whose home club matches this club-id token (from the values in homeClubFilters).
                 public init(
                     comedian: Swift.String? = nil,
                     sort: Swift.String? = nil,
@@ -8663,7 +8707,8 @@ public enum Operations {
                     page: Swift.Int? = nil,
                     size: Swift.Int? = nil,
                     includeEmpty: Swift.String? = nil,
-                    homeCity: Swift.String? = nil
+                    homeCity: Swift.String? = nil,
+                    homeClub: Swift.String? = nil
                 ) {
                     self.comedian = comedian
                     self.sort = sort
@@ -8672,6 +8717,7 @@ public enum Operations {
                     self.size = size
                     self.includeEmpty = includeEmpty
                     self.homeCity = homeCity
+                    self.homeClub = homeClub
                 }
             }
             public var query: Operations.SearchComedians.Input.Query
