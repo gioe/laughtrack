@@ -10,6 +10,31 @@ make -C ios check-pbxproj              # Verify every Sources/*.swift is wired i
 make -C ios check-ios-libs-pin         # Verify ios-libs revision pins agree across project.yml + both Package.resolved files (run before push)
 ```
 
+## Releasing (fastlane)
+
+Use the **`ios/bin/lane`** wrapper instead of the raw
+`cd ios && PATH=… bundle exec fastlane …` dance. It resolves `ios/` relative to
+itself (so it runs from anywhere in the repo) and prepends Homebrew Ruby to PATH
+so fastlane's pinned bundler (4.0.8) is found — the system Ruby 2.6 macOS puts
+first on PATH lacks it and fails with `Could not find 'bundler' (4.0.8)`.
+
+```bash
+ios/bin/lane beta                            # bump build+version → build → upload to TestFlight → tag
+ios/bin/lane beta skip_marketing_bump:true   # build-number-only bump (keeps MARKETING_VERSION)
+ios/bin/lane test                            # run the iOS test suite
+ios/bin/lane lanes                           # list every available lane
+```
+
+App Store Connect credentials load automatically from `ios/fastlane/.env`
+(gitignored — copy `ios/fastlane/.env.example` and fill in the ASC key); the
+wrapper fails fast with a hint if that file is missing for an ASC lane.
+
+**Before `beta`/`release`:** the lane pushes the version-bump commit to `main`
+through the husky pre-push hook, which runs `apps/web` `npm run type-check`. If
+the working tree doesn't typecheck clean (e.g. an in-flight change elsewhere in
+`apps/web`), that push — and the whole lane — aborts mid-run. Confirm
+`cd apps/web && npm run type-check` is green first.
+
 ## Testing
 
 iOS tests split across two runners:

@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+#
+# lane — run any iOS fastlane lane without the boilerplate.
+#
+# Removes the two things you'd otherwise retype every time:
+#   • cd ios      — this script locates ios/ relative to itself, so run it
+#                   from anywhere in the repo.
+#   • PATH tweak  — fastlane's pinned bundler (4.0.8) is not installed on the
+#                   system Ruby 2.6 that macOS puts first on PATH; it lives on
+#                   Homebrew Ruby. We prepend that here.
+#
+# App Store Connect credentials are NOT handled here — fastlane auto-loads them
+# from ios/fastlane/.env (gitignored; see ios/fastlane/.env.example).
+#
+# Usage (from anywhere in the repo):
+#   ios/bin/lane beta                            # bump build+version, build, upload to TestFlight, tag
+#   ios/bin/lane beta skip_marketing_bump:true   # build-number-only bump (keep MARKETING_VERSION)
+#   ios/bin/lane test                            # run the iOS test suite
+#   ios/bin/lane lanes                           # list every available lane
+#
+set -euo pipefail
+
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ios_dir="$(cd "$script_dir/.." && pwd)"
+
+# --- Homebrew Ruby (fastlane's bundler 4.0.8 is absent from system Ruby 2.6) ---
+homebrew_ruby_bin="$(brew --prefix ruby 2>/dev/null || true)/bin"
+if [ ! -x "$homebrew_ruby_bin/ruby" ]; then
+  homebrew_ruby_bin="/opt/homebrew/opt/ruby/bin" # fallback: default Apple-silicon install path
+fi
+if [ ! -x "$homebrew_ruby_bin/ruby" ]; then
+  echo "error: Homebrew Ruby not found (looked in $homebrew_ruby_bin)." >&2
+  echo "       Install it with:  brew install ruby" >&2
+  exit 1
+fi
+export PATH="$homebrew_ruby_bin:$PATH"
+
+if [ "$#" -eq 0 ]; then
+  echo "usage: ios/bin/lane <lane> [key:value ...]"
+  echo "examples:"
+  echo "  ios/bin/lane beta"
+  echo "  ios/bin/lane beta skip_marketing_bump:true"
+  echo "  ios/bin/lane test"
+  echo "  ios/bin/lane lanes        # list all lanes"
+  exit 0
+fi
+
+# --- Preflight: lanes that talk to App Store Connect need ios/fastlane/.env ---
+env_file="$ios_dir/fastlane/.env"
+case "$1" in
+beta | release | upload_testflight | upload_app_store | upload_metadata | submit_review | bump_build_number)
+  if [ ! -f "$env_file" ]; then
+    echo "error: $env_file not found — App Store Connect creds are required for '$1'." >&2
+    echo "       cp ios/fastlane/.env.example ios/fastlane/.env   and fill in the ASC key." >&2
+    exit 1
+  fi
+  ;;
+esac
+
+cd "$ios_dir"
+exec bundle exec fastlane "$@"
