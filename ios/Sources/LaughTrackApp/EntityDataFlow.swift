@@ -50,19 +50,23 @@ struct DiscoverySearchPage<Item: Sendable>: Sendable {
     let filters: [Components.Schemas.Filter]
     /// Home-city filter options surfaced by comedian search; empty for other entities.
     let homeCityFilters: [Components.Schemas.HomeCityFilter]
+    /// Home-club filter options surfaced by comedian search; empty for other entities.
+    let homeClubFilters: [Components.Schemas.HomeClubFilter]
 
     init(
         items: [Item],
         total: Int,
         page: Int,
         filters: [Components.Schemas.Filter],
-        homeCityFilters: [Components.Schemas.HomeCityFilter] = []
+        homeCityFilters: [Components.Schemas.HomeCityFilter] = [],
+        homeClubFilters: [Components.Schemas.HomeClubFilter] = []
     ) {
         self.items = items
         self.total = total
         self.page = page
         self.filters = filters
         self.homeCityFilters = homeCityFilters
+        self.homeClubFilters = homeClubFilters
     }
 
     var canLoadMore: Bool {
@@ -76,17 +80,21 @@ struct DiscoverySearchResponse<Item: Sendable>: Sendable {
     let filters: [Components.Schemas.Filter]
     /// Home-city filter options surfaced by comedian search; empty for other entities.
     let homeCityFilters: [Components.Schemas.HomeCityFilter]
+    /// Home-club filter options surfaced by comedian search; empty for other entities.
+    let homeClubFilters: [Components.Schemas.HomeClubFilter]
 
     init(
         items: [Item],
         total: Int,
         filters: [Components.Schemas.Filter] = [],
-        homeCityFilters: [Components.Schemas.HomeCityFilter] = []
+        homeCityFilters: [Components.Schemas.HomeCityFilter] = [],
+        homeClubFilters: [Components.Schemas.HomeClubFilter] = []
     ) {
         self.items = items
         self.total = total
         self.filters = filters
         self.homeCityFilters = homeCityFilters
+        self.homeClubFilters = homeClubFilters
     }
 }
 
@@ -190,7 +198,8 @@ class EntitySearchModel<Query: Equatable, Item: Sendable>: ObservableObject {
                     total: response.total,
                     page: page,
                     filters: response.filters,
-                    homeCityFilters: response.homeCityFilters
+                    homeCityFilters: response.homeCityFilters,
+                    homeClubFilters: response.homeClubFilters
                 )
             )
             loadedQuery = query

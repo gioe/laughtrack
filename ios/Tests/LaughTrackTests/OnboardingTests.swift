@@ -537,7 +537,8 @@ private struct MockOnboardingTransport: ClientTransport {
                 ],
                 total: query == "nate" ? 1 : 3,
                 filters: [],
-                homeCityFilters: []
+                homeCityFilters: [],
+                homeClubFilters: []
             ))
         case "addFavorite":
             if let uuid = try? await favoriteUUID(from: body) {

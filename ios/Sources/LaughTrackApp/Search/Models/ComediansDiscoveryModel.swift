@@ -13,6 +13,8 @@ final class ComediansDiscoveryModel: EntitySearchModel<PrimitiveDiscoveryQuery, 
     @Published var includeEmpty: Bool = false
     /// Selected home-city `city|state` token; nil = all home cities.
     @Published var homeCity: String?
+    /// Selected home-club club-id token; nil = all home clubs.
+    @Published var homeClub: String?
 
     func reload(
         apiClient: Client,
@@ -47,7 +49,8 @@ final class ComediansDiscoveryModel: EntitySearchModel<PrimitiveDiscoveryQuery, 
             filters: selectedFilterSlugs.sorted(),
             sort: sort.rawValue,
             includeEmpty: includeEmpty,
-            homeCity: homeCity
+            homeCity: homeCity,
+            homeClub: homeClub
         )
     }
 
@@ -81,7 +84,8 @@ final class ComediansDiscoveryModel: EntitySearchModel<PrimitiveDiscoveryQuery, 
                         page: page,
                         size: Self.pageSize,
                         includeEmpty: query.includeEmpty ? "true" : nil,
-                        homeCity: query.homeCity
+                        homeCity: query.homeCity,
+                        homeClub: query.homeClub
                     ),
                     headers: .init(xTimezone: TimeZone.current.identifier)
                 )
@@ -98,7 +102,8 @@ final class ComediansDiscoveryModel: EntitySearchModel<PrimitiveDiscoveryQuery, 
                     items: items,
                     total: response.total,
                     filters: response.filters,
-                    homeCityFilters: response.homeCityFilters
+                    homeCityFilters: response.homeCityFilters,
+                    homeClubFilters: response.homeClubFilters
                 )
                 await MainPageCache.set(pageResponse, forKey: cacheKey, in: cache, ttl: cacheTTL, persistentCache: nil)
                 return .success(pageResponse)
