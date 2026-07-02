@@ -74,7 +74,7 @@ struct NotificationCenterView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(LaughTrackAtmosphereBackground().ignoresSafeArea())
         .navigationTitle("Notifications")
-        .navigationBarTitleDisplayMode(.inline)
+        .modifier(InlineNavigationTitle())
         .modifier(LaughTrackNavigationChrome(background: .clear))
         .accessibilityIdentifier(LaughTrackViewTestID.notificationCenterScreen)
         .overlayPreferenceValue(PillDropdownAnchorKey.self) { anchors in
