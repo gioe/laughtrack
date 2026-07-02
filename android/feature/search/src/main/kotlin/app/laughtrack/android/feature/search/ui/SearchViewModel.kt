@@ -167,19 +167,26 @@ class SearchViewModel
                 viewModelScope.launch {
                     runCatching { repository.search(pivot, query, page) }
                         .onSuccess { result ->
-                            updatePivot(pivot) {
-                                it.copy(
-                                    results = it.results.appendPage(page, result.results, result.total),
-                                    homeCityFilters = result.homeCityFilters,
-                                )
-                            }
-                            // Clear a selected home city the latest response no longer offers
-                            // so a stale token can't strand the filter with no way to reset it.
                             val current = _state.value.states.getValue(pivot).query.homeCity
                             val reconciled = reconcileHomeCity(current, result.homeCityFilters)
                             if (reconciled != current) {
-                                updatePivot(pivot) { it.copy(query = it.query.copy(homeCity = reconciled)) }
+                                // The selected home city is no longer offered: clear it and
+                                // re-fetch unfiltered instead of briefly rendering the
+                                // soon-discarded stale-token page.
+                                updatePivot(pivot) {
+                                    it.copy(
+                                        query = it.query.copy(homeCity = reconciled),
+                                        homeCityFilters = result.homeCityFilters,
+                                    )
+                                }
                                 reload(pivot)
+                            } else {
+                                updatePivot(pivot) {
+                                    it.copy(
+                                        results = it.results.appendPage(page, result.results, result.total),
+                                        homeCityFilters = result.homeCityFilters,
+                                    )
+                                }
                             }
                         }
                         .onFailure { error ->
