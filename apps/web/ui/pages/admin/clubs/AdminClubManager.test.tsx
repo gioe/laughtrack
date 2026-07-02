@@ -41,6 +41,18 @@ const groups = [
                 iconUrl: "https://cdn.test/clubs/Funny%20Bone%20Albany.png",
                 heroUrl:
                     "https://cdn.test/clubs/Funny%20Bone%20Albany-hero.jpg",
+                activeImageAsset: {
+                    id: 100,
+                    sourceImageUrl: "https://source.test/albany.png",
+                    originalPath: "club-images/10/current/original.png",
+                    iconPath: "club-images/10/current/icon.png",
+                    heroPath: "club-images/10/current/hero.jpg",
+                    iconUrl: "https://cdn.test/club-images/10/current/icon.png",
+                    heroUrl: "https://cdn.test/club-images/10/current/hero.jpg",
+                    mimeType: "image/png",
+                    width: 800,
+                    height: 800,
+                },
                 visible: true,
                 status: "active",
                 clubType: "club",
@@ -75,6 +87,7 @@ const groups = [
                 hasImage: false,
                 iconUrl: "/placeholders/club-placeholder.svg",
                 heroUrl: "",
+                activeImageAsset: null,
                 visible: false,
                 status: "closed",
                 clubType: "venue",
@@ -101,6 +114,7 @@ const groups = [
                 hasImage: false,
                 iconUrl: "/placeholders/club-placeholder.svg",
                 heroUrl: "",
+                activeImageAsset: null,
                 visible: true,
                 status: "active",
                 clubType: "club",
@@ -390,5 +404,92 @@ describe("AdminClubManager", () => {
                 }),
             );
         });
+    });
+
+    it("uploads a club thumbnail from a URL", async () => {
+        vi.mocked(global.fetch).mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
+                ok: true,
+                clubId: 11,
+                hasImage: true,
+                asset: {
+                    id: 201,
+                    sourceImageUrl: "https://images.example.com/boston.png",
+                    originalPath: "club-images/11/new/original.png",
+                    iconPath: "club-images/11/new/icon.png",
+                    heroPath: null,
+                    iconUrl: "https://cdn.test/club-images/11/new/icon.png",
+                    heroUrl: null,
+                    mimeType: "image/png",
+                    width: 900,
+                    height: 900,
+                },
+            }),
+        } as never);
+        render(<AdminClubManager groups={groups} />);
+
+        fireEvent.click(getFunnyBoneGroupToggle());
+        const urlInputs = screen.getAllByLabelText("Club thumbnail image URL");
+        fireEvent.change(urlInputs[1], {
+            target: { value: "https://images.example.com/boston.png" },
+        });
+        fireEvent.click(
+            screen.getAllByRole("button", {
+                name: "Save club thumbnail URL",
+            })[1],
+        );
+
+        await waitFor(() => {
+            expect(global.fetch).toHaveBeenCalledWith(
+                "/api/admin/clubs/images/publish",
+                expect.objectContaining({
+                    method: "POST",
+                    body: JSON.stringify({
+                        clubId: 11,
+                        iconImageUrl: "https://images.example.com/boston.png",
+                    }),
+                }),
+            );
+        });
+        expect(
+            await screen.findAllByText("Funny Bone Boston thumbnail updated."),
+        ).toHaveLength(2);
+        expect(
+            screen
+                .getByAltText("Funny Bone Boston current thumbnail image")
+                .getAttribute("src"),
+        ).toBe("https://cdn.test/club-images/11/new/icon.png");
+    });
+
+    it("removes an existing club thumbnail", async () => {
+        vi.mocked(global.fetch).mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
+                ok: true,
+                clubId: 10,
+                hasImage: false,
+                asset: null,
+            }),
+        } as never);
+        render(<AdminClubManager groups={groups} />);
+
+        fireEvent.click(getFunnyBoneGroupToggle());
+        fireEvent.click(
+            screen.getAllByRole("button", { name: "Remove thumbnail" })[0],
+        );
+
+        await waitFor(() => {
+            expect(global.fetch).toHaveBeenCalledWith(
+                "/api/admin/clubs/images",
+                expect.objectContaining({
+                    method: "DELETE",
+                    body: JSON.stringify({ clubId: 10 }),
+                }),
+            );
+        });
+        expect(
+            await screen.findAllByText("Funny Bone Albany thumbnail removed."),
+        ).toHaveLength(2);
     });
 });

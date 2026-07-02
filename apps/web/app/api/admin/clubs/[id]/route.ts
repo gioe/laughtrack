@@ -3,7 +3,11 @@ import { CLUB_TYPE_OPTIONS } from "@/lib/admin/clubTaxonomy";
 import { Prisma } from "@prisma/client";
 import { writeAdminActionAudit } from "@/lib/admin/audit";
 import { requireAdminForApi } from "@/lib/auth/requireAdmin";
-import { buildClubHeroImageUrl, buildClubImageUrl } from "@/util/imageUtil";
+import {
+    buildClubHeroImageUrl,
+    buildClubImageAssetUrl,
+    buildClubImageUrl,
+} from "@/util/imageUtil";
 import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
@@ -89,12 +93,22 @@ function serializeClubForAdmin(club: {
         lastScrapedBy: string | null;
     }>;
     imageAssets?: Array<{
+        id: number;
+        sourceImageUrl: string;
+        originalPath: string;
+        iconPath: string | null;
         heroPath: string | null;
+        mimeType: string | null;
+        width: number | null;
+        height: number | null;
     }>;
     _count: { shows: number };
 }) {
     const latestShow = club.shows[0] ?? null;
     const activeImageAsset = club.imageAssets?.[0] ?? null;
+    const activeIconUrl = activeImageAsset?.iconPath
+        ? buildClubImageAssetUrl(activeImageAsset.iconPath)
+        : null;
     return {
         id: club.id,
         name: club.name,
@@ -103,8 +117,24 @@ function serializeClubForAdmin(club: {
         website: club.website,
         popularity: club.popularity,
         hasImage: club.hasImage,
-        iconUrl: buildClubImageUrl(club.name, club.hasImage),
+        iconUrl: activeIconUrl ?? buildClubImageUrl(club.name, club.hasImage),
         heroUrl: buildClubHeroImageUrl(activeImageAsset?.heroPath),
+        activeImageAsset: activeImageAsset
+            ? {
+                  id: activeImageAsset.id,
+                  sourceImageUrl: activeImageAsset.sourceImageUrl,
+                  originalPath: activeImageAsset.originalPath,
+                  iconPath: activeImageAsset.iconPath,
+                  heroPath: activeImageAsset.heroPath,
+                  iconUrl: activeIconUrl,
+                  heroUrl: activeImageAsset.heroPath
+                      ? buildClubImageAssetUrl(activeImageAsset.heroPath)
+                      : null,
+                  mimeType: activeImageAsset.mimeType,
+                  width: activeImageAsset.width,
+                  height: activeImageAsset.height,
+              }
+            : null,
         visible: club.visible ?? true,
         status: club.status,
         clubType: club.clubType,
@@ -156,7 +186,16 @@ const adminClubSelect = {
     },
     imageAssets: {
         where: { isActive: true },
-        select: { heroPath: true },
+        select: {
+            id: true,
+            sourceImageUrl: true,
+            originalPath: true,
+            iconPath: true,
+            heroPath: true,
+            mimeType: true,
+            width: true,
+            height: true,
+        },
         orderBy: { publishedAt: "desc" as const },
         take: 1,
     },
@@ -223,6 +262,7 @@ export const PATCH = withRequestMetrics(async function PATCH(
                     },
                     scrapingSources: adminClubSelect.scrapingSources,
                     shows: adminClubSelect.shows,
+                    imageAssets: adminClubSelect.imageAssets,
                     _count: adminClubSelect._count,
                 },
             });

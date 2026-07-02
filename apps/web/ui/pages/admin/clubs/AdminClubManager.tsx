@@ -4,6 +4,7 @@ import type {
     AdminClubGroup,
     AdminClubListItem,
 } from "@/lib/admin/clubManagement";
+import { validateComedianImageFile } from "@/lib/admin/comedianImageClientValidation";
 import { CLUB_TYPE_OPTIONS } from "@/lib/admin/clubTaxonomy";
 import { Button } from "@/ui/components/ui/button";
 import {
@@ -13,7 +14,15 @@ import {
     AdminToolbar,
     clampAdminPage,
 } from "@/ui/pages/admin/shared/AdminControls";
-import { ChevronDown, ChevronRight, ExternalLink, Save } from "lucide-react";
+import {
+    ChevronDown,
+    ChevronRight,
+    ExternalLink,
+    Save,
+    Trash2,
+    Upload,
+    X,
+} from "lucide-react";
 import Link from "next/link";
 import type { Dispatch, SetStateAction } from "react";
 import { useEffect, useMemo, useState } from "react";
@@ -40,6 +49,11 @@ type Draft = {
 type Status = {
     kind: "idle" | "ok" | "error";
     message?: string;
+};
+
+type ManualClubImage = {
+    icon: string;
+    iconFile: File | null;
 };
 
 type ChainClubControls = {
@@ -235,6 +249,29 @@ function sortChainClubs(clubs: AdminClubListItem[], sort: string) {
     });
 }
 
+function currentIconUrl(club: AdminClubListItem) {
+    return club.activeImageAsset?.iconUrl ?? club.iconUrl;
+}
+
+function StagedPreview({
+    file,
+    alt,
+    className,
+}: {
+    file: File;
+    alt: string;
+    className: string;
+}) {
+    const [src, setSrc] = useState<string>("");
+    useEffect(() => {
+        const url = URL.createObjectURL(file);
+        setSrc(url);
+        return () => URL.revokeObjectURL(url);
+    }, [file]);
+    if (!src) return null;
+    return <img src={src} alt={alt} className={className} />;
+}
+
 export default function AdminClubManager({ groups }: Props) {
     const [rows, setRows] = useState(groups);
     const [groupView, setGroupView] = useState<GroupView>("chain");
@@ -243,6 +280,12 @@ export default function AdminClubManager({ groups }: Props) {
     const [pageSize, setPageSize] = useState(25);
     const [drafts, setDrafts] = useState<Record<number, Draft>>({});
     const [nameEdits, setNameEdits] = useState<Record<number, string>>({});
+    const [manualImages, setManualImages] = useState<
+        Record<number, ManualClubImage>
+    >({});
+    const [imageStatusByClub, setImageStatusByClub] = useState<
+        Record<number, Status>
+    >({});
     const [pendingId, setPendingId] = useState<number | null>(null);
     const [status, setStatus] = useState<Status>({ kind: "idle" });
     const [collapsedGroups, setCollapsedGroups] = useState<
@@ -336,6 +379,38 @@ export default function AdminClubManager({ groups }: Props) {
                 ...patch,
             },
         }));
+    }
+
+    function manualImageValue(club: AdminClubListItem) {
+        return (
+            manualImages[club.id] ?? {
+                icon: currentIconUrl(club),
+                iconFile: null,
+            }
+        );
+    }
+
+    function updateManualImage(
+        club: AdminClubListItem,
+        patch: Partial<ManualClubImage>,
+    ) {
+        setManualImages((current) => ({
+            ...current,
+            [club.id]: {
+                icon: manualImageValue(club).icon,
+                iconFile: manualImageValue(club).iconFile,
+                ...patch,
+            },
+        }));
+    }
+
+    function imageHasInput(club: AdminClubListItem) {
+        const input = manualImageValue(club);
+        return Boolean(
+            input.iconFile ||
+                (input.icon.trim() &&
+                    input.icon.trim() !== currentIconUrl(club)),
+        );
     }
 
     function replaceClub(updated: AdminClubListItem) {
@@ -521,6 +596,155 @@ export default function AdminClubManager({ groups }: Props) {
         setStatus({ kind: "ok", message: `${club.name} renamed.` });
     }
 
+    async function stageImageFile(club: AdminClubListItem, file: File) {
+        const result = await validateComedianImageFile(file, "headshot");
+        if (!result.ok) {
+            setStatus({ kind: "error", message: result.reason });
+            setImageStatusByClub((current) => ({
+                ...current,
+                [club.id]: { kind: "error", message: result.reason },
+            }));
+            return;
+        }
+        updateManualImage(club, { iconFile: file });
+        setStatus({ kind: "idle" });
+        setImageStatusByClub((current) => ({
+            ...current,
+            [club.id]: {
+                kind: "ok",
+                message: `Thumbnail staged at ${file.name}. Click "Publish to Bunny" to commit, or "Discard" to remove.`,
+            },
+        }));
+    }
+
+    function discardStagedFile(club: AdminClubListItem) {
+        updateManualImage(club, { iconFile: null });
+        setImageStatusByClub((current) => {
+            const next = { ...current };
+            delete next[club.id];
+            return next;
+        });
+    }
+
+    async function publishImage(club: AdminClubListItem) {
+        const input = manualImageValue(club);
+        setStatus({ kind: "idle" });
+        setPendingId(club.id);
+
+        let res: Response;
+        try {
+            if (input.iconFile) {
+                const formData = new FormData();
+                formData.set("clubId", String(club.id));
+                formData.set("iconFile", input.iconFile);
+                res = await fetch("/api/admin/clubs/images/publish", {
+                    method: "POST",
+                    body: formData,
+                });
+            } else {
+                res = await fetch("/api/admin/clubs/images/publish", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        clubId: club.id,
+                        iconImageUrl: input.icon.trim(),
+                    }),
+                });
+            }
+        } catch (error) {
+            setPendingId(null);
+            setStatus({
+                kind: "error",
+                message:
+                    error instanceof Error ? error.message : "Network error",
+            });
+            return;
+        }
+
+        setPendingId(null);
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            setStatus({
+                kind: "error",
+                message: body.error ?? `Request failed (${res.status})`,
+            });
+            return;
+        }
+
+        const asset = body.asset as AdminClubListItem["activeImageAsset"];
+        const updated: AdminClubListItem = {
+            ...club,
+            hasImage: true,
+            iconUrl: asset?.iconUrl ?? club.iconUrl,
+            heroUrl: asset?.heroUrl ?? club.heroUrl,
+            activeImageAsset: asset,
+        };
+        replaceClub(updated);
+        updateManualImage(updated, {
+            icon: asset?.iconUrl ?? updated.iconUrl,
+            iconFile: null,
+        });
+        setImageStatusByClub((current) => ({
+            ...current,
+            [club.id]: {
+                kind: "ok",
+                message: `${club.name} thumbnail updated.`,
+            },
+        }));
+        setStatus({ kind: "ok", message: `${club.name} thumbnail updated.` });
+    }
+
+    async function removeImage(club: AdminClubListItem) {
+        setStatus({ kind: "idle" });
+        setPendingId(club.id);
+
+        let res: Response;
+        try {
+            res = await fetch("/api/admin/clubs/images", {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ clubId: club.id }),
+            });
+        } catch (error) {
+            setPendingId(null);
+            setStatus({
+                kind: "error",
+                message:
+                    error instanceof Error ? error.message : "Network error",
+            });
+            return;
+        }
+
+        setPendingId(null);
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            setStatus({
+                kind: "error",
+                message: body.error ?? `Request failed (${res.status})`,
+            });
+            return;
+        }
+
+        const asset = body.asset as AdminClubListItem["activeImageAsset"];
+        const updated: AdminClubListItem = {
+            ...club,
+            hasImage: false,
+            iconUrl: "/placeholders/club-placeholder.svg",
+            heroUrl: asset?.heroUrl ?? club.heroUrl,
+            activeImageAsset: asset,
+        };
+        replaceClub(updated);
+        updateManualImage(updated, { icon: updated.iconUrl, iconFile: null });
+        setImageStatusByClub((current) => ({
+            ...current,
+            [club.id]: {
+                kind: "ok",
+                message: `${club.name} thumbnail removed.`,
+            },
+        }));
+        setStatus({ kind: "ok", message: `${club.name} thumbnail removed.` });
+    }
+
     return (
         <div className="space-y-5">
             <AdminToolbar>
@@ -591,6 +815,14 @@ export default function AdminClubManager({ groups }: Props) {
                         normalizedClubName={normalizedClubName}
                         saveClubName={saveClubName}
                         saveClub={saveClub}
+                        manualImageValue={manualImageValue}
+                        updateManualImage={updateManualImage}
+                        imageHasInput={imageHasInput}
+                        imageStatusByClub={imageStatusByClub}
+                        stageImageFile={stageImageFile}
+                        discardStagedFile={discardStagedFile}
+                        publishImage={publishImage}
+                        removeImage={removeImage}
                     />
                 ))}
             </div>
@@ -627,6 +859,14 @@ function ChainGroupSection({
     normalizedClubName,
     saveClubName,
     saveClub,
+    manualImageValue,
+    updateManualImage,
+    imageHasInput,
+    imageStatusByClub,
+    stageImageFile,
+    discardStagedFile,
+    publishImage,
+    removeImage,
 }: {
     group: DisplayClubGroup;
     collapsed: boolean;
@@ -646,6 +886,17 @@ function ChainGroupSection({
     normalizedClubName: (name: string) => string;
     saveClubName: (club: AdminClubListItem) => Promise<void>;
     saveClub: (club: AdminClubListItem) => Promise<void>;
+    manualImageValue: (club: AdminClubListItem) => ManualClubImage;
+    updateManualImage: (
+        club: AdminClubListItem,
+        patch: Partial<ManualClubImage>,
+    ) => void;
+    imageHasInput: (club: AdminClubListItem) => boolean;
+    imageStatusByClub: Record<number, Status>;
+    stageImageFile: (club: AdminClubListItem, file: File) => Promise<void>;
+    discardStagedFile: (club: AdminClubListItem) => void;
+    publishImage: (club: AdminClubListItem) => Promise<void>;
+    removeImage: (club: AdminClubListItem) => Promise<void>;
 }) {
     const groupName = group.title;
 
@@ -1054,6 +1305,243 @@ function ChainGroupSection({
                                         >
                                             <Save className="h-4 w-4" />
                                             Save status override
+                                        </Button>
+                                    </div>
+                                    <div className="space-y-3 rounded-md border border-copper/20 bg-white/80 p-3 md:col-span-2">
+                                        <div className="flex items-center justify-between gap-2">
+                                            <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                Current image
+                                            </div>
+                                            {club.hasImage ? (
+                                                <a
+                                                    href={currentIconUrl(club)}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="inline-flex items-center gap-1 font-dmSans text-caption font-semibold text-copper-dark hover:underline"
+                                                >
+                                                    Open
+                                                    <ExternalLink className="h-3.5 w-3.5" />
+                                                </a>
+                                            ) : null}
+                                        </div>
+                                        {club.hasImage ? (
+                                            <img
+                                                src={currentIconUrl(club)}
+                                                alt={`${club.name} current thumbnail image`}
+                                                className="h-20 w-20 rounded-md border border-copper/20 object-contain"
+                                            />
+                                        ) : manualImageValue(club)
+                                              .iconFile ? null : (
+                                            <div className="flex h-20 w-20 items-center justify-center rounded-md border border-dashed border-soft-charcoal/30 bg-gray-50 font-dmSans text-caption text-soft-charcoal">
+                                                Empty
+                                            </div>
+                                        )}
+                                        <div className="grid gap-1">
+                                            <label
+                                                htmlFor={`club-icon-url-${club.id}`}
+                                                className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal"
+                                            >
+                                                Thumbnail image URL
+                                            </label>
+                                            <div className="flex flex-wrap gap-2 sm:flex-nowrap">
+                                                <input
+                                                    id={`club-icon-url-${club.id}`}
+                                                    aria-label="Club thumbnail image URL"
+                                                    type="url"
+                                                    value={
+                                                        manualImageValue(club)
+                                                            .icon
+                                                    }
+                                                    onChange={(event) =>
+                                                        updateManualImage(
+                                                            club,
+                                                            {
+                                                                icon: event
+                                                                    .target
+                                                                    .value,
+                                                                iconFile: null,
+                                                            },
+                                                        )
+                                                    }
+                                                    placeholder="https://example.com/club-logo.png"
+                                                    className="w-full min-w-0 flex-1 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                />
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    aria-label="Save club thumbnail URL"
+                                                    className="shrink-0 gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                    disabled={
+                                                        disabled ||
+                                                        pendingId === club.id ||
+                                                        !manualImageValue(
+                                                            club,
+                                                        ).icon.trim() ||
+                                                        manualImageValue(
+                                                            club,
+                                                        ).icon.trim() ===
+                                                            currentIconUrl(club)
+                                                    }
+                                                    onClick={() =>
+                                                        void publishImage(club)
+                                                    }
+                                                >
+                                                    <Save className="h-4 w-4" />
+                                                    Save URL
+                                                </Button>
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-wrap items-center gap-3">
+                                            <input
+                                                id={`club-icon-file-${club.id}`}
+                                                aria-label="Upload club thumbnail file"
+                                                type="file"
+                                                accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
+                                                className="sr-only"
+                                                onChange={async (event) => {
+                                                    const file =
+                                                        event.target
+                                                            .files?.[0] ?? null;
+                                                    event.target.value = "";
+                                                    if (!file) return;
+                                                    await stageImageFile(
+                                                        club,
+                                                        file,
+                                                    );
+                                                }}
+                                            />
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                disabled={
+                                                    disabled ||
+                                                    pendingId === club.id
+                                                }
+                                                onClick={() => {
+                                                    const input =
+                                                        document.getElementById(
+                                                            `club-icon-file-${club.id}`,
+                                                        ) as HTMLInputElement | null;
+                                                    input?.click();
+                                                }}
+                                            >
+                                                <Upload className="h-4 w-4" />
+                                                Choose thumbnail file
+                                            </Button>
+                                            <span className="font-dmSans text-caption normal-case tracking-normal text-soft-charcoal">
+                                                1:1 square, at least 600x600
+                                            </span>
+                                        </div>
+                                        {manualImageValue(club).iconFile ? (
+                                            <div className="inline-flex max-w-full flex-wrap items-center gap-3 rounded-md border border-copper/30 bg-coconut-cream/30 p-3">
+                                                <StagedPreview
+                                                    file={
+                                                        manualImageValue(club)
+                                                            .iconFile as File
+                                                    }
+                                                    alt={`${club.name} pending thumbnail`}
+                                                    className="h-16 w-16 shrink-0 rounded-md border border-copper/30 object-contain"
+                                                />
+                                                <div className="grid min-w-[220px] flex-1 gap-2">
+                                                    <div>
+                                                        <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                            Pending thumbnail
+                                                        </div>
+                                                        <div className="font-dmSans text-caption text-soft-charcoal">
+                                                            Publish the staged
+                                                            file or discard it
+                                                            before choosing
+                                                            another.
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        <Button
+                                                            type="button"
+                                                            className="gap-2 bg-copper-dark text-white hover:bg-cedar disabled:bg-gray-300 disabled:text-soft-charcoal disabled:opacity-100"
+                                                            disabled={
+                                                                disabled ||
+                                                                pendingId ===
+                                                                    club.id
+                                                            }
+                                                            onClick={() =>
+                                                                void publishImage(
+                                                                    club,
+                                                                )
+                                                            }
+                                                        >
+                                                            <Upload className="h-4 w-4" />
+                                                            Publish to Bunny
+                                                        </Button>
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            className="gap-2 border-soft-charcoal/40 bg-white text-cedar hover:bg-gray-50"
+                                                            disabled={
+                                                                disabled ||
+                                                                pendingId ===
+                                                                    club.id
+                                                            }
+                                                            onClick={() =>
+                                                                discardStagedFile(
+                                                                    club,
+                                                                )
+                                                            }
+                                                        >
+                                                            <X className="h-4 w-4" />
+                                                            Discard
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ) : null}
+                                        {imageStatusByClub[club.id] ? (
+                                            <p
+                                                className={
+                                                    imageStatusByClub[club.id]
+                                                        .kind === "error"
+                                                        ? "rounded-md border border-red-700/30 bg-red-50 px-3 py-2 font-dmSans text-caption font-semibold text-red-900"
+                                                        : "rounded-md border border-green-700/30 bg-green-50 px-3 py-2 font-dmSans text-caption font-semibold text-green-900"
+                                                }
+                                            >
+                                                {
+                                                    imageStatusByClub[club.id]
+                                                        .message
+                                                }
+                                            </p>
+                                        ) : null}
+                                        {club.hasImage ? (
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                className="gap-2 border-red-800/40 bg-white text-red-950 hover:bg-red-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                disabled={
+                                                    disabled ||
+                                                    pendingId === club.id
+                                                }
+                                                onClick={() =>
+                                                    void removeImage(club)
+                                                }
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                                Remove thumbnail
+                                            </Button>
+                                        ) : null}
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                            disabled={
+                                                disabled ||
+                                                pendingId === club.id ||
+                                                !imageHasInput(club)
+                                            }
+                                            onClick={() =>
+                                                void publishImage(club)
+                                            }
+                                        >
+                                            <Upload className="h-4 w-4" />
+                                            Upload changed image
                                         </Button>
                                     </div>
                                 </div>

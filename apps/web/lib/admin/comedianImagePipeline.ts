@@ -612,3 +612,16 @@ export function buildComedianAssetPaths(
         hero: `${base}/hero.jpg`,
     };
 }
+
+export function buildClubAssetPaths(
+    clubId: number,
+    assetSlug: string,
+    sourceMimeType: string,
+) {
+    const base = `club-images/${clubId}/${assetSlug}`;
+    return {
+        original: `${base}/original.${getMimeExtension(sourceMimeType)}`,
+        icon: `${base}/icon.png`,
+        hero: `${base}/hero.jpg`,
+    };
+}

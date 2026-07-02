@@ -1,5 +1,9 @@
 import { db } from "@/lib/db";
-import { buildClubHeroImageUrl, buildClubImageUrl } from "@/util/imageUtil";
+import {
+    buildClubHeroImageUrl,
+    buildClubImageAssetUrl,
+    buildClubImageUrl,
+} from "@/util/imageUtil";
 
 export type AdminClubListItem = {
     id: number;
@@ -11,6 +15,18 @@ export type AdminClubListItem = {
     hasImage: boolean;
     iconUrl: string;
     heroUrl: string;
+    activeImageAsset: {
+        id: number;
+        sourceImageUrl: string;
+        originalPath: string;
+        iconPath: string | null;
+        heroPath: string | null;
+        iconUrl: string | null;
+        heroUrl: string | null;
+        mimeType: string | null;
+        width: number | null;
+        height: number | null;
+    } | null;
     visible: boolean;
     status: string;
     clubType: string;
@@ -139,7 +155,16 @@ export async function listAdminClubGroups(): Promise<AdminClubGroup[]> {
             },
             imageAssets: {
                 where: { isActive: true },
-                select: { heroPath: true },
+                select: {
+                    id: true,
+                    sourceImageUrl: true,
+                    originalPath: true,
+                    iconPath: true,
+                    heroPath: true,
+                    mimeType: true,
+                    width: true,
+                    height: true,
+                },
                 orderBy: { publishedAt: "desc" },
                 take: 1,
             },
@@ -156,6 +181,9 @@ export async function listAdminClubGroups(): Promise<AdminClubGroup[]> {
         clubs.map((club) => {
             const latestShow = club.shows[0] ?? null;
             const activeImageAsset = club.imageAssets?.[0] ?? null;
+            const activeIconUrl = activeImageAsset?.iconPath
+                ? buildClubImageAssetUrl(activeImageAsset.iconPath)
+                : null;
             return {
                 id: club.id,
                 name: club.name,
@@ -164,8 +192,28 @@ export async function listAdminClubGroups(): Promise<AdminClubGroup[]> {
                 website: club.website,
                 popularity: club.popularity,
                 hasImage: club.hasImage,
-                iconUrl: buildClubImageUrl(club.name, club.hasImage),
+                iconUrl:
+                    activeIconUrl ??
+                    buildClubImageUrl(club.name, club.hasImage),
                 heroUrl: buildClubHeroImageUrl(activeImageAsset?.heroPath),
+                activeImageAsset: activeImageAsset
+                    ? {
+                          id: activeImageAsset.id,
+                          sourceImageUrl: activeImageAsset.sourceImageUrl,
+                          originalPath: activeImageAsset.originalPath,
+                          iconPath: activeImageAsset.iconPath,
+                          heroPath: activeImageAsset.heroPath,
+                          iconUrl: activeIconUrl,
+                          heroUrl: activeImageAsset.heroPath
+                              ? buildClubImageAssetUrl(
+                                    activeImageAsset.heroPath,
+                                )
+                              : null,
+                          mimeType: activeImageAsset.mimeType,
+                          width: activeImageAsset.width,
+                          height: activeImageAsset.height,
+                      }
+                    : null,
                 visible: club.visible ?? true,
                 status: club.status,
                 clubType: club.clubType,
