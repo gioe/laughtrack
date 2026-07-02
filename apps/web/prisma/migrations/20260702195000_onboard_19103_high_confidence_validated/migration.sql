@@ -15,11 +15,22 @@
 --   `squarespace`:
 --   https://www.brooklyncomedy.com/api/open/GetItemsByMonth?collectionId=5a94518324a69489a755b5d9
 --   Live validation on 2026-07-02 returned 101 future shows.
+-- * Meadowlands Comedy Club — event detail pages scraped by `json_ld`
+--   detail-fetch mode:
+--   https://meadowlandscomedyclub.com/
+--   Live validation on 2026-07-02 returned 2 future shows.
+-- * High Line Comedy Club — Eventbrite organizer id 91898788783, configured in
+--   single-club mode so the venue endpoint 404 falls back to organizer events
+--   without organizer-mode venue upserts:
+--   https://www.eventbrite.com
+--   Live validation on 2026-07-02 returned 23 future shows.
 --
 -- After this migration is deployed, run:
 --   cd apps/scraper && make scrape-club CLUB='The N Crowd'
 --   cd apps/scraper && make scrape-club CLUB='Laughing Stock Comedy Club'
 --   cd apps/scraper && make scrape-club CLUB='Brooklyn Comedy Collective'
+--   cd apps/scraper && make scrape-club CLUB='Meadowlands Comedy Club'
+--   cd apps/scraper && make scrape-club CLUB='High Line Comedy Club'
 
 INSERT INTO clubs (
     name, address, website, city, state, zip_code, phone_number,
@@ -143,3 +154,167 @@ WHERE (c.google_place_id = 'ChIJVVWIvFlZwokRCb91vYtPZjA' OR c.name = 'Brooklyn C
       SELECT 1 FROM scraping_sources s
       WHERE s.club_id = c.id AND s.scraper_key = 'squarespace'
   );
+
+INSERT INTO clubs (
+    name, address, website, city, state, zip_code, phone_number,
+    latitude, longitude, timezone, country, club_type, google_place_id,
+    visible, status
+)
+SELECT
+    'Meadowlands Comedy Club',
+    '317 Washington Ave, Carlstadt, NJ 07072, USA',
+    'https://www.meadowlandscomedyclub.com/',
+    'Carlstadt', 'NJ', '07072', '(201) 893-9777',
+    40.8173499, -74.0658562,
+    'America/New_York', 'US', 'club',
+    'ChIJXdCbldpXwokRfoD0jom327Q',
+    TRUE, 'active'
+WHERE NOT EXISTS (
+    SELECT 1 FROM clubs
+    WHERE google_place_id = 'ChIJXdCbldpXwokRfoD0jom327Q'
+       OR name = 'Meadowlands Comedy Club'
+);
+
+INSERT INTO scraping_sources (
+    club_id, platform, scraper_key, source_url,
+    enabled, priority, metadata, created_at, updated_at
+)
+SELECT
+    c.id,
+    'custom'::"ScrapingPlatform",
+    'json_ld',
+    'https://meadowlandscomedyclub.com/',
+    TRUE,
+    0,
+    '{"detail_fetch": {"url_path_prefix": "/event/"}}'::jsonb,
+    NOW(),
+    NOW()
+FROM clubs c
+WHERE (c.google_place_id = 'ChIJXdCbldpXwokRfoD0jom327Q' OR c.name = 'Meadowlands Comedy Club')
+  AND NOT EXISTS (
+      SELECT 1 FROM scraping_sources s
+      WHERE s.club_id = c.id AND s.scraper_key = 'json_ld'
+  );
+
+INSERT INTO clubs (
+    name, address, website, city, state, zip_code, phone_number,
+    latitude, longitude, timezone, country, club_type, google_place_id,
+    visible, status
+)
+SELECT
+    'High Line Comedy Club',
+    '446 W 14th St, New York, NY 10014, USA',
+    'https://highlinecomedy.com/',
+    'New York', 'NY', '10014', '(646) 543-1878',
+    40.7415865, -74.0075955,
+    'America/New_York', 'US', 'club',
+    'ChIJXfsikHhZwokRxr1XAbft_X8',
+    TRUE, 'active'
+WHERE NOT EXISTS (
+    SELECT 1 FROM clubs
+    WHERE google_place_id = 'ChIJXfsikHhZwokRxr1XAbft_X8'
+       OR name = 'High Line Comedy Club'
+);
+
+INSERT INTO scraping_sources (
+    club_id, platform, scraper_key, source_url, eventbrite_id,
+    enabled, priority, metadata, created_at, updated_at
+)
+SELECT
+    c.id,
+    'eventbrite'::"ScrapingPlatform",
+    'eventbrite',
+    'https://www.eventbrite.com',
+    '91898788783',
+    TRUE,
+    0,
+    '{}'::jsonb,
+    NOW(),
+    NOW()
+FROM clubs c
+WHERE (c.google_place_id = 'ChIJXfsikHhZwokRxr1XAbft_X8' OR c.name = 'High Line Comedy Club')
+  AND NOT EXISTS (
+      SELECT 1 FROM scraping_sources s
+      WHERE s.club_id = c.id AND s.scraper_key = 'eventbrite'
+  );
+
+-- Clear false positives from the same high-confidence Places bucket. These are
+-- not fixed public comedy venues with venue-owned calendars, so they are
+-- excluded from future discovery retries via venue_deny_list.
+INSERT INTO venue_deny_list (
+    google_place_id, name, reason, google_primary_type, evidence, added_by, denied_at
+)
+VALUES
+    (
+        'ChIJmTPfAx17x4kR5vWbRtXqdB8',
+        'Raise your dongers',
+        'Google comedy_club candidate has no public website and no evidence of being a fixed comedy venue; name/address look like a non-venue false positive.',
+        'comedy_club',
+        '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "non_venue_false_positive"}'::jsonb,
+        'TASK-3563',
+        NOW()
+    ),
+    (
+        'ChIJ1UPf_OCduIkRFoN2BVfsXzU',
+        'Tony''s Crescenzo''s strange humor (podcast on Spotify)',
+        'Google record describes a podcast/personality, not a fixed comedy venue with a public event calendar.',
+        'comedy_club',
+        '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "podcast_not_venue"}'::jsonb,
+        'TASK-3563',
+        NOW()
+    ),
+    (
+        'ChIJ58EKNDIbyIkR7QZZSFUaYSM',
+        'Comedian Ala Bama',
+        'Individual comedian listing, not a fixed comedy venue.',
+        'comedy_club',
+        '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "person_not_venue"}'::jsonb,
+        'TASK-3563',
+        NOW()
+    ),
+    (
+        'ChIJ_Ug6nRufxYkRQpLUGjWlUJc',
+        'DangItJared',
+        'Individual performer/brand listing, not a fixed comedy venue.',
+        'comedy_club',
+        '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "person_not_venue"}'::jsonb,
+        'TASK-3563',
+        NOW()
+    ),
+    (
+        'ChIJHxc11BPvwokRJnO9QrOJfHE',
+        'Chip Ambrogio Comedy',
+        'Individual comedian website/listing, not a fixed comedy venue.',
+        'comedy_club',
+        '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "person_not_venue"}'::jsonb,
+        'TASK-3563',
+        NOW()
+    ),
+    (
+        'ChIJD3c4lKVZwokRjdZJoUEQHj8',
+        'FUNY Stand Up Comedy Classes - The New York Comedy School',
+        'Comedy class/school program at a rented room, not a fixed comedy venue calendar to onboard as a club.',
+        'comedy_club',
+        '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "classes_not_venue"}'::jsonb,
+        'TASK-3563',
+        NOW()
+    ),
+    (
+        'ChIJ2QNRX-ddwokRj-YibDeFnoM',
+        'Popped Collar Comedy - Free Show in Bushwick, Brooklyn',
+        'Named recurring/showcase listing at another venue, not a distinct fixed comedy club.',
+        'comedy_club',
+        '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "showcase_not_venue"}'::jsonb,
+        'TASK-3563',
+        NOW()
+    ),
+    (
+        'ChIJFcAVWzz3wokRw7A5-4bKHNs',
+        'Two in the Bush: A Standup Comedy Showcase',
+        'Named stand-up showcase listing, not a distinct fixed comedy venue.',
+        'comedy_club',
+        '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "showcase_not_venue"}'::jsonb,
+        'TASK-3563',
+        NOW()
+    )
+ON CONFLICT (google_place_id) DO NOTHING;
