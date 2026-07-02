@@ -9,6 +9,7 @@ import app.laughtrack.android.core.data.search.SearchShortcut
 import app.laughtrack.android.core.data.search.SearchShortcutCoordinator
 import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.network.generated.model.HomeCityFilter
+import app.laughtrack.android.core.network.generated.model.HomeClubFilter
 import app.laughtrack.android.feature.search.data.SearchRepository
 import app.laughtrack.android.feature.search.model.PagedList
 import app.laughtrack.android.feature.search.model.SearchPivot
@@ -35,6 +36,9 @@ data class PivotState(
     // Comedian home-city filter options from the latest response; empty for
     // other pivots (the control is hidden when empty).
     val homeCityFilters: List<HomeCityFilter> = emptyList(),
+    // Comedian home-club filter options from the latest response; empty for
+    // other pivots (the control is hidden when empty).
+    val homeClubFilters: List<HomeClubFilter> = emptyList(),
 )
 
 data class SearchUiState(
@@ -167,16 +171,20 @@ class SearchViewModel
                 viewModelScope.launch {
                     runCatching { repository.search(pivot, query, page) }
                         .onSuccess { result ->
-                            val current = _state.value.states.getValue(pivot).query.homeCity
-                            val reconciled = reconcileHomeCity(current, result.homeCityFilters)
-                            if (reconciled != current) {
-                                // The selected home city is no longer offered: clear it and
+                            val currentQuery = _state.value.states.getValue(pivot).query
+                            val reconciledCity = reconcileHomeCity(currentQuery.homeCity, result.homeCityFilters)
+                            val reconciledClub = reconcileHomeClub(currentQuery.homeClub, result.homeClubFilters)
+                            val cityChanged = reconciledCity != currentQuery.homeCity
+                            val clubChanged = reconciledClub != currentQuery.homeClub
+                            if (cityChanged || clubChanged) {
+                                // A selected home city/club is no longer offered: clear it and
                                 // re-fetch unfiltered instead of briefly rendering the
                                 // soon-discarded stale-token page.
                                 updatePivot(pivot) {
                                     it.copy(
-                                        query = it.query.copy(homeCity = reconciled),
+                                        query = it.query.copy(homeCity = reconciledCity, homeClub = reconciledClub),
                                         homeCityFilters = result.homeCityFilters,
+                                        homeClubFilters = result.homeClubFilters,
                                     )
                                 }
                                 reload(pivot)
@@ -185,6 +193,7 @@ class SearchViewModel
                                     it.copy(
                                         results = it.results.appendPage(page, result.results, result.total),
                                         homeCityFilters = result.homeCityFilters,
+                                        homeClubFilters = result.homeClubFilters,
                                     )
                                 }
                             }
@@ -252,3 +261,14 @@ internal fun reconcileHomeCity(
     homeCity: String?,
     filters: List<HomeCityFilter>,
 ): String? = if (homeCity != null && filters.none { it.value == homeCity }) null else homeCity
+
+/**
+ * Drop a selected home-club [homeClub] token that the latest [filters] no longer
+ * offer, so a stale filter can't strand the query with no way to reset it
+ * (mirrors the iOS onChange reconcile). Returns the token unchanged when it is
+ * still present (or already null).
+ */
+internal fun reconcileHomeClub(
+    homeClub: String?,
+    filters: List<HomeClubFilter>,
+): String? = if (homeClub != null && filters.none { it.value == homeClub }) null else homeClub
