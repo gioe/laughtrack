@@ -109,7 +109,15 @@ fun HomeScreen(
     }
 
     when (state.feed) {
-        is UiState.Failure -> HomeError(onRetry = viewModel::retry, modifier = modifier)
+        is UiState.Failure ->
+            HomeError(
+                zip = state.zip,
+                isResolving = state.isResolvingLocation,
+                onRetry = viewModel::retry,
+                onManualZip = viewModel::setManualZip,
+                onUseLocation = viewModel::useDeviceLocation,
+                modifier = modifier,
+            )
         is UiState.Success ->
             HomeContent(
                 state = state,
@@ -307,14 +315,6 @@ private fun LocationHeader(
     onManualZip: (String) -> Unit,
     onUseLocation: () -> Unit,
 ) {
-    val context = LocalContext.current
-    val permissionLauncher =
-        rememberLauncherForActivityResult(
-            ActivityResultContracts.RequestMultiplePermissions(),
-        ) { grants ->
-            if (grants.values.any { it }) onUseLocation()
-        }
-
     Surface(
         color = LaughTrackColors.SurfaceElevated,
         shape = RoundedCornerShape(12.dp),
@@ -359,40 +359,70 @@ private fun LocationHeader(
                 }
             }
 
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                var zipText by remember(zip) { mutableStateOf(zip.orEmpty()) }
-                OutlinedTextField(
-                    value = zipText,
-                    onValueChange = { entry ->
-                        zipText = entry.filter(Char::isDigit).take(ZIP_LENGTH)
-                        if (zipText.length == ZIP_LENGTH) onManualZip(zipText)
-                    },
-                    label = { Text("ZIP") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.weight(1f),
-                )
-                Button(
-                    onClick = {
-                        if (hasLocationPermission(context)) {
-                            onUseLocation()
-                        } else {
-                            permissionLauncher.launch(
-                                arrayOf(
-                                    Manifest.permission.ACCESS_COARSE_LOCATION,
-                                    Manifest.permission.ACCESS_FINE_LOCATION,
-                                ),
-                            )
-                        }
-                    },
-                    enabled = !isResolving,
-                ) {
-                    Text(if (isResolving) "Locating…" else "Use location")
+            LocationControls(
+                zip = zip,
+                isResolving = isResolving,
+                onManualZip = onManualZip,
+                onUseLocation = onUseLocation,
+            )
+        }
+    }
+}
+
+/**
+ * The manual-ZIP text field + "Use location" button pair shared by the location
+ * header (Success state) and the error state, so a location-less/failed first load
+ * can be recovered by typing a ZIP or resolving the device location.
+ */
+@Composable
+private fun LocationControls(
+    zip: String?,
+    isResolving: Boolean,
+    onManualZip: (String) -> Unit,
+    onUseLocation: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+    val permissionLauncher =
+        rememberLauncherForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions(),
+        ) { grants ->
+            if (grants.values.any { it }) onUseLocation()
+        }
+
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        var zipText by remember(zip) { mutableStateOf(zip.orEmpty()) }
+        OutlinedTextField(
+            value = zipText,
+            onValueChange = { entry ->
+                zipText = entry.filter(Char::isDigit).take(ZIP_LENGTH)
+                if (zipText.length == ZIP_LENGTH) onManualZip(zipText)
+            },
+            label = { Text("ZIP") },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.weight(1f),
+        )
+        Button(
+            onClick = {
+                if (hasLocationPermission(context)) {
+                    onUseLocation()
+                } else {
+                    permissionLauncher.launch(
+                        arrayOf(
+                            Manifest.permission.ACCESS_COARSE_LOCATION,
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                        ),
+                    )
                 }
-            }
+            },
+            enabled = !isResolving,
+        ) {
+            Text(if (isResolving) "Locating…" else "Use location")
         }
     }
 }
@@ -1235,7 +1265,11 @@ private fun HomeLoading(modifier: Modifier = Modifier) {
 
 @Composable
 private fun HomeError(
+    zip: String?,
+    isResolving: Boolean,
     onRetry: () -> Unit,
+    onManualZip: (String) -> Unit,
+    onUseLocation: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -1252,9 +1286,17 @@ private fun HomeError(
         }
         Text("Discover could not load.", style = MaterialTheme.typography.headlineSmall)
         Text(
-            "Check your connection and try again.",
+            "Check your connection and try again, or enter a ZIP to scope the feed.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        // Surface the manual-ZIP entry here so a location-less/failed first load
+        // (where the server could not infer a location) is still recoverable.
+        LocationControls(
+            zip = zip,
+            isResolving = isResolving,
+            onManualZip = onManualZip,
+            onUseLocation = onUseLocation,
         )
         Button(onClick = onRetry) { Text("Retry") }
     }
