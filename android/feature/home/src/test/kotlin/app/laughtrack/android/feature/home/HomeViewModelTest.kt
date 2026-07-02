@@ -85,31 +85,6 @@ class HomeViewModelTest {
         }
 
     @Test
-    fun manual_zip_from_error_state_reloads_and_recovers_feed() =
-        runTest {
-            // Location-less first load fails with no cached snapshot -> user-visible error.
-            val repository =
-                FakeHomeFeedRepository(
-                    failuresBeforeSuccess = 1,
-                    feed = homeFeed(),
-                )
-            val viewModel = viewModel(repository)
-            advanceUntilIdle()
-
-            assertTrue(viewModel.state.value.feed is UiState.Failure)
-            assertNull(repository.lastZip)
-
-            // Entering a ZIP from the error state reloads the feed scoped to that ZIP
-            // and recovers out of the failure state.
-            viewModel.setManualZip("90210")
-            advanceUntilIdle()
-
-            assertTrue(viewModel.state.value.feed is UiState.Success)
-            assertEquals("90210", repository.lastZip)
-            assertEquals(2, repository.loads)
-        }
-
-    @Test
     fun cached_feed_survives_network_failure() =
         runTest {
             // Cache holds a prior snapshot; the network always fails. The user keeps

@@ -115,6 +115,18 @@ class TestKnownComedianSignal:
         )
         assert result == {"Cutthroat Improv", "Guy Branum"}
 
+    def test_can_disable_known_comedian_fallback_for_noisy_mixed_calendar(self):
+        titles = ["Cutthroat Improv", "Guy Branum", "Intro to Ballroom Dance"]
+        lineup = _FakeLineupHandler({"Guy Branum": ["Guy Branum"]})
+        comedian = _FakeComedianHandler({"Guy Branum": 0.51})
+        result = select_comedy_titles(
+            titles,
+            lineup_handler=lineup,
+            comedian_handler=comedian,
+            use_known_comedian_match=False,
+        )
+        assert result == {"Cutthroat Improv"}
+
 
 class TestAllowlist:
     def test_allowlist_force_includes_unmatched_title(self):

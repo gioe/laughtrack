@@ -9,6 +9,8 @@ TicketTailorScraper.
 from laughtrack.core.entities.production_company.model import ProductionCompany
 from laughtrack.core.services.scraping import (
     _build_synthetic_proxy_for_company,
+    _is_next_stop_comedy_url,
+    _per_club_timeout_for,
     _extract_tickettailor_account,
 )
 
@@ -53,6 +55,34 @@ def test_synthetic_proxy_for_tickettailor_company():
     assert source.platform == "custom"
     assert source.source_url == "https://www.tickettailor.com/events/milwaukeecomedy/"
     assert source.metadata.get("account_slug") == "milwaukeecomedy"
+
+
+def test_synthetic_proxy_for_next_stop_comedy_company():
+    company = _company("https://www.nextstopcomedy.com/events")
+    company.name = "Next Stop Comedy"
+    company.slug = "next-stop-comedy"
+    company.website = "https://www.nextstopcomedy.com"
+
+    proxy = _build_synthetic_proxy_for_company(company)
+
+    assert proxy is not None
+    assert proxy.name == "Next Stop Comedy (producer)"
+    assert proxy.production_company_id == 42
+    source = proxy.scraping_sources[0]
+    assert source.platform == "custom"
+    assert source.scraper_key == "next_stop_comedy"
+    assert source.source_url == "https://www.nextstopcomedy.com/events"
+
+
+def test_is_next_stop_comedy_url():
+    assert _is_next_stop_comedy_url("https://www.nextstopcomedy.com/events")
+    assert _is_next_stop_comedy_url("https://nextstopcomedy.com/events")
+    assert not _is_next_stop_comedy_url("https://www.nextstopcomedy.com/classes")
+    assert not _is_next_stop_comedy_url("https://example.com/events")
+
+
+def test_next_stop_comedy_uses_aggregate_timeout():
+    assert _per_club_timeout_for("next_stop_comedy") == 3600
 
 
 def test_synthetic_proxy_still_handles_eventbrite():

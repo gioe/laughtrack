@@ -11,6 +11,7 @@ from collections import defaultdict
 from datetime import datetime, timezone
 import copy
 from typing import Dict, Optional, List, Tuple
+from urllib.parse import urlparse
 
 from laughtrack.app.scraper_resolver import ScraperResolver
 from laughtrack.core.entities.club.handler import ClubHandler
@@ -111,6 +112,11 @@ _PER_SCRAPER_TIMEOUT_OVERRIDES: Dict[str, int] = {
     # runs ~30-40 min, far beyond the per-venue default; without this it times
     # out and the orchestrator tears down the executor under the running loop.
     "ticketmaster_national": 3600,
+    # Next Stop Comedy is a roving promoter with hundreds of future shows. Each
+    # run walks a paginated listing and fetches detail-page JSON-LD per event so
+    # lineups and venue addresses are captured; the default venue timeout is too
+    # low for that fan-out.
+    "next_stop_comedy": 3600,
 }
 
 
@@ -219,6 +225,16 @@ def _extract_tickettailor_account(url: str) -> Optional[str]:
     return match.group(1) if match else None
 
 
+def _is_next_stop_comedy_url(url: str) -> bool:
+    """Return True for the Next Stop Comedy public event calendar."""
+    if not url:
+        return False
+    parsed = urlparse(url if "://" in url else f"https://{url}")
+    host = (parsed.netloc or "").lower()
+    path = (parsed.path or "").rstrip("/")
+    return host in {"nextstopcomedy.com", "www.nextstopcomedy.com"} and path == "/events"
+
+
 def _synthetic_source_for_company(
     company: ProductionCompany,
 ) -> Optional[Tuple[ScrapingSource, str]]:
@@ -248,6 +264,15 @@ def _synthetic_source_for_company(
             scraper_key="ticket_tailor",
             source_url=url,
             metadata={"account_slug": account_slug},
+            priority=0,
+            enabled=True,
+        )
+        return source, "producer"
+    if _is_next_stop_comedy_url(url):
+        source = ScrapingSource(
+            platform="custom",
+            scraper_key="next_stop_comedy",
+            source_url=url,
             priority=0,
             enabled=True,
         )

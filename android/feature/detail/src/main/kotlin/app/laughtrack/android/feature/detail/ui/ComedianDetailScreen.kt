@@ -219,11 +219,23 @@ private fun ComedianHero(
             )
             ComedianSocialRow(ui.detail.socialData)
             ui.detail.homeLocation?.let { homeLocation ->
-                ComedianHomeLocationRow(homeLocation = homeLocation, onOpenEntity = onOpenEntity)
+                if (HOME_LOCATION_UI_ENABLED) {
+                    ComedianHomeLocationRow(homeLocation = homeLocation, onOpenEntity = onOpenEntity)
+                }
             }
         }
     }
 }
+
+/**
+ * Kill-switch for the comedian home-location UI ("Based in / Home club" row).
+ * The `homeLocation` data stays wired through the API and model; this only
+ * suppresses the user-facing row while the derived home-location data is still
+ * unreliable. Flip to `true` to re-expose once the data is trusted. Mirrors the
+ * iOS `ComedianHomeLocationPresentation.isUIEnabled` and web
+ * `HOME_LOCATION_UI_ENABLED` kill-switches.
+ */
+private const val HOME_LOCATION_UI_ENABLED = false
 
 @Composable
 private fun ComedianHomeLocationRow(

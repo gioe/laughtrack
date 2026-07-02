@@ -16,7 +16,7 @@ import { useUrlParams } from "@/hooks/useUrlParams";
 import { FilterDTO } from "@/objects/interface";
 import { ChainFilterDTO } from "@/lib/data/filters/getChainFilters";
 import { HomeCityFilterDTO } from "@/lib/data/filters/getComedianHomeCityFilters";
-import { HomeClubFilterDTO } from "@/lib/data/filters/getComedianHomeClubFilters";
+import { HOME_LOCATION_UI_ENABLED } from "@/util/featureFlags";
 import { X } from "lucide-react";
 import { useMemo } from "react";
 import {
@@ -57,7 +57,6 @@ interface FilterBarProps {
     filterData: FilterDTO[];
     chainFilters?: ChainFilterDTO[];
     homeCityFilters?: HomeCityFilterDTO[];
-    homeClubFilters?: HomeClubFilterDTO[];
     isAdmin?: boolean;
 }
 
@@ -78,7 +77,6 @@ const FilterBar = ({
     filterData,
     chainFilters,
     homeCityFilters,
-    homeClubFilters,
     isAdmin,
 }: FilterBarProps) => {
     const { getTypedParam, setTypedParam } = useUrlParams();
@@ -137,14 +135,12 @@ const FilterBar = ({
 
     const homeCityParam: string = getTypedParam("homeCity") ?? "";
     const activeHomeCity = useMemo(
-        () => homeCityFilters?.find((h) => h.value === homeCityParam) ?? null,
+        () =>
+            HOME_LOCATION_UI_ENABLED
+                ? (homeCityFilters?.find((h) => h.value === homeCityParam) ??
+                  null)
+                : null,
         [homeCityFilters, homeCityParam],
-    );
-
-    const homeClubParam: string = getTypedParam("homeClub") ?? "";
-    const activeHomeClub = useMemo(
-        () => homeClubFilters?.find((h) => h.value === homeClubParam) ?? null,
-        [homeClubFilters, homeClubParam],
     );
 
     return (
@@ -211,8 +207,11 @@ const FilterBar = ({
 
                             {/* Home-city filter — comedian search only. Omitted
                                 entirely when no comedian has a derived home
-                                location, so it never renders an empty control. */}
-                            {isComedianSearch &&
+                                location, so it never renders an empty control.
+                                Also suppressed wholesale while the home-location
+                                UI kill-switch is off. */}
+                            {HOME_LOCATION_UI_ENABLED &&
+                                isComedianSearch &&
                                 homeCityFilters &&
                                 homeCityFilters.length > 0 && (
                                     <select
@@ -239,41 +238,6 @@ const FilterBar = ({
                                                 className="bg-card text-foreground"
                                             >
                                                 {city.label} ({city.count})
-                                            </option>
-                                        ))}
-                                    </select>
-                                )}
-
-                            {/* Home-club filter — comedian search only. Omitted
-                                entirely when no comedian has a derived home club,
-                                so it never renders an empty control. */}
-                            {isComedianSearch &&
-                                homeClubFilters &&
-                                homeClubFilters.length > 0 && (
-                                    <select
-                                        value={homeClubParam}
-                                        onChange={(e) =>
-                                            setTypedParam(
-                                                "homeClub",
-                                                e.target.value,
-                                            )
-                                        }
-                                        className={`${searchFilterChipClassName} cursor-pointer`}
-                                        aria-label="Filter by home club"
-                                    >
-                                        <option
-                                            value=""
-                                            className="bg-card text-foreground"
-                                        >
-                                            All home clubs
-                                        </option>
-                                        {homeClubFilters.map((club) => (
-                                            <option
-                                                key={club.value}
-                                                value={club.value}
-                                                className="bg-card text-foreground"
-                                            >
-                                                {club.label} ({club.count})
                                             </option>
                                         ))}
                                     </select>
@@ -329,8 +293,7 @@ const FilterBar = ({
                 {/* Active filter chips */}
                 {(activeFilters.length > 0 ||
                     activeChain ||
-                    activeHomeCity ||
-                    activeHomeClub) && (
+                    activeHomeCity) && (
                     <div className="flex flex-wrap items-center gap-2 mt-2 pt-2 border-t border-black/5">
                         <span className="text-xs text-copper/60 font-dmSans">
                             Filtered by:
@@ -350,15 +313,6 @@ const FilterBar = ({
                                 className={searchFilterChipCompactClassName}
                             >
                                 {activeHomeCity.label}
-                                <X size={12} />
-                            </button>
-                        )}
-                        {activeHomeClub && (
-                            <button
-                                onClick={() => setTypedParam("homeClub", "")}
-                                className={searchFilterChipCompactClassName}
-                            >
-                                {activeHomeClub.label}
                                 <X size={12} />
                             </button>
                         )}

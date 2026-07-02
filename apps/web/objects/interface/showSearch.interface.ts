@@ -12,6 +12,5 @@ export interface SearchParams {
     includeEmpty?: string;
     chain?: string;
     homeCity?: string;
-    homeClub?: string;
     minUpcomingShows?: string;
 }

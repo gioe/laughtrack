@@ -50,23 +50,12 @@ struct ComediansDiscoveryView: View {
                     )
 
                     // Comedian search only: hidden entirely when the response carries no
-                    // home-city options (no home-location data), mirroring web.
-                    if !currentHomeCityFilters.isEmpty {
+                    // home-city options (no home-location data), mirroring web. Also
+                    // suppressed wholesale while the home-location UI kill-switch is off.
+                    if ComedianHomeLocationPresentation.isUIEnabled, !currentHomeCityFilters.isEmpty {
                         PillDropdownTrigger(
                             id: "comedians-home-city",
                             selected: homeCitySelection.wrappedValue,
-                            triggerLabel: { $0.triggerLabel },
-                            accessibilityLabel: { $0.accessibilityLabel },
-                            openDropdownID: $openDropdownID
-                        )
-                    }
-
-                    // Comedian search only: hidden entirely when the response carries no
-                    // home-club options (no home-location data), mirroring web.
-                    if !currentHomeClubFilters.isEmpty {
-                        PillDropdownTrigger(
-                            id: "comedians-home-club",
-                            selected: homeClubSelection.wrappedValue,
                             triggerLabel: { $0.triggerLabel },
                             accessibilityLabel: { $0.accessibilityLabel },
                             openDropdownID: $openDropdownID
@@ -142,14 +131,6 @@ struct ComediansDiscoveryView: View {
                 model.homeCity = nil
             }
         }
-        .onChange(of: currentHomeClubFilters.map(\.value)) { availableTokens in
-            // Drop a selected home-club token once the latest response no longer
-            // offers it (a narrower query dropped it, or the control just hid on an
-            // empty list) so it can't strand a stale filter with no way to clear it.
-            if let token = model.homeClub, !availableTokens.contains(token) {
-                model.homeClub = nil
-            }
-        }
         .sheet(isPresented: $isFilterEditorPresented) {
             SearchFilterModal(
                 filters: currentFilters,
@@ -180,24 +161,11 @@ struct ComediansDiscoveryView: View {
                     proxy: proxy
                 )
 
-                if !currentHomeCityFilters.isEmpty {
+                if ComedianHomeLocationPresentation.isUIEnabled, !currentHomeCityFilters.isEmpty {
                     PillDropdownOverlay(
                         id: "comedians-home-city",
                         options: homeCityOptions,
                         selected: homeCitySelection,
-                        triggerLabel: { $0.triggerLabel },
-                        optionLabel: { $0.optionLabel },
-                        openDropdownID: $openDropdownID,
-                        anchors: anchors,
-                        proxy: proxy
-                    )
-                }
-
-                if !currentHomeClubFilters.isEmpty {
-                    PillDropdownOverlay(
-                        id: "comedians-home-club",
-                        options: homeClubOptions,
-                        selected: homeClubSelection,
                         triggerLabel: { $0.triggerLabel },
                         optionLabel: { $0.optionLabel },
                         openDropdownID: $openDropdownID,
@@ -234,29 +202,6 @@ struct ComediansDiscoveryView: View {
                 return .city(match)
             },
             set: { model.homeCity = $0.token }
-        )
-    }
-
-    private var currentHomeClubFilters: [Components.Schemas.HomeClubFilter] {
-        guard case .success(let result) = model.phase else { return [] }
-        return result.homeClubFilters
-    }
-
-    private var homeClubOptions: [HomeClubOption] {
-        [.all] + currentHomeClubFilters.map(HomeClubOption.club)
-    }
-
-    /// Maps the model's `homeClub` token to/from the single-select option so
-    /// picking a club (or "All home clubs") re-queries with the new token.
-    private var homeClubSelection: Binding<HomeClubOption> {
-        Binding(
-            get: {
-                guard let token = model.homeClub,
-                      let match = currentHomeClubFilters.first(where: { $0.value == token })
-                else { return .all }
-                return .club(match)
-            },
-            set: { model.homeClub = $0.token }
         )
     }
 
@@ -309,48 +254,6 @@ private enum HomeCityOption: Hashable, Identifiable {
         switch self {
         case .all: return "Home city filter"
         case .city(let filter): return "Home city \(filter.label)"
-        }
-    }
-}
-
-/// Single-select option for the comedian home-club filter: either "all home
-/// clubs" (clears the filter) or a specific club from the response's
-/// `homeClubFilters`. Wraps `HomeClubFilter` so the nullable "all" case can flow
-/// through the non-optional `PillDropdown` single-select control.
-private enum HomeClubOption: Hashable, Identifiable {
-    case all
-    case club(Components.Schemas.HomeClubFilter)
-
-    var id: String { token ?? "__all_home_clubs__" }
-
-    /// The club-id token sent as the `homeClub` query param; nil for "all".
-    var token: String? {
-        if case .club(let filter) = self { return filter.value }
-        return nil
-    }
-
-    /// Compact label shown on the pill trigger.
-    var triggerLabel: String {
-        switch self {
-        case .all: return "Home club"
-        case .club(let filter): return filter.label
-        }
-    }
-
-    /// Full label shown in the dropdown option list (mirrors web "label (count)").
-    var optionLabel: String {
-        switch self {
-        case .all: return "All home clubs"
-        case .club(let filter): return "\(filter.label) (\(filter.count))"
-        }
-    }
-
-    /// VoiceOver label for the pill trigger (avoids the "Home club Home club"
-    /// doubling the plain `triggerLabel` would produce for the `.all` case).
-    var accessibilityLabel: String {
-        switch self {
-        case .all: return "Home club filter"
-        case .club(let filter): return "Home club \(filter.label)"
         }
     }
 }

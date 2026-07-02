@@ -6,8 +6,6 @@ import app.laughtrack.android.core.network.generated.api.ComediansApi
 import app.laughtrack.android.core.network.generated.api.PodcastsApi
 import app.laughtrack.android.core.network.generated.api.ShowsApi
 import app.laughtrack.android.core.network.generated.model.ComedianLineup
-import app.laughtrack.android.core.network.generated.model.HomeCityFilter
-import app.laughtrack.android.core.network.generated.model.HomeClubFilter
 import app.laughtrack.android.core.network.generated.model.Show
 import app.laughtrack.android.feature.search.model.SearchPivot
 import app.laughtrack.android.feature.search.model.SearchQuery
@@ -15,17 +13,8 @@ import app.laughtrack.android.feature.search.model.SearchResult
 import java.math.BigDecimal
 import javax.inject.Inject
 
-/**
- * One page of normalized results plus the server's total (drives hasMore).
- * [homeCityFilters] carries the comedian home-city filter options and
- * [homeClubFilters] the home-club options; both empty for the other pivots.
- */
-data class SearchPage(
-    val results: List<SearchResult>,
-    val total: Int,
-    val homeCityFilters: List<HomeCityFilter> = emptyList(),
-    val homeClubFilters: List<HomeClubFilter> = emptyList(),
-)
+/** One page of normalized results plus the server's total (drives hasMore). */
+data class SearchPage(val results: List<SearchResult>, val total: Int)
 
 /**
  * Wraps the generated search APIs and normalizes each entity into [SearchResult].
@@ -111,8 +100,6 @@ class SearchRepository
                     sort = query.sort,
                     page = page,
                     size = size,
-                    homeCity = query.homeCity,
-                    homeClub = query.homeClub,
                 )
             val body = response.body() ?: error("Comedians search failed (HTTP ${response.code()})")
             return SearchPage(
@@ -131,8 +118,6 @@ class SearchRepository
                         )
                     },
                 total = body.total,
-                homeCityFilters = body.homeCityFilters,
-                homeClubFilters = body.homeClubFilters,
             )
         }
 

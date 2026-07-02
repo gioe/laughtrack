@@ -11,12 +11,14 @@ from datetime import datetime, timezone
 
 import pytz
 
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.tessitura import TessituraEvent
 from laughtrack.scrapers.implementations.api.tessitura.extractor import (
     discover_comedy_genre_ids,
     extract_event,
     extract_events,
 )
+from laughtrack.scrapers.implementations.api.tessitura.scraper import TessituraScraper
 
 GENRE_TERMS = [
     {"id": 61, "name": "Broadway", "count": 31},
@@ -72,6 +74,29 @@ class _Club:
     id = 1
     name = "CAPA"
     timezone = "America/New_York"
+
+
+def _scraper_club(source_url: str) -> Club:
+    source = ScrapingSource(
+        id=1,
+        club_id=8731,
+        platform="custom",
+        scraper_key="tessitura",
+        source_url=source_url,
+    )
+    return Club(
+        id=8731,
+        name="CAPA (Columbus)",
+        address="55 East State Street",
+        website="https://www.capa.com",
+        popularity=0,
+        zip_code="43215",
+        phone_number="",
+        visible=True,
+        timezone="America/New_York",
+        scraping_sources=[source],
+        active_scraping_source=source,
+    )
 
 
 class TestDiscoverComedyGenreIds:
@@ -161,3 +186,14 @@ class TestToShow:
         assert show is not None
         assert show.tickets[0].purchase_url == "https://www.capa.com/productions/future/"
         assert show.date > datetime.now(timezone.utc)
+
+
+class TestTessituraScraperTargets:
+    def test_calendar_source_url_derives_wp_rest_origin(self):
+        calendar_url = (
+            "https://www.capa.com/event-calendar/?term_genre%5B%5D=comedy"
+            "&start_date=2026-07-01&end_date="
+        )
+        scraper = TessituraScraper(_scraper_club(calendar_url))
+
+        assert scraper._wp_rest_base() == "https://www.capa.com/wp-json/wp/v2"

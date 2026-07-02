@@ -445,7 +445,7 @@ struct EntityDataFlowTests {
         let transport = StubClientTransport { _, _, _, operationID in
             switch operationID {
             case "searchComedians":
-                return testJSONResponse(#"{"data":[],"total":0,"filters":[],"homeCityFilters":[],"homeClubFilters":[]}"#)
+                return testJSONResponse(#"{"data":[],"total":0,"filters":[],"homeCityFilters":[]}"#)
             case "searchClubs":
                 return testJSONResponse(#"{"data":[],"total":0,"filters":[]}"#)
             default:
@@ -495,8 +495,7 @@ struct EntityDataFlowTests {
                   "homeCityFilters": [
                     { "value": "Chicago|IL", "label": "Chicago, IL", "count": 7 },
                     { "value": "Austin|TX", "label": "Austin, TX", "count": 3 }
-                  ],
-                  "homeClubFilters": []
+                  ]
                 }
                 """#
             )
@@ -522,48 +521,6 @@ struct EntityDataFlowTests {
         }
         #expect(page.homeCityFilters.map(\.value) == ["Chicago|IL", "Austin|TX"])
         #expect(page.homeCityFilters.map(\.count) == [7, 3])
-    }
-
-    @Test("comedian discovery threads the homeClub token and surfaces homeClubFilters options")
-    func comedianDiscoverySendsHomeClubTokenAndStoresOptions() async {
-        let transport = StubClientTransport { _, _, _, operationID in
-            #expect(operationID == "searchComedians")
-            return testJSONResponse(
-                #"""
-                {
-                  "data": [],
-                  "total": 0,
-                  "filters": [],
-                  "homeCityFilters": [],
-                  "homeClubFilters": [
-                    { "value": "42", "label": "The Comedy Store", "count": 7 },
-                    { "value": "7", "label": "Laugh Factory", "count": 3 }
-                  ]
-                }
-                """#
-            )
-        }
-        let client = Client(
-            serverURL: URL(string: "https://test.example.com")!,
-            configuration: .laughTrack,
-            transport: transport
-        )
-
-        let comedians = ComediansDiscoveryModel()
-        comedians.homeClub = "42"
-        await comedians.reload(apiClient: client, favorites: ComedianFavoriteStore())
-
-        // Applying a home-club re-queries with the token.
-        let comedianPath = transport.capturedRequests.first(where: { $0.operationID == "searchComedians" })?.path
-        #expect(queryValue("homeClub", from: comedianPath) == "42")
-
-        // The control's options come from the response's homeClubFilters.
-        guard case .success(let page) = comedians.phase else {
-            Issue.record("Expected comedian discovery to retain a success page")
-            return
-        }
-        #expect(page.homeClubFilters.map(\.value) == ["42", "7"])
-        #expect(page.homeClubFilters.map(\.count) == [7, 3])
     }
 
     @Test("comedian search decode failures are not shown as connection failures")

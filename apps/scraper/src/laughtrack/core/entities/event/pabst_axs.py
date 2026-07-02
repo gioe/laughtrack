@@ -55,6 +55,24 @@ class PabstAXSEvent(ShowConvertible):
     date_str: str         # ISO "YYYY-MM-DD" parsed from the thumbnail filename
     show_page_url: str    # the venue's own detail page (drives traffic to venue)
     ticket_url: Optional[str] = None  # the axs.com ticket URL
+    venue_name: Optional[str] = None
+    venue_url: Optional[str] = None
+
+    def venue_payload(self) -> dict:
+        """Return a discovery payload for aggregate Pabst event-list routing."""
+        name = (self.venue_name or "").strip()
+        if not name:
+            return {}
+
+        known = _KNOWN_VENUES.get(name.lower(), {})
+        return {
+            "name": name,
+            "address": known.get("address", ""),
+            "zip_code": known.get("zip_code", ""),
+            "timezone": "America/Chicago",
+            "website": self.venue_url or known.get("website", ""),
+            "club_type": "venue",
+        }
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None):
         """Convert to a Show domain object, or None if required fields are
@@ -88,3 +106,47 @@ class PabstAXSEvent(ShowConvertible):
             tickets=tickets,
             enhanced=enhanced,
         )
+
+
+_KNOWN_VENUES = {
+    "the pabst theater": {
+        "address": "144 E Wells St, Milwaukee, WI",
+        "zip_code": "53202",
+        "website": "https://www.pabsttheatergroup.com/venues/detail/the-pabst-theater",
+    },
+    "the riverside theater": {
+        "address": "116 W Wisconsin Ave, Milwaukee, WI",
+        "zip_code": "53203",
+        "website": "https://www.pabsttheatergroup.com/venues/detail/the-riverside-theater",
+    },
+    "turner hall ballroom": {
+        "address": "1040 Vel R. Phillips Avenue, Milwaukee, WI",
+        "zip_code": "53203",
+        "website": "https://www.pabsttheatergroup.com/venues/detail/turner-hall-ballroom",
+    },
+    "miller high life theatre": {
+        "address": "500 West Kilbourn Avenue, Milwaukee, WI",
+        "zip_code": "53203",
+        "website": "https://www.pabsttheatergroup.com/venues/detail/miller-high-life-theatre",
+    },
+    "vivarium": {
+        "address": "1818 North Farwell Avenue, Milwaukee, WI",
+        "zip_code": "53202",
+        "website": "https://www.pabsttheatergroup.com/venues/detail/vivarium",
+    },
+    "the fitzgerald": {
+        "address": "1119 North Marshall Street, Milwaukee, WI",
+        "zip_code": "53202",
+        "website": "https://www.pabsttheatergroup.com/venues/detail/the-fitzgerald-venue",
+    },
+    "fiserv forum": {
+        "address": "1111 Vel R. Phillips Avenue, Milwaukee, WI",
+        "zip_code": "53203",
+        "website": "https://www.fiservforum.com",
+    },
+    "mo's irish pub": {
+        "address": "142 W Wisconsin Ave, Milwaukee, WI",
+        "zip_code": "53203",
+        "website": "https://www.mosirishpub.com",
+    },
+}

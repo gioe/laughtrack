@@ -141,3 +141,6 @@ class PabstAXSVenueScraper(BaseScraper):
             self.logger_context,
         )
         return kept
+
+
+from .group_scraper import PabstTheaterGroupScraper  # noqa: E402,F401

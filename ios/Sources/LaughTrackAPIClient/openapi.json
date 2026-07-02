@@ -1019,12 +1019,6 @@
             "schema": { "type": "string" }
           },
           {
-            "name": "homeClub",
-            "in": "query",
-            "description": "Filter to comedians whose home club matches this club-id token (from the values in homeClubFilters).",
-            "schema": { "type": "string" }
-          },
-          {
             "name": "X-Timezone",
             "in": "header",
             "description": "IANA timezone identifier (defaults to UTC)",
@@ -2973,16 +2967,6 @@
           "count": { "type": "integer" }
         }
       },
-      "HomeClubFilter": {
-        "type": "object",
-        "description": "A selectable comedian home-club option. 'value' is the club-id token to pass back as the homeClub query param; 'label' is the human-readable club name; 'count' is the number of matching comedians.",
-        "required": ["value", "label", "count"],
-        "properties": {
-          "value": { "type": "string" },
-          "label": { "type": "string" },
-          "count": { "type": "integer" }
-        }
-      },
       "Ticket": {
         "type": "object",
         "properties": {
@@ -3389,7 +3373,7 @@
       },
       "ComedianSearchResponse": {
         "type": "object",
-        "required": ["data", "total", "filters", "homeCityFilters", "homeClubFilters"],
+        "required": ["data", "total", "filters", "homeCityFilters"],
         "properties": {
           "data": {
             "type": "array",
@@ -3404,11 +3388,6 @@
             "type": "array",
             "description": "Available comedian home-city filter options. Empty when no home-location data qualifies; clients omit the control in that case.",
             "items": { "$ref": "#/components/schemas/HomeCityFilter" }
-          },
-          "homeClubFilters": {
-            "type": "array",
-            "description": "Available comedian home-club filter options. Empty when no home-club data qualifies; clients omit the control in that case.",
-            "items": { "$ref": "#/components/schemas/HomeClubFilter" }
           }
         }
       },

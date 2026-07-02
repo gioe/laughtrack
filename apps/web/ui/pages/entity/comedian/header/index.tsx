@@ -16,6 +16,7 @@ import TikTokIcon from "@/ui/components/icons/TikTokIcon";
 import YouTubeIcon from "@/ui/components/icons/YouTubeIcon";
 import { Button } from "@/ui/components/ui/button";
 import MarqueeHero from "@/ui/pages/entity/MarqueeHero";
+import { HOME_LOCATION_UI_ENABLED } from "@/util/featureFlags";
 
 interface ComedianDetailHeaderProps {
     comedian: ComedianDTO;
@@ -98,7 +99,8 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
     const homeLocation = comedian.homeLocation;
     const homeCityLabel = formatHomeCity(homeLocation);
     const homeClub = homeLocation?.club ?? null;
-    const hasHomeLocation = Boolean(homeCityLabel || homeClub);
+    const hasHomeLocation =
+        HOME_LOCATION_UI_ENABLED && Boolean(homeCityLabel || homeClub);
 
     const socialLinks = useMemo(() => {
         const stripAt = (s: string | null | undefined) =>

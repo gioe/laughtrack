@@ -2,10 +2,24 @@
  * @vitest-environment happy-dom
  */
 import React from "react";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render } from "@testing-library/react";
 import FilterBar from "./index";
 import { SearchVariant, allVariantTypes } from "@/objects/enum/searchVariant";
+
+// Toggleable home-location kill-switch: default enabled so the home-city select
+// assertions still exercise the control, with a dedicated off-path test
+// covering the shipped default (hidden).
+const homeLocationFlag = vi.hoisted(() => ({ enabled: true }));
+vi.mock("@/util/featureFlags", () => ({
+    get HOME_LOCATION_UI_ENABLED() {
+        return homeLocationFlag.enabled;
+    },
+}));
+
+beforeEach(() => {
+    homeLocationFlag.enabled = true;
+});
 
 vi.mock("@/ui/components/params/filter", () => ({
     FilterModalButton: () => <div data-testid="filter-modal-button" />,
@@ -249,62 +263,20 @@ describe("FilterBar", () => {
                 ),
             ).toBeNull();
         });
-    });
 
-    describe("home-club filter", () => {
-        const homeClubFilters = [
-            { value: "20", label: "Comedy Store", count: 12 },
-            { value: "10", label: "The Setup", count: 4 },
-        ];
-
-        it("renders the home-club select with options on AllComedians", () => {
+        it("hides the home-city select while the kill-switch is off", () => {
+            homeLocationFlag.enabled = false;
             const { container } = render(
                 <FilterBar
                     variant={SearchVariant.AllComedians}
                     total={5}
                     filterData={[]}
-                    homeClubFilters={homeClubFilters}
-                />,
-            );
-            const select = container.querySelector(
-                'select[aria-label="Filter by home club"]',
-            );
-            expect(select).not.toBeNull();
-            const options = select?.querySelectorAll("option");
-            // "All home clubs" sentinel + one per club.
-            expect(options?.length).toBe(homeClubFilters.length + 1);
-            expect(select?.textContent).toContain("Comedy Store (12)");
-            expect(select?.textContent).toContain("The Setup (4)");
-        });
-
-        it("omits the home-club select when no home-club data is available", () => {
-            const { container } = render(
-                <FilterBar
-                    variant={SearchVariant.AllComedians}
-                    total={5}
-                    filterData={[]}
-                    homeClubFilters={[]}
+                    homeCityFilters={homeCityFilters}
                 />,
             );
             expect(
                 container.querySelector(
-                    'select[aria-label="Filter by home club"]',
-                ),
-            ).toBeNull();
-        });
-
-        it("does not render the home-club select on non-comedian variants", () => {
-            const { container } = render(
-                <FilterBar
-                    variant={SearchVariant.AllClubs}
-                    total={5}
-                    filterData={[]}
-                    homeClubFilters={homeClubFilters}
-                />,
-            );
-            expect(
-                container.querySelector(
-                    'select[aria-label="Filter by home club"]',
+                    'select[aria-label="Filter by home city"]',
                 ),
             ).toBeNull();
         });

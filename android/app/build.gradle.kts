@@ -28,17 +28,14 @@ if (file("google-services.json").exists()) {
 // configure cleanly — the signingConfig is only attached to the release build
 // type when material is actually present (releaseSigningConfig below).
 val keystorePropertiesFile = rootProject.file("app/keystore.properties")
-val keystoreProperties =
-    Properties().apply {
-        if (keystorePropertiesFile.exists()) {
-            FileInputStream(keystorePropertiesFile).use { load(it) }
-        }
+val keystoreProperties = Properties().apply {
+    if (keystorePropertiesFile.exists()) {
+        FileInputStream(keystorePropertiesFile).use { load(it) }
     }
+}
 
-fun signingValue(
-    propKey: String,
-    envKey: String,
-): String? = keystoreProperties.getProperty(propKey) ?: System.getenv(envKey)
+fun signingValue(propKey: String, envKey: String): String? =
+    keystoreProperties.getProperty(propKey) ?: System.getenv(envKey)
 
 android {
     namespace = "app.laughtrack.android"

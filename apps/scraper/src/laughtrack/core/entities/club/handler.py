@@ -743,8 +743,8 @@ class ClubHandler(BaseDatabaseHandler[Club]):
 
         Args:
             venue: dict with at minimum 'name' key; optional 'address',
-                'zip_code', 'timezone'. Extra keys (including any
-                ``discovery_metadata``) are ignored.
+                'zip_code', 'timezone', 'website', and 'club_type'. Extra
+                keys (including any ``discovery_metadata``) are ignored.
 
         Returns:
             Club: the upserted (or existing) club, or None on invalid
@@ -762,6 +762,10 @@ class ClubHandler(BaseDatabaseHandler[Club]):
         address = (venue.get("address") or "").strip()
         zip_code = (venue.get("zip_code") or "").strip()
         timezone = (venue.get("timezone") or None)
+        website = (venue.get("website") or "").strip()
+        club_type = (venue.get("club_type") or "club").strip()
+        if club_type not in Club.ACCEPTED_CLUB_TYPES:
+            club_type = "club"
 
         from laughtrack.utilities.domain.club.timezone_lookup import parse_city_state_from_address  # noqa: PLC0415
         city, state = parse_city_state_from_address(address)
@@ -774,7 +778,7 @@ class ClubHandler(BaseDatabaseHandler[Club]):
         try:
             results = self.execute_with_cursor(
                 ClubQueries.UPSERT_DISCOVERED_VENUE,
-                (name, address, zip_code, city, state, timezone),
+                (name, address, website, zip_code, city, state, timezone, club_type),
                 return_results=True,
             )
             if not results:

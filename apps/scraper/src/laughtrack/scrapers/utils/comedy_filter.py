@@ -74,6 +74,7 @@ def select_comedy_titles(
     descriptions: Optional[Dict[str, Optional[str]]] = None,
     min_popularity: float = DEFAULT_MIN_COMEDIAN_POPULARITY,
     allowlist: Optional[List[str]] = None,
+    use_known_comedian_match: bool = True,
 ) -> Set[str]:
     """Return the subset of ``titles`` that qualify as comedy.
 
@@ -98,7 +99,7 @@ def select_comedy_titles(
         else:
             remaining.append(title)
 
-    if not remaining:
+    if not remaining or not use_known_comedian_match:
         return kept
 
     # Known-comedian heuristic for the titles with no keyword/allowlist signal.

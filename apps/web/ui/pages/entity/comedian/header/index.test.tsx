@@ -59,6 +59,16 @@ vi.mock("@/hooks/useFavorite", () => ({
     useFavorite: vi.fn(),
 }));
 
+// Toggleable home-location kill-switch: default enabled so the rendering
+// assertions below still exercise the "Based in / Home club" pills, with a
+// dedicated off-path test covering the shipped default (hidden).
+const homeLocationFlag = vi.hoisted(() => ({ enabled: true }));
+vi.mock("@/util/featureFlags", () => ({
+    get HOME_LOCATION_UI_ENABLED() {
+        return homeLocationFlag.enabled;
+    },
+}));
+
 const mockUseFavorite = vi.mocked(useFavorite);
 
 const baseComedian: ComedianDTO = {
@@ -84,6 +94,7 @@ const baseComedian: ComedianDTO = {
 };
 
 beforeEach(() => {
+    homeLocationFlag.enabled = true;
     mockUseFavorite.mockReturnValue({
         isFavorite: false,
         handleFavoriteClick: vi.fn(),
@@ -186,6 +197,26 @@ describe("ComedianDetailHeader", () => {
 
     it("renders no home-location pills when the home location is absent", () => {
         render(<ComedianDetailHeader comedian={baseComedian} />);
+
+        expect(screen.queryByText(/Based in/)).toBeNull();
+        expect(screen.queryByText(/Home club:/)).toBeNull();
+    });
+
+    it("hides the home-location pills while the kill-switch is off", () => {
+        homeLocationFlag.enabled = false;
+        render(
+            <ComedianDetailHeader
+                comedian={{
+                    ...baseComedian,
+                    homeLocation: {
+                        city: "Austin",
+                        state: "TX",
+                        country: "USA",
+                        club: { id: 7, name: "Cap City Comedy Club" },
+                    },
+                }}
+            />,
+        );
 
         expect(screen.queryByText(/Based in/)).toBeNull();
         expect(screen.queryByText(/Home club:/)).toBeNull();

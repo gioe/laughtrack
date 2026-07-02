@@ -71,7 +71,6 @@ const mockSearchResult = {
     homeCityFilters: [
         { value: "New York|NY", label: "New York, NY", count: 12 },
     ],
-    homeClubFilters: [{ value: "42", label: "The Setup", count: 5 }],
 };
 
 beforeEach(() => {
@@ -107,9 +106,7 @@ describe("GET /api/v1/comedians/search", () => {
             "https://cdn.example.com/taylor.jpg",
         );
         expect(body.data[0].showCount).toBe(4);
-        expect(body.data[0].socialData.instagramFollowers).toBe(
-            1000000,
-        );
+        expect(body.data[0].socialData.instagramFollowers).toBe(1000000);
     });
 
     it("threads the homeCity token to the search helper and returns homeCityFilters", async () => {
@@ -128,25 +125,6 @@ describe("GET /api/v1/comedians/search", () => {
         );
         expect(body.homeCityFilters).toEqual([
             { value: "New York|NY", label: "New York, NY", count: 12 },
-        ]);
-    });
-
-    it("threads the homeClub id to the search helper and returns homeClubFilters", async () => {
-        mockResolveAuth.mockResolvedValue("PROFILE_MISSING");
-        mockGetSearchedComedians.mockResolvedValue(mockSearchResult as never);
-
-        const res = await GET(makeRequest({ homeClub: "42" }));
-        const body = await res.json();
-
-        expect(res.status).toBe(200);
-        expectOpenApiResponse("/comedians/search", 200, body);
-        expect(mockGetSearchedComedians).toHaveBeenCalledWith(
-            expect.objectContaining({
-                params: expect.objectContaining({ homeClub: "42" }),
-            }),
-        );
-        expect(body.homeClubFilters).toEqual([
-            { value: "42", label: "The Setup", count: 5 },
         ]);
     });
 

@@ -427,6 +427,8 @@ class TestClubAliasResolution:
             "address": "123 Shoreline Blvd, Corpus Christi, TX",
             "zip_code": "78401",
             "timezone": "America/Chicago",
+            "website": "https://freshvenue.example",
+            "club_type": "venue",
         }
         handler = ClubHandler()
 
@@ -438,6 +440,16 @@ class TestClubAliasResolution:
         assert mock_exec.call_count == 2
         assert "club_aliases" in mock_exec.call_args_list[0].args[0]
         assert "INSERT INTO clubs" in mock_exec.call_args_list[1].args[0]
+        assert mock_exec.call_args_list[1].args[1] == (
+            "Fresh Venue",
+            "123 Shoreline Blvd, Corpus Christi, TX",
+            "https://freshvenue.example",
+            "78401",
+            "Corpus Christi",
+            "TX",
+            "America/Chicago",
+            "venue",
+        )
 
 
 class TestUpsertForEventbriteVenueHappyPath:

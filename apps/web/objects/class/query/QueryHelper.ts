@@ -80,9 +80,7 @@ export function encodeHomeCityToken(
     city: string,
     state: string | null | undefined,
 ): string {
-    return state
-        ? `${city}${HOME_CITY_TOKEN_SEPARATOR}${state}`
-        : city;
+    return state ? `${city}${HOME_CITY_TOKEN_SEPARATOR}${state}` : city;
 }
 
 export function decodeHomeCityToken(token: string): {
@@ -286,26 +284,6 @@ export class QueryHelper {
         return {
             homeCity: { equals: city },
             homeState: state ? { equals: state } : null,
-        };
-    }
-
-    // Filters the comedian search by derived home club. The `homeClub` param is
-    // a stringified club id (already unique, so no composite token like
-    // homeCity needs). Returns {} when unset or non-numeric so it can be spread
-    // as a sibling key — `homeClubId` is a column no other comedian clause
-    // touches, so no AND-merge is needed. Comedians with no derived home club
-    // simply never match.
-    getComedianHomeClubClause(): Prisma.ComedianWhereInput {
-        const raw = this.params.homeClub;
-        if (!raw) {
-            return {};
-        }
-        const id = Number(raw);
-        if (!Number.isInteger(id) || id <= 0) {
-            return {};
-        }
-        return {
-            homeClubId: { equals: id },
         };
     }
 

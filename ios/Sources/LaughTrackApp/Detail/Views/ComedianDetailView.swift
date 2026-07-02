@@ -55,7 +55,8 @@ struct ComedianDetailView: View {
                         )
 
                         VStack(alignment: .leading, spacing: 20) {
-                            if let homeLocation = comedian.homeLocation,
+                            if ComedianHomeLocationPresentation.isUIEnabled,
+                               let homeLocation = comedian.homeLocation,
                                ComedianHomeLocationPresentation.hasContent(homeLocation) {
                                 ComedianHomeLocationCard(
                                     homeLocation: homeLocation,
@@ -334,6 +335,13 @@ struct ComedianStatsBar: View {
 }
 
 enum ComedianHomeLocationPresentation {
+    /// Master kill-switch for the comedian home-location UI — the detail
+    /// "Based in / Home club" card and the home-city search pill. The data and
+    /// API plumbing stay wired; this only suppresses the user-facing surfaces
+    /// while the underlying home-location data is still unreliable. Flip to
+    /// `true` to re-expose once the data is trusted.
+    static let isUIEnabled = false
+
     /// Trims whitespace and treats empty strings as absent so blank scraper
     /// values do not render an orphaned "Based in ," label.
     static func trimmed(_ value: String?) -> String? {

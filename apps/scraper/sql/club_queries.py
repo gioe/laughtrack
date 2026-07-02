@@ -687,13 +687,19 @@ class ClubQueries:
     UPSERT_DISCOVERED_VENUE = """
         INSERT INTO clubs (
             name, address, website, visible,
-            zip_code, city, state, phone_number, popularity, timezone
+            zip_code, city, state, phone_number, popularity, timezone, club_type
         )
-        VALUES (%s, %s, '', TRUE, %s, %s, %s, '', 0, %s)
+        VALUES (%s, %s, %s, TRUE, %s, %s, %s, '', 0, %s, %s)
         ON CONFLICT (name) DO UPDATE SET
+            website  = COALESCE(NULLIF(clubs.website, ''), EXCLUDED.website),
             timezone = COALESCE(clubs.timezone, EXCLUDED.timezone),
             city     = COALESCE(clubs.city,     EXCLUDED.city),
-            state    = COALESCE(clubs.state,    EXCLUDED.state)
+            state    = COALESCE(clubs.state,    EXCLUDED.state),
+            club_type = CASE
+                WHEN clubs.club_type = 'club' AND EXCLUDED.club_type <> 'club'
+                THEN EXCLUDED.club_type
+                ELSE clubs.club_type
+            END
         RETURNING *, '[]'::json AS scraping_sources
     """
 

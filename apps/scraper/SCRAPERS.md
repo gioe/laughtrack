@@ -2495,6 +2495,113 @@ ON CONFLICT (name) DO UPDATE SET scraping_url = EXCLUDED.scraping_url, website =
 
 ---
 
+### Hennepin Arts
+
+| | |
+|---|---|
+| **Scraper key** | `hennepin_arts` |
+| **Platform** | `custom` |
+| **DB field** | `scraping_sources.source_url` |
+| **Value format** | `https://hennepinarts.org/events?refinementList%5Bgenre%5D%5B0%5D=Comedy` |
+| **Generic?** | ❌ site-specific Algolia + Nuxt/Contentful detail extraction |
+
+**Detection signals:**
+- Nuxt site at `hennepinarts.org`
+- Public Algolia config in `window.__NUXT__.config.public.algolia`
+- Events page sends InstantSearch requests to Algolia index `events_production`
+  with `facetFilters=[["genre:Comedy"]]`
+
+**API/source pattern:**
+- POST `https://82420y68o3-dsn.algolia.net/1/indexes/*/queries`
+- Headers use the public app id/key exposed by the page:
+  `X-Algolia-Application-Id: 82420Y68O3`
+- Paginate `events_production` with `genre:Comedy` and future timestamp filters
+- Fetch each detail page at `https://hennepinarts.org/events/{slug}`
+
+**Key extraction notes:**
+- Algolia hit fields provide `name`, `slug`, `venue`, and genre classification.
+- The exact performance time and purchase URL are embedded in the Nuxt detail
+  payload as Contentful performance fields: `startDate` and `ticketsUrl`.
+- Model Hennepin Arts as one mixed-purpose operator venue; store the theatre (`State Theatre`,
+  `Orpheum Theatre`, etc.) in `Show.room`.
+
+**DB setup:**
+```sql
+INSERT INTO clubs (name, address, website, city, state, zip_code, timezone, country, club_type, visible, status)
+VALUES ('Hennepin Arts', '900 Hennepin Ave, Minneapolis, MN 55403',
+        'https://hennepinarts.org', 'Minneapolis', 'MN', '55403',
+        'America/Chicago', 'US', 'venue', TRUE, 'active');
+
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, priority, enabled, metadata)
+SELECT id, 'custom', 'hennepin_arts',
+       'https://hennepinarts.org/events?refinementList%5Bgenre%5D%5B0%5D=Comedy',
+       0, TRUE, '{}'::jsonb
+FROM clubs WHERE name = 'Hennepin Arts';
+```
+
+**Failure modes / gotchas:**
+- Algolia list hits only carry dates, not exact times; detail pages are required.
+- User-facing `page=3` maps to Algolia `page=2` because Algolia is zero-based.
+- Detail-page Contentful payload is embedded in Nuxt state, not clean JSON-LD.
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/scrapers/implementations/api/hennepin_arts/`
+
+---
+
+### Next Stop Comedy
+
+| | |
+|---|---|
+| **Scraper key** | `next_stop_comedy` |
+| **Platform** | `custom` |
+| **Onboarded as** | `production_companies` row with no `production_company_venues` mapping |
+| **DB field** | `production_companies.scraping_url` |
+| **Value format** | `https://www.nextstopcomedy.com/events` |
+| **Generic?** | ✅ generic for Next Stop Comedy's promoter calendar |
+
+**Detection signals:**
+- Public calendar at `nextstopcomedy.com/events` with "Load More Shows"
+- Detail pages at `/events/<slug>` expose `ComedyEvent` JSON-LD with `location`, `performer`, `startDate`, and `offers`
+- The event-list client bundle calls `/api/events/load-more?offset=<n>`
+
+**API/source pattern:**
+- Fetch the server-rendered `/events` page for the first batch of detail URLs
+- Walk `/api/events/load-more?offset=48`, then the returned `nextOffset` until `hasMore=false`
+- Fetch each detail page and parse its `application/ld+json` `ComedyEvent`
+
+**Key extraction notes:**
+- Show title/date/description/ticket price come from JSON-LD
+- Lineup comes from JSON-LD `performer[]`; generic lineup validation drops placeholders/false positives
+- Venue name/address/postal code come from JSON-LD `location.address`, and each show is attached to an upserted discovered venue
+- The scraper has a 3600s per-scraper timeout override because the promoter catalog has hundreds of future detail pages
+
+**DB setup:**
+```sql
+INSERT INTO production_companies (name, slug, website, scraping_url, visible, show_name_keywords)
+VALUES ('Next Stop Comedy', 'next-stop-comedy',
+        'https://www.nextstopcomedy.com',
+        'https://www.nextstopcomedy.com/events',
+        TRUE, ARRAY[]::text[])
+ON CONFLICT (slug) DO UPDATE
+SET website = EXCLUDED.website,
+    scraping_url = EXCLUDED.scraping_url,
+    visible = EXCLUDED.visible,
+    show_name_keywords = EXCLUDED.show_name_keywords;
+```
+
+**Failure modes / gotchas:**
+- The initial HTML only carries the first batch; do not rely on anchor scraping alone or the catalog silently caps at 48 events
+- Do not onboard this as a venue club. It is a promoter source; the synthetic production-company proxy stamps `production_company_id` while shows surface under discovered venues
+- Very-far-future events beyond the global show validation horizon are dropped by normal validation
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/scrapers/implementations/next_stop_comedy/`
+- Synthetic-proxy dispatch: `_build_synthetic_proxy_for_company` in `core/services/scraping/__init__.py`
+- Reference production company: Next Stop Comedy (`production_companies.slug='next-stop-comedy'`)
+
+---
+
 ### Ludus
 
 | | |
@@ -3797,9 +3904,10 @@ usable public Tessitura ticketing JSON. The scrapable seam is instead the
 operator's **WordPress site** (e.g. `www.capa.com`), which exposes the same
 productions over the standard WP REST API.
 
-`source_url` = the operator site root (e.g. `https://www.capa.com`); the scraper
-derives `/wp-json/wp/v2` from it. Single API pass (no JS rendering — curl_cffi /
-`fetch_json` suffices):
+`source_url` = the operator site root (e.g. `https://www.capa.com`) or its
+public comedy-filtered calendar page (e.g. CAPA's `/event-calendar/?term_genre[]=comedy...`);
+the scraper derives `/wp-json/wp/v2` from the URL origin. Single API pass (no JS
+rendering — curl_cffi / `fetch_json` suffices):
 
 1. **Genre discovery** — `GET /wp-json/wp/v2/genre?per_page=100`; pick the term
    whose name matches "comedy" (case-insensitive, substring) with a non-zero
@@ -3820,7 +3928,8 @@ archived productions). Optional `scraping_sources.metadata` overrides:
 `post_type` (default `tessi_production`), `genre_taxonomy` (default `genre`),
 `comedy_genre_names` (comma-separated, default `comedy`).
 
-Onboarded: **CAPA — Columbus Association for the Performing Arts** (`www.capa.com`),
+Onboarded: **CAPA — Columbus Association for the Performing Arts** (`www.capa.com`;
+source URL `https://www.capa.com/event-calendar/?term_genre%5B%5D=comedy&start_date=2026-07-01&end_date=`),
 modeled as ONE operator club (Ohio / Palace / Southern / Lincoln theatres + the
 Davidson at the Riffe Center are carried in `Show.room`). Verified 18 future
 comedy shows live (Whitney Cummings, Gary Gulman, Jo Koy, Daniel Sloss, …).

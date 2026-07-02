@@ -85,12 +85,16 @@ def extract_events(page_html: str) -> List[PabstAXSEvent]:
         if not show_page_url:
             continue
 
+        location = card.find("a", class_="location")
+
         events.append(
             PabstAXSEvent(
                 title=title,
                 date_str=date_str,
                 show_page_url=show_page_url,
                 ticket_url=ticket_url,
+                venue_name=_clean(location.get_text(" ", strip=True)) if location else None,
+                venue_url=location["href"].strip() if location and location.get("href") else None,
             )
         )
     return events

@@ -43,7 +43,6 @@ function makeHelper(
         getComedianNameClause: () => ({}),
         getComedianFiltersClause: () => ({}),
         getComedianHomeCityClause: () => ({}),
-        getComedianHomeClubClause: () => ({}),
         // Mirrors the real method's "no fromDate → upcoming-only" default so
         // tests don't need to thread date params through every makeHelper call.
         getDateClause: () => ({ date: { gte: new Date().toISOString() } }),
@@ -894,98 +893,6 @@ describe("findComediansWithCount", () => {
             expect(sql).toContain('c."home_city"');
             expect(sql).toContain('c."home_state" IS NULL');
             expect(sortedCall.values).toContain("London");
-        });
-    });
-
-    describe("home-club filter", () => {
-        it("spreads the home-club clause into the Prisma count + findMany where", async () => {
-            mockCount.mockResolvedValue(1);
-            mockFindMany.mockResolvedValue([makeComedianRow(1)] as never);
-
-            const helper = makeHelper(SortParamValue.PopularityDesc);
-            helper.getComedianHomeClubClause = (() => ({
-                homeClubId: { equals: 42 },
-            })) as never as typeof helper.getComedianHomeClubClause;
-
-            await findComediansWithCount(helper);
-
-            const countWhere = mockCount.mock.calls[0]?.[0]?.where as Record<
-                string,
-                unknown
-            >;
-            expect(countWhere.homeClubId).toEqual({ equals: 42 });
-
-            const findWhere = mockFindMany.mock.calls[0]?.[0]?.where as Record<
-                string,
-                unknown
-            >;
-            expect(findWhere.homeClubId).toEqual({ equals: 42 });
-        });
-
-        it("omits home-club predicates when the clause is empty", async () => {
-            mockCount.mockResolvedValue(1);
-            mockFindMany.mockResolvedValue([makeComedianRow(1)] as never);
-
-            // Default makeHelper returns {} from getComedianHomeClubClause.
-            await findComediansWithCount(makeHelper());
-
-            const findWhere = mockFindMany.mock.calls[0]?.[0]?.where as Record<
-                string,
-                unknown
-            >;
-            expect(findWhere.homeClubId).toBeUndefined();
-        });
-
-        it("applies the home_club_id predicate on the raw-SQL show_count path", async () => {
-            mockCount.mockResolvedValue(1);
-            mockQueryRaw
-                .mockResolvedValueOnce([] as never) // deny list
-                .mockResolvedValueOnce([{ id: 1 }] as never); // sorted IDs
-            mockFindMany.mockResolvedValue([makeComedianRow(1, 3)] as never);
-
-            const helper = makeHelper(
-                SortParamValue.ShowCountDesc,
-                undefined,
-                undefined,
-                undefined,
-                false,
-                { homeClub: "42" },
-            );
-            await findComediansWithCount(helper);
-
-            const sortedCall = mockQueryRaw.mock.calls[1]?.[0] as {
-                strings: string[];
-                values: unknown[];
-            };
-            const sql = sortedCall.strings.join(" ");
-            expect(sql).toContain('c."home_club_id"');
-            // The id flows through as a bound numeric parameter.
-            expect(sortedCall.values).toContain(42);
-        });
-
-        it("ignores a non-numeric home-club param on the raw-SQL path", async () => {
-            mockCount.mockResolvedValue(1);
-            mockQueryRaw
-                .mockResolvedValueOnce([] as never)
-                .mockResolvedValueOnce([{ id: 1 }] as never);
-            mockFindMany.mockResolvedValue([makeComedianRow(1, 3)] as never);
-
-            const helper = makeHelper(
-                SortParamValue.ShowCountDesc,
-                undefined,
-                undefined,
-                undefined,
-                false,
-                { homeClub: "not-a-number" },
-            );
-            await findComediansWithCount(helper);
-
-            const sortedCall = mockQueryRaw.mock.calls[1]?.[0] as {
-                strings: string[];
-                values: unknown[];
-            };
-            const sql = sortedCall.strings.join(" ");
-            expect(sql).not.toContain('c."home_club_id"');
         });
     });
 });

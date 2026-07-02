@@ -2650,17 +2650,8 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                     ) : (
                                                         <ChevronRight className="h-4 w-4 shrink-0 text-cedar" />
                                                     )}
-                                                    <span className="min-w-0">
-                                                        <span className="block font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                            Current image
-                                                        </span>
-                                                        <span className="mt-1 block font-dmSans text-body font-semibold text-cedar">
-                                                            {row.activeImageAsset
-                                                                ? "Active asset"
-                                                                : row.hasImage
-                                                                  ? "Image available"
-                                                                  : "No current image"}
-                                                        </span>
+                                                    <span className="min-w-0 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                        Current image
                                                     </span>
                                                 </button>
 
@@ -2773,69 +2764,68 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                                         </Button>
                                                                     </div>
                                                                 </div>
-                                                                <span className="font-dmSans text-caption normal-case tracking-normal text-soft-charcoal">
-                                                                    1:1 square,
-                                                                    at least
-                                                                    600x600
-                                                                </span>
-                                                                <input
-                                                                    id={`headshot-file-${row.id}`}
-                                                                    aria-label="Upload headshot file"
-                                                                    type="file"
-                                                                    accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
-                                                                    className="sr-only"
-                                                                    onChange={async (
-                                                                        event,
-                                                                    ) => {
-                                                                        const file =
-                                                                            event
-                                                                                .target
-                                                                                .files?.[0] ??
-                                                                            null;
-                                                                        event.target.value =
-                                                                            "";
-                                                                        if (
-                                                                            !file
-                                                                        )
-                                                                            return;
-                                                                        await stageImageFile(
-                                                                            row,
-                                                                            "headshot",
-                                                                            file,
-                                                                        );
-                                                                    }}
-                                                                />
-                                                                <Button
-                                                                    type="button"
-                                                                    variant="outline"
-                                                                    className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                                                                    disabled={
-                                                                        disabled ||
-                                                                        pendingId ===
-                                                                            row.id
-                                                                    }
-                                                                    onClick={() => {
-                                                                        const input =
-                                                                            document.getElementById(
-                                                                                `headshot-file-${row.id}`,
-                                                                            ) as HTMLInputElement | null;
-                                                                        input?.click();
-                                                                    }}
-                                                                >
-                                                                    <Upload className="h-4 w-4" />
-                                                                    Choose
-                                                                    headshot
-                                                                    file
-                                                                </Button>
+                                                                <div className="flex flex-wrap items-center gap-3">
+                                                                    <input
+                                                                        id={`headshot-file-${row.id}`}
+                                                                        aria-label="Upload headshot file"
+                                                                        type="file"
+                                                                        accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
+                                                                        className="sr-only"
+                                                                        onChange={async (
+                                                                            event,
+                                                                        ) => {
+                                                                            const file =
+                                                                                event
+                                                                                    .target
+                                                                                    .files?.[0] ??
+                                                                                null;
+                                                                            event.target.value =
+                                                                                "";
+                                                                            if (
+                                                                                !file
+                                                                            )
+                                                                                return;
+                                                                            await stageImageFile(
+                                                                                row,
+                                                                                "headshot",
+                                                                                file,
+                                                                            );
+                                                                        }}
+                                                                    />
+                                                                    <Button
+                                                                        type="button"
+                                                                        variant="outline"
+                                                                        className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                        disabled={
+                                                                            disabled ||
+                                                                            pendingId ===
+                                                                                row.id
+                                                                        }
+                                                                        onClick={() => {
+                                                                            const input =
+                                                                                document.getElementById(
+                                                                                    `headshot-file-${row.id}`,
+                                                                                ) as HTMLInputElement | null;
+                                                                            input?.click();
+                                                                        }}
+                                                                    >
+                                                                        <Upload className="h-4 w-4" />
+                                                                        Choose
+                                                                        headshot
+                                                                        file
+                                                                    </Button>
+                                                                    <span className="font-dmSans text-caption normal-case tracking-normal text-soft-charcoal">
+                                                                        1:1
+                                                                        square,
+                                                                        at least
+                                                                        600x600
+                                                                    </span>
+                                                                </div>
                                                                 {manualImageUrlValue(
                                                                     row,
                                                                 )
                                                                     .headshotFile ? (
-                                                                    <div className="grid gap-2 rounded-md border border-copper/30 bg-coconut-cream/40 p-3">
-                                                                        <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                                            Pending
-                                                                            headshot
-                                                                        </div>
+                                                                    <div className="inline-flex max-w-full flex-wrap items-center gap-3 rounded-md border border-copper/30 bg-coconut-cream/30 p-3">
                                                                         <StagedPreview
                                                                             file={
                                                                                 manualImageUrlValue(
@@ -2844,48 +2834,68 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                                                     .headshotFile as File
                                                                             }
                                                                             alt={`${row.name} pending headshot`}
-                                                                            className="h-24 w-24 rounded-md border border-copper/30 object-cover"
+                                                                            className="h-16 w-16 shrink-0 rounded-md border border-copper/30 object-cover"
                                                                         />
-                                                                        <div className="flex flex-wrap gap-2">
-                                                                            <Button
-                                                                                type="button"
-                                                                                className="gap-2 bg-copper-dark text-white hover:bg-cedar disabled:bg-gray-300 disabled:text-soft-charcoal disabled:opacity-100"
-                                                                                disabled={
-                                                                                    disabled ||
-                                                                                    pendingId ===
-                                                                                        row.id
-                                                                                }
-                                                                                onClick={() =>
-                                                                                    void publishImage(
-                                                                                        row,
-                                                                                        "headshot",
-                                                                                    )
-                                                                                }
-                                                                            >
-                                                                                <Upload className="h-4 w-4" />
-                                                                                Publish
-                                                                                to
-                                                                                Bunny
-                                                                            </Button>
-                                                                            <Button
-                                                                                type="button"
-                                                                                variant="outline"
-                                                                                className="gap-2 border-soft-charcoal/40 bg-white text-cedar hover:bg-gray-50"
-                                                                                disabled={
-                                                                                    disabled ||
-                                                                                    pendingId ===
-                                                                                        row.id
-                                                                                }
-                                                                                onClick={() =>
-                                                                                    discardStagedFile(
-                                                                                        row,
-                                                                                        "headshot",
-                                                                                    )
-                                                                                }
-                                                                            >
-                                                                                <X className="h-4 w-4" />
-                                                                                Discard
-                                                                            </Button>
+                                                                        <div className="grid min-w-[220px] flex-1 gap-2">
+                                                                            <div>
+                                                                                <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                                                    Pending
+                                                                                    headshot
+                                                                                </div>
+                                                                                <div className="font-dmSans text-caption text-soft-charcoal">
+                                                                                    Publish
+                                                                                    the
+                                                                                    staged
+                                                                                    file
+                                                                                    or
+                                                                                    discard
+                                                                                    it
+                                                                                    before
+                                                                                    choosing
+                                                                                    another.
+                                                                                </div>
+                                                                            </div>
+                                                                            <div className="flex flex-wrap gap-2">
+                                                                                <Button
+                                                                                    type="button"
+                                                                                    className="gap-2 bg-copper-dark text-white hover:bg-cedar disabled:bg-gray-300 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                                    disabled={
+                                                                                        disabled ||
+                                                                                        pendingId ===
+                                                                                            row.id
+                                                                                    }
+                                                                                    onClick={() =>
+                                                                                        void publishImage(
+                                                                                            row,
+                                                                                            "headshot",
+                                                                                        )
+                                                                                    }
+                                                                                >
+                                                                                    <Upload className="h-4 w-4" />
+                                                                                    Publish
+                                                                                    to
+                                                                                    Bunny
+                                                                                </Button>
+                                                                                <Button
+                                                                                    type="button"
+                                                                                    variant="outline"
+                                                                                    className="gap-2 border-soft-charcoal/40 bg-white text-cedar hover:bg-gray-50"
+                                                                                    disabled={
+                                                                                        disabled ||
+                                                                                        pendingId ===
+                                                                                            row.id
+                                                                                    }
+                                                                                    onClick={() =>
+                                                                                        discardStagedFile(
+                                                                                            row,
+                                                                                            "headshot",
+                                                                                        )
+                                                                                    }
+                                                                                >
+                                                                                    <X className="h-4 w-4" />
+                                                                                    Discard
+                                                                                </Button>
+                                                                            </div>
                                                                         </div>
                                                                     </div>
                                                                 ) : null}

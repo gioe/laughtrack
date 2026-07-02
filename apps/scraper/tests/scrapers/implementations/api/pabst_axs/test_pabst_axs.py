@@ -73,6 +73,26 @@ class TestExtractEventsFromFixture:
         assert ev.date_str == "2026-10-16"
         assert "axs.com/events/" in (ev.ticket_url or "")
 
+    def test_parses_venue_location_when_present(self):
+        html = """
+        <div class="eventItem">
+            <a href="https://www.pabsttheatergroup.com/events/detail/steve-hofstetter-2026"
+               title="More Info for Steve Hofstetter">
+                <img src="https://www.pabsttheatergroup.com/assets/img/2026.07.03-V-Steve-Hofstetter.png" />
+            </a>
+            <a href="https://www.axs.com/events/1049284/steve-hofstetter-tickets?skin=pabst"
+               title="Buy Tickets for Steve Hofstetter">Buy</a>
+            <a href="https://www.pabsttheatergroup.com/venues/detail/vivarium"
+               class="location" title="Vivarium link">Vivarium</a>
+        </div>
+        """
+
+        events = extract_events(html)
+
+        assert len(events) == 1
+        assert events[0].venue_name == "Vivarium"
+        assert events[0].venue_url == "https://www.pabsttheatergroup.com/venues/detail/vivarium"
+
     def test_show_page_url_is_venue_detail_not_axs(self):
         ev = next(e for e in extract_events(_load_fixture()) if e.title == "Ben Schwartz & Friends")
         assert "pabsttheatergroup.com/events/detail/" in ev.show_page_url

@@ -108,7 +108,7 @@ export default async function ComedianSearchPage(
         );
     };
 
-    const { data, total, filters, homeCityFilters, homeClubFilters } =
+    const { data, total, filters, homeCityFilters } =
         await getCachedSearchPageData(requestData)();
 
     return (
@@ -132,7 +132,6 @@ export default async function ComedianSearchPage(
                 total={total}
                 filterData={filters}
                 homeCityFilters={homeCityFilters}
-                homeClubFilters={homeClubFilters}
                 isAdmin={isAdmin}
             />
 

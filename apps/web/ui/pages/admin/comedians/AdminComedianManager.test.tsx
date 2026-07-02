@@ -209,18 +209,17 @@ afterEach(() => {
 });
 
 describe("AdminComedianManager", () => {
-    it("renders current image state and current image previews", () => {
+    it("renders current image controls without redundant collapsed state labels", () => {
         render(<AdminComedianManager comedians={comedians} />);
         expandAllRows();
 
         expect(
             screen.getAllByRole("button", { name: /^Current image/ }).length,
         ).toBeGreaterThan(0);
-        expect(screen.getByText("Active asset")).toBeTruthy();
         expect(screen.getAllByText("Current image").length).toBeGreaterThan(0);
-        expect(screen.getAllByText("No current image").length).toBeGreaterThan(
-            0,
-        );
+        expect(screen.queryByText("Active asset")).toBeNull();
+        expect(screen.queryByText("Image available")).toBeNull();
+        expect(screen.queryByText("No current image")).toBeNull();
         expect(
             screen.queryByRole("button", { name: "Discover images" }),
         ).toBeNull();

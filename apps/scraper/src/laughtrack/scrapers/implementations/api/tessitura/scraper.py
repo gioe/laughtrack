@@ -8,12 +8,12 @@ post types, exposed over the standard WP REST API together with a ``genre``
 taxonomy. The Tessitura box office itself (``tickets.{org}.com``) is bot- and
 queue-protected, so this REST feed is the scrapable seam.
 
-Per-venue configuration is the operator's site root, read from the club's
-``scraping_url`` (e.g. ``https://www.capa.com``); the scraper derives the
-``/wp-json/wp/v2`` base from it. Optional ``scraping_sources.metadata``
-overrides: ``post_type`` (default ``tessi_production``), ``genre_taxonomy``
-(default ``genre``), and ``comedy_genre_names`` (comma-separated, default
-``comedy``).
+Per-venue configuration is the operator's site root or public event calendar
+URL, read from the club's ``scraping_url`` (e.g. ``https://www.capa.com`` or a
+filtered CAPA calendar URL); the scraper derives the ``/wp-json/wp/v2`` base
+from the URL origin. Optional ``scraping_sources.metadata`` overrides:
+``post_type`` (default ``tessi_production``), ``genre_taxonomy`` (default
+``genre``), and ``comedy_genre_names`` (comma-separated, default ``comedy``).
 
 Pipeline:
     1. collect_scraping_targets(): return the WP REST base URL for the operator.
