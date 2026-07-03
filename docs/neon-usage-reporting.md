@@ -3,6 +3,9 @@
 Use `scripts/neon_usage_report.py` to inspect current Neon billing drivers without
 manual Console inspection.
 
+For branch lifecycle, local-development, scale-to-zero, and cleanup ownership
+policy, see `docs/neon-cost-strategy.md`.
+
 The script reads from Neon control-plane APIs only:
 
 - Project consumption metrics:
