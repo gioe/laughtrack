@@ -6,7 +6,7 @@ import os
 import re
 import threading
 import time
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, NamedTuple, Optional, Tuple
 
 import requests
 from curl_cffi import requests as cffi_requests
@@ -42,6 +42,33 @@ _INSTAGRAM_STALE_DAYS = int(os.environ.get("INSTAGRAM_FOLLOWERS_STALE_DAYS", "7"
 # clears it. Longer timeout because requests route through the residential proxy.
 _INSTAGRAM_MAX_ATTEMPTS = int(os.environ.get("INSTAGRAM_FETCH_ATTEMPTS", "4"))
 _INSTAGRAM_TIMEOUT_S = float(os.environ.get("INSTAGRAM_FETCH_TIMEOUT_S", "20"))
+# A 404 means the username no longer exists. Require this many 404s (across
+# rotated egress IPs) before clearing the handle, so a one-off proxy blip can't
+# wipe a live account.
+_INSTAGRAM_NOT_FOUND_CONFIRMATIONS = int(os.environ.get("INSTAGRAM_NOT_FOUND_CONFIRMATIONS", "2"))
+
+
+class _InstagramAccountGone(Exception):
+    """Raised by _instagram_request when the endpoint returns HTTP 404.
+
+    A dedicated type (rather than a bare HTTPError) lets the fetch loop drive
+    the "clear this dead handle" side effect off a 404 specifically, without a
+    transient 401/timeout/soft-block ever being mistaken for a gone account.
+    """
+
+
+class _IGFetch(NamedTuple):
+    """Outcome of a single-comedian Instagram fetch.
+
+    status is one of:
+        "ok"   — count is a valid follower total; update it.
+        "dead" — handle returned 404 (gone); clear the account.
+        "skip" — transient failure; leave the row untouched for next run.
+    """
+
+    status: str
+    uuid: str
+    count: Optional[int]
 
 
 def _itunes_on_insert_enabled() -> bool:
@@ -963,34 +990,50 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
             rows = rows[:limit]
 
         updates: List[tuple] = []
+        dead_uuids: List[str] = []
         consecutive_failures = 0
         for row in rows:
             result = self._fetch_instagram_follower_count(row)
-            if result is not None:
-                updates.append(result)
+            if result.status == "ok":
+                updates.append((result.uuid, result.count))
                 consecutive_failures = 0
-            else:
+            elif result.status == "dead":
+                # 404 — the handle is gone. A definitive server response, not a
+                # block, so it does not count toward the circuit breaker.
+                dead_uuids.append(result.uuid)
+                consecutive_failures = 0
+            else:  # "skip" — transient failure (401 / soft-block / timeout)
                 consecutive_failures += 1
                 if consecutive_failures >= _CIRCUIT_BREAKER_THRESHOLD:
                     Logger.warn(
                         f"refresh_instagram_followers: {_CIRCUIT_BREAKER_THRESHOLD} consecutive "
-                        f"failures — aborting (likely blocked). {len(updates)}/{len(rows)} updated."
+                        f"failures — aborting (likely blocked). {len(updates)} updated, "
+                        f"{len(dead_uuids)} cleared so far."
                     )
                     break
             time.sleep(_SOCIAL_REQUEST_DELAY_S)
 
-        if not updates:
+        if updates:
+            self.execute_batch_operation(
+                ComedianQueries.UPDATE_COMEDIAN_INSTAGRAM_FOLLOWERS, updates
+            )
+        if dead_uuids:
+            self.execute_batch_operation(
+                ComedianQueries.CLEAR_COMEDIAN_INSTAGRAM_ACCOUNT,
+                [(uuid,) for uuid in dead_uuids],
+            )
+
+        if not updates and not dead_uuids:
             Logger.warn(
-                f"refresh_instagram_followers: {len(rows)} accounts found but 0 updated — "
-                "API may be rate-limiting or unavailable"
+                f"refresh_instagram_followers: {len(rows)} accounts found but 0 updated "
+                "and 0 cleared — API may be rate-limiting or unavailable"
             )
             return 0
 
-        self.execute_batch_operation(
-            ComedianQueries.UPDATE_COMEDIAN_INSTAGRAM_FOLLOWERS, updates
+        Logger.info(
+            f"refresh_instagram_followers: updated {len(updates)} comedians, "
+            f"cleared {len(dead_uuids)} dead handles"
         )
-
-        Logger.info(f"refresh_instagram_followers: updated {len(updates)} comedians")
         return len(updates)
 
     def _get_comedians_with_instagram_accounts(self, stale_days: int) -> List[dict]:
@@ -1009,11 +1052,13 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
         )
         return [{"uuid": r["uuid"], "instagram_account": r["instagram_account"]} for r in rows]
 
-    def _fetch_instagram_follower_count(self, row: dict) -> Optional[tuple]:
+    def _fetch_instagram_follower_count(self, row: dict) -> _IGFetch:
         """Fetch the current Instagram follower count for a single comedian.
 
-        Returns a ``(uuid, follower_count)`` tuple on success, or ``None`` if
-        the account is unreachable or the response cannot be parsed.
+        Returns an ``_IGFetch``:
+            status "ok"   — ``count`` is the follower total; persist it.
+            status "dead" — the handle 404'd on repeated tries; clear it.
+            status "skip" — transient failure; leave the row for next run.
         """
         uuid = row["uuid"]
         account = row["instagram_account"].strip().lstrip("@")
@@ -1021,12 +1066,25 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
         # ("require_login") or an empty {"status":"ok"} body with no user
         # payload — when the residential egress IP is flagged. Decodo rotates
         # IPs per request, so retrying after a short pause lands a fresh egress
-        # and usually clears it.
+        # and usually clears it. A 404, by contrast, is a definitive "username
+        # not found"; we still confirm it across a couple of rotated IPs before
+        # declaring the handle dead so a one-off proxy blip can't wipe it.
+        not_found_count = 0
         for attempt in range(_INSTAGRAM_MAX_ATTEMPTS):
             try:
                 data = self._instagram_request(account)
                 count = data["data"]["user"]["edge_followed_by"]["count"]
-                return (uuid, int(count))
+                return _IGFetch("ok", uuid, int(count))
+            except _InstagramAccountGone:
+                not_found_count += 1
+                if not_found_count >= _INSTAGRAM_NOT_FOUND_CONFIRMATIONS:
+                    Logger.info(
+                        f"Instagram handle @{account} is gone "
+                        f"(404 x{not_found_count}) — clearing account and followers"
+                    )
+                    return _IGFetch("dead", uuid, None)
+                time.sleep(_SOCIAL_REQUEST_DELAY_S)
+                continue
             except Exception as e:
                 if attempt < _INSTAGRAM_MAX_ATTEMPTS - 1:
                     time.sleep(_SOCIAL_REQUEST_DELAY_S)
@@ -1035,7 +1093,10 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
                     f"Instagram request failed for @{account} after "
                     f"{_INSTAGRAM_MAX_ATTEMPTS} attempts: {e}"
                 )
-                return None
+                return _IGFetch("skip", uuid, None)
+        # Attempts exhausted while still seeing 404s but below the confirmation
+        # threshold — treat as transient rather than risk clearing a live handle.
+        return _IGFetch("skip", uuid, None)
 
     @staticmethod
     def _instagram_request(account: str) -> dict:
@@ -1046,8 +1107,9 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
         request — and impersonates Chrome's TLS fingerprint via curl_cffi,
         since plain ``requests``/``httpx`` are fingerprinted and blocked. Falls
         back to a direct request when no proxy is configured (fine from a
-        residential IP in local dev). Raises on any non-200 so the caller's
-        retry loop can rotate to a fresh residential egress.
+        residential IP in local dev). Raises ``_InstagramAccountGone`` on a 404
+        (username not found) and a generic error on any other non-200, so the
+        caller can distinguish a dead handle from a transient block.
         """
         app_id = os.environ.get("INSTAGRAM_APP_ID", "936619743392459")
         headers = {
@@ -1064,6 +1126,8 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
             timeout=_INSTAGRAM_TIMEOUT_S,
             impersonate="chrome",
         )
+        if resp.status_code == 404:
+            raise _InstagramAccountGone(account)
         resp.raise_for_status()
         return resp.json()
 

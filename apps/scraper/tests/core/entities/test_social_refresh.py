@@ -44,6 +44,7 @@ _comedian_handler_mod = _load_module(
     "laughtrack.core.entities.comedian.handler_social_test",
 )
 ComedianHandler = _comedian_handler_mod.ComedianHandler
+_IGFetch = _comedian_handler_mod._IGFetch
 # Disable per-request sleep delay so tests run at full speed
 _comedian_handler_mod._SOCIAL_REQUEST_DELAY_S = 0.0
 
@@ -336,6 +337,15 @@ class TestInstagramFollowersSqlContract:
         assert "instagram_followers_refreshed_at" in sql
         assert "now()" in sql
 
+    def test_clear_query_nulls_handle_count_and_timestamp(self):
+        """CLEAR_COMEDIAN_INSTAGRAM_ACCOUNT must null all three Instagram fields."""
+        sql = ComedianQueries.CLEAR_COMEDIAN_INSTAGRAM_ACCOUNT.lower()
+        assert "instagram_account = null" in sql
+        assert "instagram_followers = null" in sql
+        assert "instagram_followers_refreshed_at = null" in sql
+        # Scoped to the given uuids, never a blanket wipe.
+        assert "where" in sql and "uuid" in sql
+
 
 # ---------------------------------------------------------------------------
 # SQL contract tests — TikTok
@@ -410,7 +420,7 @@ class TestFetchInstagramFollowerCount:
         row = {"uuid": "uuid-1", "instagram_account": "@mycomedian"}
         with patch.object(ComedianHandler, "_instagram_request", return_value=self._ig_response(150_000)):
             result = handler._fetch_instagram_follower_count(row)
-        assert result == ("uuid-1", 150_000)
+        assert result == _IGFetch("ok", "uuid-1", 150_000)
 
     def test_strips_at_prefix_before_request(self):
         handler = _make_handler()
@@ -424,25 +434,26 @@ class TestFetchInstagramFollowerCount:
         row = {"uuid": "uuid-3", "instagram_account": "bareaccount"}
         with patch.object(ComedianHandler, "_instagram_request", return_value=self._ig_response(200)) as mock_req:
             result = handler._fetch_instagram_follower_count(row)
-        assert result == ("uuid-3", 200)
+        assert result == _IGFetch("ok", "uuid-3", 200)
         mock_req.assert_called_once_with("bareaccount")
 
-    def test_api_error_returns_none(self):
+    def test_api_error_returns_skip(self):
         handler = _make_handler()
         row = {"uuid": "uuid-4", "instagram_account": "@unavailable"}
         with patch.object(ComedianHandler, "_instagram_request", side_effect=RuntimeError("403 Forbidden")):
             result = handler._fetch_instagram_follower_count(row)
-        assert result is None
+        assert result.status == "skip"
+        assert result.uuid == "uuid-4"
 
-    def test_malformed_response_returns_none(self):
+    def test_malformed_response_returns_skip(self):
         handler = _make_handler()
         row = {"uuid": "uuid-5", "instagram_account": "@comedian5"}
         with patch.object(ComedianHandler, "_instagram_request", return_value={"data": {}}):
             result = handler._fetch_instagram_follower_count(row)
-        assert result is None
+        assert result.status == "skip"
 
-    def test_http_error_returns_none(self):
-        """requests.exceptions.HTTPError (e.g. 429) is caught and returns None."""
+    def test_http_error_returns_skip(self):
+        """A transient HTTPError (e.g. 429) is caught and returns a skip."""
         handler = _make_handler()
         row = {"uuid": "uuid-6", "instagram_account": "@ratelimited"}
         with patch.object(
@@ -451,7 +462,29 @@ class TestFetchInstagramFollowerCount:
             side_effect=_requests.exceptions.HTTPError("429 Too Many Requests"),
         ):
             result = handler._fetch_instagram_follower_count(row)
-        assert result is None
+        assert result.status == "skip"
+
+    def test_persistent_404_returns_dead(self):
+        """A handle that 404s across the confirmation threshold is marked dead."""
+        handler = _make_handler()
+        row = {"uuid": "uuid-7", "instagram_account": "@gone"}
+        gone = _comedian_handler_mod._InstagramAccountGone("gone")
+        with patch.object(ComedianHandler, "_instagram_request", side_effect=gone):
+            result = handler._fetch_instagram_follower_count(row)
+        assert result == _IGFetch("dead", "uuid-7", None)
+
+    def test_single_404_then_recovery_is_not_marked_dead(self):
+        """One 404 followed by a success must NOT clear the handle (blip guard)."""
+        handler = _make_handler()
+        row = {"uuid": "uuid-8", "instagram_account": "@blip"}
+        gone = _comedian_handler_mod._InstagramAccountGone("blip")
+        with patch.object(
+            ComedianHandler,
+            "_instagram_request",
+            side_effect=[gone, self._ig_response(500)],
+        ):
+            result = handler._fetch_instagram_follower_count(row)
+        assert result == _IGFetch("ok", "uuid-8", 500)
 
 
 # ---------------------------------------------------------------------------
@@ -474,7 +507,7 @@ class TestRefreshInstagramFollowers:
         handler = _make_handler()
         rows = [{"uuid": "uuid-A", "instagram_account": "@comedianA"}]
         handler._get_comedians_with_instagram_accounts = MagicMock(return_value=rows)
-        handler._fetch_instagram_follower_count = MagicMock(return_value=("uuid-A", 75_000))
+        handler._fetch_instagram_follower_count = MagicMock(return_value=_IGFetch("ok", "uuid-A", 75_000))
 
         result = handler.refresh_instagram_followers()
 
@@ -485,7 +518,7 @@ class TestRefreshInstagramFollowers:
         )
 
     def test_failed_accounts_are_skipped(self):
-        """Accounts where fetch returns None are excluded from the DB update."""
+        """Accounts where fetch returns a skip are excluded from the DB update."""
         handler = _make_handler()
         rows = [
             {"uuid": "uuid-ok", "instagram_account": "@ok"},
@@ -495,8 +528,8 @@ class TestRefreshInstagramFollowers:
 
         def _side_effect(row):
             if row["uuid"] == "uuid-fail":
-                return None
-            return ("uuid-ok", 50_000)
+                return _IGFetch("skip", "uuid-fail", None)
+            return _IGFetch("ok", "uuid-ok", 50_000)
 
         handler._fetch_instagram_follower_count = MagicMock(side_effect=_side_effect)
 
@@ -508,11 +541,59 @@ class TestRefreshInstagramFollowers:
             [("uuid-ok", 50_000)],
         )
 
+    def test_dead_handles_are_cleared(self):
+        """A 'dead' (404) result clears the account via the CLEAR query."""
+        handler = _make_handler()
+        rows = [
+            {"uuid": "uuid-ok", "instagram_account": "@ok"},
+            {"uuid": "uuid-gone", "instagram_account": "@gone"},
+        ]
+        handler._get_comedians_with_instagram_accounts = MagicMock(return_value=rows)
+
+        def _side_effect(row):
+            if row["uuid"] == "uuid-gone":
+                return _IGFetch("dead", "uuid-gone", None)
+            return _IGFetch("ok", "uuid-ok", 50_000)
+
+        handler._fetch_instagram_follower_count = MagicMock(side_effect=_side_effect)
+
+        result = handler.refresh_instagram_followers()
+
+        # Return value counts follower updates only, not clears.
+        assert result == 1
+        handler.execute_batch_operation.assert_any_call(
+            ComedianQueries.UPDATE_COMEDIAN_INSTAGRAM_FOLLOWERS,
+            [("uuid-ok", 50_000)],
+        )
+        handler.execute_batch_operation.assert_any_call(
+            ComedianQueries.CLEAR_COMEDIAN_INSTAGRAM_ACCOUNT,
+            [("uuid-gone",)],
+        )
+
+    def test_clears_dead_handles_even_with_zero_updates(self):
+        """When every reachable handle is dead, still issue the CLEAR (no UPDATE)."""
+        handler = _make_handler()
+        rows = [{"uuid": "uuid-gone", "instagram_account": "@gone"}]
+        handler._get_comedians_with_instagram_accounts = MagicMock(return_value=rows)
+        handler._fetch_instagram_follower_count = MagicMock(
+            return_value=_IGFetch("dead", "uuid-gone", None)
+        )
+
+        result = handler.refresh_instagram_followers()
+
+        assert result == 0
+        handler.execute_batch_operation.assert_called_once_with(
+            ComedianQueries.CLEAR_COMEDIAN_INSTAGRAM_ACCOUNT,
+            [("uuid-gone",)],
+        )
+
     def test_no_batch_call_when_all_fetches_fail(self):
         handler = _make_handler()
         rows = [{"uuid": "uuid-B", "instagram_account": "@comedianB"}]
         handler._get_comedians_with_instagram_accounts = MagicMock(return_value=rows)
-        handler._fetch_instagram_follower_count = MagicMock(return_value=None)
+        handler._fetch_instagram_follower_count = MagicMock(
+            return_value=_IGFetch("skip", "uuid-B", None)
+        )
 
         result = handler.refresh_instagram_followers()
 
@@ -520,11 +601,13 @@ class TestRefreshInstagramFollowers:
         handler.execute_batch_operation.assert_not_called()
 
     def test_warns_when_accounts_exist_but_zero_updated(self):
-        """Logs a warning when rows are present but all fetches fail (API blocked)."""
+        """Logs a warning when rows are present but all fetches skip (API blocked)."""
         handler = _make_handler()
         rows = [{"uuid": "uuid-C", "instagram_account": "@comedian_c"}]
         handler._get_comedians_with_instagram_accounts = MagicMock(return_value=rows)
-        handler._fetch_instagram_follower_count = MagicMock(return_value=None)
+        handler._fetch_instagram_follower_count = MagicMock(
+            return_value=_IGFetch("skip", "uuid-C", None)
+        )
 
         with patch.object(_comedian_handler_mod, "Logger") as mock_logger:
             handler.refresh_instagram_followers()

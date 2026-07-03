@@ -407,6 +407,19 @@ class ComedianQueries:
         WHERE c.uuid = v.uuid::text
     '''
 
+    # Clear a dead Instagram handle (404 — account gone/renamed). Nulls the
+    # handle and its follower count together to preserve the "no follower count
+    # without a handle" invariant, plus the refresh timestamp so the row reads
+    # as fully un-enriched.
+    CLEAR_COMEDIAN_INSTAGRAM_ACCOUNT = '''
+        UPDATE comedians AS c
+        SET instagram_account = NULL,
+            instagram_followers = NULL,
+            instagram_followers_refreshed_at = NULL
+        FROM (VALUES %s) AS v(uuid)
+        WHERE c.uuid = v.uuid::text
+    '''
+
     GET_COMEDIANS_WITH_TIKTOK_ACCOUNT = '''
         SELECT uuid, tiktok_account
         FROM comedians

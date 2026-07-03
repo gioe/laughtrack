@@ -57,6 +57,7 @@ _comedian_handler_mod = _load_module(
     "laughtrack.core.entities.comedian.handler_vcr_test",
 )
 ComedianHandler = _comedian_handler_mod.ComedianHandler
+_IGFetch = _comedian_handler_mod._IGFetch
 # Disable per-request sleep so tests run at full speed
 _comedian_handler_mod._SOCIAL_REQUEST_DELAY_S = 0.0
 
@@ -175,12 +176,12 @@ class TestInstagramCassette:
     """
 
     def test_happy_path_parses_follower_count_from_cassette(self):
-        """_fetch_instagram_follower_count returns (uuid, count) from the response."""
+        """_fetch_instagram_follower_count returns an ok result from the response."""
         handler = _make_handler()
         row = {"uuid": "uuid-cassette-ig-1", "instagram_account": "@testcomedian"}
         with _patch_ig_get(_fake_ig_response(200, _IG_HAPPY_BODY)):
             result = handler._fetch_instagram_follower_count(row)
-        assert result == ("uuid-cassette-ig-1", 150_000)
+        assert result == _IGFetch("ok", "uuid-cassette-ig-1", 150_000)
 
     def test_account_without_at_prefix_parses_correctly(self):
         """Bare account name (no @) still hits the correct URL."""
@@ -188,28 +189,36 @@ class TestInstagramCassette:
         row = {"uuid": "uuid-cassette-ig-2", "instagram_account": "testcomedian"}
         with _patch_ig_get(_fake_ig_response(200, _IG_HAPPY_BODY)) as mock_get:
             result = handler._fetch_instagram_follower_count(row)
-        assert result == ("uuid-cassette-ig-2", 150_000)
+        assert result == _IGFetch("ok", "uuid-cassette-ig-2", 150_000)
         assert mock_get.call_args.kwargs["params"]["username"] == "testcomedian"
 
-    def test_schema_drift_returns_none_not_corrupt_data(self):
-        """If 'edge_followed_by' key disappears, result is None (not a crash or wrong number).
+    def test_schema_drift_returns_skip_not_corrupt_data(self):
+        """If 'edge_followed_by' key disappears, result is a skip (not a crash or wrong number).
 
-        The response renames the key to 'followers'. The parser must return
-        None rather than surfacing an unhandled KeyError up the call stack.
+        The response renames the key to 'followers'. The parser must skip the
+        row rather than surfacing an unhandled KeyError up the call stack.
         """
         handler = _make_handler()
         row = {"uuid": "uuid-cassette-ig-3", "instagram_account": "@driftcomedian"}
         with _patch_ig_get(_fake_ig_response(200, _IG_DRIFT_BODY)):
             result = handler._fetch_instagram_follower_count(row)
-        assert result is None
+        assert result.status == "skip"
 
-    def test_rate_limit_response_returns_none(self):
-        """HTTP 429 from Instagram is caught and returns None."""
+    def test_rate_limit_response_returns_skip(self):
+        """HTTP 429 from Instagram is caught and returns a skip (not dead)."""
         handler = _make_handler()
         row = {"uuid": "uuid-cassette-ig-4", "instagram_account": "@ratelimited"}
         with _patch_ig_get(_fake_ig_response(429)):
             result = handler._fetch_instagram_follower_count(row)
-        assert result is None
+        assert result.status == "skip"
+
+    def test_not_found_response_marks_handle_dead(self):
+        """A persistent HTTP 404 marks the handle dead so it gets cleared."""
+        handler = _make_handler()
+        row = {"uuid": "uuid-cassette-ig-5", "instagram_account": "@goneforever"}
+        with _patch_ig_get(_fake_ig_response(404)):
+            result = handler._fetch_instagram_follower_count(row)
+        assert result == _IGFetch("dead", "uuid-cassette-ig-5", None)
 
     def test_request_sends_correct_headers(self):
         """_instagram_request sends X-IG-App-ID and browser User-Agent."""
@@ -347,6 +356,21 @@ class TestRefreshInstagramFollowersCassette:
 
         assert result == 0
         handler.execute_batch_operation.assert_not_called()
+
+    def test_dead_handle_clears_account_via_clear_query(self):
+        """Full pipeline: a 404 handle → CLEAR query nulls the account row."""
+        handler = _make_handler()
+        handler.execute_with_cursor.return_value = [
+            {"uuid": "uuid-e2e-ig-gone", "instagram_account": "@goneforever"}
+        ]
+        with _patch_ig_get(_fake_ig_response(404)):
+            result = handler.refresh_instagram_followers()
+
+        assert result == 0
+        handler.execute_batch_operation.assert_called_once_with(
+            ComedianQueries.CLEAR_COMEDIAN_INSTAGRAM_ACCOUNT,
+            [("uuid-e2e-ig-gone",)],
+        )
 
 
 # ---------------------------------------------------------------------------
