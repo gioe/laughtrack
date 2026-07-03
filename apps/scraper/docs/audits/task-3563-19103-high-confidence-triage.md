@@ -101,6 +101,7 @@ them as comedy-club onboarding candidates.
 | Expired Milk Comedy (at Planet Showbiz) | `ChIJAQJ5YOJfwokRRcnMweQ58HI` | Named show/producer listing at another venue, not a distinct fixed comedy club. |
 | Living Room Laughs | `ChIJZblXaL5ZwokR-0Uctqy7N0o` | Private-show producer listing at an office address; site offers private comedy show packages rather than a fixed public venue calendar. |
 | Comedy Cabaret Comedy Club Northeast | `ChIJy5ZWovyyxokRK7e8UIt1DAs` | Closed location; the venue page says Comedy Cabaret Comedy Club Northeast is closed due to building issues. |
+| The Backroom LIVE | `ChIJwSKD8ClTwokRirWjcbUWnlU` | Eventbrite collection/organizer listing for Janmichael Conde rather than a fixed venue-owned comedy-club calendar; standalone domain timed out and the organizer feed returned no shows through the existing Eventbrite scraper. |
 | Eight Is Never Enough Improv | `ChIJucyRblNYwokRBjdPNwuHUZs` | Improv/class/showcase brand at a shared class/performance address, not a distinct venue-owned comedy-club calendar. |
 | Laughing Lassi Comedy | `ChIJu0zwlrtZwokRjqYLUIr_Imk` | Named comedy show/producer listing at a shared class/performance address, not a distinct fixed comedy club. |
 
@@ -153,8 +154,7 @@ generic scrapers did not produce a safe DB-only onboarding source in this task:
   is for Salesforce PatronTicket and does not cover PatronBase.
 - `Kings Highway Comedy` (`ChIJYXEnsPJNwYkRjESWnP4dY_0`) has a GoDaddy site
   with form links and no validated generic event API in the scraper probe.
-- `Die Laughing` (`ChIJFZh5yjCHxokRz_8cbQHXVRM`), `The Backroom LIVE`
-  (`ChIJwSKD8ClTwokRirWjcbUWnlU`), `The PIT`
+- `Die Laughing` (`ChIJFZh5yjCHxokRz_8cbQHXVRM`), `The PIT`
   (`ChIJG3e1NKdZwokR26WFFB6Lx7w`), `The Second City New York`
   (`ChIJv4cccglZwokRwENgJq6qkXs`), `Upper East Side Comedy Club at Bedford
   Falls NYC` (`ChIJi-qNZNtZwokRQBdBfR3dLM4`), `The Fear City Comedy Club`,
@@ -167,7 +167,7 @@ The remaining high-confidence candidates still need source extraction before
 they can be onboarded safely. Prioritize fixed venues with supported-source
 signals:
 
-- Fixed/promising but needs source extraction: The Backroom LIVE,
-  The PIT, Second City New York, The Fear City Comedy Club,
+- Fixed/promising but needs source extraction: The PIT,
+  Second City New York, The Fear City Comedy Club,
   Comedy Cabaret, Kings Highway Comedy, Die Laughing, Upper East Side Comedy
   Club, Sesh Comedy, Flop House Comedy Club, and Rhino Comedy.

@@ -848,6 +848,7 @@ FROM (
         ('Expired Milk Comedy at Planet Showbiz', '274 Morgan Ave Ste 201, Brooklyn, NY 11211, USA', 'https://www.expiredmilkcomedy.com/', 'Brooklyn', 'NY', '11211', 'America/New_York', 'US', 'non_comedy', 'ChIJAQJ5YOJfwokRRcnMweQ58HI', FALSE, 'active'),
         ('Living Room Laughs', '555 Madison Ave 5th floor, New York, NY 10022, USA', 'https://www.livingroomlaughs.com/', 'New York', 'NY', '10022', 'America/New_York', 'US', 'non_comedy', 'ChIJZblXaL5ZwokR-0Uctqy7N0o', FALSE, 'active'),
         ('Comedy Cabaret Comedy Club Northeast', 'At Neighbors Bar, 11580 Roosevelt Blvd, Philadelphia, PA 19116, USA', 'https://www.comedycabaret.com/', 'Philadelphia', 'PA', '19116', 'America/New_York', 'US', 'non_comedy', 'ChIJy5ZWovyyxokRK7e8UIt1DAs', FALSE, 'active'),
+        ('The Backroom LIVE', '1206 Mary St, Elizabeth, NJ 07201, USA', 'https://www.eventbrite.com/cc/the-backroom-live-upcoming-shows-4800510', 'Elizabeth', 'NJ', '07201', 'America/New_York', 'US', 'non_comedy', 'ChIJwSKD8ClTwokRirWjcbUWnlU', FALSE, 'active'),
         ('Eight Is Never Enough Improv', '318 W 53rd St, New York, NY 10019, USA', 'https://eightimprov.biz/', 'New York', 'NY', '10019', 'America/New_York', 'US', 'non_comedy', 'ChIJucyRblNYwokRBjdPNwuHUZs', FALSE, 'active'),
         ('Laughing Lassi Comedy', '318 W 53rd St, New York, NY 10019, USA', 'https://www.laughinglassi.com/', 'New York', 'NY', '10019', 'America/New_York', 'US', 'non_comedy', 'ChIJu0zwlrtZwokRjqYLUIr_Imk', FALSE, 'active')
 ) AS denied(name, address, website, city, state, zip_code, timezone, country, club_type, google_place_id, visible, status)
@@ -1137,6 +1138,15 @@ VALUES
         'Closed Northeast Philadelphia Comedy Cabaret location; venue page says the Northeast club is closed due to building issues.',
         'comedy_club',
         '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "closed_location"}'::jsonb,
+        'TASK-3563',
+        NOW()
+    ),
+    (
+        'ChIJwSKD8ClTwokRirWjcbUWnlU',
+        'The Backroom LIVE',
+        'Eventbrite collection/organizer listing for Janmichael Conde rather than a fixed venue-owned comedy-club calendar; standalone domain timed out and organizer feed returned no shows through the existing Eventbrite scraper.',
+        'comedy_club',
+        '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "producer_or_eventbrite_collection_not_venue"}'::jsonb,
         'TASK-3563',
         NOW()
     ),
