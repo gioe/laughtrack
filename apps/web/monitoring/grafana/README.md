@@ -127,6 +127,15 @@ These replace the scraper's old unconditional per-run Discord summary (gated off
 in TASK-2511): a healthy run produces no Discord post, so Discord carries only
 failures and regressions.
 
+The alert group intentionally evaluates every **6 hours**, not hourly. The
+nightly scraper runs once per day at 21:00 UTC, and most regression rules only
+change when a new `scraper_runs` row lands. Six-hour evaluation keeps multiple
+checks per day and still lets the 26-hour staleness rule fire after a missed
+nightly run, while avoiding thousands of redundant Postgres reads that keep the
+Neon compute warm. The dashboard JSON also leaves `"refresh": ""` so opening
+the Scraper Health dashboard does not start an automatic polling loop; refresh
+manually during an investigation.
+
 ### Setup
 
 1. **Pin the datasource UID.** The rule file references the Neon datasource by

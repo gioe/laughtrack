@@ -62,7 +62,12 @@ groups:
   - orgId: 1
     name: scraper-health-regressions
     folder: Scraper Health
-    interval: 1h
+    # The scraper runs nightly at 21:00 UTC. Evaluating these Postgres-backed
+    # rules hourly was a top Neon compute consumer without adding much signal:
+    # run-regression conditions only change when a new scrape row lands. Six
+    # hours keeps multiple checks per day and preserves the 26h stale-run guard
+    # while cutting scheduled alert SQL volume by roughly 83%.
+    interval: 6h
     rules:
       # 1) Overall success-rate regression: latest run's success_rate is more
       #    than 10 percentage points below the trailing-7-run rolling average.
