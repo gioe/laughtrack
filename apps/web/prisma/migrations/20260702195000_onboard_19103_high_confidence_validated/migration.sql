@@ -86,6 +86,10 @@
 --   product date parsing and metadata excludes for classes/workshops/closures:
 --   https://www.rhinoimprov.com/tickets
 --   Live validation on 2026-07-03 returned 18 future shows.
+-- * Flop House Comedy Club — site-specific JSON feeds discovered in the app
+--   bundle (`/venues.json` -> `/venues/{id}_events.json`):
+--   https://www.flophousecomedy.com/
+--   Live validation on 2026-07-03 returned 57 future shows.
 --
 -- After this migration is deployed, run:
 --   cd apps/scraper && make scrape-club CLUB='The N Crowd'
@@ -108,6 +112,7 @@
 --   cd apps/scraper && make scrape-club CLUB='The Second City New York'
 --   cd apps/scraper && make scrape-club CLUB='Comedy Cabaret Comedy Club'
 --   cd apps/scraper && make scrape-club CLUB='Rhino Comedy'
+--   cd apps/scraper && make scrape-club CLUB='Flop House Comedy Club'
 
 INSERT INTO clubs (
     name, address, website, city, state, zip_code, phone_number,
@@ -1000,6 +1005,49 @@ SELECT
     NOW()
 FROM clubs c
 WHERE (c.google_place_id = 'ChIJh1wR5JTgwokRtRdGI6Eryto' OR (c.name = 'Rhino Comedy' AND c.city = 'Suffern' AND c.state = 'NY'))
+  AND NOT EXISTS (
+      SELECT 1 FROM scraping_sources s
+      WHERE s.club_id = c.id
+        AND s.platform = 'custom'::"ScrapingPlatform"
+        AND s.priority = 0
+  );
+
+INSERT INTO clubs (
+    name, address, website, city, state, zip_code, phone_number,
+    latitude, longitude, timezone, country, club_type, google_place_id,
+    visible, status
+)
+SELECT
+    'Flop House Comedy Club',
+    '362 Grand St, Brooklyn, NY 11211, USA',
+    'https://www.flophousecomedy.com/',
+    'Brooklyn', 'NY', '11211', '',
+    40.7122531, -73.9557515,
+    'America/New_York', 'US', 'club',
+    'ChIJ06Ugn1JZwokRmkBoiIVB5_M',
+    TRUE, 'active'
+WHERE NOT EXISTS (
+    SELECT 1 FROM clubs
+    WHERE google_place_id = 'ChIJ06Ugn1JZwokRmkBoiIVB5_M'
+       OR (name = 'Flop House Comedy Club' AND city = 'Brooklyn' AND state = 'NY')
+);
+
+INSERT INTO scraping_sources (
+    club_id, platform, scraper_key, source_url,
+    enabled, priority, metadata, created_at, updated_at
+)
+SELECT
+    c.id,
+    'custom'::"ScrapingPlatform",
+    'flop_house_json',
+    'https://www.flophousecomedy.com/',
+    TRUE,
+    0,
+    '{}'::jsonb,
+    NOW(),
+    NOW()
+FROM clubs c
+WHERE (c.google_place_id = 'ChIJ06Ugn1JZwokRmkBoiIVB5_M' OR (c.name = 'Flop House Comedy Club' AND c.city = 'Brooklyn' AND c.state = 'NY'))
   AND NOT EXISTS (
       SELECT 1 FROM scraping_sources s
       WHERE s.club_id = c.id

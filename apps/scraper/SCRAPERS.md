@@ -1181,6 +1181,32 @@ SELECT c.id, 'custom'::"ScrapingPlatform", 'patronbase_rss',
 
 ---
 
+### Flop House JSON
+
+| | |
+|---|---|
+| **Scraper key** | `flop_house_json` |
+| **Platform** | `custom` |
+| **DB field** | `scraping_sources.source_url` |
+| **Value format** | `https://www.flophousecomedy.com/` |
+| **Generic?** | ❌ Site-specific, but stable JSON files are exposed by the app |
+
+**Detection signals:**
+- The static app loads `https://www.flophousecomedy.com/venues.json`.
+- Each venue id has a matching `https://www.flophousecomedy.com/venues/{id}_events.json`.
+- Event rows include `startTime`, `endTime`, `eventbriteId`, `venueId`, and
+  show metadata in a sibling `show` object.
+
+**Source pattern:** Store the site root URL. The scraper fetches `venues.json`,
+then each `{id}_events.json`, builds Eventbrite ticket URLs from `eventbriteId`,
+and stores the venue name as the show room.
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/scrapers/implementations/api/flop_house_json/`
+- Reference venue/task: Flop House Comedy Club — TASK-3566.
+
+---
+
 ### Wix Events
 
 | | |

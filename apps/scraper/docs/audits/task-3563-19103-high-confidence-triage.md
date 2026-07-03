@@ -31,6 +31,7 @@ adds these validated venues:
 | The Second City New York | `ChIJv4cccglZwokRwENgJq6qkXs` | `up_comedy_club` | `https://www.secondcity.com/shows/new-york/`, `location_slug=new-york`, NY venue-name filters | 3 future shows |
 | Comedy Cabaret Comedy Club | `ChIJgywfGpgCxIkRvQVpKm08aZg` | `patronbase_rss` | `https://us.patronbase.com/_ComedyCabaret/Productions/RSS` | 5 future shows |
 | Rhino Comedy | `ChIJh1wR5JTgwokRtRdGI6Eryto` | `squarespace` products mode | `https://www.rhinoimprov.com/tickets`, `collection_type=products`, exclude class/workshop/closed notices | 18 future shows |
+| Flop House Comedy Club | `ChIJ06Ugn1JZwokRmkBoiIVB5_M` | `flop_house_json` | `https://www.flophousecomedy.com/`, venue feeds from `/venues.json` | 57 future shows |
 
 Validation was done on 2026-07-02 by instantiating the same generic scraper
 classes that `make scrape-club` will use after the migration rows exist. The
@@ -57,6 +58,7 @@ cd apps/scraper && make scrape-club CLUB='Sesh Comedy'
 cd apps/scraper && make scrape-club CLUB='The Second City New York'
 cd apps/scraper && make scrape-club CLUB='Comedy Cabaret Comedy Club'
 cd apps/scraper && make scrape-club CLUB='Rhino Comedy'
+cd apps/scraper && make scrape-club CLUB='Flop House Comedy Club'
 ```
 
 ## Already Covered / Duplicate-Like
@@ -155,7 +157,7 @@ not match the existing generic scraper contract during live validation:
 | Upper East Side Comedy Club at Bedford Falls NYC | `wix_events`, `https://www.uppereastsidecomedyclub.com/` root mode | 0 events through the existing generic Wix Events scraper. |
 | Upper East Side Comedy Club at Bedford Falls NYC | `wix_events`, tested widget ids `a74ee1f5-74e3-4612-8fac-8ba5ae2cacaf`, `1440e92d-47d8-69be-ade7-e6de40127106`, and `wix_events` | Playwright-rendered page exposes the native Wix Events app, but those widget ids still returned 0 events through the existing generic scraper. |
 | Sesh Comedy | custom FullCalendar feed, `https://www.seshcomedy.com/feed.php` | TASK-3566 added the generic `fullcalendar_json` scraper for this feed shape; live validation on 2026-07-03 returned 42 future shows, so the venue is onboarded in the migration. |
-| Flop House Comedy Club | JS shell / server HTML, `https://www.flophousecomedy.com/` | `/`, `/shows`, `/events`, and `/calendar` all returned the same JavaScript-only shell saying the app does not work properly without JavaScript enabled; no supported source was visible in server HTML. |
+| Flop House Comedy Club | JS shell / server HTML, `https://www.flophousecomedy.com/` | Server HTML is a JS shell, but TASK-3566 found stable app JSON files at `/venues.json` and `/venues/{id}_events.json`, then added `flop_house_json`. Live validation returned 57 future shows across Williamsburg and East Village venue feeds, so the club is onboarded in the migration. |
 | Rhino Comedy | `squarespace` products mode, `https://www.rhinoimprov.com/tickets` | TASK-3566 expanded products-mode parsing for ordinal/yearless date slugs and bare title times, plus excluded class/workshop/closed notices. Live validation returned 18 future shows, so the venue is onboarded in the migration. |
 
 ## Source Extraction Required
@@ -164,8 +166,8 @@ These are plausible fixed venues or recurring club brands, but the existing
 generic scrapers did not produce a safe DB-only onboarding source in this task:
 follow-up scraper/source work is tracked in TASK-3566.
 
-- `The PIT` (`ChIJG3e1NKdZwokR26WFFB6Lx7w`), `Upper East Side Comedy Club at
-  Bedford Falls NYC` (`ChIJi-qNZNtZwokRQBdBfR3dLM4`), and `Flop House Comedy Club`
+- `The PIT` (`ChIJG3e1NKdZwokR26WFFB6Lx7w`) and `Upper East Side Comedy Club at
+  Bedford Falls NYC` (`ChIJi-qNZNtZwokRQBdBfR3dLM4`)
   all need source extraction or scraper work before they are
   safe to onboard.
 - `The Fear City Comedy Club` (`ChIJmfs0oC9bwokRvksSyYq9Cq8`) now has generic
@@ -180,5 +182,4 @@ they can be onboarded safely. Prioritize fixed venues with supported-source
 signals:
 
 - Fixed/promising but needs source extraction: The PIT,
-  The Fear City Comedy Club, Upper East Side Comedy Club, Flop House Comedy
-  Club.
+  The Fear City Comedy Club and Upper East Side Comedy Club.
