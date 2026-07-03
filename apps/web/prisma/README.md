@@ -10,6 +10,35 @@ This project uses [Neon](https://neon.tech) serverless PostgreSQL. There is no l
 
 ---
 
+## Ticket Purchase Click Event Retention
+
+Raw rows in `ticket_purchase_click_events` are retained for 13 months. The
+database helper `cleanup_old_ticket_purchase_click_events()` deletes rows where
+`created_at < NOW() - INTERVAL '13 months'`.
+
+Production cleanup runs through the Vercel cron route
+`/api/cron/cleanup-ticket-purchase-click-events`, scheduled in `vercel.json`.
+The route requires the same `Authorization: Bearer $CRON_SECRET` header as other
+cron endpoints and returns the deleted row count.
+
+To verify row counts after cleanup:
+
+```sql
+SELECT COUNT(*) AS expired_clicks
+FROM ticket_purchase_click_events
+WHERE created_at < NOW() - INTERVAL '13 months';
+
+SELECT COUNT(*) AS retained_recent_clicks
+FROM ticket_purchase_click_events
+WHERE created_at >= NOW() - INTERVAL '13 months';
+```
+
+The migration test `ticketPurchaseClickMigration.test.ts` verifies that the
+cleanup helper deletes rows older than 13 months while preserving more recent
+rows.
+
+---
+
 ## Creating a New Migration
 
 `prisma migrate dev` **cannot be used** in this project. The shadow database validation fails on a migration that requires existing data. Always write migrations manually.

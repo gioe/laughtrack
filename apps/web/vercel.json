@@ -4,6 +4,10 @@
     {
       "path": "/api/cron/youtube-websub-renewals",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/cleanup-ticket-purchase-click-events",
+      "schedule": "30 9 * * *"
     }
   ],
   "framework": "nextjs",
