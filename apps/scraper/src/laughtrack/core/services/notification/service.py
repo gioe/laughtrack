@@ -15,6 +15,8 @@ import textwrap
 import time
 from dataclasses import dataclass
 from typing import Dict
+from urllib.parse import quote
+from zoneinfo import ZoneInfo
 
 from laughtrack.infrastructure.database.connection import get_connection
 from laughtrack.core.entities.email.local.email_models import EmailMessage
@@ -39,6 +41,17 @@ SELECT
     cl.city       AS club_city,
     cl.state      AS club_state,
     cl.zip_code   AS club_zip,
+    cl.timezone   AS club_timezone,
+    c.has_image   AS comedian_has_image,
+    (
+        SELECT cia.avatar_path
+        FROM comedian_image_assets cia
+        WHERE cia.comedian_id = c.id
+          AND cia.is_active = true
+          AND cia.avatar_path IS NOT NULL
+        ORDER BY cia.published_at DESC
+        LIMIT 1
+    ) AS comedian_avatar_path,
     {notification_type_sql} AS notification_type,
     {push_token_id_sql} AS push_token_id,
     {push_token_sql} AS push_token,
@@ -253,6 +266,60 @@ def _is_plural_comedian_label(comedian_name: str) -> bool:
     return " and " in comedian_name or ", " in comedian_name
 
 
+# Fallback timezone for shows whose club has no stored timezone. Mirrors
+# apps/web DEFAULT_SHOW_TIMEZONE so push and notification-center copy agree.
+_DEFAULT_SHOW_TIMEZONE = "America/New_York"
+
+
+def _format_performance_time(show_date: object, timezone: str | None) -> str:
+    """Club-local "8:30 pm EDT" for the push body.
+
+    Mirrors the web notification-center formatPerformanceTime (Intl.DateTimeFormat
+    with hour/minute/dayPeriod/timeZoneName) so the push body matches what the
+    in-app notification center shows: lowercase am/pm, short tz abbreviation.
+    """
+    if not hasattr(show_date, "astimezone"):
+        return ""
+    try:
+        tz = ZoneInfo(timezone or _DEFAULT_SHOW_TIMEZONE)
+    except Exception:
+        tz = ZoneInfo(_DEFAULT_SHOW_TIMEZONE)
+    local = show_date.astimezone(tz)
+    hour = local.strftime("%-I")  # no leading zero, matching hour: "numeric"
+    minute = local.strftime("%M")
+    day_period = local.strftime("%p").lower()  # center lowercases am/pm
+    tz_abbrev = local.strftime("%Z")
+    parts = [f"{hour}:{minute}" if hour and minute else "", day_period, tz_abbrev]
+    return " ".join(part for part in parts if part)
+
+
+def _format_show_subtitle(club_name: str, show_date: object, timezone: str | None) -> str:
+    """"{club} at {time}" push body — matches the notification-center subtitle."""
+    time_str = _format_performance_time(show_date, timezone)
+    if club_name and time_str:
+        return f"{club_name} at {time_str}"
+    return club_name or time_str
+
+
+def _build_comedian_image_url(
+    avatar_path: str | None,
+    comedian_name: str | None,
+    has_image: bool | None,
+) -> str | None:
+    """Public CDN URL for a comedian's headshot, for the rich push attachment.
+
+    Mirrors the web buildComedianImageUrls avatar precedence: the active image
+    asset's avatar_path wins; otherwise fall back to the legacy name-based path
+    when the comedian has_image; None when there is nothing to show.
+    """
+    cdn_host = os.environ.get("BUNNYCDN_CDN_HOST") or "laughtrack.b-cdn.net"
+    if avatar_path:
+        return f"https://{cdn_host}/{avatar_path.lstrip('/')}"
+    if has_image and comedian_name:
+        return f"https://{cdn_host}/comedians/{quote(comedian_name, safe='')}.png"
+    return None
+
+
 def _build_email_html(
     comedian_name: str,
     show_date: object,
@@ -386,6 +453,8 @@ class ApnsPushService:
         club_city: str,
         club_state: str,
         show_page_url: str,
+        club_timezone: str | None = None,
+        comedian_image_url: str | None = None,
     ) -> PushDeliveryResult:
         try:
             import httpx
@@ -394,24 +463,28 @@ class ApnsPushService:
 
         verb = "are" if _is_plural_comedian_label(comedian_name) else "is"
         title = f"{comedian_name} {verb} performing near you"
-        location = ", ".join(filter(None, [club_city, club_state]))
-        body = f"{club_name}"
-        if location:
-            body = f"{body} in {location}"
+        # Body mirrors the in-app notification center: "{club} at {time}".
+        body = _format_show_subtitle(club_name, show_date, club_timezone)
 
-        payload = {
-            "aps": {
-                "alert": {
-                    "title": title,
-                    "body": body,
-                },
-                "sound": "default",
+        aps: dict = {
+            "alert": {
+                "title": title,
+                "body": body,
             },
+            "sound": "default",
+        }
+        payload = {
+            "aps": aps,
             "showId": show_id,
             "url": show_page_url,
         }
         if hasattr(show_date, "isoformat"):
             payload["showDate"] = show_date.isoformat()
+        # Rich push: mutable-content lets the NotificationServiceExtension run and
+        # attach the headshot it downloads from the `imageUrl` key.
+        if comedian_image_url:
+            aps["mutable-content"] = 1
+            payload["imageUrl"] = comedian_image_url
 
         headers = {
             "authorization": f"bearer {self._auth_token()}",
@@ -581,6 +654,8 @@ class FcmPushService:
         club_city: str,
         club_state: str,
         show_page_url: str,
+        club_timezone: str | None = None,
+        comedian_image_url: str | None = None,
     ) -> PushDeliveryResult:
         try:
             import httpx
@@ -589,10 +664,8 @@ class FcmPushService:
 
         verb = "are" if _is_plural_comedian_label(comedian_name) else "is"
         title = f"{comedian_name} {verb} performing near you"
-        location = ", ".join(filter(None, [club_city, club_state]))
-        body = f"{club_name}"
-        if location:
-            body = f"{body} in {location}"
+        # Body mirrors the in-app notification center: "{club} at {time}".
+        body = _format_show_subtitle(club_name, show_date, club_timezone)
 
         # Data-only message (no notification block) so the Android
         # FirebaseMessagingService always runs onMessageReceived — even when
@@ -607,6 +680,10 @@ class FcmPushService:
         }
         if hasattr(show_date, "isoformat"):
             data["showDate"] = show_date.isoformat()
+        # Rich push: the Android client (LaughTrackMessagingService) reads imageUrl
+        # off message.data and renders it as a BigPictureStyle headshot.
+        if comedian_image_url:
+            data["imageUrl"] = comedian_image_url
 
         message = {
             "message": {
@@ -1119,6 +1196,15 @@ class ComedianArrivalNotificationService:
             club_city = row["club_city"] or ""
             club_state = row["club_state"] or ""
             club_zip = row["club_zip"] or ""
+            club_timezone = row.get("club_timezone")
+            # Rich-push headshot: the primary (first) comedian's avatar, since a
+            # merged multi-comedian push still shows one image.
+            primary_comedian_name = (row.get("comedian_names") or [row["comedian_name"]])[0]
+            comedian_image_url = _build_comedian_image_url(
+                row.get("comedian_avatar_path"),
+                primary_comedian_name,
+                row.get("comedian_has_image"),
+            )
             push_token_id = row.get("push_token_id")
             push_token = row.get("push_token")
             push_platform = row.get("push_platform")
@@ -1184,6 +1270,8 @@ class ComedianArrivalNotificationService:
                         club_city=club_city,
                         club_state=club_state,
                         show_page_url=show_page_url,
+                        club_timezone=club_timezone,
+                        comedian_image_url=comedian_image_url,
                     )
                 except Exception as e:
                     Logger.error(
@@ -1363,6 +1451,8 @@ class ComedianArrivalNotificationService:
         club_city: str,
         club_state: str,
         show_page_url: str,
+        club_timezone: str | None = None,
+        comedian_image_url: str | None = None,
     ) -> PushDeliveryResult:
         sender = self._resolve_push_sender(platform)
         return sender.send_show_notification(
@@ -1374,6 +1464,8 @@ class ComedianArrivalNotificationService:
             club_city=club_city,
             club_state=club_state,
             show_page_url=show_page_url,
+            club_timezone=club_timezone,
+            comedian_image_url=comedian_image_url,
         )
 
     def _ensure_push_sender_configured(self, platform: str | None = None) -> None:

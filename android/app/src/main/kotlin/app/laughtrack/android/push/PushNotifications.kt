@@ -7,12 +7,16 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import app.laughtrack.android.MainActivity
 import app.laughtrack.android.R
+import java.net.HttpURLConnection
+import java.net.URL
 
 /**
  * Notification channel + posting for comedian-arrival pushes. The tap PendingIntent
@@ -41,6 +45,7 @@ object PushNotifications {
         body: String,
         showId: String?,
         url: String?,
+        imageUrl: String? = null,
     ) {
         ensureChannel(context)
         if (!hasPostPermission(context)) return
@@ -62,19 +67,53 @@ object PushNotifications {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
             )
 
-        val notification =
+        val builder =
             NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_stat_notification)
                 .setContentTitle(title)
                 .setContentText(body)
-                .setStyle(NotificationCompat.BigTextStyle().bigText(body))
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setAutoCancel(true)
                 .setContentIntent(pendingIntent)
-                .build()
 
-        NotificationManagerCompat.from(context).notify(notificationId, notification)
+        // Rich push: show the comedian headshot as the large icon collapsed and a
+        // big picture when expanded. Falls back to BigText when there's no image
+        // or the download fails.
+        val headshot = imageUrl?.let(::loadBitmap)
+        if (headshot != null) {
+            builder
+                .setLargeIcon(headshot)
+                .setStyle(
+                    NotificationCompat.BigPictureStyle()
+                        .bigPicture(headshot)
+                        .bigLargeIcon(null as Bitmap?),
+                )
+        } else {
+            builder.setStyle(NotificationCompat.BigTextStyle().bigText(body))
+        }
+
+        NotificationManagerCompat.from(context).notify(notificationId, builder.build())
     }
+
+    /**
+     * Blocking fetch of a remote image into a Bitmap. Only called from
+     * [LaughTrackMessagingService.onMessageReceived], which runs on an FCM
+     * background thread, so a synchronous download is safe here. Returns null on
+     * any failure so the notification still posts without the image.
+     */
+    private fun loadBitmap(imageUrl: String): Bitmap? =
+        runCatching {
+            val connection = (URL(imageUrl).openConnection() as HttpURLConnection).apply {
+                connectTimeout = 5_000
+                readTimeout = 5_000
+                doInput = true
+            }
+            try {
+                connection.inputStream.use { BitmapFactory.decodeStream(it) }
+            } finally {
+                connection.disconnect()
+            }
+        }.getOrNull()
 
     private fun hasPostPermission(context: Context): Boolean =
         Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||

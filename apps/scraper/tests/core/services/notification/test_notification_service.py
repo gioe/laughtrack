@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -14,6 +14,7 @@ from laughtrack.core.services.notification.service import (
     FcmPushService,
     PushDeliveryResult,
     YouTubeLiveNotificationService,
+    _build_comedian_image_url,
 )
 
 # ---------------------------------------------------------------------------
@@ -37,6 +38,9 @@ def _make_row(
     club_city: str = "New York",
     club_state: str = "NY",
     club_zip: str = "10002",
+    club_timezone: str | None = "America/New_York",
+    comedian_avatar_path: str | None = None,
+    comedian_has_image: bool = False,
     notification_type: str = "email",
     push_token_id: str | None = None,
     push_token: str | None = None,
@@ -60,6 +64,9 @@ def _make_row(
         "club_city": club_city,
         "club_state": club_state,
         "club_zip": club_zip,
+        "club_timezone": club_timezone,
+        "comedian_avatar_path": comedian_avatar_path,
+        "comedian_has_image": comedian_has_image,
         "notification_type": notification_type,
         "push_token_id": push_token_id,
         "push_token": push_token,
@@ -333,11 +340,41 @@ class TestFcmPushServicePayload:
         assert data["showId"] == "42"  # FCM data values must be strings
         assert data["url"] == "https://laugh-track.com/show/42"
         assert data["title"] == "Funny Person is performing near you"
-        assert data["body"] == "The Comedy Club in New York, NY"
+        # Body mirrors the in-app notification center: "{club} at {time}" in the
+        # club's local time (no club_timezone here → America/New_York default;
+        # 2026-04-15 20:00 UTC = 4:00 pm EDT).
+        assert data["body"] == "The Comedy Club at 4:00 pm EDT"
         assert data["showDate"] == "2026-04-15T20:00:00+00:00"
         # Data-only message: no notification block, so onMessageReceived always
         # fires (even backgrounded) and the client owns the notification UI.
         assert "notification" not in message
+        # No headshot passed → no imageUrl key.
+        assert "imageUrl" not in data
+
+    def test_send_includes_image_url_in_data_for_rich_push(self):
+        service = FcmPushService(project_id="proj-123", credentials=MagicMock())
+        response = MagicMock(status_code=200)
+        url = "https://laughtrack.b-cdn.net/comedians/assets/7/avatar.png"
+
+        with patch.object(service, "_access_token", return_value="fake-token"):
+            with patch("httpx.Client") as MockClient:
+                client = MockClient.return_value.__enter__.return_value
+                client.post.return_value = response
+                service.send_show_notification(
+                    device_token="android-token-xyz",
+                    comedian_name="Funny Person",
+                    show_id=42,
+                    show_date=None,
+                    club_name="The Comedy Club",
+                    club_city="New York",
+                    club_state="NY",
+                    show_page_url="https://laugh-track.com/show/42",
+                    comedian_image_url=url,
+                )
+
+        data = client.post.call_args.kwargs["json"]["message"]["data"]
+        # LaughTrackMessagingService reads imageUrl off message.data.
+        assert data["imageUrl"] == url
 
     def test_send_marks_unregistered_token_invalid(self):
         service = FcmPushService(project_id="proj-123", credentials=MagicMock())
@@ -438,7 +475,110 @@ class TestFcmPushServicePayload:
         assert "notification" not in message
 
 
+class TestComedianImageUrl:
+    """`_build_comedian_image_url` mirrors the web buildComedianImageUrls avatar precedence."""
+
+    def test_prefers_active_asset_avatar_path(self, monkeypatch):
+        monkeypatch.setenv("BUNNYCDN_CDN_HOST", "cdn.example.net")
+        url = _build_comedian_image_url("comedians/assets/7/avatar.png", "Jane Doe", True)
+        assert url == "https://cdn.example.net/comedians/assets/7/avatar.png"
+
+    def test_strips_leading_slash_on_avatar_path(self, monkeypatch):
+        monkeypatch.setenv("BUNNYCDN_CDN_HOST", "cdn.example.net")
+        url = _build_comedian_image_url("/comedians/assets/7/avatar.png", "Jane Doe", True)
+        assert url == "https://cdn.example.net/comedians/assets/7/avatar.png"
+
+    def test_falls_back_to_legacy_name_path_when_has_image(self, monkeypatch):
+        monkeypatch.setenv("BUNNYCDN_CDN_HOST", "cdn.example.net")
+        url = _build_comedian_image_url(None, "Jane Doe", True)
+        assert url == "https://cdn.example.net/comedians/Jane%20Doe.png"
+
+    def test_none_when_no_asset_and_no_legacy_image(self, monkeypatch):
+        monkeypatch.setenv("BUNNYCDN_CDN_HOST", "cdn.example.net")
+        assert _build_comedian_image_url(None, "Jane Doe", False) is None
+
+    def test_defaults_cdn_host_when_env_missing(self, monkeypatch):
+        monkeypatch.delenv("BUNNYCDN_CDN_HOST", raising=False)
+        url = _build_comedian_image_url("comedians/assets/7/avatar.png", "Jane Doe", True)
+        assert url == "https://laughtrack.b-cdn.net/comedians/assets/7/avatar.png"
+
+
 class TestApnsPushServicePayload:
+    def test_send_show_body_matches_notification_center(self):
+        # The push body must read like the in-app notification center subtitle:
+        # "{club} at {time}" in the club's local time (lowercase am/pm, tz abbr),
+        # NOT the old "{club} in {city}, {state}". The club timezone must thread
+        # through — a Los Angeles club renders Pacific time, not Eastern.
+        service = ApnsPushService(
+            team_id="TEAM12345",
+            key_id="KEYID67890",
+            private_key_pem="unused",
+            bundle_id="com.example.app",
+            use_sandbox=True,
+        )
+        response = MagicMock(status_code=200)
+
+        with patch.object(service, "_auth_token", return_value="fake-token"):
+            with patch("httpx.Client") as MockClient:
+                client = MockClient.return_value.__enter__.return_value
+                client.post.return_value = response
+                result = service.send_show_notification(
+                    device_token="apns-token",
+                    comedian_name="Funny Person",
+                    show_id=42,
+                    show_date=datetime(2026, 4, 15, 20, 0, 0, tzinfo=timezone.utc),
+                    club_name="The Laugh Cellar",
+                    club_city="Los Angeles",
+                    club_state="CA",
+                    show_page_url="https://laugh-track.com/show/42",
+                    club_timezone="America/Los_Angeles",
+                )
+
+        assert result.success is True
+        payload = client.post.call_args.kwargs["json"]
+        assert payload["aps"]["alert"]["title"] == "Funny Person is performing near you"
+        # 2026-04-15 20:00 UTC = 1:00 pm PDT in America/Los_Angeles.
+        assert payload["aps"]["alert"]["body"] == "The Laugh Cellar at 1:00 pm PDT"
+
+    def _send_show(self, comedian_image_url):
+        service = ApnsPushService(
+            team_id="TEAM12345",
+            key_id="KEYID67890",
+            private_key_pem="unused",
+            bundle_id="com.example.app",
+            use_sandbox=True,
+        )
+        response = MagicMock(status_code=200)
+        with patch.object(service, "_auth_token", return_value="fake-token"):
+            with patch("httpx.Client") as MockClient:
+                client = MockClient.return_value.__enter__.return_value
+                client.post.return_value = response
+                service.send_show_notification(
+                    device_token="apns-token",
+                    comedian_name="Funny Person",
+                    show_id=42,
+                    show_date=None,
+                    club_name="The Comedy Club",
+                    club_city="New York",
+                    club_state="NY",
+                    show_page_url="https://laugh-track.com/show/42",
+                    comedian_image_url=comedian_image_url,
+                )
+        return client.post.call_args.kwargs["json"]
+
+    def test_send_show_adds_mutable_content_and_image_url_for_rich_push(self):
+        # mutable-content is REQUIRED for the NotificationServiceExtension to run
+        # and attach the headshot it downloads from the imageUrl key.
+        url = "https://laughtrack.b-cdn.net/comedians/assets/7/avatar.png"
+        payload = self._send_show(comedian_image_url=url)
+        assert payload["aps"]["mutable-content"] == 1
+        assert payload["imageUrl"] == url
+
+    def test_send_show_omits_image_keys_when_no_headshot(self):
+        payload = self._send_show(comedian_image_url=None)
+        assert "mutable-content" not in payload["aps"]
+        assert "imageUrl" not in payload
+
     def test_send_youtube_live_builds_alert_payload(self):
         service = ApnsPushService(
             team_id="TEAM12345",
