@@ -68,15 +68,16 @@ class SquarespaceScraper(BaseScraper):
         qs = parse_qs(parsed.query)
         self.collection_id = (qs.get("collectionId") or [""])[0]
 
-        # Products-collection mode: some venues sell each show as a dated store
-        # product (collection typeName='products') instead of an Events
-        # collection, so GetItemsByMonth returns []. Opt in via
-        # scraping_sources.metadata.collection_type='products'; scraping_url is
-        # then the collection PAGE url (e.g. https://venue.com/tickets) and the
-        # scraper reads it via ?format=json. Absent/other → events mode (default).
-        self.products_mode = (club.source_metadata or {}).get("collection_type") == "products"
+        # Collection-page JSON modes are opt-in via metadata.collection_type.
+        # Absent/other -> default Events API mode. "products" reads store
+        # products from ?format=json; "events_stacked_json" reads Squarespace
+        # events-stacked page JSON when GetItemsByMonth is empty for the same
+        # collection.
+        collection_type = (club.source_metadata or {}).get("collection_type")
+        self.products_mode = collection_type == "products"
+        self.events_stacked_json_mode = collection_type == "events_stacked_json"
         # The collection page url with any query stripped (?format=json appended later).
-        self.products_url = f"{self.base_domain}{parsed.path}".rstrip("/")
+        self.collection_page_url = f"{self.base_domain}{parsed.path}".rstrip("/")
 
         # Opt-in title filter for mixed-use venues. Two scraping_sources.metadata
         # keys, both OFF by default (existing venues are unaffected):
@@ -97,11 +98,12 @@ class SquarespaceScraper(BaseScraper):
     async def collect_scraping_targets(self) -> List[ScrapingTarget]:
         """Return the fetch targets for this venue.
 
-        Products mode: the single collection page rendered as JSON. Events mode:
-        GetItemsByMonth URLs for the current month and next two months.
+        Collection-page JSON modes: the single collection page rendered as JSON.
+        Events mode: GetItemsByMonth URLs for the current month and next two
+        months.
         """
-        if self.products_mode:
-            return [f"{self.products_url}?format=json"]
+        if self.products_mode or self.events_stacked_json_mode:
+            return [f"{self.collection_page_url}?format=json"]
 
         today = date.today()
         targets = []
@@ -126,6 +128,8 @@ class SquarespaceScraper(BaseScraper):
         """
         if self.products_mode:
             return await self._get_products_data(url)
+        if self.events_stacked_json_mode:
+            return await self._get_events_stacked_json_data(url)
 
         try:
             await self.rate_limiter.await_if_needed(url)
@@ -171,6 +175,46 @@ class SquarespaceScraper(BaseScraper):
                 self.logger_context,
             )
             return None
+
+    async def _get_events_stacked_json_data(self, url: str) -> Optional[SquarespacePageData]:
+        """Fetch a Squarespace events-stacked collection page as JSON."""
+        try:
+            await self.rate_limiter.await_if_needed(url)
+            response = await self.fetch_json(url)
+        except Exception as e:
+            Logger.error(
+                f"{self._log_prefix}: error fetching events-stacked JSON from {url}: {e}",
+                self.logger_context,
+            )
+            return None
+
+        if not isinstance(response, dict):
+            Logger.info(
+                f"{self._log_prefix}: empty events-stacked JSON response from {url}",
+                self.logger_context,
+            )
+            return None
+
+        events = SquarespaceExtractor.extract_events_stacked_page(
+            response,
+            self.base_domain,
+            include_title_res=self.include_title_res,
+            exclude_title_res=self.exclude_title_res,
+        )
+        if not events:
+            Logger.info(
+                f"{self._log_prefix}: no events extracted from events-stacked JSON {url}",
+                self.logger_context,
+            )
+            return None
+
+        await self._enrich_with_ticket_urls(events)
+
+        Logger.info(
+            f"{self._log_prefix}: extracted {len(events)} events from events-stacked JSON {url}",
+            self.logger_context,
+        )
+        return SquarespacePageData(event_list=events)
 
     async def _get_products_data(self, url: str) -> Optional[SquarespacePageData]:
         """Fetch a Squarespace products/store collection and extract dated shows.

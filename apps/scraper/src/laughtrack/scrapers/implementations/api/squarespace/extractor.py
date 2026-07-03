@@ -1,6 +1,7 @@
 """Squarespace event extraction from GetItemsByMonth API response."""
 
 import re
+import time
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Pattern, Sequence
 from zoneinfo import ZoneInfo
@@ -238,6 +239,39 @@ class SquarespaceExtractor:
             except Exception as e:
                 Logger.warn(f"SquarespaceExtractor: skipping event due to error: {e}")
         return events
+
+    @staticmethod
+    def extract_events_stacked_page(
+        page_response: Dict[str, Any],
+        base_domain: str,
+        include_title_res: Optional[Sequence[Pattern[str]]] = None,
+        exclude_title_res: Optional[Sequence[Pattern[str]]] = None,
+    ) -> List[SquarespaceEvent]:
+        """Extract events from a Squarespace events-stacked page JSON response.
+
+        Some Squarespace events collections expose current event records through
+        the page's ``?format=json`` response rather than the older
+        ``GetItemsByMonth`` API. Those records live under ``upcoming`` and/or
+        ``past`` arrays but otherwise use the same ``id`` / ``title`` /
+        ``startDate`` fields as the month API.
+        """
+        if not isinstance(page_response, dict):
+            return []
+
+        raw_events: List[Dict[str, Any]] = []
+        for key in ("upcoming", "past"):
+            items = page_response.get(key)
+            if isinstance(items, list):
+                raw_events.extend(item for item in items if isinstance(item, dict))
+
+        events = SquarespaceExtractor.extract_events(
+            raw_events,
+            base_domain,
+            include_title_res=include_title_res,
+            exclude_title_res=exclude_title_res,
+        )
+        now_ms = int(time.time() * 1000)
+        return [event for event in events if event.start_date_ms >= now_ms]
 
     @staticmethod
     def _parse_event(raw: Dict[str, Any], base_domain: str) -> SquarespaceEvent | None:

@@ -6,6 +6,8 @@ Exercises collect_scraping_targets() (monthly URL generation) → get_data()
 SquarespaceEvent.to_show() transformation path.
 """
 
+from datetime import datetime, timedelta, timezone
+
 import pytest
 
 from laughtrack.core.entities.club.model import Club, ScrapingSource
@@ -134,6 +136,47 @@ def test_extract_events_stores_base_domain():
 
     assert len(events) == 1
     assert events[0].base_domain == BASE_DOMAIN
+
+
+def test_extract_events_stacked_page_reads_future_past_array_events():
+    """extract_events_stacked_page() parses Squarespace page JSON event arrays."""
+    future_ms = int((datetime.now(timezone.utc) + timedelta(days=30)).timestamp() * 1000)
+    raw = {
+        "upcoming": [],
+        "past": [
+            _raw_event(
+                event_id="fear-city-1",
+                title="THE FEAR CITY COMEDY CLUB PRESENTS: MICHAEL FRACTOR",
+                start_date_ms=future_ms,
+                full_url="/shows/michael-fractor-friday-06/26/26",
+                excerpt="<p>Doors: 7:30pm | Show: 8:00 pm</p>",
+            )
+        ],
+    }
+
+    events = SquarespaceExtractor.extract_events_stacked_page(raw, BASE_DOMAIN)
+
+    assert len(events) == 1
+    assert events[0].id == "fear-city-1"
+    assert events[0].title == "THE FEAR CITY COMEDY CLUB PRESENTS: MICHAEL FRACTOR"
+    assert events[0].full_url == "/shows/michael-fractor-friday-06/26/26"
+
+
+def test_extract_events_stacked_page_drops_past_events():
+    """extract_events_stacked_page() skips stale events from the page JSON."""
+    past_ms = int((datetime.now(timezone.utc) - timedelta(days=1)).timestamp() * 1000)
+    future_ms = int((datetime.now(timezone.utc) + timedelta(days=1)).timestamp() * 1000)
+    raw = {
+        "upcoming": [],
+        "past": [
+            _raw_event(event_id="past", title="Past Show", start_date_ms=past_ms),
+            _raw_event(event_id="future", title="Future Show", start_date_ms=future_ms),
+        ],
+    }
+
+    events = SquarespaceExtractor.extract_events_stacked_page(raw, BASE_DOMAIN)
+
+    assert [event.title for event in events] == ["Future Show"]
 
 
 # ---------------------------------------------------------------------------
@@ -643,6 +686,13 @@ def _club_with_exclude(patterns) -> Club:
     return _club_with_metadata({"exclude_title_patterns": patterns})
 
 
+def _club_events_stacked() -> Club:
+    c = _club_with_metadata({"collection_type": "events_stacked_json"})
+    c.website = "https://www.thefearcitycomedyclub.com/"
+    c.active_scraping_source.source_url = "https://www.thefearcitycomedyclub.com/shows"
+    return c
+
+
 def _compile(patterns):
     return [re.compile(p, re.IGNORECASE) for p in patterns]
 
@@ -715,6 +765,49 @@ def test_scraper_no_filters_when_metadata_absent():
     scraper = SquarespaceScraper(_club())
     assert scraper.exclude_title_res == []
     assert scraper.include_title_res == []
+
+
+@pytest.mark.asyncio
+async def test_collect_scraping_targets_events_stacked_json_uses_page_json_url():
+    """events_stacked_json mode fetches one collection page as JSON."""
+    scraper = SquarespaceScraper(_club_events_stacked())
+
+    targets = await scraper.collect_scraping_targets()
+
+    assert targets == ["https://www.thefearcitycomedyclub.com/shows?format=json"]
+
+
+@pytest.mark.asyncio
+async def test_get_data_events_stacked_json_extracts_page_events(monkeypatch):
+    """events_stacked_json mode parses page JSON event arrays."""
+    scraper = SquarespaceScraper(_club_events_stacked())
+    future_ms = int((datetime.now(timezone.utc) + timedelta(days=30)).timestamp() * 1000)
+
+    async def fake_fetch_json(self, url: str, **kwargs):
+        return {
+            "upcoming": [],
+            "past": [
+                _raw_event(
+                    event_id="fear-city-1",
+                    title="THE FEAR CITY COMEDY CLUB PRESENTS: MICHAEL FRACTOR",
+                    start_date_ms=future_ms,
+                    full_url="/shows/michael-fractor-friday-06/26/26",
+                )
+            ],
+        }
+
+    async def noop_enrich(self, events):
+        pass
+
+    monkeypatch.setattr(SquarespaceScraper, "fetch_json", fake_fetch_json)
+    monkeypatch.setattr(SquarespaceScraper, "_enrich_with_ticket_urls", noop_enrich)
+    monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", lambda url: __import__("asyncio").sleep(0))
+
+    result = await scraper.get_data("https://www.thefearcitycomedyclub.com/shows?format=json")
+
+    assert isinstance(result, SquarespacePageData)
+    assert len(result.event_list) == 1
+    assert result.event_list[0].title == "THE FEAR CITY COMEDY CLUB PRESENTS: MICHAEL FRACTOR"
 
 
 def test_scraper_invalid_regex_metadata_is_ignored():

@@ -139,6 +139,7 @@ not match the existing generic scraper contract during live validation:
 | The Backroom LIVE | `eventbrite`, organizer id `120674296136` discovered from collection page | 0 shows through the existing single-venue Eventbrite venue/fallback path; collection page is mixed and organizer mode would route as a multi-venue producer, not a fixed club. |
 | The Fear City Comedy Club | `squarespace`, `https://www.thefearcitycomedyclub.com/api/open/GetItemsByMonth?collectionId=66d33a4d09d98a61587e40bf` | 0 shows through the existing Squarespace scraper; the collection is present but did not return current/next-two-month events. |
 | The Fear City Comedy Club | `squarespace` products mode, `https://www.thefearcitycomedyclub.com/shows` | 0 shows; `/shows` has 30 future Google Calendar add-event links, but no public ICS feed or existing generic scraper contract for those rendered links. |
+| The Fear City Comedy Club | `squarespace` events-stacked page JSON mode, `https://www.thefearcitycomedyclub.com/shows` | TASK-3566 added a generic parser for this Squarespace shape, but live validation on 2026-07-03 returned 0 future shows after dropping stale page JSON events, so no onboarding row was added. Google place id resolves to `ChIJmfs0oC9bwokRvksSyYq9Cq8`. |
 | Comedy Cabaret Comedy Club | `the_events_calendar`, `https://comedycabaret.com/wp-json/tribe/events/v1/events` | REST endpoint returned 404 / 0 shows. |
 | Comedy Cabaret Comedy Club | `modern_events_calendar`, `https://comedycabaret.com/wp-json/wp/v2/mec-events` | REST endpoint returned 404 / 0 shows. |
 | The Lab | `wix_events`, `https://www.thelabambler.com/` root mode | Wix Events API returned HTTP 400 / 0 events. |
@@ -161,9 +162,13 @@ follow-up scraper/source work is tracked in TASK-3566.
   is for Salesforce PatronTicket and does not cover PatronBase.
 - `The PIT` (`ChIJG3e1NKdZwokR26WFFB6Lx7w`), `The Second City New York`
   (`ChIJv4cccglZwokRwENgJq6qkXs`), `Upper East Side Comedy Club at Bedford
-  Falls NYC` (`ChIJi-qNZNtZwokRQBdBfR3dLM4`), `The Fear City Comedy Club`,
-  `Sesh Comedy`, `Flop House Comedy Club`, and `Rhino Comedy` all need source
-  extraction or scraper work before they are safe to onboard.
+  Falls NYC` (`ChIJi-qNZNtZwokRQBdBfR3dLM4`), `Sesh Comedy`, `Flop House Comedy
+  Club`, and `Rhino Comedy` all need source extraction or scraper work before
+  they are safe to onboard.
+- `The Fear City Comedy Club` (`ChIJmfs0oC9bwokRvksSyYq9Cq8`) now has generic
+  Squarespace source support via TASK-3566, but its live source returned 0 future
+  shows on 2026-07-03 after stale-event filtering, so onboarding should wait
+  until the venue lists future shows.
 
 ## Needs Follow-Up Triage
 
