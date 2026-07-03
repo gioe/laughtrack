@@ -136,6 +136,37 @@ Neon compute warm. The dashboard JSON also leaves `"refresh": ""` so opening
 the Scraper Health dashboard does not start an automatic polling loop; refresh
 manually during an investigation.
 
+### Precomputed summary views (TASK-3573)
+
+Rules 1, 2, 4, and 3 previously recomputed their last-two-run / trailing-window /
+30-day-`history` CTEs against `scraper_runs` + `scraper_run_clubs` on **every**
+evaluation, even though the underlying data changes only once per nightly scrape.
+(This is complementary to the 6-hour cadence above: the cadence cuts how often
+the SQL runs, the views cut how expensive each run is.) They now `SELECT` from
+three small **materialized views** that the scraper refreshes once at the end of
+each full `scraper` run:
+
+- `mv_scraper_health_overall` — one row: `success_rate_drop` (rule 1) and
+  `error_spike` (rule 3), both vs the trailing-7-run average.
+- `mv_scraper_health_dropped_to_zero` — one `club` row per prev>0 → latest=0 drop
+  (rule 2).
+- `mv_scraper_health_consecutive_zero` — one `club` row per club at zero for 2+
+  consecutive full runs that had shows in the last 30 days (rule 4).
+
+The view definitions are the exact CTEs the rules used to inline, so alert
+semantics are unchanged — an alert only changes state when a new run lands, which
+is precisely when the refresh runs. The DDL lives in
+`apps/scraper/migrations/20260703_scraper_health_summary_materialized_views.sql`
+(applied by `apps/scraper/bin/migrate`); the refresh is
+`PostgresMetricsRepository.refresh_health_summary()`, called after each `scraper`
+run persists. **Rule 5 (staleness) stays a live inline query** — it measures
+`NOW() - MAX(exported_at)` and must not be frozen at run time. If the pipeline
+stops running, the views go stale but rule 5 still fires (it does not read them).
+
+The migration grants `SELECT` on the three views to `grafana_ro`
+(`GRANT ... ON ALL TABLES` does not cover materialized views, so they are granted
+by name — the same list is mirrored in `create_grafana_readonly_role.sql`).
+
 ### Setup
 
 1. **Pin the datasource UID.** The rule file references the Neon datasource by

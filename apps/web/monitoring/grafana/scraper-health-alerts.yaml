@@ -7,9 +7,21 @@
 # the scraper used to post after every run (gated off in TASK-2511). A healthy
 # run produces no Discord post; Discord now carries only failures and regressions.
 #
+# PRECOMPUTED READS (TASK-3573): rules 1, 2, 2b, and 3 no longer recompute their
+# last-two-run / trailing-window / 30-day-history CTEs on every (hourly) Grafana
+# evaluation. They SELECT from three small materialized views
+# (mv_scraper_health_overall, mv_scraper_health_dropped_to_zero,
+# mv_scraper_health_consecutive_zero) that the scraper REFRESHes once at the end
+# of each full 'scraper' run. The view definitions ARE the former inline CTEs, so
+# the regression semantics are identical — an alert only changes state when a new
+# run lands, which is exactly when the refresh happens. Widen/narrow the trailing
+# window by editing the rn bounds in the view SQL (the migration below), not here.
+# Rule 5 (staleness) stays an inline live query — it measures NOW() - MAX(run) and
+# must not be frozen at run time. Migration:
+# apps/scraper/migrations/20260703_scraper_health_summary_materialized_views.sql.
+#
 # N defaults to a trailing window of 7 runs (rows rn BETWEEN 2 AND 8: the 7 runs
-# immediately preceding the latest). Adjust the rn bounds in each rawSql to widen
-# or narrow the baseline.
+# immediately preceding the latest), set in the materialized-view definitions.
 #
 # Provisioning (self-hosted Grafana): drop this file in
 # /etc/grafana/provisioning/alerting/ and restart. On Grafana Cloud (no file
@@ -94,26 +106,15 @@ groups:
               refId: A
               format: table
               rawSql: |
-                -- run_type = 'scraper' excludes generic pipeline runs
-                -- (record_pipeline_run.py / backfill_github_pipeline_runs.py,
-                -- written with run_type='pipeline'), which carry a synthetic
-                -- success_rate and no club rows and would otherwise pollute the
-                -- rolling baseline. It also excludes single-club verify runs
-                -- (scrape_shows --club-id/--club, written with run_type='verify'
-                -- — TASK-2831), whose success_rate of 0/100 from a clubs_processed=1
-                -- run would otherwise skew this baseline.
-                WITH ranked AS (
-                  SELECT success_rate,
-                         ROW_NUMBER() OVER (ORDER BY exported_at DESC) AS rn
-                  FROM scraper_runs
-                  WHERE run_type = 'scraper'
-                )
-                SELECT
-                  COALESCE(AVG(success_rate) FILTER (WHERE rn BETWEEN 2 AND 8), 0)
-                  - COALESCE(MAX(success_rate) FILTER (WHERE rn = 1), 0)
-                  AS success_rate_drop
-                FROM ranked
-                WHERE rn <= 8;
+                -- Reads the precomputed mv_scraper_health_overall materialized
+                -- view (TASK-3573) instead of rescanning scraper_runs on every
+                -- evaluation. The scraper REFRESHes it once per full 'scraper'
+                -- run; the view definition is the exact rolling-baseline CTE this
+                -- rule used to inline (trailing-7-run average rn BETWEEN 2 AND 8
+                -- vs the latest run, run_type='scraper' only), so the alert
+                -- semantics are unchanged. See
+                -- apps/scraper/migrations/20260703_scraper_health_summary_materialized_views.sql.
+                SELECT success_rate_drop FROM mv_scraper_health_overall;
           - refId: B
             datasourceUid: __expr__
             model:
@@ -160,36 +161,16 @@ groups:
               refId: A
               format: table
               rawSql: |
-                -- run_type = 'scraper' restricts the two-run window to real
-                -- full scrape runs. Generic pipeline runs have no club rows, and
-                -- single-club verify runs (run_type='verify', clubs_processed=1)
-                -- contain rows for only one club — either landing as rn=1 or rn=2
-                -- would silently mask a drop for every other club (the root cause
-                -- of the missed ImprovCity zero-drop alert, TASK-2824 / TASK-2831).
-                -- club_shows aggregates num_shows per (run_id, club_name) so a
-                -- venue scraped from multiple sources in one run resolves to a
-                -- single row — scraper_run_clubs has no UNIQUE on (run_id,
-                -- club_name), so the club-name join would otherwise fan out.
-                WITH last_two AS (
-                  SELECT id,
-                         ROW_NUMBER() OVER (ORDER BY exported_at DESC) AS rn
-                  FROM scraper_runs
-                  WHERE run_type = 'scraper'
-                ),
-                club_shows AS (
-                  SELECT c.run_id, c.club_name, SUM(c.num_shows) AS num_shows
-                  FROM scraper_run_clubs c
-                  JOIN last_two ON last_two.id = c.run_id
-                  GROUP BY c.run_id, c.club_name
-                )
-                SELECT latest.club_name AS club,
-                       1 AS dropped_to_zero
-                FROM club_shows latest
-                JOIN last_two lt_latest ON lt_latest.id = latest.run_id AND lt_latest.rn = 1
-                JOIN club_shows prev ON prev.club_name = latest.club_name
-                JOIN last_two lt_prev ON lt_prev.id = prev.run_id AND lt_prev.rn = 2
-                WHERE latest.num_shows = 0
-                  AND prev.num_shows > 0;
+                -- Reads the precomputed mv_scraper_health_dropped_to_zero
+                -- materialized view (TASK-3573) instead of recomputing the
+                -- last-two-run per-club comparison on every evaluation. The
+                -- scraper REFRESHes it once per full 'scraper' run; the view is
+                -- the exact prev>0 -> latest=0 transition query this rule used to
+                -- inline (run_type='scraper', num_shows SUMmed per club), so it
+                -- still yields one row per dropped club and fires exactly once per
+                -- drop. See
+                -- apps/scraper/migrations/20260703_scraper_health_summary_materialized_views.sql.
+                SELECT club, dropped_to_zero FROM mv_scraper_health_dropped_to_zero;
           - refId: B
             datasourceUid: __expr__
             model:
@@ -249,47 +230,18 @@ groups:
               refId: A
               format: table
               rawSql: |
-                -- full_runs: real scrape runs only; clubs_processed > 1 drops
-                -- single-club verify runs so they cannot occupy rn=1/rn=2.
-                -- club_shows: SUM per (run_id, club_name) — scraper_run_clubs
-                -- has no UNIQUE on (run_id, club_name), see rule 2.
-                -- history: 30-day lookback includes verify runs deliberately —
-                -- any run proving the club had shows recently is evidence it
-                -- is not a legitimately dark venue. Since TASK-2831 tags those
-                -- runs run_type='verify', this lookback must match both types
-                -- (IN ('scraper','verify')) or a club kept alive only by a
-                -- single-club verify scrape would wrongly read as dark.
-                WITH full_runs AS (
-                  SELECT id, exported_at,
-                         ROW_NUMBER() OVER (ORDER BY exported_at DESC) AS rn
-                  FROM scraper_runs
-                  WHERE run_type = 'scraper'
-                    AND clubs_processed > 1
-                ),
-                club_shows AS (
-                  SELECT c.run_id, c.club_name, SUM(c.num_shows) AS num_shows
-                  FROM scraper_run_clubs c
-                  JOIN full_runs fr ON fr.id = c.run_id AND fr.rn <= 2
-                  GROUP BY c.run_id, c.club_name
-                ),
-                history AS (
-                  SELECT c.club_name, MAX(c.num_shows) AS max_shows_30d
-                  FROM scraper_run_clubs c
-                  JOIN scraper_runs r ON r.id = c.run_id
-                  WHERE r.run_type IN ('scraper', 'verify')
-                    AND r.exported_at >= NOW() - INTERVAL '30 days'
-                  GROUP BY c.club_name
-                )
-                SELECT latest.club_name AS club,
-                       1 AS consecutive_zero
-                FROM club_shows latest
-                JOIN full_runs lt_latest ON lt_latest.id = latest.run_id AND lt_latest.rn = 1
-                JOIN club_shows prev ON prev.club_name = latest.club_name
-                JOIN full_runs lt_prev ON lt_prev.id = prev.run_id AND lt_prev.rn = 2
-                JOIN history h ON h.club_name = latest.club_name
-                WHERE latest.num_shows = 0
-                  AND prev.num_shows = 0
-                  AND h.max_shows_30d > 0;
+                -- Reads the precomputed mv_scraper_health_consecutive_zero
+                -- materialized view (TASK-3573) instead of recomputing the
+                -- full_runs / club_shows / 30-day history CTEs on every
+                -- evaluation. The scraper REFRESHes it once per full 'scraper'
+                -- run; the view is the exact self-healing query this rule used to
+                -- inline (last 2 consecutive full runs at zero, clubs_processed>1,
+                -- with a run_type IN ('scraper','verify') 30-day >0 lookback), so
+                -- it keeps firing every evaluation until the club recovers. The
+                -- 30-day NOW() anchor is baked at REFRESH time (latest-run
+                -- wall-clock), which tracks the daily cadence. See
+                -- apps/scraper/migrations/20260703_scraper_health_summary_materialized_views.sql.
+                SELECT club, consecutive_zero FROM mv_scraper_health_consecutive_zero;
           - refId: B
             datasourceUid: __expr__
             model:
@@ -333,27 +285,14 @@ groups:
               refId: A
               format: table
               rawSql: |
-                -- run_type = 'scraper' excludes generic pipeline runs and
-                -- single-club verify runs (run_type='verify') from the
-                -- error-count baseline (see the success-rate rule above).
-                WITH per_run AS (
-                  SELECT r.id, r.exported_at, COUNT(e.id) AS errors
-                  FROM scraper_runs r
-                  LEFT JOIN scraper_run_errors e ON e.run_id = r.id
-                  WHERE r.run_type = 'scraper'
-                  GROUP BY r.id, r.exported_at
-                ),
-                ranked AS (
-                  SELECT errors,
-                         ROW_NUMBER() OVER (ORDER BY exported_at DESC) AS rn
-                  FROM per_run
-                )
-                SELECT
-                  COALESCE(MAX(errors) FILTER (WHERE rn = 1), 0)
-                  - COALESCE(AVG(errors) FILTER (WHERE rn BETWEEN 2 AND 8), 0)
-                  AS error_spike
-                FROM ranked
-                WHERE rn <= 8;
+                -- Reads the precomputed mv_scraper_health_overall materialized
+                -- view (TASK-3573) instead of rescanning scraper_runs +
+                -- scraper_run_errors on every evaluation. The scraper REFRESHes it
+                -- once per full 'scraper' run; error_spike is the exact
+                -- latest-vs-trailing-7-run error-count baseline this rule used to
+                -- inline (run_type='scraper' only), so the alert is unchanged. See
+                -- apps/scraper/migrations/20260703_scraper_health_summary_materialized_views.sql.
+                SELECT error_spike FROM mv_scraper_health_overall;
           - refId: B
             datasourceUid: __expr__
             model:
