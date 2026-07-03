@@ -797,6 +797,8 @@ FROM (
         ('Comedy Show 3rd Fridays at Fort Hamilton Distillery', '68 34th St Bldg 6, 2nd Floor, Brooklyn, NY 11232, USA', 'https://tallboycomedy.eventbrite.com/', 'Brooklyn', 'NY', '11232', 'America/New_York', 'US', 'non_comedy', 'ChIJTTQXeERbwokRTbAzD7n2iGQ', FALSE, 'active'),
         ('Punching Bag Comedy', '62 Court St, Brooklyn, NY 11201, USA', '', 'Brooklyn', 'NY', '11201', 'America/New_York', 'US', 'non_comedy', 'ChIJfZe5TAtbwokRbgS-m87GIfw', FALSE, 'active'),
         ('Expired Milk Comedy at Planet Showbiz', '274 Morgan Ave Ste 201, Brooklyn, NY 11211, USA', 'https://www.expiredmilkcomedy.com/', 'Brooklyn', 'NY', '11211', 'America/New_York', 'US', 'non_comedy', 'ChIJAQJ5YOJfwokRRcnMweQ58HI', FALSE, 'active'),
+        ('Living Room Laughs', '555 Madison Ave 5th floor, New York, NY 10022, USA', 'https://www.livingroomlaughs.com/', 'New York', 'NY', '10022', 'America/New_York', 'US', 'non_comedy', 'ChIJZblXaL5ZwokR-0Uctqy7N0o', FALSE, 'active'),
+        ('Comedy Cabaret Comedy Club Northeast', 'At Neighbors Bar, 11580 Roosevelt Blvd, Philadelphia, PA 19116, USA', 'https://www.comedycabaret.com/', 'Philadelphia', 'PA', '19116', 'America/New_York', 'US', 'non_comedy', 'ChIJy5ZWovyyxokRK7e8UIt1DAs', FALSE, 'active'),
         ('Eight Is Never Enough Improv', '318 W 53rd St, New York, NY 10019, USA', 'https://eightimprov.biz/', 'New York', 'NY', '10019', 'America/New_York', 'US', 'non_comedy', 'ChIJucyRblNYwokRBjdPNwuHUZs', FALSE, 'active'),
         ('Laughing Lassi Comedy', '318 W 53rd St, New York, NY 10019, USA', 'https://www.laughinglassi.com/', 'New York', 'NY', '10019', 'America/New_York', 'US', 'non_comedy', 'ChIJu0zwlrtZwokRjqYLUIr_Imk', FALSE, 'active')
 ) AS denied(name, address, website, city, state, zip_code, timezone, country, club_type, google_place_id, visible, status)
@@ -1068,6 +1070,24 @@ VALUES
         'Named show/producer listing at another venue, not a distinct fixed comedy club.',
         'comedy_club',
         '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "showcase_not_venue"}'::jsonb,
+        'TASK-3563',
+        NOW()
+    ),
+    (
+        'ChIJZblXaL5ZwokR-0Uctqy7N0o',
+        'Living Room Laughs',
+        'Private-show producer listing at an office address; site offers private comedy show packages rather than a fixed public venue-owned calendar.',
+        'comedy_club',
+        '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "private_show_producer_not_venue"}'::jsonb,
+        'TASK-3563',
+        NOW()
+    ),
+    (
+        'ChIJy5ZWovyyxokRK7e8UIt1DAs',
+        'Comedy Cabaret Comedy Club Northeast',
+        'Closed Northeast Philadelphia Comedy Cabaret location; venue page says the Northeast club is closed due to building issues.',
+        'comedy_club',
+        '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "closed_location"}'::jsonb,
         'TASK-3563',
         NOW()
     ),

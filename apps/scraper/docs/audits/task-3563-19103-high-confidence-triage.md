@@ -97,6 +97,8 @@ them as comedy-club onboarding candidates.
 | Comedy Show 3rd Fridays of the month at Fort Hamilton Distillery | `ChIJTTQXeERbwokRTbAzD7n2iGQ` | Named monthly showcase at Fort Hamilton Distillery, not a distinct fixed comedy club. |
 | Punching Bag Comedy | `ChIJfZe5TAtbwokRbgS-m87GIfw` | Named comedy show/producer listing without a venue-owned public calendar, not a distinct fixed comedy club. |
 | Expired Milk Comedy (at Planet Showbiz) | `ChIJAQJ5YOJfwokRRcnMweQ58HI` | Named show/producer listing at another venue, not a distinct fixed comedy club. |
+| Living Room Laughs | `ChIJZblXaL5ZwokR-0Uctqy7N0o` | Private-show producer listing at an office address; site offers private comedy show packages rather than a fixed public venue calendar. |
+| Comedy Cabaret Comedy Club Northeast | `ChIJy5ZWovyyxokRK7e8UIt1DAs` | Closed location; the venue page says Comedy Cabaret Comedy Club Northeast is closed due to building issues. |
 | Eight Is Never Enough Improv | `ChIJucyRblNYwokRBjdPNwuHUZs` | Improv/class/showcase brand at a shared class/performance address, not a distinct venue-owned comedy-club calendar. |
 | Laughing Lassi Comedy | `ChIJu0zwlrtZwokRjqYLUIr_Imk` | Named comedy show/producer listing at a shared class/performance address, not a distinct fixed comedy club. |
 
@@ -143,9 +145,10 @@ not match the existing generic scraper contract during live validation:
 These are plausible fixed venues or recurring club brands, but the existing
 generic scrapers did not produce a safe DB-only onboarding source in this task:
 
-- `Comedy Cabaret Comedy Club` (`ChIJy5ZWovyyxokRK7e8UIt1DAs`,
-  `ChIJgywfGpgCxIkRvQVpKm08aZg`) has two Places records and a WordPress site,
-  but the generic WordPress event scrapers returned 404 / 0 shows.
+- `Comedy Cabaret Comedy Club` Doylestown (`ChIJgywfGpgCxIkRvQVpKm08aZg`)
+  has a real fixed-venue page with PatronBase ticket links under
+  `us.patronbase.com/_ComedyCabaret`, but the existing `patron_ticket` scraper
+  is for Salesforce PatronTicket and does not cover PatronBase.
 - `Kings Highway Comedy` (`ChIJYXEnsPJNwYkRjESWnP4dY_0`) has a GoDaddy site
   with form links and no validated generic event API in the scraper probe.
 - `Die Laughing` (`ChIJFZh5yjCHxokRz_8cbQHXVRM`), `The Backroom LIVE`
@@ -153,9 +156,9 @@ generic scrapers did not produce a safe DB-only onboarding source in this task:
   (`ChIJG3e1NKdZwokR26WFFB6Lx7w`), `The Second City New York`
   (`ChIJv4cccglZwokRwENgJq6qkXs`), `Upper East Side Comedy Club at Bedford
   Falls NYC` (`ChIJi-qNZNtZwokRQBdBfR3dLM4`), `The Fear City Comedy Club`,
-  `Sesh Comedy`, `Flop House Comedy Club`, `Living Room Laughs`, `Rhino Comedy`,
-  and `Stones Comedy Club` all need source extraction or scraper work before
-  they are safe to onboard.
+  `Sesh Comedy`, `Flop House Comedy Club`, `Rhino Comedy`, and `Stones Comedy
+  Club` all need source extraction or scraper work before they are safe to
+  onboard.
 
 ## Needs Follow-Up Triage
 
@@ -166,5 +169,5 @@ signals:
 - Fixed/promising but needs source extraction: The Backroom LIVE,
   The PIT, Second City New York, The Fear City Comedy Club,
   Comedy Cabaret, Kings Highway Comedy, Die Laughing, Upper East Side Comedy
-  Club, Sesh Comedy, Flop House Comedy Club, Living Room Laughs, Rhino Comedy,
-  and Stones Comedy Club.
+  Club, Sesh Comedy, Flop House Comedy Club, Rhino Comedy, and Stones Comedy
+  Club.
