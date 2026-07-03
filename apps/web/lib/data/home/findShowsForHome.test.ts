@@ -174,10 +174,7 @@ describe("findShowsForHome", () => {
                 ],
             },
             {
-                OR: [
-                    { tickets: { none: {} } },
-                    { tickets: { some: { soldOut: false } } },
-                ],
+                ticketsSoldOut: false,
             },
         ],
     };

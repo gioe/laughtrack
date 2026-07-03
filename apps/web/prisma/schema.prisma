@@ -802,6 +802,11 @@ model Show {
   // subquery; NULL means no priced tickets are attached (free RSVP shows,
   // or no tickets yet).
   minPrice             Decimal?                   @map("min_price") @db.Decimal(7, 2)
+  // Denormalized ticket-only sold-out state maintained by tickets triggers.
+  // False for shows with no tickets or at least one unsold ticket; true only
+  // when every ticket row for the show is sold_out. Title-based sold-out markers
+  // are still filtered separately by query code and computed in DTO mapping.
+  ticketsSoldOut       Boolean                    @default(false) @map("tickets_sold_out")
   lineupItems          LineupItem[]
   club                 Club                       @relation(fields: [clubId], references: [id], onDelete: Cascade)
   productionCompany    ProductionCompany?         @relation("ShowProductionCompany", fields: [productionCompanyId], references: [id])

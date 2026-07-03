@@ -228,6 +228,13 @@ export async function findComediansWithCount(
                 WHERE li."comedian_id" = c.uuid ${whereClause}
             )`;
         };
+        const buildScopedUpcomingCountAggregateSql = (): Prisma.Sql => {
+            const whereClause =
+                showWhereParts.length > 0
+                    ? Prisma.join(showWhereParts, " AND ")
+                    : Prisma.sql`s.date > NOW()`;
+            return Prisma.sql`COUNT(s.id) FILTER (WHERE ${whereClause})`;
+        };
 
         const isShowCountSort =
             helper.params.sort === SortParamValue.ShowCountDesc ||
@@ -326,21 +333,16 @@ export async function findComediansWithCount(
 
             const lineupExistsClause =
                 showWhereParts.length > 0
-                    ? Prisma.sql`EXISTS (
-                        SELECT 1 FROM "lineup_items" li
-                        JOIN "shows" s ON li."show_id" = s.id
-                        ${zipList ? Prisma.sql`JOIN "clubs" cl ON s."club_id" = cl.id` : Prisma.sql``}
-                        WHERE li."comedian_id" = c.uuid AND ${Prisma.join(showWhereParts, " AND ")}
-                    )`
+                    ? Prisma.sql`${buildScopedUpcomingCountAggregateSql()} > 0`
                     : null;
-            if (lineupExistsClause) {
-                whereConditions.push(lineupExistsClause);
-            }
+            const havingConditions: Prisma.Sql[] = [];
 
             if (minUpcomingShowsValue > 0) {
-                whereConditions.push(
-                    Prisma.sql`${buildScopedUpcomingCountSql()} >= ${minUpcomingShowsValue}`,
+                havingConditions.push(
+                    Prisma.sql`${buildScopedUpcomingCountAggregateSql()} >= ${minUpcomingShowsValue}`,
                 );
+            } else if (lineupExistsClause) {
+                havingConditions.push(lineupExistsClause);
             }
 
             const filtersParam = helper.params.filters;
@@ -376,13 +378,24 @@ export async function findComediansWithCount(
                 helper.params.sort === SortParamValue.ShowCountAsc
                     ? Prisma.sql`ASC`
                     : Prisma.sql`DESC`;
+            const scopedUpcomingCountSql =
+                buildScopedUpcomingCountAggregateSql();
 
             const sortedRows = await db.$queryRaw<{ id: number }[]>(
                 Prisma.sql`
                     SELECT c.id
                     FROM "comedians" c
+                    LEFT JOIN "lineup_items" li ON li."comedian_id" = c.uuid
+                    LEFT JOIN "shows" s ON s.id = li."show_id"
+                    ${zipList ? Prisma.sql`LEFT JOIN "clubs" cl ON s."club_id" = cl.id` : Prisma.sql``}
                     WHERE ${Prisma.join(whereConditions, " AND ")}
-                    ORDER BY ${buildScopedUpcomingCountSql()} ${sortDir}, c.name ASC
+                    GROUP BY c.id, c.name
+                    ${
+                        havingConditions.length > 0
+                            ? Prisma.sql`HAVING ${Prisma.join(havingConditions, " AND ")}`
+                            : Prisma.sql``
+                    }
+                    ORDER BY ${scopedUpcomingCountSql} ${sortDir}, c.name ASC
                     LIMIT ${take} OFFSET ${skip}
                 `,
             );

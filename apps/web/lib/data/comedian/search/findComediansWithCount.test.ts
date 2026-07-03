@@ -628,7 +628,7 @@ describe("findComediansWithCount", () => {
             expect(showClause?.date?.lte).toBe("2026-05-31T23:59:59Z");
         });
 
-        it("includes an upcoming-shows COUNT subquery in the raw-SQL where conditions when minUpcomingShows is set on a show_count sort (and skips the Prisma-path pre-fetch)", async () => {
+        it("uses a grouped upcoming-shows count in the raw-SQL branch when minUpcomingShows is set on a show_count sort (and skips the Prisma-path pre-fetch)", async () => {
             mockCount.mockResolvedValue(1);
             // Call order: deny list → sorted IDs. The pre-fetch is skipped on
             // the show_count sort path since the raw-SQL branch applies the
@@ -651,19 +651,26 @@ describe("findComediansWithCount", () => {
             // Only 2 raw calls — no pre-fetch round-trip.
             expect(mockQueryRaw).toHaveBeenCalledTimes(2);
 
-            // The 2nd $queryRaw call is the sorted-ID query — the count subquery
+            // The 2nd $queryRaw call is the sorted-ID query — the grouped count
             // filters on future-dated shows and the threshold flows via .values.
             const sortedCall = mockQueryRaw.mock.calls[1]?.[0] as {
                 strings: string[];
                 values: unknown[];
             };
             const sql = sortedCall.strings.join(" ");
-            expect(sql).toContain('FROM "lineup_items"');
+            expect(sql).toContain(
+                'LEFT JOIN "lineup_items" li ON li."comedian_id" = c.uuid',
+            );
+            expect(sql).toContain("GROUP BY c.id, c.name");
+            expect(sql).toContain("HAVING COUNT(s.id) FILTER");
             // Default helper applies the upcoming-only bound (showFilter.date = NOW)
             // so the scoped form uses s.date >= <Date> rather than the bare fallback.
             expect(sql).toContain("s.date >=");
             // Guard against regression: old implementation filtered on c."total_shows".
             expect(sql).not.toContain('c."total_shows" >=');
+            // Guard against regression: the hot path should aggregate once, not
+            // ORDER BY a correlated SELECT COUNT subquery per comedian row.
+            expect(sql).not.toContain("ORDER BY (");
             expect(sortedCall.values).toContain(10);
         });
 

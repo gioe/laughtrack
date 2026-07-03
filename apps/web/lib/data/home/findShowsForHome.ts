@@ -93,10 +93,7 @@ const AVAILABLE_HOME_SHOW_WHERE: Prisma.ShowWhereInput = {
             ],
         },
         {
-            OR: [
-                { tickets: { none: {} } },
-                { tickets: { some: { soldOut: false } } },
-            ],
+            ticketsSoldOut: false,
         },
     ],
 };
