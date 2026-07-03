@@ -850,6 +850,7 @@ FROM (
         ('Comedy Cabaret Comedy Club Northeast', 'At Neighbors Bar, 11580 Roosevelt Blvd, Philadelphia, PA 19116, USA', 'https://www.comedycabaret.com/', 'Philadelphia', 'PA', '19116', 'America/New_York', 'US', 'non_comedy', 'ChIJy5ZWovyyxokRK7e8UIt1DAs', FALSE, 'active'),
         ('The Backroom LIVE', '1206 Mary St, Elizabeth, NJ 07201, USA', 'https://www.eventbrite.com/cc/the-backroom-live-upcoming-shows-4800510', 'Elizabeth', 'NJ', '07201', 'America/New_York', 'US', 'non_comedy', 'ChIJwSKD8ClTwokRirWjcbUWnlU', FALSE, 'active'),
         ('Die Laughing', '943 N Hanover St, Pottstown, PA 19464, USA', 'https://www.dielaughing.org/', 'Pottstown', 'PA', '19464', 'America/New_York', 'US', 'non_comedy', 'ChIJFZh5yjCHxokRz_8cbQHXVRM', FALSE, 'active'),
+        ('Kings Highway Comedy', '315 Mill St, Bristol, PA 19007, USA', 'https://kingshighwaycomedy.com/', 'Bristol', 'PA', '19007', 'America/New_York', 'US', 'non_comedy', 'ChIJYXEnsPJNwYkRjESWnP4dY_0', FALSE, 'active'),
         ('Eight Is Never Enough Improv', '318 W 53rd St, New York, NY 10019, USA', 'https://eightimprov.biz/', 'New York', 'NY', '10019', 'America/New_York', 'US', 'non_comedy', 'ChIJucyRblNYwokRBjdPNwuHUZs', FALSE, 'active'),
         ('Laughing Lassi Comedy', '318 W 53rd St, New York, NY 10019, USA', 'https://www.laughinglassi.com/', 'New York', 'NY', '10019', 'America/New_York', 'US', 'non_comedy', 'ChIJu0zwlrtZwokRjqYLUIr_Imk', FALSE, 'active')
 ) AS denied(name, address, website, city, state, zip_code, timezone, country, club_type, google_place_id, visible, status)
@@ -1155,6 +1156,15 @@ VALUES
         'ChIJFZh5yjCHxokRz_8cbQHXVRM',
         'Die Laughing',
         'Splash-page listing with no public venue-owned calendar; /events, /calendar, and /shows all return 404, so there is no safe source to onboard as a fixed comedy club.',
+        'comedy_club',
+        '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "no_public_calendar_false_positive"}'::jsonb,
+        'TASK-3563',
+        NOW()
+    ),
+    (
+        'ChIJYXEnsPJNwYkRjESWnP4dY_0',
+        'Kings Highway Comedy',
+        'GoDaddy site says Up Coming Shows Coming Soon and exposes no public ticket or calendar endpoint; /shows, /events, and /calendar return 404.',
         'comedy_club',
         '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "no_public_calendar_false_positive"}'::jsonb,
         'TASK-3563',

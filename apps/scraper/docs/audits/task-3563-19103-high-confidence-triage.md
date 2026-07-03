@@ -103,6 +103,7 @@ them as comedy-club onboarding candidates.
 | Comedy Cabaret Comedy Club Northeast | `ChIJy5ZWovyyxokRK7e8UIt1DAs` | Closed location; the venue page says Comedy Cabaret Comedy Club Northeast is closed due to building issues. |
 | The Backroom LIVE | `ChIJwSKD8ClTwokRirWjcbUWnlU` | Eventbrite collection/organizer listing for Janmichael Conde rather than a fixed venue-owned comedy-club calendar; standalone domain timed out and the organizer feed returned no shows through the existing Eventbrite scraper. |
 | Die Laughing | `ChIJFZh5yjCHxokRz_8cbQHXVRM` | Splash-page listing with no public venue-owned calendar; `/events`, `/calendar`, and `/shows` all return 404. |
+| Kings Highway Comedy | `ChIJYXEnsPJNwYkRjESWnP4dY_0` | GoDaddy site says "Up Coming Shows Coming Soon" and exposes no public ticket or calendar endpoint; `/shows`, `/events`, and `/calendar` return 404. |
 | Eight Is Never Enough Improv | `ChIJucyRblNYwokRBjdPNwuHUZs` | Improv/class/showcase brand at a shared class/performance address, not a distinct venue-owned comedy-club calendar. |
 | Laughing Lassi Comedy | `ChIJu0zwlrtZwokRjqYLUIr_Imk` | Named comedy show/producer listing at a shared class/performance address, not a distinct fixed comedy club. |
 
@@ -137,12 +138,14 @@ not match the existing generic scraper contract during live validation:
 | Laughing Buddha Comedy | `ticket_tailor`, `https://www.tickettailor.com/events/laughingbuddhacomedy/` | 38 parsed events, but the account mixes classes and offsite shows including New York Comedy Club; not a clean single-venue source without additional filtering. |
 | The Backroom LIVE | `eventbrite`, organizer id `120674296136` discovered from collection page | 0 shows through the existing single-venue Eventbrite venue/fallback path; collection page is mixed and organizer mode would route as a multi-venue producer, not a fixed club. |
 | The Fear City Comedy Club | `squarespace`, `https://www.thefearcitycomedyclub.com/api/open/GetItemsByMonth?collectionId=66d33a4d09d98a61587e40bf` | 0 shows through the existing Squarespace scraper; the collection is present but did not return current/next-two-month events. |
+| The Fear City Comedy Club | `squarespace` products mode, `https://www.thefearcitycomedyclub.com/shows` | 0 shows; `/shows` has 30 future Google Calendar add-event links, but no public ICS feed or existing generic scraper contract for those rendered links. |
 | Comedy Cabaret Comedy Club | `the_events_calendar`, `https://comedycabaret.com/wp-json/tribe/events/v1/events` | REST endpoint returned 404 / 0 shows. |
 | Comedy Cabaret Comedy Club | `modern_events_calendar`, `https://comedycabaret.com/wp-json/wp/v2/mec-events` | REST endpoint returned 404 / 0 shows. |
 | The Lab | `wix_events`, `https://www.thelabambler.com/` root mode | Wix Events API returned HTTP 400 / 0 events. |
 | The Lab | `eventbrite`, organizer id `26956500819` without filters | 10 events, but the feed mixes classes/workshops with shows. A filtered Eventbrite source is onboarded in the migration. |
 | Upper East Side Comedy Club at Bedford Falls NYC | `wix_events`, `https://www.uppereastsidecomedyclub.com/` root mode | 0 events through the existing generic Wix Events scraper. |
 | Upper East Side Comedy Club at Bedford Falls NYC | `wix_events`, tested widget ids `a74ee1f5-74e3-4612-8fac-8ba5ae2cacaf`, `1440e92d-47d8-69be-ade7-e6de40127106`, and `wix_events` | Playwright-rendered page exposes the native Wix Events app, but those widget ids still returned 0 events through the existing generic scraper. |
+| Rhino Comedy | `squarespace` products mode, `https://www.rhinoimprov.com/tickets` | Not safe to onboard: the real show-ticket products use date slugs like `sat-aug-8th-rhino-room-stand-up-8pm` with no year, which the existing parser skips; the only parsed item was a kids workshop. |
 
 ## Source Extraction Required
 
@@ -153,8 +156,6 @@ generic scrapers did not produce a safe DB-only onboarding source in this task:
   has a real fixed-venue page with PatronBase ticket links under
   `us.patronbase.com/_ComedyCabaret`, but the existing `patron_ticket` scraper
   is for Salesforce PatronTicket and does not cover PatronBase.
-- `Kings Highway Comedy` (`ChIJYXEnsPJNwYkRjESWnP4dY_0`) has a GoDaddy site
-  with form links and no validated generic event API in the scraper probe.
 - `The PIT` (`ChIJG3e1NKdZwokR26WFFB6Lx7w`), `The Second City New York`
   (`ChIJv4cccglZwokRwENgJq6qkXs`), `Upper East Side Comedy Club at Bedford
   Falls NYC` (`ChIJi-qNZNtZwokRQBdBfR3dLM4`), `The Fear City Comedy Club`,
@@ -169,5 +170,5 @@ signals:
 
 - Fixed/promising but needs source extraction: The PIT,
   Second City New York, The Fear City Comedy Club,
-  Comedy Cabaret, Kings Highway Comedy, Upper East Side Comedy Club, Sesh
-  Comedy, Flop House Comedy Club, and Rhino Comedy.
+  Comedy Cabaret, Upper East Side Comedy Club, Sesh Comedy, Flop House Comedy
+  Club, and Rhino Comedy.
