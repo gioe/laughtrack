@@ -1059,6 +1059,44 @@ When the live feed currently lists no stand-up night, an include-filtered source
 
 ---
 
+### FullCalendar JSON
+
+| | |
+|---|---|
+| **Scraper key** | `fullcalendar_json` |
+| **Platform** | `custom` |
+| **DB field** | `scraping_sources.source_url` |
+| **Value format** | URL returning a JSON array of FullCalendar event objects |
+| **Generic?** | ✅ Generic when the feed exposes title, start, and detail URL fields |
+
+**Detection signals:**
+- The page initializes FullCalendar and fetches a JSON endpoint such as
+  `feed.php`.
+- The feed response is a root-level JSON array. Each item has `title`, ISO
+  `start`, optional relative `url`, and optional `extendedProps` fields such as
+  `desc`, `location`, and `soldOut`.
+
+**Source pattern:** Store the feed URL directly. The scraper fetches the JSON
+array, treats naive ISO timestamps as local to the club timezone, drops past and
+sold-out events, resolves relative detail URLs against the feed domain, and uses
+the detail URL as the show page and fallback ticket URL.
+
+**DB setup:**
+```sql
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, priority, enabled, metadata)
+SELECT c.id, 'custom'::"ScrapingPlatform", 'fullcalendar_json',
+       'https://venue.example/feed.php',
+       0, TRUE, '{}'::jsonb
+  FROM clubs c
+ WHERE c.name = '<Venue Name>';
+```
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/scrapers/implementations/api/fullcalendar_json/`
+- Reference venue/task: Sesh Comedy — TASK-3566.
+
+---
+
 ### Wix Events
 
 | | |

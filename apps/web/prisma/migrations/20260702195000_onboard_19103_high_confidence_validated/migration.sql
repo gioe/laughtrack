@@ -70,6 +70,10 @@
 --   single-club mode:
 --   https://www.eventbrite.com
 --   Live validation on 2026-07-03 returned 52 future shows.
+-- * Sesh Comedy — FullCalendar JSON feed scraped by the generic
+--   `fullcalendar_json` scraper:
+--   https://www.seshcomedy.com/feed.php
+--   Live validation on 2026-07-03 returned 42 future shows.
 --
 -- After this migration is deployed, run:
 --   cd apps/scraper && make scrape-club CLUB='The N Crowd'
@@ -88,6 +92,7 @@
 --   cd apps/scraper && make scrape-club CLUB='The Lab'
 --   cd apps/scraper && make scrape-club CLUB='Upright Citizens Brigade Theatre New York'
 --   cd apps/scraper && make scrape-club CLUB='Stones Comedy Club'
+--   cd apps/scraper && make scrape-club CLUB='Sesh Comedy'
 
 INSERT INTO clubs (
     name, address, website, city, state, zip_code, phone_number,
@@ -803,6 +808,49 @@ WHERE (c.google_place_id = 'ChIJV3CtSlJbwokRW6gCgnAFt-E' OR (c.name = 'Stones Co
       SELECT 1 FROM scraping_sources s
       WHERE s.club_id = c.id
         AND s.platform = 'eventbrite'::"ScrapingPlatform"
+        AND s.priority = 0
+  );
+
+INSERT INTO clubs (
+    name, address, website, city, state, zip_code, phone_number,
+    latitude, longitude, timezone, country, club_type, google_place_id,
+    visible, status
+)
+SELECT
+    'Sesh Comedy',
+    '55 Chrystie St, New York, NY 10002, USA',
+    'https://www.seshcomedy.com/',
+    'New York', 'NY', '10002', '(201) 898-0759',
+    40.7164535, -73.9948933,
+    'America/New_York', 'US', 'club',
+    'ChIJ59-_Gu5ZwokR7Xc8o5IAtY0',
+    TRUE, 'active'
+WHERE NOT EXISTS (
+    SELECT 1 FROM clubs
+    WHERE google_place_id = 'ChIJ59-_Gu5ZwokR7Xc8o5IAtY0'
+       OR (name = 'Sesh Comedy' AND city = 'New York' AND state = 'NY')
+);
+
+INSERT INTO scraping_sources (
+    club_id, platform, scraper_key, source_url,
+    enabled, priority, metadata, created_at, updated_at
+)
+SELECT
+    c.id,
+    'custom'::"ScrapingPlatform",
+    'fullcalendar_json',
+    'https://www.seshcomedy.com/feed.php',
+    TRUE,
+    0,
+    '{}'::jsonb,
+    NOW(),
+    NOW()
+FROM clubs c
+WHERE (c.google_place_id = 'ChIJ59-_Gu5ZwokR7Xc8o5IAtY0' OR (c.name = 'Sesh Comedy' AND c.city = 'New York' AND c.state = 'NY'))
+  AND NOT EXISTS (
+      SELECT 1 FROM scraping_sources s
+      WHERE s.club_id = c.id
+        AND s.platform = 'custom'::"ScrapingPlatform"
         AND s.priority = 0
   );
 

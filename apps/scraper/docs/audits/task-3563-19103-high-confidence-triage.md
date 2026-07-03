@@ -27,6 +27,7 @@ adds these validated venues:
 | The Lab | `ChIJgRv5Eqe7xokRNgxFBVzkqRY` | `eventbrite` filtered | `https://www.eventbrite.com`, eventbrite id `26956500819`, `exclude_classes=true`, show-title include patterns | 4 future shows |
 | Upright Citizens Brigade Theatre New York | `ChIJYwz0-YJZwokR1XOunnE1Pe4` | `ucb` | `https://ucbcomedy.com/shows/`, location slugs `nyc-mainstage` and `nyc-upstairs` | 62 Mainstage shows; 10 Upstairs shows |
 | Stones Comedy Club | `ChIJV3CtSlJbwokRW6gCgnAFt-E` | `eventbrite` | `https://www.eventbrite.com`, eventbrite id `33078829209` | 52 future shows |
+| Sesh Comedy | `ChIJ59-_Gu5ZwokR7Xc8o5IAtY0` | `fullcalendar_json` | `https://www.seshcomedy.com/feed.php` | 42 future shows |
 
 Validation was done on 2026-07-02 by instantiating the same generic scraper
 classes that `make scrape-club` will use after the migration rows exist. The
@@ -49,6 +50,7 @@ cd apps/scraper && make scrape-club CLUB='Comedy Explosion'
 cd apps/scraper && make scrape-club CLUB='The Lab'
 cd apps/scraper && make scrape-club CLUB='Upright Citizens Brigade Theatre New York'
 cd apps/scraper && make scrape-club CLUB='Stones Comedy Club'
+cd apps/scraper && make scrape-club CLUB='Sesh Comedy'
 ```
 
 ## Already Covered / Duplicate-Like
@@ -146,7 +148,7 @@ not match the existing generic scraper contract during live validation:
 | The Lab | `eventbrite`, organizer id `26956500819` without filters | 10 events, but the feed mixes classes/workshops with shows. A filtered Eventbrite source is onboarded in the migration. |
 | Upper East Side Comedy Club at Bedford Falls NYC | `wix_events`, `https://www.uppereastsidecomedyclub.com/` root mode | 0 events through the existing generic Wix Events scraper. |
 | Upper East Side Comedy Club at Bedford Falls NYC | `wix_events`, tested widget ids `a74ee1f5-74e3-4612-8fac-8ba5ae2cacaf`, `1440e92d-47d8-69be-ade7-e6de40127106`, and `wix_events` | Playwright-rendered page exposes the native Wix Events app, but those widget ids still returned 0 events through the existing generic scraper. |
-| Sesh Comedy | custom FullCalendar feed, `https://www.seshcomedy.com/feed.php` | Feed returned 47 future events with `event-detail.php?id=...` detail links, but no existing generic scraper supports this custom JSON/event-detail shape. |
+| Sesh Comedy | custom FullCalendar feed, `https://www.seshcomedy.com/feed.php` | TASK-3566 added the generic `fullcalendar_json` scraper for this feed shape; live validation on 2026-07-03 returned 42 future shows, so the venue is onboarded in the migration. |
 | Flop House Comedy Club | JS shell / server HTML, `https://www.flophousecomedy.com/` | `/`, `/shows`, `/events`, and `/calendar` all returned the same JavaScript-only shell saying the app does not work properly without JavaScript enabled; no supported source was visible in server HTML. |
 | Rhino Comedy | `squarespace` products mode, `https://www.rhinoimprov.com/tickets` | Not safe to onboard: the real show-ticket products use date slugs like `sat-aug-8th-rhino-room-stand-up-8pm` with no year, which the existing parser skips; the only parsed item was a kids workshop. |
 
@@ -162,9 +164,9 @@ follow-up scraper/source work is tracked in TASK-3566.
   is for Salesforce PatronTicket and does not cover PatronBase.
 - `The PIT` (`ChIJG3e1NKdZwokR26WFFB6Lx7w`), `The Second City New York`
   (`ChIJv4cccglZwokRwENgJq6qkXs`), `Upper East Side Comedy Club at Bedford
-  Falls NYC` (`ChIJi-qNZNtZwokRQBdBfR3dLM4`), `Sesh Comedy`, `Flop House Comedy
-  Club`, and `Rhino Comedy` all need source extraction or scraper work before
-  they are safe to onboard.
+  Falls NYC` (`ChIJi-qNZNtZwokRQBdBfR3dLM4`), `Flop House Comedy Club`, and
+  `Rhino Comedy` all need source extraction or scraper work before they are
+  safe to onboard.
 - `The Fear City Comedy Club` (`ChIJmfs0oC9bwokRvksSyYq9Cq8`) now has generic
   Squarespace source support via TASK-3566, but its live source returned 0 future
   shows on 2026-07-03 after stale-event filtering, so onboarding should wait
@@ -178,5 +180,5 @@ signals:
 
 - Fixed/promising but needs source extraction: The PIT,
   Second City New York, The Fear City Comedy Club,
-  Comedy Cabaret, Upper East Side Comedy Club, Sesh Comedy, Flop House Comedy
-  Club, and Rhino Comedy.
+  Comedy Cabaret, Upper East Side Comedy Club, Flop House Comedy Club, and
+  Rhino Comedy.
