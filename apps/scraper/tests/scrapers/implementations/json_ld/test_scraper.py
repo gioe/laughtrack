@@ -110,6 +110,52 @@ def _collection_page_with_detail_urls() -> str:
     return f"<html><head>{_wrap_ldjson(collection_page)}</head></html>"
 
 
+def _wordpress_events_feed() -> str:
+    return """<?xml version="1.0" encoding="UTF-8" ?>
+    <rss version="2.0">
+      <channel>
+        <title>Events</title>
+        <item>
+          <title>Friday Feel-GOOD IMPROV JAM</title>
+          <link>https://thepit-nyc.com/events/improv-jam/</link>
+        </item>
+        <item>
+          <title>INDIEFEST'26</title>
+          <link>https://thepit-nyc.com/events/indie-fest-2026/</link>
+        </item>
+      </channel>
+    </rss>
+    """
+
+
+def _recurring_detail_html() -> str:
+    event = {
+        "@context": "https://schema.org",
+        "@type": "Event",
+        "name": "Friday Feel-GOOD IMPROV JAM",
+        "url": "https://thepit.my.salesforce-sites.com/ticket/#/instances/root",
+        "startDate": "2099-06-05T17:00:00-04:00",
+        "location": {"name": "The PIT Loft", "address": "154 W. 29th St."},
+        "subEvent": [
+            {
+                "@type": "Event",
+                "name": "Friday Feel-GOOD IMPROV JAM",
+                "url": "https://thepit.my.salesforce-sites.com/ticket/#/instances/jam-one",
+                "startDate": "2099-06-05T17:00:00-04:00",
+                "location": {"name": "The PIT Loft", "address": "154 W. 29th St."},
+            },
+            {
+                "@type": "Event",
+                "name": "Friday Feel-GOOD IMPROV JAM",
+                "url": "https://thepit.my.salesforce-sites.com/ticket/#/instances/jam-two",
+                "startDate": "2099-06-12T17:00:00-04:00",
+                "location": {"name": "The PIT Loft", "address": "154 W. 29th St."},
+            },
+        ],
+    }
+    return f"<html><head>{_wrap_ldjson(event)}</head></html>"
+
+
 def _tickettailor_listing(page: int) -> str:
     next_link = (
         '<a href="/events/westrivercomedyclub?page=2" aria-label="next">Next</a>'
@@ -263,6 +309,52 @@ class TestDetailFetch:
         assert sorted(show.show_page_url for show in shows) == [
             "https://www.uptownpvd.com/events/late-show",
             "https://www.uptownpvd.com/events/tracy-morgan",
+        ]
+
+    @pytest.mark.asyncio
+    async def test_detail_fetch_harvests_rss_item_links(self, monkeypatch):
+        detail_html = {
+            "https://thepit-nyc.com/events/improv-jam": _recurring_detail_html(),
+            "https://thepit-nyc.com/events/indie-fest-2026": _detail_html(
+                "INDIEFEST'26",
+                "https://thepit.my.salesforce-sites.com/ticket/#/instances/indie-fest",
+            ),
+        }
+        club = _make_club(metadata={
+            "detail_fetch": {
+                "feed_item_links": True,
+                "set_same_as_to_detail_url": True,
+                "skip_parent_events_with_subevents": True,
+            },
+        })
+        club.active_scraping_source.source_url = "https://thepit-nyc.com/events/feed/"
+        scraper = JsonLdScraper(club)
+        fetched_urls = []
+
+        async def fake_fetch_html(self, url):
+            fetched_urls.append(url)
+            if url == "https://thepit-nyc.com/events/feed":
+                return _wordpress_events_feed()
+            return detail_html[url]
+
+        monkeypatch.setattr(JsonLdScraper, "fetch_html", fake_fetch_html, raising=False)
+
+        shows = await scraper.scrape_async()
+
+        assert fetched_urls == [
+            "https://thepit-nyc.com/events/feed",
+            "https://thepit-nyc.com/events/improv-jam",
+            "https://thepit-nyc.com/events/indie-fest-2026",
+        ]
+        assert sorted(show.name for show in shows) == [
+            "Friday Feel-GOOD IMPROV JAM",
+            "Friday Feel-GOOD IMPROV JAM",
+            "INDIEFEST'26",
+        ]
+        assert sorted(show.show_page_url for show in shows) == [
+            "https://thepit-nyc.com/events/improv-jam",
+            "https://thepit-nyc.com/events/improv-jam",
+            "https://thepit-nyc.com/events/indie-fest-2026",
         ]
 
     @pytest.mark.asyncio

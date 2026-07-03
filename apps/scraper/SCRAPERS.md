@@ -1632,7 +1632,14 @@ UPDATE clubs SET scraper = 'json_ld', scraping_url = 'https://myvenue.com/events
   some city/government arts calendars (e.g. pompanobeacharts.org) emit detail-page
   Event JSON-LD with `name`/`startDate`/`location` but no `url`, which
   `JsonLdEvent.from_json_ld` would otherwise drop (it requires `url`). Set this
-  whenever the detail pages are the canonical show pages.
+  whenever the detail pages are the canonical show pages. RSS/Atom feed mode:
+  `{"feed_item_links": true}` treats the source as a feed and harvests item/entry
+  links instead of parsing the listing as HTML. Use this for WordPress event feeds
+  whose item detail pages carry the real schema.org Event JSON-LD.
+- `detail_fetch.skip_parent_events_with_subevents` (bool) — opt-in for detail
+  pages whose JSON-LD uses a parent wrapper `Event` with a recurring `subEvent`
+  list. Keeps only child event instances so the first occurrence is not duplicated
+  by both the parent and the first child.
 - `comedy_filter` (bool) — for **mixed-use venues** (a music bar / arts space / multi-use
   theater whose calendar is mostly non-comedy). When `true`, isolates comedy via the
   shared `select_comedy_titles` heuristic (the same one etix/ticketleap use): an event is
@@ -1655,6 +1662,13 @@ live music plus a weekly "Comedy Open Mic". Onboarded with `scraper_key='json_ld
 `source_url='https://colesbarchicago.com/'`, and
 `metadata={"detail_fetch": {"enabled": true, "url_path_prefix": "/shows/"}, "comedy_filter": true}`
 → scrapes only the comedy open mics.
+
+**WordPress feed-detail example — The PIT (TASK-3566):** the `/events/` page is
+too broad for safe link crawling, but `/events/feed/` is a WordPress RSS feed of
+event detail links. Each detail page embeds schema.org `Event` JSON-LD; recurring
+shows put individual performances in `subEvent`. Onboarded with
+`scraper_key='json_ld'`, `source_url='https://thepit-nyc.com/events/feed/'`, and
+`metadata={"detail_fetch": {"feed_item_links": true, "set_same_as_to_detail_url": true, "skip_parent_events_with_subevents": true}}`.
 
 **City-arts multi-venue example — The Hive Black Box Theater / Pompano Beach Arts (TASK-3360):**
 a municipal performing-arts network (`pompanobeacharts.org`) whose single `/events` page lists

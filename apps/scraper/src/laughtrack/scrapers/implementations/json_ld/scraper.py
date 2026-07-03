@@ -17,6 +17,7 @@ Clean single-responsibility architecture:
 import asyncio
 from typing import Any, Optional, TYPE_CHECKING
 from urllib.parse import urljoin, urlparse, urlunparse
+import xml.etree.ElementTree as ET
 
 from bs4 import BeautifulSoup
 from laughtrack.core.entities.club.model import Club
@@ -37,7 +38,6 @@ from .transformer import JsonLdTransformer
 if TYPE_CHECKING:
     # Only imported for type hints to avoid heavy imports at module import time
     from .data import JsonLdPageData
-    from .extractor import EventExtractor  # noqa: F401
 
 
 # Per-host RPS override applied to each json_ld venue's own scraping domain.
@@ -173,6 +173,9 @@ class JsonLdScraper(BaseScraper):
                 html_content,
                 same_as_override=same_as_override,
                 base_url=normalized_url,
+                skip_parent_events_with_subevents=bool(
+                    detail_fetch and detail_fetch.get("skip_parent_events_with_subevents")
+                ),
             )
 
             if not event_list:
@@ -295,15 +298,18 @@ class JsonLdScraper(BaseScraper):
                 )
                 continue
 
-            detail_urls.update(
-                self._extract_json_ld_detail_urls(
-                    html,
-                    page_url,
-                    object_type=object_type,
-                    url_path=url_path,
+            if detail_fetch.get("feed_item_links"):
+                detail_urls.update(self._extract_feed_item_urls(html, page_url, detail_fetch))
+            else:
+                detail_urls.update(
+                    self._extract_json_ld_detail_urls(
+                        html,
+                        page_url,
+                        object_type=object_type,
+                        url_path=url_path,
+                    )
                 )
-            )
-            detail_urls.update(self._extract_anchor_detail_urls(html, page_url, detail_fetch))
+                detail_urls.update(self._extract_anchor_detail_urls(html, page_url, detail_fetch))
 
             if not self._pagination_enabled(detail_fetch):
                 continue
@@ -338,6 +344,38 @@ class JsonLdScraper(BaseScraper):
                 field_path=url_path,
             )
         }
+
+    def _extract_feed_item_urls(
+        self,
+        feed_xml: str,
+        base_url: str,
+        detail_fetch: dict[str, Any],
+    ) -> set[str]:
+        if not detail_fetch.get("feed_item_links"):
+            return set()
+
+        try:
+            root = ET.fromstring(feed_xml)
+        except ET.ParseError as e:
+            Logger.warn(
+                f"{self._log_prefix}: Failed to parse detail feed {base_url}: {e}",
+                self.logger_context,
+            )
+            return set()
+
+        urls: set[str] = set()
+        for item in root.findall(".//item"):
+            link = item.findtext("link")
+            if link:
+                urls.add(urljoin(base_url, link.strip()))
+
+        for entry in root.findall(".//{http://www.w3.org/2005/Atom}entry"):
+            link = entry.find("{http://www.w3.org/2005/Atom}link[@href]")
+            href = link.get("href") if link is not None else None
+            if href:
+                urls.add(urljoin(base_url, href.strip()))
+
+        return urls
 
     def _extract_anchor_detail_urls(
         self,

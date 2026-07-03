@@ -22,6 +22,7 @@ class EventExtractor:
         *,
         same_as_override: str | None = None,
         base_url: str | None = None,
+        skip_parent_events_with_subevents: bool = False,
     ) -> List[JsonLdEvent]:
         """
         Extract JSON-LD data from HTML content.
@@ -69,6 +70,7 @@ class EventExtractor:
             json_objects,
             same_as_override=same_as_override,
             base_url=base_url,
+            skip_parent_events_with_subevents=skip_parent_events_with_subevents,
         )
         if not microdata_events:
             return json_ld_events
@@ -227,7 +229,12 @@ class EventExtractor:
         return isinstance(raw_type, str) and raw_type.lower() == expected
 
     @staticmethod
-    def _extract_events_recursively(obj, processed_keys=None):
+    def _extract_events_recursively(
+        obj,
+        processed_keys=None,
+        *,
+        skip_parent_events_with_subevents: bool = False,
+    ):
         """
         Recursively extract event dicts from a JSON-LD object or structure.
 
@@ -244,7 +251,13 @@ class EventExtractor:
         events = []
         if isinstance(obj, list):
             for item in obj:
-                events.extend(EventExtractor._extract_events_recursively(item, processed_keys))
+                events.extend(
+                    EventExtractor._extract_events_recursively(
+                        item,
+                        processed_keys,
+                        skip_parent_events_with_subevents=skip_parent_events_with_subevents,
+                    )
+                )
         elif isinstance(obj, dict):
             # If this dict looks like an event, add it (case-insensitive)
             event_type = obj.get("@type", "")
@@ -253,20 +266,34 @@ class EventExtractor:
             event_type_lower = event_type.lower()
 
             # Only match actual event types, not event-containing words
-            if event_type_lower in ("event", "comedyevent") or (
+            is_event = event_type_lower in ("event", "comedyevent") or (
                 "event" in event_type_lower and event_type_lower not in ("eventseries", "eventlisting", "eventschedule")
-            ):
+            )
+            has_subevents = any(key in obj for key in ("subEvent", "subEvents"))
+            if is_event and not (skip_parent_events_with_subevents and has_subevents):
                 events.append(obj)
 
             # Special handling for Events key to avoid double-processing
             if "Events" in obj:
-                events.extend(EventExtractor._extract_events_recursively(obj["Events"], processed_keys))
+                events.extend(
+                    EventExtractor._extract_events_recursively(
+                        obj["Events"],
+                        processed_keys,
+                        skip_parent_events_with_subevents=skip_parent_events_with_subevents,
+                    )
+                )
                 processed_keys.add("Events")
 
             # Check other values, but skip already processed keys
             for key, value in obj.items():
                 if key not in processed_keys and isinstance(value, (dict, list)):
-                    events.extend(EventExtractor._extract_events_recursively(value, processed_keys))
+                    events.extend(
+                        EventExtractor._extract_events_recursively(
+                            value,
+                            processed_keys,
+                            skip_parent_events_with_subevents=skip_parent_events_with_subevents,
+                        )
+                    )
 
         return events
 
@@ -276,6 +303,7 @@ class EventExtractor:
         *,
         same_as_override: str | None = None,
         base_url: str | None = None,
+        skip_parent_events_with_subevents: bool = False,
     ) -> List[JsonLdEvent]:
         """
         Extract events from already-parsed JSON-LD data using recursive logic.
@@ -289,7 +317,12 @@ class EventExtractor:
         """
         all_events = []
         for item in json_ld_data:
-            all_events.extend(EventExtractor._extract_events_recursively(item))
+            all_events.extend(
+                EventExtractor._extract_events_recursively(
+                    item,
+                    skip_parent_events_with_subevents=skip_parent_events_with_subevents,
+                )
+            )
 
         return EventExtractor._events_from_dicts(
             all_events,

@@ -90,6 +90,10 @@
 --   bundle (`/venues.json` -> `/venues/{id}_events.json`):
 --   https://www.flophousecomedy.com/
 --   Live validation on 2026-07-03 returned 57 future shows.
+-- * The PIT — WordPress events RSS item links to detail pages with schema.org
+--   Event/subEvent JSON-LD, scraped by `json_ld` detail-fetch feed mode:
+--   https://thepit-nyc.com/events/feed/
+--   Live validation on 2026-07-03 returned 32 future shows.
 --
 -- After this migration is deployed, run:
 --   cd apps/scraper && make scrape-club CLUB='The N Crowd'
@@ -113,6 +117,7 @@
 --   cd apps/scraper && make scrape-club CLUB='Comedy Cabaret Comedy Club'
 --   cd apps/scraper && make scrape-club CLUB='Rhino Comedy'
 --   cd apps/scraper && make scrape-club CLUB='Flop House Comedy Club'
+--   cd apps/scraper && make scrape-club CLUB='The PIT'
 
 INSERT INTO clubs (
     name, address, website, city, state, zip_code, phone_number,
@@ -1048,6 +1053,55 @@ SELECT
     NOW()
 FROM clubs c
 WHERE (c.google_place_id = 'ChIJ06Ugn1JZwokRmkBoiIVB5_M' OR (c.name = 'Flop House Comedy Club' AND c.city = 'Brooklyn' AND c.state = 'NY'))
+  AND NOT EXISTS (
+      SELECT 1 FROM scraping_sources s
+      WHERE s.club_id = c.id
+        AND s.platform = 'custom'::"ScrapingPlatform"
+        AND s.priority = 0
+  );
+
+INSERT INTO clubs (
+    name, address, website, city, state, zip_code, phone_number,
+    latitude, longitude, timezone, country, club_type, google_place_id,
+    visible, status
+)
+SELECT
+    'The PIT',
+    '154 W 29th St, New York, NY 10001, USA',
+    'https://thepit-nyc.com/',
+    'New York', 'NY', '10001', '',
+    40.7473719, -73.9923047,
+    'America/New_York', 'US', 'club',
+    'ChIJG3e1NKdZwokR26WFFB6Lx7w',
+    TRUE, 'active'
+WHERE NOT EXISTS (
+    SELECT 1 FROM clubs
+    WHERE google_place_id = 'ChIJG3e1NKdZwokR26WFFB6Lx7w'
+       OR (name = 'The PIT' AND city = 'New York' AND state = 'NY')
+);
+
+INSERT INTO scraping_sources (
+    club_id, platform, scraper_key, source_url,
+    enabled, priority, metadata, created_at, updated_at
+)
+SELECT
+    c.id,
+    'custom'::"ScrapingPlatform",
+    'json_ld',
+    'https://thepit-nyc.com/events/feed/',
+    TRUE,
+    0,
+    '{
+        "detail_fetch": {
+            "feed_item_links": true,
+            "set_same_as_to_detail_url": true,
+            "skip_parent_events_with_subevents": true
+        }
+    }'::jsonb,
+    NOW(),
+    NOW()
+FROM clubs c
+WHERE (c.google_place_id = 'ChIJG3e1NKdZwokR26WFFB6Lx7w' OR (c.name = 'The PIT' AND c.city = 'New York' AND c.state = 'NY'))
   AND NOT EXISTS (
       SELECT 1 FROM scraping_sources s
       WHERE s.club_id = c.id

@@ -32,6 +32,7 @@ adds these validated venues:
 | Comedy Cabaret Comedy Club | `ChIJgywfGpgCxIkRvQVpKm08aZg` | `patronbase_rss` | `https://us.patronbase.com/_ComedyCabaret/Productions/RSS` | 5 future shows |
 | Rhino Comedy | `ChIJh1wR5JTgwokRtRdGI6Eryto` | `squarespace` products mode | `https://www.rhinoimprov.com/tickets`, `collection_type=products`, exclude class/workshop/closed notices | 18 future shows |
 | Flop House Comedy Club | `ChIJ06Ugn1JZwokRmkBoiIVB5_M` | `flop_house_json` | `https://www.flophousecomedy.com/`, venue feeds from `/venues.json` | 57 future shows |
+| The PIT | `ChIJG3e1NKdZwokR26WFFB6Lx7w` | `json_ld` detail-fetch feed mode | `https://thepit-nyc.com/events/feed/`, RSS item links to detail-page Event/subEvent JSON-LD | 32 future shows |
 
 Validation was done on 2026-07-02 by instantiating the same generic scraper
 classes that `make scrape-club` will use after the migration rows exist. The
@@ -59,6 +60,7 @@ cd apps/scraper && make scrape-club CLUB='The Second City New York'
 cd apps/scraper && make scrape-club CLUB='Comedy Cabaret Comedy Club'
 cd apps/scraper && make scrape-club CLUB='Rhino Comedy'
 cd apps/scraper && make scrape-club CLUB='Flop House Comedy Club'
+cd apps/scraper && make scrape-club CLUB='The PIT'
 ```
 
 ## Already Covered / Duplicate-Like
@@ -159,6 +161,7 @@ not match the existing generic scraper contract during live validation:
 | Sesh Comedy | custom FullCalendar feed, `https://www.seshcomedy.com/feed.php` | TASK-3566 added the generic `fullcalendar_json` scraper for this feed shape; live validation on 2026-07-03 returned 42 future shows, so the venue is onboarded in the migration. |
 | Flop House Comedy Club | JS shell / server HTML, `https://www.flophousecomedy.com/` | Server HTML is a JS shell, but TASK-3566 found stable app JSON files at `/venues.json` and `/venues/{id}_events.json`, then added `flop_house_json`. Live validation returned 57 future shows across Williamsburg and East Village venue feeds, so the club is onboarded in the migration. |
 | Rhino Comedy | `squarespace` products mode, `https://www.rhinoimprov.com/tickets` | TASK-3566 expanded products-mode parsing for ordinal/yearless date slugs and bare title times, plus excluded class/workshop/closed notices. Live validation returned 18 future shows, so the venue is onboarded in the migration. |
+| The PIT | `json_ld` detail-fetch feed mode, `https://thepit-nyc.com/events/feed/` | TASK-3566 added RSS item-link harvesting to the generic JSON-LD detail-fetch path. The feed links to WordPress detail pages with Event/subEvent JSON-LD; metadata skips parent wrapper events to avoid duplicate recurrence rows. Live validation returned 32 future shows, so the venue is onboarded in the migration. |
 
 ## Source Extraction Required
 
@@ -166,10 +169,8 @@ These are plausible fixed venues or recurring club brands, but the existing
 generic scrapers did not produce a safe DB-only onboarding source in this task:
 follow-up scraper/source work is tracked in TASK-3566.
 
-- `The PIT` (`ChIJG3e1NKdZwokR26WFFB6Lx7w`) and `Upper East Side Comedy Club at
-  Bedford Falls NYC` (`ChIJi-qNZNtZwokRQBdBfR3dLM4`)
-  all need source extraction or scraper work before they are
-  safe to onboard.
+- `Upper East Side Comedy Club at Bedford Falls NYC` (`ChIJi-qNZNtZwokRQBdBfR3dLM4`)
+  needs source extraction or scraper work before it is safe to onboard.
 - `The Fear City Comedy Club` (`ChIJmfs0oC9bwokRvksSyYq9Cq8`) now has generic
   Squarespace source support via TASK-3566, but its live source returned 0 future
   shows on 2026-07-03 after stale-event filtering, so onboarding should wait
@@ -181,5 +182,5 @@ The remaining high-confidence candidates still need source extraction before
 they can be onboarded safely. Prioritize fixed venues with supported-source
 signals:
 
-- Fixed/promising but needs source extraction: The PIT,
-  The Fear City Comedy Club and Upper East Side Comedy Club.
+- Fixed/promising but needs source extraction: The Fear City Comedy Club and
+  Upper East Side Comedy Club.
