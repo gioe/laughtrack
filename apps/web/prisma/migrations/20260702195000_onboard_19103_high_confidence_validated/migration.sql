@@ -2,7 +2,7 @@
 -- the 19103 / 100-mile discovery sweep — TASK-3563.
 --
 -- Discovery source: Google Places primary_type=comedy_club, deduped against the
--- existing DB by place id/name/address. These three candidates were validated
+-- existing DB by place id/name/address. These candidates were validated
 -- against existing generic scrapers without adding scraper code:
 --
 -- * The N Crowd — Humanitix host page scraped by `json_ld`:
@@ -24,6 +24,9 @@
 --   without organizer-mode venue upserts:
 --   https://www.eventbrite.com
 --   Live validation on 2026-07-02 returned 23 future shows.
+-- * BATSU! — Tock business page rendered by the generic `tock` scraper:
+--   https://www.exploretock.com/batsunyc
+--   Live validation on 2026-07-02 returned 240 future shows.
 --
 -- After this migration is deployed, run:
 --   cd apps/scraper && make scrape-club CLUB='The N Crowd'
@@ -31,6 +34,7 @@
 --   cd apps/scraper && make scrape-club CLUB='Brooklyn Comedy Collective'
 --   cd apps/scraper && make scrape-club CLUB='Meadowlands Comedy Club'
 --   cd apps/scraper && make scrape-club CLUB='High Line Comedy Club'
+--   cd apps/scraper && make scrape-club CLUB='BATSU!'
 
 INSERT INTO clubs (
     name, address, website, city, state, zip_code, phone_number,
@@ -70,7 +74,9 @@ FROM clubs c
 WHERE (c.google_place_id = 'ChIJs84JlYfIxokRSi0i_-Vg82Y' OR c.name = 'The N Crowd')
   AND NOT EXISTS (
       SELECT 1 FROM scraping_sources s
-      WHERE s.club_id = c.id AND s.scraper_key = 'json_ld'
+      WHERE s.club_id = c.id
+        AND s.platform = 'custom'::"ScrapingPlatform"
+        AND s.priority = 0
   );
 
 INSERT INTO clubs (
@@ -111,7 +117,9 @@ FROM clubs c
 WHERE (c.google_place_id = 'ChIJaUIa3syxyIkRCUbHTrRQrQw' OR c.name = 'Laughing Stock Comedy Club')
   AND NOT EXISTS (
       SELECT 1 FROM scraping_sources s
-      WHERE s.club_id = c.id AND s.scraper_key = 'json_ld'
+      WHERE s.club_id = c.id
+        AND s.platform = 'custom'::"ScrapingPlatform"
+        AND s.priority = 0
   );
 
 INSERT INTO clubs (
@@ -152,7 +160,9 @@ FROM clubs c
 WHERE (c.google_place_id = 'ChIJVVWIvFlZwokRCb91vYtPZjA' OR c.name = 'Brooklyn Comedy Collective')
   AND NOT EXISTS (
       SELECT 1 FROM scraping_sources s
-      WHERE s.club_id = c.id AND s.scraper_key = 'squarespace'
+      WHERE s.club_id = c.id
+        AND s.platform = 'custom'::"ScrapingPlatform"
+        AND s.priority = 0
   );
 
 INSERT INTO clubs (
@@ -193,7 +203,9 @@ FROM clubs c
 WHERE (c.google_place_id = 'ChIJXdCbldpXwokRfoD0jom327Q' OR c.name = 'Meadowlands Comedy Club')
   AND NOT EXISTS (
       SELECT 1 FROM scraping_sources s
-      WHERE s.club_id = c.id AND s.scraper_key = 'json_ld'
+      WHERE s.club_id = c.id
+        AND s.platform = 'custom'::"ScrapingPlatform"
+        AND s.priority = 0
   );
 
 INSERT INTO clubs (
@@ -235,12 +247,80 @@ FROM clubs c
 WHERE (c.google_place_id = 'ChIJXfsikHhZwokRxr1XAbft_X8' OR c.name = 'High Line Comedy Club')
   AND NOT EXISTS (
       SELECT 1 FROM scraping_sources s
-      WHERE s.club_id = c.id AND s.scraper_key = 'eventbrite'
+      WHERE s.club_id = c.id
+        AND s.platform = 'eventbrite'::"ScrapingPlatform"
+        AND s.priority = 0
+  );
+
+INSERT INTO clubs (
+    name, address, website, city, state, zip_code, phone_number,
+    latitude, longitude, timezone, country, club_type, google_place_id,
+    visible, status
+)
+SELECT
+    'BATSU!',
+    '67 1st Ave, New York, NY 10003, USA',
+    'https://batsulive.com/',
+    'New York', 'NY', '10003', '',
+    40.7253441, -73.9872209,
+    'America/New_York', 'US', 'club',
+    'ChIJ4QKVd5xZwokRKNIH6nKJPAE',
+    TRUE, 'active'
+WHERE NOT EXISTS (
+    SELECT 1 FROM clubs
+    WHERE google_place_id = 'ChIJ4QKVd5xZwokRKNIH6nKJPAE'
+       OR name = 'BATSU!'
+);
+
+INSERT INTO scraping_sources (
+    club_id, platform, scraper_key, source_url,
+    enabled, priority, metadata, created_at, updated_at
+)
+SELECT
+    c.id,
+    'custom'::"ScrapingPlatform",
+    'tock',
+    'https://www.exploretock.com/batsunyc',
+    TRUE,
+    0,
+    '{}'::jsonb,
+    NOW(),
+    NOW()
+FROM clubs c
+WHERE (c.google_place_id = 'ChIJ4QKVd5xZwokRKNIH6nKJPAE' OR c.name = 'BATSU!')
+  AND NOT EXISTS (
+      SELECT 1 FROM scraping_sources s
+      WHERE s.club_id = c.id
+        AND s.platform = 'custom'::"ScrapingPlatform"
+        AND s.priority = 0
   );
 
 -- Clear false positives from the same high-confidence Places bucket. These are
--- not fixed public comedy venues with venue-owned calendars, so they are
--- excluded from future discovery retries via venue_deny_list.
+-- not fixed public comedy venues with venue-owned calendars, so they are kept
+-- as hidden non-comedy club rows with no scraping_sources and excluded from
+-- future discovery retries via venue_deny_list.
+INSERT INTO clubs (
+    name, address, website, city, state, zip_code,
+    timezone, country, club_type, google_place_id, visible, status
+)
+SELECT *
+FROM (
+    VALUES
+        ('Raise your dongers', '352 Fox Pointe Dr, Dover, DE 19904, USA', '', 'Dover', 'DE', '19904', 'America/New_York', 'US', 'non_comedy', 'ChIJmTPfAx17x4kR5vWbRtXqdB8', FALSE, 'active'),
+        ('Tony''s Crescenzo''s strange humor (podcast on Spotify)', '83 5th St, Frederica, DE 19946, USA', '', 'Frederica', 'DE', '19946', 'America/New_York', 'US', 'non_comedy', 'ChIJ1UPf_OCduIkRFoN2BVfsXzU', FALSE, 'active'),
+        ('Comedian Ala Bama', '3905 Dorchester Rd, Gwynn Oak, MD 21207, USA', '', 'Gwynn Oak', 'MD', '21207', 'America/New_York', 'US', 'non_comedy', 'ChIJ58EKNDIbyIkR7QZZSFUaYSM', FALSE, 'active'),
+        ('DangItJared', '123 Main St, Berwick, PA 18603, USA', '', 'Berwick', 'PA', '18603', 'America/New_York', 'US', 'non_comedy', 'ChIJ_Ug6nRufxYkRQpLUGjWlUJc', FALSE, 'active'),
+        ('Chip Ambrogio Comedy', '600 Westwood Ave, River Vale, NJ 07675, USA', 'https://www.chipambrogiocomedy.com/', 'River Vale', 'NJ', '07675', 'America/New_York', 'US', 'non_comedy', 'ChIJHxc11BPvwokRJnO9QrOJfHE', FALSE, 'active'),
+        ('FUNY Stand Up Comedy Classes - The New York Comedy School', 'The Green Room, 201 W 75th St, New York, NY 10023, USA', 'https://funystandup.com/', 'New York', 'NY', '10023', 'America/New_York', 'US', 'non_comedy', 'ChIJD3c4lKVZwokRjdZJoUEQHj8', FALSE, 'active'),
+        ('Popped Collar Comedy - Free Show in Bushwick, Brooklyn', '1178 Bushwick Ave, Brooklyn, NY 11221, USA', 'https://www.danwickes.com/popped-collar-comedy-show/', 'Brooklyn', 'NY', '11221', 'America/New_York', 'US', 'non_comedy', 'ChIJ2QNRX-ddwokRj-YibDeFnoM', FALSE, 'active'),
+        ('Two in the Bush: A Standup Comedy Showcase', '3569 Broadway, New York, NY 10031, USA', 'https://linktr.ee/twointhebush', 'New York', 'NY', '10031', 'America/New_York', 'US', 'non_comedy', 'ChIJFcAVWzz3wokRw7A5-4bKHNs', FALSE, 'active')
+) AS denied(name, address, website, city, state, zip_code, timezone, country, club_type, google_place_id, visible, status)
+WHERE NOT EXISTS (
+    SELECT 1 FROM clubs c
+    WHERE c.google_place_id = denied.google_place_id
+       OR c.name = denied.name
+);
+
 INSERT INTO venue_deny_list (
     google_place_id, name, reason, google_primary_type, evidence, added_by, denied_at
 )

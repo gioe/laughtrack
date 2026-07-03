@@ -16,6 +16,7 @@ adds these validated venues:
 | Brooklyn Comedy Collective | `ChIJVVWIvFlZwokRCb91vYtPZjA` | `squarespace` | `https://www.brooklyncomedy.com/api/open/GetItemsByMonth?collectionId=5a94518324a69489a755b5d9` | 101 future shows |
 | Meadowlands Comedy Club | `ChIJXdCbldpXwokRfoD0jom327Q` | `json_ld` detail fetch | `https://meadowlandscomedyclub.com/` with `url_path_prefix=/event/` | 2 future shows |
 | High Line Comedy Club | `ChIJXfsikHhZwokRxr1XAbft_X8` | `eventbrite` | `https://www.eventbrite.com`, eventbrite id `91898788783` | 23 future shows |
+| BATSU! | `ChIJ4QKVd5xZwokRKNIH6nKJPAE` | `tock` | `https://www.exploretock.com/batsunyc` | 240 future shows |
 
 Validation was done on 2026-07-02 by instantiating the same generic scraper
 classes that `make scrape-club` will use after the migration rows exist. The
@@ -27,6 +28,7 @@ cd apps/scraper && make scrape-club CLUB='Laughing Stock Comedy Club'
 cd apps/scraper && make scrape-club CLUB='Brooklyn Comedy Collective'
 cd apps/scraper && make scrape-club CLUB='Meadowlands Comedy Club'
 cd apps/scraper && make scrape-club CLUB='High Line Comedy Club'
+cd apps/scraper && make scrape-club CLUB='BATSU!'
 ```
 
 ## Already Covered / Duplicate-Like
@@ -38,8 +40,9 @@ cd apps/scraper && make scrape-club CLUB='High Line Comedy Club'
 ## Deny-Listed In Migration
 
 These records are clear non-venue false positives from the Google Places bucket.
-The migration inserts `venue_deny_list` rows so discovery does not re-file them
-as comedy-club onboarding candidates.
+The migration inserts hidden `clubs` rows with `club_type=non_comedy` and no
+`scraping_sources`, plus `venue_deny_list` rows so discovery does not re-file
+them as comedy-club onboarding candidates.
 
 | Candidate | Google place id | Classification |
 | --- | --- | --- |
@@ -77,6 +80,8 @@ not match the existing generic scraper contract during live validation:
 | ComedySportz NYC | `wix_events`, site root without compId | Wix Events API returned 400 / 0 events. |
 | Top Secret Comedy Club | `json_ld` detail fetch over `/events-listings/` links | 0 JSON-LD events. |
 | The PIT | `json_ld` detail fetch over `/events/` links | Timed out while fetching many detail pages; not safe to onboard via generic JSON-LD without a narrower source or scraper. |
+| Upright Citizens Brigade Theatre | `ucb`, `https://ucbcomedy.com/shows/` with likely NYC location slugs | 0 events for `ny`, `nyc`, `new-york`, `east-village`, `ucb-new-york`, `ucb-nyc`, `ny-theatre`, `new-york-theatre`, and `ucb-theatre-ny`; needs source extraction before onboarding. |
+| Laughing Buddha Comedy | `ticket_tailor`, `https://www.tickettailor.com/events/laughingbuddhacomedy/` | 38 parsed events, but the account mixes classes and offsite shows including New York Comedy Club; not a clean single-venue source without additional filtering. |
 
 ## Needs Follow-Up Triage
 
@@ -86,14 +91,14 @@ signals, then deny-list obvious non-venue/person/podcast records:
 
 - Fixed/promising but needs source extraction: The Comedy Works, Give A Hoot
   Comedy Club NJ, The Backroom LIVE, Captain Kirk's
-  Comedy Lounge, BATSU!, The PIT, Second City New York,
+  Comedy Lounge, The PIT, Second City New York,
   Best Comedy Tickets, Village Underground, Fat Black Pussycat, UCB Theatre,
   and the Looney Bin records.
 - Likely producer/event-series rather than fixed venue: Comic Cure / South
   Jersey Comedy Club variants, Main Line Laughs, Case Comedy, Kings Highway
   Comedy, Comedy Explosion, Die Laughing, Cool J's AfterDARK, TravLee Comedy,
-  Poconos Underground Comedy, Airplane Mode, Punching Bag Comedy, Popped Collar
-  Comedy, Expired Milk Comedy variants, Laughing Lassi Comedy, Living Room
-  Laughs, Two in the Bush, Poe's Comedy Cabaret Baltimore, and Rhino Comedy.
+  Poconos Underground Comedy, Airplane Mode, Punching Bag Comedy, Expired Milk
+  Comedy variants, Laughing Lassi Comedy, Living Room Laughs, Poe's Comedy
+  Cabaret Baltimore, and Rhino Comedy.
 - Likely deny-list/non-venue/person records still needing confirmation: Funny
   By The Pound Comedy Cafe if the discovered website remains a 404.
