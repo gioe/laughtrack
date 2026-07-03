@@ -410,6 +410,16 @@ class TestGetComediansFromShowNamesHappyPath:
         assert second_result == {}
         h.execute_batch_operation.assert_called_once()
 
+    def test_clear_show_name_comedian_cache_removes_cached_matches(self):
+        h = _make_lineup_handler()
+        h._show_name_comedian_rows_cache = {
+            "Alice Smith Live": [{"show_name": "Alice Smith Live", "name": "Alice Smith"}]
+        }
+
+        h.clear_show_name_comedian_cache()
+
+        assert h._show_name_comedian_rows_cache == {}
+
     def test_filters_generic_fragment_matches_from_show_titles(self):
         h = _make_lineup_handler()
         h.execute_batch_operation.return_value = [
@@ -540,6 +550,37 @@ class TestUpdateShowsAndRelatedCallsLineup:
                 assert result_shows == updated, "_update_shows_and_related must return the updated shows list"
                 assert comedians_inserted == 3
                 assert lineup_items_added == 7
+
+    def test_update_show_lineups_clears_show_name_cache_after_comedian_insert(self):
+        h = _make_show_handler()
+        comedian = _make_comedian_stub("Alice Smith", "uuid-alice")
+        show = SimpleNamespace(
+            id=1,
+            name="Alice Smith Live",
+            lineup=[comedian],
+            club_id=10,
+        )
+
+        h.lineup_handler.get_lineup.return_value = {}
+        h.lineup_handler.get_comedians_from_show_names.return_value = {}
+        h.lineup_handler.batch_update_lineups.return_value = (1, 0)
+        h.lineup_handler.clear_show_name_comedian_cache = MagicMock()
+        h.comedian_handler._filter_denied_comedians.return_value = [comedian]
+        h.comedian_handler._filter_false_positive_comedians.return_value = [comedian]
+        h.comedian_handler.insert_comedians.return_value = [{"uuid": "uuid-alice"}]
+        h.comedian_handler.update_comedian_popularity = MagicMock()
+        h.calculate_and_update_popularity = MagicMock()
+
+        with (
+            patch.object(h, "_process_comedian_additions"),
+            patch.object(h, "_seed_headliners_from_empty_lineup_titles"),
+            patch.object(h, "_expand_multi_comedian_lineups"),
+            patch.object(_show_handler_mod.ShowUtils, "collect_comedian_uuids", return_value=["uuid-alice"]),
+        ):
+            result = h.update_show_lineups([show])
+
+        assert result == (1, 1)
+        h.lineup_handler.clear_show_name_comedian_cache.assert_called_once_with()
 
 
 # ---------------------------------------------------------------------------

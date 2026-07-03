@@ -81,6 +81,12 @@ class LineupHandler(BaseDatabaseHandler[LineupItem]):
             self._show_name_comedian_rows_cache = cache
         return cache
 
+    def clear_show_name_comedian_cache(self) -> None:
+        """Clear cached title-derived comedian matches after comedian rows change."""
+        cache = getattr(self, "_show_name_comedian_rows_cache", None)
+        if cache is not None:
+            cache.clear()
+
     def get_entity_name(self) -> str:
         """Return the entity name for logging purposes."""
         return "lineup_item"

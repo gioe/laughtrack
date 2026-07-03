@@ -920,6 +920,8 @@ class ShowHandler(BaseDatabaseHandler[Show]):
 
                 inserted_rows = self.comedian_handler.insert_comedians(fp_allowed, pre_filtered=True) if fp_allowed else []
                 comedians_inserted = len(inserted_rows)
+                if comedians_inserted:
+                    self.lineup_handler.clear_show_name_comedian_cache()
 
                 # NOTE: comedian image sourcing is intentionally NOT done here.
                 # It is a separate, out-of-band responsibility — the standalone
