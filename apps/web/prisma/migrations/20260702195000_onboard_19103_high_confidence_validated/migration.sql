@@ -48,6 +48,10 @@
 --   configured in single-club mode:
 --   https://www.eventbrite.com
 --   Live validation on 2026-07-02 returned 25 future shows.
+-- * The Comedy Works — TicketSpice form scraped by the generic
+--   `ticketspice` scraper:
+--   https://comedyworksbristol.ticketspice.com/comedyweekendlaughsjuly10-11
+--   Live validation on 2026-07-02 returned 1 future show.
 --
 -- After this migration is deployed, run:
 --   cd apps/scraper && make scrape-club CLUB='The N Crowd'
@@ -61,6 +65,7 @@
 --   cd apps/scraper && make scrape-club CLUB='Captain Kirk''s Comedy Lounge'
 --   cd apps/scraper && make scrape-club CLUB='Sheba''s Speakeasy Comedy Club'
 --   cd apps/scraper && make scrape-club CLUB='East Village Stand Up Comedy'
+--   cd apps/scraper && make scrape-club CLUB='The Comedy Works'
 
 INSERT INTO clubs (
     name, address, website, city, state, zip_code, phone_number,
@@ -536,6 +541,49 @@ WHERE (c.google_place_id = 'ChIJfWiS_xVZwokRwizGl3R3AME' OR c.name = 'East Villa
       SELECT 1 FROM scraping_sources s
       WHERE s.club_id = c.id
         AND s.platform = 'eventbrite'::"ScrapingPlatform"
+        AND s.priority = 0
+  );
+
+INSERT INTO clubs (
+    name, address, website, city, state, zip_code, phone_number,
+    latitude, longitude, timezone, country, club_type, google_place_id,
+    visible, status
+)
+SELECT
+    'The Comedy Works',
+    '1320 Newport Rd, Bristol, PA 19007, USA',
+    'https://comedyworksbristol.com/',
+    'Bristol', 'PA', '19007', '(215) 741-1661',
+    40.1047222, -74.8911111,
+    'America/New_York', 'US', 'club',
+    'ChIJ2WY0G-pNwYkRSA9-Mu25f24',
+    TRUE, 'active'
+WHERE NOT EXISTS (
+    SELECT 1 FROM clubs
+    WHERE google_place_id = 'ChIJ2WY0G-pNwYkRSA9-Mu25f24'
+       OR (name = 'The Comedy Works' AND city = 'Bristol' AND state = 'PA')
+);
+
+INSERT INTO scraping_sources (
+    club_id, platform, scraper_key, source_url,
+    enabled, priority, metadata, created_at, updated_at
+)
+SELECT
+    c.id,
+    'custom'::"ScrapingPlatform",
+    'ticketspice',
+    'https://comedyworksbristol.ticketspice.com/comedyweekendlaughsjuly10-11',
+    TRUE,
+    0,
+    '{}'::jsonb,
+    NOW(),
+    NOW()
+FROM clubs c
+WHERE (c.google_place_id = 'ChIJ2WY0G-pNwYkRSA9-Mu25f24' OR (c.name = 'The Comedy Works' AND c.city = 'Bristol' AND c.state = 'PA'))
+  AND NOT EXISTS (
+      SELECT 1 FROM scraping_sources s
+      WHERE s.club_id = c.id
+        AND s.platform = 'custom'::"ScrapingPlatform"
         AND s.priority = 0
   );
 

@@ -22,6 +22,7 @@ adds these validated venues:
 | Captain Kirk's Comedy Lounge | `ChIJvQQs6nlbwokR8Y4g0f5pXZA` | `eventbrite` | `https://www.eventbrite.com`, eventbrite id `58553141833` | 4 future shows |
 | Sheba's Speakeasy Comedy Club | `ChIJFzCDZx1ZwokR0Xbe8D5v1jQ` | `eventbrite` | `https://www.eventbrite.com`, eventbrite id `77390385933` | 38 future shows |
 | East Village Stand Up Comedy | `ChIJfWiS_xVZwokRwizGl3R3AME` | `eventbrite` | `https://www.eventbrite.com`, eventbrite id `10025720196` | 25 future shows |
+| The Comedy Works | `ChIJ2WY0G-pNwYkRSA9-Mu25f24` | `ticketspice` | `https://comedyworksbristol.ticketspice.com/comedyweekendlaughsjuly10-11` | 1 future show |
 
 Validation was done on 2026-07-02 by instantiating the same generic scraper
 classes that `make scrape-club` will use after the migration rows exist. The
@@ -39,6 +40,7 @@ cd apps/scraper && make scrape-club CLUB='Colonial Comedy'
 cd apps/scraper && make scrape-club CLUB="Captain Kirk's Comedy Lounge"
 cd apps/scraper && make scrape-club CLUB="Sheba's Speakeasy Comedy Club"
 cd apps/scraper && make scrape-club CLUB='East Village Stand Up Comedy'
+cd apps/scraper && make scrape-club CLUB='The Comedy Works'
 ```
 
 ## Already Covered / Duplicate-Like
@@ -109,8 +111,8 @@ The remaining high-confidence candidates still need classification as onboarded,
 already covered, or deny-listed. Prioritize fixed venues with supported-source
 signals, then deny-list obvious non-venue/person/podcast records:
 
-- Fixed/promising but needs source extraction: The Comedy Works,
-  The Backroom LIVE, The PIT, Second City New York,
+- Fixed/promising but needs source extraction: The Backroom LIVE,
+  The PIT, Second City New York,
   UCB Theatre, The Fear City Comedy Club, and the Looney Bin records.
 - Likely producer/event-series rather than fixed venue: Comic Cure / South
   Jersey Comedy Club variants, Main Line Laughs, Case Comedy, Kings Highway
