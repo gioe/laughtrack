@@ -70,7 +70,7 @@ describe("GET /api/cron/cleanup-ticket-purchase-click-events", () => {
     });
 
     it("runs the retention helper and reports the deleted row count", async () => {
-        mockQueryRaw.mockResolvedValue([{ deleted_count: 7n }]);
+        mockQueryRaw.mockResolvedValue([{ deleted_count: BigInt(7) }]);
 
         const res = await GET(
             makeRequest({ authorization: "Bearer test-secret-value" }),
