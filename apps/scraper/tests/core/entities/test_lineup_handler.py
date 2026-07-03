@@ -357,6 +357,59 @@ class TestGetComediansFromShowNamesHappyPath:
             "Godfrey": [SimpleNamespace(name="Godfrey", uuid="uuid-godfrey")]
         }
 
+    def test_caches_repeated_and_overlapping_show_name_batches(self):
+        h = _make_lineup_handler()
+        h.execute_batch_operation.side_effect = [
+            [
+                {
+                    "show_name": "Alice Smith Live",
+                    "name": "Alice Smith",
+                    "uuid": "uuid-alice",
+                }
+            ],
+            [
+                {
+                    "show_name": "Bob Jones Live",
+                    "name": "Bob Jones",
+                    "uuid": "uuid-bob",
+                }
+            ],
+        ]
+
+        def _fake_from_db_row(row):
+            return SimpleNamespace(name=row["name"], uuid=row["uuid"])
+
+        with patch.object(_lineup_handler_mod.Comedian, "from_db_row", side_effect=_fake_from_db_row):
+            first_result = h.get_comedians_from_show_names([("Alice Smith Live",)])
+            second_result = h.get_comedians_from_show_names(
+                [
+                    ("Alice Smith Live",),
+                    ("Bob Jones Live",),
+                ]
+            )
+
+        assert first_result == {
+            "Alice Smith Live": [SimpleNamespace(name="Alice Smith", uuid="uuid-alice")]
+        }
+        assert second_result == {
+            "Alice Smith Live": [SimpleNamespace(name="Alice Smith", uuid="uuid-alice")],
+            "Bob Jones Live": [SimpleNamespace(name="Bob Jones", uuid="uuid-bob")],
+        }
+        assert h.execute_batch_operation.call_count == 2
+        assert h.execute_batch_operation.call_args_list[0].args[1] == [("Alice Smith Live",)]
+        assert h.execute_batch_operation.call_args_list[1].args[1] == [("Bob Jones Live",)]
+
+    def test_caches_empty_show_name_matches(self):
+        h = _make_lineup_handler()
+        h.execute_batch_operation.return_value = []
+
+        first_result = h.get_comedians_from_show_names([("Generic Showcase",)])
+        second_result = h.get_comedians_from_show_names([("Generic Showcase",)])
+
+        assert first_result == {}
+        assert second_result == {}
+        h.execute_batch_operation.assert_called_once()
+
     def test_filters_generic_fragment_matches_from_show_titles(self):
         h = _make_lineup_handler()
         h.execute_batch_operation.return_value = [

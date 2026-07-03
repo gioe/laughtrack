@@ -73,6 +73,14 @@ def _is_credible_show_name_comedian_match(show_name: str, row: dict) -> bool:
 class LineupHandler(BaseDatabaseHandler[LineupItem]):
     """Handler for lineup database operations."""
 
+    def _get_show_name_comedian_rows_cache(self) -> Dict[str, List[dict]]:
+        """Return the per-handler cache for title-derived comedian match rows."""
+        cache = getattr(self, "_show_name_comedian_rows_cache", None)
+        if cache is None:
+            cache = {}
+            self._show_name_comedian_rows_cache = cache
+        return cache
+
     def get_entity_name(self) -> str:
         """Return the entity name for logging purposes."""
         return "lineup_item"
@@ -165,33 +173,56 @@ class LineupHandler(BaseDatabaseHandler[LineupItem]):
             Dictionary mapping show names to lists of Comedian objects found in those show names
         """
         try:
-            results = self.execute_batch_operation(
-                LineupQueries.BATCH_GET_COMEDIANS_FROM_SHOW_NAME,
-                show_names,
-                template=BatchTemplateGenerator.get_single_field_template(),
-                return_results=True,
-            )
+            unique_show_names = []
+            seen_show_names = set()
+            for show_name_row in show_names:
+                if not show_name_row:
+                    continue
+                show_name = show_name_row[0]
+                if show_name in seen_show_names:
+                    continue
+                seen_show_names.add(show_name)
+                unique_show_names.append(show_name)
 
-            if not results:
+            if not unique_show_names:
                 return {}
 
+            cached_rows_by_show_name = self._get_show_name_comedian_rows_cache()
+            missing_show_names = [
+                show_name for show_name in unique_show_names if show_name not in cached_rows_by_show_name
+            ]
+
+            if missing_show_names:
+                results = self.execute_batch_operation(
+                    LineupQueries.BATCH_GET_COMEDIANS_FROM_SHOW_NAME,
+                    [(show_name,) for show_name in missing_show_names],
+                    template=BatchTemplateGenerator.get_single_field_template(),
+                    return_results=True,
+                )
+
+                rows_by_show_name = {show_name: [] for show_name in missing_show_names}
+                seen_comedian_keys_by_show_name = {}
+                for row in results or []:
+                    show_name = row["show_name"]
+                    if show_name not in rows_by_show_name:
+                        continue
+                    if not _is_credible_show_name_comedian_match(show_name, row):
+                        continue
+
+                    comedian_key = row.get("uuid") or row.get("name")
+                    seen_comedian_keys = seen_comedian_keys_by_show_name.setdefault(show_name, set())
+                    if comedian_key in seen_comedian_keys:
+                        continue
+                    seen_comedian_keys.add(comedian_key)
+                    rows_by_show_name[show_name].append(dict(row))
+
+                cached_rows_by_show_name.update(rows_by_show_name)
+
             show_comedians_map = {}
-            seen_comedian_keys_by_show_name = {}
-            for row in results:
-                show_name = row["show_name"]
-                if not _is_credible_show_name_comedian_match(show_name, row):
-                    continue
-
-                comedian_key = row.get("uuid") or row.get("name")
-                seen_comedian_keys = seen_comedian_keys_by_show_name.setdefault(show_name, set())
-                if comedian_key in seen_comedian_keys:
-                    continue
-                seen_comedian_keys.add(comedian_key)
-
-                comedian = Comedian.from_db_row(row)
-                if show_name not in show_comedians_map:
-                    show_comedians_map[show_name] = []
-                show_comedians_map[show_name].append(comedian)
+            for show_name in unique_show_names:
+                cached_rows = cached_rows_by_show_name.get(show_name, [])
+                if cached_rows:
+                    show_comedians_map[show_name] = [Comedian.from_db_row(row) for row in cached_rows]
             return show_comedians_map
         except Exception as e:
             Logger.error(f"Error getting comedians from show names: {str(e)}")
