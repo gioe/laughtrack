@@ -17,11 +17,12 @@ time. Update them when the real API schema changes.
 
 import sys
 from pathlib import Path
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 import vcr as _vcr_module
 import vcr.patch as _vcr_patch
+from curl_cffi.requests.exceptions import HTTPError as _CurlHTTPError
 from _entities_test_helpers import _load_module
 
 # aiohttp >= 3.14 removed `aiohttp.streams.AsyncStreamReaderMixin`, which
@@ -64,14 +65,20 @@ _comedian_handler_mod._SOCIAL_REQUEST_DELAY_S = 0.0
 # and tests fail if a cassette is missing or a new request is attempted.
 # ---------------------------------------------------------------------------
 #
-# HOW TO RE-RECORD CASSETTES (runbook)
-# =====================================
-# Run this procedure when Instagram or TikTok changes their API schema and
-# the cassette tests start failing with KeyError or unexpected values.
+# HOW TO RE-RECORD CASSETTES (runbook) — TikTok only
+# ===================================================
+# Applies to the TikTok cassettes only. Instagram no longer uses vcrpy: its
+# _instagram_request routes through curl_cffi (libcurl), which vcrpy cannot
+# intercept, so the Instagram tests stub curl_cffi's get() directly (see
+# _fake_ig_response / _patch_ig_get) — update those Python fixtures instead of
+# re-recording a YAML cassette when Instagram's schema changes.
+#
+# Run this procedure when TikTok changes its API schema and the cassette tests
+# start failing with KeyError or unexpected values.
 #
 # Prerequisites:
-#   - Network access to api.instagram.com and www.tiktok.com (run locally,
-#     NOT from a cloud/CI environment — both platforms block datacenter IPs).
+#   - Network access to www.tiktok.com (run locally, NOT from a cloud/CI
+#     environment — TikTok blocks datacenter IPs).
 #   - No extra credentials are required for these public endpoints, but you
 #     may need a residential IP or VPN if your network is flagged.
 #
@@ -117,26 +124,61 @@ def _make_handler() -> ComedianHandler:
 
 
 # ---------------------------------------------------------------------------
+# Instagram request stubbing.
+#
+# _instagram_request() now issues its HTTP call through curl_cffi (to spoof a
+# Chrome TLS fingerprint and route via the residential proxy). vcrpy patches
+# `requests`/`urllib3` and cannot intercept curl_cffi's libcurl transport, so
+# the Instagram tests stub curl_cffi's `get` at the module boundary instead of
+# replaying a YAML cassette. The real _instagram_request body still runs — it
+# builds the headers/URL, calls raise_for_status() and resp.json() — so these
+# tests still catch response-schema drift, exactly like the TikTok cassettes.
+# ---------------------------------------------------------------------------
+
+def _fake_ig_response(status_code: int = 200, json_body: dict = None) -> MagicMock:
+    """Build a stand-in curl_cffi response with the given status and JSON body."""
+    resp = MagicMock()
+    resp.status_code = status_code
+    if status_code >= 400:
+        resp.raise_for_status.side_effect = _CurlHTTPError(f"HTTP Error {status_code}: ")
+    else:
+        resp.raise_for_status.return_value = None
+    resp.json.return_value = {} if json_body is None else json_body
+    return resp
+
+
+def _patch_ig_get(resp: MagicMock):
+    """Patch the curl_cffi.get used inside _instagram_request to return *resp*."""
+    return patch.object(_comedian_handler_mod.cffi_requests, "get", return_value=resp)
+
+
+_IG_HAPPY_BODY = {"data": {"user": {"edge_followed_by": {"count": 150_000}}}}
+# Schema drift: Instagram renamed edge_followed_by → followers. Parser must cope.
+_IG_DRIFT_BODY = {"data": {"user": {"followers": {"count": 150_000}}}}
+
+
+# ---------------------------------------------------------------------------
 # Instagram — cassette-based tests
 # ---------------------------------------------------------------------------
 
 
 class TestInstagramCassette:
-    """Tests that let _instagram_request() execute fully, replaying cassettes.
+    """Tests that let _instagram_request() execute fully against a stubbed transport.
 
     These tests validate the complete response-parsing path:
-        requests.get() → raise_for_status() → resp.json() → key extraction
+        cffi_requests.get() → raise_for_status() → resp.json() → key extraction
 
     If Instagram's API renames ``edge_followed_by`` or changes its nesting,
-    the happy-path cassette test will fail here (not silently pass), providing
-    early warning before production data goes stale.
+    the happy-path test will fail here (not silently pass), providing early
+    warning before production data goes stale. curl_cffi is stubbed (see
+    _patch_ig_get) because vcrpy cannot intercept its libcurl transport.
     """
 
     def test_happy_path_parses_follower_count_from_cassette(self):
-        """_fetch_instagram_follower_count returns (uuid, count) from cassette."""
+        """_fetch_instagram_follower_count returns (uuid, count) from the response."""
         handler = _make_handler()
         row = {"uuid": "uuid-cassette-ig-1", "instagram_account": "@testcomedian"}
-        with _vcr.use_cassette("instagram_happy_path.yaml"):
+        with _patch_ig_get(_fake_ig_response(200, _IG_HAPPY_BODY)):
             result = handler._fetch_instagram_follower_count(row)
         assert result == ("uuid-cassette-ig-1", 150_000)
 
@@ -144,20 +186,20 @@ class TestInstagramCassette:
         """Bare account name (no @) still hits the correct URL."""
         handler = _make_handler()
         row = {"uuid": "uuid-cassette-ig-2", "instagram_account": "testcomedian"}
-        with _vcr.use_cassette("instagram_happy_path.yaml"):
+        with _patch_ig_get(_fake_ig_response(200, _IG_HAPPY_BODY)) as mock_get:
             result = handler._fetch_instagram_follower_count(row)
         assert result == ("uuid-cassette-ig-2", 150_000)
+        assert mock_get.call_args.kwargs["params"]["username"] == "testcomedian"
 
     def test_schema_drift_returns_none_not_corrupt_data(self):
         """If 'edge_followed_by' key disappears, result is None (not a crash or wrong number).
 
-        This cassette replays a response where the key has been renamed to
-        'followers'. The parser must return None rather than surfacing an
-        unhandled KeyError up the call stack.
+        The response renames the key to 'followers'. The parser must return
+        None rather than surfacing an unhandled KeyError up the call stack.
         """
         handler = _make_handler()
         row = {"uuid": "uuid-cassette-ig-3", "instagram_account": "@driftcomedian"}
-        with _vcr.use_cassette("instagram_schema_drift.yaml"):
+        with _patch_ig_get(_fake_ig_response(200, _IG_DRIFT_BODY)):
             result = handler._fetch_instagram_follower_count(row)
         assert result is None
 
@@ -165,27 +207,32 @@ class TestInstagramCassette:
         """HTTP 429 from Instagram is caught and returns None."""
         handler = _make_handler()
         row = {"uuid": "uuid-cassette-ig-4", "instagram_account": "@ratelimited"}
-        with _vcr.use_cassette("instagram_rate_limit.yaml"):
+        with _patch_ig_get(_fake_ig_response(429)):
             result = handler._fetch_instagram_follower_count(row)
         assert result is None
 
     def test_request_sends_correct_headers(self):
         """_instagram_request sends X-IG-App-ID and browser User-Agent."""
-        import requests as _requests
-
-        with _vcr.use_cassette("instagram_happy_path.yaml") as cassette:
+        with _patch_ig_get(_fake_ig_response(200, _IG_HAPPY_BODY)) as mock_get:
             ComedianHandler._instagram_request("testcomedian")
 
-        recorded_request = cassette.requests[0]
-        assert recorded_request.headers.get("X-IG-App-ID") == "936619743392459"
-        assert "Chrome" in recorded_request.headers.get("User-Agent", "")
+        headers = mock_get.call_args.kwargs["headers"]
+        assert headers.get("X-IG-App-ID") == "936619743392459"
+        assert "Chrome" in headers.get("User-Agent", "")
 
     def test_request_sends_username_as_query_param(self):
         """_instagram_request sends username as ?username= query parameter."""
-        with _vcr.use_cassette("instagram_happy_path.yaml") as cassette:
+        with _patch_ig_get(_fake_ig_response(200, _IG_HAPPY_BODY)) as mock_get:
             ComedianHandler._instagram_request("testcomedian")
 
-        assert "username=testcomedian" in cassette.requests[0].uri
+        assert mock_get.call_args.kwargs["params"]["username"] == "testcomedian"
+
+    def test_request_impersonates_chrome_via_curl_cffi(self):
+        """_instagram_request must impersonate Chrome (TLS fingerprint spoofing)."""
+        with _patch_ig_get(_fake_ig_response(200, _IG_HAPPY_BODY)) as mock_get:
+            ComedianHandler._instagram_request("testcomedian")
+
+        assert mock_get.call_args.kwargs.get("impersonate") == "chrome"
 
 
 # ---------------------------------------------------------------------------
@@ -270,12 +317,12 @@ class TestRefreshInstagramFollowersCassette:
     """
 
     def test_happy_path_calls_execute_batch_operation_with_parsed_counts(self):
-        """Full pipeline: DB row → cassette HTTP → parse → batch update."""
+        """Full pipeline: DB row → stubbed HTTP → parse → batch update."""
         handler = _make_handler()
         handler.execute_with_cursor.return_value = [
             {"uuid": "uuid-e2e-ig-1", "instagram_account": "@testcomedian"}
         ]
-        with _vcr.use_cassette("instagram_happy_path.yaml"):
+        with _patch_ig_get(_fake_ig_response(200, _IG_HAPPY_BODY)):
             result = handler.refresh_instagram_followers()
 
         assert result == 1
@@ -295,7 +342,7 @@ class TestRefreshInstagramFollowersCassette:
         handler.execute_with_cursor.return_value = [
             {"uuid": "uuid-e2e-ig-drift", "instagram_account": "@driftcomedian"}
         ]
-        with _vcr.use_cassette("instagram_schema_drift.yaml"):
+        with _patch_ig_get(_fake_ig_response(200, _IG_DRIFT_BODY)):
             result = handler.refresh_instagram_followers()
 
         assert result == 0

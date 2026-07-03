@@ -318,11 +318,23 @@ class TestInstagramFollowersSqlContract:
         assert "uuid" in sql
 
     def test_get_query_filters_null_and_empty(self):
-        sql = ComedianQueries.GET_COMEDIANS_WITH_INSTAGRAM_ACCOUNT.lower()
+        sql = ComedianQueries.GET_STALE_COMEDIANS_WITH_INSTAGRAM_ACCOUNT.lower()
         assert "is not null" in sql
         assert "instagram_account" in sql
-        sql_raw = ComedianQueries.GET_COMEDIANS_WITH_INSTAGRAM_ACCOUNT
+        sql_raw = ComedianQueries.GET_STALE_COMEDIANS_WITH_INSTAGRAM_ACCOUNT
         assert "<> ''" in sql_raw or "!= ''" in sql_raw
+
+    def test_get_query_filters_on_staleness_window(self):
+        """The stale query must gate on the refresh timestamp via a bound param."""
+        sql = ComedianQueries.GET_STALE_COMEDIANS_WITH_INSTAGRAM_ACCOUNT.lower()
+        assert "instagram_followers_refreshed_at" in sql
+        assert "%(stale_days)s" in ComedianQueries.GET_STALE_COMEDIANS_WITH_INSTAGRAM_ACCOUNT
+
+    def test_update_query_stamps_refresh_timestamp(self):
+        """UPDATE must also set instagram_followers_refreshed_at."""
+        sql = ComedianQueries.UPDATE_COMEDIAN_INSTAGRAM_FOLLOWERS.lower()
+        assert "instagram_followers_refreshed_at" in sql
+        assert "now()" in sql
 
 
 # ---------------------------------------------------------------------------
@@ -362,7 +374,7 @@ class TestGetComediansWithInstagramAccounts:
             {"uuid": "uuid-1", "instagram_account": "@comedian1"},
             {"uuid": "uuid-2", "instagram_account": "comedian2"},
         ]
-        rows = handler._get_comedians_with_instagram_accounts()
+        rows = handler._get_comedians_with_instagram_accounts(7)
         assert rows == [
             {"uuid": "uuid-1", "instagram_account": "@comedian1"},
             {"uuid": "uuid-2", "instagram_account": "comedian2"},
@@ -371,15 +383,17 @@ class TestGetComediansWithInstagramAccounts:
     def test_none_result_returns_empty_list(self):
         handler = _make_handler()
         handler.execute_with_cursor.return_value = None
-        rows = handler._get_comedians_with_instagram_accounts()
+        rows = handler._get_comedians_with_instagram_accounts(7)
         assert rows == []
 
     def test_passes_correct_query(self):
         handler = _make_handler()
         handler.execute_with_cursor.return_value = []
-        handler._get_comedians_with_instagram_accounts()
+        handler._get_comedians_with_instagram_accounts(7)
         handler.execute_with_cursor.assert_called_once_with(
-            ComedianQueries.GET_COMEDIANS_WITH_INSTAGRAM_ACCOUNT, return_results=True
+            ComedianQueries.GET_STALE_COMEDIANS_WITH_INSTAGRAM_ACCOUNT,
+            params={"stale_days": 7},
+            return_results=True,
         )
 
 

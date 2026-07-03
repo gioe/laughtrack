@@ -301,6 +301,7 @@ model Comedian {
   name                                 String
   instagramAccount                     String?                           @map("instagram_account")
   instagramFollowers                   Int?                              @map("instagram_followers")
+  instagramFollowersRefreshedAt        DateTime?                         @map("instagram_followers_refreshed_at") @db.Timestamptz
   tiktokAccount                        String?                           @map("tiktok_account")
   tiktokFollowers                      Int?                              @map("tiktok_followers")
   website                              String?

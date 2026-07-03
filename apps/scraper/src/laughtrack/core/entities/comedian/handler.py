@@ -9,6 +9,7 @@ import time
 from typing import Callable, Dict, List, Optional, Tuple
 
 import requests
+from curl_cffi import requests as cffi_requests
 from psycopg2.extras import DictRow
 from laughtrack.core.data.base_handler import BaseDatabaseHandler
 from sql.comedian_queries import ComedianQueries
@@ -33,6 +34,14 @@ _BROWSER_UA = (
 _SOCIAL_REQUEST_DELAY_S = float(os.environ.get("SOCIAL_REQUEST_DELAY_S", "1.0"))
 # Abort a platform refresh after this many consecutive failures (e.g. datacenter IP blocked)
 _CIRCUIT_BREAKER_THRESHOLD = int(os.environ.get("SOCIAL_CIRCUIT_BREAKER", "10"))
+# Only refresh a comedian's Instagram followers if last refreshed > this many days ago
+_INSTAGRAM_STALE_DAYS = int(os.environ.get("INSTAGRAM_FOLLOWERS_STALE_DAYS", "7"))
+# Per-account fetch attempts. Instagram intermittently 401s ("require_login") or
+# returns an empty {"status":"ok"} body from a flagged egress IP; because Decodo
+# rotates residential IPs per request, each retry lands a fresh IP and usually
+# clears it. Longer timeout because requests route through the residential proxy.
+_INSTAGRAM_MAX_ATTEMPTS = int(os.environ.get("INSTAGRAM_FETCH_ATTEMPTS", "4"))
+_INSTAGRAM_TIMEOUT_S = float(os.environ.get("INSTAGRAM_FETCH_TIMEOUT_S", "20"))
 
 
 def _itunes_on_insert_enabled() -> bool:
@@ -918,19 +927,40 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
     # Instagram follower refresh
     # ------------------------------------------------------------------
 
-    def refresh_instagram_followers(self) -> int:
+    def refresh_instagram_followers(
+        self, limit: Optional[int] = None, stale_days: Optional[int] = None
+    ) -> int:
         """Fetch current Instagram follower counts and persist them to the DB.
 
-        Queries the Instagram web profile API for comedians that have an
-        instagram_account set, then updates only the instagram_followers column.
+        Queries the Instagram web profile API for comedians whose follower count
+        is stale (never refreshed, or older than ``stale_days``), then updates
+        the instagram_followers column and stamps instagram_followers_refreshed_at.
+
+        Args:
+            limit: If set, only process the first ``limit`` comedians (useful
+                for smoke-testing the enricher without a full run). Rows are
+                ordered oldest-refresh-first, so a capped run always advances
+                the most out-of-date accounts.
+            stale_days: Skip comedians refreshed within this many days
+                (default ``INSTAGRAM_FOLLOWERS_STALE_DAYS`` = 7). The weekly
+                job relies on this so a re-run in the same week is a near no-op.
 
         Returns:
             Number of comedian rows updated.
         """
-        rows = self._get_comedians_with_instagram_accounts()
+        if stale_days is None:
+            stale_days = _INSTAGRAM_STALE_DAYS
+
+        rows = self._get_comedians_with_instagram_accounts(stale_days)
         if not rows:
-            Logger.info("refresh_instagram_followers: no comedians with Instagram accounts")
+            Logger.info(
+                f"refresh_instagram_followers: no comedians with Instagram followers "
+                f"stale beyond {stale_days} days"
+            )
             return 0
+
+        if limit is not None:
+            rows = rows[:limit]
 
         updates: List[tuple] = []
         consecutive_failures = 0
@@ -963,11 +993,17 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
         Logger.info(f"refresh_instagram_followers: updated {len(updates)} comedians")
         return len(updates)
 
-    def _get_comedians_with_instagram_accounts(self) -> List[dict]:
-        """Return rows with (uuid, instagram_account) for all comedians that have one."""
+    def _get_comedians_with_instagram_accounts(self, stale_days: int) -> List[dict]:
+        """Return (uuid, instagram_account) for comedians whose count is stale.
+
+        Rows are ordered oldest-refresh-first (NULLs first), so ``--limit`` runs
+        always work the most out-of-date accounts before recently-refreshed ones.
+        """
         rows = (
             self.execute_with_cursor(
-                ComedianQueries.GET_COMEDIANS_WITH_INSTAGRAM_ACCOUNT, return_results=True
+                ComedianQueries.GET_STALE_COMEDIANS_WITH_INSTAGRAM_ACCOUNT,
+                params={"stale_days": stale_days},
+                return_results=True,
             )
             or []
         )
@@ -981,27 +1017,52 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
         """
         uuid = row["uuid"]
         account = row["instagram_account"].strip().lstrip("@")
-        try:
-            data = self._instagram_request(account)
-            count = data["data"]["user"]["edge_followed_by"]["count"]
-            return (uuid, int(count))
-        except Exception as e:
-            Logger.warn(f"Instagram request failed for @{account}: {e}")
-            return None
+        # Instagram intermittently rejects a single request — a 401
+        # ("require_login") or an empty {"status":"ok"} body with no user
+        # payload — when the residential egress IP is flagged. Decodo rotates
+        # IPs per request, so retrying after a short pause lands a fresh egress
+        # and usually clears it.
+        for attempt in range(_INSTAGRAM_MAX_ATTEMPTS):
+            try:
+                data = self._instagram_request(account)
+                count = data["data"]["user"]["edge_followed_by"]["count"]
+                return (uuid, int(count))
+            except Exception as e:
+                if attempt < _INSTAGRAM_MAX_ATTEMPTS - 1:
+                    time.sleep(_SOCIAL_REQUEST_DELAY_S)
+                    continue
+                Logger.warn(
+                    f"Instagram request failed for @{account} after "
+                    f"{_INSTAGRAM_MAX_ATTEMPTS} attempts: {e}"
+                )
+                return None
 
     @staticmethod
     def _instagram_request(account: str) -> dict:
-        """Fetch Instagram public profile info for a username."""
+        """Fetch Instagram public profile info for a username.
+
+        Routes through ``RESIDENTIAL_PROXY_URL`` (Decodo) when set — required
+        from datacenter IPs such as CI, which Instagram blocks on the first
+        request — and impersonates Chrome's TLS fingerprint via curl_cffi,
+        since plain ``requests``/``httpx`` are fingerprinted and blocked. Falls
+        back to a direct request when no proxy is configured (fine from a
+        residential IP in local dev). Raises on any non-200 so the caller's
+        retry loop can rotate to a fresh residential egress.
+        """
         app_id = os.environ.get("INSTAGRAM_APP_ID", "936619743392459")
         headers = {
             "X-IG-App-ID": app_id,
             "User-Agent": _BROWSER_UA,
         }
-        resp = requests.get(
+        proxy_url = os.environ.get("RESIDENTIAL_PROXY_URL")
+        proxies = {"http": proxy_url, "https": proxy_url} if proxy_url else None
+        resp = cffi_requests.get(
             _INSTAGRAM_API_URL,
             params={"username": account},
             headers=headers,
-            timeout=10,
+            proxies=proxies,
+            timeout=_INSTAGRAM_TIMEOUT_S,
+            impersonate="chrome",
         )
         resp.raise_for_status()
         return resp.json()

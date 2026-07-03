@@ -35,15 +35,24 @@ class ComedianService:
             Logger.error(f"Error refreshing YouTube followers: {str(e)}")
             raise
 
-    def refresh_instagram_followers(self) -> int:
+    def refresh_instagram_followers(
+        self, limit: Optional[int] = None, stale_days: Optional[int] = None
+    ) -> int:
         """Fetch current Instagram follower counts and persist them.
+
+        Args:
+            limit: If set, only process the first ``limit`` comedians.
+            stale_days: Skip comedians refreshed within this many days
+                (default 7).
 
         Returns:
             Number of comedian rows updated.
         """
         Logger.info("Starting Instagram follower refresh.")
         try:
-            return self.comedian_handler.refresh_instagram_followers()
+            return self.comedian_handler.refresh_instagram_followers(
+                limit=limit, stale_days=stale_days
+            )
         except Exception as e:
             Logger.error(f"Error refreshing Instagram followers: {str(e)}")
             raise

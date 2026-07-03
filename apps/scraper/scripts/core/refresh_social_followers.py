@@ -43,6 +43,18 @@ Examples:
         default="all",
         help="Platform to refresh (default: all)",
     )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=None,
+        help="Process at most N comedians (Instagram only; useful for smoke tests)",
+    )
+    parser.add_argument(
+        "--stale-days",
+        type=int,
+        default=None,
+        help="Instagram only: skip comedians refreshed within this many days (default 7)",
+    )
     args = parser.parse_args()
 
     youtube_api_key = os.environ.get("YOUTUBE_API_KEY")
@@ -58,7 +70,9 @@ Examples:
                 Logger.info(f"YouTube follower refresh complete: {updated} comedians updated")
 
         if args.platform in ("instagram", "all"):
-            updated = service.refresh_instagram_followers()
+            updated = service.refresh_instagram_followers(
+                limit=args.limit, stale_days=args.stale_days
+            )
             Logger.info(f"Instagram follower refresh complete: {updated} comedians updated")
 
         if args.platform in ("tiktok", "all"):

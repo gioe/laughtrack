@@ -384,17 +384,25 @@ class ComedianQueries:
         WHERE c.uuid = v.uuid::text
     '''
 
-    GET_COMEDIANS_WITH_INSTAGRAM_ACCOUNT = '''
+    # Only return comedians whose follower count is stale (never refreshed, or
+    # refreshed longer than %(stale_days)s days ago). Oldest-first so partial
+    # or --limit runs always make progress on the most out-of-date rows.
+    GET_STALE_COMEDIANS_WITH_INSTAGRAM_ACCOUNT = '''
         SELECT uuid, instagram_account
         FROM comedians
         WHERE instagram_account IS NOT NULL
           AND instagram_account <> ''
-        ORDER BY name
+          AND (
+            instagram_followers_refreshed_at IS NULL
+            OR instagram_followers_refreshed_at < NOW() - make_interval(days => %(stale_days)s)
+          )
+        ORDER BY instagram_followers_refreshed_at ASC NULLS FIRST, name
     '''
 
     UPDATE_COMEDIAN_INSTAGRAM_FOLLOWERS = '''
         UPDATE comedians AS c
-        SET instagram_followers = v.followers::int
+        SET instagram_followers = v.followers::int,
+            instagram_followers_refreshed_at = NOW()
         FROM (VALUES %s) AS v(uuid, followers)
         WHERE c.uuid = v.uuid::text
     '''

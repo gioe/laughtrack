@@ -2,8 +2,10 @@ name: Social Follower Refresh
 
 on:
   schedule:
-    # Bi-weekly: 1st and 15th of each month at 08:00 UTC (04:00 ET / 00:00 PT)
-    - cron: '0 8 1,15 * *'
+    # Weekly: every Monday at 08:00 UTC (04:00 ET / 00:00 PT). Follower counts
+    # only need a weekly cadence; the Instagram step additionally self-gates on
+    # instagram_followers_refreshed_at so a manual re-run mid-week is a no-op.
+    - cron: '0 8 * * 1'
   workflow_dispatch:
 
 jobs:
@@ -26,7 +28,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y tesseract-ocr tesseract-ocr-eng
 
-      - name: Refresh social follower counts
+      - name: Refresh YouTube follower counts
         env:
           DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
           DATABASE_USER: ${{ secrets.DATABASE_USER }}
@@ -34,10 +36,26 @@ jobs:
           DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
           DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
-          INSTAGRAM_APP_ID: ${{ secrets.INSTAGRAM_APP_ID }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
           python -m scripts.core.refresh_social_followers --platform youtube
+
+      - name: Refresh Instagram follower counts
+        # Runs even if YouTube fails — the two platforms are independent.
+        # Routes through the Decodo residential proxy (Instagram blocks CI
+        # datacenter IPs directly) and self-gates on instagram_followers_refreshed_at.
+        if: always()
+        env:
+          DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+          DATABASE_USER: ${{ secrets.DATABASE_USER }}
+          DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
+          DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+          DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
+          INSTAGRAM_APP_ID: ${{ secrets.INSTAGRAM_APP_ID }}
+          RESIDENTIAL_PROXY_URL: ${{ secrets.RESIDENTIAL_PROXY_URL }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          python -m scripts.core.refresh_social_followers --platform instagram
 
       - name: Update comedian popularity scores
         if: success()
