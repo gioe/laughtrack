@@ -370,10 +370,19 @@ struct LaughTrackSearchField<TrailingAccessory: View>: View {
         self.trailingAccessory = trailingAccessory
     }
 
+    @ViewBuilder
     var body: some View {
+        if let accessibilityIdentifier {
+            searchFieldChrome.accessibilityIdentifier(accessibilityIdentifier)
+        } else {
+            searchFieldChrome
+        }
+    }
+
+    private var searchFieldChrome: some View {
         let laughTrack = theme.laughTrackTokens
 
-        HStack(spacing: theme.spacing.sm) {
+        return HStack(spacing: theme.spacing.sm) {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: theme.iconSizes.md, weight: .semibold))
                 .foregroundStyle(laughTrack.colors.textSecondary)
@@ -391,7 +400,6 @@ struct LaughTrackSearchField<TrailingAccessory: View>: View {
         )
         .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.pill, style: .continuous))
         .shadowStyle(laughTrack.shadows.card)
-        .optionalAccessibilityIdentifier(accessibilityIdentifier)
     }
 
     @ViewBuilder
@@ -406,17 +414,6 @@ struct LaughTrackSearchField<TrailingAccessory: View>: View {
             field.accessibilityIdentifier(accessibilityIdentifier)
         } else {
             field
-        }
-    }
-}
-
-private extension View {
-    @ViewBuilder
-    func optionalAccessibilityIdentifier(_ accessibilityIdentifier: String?) -> some View {
-        if let accessibilityIdentifier {
-            self.accessibilityIdentifier(accessibilityIdentifier)
-        } else {
-            self
         }
     }
 }
