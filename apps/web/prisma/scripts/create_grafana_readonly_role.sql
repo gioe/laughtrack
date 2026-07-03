@@ -51,4 +51,22 @@ BEGIN
         public.youtube_live_notifications,
         public.youtube_live_notification_deliveries
         TO grafana_ro;
+
+    -- Precomputed scraper-health regression summaries the alert rules read
+    -- (TASK-3573). Materialized views are NOT covered by GRANT ... ON ALL TABLES,
+    -- so they must be granted by name here (and in the creating migration,
+    -- apps/scraper/migrations/20260703_scraper_health_summary_materialized_views.sql).
+    -- Guarded so this onboarding script still runs on a database created before
+    -- that migration applied — skip the grant if the views do not yet exist.
+    IF EXISTS (
+        SELECT 1 FROM pg_matviews
+         WHERE schemaname = 'public'
+           AND matviewname = 'mv_scraper_health_overall'
+    ) THEN
+        GRANT SELECT ON
+            public.mv_scraper_health_overall,
+            public.mv_scraper_health_dropped_to_zero,
+            public.mv_scraper_health_consecutive_zero
+            TO grafana_ro;
+    END IF;
 END $$;
