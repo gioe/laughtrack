@@ -14,8 +14,12 @@
 # mv_scraper_health_consecutive_zero) that the scraper REFRESHes once at the end
 # of each full 'scraper' run. The view definitions ARE the former inline CTEs, so
 # the regression semantics are identical — an alert only changes state when a new
-# run lands, which is exactly when the refresh happens. Widen/narrow the trailing
-# window by editing the rn bounds in the view SQL (the migration below), not here.
+# run lands, which is exactly when the refresh happens. To widen/narrow the
+# trailing window, change the rn bounds in the view SQL — but note the migration
+# below uses CREATE MATERIALIZED VIEW IF NOT EXISTS, so editing it in place and
+# re-applying is a no-op (the view already exists) and a REFRESH does not pick up
+# a definition change. A window change requires a NEW migration that DROPs and
+# recreates the affected view(s), not an edit here or to the existing migration.
 # Rule 5 (staleness) stays an inline live query — it measures NOW() - MAX(run) and
 # must not be frozen at run time. Migration:
 # apps/scraper/migrations/20260703_scraper_health_summary_materialized_views.sql.
