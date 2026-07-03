@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help audit-fix
+.PHONY: help audit-fix neon-usage
 
 help:
 	@echo "Targets:"
@@ -11,3 +11,7 @@ help:
 audit-fix:
 	cd apps/web && npm audit fix --legacy-peer-deps
 	@echo "Done. Check 'git diff apps/web/package-lock.json' for implicit transitive version bumps in packages listed in package.json."
+
+## Report Neon compute, storage, PITR/history, network transfer, and branch usage
+neon-usage:
+	python3 scripts/neon_usage_report.py
