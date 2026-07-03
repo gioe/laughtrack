@@ -36,6 +36,7 @@ function makeComedianRow(
         linktree: string | null;
         instagramAccount: string | null;
         instagramFollowers: number | null;
+        instagramFollowersRefreshedAt: Date | null;
         tiktokAccount: string | null;
         tiktokFollowers: number | null;
         youtubeAccount: string | null;
@@ -43,6 +44,7 @@ function makeComedianRow(
         youtubeLiveFeedEnabled: boolean;
         youtubeLiveNotificationsEnabled: boolean;
         youtubeFollowers: number | null;
+        youtubeFollowersRefreshedAt: Date | null;
         website: string | null;
         popularity: number;
         totalShows: number;
@@ -124,6 +126,7 @@ function makeComedianRow(
         linktree: null,
         instagramAccount: "@alice",
         instagramFollowers: 5000,
+        instagramFollowersRefreshedAt: null,
         tiktokAccount: null,
         tiktokFollowers: null,
         youtubeAccount: null,
@@ -131,6 +134,7 @@ function makeComedianRow(
         youtubeLiveFeedEnabled: false,
         youtubeLiveNotificationsEnabled: false,
         youtubeFollowers: null,
+        youtubeFollowersRefreshedAt: null,
         website: "https://alice.example.com",
         popularity: 80,
         hasImage: true,
