@@ -556,7 +556,10 @@ FROM (
         ('DangItJared', '123 Main St, Berwick, PA 18603, USA', '', 'Berwick', 'PA', '18603', 'America/New_York', 'US', 'non_comedy', 'ChIJ_Ug6nRufxYkRQpLUGjWlUJc', FALSE, 'active'),
         ('Funny By The Pound Comedy Cafe', '1156 S Bay Rd, Dover, DE 19901, USA', 'https://www.jreamlandentertainment.com/', 'Dover', 'DE', '19901', 'America/New_York', 'US', 'non_comedy', 'ChIJk1zXo8Rjx4kRP55ii9K1hFc', FALSE, 'active'),
         ('Chip Ambrogio Comedy', '600 Westwood Ave, River Vale, NJ 07675, USA', 'https://www.chipambrogiocomedy.com/', 'River Vale', 'NJ', '07675', 'America/New_York', 'US', 'non_comedy', 'ChIJHxc11BPvwokRJnO9QrOJfHE', FALSE, 'active'),
+        ('Best Comedy Tickets', '128 MacDougal St, New York, NY 10012, USA', 'https://bestcomedytickets.com/', 'New York', 'NY', '10012', 'America/New_York', 'US', 'non_comedy', 'ChIJQXZTgZFZwokRAFmiulJft4w', FALSE, 'active'),
         ('FUNY Stand Up Comedy Classes - The New York Comedy School', 'The Green Room, 201 W 75th St, New York, NY 10023, USA', 'https://funystandup.com/', 'New York', 'NY', '10023', 'America/New_York', 'US', 'non_comedy', 'ChIJD3c4lKVZwokRjdZJoUEQHj8', FALSE, 'active'),
+        ('KIDS ''N COMEDY', '208 W 23rd St, New York, NY 10011, USA', 'https://www.kidsncomedy.com/', 'New York', 'NY', '10011', 'America/New_York', 'US', 'non_comedy', 'ChIJC6VawohYwokRSM714XYSVBo', FALSE, 'active'),
+        ('The Industry Room', '318 W 53rd St, New York, NY 10019, USA', 'https://www.theindustryroom.com/', 'New York', 'NY', '10019', 'America/New_York', 'US', 'non_comedy', 'ChIJYUSi3gpZwokRkMg8LalEFHY', FALSE, 'active'),
         ('Popped Collar Comedy - Free Show in Bushwick, Brooklyn', '1178 Bushwick Ave, Brooklyn, NY 11221, USA', 'https://www.danwickes.com/popped-collar-comedy-show/', 'Brooklyn', 'NY', '11221', 'America/New_York', 'US', 'non_comedy', 'ChIJ2QNRX-ddwokRj-YibDeFnoM', FALSE, 'active'),
         ('Two in the Bush: A Standup Comedy Showcase', '3569 Broadway, New York, NY 10031, USA', 'https://linktr.ee/twointhebush', 'New York', 'NY', '10031', 'America/New_York', 'US', 'non_comedy', 'ChIJFcAVWzz3wokRw7A5-4bKHNs', FALSE, 'active')
 ) AS denied(name, address, website, city, state, zip_code, timezone, country, club_type, google_place_id, visible, status)
@@ -625,9 +628,36 @@ VALUES
         NOW()
     ),
     (
+        'ChIJQXZTgZFZwokRAFmiulJft4w',
+        'Best Comedy Tickets',
+        'Ticket reseller/listing site for multiple NYC comedy venues, not a fixed venue-owned comedy club calendar to onboard as a club.',
+        'comedy_club',
+        '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "ticket_reseller_not_venue"}'::jsonb,
+        'TASK-3563',
+        NOW()
+    ),
+    (
         'ChIJD3c4lKVZwokRjdZJoUEQHj8',
         'FUNY Stand Up Comedy Classes - The New York Comedy School',
         'Comedy class/school program at a rented room, not a fixed comedy venue calendar to onboard as a club.',
+        'comedy_club',
+        '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "classes_not_venue"}'::jsonb,
+        'TASK-3563',
+        NOW()
+    ),
+    (
+        'ChIJC6VawohYwokRSM714XYSVBo',
+        'KIDS ''N COMEDY',
+        'Youth comedy program/show listing that links to Gotham Comedy Club events; not a distinct fixed venue calendar.',
+        'comedy_club',
+        '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "program_not_venue"}'::jsonb,
+        'TASK-3563',
+        NOW()
+    ),
+    (
+        'ChIJYUSi3gpZwokRkMg8LalEFHY',
+        'The Industry Room',
+        'Comedy class/training-room listing; public ticket signal found was a stand-up class, not a fixed public club calendar.',
         'comedy_club',
         '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "classes_not_venue"}'::jsonb,
         'TASK-3563',

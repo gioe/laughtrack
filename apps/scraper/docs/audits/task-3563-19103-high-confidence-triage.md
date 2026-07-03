@@ -46,6 +46,8 @@ cd apps/scraper && make scrape-club CLUB='East Village Stand Up Comedy'
 | Candidate | Evidence |
 | --- | --- |
 | Comedy Clubs / AC Jokes | Existing DB has `AC Jokes` in Atlantic City, id 412, website `https://www.acjokes.com`, google place id `ChIJpVu0ZzPvwIkRlPwG8dwYVkQ`. The discovered Google record has a different place id and generic label, so it should not be inserted as a new club without a duplicate audit. |
+| Village Underground | Existing DB has `Comedy Cellar New York`, id 1. Live validation of the existing `comedy_cellar` scraper returned 111 shows with rooms including `Village Underground`, so this Places record is already represented as a room under the Comedy Cellar club rather than a separate club row. |
+| Fat Black Pussycat | Existing DB has `Comedy Cellar New York`, id 1. Live validation of the existing `comedy_cellar` scraper returned rooms including `Fat Black Pussycat` and `Room 5`; the venue website also points users to the Comedy Cellar lineup. |
 
 ## Deny-Listed In Migration
 
@@ -62,7 +64,10 @@ them as comedy-club onboarding candidates.
 | DangItJared | `ChIJ_Ug6nRufxYkRQpLUGjWlUJc` | Individual performer/brand, not a venue. |
 | Funny By The Pound Comedy Cafe | `ChIJk1zXo8Rjx4kRP55ii9K1hFc` | Stale/non-venue false positive; discovered Wix site returns 404 and exposes no public venue calendar. |
 | Chip Ambrogio Comedy | `ChIJHxc11BPvwokRJnO9QrOJfHE` | Individual comedian website/listing, not a venue. |
+| Best Comedy Tickets | `ChIJQXZTgZFZwokRAFmiulJft4w` | Ticket reseller/listing site for multiple NYC comedy venues, not a fixed venue calendar. |
 | FUNY Stand Up Comedy Classes - The New York Comedy School | `ChIJD3c4lKVZwokRjdZJoUEQHj8` | Comedy class/school program, not a fixed club calendar. |
+| KIDS 'N COMEDY | `ChIJC6VawohYwokRSM714XYSVBo` | Youth comedy program/show listing; event signal points to Gotham Comedy Club rather than a distinct venue. |
+| The Industry Room | `ChIJYUSi3gpZwokRkMg8LalEFHY` | Comedy class/training-room listing; public ticket signal found was a stand-up class, not a fixed public club calendar. |
 | Popped Collar Comedy - Free Show in Bushwick, Brooklyn | `ChIJ2QNRX-ddwokRj-YibDeFnoM` | Named recurring showcase at another venue, not a distinct club. |
 | Two in the Bush: A Standup Comedy Showcase | `ChIJFcAVWzz3wokRw7A5-4bKHNs` | Named showcase, not a distinct club. |
 
@@ -96,6 +101,7 @@ not match the existing generic scraper contract during live validation:
 | The Backroom LIVE | `eventbrite`, organizer id `120674296136` discovered from collection page | 0 shows through the existing single-venue Eventbrite venue/fallback path; collection page is mixed and organizer mode would route as a multi-venue producer, not a fixed club. |
 | Stones Comedy Club | `modern_events_calendar`, `https://stonestreetcomedyclub.com/wp-json/wp/v2/mec-events` | REST endpoint returned 404 / 0 shows. |
 | Stones Comedy Club | `json_ld` detail fetch over `/events/` links | 0 JSON-LD events. |
+| The Fear City Comedy Club | `squarespace`, `https://www.thefearcitycomedyclub.com/api/open/GetItemsByMonth?collectionId=66d33a4d09d98a61587e40bf` | 0 shows through the existing Squarespace scraper; the collection is present but did not return current/next-two-month events. |
 
 ## Needs Follow-Up Triage
 
@@ -105,11 +111,11 @@ signals, then deny-list obvious non-venue/person/podcast records:
 
 - Fixed/promising but needs source extraction: The Comedy Works,
   The Backroom LIVE, The PIT, Second City New York,
-  Best Comedy Tickets, Village Underground, Fat Black Pussycat, UCB Theatre,
-  and the Looney Bin records.
+  UCB Theatre, The Fear City Comedy Club, and the Looney Bin records.
 - Likely producer/event-series rather than fixed venue: Comic Cure / South
   Jersey Comedy Club variants, Main Line Laughs, Case Comedy, Kings Highway
   Comedy, Comedy Explosion, Die Laughing, Cool J's AfterDARK, TravLee Comedy,
   Poconos Underground Comedy, Airplane Mode, Punching Bag Comedy, Expired Milk
   Comedy variants, Laughing Lassi Comedy, Living Room Laughs, Poe's Comedy
-  Cabaret Baltimore, Rhino Comedy, and Stones Comedy Club.
+  Cabaret Baltimore, Rhino Comedy, Eight Is Never Enough Improv, Flop House
+  Comedy Club, Sesh Comedy, and Stones Comedy Club.
