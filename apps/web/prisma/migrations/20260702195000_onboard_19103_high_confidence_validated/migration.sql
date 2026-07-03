@@ -36,6 +36,18 @@
 --   a compId:
 --   https://www.colonialcomedy.com/
 --   Live validation on 2026-07-02 returned 2 future shows.
+-- * Captain Kirk's Comedy Lounge — Eventbrite organizer id 58553141833,
+--   configured in single-club mode:
+--   https://www.eventbrite.com
+--   Live validation on 2026-07-02 returned 4 future shows.
+-- * Sheba's Speakeasy Comedy Club — Eventbrite organizer id 77390385933,
+--   configured in single-club mode:
+--   https://www.eventbrite.com
+--   Live validation on 2026-07-02 returned 38 future shows.
+-- * East Village Stand Up Comedy — Eventbrite organizer id 10025720196,
+--   configured in single-club mode:
+--   https://www.eventbrite.com
+--   Live validation on 2026-07-02 returned 25 future shows.
 --
 -- After this migration is deployed, run:
 --   cd apps/scraper && make scrape-club CLUB='The N Crowd'
@@ -46,6 +58,9 @@
 --   cd apps/scraper && make scrape-club CLUB='BATSU!'
 --   cd apps/scraper && make scrape-club CLUB='Give A Hoot Comedy Club NJ'
 --   cd apps/scraper && make scrape-club CLUB='Colonial Comedy'
+--   cd apps/scraper && make scrape-club CLUB='Captain Kirk''s Comedy Lounge'
+--   cd apps/scraper && make scrape-club CLUB='Sheba''s Speakeasy Comedy Club'
+--   cd apps/scraper && make scrape-club CLUB='East Village Stand Up Comedy'
 
 INSERT INTO clubs (
     name, address, website, city, state, zip_code, phone_number,
@@ -389,6 +404,138 @@ WHERE (c.google_place_id = 'ChIJn8bwdkSnw4kRzYbWgB3rhO8' OR c.name = 'Colonial C
       SELECT 1 FROM scraping_sources s
       WHERE s.club_id = c.id
         AND s.platform = 'wix_events'::"ScrapingPlatform"
+        AND s.priority = 0
+  );
+
+INSERT INTO clubs (
+    name, address, website, city, state, zip_code, phone_number,
+    latitude, longitude, timezone, country, club_type, google_place_id,
+    visible, status
+)
+SELECT
+    'Captain Kirk''s Comedy Lounge',
+    '1000 Broadway, Brooklyn, NY 11221, USA',
+    'https://www.captainkirkscomedylounge.com/',
+    'Brooklyn', 'NY', '11221', '(516) 960-3833',
+    40.6959272, -73.9337412,
+    'America/New_York', 'US', 'club',
+    'ChIJvQQs6nlbwokR8Y4g0f5pXZA',
+    TRUE, 'active'
+WHERE NOT EXISTS (
+    SELECT 1 FROM clubs
+    WHERE google_place_id = 'ChIJvQQs6nlbwokR8Y4g0f5pXZA'
+       OR name = 'Captain Kirk''s Comedy Lounge'
+);
+
+INSERT INTO scraping_sources (
+    club_id, platform, scraper_key, source_url, eventbrite_id,
+    enabled, priority, metadata, created_at, updated_at
+)
+SELECT
+    c.id,
+    'eventbrite'::"ScrapingPlatform",
+    'eventbrite',
+    'https://www.eventbrite.com',
+    '58553141833',
+    TRUE,
+    0,
+    '{}'::jsonb,
+    NOW(),
+    NOW()
+FROM clubs c
+WHERE (c.google_place_id = 'ChIJvQQs6nlbwokR8Y4g0f5pXZA' OR c.name = 'Captain Kirk''s Comedy Lounge')
+  AND NOT EXISTS (
+      SELECT 1 FROM scraping_sources s
+      WHERE s.club_id = c.id
+        AND s.platform = 'eventbrite'::"ScrapingPlatform"
+        AND s.priority = 0
+  );
+
+INSERT INTO clubs (
+    name, address, website, city, state, zip_code, phone_number,
+    latitude, longitude, timezone, country, club_type, google_place_id,
+    visible, status
+)
+SELECT
+    'Sheba''s Speakeasy Comedy Club',
+    '832 8th Avenue, New York, NY 10019, USA',
+    'https://shebamason.com/',
+    'New York', 'NY', '10019', '(646) 351-2904',
+    40.7623663, -73.9857634,
+    'America/New_York', 'US', 'club',
+    'ChIJFzCDZx1ZwokR0Xbe8D5v1jQ',
+    TRUE, 'active'
+WHERE NOT EXISTS (
+    SELECT 1 FROM clubs
+    WHERE google_place_id = 'ChIJFzCDZx1ZwokR0Xbe8D5v1jQ'
+       OR name = 'Sheba''s Speakeasy Comedy Club'
+);
+
+INSERT INTO scraping_sources (
+    club_id, platform, scraper_key, source_url, eventbrite_id,
+    enabled, priority, metadata, created_at, updated_at
+)
+SELECT
+    c.id,
+    'eventbrite'::"ScrapingPlatform",
+    'eventbrite',
+    'https://www.eventbrite.com',
+    '77390385933',
+    TRUE,
+    0,
+    '{}'::jsonb,
+    NOW(),
+    NOW()
+FROM clubs c
+WHERE (c.google_place_id = 'ChIJFzCDZx1ZwokR0Xbe8D5v1jQ' OR c.name = 'Sheba''s Speakeasy Comedy Club')
+  AND NOT EXISTS (
+      SELECT 1 FROM scraping_sources s
+      WHERE s.club_id = c.id
+        AND s.platform = 'eventbrite'::"ScrapingPlatform"
+        AND s.priority = 0
+  );
+
+INSERT INTO clubs (
+    name, address, website, city, state, zip_code, phone_number,
+    latitude, longitude, timezone, country, club_type, google_place_id,
+    visible, status
+)
+SELECT
+    'East Village Stand Up Comedy',
+    '174 E 2nd St, New York, NY 10009, USA',
+    'https://greatestshowever.com/',
+    'New York', 'NY', '10009', '(212) 365-0334',
+    40.7226824, -73.9845869,
+    'America/New_York', 'US', 'club',
+    'ChIJfWiS_xVZwokRwizGl3R3AME',
+    TRUE, 'active'
+WHERE NOT EXISTS (
+    SELECT 1 FROM clubs
+    WHERE google_place_id = 'ChIJfWiS_xVZwokRwizGl3R3AME'
+       OR name = 'East Village Stand Up Comedy'
+);
+
+INSERT INTO scraping_sources (
+    club_id, platform, scraper_key, source_url, eventbrite_id,
+    enabled, priority, metadata, created_at, updated_at
+)
+SELECT
+    c.id,
+    'eventbrite'::"ScrapingPlatform",
+    'eventbrite',
+    'https://www.eventbrite.com',
+    '10025720196',
+    TRUE,
+    0,
+    '{}'::jsonb,
+    NOW(),
+    NOW()
+FROM clubs c
+WHERE (c.google_place_id = 'ChIJfWiS_xVZwokRwizGl3R3AME' OR c.name = 'East Village Stand Up Comedy')
+  AND NOT EXISTS (
+      SELECT 1 FROM scraping_sources s
+      WHERE s.club_id = c.id
+        AND s.platform = 'eventbrite'::"ScrapingPlatform"
         AND s.priority = 0
   );
 

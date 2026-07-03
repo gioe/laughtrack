@@ -19,6 +19,9 @@ adds these validated venues:
 | BATSU! | `ChIJ4QKVd5xZwokRKNIH6nKJPAE` | `tock` | `https://www.exploretock.com/batsunyc` | 240 future shows |
 | Give A Hoot Comedy Club NJ | `ChIJXd-xbnItwYkRuNSn__rA_2o` | `seatengine_web` | `https://www.giveahootcomedyclubnj.com/` | 6 future shows |
 | Colonial Comedy | `ChIJn8bwdkSnw4kRzYbWgB3rhO8` | `wix_events` | `https://www.colonialcomedy.com/` | 2 future shows |
+| Captain Kirk's Comedy Lounge | `ChIJvQQs6nlbwokR8Y4g0f5pXZA` | `eventbrite` | `https://www.eventbrite.com`, eventbrite id `58553141833` | 4 future shows |
+| Sheba's Speakeasy Comedy Club | `ChIJFzCDZx1ZwokR0Xbe8D5v1jQ` | `eventbrite` | `https://www.eventbrite.com`, eventbrite id `77390385933` | 38 future shows |
+| East Village Stand Up Comedy | `ChIJfWiS_xVZwokRwizGl3R3AME` | `eventbrite` | `https://www.eventbrite.com`, eventbrite id `10025720196` | 25 future shows |
 
 Validation was done on 2026-07-02 by instantiating the same generic scraper
 classes that `make scrape-club` will use after the migration rows exist. The
@@ -33,6 +36,9 @@ cd apps/scraper && make scrape-club CLUB='High Line Comedy Club'
 cd apps/scraper && make scrape-club CLUB='BATSU!'
 cd apps/scraper && make scrape-club CLUB='Give A Hoot Comedy Club NJ'
 cd apps/scraper && make scrape-club CLUB='Colonial Comedy'
+cd apps/scraper && make scrape-club CLUB="Captain Kirk's Comedy Lounge"
+cd apps/scraper && make scrape-club CLUB="Sheba's Speakeasy Comedy Club"
+cd apps/scraper && make scrape-club CLUB='East Village Stand Up Comedy'
 ```
 
 ## Already Covered / Duplicate-Like
@@ -98,8 +104,7 @@ already covered, or deny-listed. Prioritize fixed venues with supported-source
 signals, then deny-list obvious non-venue/person/podcast records:
 
 - Fixed/promising but needs source extraction: The Comedy Works,
-  The Backroom LIVE, Captain Kirk's Comedy Lounge, The PIT,
-  Second City New York,
+  The Backroom LIVE, The PIT, Second City New York,
   Best Comedy Tickets, Village Underground, Fat Black Pussycat, UCB Theatre,
   and the Looney Bin records.
 - Likely producer/event-series rather than fixed venue: Comic Cure / South
