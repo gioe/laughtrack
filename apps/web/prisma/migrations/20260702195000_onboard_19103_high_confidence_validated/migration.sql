@@ -66,6 +66,10 @@
 --   Live validation on 2026-07-03 returned 62 Mainstage shows and 10 Upstairs
 --   shows using metadata.location_slug values `nyc-mainstage` and
 --   `nyc-upstairs`.
+-- * Stones Comedy Club — Eventbrite organizer id 33078829209, configured in
+--   single-club mode:
+--   https://www.eventbrite.com
+--   Live validation on 2026-07-03 returned 52 future shows.
 --
 -- After this migration is deployed, run:
 --   cd apps/scraper && make scrape-club CLUB='The N Crowd'
@@ -83,6 +87,7 @@
 --   cd apps/scraper && make scrape-club CLUB='Comedy Explosion'
 --   cd apps/scraper && make scrape-club CLUB='The Lab'
 --   cd apps/scraper && make scrape-club CLUB='Upright Citizens Brigade Theatre New York'
+--   cd apps/scraper && make scrape-club CLUB='Stones Comedy Club'
 
 INSERT INTO clubs (
     name, address, website, city, state, zip_code, phone_number,
@@ -755,6 +760,50 @@ WHERE (c.google_place_id = 'ChIJYwz0-YJZwokR1XOunnE1Pe4' OR (c.name = 'Upright C
       WHERE s.club_id = c.id
         AND s.platform = 'custom'::"ScrapingPlatform"
         AND s.priority = 1
+  );
+
+INSERT INTO clubs (
+    name, address, website, city, state, zip_code, phone_number,
+    latitude, longitude, timezone, country, club_type, google_place_id,
+    visible, status
+)
+SELECT
+    'Stones Comedy Club',
+    '225 E 44th St, New York, NY 10017, USA',
+    'https://stonestreetcomedyclub.com/',
+    'New York', 'NY', '10017', '(917) 364-6258',
+    40.7517163, -73.9722844,
+    'America/New_York', 'US', 'club',
+    'ChIJV3CtSlJbwokRW6gCgnAFt-E',
+    TRUE, 'active'
+WHERE NOT EXISTS (
+    SELECT 1 FROM clubs
+    WHERE google_place_id = 'ChIJV3CtSlJbwokRW6gCgnAFt-E'
+       OR (name = 'Stones Comedy Club' AND city = 'New York' AND state = 'NY')
+);
+
+INSERT INTO scraping_sources (
+    club_id, platform, scraper_key, source_url, eventbrite_id,
+    enabled, priority, metadata, created_at, updated_at
+)
+SELECT
+    c.id,
+    'eventbrite'::"ScrapingPlatform",
+    'eventbrite',
+    'https://www.eventbrite.com',
+    '33078829209',
+    TRUE,
+    0,
+    '{}'::jsonb,
+    NOW(),
+    NOW()
+FROM clubs c
+WHERE (c.google_place_id = 'ChIJV3CtSlJbwokRW6gCgnAFt-E' OR (c.name = 'Stones Comedy Club' AND c.city = 'New York' AND c.state = 'NY'))
+  AND NOT EXISTS (
+      SELECT 1 FROM scraping_sources s
+      WHERE s.club_id = c.id
+        AND s.platform = 'eventbrite'::"ScrapingPlatform"
+        AND s.priority = 0
   );
 
 -- Clear false positives from the same high-confidence Places bucket. These are

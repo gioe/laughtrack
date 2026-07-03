@@ -26,6 +26,7 @@ adds these validated venues:
 | Comedy Explosion | `ChIJoTL1eJ_7xokRxKP67A-9Aw0` | `wix_events` | `https://thecomedyexplosion.com/` | 1 future show |
 | The Lab | `ChIJgRv5Eqe7xokRNgxFBVzkqRY` | `eventbrite` filtered | `https://www.eventbrite.com`, eventbrite id `26956500819`, `exclude_classes=true`, show-title include patterns | 4 future shows |
 | Upright Citizens Brigade Theatre New York | `ChIJYwz0-YJZwokR1XOunnE1Pe4` | `ucb` | `https://ucbcomedy.com/shows/`, location slugs `nyc-mainstage` and `nyc-upstairs` | 62 Mainstage shows; 10 Upstairs shows |
+| Stones Comedy Club | `ChIJV3CtSlJbwokRW6gCgnAFt-E` | `eventbrite` | `https://www.eventbrite.com`, eventbrite id `33078829209` | 52 future shows |
 
 Validation was done on 2026-07-02 by instantiating the same generic scraper
 classes that `make scrape-club` will use after the migration rows exist. The
@@ -47,6 +48,7 @@ cd apps/scraper && make scrape-club CLUB='The Comedy Works'
 cd apps/scraper && make scrape-club CLUB='Comedy Explosion'
 cd apps/scraper && make scrape-club CLUB='The Lab'
 cd apps/scraper && make scrape-club CLUB='Upright Citizens Brigade Theatre New York'
+cd apps/scraper && make scrape-club CLUB='Stones Comedy Club'
 ```
 
 ## Already Covered / Duplicate-Like
@@ -130,15 +132,12 @@ not match the existing generic scraper contract during live validation:
 | Upright Citizens Brigade Theatre | `ucb`, `https://ucbcomedy.com/shows/` with likely NYC location slugs | Initial guesses returned 0 events, but later source extraction found the rendered card class slugs `nyc-mainstage` and `nyc-upstairs`; the venue is onboarded in the migration. |
 | Laughing Buddha Comedy | `ticket_tailor`, `https://www.tickettailor.com/events/laughingbuddhacomedy/` | 38 parsed events, but the account mixes classes and offsite shows including New York Comedy Club; not a clean single-venue source without additional filtering. |
 | The Backroom LIVE | `eventbrite`, organizer id `120674296136` discovered from collection page | 0 shows through the existing single-venue Eventbrite venue/fallback path; collection page is mixed and organizer mode would route as a multi-venue producer, not a fixed club. |
-| Stones Comedy Club | `modern_events_calendar`, `https://stonestreetcomedyclub.com/wp-json/wp/v2/mec-events` | REST endpoint returned 404 / 0 shows. |
-| Stones Comedy Club | `json_ld` detail fetch over `/events/` links | 0 JSON-LD events. |
 | The Fear City Comedy Club | `squarespace`, `https://www.thefearcitycomedyclub.com/api/open/GetItemsByMonth?collectionId=66d33a4d09d98a61587e40bf` | 0 shows through the existing Squarespace scraper; the collection is present but did not return current/next-two-month events. |
 | Comedy Cabaret Comedy Club | `the_events_calendar`, `https://comedycabaret.com/wp-json/tribe/events/v1/events` | REST endpoint returned 404 / 0 shows. |
 | Comedy Cabaret Comedy Club | `modern_events_calendar`, `https://comedycabaret.com/wp-json/wp/v2/mec-events` | REST endpoint returned 404 / 0 shows. |
 | The Lab | `wix_events`, `https://www.thelabambler.com/` root mode | Wix Events API returned HTTP 400 / 0 events. |
 | The Lab | `eventbrite`, organizer id `26956500819` without filters | 10 events, but the feed mixes classes/workshops with shows. A filtered Eventbrite source is onboarded in the migration. |
 | Upper East Side Comedy Club at Bedford Falls NYC | `wix_events`, `https://www.uppereastsidecomedyclub.com/` root mode | 0 events through the existing generic Wix Events scraper. |
-| Stones Comedy Club | `ical`, `https://stonestreetcomedyclub.com/events/?ical=1` | HTTP 200 with an empty/non-ICS body, so the generic iCalendar scraper returned 0 shows. |
 
 ## Source Extraction Required
 
@@ -156,9 +155,8 @@ generic scrapers did not produce a safe DB-only onboarding source in this task:
   (`ChIJG3e1NKdZwokR26WFFB6Lx7w`), `The Second City New York`
   (`ChIJv4cccglZwokRwENgJq6qkXs`), `Upper East Side Comedy Club at Bedford
   Falls NYC` (`ChIJi-qNZNtZwokRQBdBfR3dLM4`), `The Fear City Comedy Club`,
-  `Sesh Comedy`, `Flop House Comedy Club`, `Rhino Comedy`, and `Stones Comedy
-  Club` all need source extraction or scraper work before they are safe to
-  onboard.
+  `Sesh Comedy`, `Flop House Comedy Club`, and `Rhino Comedy` all need source
+  extraction or scraper work before they are safe to onboard.
 
 ## Needs Follow-Up Triage
 
@@ -169,5 +167,4 @@ signals:
 - Fixed/promising but needs source extraction: The Backroom LIVE,
   The PIT, Second City New York, The Fear City Comedy Club,
   Comedy Cabaret, Kings Highway Comedy, Die Laughing, Upper East Side Comedy
-  Club, Sesh Comedy, Flop House Comedy Club, Rhino Comedy, and Stones Comedy
-  Club.
+  Club, Sesh Comedy, Flop House Comedy Club, and Rhino Comedy.
