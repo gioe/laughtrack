@@ -47,13 +47,13 @@ Examples:
         "--limit",
         type=int,
         default=None,
-        help="Process at most N comedians (Instagram only; useful for smoke tests)",
+        help="Process at most N comedians (Instagram/YouTube; useful for smoke tests)",
     )
     parser.add_argument(
         "--stale-days",
         type=int,
         default=None,
-        help="Instagram only: skip comedians refreshed within this many days (default 7)",
+        help="Instagram/YouTube: skip comedians refreshed within this many days (default 7)",
     )
     args = parser.parse_args()
 
@@ -66,7 +66,9 @@ Examples:
             if not youtube_api_key:
                 Logger.warn("YOUTUBE_API_KEY not set — skipping YouTube follower refresh")
             else:
-                updated = service.refresh_youtube_followers(youtube_api_key)
+                updated = service.refresh_youtube_followers(
+                    youtube_api_key, limit=args.limit, stale_days=args.stale_days
+                )
                 Logger.info(f"YouTube follower refresh complete: {updated} comedians updated")
 
         if args.platform in ("instagram", "all"):

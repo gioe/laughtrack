@@ -369,17 +369,26 @@ class ComedianQueries:
         ORDER BY name
     '''
 
-    GET_COMEDIANS_WITH_YOUTUBE_ACCOUNT = '''
+    # Only return comedians whose subscriber count is stale (never refreshed, or
+    # refreshed longer than %(stale_days)s days ago). Oldest-first so partial or
+    # --limit runs always make progress on the most out-of-date rows. Mirrors the
+    # Instagram staleness gate so both platforms refresh as a weekly cohort.
+    GET_STALE_COMEDIANS_WITH_YOUTUBE_ACCOUNT = '''
         SELECT uuid, youtube_account
         FROM comedians
         WHERE youtube_account IS NOT NULL
           AND youtube_account <> ''
-        ORDER BY name
+          AND (
+            youtube_followers_refreshed_at IS NULL
+            OR youtube_followers_refreshed_at < NOW() - make_interval(days => %(stale_days)s)
+          )
+        ORDER BY youtube_followers_refreshed_at ASC NULLS FIRST, name
     '''
 
     UPDATE_COMEDIAN_YOUTUBE_FOLLOWERS = '''
         UPDATE comedians AS c
-        SET youtube_followers = v.followers::int
+        SET youtube_followers = v.followers::int,
+            youtube_followers_refreshed_at = NOW()
         FROM (VALUES %s) AS v(uuid, followers)
         WHERE c.uuid = v.uuid::text
     '''

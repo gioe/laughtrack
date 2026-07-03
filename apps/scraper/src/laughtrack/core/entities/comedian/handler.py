@@ -34,8 +34,10 @@ _BROWSER_UA = (
 _SOCIAL_REQUEST_DELAY_S = float(os.environ.get("SOCIAL_REQUEST_DELAY_S", "1.0"))
 # Abort a platform refresh after this many consecutive failures (e.g. datacenter IP blocked)
 _CIRCUIT_BREAKER_THRESHOLD = int(os.environ.get("SOCIAL_CIRCUIT_BREAKER", "10"))
-# Only refresh a comedian's Instagram followers if last refreshed > this many days ago
+# Only refresh a comedian's followers if last refreshed > this many days ago.
+# Per-platform so each can be tuned independently; both default to a weekly cadence.
 _INSTAGRAM_STALE_DAYS = int(os.environ.get("INSTAGRAM_FOLLOWERS_STALE_DAYS", "7"))
+_YOUTUBE_STALE_DAYS = int(os.environ.get("YOUTUBE_FOLLOWERS_STALE_DAYS", "7"))
 # Per-account fetch attempts. Instagram intermittently 401s ("require_login") or
 # returns an empty {"status":"ok"} body from a flagged egress IP; because Decodo
 # rotates residential IPs per request, each retry lands a fresh IP and usually
@@ -836,24 +838,44 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
     # Social follower refresh
     # ------------------------------------------------------------------
 
-    def refresh_youtube_followers(self, api_key: str, batch_size: int = 50) -> int:
+    def refresh_youtube_followers(
+        self,
+        api_key: str,
+        batch_size: int = 50,
+        limit: Optional[int] = None,
+        stale_days: Optional[int] = None,
+    ) -> int:
         """Fetch current YouTube subscriber counts and persist them to the DB.
 
-        Queries the YouTube Data API v3 for comedians that have a youtube_account
-        set, then updates only the youtube_followers column (all other fields are
-        left unchanged).
+        Queries the YouTube Data API v3 for comedians whose subscriber count is
+        stale (never refreshed, or older than ``stale_days``), then updates the
+        youtube_followers column and stamps youtube_followers_refreshed_at.
 
         Args:
             api_key: YouTube Data API v3 key.
             batch_size: Max channel IDs per API request (YouTube limit: 50).
+            limit: If set, only process the first ``limit`` comedians
+                (oldest-refresh-first), useful for smoke tests.
+            stale_days: Skip comedians refreshed within this many days
+                (default ``YOUTUBE_FOLLOWERS_STALE_DAYS`` = 7). Lets a re-run in
+                the same week be a near no-op so accounts refresh as a cohort.
 
         Returns:
             Number of comedian rows updated.
         """
-        rows = self._get_comedians_with_youtube_accounts()
+        if stale_days is None:
+            stale_days = _YOUTUBE_STALE_DAYS
+
+        rows = self._get_comedians_with_youtube_accounts(stale_days)
         if not rows:
-            Logger.info("refresh_youtube_followers: no comedians with YouTube accounts")
+            Logger.info(
+                f"refresh_youtube_followers: no comedians with YouTube subscribers "
+                f"stale beyond {stale_days} days"
+            )
             return 0
+
+        if limit is not None:
+            rows = rows[:limit]
 
         updates: List[tuple] = []
         for i in range(0, len(rows), batch_size):
@@ -868,11 +890,17 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
         Logger.info(f"refresh_youtube_followers: updated {len(updates)} comedians")
         return len(updates)
 
-    def _get_comedians_with_youtube_accounts(self) -> List[dict]:
-        """Return rows with (uuid, youtube_account) for all comedians that have one."""
+    def _get_comedians_with_youtube_accounts(self, stale_days: int) -> List[dict]:
+        """Return (uuid, youtube_account) for comedians whose count is stale.
+
+        Rows are ordered oldest-refresh-first (NULLs first), so ``--limit`` runs
+        always work the most out-of-date accounts before recently-refreshed ones.
+        """
         rows = (
             self.execute_with_cursor(
-                ComedianQueries.GET_COMEDIANS_WITH_YOUTUBE_ACCOUNT, return_results=True
+                ComedianQueries.GET_STALE_COMEDIANS_WITH_YOUTUBE_ACCOUNT,
+                params={"stale_days": stale_days},
+                return_results=True,
             )
             or []
         )

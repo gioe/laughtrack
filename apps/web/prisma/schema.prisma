@@ -311,6 +311,7 @@ model Comedian {
   youtubeLiveFeedEnabled               Boolean                           @default(false) @map("youtube_live_feed_enabled")
   youtubeLiveNotificationsEnabled      Boolean                           @default(false) @map("youtube_live_notifications_enabled")
   youtubeFollowers                     Int?                              @map("youtube_followers")
+  youtubeFollowersRefreshedAt          DateTime?                         @map("youtube_followers_refreshed_at") @db.Timestamptz
   uuid                                 String                            @unique
   createdAt                            DateTime                          @default(now()) @map("created_at") @db.Timestamptz
   totalShows                           Int                               @default(0) @map("total_shows")
