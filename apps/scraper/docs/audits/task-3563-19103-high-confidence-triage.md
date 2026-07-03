@@ -24,6 +24,7 @@ adds these validated venues:
 | East Village Stand Up Comedy | `ChIJfWiS_xVZwokRwizGl3R3AME` | `eventbrite` | `https://www.eventbrite.com`, eventbrite id `10025720196` | 25 future shows |
 | The Comedy Works | `ChIJ2WY0G-pNwYkRSA9-Mu25f24` | `ticketspice` | `https://comedyworksbristol.ticketspice.com/comedyweekendlaughsjuly10-11` | 1 future show |
 | Comedy Explosion | `ChIJoTL1eJ_7xokRxKP67A-9Aw0` | `wix_events` | `https://thecomedyexplosion.com/` | 1 future show |
+| The Lab | `ChIJgRv5Eqe7xokRNgxFBVzkqRY` | `eventbrite` filtered | `https://www.eventbrite.com`, eventbrite id `26956500819`, `exclude_classes=true`, show-title include patterns | 4 future shows |
 | Upright Citizens Brigade Theatre New York | `ChIJYwz0-YJZwokR1XOunnE1Pe4` | `ucb` | `https://ucbcomedy.com/shows/`, location slugs `nyc-mainstage` and `nyc-upstairs` | 62 Mainstage shows; 10 Upstairs shows |
 
 Validation was done on 2026-07-02 by instantiating the same generic scraper
@@ -44,6 +45,7 @@ cd apps/scraper && make scrape-club CLUB="Sheba's Speakeasy Comedy Club"
 cd apps/scraper && make scrape-club CLUB='East Village Stand Up Comedy'
 cd apps/scraper && make scrape-club CLUB='The Comedy Works'
 cd apps/scraper && make scrape-club CLUB='Comedy Explosion'
+cd apps/scraper && make scrape-club CLUB='The Lab'
 cd apps/scraper && make scrape-club CLUB='Upright Citizens Brigade Theatre New York'
 ```
 
@@ -132,6 +134,7 @@ not match the existing generic scraper contract during live validation:
 | Comedy Cabaret Comedy Club | `the_events_calendar`, `https://comedycabaret.com/wp-json/tribe/events/v1/events` | REST endpoint returned 404 / 0 shows. |
 | Comedy Cabaret Comedy Club | `modern_events_calendar`, `https://comedycabaret.com/wp-json/wp/v2/mec-events` | REST endpoint returned 404 / 0 shows. |
 | The Lab | `wix_events`, `https://www.thelabambler.com/` root mode | Wix Events API returned HTTP 400 / 0 events. |
+| The Lab | `eventbrite`, organizer id `26956500819` without filters | 10 events, but the feed mixes classes/workshops with shows. A filtered Eventbrite source is onboarded in the migration. |
 | Upper East Side Comedy Club at Bedford Falls NYC | `wix_events`, `https://www.uppereastsidecomedyclub.com/` root mode | 0 events through the existing generic Wix Events scraper. |
 | Stones Comedy Club | `ical`, `https://stonestreetcomedyclub.com/events/?ical=1` | HTTP 200 with an empty/non-ICS body, so the generic iCalendar scraper returned 0 shows. |
 
@@ -143,8 +146,6 @@ generic scrapers did not produce a safe DB-only onboarding source in this task:
 - `Comedy Cabaret Comedy Club` (`ChIJy5ZWovyyxokRK7e8UIt1DAs`,
   `ChIJgywfGpgCxIkRvQVpKm08aZg`) has two Places records and a WordPress site,
   but the generic WordPress event scrapers returned 404 / 0 shows.
-- `The Lab` (`ChIJgRv5Eqe7xokRNgxFBVzkqRY`) is a Wix site, but root-mode
-  `wix_events` returned HTTP 400 / 0 events.
 - `Kings Highway Comedy` (`ChIJYXEnsPJNwYkRjESWnP4dY_0`) has a GoDaddy site
   with form links and no validated generic event API in the scraper probe.
 - `Die Laughing` (`ChIJFZh5yjCHxokRz_8cbQHXVRM`), `The Backroom LIVE`
@@ -164,6 +165,6 @@ signals:
 
 - Fixed/promising but needs source extraction: The Backroom LIVE,
   The PIT, Second City New York, The Fear City Comedy Club,
-  Comedy Cabaret, The Lab, Kings Highway Comedy, Die Laughing, Upper East Side
-  Comedy Club, Sesh Comedy, Flop House Comedy Club, Living Room Laughs, Rhino
-  Comedy, and Stones Comedy Club.
+  Comedy Cabaret, Kings Highway Comedy, Die Laughing, Upper East Side Comedy
+  Club, Sesh Comedy, Flop House Comedy Club, Living Room Laughs, Rhino Comedy,
+  and Stones Comedy Club.

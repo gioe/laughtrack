@@ -56,6 +56,10 @@
 --   scraper:
 --   https://thecomedyexplosion.com/
 --   Live validation on 2026-07-03 returned 1 future show.
+-- * The Lab — Eventbrite organizer id 26956500819 with metadata filters to
+--   keep show titles and drop classes:
+--   https://www.eventbrite.com
+--   Live validation on 2026-07-03 returned 4 future shows.
 -- * Upright Citizens Brigade Theatre — WP Grid Builder location-filtered
 --   cards scraped by the existing `ucb` scraper:
 --   https://ucbcomedy.com/shows/
@@ -77,6 +81,7 @@
 --   cd apps/scraper && make scrape-club CLUB='East Village Stand Up Comedy'
 --   cd apps/scraper && make scrape-club CLUB='The Comedy Works'
 --   cd apps/scraper && make scrape-club CLUB='Comedy Explosion'
+--   cd apps/scraper && make scrape-club CLUB='The Lab'
 --   cd apps/scraper && make scrape-club CLUB='Upright Citizens Brigade Theatre New York'
 
 INSERT INTO clubs (
@@ -119,6 +124,50 @@ WHERE (c.google_place_id = 'ChIJs84JlYfIxokRSi0i_-Vg82Y' OR c.name = 'The N Crow
       SELECT 1 FROM scraping_sources s
       WHERE s.club_id = c.id
         AND s.platform = 'custom'::"ScrapingPlatform"
+        AND s.priority = 0
+  );
+
+INSERT INTO clubs (
+    name, address, website, city, state, zip_code, phone_number,
+    latitude, longitude, timezone, country, club_type, google_place_id,
+    visible, status
+)
+SELECT
+    'The Lab',
+    '85 E Butler Ave, Ambler, PA 19002, USA',
+    'https://www.thelabambler.com/',
+    'Ambler', 'PA', '19002', '',
+    40.1546752, -75.2219369,
+    'America/New_York', 'US', 'club',
+    'ChIJgRv5Eqe7xokRNgxFBVzkqRY',
+    TRUE, 'active'
+WHERE NOT EXISTS (
+    SELECT 1 FROM clubs
+    WHERE google_place_id = 'ChIJgRv5Eqe7xokRNgxFBVzkqRY'
+       OR (name = 'The Lab' AND city = 'Ambler' AND state = 'PA')
+);
+
+INSERT INTO scraping_sources (
+    club_id, platform, scraper_key, source_url, eventbrite_id,
+    enabled, priority, metadata, created_at, updated_at
+)
+SELECT
+    c.id,
+    'eventbrite'::"ScrapingPlatform",
+    'eventbrite',
+    'https://www.eventbrite.com',
+    '26956500819',
+    TRUE,
+    0,
+    '{"exclude_classes": true, "include_title_patterns": ["N Crowd", "This Week Sucked", "Wednesday Night Improv", "Date Nite", "Howl"]}'::jsonb,
+    NOW(),
+    NOW()
+FROM clubs c
+WHERE (c.google_place_id = 'ChIJgRv5Eqe7xokRNgxFBVzkqRY' OR (c.name = 'The Lab' AND c.city = 'Ambler' AND c.state = 'PA'))
+  AND NOT EXISTS (
+      SELECT 1 FROM scraping_sources s
+      WHERE s.club_id = c.id
+        AND s.platform = 'eventbrite'::"ScrapingPlatform"
         AND s.priority = 0
   );
 
