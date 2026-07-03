@@ -91,6 +91,7 @@ them as comedy-club onboarding candidates.
 | Comedy Show 3rd Fridays of the month at Fort Hamilton Distillery | `ChIJTTQXeERbwokRTbAzD7n2iGQ` | Named monthly showcase at Fort Hamilton Distillery, not a distinct fixed comedy club. |
 | Punching Bag Comedy | `ChIJfZe5TAtbwokRbgS-m87GIfw` | Named comedy show/producer listing without a venue-owned public calendar, not a distinct fixed comedy club. |
 | Expired Milk Comedy (at Planet Showbiz) | `ChIJAQJ5YOJfwokRRcnMweQ58HI` | Named show/producer listing at another venue, not a distinct fixed comedy club. |
+| Eight Is Never Enough Improv | `ChIJucyRblNYwokRBjdPNwuHUZs` | Improv/class/showcase brand at a shared class/performance address, not a distinct venue-owned comedy-club calendar. |
 | Laughing Lassi Comedy | `ChIJu0zwlrtZwokRjqYLUIr_Imk` | Named comedy show/producer listing at a shared class/performance address, not a distinct fixed comedy club. |
 
 ## Existing Generic Scraper Did Not Validate

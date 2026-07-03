@@ -627,6 +627,7 @@ FROM (
         ('Comedy Show 3rd Fridays at Fort Hamilton Distillery', '68 34th St Bldg 6, 2nd Floor, Brooklyn, NY 11232, USA', 'https://tallboycomedy.eventbrite.com/', 'Brooklyn', 'NY', '11232', 'America/New_York', 'US', 'non_comedy', 'ChIJTTQXeERbwokRTbAzD7n2iGQ', FALSE, 'active'),
         ('Punching Bag Comedy', '62 Court St, Brooklyn, NY 11201, USA', '', 'Brooklyn', 'NY', '11201', 'America/New_York', 'US', 'non_comedy', 'ChIJfZe5TAtbwokRbgS-m87GIfw', FALSE, 'active'),
         ('Expired Milk Comedy at Planet Showbiz', '274 Morgan Ave Ste 201, Brooklyn, NY 11211, USA', 'https://www.expiredmilkcomedy.com/', 'Brooklyn', 'NY', '11211', 'America/New_York', 'US', 'non_comedy', 'ChIJAQJ5YOJfwokRRcnMweQ58HI', FALSE, 'active'),
+        ('Eight Is Never Enough Improv', '318 W 53rd St, New York, NY 10019, USA', 'https://eightimprov.biz/', 'New York', 'NY', '10019', 'America/New_York', 'US', 'non_comedy', 'ChIJucyRblNYwokRBjdPNwuHUZs', FALSE, 'active'),
         ('Laughing Lassi Comedy', '318 W 53rd St, New York, NY 10019, USA', 'https://www.laughinglassi.com/', 'New York', 'NY', '10019', 'America/New_York', 'US', 'non_comedy', 'ChIJu0zwlrtZwokRjqYLUIr_Imk', FALSE, 'active')
 ) AS denied(name, address, website, city, state, zip_code, timezone, country, club_type, google_place_id, visible, status)
 WHERE NOT EXISTS (
@@ -897,6 +898,15 @@ VALUES
         'Named show/producer listing at another venue, not a distinct fixed comedy club.',
         'comedy_club',
         '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "showcase_not_venue"}'::jsonb,
+        'TASK-3563',
+        NOW()
+    ),
+    (
+        'ChIJucyRblNYwokRBjdPNwuHUZs',
+        'Eight Is Never Enough Improv',
+        'Improv/class/showcase brand at a shared class/performance address, not a distinct venue-owned comedy-club calendar.',
+        'comedy_club',
+        '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "classes_or_showcase_not_venue"}'::jsonb,
         'TASK-3563',
         NOW()
     ),
