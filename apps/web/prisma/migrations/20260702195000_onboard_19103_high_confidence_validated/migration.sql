@@ -612,7 +612,22 @@ FROM (
         ('KIDS ''N COMEDY', '208 W 23rd St, New York, NY 10011, USA', 'https://www.kidsncomedy.com/', 'New York', 'NY', '10011', 'America/New_York', 'US', 'non_comedy', 'ChIJC6VawohYwokRSM714XYSVBo', FALSE, 'active'),
         ('The Industry Room', '318 W 53rd St, New York, NY 10019, USA', 'https://www.theindustryroom.com/', 'New York', 'NY', '10019', 'America/New_York', 'US', 'non_comedy', 'ChIJYUSi3gpZwokRkMg8LalEFHY', FALSE, 'active'),
         ('Popped Collar Comedy - Free Show in Bushwick, Brooklyn', '1178 Bushwick Ave, Brooklyn, NY 11221, USA', 'https://www.danwickes.com/popped-collar-comedy-show/', 'Brooklyn', 'NY', '11221', 'America/New_York', 'US', 'non_comedy', 'ChIJ2QNRX-ddwokRj-YibDeFnoM', FALSE, 'active'),
-        ('Two in the Bush: A Standup Comedy Showcase', '3569 Broadway, New York, NY 10031, USA', 'https://linktr.ee/twointhebush', 'New York', 'NY', '10031', 'America/New_York', 'US', 'non_comedy', 'ChIJFcAVWzz3wokRw7A5-4bKHNs', FALSE, 'active')
+        ('Two in the Bush: A Standup Comedy Showcase', '3569 Broadway, New York, NY 10031, USA', 'https://linktr.ee/twointhebush', 'New York', 'NY', '10031', 'America/New_York', 'US', 'non_comedy', 'ChIJFcAVWzz3wokRw7A5-4bKHNs', FALSE, 'active'),
+        ('124 world', '1634 S Bailey St, Philadelphia, PA 19145, USA', '', 'Philadelphia', 'PA', '19145', 'America/New_York', 'US', 'non_comedy', 'ChIJQ-32JULHxokRL-5ZQOzBfMA', FALSE, 'active'),
+        ('Case Comedy', '229 S 45th St, Philadelphia, PA 19104, USA', 'https://www.instagram.com/casecomedy/', 'Philadelphia', 'PA', '19104', 'America/New_York', 'US', 'non_comedy', 'ChIJqzj_JPvHxokRSRW9qTzyolw', FALSE, 'active'),
+        ('South Jersey Comedy Club at Perkins Center - Collingswood', '30 Irvin Ave, Collingswood, NJ 08108, USA', 'https://comiccure.com/south-jersey-comedy', 'Collingswood', 'NJ', '08108', 'America/New_York', 'US', 'non_comedy', 'ChIJX5NzI7fJxokRn2tAWlZNIto', FALSE, 'active'),
+        ('Main Line Laughs at the Palombaro Club', '2632 E County Line Rd, Ardmore, PA 19003, USA', 'https://www.comiccure.com/philly', 'Ardmore', 'PA', '19003', 'America/New_York', 'US', 'non_comedy', 'ChIJETKduEfBxokRPXydhqcDg8w', FALSE, 'active'),
+        ('South Jersey Comedy Club at Plays & Players', '957 E Atlantic Ave, Haddonfield, NJ 08033, USA', 'https://comiccure.com/south-jersey-comedy', 'Haddonfield', 'NJ', '08033', 'America/New_York', 'US', 'non_comedy', 'ChIJHYCHtJjNxokRyigUhxrVthE', FALSE, 'active'),
+        ('South Jersey Comedy Club at Perkins Center - Moorestown', '395 Kings Hwy, Moorestown, NJ 08057, USA', 'https://comiccure.com/south-jersey-comedy', 'Moorestown', 'NJ', '08057', 'America/New_York', 'US', 'non_comedy', 'ChIJ_wlA6Uw1wYkRLK4iN9LITzE', FALSE, 'active'),
+        ('South Jersey Comedy by Comic Cure', '31 West Ave, Pitman, NJ 08071, USA', 'https://comiccure.com/south-jersey-comedy', 'Pitman', 'NJ', '08071', 'America/New_York', 'US', 'non_comedy', 'ChIJpUejQUnXxokRX4eEvKyDLnc', FALSE, 'active'),
+        ('New Sight Comedy', '423 Post Oak Ln, Newark, DE 19702, USA', '', 'Newark', 'DE', '19702', 'America/New_York', 'US', 'non_comedy', 'ChIJj9cYtgoHx4kRcIpOJCt_0fA', FALSE, 'active'),
+        ('Cool J''s AfterDARK', '1857 Pulaski Hwy, Bear, DE 19701, USA', 'http://www.cooljsafterdark.com/', 'Bear', 'DE', '19701', 'America/New_York', 'US', 'non_comedy', 'ChIJh8PlzpMHx4kRGEDnSClDgw0', FALSE, 'active'),
+        ('TravLee Comedy', '627 Smyrna Clayton Blvd, Smyrna, DE 19977, USA', 'https://www.travleecomedy.com/', 'Smyrna', 'DE', '19977', 'America/New_York', 'US', 'non_comedy', 'ChIJMwywGmJxx4kREn69PkTwdaA', FALSE, 'active'),
+        ('Poconos Underground Comedy', '622 Main St, Stroudsburg, PA 18360, USA', '', 'Stroudsburg', 'PA', '18360', 'America/New_York', 'US', 'non_comedy', 'ChIJuR4CPQCJxIkRveYIhfPiwt0', FALSE, 'active'),
+        ('Comedy Show 3rd Fridays at Fort Hamilton Distillery', '68 34th St Bldg 6, 2nd Floor, Brooklyn, NY 11232, USA', 'https://tallboycomedy.eventbrite.com/', 'Brooklyn', 'NY', '11232', 'America/New_York', 'US', 'non_comedy', 'ChIJTTQXeERbwokRTbAzD7n2iGQ', FALSE, 'active'),
+        ('Punching Bag Comedy', '62 Court St, Brooklyn, NY 11201, USA', '', 'Brooklyn', 'NY', '11201', 'America/New_York', 'US', 'non_comedy', 'ChIJfZe5TAtbwokRbgS-m87GIfw', FALSE, 'active'),
+        ('Expired Milk Comedy at Planet Showbiz', '274 Morgan Ave Ste 201, Brooklyn, NY 11211, USA', 'https://www.expiredmilkcomedy.com/', 'Brooklyn', 'NY', '11211', 'America/New_York', 'US', 'non_comedy', 'ChIJAQJ5YOJfwokRRcnMweQ58HI', FALSE, 'active'),
+        ('Laughing Lassi Comedy', '318 W 53rd St, New York, NY 10019, USA', 'https://www.laughinglassi.com/', 'New York', 'NY', '10019', 'America/New_York', 'US', 'non_comedy', 'ChIJu0zwlrtZwokRjqYLUIr_Imk', FALSE, 'active')
 ) AS denied(name, address, website, city, state, zip_code, timezone, country, club_type, google_place_id, visible, status)
 WHERE NOT EXISTS (
     SELECT 1 FROM clubs c
@@ -756,6 +771,141 @@ VALUES
         'Named stand-up showcase listing, not a distinct fixed comedy venue.',
         'comedy_club',
         '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "showcase_not_venue"}'::jsonb,
+        'TASK-3563',
+        NOW()
+    ),
+    (
+        'ChIJQ-32JULHxokRL-5ZQOzBfMA',
+        '124 world',
+        'Google comedy_club candidate has no website and no verified public venue-owned calendar; address appears to be a non-public/private listing.',
+        'comedy_club',
+        '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "non_venue_false_positive"}'::jsonb,
+        'TASK-3563',
+        NOW()
+    ),
+    (
+        'ChIJqzj_JPvHxokRSRW9qTzyolw',
+        'Case Comedy',
+        'Instagram-only comedy show/producer listing, not a fixed venue-owned comedy-club calendar.',
+        'comedy_club',
+        '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "producer_or_showcase_not_venue"}'::jsonb,
+        'TASK-3563',
+        NOW()
+    ),
+    (
+        'ChIJX5NzI7fJxokRn2tAWlZNIto',
+        'South Jersey Comedy Club at Perkins Center',
+        'Comic Cure/South Jersey Comedy recurring producer listing at a host venue, not a distinct fixed comedy club.',
+        'comedy_club',
+        '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "producer_or_showcase_not_venue"}'::jsonb,
+        'TASK-3563',
+        NOW()
+    ),
+    (
+        'ChIJETKduEfBxokRPXydhqcDg8w',
+        'Main Line Laughs at the Palombaro Club',
+        'Comic Cure/Main Line Laughs recurring producer listing at a host venue, not a distinct fixed comedy club.',
+        'comedy_club',
+        '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "producer_or_showcase_not_venue"}'::jsonb,
+        'TASK-3563',
+        NOW()
+    ),
+    (
+        'ChIJHYCHtJjNxokRyigUhxrVthE',
+        'South Jersey Comedy Club at Plays & Players',
+        'Comic Cure/South Jersey Comedy recurring producer listing at a host venue, not a distinct fixed comedy club.',
+        'comedy_club',
+        '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "producer_or_showcase_not_venue"}'::jsonb,
+        'TASK-3563',
+        NOW()
+    ),
+    (
+        'ChIJ_wlA6Uw1wYkRLK4iN9LITzE',
+        'South Jersey Comedy Club at Perkins Center',
+        'Comic Cure/South Jersey Comedy recurring producer listing at a host venue, not a distinct fixed comedy club.',
+        'comedy_club',
+        '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "producer_or_showcase_not_venue"}'::jsonb,
+        'TASK-3563',
+        NOW()
+    ),
+    (
+        'ChIJpUejQUnXxokRX4eEvKyDLnc',
+        'South Jersey Comedy by Comic Cure',
+        'Comic Cure/South Jersey Comedy producer listing, not a distinct fixed comedy club.',
+        'comedy_club',
+        '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "producer_or_showcase_not_venue"}'::jsonb,
+        'TASK-3563',
+        NOW()
+    ),
+    (
+        'ChIJj9cYtgoHx4kRcIpOJCt_0fA',
+        'New Sight Comedy',
+        'Google comedy_club candidate has no website and no verified public venue-owned calendar; address appears to be a non-public/private listing.',
+        'comedy_club',
+        '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "non_venue_false_positive"}'::jsonb,
+        'TASK-3563',
+        NOW()
+    ),
+    (
+        'ChIJh8PlzpMHx4kRGEDnSClDgw0',
+        'Cool J''s AfterDARK',
+        'Comedy producer/event-series listing rather than a fixed venue-owned comedy-club calendar.',
+        'comedy_club',
+        '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "producer_or_showcase_not_venue"}'::jsonb,
+        'TASK-3563',
+        NOW()
+    ),
+    (
+        'ChIJMwywGmJxx4kREn69PkTwdaA',
+        'TravLee Comedy',
+        'Individual/producer comedy-brand listing, not a fixed comedy venue.',
+        'comedy_club',
+        '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "producer_or_person_not_venue"}'::jsonb,
+        'TASK-3563',
+        NOW()
+    ),
+    (
+        'ChIJuR4CPQCJxIkRveYIhfPiwt0',
+        'Poconos Underground Comedy',
+        'Named comedy producer/showcase listing with no venue-owned public calendar, not a distinct fixed comedy club.',
+        'comedy_club',
+        '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "producer_or_showcase_not_venue"}'::jsonb,
+        'TASK-3563',
+        NOW()
+    ),
+    (
+        'ChIJTTQXeERbwokRTbAzD7n2iGQ',
+        'Comedy Show 3rd Fridays of the month at Fort Hamilton Distillery',
+        'Named monthly stand-up showcase at Fort Hamilton Distillery, not a distinct fixed comedy club.',
+        'comedy_club',
+        '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "showcase_not_venue"}'::jsonb,
+        'TASK-3563',
+        NOW()
+    ),
+    (
+        'ChIJfZe5TAtbwokRbgS-m87GIfw',
+        'Punching Bag Comedy',
+        'Named comedy show/producer listing without a venue-owned public calendar, not a distinct fixed comedy club.',
+        'comedy_club',
+        '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "producer_or_showcase_not_venue"}'::jsonb,
+        'TASK-3563',
+        NOW()
+    ),
+    (
+        'ChIJAQJ5YOJfwokRRcnMweQ58HI',
+        'Expired Milk Comedy (at Planet Showbiz)',
+        'Named show/producer listing at another venue, not a distinct fixed comedy club.',
+        'comedy_club',
+        '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "showcase_not_venue"}'::jsonb,
+        'TASK-3563',
+        NOW()
+    ),
+    (
+        'ChIJu0zwlrtZwokRjqYLUIr_Imk',
+        'Laughing Lassi Comedy',
+        'Named comedy show/producer listing at a shared class/performance address, not a distinct fixed comedy club.',
+        'comedy_club',
+        '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "producer_or_showcase_not_venue"}'::jsonb,
         'TASK-3563',
         NOW()
     )

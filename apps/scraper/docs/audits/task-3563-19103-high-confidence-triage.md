@@ -51,6 +51,7 @@ cd apps/scraper && make scrape-club CLUB='The Comedy Works'
 | Village Underground | Existing DB has `Comedy Cellar New York`, id 1. Live validation of the existing `comedy_cellar` scraper returned 111 shows with rooms including `Village Underground`, so this Places record is already represented as a room under the Comedy Cellar club rather than a separate club row. |
 | Fat Black Pussycat | Existing DB has `Comedy Cellar New York`, id 1. Live validation of the existing `comedy_cellar` scraper returned rooms including `Fat Black Pussycat` and `Room 5`; the venue website also points users to the Comedy Cellar lineup. |
 | Dark Horse Comedy Club | Existing DB has `Dark Horse Comedy Club`, id 49, same website `https://www.darkhorsecomedyclub.com/` but an older address and no `google_place_id`. Do not insert a duplicate club from this Places record; it needs a separate location/current-address audit if we want to update the existing row. |
+| Poe's Comedy Cabaret: Baltimore Comedy Club | Existing DB has `Poe's Magic Theatre`, id 565, at the Lord Baltimore Hotel. The existing Poe onboarding notes already identify `poesmagic.com` and `poescabaret.com` as the same Poe's Magic LLC operation, so this alternate Places record is already represented by the existing club rather than a new row. |
 
 ## Deny-Listed In Migration
 
@@ -76,6 +77,21 @@ them as comedy-club onboarding candidates.
 | The Industry Room | `ChIJYUSi3gpZwokRkMg8LalEFHY` | Comedy class/training-room listing; public ticket signal found was a stand-up class, not a fixed public club calendar. |
 | Popped Collar Comedy - Free Show in Bushwick, Brooklyn | `ChIJ2QNRX-ddwokRj-YibDeFnoM` | Named recurring showcase at another venue, not a distinct club. |
 | Two in the Bush: A Standup Comedy Showcase | `ChIJFcAVWzz3wokRw7A5-4bKHNs` | Named showcase, not a distinct club. |
+| 124 world | `ChIJQ-32JULHxokRL-5ZQOzBfMA` | No website and no public venue-owned calendar evidence; address appears to be a non-public/private listing. |
+| Case Comedy | `ChIJqzj_JPvHxokRSRW9qTzyolw` | Instagram-only comedy show/producer listing, not a fixed venue-owned club calendar. |
+| South Jersey Comedy Club at Perkins Center - Collingswood | `ChIJX5NzI7fJxokRn2tAWlZNIto` | Comic Cure/South Jersey Comedy producer listing at a host venue, not a distinct fixed comedy club. |
+| Main Line Laughs at the Palombaro Club | `ChIJETKduEfBxokRPXydhqcDg8w` | Comic Cure/Main Line Laughs producer listing at a host venue, not a distinct fixed comedy club. |
+| South Jersey Comedy Club at Plays & Players | `ChIJHYCHtJjNxokRyigUhxrVthE` | Comic Cure/South Jersey Comedy producer listing at a host venue, not a distinct fixed comedy club. |
+| South Jersey Comedy Club at Perkins Center - Moorestown | `ChIJ_wlA6Uw1wYkRLK4iN9LITzE` | Comic Cure/South Jersey Comedy producer listing at a host venue, not a distinct fixed comedy club. |
+| South Jersey Comedy by Comic Cure | `ChIJpUejQUnXxokRX4eEvKyDLnc` | Comic Cure/South Jersey Comedy producer listing, not a distinct fixed comedy club. |
+| New Sight Comedy | `ChIJj9cYtgoHx4kRcIpOJCt_0fA` | No website and no public venue-owned calendar evidence; address appears to be a non-public/private listing. |
+| Cool J's AfterDARK | `ChIJh8PlzpMHx4kRGEDnSClDgw0` | Comedy producer/event-series listing rather than a fixed venue-owned comedy-club calendar. |
+| TravLee Comedy | `ChIJMwywGmJxx4kREn69PkTwdaA` | Individual/producer comedy-brand listing, not a fixed comedy venue. |
+| Poconos Underground Comedy | `ChIJuR4CPQCJxIkRveYIhfPiwt0` | Named comedy producer/showcase listing with no venue-owned public calendar, not a distinct fixed comedy club. |
+| Comedy Show 3rd Fridays of the month at Fort Hamilton Distillery | `ChIJTTQXeERbwokRTbAzD7n2iGQ` | Named monthly showcase at Fort Hamilton Distillery, not a distinct fixed comedy club. |
+| Punching Bag Comedy | `ChIJfZe5TAtbwokRbgS-m87GIfw` | Named comedy show/producer listing without a venue-owned public calendar, not a distinct fixed comedy club. |
+| Expired Milk Comedy (at Planet Showbiz) | `ChIJAQJ5YOJfwokRRcnMweQ58HI` | Named show/producer listing at another venue, not a distinct fixed comedy club. |
+| Laughing Lassi Comedy | `ChIJu0zwlrtZwokRjqYLUIr_Imk` | Named comedy show/producer listing at a shared class/performance address, not a distinct fixed comedy club. |
 
 ## Existing Generic Scraper Did Not Validate
 
@@ -108,20 +124,41 @@ not match the existing generic scraper contract during live validation:
 | Stones Comedy Club | `modern_events_calendar`, `https://stonestreetcomedyclub.com/wp-json/wp/v2/mec-events` | REST endpoint returned 404 / 0 shows. |
 | Stones Comedy Club | `json_ld` detail fetch over `/events/` links | 0 JSON-LD events. |
 | The Fear City Comedy Club | `squarespace`, `https://www.thefearcitycomedyclub.com/api/open/GetItemsByMonth?collectionId=66d33a4d09d98a61587e40bf` | 0 shows through the existing Squarespace scraper; the collection is present but did not return current/next-two-month events. |
+| Comedy Cabaret Comedy Club | `the_events_calendar`, `https://comedycabaret.com/wp-json/tribe/events/v1/events` | REST endpoint returned 404 / 0 shows. |
+| Comedy Cabaret Comedy Club | `modern_events_calendar`, `https://comedycabaret.com/wp-json/wp/v2/mec-events` | REST endpoint returned 404 / 0 shows. |
+| The Lab | `wix_events`, `https://www.thelabambler.com/` root mode | Wix Events API returned HTTP 400 / 0 events. |
+| Upper East Side Comedy Club at Bedford Falls NYC | `wix_events`, `https://www.uppereastsidecomedyclub.com/` root mode | 0 events through the existing generic Wix Events scraper. |
+
+## Source Extraction Required
+
+These are plausible fixed venues or recurring club brands, but the existing
+generic scrapers did not produce a safe DB-only onboarding source in this task:
+
+- `Comedy Cabaret Comedy Club` (`ChIJy5ZWovyyxokRK7e8UIt1DAs`,
+  `ChIJgywfGpgCxIkRvQVpKm08aZg`) has two Places records and a WordPress site,
+  but the generic WordPress event scrapers returned 404 / 0 shows.
+- `The Lab` (`ChIJgRv5Eqe7xokRNgxFBVzkqRY`) is a Wix site, but root-mode
+  `wix_events` returned HTTP 400 / 0 events.
+- `Kings Highway Comedy` (`ChIJYXEnsPJNwYkRjESWnP4dY_0`) has a GoDaddy site
+  with form links and no validated generic event API in the scraper probe.
+- `Comedy Explosion` (`ChIJoTL1eJ_7xokRxKP67A-9Aw0`), `Die Laughing`
+  (`ChIJFZh5yjCHxokRz_8cbQHXVRM`), `The Backroom LIVE`
+  (`ChIJwSKD8ClTwokRirWjcbUWnlU`), `The PIT`
+  (`ChIJG3e1NKdZwokR26WFFB6Lx7w`), `The Second City New York`
+  (`ChIJv4cccglZwokRwENgJq6qkXs`), `Upper East Side Comedy Club at Bedford
+  Falls NYC` (`ChIJi-qNZNtZwokRQBdBfR3dLM4`), `UCB Theatre`, `The Fear City
+  Comedy Club`, `Sesh Comedy`, `Flop House Comedy Club`, `Living Room Laughs`,
+  `Rhino Comedy`, and `Stones Comedy Club` all need source extraction or scraper
+  work before they are safe to onboard.
 
 ## Needs Follow-Up Triage
 
-The remaining high-confidence candidates still need classification as onboarded,
-already covered, or deny-listed. Prioritize fixed venues with supported-source
-signals, then deny-list obvious non-venue/person/podcast records:
+The remaining high-confidence candidates still need source extraction before
+they can be onboarded safely. Prioritize fixed venues with supported-source
+signals:
 
 - Fixed/promising but needs source extraction: The Backroom LIVE,
-  The PIT, Second City New York,
-  UCB Theatre, and The Fear City Comedy Club.
-- Likely producer/event-series rather than fixed venue: Comic Cure / South
-  Jersey Comedy Club variants, Main Line Laughs, Case Comedy, Kings Highway
-  Comedy, Comedy Explosion, Die Laughing, Cool J's AfterDARK, TravLee Comedy,
-  Poconos Underground Comedy, Airplane Mode, Punching Bag Comedy, Expired Milk
-  Comedy variants, Laughing Lassi Comedy, Living Room Laughs, Poe's Comedy
-  Cabaret Baltimore, Rhino Comedy, Eight Is Never Enough Improv, Flop House
-  Comedy Club, Sesh Comedy, and Stones Comedy Club.
+  The PIT, Second City New York, UCB Theatre, The Fear City Comedy Club,
+  Comedy Cabaret, The Lab, Kings Highway Comedy, Comedy Explosion, Die Laughing,
+  Upper East Side Comedy Club, Sesh Comedy, Flop House Comedy Club, Living Room
+  Laughs, Rhino Comedy, and Stones Comedy Club.
