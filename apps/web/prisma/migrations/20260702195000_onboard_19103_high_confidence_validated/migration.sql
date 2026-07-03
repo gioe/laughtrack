@@ -602,7 +602,10 @@ FROM (
         ('Tony''s Crescenzo''s strange humor (podcast on Spotify)', '83 5th St, Frederica, DE 19946, USA', '', 'Frederica', 'DE', '19946', 'America/New_York', 'US', 'non_comedy', 'ChIJ1UPf_OCduIkRFoN2BVfsXzU', FALSE, 'active'),
         ('Comedian Ala Bama', '3905 Dorchester Rd, Gwynn Oak, MD 21207, USA', '', 'Gwynn Oak', 'MD', '21207', 'America/New_York', 'US', 'non_comedy', 'ChIJ58EKNDIbyIkR7QZZSFUaYSM', FALSE, 'active'),
         ('DangItJared', '123 Main St, Berwick, PA 18603, USA', '', 'Berwick', 'PA', '18603', 'America/New_York', 'US', 'non_comedy', 'ChIJ_Ug6nRufxYkRQpLUGjWlUJc', FALSE, 'active'),
+        ('The Laff House Atlantic City', '1 Atlantic Ocean, Atlantic City, NJ 08401, USA', 'http://www.thelaffhouseatlanticcity.com/', 'Atlantic City', 'NJ', '08401', 'America/New_York', 'US', 'non_comedy', 'ChIJYU68C-fvwIkRnnT3nK6nICg', FALSE, 'active'),
         ('Funny By The Pound Comedy Cafe', '1156 S Bay Rd, Dover, DE 19901, USA', 'https://www.jreamlandentertainment.com/', 'Dover', 'DE', '19901', 'America/New_York', 'US', 'non_comedy', 'ChIJk1zXo8Rjx4kRP55ii9K1hFc', FALSE, 'active'),
+        ('The Looney Bin Comedy Club - Richmond Ave', '921 Richmond Ave, Staten Island, NY 10314, USA', 'http://www.thelooneybincomedyclub.com/', 'Staten Island', 'NY', '10314', 'America/New_York', 'US', 'non_comedy', 'ChIJYf3-4MNNwokR29uqyb4wyL4', FALSE, 'active'),
+        ('The Looney Bin Comedy Club - Hylan Blvd', '2001 Hylan Blvd, Staten Island, NY 10306, USA', 'https://thelooneybincomedyclub.com/', 'Staten Island', 'NY', '10306', 'America/New_York', 'US', 'non_comedy', 'ChIJdUNZhZ9MwokRWNxtCHCYniI', FALSE, 'active'),
         ('Chip Ambrogio Comedy', '600 Westwood Ave, River Vale, NJ 07675, USA', 'https://www.chipambrogiocomedy.com/', 'River Vale', 'NJ', '07675', 'America/New_York', 'US', 'non_comedy', 'ChIJHxc11BPvwokRJnO9QrOJfHE', FALSE, 'active'),
         ('Best Comedy Tickets', '128 MacDougal St, New York, NY 10012, USA', 'https://bestcomedytickets.com/', 'New York', 'NY', '10012', 'America/New_York', 'US', 'non_comedy', 'ChIJQXZTgZFZwokRAFmiulJft4w', FALSE, 'active'),
         ('FUNY Stand Up Comedy Classes - The New York Comedy School', 'The Green Room, 201 W 75th St, New York, NY 10023, USA', 'https://funystandup.com/', 'New York', 'NY', '10023', 'America/New_York', 'US', 'non_comedy', 'ChIJD3c4lKVZwokRjdZJoUEQHj8', FALSE, 'active'),
@@ -658,11 +661,38 @@ VALUES
         NOW()
     ),
     (
+        'ChIJYU68C-fvwIkRnnT3nK6nICg',
+        'The Laff House Atlantic City',
+        'Discovered website no longer resolves, and no venue-owned public calendar could be verified for this Atlantic City Places record.',
+        'comedy_club',
+        '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "stale_site_no_calendar"}'::jsonb,
+        'TASK-3563',
+        NOW()
+    ),
+    (
         'ChIJk1zXo8Rjx4kRP55ii9K1hFc',
         'Funny By The Pound Comedy Cafe',
         'Google comedy_club candidate points to a Wix site that returns 404 and exposes no public venue calendar or fixed comedy-club event surface.',
         'comedy_club',
         '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "non_venue_or_stale_business_false_positive"}'::jsonb,
+        'TASK-3563',
+        NOW()
+    ),
+    (
+        'ChIJYf3-4MNNwokR29uqyb4wyL4',
+        'The Looney Bin Comedy Club',
+        'Website returns an error page and exposes no public venue calendar; not safe to onboard as an active scrape target.',
+        'comedy_club',
+        '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "stale_site_no_calendar"}'::jsonb,
+        'TASK-3563',
+        NOW()
+    ),
+    (
+        'ChIJdUNZhZ9MwokRWNxtCHCYniI',
+        'The Looney Bin Comedy Club',
+        'Alternate Google record for the same stale Looney Bin Staten Island brand; website returns 404/error and exposes no public venue calendar.',
+        'comedy_club',
+        '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "stale_site_no_calendar"}'::jsonb,
         'TASK-3563',
         NOW()
     ),
