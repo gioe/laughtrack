@@ -18,6 +18,7 @@ adds these validated venues:
 | High Line Comedy Club | `ChIJXfsikHhZwokRxr1XAbft_X8` | `eventbrite` | `https://www.eventbrite.com`, eventbrite id `91898788783` | 23 future shows |
 | BATSU! | `ChIJ4QKVd5xZwokRKNIH6nKJPAE` | `tock` | `https://www.exploretock.com/batsunyc` | 240 future shows |
 | Give A Hoot Comedy Club NJ | `ChIJXd-xbnItwYkRuNSn__rA_2o` | `seatengine_web` | `https://www.giveahootcomedyclubnj.com/` | 6 future shows |
+| Colonial Comedy | `ChIJn8bwdkSnw4kRzYbWgB3rhO8` | `wix_events` | `https://www.colonialcomedy.com/` | 2 future shows |
 
 Validation was done on 2026-07-02 by instantiating the same generic scraper
 classes that `make scrape-club` will use after the migration rows exist. The
@@ -31,6 +32,7 @@ cd apps/scraper && make scrape-club CLUB='Meadowlands Comedy Club'
 cd apps/scraper && make scrape-club CLUB='High Line Comedy Club'
 cd apps/scraper && make scrape-club CLUB='BATSU!'
 cd apps/scraper && make scrape-club CLUB='Give A Hoot Comedy Club NJ'
+cd apps/scraper && make scrape-club CLUB='Colonial Comedy'
 ```
 
 ## Already Covered / Duplicate-Like
@@ -86,6 +88,8 @@ not match the existing generic scraper contract during live validation:
 | Upright Citizens Brigade Theatre | `ucb`, `https://ucbcomedy.com/shows/` with likely NYC location slugs | 0 events for `ny`, `nyc`, `new-york`, `east-village`, `ucb-new-york`, `ucb-nyc`, `ny-theatre`, `new-york-theatre`, and `ucb-theatre-ny`; needs source extraction before onboarding. |
 | Laughing Buddha Comedy | `ticket_tailor`, `https://www.tickettailor.com/events/laughingbuddhacomedy/` | 38 parsed events, but the account mixes classes and offsite shows including New York Comedy Club; not a clean single-venue source without additional filtering. |
 | The Backroom LIVE | `eventbrite`, organizer id `120674296136` discovered from collection page | 0 shows through the existing single-venue Eventbrite venue/fallback path; collection page is mixed and organizer mode would route as a multi-venue producer, not a fixed club. |
+| Stones Comedy Club | `modern_events_calendar`, `https://stonestreetcomedyclub.com/wp-json/wp/v2/mec-events` | REST endpoint returned 404 / 0 shows. |
+| Stones Comedy Club | `json_ld` detail fetch over `/events/` links | 0 JSON-LD events. |
 
 ## Needs Follow-Up Triage
 
@@ -103,4 +107,4 @@ signals, then deny-list obvious non-venue/person/podcast records:
   Comedy, Comedy Explosion, Die Laughing, Cool J's AfterDARK, TravLee Comedy,
   Poconos Underground Comedy, Airplane Mode, Punching Bag Comedy, Expired Milk
   Comedy variants, Laughing Lassi Comedy, Living Room Laughs, Poe's Comedy
-  Cabaret Baltimore, and Rhino Comedy.
+  Cabaret Baltimore, Rhino Comedy, and Stones Comedy Club.

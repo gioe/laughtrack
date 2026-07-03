@@ -31,6 +31,11 @@
 --   by the generic `seatengine_web` scraper:
 --   https://www.giveahootcomedyclubnj.com/
 --   Live validation on 2026-07-02 returned 6 future shows.
+-- * Colonial Comedy — native Wix Events API via the generic `wix_events`
+--   scraper, which returns the site's two public upcoming comedy shows without
+--   a compId:
+--   https://www.colonialcomedy.com/
+--   Live validation on 2026-07-02 returned 2 future shows.
 --
 -- After this migration is deployed, run:
 --   cd apps/scraper && make scrape-club CLUB='The N Crowd'
@@ -40,6 +45,7 @@
 --   cd apps/scraper && make scrape-club CLUB='High Line Comedy Club'
 --   cd apps/scraper && make scrape-club CLUB='BATSU!'
 --   cd apps/scraper && make scrape-club CLUB='Give A Hoot Comedy Club NJ'
+--   cd apps/scraper && make scrape-club CLUB='Colonial Comedy'
 
 INSERT INTO clubs (
     name, address, website, city, state, zip_code, phone_number,
@@ -340,6 +346,49 @@ WHERE (c.google_place_id = 'ChIJXd-xbnItwYkRuNSn__rA_2o' OR c.name = 'Give A Hoo
       SELECT 1 FROM scraping_sources s
       WHERE s.club_id = c.id
         AND s.platform = 'custom'::"ScrapingPlatform"
+        AND s.priority = 0
+  );
+
+INSERT INTO clubs (
+    name, address, website, city, state, zip_code, phone_number,
+    latitude, longitude, timezone, country, club_type, google_place_id,
+    visible, status
+)
+SELECT
+    'Colonial Comedy',
+    '39 Maple Ave, Morristown, NJ 07960, USA',
+    'https://www.colonialcomedy.com/',
+    'Morristown', 'NJ', '07960', '(973) 946-8930',
+    40.7937068, -74.4810685,
+    'America/New_York', 'US', 'club',
+    'ChIJn8bwdkSnw4kRzYbWgB3rhO8',
+    TRUE, 'active'
+WHERE NOT EXISTS (
+    SELECT 1 FROM clubs
+    WHERE google_place_id = 'ChIJn8bwdkSnw4kRzYbWgB3rhO8'
+       OR name = 'Colonial Comedy'
+);
+
+INSERT INTO scraping_sources (
+    club_id, platform, scraper_key, source_url,
+    enabled, priority, metadata, created_at, updated_at
+)
+SELECT
+    c.id,
+    'wix_events'::"ScrapingPlatform",
+    'wix_events',
+    'https://www.colonialcomedy.com/',
+    TRUE,
+    0,
+    '{}'::jsonb,
+    NOW(),
+    NOW()
+FROM clubs c
+WHERE (c.google_place_id = 'ChIJn8bwdkSnw4kRzYbWgB3rhO8' OR c.name = 'Colonial Comedy')
+  AND NOT EXISTS (
+      SELECT 1 FROM scraping_sources s
+      WHERE s.club_id = c.id
+        AND s.platform = 'wix_events'::"ScrapingPlatform"
         AND s.priority = 0
   );
 
