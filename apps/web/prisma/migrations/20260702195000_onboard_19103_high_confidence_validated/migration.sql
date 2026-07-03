@@ -78,6 +78,10 @@
 --   scraper with metadata.location_slug `new-york` and NY venue-name filters:
 --   https://www.secondcity.com/shows/new-york/
 --   Live validation on 2026-07-03 returned 3 future shows.
+-- * Comedy Cabaret Comedy Club — PatronBase productions RSS scraped by the
+--   generic `patronbase_rss` scraper:
+--   https://us.patronbase.com/_ComedyCabaret/Productions/RSS
+--   Live validation on 2026-07-03 returned 5 future shows.
 --
 -- After this migration is deployed, run:
 --   cd apps/scraper && make scrape-club CLUB='The N Crowd'
@@ -98,6 +102,7 @@
 --   cd apps/scraper && make scrape-club CLUB='Stones Comedy Club'
 --   cd apps/scraper && make scrape-club CLUB='Sesh Comedy'
 --   cd apps/scraper && make scrape-club CLUB='The Second City New York'
+--   cd apps/scraper && make scrape-club CLUB='Comedy Cabaret Comedy Club'
 
 INSERT INTO clubs (
     name, address, website, city, state, zip_code, phone_number,
@@ -901,6 +906,49 @@ SELECT
     NOW()
 FROM clubs c
 WHERE (c.google_place_id = 'ChIJv4cccglZwokRwENgJq6qkXs' OR (c.name = 'The Second City New York' AND c.city = 'Brooklyn' AND c.state = 'NY'))
+  AND NOT EXISTS (
+      SELECT 1 FROM scraping_sources s
+      WHERE s.club_id = c.id
+        AND s.platform = 'custom'::"ScrapingPlatform"
+        AND s.priority = 0
+  );
+
+INSERT INTO clubs (
+    name, address, website, city, state, zip_code, phone_number,
+    latitude, longitude, timezone, country, club_type, google_place_id,
+    visible, status
+)
+SELECT
+    'Comedy Cabaret Comedy Club',
+    '625 N Main St, Doylestown, PA 18901, USA',
+    'https://comedycabaret.com/bucks-county-doylestown/',
+    'Doylestown', 'PA', '18901', '',
+    40.3251533, -75.1296768,
+    'America/New_York', 'US', 'club',
+    'ChIJgywfGpgCxIkRvQVpKm08aZg',
+    TRUE, 'active'
+WHERE NOT EXISTS (
+    SELECT 1 FROM clubs
+    WHERE google_place_id = 'ChIJgywfGpgCxIkRvQVpKm08aZg'
+       OR (name = 'Comedy Cabaret Comedy Club' AND city = 'Doylestown' AND state = 'PA')
+);
+
+INSERT INTO scraping_sources (
+    club_id, platform, scraper_key, source_url,
+    enabled, priority, metadata, created_at, updated_at
+)
+SELECT
+    c.id,
+    'custom'::"ScrapingPlatform",
+    'patronbase_rss',
+    'https://us.patronbase.com/_ComedyCabaret/Productions/RSS',
+    TRUE,
+    0,
+    '{}'::jsonb,
+    NOW(),
+    NOW()
+FROM clubs c
+WHERE (c.google_place_id = 'ChIJgywfGpgCxIkRvQVpKm08aZg' OR (c.name = 'Comedy Cabaret Comedy Club' AND c.city = 'Doylestown' AND c.state = 'PA'))
   AND NOT EXISTS (
       SELECT 1 FROM scraping_sources s
       WHERE s.club_id = c.id

@@ -29,6 +29,7 @@ adds these validated venues:
 | Stones Comedy Club | `ChIJV3CtSlJbwokRW6gCgnAFt-E` | `eventbrite` | `https://www.eventbrite.com`, eventbrite id `33078829209` | 52 future shows |
 | Sesh Comedy | `ChIJ59-_Gu5ZwokR7Xc8o5IAtY0` | `fullcalendar_json` | `https://www.seshcomedy.com/feed.php` | 42 future shows |
 | The Second City New York | `ChIJv4cccglZwokRwENgJq6qkXs` | `up_comedy_club` | `https://www.secondcity.com/shows/new-york/`, `location_slug=new-york`, NY venue-name filters | 3 future shows |
+| Comedy Cabaret Comedy Club | `ChIJgywfGpgCxIkRvQVpKm08aZg` | `patronbase_rss` | `https://us.patronbase.com/_ComedyCabaret/Productions/RSS` | 5 future shows |
 
 Validation was done on 2026-07-02 by instantiating the same generic scraper
 classes that `make scrape-club` will use after the migration rows exist. The
@@ -53,6 +54,7 @@ cd apps/scraper && make scrape-club CLUB='Upright Citizens Brigade Theatre New Y
 cd apps/scraper && make scrape-club CLUB='Stones Comedy Club'
 cd apps/scraper && make scrape-club CLUB='Sesh Comedy'
 cd apps/scraper && make scrape-club CLUB='The Second City New York'
+cd apps/scraper && make scrape-club CLUB='Comedy Cabaret Comedy Club'
 ```
 
 ## Already Covered / Duplicate-Like
@@ -145,7 +147,7 @@ not match the existing generic scraper contract during live validation:
 | The Fear City Comedy Club | `squarespace` products mode, `https://www.thefearcitycomedyclub.com/shows` | 0 shows; `/shows` has 30 future Google Calendar add-event links, but no public ICS feed or existing generic scraper contract for those rendered links. |
 | The Fear City Comedy Club | `squarespace` events-stacked page JSON mode, `https://www.thefearcitycomedyclub.com/shows` | TASK-3566 added a generic parser for this Squarespace shape, but live validation on 2026-07-03 returned 0 future shows after dropping stale page JSON events, so no onboarding row was added. Google place id resolves to `ChIJmfs0oC9bwokRvksSyYq9Cq8`. |
 | Comedy Cabaret Comedy Club | `the_events_calendar`, `https://comedycabaret.com/wp-json/tribe/events/v1/events` | REST endpoint returned 404 / 0 shows. |
-| Comedy Cabaret Comedy Club | `modern_events_calendar`, `https://comedycabaret.com/wp-json/wp/v2/mec-events` | REST endpoint returned 404 / 0 shows. |
+| Comedy Cabaret Comedy Club | `modern_events_calendar`, `https://comedycabaret.com/wp-json/wp/v2/mec-events` | REST endpoint returned 404 / 0 shows. TASK-3566 added a generic `patronbase_rss` scraper for the venue's PatronBase `/Productions/RSS` feed; live validation returned 5 future shows, so the Doylestown venue is onboarded in the migration. |
 | The Lab | `wix_events`, `https://www.thelabambler.com/` root mode | Wix Events API returned HTTP 400 / 0 events. |
 | The Lab | `eventbrite`, organizer id `26956500819` without filters | 10 events, but the feed mixes classes/workshops with shows. A filtered Eventbrite source is onboarded in the migration. |
 | Upper East Side Comedy Club at Bedford Falls NYC | `wix_events`, `https://www.uppereastsidecomedyclub.com/` root mode | 0 events through the existing generic Wix Events scraper. |
@@ -160,10 +162,6 @@ These are plausible fixed venues or recurring club brands, but the existing
 generic scrapers did not produce a safe DB-only onboarding source in this task:
 follow-up scraper/source work is tracked in TASK-3566.
 
-- `Comedy Cabaret Comedy Club` Doylestown (`ChIJgywfGpgCxIkRvQVpKm08aZg`)
-  has a real fixed-venue page with PatronBase ticket links under
-  `us.patronbase.com/_ComedyCabaret`, but the existing `patron_ticket` scraper
-  is for Salesforce PatronTicket and does not cover PatronBase.
 - `The PIT` (`ChIJG3e1NKdZwokR26WFFB6Lx7w`), `Upper East Side Comedy Club at
   Bedford Falls NYC` (`ChIJi-qNZNtZwokRQBdBfR3dLM4`), `Flop House Comedy Club`,
   and `Rhino Comedy` all need source extraction or scraper work before they are
@@ -180,5 +178,5 @@ they can be onboarded safely. Prioritize fixed venues with supported-source
 signals:
 
 - Fixed/promising but needs source extraction: The PIT,
-  The Fear City Comedy Club, Comedy Cabaret, Upper East Side Comedy Club,
-  Flop House Comedy Club, and Rhino Comedy.
+  The Fear City Comedy Club, Upper East Side Comedy Club, Flop House Comedy
+  Club, and Rhino Comedy.

@@ -1141,6 +1141,46 @@ SELECT c.id, 'custom'::"ScrapingPlatform", 'up_comedy_club',
 
 ---
 
+### PatronBase RSS
+
+| | |
+|---|---|
+| **Scraper key** | `patronbase_rss` |
+| **Platform** | `custom` |
+| **DB field** | `scraping_sources.source_url` |
+| **Value format** | PatronBase productions RSS URL, usually `https://us.patronbase.com/_<Account>/Productions/RSS` |
+| **Generic?** | ✅ Generic when the RSS item title includes show time and description includes `Date:` |
+
+**Detection signals:**
+- PatronBase pages include an alternate RSS link such as
+  `<link rel="alternate" type="application/rss+xml" href=".../Productions/RSS">`.
+- The ticket listing uses PatronBase classes such as `pb_productions_list`,
+  `pb_event_title_a`, and `pb_book_now`.
+- RSS items include a title with the time suffix, a performance link, and a
+  CDATA description containing `Venue:` and `Date:`.
+
+**Source pattern:** Store the RSS feed URL directly. The scraper parses each
+RSS `<item>`, reads the date from `Date: 11 Jul, 2026`, reads the time from the
+title suffix such as `Sat. 7/11 8:00PM`, removes that date/time suffix from the
+show title, drops past events, and uses the PatronBase performance link as the
+show page and fallback ticket URL.
+
+**DB setup:**
+```sql
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, priority, enabled, metadata)
+SELECT c.id, 'custom'::"ScrapingPlatform", 'patronbase_rss',
+       'https://us.patronbase.com/_ComedyCabaret/Productions/RSS',
+       0, TRUE, '{}'::jsonb
+  FROM clubs c
+ WHERE c.name = 'Comedy Cabaret Comedy Club';
+```
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/scrapers/implementations/api/patronbase_rss/`
+- Reference venue/task: Comedy Cabaret Comedy Club Doylestown — TASK-3566.
+
+---
+
 ### Wix Events
 
 | | |
