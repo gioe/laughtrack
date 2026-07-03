@@ -48,12 +48,17 @@ def _month_num(token: str) -> Optional[int]:
     """
     t = (token or "").lower()
     return _MONTHS.get(t) or _FULL_MONTHS.get(t)
-# Date in a ticket-product slug, e.g. "/tickets/p/june-19-2026" -> (june, 19, 2026).
-_SLUG_DATE_RE = re.compile(r"([a-z]{3,9})-(\d{1,2})-(\d{4})", re.IGNORECASE)
-# Leading "Month DD" in a product title, e.g. "June 19: Friday Night Show".
-_TITLE_DATE_RE = re.compile(r"\b([a-z]{3,9})\.?\s+(\d{1,2})\b", re.IGNORECASE)
-# Show time in a product title, e.g. "@8pm" / "@ 7:30 pm".
-_TITLE_TIME_RE = re.compile(r"@\s*(\d{1,2})(?::(\d{2}))?\s*([ap])m", re.IGNORECASE)
+# Date in a ticket-product slug, e.g. "/tickets/p/june-19-2026" or
+# "/tickets/p/sat-july-11th-show-8pm" -> (june/july, day, optional year).
+_SLUG_DATE_RE = re.compile(
+    r"([a-z]{3,9})-(\d{1,2})(?:st|nd|rd|th)?(?:-(\d{4}))?",
+    re.IGNORECASE,
+)
+# Leading "Month DD" in a product title, e.g. "June 19: Friday Night Show" or
+# "Sat July 11th Rhino Room Stand Up 8pm".
+_TITLE_DATE_RE = re.compile(r"\b([a-z]{3,9})\.?\s+(\d{1,2})(?:st|nd|rd|th)?\b", re.IGNORECASE)
+# Show time in a product title, e.g. "@8pm", "@ 7:30 pm", or "Stand Up 8pm".
+_TITLE_TIME_RE = re.compile(r"(?:@\s*)?\b(\d{1,2})(?::(\d{2}))?\s*([ap])m\b", re.IGNORECASE)
 # Default show start hour (local) when a product title carries no @time.
 _DEFAULT_HOUR = 19
 
@@ -159,7 +164,11 @@ class SquarespaceExtractor:
         month = _month_num(m.group(1))
         if not month:
             return None
-        return int(m.group(3)), month, int(m.group(2))
+        day = int(m.group(2))
+        if m.group(3):
+            return int(m.group(3)), month, day
+        year = SquarespaceExtractor._infer_year(month, day)
+        return (year, month, day) if year is not None else None
 
     @staticmethod
     def _date_from_title(title: str) -> Optional[tuple]:
@@ -169,18 +178,27 @@ class SquarespaceExtractor:
         month = _month_num(m.group(1))
         if not month:
             return None
-        # Title dates carry no year; infer the next occurrence so a Dec show seen
-        # in Jan resolves to the correct (current or next) year.
+        day = int(m.group(2))
+        year = SquarespaceExtractor._infer_year(month, day)
+        return (year, month, day) if year is not None else None
+
+    @staticmethod
+    def _infer_year(month: int, day: int) -> Optional[int]:
+        # Yearless product dates carry no year. A recent past date on a current
+        # products page is stale and should be skipped; a far-past date usually
+        # means the next occurrence crosses the year boundary.
         from datetime import date as _date
         today = _date.today()
-        day = int(m.group(2))
         year = today.year
         try:
-            if _date(year, month, day) < today:
+            candidate = _date(year, month, day)
+            if candidate < today:
+                if (today - candidate).days <= 180:
+                    return None
                 year += 1
         except ValueError:
             return None
-        return year, month, day
+        return year
 
     @staticmethod
     def _time_from_title(title: str) -> tuple:

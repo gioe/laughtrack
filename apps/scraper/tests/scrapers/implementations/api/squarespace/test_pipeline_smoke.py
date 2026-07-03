@@ -179,6 +179,52 @@ def test_extract_events_stacked_page_drops_past_events():
     assert [event.title for event in events] == ["Future Show"]
 
 
+def test_extract_products_parses_ordinal_title_date_and_bare_time():
+    """Products mode parses titles like Rhino's 'Sat July 11th ... 8pm'."""
+    events = SquarespaceExtractor.extract_products(
+        [
+            {
+                "id": "rhino-1",
+                "title": "Sat July 11th Rhino Room Stand Up 8pm",
+                "fullUrl": "/tickets/p/sat-july-11th-rhino-room-stand-up-8pm",
+                "excerpt": "",
+            }
+        ],
+        "https://www.rhinoimprov.com",
+        timezone_name="America/New_York",
+    )
+
+    assert len(events) == 1
+    club = _club()
+    club.timezone = "America/New_York"
+    show = events[0].to_show(club)
+    assert show is not None
+    assert show.date.month == 7
+    assert show.date.day == 11
+    assert show.date.hour == 20
+    assert show.date.minute == 0
+
+
+def test_extract_products_skips_recently_past_yearless_dates():
+    """Yearless product dates just before today are stale, not next year's show."""
+    yesterday = datetime.now(timezone.utc) - timedelta(days=1)
+    title = f"{yesterday.strftime('%b')} {yesterday.day}"
+    events = SquarespaceExtractor.extract_products(
+        [
+            {
+                "id": "stale-1",
+                "title": f"Thurs {title} Open Mic 8pm",
+                "fullUrl": f"/tickets/p/thurs-{title.lower().replace(' ', '-')}-open-mic-8pm",
+                "excerpt": "",
+            }
+        ],
+        "https://www.rhinoimprov.com",
+        timezone_name="America/New_York",
+    )
+
+    assert events == []
+
+
 # ---------------------------------------------------------------------------
 # SquarespaceEvent.to_show() unit tests
 # ---------------------------------------------------------------------------

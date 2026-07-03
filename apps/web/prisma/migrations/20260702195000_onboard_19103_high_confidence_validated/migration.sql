@@ -82,6 +82,10 @@
 --   generic `patronbase_rss` scraper:
 --   https://us.patronbase.com/_ComedyCabaret/Productions/RSS
 --   Live validation on 2026-07-03 returned 5 future shows.
+-- * Rhino Comedy — Squarespace products-mode scraper with ordinal/yearless
+--   product date parsing and metadata excludes for classes/workshops/closures:
+--   https://www.rhinoimprov.com/tickets
+--   Live validation on 2026-07-03 returned 18 future shows.
 --
 -- After this migration is deployed, run:
 --   cd apps/scraper && make scrape-club CLUB='The N Crowd'
@@ -103,6 +107,7 @@
 --   cd apps/scraper && make scrape-club CLUB='Sesh Comedy'
 --   cd apps/scraper && make scrape-club CLUB='The Second City New York'
 --   cd apps/scraper && make scrape-club CLUB='Comedy Cabaret Comedy Club'
+--   cd apps/scraper && make scrape-club CLUB='Rhino Comedy'
 
 INSERT INTO clubs (
     name, address, website, city, state, zip_code, phone_number,
@@ -949,6 +954,52 @@ SELECT
     NOW()
 FROM clubs c
 WHERE (c.google_place_id = 'ChIJgywfGpgCxIkRvQVpKm08aZg' OR (c.name = 'Comedy Cabaret Comedy Club' AND c.city = 'Doylestown' AND c.state = 'PA'))
+  AND NOT EXISTS (
+      SELECT 1 FROM scraping_sources s
+      WHERE s.club_id = c.id
+        AND s.platform = 'custom'::"ScrapingPlatform"
+        AND s.priority = 0
+  );
+
+INSERT INTO clubs (
+    name, address, website, city, state, zip_code, phone_number,
+    latitude, longitude, timezone, country, club_type, google_place_id,
+    visible, status
+)
+SELECT
+    'Rhino Comedy',
+    '22 Lafayette Ave 2nd Floor, Suffern, NY 10901, USA',
+    'https://www.rhinoimprov.com/',
+    'Suffern', 'NY', '10901', '',
+    41.1163537, -74.1536801,
+    'America/New_York', 'US', 'club',
+    'ChIJh1wR5JTgwokRtRdGI6Eryto',
+    TRUE, 'active'
+WHERE NOT EXISTS (
+    SELECT 1 FROM clubs
+    WHERE google_place_id = 'ChIJh1wR5JTgwokRtRdGI6Eryto'
+       OR (name = 'Rhino Comedy' AND city = 'Suffern' AND state = 'NY')
+);
+
+INSERT INTO scraping_sources (
+    club_id, platform, scraper_key, source_url,
+    enabled, priority, metadata, created_at, updated_at
+)
+SELECT
+    c.id,
+    'custom'::"ScrapingPlatform",
+    'squarespace',
+    'https://www.rhinoimprov.com/tickets',
+    TRUE,
+    0,
+    '{
+        "collection_type": "products",
+        "exclude_title_patterns": ["class", "workshop", "closed"]
+    }'::jsonb,
+    NOW(),
+    NOW()
+FROM clubs c
+WHERE (c.google_place_id = 'ChIJh1wR5JTgwokRtRdGI6Eryto' OR (c.name = 'Rhino Comedy' AND c.city = 'Suffern' AND c.state = 'NY'))
   AND NOT EXISTS (
       SELECT 1 FROM scraping_sources s
       WHERE s.club_id = c.id
