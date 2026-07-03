@@ -17,6 +17,7 @@ adds these validated venues:
 | Meadowlands Comedy Club | `ChIJXdCbldpXwokRfoD0jom327Q` | `json_ld` detail fetch | `https://meadowlandscomedyclub.com/` with `url_path_prefix=/event/` | 2 future shows |
 | High Line Comedy Club | `ChIJXfsikHhZwokRxr1XAbft_X8` | `eventbrite` | `https://www.eventbrite.com`, eventbrite id `91898788783` | 23 future shows |
 | BATSU! | `ChIJ4QKVd5xZwokRKNIH6nKJPAE` | `tock` | `https://www.exploretock.com/batsunyc` | 240 future shows |
+| Give A Hoot Comedy Club NJ | `ChIJXd-xbnItwYkRuNSn__rA_2o` | `seatengine_web` | `https://www.giveahootcomedyclubnj.com/` | 6 future shows |
 
 Validation was done on 2026-07-02 by instantiating the same generic scraper
 classes that `make scrape-club` will use after the migration rows exist. The
@@ -29,6 +30,7 @@ cd apps/scraper && make scrape-club CLUB='Brooklyn Comedy Collective'
 cd apps/scraper && make scrape-club CLUB='Meadowlands Comedy Club'
 cd apps/scraper && make scrape-club CLUB='High Line Comedy Club'
 cd apps/scraper && make scrape-club CLUB='BATSU!'
+cd apps/scraper && make scrape-club CLUB='Give A Hoot Comedy Club NJ'
 ```
 
 ## Already Covered / Duplicate-Like
@@ -82,6 +84,7 @@ not match the existing generic scraper contract during live validation:
 | The PIT | `json_ld` detail fetch over `/events/` links | Timed out while fetching many detail pages; not safe to onboard via generic JSON-LD without a narrower source or scraper. |
 | Upright Citizens Brigade Theatre | `ucb`, `https://ucbcomedy.com/shows/` with likely NYC location slugs | 0 events for `ny`, `nyc`, `new-york`, `east-village`, `ucb-new-york`, `ucb-nyc`, `ny-theatre`, `new-york-theatre`, and `ucb-theatre-ny`; needs source extraction before onboarding. |
 | Laughing Buddha Comedy | `ticket_tailor`, `https://www.tickettailor.com/events/laughingbuddhacomedy/` | 38 parsed events, but the account mixes classes and offsite shows including New York Comedy Club; not a clean single-venue source without additional filtering. |
+| The Backroom LIVE | `eventbrite`, organizer id `120674296136` discovered from collection page | 0 shows through the existing single-venue Eventbrite venue/fallback path; collection page is mixed and organizer mode would route as a multi-venue producer, not a fixed club. |
 
 ## Needs Follow-Up Triage
 
@@ -89,9 +92,9 @@ The remaining high-confidence candidates still need classification as onboarded,
 already covered, or deny-listed. Prioritize fixed venues with supported-source
 signals, then deny-list obvious non-venue/person/podcast records:
 
-- Fixed/promising but needs source extraction: The Comedy Works, Give A Hoot
-  Comedy Club NJ, The Backroom LIVE, Captain Kirk's
-  Comedy Lounge, The PIT, Second City New York,
+- Fixed/promising but needs source extraction: The Comedy Works,
+  The Backroom LIVE, Captain Kirk's Comedy Lounge, The PIT,
+  Second City New York,
   Best Comedy Tickets, Village Underground, Fat Black Pussycat, UCB Theatre,
   and the Looney Bin records.
 - Likely producer/event-series rather than fixed venue: Comic Cure / South

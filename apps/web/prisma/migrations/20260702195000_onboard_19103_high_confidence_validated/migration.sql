@@ -27,6 +27,10 @@
 -- * BATSU! — Tock business page rendered by the generic `tock` scraper:
 --   https://www.exploretock.com/batsunyc
 --   Live validation on 2026-07-02 returned 240 future shows.
+-- * Give A Hoot Comedy Club NJ — SeatEngine white-label event pages scraped
+--   by the generic `seatengine_web` scraper:
+--   https://www.giveahootcomedyclubnj.com/
+--   Live validation on 2026-07-02 returned 6 future shows.
 --
 -- After this migration is deployed, run:
 --   cd apps/scraper && make scrape-club CLUB='The N Crowd'
@@ -35,6 +39,7 @@
 --   cd apps/scraper && make scrape-club CLUB='Meadowlands Comedy Club'
 --   cd apps/scraper && make scrape-club CLUB='High Line Comedy Club'
 --   cd apps/scraper && make scrape-club CLUB='BATSU!'
+--   cd apps/scraper && make scrape-club CLUB='Give A Hoot Comedy Club NJ'
 
 INSERT INTO clubs (
     name, address, website, city, state, zip_code, phone_number,
@@ -288,6 +293,49 @@ SELECT
     NOW()
 FROM clubs c
 WHERE (c.google_place_id = 'ChIJ4QKVd5xZwokRKNIH6nKJPAE' OR c.name = 'BATSU!')
+  AND NOT EXISTS (
+      SELECT 1 FROM scraping_sources s
+      WHERE s.club_id = c.id
+        AND s.platform = 'custom'::"ScrapingPlatform"
+        AND s.priority = 0
+  );
+
+INSERT INTO clubs (
+    name, address, website, city, state, zip_code, phone_number,
+    latitude, longitude, timezone, country, club_type, google_place_id,
+    visible, status
+)
+SELECT
+    'Give A Hoot Comedy Club NJ',
+    '281 Cross Keys Rd, Berlin, NJ 08009, USA',
+    'https://www.giveahootcomedyclubnj.com/',
+    'Berlin', 'NJ', '08009', '(856) 753-4176',
+    39.7865089, -74.9471558,
+    'America/New_York', 'US', 'club',
+    'ChIJXd-xbnItwYkRuNSn__rA_2o',
+    TRUE, 'active'
+WHERE NOT EXISTS (
+    SELECT 1 FROM clubs
+    WHERE google_place_id = 'ChIJXd-xbnItwYkRuNSn__rA_2o'
+       OR name = 'Give A Hoot Comedy Club NJ'
+);
+
+INSERT INTO scraping_sources (
+    club_id, platform, scraper_key, source_url,
+    enabled, priority, metadata, created_at, updated_at
+)
+SELECT
+    c.id,
+    'custom'::"ScrapingPlatform",
+    'seatengine_web',
+    'https://www.giveahootcomedyclubnj.com/',
+    TRUE,
+    0,
+    '{}'::jsonb,
+    NOW(),
+    NOW()
+FROM clubs c
+WHERE (c.google_place_id = 'ChIJXd-xbnItwYkRuNSn__rA_2o' OR c.name = 'Give A Hoot Comedy Club NJ')
   AND NOT EXISTS (
       SELECT 1 FROM scraping_sources s
       WHERE s.club_id = c.id
