@@ -370,9 +370,11 @@ class ComedianQueries:
     '''
 
     # Only return comedians whose subscriber count is stale (never refreshed, or
-    # refreshed longer than %(stale_days)s days ago). Oldest-first so partial or
+    # refreshed longer than the bound stale-days ago). Oldest-first so partial or
     # --limit runs always make progress on the most out-of-date rows. Mirrors the
     # Instagram staleness gate so both platforms refresh as a weekly cohort.
+    # Positional %s (not %(name)s) so the sql-parse-time guard can rewrite it to
+    # $1 for PREPARE — see tests/sql/test_sql_parse_time.py.
     GET_STALE_COMEDIANS_WITH_YOUTUBE_ACCOUNT = '''
         SELECT uuid, youtube_account
         FROM comedians
@@ -380,7 +382,7 @@ class ComedianQueries:
           AND youtube_account <> ''
           AND (
             youtube_followers_refreshed_at IS NULL
-            OR youtube_followers_refreshed_at < NOW() - make_interval(days => %(stale_days)s)
+            OR youtube_followers_refreshed_at < NOW() - make_interval(days => %s)
           )
         ORDER BY youtube_followers_refreshed_at ASC NULLS FIRST, name
     '''
@@ -394,8 +396,10 @@ class ComedianQueries:
     '''
 
     # Only return comedians whose follower count is stale (never refreshed, or
-    # refreshed longer than %(stale_days)s days ago). Oldest-first so partial
+    # refreshed longer than the bound stale-days ago). Oldest-first so partial
     # or --limit runs always make progress on the most out-of-date rows.
+    # Positional %s (not %(name)s) so the sql-parse-time guard can rewrite it to
+    # $1 for PREPARE — see tests/sql/test_sql_parse_time.py.
     GET_STALE_COMEDIANS_WITH_INSTAGRAM_ACCOUNT = '''
         SELECT uuid, instagram_account
         FROM comedians
@@ -403,7 +407,7 @@ class ComedianQueries:
           AND instagram_account <> ''
           AND (
             instagram_followers_refreshed_at IS NULL
-            OR instagram_followers_refreshed_at < NOW() - make_interval(days => %(stale_days)s)
+            OR instagram_followers_refreshed_at < NOW() - make_interval(days => %s)
           )
         ORDER BY instagram_followers_refreshed_at ASC NULLS FIRST, name
     '''

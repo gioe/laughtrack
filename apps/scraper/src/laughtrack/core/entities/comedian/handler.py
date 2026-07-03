@@ -904,7 +904,7 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
         rows = (
             self.execute_with_cursor(
                 ComedianQueries.GET_STALE_COMEDIANS_WITH_YOUTUBE_ACCOUNT,
-                params={"stale_days": stale_days},
+                params=(stale_days,),
                 return_results=True,
             )
             or []
@@ -1103,7 +1103,7 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
         rows = (
             self.execute_with_cursor(
                 ComedianQueries.GET_STALE_COMEDIANS_WITH_INSTAGRAM_ACCOUNT,
-                params={"stale_days": stale_days},
+                params=(stale_days,),
                 return_results=True,
             )
             or []

@@ -114,7 +114,7 @@ class TestYouTubeFollowersSqlContract:
         """The stale query must gate on the refresh timestamp via a bound param."""
         sql = ComedianQueries.GET_STALE_COMEDIANS_WITH_YOUTUBE_ACCOUNT.lower()
         assert "youtube_followers_refreshed_at" in sql
-        assert "%(stale_days)s" in ComedianQueries.GET_STALE_COMEDIANS_WITH_YOUTUBE_ACCOUNT
+        assert "make_interval(days => %s)" in ComedianQueries.GET_STALE_COMEDIANS_WITH_YOUTUBE_ACCOUNT
 
 
 # ---------------------------------------------------------------------------
@@ -146,7 +146,7 @@ class TestGetComediansWithYouTubeAccounts:
         handler._get_comedians_with_youtube_accounts(7)
         handler.execute_with_cursor.assert_called_once_with(
             ComedianQueries.GET_STALE_COMEDIANS_WITH_YOUTUBE_ACCOUNT,
-            params={"stale_days": 7},
+            params=(7,),
             return_results=True,
         )
 
@@ -343,7 +343,7 @@ class TestInstagramFollowersSqlContract:
         """The stale query must gate on the refresh timestamp via a bound param."""
         sql = ComedianQueries.GET_STALE_COMEDIANS_WITH_INSTAGRAM_ACCOUNT.lower()
         assert "instagram_followers_refreshed_at" in sql
-        assert "%(stale_days)s" in ComedianQueries.GET_STALE_COMEDIANS_WITH_INSTAGRAM_ACCOUNT
+        assert "make_interval(days => %s)" in ComedianQueries.GET_STALE_COMEDIANS_WITH_INSTAGRAM_ACCOUNT
 
     def test_update_query_stamps_refresh_timestamp(self):
         """UPDATE must also set instagram_followers_refreshed_at."""
@@ -416,7 +416,7 @@ class TestGetComediansWithInstagramAccounts:
         handler._get_comedians_with_instagram_accounts(7)
         handler.execute_with_cursor.assert_called_once_with(
             ComedianQueries.GET_STALE_COMEDIANS_WITH_INSTAGRAM_ACCOUNT,
-            params={"stale_days": 7},
+            params=(7,),
             return_results=True,
         )
 
