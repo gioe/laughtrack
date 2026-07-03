@@ -44,8 +44,7 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
 
         // App Store screenshots should feature The Comedy Store instead of
         // whichever LA/SF venue happens to sort first in production.
-        searchFor("Comedy Store")
-        tapButton(containingLabel: "The Comedy Store")
+        tapButton(containingLabel: "The Comedy Store", scrollAttempts: 6)
         sleep(3)
         snapshot("05_ClubDetail")
 
@@ -98,27 +97,18 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         snapshot("09_PodcastDetail")
     }
 
-    private func searchFor(_ query: String) {
-        let field = app.textFields["laughtrack.search.field"]
-        if field.waitForExistence(timeout: 5) {
-            field.tap()
-            field.typeText(query)
-        } else {
-            // SwiftUI sometimes exposes the custom field container instead of
-            // the inner TextField on CI simulators.
-            let container = app.descendants(matching: .any)["laughtrack.search.field"]
-            XCTAssertTrue(container.waitForExistence(timeout: 5), "Expected search field container")
-            container.coordinate(withNormalizedOffset: CGVector(dx: 0.65, dy: 0.5)).tap()
-            app.typeText(query)
-        }
-        sleep(3)
-    }
-
-    private func tapButton(containingLabel text: String) {
+    private func tapButton(containingLabel text: String, scrollAttempts: Int = 0) {
         let predicate = NSPredicate(format: "label CONTAINS[c] %@", text)
         let button = app.buttons.matching(predicate).firstMatch
-        XCTAssertTrue(button.waitForExistence(timeout: 10), "Expected button containing label '\(text)'")
-        button.tap()
+        for attempt in 0...scrollAttempts {
+            if button.waitForExistence(timeout: attempt == 0 ? 10 : 2) {
+                button.tap()
+                return
+            }
+            app.swipeUp()
+            sleep(1)
+        }
+        XCTFail("Expected button containing label '\(text)'")
     }
 
     private func tapPrimitive(_ primitive: String) {
