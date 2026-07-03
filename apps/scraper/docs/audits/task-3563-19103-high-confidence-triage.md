@@ -145,6 +145,8 @@ not match the existing generic scraper contract during live validation:
 | The Lab | `eventbrite`, organizer id `26956500819` without filters | 10 events, but the feed mixes classes/workshops with shows. A filtered Eventbrite source is onboarded in the migration. |
 | Upper East Side Comedy Club at Bedford Falls NYC | `wix_events`, `https://www.uppereastsidecomedyclub.com/` root mode | 0 events through the existing generic Wix Events scraper. |
 | Upper East Side Comedy Club at Bedford Falls NYC | `wix_events`, tested widget ids `a74ee1f5-74e3-4612-8fac-8ba5ae2cacaf`, `1440e92d-47d8-69be-ade7-e6de40127106`, and `wix_events` | Playwright-rendered page exposes the native Wix Events app, but those widget ids still returned 0 events through the existing generic scraper. |
+| Sesh Comedy | custom FullCalendar feed, `https://www.seshcomedy.com/feed.php` | Feed returned 47 future events with `event-detail.php?id=...` detail links, but no existing generic scraper supports this custom JSON/event-detail shape. |
+| Flop House Comedy Club | JS shell / server HTML, `https://www.flophousecomedy.com/` | `/`, `/shows`, `/events`, and `/calendar` all returned the same JavaScript-only shell saying the app does not work properly without JavaScript enabled; no supported source was visible in server HTML. |
 | Rhino Comedy | `squarespace` products mode, `https://www.rhinoimprov.com/tickets` | Not safe to onboard: the real show-ticket products use date slugs like `sat-aug-8th-rhino-room-stand-up-8pm` with no year, which the existing parser skips; the only parsed item was a kids workshop. |
 
 ## Source Extraction Required
