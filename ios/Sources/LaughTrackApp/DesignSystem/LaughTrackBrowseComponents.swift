@@ -354,15 +354,18 @@ struct LaughTrackSearchField<TrailingAccessory: View>: View {
     @Environment(\.appTheme) private var theme
 
     let placeholder: String
+    let accessibilityIdentifier: String?
     @Binding var text: String
     @ViewBuilder let trailingAccessory: () -> TrailingAccessory
 
     init(
         placeholder: String,
         text: Binding<String>,
+        accessibilityIdentifier: String? = nil,
         @ViewBuilder trailingAccessory: @escaping () -> TrailingAccessory
     ) {
         self.placeholder = placeholder
+        self.accessibilityIdentifier = accessibilityIdentifier
         _text = text
         self.trailingAccessory = trailingAccessory
     }
@@ -375,10 +378,7 @@ struct LaughTrackSearchField<TrailingAccessory: View>: View {
                 .font(.system(size: theme.iconSizes.md, weight: .semibold))
                 .foregroundStyle(laughTrack.colors.textSecondary)
 
-            TextField(placeholder, text: $text)
-                .autocorrectionDisabled()
-                .font(laughTrack.typography.body)
-                .foregroundStyle(laughTrack.colors.textPrimary)
+            searchInput
 
             trailingAccessory()
         }
@@ -392,11 +392,30 @@ struct LaughTrackSearchField<TrailingAccessory: View>: View {
         .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.pill, style: .continuous))
         .shadowStyle(laughTrack.shadows.card)
     }
+
+    @ViewBuilder
+    private var searchInput: some View {
+        let laughTrack = theme.laughTrackTokens
+        let field = TextField(placeholder, text: $text)
+            .autocorrectionDisabled()
+            .font(laughTrack.typography.body)
+            .foregroundStyle(laughTrack.colors.textPrimary)
+
+        if let accessibilityIdentifier {
+            field.accessibilityIdentifier(accessibilityIdentifier)
+        } else {
+            field
+        }
+    }
 }
 
 extension LaughTrackSearchField where TrailingAccessory == EmptyView {
-    init(placeholder: String, text: Binding<String>) {
-        self.init(placeholder: placeholder, text: text) {
+    init(placeholder: String, text: Binding<String>, accessibilityIdentifier: String? = nil) {
+        self.init(
+            placeholder: placeholder,
+            text: text,
+            accessibilityIdentifier: accessibilityIdentifier
+        ) {
             EmptyView()
         }
     }

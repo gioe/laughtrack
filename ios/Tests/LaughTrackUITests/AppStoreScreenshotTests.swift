@@ -99,7 +99,7 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
     }
 
     private func searchFor(_ query: String) {
-        let field = app.textFields.firstMatch
+        let field = app.textFields["laughtrack.search.field"]
         XCTAssertTrue(field.waitForExistence(timeout: 10), "Expected search field to be visible")
         field.tap()
         field.typeText(query)

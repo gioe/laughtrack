@@ -50,6 +50,14 @@ struct SearchRootView: View {
 
         ScrollView {
             VStack(alignment: .leading, spacing: tokens.browseDensity.shelfGap) {
+                SearchField(
+                    title: "Search",
+                    prompt: model.activePivot.queryPrompt,
+                    text: $model.query,
+                    showsTitle: false,
+                    accessibilityIdentifier: LaughTrackViewTestID.searchRootField
+                )
+
                 activeSearchScreenWithDependencies
             }
             .padding(.horizontal, theme.spacing.lg)

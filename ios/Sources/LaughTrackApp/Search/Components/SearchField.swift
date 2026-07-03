@@ -8,6 +8,7 @@ struct SearchField: View {
     let prompt: String
     @Binding var text: String
     var showsTitle: Bool = true
+    var accessibilityIdentifier: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: theme.spacing.xs) {
@@ -18,7 +19,11 @@ struct SearchField: View {
                     .textCase(.uppercase)
             }
 
-            LaughTrackSearchField(placeholder: prompt, text: $text)
+            LaughTrackSearchField(
+                placeholder: prompt,
+                text: $text,
+                accessibilityIdentifier: accessibilityIdentifier
+            )
                 .modifier(SearchFieldInputBehavior())
         }
     }

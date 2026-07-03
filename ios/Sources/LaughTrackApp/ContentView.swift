@@ -10,6 +10,7 @@ enum LaughTrackViewTestID {
     static let homeScreen = "laughtrack.home.screen"
     static let searchTabScreen = "laughtrack.search-tab.screen"
     static let searchHeader = "laughtrack.search.header"
+    static let searchRootField = "laughtrack.search.field"
     static let favoritesTabScreen = "laughtrack.favorites-tab.screen"
     static let libraryTabScreen = favoritesTabScreen
     static let profileTabScreen = "laughtrack.profile-tab.screen"
