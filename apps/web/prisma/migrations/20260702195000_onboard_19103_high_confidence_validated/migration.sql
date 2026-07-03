@@ -52,6 +52,16 @@
 --   `ticketspice` scraper:
 --   https://comedyworksbristol.ticketspice.com/comedyweekendlaughsjuly10-11
 --   Live validation on 2026-07-02 returned 1 future show.
+-- * Comedy Explosion — native Wix Events API via the generic `wix_events`
+--   scraper:
+--   https://thecomedyexplosion.com/
+--   Live validation on 2026-07-03 returned 1 future show.
+-- * Upright Citizens Brigade Theatre — WP Grid Builder location-filtered
+--   cards scraped by the existing `ucb` scraper:
+--   https://ucbcomedy.com/shows/
+--   Live validation on 2026-07-03 returned 62 Mainstage shows and 10 Upstairs
+--   shows using metadata.location_slug values `nyc-mainstage` and
+--   `nyc-upstairs`.
 --
 -- After this migration is deployed, run:
 --   cd apps/scraper && make scrape-club CLUB='The N Crowd'
@@ -66,6 +76,8 @@
 --   cd apps/scraper && make scrape-club CLUB='Sheba''s Speakeasy Comedy Club'
 --   cd apps/scraper && make scrape-club CLUB='East Village Stand Up Comedy'
 --   cd apps/scraper && make scrape-club CLUB='The Comedy Works'
+--   cd apps/scraper && make scrape-club CLUB='Comedy Explosion'
+--   cd apps/scraper && make scrape-club CLUB='Upright Citizens Brigade Theatre New York'
 
 INSERT INTO clubs (
     name, address, website, city, state, zip_code, phone_number,
@@ -107,6 +119,49 @@ WHERE (c.google_place_id = 'ChIJs84JlYfIxokRSi0i_-Vg82Y' OR c.name = 'The N Crow
       SELECT 1 FROM scraping_sources s
       WHERE s.club_id = c.id
         AND s.platform = 'custom'::"ScrapingPlatform"
+        AND s.priority = 0
+  );
+
+INSERT INTO clubs (
+    name, address, website, city, state, zip_code, phone_number,
+    latitude, longitude, timezone, country, club_type, google_place_id,
+    visible, status
+)
+SELECT
+    'Comedy Explosion',
+    '815 N Pottstown Pike, Exton, PA 19341, USA',
+    'https://thecomedyexplosion.com/',
+    'Exton', 'PA', '19341', '(484) 393-1593',
+    40.0566238, -75.6494480,
+    'America/New_York', 'US', 'club',
+    'ChIJoTL1eJ_7xokRxKP67A-9Aw0',
+    TRUE, 'active'
+WHERE NOT EXISTS (
+    SELECT 1 FROM clubs
+    WHERE google_place_id = 'ChIJoTL1eJ_7xokRxKP67A-9Aw0'
+       OR name = 'Comedy Explosion'
+);
+
+INSERT INTO scraping_sources (
+    club_id, platform, scraper_key, source_url,
+    enabled, priority, metadata, created_at, updated_at
+)
+SELECT
+    c.id,
+    'wix_events'::"ScrapingPlatform",
+    'wix_events',
+    'https://thecomedyexplosion.com/',
+    TRUE,
+    0,
+    '{}'::jsonb,
+    NOW(),
+    NOW()
+FROM clubs c
+WHERE (c.google_place_id = 'ChIJoTL1eJ_7xokRxKP67A-9Aw0' OR c.name = 'Comedy Explosion')
+  AND NOT EXISTS (
+      SELECT 1 FROM scraping_sources s
+      WHERE s.club_id = c.id
+        AND s.platform = 'wix_events'::"ScrapingPlatform"
         AND s.priority = 0
   );
 
@@ -585,6 +640,72 @@ WHERE (c.google_place_id = 'ChIJ2WY0G-pNwYkRSA9-Mu25f24' OR (c.name = 'The Comed
       WHERE s.club_id = c.id
         AND s.platform = 'custom'::"ScrapingPlatform"
         AND s.priority = 0
+  );
+
+INSERT INTO clubs (
+    name, address, website, city, state, zip_code, phone_number,
+    latitude, longitude, timezone, country, club_type, google_place_id,
+    visible, status
+)
+SELECT
+    'Upright Citizens Brigade Theatre New York',
+    '242 E 14th St, New York, NY 10003, USA',
+    'https://ucbcomedy.com/',
+    'New York', 'NY', '10003', '',
+    40.7324960, -73.9856657,
+    'America/New_York', 'US', 'club',
+    'ChIJYwz0-YJZwokR1XOunnE1Pe4',
+    TRUE, 'active'
+WHERE NOT EXISTS (
+    SELECT 1 FROM clubs
+    WHERE google_place_id = 'ChIJYwz0-YJZwokR1XOunnE1Pe4'
+       OR (name = 'Upright Citizens Brigade Theatre New York' AND city = 'New York' AND state = 'NY')
+);
+
+INSERT INTO scraping_sources (
+    club_id, platform, scraper_key, source_url,
+    enabled, priority, metadata, created_at, updated_at
+)
+SELECT
+    c.id,
+    'custom'::"ScrapingPlatform",
+    'ucb',
+    'https://ucbcomedy.com/shows/',
+    TRUE,
+    0,
+    '{"location_slug": "nyc-mainstage"}'::jsonb,
+    NOW(),
+    NOW()
+FROM clubs c
+WHERE (c.google_place_id = 'ChIJYwz0-YJZwokR1XOunnE1Pe4' OR (c.name = 'Upright Citizens Brigade Theatre New York' AND c.city = 'New York' AND c.state = 'NY'))
+  AND NOT EXISTS (
+      SELECT 1 FROM scraping_sources s
+      WHERE s.club_id = c.id
+        AND s.platform = 'custom'::"ScrapingPlatform"
+        AND s.priority = 0
+  );
+
+INSERT INTO scraping_sources (
+    club_id, platform, scraper_key, source_url,
+    enabled, priority, metadata, created_at, updated_at
+)
+SELECT
+    c.id,
+    'custom'::"ScrapingPlatform",
+    'ucb',
+    'https://ucbcomedy.com/shows/',
+    TRUE,
+    1,
+    '{"location_slug": "nyc-upstairs"}'::jsonb,
+    NOW(),
+    NOW()
+FROM clubs c
+WHERE (c.google_place_id = 'ChIJYwz0-YJZwokR1XOunnE1Pe4' OR (c.name = 'Upright Citizens Brigade Theatre New York' AND c.city = 'New York' AND c.state = 'NY'))
+  AND NOT EXISTS (
+      SELECT 1 FROM scraping_sources s
+      WHERE s.club_id = c.id
+        AND s.platform = 'custom'::"ScrapingPlatform"
+        AND s.priority = 1
   );
 
 -- Clear false positives from the same high-confidence Places bucket. These are
