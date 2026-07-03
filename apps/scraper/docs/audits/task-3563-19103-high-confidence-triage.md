@@ -153,6 +153,7 @@ not match the existing generic scraper contract during live validation:
 
 These are plausible fixed venues or recurring club brands, but the existing
 generic scrapers did not produce a safe DB-only onboarding source in this task:
+follow-up scraper/source work is tracked in TASK-3566.
 
 - `Comedy Cabaret Comedy Club` Doylestown (`ChIJgywfGpgCxIkRvQVpKm08aZg`)
   has a real fixed-venue page with PatronBase ticket links under
