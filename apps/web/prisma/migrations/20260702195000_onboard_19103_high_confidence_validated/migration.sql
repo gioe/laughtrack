@@ -358,6 +358,7 @@ FROM (
         ('Tony''s Crescenzo''s strange humor (podcast on Spotify)', '83 5th St, Frederica, DE 19946, USA', '', 'Frederica', 'DE', '19946', 'America/New_York', 'US', 'non_comedy', 'ChIJ1UPf_OCduIkRFoN2BVfsXzU', FALSE, 'active'),
         ('Comedian Ala Bama', '3905 Dorchester Rd, Gwynn Oak, MD 21207, USA', '', 'Gwynn Oak', 'MD', '21207', 'America/New_York', 'US', 'non_comedy', 'ChIJ58EKNDIbyIkR7QZZSFUaYSM', FALSE, 'active'),
         ('DangItJared', '123 Main St, Berwick, PA 18603, USA', '', 'Berwick', 'PA', '18603', 'America/New_York', 'US', 'non_comedy', 'ChIJ_Ug6nRufxYkRQpLUGjWlUJc', FALSE, 'active'),
+        ('Funny By The Pound Comedy Cafe', '1156 S Bay Rd, Dover, DE 19901, USA', 'https://www.jreamlandentertainment.com/', 'Dover', 'DE', '19901', 'America/New_York', 'US', 'non_comedy', 'ChIJk1zXo8Rjx4kRP55ii9K1hFc', FALSE, 'active'),
         ('Chip Ambrogio Comedy', '600 Westwood Ave, River Vale, NJ 07675, USA', 'https://www.chipambrogiocomedy.com/', 'River Vale', 'NJ', '07675', 'America/New_York', 'US', 'non_comedy', 'ChIJHxc11BPvwokRJnO9QrOJfHE', FALSE, 'active'),
         ('FUNY Stand Up Comedy Classes - The New York Comedy School', 'The Green Room, 201 W 75th St, New York, NY 10023, USA', 'https://funystandup.com/', 'New York', 'NY', '10023', 'America/New_York', 'US', 'non_comedy', 'ChIJD3c4lKVZwokRjdZJoUEQHj8', FALSE, 'active'),
         ('Popped Collar Comedy - Free Show in Bushwick, Brooklyn', '1178 Bushwick Ave, Brooklyn, NY 11221, USA', 'https://www.danwickes.com/popped-collar-comedy-show/', 'Brooklyn', 'NY', '11221', 'America/New_York', 'US', 'non_comedy', 'ChIJ2QNRX-ddwokRj-YibDeFnoM', FALSE, 'active'),
@@ -406,6 +407,15 @@ VALUES
         'Individual performer/brand listing, not a fixed comedy venue.',
         'comedy_club',
         '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "person_not_venue"}'::jsonb,
+        'TASK-3563',
+        NOW()
+    ),
+    (
+        'ChIJk1zXo8Rjx4kRP55ii9K1hFc',
+        'Funny By The Pound Comedy Cafe',
+        'Google comedy_club candidate points to a Wix site that returns 404 and exposes no public venue calendar or fixed comedy-club event surface.',
+        'comedy_club',
+        '{"task": "TASK-3563", "discovery": "19103 high-confidence Google Places bucket", "classification": "non_venue_or_stale_business_false_positive"}'::jsonb,
         'TASK-3563',
         NOW()
     ),

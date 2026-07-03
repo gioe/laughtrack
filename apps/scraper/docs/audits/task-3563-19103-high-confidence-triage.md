@@ -52,6 +52,7 @@ them as comedy-club onboarding candidates.
 | Tony's Crescenzo's strange humor (podcast on Spotify) | `ChIJ1UPf_OCduIkRFoN2BVfsXzU` | Podcast/personality, not a venue. |
 | Comedian Ala Bama | `ChIJ58EKNDIbyIkR7QZZSFUaYSM` | Individual comedian, not a venue. |
 | DangItJared | `ChIJ_Ug6nRufxYkRQpLUGjWlUJc` | Individual performer/brand, not a venue. |
+| Funny By The Pound Comedy Cafe | `ChIJk1zXo8Rjx4kRP55ii9K1hFc` | Stale/non-venue false positive; discovered Wix site returns 404 and exposes no public venue calendar. |
 | Chip Ambrogio Comedy | `ChIJHxc11BPvwokRJnO9QrOJfHE` | Individual comedian website/listing, not a venue. |
 | FUNY Stand Up Comedy Classes - The New York Comedy School | `ChIJD3c4lKVZwokRjdZJoUEQHj8` | Comedy class/school program, not a fixed club calendar. |
 | Popped Collar Comedy - Free Show in Bushwick, Brooklyn | `ChIJ2QNRX-ddwokRj-YibDeFnoM` | Named recurring showcase at another venue, not a distinct club. |
@@ -103,5 +104,3 @@ signals, then deny-list obvious non-venue/person/podcast records:
   Poconos Underground Comedy, Airplane Mode, Punching Bag Comedy, Expired Milk
   Comedy variants, Laughing Lassi Comedy, Living Room Laughs, Poe's Comedy
   Cabaret Baltimore, and Rhino Comedy.
-- Likely deny-list/non-venue/person records still needing confirmation: Funny
-  By The Pound Comedy Cafe if the discovered website remains a 404.
