@@ -129,6 +129,8 @@ not match the existing generic scraper contract during live validation:
 | ComedySportz NYC | `wix_events`, site root without compId | Wix Events API returned 400 / 0 events. |
 | Top Secret Comedy Club | `json_ld` detail fetch over `/events-listings/` links | 0 JSON-LD events. |
 | The PIT | `json_ld` detail fetch over `/events/` links | Timed out while fetching many detail pages; not safe to onboard via generic JSON-LD without a narrower source or scraper. |
+| The PIT | `json_ld` detail fetch over `/events/` links with pagination disabled | Listing page had no JSON-LD events and detail pages repeatedly timed out or closed connections through the scraper HTTP stack. |
+| The Second City New York | `json_ld`, `https://www.secondcity.com/shows/new-york` | 0 JSON-LD events; show data is embedded in Next.js hydration data and needs a custom extractor rather than the existing Chicago/UP Comedy scraper. |
 | Upright Citizens Brigade Theatre | `ucb`, `https://ucbcomedy.com/shows/` with likely NYC location slugs | Initial guesses returned 0 events, but later source extraction found the rendered card class slugs `nyc-mainstage` and `nyc-upstairs`; the venue is onboarded in the migration. |
 | Laughing Buddha Comedy | `ticket_tailor`, `https://www.tickettailor.com/events/laughingbuddhacomedy/` | 38 parsed events, but the account mixes classes and offsite shows including New York Comedy Club; not a clean single-venue source without additional filtering. |
 | The Backroom LIVE | `eventbrite`, organizer id `120674296136` discovered from collection page | 0 shows through the existing single-venue Eventbrite venue/fallback path; collection page is mixed and organizer mode would route as a multi-venue producer, not a fixed club. |
@@ -138,6 +140,7 @@ not match the existing generic scraper contract during live validation:
 | The Lab | `wix_events`, `https://www.thelabambler.com/` root mode | Wix Events API returned HTTP 400 / 0 events. |
 | The Lab | `eventbrite`, organizer id `26956500819` without filters | 10 events, but the feed mixes classes/workshops with shows. A filtered Eventbrite source is onboarded in the migration. |
 | Upper East Side Comedy Club at Bedford Falls NYC | `wix_events`, `https://www.uppereastsidecomedyclub.com/` root mode | 0 events through the existing generic Wix Events scraper. |
+| Upper East Side Comedy Club at Bedford Falls NYC | `wix_events`, tested widget ids `a74ee1f5-74e3-4612-8fac-8ba5ae2cacaf`, `1440e92d-47d8-69be-ade7-e6de40127106`, and `wix_events` | Playwright-rendered page exposes the native Wix Events app, but those widget ids still returned 0 events through the existing generic scraper. |
 
 ## Source Extraction Required
 
