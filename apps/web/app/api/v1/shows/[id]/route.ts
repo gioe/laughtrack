@@ -5,6 +5,7 @@ import { findRelatedShowsForShow } from "@/lib/data/show/detail/findRelatedShows
 import { findShowById } from "@/lib/data/show/detail/findShowById";
 import { TicketDTO } from "@/objects/class/ticket/ticket.interface";
 import { withRequestMetrics } from "@/lib/metrics";
+import { publicReadCacheHeaders } from "@/lib/httpCache";
 const POSITIVE_INTEGER_RE = /^[1-9]\d*$/;
 
 function parseShowId(raw: string): number | null {
@@ -81,7 +82,7 @@ export const GET = withRequestMetrics(async function GET(
                 },
                 relatedShows,
             },
-            { headers: rateLimitHeaders(rl) },
+            { headers: { ...rateLimitHeaders(rl), ...publicReadCacheHeaders() } },
         );
     } catch (error) {
         if (error instanceof NotFoundError) {

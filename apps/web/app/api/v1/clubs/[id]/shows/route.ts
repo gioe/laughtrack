@@ -3,6 +3,7 @@ import { findUpcomingShowsForClub } from "@/lib/data/show/search/findShowsWithCo
 import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { withRequestMetrics } from "@/lib/metrics";
+import { privateReadCacheHeaders } from "@/lib/httpCache";
 
 export const GET = withRequestMetrics(async function GET(
     req: NextRequest,
@@ -62,7 +63,7 @@ export const GET = withRequestMetrics(async function GET(
                 data: result.shows,
                 total: result.totalCount,
             },
-            { headers: rateLimitHeaders(rl) },
+            { headers: { ...rateLimitHeaders(rl), ...privateReadCacheHeaders() } },
         );
     } catch (error) {
         console.error("GET /api/v1/clubs/[id]/shows error:", error);

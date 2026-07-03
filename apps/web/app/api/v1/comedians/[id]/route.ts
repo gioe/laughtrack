@@ -5,6 +5,7 @@ import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { normalizePodcastAppearanceRole } from "@/lib/data/podcast/appearanceRole";
 import { dedupePodcastAppearances } from "@/lib/data/podcast/dedupePodcastAppearances";
 import { withRequestMetrics } from "@/lib/metrics";
+import { publicReadCacheHeaders } from "@/lib/httpCache";
 
 type PodcastEpisodeAppearance = {
     id: number;
@@ -290,7 +291,7 @@ export const GET = withRequestMetrics(async function GET(
                     },
                 },
             },
-            { headers: rateLimitHeaders(rl) },
+            { headers: { ...rateLimitHeaders(rl), ...publicReadCacheHeaders() } },
         );
     } catch (error) {
         console.error("GET /api/v1/comedians/[id] error:", error);

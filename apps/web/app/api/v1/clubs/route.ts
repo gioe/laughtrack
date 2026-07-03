@@ -6,6 +6,7 @@ import {
     rateLimitHeaders,
 } from "@/lib/rateLimit";
 import { withRequestMetrics } from "@/lib/metrics";
+import { publicReadCacheHeaders } from "@/lib/httpCache";
 
 export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     const rl = await applyPublicReadRateLimit(req, "clubs");
@@ -27,7 +28,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
         const clubs = await getClubs(limit, offset);
         return NextResponse.json(
             { data: clubs },
-            { headers: rateLimitHeaders(rl) },
+            { headers: { ...rateLimitHeaders(rl), ...publicReadCacheHeaders() } },
         );
     } catch (error) {
         console.error("GET /api/v1/clubs error:", error);

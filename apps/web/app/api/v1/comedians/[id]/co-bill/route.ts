@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { findCoBilledComediansForComedian } from "@/lib/data/comedian/detail/findCoBilledComediansForComedian";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { withRequestMetrics } from "@/lib/metrics";
+import { publicReadCacheHeaders } from "@/lib/httpCache";
 export const GET = withRequestMetrics(async function GET(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> },
@@ -26,7 +27,7 @@ export const GET = withRequestMetrics(async function GET(
 
         return NextResponse.json(
             { data: coBilledComedians },
-            { headers: rateLimitHeaders(rl) },
+            { headers: { ...rateLimitHeaders(rl), ...publicReadCacheHeaders() } },
         );
     } catch (error) {
         console.error("GET /api/v1/comedians/[id]/co-bill error:", error);

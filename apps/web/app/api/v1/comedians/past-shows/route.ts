@@ -8,6 +8,7 @@ import {
     PAST_SHOWS_PAGE_SIZE,
 } from "@/lib/data/comedian/detail/findPastShowsForComedian";
 import { withRequestMetrics } from "@/lib/metrics";
+import { privateReadCacheHeaders } from "@/lib/httpCache";
 const MAX_PAGE_SIZE = 50;
 
 export const GET = withRequestMetrics(async function GET(req: NextRequest) {
@@ -78,7 +79,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                 data: result.shows,
                 total: result.totalCount,
             },
-            { headers: rateLimitHeaders(rl) },
+            { headers: { ...rateLimitHeaders(rl), ...privateReadCacheHeaders() } },
         );
     } catch (error) {
         console.error("GET /api/v1/comedians/past-shows error:", error);

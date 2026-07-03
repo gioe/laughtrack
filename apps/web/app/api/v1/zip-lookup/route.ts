@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import zipcodes from "zipcodes";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { withRequestMetrics } from "@/lib/metrics";
+import { publicReadCacheHeaders } from "@/lib/httpCache";
 
 const ZipLookupSchema = z.object({
     zip: z.string().regex(/^\d{5}$/, "ZIP must be a 5-digit US postal code"),
@@ -31,6 +32,6 @@ export const GET = withRequestMetrics(async function GET(request: NextRequest) {
 
     return NextResponse.json(
         { city: lookup.city, state: lookup.state },
-        { headers: rateLimitHeaders(rl) },
+        { headers: { ...rateLimitHeaders(rl), ...publicReadCacheHeaders() } },
     );
 });

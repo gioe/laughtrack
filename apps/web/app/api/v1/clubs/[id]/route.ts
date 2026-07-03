@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { findSiblingClubs } from "@/lib/data/club/detail/findSiblingClubs";
 import { buildClubHeroImageUrl, buildClubImageUrl } from "@/util/imageUtil";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
+import { publicReadCacheHeaders } from "@/lib/httpCache";
 import { withRequestMetrics } from "@/lib/metrics";
 
 export const GET = withRequestMetrics(async function GET(
@@ -74,7 +75,7 @@ export const GET = withRequestMetrics(async function GET(
                     relatedVenues,
                 },
             },
-            { headers: rateLimitHeaders(rl) },
+            { headers: { ...rateLimitHeaders(rl), ...publicReadCacheHeaders() } },
         );
     } catch (error) {
         console.error("GET /api/v1/clubs/[id] error:", error);

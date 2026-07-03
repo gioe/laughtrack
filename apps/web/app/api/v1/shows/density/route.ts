@@ -5,6 +5,7 @@ import { SearchParams } from "@/objects/interface";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { readTimezoneHeader } from "@/util/timezone";
 import { withRequestMetrics } from "@/lib/metrics";
+import { publicReadCacheHeaders } from "@/lib/httpCache";
 
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const DEFAULT_DISTANCE = "25";
@@ -132,7 +133,12 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
             new QueryHelper({ params, timezone: tzResult.timezone }),
         );
 
-        return NextResponse.json(density, { headers: rateLimitHeaders(rl) });
+        return NextResponse.json(density, {
+            headers: {
+                ...rateLimitHeaders(rl),
+                ...publicReadCacheHeaders({ varyOnTimezone: true }),
+            },
+        });
     } catch (error) {
         console.error("GET /api/v1/shows/density error:", error);
         return NextResponse.json(

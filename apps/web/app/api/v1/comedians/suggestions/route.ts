@@ -3,6 +3,7 @@ import { getOnboardingComedianSuggestions } from "@/lib/data/comedian/suggestion
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
 import { withRequestMetrics } from "@/lib/metrics";
+import { privateReadCacheHeaders } from "@/lib/httpCache";
 
 export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     const rl = await applyPublicReadRateLimit(req, "comedians-suggestions");
@@ -21,7 +22,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
 
         return NextResponse.json(
             { data: comedians },
-            { headers: rateLimitHeaders(rl) },
+            { headers: { ...rateLimitHeaders(rl), ...privateReadCacheHeaders() } },
         );
     } catch (error) {
         console.error("GET /api/v1/comedians/suggestions error:", error);

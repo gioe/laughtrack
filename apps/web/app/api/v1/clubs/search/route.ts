@@ -4,6 +4,7 @@ import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { readTimezoneHeader } from "@/util/timezone";
 import { auth } from "@/auth";
 import { withRequestMetrics } from "@/lib/metrics";
+import { privateReadCacheHeaders } from "@/lib/httpCache";
 
 export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     const rl = await applyPublicReadRateLimit(req, "clubs-search");
@@ -56,7 +57,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                 total: result.total,
                 filters: result.filters,
             },
-            { headers: rateLimitHeaders(rl) },
+            { headers: { ...rateLimitHeaders(rl), ...privateReadCacheHeaders() } },
         );
     } catch (error) {
         console.error("GET /api/v1/clubs/search error:", error);
