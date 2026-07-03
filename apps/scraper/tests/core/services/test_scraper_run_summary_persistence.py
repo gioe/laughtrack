@@ -289,6 +289,74 @@ def test_generic_pipeline_run_persistence_upserts_run_and_clears_child_rows():
     assert "DELETE FROM scraper_run_errors" in cursor.executed[2][0]
 
 
+def test_scraper_run_refreshes_health_summary_views():
+    """After a full 'scraper' run persists, the precomputed scraper-health
+    materialized views must be REFRESHed so Grafana reads current data instead of
+    rescanning scraper_runs/scraper_run_clubs on every evaluation (TASK-3573)."""
+    cursor = _Cursor(valid_club_ids=[7, 8])
+
+    with (
+        patch(
+            "laughtrack.core.services.metrics.postgres_repository.get_transaction",
+            return_value=_Transaction(_Connection(cursor)),
+        ),
+        patch("laughtrack.core.services.metrics.postgres_repository.execute_values"),
+    ):
+        result = PostgresMetricsRepository().persist_snapshot(_snapshot())
+
+    assert result is True
+    refreshed = [sql for sql, _ in cursor.executed if "REFRESH MATERIALIZED VIEW" in sql]
+    assert refreshed == [
+        "REFRESH MATERIALIZED VIEW mv_scraper_health_overall",
+        "REFRESH MATERIALIZED VIEW mv_scraper_health_dropped_to_zero",
+        "REFRESH MATERIALIZED VIEW mv_scraper_health_consecutive_zero",
+    ]
+
+
+def test_verify_run_does_not_refresh_health_summary_views():
+    """Single-club verify runs (and generic pipeline runs) are excluded from the
+    scraper-health comparison windows by run_type, so refreshing the summary views
+    after one would be wasted work — only run_type='scraper' triggers a refresh."""
+    snapshot = _snapshot()
+    snapshot.run_type = "verify"
+    cursor = _Cursor(valid_club_ids=[7, 8])
+
+    with (
+        patch(
+            "laughtrack.core.services.metrics.postgres_repository.get_transaction",
+            return_value=_Transaction(_Connection(cursor)),
+        ),
+        patch("laughtrack.core.services.metrics.postgres_repository.execute_values"),
+    ):
+        result = PostgresMetricsRepository().persist_snapshot(snapshot)
+
+    assert result is True
+    assert not any("REFRESH MATERIALIZED VIEW" in sql for sql, _ in cursor.executed)
+
+
+def test_health_summary_refresh_swallows_db_errors():
+    """A refresh failure (e.g. the MVs not yet created on a fresh DB) is
+    best-effort: refresh_health_summary logs and returns False rather than
+    raising, so the exception can never propagate out of persist_snapshot and
+    roll back the already-committed run."""
+
+    class _RaisingCursor(_Cursor):
+        def execute(self, sql, params=None):
+            super().execute(sql, params)
+            if "REFRESH MATERIALIZED VIEW" in sql:
+                raise RuntimeError('relation "mv_scraper_health_overall" does not exist')
+
+    cursor = _RaisingCursor()
+
+    with patch(
+        "laughtrack.core.services.metrics.postgres_repository.get_transaction",
+        return_value=_Transaction(_Connection(cursor)),
+    ):
+        result = PostgresMetricsRepository().refresh_health_summary()
+
+    assert result is False
+
+
 def test_metrics_service_keeps_json_and_dashboard_path_when_postgres_persistence_runs():
     service = MetricsService()
     session = ScrapingSessionResult(shows=[], errors=[], per_club_stats=[])

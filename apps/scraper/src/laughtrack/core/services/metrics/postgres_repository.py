@@ -40,6 +40,14 @@ class PipelineRunRecord:
 class PostgresMetricsRepository:
     """Persist scraper run observability rows for admin-facing queries."""
 
+    # Precomputed scraper-health regression summaries Grafana reads (TASK-3573),
+    # created by apps/scraper/migrations/20260703_scraper_health_summary_materialized_views.sql.
+    _HEALTH_SUMMARY_VIEWS = (
+        "mv_scraper_health_overall",
+        "mv_scraper_health_dropped_to_zero",
+        "mv_scraper_health_consecutive_zero",
+    )
+
     def persist_snapshot(self, snapshot: ScrapingMetricsSnapshot) -> bool:
         """Upsert a run and replace its child summaries idempotently."""
         run_key = self._run_key(snapshot)
@@ -76,9 +84,37 @@ class PostgresMetricsRepository:
                         execute_values(cur, self._INSERT_ERRORS_SQL, error_rows)
 
             Logger.info(f"Persisted scraper run summary to Postgres run_key={run_key}")
-            return True
         except Exception as exc:  # pragma: no cover - production resilience
             Logger.warn(f"Failed to persist scraper run summary to Postgres: {exc}")
+            return False
+
+        # Only a full 'scraper' run advances the comparison windows the
+        # scraper-health MVs precompute; verify/pipeline runs are filtered out of
+        # them by run_type. Refresh runs in its own transaction AFTER the run has
+        # committed so a refresh failure (e.g. the MVs not yet created on a fresh
+        # DB) can never roll back the just-persisted run — the Grafana staleness
+        # rule is the safety net if a refresh is ever skipped.
+        if snapshot.run_type == "scraper":
+            self.refresh_health_summary()
+        return True
+
+    def refresh_health_summary(self) -> bool:
+        """Recompute the precomputed scraper-health regression summary views.
+
+        Grafana reads these small materialized views instead of rescanning
+        scraper_runs/scraper_run_clubs on every (hourly) evaluation; a refresh
+        after each full run keeps them current. Best-effort: a refresh failure is
+        logged and swallowed so it never affects the run persistence result.
+        """
+        try:
+            with get_transaction() as conn:
+                with conn.cursor() as cur:
+                    for view in self._HEALTH_SUMMARY_VIEWS:
+                        cur.execute(f"REFRESH MATERIALIZED VIEW {view}")
+            Logger.info("Refreshed scraper-health summary materialized views")
+            return True
+        except Exception as exc:  # pragma: no cover - production resilience
+            Logger.warn(f"Failed to refresh scraper-health summary views: {exc}")
             return False
 
     def persist_pipeline_run(self, record: PipelineRunRecord) -> bool:
