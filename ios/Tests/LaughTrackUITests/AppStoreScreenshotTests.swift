@@ -104,9 +104,11 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
             field.tap()
             field.typeText(query)
         } else {
-            // SwiftUI's accessibility tree is inconsistent for the custom root
-            // search field on CI simulators; the field is visually stable.
-            tap(x: 220, y: 150)
+            // SwiftUI sometimes exposes the custom field container instead of
+            // the inner TextField on CI simulators.
+            let container = app.descendants(matching: .any)["laughtrack.search.field"]
+            XCTAssertTrue(container.waitForExistence(timeout: 5), "Expected search field container")
+            container.coordinate(withNormalizedOffset: CGVector(dx: 0.65, dy: 0.5)).tap()
             app.typeText(query)
         }
         sleep(3)

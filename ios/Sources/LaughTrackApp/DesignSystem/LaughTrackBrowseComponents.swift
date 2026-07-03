@@ -391,6 +391,7 @@ struct LaughTrackSearchField<TrailingAccessory: View>: View {
         )
         .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.pill, style: .continuous))
         .shadowStyle(laughTrack.shadows.card)
+        .optionalAccessibilityIdentifier(accessibilityIdentifier)
     }
 
     @ViewBuilder
@@ -405,6 +406,17 @@ struct LaughTrackSearchField<TrailingAccessory: View>: View {
             field.accessibilityIdentifier(accessibilityIdentifier)
         } else {
             field
+        }
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func optionalAccessibilityIdentifier(_ accessibilityIdentifier: String?) -> some View {
+        if let accessibilityIdentifier {
+            self.accessibilityIdentifier(accessibilityIdentifier)
+        } else {
+            self
         }
     }
 }
