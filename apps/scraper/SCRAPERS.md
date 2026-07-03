@@ -1097,6 +1097,50 @@ SELECT c.id, 'custom'::"ScrapingPlatform", 'fullcalendar_json',
 
 ---
 
+### Second City Platform
+
+| | |
+|---|---|
+| **Scraper key** | `up_comedy_club` |
+| **Platform** | `custom` |
+| **DB field** | `scraping_sources.source_url` plus metadata |
+| **Value format** | Public Second City shows page; scraper calls `platform.secondcity.com/graphql` and per-show `www.secondcity.com/api/entityResolver` internally |
+| **Generic?** | ✅ Generic for Second City rooms with a location slug and venue-name filters |
+
+**Detection signals:**
+- Show pages live under `https://www.secondcity.com/shows/<location>/...`.
+- Listing data is available from `https://platform.secondcity.com/graphql` with `shows(where: { location: ["<slug>"] })`.
+- Per-show details expose base64-encoded `patronticketData` through `https://www.secondcity.com/api/entityResolver?uri=<show-uri>&isPreview=false`.
+
+**Source pattern:** Store the public listing URL in `source_url`. Use
+`metadata.location_slug` to select the GraphQL location, and
+`metadata.venue_name_contains` to keep only the relevant room names from
+`showAttributes.venue[].name`. If `location_slug` is omitted, the scraper
+defaults to Chicago for existing UP Comedy Club sources.
+
+**DB setup:**
+```sql
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, priority, enabled, metadata)
+SELECT c.id, 'custom'::"ScrapingPlatform", 'up_comedy_club',
+       'https://www.secondcity.com/shows/new-york/',
+       0, TRUE,
+       '{
+          "location_slug": "new-york",
+          "venue_name_contains": [
+            "Second City New York Mainstage",
+            "The Second City New York Blackbox Theater"
+          ]
+        }'::jsonb
+  FROM clubs c
+ WHERE c.name = 'The Second City New York';
+```
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/scrapers/implementations/venues/up_comedy_club/`
+- Reference venue/task: The Second City New York — TASK-3566.
+
+---
+
 ### Wix Events
 
 | | |

@@ -74,6 +74,10 @@
 --   `fullcalendar_json` scraper:
 --   https://www.seshcomedy.com/feed.php
 --   Live validation on 2026-07-03 returned 42 future shows.
+-- * The Second City New York — Second City platform GraphQL/entityResolver
+--   scraper with metadata.location_slug `new-york` and NY venue-name filters:
+--   https://www.secondcity.com/shows/new-york/
+--   Live validation on 2026-07-03 returned 3 future shows.
 --
 -- After this migration is deployed, run:
 --   cd apps/scraper && make scrape-club CLUB='The N Crowd'
@@ -93,6 +97,7 @@
 --   cd apps/scraper && make scrape-club CLUB='Upright Citizens Brigade Theatre New York'
 --   cd apps/scraper && make scrape-club CLUB='Stones Comedy Club'
 --   cd apps/scraper && make scrape-club CLUB='Sesh Comedy'
+--   cd apps/scraper && make scrape-club CLUB='The Second City New York'
 
 INSERT INTO clubs (
     name, address, website, city, state, zip_code, phone_number,
@@ -847,6 +852,55 @@ SELECT
     NOW()
 FROM clubs c
 WHERE (c.google_place_id = 'ChIJ59-_Gu5ZwokR7Xc8o5IAtY0' OR (c.name = 'Sesh Comedy' AND c.city = 'New York' AND c.state = 'NY'))
+  AND NOT EXISTS (
+      SELECT 1 FROM scraping_sources s
+      WHERE s.club_id = c.id
+        AND s.platform = 'custom'::"ScrapingPlatform"
+        AND s.priority = 0
+  );
+
+INSERT INTO clubs (
+    name, address, website, city, state, zip_code, phone_number,
+    latitude, longitude, timezone, country, club_type, google_place_id,
+    visible, status
+)
+SELECT
+    'The Second City New York',
+    '64 N 9th St, Brooklyn, NY 11249, USA',
+    'https://www.secondcity.com/shows/new-york/',
+    'Brooklyn', 'NY', '11249', '',
+    40.7207727, -73.9599814,
+    'America/New_York', 'US', 'club',
+    'ChIJv4cccglZwokRwENgJq6qkXs',
+    TRUE, 'active'
+WHERE NOT EXISTS (
+    SELECT 1 FROM clubs
+    WHERE google_place_id = 'ChIJv4cccglZwokRwENgJq6qkXs'
+       OR (name = 'The Second City New York' AND city = 'Brooklyn' AND state = 'NY')
+);
+
+INSERT INTO scraping_sources (
+    club_id, platform, scraper_key, source_url,
+    enabled, priority, metadata, created_at, updated_at
+)
+SELECT
+    c.id,
+    'custom'::"ScrapingPlatform",
+    'up_comedy_club',
+    'https://www.secondcity.com/shows/new-york/',
+    TRUE,
+    0,
+    '{
+        "location_slug": "new-york",
+        "venue_name_contains": [
+            "Second City New York Mainstage",
+            "The Second City New York Blackbox Theater"
+        ]
+    }'::jsonb,
+    NOW(),
+    NOW()
+FROM clubs c
+WHERE (c.google_place_id = 'ChIJv4cccglZwokRwENgJq6qkXs' OR (c.name = 'The Second City New York' AND c.city = 'Brooklyn' AND c.state = 'NY'))
   AND NOT EXISTS (
       SELECT 1 FROM scraping_sources s
       WHERE s.club_id = c.id

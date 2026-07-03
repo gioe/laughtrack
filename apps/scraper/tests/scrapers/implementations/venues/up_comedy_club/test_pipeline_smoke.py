@@ -15,7 +15,6 @@ import importlib.util
 import json
 import urllib.parse
 from typing import Any, Dict, Optional
-from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -54,6 +53,27 @@ def _donnys_skybox_club(timezone: str = "America/Chicago") -> Club:
     return _c
 
 
+def _second_city_new_york_club(timezone: str = "America/New_York") -> Club:
+    _c = Club(id=1001, name="The Second City New York", address="64 N 9th St", website="https://www.secondcity.com/shows/new-york/", popularity=0, zip_code="11249", phone_number="", visible=True, timezone=timezone)
+    _c.active_scraping_source = ScrapingSource(
+        id=3,
+        club_id=_c.id,
+        platform="custom",
+        scraper_key="up_comedy_club",
+        source_url="https://www.secondcity.com/shows/new-york/",
+        external_id=None,
+        metadata={
+            "location_slug": "new-york",
+            "venue_name_contains": [
+                "Second City New York Mainstage",
+                "The Second City New York Blackbox Theater",
+            ],
+        },
+    )
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
+
+
 def _graphql_response(include_up_show: bool = True) -> Dict[str, Any]:
     """Fake GraphQL response listing Chicago shows."""
     nodes = [
@@ -82,6 +102,38 @@ def _graphql_response(include_up_show: bool = True) -> Dict[str, Any]:
     if not include_up_show:
         nodes = [nodes[1]]
     return {"data": {"shows": {"nodes": nodes}}}
+
+
+def _graphql_response_new_york() -> Dict[str, Any]:
+    return {
+        "data": {
+            "shows": {
+                "nodes": [
+                    {
+                        "title": "Unclaimed Baggage",
+                        "uri": "/shows/new-york/unclaimed-baggage-nyc",
+                        "showAttributes": {
+                            "venue": [{"name": "Second City New York Mainstage"}],
+                        },
+                    },
+                    {
+                        "title": "The Mic at The Second City",
+                        "uri": "/shows/new-york/the-mic-at-the-second-city-nyc",
+                        "showAttributes": {
+                            "venue": [{"name": "The Second City New York Blackbox Theater"}],
+                        },
+                    },
+                    {
+                        "title": "Toronto Revue",
+                        "uri": "/shows/toronto/toronto-revue",
+                        "showAttributes": {
+                            "venue": [{"name": "Second City Toronto Mainstage"}],
+                        },
+                    },
+                ]
+            }
+        }
+    }
 
 
 def _make_patron_ticket_data(instances: list) -> str:
@@ -175,6 +227,29 @@ async def test_collect_scraping_targets_uses_metadata_venue_filter(monkeypatch):
     urls = await scraper.collect_scraping_targets()
     assert len(urls) == 1, f"Expected 1 Donny's Skybox show URL, got: {urls}"
     assert "coached-ensembles-chi" in urls[0]
+
+
+@pytest.mark.asyncio
+async def test_collect_scraping_targets_uses_metadata_location_slug(monkeypatch):
+    """Second City rooms outside Chicago can reuse the scraper by setting location_slug."""
+    scraper = UPComedyClubScraper(_second_city_new_york_club())
+    requested_variables = None
+
+    async def fake_fetch_json(self, url: str, **kwargs) -> Dict:
+        nonlocal requested_variables
+        parsed = urllib.parse.urlparse(url)
+        query_params = urllib.parse.parse_qs(parsed.query)
+        requested_variables = json.loads(query_params["variables"][0])
+        return _graphql_response_new_york()
+
+    monkeypatch.setattr(UPComedyClubScraper, "fetch_json", fake_fetch_json)
+
+    urls = await scraper.collect_scraping_targets()
+
+    assert requested_variables == {"first": 300, "where": {"location": ["new-york"]}}
+    assert len(urls) == 2, f"Expected 2 Second City New York show URLs, got: {urls}"
+    assert "unclaimed-baggage-nyc" in urls[0]
+    assert "the-mic-at-the-second-city-nyc" in urls[1]
 
 
 @pytest.mark.asyncio

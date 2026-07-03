@@ -28,6 +28,7 @@ adds these validated venues:
 | Upright Citizens Brigade Theatre New York | `ChIJYwz0-YJZwokR1XOunnE1Pe4` | `ucb` | `https://ucbcomedy.com/shows/`, location slugs `nyc-mainstage` and `nyc-upstairs` | 62 Mainstage shows; 10 Upstairs shows |
 | Stones Comedy Club | `ChIJV3CtSlJbwokRW6gCgnAFt-E` | `eventbrite` | `https://www.eventbrite.com`, eventbrite id `33078829209` | 52 future shows |
 | Sesh Comedy | `ChIJ59-_Gu5ZwokR7Xc8o5IAtY0` | `fullcalendar_json` | `https://www.seshcomedy.com/feed.php` | 42 future shows |
+| The Second City New York | `ChIJv4cccglZwokRwENgJq6qkXs` | `up_comedy_club` | `https://www.secondcity.com/shows/new-york/`, `location_slug=new-york`, NY venue-name filters | 3 future shows |
 
 Validation was done on 2026-07-02 by instantiating the same generic scraper
 classes that `make scrape-club` will use after the migration rows exist. The
@@ -51,6 +52,7 @@ cd apps/scraper && make scrape-club CLUB='The Lab'
 cd apps/scraper && make scrape-club CLUB='Upright Citizens Brigade Theatre New York'
 cd apps/scraper && make scrape-club CLUB='Stones Comedy Club'
 cd apps/scraper && make scrape-club CLUB='Sesh Comedy'
+cd apps/scraper && make scrape-club CLUB='The Second City New York'
 ```
 
 ## Already Covered / Duplicate-Like
@@ -135,7 +137,7 @@ not match the existing generic scraper contract during live validation:
 | Top Secret Comedy Club | `json_ld` detail fetch over `/events-listings/` links | 0 JSON-LD events. |
 | The PIT | `json_ld` detail fetch over `/events/` links | Timed out while fetching many detail pages; not safe to onboard via generic JSON-LD without a narrower source or scraper. |
 | The PIT | `json_ld` detail fetch over `/events/` links with pagination disabled | Listing page had no JSON-LD events and detail pages repeatedly timed out or closed connections through the scraper HTTP stack. |
-| The Second City New York | `json_ld`, `https://www.secondcity.com/shows/new-york` | 0 JSON-LD events; show data is embedded in Next.js hydration data and needs a custom extractor rather than the existing Chicago/UP Comedy scraper. |
+| The Second City New York | `json_ld`, `https://www.secondcity.com/shows/new-york` | 0 JSON-LD events; show data is embedded in Next.js hydration data. TASK-3566 generalized the existing Second City GraphQL/entityResolver scraper with metadata `location_slug=new-york` and NY venue-name filters; live validation returned 3 future shows, so the venue is onboarded in the migration. |
 | Upright Citizens Brigade Theatre | `ucb`, `https://ucbcomedy.com/shows/` with likely NYC location slugs | Initial guesses returned 0 events, but later source extraction found the rendered card class slugs `nyc-mainstage` and `nyc-upstairs`; the venue is onboarded in the migration. |
 | Laughing Buddha Comedy | `ticket_tailor`, `https://www.tickettailor.com/events/laughingbuddhacomedy/` | 38 parsed events, but the account mixes classes and offsite shows including New York Comedy Club; not a clean single-venue source without additional filtering. |
 | The Backroom LIVE | `eventbrite`, organizer id `120674296136` discovered from collection page | 0 shows through the existing single-venue Eventbrite venue/fallback path; collection page is mixed and organizer mode would route as a multi-venue producer, not a fixed club. |
@@ -162,10 +164,9 @@ follow-up scraper/source work is tracked in TASK-3566.
   has a real fixed-venue page with PatronBase ticket links under
   `us.patronbase.com/_ComedyCabaret`, but the existing `patron_ticket` scraper
   is for Salesforce PatronTicket and does not cover PatronBase.
-- `The PIT` (`ChIJG3e1NKdZwokR26WFFB6Lx7w`), `The Second City New York`
-  (`ChIJv4cccglZwokRwENgJq6qkXs`), `Upper East Side Comedy Club at Bedford
-  Falls NYC` (`ChIJi-qNZNtZwokRQBdBfR3dLM4`), `Flop House Comedy Club`, and
-  `Rhino Comedy` all need source extraction or scraper work before they are
+- `The PIT` (`ChIJG3e1NKdZwokR26WFFB6Lx7w`), `Upper East Side Comedy Club at
+  Bedford Falls NYC` (`ChIJi-qNZNtZwokRQBdBfR3dLM4`), `Flop House Comedy Club`,
+  and `Rhino Comedy` all need source extraction or scraper work before they are
   safe to onboard.
 - `The Fear City Comedy Club` (`ChIJmfs0oC9bwokRvksSyYq9Cq8`) now has generic
   Squarespace source support via TASK-3566, but its live source returned 0 future
@@ -179,6 +180,5 @@ they can be onboarded safely. Prioritize fixed venues with supported-source
 signals:
 
 - Fixed/promising but needs source extraction: The PIT,
-  Second City New York, The Fear City Comedy Club,
-  Comedy Cabaret, Upper East Side Comedy Club, Flop House Comedy Club, and
-  Rhino Comedy.
+  The Fear City Comedy Club, Comedy Cabaret, Upper East Side Comedy Club,
+  Flop House Comedy Club, and Rhino Comedy.

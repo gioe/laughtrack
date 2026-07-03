@@ -56,16 +56,13 @@ _GRAPHQL_QUERY = (
     " } }"
 )
 
-_GRAPHQL_VARIABLES = json.dumps(
-    {"first": 300, "where": {"location": ["chicago"]}}
-)
-
 
 class UPComedyClubScraper(BaseScraper):
     """Scraper for UP Comedy Club Chicago via The Second City platform API."""
 
     key = "up_comedy_club"
     DEFAULT_VENUE_NAME_FILTERS = ("UP Comedy Club",)
+    DEFAULT_LOCATION_SLUGS = ("chicago",)
 
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
@@ -83,6 +80,18 @@ class UPComedyClubScraper(BaseScraper):
         cleaned = [item.strip() for item in filters if item.strip()]
         return cleaned or list(self.DEFAULT_VENUE_NAME_FILTERS)
 
+    def _location_slugs(self) -> List[str]:
+        raw_slug = self.club.source_metadata.get("location_slug")
+        if isinstance(raw_slug, str):
+            slugs = [raw_slug]
+        elif isinstance(raw_slug, list):
+            slugs = [item for item in raw_slug if isinstance(item, str)]
+        else:
+            slugs = list(self.DEFAULT_LOCATION_SLUGS)
+
+        cleaned = [item.strip() for item in slugs if item.strip()]
+        return cleaned or list(self.DEFAULT_LOCATION_SLUGS)
+
     async def collect_scraping_targets(self) -> List[str]:
         """
         Discover UP Comedy Club shows via the Second City GraphQL API.
@@ -90,11 +99,15 @@ class UPComedyClubScraper(BaseScraper):
         Queries all Chicago shows and filters for those whose venue list matches
         the configured Second City room.  Returns one entityResolver URL per show.
         """
+        location_slugs = self._location_slugs()
+        graphql_variables = json.dumps(
+            {"first": 300, "where": {"location": location_slugs}}
+        )
         graphql_url = (
             f"{_GRAPHQL_URL}"
             f"?query={urllib.parse.quote(_GRAPHQL_QUERY)}"
             f"&operationName=getShowList"
-            f"&variables={urllib.parse.quote(_GRAPHQL_VARIABLES)}"
+            f"&variables={urllib.parse.quote(graphql_variables)}"
         )
 
         try:
@@ -153,7 +166,7 @@ class UPComedyClubScraper(BaseScraper):
 
         Logger.info(
             f"{self._log_prefix}: discovered {len(targets)} Second City show(s) "
-            f"matching venue filters {venue_filters}",
+            f"matching location slugs {location_slugs} and venue filters {venue_filters}",
             self.logger_context,
         )
         return targets
