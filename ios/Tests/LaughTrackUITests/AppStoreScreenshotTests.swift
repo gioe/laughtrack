@@ -42,9 +42,10 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         sleep(2)
         snapshot("04_SearchClubs")
 
-        // App Store screenshots should feature The Comedy Store instead of
-        // whichever LA/SF venue happens to sort first in production.
-        tapButton(containingLabel: "The Comedy Store", scrollAttempts: 6)
+        // Tap the first visible club row. The screenshot flow should not
+        // depend on a specific production venue being present in the current
+        // result window.
+        tap(x: 220, y: 525)
         sleep(3)
         snapshot("05_ClubDetail")
 
@@ -95,20 +96,6 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         tap(x: 220, y: 525)
         sleep(5)
         snapshot("09_PodcastDetail")
-    }
-
-    private func tapButton(containingLabel text: String, scrollAttempts: Int = 0) {
-        let predicate = NSPredicate(format: "label CONTAINS[c] %@", text)
-        let button = app.buttons.matching(predicate).firstMatch
-        for attempt in 0...scrollAttempts {
-            if button.waitForExistence(timeout: attempt == 0 ? 10 : 2) {
-                button.tap()
-                return
-            }
-            app.swipeUp()
-            sleep(1)
-        }
-        XCTFail("Expected button containing label '\(text)'")
     }
 
     private func tapPrimitive(_ primitive: String) {
