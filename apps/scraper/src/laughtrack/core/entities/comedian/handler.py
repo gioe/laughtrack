@@ -44,6 +44,11 @@ _YOUTUBE_STALE_DAYS = int(os.environ.get("YOUTUBE_FOLLOWERS_STALE_DAYS", "7"))
 # clears it. Longer timeout because requests route through the residential proxy.
 _INSTAGRAM_MAX_ATTEMPTS = int(os.environ.get("INSTAGRAM_FETCH_ATTEMPTS", "4"))
 _INSTAGRAM_TIMEOUT_S = float(os.environ.get("INSTAGRAM_FETCH_TIMEOUT_S", "20"))
+# Persist follower updates / dead-handle clears in chunks of this many rows so a
+# long run's progress survives a hard stop (e.g. the CI job's timeout kill) —
+# the batch write no longer happens only at the very end. Oldest-first ordering
+# means the next run resumes on whatever was left unpersisted.
+_INSTAGRAM_PERSIST_CHUNK = int(os.environ.get("INSTAGRAM_PERSIST_CHUNK", "100"))
 # A 404 means the username no longer exists. Require this many 404s (across
 # rotated egress IPs) before clearing the handle, so a one-off proxy blip can't
 # wipe a live account.
@@ -1017,8 +1022,14 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
         if limit is not None:
             rows = rows[:limit]
 
+        # Buffers hold results until a chunk is flushed to the DB. Persisting in
+        # chunks (rather than once at the very end) means a hard stop mid-run —
+        # e.g. the CI job hitting its timeout — keeps everything flushed so far;
+        # the next oldest-first run resumes on the unpersisted remainder.
         updates: List[tuple] = []
         dead_uuids: List[str] = []
+        total_updated = 0
+        total_cleared = 0
         consecutive_failures = 0
         for row in rows:
             result = self._fetch_instagram_follower_count(row)
@@ -1035,12 +1046,44 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
                 if consecutive_failures >= _CIRCUIT_BREAKER_THRESHOLD:
                     Logger.warn(
                         f"refresh_instagram_followers: {_CIRCUIT_BREAKER_THRESHOLD} consecutive "
-                        f"failures — aborting (likely blocked). {len(updates)} updated, "
-                        f"{len(dead_uuids)} cleared so far."
+                        f"failures — aborting (likely blocked). {total_updated + len(updates)} "
+                        f"updated, {total_cleared + len(dead_uuids)} cleared so far."
                     )
                     break
+
+            if len(updates) + len(dead_uuids) >= _INSTAGRAM_PERSIST_CHUNK:
+                self._persist_instagram_results(updates, dead_uuids)
+                total_updated += len(updates)
+                total_cleared += len(dead_uuids)
+                updates, dead_uuids = [], []
             time.sleep(_SOCIAL_REQUEST_DELAY_S)
 
+        # Flush the final partial chunk.
+        self._persist_instagram_results(updates, dead_uuids)
+        total_updated += len(updates)
+        total_cleared += len(dead_uuids)
+
+        if total_updated == 0 and total_cleared == 0:
+            Logger.warn(
+                f"refresh_instagram_followers: {len(rows)} accounts found but 0 updated "
+                "and 0 cleared — API may be rate-limiting or unavailable"
+            )
+            return 0
+
+        Logger.info(
+            f"refresh_instagram_followers: updated {total_updated} comedians, "
+            f"cleared {total_cleared} dead handles"
+        )
+        return total_updated
+
+    def _persist_instagram_results(
+        self, updates: List[tuple], dead_uuids: List[str]
+    ) -> None:
+        """Write one chunk of follower updates and dead-handle clears to the DB.
+
+        No-ops on an empty list, so it is safe to call with a partial or empty
+        final chunk.
+        """
         if updates:
             self.execute_batch_operation(
                 ComedianQueries.UPDATE_COMEDIAN_INSTAGRAM_FOLLOWERS, updates
@@ -1050,19 +1093,6 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
                 ComedianQueries.CLEAR_COMEDIAN_INSTAGRAM_ACCOUNT,
                 [(uuid,) for uuid in dead_uuids],
             )
-
-        if not updates and not dead_uuids:
-            Logger.warn(
-                f"refresh_instagram_followers: {len(rows)} accounts found but 0 updated "
-                "and 0 cleared — API may be rate-limiting or unavailable"
-            )
-            return 0
-
-        Logger.info(
-            f"refresh_instagram_followers: updated {len(updates)} comedians, "
-            f"cleared {len(dead_uuids)} dead handles"
-        )
-        return len(updates)
 
     def _get_comedians_with_instagram_accounts(self, stale_days: int) -> List[dict]:
         """Return (uuid, instagram_account) for comedians whose count is stale.

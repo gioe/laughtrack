@@ -2,10 +2,13 @@ name: Social Follower Refresh
 
 on:
   schedule:
-    # Weekly: every Monday at 08:00 UTC (04:00 ET / 00:00 PT). Follower counts
-    # only need a weekly cadence; the Instagram step additionally self-gates on
-    # instagram_followers_refreshed_at so a manual re-run mid-week is a no-op.
-    - cron: '0 8 * * 1'
+    # Daily at 08:00 UTC (04:00 ET / 00:00 PT). Both platforms self-gate on
+    # *_followers_refreshed_at (default 7-day staleness), so each account is
+    # still only refreshed ~weekly — the daily cadence exists so the Instagram
+    # step can chip away at its ~1,900-account cohort in timeout-sized daily
+    # slices (--limit) rather than one ~5-hour run that would blow the job
+    # timeout. Oldest-first ordering rotates the whole roster over a few days.
+    - cron: '0 8 * * *'
   workflow_dispatch:
 
 jobs:
@@ -44,6 +47,11 @@ jobs:
         # Runs even if YouTube fails — the two platforms are independent.
         # Routes through the Decodo residential proxy (Instagram blocks CI
         # datacenter IPs directly) and self-gates on instagram_followers_refreshed_at.
+        # --limit caps the run at a timeout-sized daily slice (~600 accounts ≈
+        # 90 min at the observed ~9s/account through the proxy, inside the
+        # 120-min job timeout). Progress is persisted in chunks, so even if the
+        # slice overruns, whatever completed is saved and tomorrow's oldest-first
+        # run resumes on the remainder.
         if: always()
         env:
           DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
@@ -55,7 +63,7 @@ jobs:
           RESIDENTIAL_PROXY_URL: ${{ secrets.RESIDENTIAL_PROXY_URL }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
-          python -m scripts.core.refresh_social_followers --platform instagram
+          python -m scripts.core.refresh_social_followers --platform instagram --limit 600
 
       - name: Update comedian popularity scores
         if: success()

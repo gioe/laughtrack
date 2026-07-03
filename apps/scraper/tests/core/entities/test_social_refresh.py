@@ -555,6 +555,27 @@ class TestRefreshInstagramFollowers:
             [("uuid-ok", 50_000)],
         )
 
+    def test_persists_in_chunks(self, monkeypatch):
+        """Results flush in chunks so a mid-run stop keeps partial progress."""
+        handler = _make_handler()
+        rows = [{"uuid": f"uuid-{i}", "instagram_account": f"@c{i}"} for i in range(5)]
+        handler._get_comedians_with_instagram_accounts = MagicMock(return_value=rows)
+        handler._fetch_instagram_follower_count = MagicMock(
+            side_effect=[_IGFetch("ok", f"uuid-{i}", 100 + i) for i in range(5)]
+        )
+        monkeypatch.setattr(_comedian_handler_mod, "_INSTAGRAM_PERSIST_CHUNK", 2)
+
+        result = handler.refresh_instagram_followers()
+
+        assert result == 5
+        # 5 updates at chunk size 2 → flushes of 2, 2, then a final 1 = 3 writes,
+        # NOT a single terminal batch.
+        update_calls = [
+            c for c in handler.execute_batch_operation.call_args_list
+            if c.args[0] == ComedianQueries.UPDATE_COMEDIAN_INSTAGRAM_FOLLOWERS
+        ]
+        assert [len(c.args[1]) for c in update_calls] == [2, 2, 1]
+
     def test_dead_handles_are_cleared(self):
         """A 'dead' (404) result clears the account via the CLEAR query."""
         handler = _make_handler()
