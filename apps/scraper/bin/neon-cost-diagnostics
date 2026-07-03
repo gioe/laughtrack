@@ -1,0 +1,229 @@
+#!/usr/bin/env python3
+"""
+Print pg_stat_statements query diagnostics for Neon cost investigations.
+
+This is intentionally read-only. It assumes pg_stat_statements is already
+enabled on the target database:
+
+    CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
+
+Stats can reset when Neon compute restarts or scales to zero, so treat empty or
+fresh-looking output as a signal to collect a representative traffic window
+before drawing conclusions.
+"""
+
+import argparse
+import json
+import os
+import sys
+from datetime import date, datetime
+from decimal import Decimal
+from pathlib import Path
+from urllib.parse import quote
+from uuid import UUID
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+SCRAPER_ROOT = SCRIPT_DIR.parent
+ENV_FILE = SCRAPER_ROOT / ".env"
+
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    print("Error: python-dotenv is not installed. Run: pip install python-dotenv", file=sys.stderr)
+    sys.exit(1)
+
+
+SECTION_QUERIES = (
+    (
+        "top_total_rows",
+        """
+        SELECT query,
+               calls,
+               rows AS total_rows,
+               ROUND((rows::numeric / NULLIF(calls, 0)), 2) AS avg_rows_per_call
+        FROM pg_stat_statements
+        WHERE calls > 0
+        ORDER BY rows DESC
+        LIMIT %s
+        """,
+    ),
+    (
+        "top_avg_rows_per_call",
+        """
+        SELECT query,
+               calls,
+               rows AS total_rows,
+               ROUND((rows::numeric / NULLIF(calls, 0)), 2) AS avg_rows_per_call
+        FROM pg_stat_statements
+        WHERE calls > 0
+        ORDER BY avg_rows_per_call DESC
+        LIMIT %s
+        """,
+    ),
+    (
+        "top_calls",
+        """
+        SELECT query,
+               calls,
+               rows AS total_rows,
+               ROUND((rows::numeric / NULLIF(calls, 0)), 2) AS avg_rows_per_call
+        FROM pg_stat_statements
+        WHERE calls > 0
+        ORDER BY calls DESC
+        LIMIT %s
+        """,
+    ),
+    (
+        "top_total_exec_time",
+        """
+        SELECT query,
+               calls,
+               rows AS total_rows,
+               ROUND(total_exec_time::numeric, 2) AS total_exec_time_ms,
+               ROUND(mean_exec_time::numeric, 2) AS mean_exec_time_ms
+        FROM pg_stat_statements
+        WHERE calls > 0
+        ORDER BY total_exec_time DESC
+        LIMIT %s
+        """,
+    ),
+)
+
+
+def _resolve_database_url() -> str:
+    load_dotenv(ENV_FILE)
+    url = os.environ.get("DATABASE_URL")
+    if url:
+        return url
+
+    host = os.environ.get("DATABASE_HOST")
+    user = os.environ.get("DATABASE_USER")
+    password = os.environ.get("DATABASE_PASSWORD")
+    name = os.environ.get("DATABASE_NAME")
+    port = os.environ.get("DATABASE_PORT", "5432")
+
+    missing = [
+        var
+        for var, val in (
+            ("DATABASE_HOST", host),
+            ("DATABASE_USER", user),
+            ("DATABASE_PASSWORD", password),
+            ("DATABASE_NAME", name),
+        )
+        if not val
+    ]
+    if missing:
+        print(
+            "Error: DATABASE_URL not set, and could not compose one from "
+            f"DATABASE_HOST/USER/PASSWORD/NAME/PORT; missing: {', '.join(missing)}",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    return (
+        f"postgresql://{quote(user, safe='')}:{quote(password, safe='')}"
+        f"@{host}:{port}/{name}?sslmode=require"
+    )
+
+
+def _to_jsonable(value):
+    if value is None or isinstance(value, (bool, int, float, str)):
+        return value
+    if isinstance(value, (datetime, date)):
+        return value.isoformat()
+    if isinstance(value, Decimal):
+        return float(value)
+    if isinstance(value, (bytes, bytearray, memoryview)):
+        return bytes(value).hex()
+    if isinstance(value, UUID):
+        return str(value)
+    return str(value)
+
+
+def _fetch_dicts(cur, sql: str, params: tuple[object, ...] = ()) -> list[dict[str, object]]:
+    cur.execute(sql, params)
+    cols = [d[0] for d in cur.description]
+    return [
+        {col: _to_jsonable(val) for col, val in zip(cols, row)}
+        for row in cur.fetchall()
+    ]
+
+
+def _truncate_query_text(rows: list[dict[str, object]], max_query_chars: int) -> None:
+    for row in rows:
+        query = row.get("query")
+        if isinstance(query, str) and len(query) > max_query_chars:
+            row["query"] = query[: max_query_chars - 3] + "..."
+
+
+def run_diagnostics(conn, *, limit: int, max_query_chars: int) -> dict[str, object]:
+    with conn.cursor() as cur:
+        _fetch_dicts(cur, "SELECT 1 AS ok FROM pg_stat_statements LIMIT 1")
+        sections = {}
+        for name, sql in SECTION_QUERIES:
+            rows = _fetch_dicts(cur, sql, (limit,))
+            _truncate_query_text(rows, max_query_chars)
+            sections[name] = rows
+    return {
+        "note": (
+            "pg_stat_statements rows are cumulative since the last stats reset. "
+            "On Neon, stats can reset when compute restarts or scales to zero; "
+            "collect a representative traffic window before drawing conclusions."
+        ),
+        "sections": sections,
+    }
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        description="Print pg_stat_statements diagnostics for Neon cost analysis."
+    )
+    parser.add_argument("--limit", type=int, default=10, help="Rows per diagnostic section.")
+    parser.add_argument(
+        "--max-query-chars",
+        type=int,
+        default=800,
+        help="Maximum query text length per row before truncation.",
+    )
+    args = parser.parse_args(argv)
+
+    if args.limit < 1:
+        parser.error("--limit must be at least 1")
+    if args.max_query_chars < 20:
+        parser.error("--max-query-chars must be at least 20")
+
+    try:
+        import psycopg2  # noqa: F401
+    except ImportError:
+        print("Error: psycopg2 is not installed. Run: pip install psycopg2-binary", file=sys.stderr)
+        return 1
+
+    sys.path.insert(0, str(SCRAPER_ROOT / "src"))
+    from laughtrack.foundation.db_util import connect_with_retry  # noqa: E402
+
+    conn = connect_with_retry(_resolve_database_url())
+    try:
+        conn.autocommit = True
+        result = run_diagnostics(
+            conn,
+            limit=args.limit,
+            max_query_chars=args.max_query_chars,
+        )
+    except Exception as exc:
+        if exc.__class__.__name__ == "UndefinedTable":
+            print(
+                "pg_stat_statements is not enabled. Run: "
+                "CREATE EXTENSION IF NOT EXISTS pg_stat_statements;",
+                file=sys.stderr,
+            )
+            return 2
+        raise
+    finally:
+        conn.close()
+
+    print(json.dumps(result, indent=2))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

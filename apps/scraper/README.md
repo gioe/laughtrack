@@ -59,6 +59,9 @@ make dashboard               # Generate HTML dashboard
 make visualize-metrics       # Optional deps required
 make fetch-dashboard-artifact RUN_ID=<github-actions-run-id>
 make scraper-status
+
+# Neon cost diagnostics
+python bin/neon-cost-diagnostics --limit 10
 ```
 
 ## Project Status
@@ -136,6 +139,28 @@ copy that file to `.env` to configure them locally.
   set it for manual or ops runs that need a more specific caller identity.
 - `DISCORD_WEBHOOK_URL`, `BUNNYCDN_STORAGE_*` — alerting / image-upload
   helpers; see `.env.example` for full descriptions.
+
+## Neon cost diagnostics
+
+`bin/neon-cost-diagnostics` prints a repeatable `pg_stat_statements` report
+for database cost investigations. It ranks statements by total rows returned,
+average rows per call, call count, and total execution time.
+
+```bash
+cd apps/scraper
+python bin/neon-cost-diagnostics --limit 10
+```
+
+The command requires the database extension to be installed once:
+
+```sql
+CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
+```
+
+On Neon, `pg_stat_statements` counters are cumulative since the last stats
+reset. Empty or unexpectedly small counts can mean the compute recently
+restarted or scaled to zero, so collect a representative traffic window before
+using the report to prioritize query or egress work.
 
 ## Documentation
 
