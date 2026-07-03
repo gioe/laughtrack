@@ -94,6 +94,10 @@
 --   Event/subEvent JSON-LD, scraped by `json_ld` detail-fetch feed mode:
 --   https://thepit-nyc.com/events/feed/
 --   Live validation on 2026-07-03 returned 32 future shows.
+-- * Upper East Side Comedy Club — custom Wix/Velo `_functions/shows` JSON
+--   endpoint with Eventbrite ticket URLs:
+--   https://uppereastsidecomedyclub.com/_functions/shows
+--   Live validation on 2026-07-03 returned 20 future shows.
 --
 -- After this migration is deployed, run:
 --   cd apps/scraper && make scrape-club CLUB='The N Crowd'
@@ -118,6 +122,7 @@
 --   cd apps/scraper && make scrape-club CLUB='Rhino Comedy'
 --   cd apps/scraper && make scrape-club CLUB='Flop House Comedy Club'
 --   cd apps/scraper && make scrape-club CLUB='The PIT'
+--   cd apps/scraper && make scrape-club CLUB='Upper East Side Comedy Club'
 
 INSERT INTO clubs (
     name, address, website, city, state, zip_code, phone_number,
@@ -1102,6 +1107,49 @@ SELECT
     NOW()
 FROM clubs c
 WHERE (c.google_place_id = 'ChIJG3e1NKdZwokR26WFFB6Lx7w' OR (c.name = 'The PIT' AND c.city = 'New York' AND c.state = 'NY'))
+  AND NOT EXISTS (
+      SELECT 1 FROM scraping_sources s
+      WHERE s.club_id = c.id
+        AND s.platform = 'custom'::"ScrapingPlatform"
+        AND s.priority = 0
+  );
+
+INSERT INTO clubs (
+    name, address, website, city, state, zip_code, phone_number,
+    latitude, longitude, timezone, country, club_type, google_place_id,
+    visible, status
+)
+SELECT
+    'Upper East Side Comedy Club',
+    '206 E 67th St, New York, NY 10065, USA',
+    'https://www.uppereastsidecomedyclub.com/',
+    'New York', 'NY', '10065', '(201) 279-0146',
+    40.7661414, -73.9625475,
+    'America/New_York', 'US', 'club',
+    'ChIJi-qNZNtZwokRQBdBfR3dLM4',
+    TRUE, 'active'
+WHERE NOT EXISTS (
+    SELECT 1 FROM clubs
+    WHERE google_place_id = 'ChIJi-qNZNtZwokRQBdBfR3dLM4'
+       OR (name = 'Upper East Side Comedy Club' AND city = 'New York' AND state = 'NY')
+);
+
+INSERT INTO scraping_sources (
+    club_id, platform, scraper_key, source_url,
+    enabled, priority, metadata, created_at, updated_at
+)
+SELECT
+    c.id,
+    'custom'::"ScrapingPlatform",
+    'wix_functions_shows',
+    'https://uppereastsidecomedyclub.com/_functions/shows',
+    TRUE,
+    0,
+    '{}'::jsonb,
+    NOW(),
+    NOW()
+FROM clubs c
+WHERE (c.google_place_id = 'ChIJi-qNZNtZwokRQBdBfR3dLM4' OR (c.name = 'Upper East Side Comedy Club' AND c.city = 'New York' AND c.state = 'NY'))
   AND NOT EXISTS (
       SELECT 1 FROM scraping_sources s
       WHERE s.club_id = c.id

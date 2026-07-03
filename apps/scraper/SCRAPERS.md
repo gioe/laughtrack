@@ -1265,6 +1265,33 @@ API returns `> 0` upcoming events before onboarding a Wix venue. (TASK-2957)
 
 ---
 
+### Wix/Velo `_functions/shows`
+
+| | |
+|---|---|
+| **Scraper key** | `wix_functions_shows` |
+| **DB field** | `source_url` = full endpoint URL |
+| **Platform enum** | `custom` |
+| **Generic?** | ✅ Generic when the endpoint returns a top-level `shows` array |
+
+**Detection signals:**
+- Wix site embeds an `HtmlComponent` or custom Velo code rather than native Wix
+  Events cards.
+- Playwright network inspection shows a request to `/_functions/shows`.
+- Response shape:
+  `{ "shows": [{ "title", "start_local", "start_utc", "ticket_url", "price_from", "lineup_text" }] }`.
+
+**Source pattern:** Store the endpoint URL directly. The scraper reads local
+start times in the club timezone, uses `ticket_url` as both show page and ticket
+purchase URL, stores `price_from` on the fallback ticket, and uses `lineup_text`
+as the description.
+
+**Reference implementation:**
+- `apps/scraper/src/laughtrack/scrapers/implementations/api/wix_functions_shows/`
+- Reference venue/task: Upper East Side Comedy Club — TASK-3566.
+
+---
+
 ### Crowdwork
 
 | | |
