@@ -91,7 +91,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                 filters: result.filters,
                 zipCapTriggered: result.zipCapTriggered,
             },
-            { headers: { ...rateLimitHeaders(rl), ...personalizedReadCacheHeaders({ authed: authCtx !== null, varyOnTimezone: true }) } },
+            { headers: { ...rateLimitHeaders(rl), ...personalizedReadCacheHeaders(req, { authed: authCtx !== null, varyOnTimezone: true }) } },
         );
     } catch (error) {
         console.error("GET /api/v1/shows/search error:", error);

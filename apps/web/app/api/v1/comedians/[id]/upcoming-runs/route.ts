@@ -64,7 +64,7 @@ export const GET = withRequestMetrics(async function GET(
             {
                 data: runs,
             },
-            { headers: { ...rateLimitHeaders(rl), ...personalizedReadCacheHeaders({ authed: authCtx !== null, varyOnTimezone: true }) } },
+            { headers: { ...rateLimitHeaders(rl), ...personalizedReadCacheHeaders(req, { authed: authCtx !== null, varyOnTimezone: true }) } },
         );
     } catch (error) {
         console.error("GET /api/v1/comedians/[id]/upcoming-runs error:", error);

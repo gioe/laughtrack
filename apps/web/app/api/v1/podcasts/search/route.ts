@@ -24,7 +24,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
         });
 
         return NextResponse.json(result, {
-            headers: { ...rateLimitHeaders(rl), ...personalizedReadCacheHeaders({ authed: authCtx !== null }) },
+            headers: { ...rateLimitHeaders(rl), ...personalizedReadCacheHeaders(req, { authed: authCtx !== null }) },
         });
     } catch (error) {
         console.error("GET /api/v1/podcasts/search error:", error);

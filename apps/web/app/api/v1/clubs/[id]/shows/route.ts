@@ -63,7 +63,7 @@ export const GET = withRequestMetrics(async function GET(
                 data: result.shows,
                 total: result.totalCount,
             },
-            { headers: { ...rateLimitHeaders(rl), ...personalizedReadCacheHeaders({ authed: authCtx !== null }) } },
+            { headers: { ...rateLimitHeaders(rl), ...personalizedReadCacheHeaders(req, { authed: authCtx !== null }) } },
         );
     } catch (error) {
         console.error("GET /api/v1/clubs/[id]/shows error:", error);

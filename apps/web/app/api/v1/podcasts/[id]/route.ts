@@ -41,7 +41,7 @@ export const GET = withRequestMetrics(async function GET(
             authCtx?.profileId,
         );
         return NextResponse.json(result, {
-            headers: { ...rateLimitHeaders(rl), ...personalizedReadCacheHeaders({ authed: authCtx !== null }) },
+            headers: { ...rateLimitHeaders(rl), ...personalizedReadCacheHeaders(req, { authed: authCtx !== null }) },
         });
     } catch (error) {
         if (error instanceof NotFoundError) {

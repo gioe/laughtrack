@@ -71,41 +71,53 @@ export function publicReadCacheHeaders(opts?: {
 }
 
 /**
- * Auth-bearing request headers the anonymous shared-cache variant must Vary on so
- * the CDN never serves it to an authenticated request. `Authorization` covers the
- * Bearer / mobile path; `Cookie` covers the web NextAuth session path.
+ * The single request header the anonymous shared-cache variant Varies on so the
+ * CDN never serves it to a Bearer-authenticated request. Only the cookieless
+ * (mobile) path is ever shared-cacheable (see `personalizedReadCacheHeaders`), so
+ * `Cookie` is deliberately NOT in the Vary — it would fragment the cache by
+ * unrelated cookies (analytics, etc.) and pollute the CDN with per-cookie entries.
  */
-export const PERSONALIZED_VARY_HEADERS = ["Authorization", "Cookie"] as const;
+export const PERSONALIZED_VARY_HEADER = "Authorization";
 
 /**
  * Header set for an OPTIONALLY-personalized read — a route that calls
  * `resolveAuth` / `auth()` and personalizes ONLY when the caller is
- * authenticated. The policy is chosen per request from the resolved auth state:
+ * authenticated. The policy is chosen per request from BOTH the resolved auth
+ * state and whether the request carries a `Cookie`:
  *
- *  - `authed === true`  → the body is personalized (favorite markers,
- *    profile-scoped ordering), so `private, max-age` keeps it in the end-user's
- *    own cache only — it NEVER enters a shared cache.
- *  - `authed === false` → the body is the generic anonymous variant, so it is
- *    shared-cacheable: `public, s-maxage` lets Vercel's CDN absorb the Neon cost
- *    for anonymous traffic (the bulk of mobile reads). It Varies on
- *    `Authorization` + `Cookie` so a subsequent authed request — which carries a
- *    different value for one of those — misses this entry and falls through to
- *    the origin, which returns its own `private` response. This is the invariant
- *    that keeps personalized data out of the shared cache.
+ *  - `authed === true` **or the request has any `Cookie`** → the response may be
+ *    personalized (favorite markers, profile-scoped ordering) or the request is
+ *    a web request that could carry a NextAuth session, so `private, max-age`
+ *    keeps it in the end-user's own cache only — it NEVER enters a shared cache.
+ *  - anonymous **and cookieless** (the mobile Bearer path) → the body is the
+ *    generic anonymous variant, so it is shared-cacheable: `public, s-maxage`
+ *    lets Vercel's CDN absorb the Neon cost. It Varies on `Authorization` only,
+ *    so a subsequent Bearer-authed request misses this entry and falls through
+ *    to the origin, which returns its own `private` response.
  *
- * `Vary: Cookie` fragments the anonymous *web* cache by unrelated cookies
- * (analytics, etc.), so the shared-cache win concentrates on the cookieless
- * mobile Bearer path — the intended high-volume beneficiary. Pass
- * `varyOnTimezone: true` for routes whose body depends on `readTimezoneHeader`;
- * it appends `X-Timezone` to the Vary in both branches. Spread AFTER
- * `rateLimitHeaders(rl)` on the SUCCESS (2xx) response only.
+ * Why gate on cookie ABSENCE instead of Varying on `Cookie`: Vercel's Edge cache
+ * keys on the raw incoming `Vary` headers, and there is no per-cookie Vary — so
+ * `Vary: Cookie` would fragment the anonymous web cache to uselessness AND
+ * pollute the CDN with a distinct entry per analytics-cookie value. Treating any
+ * cookie-bearing request as private removes `Cookie` from the cache key entirely
+ * while preserving the invariant that no authed response is ever shared. Web
+ * requests therefore rely on their own `private` browser cache rather than the
+ * CDN; the shared-cache win concentrates on the cookieless mobile Bearer path,
+ * the intended high-volume beneficiary. Pass `varyOnTimezone: true` for routes
+ * whose body depends on `readTimezoneHeader`; it appends `X-Timezone` to the Vary
+ * in both branches. Spread AFTER `rateLimitHeaders(rl)` on the SUCCESS (2xx)
+ * response only.
  */
-export function personalizedReadCacheHeaders(opts: {
-    authed: boolean;
-    varyOnTimezone?: boolean;
-}): Record<string, string> {
+export function personalizedReadCacheHeaders(
+    req: Request,
+    opts: {
+        authed: boolean;
+        varyOnTimezone?: boolean;
+    },
+): Record<string, string> {
     const tz = opts.varyOnTimezone ? [TIMEZONE_HEADER] : [];
-    if (opts.authed) {
+    const hasCookie = Boolean(req.headers.get("cookie"));
+    if (opts.authed || hasCookie) {
         const headers: Record<string, string> = {
             "Cache-Control": PRIVATE_READ_CACHE_CONTROL,
         };
@@ -116,6 +128,6 @@ export function personalizedReadCacheHeaders(opts: {
     }
     return {
         "Cache-Control": PUBLIC_READ_CACHE_CONTROL,
-        Vary: [...PERSONALIZED_VARY_HEADERS, ...tz].join(", "),
+        Vary: [PERSONALIZED_VARY_HEADER, ...tz].join(", "),
     };
 }

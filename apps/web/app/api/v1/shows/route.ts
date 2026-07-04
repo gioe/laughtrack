@@ -95,7 +95,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                 data: result.data,
                 filters: result.filters,
             },
-            { headers: { ...rateLimitHeaders(rl), ...personalizedReadCacheHeaders({ authed: authCtx !== null, varyOnTimezone: true }) } },
+            { headers: { ...rateLimitHeaders(rl), ...personalizedReadCacheHeaders(req, { authed: authCtx !== null, varyOnTimezone: true }) } },
         );
     } catch (error) {
         console.error("GET /api/v1/shows error:", error);

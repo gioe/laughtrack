@@ -61,7 +61,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                 filters: result.filters,
                 homeCityFilters: result.homeCityFilters,
             },
-            { headers: { ...rateLimitHeaders(rl), ...personalizedReadCacheHeaders({ authed: authCtx !== null, varyOnTimezone: true }) } },
+            { headers: { ...rateLimitHeaders(rl), ...personalizedReadCacheHeaders(req, { authed: authCtx !== null, varyOnTimezone: true }) } },
         );
     } catch (error) {
         console.error("GET /api/v1/comedians/search error:", error);

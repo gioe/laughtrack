@@ -79,7 +79,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                 data: result.shows,
                 total: result.totalCount,
             },
-            { headers: { ...rateLimitHeaders(rl), ...personalizedReadCacheHeaders({ authed: authCtx !== null, varyOnTimezone: true }) } },
+            { headers: { ...rateLimitHeaders(rl), ...personalizedReadCacheHeaders(req, { authed: authCtx !== null, varyOnTimezone: true }) } },
         );
     } catch (error) {
         console.error("GET /api/v1/comedians/past-shows error:", error);
