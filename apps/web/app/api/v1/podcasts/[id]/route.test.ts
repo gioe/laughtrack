@@ -63,8 +63,9 @@ describe("GET /api/v1/podcasts/[id]", () => {
         episodes: [],
     };
 
-    it("anonymous request is shared-cacheable (public + s-maxage) and Varies on Authorization + Cookie", async () => {
-        // resolveAuth already returns null (anonymous) from the module mock.
+    it("anonymous cookieless request is shared-cacheable (public + s-maxage) and Varies on Authorization only", async () => {
+        // resolveAuth already returns null (anonymous) from the module mock; the
+        // request carries no Cookie header (the mobile Bearer path).
         mockGetPodcastDetailPageDataById.mockResolvedValue(
             podcastPayload as never,
         );
@@ -78,12 +79,32 @@ describe("GET /api/v1/podcasts/[id]", () => {
         expect(cacheControl).toContain("public");
         expect(cacheControl).toContain("s-maxage");
         expect(cacheControl).not.toContain("private");
-        // The CDN must key the anonymous entry on the auth-bearing headers so it
-        // can never be served to an authenticated request.
-        expect(res.headers.get("Vary")).toBe("Authorization, Cookie");
+        // Cookie is NOT in the Vary; Authorization separates a Bearer-authed
+        // request from the shared entry.
+        expect(res.headers.get("Vary")).toBe("Authorization");
         expect(res.headers.get(RATE_LIMIT_SENTINEL_HEADER)).toBe(
             RATE_LIMIT_SENTINEL_VALUE,
         );
+    });
+
+    it("anonymous request WITH a cookie is private (never shared) — no public/s-maxage, no Vary: Cookie", async () => {
+        // Anonymous (resolveAuth → null) but the request carries a cookie (any
+        // web request); it must fall to private so it never enters a shared cache.
+        mockGetPodcastDetailPageDataById.mockResolvedValue(
+            podcastPayload as never,
+        );
+
+        const req = new NextRequest("http://localhost/api/v1/podcasts/42", {
+            headers: { cookie: "_ga=GA1.2.3.4" },
+        });
+        const res = await GET(req, { params: Promise.resolve({ id: "42" }) });
+
+        expect(res.status).toBe(200);
+        const cacheControl = res.headers.get("Cache-Control");
+        expect(cacheControl).toContain("private");
+        expect(cacheControl).not.toContain("public");
+        expect(cacheControl).not.toContain("s-maxage");
+        expect(res.headers.get("Vary")).toBeNull();
     });
 
     it("authenticated request is private (never shared) — no public/s-maxage directive", async () => {

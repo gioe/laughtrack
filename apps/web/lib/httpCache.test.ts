@@ -52,8 +52,11 @@ describe("httpCache policies", () => {
         expect(headers["Vary"]).toBe("X-Timezone");
     });
 
+    const reqWith = (headers: Record<string, string> = {}) =>
+        new Request("http://localhost/api/v1/anything", { headers });
+
     it("personalizedReadCacheHeaders: authed request is private (never shared), no Vary by default", () => {
-        const headers = personalizedReadCacheHeaders({ authed: true });
+        const headers = personalizedReadCacheHeaders(reqWith(), { authed: true });
         expect(headers["Cache-Control"]).toBe(PRIVATE_READ_CACHE_CONTROL);
         // Personalized responses must never carry a shared-cache directive.
         expect(headers["Cache-Control"]).not.toContain("public");
@@ -61,27 +64,40 @@ describe("httpCache policies", () => {
         expect(headers["Vary"]).toBeUndefined();
     });
 
-    it("personalizedReadCacheHeaders: anonymous request is shared-cacheable, Varying on Authorization + Cookie", () => {
-        const headers = personalizedReadCacheHeaders({ authed: false });
+    it("personalizedReadCacheHeaders: anonymous cookieless request is shared-cacheable, Varying on Authorization only", () => {
+        const headers = personalizedReadCacheHeaders(reqWith(), { authed: false });
         expect(headers["Cache-Control"]).toBe(PUBLIC_READ_CACHE_CONTROL);
         expect(headers["Cache-Control"]).toContain("s-maxage");
-        // The invariant: the CDN keys the anonymous entry on the auth-bearing
-        // headers so an authed request can never be served it.
-        expect(headers["Vary"]).toBe("Authorization, Cookie");
+        // Cookie is NOT in the Vary — only cookieless requests reach this branch,
+        // and Authorization separates a Bearer-authed request from the shared entry.
+        expect(headers["Vary"]).toBe("Authorization");
     });
 
-    it("personalizedReadCacheHeaders: anonymous + timezone appends X-Timezone to the Vary", () => {
-        const headers = personalizedReadCacheHeaders({
+    it("personalizedReadCacheHeaders: anonymous request WITH a cookie is private (never shared, no Vary: Cookie)", () => {
+        const headers = personalizedReadCacheHeaders(reqWith({ cookie: "_ga=GA1.2.3" }), {
+            authed: false,
+        });
+        // A cookie-bearing (web) request can carry a NextAuth session, so it must
+        // never be shared-cached — even when this particular request is anonymous.
+        expect(headers["Cache-Control"]).toBe(PRIVATE_READ_CACHE_CONTROL);
+        expect(headers["Cache-Control"]).not.toContain("public");
+        expect(headers["Cache-Control"]).not.toContain("s-maxage");
+        // No Vary: Cookie anywhere — that is the whole point of the reframe.
+        expect(headers["Vary"]).toBeUndefined();
+    });
+
+    it("personalizedReadCacheHeaders: anonymous cookieless + timezone appends X-Timezone to the Vary", () => {
+        const headers = personalizedReadCacheHeaders(reqWith(), {
             authed: false,
             varyOnTimezone: true,
         });
         expect(headers["Cache-Control"]).toBe(PUBLIC_READ_CACHE_CONTROL);
-        expect(headers["Vary"]).toBe(`Authorization, Cookie, ${TIMEZONE_HEADER}`);
-        expect(headers["Vary"]).toBe("Authorization, Cookie, X-Timezone");
+        expect(headers["Vary"]).toBe(`Authorization, ${TIMEZONE_HEADER}`);
+        expect(headers["Vary"]).toBe("Authorization, X-Timezone");
     });
 
     it("personalizedReadCacheHeaders: authed + timezone stays private and Varies only on X-Timezone", () => {
-        const headers = personalizedReadCacheHeaders({
+        const headers = personalizedReadCacheHeaders(reqWith(), {
             authed: true,
             varyOnTimezone: true,
         });

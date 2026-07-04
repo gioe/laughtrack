@@ -98,7 +98,7 @@ describe("GET /api/v1/shows", () => {
     });
 
     describe("cache headers (auth-aware, timezone-varying route)", () => {
-        it("anonymous request is shared-cacheable and Varies on Authorization, Cookie, X-Timezone", async () => {
+        it("anonymous cookieless request is shared-cacheable and Varies on Authorization, X-Timezone", async () => {
             mockResolveAuth.mockResolvedValue(null as never);
             mockGetSearchedShows.mockResolvedValue(mockShowResult as never);
 
@@ -109,10 +109,26 @@ describe("GET /api/v1/shows", () => {
             expect(cacheControl).toContain("public");
             expect(cacheControl).toContain("s-maxage");
             expect(cacheControl).not.toContain("private");
-            // Timezone route → X-Timezone joins the auth-bearing Vary headers.
-            expect(res.headers.get("Vary")).toBe(
-                "Authorization, Cookie, X-Timezone",
-            );
+            // Timezone route → X-Timezone joins Authorization; Cookie is gone.
+            expect(res.headers.get("Vary")).toBe("Authorization, X-Timezone");
+        });
+
+        it("anonymous request WITH a cookie is private (never shared) — no Vary: Cookie", async () => {
+            mockResolveAuth.mockResolvedValue(null as never);
+            mockGetSearchedShows.mockResolvedValue(mockShowResult as never);
+
+            const req = new NextRequest("http://localhost/api/v1/shows?zip=10001", {
+                headers: { cookie: "_ga=GA1.2.3.4" },
+            });
+            const res = await GET(req);
+
+            expect(res.status).toBe(200);
+            const cacheControl = res.headers.get("Cache-Control");
+            expect(cacheControl).toContain("private");
+            expect(cacheControl).not.toContain("public");
+            expect(cacheControl).not.toContain("s-maxage");
+            // Cookie-bearing → private, and Vary carries only the timezone.
+            expect(res.headers.get("Vary")).toBe("X-Timezone");
         });
 
         it("authenticated request stays private and Varies only on X-Timezone", async () => {
