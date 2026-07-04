@@ -21,8 +21,16 @@
 # a definition change. A window change requires a NEW migration that DROPs and
 # recreates the affected view(s), not an edit here or to the existing migration.
 # Rule 5 (staleness) stays an inline live query — it measures NOW() - MAX(run) and
-# must not be frozen at run time. Migration:
-# apps/scraper/migrations/20260703_scraper_health_summary_materialized_views.sql.
+# must not be frozen at run time. Migrations:
+# apps/scraper/migrations/20260703_scraper_health_summary_materialized_views.sql
+# (original definitions) and 20260704_scraper_health_club_labels_stable_series.sql
+# (TASK-2834: recreates the two club-level views with a club_id label for the
+# Discord template's scraper-verify next step, and one-extra-run series
+# retention — a club stays in the view with a 0 flag for one run after its
+# condition clears, so recoveries resolve as Normal instead of MissingSeries,
+# killing the churn-only Resolved spam in Discord. NOT one-row-per-club:
+# Grafana's evaluator caps a query at 1000 series and the latest run spans
+# ~1,559 clubs).
 #
 # N defaults to a trailing window of 7 runs (rows rn BETWEEN 2 AND 8: the 7 runs
 # immediately preceding the latest), set in the materialized-view definitions.
@@ -54,7 +62,37 @@ contactPoints:
         settings:
           # Replace with the #laughtrack Discord channel incoming-webhook URL,
           # or provision via an env-substituted secret. Do NOT append /slack.
+          message: '{{ template "scraper_health.discord.message" . }}'
           url: REPLACE_WITH_DISCORD_WEBHOOK_URL
+
+# Custom notification template for the scraper-health-discord contact point
+# (TASK-2834): leads with the club name and the rule's summary/description and
+# renders a concrete next step (dispatch scraper-verify for club_id=NNN) instead
+# of the default Alertmanager label dump. NOTE: the grafana-provision CI
+# workflow reconciles ALERT RULES only — templates and contact points are not
+# auto-provisioned, so keep this block in sync manually with Grafana Cloud:
+# Alerting -> Contact points -> the Discord contact point -> Message
+# (template scraper-health-discord-message, created 2026-06-12).
+templates:
+  - orgId: 1
+    name: scraper-health-discord-message
+    template: |
+      {{ define "scraper_health.discord.message" -}}
+      {{ if gt (len .Alerts.Firing) 0 -}}
+      **Scraper health: {{ len .Alerts.Firing }} firing**
+      {{ else -}}
+      **Scraper health: recovered**
+      {{ end }}
+      {{ range .Alerts.Firing -}}
+      **{{ or .Labels.club .Labels.alertname }}** - {{ .Annotations.summary }}
+      {{ if .Annotations.description }}{{ .Annotations.description }}{{ end }}
+      {{ if .Labels.club_id }}Next: dispatch `scraper-verify` for club_id={{ .Labels.club_id }} and check the Scraper Health dashboard.{{ else }}Next: check the Scraper Health dashboard for the affected run and clubs.{{ end }}
+      {{ end -}}
+      {{ range .Alerts.Resolved -}}
+      **Resolved:** {{ or .Labels.club .Labels.alertname }} - {{ .Annotations.summary }}
+      {{ if .Labels.club_id }}Next: confirm shows are back for club_id={{ .Labels.club_id }}.{{ else }}Next: confirm the dashboard has returned to baseline.{{ end }}
+      {{ end -}}
+      {{- end }}
 
 # Route scraper-health alerts to Discord. Provisioned `policies` REPLACE the org
 # root policy tree, so this is commented out by default to avoid clobbering an
@@ -141,7 +179,12 @@ groups:
       #    The query detects the *transition* (prev run > 0, latest run = 0), so
       #    it fires exactly once per drop: on the next run the previous run is
       #    itself 0, the transition no longer holds, and the alert resolves.
-      #    One series per club (club_name label) → one alert instance per club.
+      #    One series per club (club + club_id labels) → one alert instance per
+      #    club. The view keeps a club's series for one extra run after the
+      #    transition clears (0/1 flag, TASK-2834), so a firing club's series
+      #    flips 1 → 0 and resolves as Normal instead of vanishing into a
+      #    MissingSeries resolution — Discord only sees meaningful state
+      #    changes, not series churn.
       - uid: scraper-club-dropped-to-zero
         title: Club dropped from above-zero to zero shows
         condition: C
@@ -168,13 +211,15 @@ groups:
                 -- Reads the precomputed mv_scraper_health_dropped_to_zero
                 -- materialized view (TASK-3573) instead of recomputing the
                 -- last-two-run per-club comparison on every evaluation. The
-                -- scraper REFRESHes it once per full 'scraper' run; the view is
-                -- the exact prev>0 -> latest=0 transition query this rule used to
-                -- inline (run_type='scraper', num_shows SUMmed per club), so it
-                -- still yields one row per dropped club and fires exactly once per
-                -- drop. See
-                -- apps/scraper/migrations/20260703_scraper_health_summary_materialized_views.sql.
-                SELECT club, dropped_to_zero FROM mv_scraper_health_dropped_to_zero;
+                -- scraper REFRESHes it once per full 'scraper' run. The firing
+                -- condition is the exact prev>0 -> latest=0 transition this rule
+                -- used to inline (run_type='scraper', num_shows SUMmed per club),
+                -- so it fires exactly once per drop; since TASK-2834 the view
+                -- retains a fired club's series (0-valued, + club_id label) for
+                -- one extra run so recoveries resolve as Normal, not
+                -- MissingSeries. See
+                -- apps/scraper/migrations/20260704_scraper_health_club_labels_stable_series.sql.
+                SELECT club, club_id, dropped_to_zero FROM mv_scraper_health_dropped_to_zero;
           - refId: B
             datasourceUid: __expr__
             model:
@@ -238,14 +283,17 @@ groups:
                 -- materialized view (TASK-3573) instead of recomputing the
                 -- full_runs / club_shows / 30-day history CTEs on every
                 -- evaluation. The scraper REFRESHes it once per full 'scraper'
-                -- run; the view is the exact self-healing query this rule used to
-                -- inline (last 2 consecutive full runs at zero, clubs_processed>1,
-                -- with a run_type IN ('scraper','verify') 30-day >0 lookback), so
-                -- it keeps firing every evaluation until the club recovers. The
-                -- 30-day NOW() anchor is baked at REFRESH time (latest-run
-                -- wall-clock), which tracks the daily cadence. See
-                -- apps/scraper/migrations/20260703_scraper_health_summary_materialized_views.sql.
-                SELECT club, consecutive_zero FROM mv_scraper_health_consecutive_zero;
+                -- run. The firing condition is the exact self-healing query this
+                -- rule used to inline (last 2 consecutive full runs at zero,
+                -- clubs_processed>1, with a run_type IN ('scraper','verify')
+                -- 30-day >0 lookback), so it keeps firing every evaluation until
+                -- the club recovers; since TASK-2834 the view retains a fired
+                -- club's series (0-valued, + club_id label) for one extra run so
+                -- recoveries resolve as Normal, not MissingSeries. The 30-day NOW() anchor is
+                -- baked at REFRESH time (latest-run wall-clock), which tracks the
+                -- daily cadence. See
+                -- apps/scraper/migrations/20260704_scraper_health_club_labels_stable_series.sql.
+                SELECT club, club_id, consecutive_zero FROM mv_scraper_health_consecutive_zero;
           - refId: B
             datasourceUid: __expr__
             model:
