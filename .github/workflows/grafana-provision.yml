@@ -1,0 +1,47 @@
+name: Provision Grafana Alert Rules
+
+# Grafana Cloud has no file-based alert provisioning, so this workflow
+# reconciles apps/web/monitoring/grafana/scraper-health-alerts.yaml into the
+# aiqobservability stack via the Alerting provisioning HTTP API whenever the
+# YAML (or the reconcile script) changes on main. Idempotent: a run with no
+# drift writes nothing. See provision_alert_rules.py for what the YAML owns
+# vs what is preserved from the live rules (uid, folder, contact-point
+# binding). TASK-3580.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - apps/web/monitoring/grafana/scraper-health-alerts.yaml
+      - apps/web/monitoring/grafana/provision_alert_rules.py
+      - .github/workflows/grafana-provision.yml
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Report drift without writing to Grafana
+        type: boolean
+        default: false
+
+jobs:
+  provision:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install pyyaml
+
+      - name: Reconcile alert rules into Grafana Cloud
+        env:
+          GRAFANA_ACCOUNT_TOKEN: ${{ secrets.GRAFANA_ACCOUNT_TOKEN }}
+        run: |
+          python apps/web/monitoring/grafana/provision_alert_rules.py \
+            ${{ inputs.dry_run && '--dry-run' || '' }}
