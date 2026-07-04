@@ -65,6 +65,28 @@ describe("POST /api/v1/favorites", () => {
         );
     });
 
+    it("marks the user-scoped GET 200 response no-store so private favorites never enter a shared cache", async () => {
+        mockResolveAuth.mockResolvedValue({
+            profileId: "profile-1",
+            userId: "user-1",
+        });
+        mockFindMany.mockResolvedValue([]);
+
+        const res = await GET(
+            new NextRequest("http://localhost/api/v1/favorites"),
+        );
+
+        expect(res.status).toBe(200);
+        const cacheControl = res.headers.get("Cache-Control");
+        expect(cacheControl).toContain("no-store");
+        expect(cacheControl).toContain("private");
+        // Must never be shared-cacheable — no public directive, no shared TTL.
+        expect(cacheControl).not.toContain("public");
+        expect(cacheControl).not.toContain("s-maxage");
+        // Rate-limit headers still survive the merge.
+        expect(res.headers.get("X-RateLimit-Remaining")).toBe("42");
+    });
+
     it("returns the helper's NextResponse from GET when the rate limit is exceeded", async () => {
         const fakeResponse = NextResponse.json(
             { error: "Too Many Requests" },

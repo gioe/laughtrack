@@ -142,6 +142,48 @@ describe("GET /api/v1/clubs/[id]", () => {
         expectOpenApiResponse("/clubs/{id}", 200, body);
     });
 
+    it("marks the public 200 response shared-cacheable (public + s-maxage) alongside rate-limit headers", async () => {
+        mockFindUnique.mockResolvedValue({
+            id: 7,
+            name: "Comedy Cellar",
+            website: "https://www.comedycellar.com/",
+            address: "117 Macdougal St",
+            zipCode: "10012",
+            phoneNumber: "212-254-3480",
+            chainId: null,
+            hasImage: true,
+            imageAssets: [],
+        } as never);
+
+        const res = await GET(makeRequest(), {
+            params: Promise.resolve({ id: "7" }),
+        });
+
+        expect(res.status).toBe(200);
+        const cacheControl = res.headers.get("Cache-Control");
+        expect(cacheControl).toContain("public");
+        expect(cacheControl).toContain("s-maxage=3600");
+        expect(cacheControl).toContain("stale-while-revalidate");
+        // Public reads must not be marked private, and rate-limit headers survive the merge.
+        expect(cacheControl).not.toContain("private");
+        expect(res.headers.get(RATE_LIMIT_SENTINEL_HEADER)).toBe(
+            RATE_LIMIT_SENTINEL_VALUE,
+        );
+    });
+
+    it("does NOT cache the 500 error response", async () => {
+        mockFindUnique.mockRejectedValue(new Error("DB unavailable"));
+
+        const res = await GET(makeRequest(), {
+            params: Promise.resolve({ id: "7" }),
+        });
+
+        expect(res.status).toBe(500);
+        // Error responses carry rate-limit headers but no cache directive at all,
+        // so a transient failure is never stored and re-served by the CDN.
+        expect(res.headers.get("Cache-Control")).toBeNull();
+    });
+
     it("returns 500 with rate-limit headers when the detail lookup fails unexpectedly", async () => {
         mockFindUnique.mockRejectedValue(new Error("DB unavailable"));
 

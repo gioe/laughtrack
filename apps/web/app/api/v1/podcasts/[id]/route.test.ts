@@ -47,6 +47,38 @@ beforeEach(() => {
 });
 
 describe("GET /api/v1/podcasts/[id]", () => {
+    it("marks the optionally-personalized 200 response private (client-only, never shared)", async () => {
+        mockGetPodcastDetailPageDataById.mockResolvedValue({
+            podcast: {
+                id: 42,
+                slug: "the-laugh-track-pod",
+                title: "The Laugh Track Pod",
+                authorName: "Laugh Track Network",
+                websiteUrl: "https://podcasts.example.com",
+                feedUrl: "https://podcasts.example.com/feed.xml",
+                imageUrl: "https://cdn.example.com/podcast.jpg",
+                description: "Comedy conversations.",
+                episodeCount: 0,
+                hosts: [],
+            },
+            episodes: [],
+        } as never);
+
+        const res = await GET(makeRequest(), {
+            params: Promise.resolve({ id: "42" }),
+        });
+
+        expect(res.status).toBe(200);
+        const cacheControl = res.headers.get("Cache-Control");
+        // resolveAuth-personalized → private only; must never enter a shared CDN cache.
+        expect(cacheControl).toContain("private");
+        expect(cacheControl).not.toContain("public");
+        expect(cacheControl).not.toContain("s-maxage");
+        expect(res.headers.get(RATE_LIMIT_SENTINEL_HEADER)).toBe(
+            RATE_LIMIT_SENTINEL_VALUE,
+        );
+    });
+
     it("returns podcast detail data by numeric id", async () => {
         mockGetPodcastDetailPageDataById.mockResolvedValue({
             podcast: {
