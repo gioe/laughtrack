@@ -181,41 +181,34 @@ by name — the same list is mirrored in `create_grafana_readonly_role.sql`).
 
    - _Self-hosted Grafana:_ drop `scraper-health-alerts.yaml` in
      `/etc/grafana/provisioning/alerting/` and restart.
-   - _Grafana Cloud_ (no **file** provisioning): rules added to the YAML do
-     **not** reach Grafana Cloud on merge. The preferred path is the
-     **Alerting provisioning HTTP API** — the `GRAFANA_ACCOUNT_TOKEN` in
-     `apps/scraper/.env` has provisioning rights (verified TASK-2843, which
-     created rule 4 this way):
+   - _Grafana Cloud_ (no **file** provisioning): **automated on merge**
+     (TASK-3580). The `Provision Grafana Alert Rules` GitHub Actions workflow
+     (`.github/workflows/grafana-provision.yml`) runs
+     `provision_alert_rules.py` on every merge to `main` that touches the
+     YAML (or the script), reconciling the rules into the aiqobservability
+     stack via the Alerting provisioning HTTP API using the
+     `GRAFANA_ACCOUNT_TOKEN` repo secret. The reconcile is idempotent (no-op
+     when already in sync), matches live rules by uid then by exact title
+     (the pre-automation rules were created in the UI with random uids), and
+     manages the rule fields the YAML owns (title, condition, query chain,
+     states, `for`, labels, annotations) plus the group evaluation interval —
+     while preserving Grafana-side state (live uid, folder, contact-point
+     binding, server-added query-model defaults). Rules present in the YAML
+     but missing in Grafana Cloud are created (contact-point binding copied
+     from a sibling rule in the group). `contactPoints`/`policies` blocks are
+     **not** reconciled — see the YAML comments.
+
+     To run it by hand (drift check or ad-hoc sync — the token lives in
+     `apps/scraper/.env`):
 
      ```bash
-     # GET an existing rule as a structural template, then POST the new one.
-     # X-Disable-Provenance keeps the rule editable in the UI afterward.
-     curl -H "Authorization: Bearer $GRAFANA_ACCOUNT_TOKEN" \
-       https://aiqobservability.grafana.net/api/v1/provisioning/alert-rules
-     curl -X POST -H "Authorization: Bearer $GRAFANA_ACCOUNT_TOKEN" \
-       -H "Content-Type: application/json" -H "X-Disable-Provenance: true" \
-       -d @new-rule.json \
-       https://aiqobservability.grafana.net/api/v1/provisioning/alert-rules
+     # From the repo root; --dry-run reports drift without writing.
+     GRAFANA_ACCOUNT_TOKEN=... \
+       python3 apps/web/monitoring/grafana/provision_alert_rules.py --dry-run
      ```
 
-     Build `new-rule.json` by cloning an existing rule's `data` pipeline
-     (query A = the YAML rule's `rawSql` against the Neon datasource,
-     reduce(last) expression, threshold(>0) expression), set `folderUID` /
-     `ruleGroup` from the template, labels `service=scraper-health` and
-     `severity=warning`, `noDataState: OK`, and
-     `notification_settings.receiver: "Discord Hook"`. Manual UI creation
-     (**Alerting → Alert rules → New** with the same pieces) remains the
-     fallback when no token is at hand.
-
-   - **TASK-2831 re-provisioning (after this merge).** Tagging single-club runs
-     `run_type='verify'` needs no rule edits for rules 1–3: they already whitelist
-     `run_type='scraper'`, so verify rows drop out automatically the moment the
-     writer change deploys. Two pieces of SQL _did_ change and must be re-applied
-     in Grafana Cloud (they are not auto-provisioned): **rule 4**'s `history`
-     subquery now reads `run_type IN ('scraper','verify')` so a recent verify run
-     still proves a club is not dark (re-POST it via the provisioning API above),
-     and the **bot-block-by-provider** panel in `scraper-health.json` now joins
-     `scraper_runs` to exclude verify-run blocks (re-import the dashboard).
+     The workflow also supports manual `workflow_dispatch` (with a dry-run
+     input) from the Actions tab.
 
 4. **Route to Discord.** Provisioned notification `policies` replace the org root
    policy, so the YAML leaves that block commented out. Add a notification-policy
