@@ -2159,9 +2159,11 @@ class TestPerClubTimeoutResolution:
         # comedy_store=600 covers its ~275s ShowClix price-enrichment fan-out
         # over a 60-day window; ticketmaster_national=3600 covers the single
         # national-discovery "club" that upserts ~1k venues + ~10k shows in one
-        # pass.
+        # pass; next_stop_comedy=3600 covers its roving-promoter fan-out across
+        # listing pagination plus detail-page JSON-LD fetches.
         assert _PER_SCRAPER_TIMEOUT_OVERRIDES == {
             "seatengine_classic": 240,
             "comedy_store": 600,
             "ticketmaster_national": 3600,
+            "next_stop_comedy": 3600,
         }
