@@ -97,6 +97,42 @@ describe("GET /api/v1/shows", () => {
         });
     });
 
+    describe("cache headers (auth-aware, timezone-varying route)", () => {
+        it("anonymous request is shared-cacheable and Varies on Authorization, Cookie, X-Timezone", async () => {
+            mockResolveAuth.mockResolvedValue(null as never);
+            mockGetSearchedShows.mockResolvedValue(mockShowResult as never);
+
+            const res = await GET(makeRequest());
+
+            expect(res.status).toBe(200);
+            const cacheControl = res.headers.get("Cache-Control");
+            expect(cacheControl).toContain("public");
+            expect(cacheControl).toContain("s-maxage");
+            expect(cacheControl).not.toContain("private");
+            // Timezone route → X-Timezone joins the auth-bearing Vary headers.
+            expect(res.headers.get("Vary")).toBe(
+                "Authorization, Cookie, X-Timezone",
+            );
+        });
+
+        it("authenticated request stays private and Varies only on X-Timezone", async () => {
+            mockResolveAuth.mockResolvedValue({
+                profileId: "profile-abc",
+                userId: "user-abc",
+            });
+            mockGetSearchedShows.mockResolvedValue(mockShowResult as never);
+
+            const res = await GET(makeRequest());
+
+            expect(res.status).toBe(200);
+            const cacheControl = res.headers.get("Cache-Control");
+            expect(cacheControl).toContain("private");
+            expect(cacheControl).not.toContain("public");
+            expect(cacheControl).not.toContain("s-maxage");
+            expect(res.headers.get("Vary")).toBe("X-Timezone");
+        });
+    });
+
     describe("resolveAuth throws", () => {
         it("returns 500 JSON with error key", async () => {
             mockResolveAuth.mockRejectedValue(

@@ -6,7 +6,7 @@ import {
     PUBLIC_READ_SHARED_MAX_AGE,
     TIMEZONE_HEADER,
     publicReadCacheHeaders,
-    privateReadCacheHeaders,
+    personalizedReadCacheHeaders,
 } from "./httpCache";
 import { CACHE } from "@/util/constants/cacheConstants";
 
@@ -52,9 +52,43 @@ describe("httpCache policies", () => {
         expect(headers["Vary"]).toBe("X-Timezone");
     });
 
-    it("privateReadCacheHeaders carries only the private Cache-Control", () => {
-        const headers = privateReadCacheHeaders();
+    it("personalizedReadCacheHeaders: authed request is private (never shared), no Vary by default", () => {
+        const headers = personalizedReadCacheHeaders({ authed: true });
         expect(headers["Cache-Control"]).toBe(PRIVATE_READ_CACHE_CONTROL);
+        // Personalized responses must never carry a shared-cache directive.
+        expect(headers["Cache-Control"]).not.toContain("public");
+        expect(headers["Cache-Control"]).not.toContain("s-maxage");
         expect(headers["Vary"]).toBeUndefined();
+    });
+
+    it("personalizedReadCacheHeaders: anonymous request is shared-cacheable, Varying on Authorization + Cookie", () => {
+        const headers = personalizedReadCacheHeaders({ authed: false });
+        expect(headers["Cache-Control"]).toBe(PUBLIC_READ_CACHE_CONTROL);
+        expect(headers["Cache-Control"]).toContain("s-maxage");
+        // The invariant: the CDN keys the anonymous entry on the auth-bearing
+        // headers so an authed request can never be served it.
+        expect(headers["Vary"]).toBe("Authorization, Cookie");
+    });
+
+    it("personalizedReadCacheHeaders: anonymous + timezone appends X-Timezone to the Vary", () => {
+        const headers = personalizedReadCacheHeaders({
+            authed: false,
+            varyOnTimezone: true,
+        });
+        expect(headers["Cache-Control"]).toBe(PUBLIC_READ_CACHE_CONTROL);
+        expect(headers["Vary"]).toBe(`Authorization, Cookie, ${TIMEZONE_HEADER}`);
+        expect(headers["Vary"]).toBe("Authorization, Cookie, X-Timezone");
+    });
+
+    it("personalizedReadCacheHeaders: authed + timezone stays private and Varies only on X-Timezone", () => {
+        const headers = personalizedReadCacheHeaders({
+            authed: true,
+            varyOnTimezone: true,
+        });
+        expect(headers["Cache-Control"]).toBe(PRIVATE_READ_CACHE_CONTROL);
+        expect(headers["Cache-Control"]).not.toContain("s-maxage");
+        // A private response is not shared, so it does not Vary on auth headers —
+        // only on the timezone that changes the client-cached body.
+        expect(headers["Vary"]).toBe(TIMEZONE_HEADER);
     });
 });
