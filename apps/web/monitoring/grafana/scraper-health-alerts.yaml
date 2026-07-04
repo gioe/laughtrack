@@ -37,8 +37,11 @@
 #
 # Provisioning (self-hosted Grafana): drop this file in
 # /etc/grafana/provisioning/alerting/ and restart. On Grafana Cloud (no file
-# provisioning) recreate these rules via the UI or Terraform using the SQL and
-# thresholds below verbatim — see apps/web/monitoring/grafana/README.md.
+# provisioning) the alert rules are reconciled AUTOMATICALLY on every merge to
+# main touching this file: the grafana-provision GitHub Actions workflow runs
+# provision_alert_rules.py against the Alerting provisioning HTTP API
+# (TASK-3580). Only the contactPoints/templates/policies blocks stay manual —
+# see apps/web/monitoring/grafana/README.md.
 #
 # datasourceUid below is the UID of the Neon (grafana_ro) Postgres datasource in
 # the aiqobservability Grafana Cloud stack (`dfnjxqagicw74a`). Grafana treats a
@@ -125,7 +128,10 @@ groups:
     rules:
       # 1) Overall success-rate regression: latest run's success_rate is more
       #    than 10 percentage points below the trailing-7-run rolling average.
-      - uid: scraper-success-rate-regression
+      # uid matches the LIVE Grafana Cloud rule (created via the UI with a
+      # random uid before provisioning was automated) so provision_alert_rules.py
+      # matches by uid instead of falling back to exact-title matching.
+      - uid: dfnkhyi767z7kc
         title: Scraper success-rate regression (vs trailing-7-run average)
         condition: C
         for: 0m
@@ -185,7 +191,8 @@ groups:
       #    flips 1 → 0 and resolves as Normal instead of vanishing into a
       #    MissingSeries resolution — Discord only sees meaningful state
       #    changes, not series churn.
-      - uid: scraper-club-dropped-to-zero
+      # uid matches the LIVE Grafana Cloud rule (see note on rule 1).
+      - uid: afnki3kbq794wa
         title: Club dropped from above-zero to zero shows
         condition: C
         for: 0m
@@ -254,7 +261,8 @@ groups:
       #    run_type='verify' (so the run_type='scraper' filter alone excludes
       #    them), and clubs_processed > 1 remains as defense-in-depth for any
       #    legacy rows written before that change.
-      - uid: scraper-club-consecutive-zero-shows
+      # uid matches the LIVE Grafana Cloud rule (see note on rule 1).
+      - uid: scraper-club-consec-zero-shows
         title: Club at zero shows for 2+ consecutive full runs (had shows in last 30 days)
         condition: C
         for: 0m
@@ -314,7 +322,8 @@ groups:
 
       # 3) Error-count spike: the latest run logged more than 5 errors above the
       #    trailing-7-run rolling average error count.
-      - uid: scraper-error-count-spike
+      # uid matches the LIVE Grafana Cloud rule (see note on rule 1).
+      - uid: efnkhoz6eowe8e
         title: Scraper error-count spike (vs trailing-7-run average)
         condition: C
         for: 0m
