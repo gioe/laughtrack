@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -11,12 +12,21 @@ from laughtrack.scrapers.implementations.api.pabst_axs.group_scraper import (
 )
 
 
-_EVENTS_HTML = """
+# The scraper derives each event's date from its thumbnail filename
+# (assets/img/YYYY.MM.DD-<venue>-<slug>.png) and PabstAXSEvent.to_show() drops
+# past-dated shows. Compute the fixture dates relative to "now" so the tests
+# never rot: hardcoded dates broke all three scrape tests the day after the
+# first fixture date passed (TASK-3583).
+_DATE_1 = (datetime.now() + timedelta(days=30)).strftime("%Y.%m.%d")
+_DATE_2 = (datetime.now() + timedelta(days=36)).strftime("%Y.%m.%d")
+_DATE_3 = (datetime.now() + timedelta(days=160)).strftime("%Y.%m.%d")
+
+_EVENTS_HTML = f"""
 <html><body>
 <div class="eventItem">
     <a href="https://www.pabsttheatergroup.com/events/detail/steve-hofstetter-2026"
        title="More Info for Steve Hofstetter">
-        <img src="https://www.pabsttheatergroup.com/assets/img/2026.07.03-V-Steve-Hofstetter.png" />
+        <img src="https://www.pabsttheatergroup.com/assets/img/{_DATE_1}-V-Steve-Hofstetter.png" />
     </a>
     <a href="https://www.axs.com/events/1049284/steve-hofstetter-tickets?skin=pabst"
        title="Buy Tickets for Steve Hofstetter">Buy</a>
@@ -26,7 +36,7 @@ _EVENTS_HTML = """
 <div class="eventItem">
     <a href="https://www.pabsttheatergroup.com/events/detail/elmiene-2026"
        title="More Info for Elmiene">
-        <img src="https://www.pabsttheatergroup.com/assets/img/2026.07.09-T-Elmiene.png" />
+        <img src="https://www.pabsttheatergroup.com/assets/img/{_DATE_2}-T-Elmiene.png" />
     </a>
     <a href="https://www.axs.com/events/1395560/elmiene-tickets?skin=pabst"
        title="Buy Tickets for Elmiene">Buy</a>
@@ -36,12 +46,12 @@ _EVENTS_HTML = """
 </body></html>
 """
 
-_NEXT_PAGE_HTML = """
+_NEXT_PAGE_HTML = f"""
 <html><body>
 <div class="eventItem">
     <a href="https://www.pabsttheatergroup.com/events/detail/anthony-jeselnik-2026"
        title="More Info for Anthony Jeselnik">
-        <img src="https://www.pabsttheatergroup.com/assets/img/2026.11.13-R-Anthony-Jeselnik.png" />
+        <img src="https://www.pabsttheatergroup.com/assets/img/{_DATE_3}-R-Anthony-Jeselnik.png" />
     </a>
     <a href="https://www.axs.com/events/1395577/anthony-jeselnik-tickets?skin=pabst"
        title="Buy Tickets for Anthony Jeselnik">Buy</a>
