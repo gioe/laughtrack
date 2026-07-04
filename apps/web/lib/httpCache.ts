@@ -72,8 +72,20 @@ export function publicReadCacheHeaders(opts?: {
 
 /**
  * Header object for an optionally-personalized read: client-only cache, never
- * shared. Spread after `rateLimitHeaders(rl)` on the SUCCESS response.
+ * shared. Spread after `rateLimitHeaders(rl)` on the SUCCESS response. Pass
+ * `varyOnTimezone: true` for routes that compute their body from the
+ * `X-Timezone` request header so a client that changes timezone re-fetches
+ * rather than reading a stale entry from its own cache (parity with the public
+ * timezone-varying routes; harmless even though a client's zone rarely changes).
  */
-export function privateReadCacheHeaders(): Record<string, string> {
-    return { "Cache-Control": PRIVATE_READ_CACHE_CONTROL };
+export function privateReadCacheHeaders(opts?: {
+    varyOnTimezone?: boolean;
+}): Record<string, string> {
+    const headers: Record<string, string> = {
+        "Cache-Control": PRIVATE_READ_CACHE_CONTROL,
+    };
+    if (opts?.varyOnTimezone) {
+        headers["Vary"] = TIMEZONE_HEADER;
+    }
+    return headers;
 }

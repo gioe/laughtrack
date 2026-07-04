@@ -57,7 +57,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                 total: result.total,
                 filters: result.filters,
             },
-            { headers: { ...rateLimitHeaders(rl), ...privateReadCacheHeaders() } },
+            { headers: { ...rateLimitHeaders(rl), ...privateReadCacheHeaders({ varyOnTimezone: true }) } },
         );
     } catch (error) {
         console.error("GET /api/v1/clubs/search error:", error);

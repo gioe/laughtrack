@@ -91,7 +91,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                 filters: result.filters,
                 zipCapTriggered: result.zipCapTriggered,
             },
-            { headers: { ...rateLimitHeaders(rl), ...privateReadCacheHeaders() } },
+            { headers: { ...rateLimitHeaders(rl), ...privateReadCacheHeaders({ varyOnTimezone: true }) } },
         );
     } catch (error) {
         console.error("GET /api/v1/shows/search error:", error);
