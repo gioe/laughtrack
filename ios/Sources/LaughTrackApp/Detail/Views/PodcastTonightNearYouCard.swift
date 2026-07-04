@@ -21,6 +21,11 @@ struct PodcastTonightNearYouCard: View {
     @State private var match: TonightNearYouMatch?
     @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
     @Environment(\.appTheme) private var theme
+    @Environment(\.serviceContainer) private var serviceContainer
+
+    private var pageCache: DataCache<LaughTrackCacheKey> {
+        serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self)
+    }
 
     var body: some View {
         Group {
@@ -32,7 +37,8 @@ struct PodcastTonightNearYouCard: View {
             match = await TonightNearYouLoader.load(
                 podcastID: podcastID,
                 apiClient: apiClient,
-                zipCode: zipCode
+                zipCode: zipCode,
+                cache: pageCache
             )
         }
     }
@@ -89,10 +95,12 @@ enum TonightNearYouLoader {
         podcastID: Int,
         apiClient: Client,
         zipCode: String?,
-        urlSession: URLSession = .shared
+        urlSession: URLSession = .shared,
+        cache: DataCache<LaughTrackCacheKey>? = nil,
+        cacheTTL: TimeInterval = MainPageCache.defaultTTL
     ) async -> TonightNearYouMatch? {
-        async let detailTask = fetchPodcastDetail(podcastID: podcastID, urlSession: urlSession)
-        async let feedTask = fetchHomeFeed(apiClient: apiClient, zipCode: zipCode)
+        async let detailTask = fetchPodcastDetail(podcastID: podcastID, urlSession: urlSession, cache: cache, cacheTTL: cacheTTL)
+        async let feedTask = fetchHomeFeed(apiClient: apiClient, zipCode: zipCode, cache: cache, cacheTTL: cacheTTL)
 
         guard
             let detail = await detailTask,
@@ -109,8 +117,19 @@ enum TonightNearYouLoader {
 
     private static func fetchPodcastDetail(
         podcastID: Int,
-        urlSession: URLSession
+        urlSession: URLSession,
+        cache: DataCache<LaughTrackCacheKey>?,
+        cacheTTL: TimeInterval
     ) async -> PodcastDetailResponse? {
+        let cacheKey = LaughTrackCacheKey.podcast(id: String(podcastID))
+        if let cached: PodcastDetailResponse = await MainPageCache.get(
+            cacheKey,
+            from: cache,
+            persistentCache: nil
+        ) {
+            return cached
+        }
+
         let url = AppConfiguration.apiBaseURL
             .appendingPathComponent("api")
             .appendingPathComponent("v1")
@@ -121,23 +140,40 @@ enum TonightNearYouLoader {
             let (data, _) = try? await urlSession.data(from: url),
             let decoded = try? JSONDecoder().decode(PodcastDetailResponse.self, from: data)
         else { return nil }
+        await MainPageCache.set(decoded, forKey: cacheKey, in: cache, ttl: cacheTTL, persistentCache: nil)
         return decoded
     }
 
     private static func fetchHomeFeed(
         apiClient: Client,
-        zipCode: String?
+        zipCode: String?,
+        cache: DataCache<LaughTrackCacheKey>?,
+        cacheTTL: TimeInterval
     ) async -> Components.Schemas.HomeFeed? {
-        let input = Operations.GetHomeFeed.Input(
-            query: .init(zip: zipCode),
-            headers: .init(xTimezone: TimeZone.autoupdatingCurrent.identifier)
-        )
-        guard let output = try? await apiClient.getHomeFeed(input) else { return nil }
-        switch output {
-        case .ok(let ok):
-            return (try? ok.body.json)?.data
-        default:
-            return nil
+        if let cached: Components.Schemas.HomeFeed = await MainPageCache.get(
+            .homeFeed(zipCode: zipCode, distanceMiles: nil),
+            from: cache,
+            persistentCache: nil
+        ) {
+            return cached
         }
+
+        let result = await HomeFeedRequest.load(
+            apiClient: apiClient,
+            zipCode: zipCode,
+            distanceMiles: nil,
+            cache: cache,
+            cacheTTL: cacheTTL,
+            badParamsMessage: "LaughTrack could not load nearby shows.",
+            rateLimitMessage: "LaughTrack is rate-limiting nearby shows right now.",
+            undocumentedContext: "nearby shows",
+            networkContext: "the home feed",
+            networkMessage: "LaughTrack couldn't reach nearby shows. Check your connection and try again.",
+            persistentCache: nil,
+            coalescer: .shared
+        )
+
+        guard case .success(let feed) = result else { return nil }
+        return feed
     }
 }

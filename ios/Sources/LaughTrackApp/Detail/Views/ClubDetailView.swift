@@ -32,7 +32,7 @@ struct ClubDetailView: View {
             case .failure(let failure):
                 FailureCard(
                     failure: failure,
-                    retry: { await model.reload(apiClient: apiClient) },
+                    retry: { await model.reload(apiClient: apiClient, cache: detailCache) },
                     signIn: { coordinator.push(.profile) }
                 )
                 .padding()
@@ -82,7 +82,7 @@ struct ClubDetailView: View {
             favoriteState: clubFavoriteState
         ))
         .task {
-            await model.loadIfNeeded(apiClient: apiClient)
+            await model.loadIfNeeded(apiClient: apiClient, cache: detailCache)
         }
         .alert("LaughTrack", isPresented: .constant(feedbackMessage != nil), actions: {
             Button("OK") {
@@ -95,6 +95,10 @@ struct ClubDetailView: View {
 
     private func clubHeroActions(club: Components.Schemas.ClubDetail) -> [DetailHeroAction] {
         ClubDetailHeroPresentation.actions(for: club)
+    }
+
+    private var detailCache: DataCache<LaughTrackCacheKey> {
+        serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self)
     }
 
     private func toggleFavorite(clubId: Int, name: String, currentValue: Bool) async {

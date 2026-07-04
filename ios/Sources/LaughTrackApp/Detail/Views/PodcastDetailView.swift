@@ -3,13 +3,13 @@ import LaughTrackAPIClient
 import LaughTrackBridge
 import LaughTrackCore
 
-struct PodcastDetailResponse: Decodable, Equatable {
+struct PodcastDetailResponse: Decodable, Equatable, Sendable {
     let podcast: PodcastDetail
     let episodes: [PodcastDetailEpisode]
     let relatedComedians: [PodcastRelatedComedian]
 }
 
-struct PodcastDetail: Decodable, Equatable {
+struct PodcastDetail: Decodable, Equatable, Sendable {
     let id: Int
     let title: String
     let authorName: String?
@@ -21,14 +21,14 @@ struct PodcastDetail: Decodable, Equatable {
     let hosts: [PodcastDetailHost]
 }
 
-struct PodcastDetailHost: Decodable, Identifiable, Equatable {
+struct PodcastDetailHost: Decodable, Identifiable, Equatable, Sendable {
     let id: Int
     let uuid: String
     let name: String
     let imageUrl: String
 }
 
-struct PodcastDetailEpisode: Decodable, Identifiable, Equatable {
+struct PodcastDetailEpisode: Decodable, Identifiable, Equatable, Sendable {
     let id: Int
     let title: String
     let description: String?
@@ -39,7 +39,7 @@ struct PodcastDetailEpisode: Decodable, Identifiable, Equatable {
     let appearances: [PodcastDetailEpisodeAppearance]
 }
 
-struct PodcastDetailEpisodeAppearance: Decodable, Identifiable, Equatable {
+struct PodcastDetailEpisodeAppearance: Decodable, Identifiable, Equatable, Sendable {
     let id: Int
     let uuid: String
     let name: String
@@ -56,7 +56,7 @@ extension LineupAvatarItem {
     }
 }
 
-struct PodcastRelatedComedian: Decodable, Identifiable, Equatable {
+struct PodcastRelatedComedian: Decodable, Identifiable, Equatable, Sendable {
     let id: Int
     let uuid: String
     let name: String
@@ -80,15 +80,43 @@ final class PodcastDetailModel: EntityDetailModel<PodcastDetailResponse> {
         self.fetcher = fetcher
     }
 
-    func loadIfNeeded() async {
+    func loadIfNeeded(cache: DataCache<LaughTrackCacheKey>? = nil) async {
+        if case .idle = phase,
+           let cached: PodcastDetailResponse = await MainPageCache.get(
+            .podcast(id: String(podcastID)),
+            from: cache,
+            persistentCache: nil
+           ) {
+            phase = .success(cached)
+            return
+        }
+
         await super.loadIfNeeded {
-            await self.fetcher.podcastDetail(id: self.podcastID)
+            let result = await self.fetcher.podcastDetail(id: self.podcastID)
+            if case .success(let response) = result {
+                await MainPageCache.set(
+                    response,
+                    forKey: .podcast(id: String(self.podcastID)),
+                    in: cache,
+                    persistentCache: nil
+                )
+            }
+            return result
         }
     }
 
-    func reload() async {
+    func reload(cache: DataCache<LaughTrackCacheKey>? = nil) async {
         await super.reload {
-            await self.fetcher.podcastDetail(id: self.podcastID)
+            let result = await self.fetcher.podcastDetail(id: self.podcastID)
+            if case .success(let response) = result {
+                await MainPageCache.set(
+                    response,
+                    forKey: .podcast(id: String(self.podcastID)),
+                    in: cache,
+                    persistentCache: nil
+                )
+            }
+            return result
         }
     }
 }
@@ -104,6 +132,7 @@ struct PodcastDetailView: View {
     @EnvironmentObject private var loginModalPresenter: LoginModalPresenter
     @Environment(\.appTheme) private var theme
     @Environment(\.openURL) private var openURL
+    @Environment(\.serviceContainer) private var serviceContainer
     @StateObject private var model: PodcastDetailModel
     @State private var feedbackMessage: String?
 
@@ -144,6 +173,10 @@ struct PodcastDetailView: View {
         )
     }
 
+    private var detailCache: DataCache<LaughTrackCacheKey> {
+        serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self)
+    }
+
     var body: some View {
         Group {
             switch model.phase {
@@ -152,7 +185,7 @@ struct PodcastDetailView: View {
             case .failure(let failure):
                 FailureCard(
                     failure: failure,
-                    retry: { await model.reload() },
+                    retry: { await model.reload(cache: detailCache) },
                     signIn: { coordinator.push(.profile) }
                 )
                 .padding()
@@ -207,7 +240,7 @@ struct PodcastDetailView: View {
             favoriteState: podcastFavoriteState
         ))
         .task {
-            await model.loadIfNeeded()
+            await model.loadIfNeeded(cache: detailCache)
         }
         .alert("LaughTrack", isPresented: .constant(feedbackMessage != nil), actions: {
             Button("OK") {

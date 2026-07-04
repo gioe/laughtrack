@@ -3,6 +3,8 @@ import Testing
 import HTTPTypes
 import OpenAPIRuntime
 import LaughTrackAPIClient
+import LaughTrackBridge
+import LaughTrackCore
 @testable import LaughTrackApp
 
 @Suite("Tonight near you loader", .serialized)
@@ -180,6 +182,76 @@ struct TonightNearYouLoaderTests {
         #expect(match?.show.id == 701)
         #expect(match?.show.clubName == "First Show")
     }
+
+    @Test("reuses cached podcast detail and home feed on repeated loads")
+    func reusesCachedPodcastDetailAndHomeFeed() async {
+        let cache = DataCache<LaughTrackCacheKey>()
+        let counter = RequestCounter()
+        let session = StubURLProtocol.makeSession(
+            handler: { request in
+                counter.incrementURLSession()
+                let url = request.url ?? URL(string: "https://stub.invalid")!
+                let response = HTTPURLResponse(
+                    url: url,
+                    statusCode: 200,
+                    httpVersion: nil,
+                    headerFields: ["Content-Type": "application/json"]
+                )!
+                return (response, Data(makeDetailJSON(relatedComedians: [(id: 101, name: "Mark Normand")]).utf8))
+            },
+            capturesLastRequest: true
+        )
+        let client = makeClient(
+            homeFeedJSON: makeHomeFeedJSON(showsTonight: [
+                .init(id: 701, clubName: "Comedy Cellar", lineupIDs: [101]),
+            ]),
+            onRequest: {
+                counter.incrementAPIClient()
+            }
+        )
+
+        let first = await TonightNearYouLoader.load(
+            podcastID: 42,
+            apiClient: client,
+            zipCode: "10012",
+            urlSession: session,
+            cache: cache
+        )
+        let second = await TonightNearYouLoader.load(
+            podcastID: 42,
+            apiClient: client,
+            zipCode: "10012",
+            urlSession: session,
+            cache: cache
+        )
+
+        #expect(first?.show.id == 701)
+        #expect(second?.show.id == 701)
+        #expect(counter.urlSessionRequests == 1)
+        #expect(counter.apiClientRequests == 1)
+    }
+}
+
+private final class RequestCounter: @unchecked Sendable {
+    private let lock = NSLock()
+    private var urlSessionCount = 0
+    private var apiClientCount = 0
+
+    var urlSessionRequests: Int {
+        lock.withLock { urlSessionCount }
+    }
+
+    var apiClientRequests: Int {
+        lock.withLock { apiClientCount }
+    }
+
+    func incrementURLSession() {
+        lock.withLock { urlSessionCount += 1 }
+    }
+
+    func incrementAPIClient() {
+        lock.withLock { apiClientCount += 1 }
+    }
 }
 
 private struct LoaderTestShow {
@@ -247,8 +319,9 @@ private func makeHomeFeedJSON(showsTonight: [LoaderTestShow]) -> String {
     return String(decoding: data, as: UTF8.self)
 }
 
-private func makeClient(homeFeedJSON: String) -> Client {
+private func makeClient(homeFeedJSON: String, onRequest: (@Sendable () -> Void)? = nil) -> Client {
     let transport = StubClientTransport { _, _, _, operationID in
+        onRequest?()
         #expect(operationID == "getHomeFeed")
         return (
             HTTPResponse(status: .ok, headerFields: [.contentType: "application/json"]),

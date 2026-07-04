@@ -35,7 +35,7 @@ struct ComedianDetailView: View {
             case .failure(let failure):
                 FailureCard(
                     failure: failure,
-                    retry: { await model.reload(apiClient: apiClient, favorites: favorites) },
+                    retry: { await model.reload(apiClient: apiClient, favorites: favorites, cache: detailCache) },
                     signIn: { coordinator.push(.profile) }
                 )
                 .padding()
@@ -130,7 +130,7 @@ struct ComedianDetailView: View {
             favoriteState: comedianFavoriteState
         ))
         .task {
-            await model.loadIfNeeded(apiClient: apiClient, favorites: favorites)
+            await model.loadIfNeeded(apiClient: apiClient, favorites: favorites, cache: detailCache)
         }
         .alert("LaughTrack", isPresented: .constant(feedbackMessage != nil), actions: {
             Button("OK") {
@@ -146,6 +146,10 @@ struct ComedianDetailView: View {
             return content.comedian.name
         }
         return ""
+    }
+
+    private var detailCache: DataCache<LaughTrackCacheKey> {
+        serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self)
     }
 
     private var comedianFavoriteState: DetailFavoriteState? {

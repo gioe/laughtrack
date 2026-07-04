@@ -81,6 +81,39 @@ struct ShowDetailViewTests {
         #expect(ShowDetailPresentation.primaryTicketURL(for: loaded.data) == nil)
     }
 
+    @Test("show detail loadIfNeeded reuses cache across model instances but reload fetches")
+    func showDetailLoadIfNeededUsesCacheAndReloadFetches() async throws {
+        let cache = DataCache<LaughTrackCacheKey>()
+        let recorder = FavoriteOperationRecorder()
+        let client = makeClient(
+            response: .success(DemoContent.showDetailResponse(id: 301) ?? DemoContent.primaryShowDetail),
+            favoriteRecorder: recorder
+        )
+
+        let firstModel = ShowDetailModel(showID: 301)
+        await firstModel.loadIfNeeded(apiClient: client, favorites: ComedianFavoriteStore(), cache: cache)
+
+        let cachedModel = ShowDetailModel(showID: 301)
+        await cachedModel.loadIfNeeded(
+            apiClient: makeClient(response: .status(.internalServerError), favoriteRecorder: recorder),
+            favorites: ComedianFavoriteStore(),
+            cache: cache
+        )
+
+        let afterCachedLoadOperations = await recorder.operations
+        #expect(afterCachedLoadOperations == ["getShow"])
+        guard case .success(let cachedResponse) = cachedModel.phase else {
+            Issue.record("Expected cached detail response to load without network")
+            return
+        }
+        #expect(cachedResponse.data.id == 301)
+
+        await cachedModel.reload(apiClient: client, favorites: ComedianFavoriteStore(), cache: cache)
+
+        let afterReloadOperations = await recorder.operations
+        #expect(afterReloadOperations == ["getShow", "getShow"])
+    }
+
     @Test("show detail favorite toggle dispatches through the favorite API boundary")
     func showDetailFavoriteToggleDispatchesFavoriteAPI() async throws {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthenticatedAuthManager(

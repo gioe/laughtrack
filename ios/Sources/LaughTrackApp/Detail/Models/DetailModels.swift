@@ -1,5 +1,6 @@
 import Foundation
 import LaughTrackAPIClient
+import LaughTrackBridge
 import LaughTrackCore
 
 func classifyDetailFetchError(_ error: Error, context: String) -> LoadFailure {
@@ -54,20 +55,48 @@ final class ShowDetailModel: EntityDetailModel<Components.Schemas.ShowDetailResp
     }
 
     func loadIfNeeded(apiClient: Client, favorites: ComedianFavoriteStore) async {
+        await loadIfNeeded(apiClient: apiClient, favorites: favorites, cache: nil)
+    }
+
+    func loadIfNeeded(
+        apiClient: Client,
+        favorites: ComedianFavoriteStore,
+        cache: DataCache<LaughTrackCacheKey>?
+    ) async {
+        if case .idle = phase,
+           let cached: Components.Schemas.ShowDetailResponse = await MainPageCache.get(
+            .show(id: String(showID)),
+            from: cache,
+            persistentCache: nil
+           ) {
+            seedFavorites(from: cached, favorites: favorites)
+            phase = .success(cached)
+            return
+        }
+
         await super.loadIfNeeded {
-            await self.fetch(apiClient: apiClient, favorites: favorites)
+            await self.fetch(apiClient: apiClient, favorites: favorites, cache: cache)
         }
     }
 
     func reload(apiClient: Client, favorites: ComedianFavoriteStore) async {
+        await reload(apiClient: apiClient, favorites: favorites, cache: nil)
+    }
+
+    func reload(
+        apiClient: Client,
+        favorites: ComedianFavoriteStore,
+        cache: DataCache<LaughTrackCacheKey>?
+    ) async {
         await super.reload {
-            await self.fetch(apiClient: apiClient, favorites: favorites)
+            await self.fetch(apiClient: apiClient, favorites: favorites, cache: cache)
         }
     }
 
     private func fetch(
         apiClient: Client,
-        favorites: ComedianFavoriteStore
+        favorites: ComedianFavoriteStore,
+        cache: DataCache<LaughTrackCacheKey>?
     ) async -> Result<Components.Schemas.ShowDetailResponse, LoadFailure> {
         do {
             let output = try await withDetailFetchRetry {
@@ -76,9 +105,8 @@ final class ShowDetailModel: EntityDetailModel<Components.Schemas.ShowDetailResp
             switch output {
             case .ok(let ok):
                 let response = try ok.body.json
-                for comedian in response.data.lineup ?? [] {
-                    favorites.seed(uuid: comedian.uuid, value: comedian.isFavorite)
-                }
+                seedFavorites(from: response, favorites: favorites)
+                await MainPageCache.set(response, forKey: .show(id: String(showID)), in: cache, persistentCache: nil)
                 return .success(response)
             case .badRequest:
                 return .failure(.badParams("LaughTrack could not load this show right now."))
@@ -94,6 +122,15 @@ final class ShowDetailModel: EntityDetailModel<Components.Schemas.ShowDetailResp
             }
         } catch {
             return .failure(classifyDetailFetchError(error, context: "show details"))
+        }
+    }
+
+    private func seedFavorites(
+        from response: Components.Schemas.ShowDetailResponse,
+        favorites: ComedianFavoriteStore
+    ) {
+        for comedian in response.data.lineup ?? [] {
+            favorites.seed(uuid: comedian.uuid, value: comedian.isFavorite)
         }
     }
 }
@@ -138,8 +175,27 @@ final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
         apiClient: Client,
         favorites: ComedianFavoriteStore
     ) async {
+        await loadIfNeeded(apiClient: apiClient, favorites: favorites, cache: nil)
+    }
+
+    func loadIfNeeded(
+        apiClient: Client,
+        favorites: ComedianFavoriteStore,
+        cache: DataCache<LaughTrackCacheKey>?
+    ) async {
+        if case .idle = phase,
+           let cached: ComedianDetailContent = await MainPageCache.get(
+            .comedian(id: String(comedianID)),
+            from: cache,
+            persistentCache: nil
+           ) {
+            seedFavorites(from: cached, favorites: favorites)
+            phase = .success(cached)
+            return
+        }
+
         await super.loadIfNeeded {
-            await self.fetch(apiClient: apiClient, favorites: favorites)
+            await self.fetch(apiClient: apiClient, favorites: favorites, cache: cache)
         }
     }
 
@@ -147,14 +203,23 @@ final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
         apiClient: Client,
         favorites: ComedianFavoriteStore
     ) async {
+        await reload(apiClient: apiClient, favorites: favorites, cache: nil)
+    }
+
+    func reload(
+        apiClient: Client,
+        favorites: ComedianFavoriteStore,
+        cache: DataCache<LaughTrackCacheKey>?
+    ) async {
         await super.reload {
-            await self.fetch(apiClient: apiClient, favorites: favorites)
+            await self.fetch(apiClient: apiClient, favorites: favorites, cache: cache)
         }
     }
 
     private func fetch(
         apiClient: Client,
-        favorites: ComedianFavoriteStore
+        favorites: ComedianFavoriteStore,
+        cache: DataCache<LaughTrackCacheKey>?
     ) async -> Result<ComedianDetailContent, LoadFailure> {
         do {
             let output = try await withDetailFetchRetry {
@@ -167,7 +232,8 @@ final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
                 return await loadRelatedContent(
                     for: comedian,
                     apiClient: apiClient,
-                    favorites: favorites
+                    favorites: favorites,
+                    cache: cache
                 )
             case .badRequest:
                 return .failure(.badParams("LaughTrack could not load this comedian right now."))
@@ -186,7 +252,8 @@ final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
     private func loadRelatedContent(
         for comedian: Components.Schemas.ComedianDetail,
         apiClient: Client,
-        favorites: ComedianFavoriteStore
+        favorites: ComedianFavoriteStore,
+        cache: DataCache<LaughTrackCacheKey>?
     ) async -> Result<ComedianDetailContent, LoadFailure> {
         do {
             let output = try await apiClient.getComedianUpcomingRuns(
@@ -213,60 +280,91 @@ final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
                     favorites: favorites
                 )
 
-                return .success(
-                    .init(
-                        comedian: comedian,
-                        upcomingRuns: response.data,
-                        relatedComedians: relatedComedians,
-                        relatedContentMessage: coBillMessage
-                    )
+                let content = ComedianDetailContent(
+                    comedian: comedian,
+                    upcomingRuns: response.data,
+                    relatedComedians: relatedComedians,
+                    relatedContentMessage: coBillMessage
                 )
+                if coBillMessage == nil {
+                    await MainPageCache.set(content, forKey: .comedian(id: String(comedianID)), in: cache, persistentCache: nil)
+                }
+                return .success(content)
             case .badRequest:
-                return .success(
-                    .init(
-                        comedian: comedian,
-                        upcomingRuns: [],
-                        relatedComedians: [],
-                        relatedContentMessage: "LaughTrack could not load the comedian's upcoming shows right now."
-                    )
-                )
-            case .tooManyRequests:
-                return .success(
-                    .init(
-                        comedian: comedian,
-                        upcomingRuns: [],
-                        relatedComedians: [],
-                        relatedContentMessage: "LaughTrack is rate-limiting related shows right now. Please try again in a moment."
-                    )
-                )
-            case .internalServerError:
-                return .success(
-                    .init(
-                        comedian: comedian,
-                        upcomingRuns: [],
-                        relatedComedians: [],
-                        relatedContentMessage: "LaughTrack hit a server error while loading related shows."
-                    )
-                )
-            case .undocumented(let status, _):
-                return .success(
-                    .init(
-                        comedian: comedian,
-                        upcomingRuns: [],
-                        relatedComedians: [],
-                        relatedContentMessage: "LaughTrack returned an unexpected related shows response (\(status))."
-                    )
-                )
-            }
-        } catch {
-            return .success(
-                .init(
+                return await cacheAndReturn(
                     comedian: comedian,
                     upcomingRuns: [],
                     relatedComedians: [],
-                    relatedContentMessage: "LaughTrack could not reach the related shows service. Check your connection and try again."
+                    relatedContentMessage: "LaughTrack could not load the comedian's upcoming shows right now.",
+                    cache: cache
                 )
+            case .tooManyRequests:
+                return await cacheAndReturn(
+                    comedian: comedian,
+                    upcomingRuns: [],
+                    relatedComedians: [],
+                    relatedContentMessage: "LaughTrack is rate-limiting related shows right now. Please try again in a moment.",
+                    cache: cache
+                )
+            case .internalServerError:
+                return await cacheAndReturn(
+                    comedian: comedian,
+                    upcomingRuns: [],
+                    relatedComedians: [],
+                    relatedContentMessage: "LaughTrack hit a server error while loading related shows.",
+                    cache: cache
+                )
+            case .undocumented(let status, _):
+                return await cacheAndReturn(
+                    comedian: comedian,
+                    upcomingRuns: [],
+                    relatedComedians: [],
+                    relatedContentMessage: "LaughTrack returned an unexpected related shows response (\(status)).",
+                    cache: cache
+                )
+            }
+        } catch {
+            return await cacheAndReturn(
+                comedian: comedian,
+                upcomingRuns: [],
+                relatedComedians: [],
+                relatedContentMessage: "LaughTrack could not reach the related shows service. Check your connection and try again.",
+                cache: cache
             )
+        }
+    }
+
+    private func cacheAndReturn(
+        comedian: Components.Schemas.ComedianDetail,
+        upcomingRuns: [Components.Schemas.UpcomingRun],
+        relatedComedians: [Components.Schemas.ComedianLineup],
+        relatedContentMessage: String?,
+        cache: DataCache<LaughTrackCacheKey>?
+    ) async -> Result<ComedianDetailContent, LoadFailure> {
+        let content = ComedianDetailContent(
+            comedian: comedian,
+            upcomingRuns: upcomingRuns,
+            relatedComedians: relatedComedians,
+            relatedContentMessage: relatedContentMessage
+        )
+        if relatedContentMessage == nil {
+            await MainPageCache.set(content, forKey: .comedian(id: String(comedianID)), in: cache, persistentCache: nil)
+        }
+        return .success(content)
+    }
+
+    private func seedFavorites(
+        from content: ComedianDetailContent,
+        favorites: ComedianFavoriteStore
+    ) {
+        for show in content.upcomingRuns.flatMap(\.shows) {
+            for comedian in show.lineup ?? [] {
+                favorites.seed(uuid: comedian.uuid, value: comedian.isFavorite)
+            }
+        }
+
+        for comedian in content.relatedComedians {
+            favorites.seed(uuid: comedian.uuid, value: comedian.isFavorite)
         }
     }
 
@@ -406,25 +504,43 @@ final class ClubDetailModel: EntityDetailModel<ClubDetailContent> {
     }
 
     func loadIfNeeded(apiClient: Client) async {
+        await loadIfNeeded(apiClient: apiClient, cache: nil)
+    }
+
+    func loadIfNeeded(apiClient: Client, cache: DataCache<LaughTrackCacheKey>?) async {
+        if case .idle = phase,
+           let cached: ClubDetailContent = await MainPageCache.get(
+            .club(id: String(clubId)),
+            from: cache,
+            persistentCache: nil
+           ) {
+            phase = .success(cached)
+            return
+        }
+
         await super.loadIfNeeded {
-            await self.fetch(apiClient: apiClient)
+            await self.fetch(apiClient: apiClient, cache: cache)
         }
     }
 
     func reload(apiClient: Client) async {
+        await reload(apiClient: apiClient, cache: nil)
+    }
+
+    func reload(apiClient: Client, cache: DataCache<LaughTrackCacheKey>?) async {
         await super.reload {
-            await self.fetch(apiClient: apiClient)
+            await self.fetch(apiClient: apiClient, cache: cache)
         }
     }
 
-    private func fetch(apiClient: Client) async -> Result<ClubDetailContent, LoadFailure> {
+    private func fetch(apiClient: Client, cache: DataCache<LaughTrackCacheKey>?) async -> Result<ClubDetailContent, LoadFailure> {
         do {
             let output = try await withDetailFetchRetry {
                 try await apiClient.getClub(.init(path: .init(id: clubId)))
             }
             switch output {
             case .ok(let ok):
-                return await loadRelatedContent(for: try ok.body.json.data, apiClient: apiClient)
+                return await loadRelatedContent(for: try ok.body.json.data, apiClient: apiClient, cache: cache)
             case .badRequest:
                 return .failure(.badParams("LaughTrack could not load this club right now."))
             case .notFound:
@@ -441,7 +557,8 @@ final class ClubDetailModel: EntityDetailModel<ClubDetailContent> {
 
     private func loadRelatedContent(
         for club: Components.Schemas.ClubDetail,
-        apiClient: Client
+        apiClient: Client,
+        cache: DataCache<LaughTrackCacheKey>?
     ) async -> Result<ClubDetailContent, LoadFailure> {
         do {
             let output = try await apiClient.searchShows(
@@ -470,60 +587,73 @@ final class ClubDetailModel: EntityDetailModel<ClubDetailContent> {
                         seenComedians.insert(comedian.uuid).inserted
                     }
 
-                return .success(
-                    .init(
-                        club: club,
-                        upcomingShows: upcomingShows,
-                        featuredComedians: featuredComedians,
-                        relatedContentMessage: nil
-                    )
+                return await cacheAndReturn(
+                    club: club,
+                    upcomingShows: upcomingShows,
+                    featuredComedians: featuredComedians,
+                    relatedContentMessage: nil,
+                    cache: cache
                 )
             case .badRequest:
-                return .success(
-                    .init(
-                        club: club,
-                        upcomingShows: [],
-                        featuredComedians: [],
-                        relatedContentMessage: "LaughTrack could not load this club’s upcoming shows right now."
-                    )
-                )
-            case .tooManyRequests:
-                return .success(
-                    .init(
-                        club: club,
-                        upcomingShows: [],
-                        featuredComedians: [],
-                        relatedContentMessage: "LaughTrack is rate-limiting this club’s related content right now. Please try again in a moment."
-                    )
-                )
-            case .internalServerError:
-                return .success(
-                    .init(
-                        club: club,
-                        upcomingShows: [],
-                        featuredComedians: [],
-                        relatedContentMessage: "LaughTrack hit a server error while loading this club’s related content."
-                    )
-                )
-            case .undocumented(let status, _):
-                return .success(
-                    .init(
-                        club: club,
-                        upcomingShows: [],
-                        featuredComedians: [],
-                        relatedContentMessage: "LaughTrack returned an unexpected related shows response (\(status))."
-                    )
-                )
-            }
-        } catch {
-            return .success(
-                .init(
+                return await cacheAndReturn(
                     club: club,
                     upcomingShows: [],
                     featuredComedians: [],
-                    relatedContentMessage: "LaughTrack could not reach this club’s related content service. Check your connection and try again."
+                    relatedContentMessage: "LaughTrack could not load this club’s upcoming shows right now.",
+                    cache: cache
                 )
+            case .tooManyRequests:
+                return await cacheAndReturn(
+                    club: club,
+                    upcomingShows: [],
+                    featuredComedians: [],
+                    relatedContentMessage: "LaughTrack is rate-limiting this club’s related content right now. Please try again in a moment.",
+                    cache: cache
+                )
+            case .internalServerError:
+                return await cacheAndReturn(
+                    club: club,
+                    upcomingShows: [],
+                    featuredComedians: [],
+                    relatedContentMessage: "LaughTrack hit a server error while loading this club’s related content.",
+                    cache: cache
+                )
+            case .undocumented(let status, _):
+                return await cacheAndReturn(
+                    club: club,
+                    upcomingShows: [],
+                    featuredComedians: [],
+                    relatedContentMessage: "LaughTrack returned an unexpected related shows response (\(status)).",
+                    cache: cache
+                )
+            }
+        } catch {
+            return await cacheAndReturn(
+                club: club,
+                upcomingShows: [],
+                featuredComedians: [],
+                relatedContentMessage: "LaughTrack could not reach this club’s related content service. Check your connection and try again.",
+                cache: cache
             )
         }
+    }
+
+    private func cacheAndReturn(
+        club: Components.Schemas.ClubDetail,
+        upcomingShows: [Components.Schemas.Show],
+        featuredComedians: [Components.Schemas.ComedianLineup],
+        relatedContentMessage: String?,
+        cache: DataCache<LaughTrackCacheKey>?
+    ) async -> Result<ClubDetailContent, LoadFailure> {
+        let content = ClubDetailContent(
+            club: club,
+            upcomingShows: upcomingShows,
+            featuredComedians: featuredComedians,
+            relatedContentMessage: relatedContentMessage
+        )
+        if relatedContentMessage == nil {
+            await MainPageCache.set(content, forKey: .club(id: String(clubId)), in: cache, persistentCache: nil)
+        }
+        return .success(content)
     }
 }

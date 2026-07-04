@@ -2305,7 +2305,7 @@ actor HomeFeedRequestCoalescer {
     }
 }
 
-private enum HomeFeedRequest {
+enum HomeFeedRequest {
     static func requestKey(zipCode: String?, distanceMiles: Int?) -> String {
         "\(zipCode ?? "")|\(distanceMiles.map(String.init) ?? "")"
     }

@@ -17,6 +17,7 @@ struct ShowDetailView: View {
     @EnvironmentObject private var softPushPromptCoordinator: SoftPushPromptCoordinator
     @Environment(\.appTheme) private var theme
     @Environment(\.openURL) private var openURL
+    @Environment(\.serviceContainer) private var serviceContainer
 
     @StateObject private var model: ShowDetailModel
     @StateObject private var calendarWriter = ShowCalendarWriter()
@@ -36,6 +37,10 @@ struct ShowDetailView: View {
         return ""
     }
 
+    private var detailCache: DataCache<LaughTrackCacheKey> {
+        serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self)
+    }
+
     var body: some View {
         Group {
             switch model.phase {
@@ -44,7 +49,7 @@ struct ShowDetailView: View {
             case .failure(let failure):
                 FailureCard(
                     failure: failure,
-                    retry: { await model.reload(apiClient: apiClient, favorites: favorites) },
+                    retry: { await model.reload(apiClient: apiClient, favorites: favorites, cache: detailCache) },
                     signIn: { coordinator.push(.profile) }
                 )
                 .padding()
@@ -127,7 +132,7 @@ struct ShowDetailView: View {
         }
         .modifier(EntityDetailNavigationChrome(entity: .show, title: navigationTitle))
         .task {
-            await model.loadIfNeeded(apiClient: apiClient, favorites: favorites)
+            await model.loadIfNeeded(apiClient: apiClient, favorites: favorites, cache: detailCache)
         }
         .task(id: showID) {
             // Show-detail open counts as an engagement signal for the push
