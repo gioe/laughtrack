@@ -3,7 +3,7 @@ import { getSearchedPodcasts } from "@/lib/data/podcast/search/getSearchedPodcas
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
 import { withRequestMetrics } from "@/lib/metrics";
-import { privateReadCacheHeaders } from "@/lib/httpCache";
+import { personalizedReadCacheHeaders } from "@/lib/httpCache";
 
 export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     const rl = await applyPublicReadRateLimit(req, "podcasts-search");
@@ -24,7 +24,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
         });
 
         return NextResponse.json(result, {
-            headers: { ...rateLimitHeaders(rl), ...privateReadCacheHeaders() },
+            headers: { ...rateLimitHeaders(rl), ...personalizedReadCacheHeaders({ authed: authCtx !== null }) },
         });
     } catch (error) {
         console.error("GET /api/v1/podcasts/search error:", error);

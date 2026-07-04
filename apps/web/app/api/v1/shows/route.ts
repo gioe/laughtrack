@@ -5,7 +5,7 @@ import { SearchParams } from "@/objects/interface";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { readTimezoneHeader } from "@/util/timezone";
 import { withRequestMetrics } from "@/lib/metrics";
-import { privateReadCacheHeaders } from "@/lib/httpCache";
+import { personalizedReadCacheHeaders } from "@/lib/httpCache";
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const DEFAULT_DISTANCE = "25";
 
@@ -95,7 +95,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                 data: result.data,
                 filters: result.filters,
             },
-            { headers: { ...rateLimitHeaders(rl), ...privateReadCacheHeaders({ varyOnTimezone: true }) } },
+            { headers: { ...rateLimitHeaders(rl), ...personalizedReadCacheHeaders({ authed: authCtx !== null, varyOnTimezone: true }) } },
         );
     } catch (error) {
         console.error("GET /api/v1/shows error:", error);

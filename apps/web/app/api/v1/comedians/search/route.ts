@@ -5,7 +5,7 @@ import { readTimezoneHeader } from "@/util/timezone";
 import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
 import { UserRole } from "@/objects/enum/userRole";
 import { withRequestMetrics } from "@/lib/metrics";
-import { privateReadCacheHeaders } from "@/lib/httpCache";
+import { personalizedReadCacheHeaders } from "@/lib/httpCache";
 export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     const rl = await applyPublicReadRateLimit(req, "comedians-search");
     if (rl instanceof NextResponse) return rl;
@@ -61,7 +61,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                 filters: result.filters,
                 homeCityFilters: result.homeCityFilters,
             },
-            { headers: { ...rateLimitHeaders(rl), ...privateReadCacheHeaders({ varyOnTimezone: true }) } },
+            { headers: { ...rateLimitHeaders(rl), ...personalizedReadCacheHeaders({ authed: authCtx !== null, varyOnTimezone: true }) } },
         );
     } catch (error) {
         console.error("GET /api/v1/comedians/search error:", error);

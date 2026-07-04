@@ -4,7 +4,7 @@ import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { NotFoundError } from "@/objects/NotFoundError";
 import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
 import { withRequestMetrics } from "@/lib/metrics";
-import { privateReadCacheHeaders } from "@/lib/httpCache";
+import { personalizedReadCacheHeaders } from "@/lib/httpCache";
 const POSITIVE_INTEGER_RE = /^[1-9]\d*$/;
 
 function parsePodcastId(raw: string): number | null {
@@ -41,7 +41,7 @@ export const GET = withRequestMetrics(async function GET(
             authCtx?.profileId,
         );
         return NextResponse.json(result, {
-            headers: { ...rateLimitHeaders(rl), ...privateReadCacheHeaders() },
+            headers: { ...rateLimitHeaders(rl), ...personalizedReadCacheHeaders({ authed: authCtx !== null }) },
         });
     } catch (error) {
         if (error instanceof NotFoundError) {
