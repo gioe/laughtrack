@@ -95,10 +95,15 @@ widen/narrow by editing those bounds):
    `scraper_runs.success_rate` is more than 10 percentage points below the
    trailing average.
 2. **Club dropped to zero shows** — fires when a club returned shows in the
-   previous run but zero in the latest run. The query matches the _transition_
-   (prev > 0, latest = 0), so it fires **exactly once** per drop: on the next run
-   the previous run is itself zero, the condition no longer holds, and the alert
-   resolves. One alert instance per club (the `club` label).
+   previous run but zero in the latest run. The firing condition matches the
+   _transition_ (prev > 0, latest = 0), so it fires **exactly once** per drop: on
+   the next run the previous run is itself zero, the condition no longer holds,
+   and the alert resolves. Since TASK-2834 the backing view retains a fired
+   club's series (0-valued) for one extra run, so the resolution is a
+   **Normal** state change rather than a MissingSeries vanish — Discord no
+   longer receives `grafana_state_reason=MissingSeries` churn. One alert
+   instance per club (the `club` and `club_id` labels; `club_id` feeds the
+   Discord template's `scraper-verify` next step).
 3. **Error-count spike** — fires when the latest run logged more than 5 errors
    above the trailing-average error count.
 4. **Club at zero shows for 2+ consecutive full runs** — self-healing companion
@@ -110,7 +115,10 @@ widen/narrow by editing those bounds):
    club recovers**, so a missed evaluation cannot bury an outage. The 30-day
    `> 0` lookback keeps legitimately dark venues (clubs that never had shows)
    out of the alert; a club that genuinely goes dark stops firing 30 days
-   after its last show. One alert instance per club (the `club` label).
+   after its last show. One alert instance per club (the `club` and `club_id`
+   labels). Like rule 2, the backing view retains a fired club's series
+   (0-valued) for one extra run (TASK-2834), so a recovery resolves as Normal —
+   a Discord "Resolved" post on this rule genuinely means shows came back.
 5. **Pipeline liveness / staleness** (TASK-3040) — fires when the newest full
    scrape run (`scraper_runs.run_type='scraper'`) is more than 26 hours old.
    Unlike rules 1–4, which baseline the latest run against prior runs and go
@@ -148,24 +156,32 @@ each full `scraper` run:
 
 - `mv_scraper_health_overall` — one row: `success_rate_drop` (rule 1) and
   `error_spike` (rule 3), both vs the trailing-7-run average.
-- `mv_scraper_health_dropped_to_zero` — one `club` row per prev>0 → latest=0 drop
-  (rule 2).
-- `mv_scraper_health_consecutive_zero` — one `club` row per club at zero for 2+
-  consecutive full runs that had shows in the last 30 days (rule 4).
+- `mv_scraper_health_dropped_to_zero` — one row per club whose prev>0 →
+  latest=0 transition held in the latest run (`dropped_to_zero` = 1) **or the
+  previous run** (0 — one-extra-run series retention so the recovery resolves
+  as Normal), plus a `club_id` label (rule 2).
+- `mv_scraper_health_consecutive_zero` — one row per club that was at zero for
+  2+ consecutive full runs (but had shows in the last 30 days) as of the latest
+  run (`consecutive_zero` = 1) **or the previous run** (0), plus a `club_id`
+  label (rule 4). Deliberately not one-row-per-club: Grafana's alert evaluator
+  caps a query at 1000 series and the latest run spans ~1,559 clubs.
 
-The view definitions are the exact CTEs the rules used to inline, so alert
+The firing conditions are the exact CTEs the rules used to inline, so alert
 semantics are unchanged — an alert only changes state when a new run lands, which
-is precisely when the refresh runs. The DDL lives in
-`apps/scraper/migrations/20260703_scraper_health_summary_materialized_views.sql`
-(applied by `apps/scraper/bin/migrate`); the refresh is
+is precisely when the refresh runs. The original DDL lives in
+`apps/scraper/migrations/20260703_scraper_health_summary_materialized_views.sql`;
+`20260704_scraper_health_club_labels_stable_series.sql` (TASK-2834) recreates the
+two club-level views with the `club_id` label and the one-extra-run series
+retention (both applied by `apps/scraper/bin/migrate`). The refresh is
 `PostgresMetricsRepository.refresh_health_summary()`, called after each `scraper`
 run persists. **Rule 5 (staleness) stays a live inline query** — it measures
 `NOW() - MAX(exported_at)` and must not be frozen at run time. If the pipeline
 stops running, the views go stale but rule 5 still fires (it does not read them).
 
-The migration grants `SELECT` on the three views to `grafana_ro`
+The migrations grant `SELECT` on the views to `grafana_ro`
 (`GRANT ... ON ALL TABLES` does not cover materialized views, so they are granted
-by name — the same list is mirrored in `create_grafana_readonly_role.sql`).
+by name — the same list is mirrored in `create_grafana_readonly_role.sql`; note a
+`DROP MATERIALIZED VIEW` discards grants, so recreation migrations must re-grant).
 
 ### Setup
 
@@ -210,10 +226,33 @@ by name — the same list is mirrored in `create_grafana_readonly_role.sql`).
      The workflow also supports manual `workflow_dispatch` (with a dry-run
      input) from the Actions tab.
 
-4. **Route to Discord.** Provisioned notification `policies` replace the org root
+4. **Apply the Discord message template (manual — not auto-provisioned).** The
+   YAML's `templates` block defines `scraper_health.discord.message` (TASK-2834):
+   it leads with the club or alert name, includes the rule's
+   summary/description annotations, and renders a concrete next step —
+   `dispatch scraper-verify for club_id=NNN` when the alert carries the
+   `club_id` label. The grafana-provision workflow reconciles **alert rules
+   only**; templates and contact points must be kept in sync by hand. In
+   Grafana Cloud: **Alerting → Contact points → the Discord contact point →
+   Message** — set it to `{{ template "scraper_health.discord.message" . }}`
+   and mirror any template-body change under **Alerting → Notification
+   templates** (template `scraper-health-discord-message`, created 2026-06-12).
+   Without the annotations + template, Discord falls back to raw
+   Alertmanager label dumps.
+5. **Route to Discord.** Provisioned notification `policies` replace the org root
    policy, so the YAML leaves that block commented out. Add a notification-policy
    route in the UI instead: matcher `service = scraper-health` → contact point
    `scraper-health-discord`.
+6. **Keep genuine recoveries, suppress churn.** Leave Discord resolved messages
+   enabled (`disableResolveMessage: false`): genuine recoveries should post, but
+   NoData/MissingSeries churn should not. The regression rules set
+   `noDataState: OK`, and since TASK-2834 the club-level views retain a fired
+   club's series (0-valued) for one extra run, so recoveries resolve as Normal
+   rather than MissingSeries. If Discord still shows
+   `grafana_state_reason=NoData` or `MissingSeries` resolved posts, check that
+   the Cloud SQL matches the YAML (run the provision script with `--dry-run`)
+   before reaching for `disableResolveMessage: true` — disabling all resolved
+   messages hides real recoveries.
 
 ## Editing
 
