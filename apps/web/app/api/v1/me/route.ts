@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withRequestMetrics } from "@/lib/metrics";
+import { NO_STORE_CACHE_CONTROL } from "@/lib/httpCache";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
@@ -108,7 +109,12 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                 notificationsUnreadCount,
             },
         },
-        { headers: rateLimitHeaders(rl) },
+        {
+            headers: {
+                ...rateLimitHeaders(rl),
+                "Cache-Control": NO_STORE_CACHE_CONTROL,
+            },
+        },
     );
 });
 

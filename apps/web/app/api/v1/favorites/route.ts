@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { withRequestMetrics } from "@/lib/metrics";
+import { NO_STORE_CACHE_CONTROL } from "@/lib/httpCache";
 import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
 import { buildComedianImageUrls } from "@/lib/data/comedian/imageAssets";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
@@ -93,7 +94,12 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                     isFavorite: true,
                 })),
             },
-            { headers: rateLimitHeaders(rl) },
+            {
+                headers: {
+                    ...rateLimitHeaders(rl),
+                    "Cache-Control": NO_STORE_CACHE_CONTROL,
+                },
+            },
         );
     } catch (error) {
         console.error("GET /api/v1/favorites error:", error);
