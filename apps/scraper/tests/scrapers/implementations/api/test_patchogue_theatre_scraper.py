@@ -166,7 +166,7 @@ def _performance_payload() -> Dict:
     return {
         "clientId": 34780,
         "id": 11795830,
-        "startDate": "2026-10-08 20:00",
+        "startDate": "2099-10-08 20:00",
         "ticketsAvailable": True,
         "availableToPurchaseOnWeb": True,
         "production": {
@@ -193,7 +193,7 @@ def test_event_from_performance_response_builds_full_event():
     assert event.production_id == "1272458"
     assert event.performance_id == "11795830"
     assert event.production_name == "Leslie Jones: I'm Hot Tour"
-    assert event.start_date == "2026-10-08 20:00"
+    assert event.start_date == "2099-10-08 20:00"
     assert event.tickets_available is True
     assert event.event_url == (
         "https://ci.ovationtix.com/34780/production/1272458?performanceId=11795830"
@@ -277,7 +277,7 @@ async def test_scraper_returns_only_comedy_events_for_known_perf_set(monkeypatch
         "11795830": _performance_payload(),  # Leslie Jones — comedy
         "11805262": {
             "id": 11805262,
-            "startDate": "2026-09-26 20:00",
+            "startDate": "2099-09-26 20:00",
             "ticketsAvailable": True,
             "availableToPurchaseOnWeb": True,
             "production": {
@@ -301,7 +301,7 @@ async def test_scraper_returns_only_comedy_events_for_known_perf_set(monkeypatch
         },
         "11810284": {  # Little Shop — has "comedy" but no stand-up vocabulary
             "id": 11810284,
-            "startDate": "2026-08-30 19:00",
+            "startDate": "2099-08-30 19:00",
             "ticketsAvailable": True,
             "availableToPurchaseOnWeb": True,
             "production": {
@@ -421,7 +421,7 @@ def _aeg_event(headliner: str, perf_id: str, client_id: str = CLIENT_ID) -> Dict
     return {
         "eventId": perf_id,
         "title": {"headlinersText": headliner, "eventTitleText": headliner},
-        "eventDateTimeISO": "2026-09-26T20:00:00-04:00",
+        "eventDateTimeISO": "2099-09-26T20:00:00-04:00",
         "ticketing": {
             "ticketURL": f"https://ci.ovationtix.com/{client_id}/performance/{perf_id}",
             "url": f"https://ci.ovationtix.com/{client_id}/performance/{perf_id}",
@@ -476,7 +476,7 @@ async def test_scraper_discovers_via_aeg_feed_and_filters_comedy(monkeypatch):
         "11795830": _performance_payload(),  # Leslie Jones — comedy
         "11805262": {
             "id": 11805262,
-            "startDate": "2026-09-26 20:00",
+            "startDate": "2099-09-26 20:00",
             "ticketsAvailable": True,
             "availableToPurchaseOnWeb": True,
             "production": {
@@ -500,7 +500,7 @@ async def test_scraper_discovers_via_aeg_feed_and_filters_comedy(monkeypatch):
         },
         "11810284": {  # Little Shop — "comedy" but no stand-up vocabulary
             "id": 11810284,
-            "startDate": "2026-08-30 19:00",
+            "startDate": "2099-08-30 19:00",
             "ticketsAvailable": True,
             "availableToPurchaseOnWeb": True,
             "production": {

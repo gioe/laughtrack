@@ -338,8 +338,8 @@ async def test_get_data_uses_post_dst_human_label_time(monkeypatch):
     scraper = UPComedyClubScraper(_club())
     instances = [
         _make_instance(
-            date_utc="2026-11-07T20:30:00Z",
-            name="Saturday, November 7, 2026, at 3:30 PM",
+            date_utc="2099-11-07T20:30:00Z",
+            name="Saturday, November 7, 2099, at 3:30 PM",
         )
     ]
 

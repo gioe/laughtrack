@@ -130,7 +130,9 @@ async def test_collect_targets_returns_single_listing_url():
 
 def test_extractor_builds_absolute_urls_and_price():
     html = _listing_page([_card(slug="/maceyisaacs", price="$28.87")])
-    events = MultipassExtractor.extract_events(html, LISTING_URL)
+    # Inject now so the default card's "Fri Jul 3" (weekday-pinned to 2026)
+    # never falls past the extractor's past-event cutoff (TASK-3585).
+    events = MultipassExtractor.extract_events(html, LISTING_URL, now=datetime(2026, 6, 25))
 
     assert len(events) == 1
     assert events[0].show_url == "https://denvercomedy.multipass.com/maceyisaacs"
@@ -139,7 +141,7 @@ def test_extractor_builds_absolute_urls_and_price():
 
 def test_extractor_handles_missing_price():
     html = _listing_page([_card(slug="/freeshow", price="")])
-    events = MultipassExtractor.extract_events(html, LISTING_URL)
+    events = MultipassExtractor.extract_events(html, LISTING_URL, now=datetime(2026, 6, 25))
     assert len(events) == 1
     assert events[0].price is None
 

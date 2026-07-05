@@ -3,7 +3,7 @@
 Fixtures mirror the verified live shape of capa.com's WP REST integration:
 - ``/wp-json/wp/v2/genre`` returns taxonomy terms incl. a "Comedy" term.
 - ``/wp-json/wp/v2/tessi_production?genre={id}`` returns productions whose
-  ``content.rendered`` embeds "Saturday, December 5, 2026 | 7 PM", a
+  ``content.rendered`` embeds "Saturday, December 5, 2099 | 7 PM", a
   "VENUE ... Plan Your Visit" block, and a ``tickets.{org}.com`` purchase URL.
 """
 
@@ -31,7 +31,7 @@ GENRE_TERMS = [
 CONTENT_BARE_HOUR = """
 <div>
   <h2>WHITNEY CUMMINGS: BIG BABY TOUR</h2>
-  <div>Saturday, December 5, 2026  |  7 PM</div>
+  <div>Saturday, December 5, 2099  |  7 PM</div>
   <a href="https://tickets.capa.com/11600/11601/">On Sale Soon</a>
   <div>VENUE</div>
   <div><a href="https://www.capa.com/riffe-center-theatre-complex/">Davidson Theatre, Riffe Center</a></div>
@@ -44,7 +44,7 @@ CONTENT_BARE_HOUR = """
 # A production with the minute-bearing time form ("7:30 PM").
 CONTENT_MINUTES = """
 <div>
-  <div>Wednesday, November 25, 2026 | 7:30 PM</div>
+  <div>Wednesday, November 25, 2099 | 7:30 PM</div>
   <a href="https://tickets.capa.com/11574/11575/">Buy Tickets</a>
   <div>VENUE</div>
   <div>Palace Theatre</div>
@@ -120,7 +120,7 @@ class TestExtractEvent:
         ev = extract_event(WHITNEY)
         assert ev is not None
         assert ev.title == "WHITNEY CUMMINGS: BIG BABY TOUR"
-        assert ev.start_date_str == "Saturday, December 5, 2026 | 7 PM"
+        assert ev.start_date_str == "Saturday, December 5, 2099 | 7 PM"
         assert ev.show_page_url == "https://www.capa.com/productions/whitney-cummings-big-baby/"
         assert ev.ticket_url == "https://tickets.capa.com/11600/11601/"
         assert ev.venue_name == "Davidson Theatre, Riffe Center"
@@ -128,7 +128,7 @@ class TestExtractEvent:
     def test_parses_minute_bearing_production(self):
         ev = extract_event(DRAG)
         assert ev is not None
-        assert ev.start_date_str == "Wednesday, November 25, 2026 | 7:30 PM"
+        assert ev.start_date_str == "Wednesday, November 25, 2099 | 7:30 PM"
         assert ev.venue_name == "Palace Theatre"
 
     def test_drops_production_without_showtime(self):
@@ -155,7 +155,7 @@ class TestToShow:
         assert show.name == "WHITNEY CUMMINGS: BIG BABY TOUR"
         assert show.room == "Davidson Theatre, Riffe Center"
         assert show.date.tzinfo is not None
-        # 7 PM America/New_York on 2026-12-05
+        # 7 PM America/New_York on 2099-12-05
         assert show.date.astimezone(pytz.timezone("America/New_York")).hour == 19
         assert show.tickets
         assert show.tickets[0].purchase_url == "https://tickets.capa.com/11600/11601/"

@@ -108,15 +108,17 @@ def test_event_to_show_localizes_start_time_and_builds_ticket():
 
     assert show is not None
     assert show.name == "The Bit Players"
-    assert show.date.isoformat() == "2026-10-02T20:00:00-04:00"
+    # Far-future sentinel (TASK-3585) uses 2036, not 2099: this path localizes
+    # via pytz, whose DST tables end in 2037 — Oct 2099 resolves to EST (-05:00).
+    assert show.date.isoformat() == "2036-10-02T20:00:00-04:00"
     assert len(show.tickets) == 1
     assert show.tickets[0].price == 18.0
 
 
 def test_datetime_parser_falls_back_to_utc_timestamp():
-    parsed = parse_fareharbor_datetime("", "2026-10-03T00:00:00+0000", "America/New_York")
+    parsed = parse_fareharbor_datetime("", "2036-10-03T00:00:00+0000", "America/New_York")
     assert parsed is not None
-    assert parsed.isoformat() == "2026-10-03T00:00:00+00:00"
+    assert parsed.isoformat() == "2036-10-03T00:00:00+00:00"
 
 
 @pytest.mark.asyncio
