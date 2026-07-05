@@ -14,29 +14,96 @@ import { buildComedianImageUrls } from "@/lib/data/comedian/imageAssets";
 import { DEFAULT_SHOW_TIMEZONE } from "@/util/dateUtil";
 
 /**
- * One notification-center item. Today the only notification type is the
- * comedian-arrival alert, whose copy is template-derived from (comedian, show,
- * club) — so we reconstruct the title/body at read time from the join rather
- * than persisting rendered content. Email and push deliveries for the same
- * (comedianId, showId) collapse into a single item; `channels` records which
- * channels fired.
+ * One notification-center entry, mirroring the single push that was sent. Rows
+ * of `sent_notifications` written in the same run share a `notificationGroupId`,
+ * so one entry can cover multiple shows / comedians (matching the grouped push).
+ * The title tiers mirror the scraper push builder; `shows` lists the individual
+ * shows for the client to render; `route` says where a tap goes (a single-show
+ * entry taps into that show, a grouped entry into the Favorites tab). Legacy
+ * rows with no group id fall back to one entry per (comedian, show). Copy is
+ * reconstructed at read time from the join rather than persisted.
  */
-interface NotificationItem {
-    id: string;
-    title: string;
-    body: string;
-    comedianId: string;
-    comedianName: string;
-    comedianImageUrl: string;
+interface NotificationShow {
     showId: number;
+    subtitle: string;
     showPageUrl: string | null;
     showDate: string | null;
     clubName: string | null;
     city: string | null;
     state: string | null;
+}
+
+interface NotificationComedian {
+    comedianId: string;
+    comedianName: string;
+    comedianImageUrl: string;
+}
+
+interface NotificationItem {
+    id: string;
+    title: string;
+    body: string;
+    // Primary (soonest-show) comedian, for the row avatar/label.
+    comedianId: string | null;
+    comedianName: string;
+    comedianImageUrl: string;
+    comedians: NotificationComedian[];
+    shows: NotificationShow[];
+    // "favorites" for a grouped entry (tap → Favorites tab); null for a
+    // single-show entry (tap → shows[0]). Mirrors the push route key.
+    route: string | null;
     channels: string[];
     sentAt: string;
     isUnread: boolean;
+}
+
+// Mirrors the scraper _format_comedian_names / _is_plural_comedian_label so the
+// notification-center title matches the push copy for the same run.
+function formatComedianNames(names: string[]): string {
+    const cleaned = names.filter(Boolean);
+    if (cleaned.length === 0) return "A comedian you follow";
+    if (cleaned.length === 1) return cleaned[0];
+    if (cleaned.length === 2) return `${cleaned[0]} and ${cleaned[1]}`;
+    return `${cleaned.slice(0, -1).join(", ")}, and ${cleaned[cleaned.length - 1]}`;
+}
+
+function isPluralComedianLabel(name: string): boolean {
+    return name.includes(" and ") || name.includes(", ");
+}
+
+/**
+ * Title tiers, matching the push:
+ *  - 1 show                 -> "{joined comedians} is/are performing near you"
+ *  - >1 show, 1 comedian    -> "{comedian} has N shows near you"
+ *  - >1 show, >=2 comedians -> "K comedians you follow have shows near you"
+ */
+function buildGroupTitle(comedianNames: string[], showCount: number): string {
+    if (showCount <= 1) {
+        const label = formatComedianNames(comedianNames);
+        const verb = isPluralComedianLabel(label) ? "are" : "is";
+        return `${label} ${verb} performing near you`;
+    }
+    if (comedianNames.length <= 1) {
+        const name = comedianNames[0] ?? "A comedian you follow";
+        const verb = isPluralComedianLabel(name) ? "have" : "has";
+        return `${name} ${verb} ${showCount} shows near you`;
+    }
+    return `${comedianNames.length} comedians you follow have shows near you`;
+}
+
+// Compact venue summary line for a grouped entry (the full list lives on the
+// Favorites tab the entry taps into): up to two distinct clubs, then "+N more".
+function summarizeShowVenues(shows: NotificationShow[]): string {
+    const clubs: string[] = [];
+    for (const show of shows) {
+        if (show.clubName && !clubs.includes(show.clubName)) {
+            clubs.push(show.clubName);
+        }
+    }
+    if (clubs.length === 0) return `${shows.length} shows near you`;
+    const shown = clubs.slice(0, 2).join(", ");
+    const remaining = clubs.length - Math.min(clubs.length, 2);
+    return remaining > 0 ? `${shown} + ${remaining} more` : shown;
 }
 
 // Cap the history fetch so a long-tenured user with thousands of sent
@@ -44,10 +111,6 @@ interface NotificationItem {
 // of the notification center. The cap counts pre-grouping rows; email+push for
 // the same event collapse afterward, so the rendered item count can be lower.
 const NOTIFICATIONS_FETCH_LIMIT = 100;
-
-function formatNotificationTitle(comedianName: string): string {
-    return `${comedianName} is performing near you`;
-}
 
 function formatNotificationSubtitle({
     clubName,
@@ -112,12 +175,14 @@ function compareNotificationItems(
     const sentDiff = Date.parse(b.sentAt) - Date.parse(a.sentAt);
     if (sentDiff !== 0) return sentDiff;
 
-    if (a.showDate && b.showDate) {
-        const showDiff = Date.parse(a.showDate) - Date.parse(b.showDate);
+    const aDate = a.shows[0]?.showDate ?? null;
+    const bDate = b.shows[0]?.showDate ?? null;
+    if (aDate && bDate) {
+        const showDiff = Date.parse(aDate) - Date.parse(bDate);
         if (showDiff !== 0) return showDiff;
-    } else if (a.showDate) {
+    } else if (aDate) {
         return -1;
-    } else if (b.showDate) {
+    } else if (bDate) {
         return 1;
     }
 
@@ -180,6 +245,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
             comedianId: true,
             showId: true,
             notificationType: true,
+            notificationGroupId: true,
             sentAt: true,
             comedian: {
                 select: {
@@ -214,55 +280,116 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
         },
     });
 
-    // Collapse email+push rows for the same (comedianId, showId) into one item.
-    const groups = new Map<string, NotificationItem>();
+    // Bucket rows into entries. New rows share a notificationGroupId per
+    // (user, run) so one entry mirrors the single push that was sent; legacy
+    // rows (no group id) fall back to one entry per (comedian, show).
+    const groupedRows = new Map<string, typeof rows>();
     for (const row of rows) {
-        const key = `${row.comedianId}:${row.showId}`;
-        const existing = groups.get(key);
-        if (existing) {
-            if (!existing.channels.includes(row.notificationType)) {
-                existing.channels.push(row.notificationType);
+        const key =
+            row.notificationGroupId ?? `legacy:${row.comedianId}:${row.showId}`;
+        const bucket = groupedRows.get(key);
+        if (bucket) bucket.push(row);
+        else groupedRows.set(key, [row]);
+    }
+
+    const byDateAsc = (a: { date: Date | null }, b: { date: Date | null }) => {
+        if (a.date && b.date) return a.date.getTime() - b.date.getTime();
+        if (a.date) return -1;
+        if (b.date) return 1;
+        return 0;
+    };
+
+    const items: NotificationItem[] = [];
+    for (const [key, groupRows] of groupedRows) {
+        // rows are newest-first (query order), so the first carries the entry's
+        // sentAt / unread high-water comparison.
+        const newestSentAt = groupRows[0].sentAt;
+        const channels = new Set<string>();
+        const showsById = new Map<
+            number,
+            { show: NotificationShow; date: Date | null }
+        >();
+        const comediansById = new Map<
+            string,
+            { comedian: NotificationComedian; date: Date | null }
+        >();
+
+        for (const row of groupRows) {
+            channels.add(row.notificationType);
+            const comedianName = row.comedian?.name ?? "A comedian you follow";
+            const showDate = row.show?.date ?? null;
+
+            if (!comediansById.has(row.comedianId)) {
+                const comedianImageUrl = row.comedian
+                    ? buildComedianImageUrls({
+                          name: comedianName,
+                          hasImage: row.comedian.hasImage,
+                          activeAsset: row.comedian.imageAssets?.[0] ?? null,
+                      }).avatarUrl
+                    : "";
+                comediansById.set(row.comedianId, {
+                    comedian: {
+                        comedianId: row.comedianId,
+                        comedianName,
+                        comedianImageUrl,
+                    },
+                    date: showDate,
+                });
             }
-            continue;
+
+            if (!showsById.has(row.showId)) {
+                const club = row.show?.club;
+                const clubName = club?.name ?? "";
+                showsById.set(row.showId, {
+                    date: showDate,
+                    show: {
+                        showId: row.showId,
+                        subtitle: formatNotificationSubtitle({
+                            clubName,
+                            showDate,
+                            timezone: club?.timezone,
+                        }),
+                        showPageUrl: row.show?.showPageUrl ?? null,
+                        showDate: showDate ? showDate.toISOString() : null,
+                        clubName: clubName || null,
+                        city: club?.city ?? null,
+                        state: club?.state ?? null,
+                    },
+                });
+            }
         }
 
-        const comedianName = row.comedian?.name ?? "A comedian you follow";
-        const comedianImageUrl = row.comedian
-            ? buildComedianImageUrls({
-                  name: comedianName,
-                  hasImage: row.comedian.hasImage,
-                  activeAsset: row.comedian.imageAssets?.[0] ?? null,
-              }).avatarUrl
-            : "";
-        const club = row.show?.club;
-        const clubName = club?.name ?? "";
+        const shows = Array.from(showsById.values())
+            .sort(byDateAsc)
+            .map((s) => s.show);
+        const comedians = Array.from(comediansById.values())
+            .sort(byDateAsc)
+            .map((c) => c.comedian);
+        const comedianNames = comedians.map((c) => c.comedianName);
+        const grouped = shows.length > 1;
+        const primary = comedians[0] ?? null;
 
-        groups.set(key, {
+        items.push({
             id: key,
-            title: formatNotificationTitle(comedianName),
-            body: formatNotificationSubtitle({
-                clubName,
-                showDate: row.show?.date,
-                timezone: club?.timezone,
-            }),
-            comedianId: row.comedianId,
-            comedianName,
-            comedianImageUrl,
-            showId: row.showId,
-            showPageUrl: row.show?.showPageUrl ?? null,
-            showDate: row.show?.date ? row.show.date.toISOString() : null,
-            clubName: clubName || null,
-            city: club?.city ?? null,
-            state: club?.state ?? null,
-            channels: [row.notificationType],
-            sentAt: row.sentAt.toISOString(),
-            // A group is unread when its most recent send (the first row, since
-            // rows are sorted desc) is newer than the last-seen high-water mark.
-            isUnread: lastSeenAt ? row.sentAt > lastSeenAt : true,
+            title: buildGroupTitle(comedianNames, shows.length),
+            // Single-show entry carries the show subtitle; a grouped entry gets a
+            // compact venue summary (the full list is on the Favorites tab).
+            body: grouped
+                ? summarizeShowVenues(shows)
+                : (shows[0]?.subtitle ?? ""),
+            comedianId: primary?.comedianId ?? null,
+            comedianName: primary?.comedianName ?? "A comedian you follow",
+            comedianImageUrl: primary?.comedianImageUrl ?? "",
+            comedians,
+            shows,
+            route: grouped ? "favorites" : null,
+            channels: Array.from(channels),
+            sentAt: newestSentAt.toISOString(),
+            isUnread: lastSeenAt ? newestSentAt > lastSeenAt : true,
         });
     }
 
-    const items = Array.from(groups.values()).sort(compareNotificationItems);
+    items.sort(compareNotificationItems);
     const unreadCount = items.filter((item) => item.isUnread).length;
 
     return NextResponse.json(

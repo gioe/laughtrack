@@ -160,6 +160,7 @@ function notificationRow(overrides: Record<string, unknown> = {}) {
         comedianId: "comedian-uuid-1",
         showId: 555,
         notificationType: "push",
+        notificationGroupId: null,
         sentAt: new Date("2026-06-20T12:00:00.000Z"),
         comedian: {
             name: "Taylor Tomlinson",
@@ -284,21 +285,138 @@ describe("GET /api/v1/me/notifications", () => {
         const body = await res.json();
         expect(body.data.items).toHaveLength(1);
         expect(body.data.items[0]).toMatchObject({
-            id: "comedian-uuid-1:555",
+            id: "legacy:comedian-uuid-1:555",
             title: "Taylor Tomlinson is performing near you",
             body: "The Comedy Store on Tuesday, June 30 at 7:00 pm PDT",
             comedianId: "comedian-uuid-1",
             comedianName: "Taylor Tomlinson",
             comedianImageUrl:
                 "https://test.b-cdn.net/comedian-images/taylor/avatar.webp",
-            showId: 555,
-            showPageUrl: "https://laugh-track.com/show/555",
-            clubName: "The Comedy Store",
-            city: "Los Angeles",
-            state: "CA",
+            route: null,
             channels: ["push"],
             isUnread: true,
         });
+        // Single-show entry: show details live in shows[0].
+        expect(body.data.items[0].shows).toHaveLength(1);
+        expect(body.data.items[0].shows[0]).toMatchObject({
+            showId: 555,
+            showPageUrl: "https://laugh-track.com/show/555",
+            subtitle: "The Comedy Store on Tuesday, June 30 at 7:00 pm PDT",
+            clubName: "The Comedy Store",
+            city: "Los Angeles",
+            state: "CA",
+        });
+    });
+
+    it("groups multiple shows for one comedian into a single tiered entry", async () => {
+        mockResolveAuth.mockResolvedValue({
+            userId: "user-1",
+            profileId: "profile-1",
+        });
+        const groupId = "run-abc";
+        mockFindNotifications.mockResolvedValue([
+            notificationRow({
+                notificationGroupId: groupId,
+                showId: 555,
+                show: {
+                    date: new Date("2026-07-01T02:00:00.000Z"),
+                    showPageUrl: "https://laugh-track.com/show/555",
+                    club: {
+                        name: "The Comedy Store",
+                        city: "Los Angeles",
+                        state: "CA",
+                        timezone: "America/Los_Angeles",
+                    },
+                },
+            }),
+            notificationRow({
+                notificationGroupId: groupId,
+                showId: 556,
+                show: {
+                    date: new Date("2026-07-05T02:00:00.000Z"),
+                    showPageUrl: "https://laugh-track.com/show/556",
+                    club: {
+                        name: "The Comedy Store",
+                        city: "Los Angeles",
+                        state: "CA",
+                        timezone: "America/Los_Angeles",
+                    },
+                },
+            }),
+        ] as never);
+
+        const res = await GET(makeGetRequest());
+
+        const body = await res.json();
+        expect(body.data.items).toHaveLength(1);
+        expect(body.data.items[0]).toMatchObject({
+            id: groupId,
+            title: "Taylor Tomlinson has 2 shows near you",
+            route: "favorites",
+            body: "The Comedy Store",
+        });
+        expect(
+            body.data.items[0].shows.map((s: { showId: number }) => s.showId),
+        ).toEqual([555, 556]);
+        expect(body.data.items[0].comedians).toHaveLength(1);
+    });
+
+    it("groups multiple comedians in a run into a digest entry", async () => {
+        mockResolveAuth.mockResolvedValue({
+            userId: "user-1",
+            profileId: "profile-1",
+        });
+        const groupId = "run-xyz";
+        mockFindNotifications.mockResolvedValue([
+            notificationRow({
+                notificationGroupId: groupId,
+                comedianId: "comedian-uuid-1",
+                showId: 555,
+                show: {
+                    date: new Date("2026-07-01T02:00:00.000Z"),
+                    showPageUrl: "https://laugh-track.com/show/555",
+                    club: {
+                        name: "The Comedy Store",
+                        city: "Los Angeles",
+                        state: "CA",
+                        timezone: "America/Los_Angeles",
+                    },
+                },
+            }),
+            notificationRow({
+                notificationGroupId: groupId,
+                comedianId: "comedian-uuid-2",
+                showId: 556,
+                comedian: {
+                    name: "Ian Fidance",
+                    hasImage: false,
+                    imageAssets: [],
+                },
+                show: {
+                    date: new Date("2026-07-05T02:00:00.000Z"),
+                    showPageUrl: "https://laugh-track.com/show/556",
+                    club: {
+                        name: "The Stand",
+                        city: "New York",
+                        state: "NY",
+                        timezone: "America/New_York",
+                    },
+                },
+            }),
+        ] as never);
+
+        const res = await GET(makeGetRequest());
+
+        const body = await res.json();
+        expect(body.data.items).toHaveLength(1);
+        expect(body.data.items[0]).toMatchObject({
+            id: groupId,
+            title: "2 comedians you follow have shows near you",
+            route: "favorites",
+            body: "The Comedy Store, The Stand",
+        });
+        expect(body.data.items[0].comedians).toHaveLength(2);
+        expect(body.data.items[0].shows).toHaveLength(2);
     });
 
     it("collapses email + push rows for the same (comedian, show) into one item", async () => {
@@ -359,8 +477,8 @@ describe("GET /api/v1/me/notifications", () => {
                 i.isUnread,
             ]),
         );
-        expect(byId["comedian-uuid-2:777"]).toBe(true);
-        expect(byId["comedian-uuid-1:555"]).toBe(false);
+        expect(byId["legacy:comedian-uuid-2:777"]).toBe(true);
+        expect(byId["legacy:comedian-uuid-1:555"]).toBe(false);
     });
 
     it("sorts items by newest notification send time, then soonest show time", async () => {
@@ -417,7 +535,9 @@ describe("GET /api/v1/me/notifications", () => {
 
         const body = await res.json();
         expect(
-            body.data.items.map((item: { showId: number }) => item.showId),
+            body.data.items.map(
+                (item: { shows: { showId: number }[] }) => item.shows[0].showId,
+            ),
         ).toEqual([102, 103, 101]);
     });
 
@@ -444,7 +564,7 @@ describe("GET /api/v1/me/notifications", () => {
             "A comedian you follow is performing near you",
         );
         expect(body.data.items[0].body).toBe("Mystery Room");
-        expect(body.data.items[0].showDate).toBeNull();
+        expect(body.data.items[0].shows[0].showDate).toBeNull();
     });
 
     it("does not leave a dangling separator when the club name is empty", async () => {

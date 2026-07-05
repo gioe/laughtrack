@@ -264,7 +264,7 @@ describe("GET /api/v1/me", () => {
         });
     });
 
-    it("counts unread notifications grouped by (comedian, show) when lastSeenAt is set", async () => {
+    it("counts unread entries (grouped runs + legacy per-show) when lastSeenAt is set", async () => {
         mockResolveAuth.mockResolvedValue({
             userId: "user-123",
             profileId: "profile-123",
@@ -284,10 +284,10 @@ describe("GET /api/v1/me", () => {
                 notificationsLastSeenAt: new Date("2026-06-20T00:00:00.000Z"),
             },
         } as never);
-        mockGroupBy.mockResolvedValue([
-            { comedianId: "c1", showId: 1 },
-            { comedianId: "c2", showId: 2 },
-        ] as never);
+        // First call: distinct grouped runs; second: legacy per-(comedian, show).
+        mockGroupBy
+            .mockResolvedValueOnce([{ notificationGroupId: "run-1" }] as never)
+            .mockResolvedValueOnce([{ comedianId: "c1", showId: 1 }] as never);
 
         const res = await GET(makeRequest());
 
@@ -295,9 +295,18 @@ describe("GET /api/v1/me", () => {
         const body = await res.json();
         expect(body.data.notificationsUnreadCount).toBe(2);
         expect(mockGroupBy).toHaveBeenCalledWith({
+            by: ["notificationGroupId"],
+            where: {
+                userId: "user-123",
+                notificationGroupId: { not: null },
+                sentAt: { gt: new Date("2026-06-20T00:00:00.000Z") },
+            },
+        });
+        expect(mockGroupBy).toHaveBeenCalledWith({
             by: ["comedianId", "showId"],
             where: {
                 userId: "user-123",
+                notificationGroupId: null,
                 sentAt: { gt: new Date("2026-06-20T00:00:00.000Z") },
             },
         });
@@ -323,15 +332,21 @@ describe("GET /api/v1/me", () => {
                 notificationsLastSeenAt: null,
             },
         } as never);
-        mockGroupBy.mockResolvedValue([{ comedianId: "c1", showId: 1 }] as never);
+        mockGroupBy
+            .mockResolvedValueOnce([{ notificationGroupId: "run-1" }] as never)
+            .mockResolvedValueOnce([] as never);
 
         const res = await GET(makeRequest());
 
         const body = await res.json();
         expect(body.data.notificationsUnreadCount).toBe(1);
         expect(mockGroupBy).toHaveBeenCalledWith({
+            by: ["notificationGroupId"],
+            where: { userId: "user-123", notificationGroupId: { not: null } },
+        });
+        expect(mockGroupBy).toHaveBeenCalledWith({
             by: ["comedianId", "showId"],
-            where: { userId: "user-123" },
+            where: { userId: "user-123", notificationGroupId: null },
         });
     });
 

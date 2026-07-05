@@ -986,12 +986,17 @@ model SentNotification {
   showId           Int      @map("show_id")
   notificationType String   @default("email") @map("notification_type")
   sentAt           DateTime @default(now()) @map("sent_at")
+  // Shared per (user, notification run) so the in-app notification center can
+  // group the rows back into the single push that was sent. Null for rows
+  // written before this column existed (the read model falls back to per-show).
+  notificationGroupId String? @map("notification_group_id")
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   comedian         Comedian @relation(fields: [comedianId], references: [uuid], onDelete: Cascade)
   show             Show     @relation(fields: [showId], references: [id], onDelete: Cascade)
 
   @@unique([userId, comedianId, showId, notificationType], name: "sent_notifications_unique_per_channel")
   @@index([userId])
+  @@index([userId, notificationGroupId])
   @@map("sent_notifications")
 }
 

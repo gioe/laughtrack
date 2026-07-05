@@ -77,18 +77,31 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
 
     // Unread notification badge count. A notification is unread when its sentAt
     // is newer than the user's last-seen high-water mark (null means the center
-    // was never opened -> everything counts). Group by (comedian, show) so the
-    // email+push rows for one event collapse to a single unread, matching the
-    // grouped GET /me/notifications feed.
+    // was never opened -> everything counts). Count distinct entries the same way
+    // GET /me/notifications groups them: one per notificationGroupId, and one per
+    // (comedian, show) for legacy rows that predate the group id.
     const lastSeenAt = user.profile?.notificationsLastSeenAt ?? null;
-    const unreadGroups = await db.sentNotification.groupBy({
-        by: ["comedianId", "showId"],
-        where: {
-            userId: user.id,
-            ...(lastSeenAt ? { sentAt: { gt: lastSeenAt } } : {}),
-        },
-    });
-    const notificationsUnreadCount = unreadGroups.length;
+    const unreadWhere = lastSeenAt ? { sentAt: { gt: lastSeenAt } } : {};
+    const [unreadGroups, unreadLegacyEvents] = await Promise.all([
+        db.sentNotification.groupBy({
+            by: ["notificationGroupId"],
+            where: {
+                userId: user.id,
+                notificationGroupId: { not: null },
+                ...unreadWhere,
+            },
+        }),
+        db.sentNotification.groupBy({
+            by: ["comedianId", "showId"],
+            where: {
+                userId: user.id,
+                notificationGroupId: null,
+                ...unreadWhere,
+            },
+        }),
+    ]);
+    const notificationsUnreadCount =
+        unreadGroups.length + unreadLegacyEvents.length;
 
     return NextResponse.json(
         {

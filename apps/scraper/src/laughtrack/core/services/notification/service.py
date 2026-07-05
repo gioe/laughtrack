@@ -13,6 +13,7 @@ import json
 import os
 import textwrap
 import time
+import uuid
 from dataclasses import dataclass
 from typing import Dict
 from urllib.parse import quote
@@ -108,8 +109,8 @@ ORDER BY user_id, show_date, comedian_name, notification_type, push_token_id
 """
 
 _INSERT_SENT_NOTIFICATION_SQL = """
-INSERT INTO sent_notifications (user_id, comedian_id, show_id, notification_type, sent_at)
-VALUES (%s, %s, %s, %s, NOW())
+INSERT INTO sent_notifications (user_id, comedian_id, show_id, notification_type, notification_group_id, sent_at)
+VALUES (%s, %s, %s, %s, %s, NOW())
 ON CONFLICT (user_id, comedian_id, show_id, notification_type) DO NOTHING
 """
 
@@ -330,6 +331,20 @@ def _format_show_subtitle(club_name: str, show_date: object, timezone: str | Non
 # Grouped pushes (multiple shows in one run) carry a generic CTA body; tapping
 # opens the Favorites tab, which renders upcoming shows from followed comedians.
 _GROUPED_PUSH_BODY = "Tap to see where and when"
+
+
+def _notification_group_id(cache: dict, user_id: object) -> str:
+    """One group id per (user, run), memoized in `cache` for the run.
+
+    Push and email records for the same user in the same run share it so the
+    in-app notification center can reconstruct the single notification that was
+    sent from its rows.
+    """
+    gid = cache.get(user_id)
+    if gid is None:
+        gid = uuid.uuid4().hex
+        cache[user_id] = gid
+    return gid
 
 
 def _build_grouped_push_copy(events: list[dict]) -> tuple[str, str]:
@@ -1260,6 +1275,9 @@ class ComedianArrivalNotificationService:
         # per (user, device token) after the loop, so a run's burst of shows for
         # one user collapses into a single push instead of one-per-show spam.
         push_groups: dict[tuple[object, object], dict] = {}
+        # One notification_group_id per (user, run), shared by that user's push and
+        # email records so the notification center can group them back together.
+        run_group_ids: dict[object, str] = {}
 
         for row in rows:
             notification_type = row.get("notification_type") or "email"
@@ -1384,6 +1402,7 @@ class ComedianArrivalNotificationService:
                     comedian_id=comedian_uuid,
                     show_id=show_id,
                     notification_type="email",
+                    notification_group_id=_notification_group_id(run_group_ids, user_id),
                 )
             except Exception as e:
                 Logger.error(
@@ -1403,7 +1422,7 @@ class ComedianArrivalNotificationService:
         # Grouped push delivery: one push per (user, device token) covering all of
         # this run's in-range shows for that user.
         for group in push_groups.values():
-            self._process_push_group(group, summary=summary, dry_run=dry_run)
+            self._process_push_group(group, summary=summary, dry_run=dry_run, group_ids=run_group_ids)
 
         Logger.info(
             f"ComedianArrivalNotificationService: done — "
@@ -1415,7 +1434,7 @@ class ComedianArrivalNotificationService:
         )
         return summary
 
-    def _process_push_group(self, group: dict, summary: dict, dry_run: bool) -> None:
+    def _process_push_group(self, group: dict, summary: dict, dry_run: bool, group_ids: dict) -> None:
         """Send one grouped push for a (user, device token) and record every show.
 
         A single-show group keeps the existing per-show copy (the sender builds
@@ -1512,6 +1531,7 @@ class ComedianArrivalNotificationService:
             summary["errors"] += 1
             return
 
+        group_id = _notification_group_id(group_ids, user_id)
         record_failed = False
         for event in events:
             try:
@@ -1520,6 +1540,7 @@ class ComedianArrivalNotificationService:
                     comedian_id=event["comedian_uuid"],
                     show_id=event["show_id"],
                     notification_type="push",
+                    notification_group_id=group_id,
                 )
             except Exception as e:
                 Logger.error(
@@ -1659,11 +1680,15 @@ class ComedianArrivalNotificationService:
         comedian_id: str,
         show_id: int,
         notification_type: str = "email",
+        notification_group_id: str | None = None,
     ) -> None:
         """Insert a SentNotification record to prevent duplicate deliveries per channel."""
         with get_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute(_INSERT_SENT_NOTIFICATION_SQL, (user_id, comedian_id, show_id, notification_type))
+                cur.execute(
+                    _INSERT_SENT_NOTIFICATION_SQL,
+                    (user_id, comedian_id, show_id, notification_type, notification_group_id),
+                )
 
     def _deactivate_push_token(self, token_id: str, reason: str, status_code: int) -> None:
         """Deactivate a device token rejected by APNs as invalid or expired."""

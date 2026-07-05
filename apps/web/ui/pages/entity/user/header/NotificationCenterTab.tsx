@@ -4,15 +4,30 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Bell, ChevronRight } from "lucide-react";
 
+interface NotificationShow {
+    showId: number;
+}
+
 interface NotificationItem {
     id: string;
     title: string;
     body: string;
-    showId: number;
+    shows: NotificationShow[];
+    // "favorites" for a grouped entry (link to the Favorites tab); null for a
+    // single-show entry (link to that show).
+    route: string | null;
     channels: string[];
     sentAt: string;
     isUnread: boolean;
 }
+
+// Single-show entries open the show; grouped entries open the Favorites tab
+// (same page, ?tab=favorites), which lists the upcoming shows.
+const notificationHref = (item: NotificationItem): string => {
+    if (item.route === "favorites") return "?tab=favorites";
+    const showId = item.shows[0]?.showId;
+    return showId != null ? `/show/${showId}` : "?tab=favorites";
+};
 
 interface NotificationCenterTabProps {
     /** Called after the feed loads and is marked seen, so the parent can clear
@@ -53,8 +68,8 @@ const relativeTime = (iso: string): string => {
  * Web mirror of the iOS notification center. Lists the comedian-arrival
  * notification history from GET /api/v1/me/notifications (cookie-authenticated
  * via resolveAuth), marks everything seen on view (clearing the unread badge),
- * and links each row to the show detail page. Capped server-side at the 100
- * most-recent — a bounded list, not infinite scroll.
+ * and links each row to its show (single-show) or the Favorites tab (grouped).
+ * Capped server-side at the 100 most-recent — a bounded list, not infinite scroll.
  */
 const NotificationCenterTab = ({ onSeen }: NotificationCenterTabProps) => {
     const [items, setItems] = useState<NotificationItem[] | null>(null);
@@ -116,8 +131,8 @@ const NotificationCenterTab = ({ onSeen }: NotificationCenterTabProps) => {
                         No notifications yet
                     </p>
                     <p className="text-muted-foreground text-sm font-dmSans">
-                        When a comedian you follow has a show near you, you&apos;ll
-                        see it here.
+                        When a comedian you follow has a show near you,
+                        you&apos;ll see it here.
                     </p>
                 </div>
             )}
@@ -127,43 +142,45 @@ const NotificationCenterTab = ({ onSeen }: NotificationCenterTabProps) => {
                     {items.map((item) => {
                         const relative = relativeTime(item.sentAt);
                         return (
-                        <li key={item.id}>
-                            <Link
-                                href={`/show/${item.showId}`}
-                                className="flex items-start gap-3 bg-surface-muted border border-subtle rounded-lg p-4 hover:shadow-floating transition-all"
-                            >
-                                <span
-                                    aria-hidden
-                                    className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${
-                                        item.isUnread
-                                            ? "bg-copper"
-                                            : "bg-transparent"
-                                    }`}
-                                />
-                                <span className="flex-1 min-w-0">
-                                    <span className="block font-semibold text-foreground">
-                                        {item.title}
-                                    </span>
-                                    {item.body && (
-                                        <span className="block text-sm text-muted-foreground font-dmSans">
-                                            {item.body}
+                            <li key={item.id}>
+                                <Link
+                                    href={notificationHref(item)}
+                                    className="flex items-start gap-3 bg-surface-muted border border-subtle rounded-lg p-4 hover:shadow-floating transition-all"
+                                >
+                                    <span
+                                        aria-hidden
+                                        className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${
+                                            item.isUnread
+                                                ? "bg-copper"
+                                                : "bg-transparent"
+                                        }`}
+                                    />
+                                    <span className="flex-1 min-w-0">
+                                        <span className="block font-semibold text-foreground">
+                                            {item.title}
                                         </span>
-                                    )}
-                                    <span className="mt-1 flex items-center gap-2 text-xs text-muted-foreground font-dmSans">
-                                        {item.channels.map((channel) => (
-                                            <span
-                                                key={channel}
-                                                className="uppercase tracking-wide border border-subtle rounded-full px-2 py-0.5"
-                                            >
-                                                {channel}
+                                        {item.body && (
+                                            <span className="block text-sm text-muted-foreground font-dmSans">
+                                                {item.body}
                                             </span>
-                                        ))}
-                                        {relative && <span>{relative}</span>}
+                                        )}
+                                        <span className="mt-1 flex items-center gap-2 text-xs text-muted-foreground font-dmSans">
+                                            {item.channels.map((channel) => (
+                                                <span
+                                                    key={channel}
+                                                    className="uppercase tracking-wide border border-subtle rounded-full px-2 py-0.5"
+                                                >
+                                                    {channel}
+                                                </span>
+                                            ))}
+                                            {relative && (
+                                                <span>{relative}</span>
+                                            )}
+                                        </span>
                                     </span>
-                                </span>
-                                <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0 mt-1" />
-                            </Link>
-                        </li>
+                                    <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0 mt-1" />
+                                </Link>
+                            </li>
                         );
                     })}
                 </ul>

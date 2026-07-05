@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from unittest.mock import MagicMock, patch
+from unittest.mock import ANY, MagicMock, patch
 
 import pytest
 
@@ -120,6 +120,7 @@ class TestRunSendsEmailForMatchingComedian:
             comedian_id="comedian-uuid-1",
             show_id=42,
             notification_type="email",
+            notification_group_id=ANY,
         )
 
 
@@ -160,6 +161,7 @@ class TestRunSendsPushForMatchingComedian:
             comedian_id="comedian-uuid-1",
             show_id=42,
             notification_type="push",
+            notification_group_id=ANY,
         )
 
     def test_deactivates_invalid_push_token_and_counts_error(self):
@@ -945,6 +947,7 @@ class TestRunRecordsSentNotification:
             comedian_id="comedian-abc",
             show_id=101,
             notification_type="email",
+            notification_group_id=ANY,
         )
 
     def test_record_notification_uses_correct_sql_params(self):
@@ -968,6 +971,7 @@ class TestRunRecordsSentNotification:
                 comedian_id="c1",
                 show_id=7,
                 notification_type="push",
+                notification_group_id="grp-1",
             )
 
         mock_cur.execute.assert_called_once()
@@ -976,7 +980,8 @@ class TestRunRecordsSentNotification:
         assert "ON CONFLICT" in sql_arg
         assert "DO NOTHING" in sql_arg
         assert "notification_type" in sql_arg
-        assert params_arg == ("u1", "c1", 7, "push")
+        assert "notification_group_id" in sql_arg
+        assert params_arg == ("u1", "c1", 7, "push", "grp-1")
 
 
 class TestPushCandidateSql:
@@ -1113,6 +1118,7 @@ class TestRunMultipleCandidates:
             comedian_id="comedian-a",
             show_id=1,
             notification_type="email",
+            notification_group_id=ANY,
         )
 
     def test_sends_to_all_within_radius(self):
@@ -1277,6 +1283,10 @@ class TestRunGroupsPushNotifications:
         assert mock_record.call_count == 3
         assert sorted(c.kwargs["show_id"] for c in mock_record.call_args_list) == [42, 43, 44]
         assert all(c.kwargs["notification_type"] == "push" for c in mock_record.call_args_list)
+        # All shows in the group share one notification_group_id (so the center can
+        # regroup them into the single push that was sent).
+        group_ids = {c.kwargs["notification_group_id"] for c in mock_record.call_args_list}
+        assert len(group_ids) == 1 and None not in group_ids
 
     def test_multiple_comedians_send_digest_push(self):
         rows = [
