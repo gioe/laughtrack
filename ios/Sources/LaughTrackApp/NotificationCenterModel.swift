@@ -115,13 +115,23 @@ enum NotificationSortOption: String, CaseIterable, Identifiable {
 /// `NotificationItem`. The model owns the API mapping so the view stays
 /// rendering-only and the mapping is unit-testable without hosting any SwiftUI.
 struct NotificationCenterItem: Identifiable, Equatable {
+    /// Where tapping the row navigates. A single-show entry opens that show; a
+    /// grouped entry opens the Favorites tab, which lists the entry's shows.
+    enum Tap: Equatable {
+        case show(Int)
+        case favorites
+    }
+
     let id: String
     let title: String
     let body: String
-    let showId: Int
+    let tap: Tap
     let channels: [String]
     let comedianImageURL: URL?
+    /// Soonest show date in the entry; drives the "upcoming show" sort.
     let showDate: Date?
+    /// True when at least one show in the entry is still upcoming (or undated).
+    let hasUpcomingShow: Bool
     /// Parsed from the ISO-8601 `sentAt`; nil if it could not be parsed.
     let sentAt: Date?
     let isUnread: Bool
@@ -130,12 +140,32 @@ struct NotificationCenterItem: Identifiable, Equatable {
         id = item.id
         title = item.title
         body = item.body
-        showId = item.showId
         channels = item.channels
         comedianImageURL = URL.normalizedExternalURL(item.comedianImageUrl)
-        showDate = NotificationCenterItem.parseTimestamp(item.showDate ?? "")
+
+        // shows are soonest-first per the API contract.
+        let showDates = item.shows.map { NotificationCenterItem.parseTimestamp($0.showDate ?? "") }
+        showDate = showDates.compactMap { $0 }.first
+        let now = Date()
+        hasUpcomingShow =
+            item.shows.isEmpty
+            || showDates.contains { date in
+                guard let date else { return true }  // undated → keep
+                return date > now
+            }
+
         sentAt = NotificationCenterItem.parseTimestamp(item.sentAt)
         isUnread = item.isUnread
+
+        // Grouped entries route to Favorites; single-show entries open the show.
+        // showId is still the older-client fallback but here we prefer `route`.
+        if item.route == "favorites" {
+            tap = .favorites
+        } else if let firstShow = item.shows.first {
+            tap = .show(firstShow.showId)
+        } else {
+            tap = .favorites
+        }
     }
 
     /// Test/preview convenience initializer.
@@ -143,20 +173,22 @@ struct NotificationCenterItem: Identifiable, Equatable {
         id: String,
         title: String,
         body: String,
-        showId: Int,
+        tap: Tap,
         channels: [String],
         comedianImageURL: URL? = nil,
         showDate: Date? = nil,
+        hasUpcomingShow: Bool = true,
         sentAt: Date?,
         isUnread: Bool
     ) {
         self.id = id
         self.title = title
         self.body = body
-        self.showId = showId
+        self.tap = tap
         self.channels = channels
         self.comedianImageURL = comedianImageURL
         self.showDate = showDate
+        self.hasUpcomingShow = hasUpcomingShow
         self.sentAt = sentAt
         self.isUnread = isUnread
     }
@@ -166,18 +198,14 @@ struct NotificationCenterItem: Identifiable, Equatable {
             id: id,
             title: title,
             body: body,
-            showId: showId,
+            tap: tap,
             channels: channels,
             comedianImageURL: comedianImageURL,
             showDate: showDate,
+            hasUpcomingShow: hasUpcomingShow,
             sentAt: sentAt,
             isUnread: false
         )
-    }
-
-    var isForUpcomingShow: Bool {
-        guard let showDate else { return true }
-        return showDate > Date()
     }
 
     func metadataLabels(relativeSentAt: String?) -> [String] {
@@ -232,7 +260,7 @@ final class NotificationCenterModel: ObservableObject {
                 let response = try ok.body.json
                 let items = response.data.items
                     .map(NotificationCenterItem.init(item:))
-                    .filter(\.isForUpcomingShow)
+                    .filter(\.hasUpcomingShow)
                 unreadCount = items.filter(\.isUnread).count
                 phase = .loaded(items)
             case .unauthorized, .unprocessableContent:

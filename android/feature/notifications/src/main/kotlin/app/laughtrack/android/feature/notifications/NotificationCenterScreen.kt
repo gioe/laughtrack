@@ -72,9 +72,9 @@ fun NotificationCenterScreen(
                 } else {
                     NotificationList(
                         items = current.value.items,
-                        onCardTap = { showId ->
-                            viewModel.onCardTapped(showId)
-                            onOpenEntity(AppRoute.ShowDetail(showId))
+                        onCardTap = { route, analyticsShowId ->
+                            viewModel.onCardTapped(analyticsShowId)
+                            onOpenEntity(route)
                         },
                         modifier = modifier,
                     )
@@ -87,17 +87,30 @@ fun NotificationCenterScreen(
 @Composable
 private fun NotificationList(
     items: List<NotificationItem>,
-    onCardTap: (Int) -> Unit,
+    onCardTap: (AppRoute, Int) -> Unit,
     modifier: Modifier,
 ) {
     val now = remember { ZonedDateTime.now() }
     LazyColumn(modifier.fillMaxSize()) {
         items(items, key = { it.id }) { item ->
-            NotificationRow(item, now) { onCardTap(item.showId) }
+            NotificationRow(item, now) { onCardTap(item.tapRoute(), item.analyticsShowId()) }
             HorizontalDivider()
         }
     }
 }
+
+/** A single-show entry opens that show; a grouped entry opens the Favorites tab
+ *  (which lists the shows). Mirrors the grouped push's route key. */
+private fun NotificationItem.tapRoute(): AppRoute =
+    if (route == "favorites") {
+        AppRoute.Favorites
+    } else {
+        shows.firstOrNull()?.let { AppRoute.ShowDetail(it.showId) } ?: AppRoute.Favorites
+    }
+
+/** Show id for the tap analytics event; 0 for a grouped (Favorites) tap. */
+private fun NotificationItem.analyticsShowId(): Int =
+    if (route == "favorites") 0 else shows.firstOrNull()?.showId ?: 0
 
 @Composable
 private fun NotificationRow(

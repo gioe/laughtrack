@@ -46,6 +46,7 @@ object PushNotifications {
         showId: String?,
         url: String?,
         imageUrl: String? = null,
+        route: String? = null,
     ) {
         ensureChannel(context)
         if (!hasPostPermission(context)) return
@@ -55,6 +56,9 @@ object PushNotifications {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
                 showId?.let { putExtra("showId", it) }
                 url?.let { putExtra("url", it) }
+                // Grouped pushes set route so the tap opens the Favorites tab;
+                // MainActivity routes it ahead of the showId fallback.
+                route?.let { putExtra("route", it) }
             }
         // Distinct ids so unrelated pushes stack instead of replacing each other
         // under FLAG_UPDATE_CURRENT; comedian-arrival pushes always carry a showId.

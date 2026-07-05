@@ -15,6 +15,8 @@
 
 package app.laughtrack.android.core.network.generated.model
 
+import app.laughtrack.android.core.network.generated.model.NotificationComedian
+import app.laughtrack.android.core.network.generated.model.NotificationShow
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
@@ -23,85 +25,70 @@ import kotlinx.serialization.Contextual
 /**
  * 
  *
- * @param id Stable group id, formatted comedianId:showId.
- * @param title Reconstructed headline, e.g. \"Taylor Tomlinson is performing near you\".
- * @param body Reconstructed subtitle: club name and location joined by a separator.
- * @param comedianId Comedian UUID the notification is about.
- * @param comedianName Comedian display name.
- * @param showId Show id; the tap target deep-links to show detail.
- * @param channels Delivery channels that fired for this event, e.g. [\"push\", \"email\"].
- * @param sentAt ISO-8601 timestamp of the most recent delivery in the group.
- * @param isUnread Whether this item's latest send is newer than the last-seen mark.
- * @param comedianImageUrl Avatar image URL for the comedian, or an empty string when unavailable.
- * @param showPageUrl Canonical show page URL.
- * @param showDate ISO-8601 show date; null if the show row was purged.
- * @param clubName Venue name.
- * @param city Venue city.
- * @param state Venue state.
+ * @param id Stable entry id: the notification group id, or \"legacy:{comedianId}:{showId}\" for pre-grouping rows.
+ * @param title Reconstructed headline mirroring the push, e.g. \"Taylor Tomlinson has 2 shows near you\".
+ * @param body Single-show subtitle; empty string for a grouped entry (render `shows` instead).
+ * @param comedianName Primary comedian display name for the row.
+ * @param comedianImageUrl Primary comedian avatar URL for the row, or an empty string.
+ * @param comedians Distinct comedians in the entry, soonest-show first.
+ * @param shows Shows in the entry, soonest first. A single-show entry has exactly one.
+ * @param channels Delivery channels that fired for this entry, e.g. [\"push\", \"email\"].
+ * @param sentAt ISO-8601 timestamp of the most recent delivery in the entry.
+ * @param isUnread Whether this entry's latest send is newer than the last-seen mark.
+ * @param comedianId Primary (soonest-show) comedian UUID; null when unknown.
+ * @param route \"favorites\" for a grouped entry (tap opens the Favorites tab); null for a single-show entry (tap opens shows[0]).
  */
 @Serializable
 
 data class NotificationItem (
 
-    /* Stable group id, formatted comedianId:showId. */
+    /* Stable entry id: the notification group id, or \"legacy:{comedianId}:{showId}\" for pre-grouping rows. */
     @SerialName(value = "id")
     val id: kotlin.String,
 
-    /* Reconstructed headline, e.g. \"Taylor Tomlinson is performing near you\". */
+    /* Reconstructed headline mirroring the push, e.g. \"Taylor Tomlinson has 2 shows near you\". */
     @SerialName(value = "title")
     val title: kotlin.String,
 
-    /* Reconstructed subtitle: club name and location joined by a separator. */
+    /* Single-show subtitle; empty string for a grouped entry (render `shows` instead). */
     @SerialName(value = "body")
     val body: kotlin.String,
 
-    /* Comedian UUID the notification is about. */
-    @SerialName(value = "comedianId")
-    val comedianId: kotlin.String,
-
-    /* Comedian display name. */
+    /* Primary comedian display name for the row. */
     @SerialName(value = "comedianName")
     val comedianName: kotlin.String,
 
-    /* Show id; the tap target deep-links to show detail. */
-    @SerialName(value = "showId")
-    val showId: kotlin.Int,
+    /* Primary comedian avatar URL for the row, or an empty string. */
+    @SerialName(value = "comedianImageUrl")
+    val comedianImageUrl: kotlin.String,
 
-    /* Delivery channels that fired for this event, e.g. [\"push\", \"email\"]. */
+    /* Distinct comedians in the entry, soonest-show first. */
+    @SerialName(value = "comedians")
+    val comedians: kotlin.collections.List<NotificationComedian>,
+
+    /* Shows in the entry, soonest first. A single-show entry has exactly one. */
+    @SerialName(value = "shows")
+    val shows: kotlin.collections.List<NotificationShow>,
+
+    /* Delivery channels that fired for this entry, e.g. [\"push\", \"email\"]. */
     @SerialName(value = "channels")
     val channels: kotlin.collections.List<kotlin.String>,
 
-    /* ISO-8601 timestamp of the most recent delivery in the group. */
+    /* ISO-8601 timestamp of the most recent delivery in the entry. */
     @SerialName(value = "sentAt")
     val sentAt: kotlin.String,
 
-    /* Whether this item's latest send is newer than the last-seen mark. */
+    /* Whether this entry's latest send is newer than the last-seen mark. */
     @SerialName(value = "isUnread")
     val isUnread: kotlin.Boolean,
 
-    /* Avatar image URL for the comedian, or an empty string when unavailable. */
-    @SerialName(value = "comedianImageUrl")
-    val comedianImageUrl: kotlin.String? = null,
+    /* Primary (soonest-show) comedian UUID; null when unknown. */
+    @SerialName(value = "comedianId")
+    val comedianId: kotlin.String? = null,
 
-    /* Canonical show page URL. */
-    @SerialName(value = "showPageUrl")
-    val showPageUrl: kotlin.String? = null,
-
-    /* ISO-8601 show date; null if the show row was purged. */
-    @SerialName(value = "showDate")
-    val showDate: kotlin.String? = null,
-
-    /* Venue name. */
-    @SerialName(value = "clubName")
-    val clubName: kotlin.String? = null,
-
-    /* Venue city. */
-    @SerialName(value = "city")
-    val city: kotlin.String? = null,
-
-    /* Venue state. */
-    @SerialName(value = "state")
-    val state: kotlin.String? = null
+    /* \"favorites\" for a grouped entry (tap opens the Favorites tab); null for a single-show entry (tap opens shows[0]). */
+    @SerialName(value = "route")
+    val route: kotlin.String? = null
 
 ) {
 

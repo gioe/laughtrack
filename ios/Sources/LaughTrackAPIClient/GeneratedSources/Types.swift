@@ -1110,99 +1110,183 @@ public enum Components {
                 case data
             }
         }
-        /// - Remark: Generated from `#/components/schemas/NotificationItem`.
-        public struct NotificationItem: Codable, Hashable, Sendable {
-            /// Stable group id, formatted comedianId:showId.
+        /// - Remark: Generated from `#/components/schemas/NotificationShow`.
+        public struct NotificationShow: Codable, Hashable, Sendable {
+            /// Show id; a single-show entry deep-links here on tap.
             ///
-            /// - Remark: Generated from `#/components/schemas/NotificationItem/id`.
-            public var id: Swift.String
-            /// Reconstructed headline, e.g. "Taylor Tomlinson is performing near you".
-            ///
-            /// - Remark: Generated from `#/components/schemas/NotificationItem/title`.
-            public var title: Swift.String
-            /// Reconstructed subtitle: club name and location joined by a separator.
-            ///
-            /// - Remark: Generated from `#/components/schemas/NotificationItem/body`.
-            public var body: Swift.String
-            /// Comedian UUID the notification is about.
-            ///
-            /// - Remark: Generated from `#/components/schemas/NotificationItem/comedianId`.
-            public var comedianId: Swift.String
-            /// Comedian display name.
-            ///
-            /// - Remark: Generated from `#/components/schemas/NotificationItem/comedianName`.
-            public var comedianName: Swift.String
-            /// Avatar image URL for the comedian, or an empty string when unavailable.
-            ///
-            /// - Remark: Generated from `#/components/schemas/NotificationItem/comedianImageUrl`.
-            public var comedianImageUrl: Swift.String?
-            /// Show id; the tap target deep-links to show detail.
-            ///
-            /// - Remark: Generated from `#/components/schemas/NotificationItem/showId`.
+            /// - Remark: Generated from `#/components/schemas/NotificationShow/showId`.
             public var showId: Swift.Int
+            /// Per-show line, e.g. "The Comedy Store on Tuesday, June 30 at 7:00 pm PDT".
+            ///
+            /// - Remark: Generated from `#/components/schemas/NotificationShow/subtitle`.
+            public var subtitle: Swift.String
             /// Canonical show page URL.
             ///
-            /// - Remark: Generated from `#/components/schemas/NotificationItem/showPageUrl`.
+            /// - Remark: Generated from `#/components/schemas/NotificationShow/showPageUrl`.
             public var showPageUrl: Swift.String?
             /// ISO-8601 show date; null if the show row was purged.
             ///
-            /// - Remark: Generated from `#/components/schemas/NotificationItem/showDate`.
+            /// - Remark: Generated from `#/components/schemas/NotificationShow/showDate`.
             public var showDate: Swift.String?
             /// Venue name.
             ///
-            /// - Remark: Generated from `#/components/schemas/NotificationItem/clubName`.
+            /// - Remark: Generated from `#/components/schemas/NotificationShow/clubName`.
             public var clubName: Swift.String?
             /// Venue city.
             ///
-            /// - Remark: Generated from `#/components/schemas/NotificationItem/city`.
+            /// - Remark: Generated from `#/components/schemas/NotificationShow/city`.
             public var city: Swift.String?
             /// Venue state.
             ///
-            /// - Remark: Generated from `#/components/schemas/NotificationItem/state`.
+            /// - Remark: Generated from `#/components/schemas/NotificationShow/state`.
             public var state: Swift.String?
-            /// Delivery channels that fired for this event, e.g. ["push", "email"].
+            /// Creates a new `NotificationShow`.
+            ///
+            /// - Parameters:
+            ///   - showId: Show id; a single-show entry deep-links here on tap.
+            ///   - subtitle: Per-show line, e.g. "The Comedy Store on Tuesday, June 30 at 7:00 pm PDT".
+            ///   - showPageUrl: Canonical show page URL.
+            ///   - showDate: ISO-8601 show date; null if the show row was purged.
+            ///   - clubName: Venue name.
+            ///   - city: Venue city.
+            ///   - state: Venue state.
+            public init(
+                showId: Swift.Int,
+                subtitle: Swift.String,
+                showPageUrl: Swift.String? = nil,
+                showDate: Swift.String? = nil,
+                clubName: Swift.String? = nil,
+                city: Swift.String? = nil,
+                state: Swift.String? = nil
+            ) {
+                self.showId = showId
+                self.subtitle = subtitle
+                self.showPageUrl = showPageUrl
+                self.showDate = showDate
+                self.clubName = clubName
+                self.city = city
+                self.state = state
+            }
+            public enum CodingKeys: String, CodingKey {
+                case showId
+                case subtitle
+                case showPageUrl
+                case showDate
+                case clubName
+                case city
+                case state
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/NotificationComedian`.
+        public struct NotificationComedian: Codable, Hashable, Sendable {
+            /// Comedian UUID.
+            ///
+            /// - Remark: Generated from `#/components/schemas/NotificationComedian/comedianId`.
+            public var comedianId: Swift.String
+            /// Comedian display name.
+            ///
+            /// - Remark: Generated from `#/components/schemas/NotificationComedian/comedianName`.
+            public var comedianName: Swift.String
+            /// Avatar image URL, or an empty string when unavailable.
+            ///
+            /// - Remark: Generated from `#/components/schemas/NotificationComedian/comedianImageUrl`.
+            public var comedianImageUrl: Swift.String
+            /// Creates a new `NotificationComedian`.
+            ///
+            /// - Parameters:
+            ///   - comedianId: Comedian UUID.
+            ///   - comedianName: Comedian display name.
+            ///   - comedianImageUrl: Avatar image URL, or an empty string when unavailable.
+            public init(
+                comedianId: Swift.String,
+                comedianName: Swift.String,
+                comedianImageUrl: Swift.String
+            ) {
+                self.comedianId = comedianId
+                self.comedianName = comedianName
+                self.comedianImageUrl = comedianImageUrl
+            }
+            public enum CodingKeys: String, CodingKey {
+                case comedianId
+                case comedianName
+                case comedianImageUrl
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/NotificationItem`.
+        public struct NotificationItem: Codable, Hashable, Sendable {
+            /// Stable entry id: the notification group id, or "legacy:{comedianId}:{showId}" for pre-grouping rows.
+            ///
+            /// - Remark: Generated from `#/components/schemas/NotificationItem/id`.
+            public var id: Swift.String
+            /// Reconstructed headline mirroring the push, e.g. "Taylor Tomlinson has 2 shows near you".
+            ///
+            /// - Remark: Generated from `#/components/schemas/NotificationItem/title`.
+            public var title: Swift.String
+            /// Single-show subtitle; empty string for a grouped entry (render `shows` instead).
+            ///
+            /// - Remark: Generated from `#/components/schemas/NotificationItem/body`.
+            public var body: Swift.String
+            /// Primary (soonest-show) comedian UUID; null when unknown.
+            ///
+            /// - Remark: Generated from `#/components/schemas/NotificationItem/comedianId`.
+            public var comedianId: Swift.String?
+            /// Primary comedian display name for the row.
+            ///
+            /// - Remark: Generated from `#/components/schemas/NotificationItem/comedianName`.
+            public var comedianName: Swift.String
+            /// Primary comedian avatar URL for the row, or an empty string.
+            ///
+            /// - Remark: Generated from `#/components/schemas/NotificationItem/comedianImageUrl`.
+            public var comedianImageUrl: Swift.String
+            /// Distinct comedians in the entry, soonest-show first.
+            ///
+            /// - Remark: Generated from `#/components/schemas/NotificationItem/comedians`.
+            public var comedians: [Components.Schemas.NotificationComedian]
+            /// Shows in the entry, soonest first. A single-show entry has exactly one.
+            ///
+            /// - Remark: Generated from `#/components/schemas/NotificationItem/shows`.
+            public var shows: [Components.Schemas.NotificationShow]
+            /// "favorites" for a grouped entry (tap opens the Favorites tab); null for a single-show entry (tap opens shows[0]).
+            ///
+            /// - Remark: Generated from `#/components/schemas/NotificationItem/route`.
+            public var route: Swift.String?
+            /// Delivery channels that fired for this entry, e.g. ["push", "email"].
             ///
             /// - Remark: Generated from `#/components/schemas/NotificationItem/channels`.
             public var channels: [Swift.String]
-            /// ISO-8601 timestamp of the most recent delivery in the group.
+            /// ISO-8601 timestamp of the most recent delivery in the entry.
             ///
             /// - Remark: Generated from `#/components/schemas/NotificationItem/sentAt`.
             public var sentAt: Swift.String
-            /// Whether this item's latest send is newer than the last-seen mark.
+            /// Whether this entry's latest send is newer than the last-seen mark.
             ///
             /// - Remark: Generated from `#/components/schemas/NotificationItem/isUnread`.
             public var isUnread: Swift.Bool
             /// Creates a new `NotificationItem`.
             ///
             /// - Parameters:
-            ///   - id: Stable group id, formatted comedianId:showId.
-            ///   - title: Reconstructed headline, e.g. "Taylor Tomlinson is performing near you".
-            ///   - body: Reconstructed subtitle: club name and location joined by a separator.
-            ///   - comedianId: Comedian UUID the notification is about.
-            ///   - comedianName: Comedian display name.
-            ///   - comedianImageUrl: Avatar image URL for the comedian, or an empty string when unavailable.
-            ///   - showId: Show id; the tap target deep-links to show detail.
-            ///   - showPageUrl: Canonical show page URL.
-            ///   - showDate: ISO-8601 show date; null if the show row was purged.
-            ///   - clubName: Venue name.
-            ///   - city: Venue city.
-            ///   - state: Venue state.
-            ///   - channels: Delivery channels that fired for this event, e.g. ["push", "email"].
-            ///   - sentAt: ISO-8601 timestamp of the most recent delivery in the group.
-            ///   - isUnread: Whether this item's latest send is newer than the last-seen mark.
+            ///   - id: Stable entry id: the notification group id, or "legacy:{comedianId}:{showId}" for pre-grouping rows.
+            ///   - title: Reconstructed headline mirroring the push, e.g. "Taylor Tomlinson has 2 shows near you".
+            ///   - body: Single-show subtitle; empty string for a grouped entry (render `shows` instead).
+            ///   - comedianId: Primary (soonest-show) comedian UUID; null when unknown.
+            ///   - comedianName: Primary comedian display name for the row.
+            ///   - comedianImageUrl: Primary comedian avatar URL for the row, or an empty string.
+            ///   - comedians: Distinct comedians in the entry, soonest-show first.
+            ///   - shows: Shows in the entry, soonest first. A single-show entry has exactly one.
+            ///   - route: "favorites" for a grouped entry (tap opens the Favorites tab); null for a single-show entry (tap opens shows[0]).
+            ///   - channels: Delivery channels that fired for this entry, e.g. ["push", "email"].
+            ///   - sentAt: ISO-8601 timestamp of the most recent delivery in the entry.
+            ///   - isUnread: Whether this entry's latest send is newer than the last-seen mark.
             public init(
                 id: Swift.String,
                 title: Swift.String,
                 body: Swift.String,
-                comedianId: Swift.String,
+                comedianId: Swift.String? = nil,
                 comedianName: Swift.String,
-                comedianImageUrl: Swift.String? = nil,
-                showId: Swift.Int,
-                showPageUrl: Swift.String? = nil,
-                showDate: Swift.String? = nil,
-                clubName: Swift.String? = nil,
-                city: Swift.String? = nil,
-                state: Swift.String? = nil,
+                comedianImageUrl: Swift.String,
+                comedians: [Components.Schemas.NotificationComedian],
+                shows: [Components.Schemas.NotificationShow],
+                route: Swift.String? = nil,
                 channels: [Swift.String],
                 sentAt: Swift.String,
                 isUnread: Swift.Bool
@@ -1213,12 +1297,9 @@ public enum Components {
                 self.comedianId = comedianId
                 self.comedianName = comedianName
                 self.comedianImageUrl = comedianImageUrl
-                self.showId = showId
-                self.showPageUrl = showPageUrl
-                self.showDate = showDate
-                self.clubName = clubName
-                self.city = city
-                self.state = state
+                self.comedians = comedians
+                self.shows = shows
+                self.route = route
                 self.channels = channels
                 self.sentAt = sentAt
                 self.isUnread = isUnread
@@ -1230,12 +1311,9 @@ public enum Components {
                 case comedianId
                 case comedianName
                 case comedianImageUrl
-                case showId
-                case showPageUrl
-                case showDate
-                case clubName
-                case city
-                case state
+                case comedians
+                case shows
+                case route
                 case channels
                 case sentAt
                 case isUnread

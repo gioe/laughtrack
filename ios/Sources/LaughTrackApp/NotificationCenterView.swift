@@ -53,13 +53,24 @@ struct NotificationCenterView: View {
 
                         ForEach(model.sortedItems) { item in
                             Button {
-                                analytics?.track(
-                                    NotificationsAnalyticsEvents.cardTapped,
-                                    parameters: [
-                                        NotificationsAnalyticsEvents.Param.showId: item.showId
-                                    ]
-                                )
-                                coordinator.push(.showDetail(item.showId))
+                                switch item.tap {
+                                case .show(let showId):
+                                    analytics?.track(
+                                        NotificationsAnalyticsEvents.cardTapped,
+                                        parameters: [
+                                            NotificationsAnalyticsEvents.Param.showId: showId
+                                        ]
+                                    )
+                                    coordinator.push(.showDetail(showId))
+                                case .favorites:
+                                    analytics?.track(
+                                        NotificationsAnalyticsEvents.cardTapped,
+                                        parameters: [
+                                            NotificationsAnalyticsEvents.Param.showId: 0
+                                        ]
+                                    )
+                                    coordinator.push(.library)
+                                }
                             } label: {
                                 NotificationRow(item: item)
                             }

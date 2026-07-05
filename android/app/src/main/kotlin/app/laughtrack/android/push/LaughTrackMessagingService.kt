@@ -35,6 +35,7 @@ class LaughTrackMessagingService : FirebaseMessagingService() {
             showId = data["showId"],
             url = data["url"],
             imageUrl = data["imageUrl"],
+            route = data["route"],
         )
     }
 }

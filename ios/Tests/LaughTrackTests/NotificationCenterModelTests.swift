@@ -31,7 +31,7 @@ struct NotificationCenterModelTests {
         #expect(items.count == 2)
         #expect(items[0].id == "c1:555")
         #expect(items[0].title == "Taylor Tomlinson is performing near you")
-        #expect(items[0].showId == 555)
+        #expect(items[0].tap == .show(555))
         #expect(items[0].comedianImageURL == URL(string: "https://example.com/taylor.jpg"))
         #expect(items[0].channels == ["push", "email"])
         #expect(items[0].isUnread == true)
@@ -159,16 +159,13 @@ struct NotificationCenterModelTests {
         let generated = Components.Schemas.NotificationItem(
             id: "c1:555",
             title: "X is performing near you",
-            body: "The Store · LA, CA",
+            body: "The Store on Tuesday, June 30",
             comedianId: "c1",
             comedianName: "X",
             comedianImageUrl: "https://example.com/x.jpg",
-            showId: 555,
-            showPageUrl: nil,
-            showDate: nil,
-            clubName: "The Store",
-            city: "LA",
-            state: "CA",
+            comedians: [.init(comedianId: "c1", comedianName: "X", comedianImageUrl: "https://example.com/x.jpg")],
+            shows: [.init(showId: 555, subtitle: "The Store on Tuesday, June 30", showPageUrl: nil, showDate: nil, clubName: "The Store", city: "LA", state: "CA")],
+            route: nil,
             channels: ["push"],
             sentAt: "2026-06-20T12:00:00.000Z",
             isUnread: true
@@ -176,11 +173,33 @@ struct NotificationCenterModelTests {
 
         let item = NotificationCenterItem(item: generated)
 
-        #expect(item.showId == 555)
+        #expect(item.tap == .show(555))
         #expect(item.comedianImageURL == URL(string: "https://example.com/x.jpg"))
         #expect(item.channels == ["push"])
         #expect(item.sentAt != nil)
         #expect(item.markedRead().isUnread == false)
+    }
+
+    @Test("a grouped entry with route=favorites taps into Favorites")
+    func groupedItemTapsFavorites() async {
+        let transport = NotificationsMockTransport(
+            list: .init(data: .init(
+                items: [groupedSampleItem(id: "run-1", isUnread: true)],
+                unreadCount: 1,
+                lastSeenAt: nil
+            ))
+        )
+        let model = NotificationCenterModel()
+
+        await model.reload(apiClient: makeClient(transport))
+
+        guard case .loaded(let items) = model.phase else {
+            Issue.record("Expected .loaded, got \(model.phase)")
+            return
+        }
+        #expect(items.count == 1)
+        #expect(items[0].tap == .favorites)
+        #expect(items[0].title == "2 comedians you follow have shows near you")
     }
 
     @Test("NotificationCenterItem tolerates missing comedian image URL")
@@ -188,15 +207,13 @@ struct NotificationCenterModelTests {
         let generated = Components.Schemas.NotificationItem(
             id: "c1:555",
             title: "X is performing near you",
-            body: "The Store · LA, CA",
+            body: "The Store on Tuesday, June 30",
             comedianId: "c1",
             comedianName: "X",
-            showId: 555,
-            showPageUrl: nil,
-            showDate: nil,
-            clubName: "The Store",
-            city: "LA",
-            state: "CA",
+            comedianImageUrl: "",
+            comedians: [.init(comedianId: "c1", comedianName: "X", comedianImageUrl: "")],
+            shows: [.init(showId: 555, subtitle: "The Store on Tuesday, June 30", showPageUrl: nil, showDate: nil, clubName: "The Store", city: "LA", state: "CA")],
+            route: nil,
             channels: ["push"],
             sentAt: "2026-06-20T12:00:00.000Z",
             isUnread: true
@@ -213,8 +230,8 @@ struct NotificationCenterModelTests {
         let item = NotificationCenterItem(
             id: "c1:555",
             title: "X is performing near you",
-            body: "The Store · LA, CA",
-            showId: 555,
+            body: "The Store on Tuesday, June 30",
+            tap: .show(555),
             channels: ["push", "email"],
             comedianImageURL: URL(string: "https://example.com/x.jpg"),
             sentAt: Date(timeIntervalSince1970: 0),
@@ -239,20 +256,59 @@ private func sampleItem(
     isUnread: Bool,
     showDate: String? = "2999-07-01T02:00:00.000Z"
 ) -> Components.Schemas.NotificationItem {
-    .init(
+    let comedianId = String(id.split(separator: ":").first ?? "")
+    let showId = Int(id.split(separator: ":").last ?? "0") ?? 0
+    return .init(
         id: id,
         title: "Taylor Tomlinson is performing near you",
-        body: "The Comedy Store · Los Angeles, CA",
-        comedianId: String(id.split(separator: ":").first ?? ""),
+        body: "The Comedy Store on Tuesday, June 30 at 7:00 pm PDT",
+        comedianId: comedianId,
         comedianName: "Taylor Tomlinson",
         comedianImageUrl: "https://example.com/taylor.jpg",
-        showId: Int(id.split(separator: ":").last ?? "0") ?? 0,
-        showPageUrl: "https://laugh-track.com/show/555",
-        showDate: showDate,
-        clubName: "The Comedy Store",
-        city: "Los Angeles",
-        state: "CA",
+        comedians: [
+            .init(
+                comedianId: comedianId,
+                comedianName: "Taylor Tomlinson",
+                comedianImageUrl: "https://example.com/taylor.jpg"
+            )
+        ],
+        shows: [
+            .init(
+                showId: showId,
+                subtitle: "The Comedy Store on Tuesday, June 30 at 7:00 pm PDT",
+                showPageUrl: "https://laugh-track.com/show/\(showId)",
+                showDate: showDate,
+                clubName: "The Comedy Store",
+                city: "Los Angeles",
+                state: "CA"
+            )
+        ],
+        route: nil,
         channels: ["push", "email"],
+        sentAt: "2026-06-20T12:00:00.000Z",
+        isUnread: isUnread
+    )
+}
+
+/// A grouped entry: multiple shows across comedians, tapping into Favorites.
+private func groupedSampleItem(id: String, isUnread: Bool) -> Components.Schemas.NotificationItem {
+    .init(
+        id: id,
+        title: "2 comedians you follow have shows near you",
+        body: "The Comedy Store, The Stand",
+        comedianId: "c1",
+        comedianName: "Taylor Tomlinson",
+        comedianImageUrl: "https://example.com/taylor.jpg",
+        comedians: [
+            .init(comedianId: "c1", comedianName: "Taylor Tomlinson", comedianImageUrl: "https://example.com/taylor.jpg"),
+            .init(comedianId: "c2", comedianName: "Ian Fidance", comedianImageUrl: "")
+        ],
+        shows: [
+            .init(showId: 555, subtitle: "The Comedy Store on Tue, Jun 30", showPageUrl: nil, showDate: "2999-07-01T02:00:00.000Z", clubName: "The Comedy Store", city: "LA", state: "CA"),
+            .init(showId: 777, subtitle: "The Stand on Sat, Jul 4", showPageUrl: nil, showDate: "2999-07-05T02:00:00.000Z", clubName: "The Stand", city: "NY", state: "NY")
+        ],
+        route: "favorites",
+        channels: ["push"],
         sentAt: "2026-06-20T12:00:00.000Z",
         isUnread: isUnread
     )
@@ -264,7 +320,7 @@ private func sortableItems() -> [NotificationCenterItem] {
             id: "oldest-send",
             title: "Oldest",
             body: "",
-            showId: 1,
+            tap: .show(1),
             channels: ["push"],
             showDate: NotificationCenterItem.parseTimestamp("2026-07-01T02:00:00.000Z"),
             sentAt: NotificationCenterItem.parseTimestamp("2026-06-20T10:00:00.000Z"),
@@ -274,7 +330,7 @@ private func sortableItems() -> [NotificationCenterItem] {
             id: "same-send-later-show",
             title: "Later",
             body: "",
-            showId: 2,
+            tap: .show(2),
             channels: ["push"],
             showDate: NotificationCenterItem.parseTimestamp("2026-08-01T02:00:00.000Z"),
             sentAt: NotificationCenterItem.parseTimestamp("2026-06-20T12:00:00.000Z"),
@@ -284,7 +340,7 @@ private func sortableItems() -> [NotificationCenterItem] {
             id: "same-send-sooner-show",
             title: "Sooner",
             body: "",
-            showId: 3,
+            tap: .show(3),
             channels: ["push"],
             showDate: NotificationCenterItem.parseTimestamp("2026-07-15T02:00:00.000Z"),
             sentAt: NotificationCenterItem.parseTimestamp("2026-06-20T12:00:00.000Z"),
@@ -294,7 +350,7 @@ private func sortableItems() -> [NotificationCenterItem] {
             id: "newest-send",
             title: "Newest",
             body: "",
-            showId: 4,
+            tap: .show(4),
             channels: ["push"],
             showDate: NotificationCenterItem.parseTimestamp("2026-09-01T02:00:00.000Z"),
             sentAt: NotificationCenterItem.parseTimestamp("2026-06-20T13:00:00.000Z"),
