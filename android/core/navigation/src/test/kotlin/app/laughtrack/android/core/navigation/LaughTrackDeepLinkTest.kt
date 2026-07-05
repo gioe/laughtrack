@@ -52,6 +52,26 @@ class LaughTrackDeepLinkTest {
     }
 
     @Test
+    fun push_payload_route_favorites_opens_favorites_tab() {
+        assertEquals(
+            AppRoute.Favorites,
+            LaughTrackDeepLink.routeFromPush(mapOf("route" to "favorites")),
+        )
+    }
+
+    @Test
+    fun push_payload_route_wins_over_url_and_showId_fallback() {
+        // Grouped pushes still carry a url + showId as the older-client fallback;
+        // a present route must take precedence over both.
+        assertEquals(
+            AppRoute.Favorites,
+            LaughTrackDeepLink.routeFromPush(
+                mapOf("route" to "favorites", "url" to "laughtrack://show/42", "showId" to "42"),
+            ),
+        )
+    }
+
+    @Test
     fun push_payload_with_invalid_url_falls_back_to_showId() {
         // A present-but-unparseable url must not short-circuit the numeric showId.
         assertEquals(

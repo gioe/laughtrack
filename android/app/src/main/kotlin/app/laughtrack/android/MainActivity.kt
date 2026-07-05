@@ -125,6 +125,7 @@ class MainActivity : ComponentActivity() {
             mapOf(
                 "url" to intent.getStringExtra("url"),
                 "showId" to intent.getStringExtra("showId"),
+                "route" to intent.getStringExtra("route"),
             )
         return LaughTrackDeepLink.routeFromPush(data)
     }

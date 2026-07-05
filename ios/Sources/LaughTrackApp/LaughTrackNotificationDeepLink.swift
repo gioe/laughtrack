@@ -2,6 +2,13 @@ import Foundation
 
 enum LaughTrackNotificationDeepLink {
     static func route(from userInfo: [AnyHashable: Any]) -> AppRoute? {
+        // Grouped-push tap → Favorites tab (renders upcoming shows from followed
+        // comedians). Checked before showId, which grouped pushes still carry as
+        // the fallback for older builds that predate this key.
+        if let route = userInfo["route"] as? String,
+           route.trimmingCharacters(in: .whitespacesAndNewlines) == "favorites" {
+            return .library
+        }
         if let showID = integerValue(userInfo["showId"]) {
             return .showDetail(showID)
         }

@@ -34,6 +34,10 @@ object LaughTrackDeepLink {
      * (the comedian-arrival push shape). Returns null when neither is present.
      */
     fun routeFromPush(data: Map<String, String?>): AppRoute? {
+        // Grouped-push tap → Favorites tab (renders upcoming shows from followed
+        // comedians). Checked before url/showId, which grouped pushes still carry
+        // as the fallback for older builds that predate this key.
+        if (data["route"]?.trim() == "favorites") return AppRoute.Favorites
         route(data["url"])?.let { return it }
         data["showId"]?.toIntOrNull()?.let { return AppRoute.ShowDetail(it) }
         return null

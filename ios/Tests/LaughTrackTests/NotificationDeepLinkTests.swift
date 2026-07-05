@@ -34,6 +34,21 @@ struct NotificationDeepLinkTests {
         #expect(LaughTrackNotificationDeepLink.route(from: url) == .showDetail(2993368))
     }
 
+    @Test("payload route=favorites opens the favorites tab")
+    func payloadRouteFavoritesOpensLibrary() {
+        #expect(LaughTrackNotificationDeepLink.route(from: ["route": "favorites"]) == .library)
+    }
+
+    @Test("grouped push route wins over the showId fallback")
+    func routeTakesPrecedenceOverShowIDFallback() {
+        #expect(
+            LaughTrackNotificationDeepLink.route(from: [
+                "route": "favorites",
+                "showId": 2993368,
+            ]) == .library
+        )
+    }
+
     @Test("notification image URL key is recognized")
     func notificationImageURLKeyIsRecognized() throws {
         let url = try #require(LaughTrackNotificationMedia.imageURL(from: [
