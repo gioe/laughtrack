@@ -1,0 +1,48 @@
+candidate,city,state,ct_event_count,disposition,club_id,club_name,verified_future_shows,first_party_url,enabled_source,notes
+Ann Arbor Comedy Showcase,Ann Arbor,MI,46,needs_manual_research,,,,,,first-party source/platform not verified in this pass
+Big Laugh Comedy Club Fort Worth,Fort Worth,TX,135,needs_manual_research,,,,,,first-party source/platform not verified in this pass
+Claude's Comedy Club & Bar,Philadelphia,PA,18,needs_manual_research,,,,,,first-party source/platform not verified in this pass
+Dallas Comedy Club,Dallas,TX,211,needs_manual_research,,,,,,low-confidence DB name hits were other Dallas venues; no source enabled
+DC Comedy Loft and Bier Baron Tavern,Washington,DC,21,already_covered_existing_source,71,The Comedy Loft of DC,226,http://www.dccomedyloft.com,seatengine/seatengine_classic p0 www.dccomedyloft.com/events,current DB has enabled first-party source; no duplicate inserted
+Flop House Comedy Club,Brooklyn,NY,12,needs_manual_research,,,,,,first-party source/platform not verified in this pass
+Funny Bone Comedy Club - Albany,Albany,NY,25,already_covered_existing_source,323,Albany Funny Bone,97,https://albany.funnybone.com,etix/etix p0 https://albany.funnybone.com/shows/,current DB has enabled first-party source; no duplicate inserted
+Funny Bone Comedy Club - Cincinnati,Liberty Township,OH,13,already_covered_existing_source,11431,Liberty Funny Bone,107,https://liberty.funnybone.com/,etix/etix p0 https://liberty.funnybone.com/shows/,current DB has enabled first-party source; no duplicate inserted
+Funny Bone Comedy Club - Cleveland,Cleveland,OH,16,already_covered_existing_source,1050,Cleveland Funny Bone,108,https://cleveland.funnybone.com,etix/etix p0 https://www.etix.com/ticket/v/31603/funny-bone-comedy-club-cleveland,current DB has enabled first-party source; no duplicate inserted
+Funny Bone Comedy Club - Kansas City,Kansas City,MO,18,already_covered_existing_source,2462,Kansas City Funny Bone,46,https://kc.funnybone.com,etix/etix p0 https://kc.funnybone.com/,current DB has enabled first-party source; no duplicate inserted
+Funny Bone Comedy Club - St. Louis,St. Louis,MO,6,onboarded_staged,,St. Louis Funny Bone,113,https://stlouisfunnybone.com,custom/standup_media p0 https://stlouisfunnybone.com/events,verified first-party StandUp Media identifiers; migration inserts guarded club/source
+Funny Bone Comedy Club - Syracuse,Syracuse,NY,30,already_covered_existing_source,1028,Syracuse Funny Bone,106,https://syracuse.funnybone.com,etix/etix p0 https://syracuse.funnybone.com/shows/,current DB has enabled first-party source; no duplicate inserted
+Funny Bone Comedy Club - Toledo,Perrysburg,OH,13,already_covered_existing_source,4504,Toledo Funny Bone,104,https://toledo.funnybone.com,etix/etix p0 https://toledo.funnybone.com/shows/,current DB has enabled first-party source; no duplicate inserted
+Funny Bone Comedy Club Omaha NE,Omaha,NE,19,already_covered_existing_source,1026,Omaha Funny Bone,115,https://omaha.funnybone.com,etix/etix p0 https://omaha.funnybone.com/shows/,current DB has enabled first-party source; no duplicate inserted
+Funny Bone Comedy Club Orlando FL,Orlando,FL,16,already_covered_existing_source,1027,Orlando Funny Bone,196,https://orlando.funnybone.com,etix/etix p0 https://orlando.funnybone.com/shows/,current DB has enabled first-party source; no duplicate inserted
+Greenwich Village Comedy Club,New York,NY,100,needs_manual_research,,,,,,low-confidence DB name hits were different MacDougal/NYC venues; no source enabled
+Helium Comedy Club - Buffalo,Buffalo,NY,22,already_covered_existing_source,132,Helium & Elements Restaurant - Buffalo,131,https://buffalo.heliumcomedy.com,seatengine/seatengine_classic p0 https://buffalo.heliumcomedy.com/events,current DB has enabled first-party source; no duplicate inserted
+High Line Comedy Club,New York,NY,6,needs_manual_research,,,,,,first-party source/platform not verified in this pass
+Howler Comedy Club,Lincoln,NE,5,needs_manual_research,,,,,,first-party source/platform not verified in this pass
+Hyena's Comedy Night Club - Albuquerque,Albuquerque,NM,59,needs_manual_research,,,,,,first-party page found but tested Prekindle slugs did not expose future JSON-LD events; no source enabled
+Hyena's Comedy Night Club - Dallas,Dallas,TX,55,already_covered_existing_source,649,Hyena's Comedy Nightclub,52,https://www.hyenascomedynightclub.com/dallas,custom/json_ld p0 https://www.prekindle.com/events/hyenasdallas,current DB has enabled first-party source; no duplicate inserted
+Hyena's Comedy Nightclub Fort Worth,Fort Worth,TX,55,onboarded_staged,,Hyena's Comedy Nightclub Fort Worth,90,https://hyenascomedynightclub.com/fort-worth,custom/json_ld p0 https://www.prekindle.com/events/hyenasfortworth,verified first-party site links Prekindle; migration inserts guarded club/source
+Kellar's Comedy Club,Erie,PA,5,already_covered_existing_source,1349,Kellar's: Modern Magic and Comedy Club,39,https://kellarsmagic.com,custom/kellars p0 https://kellarsmagic.com/tc-events/,current DB has enabled first-party source; no duplicate inserted
+Lafayette Comedy,Lafayette,LA,5,needs_manual_research,,,,,,first-party source/platform not verified in this pass
+Laugh Out Loud - San Antonio,San Antonio,TX,7,already_covered_existing_source,41,LOL San Antonio,129,https://improvtx.com/sanantonio/,custom/improv p0 improvtx.com/sanantonio/calendar/,current DB has enabled first-party source; no duplicate inserted
+Laugh Out Loud Comedy Club,San Antonio,TX,56,already_covered_existing_source,41,LOL San Antonio,129,https://improvtx.com/sanantonio/,custom/improv p0 improvtx.com/sanantonio/calendar/,same canonical venue as LOL San Antonio; no duplicate inserted
+Laughs Comedy Club,Seattle,WA,16,needs_manual_research,,,,,,first-party source/platform not verified in this pass
+Loony Bin Comedy Club - Little Rock,Little Rock,AR,13,needs_manual_research,,,,,,first-party source/platform not verified in this pass
+Loony Bin Comedy Club - Tulsa,Tulsa,OK,34,needs_manual_research,,,,,,low-confidence DB name hit was Tulsa Theater; hidden Tulsa Comedy Club row has no enabled source
+Loony Bin Comedy Club - Wichita,Wichita,KS,9,needs_manual_research,,,,,,first-party source/platform not verified in this pass
+Loony Bin Comedy Club Little Rock AR,Little Rock,AR,5,needs_manual_research,,,,,,first-party source/platform not verified in this pass
+Loony Bin Comedy Club Wichita KS,Wichita,KS,5,needs_manual_research,,,,,,first-party source/platform not verified in this pass
+New York Comedy Club - Stamford,Stamford,CT,100,needs_manual_research,,,,,,first-party source/platform not verified in this pass
+Olsen Run Comedy Club and Lounge,Eugene,OR,30,needs_manual_research,,,,,,first-party source/platform not verified in this pass
+Punch Line Dallas,Irving,TX,33,already_covered_existing_source,1044,Punch Line Irving,91,https://www.punchlineirving.com,ticketmaster/live_nation p0 https://www.punchlineirving.com/shows,current DB has enabled first-party source; no duplicate inserted
+Punch Line Philadelphia,Philadelphia,PA,17,already_covered_existing_source,152,Punch Line Philly,130,https://www.punchlinephilly.com,ticketmaster/live_nation p0 ticketmaster/KovZpZAEvtFA; ticketmaster/live_nation p1 https://www.ticketmaster.com,current DB has enabled first-party source; no duplicate inserted
+Punchline Comedy Club - Atlanta,Atlanta,GA,11,already_covered_existing_source,11458,The Punchline Comedy Club,90,https://www.punchline.com,tribe_events/the_events_calendar p0 https://www.punchline.com/wp-json/tribe/events/v1/events,current DB has enabled first-party source; no duplicate inserted
+Quezada's Comedy Club & Catina,Santa Ana Pueblo,NM,51,needs_manual_research,,,,,,first-party source/platform not verified in this pass
+San Antonio Improv,San Antonio,TX,55,needs_manual_research,,,,,,current DB hits are LOL San Antonio and Majestic Theatre; needs first-party identity decision before enabling
+"Sesh Comedy, Chrystie",New York,NY,13,needs_manual_research,,,,,,first-party source/platform not verified in this pass
+Soul Joel's Comedy Club & Lounge,Jeffersonville,PA,5,needs_manual_research,,,,,,first-party source/platform not verified in this pass
+Stir Crazy Comedy Club,Glendale,AZ,12,needs_manual_research,,,,,,first-party source/platform not verified in this pass
+Stress Factory Comedy Club - New Brunswick,New Brunswick,NJ,22,already_covered_existing_source,45,Stress Factory,139,https://newbrunswick.stressfactory.com/,seatengine/seatengine_classic p0 newbrunswick.stressfactory.com/events,current DB has enabled first-party source; no duplicate inserted
+Super Funny Comedy Club,Tacoma,WA,50,already_covered_existing_source,121,Nate Jackson's Super Funny Comedy Club,90,https://superfunnycomedyclub.com/,seatengine/seatengine p0 superfunnycomedyclub.com/events,current DB has enabled first-party source; no duplicate inserted
+Tacoma Comedy Club - 6th and Proctor,Tacoma,WA,34,already_covered_existing_source,64,Tacoma Comedy Club,196,https://www.tacomacomedyclub.com,seatengine/seatengine_classic p0 https://www.tacomacomedyclub.com/events#location=6th and Proctor,current DB has enabled first-party source; no duplicate inserted
+Talk to the Moon Comedy Club,Pensacola,FL,8,needs_manual_research,,,,,,first-party source/platform not verified in this pass
+The American Comedy Co.,San Diego,CA,20,already_covered_existing_source,1035,American Comedy Company,136,https://americancomedyco.com,shopify/shopify p0 https://americancomedyco.com/collections/shows,current DB has enabled first-party source; no duplicate inserted
