@@ -48,18 +48,21 @@ ALGOLIA_PAYLOAD = {
 }
 
 
+# Far-future sentinel dates (2036 — pre-2037 because to_show localizes via pytz,
+# per convention 309) so the to_show past-drop never rots this fixture (TASK-3586).
+# 2036-01-30 is a Wednesday, 2036-01-31 a Thursday.
 DETAIL_HTML = """
 <script>
-{"fields":{"title":"Event > Aries Spears > Jan 30, 2027 > Sat Eve",
-"startDate":"2027-01-30T19:00",
+{"fields":{"title":"Event > Aries Spears > Jan 30, 2036 > Wed Eve",
+"startDate":"2036-01-30T19:00",
 "ticketsUrl":"https://www.ticketmaster.com/event/06006495CB0290D5",
 "ticketsButtonText":"Buy Tickets"}}
-["Event > Aries Spears > Jan 30, 2027 > Sat Eve",
-"2027-01-30T19:00",
+["Event > Aries Spears > Jan 30, 2036 > Wed Eve",
+"2036-01-30T19:00",
 "https://www.ticketmaster.com/event/06006495CB0290D5",
 "Buy Tickets"]
-["Event > Other Show > Jan 31, 2027 > Sun Eve",
-"2027-01-31T19:00",
+["Event > Other Show > Jan 31, 2036 > Thu Eve",
+"2036-01-31T19:00",
 "https://www.ticketmaster.com/event/other",
 "Buy Tickets"]
 {"description":{"content":[{"value":"Aries brought a fresh hip style."}]},"artistWebsite":"https://ariesspears.com/"}
@@ -84,7 +87,7 @@ def test_extract_detail_performance_builds_event_and_show():
 
     assert len(events) == 1
     event = events[0]
-    assert event.start_date == "2027-01-30T19:00"
+    assert event.start_date == "2036-01-30T19:00"
     assert event.ticket_url == "https://www.ticketmaster.com/event/06006495CB0290D5"
     assert event.venue == "State Theatre"
 

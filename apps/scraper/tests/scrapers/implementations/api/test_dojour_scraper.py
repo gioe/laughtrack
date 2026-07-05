@@ -107,9 +107,11 @@ async def test_scrape_async_produces_shows(monkeypatch):
     open_mic = next(s for s in shows if s.name == "Stand Up Comedy Open Mic")
     assert open_mic.tickets[0].price is None
 
-    # Fumi Abe -> only the future showing survives, priced $25.00.
+    # Fumi Abe -> only the future showing survives, priced $25.00. The fixture
+    # pins its upcoming showings to far-future sentinel dates in 2036 (explicit
+    # UTC offsets, so the post-2037 pytz caveat doesn't apply) — see TASK-3586.
     fumi = next(s for s in shows if s.name == "Fumi Abe /// Comedy")
-    assert fumi.date.year == 2027
+    assert fumi.date.year == 2036
     assert fumi.tickets[0].price == 25.0
 
 
@@ -146,7 +148,7 @@ async def test_event_without_showing_set_falls_back_to_row(monkeypatch):
         "results": [
             {
                 "id": 700,
-                "start_dt": "2027-12-01T20:00:00-0600",
+                "start_dt": "2036-12-01T20:00:00-0600",
                 "timezone": "America/Chicago",
                 "offer": {"id": 700, "option_set": [{"active": True, "price": 3000}]},
                 "event": {
@@ -171,7 +173,7 @@ async def test_event_without_showing_set_falls_back_to_row(monkeypatch):
     assert len(page.event_list) == 1
     ev = page.event_list[0]
     assert ev.title == "Fallback Show /// Comedy"
-    assert ev.start_dt == "2027-12-01T20:00:00-0600"
+    assert ev.start_dt == "2036-12-01T20:00:00-0600"
     assert ev.min_price_cents == 3000  # price read from the row-level offer
 
 
@@ -184,8 +186,8 @@ async def test_pagination_follows_next_url(monkeypatch):
     async def fake_fetch_json(url):
         calls.append(url)
         if "page=2" in url:
-            return {"next": None, "results": [_event(2, "B /// Comedy", "2027-11-02T19:00:00-0500")]}
-        return {"next": page2_url, "results": [_event(1, "A /// Comedy", "2027-11-01T19:00:00-0500")]}
+            return {"next": None, "results": [_event(2, "B /// Comedy", "2036-11-02T19:00:00-0500")]}
+        return {"next": page2_url, "results": [_event(1, "A /// Comedy", "2036-11-01T19:00:00-0500")]}
 
     monkeypatch.setattr(scraper, "fetch_json", fake_fetch_json)
 

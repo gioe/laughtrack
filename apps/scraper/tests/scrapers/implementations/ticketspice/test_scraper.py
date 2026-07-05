@@ -20,6 +20,7 @@ import json
 from datetime import date, datetime, time, timedelta, timezone
 
 import pytest
+import pytz
 
 from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.scrapers.implementations.api.ticketspice.extractor import (
@@ -203,10 +204,13 @@ def _future_multidate_html(dates: list[date]) -> str:
     far-future-test-dates convention.
     """
     first = min(dates)
-    # eventStart at 19:30 local for the earliest date, expressed as a UTC instant
-    # (PT is UTC-7 in summer, but the extractor reads the wall-clock back out via
-    # the timeZone, so any same-instant encoding is fine for the assertion).
-    event_start = datetime.combine(first, time(2, 30), tzinfo=timezone.utc) + timedelta(days=1)
+    # eventStart at 19:30 local for the earliest date, expressed as a UTC instant.
+    # Localize through the real timeZone rather than hand-encoding a UTC-7 offset:
+    # the extractor reads the wall clock back out via the timeZone, so a fixed
+    # +7h encoding read back as 18:30 (and broke the hour assertion) whenever the
+    # dynamic dates landed in the PST window, Nov-Mar (TASK-3586).
+    pacific = pytz.timezone("America/Los_Angeles")
+    event_start = pacific.localize(datetime.combine(first, time(19, 30))).astimezone(timezone.utc)
     app_settings = {
         "host": "comedy.ticketspice.com",
         "status": 1,

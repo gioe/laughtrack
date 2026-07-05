@@ -176,9 +176,12 @@ class TestToShow:
         assert ev.to_show(_Club()) is None
 
     def test_falls_back_to_page_url_when_no_ticket(self):
+        # Far-future sentinel (2099-03-13 is a Friday) so to_show's past-drop
+        # never rots the test; no DST offset assertions here, so the post-2037
+        # pytz-table caveat doesn't apply (TASK-3586).
         ev = TessituraEvent(
             title="Future Show",
-            start_date_str="Friday, March 12, 2027 | 8 PM",
+            start_date_str="Friday, March 13, 2099 | 8 PM",
             show_page_url="https://www.capa.com/productions/future/",
             ticket_url=None,
         )

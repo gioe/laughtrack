@@ -6,7 +6,7 @@ Exercises get_data() against mocked HTML matching the live
 and the MultipassEvent.to_show() transformation path.
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pytest
 
@@ -66,6 +66,18 @@ def _listing_page(cards: list[str]) -> str:
     return f"<html><body><div class='events'>{''.join(cards)}</div></body></html>"
 
 
+def _future_card_text(days_ahead: int, time_text: str = "7 PM") -> str:
+    """Card datetime text for a real future date, e.g. "Sat Jul 11 &bull; 7 PM".
+
+    The get_data() path runs the extractor against the wall clock (no ``now``
+    injection point), and the year-less card text is weekday-pinned by
+    ``_infer_year`` — so the text must be derived from an actual upcoming date
+    or the card past-drops once the hardcoded date passes (TASK-3586).
+    """
+    d = datetime.now() + timedelta(days=days_ahead)
+    return f"{d:%a} {d:%b} {d.day} &bull; {time_text}"
+
+
 # ---------------------------------------------------------------------------
 # get_data() tests
 # ---------------------------------------------------------------------------
@@ -75,8 +87,8 @@ def _listing_page(cards: list[str]) -> str:
 async def test_get_data_returns_page_data_with_events(monkeypatch):
     scraper = MultipassScraper(_club())
     html = _listing_page([
-        _card(title="Dude, IDK presents MACEY ISAACS Looks Alive Tour", slug="/maceyisaacs", datetime_text="Sat Jul 11 &bull; 7 PM"),
-        _card(title="Good Night Denver!", slug="/goodnightdenver", datetime_text="Fri Aug 28 &bull; 8 PM", price="$23.47"),
+        _card(title="Dude, IDK presents MACEY ISAACS Looks Alive Tour", slug="/maceyisaacs", datetime_text=_future_card_text(30)),
+        _card(title="Good Night Denver!", slug="/goodnightdenver", datetime_text=_future_card_text(60, "8 PM"), price="$23.47"),
     ])
 
     async def fake_fetch_html(self, url: str, **kwargs) -> str:

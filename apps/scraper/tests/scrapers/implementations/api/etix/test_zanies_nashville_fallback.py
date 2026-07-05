@@ -1,5 +1,7 @@
 """Zanies Nashville Etix-block fallback (TASK-2017)."""
 
+from datetime import date
+
 import pytest
 
 ETIX_URL = "https://www.etix.com/ticket/mvc/online/upcomingEvents/venue?venue_id=21745&orderBy=1&pageNumber=1"
@@ -106,7 +108,10 @@ async def test_zanies_nashville_fallback_uses_owned_homepage(monkeypatch):
 
     by_title_date = {(e.title, e.start_date): e for e in result.event_list}
 
-    solo = by_title_date[("Karen Mills", "2026-05-10T18:00:00")]
+    # The solo card is year-less ("Sun, May 10"); the parser falls back to
+    # date.today().year when the title carries no year, so mirror that here
+    # rather than pinning a literal year that rots every January (TASK-3586).
+    solo = by_title_date[("Karen Mills", f"{date.today().year:04d}-05-10T18:00:00")]
     assert solo.ticket_url == SOLO_TICKET_URL
     assert solo.event_url == SOLO_EVENT_URL
 

@@ -508,7 +508,7 @@ async def test_fetch_events_filters_past_events(monkeypatch):
     client = NinkashiClient(_club())
 
     past_event = _raw_event(event_id=1, title="Old Show", starts_at="2020-01-01 19:00:00 +0000")
-    future_event = _raw_event(event_id=2, title="Future Show", starts_at="2027-01-01 19:00:00 +0000")
+    future_event = _raw_event(event_id=2, title="Future Show", starts_at=_WITHIN_HORIZON)
     call_count = [0]
 
     async def fake_fetch_json(self, url, **kwargs):

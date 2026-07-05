@@ -395,6 +395,21 @@ async def test_unparseable_recurring_rows_expand_from_detail_date_slider(monkeyp
         raise AssertionError(f"unexpected url {url}")
 
     monkeypatch.setattr(VboTicketsScraper, "fetch_html", fake_fetch_html)
+
+    # get_data() calls the slider extractor without a `today`, so the year-less
+    # "Jul 11" boxes roll over on the wall clock — the month-granular expected-year
+    # formula this test used diverged from the extractor's per-date rollover every
+    # July 11-31. Pin `today` instead so the assertions stay literal (TASK-3586).
+    real_expand = VboTicketsExtractor.extract_events_from_date_slider
+    monkeypatch.setattr(
+        VboTicketsExtractor,
+        "extract_events_from_date_slider",
+        staticmethod(
+            lambda slider_html, target, today=None: real_expand(
+                slider_html, target, today=date(2026, 6, 24)
+            )
+        ),
+    )
     club = _fair_oaks_club({"category_filter": "MUT Shows"})
     club.name = "Made Up Theatre"
     club.timezone = "America/Los_Angeles"
@@ -402,11 +417,10 @@ async def test_unparseable_recurring_rows_expand_from_detail_date_slider(monkeyp
     result = await VboTicketsScraper(club).get_data(club.active_scraping_source.source_url)
 
     assert isinstance(result, VboTicketsPageData)
-    year = date.today().year if date.today().month <= 7 else date.today().year + 1
     assert [(e.name, e.start_iso) for e in result.event_list] == [
-        ("Laugh Track City", f"{year}-07-11 20:00:00"),
-        ("Laugh Track City", f"{year}-07-18 20:00:00"),
-        ("Family Friendly Matinee", f"{year}-07-12 14:30:00"),
+        ("Laugh Track City", "2026-07-11 20:00:00"),
+        ("Laugh Track City", "2026-07-18 20:00:00"),
+        ("Family Friendly Matinee", "2026-07-12 14:30:00"),
     ]
     assert {e.url for e in result.event_list} == {
         "https://plugin.vbotickets.com/v5.0/event.asp?eid=211001",
