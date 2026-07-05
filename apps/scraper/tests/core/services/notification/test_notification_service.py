@@ -340,10 +340,10 @@ class TestFcmPushServicePayload:
         assert data["showId"] == "42"  # FCM data values must be strings
         assert data["url"] == "https://laugh-track.com/show/42"
         assert data["title"] == "Funny Person is performing near you"
-        # Body mirrors the in-app notification center: "{club} at {time}" in the
-        # club's local time (no club_timezone here → America/New_York default;
-        # 2026-04-15 20:00 UTC = 4:00 pm EDT).
-        assert data["body"] == "The Comedy Club at 4:00 pm EDT"
+        # Body mirrors the in-app notification center: "{club} on {date} at {time}"
+        # in the club's local time (no club_timezone here → America/New_York
+        # default; 2026-04-15 20:00 UTC = Wednesday, April 15, 4:00 pm EDT).
+        assert data["body"] == "The Comedy Club on Wednesday, April 15 at 4:00 pm EDT"
         assert data["showDate"] == "2026-04-15T20:00:00+00:00"
         # Data-only message: no notification block, so onMessageReceived always
         # fires (even backgrounded) and the client owns the notification UI.
@@ -506,8 +506,8 @@ class TestComedianImageUrl:
 class TestApnsPushServicePayload:
     def test_send_show_body_matches_notification_center(self):
         # The push body must read like the in-app notification center subtitle:
-        # "{club} at {time}" in the club's local time (lowercase am/pm, tz abbr),
-        # NOT the old "{club} in {city}, {state}". The club timezone must thread
+        # "{club} on {date} at {time}" in the club's local time (lowercase am/pm,
+        # tz abbr), NOT the old "{club} in {city}, {state}". The club timezone must thread
         # through — a Los Angeles club renders Pacific time, not Eastern.
         service = ApnsPushService(
             team_id="TEAM12345",
@@ -537,8 +537,8 @@ class TestApnsPushServicePayload:
         assert result.success is True
         payload = client.post.call_args.kwargs["json"]
         assert payload["aps"]["alert"]["title"] == "Funny Person is performing near you"
-        # 2026-04-15 20:00 UTC = 1:00 pm PDT in America/Los_Angeles.
-        assert payload["aps"]["alert"]["body"] == "The Laugh Cellar at 1:00 pm PDT"
+        # 2026-04-15 20:00 UTC = Wednesday, April 15, 1:00 pm PDT in America/Los_Angeles.
+        assert payload["aps"]["alert"]["body"] == "The Laugh Cellar on Wednesday, April 15 at 1:00 pm PDT"
 
     def _send_show(self, comedian_image_url):
         service = ApnsPushService(
@@ -1229,3 +1229,108 @@ class TestApnsPemNormalization:
         assert service._private_key_pem == pem
         token = service._auth_token()
         assert token.count(".") == 2
+
+
+class TestRunGroupsPushNotifications:
+    """A run's burst of shows for one user collapses into ONE push (push-only grouping)."""
+
+    def _push_row(self, **kwargs) -> dict:
+        base = dict(
+            notification_type="push",
+            push_token_id="token-row-1",
+            push_token="device-abc",
+            push_platform="ios",
+            user_id="user-1",
+            user_zip="10001",
+            club_zip="10002",
+        )
+        base.update(kwargs)
+        return _make_row(**base)
+
+    def _service(self, sender):
+        mock_zip = MagicMock()
+        mock_zip.distance_miles.return_value = 5.0  # within radius
+        return ComedianArrivalNotificationService(zip_distance=mock_zip, push_sender=sender)
+
+    def test_one_comedian_multiple_shows_sends_single_grouped_push(self):
+        rows = [
+            self._push_row(show_id=42, show_date=datetime(2026, 4, 15, 20, 0, tzinfo=timezone.utc)),
+            self._push_row(show_id=43, show_date=datetime(2026, 4, 20, 20, 0, tzinfo=timezone.utc)),
+            self._push_row(show_id=44, show_date=datetime(2026, 4, 25, 20, 0, tzinfo=timezone.utc)),
+        ]
+        sender = MagicMock()
+        service = self._service(sender)
+
+        with patch.object(service, "_fetch_candidates", return_value=rows):
+            with patch.object(service, "_record_notification") as mock_record:
+                summary = service.run(radius_miles=50.0)
+
+        # One push covering three shows; every show still recorded so future runs skip them.
+        sender.send_show_notification.assert_called_once()
+        assert summary["push_sent"] == 1
+        kwargs = sender.send_show_notification.call_args.kwargs
+        assert kwargs["title"] == "Funny Person has 3 shows near you"
+        assert kwargs["body"] == "Tap to see where and when"
+        assert kwargs["route"] == "favorites"
+        # Deep-link fallback for older clients (no route key) is the soonest show.
+        assert kwargs["show_id"] == 42
+        assert mock_record.call_count == 3
+        assert sorted(c.kwargs["show_id"] for c in mock_record.call_args_list) == [42, 43, 44]
+        assert all(c.kwargs["notification_type"] == "push" for c in mock_record.call_args_list)
+
+    def test_multiple_comedians_send_digest_push(self):
+        rows = [
+            self._push_row(
+                show_id=42, comedian_uuid="uuid-a", comedian_name="Funny Person",
+                show_date=datetime(2026, 4, 15, 20, 0, tzinfo=timezone.utc),
+            ),
+            self._push_row(
+                show_id=43, comedian_uuid="uuid-b", comedian_name="Chuckles McGee",
+                show_date=datetime(2026, 4, 20, 20, 0, tzinfo=timezone.utc),
+            ),
+        ]
+        sender = MagicMock()
+        service = self._service(sender)
+
+        with patch.object(service, "_fetch_candidates", return_value=rows):
+            with patch.object(service, "_record_notification") as mock_record:
+                summary = service.run(radius_miles=50.0)
+
+        sender.send_show_notification.assert_called_once()
+        assert summary["push_sent"] == 1
+        kwargs = sender.send_show_notification.call_args.kwargs
+        assert kwargs["title"] == "2 comedians you follow have shows near you"
+        assert kwargs["body"] == "Tap to see where and when"
+        assert kwargs["route"] == "favorites"
+        assert mock_record.call_count == 2
+
+    def test_single_show_keeps_per_show_copy(self):
+        # A lone show sends with no title/body override — the sender builds the copy.
+        sender = MagicMock()
+        service = self._service(sender)
+
+        with patch.object(service, "_fetch_candidates", return_value=[self._push_row(show_id=42)]):
+            with patch.object(service, "_record_notification"):
+                summary = service.run(radius_miles=50.0)
+
+        sender.send_show_notification.assert_called_once()
+        assert summary["push_sent"] == 1
+        kwargs = sender.send_show_notification.call_args.kwargs
+        assert kwargs["title"] is None
+        assert kwargs["body"] is None
+        assert kwargs["route"] is None
+
+    def test_separate_users_are_not_merged(self):
+        rows = [
+            self._push_row(show_id=42, user_id="user-1", push_token_id="tok-1", push_token="dev-1"),
+            self._push_row(show_id=43, user_id="user-2", push_token_id="tok-2", push_token="dev-2"),
+        ]
+        sender = MagicMock()
+        service = self._service(sender)
+
+        with patch.object(service, "_fetch_candidates", return_value=rows):
+            with patch.object(service, "_record_notification"):
+                summary = service.run(radius_miles=50.0)
+
+        assert sender.send_show_notification.call_count == 2
+        assert summary["push_sent"] == 2

@@ -58,9 +58,28 @@ function formatNotificationSubtitle({
     showDate: Date | null | undefined;
     timezone?: string | null;
 }): string {
+    const date = showDate ? formatPerformanceDate(showDate, timezone) : "";
     const time = showDate ? formatPerformanceTime(showDate, timezone) : "";
-    if (clubName && time) return `${clubName} at ${time}`;
-    return clubName || time;
+    // "{club} on {date} at {time}", dropping any piece that's missing.
+    const when = [date && `on ${date}`, time && `at ${time}`]
+        .filter(Boolean)
+        .join(" ");
+    if (clubName && when) return `${clubName} ${when}`;
+    return when || clubName;
+}
+
+function formatPerformanceDate(
+    showDate: Date,
+    timezone?: string | null,
+): string {
+    // "Friday, July 4" — weekday + full month, club-local. Kept in sync with the
+    // scraper push builder (_format_performance_date) so push and in-app copy agree.
+    return new Intl.DateTimeFormat("en-US", {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+        timeZone: timezone || DEFAULT_SHOW_TIMEZONE,
+    }).format(showDate);
 }
 
 function formatPerformanceTime(

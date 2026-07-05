@@ -286,7 +286,7 @@ describe("GET /api/v1/me/notifications", () => {
         expect(body.data.items[0]).toMatchObject({
             id: "comedian-uuid-1:555",
             title: "Taylor Tomlinson is performing near you",
-            body: "The Comedy Store at 7:00 pm PDT",
+            body: "The Comedy Store on Tuesday, June 30 at 7:00 pm PDT",
             comedianId: "comedian-uuid-1",
             comedianName: "Taylor Tomlinson",
             comedianImageUrl:

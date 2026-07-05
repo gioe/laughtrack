@@ -293,12 +293,70 @@ def _format_performance_time(show_date: object, timezone: str | None) -> str:
     return " ".join(part for part in parts if part)
 
 
+def _format_performance_date(show_date: object, timezone: str | None) -> str:
+    """Club-local "Friday, July 4" for the push body.
+
+    Mirrors the web notification-center formatPerformanceDate (Intl.DateTimeFormat
+    with weekday: "long", month: "long", day: "numeric") so the push body matches
+    the in-app notification center.
+    """
+    if not hasattr(show_date, "astimezone"):
+        return ""
+    try:
+        tz = ZoneInfo(timezone or _DEFAULT_SHOW_TIMEZONE)
+    except Exception:
+        tz = ZoneInfo(_DEFAULT_SHOW_TIMEZONE)
+    local = show_date.astimezone(tz)
+    return local.strftime("%A, %B %-d")  # %-d: no leading zero, matching day: "numeric"
+
+
 def _format_show_subtitle(club_name: str, show_date: object, timezone: str | None) -> str:
-    """"{club} at {time}" push body — matches the notification-center subtitle."""
+    """"{club} on {date} at {time}" push body — matches the notification-center subtitle."""
+    date_str = _format_performance_date(show_date, timezone)
     time_str = _format_performance_time(show_date, timezone)
-    if club_name and time_str:
-        return f"{club_name} at {time_str}"
-    return club_name or time_str
+    when = " ".join(
+        part
+        for part in (
+            f"on {date_str}" if date_str else "",
+            f"at {time_str}" if time_str else "",
+        )
+        if part
+    )
+    if club_name and when:
+        return f"{club_name} {when}"
+    return when or club_name
+
+
+# Grouped pushes (multiple shows in one run) carry a generic CTA body; tapping
+# opens the Favorites tab, which renders upcoming shows from followed comedians.
+_GROUPED_PUSH_BODY = "Tap to see where and when"
+
+
+def _build_grouped_push_copy(events: list[dict]) -> tuple[str, str]:
+    """Title/body for a per-user push covering MORE THAN ONE show in a run.
+
+    Single-show sends keep the existing "{comedian} is performing near you" /
+    "{club} on {date} at {time}" copy; this only runs when a user has >1 distinct
+    show this run, and picks a title tier (the body is always the CTA):
+      - one comedian, N shows -> "{C} has N shows near you"
+      - >=2 comedians         -> "K comedians you follow have shows near you"
+
+    `events` must be pre-sorted soonest-first.
+    """
+    # Distinct comedian names, in soonest-first order.
+    names: list[str] = []
+    for event in events:
+        for name in event.get("comedian_names") or [event.get("comedian_name")]:
+            if name and name not in names:
+                names.append(name)
+
+    if len(names) <= 1:
+        comedian = names[0] if names else _format_comedian_names([])
+        verb = "have" if _is_plural_comedian_label(comedian) else "has"
+        title = f"{comedian} {verb} {len(events)} shows near you"
+    else:
+        title = f"{len(names)} comedians you follow have shows near you"
+    return title, _GROUPED_PUSH_BODY
 
 
 def _build_comedian_image_url(
@@ -455,16 +513,21 @@ class ApnsPushService:
         show_page_url: str,
         club_timezone: str | None = None,
         comedian_image_url: str | None = None,
+        title: str | None = None,
+        body: str | None = None,
+        route: str | None = None,
     ) -> PushDeliveryResult:
         try:
             import httpx
         except ImportError as e:
             raise RuntimeError("APNs push delivery requires httpx with HTTP/2 support") from e
 
+        # title/body default to the single-show copy; a grouped per-user push
+        # (multiple shows in one run) passes precomputed strings to override them.
         verb = "are" if _is_plural_comedian_label(comedian_name) else "is"
-        title = f"{comedian_name} {verb} performing near you"
-        # Body mirrors the in-app notification center: "{club} at {time}".
-        body = _format_show_subtitle(club_name, show_date, club_timezone)
+        title = title if title is not None else f"{comedian_name} {verb} performing near you"
+        # Body mirrors the in-app notification center: "{club} on {date} at {time}".
+        body = body if body is not None else _format_show_subtitle(club_name, show_date, club_timezone)
 
         aps: dict = {
             "alert": {
@@ -478,6 +541,10 @@ class ApnsPushService:
             "showId": show_id,
             "url": show_page_url,
         }
+        # Grouped pushes set route so clients open the Favorites tab; the showId
+        # above stays as the fallback older clients (no route key) use.
+        if route:
+            payload["route"] = route
         if hasattr(show_date, "isoformat"):
             payload["showDate"] = show_date.isoformat()
         # Rich push: mutable-content lets the NotificationServiceExtension run and
@@ -656,16 +723,21 @@ class FcmPushService:
         show_page_url: str,
         club_timezone: str | None = None,
         comedian_image_url: str | None = None,
+        title: str | None = None,
+        body: str | None = None,
+        route: str | None = None,
     ) -> PushDeliveryResult:
         try:
             import httpx
         except ImportError as e:
             raise RuntimeError("FCM push delivery requires httpx") from e
 
+        # title/body default to the single-show copy; a grouped per-user push
+        # (multiple shows in one run) passes precomputed strings to override them.
         verb = "are" if _is_plural_comedian_label(comedian_name) else "is"
-        title = f"{comedian_name} {verb} performing near you"
-        # Body mirrors the in-app notification center: "{club} at {time}".
-        body = _format_show_subtitle(club_name, show_date, club_timezone)
+        title = title if title is not None else f"{comedian_name} {verb} performing near you"
+        # Body mirrors the in-app notification center: "{club} on {date} at {time}".
+        body = body if body is not None else _format_show_subtitle(club_name, show_date, club_timezone)
 
         # Data-only message (no notification block) so the Android
         # FirebaseMessagingService always runs onMessageReceived — even when
@@ -678,6 +750,10 @@ class FcmPushService:
             "showId": str(show_id),
             "url": show_page_url,
         }
+        # Grouped pushes set route so clients open the Favorites tab; the showId
+        # above stays as the fallback older clients (no route key) use.
+        if route:
+            data["route"] = route
         if hasattr(show_date, "isoformat"):
             data["showDate"] = show_date.isoformat()
         # Rich push: the Android client (LaughTrackMessagingService) reads imageUrl
@@ -1180,6 +1256,11 @@ class ComedianArrivalNotificationService:
             f"(raw_rows={raw_candidate_count}, push_candidates={summary['push_candidates']})"
         )
 
+        # Emails send per-show inline below; push sends are deferred and grouped
+        # per (user, device token) after the loop, so a run's burst of shows for
+        # one user collapses into a single push instead of one-per-show spam.
+        push_groups: dict[tuple[object, object], dict] = {}
+
         for row in rows:
             notification_type = row.get("notification_type") or "email"
             user_id = row["user_id"]
@@ -1197,14 +1278,9 @@ class ComedianArrivalNotificationService:
             club_state = row["club_state"] or ""
             club_zip = row["club_zip"] or ""
             club_timezone = row.get("club_timezone")
-            # Rich-push headshot: the primary (first) comedian's avatar, since a
-            # merged multi-comedian push still shows one image.
+            # Rich-push headshot source: the primary (first) comedian; the actual
+            # image URL is built per group in _process_push_group.
             primary_comedian_name = (row.get("comedian_names") or [row["comedian_name"]])[0]
-            comedian_image_url = _build_comedian_image_url(
-                row.get("comedian_avatar_path"),
-                primary_comedian_name,
-                row.get("comedian_has_image"),
-            )
             push_token_id = row.get("push_token_id")
             push_token = row.get("push_token")
             push_platform = row.get("push_platform")
@@ -1241,115 +1317,93 @@ class ComedianArrivalNotificationService:
                     summary["push_errors"] += 1
                     summary["errors"] += 1
                     continue
-                if dry_run:
-                    try:
-                        self._ensure_push_sender_configured(push_platform)
-                    except Exception as e:
-                        Logger.error(
-                            f"ComedianArrivalNotificationService: dry-run push config check failed "
-                            f"for user={user_id} token_id={push_token_id} show={show_id}: {e}"
-                        )
-                        summary["push_errors"] += 1
-                        summary["errors"] += 1
-                        continue
-                    summary["push_would_send"] += 1
-                    Logger.info(
-                        f"ComedianArrivalNotificationService: dry-run would send push to user={user_id} "
-                        f"comedian={comedian_name!r} show={show_id} distance={distance:.1f} miles "
-                        f"radius={effective_radius_miles} miles"
-                    )
-                    continue
-                try:
-                    result = self._send_push_notification(
-                        platform=push_platform,
-                        device_token=push_token,
-                        comedian_name=comedian_name,
-                        show_id=show_id,
-                        show_date=show_date,
-                        club_name=club_name,
-                        club_city=club_city,
-                        club_state=club_state,
-                        show_page_url=show_page_url,
-                        club_timezone=club_timezone,
-                        comedian_image_url=comedian_image_url,
-                    )
-                except Exception as e:
-                    Logger.error(
-                        f"ComedianArrivalNotificationService: failed to send push to user={user_id} "
-                        f"token_id={push_token_id} show={show_id}: {e}"
-                    )
-                    summary["push_errors"] += 1
-                    summary["errors"] += 1
-                    continue
-                if not result.success:
-                    Logger.warn(
-                        f"ComedianArrivalNotificationService: push failed for user={user_id} "
-                        f"token_id={push_token_id} show={show_id} status={result.status_code} reason={result.reason}"
-                    )
-                    if result.invalid_token:
-                        self._deactivate_push_token(
-                            token_id=push_token_id,
-                            reason=result.reason or "unknown",
-                            status_code=result.status_code or 0,
-                        )
-                    summary["push_errors"] += 1
-                    summary["errors"] += 1
-                    continue
-            else:
-                if dry_run:
-                    summary["emails_would_send"] += 1
-                    Logger.info(
-                        f"ComedianArrivalNotificationService: dry-run would send email to user={user_id} "
-                        f"comedian={comedian_name!r} show={show_id} distance={distance:.1f} miles "
-                        f"radius={effective_radius_miles} miles"
-                    )
-                    continue
-                try:
-                    self._send_notification(
-                        user_email=user_email,
-                        user_name=user_name,
-                        comedian_name=comedian_name,
-                        show_date=show_date,
-                        club_name=club_name,
-                        club_city=club_city,
-                        club_state=club_state,
-                        show_page_url=show_page_url,
-                    )
-                except Exception as e:
-                    Logger.error(
-                        f"ComedianArrivalNotificationService: failed to send email "
-                        f"to user={user_id} show={show_id}: {e}"
-                    )
-                    summary["errors"] += 1
-                    continue
+                # Defer: accumulate this show under the user's device token and
+                # send one grouped push after the loop (see _process_push_group).
+                group = push_groups.setdefault(
+                    (user_id, push_token_id),
+                    {
+                        "user_id": user_id,
+                        "push_token": push_token,
+                        "push_token_id": push_token_id,
+                        "push_platform": push_platform,
+                        "events": [],
+                    },
+                )
+                group["events"].append(
+                    {
+                        "comedian_uuid": comedian_uuid,
+                        "comedian_name": comedian_name,
+                        "comedian_names": row.get("comedian_names") or [row["comedian_name"]],
+                        "primary_comedian_name": primary_comedian_name,
+                        "comedian_avatar_path": row.get("comedian_avatar_path"),
+                        "comedian_has_image": row.get("comedian_has_image"),
+                        "show_id": show_id,
+                        "show_date": show_date,
+                        "show_page_url": show_page_url,
+                        "club_name": club_name,
+                        "club_city": club_city,
+                        "club_state": club_state,
+                        "club_timezone": club_timezone,
+                        "distance": distance,
+                        "effective_radius_miles": effective_radius_miles,
+                    }
+                )
+                continue
 
-            # Record sent notification
+            # Email path — one send per show (unchanged; only push is grouped).
+            if dry_run:
+                summary["emails_would_send"] += 1
+                Logger.info(
+                    f"ComedianArrivalNotificationService: dry-run would send email to user={user_id} "
+                    f"comedian={comedian_name!r} show={show_id} distance={distance:.1f} miles "
+                    f"radius={effective_radius_miles} miles"
+                )
+                continue
+            try:
+                self._send_notification(
+                    user_email=user_email,
+                    user_name=user_name,
+                    comedian_name=comedian_name,
+                    show_date=show_date,
+                    club_name=club_name,
+                    club_city=club_city,
+                    club_state=club_state,
+                    show_page_url=show_page_url,
+                )
+            except Exception as e:
+                Logger.error(
+                    f"ComedianArrivalNotificationService: failed to send email "
+                    f"to user={user_id} show={show_id}: {e}"
+                )
+                summary["errors"] += 1
+                continue
+
             try:
                 self._record_notification(
                     user_id=user_id,
                     comedian_id=comedian_uuid,
                     show_id=show_id,
-                    notification_type=notification_type,
+                    notification_type="email",
                 )
             except Exception as e:
                 Logger.error(
-                    f"ComedianArrivalNotificationService: failed to record {notification_type} notification "
+                    f"ComedianArrivalNotificationService: failed to record email notification "
                     f"for user={user_id} show={show_id}: {e}"
                 )
                 summary["errors"] += 1
-                if notification_type == "push":
-                    summary["push_errors"] += 1
                 continue
 
             Logger.info(
-                f"ComedianArrivalNotificationService: sent {notification_type} notification to user={user_id} "
+                f"ComedianArrivalNotificationService: sent email notification to user={user_id} "
                 f"comedian={comedian_name!r} show={show_id} distance={distance:.1f} miles "
                 f"radius={effective_radius_miles} miles"
             )
-            if notification_type == "push":
-                summary["push_sent"] += 1
-            else:
-                summary["emails_sent"] += 1
+            summary["emails_sent"] += 1
+
+        # Grouped push delivery: one push per (user, device token) covering all of
+        # this run's in-range shows for that user.
+        for group in push_groups.values():
+            self._process_push_group(group, summary=summary, dry_run=dry_run)
 
         Logger.info(
             f"ComedianArrivalNotificationService: done — "
@@ -1360,6 +1414,128 @@ class ComedianArrivalNotificationService:
             f"push_errors={summary['push_errors']} errors={summary['errors']}"
         )
         return summary
+
+    def _process_push_group(self, group: dict, summary: dict, dry_run: bool) -> None:
+        """Send one grouped push for a (user, device token) and record every show.
+
+        A single-show group keeps the existing per-show copy (the sender builds
+        "{comedian} is performing near you" / "{club} on {date} at {time}"). A
+        multi-show group passes a precomputed tiered title/body from
+        _build_grouped_push_copy. Either way every show is recorded so future
+        runs don't re-notify (the candidate dedup keys on (user, show, 'push')).
+        """
+        user_id = group["user_id"]
+        push_token = group["push_token"]
+        push_token_id = group["push_token_id"]
+        push_platform = group["push_platform"]
+        # Soonest show first; any show without a date sorts last.
+        events = sorted(
+            group["events"],
+            key=lambda e: (e.get("show_date") is None, e.get("show_date")),
+        )
+        if not events:
+            return
+        show_ids = [event["show_id"] for event in events]
+
+        if dry_run:
+            try:
+                self._ensure_push_sender_configured(push_platform)
+            except Exception as e:
+                Logger.error(
+                    f"ComedianArrivalNotificationService: dry-run push config check failed "
+                    f"for user={user_id} token_id={push_token_id} shows={show_ids}: {e}"
+                )
+                summary["push_errors"] += 1
+                summary["errors"] += 1
+                return
+            summary["push_would_send"] += 1
+            Logger.info(
+                f"ComedianArrivalNotificationService: dry-run would send grouped push to user={user_id} "
+                f"shows={show_ids} ({len(events)} show(s))"
+            )
+            return
+
+        primary = events[0]
+        grouped = len(events) > 1
+        # One show → sender builds the single-show copy and the tap opens that show.
+        # Many → tiered copy + route the tap to the Favorites tab (which renders
+        # upcoming shows from followed comedians). showId below stays as the
+        # older-client fallback.
+        title, body = _build_grouped_push_copy(events) if grouped else (None, None)
+        route = "favorites" if grouped else None
+        comedian_image_url = _build_comedian_image_url(
+            primary.get("comedian_avatar_path"),
+            primary.get("primary_comedian_name"),
+            primary.get("comedian_has_image"),
+        )
+
+        try:
+            result = self._send_push_notification(
+                platform=push_platform,
+                device_token=push_token,
+                comedian_name=primary["comedian_name"],
+                # Soonest show is the deep-link fallback every current client
+                # understands (grouped tap → soonest show) until client routing
+                # learns comedian/favorites destinations.
+                show_id=primary["show_id"],
+                show_date=primary["show_date"],
+                club_name=primary["club_name"],
+                club_city=primary["club_city"],
+                club_state=primary["club_state"],
+                show_page_url=primary["show_page_url"],
+                club_timezone=primary["club_timezone"],
+                comedian_image_url=comedian_image_url,
+                title=title,
+                body=body,
+                route=route,
+            )
+        except Exception as e:
+            Logger.error(
+                f"ComedianArrivalNotificationService: failed to send push to user={user_id} "
+                f"token_id={push_token_id} shows={show_ids}: {e}"
+            )
+            summary["push_errors"] += 1
+            summary["errors"] += 1
+            return
+        if not result.success:
+            Logger.warn(
+                f"ComedianArrivalNotificationService: push failed for user={user_id} "
+                f"token_id={push_token_id} shows={show_ids} status={result.status_code} reason={result.reason}"
+            )
+            if result.invalid_token:
+                self._deactivate_push_token(
+                    token_id=push_token_id,
+                    reason=result.reason or "unknown",
+                    status_code=result.status_code or 0,
+                )
+            summary["push_errors"] += 1
+            summary["errors"] += 1
+            return
+
+        record_failed = False
+        for event in events:
+            try:
+                self._record_notification(
+                    user_id=user_id,
+                    comedian_id=event["comedian_uuid"],
+                    show_id=event["show_id"],
+                    notification_type="push",
+                )
+            except Exception as e:
+                Logger.error(
+                    f"ComedianArrivalNotificationService: failed to record push notification "
+                    f"for user={user_id} show={event['show_id']}: {e}"
+                )
+                record_failed = True
+        if record_failed:
+            summary["push_errors"] += 1
+            summary["errors"] += 1
+
+        summary["push_sent"] += 1
+        Logger.info(
+            f"ComedianArrivalNotificationService: sent grouped push to user={user_id} "
+            f"shows={show_ids} ({len(events)} show(s))"
+        )
 
     def _effective_radius_miles(self, row: dict, fallback_radius_miles: float) -> float:
         profile_radius = row.get("nearby_distance_miles")
@@ -1453,6 +1629,9 @@ class ComedianArrivalNotificationService:
         show_page_url: str,
         club_timezone: str | None = None,
         comedian_image_url: str | None = None,
+        title: str | None = None,
+        body: str | None = None,
+        route: str | None = None,
     ) -> PushDeliveryResult:
         sender = self._resolve_push_sender(platform)
         return sender.send_show_notification(
@@ -1466,6 +1645,9 @@ class ComedianArrivalNotificationService:
             show_page_url=show_page_url,
             club_timezone=club_timezone,
             comedian_image_url=comedian_image_url,
+            title=title,
+            body=body,
+            route=route,
         )
 
     def _ensure_push_sender_configured(self, platform: str | None = None) -> None:
