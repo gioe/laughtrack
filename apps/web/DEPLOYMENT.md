@@ -532,6 +532,7 @@ When a page fires:
 1. **Acknowledge** in UptimeRobot (mobile app or dashboard) to stop further pages while you investigate.
 2. **Reproduce** — open `https://www.laugh-track.com/` and `https://www.laugh-track.com/api/health` from your browser. Note which is failing.
 3. **Triage by failure pattern:**
+   - **Monitor reports 403 but the site works in your browser** → almost certainly a Vercel firewall challenge hitting UptimeRobot's non-browser probe, not an app outage. Confirm with `curl -sD - -o /dev/null https://www.laugh-track.com/` — a `403` with an `x-vercel-mitigated: challenge` header is the firewall. Follow the runbook in [Vercel Firewall (WAF) & Bot Challenges](#vercel-firewall-waf--bot-challenges); note that native app API traffic is breaking for the same reason while this state persists.
    - **Both endpoints down** → app is hard-down. Check the [Vercel dashboard](https://vercel.com/dashboard) for the latest deployment status. If a recent deploy looks suspect, **Vercel → Deployments → Promote** the previous successful deployment to roll back.
    - **Only `/` down, `/api/health` up** → SSR / DB path is broken. Check:
      - [Neon console](https://console.neon.tech) — is the compute endpoint suspended or out of CPU credits?
@@ -570,3 +571,57 @@ Performed once; record the resulting monitor IDs in 1Password / a secure note.
    - **HTTP Status Codes:** alert on anything that is not `200`
 6. Trigger a test failure: pause one monitor manually (Monitors → ⏸) and confirm Discord receives the alert in `#laughtrack`. Resume the monitor.
 7. Document the monitor IDs in the team notes so they can be referenced from future runbooks.
+
+## Vercel Firewall (WAF) & Bot Challenges
+
+Audited 2026-07-06 (TASK-3611) after a site-wide bot challenge was observed earlier the same day (curl to any path, including the homepage, returned `403` with `x-vercel-mitigated: challenge`).
+
+### Current configuration (verified via the Vercel API)
+
+Inspect with a Vercel CLI token:
+
+```bash
+curl -s "https://api.vercel.com/v1/security/firewall/config?projectId=prj_IcBh4qiFPJNI7IAmQiJj0KCAmKsI&teamId=team_4czgjQSZkLthUCExqjJ8h0CW" \
+  -H "Authorization: Bearer $VERCEL_TOKEN"
+```
+
+- **Firewall enabled**, config version 1 (first and only publish: 2026-07-06).
+- **Custom rules — exactly one:** `Push notifications` (`rule_push_notifications_TiEo1X`): action **bypass** for path prefix `/.well-known/`. Added during TASK-3601 so Google's Digital Asset Links verifier (a non-browser client that follows no redirects) can fetch `assetlinks.json` for Android App Links. **Keep this rule.**
+- **OWASP CRS** categories (generic, RCE, XSS, SQLi): active but **log-only** — they never block or challenge.
+- **Managed rulesets all inactive:** `bot_filter`, `ai_bots`, `vercel_ruleset`, `owasp`. BotID off. Attack Challenge Mode off.
+
+### The 2026-07-06 site-wide challenge: source
+
+The challenge did **not** come from this project's firewall configuration. Evidence:
+
+- No challenge-capable rule has ever existed: the config is at version 1 (published once — the `/.well-known/` bypass), the CRS categories are log-only, and every managed ruleset plus Attack Challenge Mode is off.
+- The challenge stopped the same day **without any toggle being changed** (the only config action taken was *adding* the bypass rule).
+
+Conclusion: it was **Vercel's platform-level automatic attack/bot mitigation** — a transient, heuristic-triggered challenge that Vercel applies and lifts on its own, upstream of project config. It cannot be disabled or scoped from the project's firewall rules; it can only be *bypassed* per-path via custom bypass rules.
+
+### Blast-radius verification (2026-07-06, post-incident)
+
+All surfaces confirmed unchallenged — normal responses, no `x-vercel-mitigated` header — for each of: plain curl, empty User-Agent, Googlebot UA, iOS-app-style UA (`CFNetwork/Darwin`), and UptimeRobot UA:
+
+| Surface | Result |
+|---|---|
+| `https://www.laugh-track.com/` and apex `https://laugh-track.com/` | 200 |
+| `https://www.laugh-track.com/api/health` | 200 |
+| `https://www.laugh-track.com/api/v1/clubs` | 200 (real data) |
+| `https://www.laugh-track.com/api/v1/shows` | 400 (app-level zip validation — request reached the app) |
+| `https://www.laugh-track.com/.well-known/assetlinks.json` | 200 (bypass rule) |
+
+### Scoping decision
+
+- **No additional bypass rules.** `/api/v1/*` and `/api/health` stay behind Vercel's default protections:
+  - A permanent bypass on `/api/v1/*` would strip DoS protection from the most expensive (DB-backed) endpoints.
+  - Leaving the monitoring probes unbypassed makes UptimeRobot a **canary for challenge events**: real browsers auto-pass a challenge, but UptimeRobot's non-browser probe fails with 403 — so a page fires at exactly the moment native app traffic (also non-browser) starts breaking silently.
+- **Keep** the `/.well-known/` bypass — Android App Links verification requires an unchallenged, redirect-free 200 on both hosts.
+- **Never enable Attack Challenge Mode casually.** It challenges every client site-wide. The iOS and Android apps consume `/api/v1` through generated OpenAPI clients (URLSession / OkHttp) that cannot execute a browser JS challenge, so app API traffic hard-fails while it is on; search-engine crawlers may be challenged too. Reserve it for an active attack, expect the native apps to degrade for the duration, and turn it off promptly.
+
+### Runbook: challenge recurrence
+
+1. **Symptom:** UptimeRobot pages while the site works fine in a browser; app users report API failures; `curl -sD - -o /dev/null https://www.laugh-track.com/` shows `403` + `x-vercel-mitigated: challenge`.
+2. **Check project config first:** Vercel → `laughtrack` → Firewall. Is Attack Challenge Mode on? Any managed ruleset or custom rule with a challenge/deny action? If yes, that is the source — scope or disable it.
+3. **If project config is clean** (the expected case, per the 2026-07-06 incident), it is Vercel's automatic mitigation. If native app traffic is affected, add a **temporary** custom rule: path prefix `/api/v1/` → action **Bypass**, and remove it once the mitigation lifts (re-test with plain curl).
+4. **If it recurs regularly**, consider Vercel BotID or app attestation for the native clients rather than a standing bypass.
