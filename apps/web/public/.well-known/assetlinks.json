@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "app.laughtrack.android",
+      "sha256_cert_fingerprints": [
+        "B7:4B:01:13:6E:F1:C6:38:3B:5C:E1:45:9C:B3:7A:62:16:7A:1E:B9:23:1A:48:F5:9C:4A:32:DE:F6:81:7D:9A"
+      ]
+    }
+  }
+]
