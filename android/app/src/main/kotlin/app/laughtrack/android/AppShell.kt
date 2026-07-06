@@ -51,6 +51,7 @@ import app.laughtrack.android.feature.home.HomeScreen
 import app.laughtrack.android.feature.library.LibraryScreen
 import app.laughtrack.android.feature.notifications.NotificationCenterScreen
 import app.laughtrack.android.feature.onboarding.ui.ComedianOnboardingScreen
+import app.laughtrack.android.feature.profile.LoginPromptSheet
 import app.laughtrack.android.feature.profile.ProfileScreen
 import app.laughtrack.android.feature.search.ui.SearchScreen
 
@@ -69,6 +70,8 @@ fun AppShell(
     signedIn: Boolean = false,
     hasFavorites: Boolean = false,
     playbackController: PodcastPlaybackController? = null,
+    showLoginPrompt: Boolean = false,
+    onLoginPromptDismiss: () -> Unit = {},
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
@@ -217,6 +220,13 @@ fun AppShell(
                 )
             }
         }
+    }
+
+    // Sign-in prompt for gated actions (a guest tapping favorite). Overlays the
+    // whole shell so it appears regardless of the active destination. Mirrors iOS
+    // ContentView's login-modal sheet.
+    if (showLoginPrompt) {
+        LoginPromptSheet(onDismiss = onLoginPromptDismiss)
     }
 }
 

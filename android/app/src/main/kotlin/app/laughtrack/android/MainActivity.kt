@@ -19,6 +19,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import app.laughtrack.android.core.analytics.AnalyticsEvents
 import app.laughtrack.android.core.analytics.AnalyticsManager
+import app.laughtrack.android.core.data.auth.LoginPromptController
 import app.laughtrack.android.core.data.favorites.FavoritesRepository
 import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.navigation.LaughTrackDeepLink
@@ -57,9 +58,13 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var favoritesRepository: FavoritesRepository
 
+    @Inject
+    lateinit var loginPromptController: LoginPromptController
+
     private var pendingRoute by mutableStateOf<AppRoute?>(null)
     private val signedIn = mutableStateOf(false)
     private val hasFavorites = mutableStateOf(false)
+    private val showLoginPrompt = mutableStateOf(false)
 
     // POST_NOTIFICATIONS runtime prompt (Android 13+). Registered at construction
     // so it is available before the activity is STARTED. Logs the OS-prompt result
@@ -93,6 +98,8 @@ class MainActivity : ComponentActivity() {
                         signedIn = signedIn.value,
                         hasFavorites = hasFavorites.value,
                         playbackController = playbackController,
+                        showLoginPrompt = showLoginPrompt.value,
+                        onLoginPromptDismiss = { loginPromptController.dismiss() },
                     )
                 }
             }
@@ -132,9 +139,15 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun restoreSession() {
+        // Present the sign-in prompt whenever a gated action requests it.
+        lifecycleScope.launch {
+            loginPromptController.visible.collectLatest { showLoginPrompt.value = it }
+        }
         lifecycleScope.launch {
             authSessionManager.signedIn.collectLatest { isSignedIn ->
                 signedIn.value = isSignedIn
+                // A completed sign-in resolves any open prompt.
+                if (isSignedIn) loginPromptController.dismiss()
                 // Load (or clear) favorites at the shell level so the Favorites tab's
                 // visibility is known before the user ever visits it — mirrors iOS
                 // AppShellView's auth-keyed favorites task.
