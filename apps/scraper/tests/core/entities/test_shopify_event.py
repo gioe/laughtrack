@@ -115,6 +115,22 @@ class TestParseVariantDatetime:
         """Without year in variant, regex should not match."""
         assert parse_variant_datetime("Thursday April 9 / 8:00pm General Admission", TZ) is None
 
+    # Olsen Run variant format: uppercase weekday, " - " separator, ordinal day,
+    # and a minute-less time ("6PM"). See TASK-3607.
+    def test_olsen_run_uppercase_dash_ordinal_no_minutes(self):
+        dt = parse_variant_datetime("FRIDAY - JULY 10th 2026 / 6PM - EARLY SHOW", TZ)
+        assert dt == datetime(2026, 7, 10, 18, 0, tzinfo=ZoneInfo(TZ))
+
+    def test_olsen_run_ordinal_with_minutes(self):
+        dt = parse_variant_datetime("SATURDAY - JULY 11th 2026 / 8:30PM - LATE SHOW", TZ)
+        assert dt == datetime(2026, 7, 11, 20, 30, tzinfo=ZoneInfo(TZ))
+
+    def test_olsen_run_extra_tier_suffix(self):
+        dt = parse_variant_datetime(
+            "THURSDAY - JULY 16th 2026 / 7PM - EARLY SHOW / GENERAL ADMISSION", TZ
+        )
+        assert dt == datetime(2026, 7, 16, 19, 0, tzinfo=ZoneInfo(TZ))
+
 
 # ---------------------------------------------------------------------------
 # parse_product_title_datetime

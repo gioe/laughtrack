@@ -30,10 +30,16 @@ from laughtrack.utilities.domain.show.factory import ShowFactoryUtils
 
 
 # ---------- Format A: date in variant title ----------
-# Pattern: "Wednesday April 9 2026 / 8:00pm ..." or "Wednesday April 9 2026 / 8:00 PM ..."
+# Pattern: "Wednesday April 9 2026 / 8:00pm ..." (American Comedy Co) and the
+# Olsen Run variant "FRIDAY - JULY 10th 2026 / 6PM - EARLY SHOW":
+#   - weekday may be any case and separated from the date by a dash ("FRIDAY - ")
+#   - the day may carry an ordinal suffix ("10th")
+#   - the time may omit minutes ("6PM" as well as "8:30PM"/"8:00 pm")
 VARIANT_DATE_RE = re.compile(
-    r"^(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\s+"
-    r"(\w+ \d{1,2} \d{4})\s*/\s*(\d{1,2}:\d{2}\s*[APap][Mm])",
+    r"^(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)[a-z]*\s*[-–]?\s*"
+    r"([A-Za-z]+\s+\d{1,2}(?:st|nd|rd|th)?\s+\d{4})"
+    r"\s*/\s*(\d{1,2}(?::\d{2})?\s*[APap][Mm])",
+    re.IGNORECASE,
 )
 
 # ---------- Format B: date in product title ----------
@@ -118,15 +124,21 @@ def parse_variant_datetime(variant_title: str, timezone: str) -> Optional[dateti
     if not match:
         return None
 
-    date_str = match.group(1)      # "April 9 2026"
-    time_str = match.group(2).strip()  # "8:00pm"
+    date_str = match.group(1)      # "April 9 2026" or "JULY 10th 2026"
+    time_str = match.group(2).strip()  # "8:00pm" or "6PM"
 
     try:
         from zoneinfo import ZoneInfo
         tz = ZoneInfo(timezone)
-        # Normalize time format: "8:00pm" → "8:00 PM"
-        time_normalized = re.sub(r"([ap]m)", lambda m: " " + m.group(1).upper(), time_str, flags=re.IGNORECASE).strip()
-        dt = datetime.strptime(f"{date_str} {time_normalized}", "%B %d %Y %I:%M %p")
+        # Strip an ordinal suffix off the day: "JULY 10th 2026" → "JULY 10 2026".
+        date_clean = re.sub(r"(\d{1,2})(?:st|nd|rd|th)\b", r"\1", date_str, flags=re.IGNORECASE)
+        # Normalize the time: ensure a single space before AM/PM and uppercase it
+        # ("8:00pm" → "8:00 PM", "6PM" → "6 PM"). Minutes are optional.
+        time_normalized = re.sub(
+            r"\s*([ap]m)\s*$", lambda m: " " + m.group(1).upper(), time_str, flags=re.IGNORECASE
+        ).strip()
+        fmt = "%B %d %Y %I:%M %p" if ":" in time_normalized else "%B %d %Y %I %p"
+        dt = datetime.strptime(f"{date_clean} {time_normalized}", fmt)
         return dt.replace(tzinfo=tz)
     except Exception:
         return None
