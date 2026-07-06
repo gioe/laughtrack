@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { ClubDTO } from "@/objects/class/club/club.interface";
@@ -77,6 +78,18 @@ const FavoritesTab = () => {
             10,
         ) || 1,
     );
+
+    // A grouped notification tap arrives as ?shows=555,777 — scope the upcoming
+    // shows section to just those shows (the notification's context).
+    const scopedShowIds = useMemo(() => {
+        const raw = searchParams?.get("shows");
+        if (!raw) return null;
+        const ids = raw
+            .split(",")
+            .map((value) => Number.parseInt(value, 10))
+            .filter((id) => Number.isFinite(id));
+        return ids.length ? new Set(ids) : null;
+    }, [searchParams]);
 
     const [comedians, setComedians] = useState<ComedianDTO[]>([]);
     const [clubs, setClubs] = useState<ClubDTO[]>([]);
@@ -258,25 +271,61 @@ const FavoritesTab = () => {
                 queryKey="podcastsPage"
             />
 
+            {scopedShowIds && (
+                <div className="flex flex-wrap items-center justify-between gap-2 bg-surface-muted border border-subtle rounded-lg px-4 py-3">
+                    <span className="text-sm text-foreground/85 font-dmSans">
+                        Showing{" "}
+                        {shows.filter((s) => scopedShowIds.has(s.id)).length}{" "}
+                        {shows.filter((s) => scopedShowIds.has(s.id)).length ===
+                        1
+                            ? "show"
+                            : "shows"}{" "}
+                        from your notification
+                    </span>
+                    <Link
+                        href="?tab=favorites"
+                        className="text-sm font-semibold text-copper hover:underline"
+                    >
+                        Show all favorites
+                    </Link>
+                </div>
+            )}
+
             <FavoriteSearchableSection<ShowDTO>
-                title="Upcoming Shows from Favorites"
-                items={shows}
+                title={
+                    scopedShowIds
+                        ? "From your notification"
+                        : "Upcoming Shows from Favorites"
+                }
+                items={
+                    scopedShowIds
+                        ? shows.filter((s) => scopedShowIds.has(s.id))
+                        : shows
+                }
                 isLoading={loadingShows}
                 loadError={showError}
-                emptyMessage="No upcoming shows from your favorite comedians."
+                emptyMessage={
+                    scopedShowIds
+                        ? "Those shows aren't in your upcoming favorites right now."
+                        : "No upcoming shows from your favorite comedians."
+                }
                 searchPlaceholder="Search upcoming shows"
                 matchesQuery={showMatches}
                 renderItem={renderShow}
                 itemKey={(s) => s.id}
                 gridClassName="grid grid-cols-1 gap-4"
                 queryKey={FAVORITE_SHOWS_PAGE_KEY}
-                headerNote={showsHeaderNote}
+                headerNote={scopedShowIds ? undefined : showsHeaderNote}
                 searchScopeLabel="shows"
-                serverPageInfo={{
-                    currentPage: showsPage,
-                    pageSize: FAVORITE_SHOWS_PAGE_SIZE,
-                    totalItems: showsTotal,
-                }}
+                serverPageInfo={
+                    scopedShowIds
+                        ? undefined
+                        : {
+                              currentPage: showsPage,
+                              pageSize: FAVORITE_SHOWS_PAGE_SIZE,
+                              totalItems: showsTotal,
+                          }
+                }
             />
         </div>
     );

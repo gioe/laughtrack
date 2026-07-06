@@ -531,6 +531,7 @@ class ApnsPushService:
         title: str | None = None,
         body: str | None = None,
         route: str | None = None,
+        show_ids: str | None = None,
     ) -> PushDeliveryResult:
         try:
             import httpx
@@ -560,6 +561,9 @@ class ApnsPushService:
         # above stays as the fallback older clients (no route key) use.
         if route:
             payload["route"] = route
+        # Comma-joined show ids so the Favorites tab can scope to this push's shows.
+        if show_ids:
+            payload["showIds"] = show_ids
         if hasattr(show_date, "isoformat"):
             payload["showDate"] = show_date.isoformat()
         # Rich push: mutable-content lets the NotificationServiceExtension run and
@@ -741,6 +745,7 @@ class FcmPushService:
         title: str | None = None,
         body: str | None = None,
         route: str | None = None,
+        show_ids: str | None = None,
     ) -> PushDeliveryResult:
         try:
             import httpx
@@ -769,6 +774,9 @@ class FcmPushService:
         # above stays as the fallback older clients (no route key) use.
         if route:
             data["route"] = route
+        # Comma-joined show ids so the Favorites tab can scope to this push's shows.
+        if show_ids:
+            data["showIds"] = show_ids
         if hasattr(show_date, "isoformat"):
             data["showDate"] = show_date.isoformat()
         # Rich push: the Android client (LaughTrackMessagingService) reads imageUrl
@@ -1482,6 +1490,8 @@ class ComedianArrivalNotificationService:
         # older-client fallback.
         title, body = _build_grouped_push_copy(events) if grouped else (None, None)
         route = "favorites" if grouped else None
+        # Show ids let the Favorites tab scope to just this push's shows.
+        show_ids = ",".join(str(event["show_id"]) for event in events) if grouped else None
         comedian_image_url = _build_comedian_image_url(
             primary.get("comedian_avatar_path"),
             primary.get("primary_comedian_name"),
@@ -1507,6 +1517,7 @@ class ComedianArrivalNotificationService:
                 title=title,
                 body=body,
                 route=route,
+                show_ids=show_ids,
             )
         except Exception as e:
             Logger.error(
@@ -1653,6 +1664,7 @@ class ComedianArrivalNotificationService:
         title: str | None = None,
         body: str | None = None,
         route: str | None = None,
+        show_ids: str | None = None,
     ) -> PushDeliveryResult:
         sender = self._resolve_push_sender(platform)
         return sender.send_show_notification(
@@ -1669,6 +1681,7 @@ class ComedianArrivalNotificationService:
             title=title,
             body=body,
             route=route,
+            show_ids=show_ids,
         )
 
     def _ensure_push_sender_configured(self, platform: str | None = None) -> None:

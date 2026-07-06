@@ -24,7 +24,11 @@ interface NotificationItem {
 // Single-show entries open the show; grouped entries open the Favorites tab
 // (same page, ?tab=favorites), which lists the upcoming shows.
 const notificationHref = (item: NotificationItem): string => {
-    if (item.route === "favorites") return "?tab=favorites";
+    if (item.route === "favorites") {
+        // Pass the entry's shows so the Favorites tab scopes to just them.
+        const ids = item.shows.map((s) => s.showId).join(",");
+        return ids ? `?tab=favorites&shows=${ids}` : "?tab=favorites";
+    }
     const showId = item.shows[0]?.showId;
     return showId != null ? `/show/${showId}` : "?tab=favorites";
 };

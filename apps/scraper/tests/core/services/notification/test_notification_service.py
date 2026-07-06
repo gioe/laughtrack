@@ -1278,6 +1278,7 @@ class TestRunGroupsPushNotifications:
         assert kwargs["title"] == "Funny Person has 3 shows near you"
         assert kwargs["body"] == "Tap to see where and when"
         assert kwargs["route"] == "favorites"
+        assert kwargs["show_ids"] == "42,43,44"
         # Deep-link fallback for older clients (no route key) is the soonest show.
         assert kwargs["show_id"] == 42
         assert mock_record.call_count == 3
@@ -1312,6 +1313,7 @@ class TestRunGroupsPushNotifications:
         assert kwargs["title"] == "2 comedians you follow have shows near you"
         assert kwargs["body"] == "Tap to see where and when"
         assert kwargs["route"] == "favorites"
+        assert kwargs["show_ids"] == "42,43"
         assert mock_record.call_count == 2
 
     def test_single_show_keeps_per_show_copy(self):
@@ -1329,6 +1331,7 @@ class TestRunGroupsPushNotifications:
         assert kwargs["title"] is None
         assert kwargs["body"] is None
         assert kwargs["route"] is None
+        assert kwargs["show_ids"] is None
 
     def test_separate_users_are_not_merged(self):
         rows = [

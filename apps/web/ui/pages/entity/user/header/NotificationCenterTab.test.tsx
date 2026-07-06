@@ -157,7 +157,7 @@ describe("NotificationCenterTab", () => {
         const link = screen
             .getByText("2 comedians you follow have shows near you")
             .closest("a");
-        expect(link?.getAttribute("href")).toBe("?tab=favorites");
+        expect(link?.getAttribute("href")).toBe("?tab=favorites&shows=555,777");
     });
 
     it("marks notifications seen on view and notifies the parent to clear the badge", async () => {
