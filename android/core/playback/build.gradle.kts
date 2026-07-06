@@ -41,4 +41,6 @@ dependencies {
     implementation(libs.androidx.media3.ui)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
+
+    testImplementation(libs.junit)
 }
