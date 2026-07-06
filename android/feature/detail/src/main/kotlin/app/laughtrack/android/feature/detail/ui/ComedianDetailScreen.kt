@@ -421,7 +421,9 @@ private fun ComedianShowsTab(
             .filter { show ->
                 listOfNotNull(show.clubName, show.name).any { it.contains(clubFilter, ignoreCase = true) }
             }
-            .let { shows -> if (newestFirst) shows.sortedByDescending { it.date ?: "" } else shows.sortedBy { it.date ?: "" } }
+            .let { shows ->
+                if (newestFirst) shows.sortedByDescending { it.date ?: "" } else shows.sortedBy { it.date ?: "" }
+            }
 
     Surface(
         modifier =
@@ -503,7 +505,9 @@ private fun ClubFilterField(
         value = value,
         onValueChange = onValueChange,
         leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null, tint = LaughTrackColors.ForegroundMuted) },
-        placeholder = { Text("Filter by club — Comedy Cellar, The Stand...", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+        placeholder = {
+            Text("Filter by club — Comedy Cellar, The Stand...", maxLines = 1, overflow = TextOverflow.Ellipsis)
+        },
         singleLine = true,
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(999.dp),

@@ -19,6 +19,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import app.laughtrack.android.core.analytics.AnalyticsEvents
 import app.laughtrack.android.core.analytics.AnalyticsManager
+import app.laughtrack.android.core.data.auth.CurrentUserState
 import app.laughtrack.android.core.data.auth.LoginPromptController
 import app.laughtrack.android.core.data.favorites.FavoritesRepository
 import app.laughtrack.android.core.navigation.AppRoute
@@ -60,6 +61,9 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var loginPromptController: LoginPromptController
+
+    @Inject
+    lateinit var currentUserState: CurrentUserState
 
     private var pendingRoute by mutableStateOf<AppRoute?>(null)
     private val signedIn = mutableStateOf(false)
@@ -155,6 +159,7 @@ class MainActivity : ComponentActivity() {
                     favoritesRepository.refreshSignedInFavorites()
                 } else {
                     favoritesRepository.resetSignedOut()
+                    currentUserState.reset()
                 }
             }
         }
@@ -186,6 +191,9 @@ class MainActivity : ComponentActivity() {
             pushTokenManager.syncCurrentToken()
         }
         authSessionManager.getMe().onSuccess { response ->
+            // Cache the admin role so admin-only UI (the Show-ID badge) can gate on it
+            // without re-fetching /me per screen.
+            currentUserState.setAdmin(response.data.isAdmin)
             // Set the analytics identity from the server-issued userId (no email-hash
             // fallback) + cross-client cohort properties.
             analytics.identify(

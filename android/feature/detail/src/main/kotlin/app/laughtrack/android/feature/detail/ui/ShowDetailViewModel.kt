@@ -3,6 +3,7 @@ package app.laughtrack.android.feature.detail.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.laughtrack.android.core.data.UiState
+import app.laughtrack.android.core.data.auth.CurrentUserState
 import app.laughtrack.android.feature.detail.data.ShowDetailRepository
 import app.laughtrack.android.feature.detail.model.ShowDetailUi
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,9 +18,13 @@ class ShowDetailViewModel
     @Inject
     constructor(
         private val repository: ShowDetailRepository,
+        currentUserState: CurrentUserState,
     ) : ViewModel() {
         private val _state = MutableStateFlow<UiState<ShowDetailUi>>(UiState.Idle)
         val state: StateFlow<UiState<ShowDetailUi>> = _state.asStateFlow()
+
+        /** Gates the admin-only Show-ID badge (mirrors iOS's isAdmin gate). */
+        val isAdmin: StateFlow<Boolean> = currentUserState.isAdmin
 
         private var loadedId: Int? = null
 

@@ -33,13 +33,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -82,6 +86,7 @@ fun ShowDetailScreen(
 ) {
     LaunchedEffect(id) { viewModel.load(id) }
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val isAdmin by viewModel.isAdmin.collectAsStateWithLifecycle()
 
     Box(
         Modifier
@@ -93,6 +98,7 @@ fun ShowDetailScreen(
             is UiState.Success ->
                 ShowDetailBody(
                     ui = (state as UiState.Success<ShowDetailUi>).value,
+                    isAdmin = isAdmin,
                     onBack = onBack,
                     onHome = onHome,
                     onOpenEntity = onOpenEntity,
@@ -105,6 +111,7 @@ fun ShowDetailScreen(
 @Composable
 private fun ShowDetailBody(
     ui: ShowDetailUi,
+    isAdmin: Boolean,
     onBack: () -> Unit,
     onHome: (() -> Unit)?,
     onOpenEntity: (AppRoute) -> Unit,
@@ -128,6 +135,9 @@ private fun ShowDetailBody(
             Modifier.padding(horizontal = 8.dp, vertical = 18.dp),
             verticalArrangement = Arrangement.spacedBy(18.dp),
         ) {
+            if (isAdmin) {
+                AdminShowIdBadge(showId = show.id)
+            }
             ShowTicketSummary(
                 show = show,
                 ticketOutboundUrl = ui.ticketOutboundUrl,
@@ -159,6 +169,32 @@ private fun ShowDetailBody(
             ShowLineupSection(show.lineup.orEmpty(), onOpenEntity)
             RelatedShowsSection(ui.relatedShows, onOpenEntity)
         }
+    }
+}
+
+/** Admin-only copyable Show-ID chip on Show Detail (gated on isAdmin, mirrors iOS AdminShowIDBadge). */
+@Composable
+private fun AdminShowIdBadge(showId: Int) {
+    val clipboard = LocalClipboardManager.current
+    var copied by remember(showId) { mutableStateOf(false) }
+    Surface(
+        color = LaughTrackColors.SurfaceElevated,
+        shape = RoundedCornerShape(999.dp),
+        modifier =
+            Modifier
+                .clip(RoundedCornerShape(999.dp))
+                .clickable {
+                    clipboard.setText(AnnotatedString(showId.toString()))
+                    copied = true
+                }
+                .border(1.dp, LaughTrackColors.BorderSubtle, RoundedCornerShape(999.dp)),
+    ) {
+        Text(
+            text = if (copied) "Show ID $showId · copied" else "Show ID $showId · tap to copy",
+            style = MaterialTheme.typography.labelSmall,
+            color = LaughTrackColors.ForegroundMuted,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+        )
     }
 }
 
