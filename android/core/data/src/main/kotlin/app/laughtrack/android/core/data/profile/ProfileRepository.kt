@@ -83,6 +83,7 @@ interface ProfileAccountService {
 enum class ProfileAuthProvider {
     GOOGLE,
     APPLE,
+    EMAIL,
 }
 
 interface ProfileSettingsService {
@@ -253,6 +254,7 @@ class AuthSessionProfileAccountService
                 when (provider) {
                     ProfileAuthProvider.GOOGLE -> AuthProvider.GOOGLE
                     ProfileAuthProvider.APPLE -> AuthProvider.APPLE
+                    ProfileAuthProvider.EMAIL -> AuthProvider.EMAIL
                 },
             )
 

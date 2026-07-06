@@ -48,6 +48,23 @@ class AuthSessionManagerTest {
     }
 
     @Test
+    fun buildSignInUrlCarriesEmailProviderForMagicLink() {
+        val manager = newManager()
+
+        val signInUrl = manager.buildSignInUrl(AuthProvider.EMAIL)
+
+        // The outer page picks the magic-link form via nativeAuthProvider=email...
+        assertTrue(signInUrl.contains("nativeAuthProvider=email"))
+        // ...and the inner native callback is stamped with provider=email so the
+        // web completion redirects tokens back to laughtrack://auth/callback.
+        assertTrue(
+            decodeCallbackUrl(signInUrl).startsWith(
+                "https://www.laugh-track.com/api/v1/auth/native/callback?provider=email&state=",
+            ),
+        )
+    }
+
+    @Test
     fun handleCallbackStoresTokenPairWhenStateMatches() =
         runTest {
             val store = InMemoryTokenStore()

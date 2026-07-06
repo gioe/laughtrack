@@ -161,6 +161,12 @@ class AuthSessionManager(
 enum class AuthProvider(val id: String) {
     GOOGLE("google"),
     APPLE("apple"),
+
+    // Magic-link email sign-in. The web page presents the email form for
+    // nativeAuthProvider=email and NextAuth redirects back to the native
+    // laughtrack:// callback with tokens once the emailed link is opened, so the
+    // Android side reuses the same buildSignInUrl/handleCallback path as OAuth.
+    EMAIL("email"),
 }
 
 sealed interface AuthCallbackResult {
