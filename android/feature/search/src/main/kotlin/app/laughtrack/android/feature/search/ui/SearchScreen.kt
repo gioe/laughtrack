@@ -577,7 +577,14 @@ private fun HomeCityPill(
     onSelect: (String?) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val label = available.firstOrNull { it.value == selected }?.label ?: "All cities"
+    // Keep label and active-highlight consistent: when a city is selected but the
+    // refreshed facets no longer include it, fall back to the raw token rather than
+    // "All cities" so an active pill never reads as unselected.
+    val label =
+        when {
+            selected == null -> "All cities"
+            else -> available.firstOrNull { it.value == selected }?.label ?: selected
+        }
     Box {
         FilterPillButton(label = label, active = selected != null, onClick = { expanded = true })
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
