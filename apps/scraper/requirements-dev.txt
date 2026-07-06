@@ -11,6 +11,7 @@ pytest-cov>=4.1.0      # Test coverage reporting
 pytest-mock>=3.11.0    # Mocking for tests
 pytest-timeout>=2.2.0  # Per-test timeout to prevent hangs
 coverage>=7.3.0        # Coverage measurement
+time-machine>=2.13.0   # Frozen-clock fixture-rot sweep (FAKE_NOW in tests/conftest.py)
 
 # Code Quality
 black>=23.0.0          # Code formatter

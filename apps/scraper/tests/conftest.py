@@ -33,3 +33,49 @@ os.environ.setdefault("PLAYWRIGHT_FALLBACK", "0")
 import laughtrack.foundation.infrastructure.logger.logger  # noqa: F401
 import laughtrack.foundation.infrastructure.logger  # noqa: F401
 import laughtrack.foundation.infrastructure  # noqa: F401
+
+# ---------------------------------------------------------------------------
+# Frozen-clock fixture-rot sweep (TASK-3593, convention 309).
+#
+# When FAKE_NOW is set, the whole pytest session runs under a time-machine
+# frozen clock so fixture dates that rot with the wall clock (past-drop
+# filters, wall-clock year inference, DST-window assumptions) fail *now*
+# instead of on some future nightly. Inert when FAKE_NOW is unset — normal
+# runs never import time_machine. Accepted forms:
+#
+#   FAKE_NOW="2027-03-15T12:00:00+00:00"   absolute ISO datetime
+#   FAKE_NOW="+240d"                        relative offset in days from now
+#
+# Run via `make test-frozen` locally or the scraper-frozen-clock GHA job.
+# ---------------------------------------------------------------------------
+
+_time_traveller = None
+
+
+def _resolve_fake_now(raw: str):
+    from datetime import datetime, timedelta, timezone
+
+    if raw.startswith("+") and raw.endswith("d"):
+        return datetime.now(timezone.utc) + timedelta(days=int(raw[1:-1]))
+    return raw  # time_machine parses ISO strings itself
+
+
+def pytest_configure(config):
+    global _time_traveller
+    raw = os.environ.get("FAKE_NOW")
+    if not raw:
+        return
+    import time_machine
+
+    _time_traveller = time_machine.travel(_resolve_fake_now(raw), tick=True)
+    _time_traveller.start()
+    from datetime import datetime, timezone
+
+    print(f"\nFAKE_NOW={raw} — session clock frozen at {datetime.now(timezone.utc).isoformat()} (fixture-rot sweep)")
+
+
+def pytest_unconfigure(config):
+    global _time_traveller
+    if _time_traveller is not None:
+        _time_traveller.stop()
+        _time_traveller = None
