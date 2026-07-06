@@ -23,7 +23,6 @@ adds these validated venues:
 | Sheba's Speakeasy Comedy Club | `ChIJFzCDZx1ZwokR0Xbe8D5v1jQ` | `eventbrite` | `https://www.eventbrite.com`, eventbrite id `77390385933` | 38 future shows |
 | East Village Stand Up Comedy | `ChIJfWiS_xVZwokRwizGl3R3AME` | `eventbrite` | `https://www.eventbrite.com`, eventbrite id `10025720196` | 25 future shows |
 | The Comedy Works | `ChIJ2WY0G-pNwYkRSA9-Mu25f24` | `ticketspice` | `https://comedyworksbristol.ticketspice.com/comedyweekendlaughsjuly10-11` | 1 future show |
-| Comedy Explosion | `ChIJoTL1eJ_7xokRxKP67A-9Aw0` | `wix_events` | `https://thecomedyexplosion.com/` | 1 future show |
 | The Lab | `ChIJgRv5Eqe7xokRNgxFBVzkqRY` | `eventbrite` filtered | `https://www.eventbrite.com`, eventbrite id `26956500819`, `exclude_classes=true`, show-title include patterns | 4 future shows |
 | Upright Citizens Brigade Theatre New York | `ChIJYwz0-YJZwokR1XOunnE1Pe4` | `ucb` | `https://ucbcomedy.com/shows/`, location slugs `nyc-mainstage` and `nyc-upstairs` | 62 Mainstage shows; 10 Upstairs shows |
 | Stones Comedy Club | `ChIJV3CtSlJbwokRW6gCgnAFt-E` | `eventbrite` | `https://www.eventbrite.com`, eventbrite id `33078829209` | 52 future shows |
@@ -52,7 +51,6 @@ cd apps/scraper && make scrape-club CLUB="Captain Kirk's Comedy Lounge"
 cd apps/scraper && make scrape-club CLUB="Sheba's Speakeasy Comedy Club"
 cd apps/scraper && make scrape-club CLUB='East Village Stand Up Comedy'
 cd apps/scraper && make scrape-club CLUB='The Comedy Works'
-cd apps/scraper && make scrape-club CLUB='Comedy Explosion'
 cd apps/scraper && make scrape-club CLUB='The Lab'
 cd apps/scraper && make scrape-club CLUB='Upright Citizens Brigade Theatre New York'
 cd apps/scraper && make scrape-club CLUB='Stones Comedy Club'
@@ -86,7 +84,7 @@ was captured locally in `/private/tmp/task3563-scrape-results.log`.
 | Sheba's Speakeasy Comedy Club | Exit 0; scraped 43 shows |
 | East Village Stand Up Comedy | Exit 0; scraped 22 shows |
 | The Comedy Works | Exit 0; scraped 1 show |
-| Comedy Explosion | Exit 0; scraped 0 shows. The Wix access-token endpoint returned HTTP 404, so this should be treated as a live source regression despite the command exit status. |
+| Comedy Explosion | Exit 0; scraped 0 shows. The root and www domains now serve Wix ConnectYourDomain error pages, and the Wix access-token endpoint returned HTTP 404. A follow-up TASK-3563 migration disables the source, hides the club row, and deny-lists the Google Places candidate as stale/no-calendar. |
 | The Lab | Exit 0; scraped 4 shows |
 | Upright Citizens Brigade Theatre New York | Exit 0; scraped 61 shows |
 | Stones Comedy Club | Exit 0; scraped 50 shows |
@@ -128,6 +126,7 @@ them as comedy-club onboarding candidates.
 | Chip Ambrogio Comedy | `ChIJHxc11BPvwokRJnO9QrOJfHE` | Individual comedian website/listing, not a venue. |
 | Best Comedy Tickets | `ChIJQXZTgZFZwokRAFmiulJft4w` | Ticket reseller/listing site for multiple NYC comedy venues, not a fixed venue calendar. |
 | FUNY Stand Up Comedy Classes - The New York Comedy School | `ChIJD3c4lKVZwokRjdZJoUEQHj8` | Comedy class/school program, not a fixed club calendar. |
+| Comedy Explosion | `ChIJoTL1eJ_7xokRxKP67A-9Aw0` | Stale/no-calendar record; post-migration scrape returned zero shows, the Wix domain serves ConnectYourDomain error pages, and the Wix access-token endpoint returns HTTP 404. |
 | KIDS 'N COMEDY | `ChIJC6VawohYwokRSM714XYSVBo` | Youth comedy program/show listing; event signal points to Gotham Comedy Club rather than a distinct venue. |
 | The Industry Room | `ChIJYUSi3gpZwokRkMg8LalEFHY` | Comedy class/training-room listing; public ticket signal found was a stand-up class, not a fixed public club calendar. |
 | Popped Collar Comedy - Free Show in Bushwick, Brooklyn | `ChIJ2QNRX-ddwokRj-YibDeFnoM` | Named recurring showcase at another venue, not a distinct club. |
