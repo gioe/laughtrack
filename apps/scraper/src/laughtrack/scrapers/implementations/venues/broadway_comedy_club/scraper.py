@@ -44,11 +44,12 @@ class BroadwayComedyClubScraper(BaseScraper):
     """
 
     key = "broadway"
+    tessera_client_cls = BroadwayTesseraClient
 
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
         self.transformation_pipeline.register_transformer(BroadwayEventTransformer(club))
-        self.tessera_client = BroadwayTesseraClient(club, proxy_pool=self.proxy_pool)
+        self.tessera_client = self.tessera_client_cls(club, proxy_pool=self.proxy_pool)
         # Use a factory method for a reusable enrichment pattern across scrapers
         self._tickets = self._make_ticket_enricher()
         # Precompute base domain for absolute URL building
