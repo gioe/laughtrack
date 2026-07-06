@@ -35,4 +35,10 @@ class PodcastPlaybackControlsTest {
         // Past the deadline clamps to 0:00 rather than going negative.
         assertEquals("Sleep · 0:00", sleepTimerLabel(endsAtElapsedMs = 10_000L, nowElapsedMs = 20_000L))
     }
+
+    @Test
+    fun sleep_label_rolls_over_to_hours_for_the_one_hour_option() {
+        // 1h remaining renders h:mm:ss, not "60:00".
+        assertEquals("Sleep · 1:00:00", sleepTimerLabel(endsAtElapsedMs = 3_600_000L, nowElapsedMs = 0L))
+    }
 }

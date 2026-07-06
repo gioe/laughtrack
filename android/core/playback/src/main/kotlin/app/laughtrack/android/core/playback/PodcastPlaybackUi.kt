@@ -22,6 +22,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,6 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.laughtrack.android.core.ui.components.RemoteImage
+import kotlinx.coroutines.delay
 
 @Composable
 fun PodcastMiniPlayer(
@@ -188,9 +190,19 @@ private fun SleepTimerMenu(
     playbackController: PodcastPlaybackController,
 ) {
     var expanded by remember { mutableStateOf(false) }
+    // Re-read the clock once a second while a timer is armed so the countdown ticks
+    // independently of playback (position polling would otherwise be the only
+    // recomposition trigger, freezing the label while paused).
+    var nowElapsedMs by remember { mutableStateOf(SystemClock.elapsedRealtime()) }
+    LaunchedEffect(state.sleepTimerEndsAtElapsedMs) {
+        while (state.sleepTimerEndsAtElapsedMs != null) {
+            nowElapsedMs = SystemClock.elapsedRealtime()
+            delay(1_000)
+        }
+    }
     Box {
         TextButton(onClick = { expanded = true }) {
-            Text(sleepTimerLabel(state.sleepTimerEndsAtElapsedMs, SystemClock.elapsedRealtime()))
+            Text(sleepTimerLabel(state.sleepTimerEndsAtElapsedMs, nowElapsedMs))
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             SLEEP_INTERVALS.forEach { (label, durationMs) ->
@@ -242,7 +254,12 @@ private fun Float.cleanRate(): String = if (this % 1f == 0f) toInt().toString() 
 
 private fun formatTime(ms: Long): String {
     val totalSeconds = (ms / 1_000).coerceAtLeast(0L)
-    val minutes = totalSeconds / 60
+    val hours = totalSeconds / 3600
+    val minutes = (totalSeconds % 3600) / 60
     val seconds = totalSeconds % 60
-    return "$minutes:${seconds.toString().padStart(2, '0')}"
+    return if (hours > 0) {
+        "$hours:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}"
+    } else {
+        "$minutes:${seconds.toString().padStart(2, '0')}"
+    }
 }
