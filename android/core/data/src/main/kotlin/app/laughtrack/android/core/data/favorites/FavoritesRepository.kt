@@ -1,5 +1,7 @@
 package app.laughtrack.android.core.data.favorites
 
+import app.laughtrack.android.core.data.auth.LoginPromptController
+import app.laughtrack.android.core.network.auth.AuthSessionManager
 import app.laughtrack.android.core.network.generated.api.FavoritesApi
 import app.laughtrack.android.core.network.generated.model.AddFavoriteClubRequest
 import app.laughtrack.android.core.network.generated.model.AddFavoritePodcastRequest
@@ -35,6 +37,9 @@ sealed interface FavoriteToggleResult {
     data class Queued(val isFavorite: Boolean) : FavoriteToggleResult
 
     data class Failure(val message: String) : FavoriteToggleResult
+
+    /** The user is signed out; the sign-in prompt was requested instead of toggling. */
+    data object SignInRequired : FavoriteToggleResult
 }
 
 @Singleton
@@ -43,6 +48,8 @@ class FavoritesRepository
     constructor(
         private val favoritesApi: FavoritesApi,
         private val offlineQueue: FavoriteOfflineQueue,
+        private val authSessionManager: AuthSessionManager,
+        private val loginPromptController: LoginPromptController,
     ) {
         private val _snapshot = MutableStateFlow(FavoritesSnapshot())
         val snapshot: StateFlow<FavoritesSnapshot> = _snapshot.asStateFlow()
@@ -216,6 +223,16 @@ class FavoritesRepository
             serverCall: suspend (Boolean) -> Response<*>,
             queue: (Boolean) -> Unit,
         ): FavoriteToggleResult {
+            // Gate favoriting on sign-in (mirrors iOS): a guest tap requests the
+            // sign-in prompt rather than optimistically toggling and firing a
+            // doomed 401 (which would revert with a misleading "couldn't update"
+            // error). Favorites are a per-account concept, so there is nothing to
+            // persist offline for a signed-out user.
+            if (!authSessionManager.signedIn.value) {
+                loginPromptController.request()
+                return FavoriteToggleResult.SignInRequired
+            }
+
             val nextValue = !currentValue
             setPending(key, true)
             optimistic(nextValue)

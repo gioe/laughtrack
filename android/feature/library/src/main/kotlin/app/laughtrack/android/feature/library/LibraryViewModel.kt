@@ -66,6 +66,8 @@ class LibraryViewModel
                     is FavoriteToggleResult.Queued ->
                         "Saved offline. LaughTrack will sync this when you're connected."
                     is FavoriteToggleResult.Failure -> result.message
+                    // The shared login prompt is the user-facing signal here, so no snackbar.
+                    FavoriteToggleResult.SignInRequired -> null
                 }
         }
     }

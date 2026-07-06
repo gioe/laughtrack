@@ -55,6 +55,9 @@ class DefaultComedianOnboardingRepository
                 is FavoriteToggleResult.Updated -> result.isFavorite
                 is FavoriteToggleResult.Queued -> result.isFavorite
                 is FavoriteToggleResult.Failure -> throw IOException(result.message)
+                // Onboarding runs post-sign-in, so this is unreachable in practice;
+                // treat a guest toggle as not-applied rather than crashing.
+                FavoriteToggleResult.SignInRequired -> false
             }
 
         override suspend fun completeOnboarding() {
