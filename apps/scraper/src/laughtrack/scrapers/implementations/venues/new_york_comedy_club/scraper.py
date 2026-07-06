@@ -48,6 +48,31 @@ class NewYorkComedyClubScraper(BaseScraper):
             html_content = await self.fetch_html(normalized_url)
 
             json_ld_events = EventExtractor.extract_events(html_content)
+
+            # Dedicated single-venue subdomain (e.g. stamford.newyorkcomedyclub.com):
+            # the calendar lists only this venue's shows, all sharing one street
+            # address, and the JSON-LD already carries the correct address + URLs.
+            # The rendered-card path only knows the three shared-calendar NYC venues
+            # (_VENUE_STREET_BY_LABEL) and would leave every card's street empty, so
+            # the multi-venue address filter below would drop everything. When the
+            # JSON-LD resolves to a single street that matches this club, use it
+            # directly and skip the filter. The shared newyorkcomedyclub.com/calendar
+            # (three distinct addresses) still takes the rendered+filter path below.
+            distinct_streets = {
+                _normalize_street(event.location.address.street_address)
+                for event in json_ld_events
+                if event.location and event.location.address and event.location.address.street_address
+            }
+            distinct_streets.discard("")
+            if len(distinct_streets) == 1 and _normalize_street(self.club.address) in distinct_streets:
+                Logger.info(
+                    f"{self._log_prefix}: single-venue subdomain — using "
+                    f"{len(json_ld_events)} JSON-LD event(s) for '{self.club.address}'",
+                    self.logger_context,
+                )
+                await self._enrich_missing_prices_from_event_pages(json_ld_events)
+                return NewYorkComedyClubPageData(event_list=json_ld_events)
+
             rendered_events = _extract_rendered_calendar_events(html_content, self.club.timezone)
             event_list = (
                 _enrich_rendered_events_from_json_ld(rendered_events, json_ld_events)
