@@ -112,6 +112,37 @@ check rather than blocking ingestion entirely.
 
 These patterns apply whenever writing or modifying test files in `apps/scraper/tests/`.
 
+### Frozen-Clock Fixture-Rot Sweep (`make test-frozen`)
+
+Fixture dates that flow through past-date filtering, wall-clock year inference, or
+DST-sensitive assertions rot as the real clock advances — the suite is green today
+and breaks on some future date (see convention 309; TASK-3583/3585/3586 were all
+this class). Year-literal greps don't find every case: year-less weekday-pinned
+strings, DST-window assumptions in dynamically-computed fixtures, and test-side
+rollover formulas that diverge from the parser are all invisible to them.
+
+The reliable check is empirical: run the whole suite with the session clock frozen
+at future dates and see what fails.
+
+```bash
+make test-frozen            # full suite at now+240d, then now+730d
+FAKE_NOW=+240d pytest tests/            # one sweep, relative offset in days
+FAKE_NOW="2028-11-01T12:00:00+00:00" pytest tests/   # absolute ISO datetime
+```
+
+`FAKE_NOW` is handled by `tests/conftest.py` (`pytest_configure` starts a
+`time_machine.travel`; `time-machine` is a dev dependency). Unset, the hook is
+inert and `time_machine` is never imported. The monthly
+`.github/workflows/scraper-frozen-clock.yml` job runs the same two sweeps and
+alerts Discord on failure.
+
+When a sweep fails, fix the fixture per convention 309: compute dates relative to
+`datetime.now()`, inject a deterministic `today`/`now` param, or use far-future
+sentinels (2099 for UTC/explicit-offset paths; pre-2037 like 2036 for paths that
+localize via pytz, whose DST tables end in 2037). Parse-only assertions on static
+dates are immune and fine. When choosing a DST-sensitive winter/summer date, pick
+the sentinel so the asserted offset matches the fixture's month.
+
 ### SQL Parse-Time Guard
 
 `tests/sql/test_sql_parse_time.py` runs `PREPARE` against a real Postgres for every SQL constant exported from `apps/scraper/sql/`. It catches the TASK-2700 class of regression — parse-time errors like `NULLIF(enum_column, '')` that look fine as Python strings but fail at plan time because Postgres can't coerce `''` into the enum domain. Substring assertions in `tests/foundation/test_popularity_scorer.py` cannot detect this; only a real planner can.
