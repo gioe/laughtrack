@@ -28,11 +28,11 @@ class AnalyticsManager
 
         /**
          * Set the analytics identity from a signed-in user: the server-issued userId
-         * (preferred over any email-hash fallback per the iOS userId rollout) plus the
-         * cross-client cohort properties.
+         * (required on the /v1/me contract since TASK-2618, always passed verbatim)
+         * plus the cross-client cohort properties.
          */
         fun identify(
-            userId: String?,
+            userId: String,
             onboardingCompleted: Boolean,
             hasZip: Boolean,
         ) {
