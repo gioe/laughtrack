@@ -96,3 +96,41 @@ class TestExtractProducts:
         assert len(events) == 1
         # Dec 31 2026 @ 9pm CST == 2027-01-01T03:00:00Z
         assert _utc(events[0].start_date_ms).isoformat() == "2027-01-01T03:00:00+00:00"
+
+    def test_talk_to_the_moon_title_date_and_excerpt_show_time(self):
+        items = [
+            {
+                "id": "late",
+                "title": "Oct 1st Late Show with David Lucas",
+                "fullUrl": "/shows/p/oct1stlateshowdavidlucas",
+                "excerpt": "<p>Doors open at 8:45</p><p>Show at 9</p>",
+            }
+        ]
+
+        events = SquarespaceExtractor.extract_products(
+            items,
+            "https://www.talktothemooncomedyclub.com",
+            timezone_name="America/Chicago",
+        )
+
+        assert len(events) == 1
+        assert _utc(events[0].start_date_ms).isoformat() == "2026-10-02T02:00:00+00:00"
+
+    def test_talk_to_the_moon_skips_lorem_ipsum_template_products(self):
+        items = [
+            {
+                "id": "template",
+                "title": "July 10th Lorem Ipsum",
+                "fullUrl": "/shows/p/lorem-ipsum",
+                "excerpt": "<p>Lorem ipsum dolor sit amet</p>",
+            }
+        ]
+
+        assert (
+            SquarespaceExtractor.extract_products(
+                items,
+                "https://www.talktothemooncomedyclub.com",
+                timezone_name="America/Chicago",
+            )
+            == []
+        )

@@ -59,8 +59,14 @@ _SLUG_DATE_RE = re.compile(
 _TITLE_DATE_RE = re.compile(r"\b([a-z]{3,9})\.?\s+(\d{1,2})(?:st|nd|rd|th)?\b", re.IGNORECASE)
 # Show time in a product title, e.g. "@8pm", "@ 7:30 pm", or "Stand Up 8pm".
 _TITLE_TIME_RE = re.compile(r"(?:@\s*)?\b(\d{1,2})(?::(\d{2}))?\s*([ap])m\b", re.IGNORECASE)
+# Show time in product body copy, e.g. "Show at 9" or "Show at 8:30".
+_BODY_SHOW_TIME_RE = re.compile(r"\bshow\s+at\s+(\d{1,2})(?::(\d{2}))?\b", re.IGNORECASE)
 # Default show start hour (local) when a product title carries no @time.
 _DEFAULT_HOUR = 19
+_TEMPLATE_PRODUCT_RE = re.compile(
+    r"\b(?:lorem\s+ipsum|sample\s+product|product\s+title)\b",
+    re.IGNORECASE,
+)
 
 
 class SquarespaceExtractor:
@@ -118,9 +124,15 @@ class SquarespaceExtractor:
         title = (raw.get("title") or "").strip()
         if not product_id or not title:
             return None
+        excerpt = raw.get("excerpt") or ""
+        if SquarespaceExtractor._is_template_product(title, excerpt):
+            Logger.debug(
+                f"SquarespaceExtractor: skipping template product '{title}'"
+            )
+            return None
 
         full_url = raw.get("fullUrl") or ""
-        start_dt = SquarespaceExtractor._product_start_datetime(full_url, title, tz)
+        start_dt = SquarespaceExtractor._product_start_datetime(full_url, title, excerpt, tz)
         if start_dt is None:
             Logger.warn(
                 f"SquarespaceExtractor: could not parse a show date for product "
@@ -135,22 +147,23 @@ class SquarespaceExtractor:
             start_date_ms=start_date_ms,
             full_url=full_url,
             base_domain=base_domain,
-            excerpt=raw.get("excerpt") or "",
+            excerpt=excerpt,
         )
 
     @staticmethod
-    def _product_start_datetime(full_url: str, title: str, tz) -> Optional[datetime]:
-        """Resolve a product's local show datetime from its slug date + title time.
+    def _product_start_datetime(full_url: str, title: str, excerpt: str, tz) -> Optional[datetime]:
+        """Resolve a product's local show datetime from its slug date + product copy time.
 
         Date precedence: the ``fullUrl`` slug (most reliable) then a leading
-        ``Month DD`` in the title. Time: an ``@time`` in the title, else
+        ``Month DD`` in the title. Time: an ``@time`` in the title, then
+        Squarespace body copy such as ``Show at 9``, else
         ``_DEFAULT_HOUR``. Returns a tz-aware datetime, or None if no date found.
         """
         ymd = SquarespaceExtractor._date_from_slug(full_url) or SquarespaceExtractor._date_from_title(title)
         if ymd is None:
             return None
         year, month, day = ymd
-        hour, minute = SquarespaceExtractor._time_from_title(title)
+        hour, minute = SquarespaceExtractor._time_from_title(title, excerpt)
         try:
             return datetime(year, month, day, hour, minute, tzinfo=tz)
         except ValueError:
@@ -201,20 +214,41 @@ class SquarespaceExtractor:
         return year
 
     @staticmethod
-    def _time_from_title(title: str) -> tuple:
+    def _time_from_title(title: str, excerpt: str = "") -> tuple:
         m = _TITLE_TIME_RE.search(title or "")
+        if not m:
+            m = _TITLE_TIME_RE.search(excerpt or "")
+        if m:
+            hour = int(m.group(1))
+            minute = int(m.group(2)) if m.group(2) else 0
+            ampm = m.group(3).lower()
+            if ampm == "p" and hour != 12:
+                hour += 12
+            elif ampm == "a" and hour == 12:
+                hour = 0
+            if not (0 <= hour <= 23 and 0 <= minute <= 59):
+                return _DEFAULT_HOUR, 0
+            return hour, minute
+
+        m = _BODY_SHOW_TIME_RE.search(SquarespaceExtractor._plain_text(excerpt))
         if not m:
             return _DEFAULT_HOUR, 0
         hour = int(m.group(1))
         minute = int(m.group(2)) if m.group(2) else 0
-        ampm = m.group(3).lower()
-        if ampm == "p" and hour != 12:
+        if 1 <= hour <= 11:
             hour += 12
-        elif ampm == "a" and hour == 12:
-            hour = 0
         if not (0 <= hour <= 23 and 0 <= minute <= 59):
             return _DEFAULT_HOUR, 0
         return hour, minute
+
+    @staticmethod
+    def _is_template_product(title: str, excerpt: str) -> bool:
+        text = f"{title} {SquarespaceExtractor._plain_text(excerpt)}"
+        return bool(_TEMPLATE_PRODUCT_RE.search(text))
+
+    @staticmethod
+    def _plain_text(value: str) -> str:
+        return re.sub(r"<[^>]+>", " ", value or "")
 
     @staticmethod
     def extract_events(
