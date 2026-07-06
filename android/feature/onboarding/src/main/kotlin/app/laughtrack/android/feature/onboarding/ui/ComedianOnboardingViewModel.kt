@@ -20,6 +20,10 @@ data class ComedianOnboardingUiState(
     val searchResults: List<ComedianSearchItem> = emptyList(),
     val favorites: Map<String, Boolean> = emptyMap(),
     val passed: Set<String> = emptySet(),
+    // Pass order, so Rewind can restore the most-recently-passed comedian (mirrors
+    // iOS's onboarding Rewind button). [passed] drives deck membership; this drives
+    // the undo.
+    val passHistory: List<String> = emptyList(),
     val searchQuery: String = "",
     val isSearchMode: Boolean = false,
     val isLoading: Boolean = true,
@@ -125,9 +129,20 @@ class ComedianOnboardingViewModel
         }
 
         fun passComedian(uuid: String) {
-            _state.update { it.copy(passed = it.passed + uuid) }
+            _state.update { it.copy(passed = it.passed + uuid, passHistory = it.passHistory + uuid) }
             if (remainingDeckCount() < DECK_PREFETCH_THRESHOLD) {
                 loadMoreSuggestions()
+            }
+        }
+
+        /** Undo the most recent pass, bringing that comedian back to the top of the deck. */
+        fun rewindLastPass() {
+            _state.update { state ->
+                val last = state.passHistory.lastOrNull() ?: return@update state
+                state.copy(
+                    passed = state.passed - last,
+                    passHistory = state.passHistory.dropLast(1),
+                )
             }
         }
 

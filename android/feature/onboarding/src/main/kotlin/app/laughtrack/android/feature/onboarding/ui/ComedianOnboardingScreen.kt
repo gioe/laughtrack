@@ -164,8 +164,10 @@ fun ComedianOnboardingScreen(
                             comedians = state.suggestions,
                             favorites = state.favorites,
                             passed = state.passed,
+                            canRewind = state.passHistory.isNotEmpty(),
                             onFavorite = viewModel::toggleFavorite,
                             onPass = viewModel::passComedian,
+                            onRewind = viewModel::rewindLastPass,
                             onMore = viewModel::loadMoreSuggestions,
                         )
                 }
@@ -246,14 +248,19 @@ private fun SwipeDeck(
     comedians: List<ComedianSearchItem>,
     favorites: Map<String, Boolean>,
     passed: Set<String>,
+    canRewind: Boolean,
     onFavorite: (String) -> Unit,
     onPass: (String) -> Unit,
+    onRewind: () -> Unit,
     onMore: () -> Unit,
 ) {
     val top = comedians.firstOrNull { favorites[it.uuid] != true && it.uuid !in passed }
     if (top == null) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text("No more cards in this deal.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (canRewind) {
+                OutlinedButton(onClick = onRewind) { Text("Rewind") }
+            }
             OutlinedButton(onClick = onMore) { Text("Deal more") }
         }
         return
@@ -268,6 +275,7 @@ private fun SwipeDeck(
             modifier = Modifier.fillMaxWidth(),
         )
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            OutlinedButton(onClick = onRewind, enabled = canRewind) { Text("Rewind") }
             OutlinedButton(onClick = { onPass(top.uuid) }) { Text("Pass") }
             Button(onClick = { onFavorite(top.uuid) }) {
                 Icon(Icons.Filled.Favorite, contentDescription = null)

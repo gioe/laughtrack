@@ -139,6 +139,51 @@ class ComedianOnboardingViewModelTest {
             assertEquals(1, state.favoriteCount)
         }
 
+    @Test
+    fun rewind_restores_the_most_recently_passed_comedian() =
+        runTest {
+            val repository =
+                FakeRepository(suggestionPages = listOf(listOf(comedian("a"), comedian("b"), comedian("c"))))
+            val viewModel =
+                ComedianOnboardingViewModel(
+                    repository = repository,
+                    softPushPromptCoordinator = FakeSoftPushPromptCoordinator(),
+                    analytics = AnalyticsManager(emptyList()),
+                )
+
+            advanceUntilIdle()
+            viewModel.passComedian("a")
+            viewModel.passComedian("b")
+            advanceUntilIdle()
+            assertEquals(setOf("a", "b"), viewModel.state.value.passed)
+
+            viewModel.rewindLastPass()
+            advanceUntilIdle()
+
+            val state = viewModel.state.value
+            // Only the most recent pass (b) is undone; a stays passed.
+            assertEquals(setOf("a"), state.passed)
+            assertEquals(listOf("a"), state.passHistory)
+        }
+
+    @Test
+    fun rewind_is_a_no_op_when_nothing_was_passed() =
+        runTest {
+            val repository = FakeRepository(suggestionPages = listOf(listOf(comedian("a"))))
+            val viewModel =
+                ComedianOnboardingViewModel(
+                    repository = repository,
+                    softPushPromptCoordinator = FakeSoftPushPromptCoordinator(),
+                    analytics = AnalyticsManager(emptyList()),
+                )
+
+            advanceUntilIdle()
+            viewModel.rewindLastPass()
+            advanceUntilIdle()
+
+            assertTrue(viewModel.state.value.passed.isEmpty())
+        }
+
     private class FakeRepository(
         private val suggestionPages: List<List<ComedianSearchItem>>,
         private val searchResults: List<ComedianSearchItem> = emptyList(),
