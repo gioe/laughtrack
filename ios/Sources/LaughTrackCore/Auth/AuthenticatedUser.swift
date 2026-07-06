@@ -2,11 +2,10 @@ import Foundation
 
 public struct AuthenticatedUser: Equatable, Sendable {
     /// Opaque server-issued user identifier (User.id, surfaced by GET /v1/me).
-    /// Preferred over the SHA-256 email hash for analytics setUserID because it
-    /// survives email/displayName changes. Nullable so older /v1/me responses
-    /// that predate TASK-2612 still decode cleanly; the AppBootstrap analytics
-    /// sink falls back to the email hash when this is nil.
-    public let userId: String?
+    /// Passed verbatim to analytics setUserID — it survives email/displayName
+    /// changes. Required: every /v1/me response carries it (TASK-2612 rollout
+    /// complete), so construction sites must always supply one.
+    public let userId: String
     public let displayName: String?
     public let email: String
     public let avatarURL: URL?
@@ -30,7 +29,7 @@ public struct AuthenticatedUser: Equatable, Sendable {
     public let notificationsUnreadCount: Int
 
     public init(
-        userId: String? = nil,
+        userId: String,
         displayName: String?,
         email: String,
         avatarURL: URL?,

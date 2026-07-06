@@ -210,6 +210,7 @@ class ProfileRepositoryTest {
         emailShowNotifications: Boolean = false,
         pushShowNotifications: Boolean = false,
     ) = MeData(
+        userId = "test-user-id",
         email = "ada@example.com",
         isAdmin = false,
         emailShowNotifications = emailShowNotifications,

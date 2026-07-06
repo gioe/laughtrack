@@ -30,52 +30,12 @@ struct AppBootstrapAnalyticsLifecycleTests {
 
         await env.authManager.signIn(with: .google)
 
-        // Server-issued userId is preferred: setUserID must receive it verbatim,
-        // NOT the SHA-256 email hash. Documents that the analytics user stream
-        // is keyed on the opaque server identifier, so email changes never
+        // setUserID must receive the server-issued userId verbatim — no
+        // derived identifier. Documents that the analytics user stream is
+        // keyed on the opaque server identifier, so email changes never
         // restart it. reset() must NOT fire on a sign-in transition.
         #expect(env.analytics.setUserIDCalls == ["clx9q2tk30000abcdef123456"])
         #expect(env.analytics.resetCallCount == 0)
-    }
-
-    @Test("sign-in with no userId falls back to the SHA-256 email hash")
-    @MainActor
-    func signInWithoutUserIdFallsBackToEmailHash() async {
-        let env = AnalyticsLifecycleEnv.make()
-
-        let accessToken = AnalyticsLifecycleEnv.jwt(expirationOffset: 3600)
-        let refreshToken = "opaque-refresh-token-\(UUID().uuidString)"
-        env.oauthRunner.callbackURL = URL(
-            string: "laughtrack://auth/callback?provider=google&accessToken=\(accessToken)&refreshToken=\(refreshToken)"
-        )!
-        // Rollout-window fixture: /v1/me response predates TASK-2612 and omits
-        // userId — AuthenticatedUser.userId is nil, the analytics sink must
-        // fall back to the SHA-256 email hash so the user stream keeps flowing.
-        let user = AuthenticatedUser(
-            displayName: "Test User",
-            email: "user@example.com",
-            avatarURL: nil,
-            comedianOnboardingCompleted: true,
-            zipCode: "94110"
-        )
-        env.authManager.loadUserRequest = { user }
-
-        env.attachAnalyticsLifecycle()
-
-        await env.authManager.signIn(with: .google)
-
-        #expect(env.analytics.setUserIDCalls == [AppBootstrap.stableAnalyticsUserID(forEmail: "user@example.com")])
-        #expect(env.analytics.resetCallCount == 0)
-
-        // The same nil → user transition dispatches the cohort-filter user
-        // properties. snake_case keys are pinned by the assertion strings —
-        // a future rename would break this test and force re-review against
-        // the convention in ios/CLAUDE.md (Analytics > Event-naming).
-        #expect(env.analytics.userPropertyCalls.map(\.name) == [
-            "comedian_onboarding_completed",
-            "has_zip",
-        ])
-        #expect(env.analytics.userPropertyCalls.map(\.value) == ["true", "true"])
     }
 
     @Test("sign-out transition calls analytics.reset() after a prior sign-in")
@@ -89,6 +49,7 @@ struct AppBootstrapAnalyticsLifecycleTests {
             string: "laughtrack://auth/callback?provider=google&accessToken=\(accessToken)&refreshToken=\(refreshToken)"
         )!
         let user = AuthenticatedUser(
+            userId: "user-id-signout-clx9q2tk30002",
             displayName: "Test User",
             email: "user@example.com",
             avatarURL: nil
@@ -100,7 +61,7 @@ struct AppBootstrapAnalyticsLifecycleTests {
         await env.authManager.signIn(with: .google)
         await env.authManager.signOut()
 
-        #expect(env.analytics.setUserIDCalls == [AppBootstrap.stableAnalyticsUserID(forEmail: "user@example.com")])
+        #expect(env.analytics.setUserIDCalls == ["user-id-signout-clx9q2tk30002"])
         #expect(env.analytics.resetCallCount == 1)
     }
 
@@ -115,6 +76,7 @@ struct AppBootstrapAnalyticsLifecycleTests {
             string: "laughtrack://auth/callback?provider=google&accessToken=\(accessToken)&refreshToken=\(refreshToken)"
         )!
         let user = AuthenticatedUser(
+            userId: "user-id-inplace-clx9q2tk30003",
             displayName: "Test User",
             email: "user@example.com",
             avatarURL: nil,
@@ -136,7 +98,7 @@ struct AppBootstrapAnalyticsLifecycleTests {
         // setUserID is anchored to the nil → user edge: the in-place
         // markComedianOnboardingCompleted mutation must not re-fire it, and
         // reset() must stay at 0.
-        #expect(env.analytics.setUserIDCalls == [AppBootstrap.stableAnalyticsUserID(forEmail: "user@example.com")])
+        #expect(env.analytics.setUserIDCalls == ["user-id-inplace-clx9q2tk30003"])
         #expect(env.analytics.resetCallCount == 0)
 
         // Sign-in dispatches the cohort pair (false, false). The in-place
@@ -278,10 +240,9 @@ struct AppBootstrapAnalyticsLifecycleTests {
         env.oauthRunner.callbackURL = URL(
             string: "laughtrack://auth/callback?provider=google&accessToken=\(accessTokenA)&refreshToken=\(refreshTokenA)"
         )!
-        // Anchor user-switching ordering on the post-rollout userId branch —
-        // production sign-ins normally carry a server-issued userId, so the
-        // ordered-emission regression guard should pin that path rather than
-        // the rollout-window email-hash fallback.
+        // Pin the ordered emission on the server-issued userId — the only
+        // identifier the analytics sink forwards (the rollout-window
+        // email-hash fallback was retired in TASK-2618).
         let userA = AuthenticatedUser(
             userId: "user-id-alice-clx9q2tk30000",
             displayName: nil,
@@ -342,22 +303,6 @@ struct AppBootstrapAnalyticsLifecycleTests {
         ])
     }
 
-    @Test("stableAnalyticsUserID hashes the lowercased email as sha256:<64 hex chars>")
-    @MainActor
-    func stableAnalyticsUserIDHashesLowercasedEmail() {
-        let mixed = AppBootstrap.stableAnalyticsUserID(forEmail: "User@Example.COM")
-        let lower = AppBootstrap.stableAnalyticsUserID(forEmail: "user@example.com")
-
-        // Case-insensitive collapse: backend normalization that lowercases
-        // emails must not invalidate the per-user analytics stream.
-        #expect(mixed == lower)
-        #expect(mixed.hasPrefix("sha256:"))
-        #expect(mixed.dropFirst("sha256:".count).count == 64)
-        // No raw PII leaks into the identifier.
-        #expect(!mixed.contains("@"))
-        #expect(!mixed.lowercased().contains("user"))
-    }
-
     @Test("dropping the cancellable set tears down the subscription")
     @MainActor
     func droppingCancellablesTearsDownSubscription() async {
@@ -369,7 +314,12 @@ struct AppBootstrapAnalyticsLifecycleTests {
             string: "laughtrack://auth/callback?provider=google&accessToken=\(accessToken)&refreshToken=\(refreshToken)"
         )!
         env.authManager.loadUserRequest = {
-            AuthenticatedUser(displayName: nil, email: "user@example.com", avatarURL: nil)
+            AuthenticatedUser(
+                userId: "user-id-teardown-clx9q2tk30004",
+                displayName: nil,
+                email: "user@example.com",
+                avatarURL: nil
+            )
         }
 
         var cancellables: Set<AnyCancellable>? = AppBootstrap.attachAnalyticsLifecycle(

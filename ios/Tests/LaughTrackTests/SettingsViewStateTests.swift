@@ -14,6 +14,7 @@ struct SettingsViewStateTests {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthenticatedAuthManager(name: "profile-settings-view")
         authManager.loadUserRequest = {
             AuthenticatedUser(
+                userId: "test-user-id",
                 displayName: "Ada Lovelace",
                 email: "ada@example.com",
                 avatarURL: nil,
@@ -39,6 +40,7 @@ struct SettingsViewStateTests {
 
         authManager.loadUserRequest = {
             AuthenticatedUser(
+                userId: "test-user-id",
                 displayName: "Ada Lovelace",
                 email: "ada@example.com",
                 avatarURL: nil
@@ -64,6 +66,7 @@ struct SettingsViewStateTests {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthenticatedAuthManager(name: "profile-notifications-view")
         authManager.loadUserRequest = {
             AuthenticatedUser(
+                userId: "test-user-id",
                 displayName: "Ada Lovelace",
                 email: "ada@example.com",
                 avatarURL: nil,
@@ -82,6 +85,7 @@ struct SettingsViewStateTests {
 
         authManager.loadUserRequest = {
             AuthenticatedUser(
+                userId: "test-user-id",
                 displayName: "Ada Lovelace",
                 email: "ada@example.com",
                 avatarURL: nil,

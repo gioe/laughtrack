@@ -965,10 +965,10 @@ public enum Components {
         }
         /// - Remark: Generated from `#/components/schemas/MeData`.
         public struct MeData: Codable, Hashable, Sendable {
-            /// Opaque server-issued user identifier (User.id, a CUID). Stable across email/displayName changes — iOS clients pass this to analytics setUserID instead of an email hash. Nullable for rollout-window safety: older API responses may omit it, and iOS falls back to a SHA-256 email hash in that case.
+            /// Opaque server-issued user identifier (User.id, a CUID). Stable across email/displayName changes — iOS clients pass this to analytics setUserID verbatim. Required: every /v1/me response carries it (TASK-2612 rollout complete).
             ///
             /// - Remark: Generated from `#/components/schemas/MeData/userId`.
-            public var userId: Swift.String?
+            public var userId: Swift.String
             /// User-facing display name from OAuth (User.name). May be null if the provider didn't supply one.
             ///
             /// - Remark: Generated from `#/components/schemas/MeData/displayName`.
@@ -1012,7 +1012,7 @@ public enum Components {
             /// Creates a new `MeData`.
             ///
             /// - Parameters:
-            ///   - userId: Opaque server-issued user identifier (User.id, a CUID). Stable across email/displayName changes — iOS clients pass this to analytics setUserID instead of an email hash. Nullable for rollout-window safety: older API responses may omit it, and iOS falls back to a SHA-256 email hash in that case.
+            ///   - userId: Opaque server-issued user identifier (User.id, a CUID). Stable across email/displayName changes — iOS clients pass this to analytics setUserID verbatim. Required: every /v1/me response carries it (TASK-2612 rollout complete).
             ///   - displayName: User-facing display name from OAuth (User.name). May be null if the provider didn't supply one.
             ///   - email: Unique email address (User.email).
             ///   - avatarUrl: Avatar/profile photo URL from OAuth (User.image). May be null.
@@ -1024,7 +1024,7 @@ public enum Components {
             ///   - nearbyDistanceMiles: Saved profile distance in miles used for Near Me.
             ///   - notificationsUnreadCount: Number of unread notifications (distinct comedian+show events with sentAt newer than the last-seen mark). Drives the profile-button unread badge from the launch-time /me fetch. Optional for rollout-window safety: older API responses may omit it; iOS treats a missing value as 0.
             public init(
-                userId: Swift.String? = nil,
+                userId: Swift.String,
                 displayName: Swift.String? = nil,
                 email: Swift.String,
                 avatarUrl: Swift.String? = nil,

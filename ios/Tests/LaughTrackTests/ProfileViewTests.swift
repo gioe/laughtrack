@@ -89,6 +89,7 @@ struct ProfileViewTests {
             name: "profile-signed-in"
         )
         let user = AuthenticatedUser(
+            userId: "test-user-id",
             displayName: "Ada Lovelace",
             email: "ada@example.com",
             avatarURL: nil,
@@ -122,6 +123,7 @@ struct ProfileViewTests {
             name: "profile-delete-confirm"
         )
         let user = AuthenticatedUser(
+            userId: "test-user-id",
             displayName: "Ada Lovelace",
             email: "ada@example.com",
             avatarURL: nil

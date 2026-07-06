@@ -72,6 +72,7 @@ struct ContentViewNavigationTests {
     func authenticatedBackgroundProfileRefreshKeepsShellVisible() async throws {
         let session = AuthSessionMetadata(provider: nil, signedInAt: Date(), expiresAt: nil)
         let user = AuthenticatedUser(
+            userId: "test-user-id",
             displayName: "Maya",
             email: "maya@example.com",
             avatarURL: nil,

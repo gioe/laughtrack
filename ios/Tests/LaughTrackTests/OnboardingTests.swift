@@ -14,6 +14,7 @@ struct OnboardingTests {
     func incompleteAuthenticatedUsersKeepOnboardingVisibleDuringProfileRefresh() {
         let session = AuthSessionMetadata(provider: .apple, signedInAt: Date(), expiresAt: nil)
         let incompleteUser = AuthenticatedUser(
+            userId: "test-user-id",
             displayName: "Maya",
             email: "maya@example.com",
             avatarURL: nil,
@@ -36,12 +37,14 @@ struct OnboardingTests {
     func completedAndSignedOutUsersBypassComedianOnboarding() {
         let session = AuthSessionMetadata(provider: .apple, signedInAt: Date(), expiresAt: nil)
         let completedUser = AuthenticatedUser(
+            userId: "test-user-id",
             displayName: "Maya",
             email: "maya@example.com",
             avatarURL: nil,
             comedianOnboardingCompleted: true
         )
         let incompleteUser = AuthenticatedUser(
+            userId: "test-user-id",
             displayName: "Maya",
             email: "maya@example.com",
             avatarURL: nil,
@@ -64,12 +67,14 @@ struct OnboardingTests {
     @Test("first-auth incomplete users are gated before the home shell")
     func incompleteAuthenticatedUsersAreGated() {
         let incompleteUser = AuthenticatedUser(
+            userId: "test-user-id",
             displayName: "Maya",
             email: "maya@example.com",
             avatarURL: nil,
             comedianOnboardingCompleted: false
         )
         let completedUser = AuthenticatedUser(
+            userId: "test-user-id",
             displayName: "Maya",
             email: "maya@example.com",
             avatarURL: nil,
@@ -105,6 +110,7 @@ struct OnboardingTests {
         let manager = await makeAuthenticatedAuthManager(loadUserRequest: {
             try await Task.sleep(nanoseconds: 20_000_000)
             return AuthenticatedUser(
+                userId: "test-user-id",
                 displayName: "Maya",
                 email: "maya@example.com",
                 avatarURL: nil,

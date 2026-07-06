@@ -333,6 +333,7 @@ struct NotificationPreferenceStoreTests {
 
         model.replaceServerBackedPreferences(
             from: AuthenticatedUser(
+                userId: "test-user-id",
                 displayName: "Ada Lovelace",
                 email: "ada@example.com",
                 avatarURL: nil,

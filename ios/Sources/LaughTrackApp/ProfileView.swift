@@ -70,6 +70,7 @@ struct ProfileView: View {
                     #if DEBUG
                     ProfileSettingsSection(
                         authenticatedUser: AuthenticatedUser(
+                            userId: "design-preview-user-id",
                             displayName: "Guest preview",
                             email: "design-preview@example.invalid",
                             avatarURL: nil

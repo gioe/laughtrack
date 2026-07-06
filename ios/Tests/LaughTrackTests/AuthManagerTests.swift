@@ -484,6 +484,7 @@ struct AuthManagerTests {
 
         let recorder = LoadUserRecorder()
         let expected = AuthenticatedUser(
+            userId: "test-user-id",
             displayName: "Ada Lovelace",
             email: "ada@example.com",
             avatarURL: URL(string: "https://cdn.example.com/avatar.png")
@@ -567,6 +568,7 @@ struct AuthManagerTests {
         )
 
         let user = AuthenticatedUser(
+            userId: "test-user-id",
             displayName: "X",
             email: "x@example.com",
             avatarURL: nil
@@ -602,6 +604,7 @@ struct AuthManagerTests {
         )
 
         let user = AuthenticatedUser(
+            userId: "test-user-id",
             displayName: "X",
             email: "x@example.com",
             avatarURL: nil

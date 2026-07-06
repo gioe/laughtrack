@@ -23,6 +23,7 @@ import kotlinx.serialization.Contextual
 /**
  * 
  *
+ * @param userId Opaque server-issued user identifier (User.id, a CUID). Stable across email/displayName changes — iOS clients pass this to analytics setUserID verbatim. Required: every /v1/me response carries it (TASK-2612 rollout complete).
  * @param email Unique email address (User.email).
  * @param isAdmin Whether the signed-in user has the admin role (UserProfile.role === \"admin\"). Drives admin-only UI surfaces such as the show-ID badge on the show-detail header.
  * @param emailShowNotifications Whether the signed-in user receives email notifications for new shows from saved comedians.
@@ -30,7 +31,6 @@ import kotlinx.serialization.Contextual
  * @param comedianOnboardingCompleted Whether comedian onboarding has been completed or skipped.
  * @param zipCode Saved profile ZIP code used for Near Me.
  * @param nearbyDistanceMiles Saved profile distance in miles used for Near Me.
- * @param userId Opaque server-issued user identifier (User.id, a CUID). Stable across email/displayName changes — iOS clients pass this to analytics setUserID instead of an email hash. Nullable for rollout-window safety: older API responses may omit it, and iOS falls back to a SHA-256 email hash in that case.
  * @param displayName User-facing display name from OAuth (User.name). May be null if the provider didn't supply one.
  * @param avatarUrl Avatar/profile photo URL from OAuth (User.image). May be null.
  * @param notificationsUnreadCount Number of unread notifications (distinct comedian+show events with sentAt newer than the last-seen mark). Drives the profile-button unread badge from the launch-time /me fetch. Optional for rollout-window safety: older API responses may omit it; iOS treats a missing value as 0.
@@ -38,6 +38,10 @@ import kotlinx.serialization.Contextual
 @Serializable
 
 data class MeData (
+
+    /* Opaque server-issued user identifier (User.id, a CUID). Stable across email/displayName changes — iOS clients pass this to analytics setUserID verbatim. Required: every /v1/me response carries it (TASK-2612 rollout complete). */
+    @SerialName(value = "userId")
+    val userId: kotlin.String,
 
     /* Unique email address (User.email). */
     @SerialName(value = "email")
@@ -66,10 +70,6 @@ data class MeData (
     /* Saved profile distance in miles used for Near Me. */
     @SerialName(value = "nearbyDistanceMiles")
     val nearbyDistanceMiles: kotlin.Int?,
-
-    /* Opaque server-issued user identifier (User.id, a CUID). Stable across email/displayName changes — iOS clients pass this to analytics setUserID instead of an email hash. Nullable for rollout-window safety: older API responses may omit it, and iOS falls back to a SHA-256 email hash in that case. */
-    @SerialName(value = "userId")
-    val userId: kotlin.String? = null,
 
     /* User-facing display name from OAuth (User.name). May be null if the provider didn't supply one. */
     @SerialName(value = "displayName")
