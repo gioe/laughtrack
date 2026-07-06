@@ -6,6 +6,8 @@ import app.laughtrack.android.core.network.generated.api.ComediansApi
 import app.laughtrack.android.core.network.generated.api.PodcastsApi
 import app.laughtrack.android.core.network.generated.api.ShowsApi
 import app.laughtrack.android.core.network.generated.model.ComedianLineup
+import app.laughtrack.android.core.network.generated.model.Filter
+import app.laughtrack.android.core.network.generated.model.HomeCityFilter
 import app.laughtrack.android.core.network.generated.model.Show
 import app.laughtrack.android.feature.search.model.SearchPivot
 import app.laughtrack.android.feature.search.model.SearchQuery
@@ -13,8 +15,20 @@ import app.laughtrack.android.feature.search.model.SearchResult
 import java.math.BigDecimal
 import javax.inject.Inject
 
-/** One page of normalized results plus the server's total (drives hasMore). */
-data class SearchPage(val results: List<SearchResult>, val total: Int)
+/**
+ * One page of normalized results plus the server's total (drives hasMore) and the
+ * available tag facets ([filters]) / comedian home-city facets ([homeCityFilters])
+ * returned alongside the page — these populate the tag and home-city filter sheets.
+ */
+data class SearchPage(
+    val results: List<SearchResult>,
+    val total: Int,
+    val filters: List<Filter> = emptyList(),
+    val homeCityFilters: List<HomeCityFilter> = emptyList(),
+)
+
+/** Joins selected tag slugs into the comma-separated `filters` query param (null when empty). */
+private fun Set<String>.toFiltersParam(): String? = takeIf { it.isNotEmpty() }?.sorted()?.joinToString(",")
 
 /**
  * Wraps the generated search APIs and normalizes each entity into [SearchResult].
@@ -55,11 +69,13 @@ class SearchRepository
                     distance = query.distance,
                     sort = query.sort,
                     club = query.text.ifBlank { null },
+                    filters = query.filters.toFiltersParam(),
                     page = page,
                     size = size,
                 )
             val body = response.body() ?: error("Shows search failed (HTTP ${response.code()})")
             return SearchPage(
+                filters = body.filters,
                 results =
                     body.data.map { show ->
                         SearchResult(
@@ -98,11 +114,15 @@ class SearchRepository
                 comediansApi.searchComedians(
                     comedian = query.text.ifBlank { null },
                     sort = query.sort,
+                    filters = query.filters.toFiltersParam(),
+                    homeCity = query.homeCity,
                     page = page,
                     size = size,
                 )
             val body = response.body() ?: error("Comedians search failed (HTTP ${response.code()})")
             return SearchPage(
+                filters = body.filters,
+                homeCityFilters = body.homeCityFilters,
                 results =
                     body.data.map { comedian ->
                         SearchResult(
@@ -130,11 +150,13 @@ class SearchRepository
                 clubsApi.searchClubs(
                     club = query.text.ifBlank { null },
                     sort = query.sort,
+                    filters = query.filters.toFiltersParam(),
                     page = page,
                     size = size,
                 )
             val body = response.body() ?: error("Clubs search failed (HTTP ${response.code()})")
             return SearchPage(
+                filters = body.filters,
                 results =
                     body.data.mapNotNull { club ->
                         val id = club.id ?: return@mapNotNull null
@@ -169,6 +191,7 @@ class SearchRepository
                 )
             val body = response.body() ?: error("Podcasts search failed (HTTP ${response.code()})")
             return SearchPage(
+                filters = body.filters,
                 results =
                     body.data.map { podcast ->
                         SearchResult(

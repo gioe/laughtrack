@@ -29,17 +29,31 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DateRangePicker
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDateRangePickerState
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,14 +67,22 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.laughtrack.android.core.navigation.AppRoute
+import app.laughtrack.android.core.network.generated.model.Filter
+import app.laughtrack.android.core.network.generated.model.HomeCityFilter
 import app.laughtrack.android.core.ui.components.RemoteImage
 import app.laughtrack.android.core.ui.components.SkeletonLine
 import app.laughtrack.android.core.ui.theme.LaughTrackColors
+import app.laughtrack.android.feature.search.model.DEFAULT_DISTANCE_MILES
+import app.laughtrack.android.feature.search.model.DISTANCE_OPTIONS
 import app.laughtrack.android.feature.search.model.SearchPivot
+import app.laughtrack.android.feature.search.model.SearchQuery
 import app.laughtrack.android.feature.search.model.SearchResult
+import app.laughtrack.android.feature.search.model.SearchSort
 import app.laughtrack.android.feature.search.model.searchResultSummary
+import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -110,14 +132,18 @@ fun SearchScreen(
                 item {
                     SearchControls(
                         pivot = state.pivot,
-                        text = pivotState.query.text,
-                        zip = pivotState.query.zip.orEmpty(),
-                        popularitySort = pivotState.query.sort == SORT_POPULARITY,
+                        query = pivotState.query,
+                        filters = pivotState.filters,
+                        homeCityFilters = pivotState.homeCityFilters,
+                        total = pivotState.results.total,
                         onText = viewModel::onTextChange,
                         onZip = { value -> viewModel.updateQuery { it.copy(zip = value.ifBlank { null }) } },
-                        onTogglePopularity = { enabled ->
-                            viewModel.updateQuery { it.copy(sort = if (enabled) SORT_POPULARITY else null) }
-                        },
+                        onSort = viewModel::setSort,
+                        onDistance = viewModel::setDistance,
+                        onDateRange = viewModel::setDateRange,
+                        onToggleFilter = viewModel::toggleFilter,
+                        onClearFilters = viewModel::clearFilters,
+                        onHomeCity = viewModel::setHomeCity,
                     )
                 }
 
@@ -249,12 +275,18 @@ private fun SearchIntro() {
 @Composable
 private fun SearchControls(
     pivot: SearchPivot,
-    text: String,
-    zip: String,
-    popularitySort: Boolean,
+    query: SearchQuery,
+    filters: List<Filter>,
+    homeCityFilters: List<HomeCityFilter>,
+    total: Int,
     onText: (String) -> Unit,
     onZip: (String) -> Unit,
-    onTogglePopularity: (Boolean) -> Unit,
+    onSort: (String) -> Unit,
+    onDistance: (Int) -> Unit,
+    onDateRange: (String?, String?) -> Unit,
+    onToggleFilter: (String) -> Unit,
+    onClearFilters: () -> Unit,
+    onHomeCity: (String?) -> Unit,
 ) {
     Surface(
         color = LaughTrackColors.SurfaceElevated,
@@ -269,7 +301,7 @@ private fun SearchControls(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             OutlinedTextField(
-                value = text,
+                value = query.text,
                 onValueChange = onText,
                 leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
                 placeholder = { Text(queryPrompt(pivot)) },
@@ -285,22 +317,32 @@ private fun SearchControls(
                         .horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
+                SortPill(pivot = pivot, selected = query.sort, onSort = onSort)
                 if (pivot.isGeoScoped) {
-                    SearchFilterPill(zip.ifBlank { "Location" })
-                    SearchFilterPill("25 mi")
+                    DistancePill(distance = query.distance, onDistance = onDistance)
+                    DateRangePill(from = query.from, to = query.to, onDateRange = onDateRange)
                 }
-                SearchFilterPill(if (pivot == SearchPivot.SHOWS) "Earliest" else "Popular")
-                SearchFilterPill("Any date")
-                FilterChip(
-                    selected = popularitySort,
-                    onClick = { onTogglePopularity(!popularitySort) },
-                    label = { Text("Filters") },
-                )
+                if (pivot.supportsTagFilters && filters.isNotEmpty()) {
+                    TagFilterPill(
+                        available = filters,
+                        selected = query.filters,
+                        total = total,
+                        onToggle = onToggleFilter,
+                        onClear = onClearFilters,
+                    )
+                }
+                if (pivot == SearchPivot.COMEDIANS && homeCityFilters.isNotEmpty()) {
+                    HomeCityPill(
+                        available = homeCityFilters,
+                        selected = query.homeCity,
+                        onSelect = onHomeCity,
+                    )
+                }
             }
 
             if (pivot.isGeoScoped) {
                 OutlinedTextField(
-                    value = zip,
+                    value = query.zip.orEmpty(),
                     onValueChange = onZip,
                     label = { Text("ZIP code") },
                     singleLine = true,
@@ -312,22 +354,288 @@ private fun SearchControls(
     }
 }
 
+/** Shared rounded pill trigger: a tappable label with a trailing chevron. */
 @Composable
-private fun SearchFilterPill(label: String) {
+private fun FilterPillButton(
+    label: String,
+    active: Boolean,
+    onClick: () -> Unit,
+) {
     Surface(
-        color = LaughTrackColors.Surface,
+        color = if (active) LaughTrackColors.AccentStrong else LaughTrackColors.Surface,
         shape = RoundedCornerShape(999.dp),
-        modifier = Modifier.border(1.dp, LaughTrackColors.BorderSubtle, RoundedCornerShape(999.dp)),
+        modifier =
+            Modifier
+                .clip(RoundedCornerShape(999.dp))
+                .clickable(onClick = onClick)
+                .border(
+                    1.dp,
+                    if (active) LaughTrackColors.AccentStrong else LaughTrackColors.BorderSubtle,
+                    RoundedCornerShape(999.dp),
+                ),
     ) {
-        Text(
-            label,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-            maxLines = 1,
-        )
+        Row(
+            modifier = Modifier.padding(start = 12.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            Text(
+                label,
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+                color = if (active) LaughTrackColors.Foreground else MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+            )
+            Icon(
+                Icons.Filled.ArrowDropDown,
+                contentDescription = null,
+                tint = if (active) LaughTrackColors.Foreground else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(16.dp),
+            )
+        }
     }
 }
+
+/** Sort dropdown — lists the active pivot's sort vocabulary and applies the chosen key. */
+@Composable
+private fun SortPill(
+    pivot: SearchPivot,
+    selected: String?,
+    onSort: (String) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val options = SearchSort.optionsFor(pivot)
+    val current = selected ?: SearchSort.defaultFor(pivot)
+    Box {
+        FilterPillButton(
+            label = SearchSort.labelFor(pivot, selected),
+            active = false,
+            onClick = { expanded = true },
+        )
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(option.label) },
+                    trailingIcon =
+                        if (option.apiValue == current) {
+                            { Icon(Icons.Filled.Check, contentDescription = null) }
+                        } else {
+                            null
+                        },
+                    onClick = {
+                        expanded = false
+                        onSort(option.apiValue)
+                    },
+                )
+            }
+        }
+    }
+}
+
+/** Distance dropdown (Shows only) — 10/25/50/100 mi radius applied to the geo search. */
+@Composable
+private fun DistancePill(
+    distance: Int?,
+    onDistance: (Int) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val current = distance ?: DEFAULT_DISTANCE_MILES
+    Box {
+        FilterPillButton(label = "$current mi", active = false, onClick = { expanded = true })
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            DISTANCE_OPTIONS.forEach { miles ->
+                DropdownMenuItem(
+                    text = { Text("$miles mi") },
+                    trailingIcon =
+                        if (miles == current) {
+                            { Icon(Icons.Filled.Check, contentDescription = null) }
+                        } else {
+                            null
+                        },
+                    onClick = {
+                        expanded = false
+                        onDistance(miles)
+                    },
+                )
+            }
+        }
+    }
+}
+
+/** Date-range pill (Shows only) — opens a Material date-range picker; label reflects the window. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DateRangePill(
+    from: String?,
+    to: String?,
+    onDateRange: (String?, String?) -> Unit,
+) {
+    var showPicker by remember { mutableStateOf(false) }
+    val active = from != null || to != null
+    FilterPillButton(
+        label = dateRangeLabel(from, to),
+        active = active,
+        onClick = { showPicker = true },
+    )
+    if (showPicker) {
+        val pickerState =
+            rememberDateRangePickerState(
+                initialSelectedStartDateMillis = from?.let(::isoDateToUtcMillis),
+                initialSelectedEndDateMillis = to?.let(::isoDateToUtcMillis),
+            )
+        DatePickerDialog(
+            onDismissRequest = { showPicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    onDateRange(
+                        pickerState.selectedStartDateMillis?.let(::utcMillisToIsoDate),
+                        pickerState.selectedEndDateMillis?.let(::utcMillisToIsoDate),
+                    )
+                    showPicker = false
+                }) { Text("Apply") }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    onDateRange(null, null)
+                    showPicker = false
+                }) { Text("Clear") }
+            },
+        ) {
+            DateRangePicker(state = pickerState, modifier = Modifier.heightIn(max = 520.dp))
+        }
+    }
+}
+
+/** Tag-filter sheet — toggles facet slugs with a live result count. Mirrors iOS SearchFilterModal. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TagFilterPill(
+    available: List<Filter>,
+    selected: Set<String>,
+    total: Int,
+    onToggle: (String) -> Unit,
+    onClear: () -> Unit,
+) {
+    var showSheet by remember { mutableStateOf(false) }
+    val count = selected.size
+    FilterPillButton(
+        label = if (count > 0) "Filters ($count)" else "Filters",
+        active = count > 0,
+        onClick = { showSheet = true },
+    )
+    if (showSheet) {
+        val sheetState = rememberModalBottomSheetState()
+        ModalBottomSheet(onDismissRequest = { showSheet = false }, sheetState = sheetState) {
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+                    .padding(bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        "Filter results",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    )
+                    if (count > 0) {
+                        TextButton(onClick = onClear) { Text("Clear") }
+                    }
+                }
+                Text(
+                    "Tap a tag to add or remove it. Showing $total results.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    available.forEach { filter ->
+                        FilterChip(
+                            selected = filter.slug in selected,
+                            onClick = { onToggle(filter.slug) },
+                            label = { Text(filter.name) },
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** Home-city dropdown (Comedians only) — filters by the selected `city|state` token. */
+@Composable
+private fun HomeCityPill(
+    available: List<HomeCityFilter>,
+    selected: String?,
+    onSelect: (String?) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val label = available.firstOrNull { it.value == selected }?.label ?: "All cities"
+    Box {
+        FilterPillButton(label = label, active = selected != null, onClick = { expanded = true })
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            DropdownMenuItem(
+                text = { Text("All cities") },
+                trailingIcon =
+                    if (selected == null) {
+                        { Icon(Icons.Filled.Check, contentDescription = null) }
+                    } else {
+                        null
+                    },
+                onClick = {
+                    expanded = false
+                    onSelect(null)
+                },
+            )
+            available.forEach { city ->
+                DropdownMenuItem(
+                    text = { Text("${city.label} (${city.count})") },
+                    trailingIcon =
+                        if (city.value == selected) {
+                            { Icon(Icons.Filled.Check, contentDescription = null) }
+                        } else {
+                            null
+                        },
+                    onClick = {
+                        expanded = false
+                        onSelect(city.value)
+                    },
+                )
+            }
+        }
+    }
+}
+
+private val PILL_DATE_FORMAT = DateTimeFormatter.ofPattern("MMM d", Locale.US)
+
+/** Human label for the date pill: "Any date", a single day, or a "from – to" range. */
+internal fun dateRangeLabel(
+    from: String?,
+    to: String?,
+): String {
+    fun pretty(iso: String): String = runCatching { java.time.LocalDate.parse(iso).format(PILL_DATE_FORMAT) }.getOrDefault(iso)
+    return when {
+        from != null && to != null && from == to -> pretty(from)
+        from != null && to != null -> "${pretty(from)} - ${pretty(to)}"
+        from != null -> "From ${pretty(from)}"
+        to != null -> "Until ${pretty(to)}"
+        else -> "Any date"
+    }
+}
+
+/** The date picker emits UTC-midnight millis; convert to/from the YYYY-MM-DD the API expects. */
+private fun utcMillisToIsoDate(millis: Long): String =
+    Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate().format(DateTimeFormatter.ISO_LOCAL_DATE)
+
+private fun isoDateToUtcMillis(iso: String): Long? =
+    runCatching { java.time.LocalDate.parse(iso).atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli() }.getOrNull()
 
 private fun queryPrompt(pivot: SearchPivot): String =
     when (pivot) {
@@ -695,5 +1003,3 @@ private fun CenteredMessage(
         }
     }
 }
-
-private const val SORT_POPULARITY = "popularity"

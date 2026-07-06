@@ -8,11 +8,15 @@ import app.laughtrack.android.core.data.search.SearchSeed
 import app.laughtrack.android.core.data.search.SearchShortcut
 import app.laughtrack.android.core.data.search.SearchShortcutCoordinator
 import app.laughtrack.android.core.navigation.AppRoute
+import app.laughtrack.android.core.network.generated.model.Filter
+import app.laughtrack.android.core.network.generated.model.HomeCityFilter
 import app.laughtrack.android.feature.search.data.SearchRepository
+import app.laughtrack.android.feature.search.model.DEFAULT_DISTANCE_MILES
 import app.laughtrack.android.feature.search.model.PagedList
 import app.laughtrack.android.feature.search.model.SearchPivot
 import app.laughtrack.android.feature.search.model.SearchQuery
 import app.laughtrack.android.feature.search.model.SearchResult
+import app.laughtrack.android.feature.search.model.SearchSort
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -31,11 +35,27 @@ data class PivotState(
     val query: SearchQuery = SearchQuery(),
     val results: PagedList<SearchResult> = PagedList(),
     val loaded: Boolean = false,
+    /** Tag facets echoed by the last successful response — populate the tag filter sheet. */
+    val filters: List<Filter> = emptyList(),
+    /** Comedian home-city facets echoed by the last successful response (comedians only). */
+    val homeCityFilters: List<HomeCityFilter> = emptyList(),
 )
+
+/** Seeds each pivot with its server-default sort (and a default radius for geo pivots). */
+private fun defaultPivotStates(): Map<SearchPivot, PivotState> =
+    SearchPivot.entries.associateWith { pivot ->
+        PivotState(
+            query =
+                SearchQuery(
+                    sort = SearchSort.defaultFor(pivot),
+                    distance = if (pivot.isGeoScoped) DEFAULT_DISTANCE_MILES else null,
+                ),
+        )
+    }
 
 data class SearchUiState(
     val pivot: SearchPivot = SearchPivot.SHOWS,
-    val states: Map<SearchPivot, PivotState> = SearchPivot.entries.associateWith { PivotState() },
+    val states: Map<SearchPivot, PivotState> = defaultPivotStates(),
 ) {
     val current: PivotState get() = states.getValue(pivot)
 }
@@ -106,6 +126,33 @@ class SearchViewModel
             reload(pivot)
         }
 
+        /** Set the server sort key for the active pivot (from the sort dropdown). */
+        fun setSort(apiValue: String) = updateQuery { it.copy(sort = apiValue) }
+
+        /** Set the geo radius (miles) for the Shows pivot (from the distance dropdown). */
+        fun setDistance(miles: Int) = updateQuery { it.copy(distance = miles) }
+
+        /**
+         * Set (or clear, with nulls) the inclusive YYYY-MM-DD date window for the
+         * Shows pivot from the date-range picker.
+         */
+        fun setDateRange(
+            from: String?,
+            to: String?,
+        ) = updateQuery { it.copy(from = from, to = to) }
+
+        /** Toggle a tag slug in/out of the active pivot's selected filters. */
+        fun toggleFilter(slug: String) =
+            updateQuery { query ->
+                query.copy(filters = if (slug in query.filters) query.filters - slug else query.filters + slug)
+            }
+
+        /** Clear all selected tag filters on the active pivot. */
+        fun clearFilters() = updateQuery { it.copy(filters = emptySet()) }
+
+        /** Set (or clear, with null) the comedians home-city `city|state` token. */
+        fun setHomeCity(value: String?) = updateQuery { it.copy(homeCity = value) }
+
         fun loadMore() {
             val pivot = _state.value.pivot
             val results = _state.value.states.getValue(pivot).results
@@ -164,7 +211,14 @@ class SearchViewModel
                     runCatching { repository.search(pivot, query, page) }
                         .onSuccess { result ->
                             updatePivot(pivot) {
-                                it.copy(results = it.results.appendPage(page, result.results, result.total))
+                                it.copy(
+                                    results = it.results.appendPage(page, result.results, result.total),
+                                    // Facets accompany every page but only change with the query, not
+                                    // the page — refresh them from page 1 so the sheets reflect the
+                                    // current search without being reset mid-pagination.
+                                    filters = if (page == 1) result.filters else it.filters,
+                                    homeCityFilters = if (page == 1) result.homeCityFilters else it.homeCityFilters,
+                                )
                             }
                         }
                         .onFailure { error ->
