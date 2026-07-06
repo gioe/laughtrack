@@ -161,10 +161,15 @@ each full `scraper` run:
   previous run** (0 — one-extra-run series retention so the recovery resolves
   as Normal), plus a `club_id` label (rule 2).
 - `mv_scraper_health_consecutive_zero` — one row per club that was at zero for
-  2+ consecutive full runs (but had shows in the last 30 days) as of the latest
-  run (`consecutive_zero` = 1) **or the previous run** (0), plus a `club_id`
-  label (rule 4). Deliberately not one-row-per-club: Grafana's alert evaluator
-  caps a query at 1000 series and the latest run spans ~1,559 clubs.
+  2+ consecutive full runs, had shows in the last 30 days, and has an active
+  regression signal: the latest/previous run failed, the latest/previous run
+  detected a bot block, or the DB still has future shows for the club. Rows are
+  emitted for clubs matching that condition as of the latest run
+  (`consecutive_zero` = 1) **or the previous run** (0), plus a `club_id` label
+  (rule 4). The active-signal filter was added in TASK-3584 after live triage
+  showed cleanly empty aggregate Ticketmaster/Eventbrite one-off listings
+  dominating the alert. Deliberately not one-row-per-club: Grafana's alert
+  evaluator caps a query at 1000 series and the latest run spans ~1,559 clubs.
 
 The firing conditions are the exact CTEs the rules used to inline, so alert
 semantics are unchanged — an alert only changes state when a new run lands, which
@@ -172,7 +177,9 @@ is precisely when the refresh runs. The original DDL lives in
 `apps/scraper/migrations/20260703_scraper_health_summary_materialized_views.sql`;
 `20260704_scraper_health_club_labels_stable_series.sql` (TASK-2834) recreates the
 two club-level views with the `club_id` label and the one-extra-run series
-retention (both applied by `apps/scraper/bin/migrate`). The refresh is
+retention; `20260706174000_retune_consecutive_zero_health_alert.sql` (TASK-3584)
+recreates only the consecutive-zero view with the active-regression-signal
+filter. These are applied by `apps/scraper/bin/migrate`. The refresh is
 `PostgresMetricsRepository.refresh_health_summary()`, called after each `scraper`
 run persists. **Rule 5 (staleness) stays a live inline query** — it measures
 `NOW() - MAX(exported_at)` and must not be frozen at run time. If the pipeline

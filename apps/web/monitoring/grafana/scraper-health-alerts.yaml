@@ -23,14 +23,15 @@
 # Rule 5 (staleness) stays an inline live query — it measures NOW() - MAX(run) and
 # must not be frozen at run time. Migrations:
 # apps/scraper/migrations/20260703_scraper_health_summary_materialized_views.sql
-# (original definitions) and 20260704_scraper_health_club_labels_stable_series.sql
+# (original definitions), 20260704_scraper_health_club_labels_stable_series.sql
 # (TASK-2834: recreates the two club-level views with a club_id label for the
 # Discord template's scraper-verify next step, and one-extra-run series
-# retention — a club stays in the view with a 0 flag for one run after its
-# condition clears, so recoveries resolve as Normal instead of MissingSeries,
-# killing the churn-only Resolved spam in Discord. NOT one-row-per-club:
-# Grafana's evaluator caps a query at 1000 series and the latest run spans
-# ~1,559 clubs).
+# retention), and 20260706174000_retune_consecutive_zero_health_alert.sql
+# (TASK-3584: narrows the self-healing consecutive-zero view to clubs whose
+# zero-output state also has a current failure/bot-block signal or existing
+# future inventory, avoiding pages for aggregate one-off listings that simply
+# aged out). NOT one-row-per-club: Grafana's evaluator caps a query at 1000
+# series and the latest run spans ~1,559 clubs.
 #
 # N defaults to a trailing window of 7 runs (rows rn BETWEEN 2 AND 8: the 7 runs
 # immediately preceding the latest), set in the materialized-view definitions.
@@ -260,10 +261,13 @@ groups:
       #    consecutive-run window two ways: TASK-2831 now persists them with
       #    run_type='verify' (so the run_type='scraper' filter alone excludes
       #    them), and clubs_processed > 1 remains as defense-in-depth for any
-      #    legacy rows written before that change.
+      #    legacy rows written before that change. TASK-3584 narrows this rule
+      #    further: a 2-run zero only pages when the latest/previous run failed,
+      #    detected a bot block, or the DB still has future shows for the club.
+      #    That removes one-off aggregate listings that aged out cleanly.
       # uid matches the LIVE Grafana Cloud rule (see note on rule 1).
       - uid: scraper-club-consec-zero-shows
-        title: Club at zero shows for 2+ consecutive full runs (had shows in last 30 days)
+        title: Club at zero shows for 2+ full runs with active regression signal
         condition: C
         for: 0m
         noDataState: OK
@@ -272,13 +276,14 @@ groups:
           service: scraper-health
           severity: warning
         annotations:
-          summary: '{{ $labels.club }} has had zero shows for 2+ consecutive full runs'
+          summary: '{{ $labels.club }} has had zero shows for 2+ full runs with an active regression signal'
           description: >
             {{ $labels.club }} returned zero shows in the last 2 consecutive
-            full scrape runs but had shows within the trailing 30 days. This
-            self-healing rule keeps firing until shows return, so it catches
-            drops whose one-shot transition alert (rule 2) was missed. Verify
-            the venue's calendar and scraper.
+            full scrape runs, had shows within the trailing 30 days, and either
+            failed/bot-blocked recently or still has future shows in the DB.
+            This self-healing rule catches drops whose one-shot transition alert
+            (rule 2) was missed while ignoring cleanly empty aggregate listings.
+            Verify the venue's calendar and scraper.
         data:
           - refId: A
             relativeTimeRange: { from: 0, to: 0 }
@@ -291,16 +296,16 @@ groups:
                 -- materialized view (TASK-3573) instead of recomputing the
                 -- full_runs / club_shows / 30-day history CTEs on every
                 -- evaluation. The scraper REFRESHes it once per full 'scraper'
-                -- run. The firing condition is the exact self-healing query this
-                -- rule used to inline (last 2 consecutive full runs at zero,
-                -- clubs_processed>1, with a run_type IN ('scraper','verify')
-                -- 30-day >0 lookback), so it keeps firing every evaluation until
-                -- the club recovers; since TASK-2834 the view retains a fired
-                -- club's series (0-valued, + club_id label) for one extra run so
-                -- recoveries resolve as Normal, not MissingSeries. The 30-day NOW() anchor is
-                -- baked at REFRESH time (latest-run wall-clock), which tracks the
-                -- daily cadence. See
-                -- apps/scraper/migrations/20260704_scraper_health_club_labels_stable_series.sql.
+                -- run. TASK-3584 retuned the view so the self-healing condition
+                -- still requires the last 2 consecutive full runs at zero and a
+                -- run_type IN ('scraper','verify') 30-day >0 lookback, but also
+                -- requires an active regression signal: recent failure, recent
+                -- bot block, or existing future shows in the DB. Since TASK-2834
+                -- the view retains a fired club's series (0-valued, + club_id
+                -- label) for one extra run so recoveries resolve as Normal, not
+                -- MissingSeries. The 30-day NOW() anchor is baked at REFRESH time
+                -- (latest-run wall-clock), which tracks the daily cadence. See
+                -- apps/scraper/migrations/20260706174000_retune_consecutive_zero_health_alert.sql.
                 SELECT club, club_id, consecutive_zero FROM mv_scraper_health_consecutive_zero;
           - refId: B
             datasourceUid: __expr__

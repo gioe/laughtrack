@@ -1,0 +1,106 @@
+club_id,club,visible,status,club_type,enabled_sources,future_shows,shows_30d,max_show_date,latest_num_shows,latest_success,latest_items_before_filter,latest_bot_block,latest_error,previous_num_shows,previous_success,previous_items_before_filter,previous_bot_block,previous_error,classification,would_fire_after_task_3584_retune
+8698,1547 St Clair Ave NE,True,active,club,eventbrite:eventbrite,0,1,2026-06-26 23:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4768,4 Bears Casino & Lodge,True,active,club,ticketmaster:ticketmaster_comedy,0,1,2026-06-28 01:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4746,AMSOIL Arena,True,active,club,ticketmaster:ticketmaster_comedy,0,1,2026-06-27 01:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4599,Agora Theatre,True,active,club,ticketmaster:ticketmaster_comedy,1,2,2026-08-29 23:00:00+00:00,0,True,0,False,,0,True,0,False,,real_regression_future_inventory_still_present,yes
+4796,Alliant Energy PowerHouse,True,active,club,ticketmaster:ticketmaster_comedy,0,1,2026-07-02 01:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+3564,Aslin Beer Company,True,active,club,eventbrite:eventbrite,0,1,2026-06-20 00:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+2335,Aslin Beer Company - Alexandria,True,active,club,eventbrite:eventbrite,0,1,2026-06-20 00:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+2328,Aslin Beer Company - Herndon,True,active,club,eventbrite:eventbrite,0,1,2026-06-13 01:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4017,Back Alley Brewing Company,True,active,club,eventbrite:eventbrite,0,1,2026-06-28 00:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+2464,Barclays Center,True,active,club,custom:barclays_center,0,1,2026-06-29 00:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4785,Baxter Arena,True,active,club,ticketmaster:ticketmaster_comedy,0,1,2026-06-29 00:30:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4566,Beverly O'Neill - Long Beach Convention and Entertainment Center,True,active,club,ticketmaster:ticketmaster_comedy,0,10,2026-06-28 21:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+2333,Black Flag Brewing Company,True,active,club,eventbrite:eventbrite,0,0,2026-05-31 23:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4777,Bowery Ballroom,True,active,club,ticketmaster:ticketmaster_comedy,0,1,2026-06-28 23:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4639,Bushnell Theatre/ Mortensen Hall,True,active,club,ticketmaster:ticketmaster_comedy,1,3,2026-09-18 23:00:00+00:00,0,True,0,False,,0,True,0,False,,real_regression_future_inventory_still_present,yes
+4635,Casbah-San Diego,True,active,club,ticketmaster:ticketmaster_comedy,0,1,2026-06-19 03:30:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4628,Category 10,True,active,club,ticketmaster:ticketmaster_comedy,0,1,2026-06-19 01:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+193,Cheaper Than Therapy,True,active,club,ninkashi:ninkashi,77,108,2026-09-21 02:45:00+00:00,0,True,0,False,,0,True,0,False,,real_regression_future_inventory_still_present,yes
+2332,Chesepiooc Real Ale Brewery,True,active,club,eventbrite:eventbrite,0,1,2026-06-28 00:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+2295,City-State Public House,True,active,club,eventbrite:eventbrite,0,1,2026-06-12 23:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+3347,Coal Ridge Brewery,True,active,club,eventbrite:eventbrite,0,1,2026-06-20 23:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4022,Curio Brewing Company,True,active,club,eventbrite:eventbrite,0,1,2026-06-28 00:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+11289,DOM'S,True,active,club,eventbrite:eventbrite,0,1,2026-07-01 00:30:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+49,Dark Horse Comedy Club,True,active,club,custom:json_ld,0,3,2026-06-14 01:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4632,Del Mar Fairgrounds,True,active,club,ticketmaster:ticketmaster_comedy,0,1,2026-06-19 03:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4789,Delmar Hall,True,active,club,ticketmaster:ticketmaster_comedy,0,1,2026-06-29 01:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4752,Desert Diamond Casino - Sahuarita,True,active,club,ticketmaster:ticketmaster_comedy,0,1,2026-06-27 03:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+11091,Elbo Room Jack London,True,active,club,eventbrite:eventbrite,0,1,2026-06-26 03:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+3565,Evill Nash Brewing Co.,True,active,club,eventbrite:eventbrite,0,1,2026-06-21 00:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4588,First Interstate Arena,True,active,club,ticketmaster:ticketmaster_comedy,0,1,2026-06-15 01:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4605,Ford Center,True,active,club,ticketmaster:ticketmaster_comedy,0,1,2026-06-17 00:30:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4601,Fox Theatre - Atlanta,True,active,club,ticketmaster:ticketmaster_comedy,10,14,2026-12-11 00:30:00+00:00,0,True,0,False,,0,True,0,False,,real_regression_future_inventory_still_present,yes
+4624,GLC Live at 20 Monroe,True,active,club,ticketmaster:ticketmaster_comedy,0,3,2026-06-27 22:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+10956,Galactic Theatre,True,active,club,eventbrite:eventbrite,0,1,2026-07-03 00:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4769,Garden Amphitheatre,True,active,club,ticketmaster:ticketmaster_comedy,0,1,2026-06-28 01:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+11250,Graffiti Loft,True,active,club,eventbrite:eventbrite,0,1,2026-07-02 23:30:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4625,Grand Pointe,True,active,club,ticketmaster:ticketmaster_comedy,0,1,2026-06-19 00:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+11103,Grapes & Giggles,True,active,club,squarespace:squarespace,0,1,2026-06-11 03:30:00.173000+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+8702,HillBilly's Grub & Pub,True,active,club,eventbrite:eventbrite,0,1,2026-06-18 23:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4488,Hobby Center,True,active,club,ticketmaster:ticketmaster_comedy,0,4,2026-06-15 00:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+2561,Hollywood Casino Columbus,True,active,club,ticketmaster:ticketmaster_comedy,0,1,2026-06-19 00:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+141,Improv Asylum,True,active,club,custom:improv_asylum,73,112,2026-09-29 23:30:00+00:00,0,False,,False,"no scraper registered for configured key(s) 'improv_asylum': scraper module may be unmerged on this branch, gitignored, or the scraper_key was renamed in scraping_sources without a matching code change",0,False,,False,"no scraper registered for configured key(s) 'improv_asylum': scraper module may be unmerged on this branch, gitignored, or the scraper_key was renamed in scraping_sources without a matching code change",real_regression_recent_failure,yes
+11118,Improv Impact,True,active,club,squarespace:squarespace,0,2,2026-06-20 03:00:00.727000+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+9068,Improv Playhouse Theater,True,active,club,eventbrite:eventbrite,0,1,2026-06-28 01:30:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4689,Inn of the Mountain Gods Resort and Casino,True,active,club,ticketmaster:ticketmaster_comedy,0,1,2026-06-21 02:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+8696,Irishtown Bend Taproom at Market Garden Brewery,True,active,club,eventbrite:eventbrite,0,1,2026-06-21 03:30:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+2324,"Iron Hand Brewing, LLC",True,active,club,eventbrite:eventbrite,0,1,2026-06-21 00:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4763,Isleta Casino and Resort,True,active,club,ticketmaster:ticketmaster_comedy,0,1,2026-06-28 00:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+2316,Jackalope Brewing Co.,True,active,club,eventbrite:eventbrite,0,1,2026-06-27 01:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+1349,Kellar's: Modern Magic and Comedy Club,True,active,club,custom:kellars,39,49,2026-12-13 00:00:00+00:00,0,True,0,False,,0,True,0,False,,real_regression_future_inventory_still_present,yes
+11475,Kesha's Comedy House,True,active,club,shopify:shopify,0,1,2026-06-29 00:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+2310,Lemons Mill Brewery,True,active,club,eventbrite:eventbrite,0,1,2026-06-20 23:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4688,Libbey Bowl,True,active,club,ticketmaster:ticketmaster_comedy,0,1,2026-06-21 02:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4705,Lowell Memorial Auditorium,True,active,club,ticketmaster:ticketmaster_comedy,0,2,2026-06-24 23:30:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+5093,Madison Theater (730),True,active,club,ticketmaster:ticketmaster_comedy,1,1,2026-09-10 23:00:00+00:00,0,True,0,False,,0,True,0,False,,real_regression_future_inventory_still_present,yes
+4778,Madrid Theatre,True,active,club,ticketmaster:ticketmaster_comedy,0,2,2026-06-29 01:45:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4756,Mark Ridley's Comedy Castle,True,active,club,etix:etix | ticketmaster:ticketmaster_comedy,2,3,2026-10-24 23:00:00+00:00,0,True,0,False,,0,True,0,False,,real_regression_future_inventory_still_present,yes
+11104,Martinez Campbell Theater,True,active,club,eventbrite:eventbrite,0,2,2026-06-28 02:30:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4501,Meadow Brook Theatre,True,active,club,ticketmaster:ticketmaster_comedy,0,10,2026-06-21 18:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+50,Midtown Comedy Club,True,active,club,custom:json_ld,0,3,2026-06-14 01:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+3351,Mocama Beer Company,True,active,club,eventbrite:eventbrite,0,1,2026-06-27 00:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4656,Morton Amphitheater,True,active,club,ticketmaster:ticketmaster_comedy,0,1,2026-06-20 01:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4681,Music Center at Strathmore,True,active,club,ticketmaster:ticketmaster_comedy,0,1,2026-06-21 00:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+2314,Music City Sandwich Co,True,active,club,eventbrite:eventbrite,0,2,2026-06-07 02:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+9119,My Buddy's,True,active,club,custom:tock,0,4,2026-06-29 02:00:00+00:00,0,True,0,True,,0,True,0,True,,real_regression_bot_block,yes
+196,Nashville Improv,True,active,club,squarespace:squarespace,0,1,2026-06-27 00:30:00.810000+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+11092,Quinn's Lighthouse,True,active,club,eventbrite:eventbrite,0,8,2026-07-05 02:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+506,Rails Comedy,True,active,club,crowdwork:crowdwork,0,20,2026-06-25 01:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4708,Reggies Music Joint,True,active,club,ticketmaster:ticketmaster_comedy,0,1,2026-06-24 02:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4686,Rhythm City Casino Resort,True,active,club,ticketmaster:ticketmaster_comedy,0,1,2026-06-21 02:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+11345,Ritz Theatre,True,active,club,ticketmaster:live_nation,0,1,2026-07-02 22:00:00+00:00,0,True,5,False,,0,True,5,False,,alert_noise_filtered_zero_inventory_no_future,no
+2325,Science Project Brewing Company & Pizza Lab,True,active,club,eventbrite:eventbrite,0,1,2026-06-12 23:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4685,Simmons Bank Arena,True,active,club,ticketmaster:ticketmaster_comedy,0,1,2026-06-21 01:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+653,Sports Drink,True,active,club,custom:sports_drink,377,447,2026-12-31 02:30:00+00:00,0,False,,False,timed out after 180s,0,False,,False,timed out after 180s,real_regression_recent_failure,yes
+3350,Straight to Ale,True,active,club,eventbrite:eventbrite,0,1,2026-06-08 00:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4714,Summit Arena at The Monument,True,active,club,ticketmaster:ticketmaster_comedy,0,1,2026-06-25 01:30:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+63,TK's,True,active,club,custom:tks_comedy,0,0,2026-05-10 18:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+3356,The Alpine Goat Brewery,True,active,club,eventbrite:eventbrite,0,1,2026-06-13 00:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+8714,The Auricle - Venue & Bar,True,active,club,custom:the_auricle,0,1,2026-06-30 00:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4678,The Cabot,True,active,club,ticketmaster:ticketmaster_comedy,0,1,2026-06-21 00:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+189,The Comedy Clubhouse,True,active,club,custom:comedy_clubhouse,9,27,2026-07-25 02:30:00+00:00,0,True,0,True,,0,True,0,True,,real_regression_bot_block,yes
+4743,The Den at Howlin' Wolf,True,active,club,ticketmaster:ticketmaster_comedy,0,1,2026-06-27 00:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+75,The Dojo of Comedy,True,active,club,seatengine:seatengine_classic,12,16,2026-11-15 02:00:00+00:00,0,True,0,False,,0,True,0,False,,real_regression_future_inventory_still_present,yes
+9065,The Drop Comedy Club,True,active,club,eventbrite:eventbrite,0,2,2026-06-21 00:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4683,The Forum Auditorium,True,active,club,ticketmaster:ticketmaster_comedy,0,1,2026-06-21 00:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+2330,The Garage Brewery,True,active,club,eventbrite:eventbrite,0,0,2026-05-17 00:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+3359,The Ghent,True,active,club,eventbrite:eventbrite,0,1,2026-06-14 00:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+2299,The Glass Jug Beer Lab - RTP,True,active,club,eventbrite:eventbrite,0,1,2026-06-20 00:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+9057,The Hideaway Cafe & Lounge,True,active,club,eventbrite:eventbrite,0,1,2026-06-29 01:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4749,The Liberty,True,active,club,ticketmaster:ticketmaster_comedy,0,1,2026-06-27 02:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+1048,The Moon,True,active,club,custom:comedy_magic_club,0,4,2026-07-05 02:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+11482,The Port Comedy Club,True,active,club,custom:seetickets_whitelabel,175,183,2027-01-23 05:00:00+00:00,0,False,,False,timed out after 180s,0,False,,False,timed out after 180s,real_regression_recent_failure,yes
+4787,The Union,True,active,club,ticketmaster:ticketmaster_comedy,0,1,2026-06-29 01:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+11126,The Warfield,True,active,venue,custom:aeg_axs,0,1,2026-06-25 03:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+3348,"Tobacco Wood Brewing Co, Durham Taproom and American Gastropub",True,active,club,eventbrite:eventbrite,0,1,2026-06-07 00:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4766,Todd Wehr Marcus Center,True,active,club,ticketmaster:ticketmaster_comedy,0,2,2026-06-29 00:30:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+48,Tribeca Comedy Lounge,True,active,club,custom:json_ld,0,3,2026-06-14 01:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+2322,TrimTab Brewing Company,True,active,club,eventbrite:eventbrite,0,1,2026-06-14 01:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+11106,True Symmetry Brewing Company,True,active,club,eventbrite:eventbrite,0,1,2026-06-28 03:30:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4655,United Center,True,active,club,ticketmaster:ticketmaster_comedy,0,2,2026-06-28 01:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4703,Viejas Arena at Aztec Bowl San Diego State University,True,active,club,ticketmaster:ticketmaster_comedy,0,1,2026-06-22 02:30:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4757,Westgate Las Vegas Resort & Casino,True,active,club,ticketmaster:ticketmaster_comedy,0,2,2026-06-28 02:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+1347,Whiplash Comedy,True,active,club,seatengine:seatengine,0,6,2026-06-26 00:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+4755,Yucaipa Performing Arts Center Indoor Theatre,True,active,club,ticketmaster:ticketmaster_comedy,0,1,2026-06-27 03:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
+2296,Zissimos Bar,True,active,club,eventbrite:eventbrite,0,2,2026-06-27 23:00:00+00:00,0,True,0,False,,0,True,0,False,,alert_noise_clean_zero_inventory_aged_out,no
