@@ -1,8 +1,10 @@
 """Greenwich Village Comedy Club scraper using WordPress shows plus Tessera tickets."""
 
 import re
+from datetime import datetime
 from html import unescape
 from typing import Any, List, Optional
+from zoneinfo import ZoneInfo
 
 from laughtrack.core.clients.tessera.instances.greenwich_village import (
     GreenwichVillageTesseraClient,
@@ -77,6 +79,8 @@ class GreenwichVillageComedyClubScraper(BroadwayComedyClubScraper):
         event_date = self._clean_text(acf.get("date_and_time_of_show"))
         if not event_date:
             return None
+        if self._is_past_show(event_date):
+            return None
 
         event_id = self._clean_text(row.get("id"))
         link = self._clean_text(row.get("link"))
@@ -149,6 +153,14 @@ class GreenwichVillageComedyClubScraper(BroadwayComedyClubScraper):
         if isinstance(value, dict):
             return self._clean_text(value.get("url"))
         return ""
+
+    def _is_past_show(self, event_date: str) -> bool:
+        try:
+            timezone = ZoneInfo(self.club.timezone or "America/New_York")
+            start = datetime.strptime(event_date.upper(), "%m/%d/%Y %I:%M %p").replace(tzinfo=timezone)
+            return start <= datetime.now(timezone)
+        except ValueError:
+            return False
 
     @staticmethod
     def _clean_text(value: Any) -> str:

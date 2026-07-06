@@ -1,5 +1,7 @@
 """Greenwich Village Comedy Club scraper wiring tests."""
 
+import time_machine
+
 from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.clients.tessera.instances.greenwich_village import (
     GreenwichVillageTesseraClient,
@@ -55,6 +57,7 @@ def test_greenwich_scraper_registers_dedicated_key_and_client():
     assert scraper._tickets._client is scraper.tessera_client
 
 
+@time_machine.travel("2026-07-06T12:00:00Z", tick=False)
 async def test_get_data_maps_wordpress_show_api_payload(monkeypatch):
     scraper = GreenwichVillageComedyClubScraper(_club())
 
@@ -82,6 +85,15 @@ async def test_get_data_maps_wordpress_show_api_payload(monkeypatch):
             "acf": {
                 "date_and_time_of_show": "07/20/2026 4:00 pm",
                 "hide_show": True,
+            },
+        },
+        {
+            "id": 16824,
+            "link": "https://www.greenwichvillagecomedyclub.com/shows/past/",
+            "acf": {
+                "date_and_time_of_show": "07/01/2026 4:00 pm",
+                "hide_show": False,
+                "show_template": {"post_title": "Past Show"},
             },
         },
     ]
