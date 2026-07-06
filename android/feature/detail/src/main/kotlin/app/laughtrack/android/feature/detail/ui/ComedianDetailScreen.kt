@@ -24,17 +24,23 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -402,6 +408,21 @@ private fun ComedianShowsTab(
     ui: ComedianDetailUi,
     onOpenEntity: (AppRoute) -> Unit,
 ) {
+    // The runs/shows are already loaded with the comedian, so filtering and
+    // ordering happen client-side — no refetch. (This tab is not geo-scoped, so
+    // the old distance/location/date pills never applied here.)
+    var clubFilter by remember { mutableStateOf("") }
+    var newestFirst by remember { mutableStateOf(true) }
+
+    val filteredRuns =
+        ui.upcomingRuns.filter { it.clubName.contains(clubFilter, ignoreCase = true) }
+    val filteredPast =
+        ui.pastShows
+            .filter { show ->
+                listOfNotNull(show.clubName, show.name).any { it.contains(clubFilter, ignoreCase = true) }
+            }
+            .let { shows -> if (newestFirst) shows.sortedByDescending { it.date ?: "" } else shows.sortedBy { it.date ?: "" } }
+
     Surface(
         modifier =
             Modifier
@@ -421,38 +442,45 @@ private fun ComedianShowsTab(
                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                 color = LaughTrackColors.ForegroundMuted,
             )
-            SearchLikeField("Comedy Cellar, The Stand...")
+            ClubFilterField(
+                value = clubFilter,
+                onValueChange = { clubFilter = it },
+            )
             Row(
                 Modifier.horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                DetailFilterPill("25 mi")
-                DetailFilterPill("Earliest")
-                DetailFilterPill("Location 90028")
-                DetailFilterPill("Today")
-                DetailFilterPill("Filters")
+                ShowOrderPill(
+                    newestFirst = newestFirst,
+                    onSelect = { newestFirst = it },
+                )
             }
 
-            if (ui.upcomingRuns.isEmpty() && ui.pastShows.isEmpty()) {
+            if (filteredRuns.isEmpty() && filteredPast.isEmpty()) {
                 EmptyShowsPanel(
-                    title = "No shows yet.",
-                    message = "No shows matched this ZIP code yet. Broaden the radius or clear location filters.",
+                    title = "No shows found.",
+                    message =
+                        if (clubFilter.isBlank()) {
+                            "No shows listed for this comedian yet."
+                        } else {
+                            "No shows match \"$clubFilter\". Try a different club name."
+                        },
                 )
                 return@Column
             }
 
-            if (ui.upcomingRuns.isNotEmpty()) {
+            if (filteredRuns.isNotEmpty()) {
                 SectionHeader("Upcoming")
             }
-            ui.upcomingRuns.forEach { run ->
+            filteredRuns.forEach { run ->
                 run.shows.forEach { show ->
                     UpcomingRunRow(run = run, showId = show.id, date = show.date, onOpenEntity = onOpenEntity)
                 }
             }
 
-            if (ui.pastShows.isNotEmpty()) {
+            if (filteredPast.isNotEmpty()) {
                 SectionHeader("Past shows")
-                ui.pastShows.forEach { show ->
+                filteredPast.forEach { show ->
                     ShowRow(
                         title = show.name ?: show.clubName ?: "Show",
                         subtitle = listOfNotNull(show.clubName, show.clubCity).joinToString(" · ").ifBlank { null },
@@ -465,47 +493,75 @@ private fun ComedianShowsTab(
     }
 }
 
+/** Real text input that filters the comedian's runs/shows by club name, client-side. */
 @Composable
-private fun SearchLikeField(placeholder: String) {
-    Surface(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .height(52.dp)
-                .border(1.dp, LaughTrackColors.BorderSubtle, RoundedCornerShape(999.dp)),
-        color = LaughTrackColors.Surface,
+private fun ClubFilterField(
+    value: String,
+    onValueChange: (String) -> Unit,
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null, tint = LaughTrackColors.ForegroundMuted) },
+        placeholder = { Text("Filter by club — Comedy Cellar, The Stand...", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(999.dp),
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-        ) {
-            Icon(Icons.Filled.Search, contentDescription = null, tint = LaughTrackColors.ForegroundMuted)
-            Text(
-                placeholder,
-                color = LaughTrackColors.ForegroundMuted.copy(alpha = 0.72f),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-    }
+    )
 }
 
+/** Sort dropdown that reorders the past-shows list by date, client-side. */
 @Composable
-private fun DetailFilterPill(label: String) {
-    Surface(
-        color = LaughTrackColors.Surface,
-        shape = RoundedCornerShape(999.dp),
-        modifier = Modifier.border(1.dp, LaughTrackColors.BorderSubtle, RoundedCornerShape(999.dp)),
-    ) {
-        Text(
-            label,
-            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
-            color = LaughTrackColors.ForegroundMuted,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-            maxLines = 1,
-        )
+private fun ShowOrderPill(
+    newestFirst: Boolean,
+    onSelect: (Boolean) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Box {
+        Surface(
+            color = LaughTrackColors.Surface,
+            shape = RoundedCornerShape(999.dp),
+            modifier =
+                Modifier
+                    .clip(RoundedCornerShape(999.dp))
+                    .clickable { expanded = true }
+                    .border(1.dp, LaughTrackColors.BorderSubtle, RoundedCornerShape(999.dp)),
+        ) {
+            Row(
+                modifier = Modifier.padding(start = 12.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+            ) {
+                Text(
+                    if (newestFirst) "Newest" else "Oldest",
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+                    color = LaughTrackColors.ForegroundMuted,
+                    maxLines = 1,
+                )
+                Icon(
+                    Icons.Filled.ArrowDropDown,
+                    contentDescription = null,
+                    tint = LaughTrackColors.ForegroundMuted,
+                    modifier = Modifier.size(16.dp),
+                )
+            }
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            listOf(true to "Newest first", false to "Oldest first").forEach { (isNewest, label) ->
+                DropdownMenuItem(
+                    text = { Text(label) },
+                    trailingIcon =
+                        if (isNewest == newestFirst) {
+                            { Icon(Icons.Filled.Check, contentDescription = null) }
+                        } else {
+                            null
+                        },
+                    onClick = {
+                        expanded = false
+                        onSelect(isNewest)
+                    },
+                )
+            }
+        }
     }
 }
 
