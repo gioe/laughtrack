@@ -39,6 +39,25 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="laughtrack" />
             </intent-filter>
+
+            <!-- Verified http(s) App Links for web/email handoff. Scoped to /show/
+                 because it is the only entity whose web URL is a numeric id
+                 (/show/[id]); comedian/club/podcast pages are name/slug URLs that
+                 can't map to an id-based route, so they stay browser-first (mirrors
+                 iOS, which registers /show only). autoVerify requires
+                 https://<host>/.well-known/assetlinks.json to be published with
+                 this app's signing fingerprint. Both scheme+host and the pathPrefix
+                 combine across the <data> tags. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" />
+                <data android:scheme="http" />
+                <data android:host="laugh-track.com" />
+                <data android:host="www.laugh-track.com" />
+                <data android:pathPrefix="/show/" />
+            </intent-filter>
         </activity>
 
         <service
