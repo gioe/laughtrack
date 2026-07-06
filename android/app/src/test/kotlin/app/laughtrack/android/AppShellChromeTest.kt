@@ -8,7 +8,7 @@ import org.junit.Test
 class AppShellChromeTest {
     @Test
     fun shell_top_app_bar_is_visible_for_secondary_destinations_that_do_not_own_chrome() {
-        assertTrue(AppShellChrome.showsTopAppBar(AppRoute.Favorites))
+        assertTrue(AppShellChrome.showsTopAppBar(AppRoute.Favorites()))
         assertTrue(AppShellChrome.showsTopAppBar(AppRoute.Profile))
     }
 
@@ -27,7 +27,7 @@ class AppShellChromeTest {
     fun shell_bottom_bar_is_visible_only_for_root_tabs() {
         assertTrue(AppShellChrome.showsBottomBar(AppRoute.Discover))
         assertTrue(AppShellChrome.showsBottomBar(AppRoute.Search))
-        assertTrue(AppShellChrome.showsBottomBar(AppRoute.Favorites))
+        assertTrue(AppShellChrome.showsBottomBar(AppRoute.Favorites()))
 
         assertFalse(AppShellChrome.showsBottomBar(AppRoute.ShowDetail(id = 1)))
         assertFalse(AppShellChrome.showsBottomBar(AppRoute.ComedianDetail(id = 1)))
