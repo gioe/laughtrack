@@ -68,6 +68,7 @@ import app.laughtrack.android.feature.detail.util.formatCountdown
 import app.laughtrack.android.feature.detail.util.formatShowDateTime
 import app.laughtrack.android.feature.detail.util.openUrl
 import app.laughtrack.android.feature.detail.util.parseShowDateTime
+import kotlinx.coroutines.delay
 import java.math.BigDecimal
 import java.time.ZonedDateTime
 
@@ -177,6 +178,13 @@ private fun ShowDetailBody(
 private fun AdminShowIdBadge(showId: Int) {
     val clipboard = LocalClipboardManager.current
     var copied by remember(showId) { mutableStateOf(false) }
+    // Revert the "copied" confirmation after a moment so the chip doesn't stick.
+    LaunchedEffect(copied) {
+        if (copied) {
+            delay(1_500)
+            copied = false
+        }
+    }
     Surface(
         color = LaughTrackColors.SurfaceElevated,
         shape = RoundedCornerShape(999.dp),
