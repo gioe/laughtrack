@@ -7,5 +7,5 @@ package app.laughtrack.android.core.navigation
 enum class AppTab(val rootRoute: AppRoute, val label: String) {
     DISCOVER(AppRoute.Discover, "Discover"),
     SEARCH(AppRoute.Search, "Search"),
-    FAVORITES(AppRoute.Favorites, "Favorites"),
+    FAVORITES(AppRoute.Favorites(), "Favorites"),
 }

@@ -138,9 +138,10 @@ fun AppShell(
                 composable<AppRoute.Search> {
                     SearchScreen(onOpenEntity = navController::openEntity)
                 }
-                composable<AppRoute.Favorites> {
+                composable<AppRoute.Favorites> { entry ->
                     LibraryScreen(
                         signedIn = signedIn,
+                        scopedShowIds = entry.toRoute<AppRoute.Favorites>().showIds,
                         onOpenProfile = { navController.openEntity(AppRoute.Profile) },
                     )
                 }
@@ -310,7 +311,7 @@ internal object AppShellChrome {
             AppRoute.Search,
             -> false
 
-            AppRoute.Favorites,
+            is AppRoute.Favorites,
             AppRoute.ComedianOnboarding,
             AppRoute.NowPlaying,
             AppRoute.Profile,
@@ -337,7 +338,7 @@ internal object AppShellChrome {
         when (route) {
             AppRoute.Discover,
             AppRoute.Search,
-            AppRoute.Favorites,
+            is AppRoute.Favorites,
             -> true
 
             AppRoute.ComedianOnboarding,

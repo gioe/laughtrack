@@ -37,9 +37,15 @@ object LaughTrackDeepLink {
         // Grouped-push tap → Favorites tab (renders upcoming shows from followed
         // comedians). Checked before url/showId, which grouped pushes still carry
         // as the fallback for older builds that predate this key.
-        if (data["route"]?.trim() == "favorites") return AppRoute.Favorites
+        if (data["route"]?.trim() == "favorites") {
+            return AppRoute.Favorites(parseShowIds(data["showIds"]))
+        }
         route(data["url"])?.let { return it }
         data["showId"]?.toIntOrNull()?.let { return AppRoute.ShowDetail(it) }
         return null
     }
+
+    /** Parse a comma-joined "555,777" show-id string (grouped-push context). */
+    private fun parseShowIds(raw: String?): List<Int> =
+        raw?.split(",")?.mapNotNull { it.trim().toIntOrNull() } ?: emptyList()
 }

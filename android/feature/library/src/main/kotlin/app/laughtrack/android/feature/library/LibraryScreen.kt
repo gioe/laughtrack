@@ -20,6 +20,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -36,6 +39,7 @@ import app.laughtrack.android.core.network.generated.model.Show
 fun LibraryScreen(
     signedIn: Boolean,
     onOpenProfile: () -> Unit,
+    scopedShowIds: List<Int> = emptyList(),
     viewModel: LibraryViewModel = hiltViewModel(),
 ) {
     val snapshot by viewModel.snapshot.collectAsState()
@@ -71,6 +75,7 @@ fun LibraryScreen(
         if (signedIn) {
             SignedInLibrary(
                 snapshot = snapshot,
+                scopedShowIds = scopedShowIds,
                 onToggleComedian = viewModel::toggleComedian,
                 onToggleClub = viewModel::toggleClub,
                 onTogglePodcast = viewModel::togglePodcast,
@@ -84,6 +89,7 @@ fun LibraryScreen(
 @Composable
 private fun SignedInLibrary(
     snapshot: FavoritesSnapshot,
+    scopedShowIds: List<Int>,
     onToggleComedian: (String) -> Unit,
     onToggleClub: (Int) -> Unit,
     onTogglePodcast: (Int) -> Unit,
@@ -97,11 +103,33 @@ private fun SignedInLibrary(
         }
     }
 
-    val groupedShows = snapshot.shows.groupByFavoriteComedian(snapshot.comedians)
+    // A notification tap arrives with showIds — scope the touring section to just
+    // those shows until the user chooses "Show all favorites".
+    var showAll by remember { mutableStateOf(false) }
+    val isScoped = scopedShowIds.isNotEmpty() && !showAll
+    val touringShows =
+        if (isScoped) {
+            val scoped = scopedShowIds.toSet()
+            snapshot.shows.filter { it.id in scoped }
+        } else {
+            snapshot.shows
+        }
+    val groupedShows = touringShows.groupByFavoriteComedian(snapshot.comedians)
 
-    FavoriteSection(title = "Your favorites are touring") {
+    FavoriteSection(
+        title = if (isScoped) "From your notification" else "Your favorites are touring",
+    ) {
+        if (isScoped) {
+            TextButton(onClick = { showAll = true }) { Text("Show all favorites") }
+        }
         if (groupedShows.isEmpty()) {
-            EmptyText("Shows from saved comedians will appear here.")
+            EmptyText(
+                if (isScoped) {
+                    "Those shows aren't in your upcoming favorites right now."
+                } else {
+                    "Shows from saved comedians will appear here."
+                },
+            )
         } else {
             groupedShows.forEach { (comedianName, shows) ->
                 Text(

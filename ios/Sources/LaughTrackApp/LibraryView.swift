@@ -10,6 +10,8 @@ struct LibraryView: View {
 
     let apiClient: Client
     let selectedPrimitive: SearchRootModel.Pivot?
+    /// Show ids from a notification tap; scopes the touring section (empty = all).
+    let scopedShowIDs: [Int]
     let searchNavigationBridge: SearchNavigationBridge
 
     @EnvironmentObject private var authManager: AuthManager
@@ -21,10 +23,12 @@ struct LibraryView: View {
     init(
         apiClient: Client,
         selectedPrimitive: SearchRootModel.Pivot? = nil,
+        scopedShowIDs: [Int] = [],
         searchNavigationBridge: SearchNavigationBridge
     ) {
         self.apiClient = apiClient
         self.selectedPrimitive = selectedPrimitive
+        self.scopedShowIDs = scopedShowIDs
         self.searchNavigationBridge = searchNavigationBridge
     }
 
@@ -37,6 +41,7 @@ struct LibraryView: View {
                     FavoritePrimitiveSections(
                         apiClient: apiClient,
                         selectedPrimitive: selectedPrimitive,
+                        scopedShowIDs: scopedShowIDs,
                         searchNavigationBridge: searchNavigationBridge,
                         cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self),
                         persistentCache: serviceContainer.resolve(PersistentMainPageCache.self)
@@ -63,6 +68,7 @@ struct LibraryView: View {
 private struct FavoritePrimitiveSections: View {
     let apiClient: Client
     let selectedPrimitive: SearchRootModel.Pivot?
+    let scopedShowIDs: [Int]
     let searchNavigationBridge: SearchNavigationBridge
     let cache: DataCache<LaughTrackCacheKey>
     let persistentCache: PersistentMainPageCache
@@ -84,7 +90,8 @@ private struct FavoritePrimitiveSections: View {
         VStack(alignment: .leading, spacing: themeSpacing) {
             if includes(.shows) {
                 FavoriteShowsSection(
-                    phase: favoriteShowsModel.phase
+                    phase: favoriteShowsModel.phase,
+                    scopedShowIDs: scopedShowIDs
                 )
             }
 
@@ -116,9 +123,14 @@ private struct FavoritePrimitiveSections: View {
 
 private struct FavoriteShowsSection: View {
     let phase: LoadPhase<[Components.Schemas.Show]>
+    /// Show ids from a notification tap; scopes the section to just those.
+    var scopedShowIDs: [Int] = []
 
+    @State private var showAll = false
     @Environment(\.appTheme) private var theme
     @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
+
+    private var isScoped: Bool { !scopedShowIDs.isEmpty && !showAll }
 
     var body: some View {
         switch phase {
@@ -130,13 +142,26 @@ private struct FavoriteShowsSection: View {
     }
 
     private func favoriteShowsContent(_ shows: [Components.Schemas.Show]) -> some View {
-        LaughTrackRailCard(
+        let scopedSet = Set(scopedShowIDs)
+        let filtered = isScoped ? shows.filter { scopedSet.contains($0.id) } : Array(shows.prefix(4))
+        return LaughTrackRailCard(
             eyebrow: "Favorites",
-            title: "Your favorites are touring",
+            title: isScoped ? "From your notification" : "Your favorites are touring",
             accessibilityIdentifier: LaughTrackViewTestID.favoritesShowsSection
         ) {
             VStack(alignment: .leading, spacing: theme.spacing.sm) {
-                ForEach(shows.prefix(4), id: \.id) { show in
+                if isScoped {
+                    Button {
+                        showAll = true
+                    } label: {
+                        Text("Show all favorites")
+                            .font(theme.laughTrackTokens.typography.metadata)
+                            .foregroundColor(theme.colors.primary)
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                ForEach(filtered, id: \.id) { show in
                     Button {
                         coordinator.open(.show(show.id))
                     } label: {
@@ -144,6 +169,12 @@ private struct FavoriteShowsSection: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier(LaughTrackViewTestID.homeFavoriteShowButton(show.id))
+                }
+
+                if isScoped, filtered.isEmpty {
+                    Text("Those shows aren't in your upcoming favorites right now.")
+                        .font(theme.laughTrackTokens.typography.metadata)
+                        .foregroundColor(theme.colors.textSecondary)
                 }
             }
         }

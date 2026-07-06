@@ -7,7 +7,7 @@ enum LaughTrackNotificationDeepLink {
         // the fallback for older builds that predate this key.
         if let route = userInfo["route"] as? String,
            route.trimmingCharacters(in: .whitespacesAndNewlines) == "favorites" {
-            return .library
+            return .library(showIDs(from: userInfo["showIds"]))
         }
         if let showID = integerValue(userInfo["showId"]) {
             return .showDetail(showID)
@@ -32,6 +32,14 @@ enum LaughTrackNotificationDeepLink {
             return nil
         }
         return .showDetail(showID)
+    }
+
+    /// Parse a comma-joined "555,777" show-id string (grouped-push context).
+    private static func showIDs(from raw: Any?) -> [Int] {
+        guard let string = raw as? String else { return [] }
+        return string
+            .split(separator: ",")
+            .compactMap { Int($0.trimmingCharacters(in: .whitespaces)) }
     }
 
     private static func integerValue(_ raw: Any?) -> Int? {

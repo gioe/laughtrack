@@ -126,6 +126,7 @@ class MainActivity : ComponentActivity() {
                 "url" to intent.getStringExtra("url"),
                 "showId" to intent.getStringExtra("showId"),
                 "route" to intent.getStringExtra("route"),
+                "showIds" to intent.getStringExtra("showIds"),
             )
         return LaughTrackDeepLink.routeFromPush(data)
     }

@@ -62,14 +62,14 @@ struct NotificationCenterView: View {
                                         ]
                                     )
                                     coordinator.push(.showDetail(showId))
-                                case .favorites:
+                                case .favorites(let showIDs):
                                     analytics?.track(
                                         NotificationsAnalyticsEvents.cardTapped,
                                         parameters: [
                                             NotificationsAnalyticsEvents.Param.showId: 0
                                         ]
                                     )
-                                    coordinator.push(.library)
+                                    coordinator.push(.library(showIDs))
                                 }
                             } label: {
                                 NotificationRow(item: item)

@@ -103,9 +103,9 @@ private fun NotificationList(
  *  (which lists the shows). Mirrors the grouped push's route key. */
 private fun NotificationItem.tapRoute(): AppRoute =
     if (route == "favorites") {
-        AppRoute.Favorites
+        AppRoute.Favorites(shows.map { it.showId })
     } else {
-        shows.firstOrNull()?.let { AppRoute.ShowDetail(it.showId) } ?: AppRoute.Favorites
+        shows.firstOrNull()?.let { AppRoute.ShowDetail(it.showId) } ?: AppRoute.Favorites()
     }
 
 /** Show id for the tap analytics event; 0 for a grouped (Favorites) tap. */

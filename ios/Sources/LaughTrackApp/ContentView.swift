@@ -339,12 +339,13 @@ struct ContentView: View {
                     shellState: shellState,
                     onInitialHomeLoadComplete: markInitialHomeLoaded
                 )
-            case .library:
+            case .library(let scopedShowIDs):
                 AppShellView(
                     apiClient: apiClient,
                     signedOutMessage: signedOutMessage,
                     favorites: favorites,
                     initialTab: .favorites,
+                    scopedFavoriteShowIDs: scopedShowIDs,
                     shellState: shellState,
                     onInitialHomeLoadComplete: markInitialHomeLoaded
                 )

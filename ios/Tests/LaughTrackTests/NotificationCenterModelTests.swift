@@ -198,7 +198,7 @@ struct NotificationCenterModelTests {
             return
         }
         #expect(items.count == 1)
-        #expect(items[0].tap == .favorites)
+        #expect(items[0].tap == .favorites([555, 777]))
         #expect(items[0].title == "2 comedians you follow have shows near you")
     }
 

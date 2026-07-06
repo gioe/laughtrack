@@ -34,9 +34,19 @@ struct NotificationDeepLinkTests {
         #expect(LaughTrackNotificationDeepLink.route(from: url) == .showDetail(2993368))
     }
 
-    @Test("payload route=favorites opens the favorites tab")
+    @Test("payload route=favorites opens the favorites tab (unscoped)")
     func payloadRouteFavoritesOpensLibrary() {
-        #expect(LaughTrackNotificationDeepLink.route(from: ["route": "favorites"]) == .library)
+        #expect(LaughTrackNotificationDeepLink.route(from: ["route": "favorites"]) == .library([]))
+    }
+
+    @Test("payload showIds scope the favorites tab")
+    func payloadShowIdsScopeFavorites() {
+        #expect(
+            LaughTrackNotificationDeepLink.route(from: [
+                "route": "favorites",
+                "showIds": "555,777",
+            ]) == .library([555, 777])
+        )
     }
 
     @Test("grouped push route wins over the showId fallback")
@@ -45,7 +55,7 @@ struct NotificationDeepLinkTests {
             LaughTrackNotificationDeepLink.route(from: [
                 "route": "favorites",
                 "showId": 2993368,
-            ]) == .library
+            ]) == .library([])
         )
     }
 

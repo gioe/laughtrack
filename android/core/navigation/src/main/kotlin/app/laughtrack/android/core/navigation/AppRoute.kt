@@ -17,8 +17,10 @@ sealed interface AppRoute {
     @Serializable
     data object Search : AppRoute
 
+    // showIds scope the Favorites "touring" section to a notification's shows;
+    // empty (the default) = the full Favorites tab.
     @Serializable
-    data object Favorites : AppRoute
+    data class Favorites(val showIds: List<Int> = emptyList()) : AppRoute
 
     @Serializable
     data object ComedianOnboarding : AppRoute

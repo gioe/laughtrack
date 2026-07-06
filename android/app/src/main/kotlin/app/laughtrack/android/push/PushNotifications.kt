@@ -47,6 +47,7 @@ object PushNotifications {
         url: String?,
         imageUrl: String? = null,
         route: String? = null,
+        showIds: String? = null,
     ) {
         ensureChannel(context)
         if (!hasPostPermission(context)) return
@@ -57,8 +58,10 @@ object PushNotifications {
                 showId?.let { putExtra("showId", it) }
                 url?.let { putExtra("url", it) }
                 // Grouped pushes set route so the tap opens the Favorites tab;
-                // MainActivity routes it ahead of the showId fallback.
+                // MainActivity routes it ahead of the showId fallback. showIds
+                // scope that tab to the push's shows.
                 route?.let { putExtra("route", it) }
+                showIds?.let { putExtra("showIds", it) }
             }
         // Distinct ids so unrelated pushes stack instead of replacing each other
         // under FLAG_UPDATE_CURRENT; comedian-arrival pushes always carry a showId.

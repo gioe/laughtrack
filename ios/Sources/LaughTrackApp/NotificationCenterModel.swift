@@ -119,7 +119,8 @@ struct NotificationCenterItem: Identifiable, Equatable {
     /// grouped entry opens the Favorites tab, which lists the entry's shows.
     enum Tap: Equatable {
         case show(Int)
-        case favorites
+        /// Grouped entry → Favorites tab, scoped to these show ids.
+        case favorites([Int])
     }
 
     let id: String
@@ -160,11 +161,11 @@ struct NotificationCenterItem: Identifiable, Equatable {
         // Grouped entries route to Favorites; single-show entries open the show.
         // showId is still the older-client fallback but here we prefer `route`.
         if item.route == "favorites" {
-            tap = .favorites
+            tap = .favorites(item.shows.map { $0.showId })
         } else if let firstShow = item.shows.first {
             tap = .show(firstShow.showId)
         } else {
-            tap = .favorites
+            tap = .favorites([])
         }
     }
 

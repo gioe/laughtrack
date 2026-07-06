@@ -371,7 +371,7 @@ struct ContentViewNavigationTests {
     func contentViewShowsLibraryShellRoute() async throws {
         let shellState = AppShellState()
 
-        shellState.selectTab(try #require(AppRoute.library.shellTab))
+        shellState.selectTab(try #require(AppRoute.library([]).shellTab))
 
         #expect(shellState.selectedTab == .favorites)
         #expect(shellState.selectedPrimitive == nil)
@@ -392,7 +392,7 @@ struct ContentViewNavigationTests {
     func libraryShellRouteHidesLocationHeaderButton() async throws {
         let shellState = AppShellState()
 
-        shellState.selectTab(try #require(AppRoute.library.shellTab))
+        shellState.selectTab(try #require(AppRoute.library([]).shellTab))
 
         #expect(shellState.selectedTab == .favorites)
         #expect(!shellState.showsLocationHeader)
