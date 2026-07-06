@@ -109,8 +109,7 @@ private fun NotificationItem.tapRoute(): AppRoute =
     }
 
 /** Show id for the tap analytics event; 0 for a grouped (Favorites) tap. */
-private fun NotificationItem.analyticsShowId(): Int =
-    if (route == "favorites") 0 else shows.firstOrNull()?.showId ?: 0
+private fun NotificationItem.analyticsShowId(): Int = if (route == "favorites") 0 else shows.firstOrNull()?.showId ?: 0
 
 @Composable
 private fun NotificationRow(

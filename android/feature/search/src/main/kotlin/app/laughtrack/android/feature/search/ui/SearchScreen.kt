@@ -158,10 +158,13 @@ fun SearchScreen(
                             pivot = state.pivot,
                             results = results.items,
                             total = results.total,
-                            isLoadingMore = results.isLoading,
-                            hasMore = results.hasMore,
-                            loadMoreError = results.error,
-                            onLoadMore = viewModel::loadMore,
+                            loadMore =
+                                LoadMoreState(
+                                    isLoading = results.isLoading,
+                                    hasMore = results.hasMore,
+                                    error = results.error,
+                                    onLoadMore = viewModel::loadMore,
+                                ),
                             onOpen = { route ->
                                 viewModel.logResultTapped(route)
                                 onOpenEntity(route)
@@ -627,7 +630,8 @@ internal fun dateRangeLabel(
     from: String?,
     to: String?,
 ): String {
-    fun pretty(iso: String): String = runCatching { java.time.LocalDate.parse(iso).format(PILL_DATE_FORMAT) }.getOrDefault(iso)
+    fun pretty(iso: String): String =
+        runCatching { java.time.LocalDate.parse(iso).format(PILL_DATE_FORMAT) }.getOrDefault(iso)
     return when {
         from != null && to != null && from == to -> pretty(from)
         from != null && to != null -> "${pretty(from)} - ${pretty(to)}"
@@ -652,14 +656,19 @@ private fun queryPrompt(pivot: SearchPivot): String =
         SearchPivot.PODCASTS -> "Search podcast titles"
     }
 
+/** Paging state + trigger for [resultsContent]'s load-more footer. */
+internal data class LoadMoreState(
+    val isLoading: Boolean,
+    val hasMore: Boolean,
+    val error: String?,
+    val onLoadMore: () -> Unit,
+)
+
 private fun LazyListScope.resultsContent(
     pivot: SearchPivot,
     results: List<SearchResult>,
     total: Int,
-    isLoadingMore: Boolean,
-    hasMore: Boolean,
-    loadMoreError: String?,
-    onLoadMore: () -> Unit,
+    loadMore: LoadMoreState,
     onOpen: (AppRoute) -> Unit,
 ) {
     item {
@@ -678,7 +687,7 @@ private fun LazyListScope.resultsContent(
         }
     }
     when {
-        loadMoreError != null ->
+        loadMore.error != null ->
             item {
                 Column(
                     Modifier.fillMaxWidth().padding(16.dp),
@@ -686,17 +695,17 @@ private fun LazyListScope.resultsContent(
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Text("Couldn't load more.", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    OutlinedButton(onClick = onLoadMore, enabled = !isLoadingMore) { Text("Retry") }
+                    OutlinedButton(onClick = loadMore.onLoadMore, enabled = !loadMore.isLoading) { Text("Retry") }
                 }
             }
-        hasMore ->
+        loadMore.hasMore ->
             item {
                 OutlinedButton(
-                    onClick = onLoadMore,
-                    enabled = !isLoadingMore,
+                    onClick = loadMore.onLoadMore,
+                    enabled = !loadMore.isLoading,
                     modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
                 ) {
-                    Text(if (isLoadingMore) "Loading..." else "Load more")
+                    Text(if (loadMore.isLoading) "Loading..." else "Load more")
                 }
             }
     }

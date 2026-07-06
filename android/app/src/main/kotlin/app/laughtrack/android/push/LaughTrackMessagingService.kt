@@ -30,13 +30,16 @@ class LaughTrackMessagingService : FirebaseMessagingService() {
         val body = message.notification?.body ?: data["body"].orEmpty()
         PushNotifications.show(
             context = this,
-            title = title,
-            body = body,
-            showId = data["showId"],
-            url = data["url"],
-            imageUrl = data["imageUrl"],
-            route = data["route"],
-            showIds = data["showIds"],
+            content =
+                PushNotifications.NotificationContent(
+                    title = title,
+                    body = body,
+                    showId = data["showId"],
+                    url = data["url"],
+                    imageUrl = data["imageUrl"],
+                    route = data["route"],
+                    showIds = data["showIds"],
+                ),
         )
     }
 }

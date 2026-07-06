@@ -103,6 +103,51 @@ private fun SignedInLibrary(
         }
     }
 
+    TouringFavoritesSection(snapshot = snapshot, scopedShowIds = scopedShowIds)
+
+    FavoriteSection(title = "Saved comedians") {
+        if (snapshot.comedians.isEmpty()) {
+            EmptyText("Favorite comedians to build your library.")
+        } else {
+            snapshot.comedians.forEach { comedian ->
+                FavoriteRow(
+                    title = comedian.name,
+                    subtitle = "${comedian.showCount} upcoming shows",
+                    isFavorite = snapshot.comedianValues[comedian.uuid] ?: true,
+                    onToggle = { onToggleComedian(comedian.uuid) },
+                )
+            }
+        }
+    }
+
+    FavoriteSection(title = "Saved clubs") {
+        if (snapshot.clubs.isEmpty()) {
+            EmptyText("Favorite clubs to keep their calendars close.")
+        } else {
+            snapshot.clubs.forEach { club ->
+                ClubRow(club, snapshot.clubValues[club.id] ?: true) { onToggleClub(club.id) }
+            }
+        }
+    }
+
+    FavoriteSection(title = "Saved podcasts") {
+        if (snapshot.podcasts.isEmpty()) {
+            EmptyText("Favorite podcasts to find new episodes faster.")
+        } else {
+            snapshot.podcasts.forEach { podcast ->
+                PodcastRow(podcast, snapshot.podcastValues[podcast.id] ?: true) {
+                    onTogglePodcast(podcast.id)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TouringFavoritesSection(
+    snapshot: FavoritesSnapshot,
+    scopedShowIds: List<Int>,
+) {
     // A notification tap arrives with showIds — scope the touring section to just
     // those shows until the user chooses "Show all favorites".
     var showAll by remember { mutableStateOf(false) }
@@ -138,43 +183,6 @@ private fun SignedInLibrary(
                     fontWeight = FontWeight.SemiBold,
                 )
                 shows.take(4).forEach { show -> ShowRow(show) }
-            }
-        }
-    }
-
-    FavoriteSection(title = "Saved comedians") {
-        if (snapshot.comedians.isEmpty()) {
-            EmptyText("Favorite comedians to build your library.")
-        } else {
-            snapshot.comedians.forEach { comedian ->
-                FavoriteRow(
-                    title = comedian.name,
-                    subtitle = "${comedian.showCount} upcoming shows",
-                    isFavorite = snapshot.comedianValues[comedian.uuid] ?: true,
-                    onToggle = { onToggleComedian(comedian.uuid) },
-                )
-            }
-        }
-    }
-
-    FavoriteSection(title = "Saved clubs") {
-        if (snapshot.clubs.isEmpty()) {
-            EmptyText("Favorite clubs to keep their calendars close.")
-        } else {
-            snapshot.clubs.forEach { club ->
-                ClubRow(club, snapshot.clubValues[club.id] ?: true) { onToggleClub(club.id) }
-            }
-        }
-    }
-
-    FavoriteSection(title = "Saved podcasts") {
-        if (snapshot.podcasts.isEmpty()) {
-            EmptyText("Favorite podcasts to find new episodes faster.")
-        } else {
-            snapshot.podcasts.forEach { podcast ->
-                PodcastRow(podcast, snapshot.podcastValues[podcast.id] ?: true) {
-                    onTogglePodcast(podcast.id)
-                }
             }
         }
     }

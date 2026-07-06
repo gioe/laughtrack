@@ -39,33 +39,44 @@ object PushNotifications {
             ?.createNotificationChannel(channel)
     }
 
+    /**
+     * Fields from an incoming FCM data message that [show] renders into a
+     * comedian-arrival notification. Grouped into one payload so [show] stays
+     * under detekt's parameter-count threshold.
+     */
+    data class NotificationContent(
+        val title: String,
+        val body: String,
+        val showId: String?,
+        val url: String?,
+        val imageUrl: String? = null,
+        val route: String? = null,
+        val showIds: String? = null,
+    )
+
     fun show(
         context: Context,
-        title: String,
-        body: String,
-        showId: String?,
-        url: String?,
-        imageUrl: String? = null,
-        route: String? = null,
-        showIds: String? = null,
+        content: NotificationContent,
     ) {
         ensureChannel(context)
         if (!hasPostPermission(context)) return
 
+        val title = content.title
+        val body = content.body
         val intent =
             Intent(context, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                showId?.let { putExtra("showId", it) }
-                url?.let { putExtra("url", it) }
+                content.showId?.let { putExtra("showId", it) }
+                content.url?.let { putExtra("url", it) }
                 // Grouped pushes set route so the tap opens the Favorites tab;
                 // MainActivity routes it ahead of the showId fallback. showIds
                 // scope that tab to the push's shows.
-                route?.let { putExtra("route", it) }
-                showIds?.let { putExtra("showIds", it) }
+                content.route?.let { putExtra("route", it) }
+                content.showIds?.let { putExtra("showIds", it) }
             }
         // Distinct ids so unrelated pushes stack instead of replacing each other
         // under FLAG_UPDATE_CURRENT; comedian-arrival pushes always carry a showId.
-        val notificationId = showId?.toIntOrNull() ?: (title + body).hashCode()
+        val notificationId = content.showId?.toIntOrNull() ?: (title + body).hashCode()
         val pendingIntent =
             PendingIntent.getActivity(
                 context,
@@ -86,7 +97,7 @@ object PushNotifications {
         // Rich push: show the comedian headshot as the large icon collapsed and a
         // big picture when expanded. Falls back to BigText when there's no image
         // or the download fails.
-        val headshot = imageUrl?.let(::loadBitmap)
+        val headshot = content.imageUrl?.let(::loadBitmap)
         if (headshot != null) {
             builder
                 .setLargeIcon(headshot)
@@ -110,11 +121,12 @@ object PushNotifications {
      */
     private fun loadBitmap(imageUrl: String): Bitmap? =
         runCatching {
-            val connection = (URL(imageUrl).openConnection() as HttpURLConnection).apply {
-                connectTimeout = 5_000
-                readTimeout = 5_000
-                doInput = true
-            }
+            val connection =
+                (URL(imageUrl).openConnection() as HttpURLConnection).apply {
+                    connectTimeout = 5_000
+                    readTimeout = 5_000
+                    doInput = true
+                }
             try {
                 connection.inputStream.use { BitmapFactory.decodeStream(it) }
             } finally {
