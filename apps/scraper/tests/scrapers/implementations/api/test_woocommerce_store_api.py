@@ -157,3 +157,80 @@ async def test_collect_scraping_targets_builds_products_url():
     assert len(targets) == 1
     assert "/wp-json/wc/store/v1/products" in targets[0]
     assert "per_page=100" in targets[0]
+
+
+# ---------------------------------------------------------------------------
+# Soul Joel's shape (TASK-3608): single "Tickets" category mixing comedy with
+# non-comedy events; no Show Dates/Times attributes — date+time live in the
+# description prose ("Friday August 7th at 7pm"), year inferred.
+# ---------------------------------------------------------------------------
+
+from datetime import datetime  # noqa: E402
+
+_NOW = datetime(2026, 7, 6)
+
+
+def _soul_joels_products() -> list:
+    return [
+        {
+            "id": 1,
+            "name": "Petty Court w/ Tyler Rothrock",
+            "permalink": "https://souljoels.com/shop/tickets/pettycourt/",
+            "prices": {"price": "2000", "currency_minor_unit": 2},
+            "categories": [{"id": 1, "name": "Tickets", "slug": "tickets"}],
+            "tags": [{"name": "Comedy Show", "slug": "comedy-show"}, {"name": "Stand-up", "slug": "stand-up"}],
+            "attributes": [{"name": "Ticket Type", "terms": [{"name": "General Admission"}]}],
+            "description": "<p>SoulJoel Presents: Petty Court. Friday August 7th at 7pm 50 SunnyBrook Road Pottstown, PA</p>",
+        },
+        {
+            "id": 2,
+            "name": "New Year Show",
+            "permalink": "https://souljoels.com/shop/tickets/nye/",
+            "prices": {"price": "3000", "currency_minor_unit": 2},
+            "categories": [{"id": 1, "name": "Tickets", "slug": "tickets"}],
+            "tags": [{"name": "comedy", "slug": "comedy"}],
+            "attributes": [],
+            "description": "<p>Ring it in! Thursday January 1st at 8pm at SoulJoel's</p>",
+        },
+        {
+            "id": 3,
+            "name": "Tim Kurkjian Baseball Podcast",
+            "permalink": "https://souljoels.com/shop/tickets/kurkjian/",
+            "prices": {"price": "2500", "currency_minor_unit": 2},
+            "categories": [{"id": 1, "name": "Tickets", "slug": "tickets"}],
+            "tags": [{"name": "Baseball", "slug": "baseball"}, {"name": "podcast", "slug": "podcast"}],
+            "attributes": [],
+            "description": "<p>A night with Tim. Saturday August 22nd at 7pm</p>",
+        },
+    ]
+
+
+def test_soul_joels_description_dates_and_tag_filter():
+    events = WoocommerceStoreApiExtractor.extract_events(
+        _soul_joels_products(), comedy_category="tickets", comedy_tags=["comedy", "stand"], now=_NOW
+    )
+    # Baseball podcast is filtered out by the comedy-tag narrowing; 2 comedy shows remain.
+    assert len(events) == 2
+    petty = next(e for e in events if "Petty Court" in e.name)
+    assert (petty.date_str, petty.time_str) == ("08/07/2026", "7pm")
+    # January is before July, so the year rolls forward to 2027.
+    nye = next(e for e in events if e.name == "New Year Show")
+    assert nye.date_str == "01/01/2027"
+
+
+def test_soul_joels_show_resolves_to_datetime():
+    events = WoocommerceStoreApiExtractor.extract_events(
+        _soul_joels_products(), comedy_category="tickets", comedy_tags=["comedy"], now=_NOW
+    )
+    petty = next(e for e in events if "Petty Court" in e.name)
+    show = petty.to_show(_club())
+    assert show is not None
+    assert show.date.hour == 19
+
+
+def test_tag_filter_absent_keeps_all_in_category():
+    # Without comedy_tags, every in-category product is kept (back-compat).
+    events = WoocommerceStoreApiExtractor.extract_events(
+        _soul_joels_products(), comedy_category="tickets", now=_NOW
+    )
+    assert len(events) == 3

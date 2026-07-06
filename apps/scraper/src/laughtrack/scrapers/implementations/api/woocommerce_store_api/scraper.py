@@ -23,7 +23,7 @@ from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 
 from .data import WoocommerceStoreApiPageData
-from .extractor import WoocommerceStoreApiExtractor
+from .extractor import _DEFAULT_COMEDY_CATEGORY, WoocommerceStoreApiExtractor
 from .transformer import WoocommerceStoreApiEventTransformer
 
 _PRODUCTS_PATH = "/wp-json/wc/store/v1/products"
@@ -60,13 +60,21 @@ class WoocommerceStoreApiScraper(BaseScraper):
     async def get_data(self, url: str) -> Optional[WoocommerceStoreApiPageData]:
         """Fetch the products feed (paginating) and extract comedy showtimes."""
         try:
+            meta = self.club.source_metadata or {}
+            comedy_category = str(meta.get("comedy_category") or _DEFAULT_COMEDY_CATEGORY)
+            comedy_tags = self._normalize_tag_filter(meta.get("comedy_tags"))
+
             events = []
             for page in range(1, _MAX_PAGES + 1):
                 page_url = self._with_page(url, page)
                 response = await self.fetch_json(page_url)
                 if not isinstance(response, list) or not response:
                     break
-                events.extend(WoocommerceStoreApiExtractor.extract_events(response))
+                events.extend(
+                    WoocommerceStoreApiExtractor.extract_events(
+                        response, comedy_category, comedy_tags
+                    )
+                )
                 if len(response) < _PER_PAGE:
                     break
             else:
@@ -85,6 +93,20 @@ class WoocommerceStoreApiScraper(BaseScraper):
         except Exception as e:
             Logger.error(f"{self._log_prefix}: error fetching products: {e}", self.logger_context)
             return None
+
+    @staticmethod
+    def _normalize_tag_filter(raw) -> Optional[List[str]]:
+        """Accept a list or comma-separated string of comedy tag substrings."""
+        if raw is None:
+            return None
+        if isinstance(raw, str):
+            items = [part.strip() for part in raw.split(",")]
+        elif isinstance(raw, (list, tuple)):
+            items = [str(part).strip() for part in raw]
+        else:
+            return None
+        items = [i for i in items if i]
+        return items or None
 
     @staticmethod
     def _with_page(url: str, page: int) -> str:
