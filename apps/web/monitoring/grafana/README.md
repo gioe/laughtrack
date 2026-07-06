@@ -171,9 +171,10 @@ each full `scraper` run:
   dominating the alert. Deliberately not one-row-per-club: Grafana's alert
   evaluator caps a query at 1000 series and the latest run spans ~1,559 clubs.
 
-The firing conditions are the exact CTEs the rules used to inline, so alert
-semantics are unchanged — an alert only changes state when a new run lands, which
-is precisely when the refresh runs. The original DDL lives in
+The original materialized-view definitions used the exact CTEs the rules used to
+inline, so alerts only changed state when a new run landed, which is precisely
+when the refresh runs. TASK-3584 intentionally narrows the consecutive-zero
+semantics, but the same run-refresh cadence still applies. The original DDL lives in
 `apps/scraper/migrations/20260703_scraper_health_summary_materialized_views.sql`;
 `20260704_scraper_health_club_labels_stable_series.sql` (TASK-2834) recreates the
 two club-level views with the `club_id` label and the one-extra-run series
