@@ -21,7 +21,7 @@ class LaughTrackDeepLinkTest {
 
     @Test
     fun rejects_wrong_scheme_missing_id_unknown_entity_and_garbage() {
-        assertNull(LaughTrackDeepLink.route("https://laugh-track.com/show/1"))
+        assertNull(LaughTrackDeepLink.route("mailto:hi@laugh-track.com"))
         assertNull(LaughTrackDeepLink.route("laughtrack://show"))
         assertNull(LaughTrackDeepLink.route("laughtrack://show/not-a-number"))
         assertNull(LaughTrackDeepLink.route("laughtrack://widget/1"))
@@ -31,11 +31,26 @@ class LaughTrackDeepLinkTest {
     }
 
     @Test
-    fun universal_link_form_is_intentionally_not_parsed() {
-        // Only the custom laughtrack:// scheme is treated as a deep link; web
-        // universal links (https://laugh-track.com/...) are handled elsewhere.
-        assertNull(LaughTrackDeepLink.route("https://laugh-track.com/show/1"))
-        assertNull(LaughTrackDeepLink.route("http://laugh-track.com/comedian/2"))
+    fun parses_https_app_links_on_the_web_host() {
+        // /show/[id] is numeric on web and resolves end-to-end.
+        assertEquals(AppRoute.ShowDetail(1), LaughTrackDeepLink.route("https://laugh-track.com/show/1"))
+        assertEquals(AppRoute.ShowDetail(2), LaughTrackDeepLink.route("https://www.laugh-track.com/show/2"))
+        assertEquals(AppRoute.ShowDetail(3), LaughTrackDeepLink.route("http://laugh-track.com/shows/3"))
+        // Any entity with a numeric path segment routes symmetrically with the scheme.
+        assertEquals(AppRoute.ComedianDetail(9), LaughTrackDeepLink.route("https://www.laugh-track.com/comedian/9"))
+    }
+
+    @Test
+    fun rejects_http_links_off_host_or_with_non_numeric_slug() {
+        // Non-LaughTrack hosts are never App Links.
+        assertNull(LaughTrackDeepLink.route("https://evil.com/show/1"))
+        // Web comedian/club/podcast pages use name/slug URLs, which cannot map to
+        // an id-based route, so they stay browser-first (route returns null).
+        assertNull(LaughTrackDeepLink.route("https://www.laugh-track.com/comedian/dave-chappelle"))
+        assertNull(LaughTrackDeepLink.route("https://www.laugh-track.com/podcast/some-slug"))
+        // A bare host or unknown entity is not a detail link.
+        assertNull(LaughTrackDeepLink.route("https://laugh-track.com/"))
+        assertNull(LaughTrackDeepLink.route("https://laugh-track.com/widget/1"))
     }
 
     @Test
