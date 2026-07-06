@@ -65,6 +65,39 @@ cd apps/scraper && make scrape-club CLUB='The PIT'
 cd apps/scraper && make scrape-club CLUB='Upper East Side Comedy Club'
 ```
 
+## Post-Migration Scrape Verification
+
+The TASK-3563 migration was applied to Neon on 2026-07-06. After the rows
+existed in the database, the required `make scrape-club` workflow was run for
+each onboarded venue from the task worktree on 2026-07-06. Full command output
+was captured locally in `/private/tmp/task3563-scrape-results.log`.
+
+| Club | `make scrape-club` result |
+| --- | --- |
+| The N Crowd | Exit 0; scraped 10 shows |
+| Laughing Stock Comedy Club | Exit 0; scraped 3 shows |
+| Brooklyn Comedy Collective | Exit 0; scraped 103 shows |
+| Meadowlands Comedy Club | Exit 0; scraped 2 shows |
+| High Line Comedy Club | Exit 0; scraped 16 shows |
+| BATSU! | Exit 0; scraped 236 shows |
+| Give A Hoot Comedy Club NJ | Exit 0; scraped 9 shows |
+| Colonial Comedy | Exit 0; scraped 2 shows |
+| Captain Kirk's Comedy Lounge | Exit 0; scraped 5 shows |
+| Sheba's Speakeasy Comedy Club | Exit 0; scraped 43 shows |
+| East Village Stand Up Comedy | Exit 0; scraped 22 shows |
+| The Comedy Works | Exit 0; scraped 1 show |
+| Comedy Explosion | Exit 0; scraped 0 shows. The Wix access-token endpoint returned HTTP 404, so this should be treated as a live source regression despite the command exit status. |
+| The Lab | Exit 0; scraped 4 shows |
+| Upright Citizens Brigade Theatre New York | Exit 0; scraped 61 shows |
+| Stones Comedy Club | Exit 0; scraped 50 shows |
+| Sesh Comedy | Exit 0; scraped 41 shows |
+| The Second City New York | Exit 0; scraped 3 shows |
+| Comedy Cabaret Comedy Club | Exit 0; scraped 5 shows |
+| Rhino Comedy | Exit 0; scraped 19 shows |
+| Flop House Comedy Club | Exit 0; scraped 56 shows |
+| The PIT | Exit 0; scraped 36 shows |
+| Upper East Side Comedy Club | Exit 0; scraped 18 shows |
+
 ## Already Covered / Duplicate-Like
 
 | Candidate | Evidence |
