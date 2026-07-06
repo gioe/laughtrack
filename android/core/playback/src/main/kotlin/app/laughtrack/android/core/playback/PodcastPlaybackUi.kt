@@ -1,7 +1,9 @@
 package app.laughtrack.android.core.playback
 
+import android.os.SystemClock
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,6 +14,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
@@ -20,6 +24,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -74,9 +81,12 @@ fun PodcastMiniPlayer(
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
+                SleepTimerMenu(state = state, playbackController = playbackController)
+                TextButton(onClick = { playbackController.skipBack() }) { Text("-15s") }
                 TextButton(onClick = { playbackController.togglePlayPause() }) {
                     Text(if (state.isPlaying) "Pause" else "Play")
                 }
+                TextButton(onClick = { playbackController.skipForward() }) { Text("+30s") }
             }
         }
     }
@@ -146,9 +156,18 @@ fun NowPlayingScreen(
             }
         }
 
-        TextButton(onClick = { playbackController.togglePlayPause() }) {
-            Text(if (state.isPlaying) "Pause" else "Play")
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            TextButton(onClick = { playbackController.skipBack() }) { Text("-15s") }
+            TextButton(onClick = { playbackController.togglePlayPause() }) {
+                Text(if (state.isPlaying) "Pause" else "Play")
+            }
+            TextButton(onClick = { playbackController.skipForward() }) { Text("+30s") }
         }
+
+        SleepTimerMenu(state = state, playbackController = playbackController)
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             listOf(0.8f, 1f, 1.25f, 1.5f, 2f).forEach { rate ->
@@ -160,6 +179,56 @@ fun NowPlayingScreen(
             }
         }
     }
+}
+
+/** Sleep-timer trigger: shows a live countdown when armed, opens an interval menu. */
+@Composable
+private fun SleepTimerMenu(
+    state: PodcastPlaybackState,
+    playbackController: PodcastPlaybackController,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Box {
+        TextButton(onClick = { expanded = true }) {
+            Text(sleepTimerLabel(state.sleepTimerEndsAtElapsedMs, SystemClock.elapsedRealtime()))
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            SLEEP_INTERVALS.forEach { (label, durationMs) ->
+                DropdownMenuItem(
+                    text = { Text(label) },
+                    onClick = {
+                        expanded = false
+                        playbackController.setSleepTimer(durationMs)
+                    },
+                )
+            }
+        }
+    }
+}
+
+/** Sleep-timer interval options, mirroring iOS NowPlayingView.sleepIntervals. */
+private val SLEEP_INTERVALS: List<Pair<String, Long?>> =
+    listOf(
+        "Off" to null,
+        "5 min" to 5 * 60_000L,
+        "10 min" to 10 * 60_000L,
+        "15 min" to 15 * 60_000L,
+        "30 min" to 30 * 60_000L,
+        "45 min" to 45 * 60_000L,
+        "1 hour" to 60 * 60_000L,
+    )
+
+/**
+ * Label for the sleep-timer button: "Sleep" when disarmed, or "Sleep · m:ss" with
+ * the remaining time when a timer is running. Pure so the countdown is testable.
+ */
+internal fun sleepTimerLabel(
+    endsAtElapsedMs: Long?,
+    nowElapsedMs: Long,
+): String {
+    if (endsAtElapsedMs == null) return "Sleep"
+    val remainingMs = (endsAtElapsedMs - nowElapsedMs).coerceAtLeast(0L)
+    return "Sleep · ${formatTime(remainingMs)}"
 }
 
 private fun PodcastPlaybackState.progressFraction(): Float {
