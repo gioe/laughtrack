@@ -359,6 +359,16 @@ test-all:
 	@echo "🧪 Running all discovered tests under tests/ ..."
 	$(activate_venv) $(RUN_ENV) $(PYTHON) -m pytest tests/ -v || true
 
+# Frozen-clock fixture-rot sweep (convention 309, TASK-3593): run the full
+# suite with the session clock frozen at two future dates so fixture dates
+# that rot with the wall clock fail here instead of on a future nightly.
+# Failures propagate (no `|| true`) — a red run means a rot-prone fixture.
+test-frozen:
+	@echo "🕰️  Frozen-clock sweep at now+240d..."
+	$(activate_venv) $(RUN_ENV) FAKE_NOW=+240d $(PYTHON) -m pytest tests/ -q
+	@echo "🕰️  Frozen-clock sweep at now+730d..."
+	$(activate_venv) $(RUN_ENV) FAKE_NOW=+730d $(PYTHON) -m pytest tests/ -q
+
 # =============================================================================
 # CODE QUALITY & LINTING
 # =============================================================================

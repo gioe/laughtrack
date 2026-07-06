@@ -1,0 +1,67 @@
+name: Scraper Frozen-Clock Sweep
+
+# Fixture-rot early warning (convention 309, TASK-3593): run the full scraper
+# suite with the session clock frozen at two future dates via the FAKE_NOW
+# hook in apps/scraper/tests/conftest.py. Fixture dates that rot with the wall
+# clock (past-drop filters, wall-clock year inference, DST-window assumptions)
+# fail here months before they would break the commit test gate.
+#
+# pytest is invoked directly, not via make — the scraper Makefile's venv gate
+# exits 1 in CI (no .venv on runners).
+
+on:
+  schedule:
+    # Monthly, 3rd of the month 09:17 UTC (off the top of the hour to dodge
+    # GHA's scheduled-load spikes).
+    - cron: "17 9 3 * *"
+  workflow_dispatch:
+
+jobs:
+  frozen-clock:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/scraper
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # Roughly now+8 months and now+2 years, computed at runtime so the
+        # sweep itself never rots.
+        fake-now: ["+240d", "+730d"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up scraper Python environment
+        uses: ./.github/actions/scraper-setup
+        with:
+          python-version: "3.13"
+          install-dev: "true"
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tesseract-ocr tesseract-ocr-eng
+
+      - name: Run full suite with frozen clock (${{ matrix.fake-now }})
+        env:
+          PLAYWRIGHT_FALLBACK: "0"
+          FAKE_NOW: ${{ matrix.fake-now }}
+        run: |
+          python -m pytest tests/ -q --tb=short --disable-warnings --no-cov
+
+      - name: Notify Discord on failure
+        if: ${{ failure() && github.ref == 'refs/heads/main' }}
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          if [ -z "$DISCORD_WEBHOOK_URL" ]; then
+            echo "DISCORD_WEBHOOK_URL not set; skipping Discord failure alert"
+            exit 0
+          fi
+          MSG="[scraper-frozen-clock] Fixture-rot sweep FAILED at FAKE_NOW=${{ matrix.fake-now }} — a test fixture will break on a future date. View run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          curl -fsS --retry 3 --max-time 10 -X POST "$DISCORD_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -nc --arg c "$MSG" '{content: $c}')"
