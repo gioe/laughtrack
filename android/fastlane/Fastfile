@@ -3,10 +3,16 @@ default_platform(:android)
 PACKAGE_NAME = "app.laughtrack.android"
 # Version source of truth, mirroring how the iOS Fastfile treats project.yml.
 # gradle.properties carries VERSION_NAME (marketing) + VERSION_CODE (Play build
-# number); app/build.gradle.kts reads them (overridable with -PVERSION_*). The
-# Fastfile runs from android/fastlane/, so gradle.properties is one level up.
+# number); app/build.gradle.kts reads them (overridable with -PVERSION_*).
+#
+# Path bases differ by execution context (fastlane runner behavior, confirmed
+# empirically on the first android-release.yml run): plain Ruby in this file
+# executes with CWD = android/fastlane/, so file reads need the "../" prefix —
+# but ACTIONS (gradle, upload_to_play_store) execute with CWD = android/ (the
+# parent of the fastlane dir), so paths passed to actions must be relative to
+# android/ with no "../".
 GRADLE_PROPERTIES_PATH = "../gradle.properties"
-AAB_PATH = "../app/build/outputs/bundle/release/app-release.aab"
+AAB_PATH = "app/build/outputs/bundle/release/app-release.aab"
 
 # Read a `KEY=value` line from gradle.properties. Raises if absent so a renamed
 # or missing key fails loudly instead of silently shipping the wrong version.
@@ -65,7 +71,7 @@ end
 platform :android do
   desc "Run unit tests + static analysis (parity with the iOS `test` lane)"
   lane :test do
-    gradle(task: "testDebugUnitTest ktlintCheck detekt", project_dir: "..")
+    gradle(task: "testDebugUnitTest ktlintCheck detekt", project_dir: ".")
   end
 
   desc "Bump VERSION_CODE (Play build number) and optionally VERSION_NAME. " \
@@ -96,7 +102,7 @@ platform :android do
     gradle(
       task: "bundle",
       build_type: "Release",
-      project_dir: "..",
+      project_dir: ".",
       properties: {
         "VERSION_CODE" => read_gradle_property("VERSION_CODE"),
         "VERSION_NAME" => read_gradle_property("VERSION_NAME"),
