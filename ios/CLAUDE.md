@@ -775,7 +775,7 @@ attachment lives in `AppBootstrap.configureAnalytics`:
   `com.laughtrack.analytics` via `os.Logger`. Visible in Console.app and Xcode
   during development without touching production analytics.
 
-### User-ID and cohort-property lifecycle wiring (TASK-2605, TASK-2613, TASK-2615)
+### User-ID and cohort-property lifecycle wiring (TASK-2605, TASK-2613, TASK-2615, TASK-2618)
 
 `AppBootstrap.attachAnalyticsLifecycle` subscribes to `AuthManager`'s
 `currentUser` published projection at construction and translates auth-state
@@ -785,19 +785,16 @@ matches the app's, not a single view's.
 
 Transitions:
 
-- **nil → user**: `analytics.setUserID(AppBootstrap.analyticsUserID(for: user))`.
-  The helper prefers `user.userId` (the opaque server-issued `User.id`
-  surfaced by `/v1/me` per TASK-2612), and falls back to
-  `stableAnalyticsUserID(forEmail:)` (SHA-256 hex digest of
-  `email.lowercased()`, prefixed `sha256:`) when `userId` is nil. The
-  fallback exists for the rollout window — older `/v1/me` responses
-  predating TASK-2612 omit the field. Once every deployed iOS client has
-  observed at least one `userId`-carrying response, the email-hash branch
-  can be retired. The same edge ALSO dispatches the cohort-filter user
-  properties `comedian_onboarding_completed` and `has_zip` (both
-  stringified `"true"`/`"false"` per Firebase's user-property contract), so
-  GA4 audiences can segment on user state without us shipping the
-  underlying field values.
+- **nil → user**: `analytics.setUserID(user.userId)`. `userId` is the opaque
+  server-issued `User.id` surfaced by `/v1/me` (TASK-2612); it is required on
+  the contract and always passed verbatim — `AuthenticatedUser.userId` is
+  non-optional and there is no derived-identifier fallback (the
+  rollout-window SHA-256 email-hash branch was retired in TASK-2618). The
+  same edge ALSO dispatches the cohort-filter user properties
+  `comedian_onboarding_completed` and `has_zip` (both stringified
+  `"true"`/`"false"` per Firebase's user-property contract), so GA4
+  audiences can segment on user state without us shipping the underlying
+  field values.
 - **user → nil**: `analytics.reset()` — clears any persisted Firebase user
   properties (including the cohort-filter ones above).
 - **user → user' (same identity, in-place update)**: `setUserID` stays
@@ -814,10 +811,9 @@ Transitions:
 **Never pass raw PII to `analytics.setUserID`.** Google's documented GA4
 policy prohibits transmitting names, email addresses, or phone numbers as
 the `user_id`, and `FirebaseAnalyticsProvider.setUserID` forwards directly
-to `Analytics.setUserID`. New sign-in surfaces must route through
-`AppBootstrap.analyticsUserID(for:)` so they pick up the server `userId`
-when present and the SHA-256 email-hash fallback otherwise — never ship
-the raw email.
+to `Analytics.setUserID`. New sign-in surfaces must pass the server-issued
+`user.userId` verbatim — never ship the raw email or any identifier
+derived from it.
 
 ### Verifying a fresh plist drop on a simulator
 
