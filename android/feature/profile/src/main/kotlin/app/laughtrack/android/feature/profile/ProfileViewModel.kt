@@ -68,6 +68,8 @@ class ProfileViewModel
 
         fun buildAppleSignInUrl(): String = repository.buildSignInUrl(ProfileAuthProvider.APPLE)
 
+        fun buildEmailSignInUrl(): String = repository.buildSignInUrl(ProfileAuthProvider.EMAIL)
+
         fun refresh() {
             viewModelScope.launch {
                 mutableState.update { it.copy(isLoading = true, message = null) }

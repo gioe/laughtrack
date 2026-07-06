@@ -118,6 +118,11 @@ fun ProfileScreen(viewModel: ProfileViewModel = hiltViewModel()) {
                     .build()
                     .launchUrl(context, Uri.parse(viewModel.buildAppleSignInUrl()))
             },
+            onEmailSignIn = {
+                CustomTabsIntent.Builder()
+                    .build()
+                    .launchUrl(context, Uri.parse(viewModel.buildEmailSignInUrl()))
+            },
             onSignOut = viewModel::signOut,
             onDeleteAccount = viewModel::requestDeleteAccount,
         )
@@ -152,6 +157,7 @@ private fun AccountCard(
     isMutating: Boolean,
     onGoogleSignIn: () -> Unit,
     onAppleSignIn: () -> Unit,
+    onEmailSignIn: () -> Unit,
     onSignOut: () -> Unit,
     onDeleteAccount: () -> Unit,
 ) {
@@ -204,6 +210,9 @@ private fun AccountCard(
                 }
                 OutlinedButton(onClick = onAppleSignIn, modifier = Modifier.fillMaxWidth()) {
                     Text("Continue with Apple")
+                }
+                OutlinedButton(onClick = onEmailSignIn, modifier = Modifier.fillMaxWidth()) {
+                    Text("Email me a sign-in link")
                 }
             }
         }
