@@ -1,0 +1,28 @@
+# fastlane screengrab configuration — the Android counterpart to the iOS Snapfile.
+# Captures Google Play listing screenshots from the AppStoreScreenshotTest
+# instrumented test (added under TASK-3616) and lands them where `supply` expects
+# them. Driven by the fastlane `screenshots` lane (wired in TASK-3617); needs a
+# booted emulator/device, just as the iOS snapshot lane needs a simulator.
+
+# App + instrumentation package ids. The debug build type carries the `.debug`
+# applicationIdSuffix (see app/build.gradle.kts), and the instrumentation APK id
+# is that package plus `.test`.
+app_package_name('app.laughtrack.android.debug')
+tests_package_name('app.laughtrack.android.debug.test')
+
+# Custom Hilt-swapping runner (see app/build.gradle.kts `testInstrumentationRunner`)
+# so the screenshot test renders Hilt-backed destinations with real data.
+test_instrumentation_runner('app.laughtrack.android.HiltTestRunner')
+
+# Only drive the screenshot test, not the whole instrumented suite.
+use_tests_in_classes(['app.laughtrack.android.AppStoreScreenshotTest'])
+
+# en-US only for now, matching the iOS set (ios/fastlane/screenshots/en-US).
+locales(['en-US'])
+
+# Wipe prior captures so a re-run never mixes stale frames into the upload set.
+clear_previous_screenshots(true)
+
+# Land captures under fastlane/metadata/android/<locale>/images/... so `supply`
+# uploads them directly from the same tree it reads listing metadata from.
+output_directory('fastlane/metadata/android')
