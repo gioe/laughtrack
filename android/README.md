@@ -230,6 +230,45 @@ bundle exec fastlane production rollout:0.1  # promote the current build to prod
 bundle exec fastlane test                   # unit tests + ktlint + detekt (parity with iOS `test`)
 ```
 
+**Store-listing screenshots.** The nine Play listing screenshots are generated the
+same way iOS generates its App Store set — an instrumented UI test captures them and
+`supply` uploads them, rather than managing them by hand in the Play Console:
+
+```sh
+bundle exec fastlane screenshots            # build APKs + drive AppStoreScreenshotTest via screengrab
+bundle exec fastlane upload_screenshots     # supply pushes the captured images (no binary)
+bundle exec fastlane screenshots_and_upload # both in one step (mirrors the iOS lane)
+```
+
+- **Capture** requires a **booted emulator/AVD** (the Android analogue of the iOS
+  `screenshots` lane needing a running simulator). `capture_android_screenshots`
+  (fastlane screengrab, configured by `fastlane/Screengrabfile`) drives
+  `AppStoreScreenshotTest` (`app/src/androidTest/`), which walks the real `AppShell`
+  through the nine screens (Near Me → Search {Shows,Comedians,Clubs,Podcasts} →
+  Club/Show/Comedian/Podcast detail) by Compose semantics.
+- **Determinism.** The Near Me rail is pinned to Hollywood (90028) by a Hilt
+  `@TestInstallIn` fake `HomeLocationResolver` (`FakeHomeLocationModule`, from the
+  isolated `HomeLocationModule`) that returns `90028` unconditionally; the test
+  pre-grants location and taps *Use location* to route through it, so captures never
+  leak the runner's geo-IP. Result data comes from the production `/api/v1` backend,
+  so the exact shows vary run to run.
+- **Output** lands under `fastlane/metadata/android/<locale>/images/phoneScreenshots/`,
+  which is exactly where `supply` reads listing images from — so `upload_screenshots`
+  needs no path wiring. `internal` / `production` still skip images to keep binary
+  uploads fast.
+- **Inspecting captures locally.** `./gradlew connectedDebugAndroidTest` uninstalls
+  the app afterward, wiping screengrab output. To keep the PNGs, run the instrumentation
+  directly (no uninstall) and pull them, after disabling animations:
+  ```sh
+  adb shell settings put global window_animation_scale 0    # + transition_/animator_ variants
+  adb shell am instrument -w -e class app.laughtrack.android.AppStoreScreenshotTest \
+    app.laughtrack.android.debug.test/app.laughtrack.android.HiltTestRunner
+  adb exec-out run-as app.laughtrack.android.debug \
+    cat /data/user/0/app.laughtrack.android.debug/app_screengrab/en-US/images/screenshots/01_NearMe.png > 01_NearMe.png
+  ```
+  See `tusk conventions search "HiltTestActivity screengrab"` for the full set of
+  Compose-instrumented-test gotchas.
+
 **Signing.** The release build type is signed with the Play **upload key**. Locally,
 provide either an `app/keystore.properties` file (`storeFile`, `storePassword`,
 `keyAlias`, `keyPassword`) or the `ANDROID_KEYSTORE_PATH` / `ANDROID_KEYSTORE_PASSWORD`
@@ -275,3 +314,8 @@ contract.
 Per the repo convention: any `/api/v1` change must regenerate **both** the iOS and
 Android generated clients in the same PR (see convention #220). The OpenAPI spec
 in `ios/Sources/LaughTrackAPIClient/openapi.json` is the single source of truth.
+
+Play **store-listing screenshots** are also at parity with iOS: both clients generate
+their listing screenshots from an instrumented UI test and upload them via fastlane
+(`screenshots` / `upload_screenshots` here, `snapshot` / `deliver` on iOS) rather than
+managing them by hand in the store console — see **Store-listing screenshots** above.
