@@ -33,6 +33,7 @@ androidxJunit = "1.2.1"
 espresso = "3.6.1"
 coroutines = "1.9.0"
 coroutinesTest = "1.9.0"
+screengrab = "2.1.1"
 
 [libraries]
 # AndroidX core / lifecycle / activity
@@ -98,6 +99,9 @@ junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxJunit" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutinesTest" }
+# fastlane screengrab — captures Play Store listing screenshots from an
+# instrumented test (Android counterpart to iOS fastlane snapshot).
+fastlane-screengrab = { group = "tools.fastlane", name = "screengrab", version.ref = "screengrab" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
