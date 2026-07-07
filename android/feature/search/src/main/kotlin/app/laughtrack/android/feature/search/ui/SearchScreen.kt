@@ -772,8 +772,10 @@ private fun ShowResultBody(
     result: SearchResult,
     modifier: Modifier = Modifier,
 ) {
+    // Body paper comes from the enclosing ShowResultRow Surface (color = TicketPaper);
+    // no separate background needed here.
     Box(
-        modifier = modifier.background(LaughTrackColors.TicketPaper),
+        modifier = modifier,
         contentAlignment = Alignment.CenterStart,
     ) {
         Row(
