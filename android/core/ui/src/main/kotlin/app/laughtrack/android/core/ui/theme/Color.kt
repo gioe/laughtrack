@@ -24,4 +24,18 @@ object LaughTrackColors {
     val ForegroundMuted = Color(0xFFB3B3B3)
 
     val BorderSubtle = Color(0x1FFFFFFF) // faint white hairline over canvas/surface
+
+    // Warm cream "ticket" card tokens, mirrored from the iOS ShowRow .compactTicket
+    // presentation (ios/Sources/LaughTrackApp/Components/ShowRow.swift). The result/
+    // calendar cards render as a warm paper body + darker perforated stub with dark
+    // ink text, matching the App Store / Play Store ticket screenshots. Keep in sync
+    // with iOS: TicketPaper = ticketPaper, TicketStub = ticketStubBackground,
+    // TicketInk = ticketInk, TicketInkMuted = ticketInkMuted, TicketBorder =
+    // ticketBorder@78%, TicketAccent = ticketAccent.
+    val TicketPaper = Color(0xFFEDDEBD) // rgb(0.93, 0.87, 0.74) — card body
+    val TicketStub = Color(0xFFDBC7A1) // rgb(0.86, 0.78, 0.63) — perforated date stub
+    val TicketInk = Color(0xFF261A0D) // rgb(0.15, 0.10, 0.05) — primary text
+    val TicketInkMuted = Color(0xFF735938) // rgb(0.45, 0.35, 0.22) — secondary text
+    val TicketBorder = Color(0xC794784F) // rgb(0.58, 0.47, 0.31) @ 78% — hairline/perforation
+    val TicketAccent = Color(0xFFBD4D21) // rgb(0.74, 0.30, 0.13) — weekday/price accent
 }
