@@ -56,6 +56,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -251,9 +252,11 @@ private fun ComedianPolaroid(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
+        // Portrait + caption are decorative: the name is announced once via the
+        // headline below (mirrors iOS marking the polaroid caption accessibilityHidden).
         RemoteImage(
             url = imageUrl,
-            contentDescription = name,
+            contentDescription = null,
             modifier =
                 Modifier
                     .size(200.dp)
@@ -276,7 +279,8 @@ private fun ComedianPolaroid(
                 Modifier
                     .width(200.dp)
                     .background(Color.White.copy(alpha = 0.30f))
-                    .padding(vertical = 2.dp),
+                    .padding(vertical = 2.dp)
+                    .clearAndSetSemantics {},
         )
     }
 }
