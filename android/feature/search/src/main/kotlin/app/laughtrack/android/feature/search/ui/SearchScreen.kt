@@ -59,6 +59,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -238,7 +239,11 @@ private fun PrimitiveChip(
     val shape = RoundedCornerShape(999.dp)
     Surface(
         shape = shape,
-        color = if (selected) LaughTrackColors.AccentStrong else LaughTrackColors.Canvas.copy(alpha = 0.1f),
+        // Unselected pills are dark-filled (mirroring the iOS primitive-filter row's
+        // Color.black.opacity(0.98) fill in AppShellView) rather than the old ghost
+        // fill; the selected pill stays solid orange. Selection reads off the fill +
+        // text color, matching the iOS/Android divergence noted in the task.
+        color = if (selected) LaughTrackColors.AccentStrong else Color.Black.copy(alpha = 0.98f),
         modifier =
             Modifier
                 .height(34.dp)
