@@ -586,7 +586,7 @@ curl -s "https://api.vercel.com/v1/security/firewall/config?projectId=prj_IcBh4q
 ```
 
 - **Firewall enabled**, config version 1 (first and only publish: 2026-07-06).
-- **Custom rules — exactly one:** `Push notifications` (`rule_push_notifications_TiEo1X`): action **bypass** for path prefix `/.well-known/`. Added during TASK-3601 so Google's Digital Asset Links verifier (a non-browser client that follows no redirects) can fetch `assetlinks.json` for Android App Links. **Keep this rule.**
+- **Custom rules — exactly one:** `App Links well-known bypass` (`rule_push_notifications_TiEo1X`): action **bypass** for path prefix `/.well-known/`. Added during TASK-3601 so Google's Digital Asset Links verifier (a non-browser client that follows no redirects) can fetch `assetlinks.json` for Android App Links. **Keep this rule.**
 - **OWASP CRS** categories (generic, RCE, XSS, SQLi): active but **log-only** — they never block or challenge.
 - **Managed rulesets all inactive:** `bot_filter`, `ai_bots`, `vercel_ruleset`, `owasp`. BotID off. Attack Challenge Mode off.
 
