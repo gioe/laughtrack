@@ -4612,6 +4612,46 @@ scraper + its own `venue_id`.
 
 ---
 
+### HoldMyTicket (`holdmyticket`)
+
+`scraper_key = holdmyticket`, `platform = custom` (HoldMyTicket has no
+dedicated `ScrapingPlatform` enum value). Generic across the platform: venues
+run branded whitelabel sites at `<venue>.holdmyticket.com` (the "hmt-front"
+riot.js SPA — a plain curl of the homepage returns only the ~10KB shell).
+
+**Datasource (TASK-3610):** the SPA hydrates from a public, unauthenticated
+JSON API keyed by the whitelabel host:
+
+- `https://holdmyticket.com/api/public/events/nearby/api_key/anon/page/{n}/whitelabel/{host}`
+  — paginated feed (`{"events": [...], "status": "ok"}`, 25/page, empty page
+  terminates). Despite the "nearby" name it is venue-scoped by the
+  `whitelabel` param. Each entry is the **head of a repeating series**
+  (Fri/Sat runs) with a `repeating_future_events` count, venue fields,
+  `cancel` (MySQL zero-date sentinel when not cancelled) and `postponed`
+  flags.
+- `https://holdmyticket.com/api/public/events/repeating/id/{id}/whitelabel/{host}`
+  — expands a series into individual showtimes. The expansion includes the
+  head itself **and sibling heads that may also appear in the feed**, so the
+  scraper dedups showtimes by event id (feed heads win — they carry the
+  cancel/postponed flags the bare expansion entries lack).
+
+`start`/`end` are venue **wall-clock** strings (`2026-07-10 19:00:00`),
+localized with the club timezone. Each showtime's `ticket_url`
+(`https://tickets.holdmyticket.com/tickets/{id}`) is the access record; the
+feed carries no prices (`ticket_price_display` empty for this venue).
+
+**Config:** `source_url = https://<venue>.holdmyticket.com/` (both API
+targets are derived from its host). Optional `scraping_sources.metadata`:
+`{"holdmyticket_venue_id": "8819"}` filters feed entries to one `venue_id`
+for shared/multi-venue whitelabels — unnecessary for single-venue sites.
+
+Onboarded: **Quezada's Comedy Club & Cantina** (Santa Ana Star Casino, Santa
+Ana Pueblo NM; single-venue whitelabel, no metadata needed — smoke test
+returned 85 future shows / 24 headliners). Note `quezadascomedyclub.com` is a
+parked lander; the whitelabel site is the club's real web presence.
+
+---
+
 ## Implementation Patterns
 
 ### Playwright Network Inspection for JS-Heavy Sites
