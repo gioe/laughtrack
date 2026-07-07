@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -31,11 +30,16 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -43,13 +47,21 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.laughtrack.android.core.data.UiState
@@ -106,6 +118,7 @@ fun ComedianDetailScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ComedianDetailBody(
     ui: ComedianDetailUi,
@@ -116,120 +129,155 @@ private fun ComedianDetailBody(
     onOpenEntity: (AppRoute) -> Unit,
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
-    Column(
-        Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(bottom = 28.dp),
-    ) {
-        ComedianHero(
-            ui = ui,
-            onBack = onBack,
-            isFavorite = isFavorite,
-            isFavoritePending = isFavoritePending,
-            onFavorite = onFavorite,
-            onOpenEntity = onOpenEntity,
-        )
-
+    Scaffold(
+        containerColor = LaughTrackColors.Canvas,
+        topBar = {
+            TopAppBar(
+                title = {},
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onFavorite, enabled = !isFavoritePending) {
+                        Icon(
+                            imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                            contentDescription = if (isFavorite) "Remove favorite" else "Favorite",
+                            tint = if (isFavorite) LaughTrackColors.AccentStrong else LaughTrackColors.Foreground,
+                        )
+                    }
+                },
+                colors =
+                    TopAppBarDefaults.topAppBarColors(
+                        containerColor = LaughTrackColors.Canvas,
+                        navigationIconContentColor = LaughTrackColors.Foreground,
+                        actionIconContentColor = LaughTrackColors.Foreground,
+                        titleContentColor = LaughTrackColors.Foreground,
+                    ),
+            )
+        },
+    ) { innerPadding ->
         Column(
             Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 10.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+                .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
+                .padding(bottom = 28.dp),
         ) {
-            ComedianTabPicker(selectedTab = selectedTab, onSelectTab = { selectedTab = it })
-            when (selectedTab) {
-                0 -> ComedianShowsTab(ui, onOpenEntity)
-                1 -> ComedianPodcastsTab(ui.detail.podcastAppearances, onOpenEntity)
-                else -> ComedianRelatedTab(ui, onOpenEntity)
+            ComedianIdentityBlock(ui = ui, onOpenEntity = onOpenEntity)
+
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 10.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                ComedianTabPicker(selectedTab = selectedTab, onSelectTab = { selectedTab = it })
+                when (selectedTab) {
+                    0 -> ComedianShowsTab(ui, onOpenEntity)
+                    1 -> ComedianPodcastsTab(ui.detail.podcastAppearances, onOpenEntity)
+                    else -> ComedianRelatedTab(ui, onOpenEntity)
+                }
             }
         }
     }
 }
 
+/**
+ * Centered, polaroid-framed identity block mirroring the iOS 07_ComedianDetail
+ * treatment (see MarqueeHero `.framedComedian` / ClubWallHeadshotFrame): a warm
+ * cream→tan matte holding the square portrait plus a serif name caption, tilted a
+ * hair, above the name heading and the social row. Replaces the old full-bleed hero.
+ */
 @Composable
-private fun ComedianHero(
+private fun ComedianIdentityBlock(
     ui: ComedianDetailUi,
-    onBack: () -> Unit,
-    isFavorite: Boolean,
-    isFavoritePending: Boolean,
-    onFavorite: () -> Unit,
     onOpenEntity: (AppRoute) -> Unit,
 ) {
-    Box(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .height(292.dp),
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp, vertical = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        ComedianPolaroid(imageUrl = ui.detail.imageUrl, name = ui.detail.name)
+        Text(
+            ui.detail.name,
+            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Black),
+            color = LaughTrackColors.Foreground,
+            textAlign = TextAlign.Center,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+        )
+        ComedianSocialRow(ui.detail.socialData)
+        ui.detail.homeLocation?.let { homeLocation ->
+            if (HOME_LOCATION_UI_ENABLED) {
+                ComedianHomeLocationRow(homeLocation = homeLocation, onOpenEntity = onOpenEntity)
+            }
+        }
+    }
+}
+
+/**
+ * The polaroid frame itself, mirroring iOS ClubWallHeadshotFrame: cream→tan matte
+ * gradient, square photo with a hairline dark border, a serif uppercase name caption
+ * on a translucent white strip, a thick dark outer edge, a slight tilt, and a soft
+ * drop shadow.
+ */
+@Composable
+private fun ComedianPolaroid(
+    imageUrl: String?,
+    name: String,
+) {
+    val frameShape = RoundedCornerShape(8.dp)
+    Column(
+        Modifier
+            .rotate(-0.4f)
+            .shadow(elevation = 12.dp, shape = frameShape, clip = false)
+            .clip(frameShape)
+            .background(
+                Brush.linearGradient(
+                    colors =
+                        listOf(
+                            LaughTrackColors.Foreground.copy(alpha = 0.94f),
+                            Color(0xFFD1C2A8),
+                        ),
+                ),
+            )
+            .border(3.dp, Color.Black.copy(alpha = 0.72f), frameShape)
+            .padding(12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         RemoteImage(
-            url = ui.detail.imageUrl,
-            contentDescription = ui.detail.name,
-            modifier = Modifier.fillMaxSize(),
+            url = imageUrl,
+            contentDescription = name,
+            modifier =
+                Modifier
+                    .size(200.dp)
+                    .clip(RectangleShape)
+                    .border(1.dp, Color.Black.copy(alpha = 0.5f), RectangleShape),
         )
-        Box(
+        Text(
+            name.uppercase(),
+            style =
+                MaterialTheme.typography.labelMedium.copy(
+                    fontFamily = FontFamily.Serif,
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = 0.4.sp,
+                ),
+            color = Color.Black.copy(alpha = 0.74f),
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
             modifier =
                 Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.verticalGradient(
-                            colors =
-                                listOf(
-                                    LaughTrackColors.Canvas.copy(alpha = 0.05f),
-                                    LaughTrackColors.Canvas.copy(alpha = 0.18f),
-                                    LaughTrackColors.Canvas.copy(alpha = 0.92f),
-                                ),
-                        ),
-                    ),
+                    .width(200.dp)
+                    .background(Color.White.copy(alpha = 0.30f))
+                    .padding(vertical = 2.dp),
         )
-
-        Row(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .statusBarsPadding()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-        ) {
-            FloatingHeroButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-            }
-            FloatingHeroButton(
-                onClick = onFavorite,
-                selected = isFavorite,
-                enabled = !isFavoritePending,
-            ) {
-                Icon(
-                    imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                    contentDescription = if (isFavorite) "Remove favorite" else "Favorite",
-                    tint = if (isFavorite) LaughTrackColors.AccentStrong else LaughTrackColors.Foreground,
-                )
-            }
-        }
-
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .align(androidx.compose.ui.Alignment.BottomStart)
-                    .padding(horizontal = 24.dp, vertical = 18.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Text(
-                ui.detail.name,
-                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Black),
-                color = LaughTrackColors.Foreground,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
-            ComedianSocialRow(ui.detail.socialData)
-            ui.detail.homeLocation?.let { homeLocation ->
-                if (HOME_LOCATION_UI_ENABLED) {
-                    ComedianHomeLocationRow(homeLocation = homeLocation, onOpenEntity = onOpenEntity)
-                }
-            }
-        }
     }
 }
 
@@ -277,34 +325,6 @@ private fun ComedianHomeLocationRow(
                     color = LaughTrackColors.Foreground,
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun FloatingHeroButton(
-    onClick: () -> Unit,
-    selected: Boolean = false,
-    enabled: Boolean = true,
-    content: @Composable () -> Unit,
-) {
-    Surface(
-        modifier =
-            Modifier
-                .size(36.dp)
-                .clip(CircleShape)
-                .clickable(enabled = enabled, onClick = onClick),
-        color =
-            if (selected) {
-                LaughTrackColors.SurfaceElevated.copy(alpha = 0.96f)
-            } else {
-                LaughTrackColors.SurfaceElevated.copy(alpha = if (enabled) 0.9f else 0.64f)
-            },
-        contentColor = if (enabled) LaughTrackColors.Foreground else LaughTrackColors.ForegroundMuted,
-        shape = CircleShape,
-    ) {
-        Box(contentAlignment = androidx.compose.ui.Alignment.Center) {
-            content()
         }
     }
 }
