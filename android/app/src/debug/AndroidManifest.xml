@@ -12,6 +12,14 @@
      Compose themes its content via LaughTrackTheme. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- fastlane screengrab needs these to drive the device during a capture run:
+         CHANGE_CONFIGURATION lets it switch the in-app locale for each locale in
+         the Screengrabfile, and DISABLE_KEYGUARD keeps the lock screen out of the
+         way so frames aren't captured behind the keyguard. Debug-only (this source
+         set is never part of a release build). -->
+    <uses-permission android:name="android.permission.CHANGE_CONFIGURATION" />
+    <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
+
     <application>
         <activity
             android:name="app.laughtrack.android.HiltTestActivity"
