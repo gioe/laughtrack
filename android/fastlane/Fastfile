@@ -13,6 +13,9 @@ PACKAGE_NAME = "app.laughtrack.android"
 # android/ with no "../".
 GRADLE_PROPERTIES_PATH = "../gradle.properties"
 AAB_PATH = "app/build/outputs/bundle/release/app-release.aab"
+# Debug + instrumentation APKs consumed by screengrab (action CWD = android/, no "../").
+DEBUG_APK_PATH = "app/build/outputs/apk/debug/app-debug.apk"
+DEBUG_TEST_APK_PATH = "app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk"
 
 # Read a `KEY=value` line from gradle.properties. Raises if absent so a renamed
 # or missing key fails loudly instead of silently shipping the wrong version.
@@ -120,9 +123,10 @@ platform :android do
       track: "internal",
       aab: AAB_PATH,
       release_status: "completed",
-      # The store listing (title/description/screenshots) is managed in the Play
-      # Console, not from this repo, so skip every metadata surface — supply only
-      # ships the binary.
+      # This lane ships only the binary. Listing screenshots/images are captured and
+      # pushed via the dedicated `screenshots` / `upload_screenshots` lanes; title,
+      # description, and changelogs remain managed in the Play Console. Skip every
+      # metadata surface here so the binary upload stays fast.
       skip_upload_metadata: true,
       skip_upload_images: true,
       skip_upload_screenshots: true,
@@ -164,5 +168,42 @@ platform :android do
       skip_upload_changelogs: true,
     )
     UI.success("Promoted versionCode #{version_code} from internal to production (rollout #{rollout})")
+  end
+
+  desc "Capture the nine Play Store listing screenshots via screengrab. Builds the " \
+       "debug + androidTest APKs, then drives AppStoreScreenshotTest (TASK-3616) on a " \
+       "booted emulator/AVD — required, the same way the iOS `screenshots` lane needs " \
+       "a running simulator. Reads Screengrabfile config and lands PNGs under " \
+       "fastlane/metadata/android/<locale>/images/phoneScreenshots for `supply`."
+  lane :screenshots do
+    gradle(task: "assembleDebug assembleDebugAndroidTest", project_dir: ".")
+    capture_android_screenshots(
+      app_apk_path: DEBUG_APK_PATH,
+      tests_apk_path: DEBUG_TEST_APK_PATH,
+    )
+  end
+
+  desc "Upload the store-listing screenshots/images to the Play Console (no binary). " \
+       "Run after `screenshots`; supply pushes whatever screengrab left under " \
+       "fastlane/metadata/android. Listing images are app-level, so the track is only " \
+       "the edit anchor."
+  lane :upload_screenshots do
+    upload_to_play_store(
+      track: "internal",
+      skip_upload_aab: true,
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true,
+      # The whole point of this lane: push the screengrab-captured listing images.
+      skip_upload_images: false,
+      skip_upload_screenshots: false,
+    )
+  end
+
+  desc "Capture the listing screenshots and upload them to Play in one step " \
+       "(mirrors the iOS `screenshots_and_upload` lane)."
+  lane :screenshots_and_upload do
+    screenshots
+    upload_screenshots
   end
 end
