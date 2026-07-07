@@ -60,6 +60,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -711,6 +712,14 @@ private fun LazyListScope.resultsContent(
     }
 }
 
+/**
+ * Semantics tag applied to every tappable search result row (both the ticket-style
+ * show rows and the card-style comedian/club/podcast rows) so instrumented tests —
+ * notably AppStoreScreenshotTest — can open the first result without hardcoding a
+ * production entity name. Inert at runtime.
+ */
+const val SEARCH_RESULT_ROW_TEST_TAG = "searchResultRow"
+
 @Composable
 private fun ShowResultRow(
     result: SearchResult,
@@ -723,6 +732,7 @@ private fun ShowResultRow(
                 .height(IntrinsicSize.Min)
                 .clip(RoundedCornerShape(12.dp))
                 .clickable { onOpen(result.route) }
+                .testTag(SEARCH_RESULT_ROW_TEST_TAG)
                 .border(1.dp, LaughTrackColors.BorderSubtle, RoundedCornerShape(12.dp)),
         color = LaughTrackColors.SurfaceElevated,
         shape = RoundedCornerShape(12.dp),
@@ -929,6 +939,7 @@ private fun ResultRow(
             Modifier
                 .fillMaxWidth()
                 .clickable { onOpen(result.route) }
+                .testTag(SEARCH_RESULT_ROW_TEST_TAG)
                 .padding(12.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically,

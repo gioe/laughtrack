@@ -26,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -198,11 +199,18 @@ fun ShowRow(
     }
 }
 
+/**
+ * Semantics tag on the detail loading skeleton so instrumented tests — notably
+ * AppStoreScreenshotTest — can wait for the skeleton to disappear (content loaded)
+ * before capturing a detail-screen frame. Inert at runtime.
+ */
+const val DETAIL_LOADING_TEST_TAG = "detailLoading"
+
 /** Centered loading skeleton for the detail body. */
 @Composable
 fun DetailLoading(modifier: Modifier = Modifier) {
     Column(
-        modifier.fillMaxSize().padding(24.dp),
+        modifier.fillMaxSize().padding(24.dp).testTag(DETAIL_LOADING_TEST_TAG),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         SkeletonLine(Modifier.fillMaxWidth().height(180.dp))
