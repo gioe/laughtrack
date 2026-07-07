@@ -733,8 +733,8 @@ private fun ShowResultRow(
                 .clip(RoundedCornerShape(12.dp))
                 .clickable { onOpen(result.route) }
                 .testTag(SEARCH_RESULT_ROW_TEST_TAG)
-                .border(1.dp, LaughTrackColors.BorderSubtle, RoundedCornerShape(12.dp)),
-        color = LaughTrackColors.SurfaceElevated,
+                .border(1.dp, LaughTrackColors.TicketBorder, RoundedCornerShape(12.dp)),
+        color = LaughTrackColors.TicketPaper,
         shape = RoundedCornerShape(12.dp),
     ) {
         Row(
@@ -773,7 +773,7 @@ private fun ShowResultBody(
     modifier: Modifier = Modifier,
 ) {
     Box(
-        modifier = modifier.background(LaughTrackColors.AccentMuted.copy(alpha = 0.035f)),
+        modifier = modifier.background(LaughTrackColors.TicketPaper),
         contentAlignment = Alignment.CenterStart,
     ) {
         Row(
@@ -789,7 +789,7 @@ private fun ShowResultBody(
                 Text(
                     result.title,
                     style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = LaughTrackColors.TicketInk,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -797,7 +797,7 @@ private fun ShowResultBody(
                     Text(
                         club,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = LaughTrackColors.TicketInkMuted,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -808,7 +808,7 @@ private fun ShowResultBody(
                         Text(
                             room,
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = LaughTrackColors.TicketInkMuted,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
@@ -817,14 +817,14 @@ private fun ShowResultBody(
                     Text(
                         "Sold out",
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
-                        color = LaughTrackColors.AccentStrong,
+                        color = LaughTrackColors.TicketAccent,
                         modifier =
                             Modifier
                                 .clip(RoundedCornerShape(999.dp))
-                                .background(LaughTrackColors.AccentMuted.copy(alpha = 0.22f))
+                                .background(LaughTrackColors.TicketAccent.copy(alpha = 0.14f))
                                 .border(
                                     1.dp,
-                                    LaughTrackColors.AccentMuted.copy(alpha = 0.45f),
+                                    LaughTrackColors.TicketAccent.copy(alpha = 0.4f),
                                     RoundedCornerShape(999.dp),
                                 )
                                 .padding(horizontal = 8.dp, vertical = 2.dp),
@@ -837,7 +837,7 @@ private fun ShowResultBody(
 
 @Composable
 private fun TicketDashedDivider(modifier: Modifier = Modifier) {
-    val color = LaughTrackColors.ForegroundMuted.copy(alpha = 0.6f)
+    val color = LaughTrackColors.TicketBorder
     Canvas(modifier = modifier.width(1.dp)) {
         drawLine(
             color = color,
@@ -858,7 +858,7 @@ private fun ShowResultStub(
     Column(
         modifier =
             modifier
-                .background(LaughTrackColors.Surface)
+                .background(LaughTrackColors.TicketStub)
                 .padding(vertical = 10.dp, horizontal = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -866,26 +866,26 @@ private fun ShowResultStub(
         Text(
             dateParts.weekday,
             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold, letterSpacing = 1.4.sp),
-            color = LaughTrackColors.AccentStrong,
+            color = LaughTrackColors.TicketAccent,
             maxLines = 1,
         )
         Text(
             dateParts.day,
             fontWeight = FontWeight.Black,
             fontSize = 26.sp,
-            color = MaterialTheme.colorScheme.onSurface,
+            color = LaughTrackColors.TicketInk,
             maxLines = 1,
         )
         Text(
             dateParts.month,
             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold, letterSpacing = 1.2.sp),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = LaughTrackColors.TicketInkMuted,
             maxLines = 1,
         )
         Text(
             dateParts.time,
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = LaughTrackColors.TicketInkMuted,
             maxLines = 1,
             modifier = Modifier.padding(top = 2.dp),
         )
@@ -893,7 +893,7 @@ private fun ShowResultStub(
             Text(
                 price,
                 style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-                color = LaughTrackColors.AccentStrong,
+                color = LaughTrackColors.TicketAccent,
                 maxLines = 1,
                 modifier = Modifier.padding(top = 2.dp),
             )
@@ -931,8 +931,8 @@ private fun ResultRow(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .border(1.dp, LaughTrackColors.BorderSubtle, RoundedCornerShape(14.dp)),
-        color = LaughTrackColors.SurfaceElevated,
+                .border(1.dp, LaughTrackColors.TicketBorder, RoundedCornerShape(14.dp)),
+        color = LaughTrackColors.TicketPaper,
         shape = RoundedCornerShape(14.dp),
     ) {
         Row(
@@ -952,6 +952,7 @@ private fun ResultRow(
                 Text(
                     result.title,
                     style = MaterialTheme.typography.titleMedium,
+                    color = LaughTrackColors.TicketInk,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -959,7 +960,7 @@ private fun ResultRow(
                     Text(
                         line,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = LaughTrackColors.TicketInkMuted,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -968,7 +969,7 @@ private fun ResultRow(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = LaughTrackColors.TicketInkMuted,
             )
         }
     }
