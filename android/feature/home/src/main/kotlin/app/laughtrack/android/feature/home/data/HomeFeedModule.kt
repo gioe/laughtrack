@@ -1,7 +1,5 @@
 package app.laughtrack.android.feature.home.data
 
-import app.laughtrack.android.feature.home.location.DeviceHomeLocationResolver
-import app.laughtrack.android.feature.home.location.HomeLocationResolver
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -16,6 +14,6 @@ abstract class HomeFeedModule {
     @Binds
     abstract fun bindHomeFeedCache(cache: PersistentHomeFeedCache): HomeFeedCache
 
-    @Binds
-    abstract fun bindHomeLocationResolver(resolver: DeviceHomeLocationResolver): HomeLocationResolver
+    // HomeLocationResolver is bound in HomeLocationModule so tests can replace just
+    // that binding without touching the repository/cache bindings above.
 }
