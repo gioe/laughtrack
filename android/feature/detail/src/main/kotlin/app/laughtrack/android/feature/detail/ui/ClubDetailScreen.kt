@@ -64,7 +64,6 @@ import java.time.format.TextStyle
 import java.util.Locale
 
 private val CalendarCard = Color(0xFF302C28)
-private val CalendarStub = Color(0xFF191817)
 
 @Composable
 fun ClubDetailScreen(
@@ -356,9 +355,9 @@ private fun ClubShowCard(
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(18.dp))
                 .clickable(onClick = onClick),
-        color = CalendarCard,
+        color = LaughTrackColors.TicketPaper,
         shape = RoundedCornerShape(18.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, LaughTrackColors.BorderSubtle),
+        border = androidx.compose.foundation.BorderStroke(1.dp, LaughTrackColors.TicketBorder),
     ) {
         Row(Modifier.height(142.dp)) {
             Row(
@@ -376,20 +375,20 @@ private fun ClubShowCard(
                         Modifier
                             .size(70.dp)
                             .clip(CircleShape)
-                            .border(1.dp, LaughTrackColors.AccentStrong.copy(alpha = 0.55f), CircleShape),
+                            .border(1.dp, LaughTrackColors.TicketAccent.copy(alpha = 0.5f), CircleShape),
                 )
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(
                         show.name ?: show.lineup?.firstOrNull()?.name ?: "Show",
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                        color = LaughTrackColors.Foreground,
+                        color = LaughTrackColors.TicketInk,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                     Text(
                         club.name,
                         style = MaterialTheme.typography.titleSmall,
-                        color = LaughTrackColors.ForegroundMuted,
+                        color = LaughTrackColors.TicketInkMuted,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -397,7 +396,7 @@ private fun ClubShowCard(
                         Text(
                             "with $it",
                             style = MaterialTheme.typography.titleSmall,
-                            color = LaughTrackColors.ForegroundMuted,
+                            color = LaughTrackColors.TicketInkMuted,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
                         )
@@ -410,37 +409,37 @@ private fun ClubShowCard(
                     Modifier
                         .width(94.dp)
                         .fillMaxSize()
-                        .background(CalendarStub)
-                        .border(1.dp, LaughTrackColors.BorderSubtle),
+                        .background(LaughTrackColors.TicketStub)
+                        .border(1.dp, LaughTrackColors.TicketBorder),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
                 Text(
                     date.weekday,
                     style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Black),
-                    color = LaughTrackColors.AccentStrong,
+                    color = LaughTrackColors.TicketAccent,
                     letterSpacing = 2.sp,
                 )
                 Text(
                     date.day,
                     style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Black),
-                    color = LaughTrackColors.Foreground,
+                    color = LaughTrackColors.TicketInk,
                 )
                 Text(
                     date.month,
                     style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Black),
-                    color = LaughTrackColors.ForegroundMuted,
+                    color = LaughTrackColors.TicketInkMuted,
                     letterSpacing = 2.sp,
                 )
                 Text(
                     date.time,
                     style = MaterialTheme.typography.titleSmall,
-                    color = LaughTrackColors.ForegroundMuted,
+                    color = LaughTrackColors.TicketInkMuted,
                 )
                 Text(
                     show.ticketLabel() ?: "",
                     style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Black),
-                    color = LaughTrackColors.AccentStrong,
+                    color = LaughTrackColors.TicketAccent,
                 )
             }
         }
