@@ -179,5 +179,8 @@ dependencies {
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.hilt.android.testing)
+    // fastlane screengrab: the instrumented AppStoreScreenshotTest calls
+    // Screengrab.screenshot(...) to capture Play Store listing frames.
+    androidTestImplementation(libs.fastlane.screengrab)
     kspAndroidTest(libs.hilt.compiler)
 }
