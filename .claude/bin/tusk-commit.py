@@ -877,9 +877,19 @@ def _test_command_outside_sparse_cone(
     missing token, for inclusion in the info message.
     """
     targets = []
-    for tok in test_cmd.split():
+    try:
+        tokens = shlex.split(test_cmd)
+    except ValueError:
+        tokens = test_cmd.split()
+    for tok in tokens:
         tok = tok.strip().strip('"').strip("'")
         if not tok or tok.startswith("-") or "=" in tok:
+            continue
+        if tok.startswith(("$", "~")) or "$" in tok:
+            continue
+        if os.path.isabs(tok) or tok.startswith("../"):
+            continue
+        if "://" in tok:
             continue
         if "/" in tok:
             targets.append(tok)
@@ -1854,17 +1864,6 @@ def _run_commit(argv: list[str], state: dict) -> int:
                     _print_error(
                         f"Error: git add -f also failed:\n  {r_force.stderr.strip()}"
                     )
-                if retry_ok and non_blocked:
-                    refreshed_staged_deletions = _get_staged_deletions(repo_root)
-                    non_blocked = [
-                        f for f in non_blocked
-                        if (
-                            os.path.relpath(f, repo_root)
-                            if os.path.isabs(f)
-                            else f
-                        )
-                        not in refreshed_staged_deletions
-                    ]
                 if retry_ok and non_blocked:
                     r_rest = run(
                         ["git", "add", "--"] + non_blocked,

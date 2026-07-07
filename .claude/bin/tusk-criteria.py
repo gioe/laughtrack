@@ -537,12 +537,19 @@ def _normalize_update_spec(raw: str | None) -> tuple[bool, str | None]:
 
 def cmd_update(args: argparse.Namespace, db_path: str, config: dict) -> int:
     changed_spec, requested_spec = _normalize_update_spec(args.verification_spec)
-    if args.criterion_type is None and not changed_spec:
+    changed_text = args.text is not None
+    if args.criterion_type is None and not changed_spec and not changed_text:
         print(
-            "Error: provide --criterion-type and/or --verification-spec",
+            "Error: provide --text, --criterion-type, and/or --verification-spec",
             file=sys.stderr,
         )
         return 1
+
+    if changed_text:
+        ok, diagnostic = reject_shell_metacharacters(args.text, subject="criterion text")
+        if not ok:
+            print(diagnostic, file=sys.stderr)
+            return 1
 
     criterion_types = config.get("criterion_types", [])
     if args.criterion_type is not None and criterion_types and args.criterion_type not in criterion_types:
@@ -566,6 +573,7 @@ def cmd_update(args: argparse.Namespace, db_path: str, config: dict) -> int:
 
         new_type = args.criterion_type or row["criterion_type"] or "manual"
         new_spec = requested_spec if changed_spec else row["verification_spec"]
+        new_text = args.text if changed_text else row["criterion"]
 
         if new_type in SPEC_REQUIRED_TYPES and not new_spec:
             print(
@@ -583,15 +591,15 @@ def cmd_update(args: argparse.Namespace, db_path: str, config: dict) -> int:
 
         conn.execute(
             "UPDATE acceptance_criteria "
-            "SET criterion_type = ?, verification_spec = ?, updated_at = datetime('now') "
+            "SET criterion = ?, criterion_type = ?, verification_spec = ?, updated_at = datetime('now') "
             "WHERE id = ?",
-            (new_type, new_spec, args.criterion_id),
+            (new_text, new_type, new_spec, args.criterion_id),
         )
         conn.commit()
         print(dumps({
             "id": args.criterion_id,
             "task_id": row["task_id"],
-            "criterion": row["criterion"],
+            "criterion": new_text,
             "criterion_type": new_type,
             "verification_spec": new_spec,
         }))
@@ -607,23 +615,13 @@ def _done_single(conn: sqlite3.Connection, criterion_id: int, skip_verify: bool,
     """Mark a single criterion as done. Returns 0 on success, 1 on verification failure, 2 on not-found."""
     row = conn.execute(
         "SELECT id, task_id, criterion, is_completed, criterion_type, verification_spec, "
-        "is_deferred, deferred_reason "
+        "is_deferred, deferred_reason, commit_hash, committed_at "
         "FROM acceptance_criteria WHERE id = ?",
         (criterion_id,),
     ).fetchone()
     if not row:
         print(f"Error: Criterion {criterion_id} not found", file=sys.stderr)
         return 2
-
-    if row["is_completed"]:
-        print(dumps({
-            "id": criterion_id,
-            "task_id": row["task_id"],
-            "is_completed": True,
-            "already_completed": True,
-            "criterion": row["criterion"],
-        }))
-        return 0
 
     # Cross-task HEAD guard (issue #573): if HEAD's commit message references a
     # different task (or no task at all), do not stamp HEAD's hash onto this
@@ -633,15 +631,38 @@ def _done_single(conn: sqlite3.Connection, criterion_id: int, skip_verify: bool,
         commit_hash = None
         committed_at = None
 
+    if row["is_completed"]:
+        refreshed = False
+        if commit_hash is not None and commit_hash != row["commit_hash"]:
+            conn.execute(
+                "UPDATE acceptance_criteria SET commit_hash = ?, committed_at = ?, "
+                "updated_at = datetime('now') WHERE id = ?",
+                (commit_hash, committed_at, criterion_id),
+            )
+            conn.commit()
+            refreshed = True
+        print(dumps({
+            "id": criterion_id,
+            "task_id": row["task_id"],
+            "is_completed": True,
+            "already_completed": True,
+            "criterion": row["criterion"],
+            "commit_hash": commit_hash if refreshed else row["commit_hash"],
+            "commit_hash_refreshed": refreshed,
+        }))
+        return 0
+
     criterion_type = row["criterion_type"] or "manual"
     spec = row["verification_spec"]
 
     # Run verification for non-manual types (unless --skip-verify)
     verification_result = None
+    verification_payload = None
     if criterion_type != "manual" and spec and not skip_verify:
         result = _reuse_commit_gate_verification(criterion_type, spec, commit_hash)
         if result is None:
             result = run_verification(criterion_type, spec)
+        verification_payload = result
         verification_result = json.dumps(result)
 
         if not result["passed"]:
@@ -659,6 +680,15 @@ def _done_single(conn: sqlite3.Connection, criterion_id: int, skip_verify: bool,
                 print(result["output"], file=sys.stderr)
             print("Use --skip-verify to bypass verification.", file=sys.stderr)
             return 1
+    elif criterion_type != "manual" and spec and skip_verify:
+        verification_payload = {
+            "passed": True,
+            "skipped": True,
+            "output": "verification skipped via --skip-verify",
+        }
+        if note:
+            verification_payload["skip_note"] = note
+        verification_result = json.dumps(verification_payload)
 
     # Warn if another completed criterion on this task already has this commit hash.
     # Suppress when flag is set (batch/allow-shared-commit).
@@ -731,6 +761,12 @@ def _done_single(conn: sqlite3.Connection, criterion_id: int, skip_verify: bool,
         "commit_hash": commit_hash,
         "verification": verification,
         "skip_note": note,
+        "verification_contract": _verification_contract(
+            criterion_type,
+            spec,
+            skip_verify=skip_verify,
+            result=verification_payload,
+        ),
     }
     if deferral_cleared:
         payload["deferral_cleared"] = True
@@ -794,6 +830,39 @@ def _reuse_commit_gate_verification(
             f"{gate_command}"
         ),
         "reused_commit_gate": True,
+    }
+
+
+def _verification_contract(
+    criterion_type: str,
+    spec: Optional[str],
+    *,
+    skip_verify: bool,
+    result: Optional[dict] = None,
+) -> dict:
+    if criterion_type == "manual":
+        return {
+            "type": "manual",
+            "strength": "weak",
+            "evidence": "operator_judgment",
+        }
+
+    if skip_verify:
+        return {
+            "type": criterion_type,
+            "strength": "bypassed",
+            "spec": spec,
+            "evidence": "explicit_skip",
+        }
+
+    evidence = "executed"
+    if result and result.get("reused_commit_gate"):
+        evidence = "reused_commit_gate"
+    return {
+        "type": criterion_type,
+        "strength": "automated",
+        "spec": spec,
+        "evidence": evidence,
     }
 
 
@@ -1164,8 +1233,12 @@ def main():
     list_p.add_argument("task_id", type=int, help="Task ID")
 
     # update
-    update_p = subparsers.add_parser("update", allow_abbrev=False, help="Update criterion type or verification spec")
+    update_p = subparsers.add_parser("update", allow_abbrev=False, help="Update criterion text, type, or verification spec")
     update_p.add_argument("criterion_id", type=int, help="Criterion ID")
+    update_p.add_argument(
+        "--text",
+        help="New criterion text",
+    )
     update_p.add_argument(
         "--criterion-type",
         "--type",

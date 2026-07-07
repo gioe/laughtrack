@@ -17,10 +17,10 @@ If --session is omitted, the open session for the task is auto-detected:
 
 Default behavior (merge.mode = local):
   1. Preflight: verify working tree is clean and feature branch exists (errors here leave session and task untouched)
-  2. tusk session-close <session_id> (captures diff stats before branch change)
-  3. git checkout <default_branch> && git pull
-  4. git merge --ff-only feature/TASK-<id>-*
-  5. git push
+  2. git checkout <default_branch> && git pull
+  3. git merge --ff-only feature/TASK-<id>-*
+  4. git push
+  5. tusk session-close <session_id> (only after the merge path succeeds)
   6. git branch -d feature/TASK-<id>-*
   7. tusk task-done <id> --reason completed (--force if task-done warns)
   8. Print JSON with task details and unblocked_tasks array
@@ -30,6 +30,7 @@ Default behavior (merge.mode = local):
   Requires --pr-number.
 """
 
+import fnmatch
 import json
 import os
 import re
@@ -1196,6 +1197,24 @@ def _run_pre_merge_lint(
     return 0
 
 
+def _session_close_diff_args(default_branch: str) -> list[str]:
+    """Capture branch diff stats before checkout so delayed close keeps metrics."""
+    result = run(
+        ["git", "diff", "--shortstat", f"{default_branch}...HEAD"],
+        check=False,
+    )
+    if result.returncode != 0 or not result.stdout.strip():
+        return []
+    insertions = re.search(r"(\d+) insertion", result.stdout)
+    deletions = re.search(r"(\d+) deletion", result.stdout)
+    return [
+        "--lines-added",
+        insertions.group(1) if insertions else "0",
+        "--lines-removed",
+        deletions.group(1) if deletions else "0",
+    ]
+
+
 def _recover_missing_task(db_path: str, task_id: int) -> bool:
     """Re-insert a minimal Done task record when the task row was lost to a WAL revert.
 
@@ -1762,34 +1781,6 @@ def _resolve_local_ref_sha(ref: str) -> str | None:
     return sha or None
 
 
-def _fast_forward_local_default_ref(default_branch: str, target_sha: str | None) -> bool:
-    """Move the local default-branch ref to the pushed no-checkout merge tip.
-
-    The no-checkout path pushes ``<feature>:<default>`` while the default
-    branch is checked out in another worktree. Git updates
-    ``refs/remotes/origin/<default>`` but leaves ``refs/heads/<default>`` where
-    it was, so the next task-worktree create sees the primary checkout as
-    behind origin. Updating the ref directly keeps future branch creation based
-    on the shipped tip without touching the other worktree's files or index.
-    """
-    if not target_sha:
-        return False
-    old_sha = _resolve_local_ref_sha(default_branch)
-    args = ["git", "update-ref", f"refs/heads/{default_branch}", target_sha]
-    if old_sha:
-        args.append(old_sha)
-    result = run(args, check=False)
-    if result.returncode == 0:
-        return True
-    detail = result.stderr.strip() or result.stdout.strip() or "unknown error"
-    print(
-        f"Warning: pushed origin/{default_branch} but could not fast-forward "
-        f"local {default_branch} to {target_sha}: {detail}",
-        file=sys.stderr,
-    )
-    return False
-
-
 def _resolve_merge_base(feature_branch: str, default_branch: str) -> str | None:
     """Return the merge-base of ``feature_branch`` and the default-branch tip.
 
@@ -1905,6 +1896,165 @@ def _guard_no_open_completion_criteria(db_path: str, task_id: int) -> int:
         return 0
     print(_format_open_completion_criteria_error(task_id, rows), file=sys.stderr)
     return 2
+
+
+def _completed_typed_criteria_without_verification(
+    conn: sqlite3.Connection, task_id: int
+) -> list[sqlite3.Row]:
+    try:
+        return conn.execute(
+            """
+            SELECT id, criterion, criterion_type
+            FROM acceptance_criteria
+            WHERE task_id = ?
+              AND COALESCE(is_completed, 0) = 1
+              AND COALESCE(criterion_type, 'manual') <> 'manual'
+              AND NULLIF(TRIM(COALESCE(verification_result, '')), '') IS NULL
+            ORDER BY id
+            """,
+            (task_id,),
+        ).fetchall()
+    except sqlite3.OperationalError as exc:
+        missing = (
+            "no such table: acceptance_criteria" in str(exc)
+            or "no such column:" in str(exc)
+        )
+        if missing:
+            return []
+        raise
+    except StopIteration:
+        return []
+
+
+def _recorded_scope_patterns(
+    conn: sqlite3.Connection, task_id: int
+) -> tuple[list[str], bool]:
+    try:
+        rows = conn.execute(
+            "SELECT pattern, source FROM task_scope WHERE task_id = ? ORDER BY id",
+            (task_id,),
+        ).fetchall()
+    except sqlite3.OperationalError as exc:
+        if "no such table: task_scope" not in str(exc):
+            raise
+        rows = []
+    except StopIteration:
+        rows = []
+
+    criteria_patterns: list[str] = []
+    try:
+        criteria_patterns = list(task_referenced_paths(task_id, conn))
+    except sqlite3.OperationalError:
+        criteria_patterns = []
+    except StopIteration:
+        criteria_patterns = []
+    except (KeyError, TypeError):
+        criteria_patterns = []
+
+    if rows:
+        if any(row["source"] == "unbounded" for row in rows):
+            return [], True
+        patterns = []
+        seen = set()
+        for row in rows:
+            pattern = (row["pattern"] or "").strip()
+            if pattern and pattern not in seen:
+                seen.add(pattern)
+                patterns.append(pattern)
+        for pattern in criteria_patterns:
+            if pattern and pattern not in seen:
+                seen.add(pattern)
+                patterns.append(pattern)
+        return patterns, False
+
+    return criteria_patterns, False
+
+
+def _path_matches_scope(path: str, patterns: list[str]) -> bool:
+    for pattern in patterns:
+        normalized = pattern.strip().rstrip("/")
+        if not normalized:
+            continue
+        if path == normalized or path.startswith(f"{normalized}/"):
+            return True
+        if fnmatch.fnmatch(path, normalized):
+            return True
+    return False
+
+
+def _spec_drift_advisory_lines(
+    conn: sqlite3.Connection, task_id: int, changed_files: list[str]
+) -> list[str]:
+    unevidenced = _completed_typed_criteria_without_verification(conn, task_id)
+    patterns, unbounded = _recorded_scope_patterns(conn, task_id)
+    outside_scope: list[str] = []
+    if changed_files and patterns and not unbounded:
+        outside_scope = [
+            path for path in changed_files if not _path_matches_scope(path, patterns)
+        ]
+
+    if not unevidenced and not outside_scope:
+        return []
+
+    lines = [
+        f"Warning: TASK-{task_id} may have spec drift. This advisory does not block merge.",
+    ]
+    if unevidenced:
+        shown = unevidenced[:10]
+        lines.append(
+            "  Completed typed criteria without verification evidence "
+            f"({len(unevidenced)}):"
+        )
+        for row in shown:
+            lines.append(f"    [{row['id']}] {row['criterion_type']}: {row['criterion']}")
+        if len(unevidenced) > len(shown):
+            lines.append(f"    ... and {len(unevidenced) - len(shown)} more")
+    if outside_scope:
+        shown_files = outside_scope[:10]
+        lines.append(
+            "  Changed files outside recorded task scope or criteria references "
+            f"({len(outside_scope)}):"
+        )
+        for path in shown_files:
+            lines.append(f"    {path}")
+        if len(outside_scope) > len(shown_files):
+            lines.append(f"    ... and {len(outside_scope) - len(shown_files)} more")
+    return lines
+
+
+def _branch_changed_files(branch_name: str, default_branch: str) -> list[str]:
+    base = run(["git", "merge-base", branch_name, f"origin/{default_branch}"], check=False)
+    if base.returncode != 0 or not base.stdout.strip():
+        base = run(["git", "merge-base", branch_name, default_branch], check=False)
+    if base.returncode != 0 or not base.stdout.strip():
+        return []
+    diff = run(
+        ["git", "diff", "--name-only", f"{base.stdout.strip()}..{branch_name}"],
+        check=False,
+    )
+    if diff.returncode != 0:
+        return []
+    return [line.strip() for line in diff.stdout.splitlines() if line.strip()]
+
+
+def _emit_spec_drift_advisory(
+    db_path: str, task_id: int, branch_name: str, default_branch: str
+) -> None:
+    changed_files = _branch_changed_files(branch_name, default_branch)
+    try:
+        conn = get_connection(db_path)
+        try:
+            lines = _spec_drift_advisory_lines(conn, task_id, changed_files)
+        finally:
+            conn.close()
+    except sqlite3.Error as exc:
+        print(
+            f"Warning: Could not evaluate spec drift advisory for TASK-{task_id}: {exc}",
+            file=sys.stderr,
+        )
+        return
+    if lines:
+        print("\n".join(lines), file=sys.stderr)
 
 
 def _task_done_refused_already_done(result: subprocess.CompletedProcess) -> bool:
@@ -2228,7 +2378,6 @@ def _complete_no_checkout_fast_forward(
         f"no-checkout fast-forward push from {branch_name} to {default_branch}.",
         file=sys.stderr,
     )
-    pushed_no_checkout = False
     if use_rebase:
         rebase_target = f"origin/{default_branch}"
         print(f"Rebasing {branch_name} onto {rebase_target}...", file=sys.stderr)
@@ -2392,7 +2541,6 @@ def _complete_no_checkout_fast_forward(
                 check=False,
             )
             if result.returncode == 0:
-                pushed_no_checkout = True
                 break
             if (
                 use_rebase
@@ -2503,8 +2651,6 @@ def _complete_no_checkout_fast_forward(
     # ref (no-checkout pushes don't rewrite SHAs; the local branch is the
     # source of truth). Issue #849.
     merge_commit_sha = _resolve_local_ref_sha(branch_name)
-    if pushed_no_checkout:
-        _fast_forward_local_default_ref(default_branch, merge_commit_sha)
     # Use the pre-push merge-base captured above. Re-resolving here would
     # collapse to the tip because origin/<default_branch> got advanced by
     # the push. Migration 72, TASK-452.
@@ -3889,11 +4035,18 @@ def main(argv: list[str]) -> int:
     )
     if lint_rc != 0:
         return lint_rc
+    advisory_default_branch = detect_default_branch()
+    _emit_spec_drift_advisory(
+        _db_path,
+        task_id,
+        branch_name,
+        advisory_default_branch,
+    )
 
-    default_branch = None
+    default_branch = advisory_default_branch
     has_origin = None
+    session_close_extra_args: list[str] = []
     if not use_pr:
-        default_branch = detect_default_branch()
         has_origin = _has_remote()
         locked_default_path = _worktree_path_for_branch(default_branch)
         if locked_default_path:
@@ -3924,6 +4077,7 @@ def main(argv: list[str]) -> int:
                 use_rebase=use_rebase,
                 allow_diverged_default=allow_diverged_default,
             )
+        session_close_extra_args = _session_close_diff_args(default_branch)
 
     # Step 1b (local mode only): Auto-stash if working tree is dirty.
     # Only tracked modified/staged files are stashed; untracked files ("??")
@@ -3995,35 +4149,7 @@ def main(argv: list[str]) -> int:
                 allow_diverged_default=allow_diverged_default,
             )
 
-    # Step 2: Close the session (captures git diff stats while on feature branch)
-    #
-    # Checkpoint the WAL first so that any uncommitted writes (e.g. from tusk task-start)
-    # are flushed to the main db file before session-close reads the session row.
-    # Without this, a git stash or branch switch that reverts tasks.db to a pre-WAL
-    # snapshot can silently drop the session row, causing "No session found" below.
-    checkpoint_wal(_db_path)
-
-    print(f"Closing session {session_id}...", file=sys.stderr)
-    result = _run_tusk_subcommand(tusk_bin, ["session-close", str(session_id)])
-    session_was_closed = result.returncode == 0
-    if result.returncode != 0:
-        if "already closed" in result.stderr:
-            print(f"Warning: session {session_id} is already closed — continuing.", file=sys.stderr)
-        elif "No session found" in result.stderr:
-            # The session row is missing despite the WAL checkpoint above — likely lost
-            # due to a git stash/checkout that reverted tasks.db before the WAL was
-            # checkpointed. Skip session-close and continue so the merge itself is not
-            # blocked by this transient data-loss scenario.
-            print(
-                f"Warning: session {session_id} not found in DB (may have been lost to a "
-                "WAL revert) — skipping session-close and continuing with merge.",
-                file=sys.stderr,
-            )
-        else:
-            print(f"Error: session-close failed:\n{result.stderr.strip()}", file=sys.stderr)
-            if did_stash:
-                _try_pop_stash(task_id)
-            return 2
+    session_was_closed = False
 
     # Captured at each merge path; passed to _close_completed_task so the
     # tasks.merge_commit_sha column gets stamped before task-done flips the
@@ -4504,6 +4630,40 @@ def main(argv: list[str]) -> int:
 
         if did_stash:
             _try_pop_stash(task_id)
+
+    # Close the session only after the merge path has reached its successful
+    # tail. Failed checkout/pull/rebase/ff/push attempts must leave the session
+    # open so a retry can use the same session without already-closed warnings.
+    #
+    # Checkpoint the WAL first so that any uncommitted writes (e.g. from tusk
+    # task-start) are flushed to the main db file before session-close reads the
+    # session row. Without this, a git stash or branch switch that reverts
+    # tasks.db to a pre-WAL snapshot can silently drop the session row, causing
+    # "No session found" below.
+    checkpoint_wal(_db_path)
+
+    print(f"Closing session {session_id}...", file=sys.stderr)
+    result = _run_tusk_subcommand(
+        tusk_bin,
+        ["session-close", str(session_id), *session_close_extra_args],
+    )
+    session_was_closed = result.returncode == 0
+    if result.returncode != 0:
+        if "already closed" in result.stderr:
+            print(f"Warning: session {session_id} is already closed — continuing.", file=sys.stderr)
+        elif "No session found" in result.stderr:
+            # The session row is missing despite the WAL checkpoint above — likely lost
+            # due to a git stash/checkout that reverted tasks.db before the WAL was
+            # checkpointed. Skip session-close and continue so the merge itself is not
+            # blocked by this transient data-loss scenario.
+            print(
+                f"Warning: session {session_id} not found in DB (may have been lost to a "
+                "WAL revert) — skipping session-close and continuing with merge.",
+                file=sys.stderr,
+            )
+        else:
+            print(f"Error: session-close failed:\n{result.stderr.strip()}", file=sys.stderr)
+            return 2
 
     # Warn about any leftover `tusk-branch: auto-stash for TASK-<id>` entry created
     # during a prior `tusk branch <id>` invocation when the working tree was

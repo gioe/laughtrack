@@ -126,12 +126,21 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
    If the file does not exist, log a warning ("Workflow '<workflow>' not found — falling back to default development cycle") and continue with step 2 (no cancel — the /tusk run stays open for the rest of the default flow).
 
 2. **Create or reuse the task-owned workspace IMMEDIATELY**:
+   Before changing into the task worktree, capture the current stable checkout and a stable `tusk` binary for post-merge finalization:
+   ```bash
+   TUSK_PRIMARY_CWD=$(pwd)
+   TUSK_PRIMARY_BIN=$(command -v tusk)
+   ```
+   Keep these variables for Step 12. `tusk merge` and `tusk abandon` may remove the task worktree before the final `skill-run finish`, `task-summary`, and `/retro` handoff run, so those commands must be launched from a checkout that still exists after cleanup.
+
    ```bash
    tusk task-worktree create <id> <brief-description-slug>
    ```
    This creates a recorded task workspace and feature branch, or returns the existing recorded workspace for the task. Parse the JSON response, then `cd` into `workspace_path` before exploring, editing, testing, committing, or merging. If `created` is `false`, continue from that existing workspace; do not create another branch or overlapping worktree. If you are already in the returned `workspace_path`, stay there.
 
    **CLI behavior testing from a worktree — invoke `$workspace_path/bin/tusk`, not `tusk`.** When validating the live behavior of a `bin/tusk-*.py` change you made inside the worktree (only relevant for tusk source-repo tasks), the `tusk` wrapper on `$PATH` resolves to the **primary checkout's** `bin/tusk` — its `$SCRIPT_DIR/tusk-*.py` dispatch then runs the primary's Python helpers regardless of CWD, so your worktree-local edits are silently ignored. The CLI exits 0 with stale-but-plausible output, which is the symptom — **silently stale behavior** masquerading as a passing live check. Unit tests don't have this problem because they resolve `SCRIPT = os.path.join(REPO_ROOT, 'bin', '...')` relative to the test file's own path and naturally pick up the worktree's modules. To exercise the worktree's helpers from the CLI, invoke the worktree's wrapper explicitly: `$workspace_path/bin/tusk <subcommand>` (or `./bin/tusk <subcommand>` when already `cd`'d into the worktree). Originally surfaced as issue #860 during TASK-436.
+
+   **Symlinked Python virtualenvs can also import primary-checkout code.** This is separate from the `bin/tusk` wrapper caveat above. When `worktree.symlink_files` links a primary checkout virtualenv into a task worktree, that venv may contain editable-install metadata or `.pth` files pointing at the primary checkout's source tree. Running the symlinked Python, `make run-script`, or the `tusk commit` pytest gate can then import and test primary-checkout modules while your task worktree source edits are invisible. For scraper worktrees, set `PYTHONPATH=$workspace_path/apps/scraper/src` before smoke commands or commit-gate runs that must import worktree source, for example `PYTHONPATH=$workspace_path/apps/scraper/src make run-script ...` or `PYTHONPATH=$workspace_path/apps/scraper/src ./bin/tusk commit ...`. If a project has a different source root, use that worktree-local `src` path instead.
 
    If you need to inspect recorded workspaces before deciding where to continue, run:
    ```bash
@@ -256,7 +265,11 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
     tusk commit <task_id> "<message>" "<file>" --skip-verify
     ```
 
-    **If the commit removes a file from git tracking** (any staged deletion — `git rm <file>`, `git rm --cached <file>`, or `rm <file>` followed by `git add <file>` — all produce identical `deleted: <path>` index entries), `tusk commit` is expected to preserve that deletion, including when the same commit also stages tracked files blocked by `.gitignore`. If it still fails with a deletion-related `pathspec did not match any files` error, treat it as a `tusk commit` bug: capture the exact command/output and use the path-limited fallback above rather than retrying with broad `git add -A`.
+    **If the commit removes a file from git tracking** (any staged deletion — `git rm <file>`, `git rm --cached <file>`, or `rm <file>` followed by `git add <file>` — all produce identical `deleted: <path>` index entries), do NOT use `tusk commit` — it retries gitignored paths with `git add -f`, which re-adds the file and defeats the deletion. Use `git commit` directly:
+    ```bash
+    git commit -m "[TASK-<id>] <message>" --trailer "Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
+    ```
+    Then mark criteria done with `tusk criteria done <cid> --skip-verify`.
 
     **If `tusk commit` exits 6 (blocking lint violation)** — the commit did NOT land. A non-advisory lint rule fired (Rule 1 raw sqlite3, Rule 3 hardcoded DB path, Rule 11 bad SKILL.md frontmatter, Rule 16 DB-backed blocking rules, Rules 18/19 MANIFEST drift, Rule 21 multi-trailing-newlines, etc.). The violating rule's output is printed verbatim — fix it, then retry `tusk commit`. Advisory-only rules (Rule 13 VERSION bump missing, Rule 15 big-bang commits, Rule 17 DB-backed advisory, etc.) still print WARN lines but do NOT exit non-zero and do NOT block. If the violation is a known false positive or pre-existing state you can't resolve in this commit, bypass with `--skip-lint` (lint only) or widen to `--skip-verify` (lint, tests, and pre-commit hooks):
     ```bash
@@ -384,7 +397,7 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
     tusk merge <id> --session $SESSION_ID --rebase
     ```
 
-    **Partial-cleanup exit code 3 (TASK-504):** If `tusk merge` exits **3**, the no-checkout fast-forward push, session-close, and task-done all succeeded — the task is Done and the work is on `origin/<default>` — but the local worktree directory and/or feature branch could not be removed (typically an untracked file outside the auto-symlink set blocked `git worktree remove`). The stderr message names the leftover artifact. Treat exit 3 like exit 0 for workflow purposes: still run `tusk skill-run finish`, `tusk task-summary`, and `/retro`. Clean up the leftover worktree manually (`git worktree remove --force <path>` and `git branch -D <feature-branch>`) after the retro, or surface it to the user.
+    **Partial-cleanup exit code 3 (TASK-504):** If `tusk merge` exits **3**, the no-checkout fast-forward push, session-close, and task-done all succeeded — the task is Done and the work is on `origin/<default>` — but the local worktree directory and/or feature branch could not be removed (typically an untracked file outside the auto-symlink set blocked `git worktree remove`). The stderr message names the leftover artifact. Treat exit 3 like exit 0 for workflow purposes: still return to the stable checkout and run `skill-run finish`, `task-summary`, and `/retro` as described below. Clean up the leftover worktree manually (`git worktree remove --force <path>` and `git branch -D <feature-branch>`) after the retro, or surface it to the user.
 
     **Sibling-worktree DB fallback:** If the default branch is checked out in a sibling worktree and the primary checkout is unusable, run the merge from the sibling worktree while pinning tusk to the primary repo's DB:
     ```bash
@@ -414,19 +427,20 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
 
     `tusk abandon` switches off the feature branch, deletes it (force), closes the session, and marks the task Done with the given `closed_reason` in one call. **Refuses** if the feature branch has commits not on the default branch — in that case use `tusk merge` to ship the work, or delete the branch manually if you really want to discard it. The optional `--note` records the decision rationale on `task_progress` so the audit trail survives. After `tusk abandon` exits 0, run `/retro` exactly as you would after `tusk merge`.
 
-    Only after `tusk merge` (or `tusk abandon`) exits 0, close out the /tusk skill-run so its cost is captured before `/retro` starts its own run. Do not run this command after a failed merge or abandon attempt:
+    Only after `tusk merge` (or `tusk abandon`) exits 0, return to the stable checkout captured before task-worktree handoff, then close out the /tusk skill-run so its cost is captured before `/retro` starts its own run. Do not run these commands after a failed merge or abandon attempt, and do not launch them from the task worktree after cleanup has begun:
     ```bash
-    tusk skill-run finish <run_id>
+    cd "$TUSK_PRIMARY_CWD"
+    "$TUSK_PRIMARY_BIN" skill-run finish <run_id>
     ```
 
     Then emit the canonical end-of-run summary before handing off to /retro:
     ```bash
-    tusk task-summary <id> --format markdown
+    "$TUSK_PRIMARY_BIN" task-summary <id> --format markdown
     ```
 
     This prints a single markdown block with the task identity, closed reason, total cost, wall/active duration, diff stats (files changed, lines added/removed, commit count), criteria counts, review pass count, and reopen count. Show it verbatim to the user — do not re-render or summarize it. Runs on both the merge and abandon paths; diff stats are filtered to commits that reference `[TASK-<id>]` so shared-branch pollution never appears in the numbers.
 
-    Then run `/retro <id>` immediately — do not ask "shall I run retro?". Pass the task id explicitly so `/retro` attributes cost to the task you just finalized rather than picking up whichever sibling worktree closed last (issue #805). Invoke it to review the session, surface process improvements, and create follow-up tasks.
+    Then run `/retro <id>` immediately from the same stable checkout — do not ask "shall I run retro?". Pass the task id explicitly so `/retro` attributes cost to the task you just finalized rather than picking up whichever sibling worktree closed last (issue #805). Invoke it to review the session, surface process improvements, and create follow-up tasks.
 
 ### Other Subcommands
 

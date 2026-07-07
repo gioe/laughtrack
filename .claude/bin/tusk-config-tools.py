@@ -41,7 +41,7 @@ def cmd_validate(config_path: str) -> int:
     errors = []
 
     # ── Check for unknown top-level keys ──
-    KNOWN_KEYS = {'domains', 'task_types', 'statuses', 'priorities', 'closed_reasons', 'complexity', 'blocker_types', 'criterion_types', 'workflows', 'agents', 'dupes', 'review', 'review_categories', 'review_severities', 'merge', 'retro', 'worktree', 'scope', 'test_command', 'test_command_timeout_sec', 'baseline_min_sample_size', 'domain_test_commands', 'path_test_commands', 'project_type', 'project_libs', 'issue_scoring', 'report_tusk_issue_footer'}
+    KNOWN_KEYS = {'domains', 'task_types', 'statuses', 'priorities', 'closed_reasons', 'complexity', 'blocker_types', 'criterion_types', 'workflows', 'agents', 'dupes', 'review', 'review_categories', 'review_severities', 'merge', 'retro', 'worktree', 'scope', 'test_command', 'test_command_timeout_sec', 'baseline_min_sample_size', 'domain_test_commands', 'path_test_commands', 'init_intent', 'project_type', 'project_libs', 'issue_scoring', 'report_tusk_issue_footer'}
     known_list = ', '.join(sorted(KNOWN_KEYS))
     unknown = set(cfg.keys()) - KNOWN_KEYS
     if unknown:
@@ -86,6 +86,52 @@ def cmd_validate(config_path: str) -> int:
             for k, v in agents.items():
                 if not isinstance(v, str):
                     errors.append(f'"agents.{k}" value must be a string (got {type(v).__name__}: {v!r}).')
+
+    # ── Validate init_intent (optional normalized fresh-project interview record) ──
+    if 'init_intent' in cfg and cfg['init_intent'] is not None:
+        init_intent = cfg['init_intent']
+        if not isinstance(init_intent, dict):
+            errors.append(f'"init_intent" must be an object or null (got {type(init_intent).__name__}).')
+        else:
+            intent_keys = {
+                'audience',
+                'primary_workflows',
+                'platforms',
+                'stack_preferences',
+                'integrations',
+                'data_needs',
+                'quality_priorities',
+                'launch_target',
+                'non_goals',
+                'open_questions',
+                'project_type',
+            }
+            unknown_intent = set(init_intent.keys()) - intent_keys
+            if unknown_intent:
+                known_intent_list = ', '.join(sorted(intent_keys))
+                for k in sorted(unknown_intent):
+                    errors.append(f'Unknown key "init_intent.{k}". Valid init_intent keys: {known_intent_list}')
+            for key in ('audience', 'launch_target', 'project_type'):
+                if key in init_intent and init_intent[key] is not None and not isinstance(init_intent[key], str):
+                    errors.append(f'"init_intent.{key}" must be a string or null (got {type(init_intent[key]).__name__}).')
+            for key in (
+                'primary_workflows',
+                'platforms',
+                'stack_preferences',
+                'integrations',
+                'data_needs',
+                'quality_priorities',
+                'non_goals',
+                'open_questions',
+            ):
+                if key in init_intent:
+                    val = init_intent[key]
+                    if not isinstance(val, list):
+                        errors.append(f'"init_intent.{key}" must be a list (got {type(val).__name__}).')
+                    else:
+                        for i, item in enumerate(val):
+                            if not isinstance(item, str):
+                                errors.append(f'"init_intent.{key}[{i}]" must be a string (got {type(item).__name__}: {item!r}).')
 
     # ── Validate dupes (object with specific sub-keys) ──
     if 'dupes' in cfg:
@@ -411,10 +457,39 @@ def cmd_validate_triggers(config_path: str, db_path: str) -> int:
     return 1
 
 
+def cmd_validate_journal_mode(db_path: str) -> int:
+    """Warn when the live task DB has drifted out of WAL mode.
+
+    The check is advisory: SQLite can legitimately keep rollback-journal mode
+    on filesystems that do not support WAL's shared-memory sidecar.
+    """
+    if not os.path.exists(db_path):
+        return 0
+
+    conn = open_sqlite(db_path)
+    try:
+        row = conn.execute("PRAGMA journal_mode").fetchone()
+    finally:
+        conn.close()
+
+    mode = str(row[0]).lower() if row and row[0] is not None else "unknown"
+    if mode == "wal":
+        return 0
+
+    print(
+        f"WARNING: SQLite journal_mode is {mode}, expected wal. "
+        "Rollback-journal mode can reintroduce database lock contention under "
+        "parallel worktree sessions. If this filesystem supports WAL, repair "
+        "with: sqlite3 \"$(tusk path)\" \"PRAGMA journal_mode = WAL;\"",
+        file=sys.stderr,
+    )
+    return 0
+
+
 def main() -> int:
     if len(sys.argv) < 3:
         print(
-            f'Usage: {sys.argv[0]} <validate|gen-triggers|validate-triggers> <config_path> [db_path]',
+            f'Usage: {sys.argv[0]} <validate|gen-triggers|validate-triggers|validate-journal-mode> <config_path> [db_path]',
             file=sys.stderr,
         )
         return 1
@@ -434,9 +509,17 @@ def main() -> int:
             )
             return 1
         return cmd_validate_triggers(config_path, sys.argv[3])
+    elif subcmd == 'validate-journal-mode':
+        if len(sys.argv) < 4:
+            print(
+                f'Usage: {sys.argv[0]} validate-journal-mode <config_path> <db_path>',
+                file=sys.stderr,
+            )
+            return 1
+        return cmd_validate_journal_mode(sys.argv[3])
     else:
         print(
-            f'Unknown subcommand: {subcmd!r}. Expected validate, gen-triggers, or validate-triggers.',
+            f'Unknown subcommand: {subcmd!r}. Expected validate, gen-triggers, validate-triggers, or validate-journal-mode.',
             file=sys.stderr,
         )
         return 1

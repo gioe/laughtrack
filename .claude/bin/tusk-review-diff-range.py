@@ -48,13 +48,13 @@ consistent with the range.
 
 ``diff_lines`` counts every newline in the raw ``git diff`` output (legacy
 field, unchanged for backward compatibility). ``diff_lines_meaningful``
-subtracts the per-file sections of generated review-noise files: lockfiles
+subtracts the per-file sections of auto-generated lockfiles
 (``package-lock.json``, ``yarn.lock``, ``pnpm-lock.yaml``, ``Cargo.lock``,
 ``go.sum``, and friends — see ``GENERATED_LOCKFILES`` in
-``tusk-git-helpers.py``) plus generated API clients. Consumers driving
-inline-vs-agent routing (e.g. ``skills/review-commits/SKILL.md``) should
-prefer the meaningful count so generated churn does not push a small
-hand-authored feature into agent-based review.
+``tusk-git-helpers.py``). Consumers driving inline-vs-agent routing
+decisions (e.g. ``skills/review-commits/SKILL.md``) should prefer the
+meaningful count so a single ``npm install`` does not push a small feature
+into agent-based review (issue #761).
 
 Exit codes:
     0 — success (JSON on stdout)
@@ -77,9 +77,7 @@ dumps = _json_lib.dumps
 task_grep_arg = _git_helpers.task_grep_arg
 find_task_commits = _git_helpers.find_task_commits
 filter_commits_by_block_overlap = _git_helpers.filter_commits_by_block_overlap
-filter_generated_review_noise_diff_sections = (
-    _git_helpers.filter_generated_review_noise_diff_sections
-)
+filter_lockfile_diff_sections = _git_helpers.filter_lockfile_diff_sections
 get_connection = _db_lib.get_connection
 
 SUMMARY_CHARS = 120
@@ -250,10 +248,10 @@ def _task_started_at(db_path: str | None, task_id: int) -> str | None:
 
 def _count_meaningful_lines(diff_out: str) -> int:
     """Return the newline count of *diff_out* after stripping every per-file
-    section that belongs to generated review-noise files."""
+    section that belongs to an auto-generated lockfile (issue #761)."""
     if not diff_out:
         return 0
-    return filter_generated_review_noise_diff_sections(diff_out).count("\n")
+    return filter_lockfile_diff_sections(diff_out).count("\n")
 
 
 def _find_task_feature_worktree(

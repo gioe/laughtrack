@@ -30,6 +30,14 @@ reject_shell_metacharacters = _git_helpers.reject_shell_metacharacters
 
 _pricing_lib = None  # populated lazily by _load_pricing_lib()
 
+SPEC_GAP_TYPES = (
+    "implementation_failure",
+    "ambiguous_spec",
+    "missing_criterion",
+    "missing_verification",
+    "design_discovery",
+)
+
 
 def _reject_review_note(note: str | None) -> str | None:
     """Return a diagnostic if ``note`` carries shell-substitution metacharacters,
@@ -40,6 +48,21 @@ def _reject_review_note(note: str | None) -> str | None:
         return None
     ok, diagnostic = reject_shell_metacharacters(note, subject="review note")
     return None if ok else diagnostic
+
+
+def _validate_spec_gap_type(value: str | None) -> bool:
+    return value is None or value in SPEC_GAP_TYPES
+
+
+def _format_spec_gap_counts(comments: list[sqlite3.Row]) -> str | None:
+    counts: dict[str, int] = {}
+    for comment in comments:
+        gap = comment["spec_gap_type"]
+        if gap:
+            counts[gap] = counts.get(gap, 0) + 1
+    if not counts:
+        return None
+    return ", ".join(f"{gap}={counts[gap]}" for gap in sorted(counts))
 
 
 def _load_pricing_lib():
@@ -312,6 +335,14 @@ def cmd_add_comment(args: argparse.Namespace, db_path: str, config_path: str) ->
         if not ok:
             print(diagnostic, file=sys.stderr)
             return 1
+    spec_gap_type = getattr(args, "spec_gap_type", None)
+    if not _validate_spec_gap_type(spec_gap_type):
+        print(
+            f"Error: Invalid spec-gap type '{spec_gap_type}'. "
+            f"Valid: {', '.join(SPEC_GAP_TYPES)}",
+            file=sys.stderr,
+        )
+        return 2
 
     conn = get_connection(db_path)
     try:
@@ -344,8 +375,8 @@ def cmd_add_comment(args: argparse.Namespace, db_path: str, config_path: str) ->
 
         conn.execute(
             "INSERT INTO review_comments"
-            " (review_id, file_path, line_start, line_end, category, severity, comment, resolution)"
-            " VALUES (?, ?, ?, ?, ?, ?, ?, NULL)",
+            " (review_id, file_path, line_start, line_end, category, severity, comment, resolution, spec_gap_type)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?)",
             (
                 args.review_id,
                 args.file,
@@ -354,6 +385,7 @@ def cmd_add_comment(args: argparse.Namespace, db_path: str, config_path: str) ->
                 args.category,
                 args.severity,
                 args.comment,
+                spec_gap_type,
             ),
         )
         conn.commit()
@@ -371,8 +403,9 @@ def cmd_add_comment(args: argparse.Namespace, db_path: str, config_path: str) ->
     if args.category or args.severity:
         parts = [x for x in [args.category, args.severity] if x]
         cat_sev = f" [{'/'.join(parts)}]"
+    gap = f" [spec-gap:{spec_gap_type}]" if spec_gap_type else ""
 
-    print(f"Added comment #{cid} to review #{args.review_id}{loc}{cat_sev}: {args.comment[:60]}")
+    print(f"Added comment #{cid} to review #{args.review_id}{loc}{cat_sev}{gap}: {args.comment[:60]}")
     return 0
 
 
@@ -399,7 +432,7 @@ def cmd_list(args: argparse.Namespace, db_path: str) -> int:
         if review_ids:
             placeholders = ",".join("?" * len(review_ids))
             for c in conn.execute(
-                f"SELECT id, review_id, file_path, line_start, category, severity, comment, resolution, resolution_note"
+                f"SELECT id, review_id, file_path, line_start, category, severity, comment, resolution, resolution_note, spec_gap_type"
                 f" FROM review_comments WHERE review_id IN ({placeholders}) ORDER BY review_id, category, id",
                 review_ids,
             ).fetchall():
@@ -425,6 +458,7 @@ def cmd_list(args: argparse.Namespace, db_path: str) -> int:
                         "comment": c["comment"],
                         "resolution": c["resolution"],
                         "resolution_note": c["resolution_note"],
+                        "spec_gap_type": c["spec_gap_type"],
                     }
                     for c in all_comments.get(rev["id"], [])
                 ],
@@ -463,12 +497,13 @@ def cmd_list(args: argparse.Namespace, db_path: str) -> int:
                 if c["line_start"]:
                     loc += f":{c['line_start']}"
             sev = f"[{c['severity']}] " if c["severity"] else ""
+            gap = f"[spec-gap:{c['spec_gap_type']}] " if c["spec_gap_type"] else ""
             if c["resolution"] is not None:
                 note = f": {c['resolution_note']}" if c["resolution_note"] else ""
                 res = f" ({c['resolution']}{note})"
             else:
                 res = ""
-            print(f"    #{c['id']}{loc}: {sev}{c['comment']}{res}")
+            print(f"    #{c['id']}{loc}: {sev}{gap}{c['comment']}{res}")
 
         print()
 
@@ -663,6 +698,7 @@ def cmd_validate_comments(args: argparse.Namespace, db_path: str) -> int:
             "dismissed": [{"comment_id", "file_path"}, ...],
             "dismissed_general": [{"comment_id", "cited_paths"}, ...],
             "dismissed_symbol_mismatch": [{"comment_id", "file_path", "line_start", "symbol"}, ...],
+            "flagged_symbol_mismatch": [{"comment_id", "file_path", "line_start", "symbol"}, ...],
             "out_of_diff_real": [{"comment_id", "cited_paths", "existing_paths"}, ...],
             "in_diff": int,                  # file_path values matched
             "general": int,                  # null-file_path comments preserved
@@ -748,6 +784,7 @@ def cmd_validate_comments(args: argparse.Namespace, db_path: str) -> int:
     dismissed = []
     dismissed_general = []
     dismissed_symbol_mismatch = []
+    flagged_symbol_mismatch = []
     out_of_diff_real = []
     in_diff = 0
     general = 0
@@ -810,29 +847,14 @@ def cmd_validate_comments(args: argparse.Namespace, db_path: str) -> int:
             )
             if mismatch:
                 symbol, cited_line = mismatch
-                note = (
-                    f"validation: cited line {c['line_start']} in '{fp}' "
-                    f"does not contain referenced symbol '{symbol}' "
-                    f"(line text: {cited_line!r}); symbol appears elsewhere "
-                    f"in the same file (issue #1012 line-symbol-mismatch guard)"
-                )
-                conn = get_connection(db_path)
-                try:
-                    conn.execute(
-                        "UPDATE review_comments SET resolution = 'dismissed',"
-                        " resolution_note = ?, updated_at = datetime('now')"
-                        " WHERE id = ?",
-                        (note, c["id"]),
-                    )
-                    conn.commit()
-                finally:
-                    conn.close()
-                dismissed_symbol_mismatch.append({
+                flagged_symbol_mismatch.append({
                     "comment_id": c["id"],
                     "file_path": fp,
                     "line_start": c["line_start"],
                     "symbol": symbol,
+                    "cited_line": cited_line,
                 })
+                in_diff += 1
                 continue
             in_diff += 1
             continue
@@ -861,6 +883,7 @@ def cmd_validate_comments(args: argparse.Namespace, db_path: str) -> int:
         "dismissed": dismissed,
         "dismissed_general": dismissed_general,
         "dismissed_symbol_mismatch": dismissed_symbol_mismatch,
+        "flagged_symbol_mismatch": flagged_symbol_mismatch,
         "out_of_diff_real": out_of_diff_real,
         "in_diff": in_diff,
         "general": general,
@@ -884,6 +907,14 @@ def cmd_resolve(args: argparse.Namespace, db_path: str) -> int:
     if diag is not None:
         print(diag, file=sys.stderr)
         return 1
+    spec_gap_type = getattr(args, "spec_gap_type", None)
+    if not _validate_spec_gap_type(spec_gap_type):
+        print(
+            f"Error: Invalid spec-gap type '{spec_gap_type}'. "
+            f"Valid: {', '.join(SPEC_GAP_TYPES)}",
+            file=sys.stderr,
+        )
+        return 2
 
     conn = get_connection(db_path)
     try:
@@ -900,6 +931,9 @@ def cmd_resolve(args: argparse.Namespace, db_path: str) -> int:
         if args.note is not None:
             set_clauses.append("resolution_note = ?")
             params.append(args.note or None)
+        if spec_gap_type is not None:
+            set_clauses.append("spec_gap_type = ?")
+            params.append(spec_gap_type or None)
         params.append(args.comment_id)
         conn.execute(
             f"UPDATE review_comments SET {', '.join(set_clauses)} WHERE id = ?",
@@ -910,7 +944,8 @@ def cmd_resolve(args: argparse.Namespace, db_path: str) -> int:
         conn.close()
 
     note_str = f" ({args.note})" if args.note else ""
-    print(f"Comment #{args.comment_id} marked '{args.resolution}'{note_str}: {comment['comment'][:60]}")
+    gap = f" [spec-gap:{spec_gap_type}]" if spec_gap_type else ""
+    print(f"Comment #{args.comment_id} marked '{args.resolution}'{note_str}{gap}: {comment['comment'][:60]}")
     return 0
 
 
@@ -1253,7 +1288,7 @@ def cmd_summary(args: argparse.Namespace, db_path: str) -> int:
             return 0
 
         comments = conn.execute(
-            "SELECT id, file_path, line_start, line_end, category, severity, comment, resolution, resolution_note"
+            "SELECT id, file_path, line_start, line_end, category, severity, comment, resolution, resolution_note, spec_gap_type"
             " FROM review_comments WHERE review_id = ? ORDER BY severity, category, id",
             (review["id"],),
         ).fetchall()
@@ -1282,6 +1317,9 @@ def cmd_summary(args: argparse.Namespace, db_path: str) -> int:
     resolved_comments = [c for c in comments if c["resolution"] is not None]
 
     print(f"Findings: {len(comments)} total, {len(open_comments)} open, {len(resolved_comments)} resolved")
+    spec_gap_counts = _format_spec_gap_counts(comments)
+    if spec_gap_counts:
+        print(f"Spec gaps: {spec_gap_counts}")
     print()
 
     if open_comments:
@@ -1296,7 +1334,8 @@ def cmd_summary(args: argparse.Namespace, db_path: str) -> int:
                         loc += f"-{c['line_end']}"
             cat = f"[{c['category']}]" if c["category"] else ""
             sev = f"[{c['severity']}]" if c["severity"] else ""
-            tags = " ".join(x for x in [cat, sev] if x)
+            gap = f"[spec-gap:{c['spec_gap_type']}]" if c["spec_gap_type"] else ""
+            tags = " ".join(x for x in [cat, sev, gap] if x)
             tags_str = f" {tags}" if tags else ""
             print(f"  #{c['id']}{loc}{tags_str}: {c['comment']}")
         print()
@@ -1310,7 +1349,8 @@ def cmd_summary(args: argparse.Namespace, db_path: str) -> int:
                 if c["line_start"]:
                     loc += f":{c['line_start']}"
             note = f" — {c['resolution_note']}" if c["resolution_note"] else ""
-            print(f"  #{c['id']}{loc} ({c['resolution']}{note}): {c['comment']}")
+            gap = f" [spec-gap:{c['spec_gap_type']}]" if c["spec_gap_type"] else ""
+            print(f"  #{c['id']}{loc}{gap} ({c['resolution']}{note}): {c['comment']}")
         print()
 
     return 0
@@ -1362,6 +1402,12 @@ def _main_once():
     add_comment_p.add_argument("--line-end", type=int, default=None, help="Ending line number")
     add_comment_p.add_argument("--category", default=None, help="Finding category (e.g., must_fix, suggest)")
     add_comment_p.add_argument("--severity", default=None, help="Severity (e.g., critical, major, minor)")
+    add_comment_p.add_argument(
+        "--spec-gap-type",
+        choices=SPEC_GAP_TYPES,
+        default=None,
+        help="Optional spec-gap classification: implementation_failure, ambiguous_spec, missing_criterion, missing_verification, or design_discovery",
+    )
 
     # list
     list_p = subparsers.add_parser("list", allow_abbrev=False, help="List reviews and findings for a task")
@@ -1375,6 +1421,12 @@ def _main_once():
         "--note",
         default=None,
         help="Optional rationale stored alongside the resolution (e.g. 'Tracked as TASK-42')",
+    )
+    resolve_p.add_argument(
+        "--spec-gap-type",
+        choices=SPEC_GAP_TYPES,
+        default=None,
+        help="Set or update the comment's spec-gap classification while resolving it.",
     )
 
     # approve

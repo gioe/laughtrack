@@ -102,26 +102,70 @@ No signals found (fresh project) → skip scanning, proceed to **Step 2e** below
 
 ### 2e: Fresh-project interview (no codebase signals found)
 
-Ask the user these three questions in a single message:
+Ask the user intent questions before proposing domains, agents, project type,
+or directory scaffolding. Prefer the helper contract so the interview stays
+stable across Claude, Codex, and CLI flows:
+
+```bash
+tusk init-intent questions
+```
+
+Ask the returned questions in a single message:
 
 > **Setting up a fresh project — a few quick questions to suggest the right domains and agents:**
 >
-> 1. **What kind of project are you building?**
->    web app · mobile app · CLI tool · API / backend service · data pipeline / ML · documentation site · library / package · monorepo · other
->
-> 2. **What languages or frameworks are you planning to use?**
->    (Free text — e.g., "React + FastAPI", "Go CLI", "Next.js + Prisma + TypeScript")
->
-> 3. **Which areas of work do you expect? (pick all that apply)**
->    UI / frontend · backend / API · database · infrastructure / CI-CD · data / ML · mobile · docs · CLI · auth · other
+> 1. **Who is this project for, and what problem should it solve?**
+> 2. **What are the first user or system workflows that should work end to end?**
+> 3. **Which platforms or surfaces matter at launch?**
+> 4. **What languages, frameworks, or architecture preferences should shape the bootstrap?**
+> 5. **Which external systems, auth providers, APIs, or services should it integrate with?**
+> 6. **Which quality priorities should influence the upfront software?**
 
-**Mobile follow-up — fires only when Q1 is "mobile app".** Ask this single question before continuing to Q2/Q3 mapping:
+Then call:
 
-> **Which platform — iOS, Android, or cross-platform (React Native / Flutter)?**
+```bash
+tusk init-intent follow-ups --answers '<json object from the answers so far>'
+```
 
-Map the answer to `project_type` using the table below. The Q1 "mobile app" row in the project_type table uses this answer to pick the right key.
+Ask only the returned follow-ups. Do not run a long fixed questionnaire. Today
+the helper asks for a mobile target only when the user said "mobile" without
+naming iOS, Android, React Native, or Flutter; it asks for core data objects
+only for backend/API-style projects that have no data-model signal yet.
 
-Map answers to domain and agent suggestions using these rules. Evaluate all three answers together:
+Finally normalize the answers and keep the returned `intent` with the rest of
+the confirmed setup values:
+
+```bash
+tusk init-intent normalize --answers '<json object>'
+```
+
+Use the normalized `init_intent` as the durable source for later bootstrap
+planning. Its stable fields are: `audience`, `primary_workflows`, `platforms`,
+`stack_preferences`, `integrations`, `data_needs`, `quality_priorities`,
+`launch_target`, `non_goals`, `open_questions`, and `project_type`.
+
+Infer the project archetype before proposing routing or scaffolding defaults:
+
+```bash
+tusk init-intent archetype \
+  --answers '<normalized intent json>' \
+  --scan '<init-scan-codebase json, when available>'
+```
+
+Surface the returned `label` and concise `rationale` to the user before using
+the defaults:
+
+> Inferred archetype: **B2B dashboard** — B2B/dashboard workflow and integration signal found; Integrations: Salesforce, Okta.
+
+Ask whether to accept it or override with one of the known IDs:
+`consumer_ios_app`, `internal_tool`, `b2b_dashboard`, `api_service`,
+`content_site`, `library`, `data_pipeline`, `monorepo`, or `ambiguous`.
+If the user overrides, rerun the helper with `--override <id>`. Keep the
+normalized `init_intent` unchanged; the archetype only drives defaults for
+domains, agents, pillars, utility modules, and first vertical-slice tasks.
+
+Map answers to domain and agent suggestions using these rules. Evaluate the
+full intent record together:
 
 | Signal | Domain | Agent |
 |---|---|---|
@@ -137,7 +181,8 @@ Map answers to domain and agent suggestions using these rules. Evaluate all thre
 
 Always include `general` agent regardless of answers.
 
-Also derive a `project_type` key from question 1 (and the mobile follow-up, when Q1 = "mobile app") using this table and store it for Step 6:
+Also derive a `project_type` key from the intent record using this table and
+store it for Step 6:
 
 | Answer | `project_type` |
 |---|---|
@@ -410,7 +455,28 @@ tusk init-write-config \
 
 Pass only the flags for values the user explicitly confirmed; keys not passed are carried forward from the existing config unchanged. To clear `test_command`, pass `--test-command ''`. To set `project_type` to null, pass `--project-type ''`.
 
-**Auto-populated `project_libs`:** When `--project-type` is a known built-in (`ios_app` or `python_service`) and `--project-libs` is not passed, the command merges the matching `project_libs` entry from `config.default.json` into the config (preserving any existing `project_libs` entries). Step 8.5 then uses this to seed bootstrap tasks. To override, pass `--project-libs '{"<type>":{"repo":"<owner>/<repo>","ref":"<ref>"}}'` — it takes full precedence over auto-population.
+**Auto-populated `project_libs`:** When `--project-libs` is not passed,
+`init-write-config` runs the bootstrap selector over the confirmed
+`project_type`, `init_intent`, inferred archetype, platforms, and feature
+signals. Today this preserves the old built-ins (`ios_app` →
+`gioe/ios-libs`, `python_service` → `gioe/python-libs`) while leaving clean
+optional hooks for future `android_app`, `web_app`, and `backend` packs. To
+inspect selection directly:
+
+```bash
+tusk init-bootstrap-select \
+  --project-type 'ios_app' \
+  --intent '<normalized init_intent json>' \
+  --archetype '<archetype json>'
+```
+
+The selector returns `project_libs`, `selected_modules`, and
+`skipped_modules`. A matching optional pack whose repo does not exist yet is
+reported under `skipped_modules` instead of hard-failing. Starter pack examples
+and future-repo contracts live in the Tusk source repo under
+`docs/bootstrap-packs/`; use those as the contract reference when creating or
+updating utility repos. To override all
+auto-selection, pass `--project-libs '{"<type>":{"repo":"<owner>/<repo>","ref":"<ref>"}}'`.
 
 The command returns JSON: `{"success": true, "config_path": "...", "backed_up": true}` on success.
 
@@ -473,11 +539,100 @@ This reads `project_libs` from config, fetches each lib's `tusk-bootstrap.json` 
 ```json
 {
   "libs": [
-    { "name": "ios_app", "repo": "gioe/ios-libs", "tasks": [...], "manifest_files": [...], "error": null },
-    { "name": "bad_lib", "repo": "owner/repo", "tasks": [], "manifest_files": [], "error": "404: tusk-bootstrap.json not found" }
+    {
+      "name": "ios_app",
+      "repo": "gioe/ios-libs",
+      "manifest_schema_version": 2,
+      "tasks": [...],
+      "modules": [...],
+      "manifest_files": [...],
+      "error": null
+    },
+    {
+      "name": "bad_lib",
+      "repo": "owner/repo",
+      "manifest_schema_version": 1,
+      "tasks": [],
+      "modules": [],
+      "manifest_files": [],
+      "error": "404: tusk-bootstrap.json not found"
+    }
   ]
 }
 ```
+
+Before writing starter files or seeding bootstrap tasks, build and present a
+single editable plan:
+
+```bash
+tusk init-bootstrap-plan \
+  --picked '<confirmed init values json>' \
+  --archetype '<inferred archetype json>' \
+  --bootstrap '<init-fetch-bootstrap json>' \
+  --scaffold-spec '<confirmed scaffold spec json>'
+```
+
+The plan shows confirmed intent/config values, inferred archetype, selected
+utility repos, selected modules, skipped optional modules, files to create or
+append, context atoms, pillars, glossary entries, bootstrap tasks, and generated
+first vertical-slice tasks to create. Each selected module includes `matched`
+reasons such as `project_type=ios_app`, `platform=ios`, or `requires=swiftui`.
+Generated vertical-slice tasks connect the user's first workflow to behavior,
+data, integrations, tests, and docs.
+
+Present the plan as one review step:
+
+> **Bootstrap plan ready.**
+>
+> Options: **accept** · **remove module** (provide module id) · **add module**
+> (provide module JSON) · **pick tasks** (provide generated task ids) ·
+> **remove task** (provide generated task id) · **add/edit task** (provide task
+> JSON) · **skip materialization**
+
+- **accept** — proceed with the planned materialization and task seeding.
+- **remove module** — rebuild the plan with `--plan-remove-module <id>`, then
+  present it again.
+- **add module** — rebuild the plan with `--plan-add-module '<json object>'`,
+  then present it again.
+- **pick tasks** — rebuild the plan with `--plan-task-mode pick` plus
+  repeatable `--plan-task-id <id>` values.
+- **remove task** — rebuild the plan with `--plan-remove-task <id>`.
+- **add/edit task** — rebuild the plan with `--plan-add-task '<json object>'`;
+  for edits, remove the generated task id and add the edited replacement.
+- **skip materialization** — proceed with config only; do not scaffold
+  directories, write manifest files, seed context/pillars/glossary, or create
+  bootstrap or generated plan tasks.
+
+For non-interactive `tusk init-wizard` calls, materialization side effects such
+as `--scaffold-spec`, `--seed-bootstrap-tasks all`, or
+`--seed-plan-tasks all` require an explicit `--plan-action accept` or
+`--plan-action skip-materialization`. Use `--plan-only` to emit the plan and
+exit before any mutation. Accepted plan tasks are inserted only when the plan
+materializes and `--seed-plan-tasks all` is passed.
+
+When the plan is accepted, seed durable memory from it before writing starter
+assets or creating bootstrap tasks:
+
+```bash
+tusk init-apply-memory --plan '<confirmed bootstrap plan json>' --task-id <task_id>
+```
+
+The applier inserts context atoms with `source=agent_handoff`, adds design
+pillars, and adds glossary entries. It derives additional context from the
+confirmed `init_intent`: audience and workflows become `memory`, non-goals
+become `assumption`, open questions become `question`, and quality priorities
+become `decision` context plus pillar suggestions. It is idempotent: identical
+task/type/content context rows, existing pillar names, and existing glossary
+terms are reported as skipped rather than duplicated. For `tusk init-wizard`,
+pass `--memory-task-id <id>` with `--plan-action accept` to apply this memory.
+Do not apply memory for `--plan-only` or `--plan-action skip-materialization`.
+
+Legacy task-only manifests remain valid. Rich manifests may additionally return
+`modules`, where each module describes metadata, applicability rules,
+required/optional files, append operations, dependencies, pillar suggestions,
+glossary terms, context atoms, recommended tasks, and verification hints. This
+step currently surfaces module data for bootstrap planning; deterministic file
+writing still uses the top-level `manifest_files` block below.
 
 If `libs` is empty, skip this step silently.
 
@@ -491,7 +646,7 @@ For each lib entry:
   tusk init-write-manifest-files --spec '<json array of manifest_files>'
   ```
 
-  This creates files that don't exist yet (`mode: create_only`, the default) and idempotently appends lines to existing files (`mode: append_if_missing`). The writer returns `{wrote: [...], skipped: [...], summary: "wrote N files, skipped M existing"}` — surface the `summary` line to the user before the seed-tasks prompt below.
+  This creates files that don't exist yet (`mode: create_only`, the default), idempotently appends lines to existing files (`mode: append_if_missing`), and safely updates marker-bounded managed sections (`mode: marker_block` with `begin_marker` and `end_marker`). Pass `--intent-file <confirmed-intent.json>` when manifest content uses `{{ dotted.path }}` template variables from the confirmed init intent. Use `--dry-run` when previewing a plan: it reports the same writes, skips, and conflicts without touching the filesystem. The writer returns `{wrote: [...], skipped: [...], conflicts: [...], summary: "wrote N files, skipped M existing"}` — surface the `summary` line and any conflicts to the user before the seed-tasks prompt below.
 
 - If `error` is null and `tasks` is non-empty, present the task list to the user:
 

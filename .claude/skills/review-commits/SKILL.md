@@ -76,10 +76,10 @@ On success the helper prints a single JSON object with `review_id`, `task_id`, `
 REVIEW_ID=$(printf '%s' "$REVIEW_BEGIN_JSON" | jq -r .review_id)
 DIFF_RANGE=$(printf '%s' "$REVIEW_BEGIN_JSON" | jq -r .range)
 DIFF_LINES=$(printf '%s' "$REVIEW_BEGIN_JSON" | jq -r .diff_lines)
-# diff_lines_meaningful subtracts generated review-noise sections:
-# lockfiles (package-lock.json, yarn.lock, Cargo.lock, go.sum, ...)
-# and generated API clients. Use it for inline-vs-agent routing.
-# Falls back to diff_lines if the field is absent from older callers.
+# diff_lines_meaningful subtracts auto-generated lockfile sections
+# (package-lock.json, yarn.lock, Cargo.lock, go.sum, ...) and is the value
+# to use when deciding inline-vs-agent routing (issue #761). Falls back to
+# diff_lines if the field is absent from older callers.
 DIFF_LINES_MEANINGFUL=$(printf '%s' "$REVIEW_BEGIN_JSON" | jq -r '.diff_lines_meaningful // .diff_lines')
 ```
 
@@ -96,7 +96,7 @@ Only when the diff is non-empty and a review has been started in Step 3, proceed
 > **Important:** Background reviewer agents run in an **isolated sandbox** and do **not** inherit the parent session's tool permissions. Approving Bash in this conversation does not grant Bash access to spawned agents. The `permissions.allow` block in `.claude/settings.json` is the only reliable way to grant tool access in agent sandboxes — it applies to all subagents spawned from this project, regardless of what is auto-approved in the current session.
 
 **Inline-review path (no agent spawned).** Use the inline path when *any* of the following is true:
-- The diff is small — `$DIFF_LINES_MEANINGFUL` is below ~200 (auto-generated lockfile and generated API-client sections are already subtracted from this count, so a feature with ~50 lines of source plus a 1450-line `package-lock.json` or 350 lines of regenerated client code is routed inline rather than to an agent) — or it contains only non-code files (`.md`, `.json`, `.yaml`).
+- The diff is small — `$DIFF_LINES_MEANINGFUL` is below ~200 (auto-generated lockfile sections are already subtracted from this count, so a feature with ~50 lines of source plus a 1450-line `package-lock.json` is routed inline rather than to an agent) — or it contains only non-code files (`.md`, `.json`, `.yaml`).
 - The diff has exactly one non-`.md`/`.json`/`.yaml`/`.yml` file AND that file is new at the diff base (no prior history — `git diff --name-status "$DIFF_RANGE"` reports `A` for it) AND `$DIFF_LINES_MEANINGFUL` is below ~400 (issue #835). A single self-contained new script is cognitively far easier to review inline than a 200-line cross-file refactor, because there is no surrounding behavior to cross-check. Example: a new `apps/scraper/bin/probe-tixr` Python file dominated by docstrings and `--help` text (~90% string content), plus a 22-line Makefile target and a 26-line `CONTRIBUTING.md` prose addition — totals ~316 meaningful lines but contains zero cross-file refactor signals and routes inline rather than to an agent.
 - `review.reviewer` is absent from config (the review record is unassigned and no agent is configured to handle it).
 - Tusk is running under a Codex install AND the user did not explicitly opt into subagent-based review for this `/review-commits` invocation. Codex session policy disallows spawning subagents unless the operator asks for one, so the inline path is the safe default — it keeps the real-diff review workflow without violating session policy.
@@ -125,6 +125,9 @@ tusk review request-changes <review_id> --model <your_model_id>
 # Then add comments as needed:
 tusk review add-comment <review_id> "<description>" --file "<file>" --line-start <line> --category <category> --severity <severity>
 ```
+
+Classify findings with `--spec-gap-type` when the review reveals why the finding exists:
+`implementation_failure`, `ambiguous_spec`, `missing_criterion`, `missing_verification`, or `design_discovery`. Use `implementation_failure` when the task spec was adequate and the code missed it; use the other four values when the task itself needs stronger handoff context, criteria, verification, or decomposition.
 
 After recording the inline decision, skip directly to Step 7.
 
@@ -190,18 +193,17 @@ Wait for the reviewer agent to finish. The agent was spawned with `run_in_backgr
 
 No active polling required — the runtime delivers a notification when the background agent exits or is killed. When it arrives, fall through to the **Resolve the verdict** sub-step below. The notification may carry `status="failed"` if the runtime watchdog killed the agent before it could post a verdict (e.g. `summary: "Agent stalled: no progress for 600s (stream watchdog did not recover)"`); that case is handled by the first branch under "Resolve the verdict" and is distinct from the orchestrator-side 2.5min stall fallback below — the orchestrator's stall deadline only fires when *no* notification arrives at all.
 
-**Stall detection (no notification within ~2.5 min):**
+**Stall detection (no completion notification before the adaptive wait deadline):**
 
-If you have been waiting for the agent without a completion notification for ~2.5 minutes (matching the previous `STALL_THRESHOLD = 5 × 30s` semantics), the agent may be looping or running a long-running command. Use a short-sleep until-loop — the runtime sleep guard allows `sleep 2` inside an `until` body — that exits as soon as `tusk review status` returns a terminal verdict OR the wall-clock deadline elapses:
+If you have been waiting for the agent without a completion notification, wait for a terminal review verdict using `tusk review-wait`. Pass `$DIFF_LINES_MEANINGFUL` so large diffs get a longer deadline before the orchestrator treats the missing notification as a stall; the helper keeps the legacy 150s wait for small diffs and scales upward for larger ones. It exits as soon as `tusk review status` returns a terminal verdict OR the adaptive wall-clock deadline elapses:
 
 ```bash
-DEADLINE=$(($(date +%s) + 150))
-until [ "$(tusk review status <task_id> | jq -r .status)" != "pending" ] || [ "$(date +%s)" -ge "$DEADLINE" ]; do
-  sleep 2
-done
+WAIT_JSON=$(tusk review-wait "$REVIEW_ID" --diff-lines-meaningful "$DIFF_LINES_MEANINGFUL")
 ```
 
-After the loop exits, fall through to the **Resolve the verdict** sub-step.
+Treat this adaptive deadline as the normal patience budget, not as an invitation to keep waiting on visible-but-glacial progress. The reviewer-agent path also has a hard wall-clock cap: **twice the adaptive `review-wait` deadline, capped at 15 minutes from `SPAWN_TS`**. For an 825-line meaningful diff, the adaptive wait is 210s, so the hard cap is 420s; for very large diffs, never exceed 15 minutes. Once the cap is reached and no verdict exists, the orchestrator MUST stop the reviewer agent and go inline even if `TaskOutput` shows recent progress.
+
+After `review-wait` exits, fall through to the **Resolve the verdict** sub-step. The helper's `timed_out` field is diagnostic context only; the authoritative branch below still comes from re-reading `tusk review status` and, when still pending, checking `TaskOutput` for whether the agent has completed, failed, or is still running. Do not wait through repeated wake cycles after the hard cap; visible progress without a verdict is still a review failure once the cap expires.
 
 **Resolve the verdict:**
 
@@ -238,14 +240,14 @@ Parse the JSON.
     Run `tusk upgrade` to propagate the required `permissions.allow` entries if they are missing from `.claude/settings.json`. **Cost note:** the row's `cost_dollars` is auto-computed from the orchestrator's transcript window and reflects only orchestrator-side spend (the agent never recorded a verdict, so its API tokens cannot be attributed via the normal flow). Unlike the runtime-kill and stall branches — where the agent was killed or is still mid-run and its in-progress JSONL is unsafe to aggregate — the silent agent here **did exit cleanly**, so its JSONL transcript is complete and safe to read: after recording the verdict, **attempt the agent-cost correction below** to override the row with the agent's actual spend.
 
   **Agent is still running** after the stall deadline elapsed:
-  - **Do not auto-approve with an empty verdict.** A stalled agent has posted no verdict and may have inspected none of the diff, so auto-approving would convert a review failure into a green review — the same fail-safe gap issue #1065 closed for the runtime-kill branch above. Instead, **fall back to inline review**: read the diff yourself, evaluate it against the reviewer focus area, then record `tusk review approve` or `tusk review request-changes` plus `tusk review add-comment` exactly as the inline-review path does. Pass `--model <your_model_id>` (the orchestrator's own ID) since the orchestrator, not the stalled agent, is closing this review. Carry the stall context in the verdict note for audit; the verdict itself is backed by your own read of the diff:
+  - If the hard wall-clock cap has not elapsed yet, you may wait only until the cap. Do not reset the budget because the agent appears to be making slow progress. If the cap has elapsed, use `TaskStop` on the reviewer-agent task ID before recording the inline verdict. **Do not auto-approve with an empty verdict.** A stalled or cap-stopped agent has posted no verdict and may have inspected none of the diff, so auto-approving would convert a review failure into a green review — the same fail-safe gap issue #1065 closed for the runtime-kill branch above. Instead, **fall back to inline review**: read the diff yourself, evaluate it against the reviewer focus area, then record `tusk review approve` or `tusk review request-changes` plus `tusk review add-comment` exactly as the inline-review path does. Pass `--model <your_model_id>` (the orchestrator's own ID) since the orchestrator, not the stalled agent, is closing this review. Carry the stall and cap-stop context in the verdict note for audit; the verdict itself is backed by your own read of the diff:
     ```bash
     # APPROVE example (no blocking issues after reading the diff):
-    tusk review approve <review_id> --model <your_model_id> --note "Inline review (stall fallback): reviewer agent ran ≥2.5 min without posting a verdict (possibly looping or running a long command such as a full test suite). Orchestrator read the diff inline and found no blocking issues. To prevent stalls, ensure the agent sandbox has the required permissions.allow entries: Bash(git diff:*), Bash(git remote:*), Bash(git symbolic-ref:*), Bash(git branch:*), Bash(tusk review:*)"
+    tusk review approve <review_id> --model <your_model_id> --note "Inline review (stall fallback): reviewer agent exceeded the hard wall-clock cap without posting a verdict and was stopped by the orchestrator. Orchestrator read the diff inline and found no blocking issues. To prevent stalls, ensure the agent sandbox has the required permissions.allow entries: Bash(git diff:*), Bash(git remote:*), Bash(git symbolic-ref:*), Bash(git branch:*), Bash(tusk review:*)"
     # or REQUEST-CHANGES example (findings after reading the diff — pair with tusk review add-comment):
-    tusk review request-changes <review_id> --model <your_model_id> --note "Inline review (stall fallback): reviewer agent ran ≥2.5 min without posting a verdict. Orchestrator read the diff inline; see comments. Check REVIEWER-PROMPT.md Step 2.6 constraints to prevent future stalls."
+    tusk review request-changes <review_id> --model <your_model_id> --note "Inline review (stall fallback): reviewer agent exceeded the hard wall-clock cap without posting a verdict and was stopped by the orchestrator. Orchestrator read the diff inline; see comments. Check REVIEWER-PROMPT.md Step 2.6 constraints to prevent future stalls."
     ```
-    **Cost note:** the row's `cost_dollars` here reflects orchestrator-only attribution — the agent is still mid-run, so its in-progress JSONL is not safe to aggregate. **Skip the agent-cost correction** in this branch and accept the orchestrator-side cost; the inline read is what now backs the verdict.
+    **Cost note:** the row's `cost_dollars` here reflects orchestrator-only attribution — the agent was still mid-run when stopped, so its in-progress JSONL is not safe to aggregate. **Skip the agent-cost correction** in this branch and accept the orchestrator-side cost; the inline read is what now backs the verdict.
 
 **Apply agent cost (normal-completion path only).** When the agent posted its verdict normally — i.e. the `status` check above returned `"approved"` or `"changes_requested"` — its `tusk review approve` / `tusk review request-changes` call ran inside the agent sandbox and the auto-compute resolved against `find_transcript()`, which (because the orchestrator's JSONL is being continuously updated) typically attributed to the orchestrator's transcript window. Override the row with the agent's actual spend now:
 
@@ -267,17 +269,20 @@ fi
 
 ## Step 7: Process Findings
 
-After the reviewer agent completes, run the **diff-scope validation** before reading any comments. The reviewer agent occasionally confabulates findings that reference files, behavior, or migrations outside the actual diff — issue #783 caught one review where 3 of 5 findings (60%) named files that did not exist in the diff, the branch, or the project. `tusk review validate-comments` enforces an objective ground truth by re-deriving the diff range (with the same worktree-aware logic `tusk review begin` uses) and dismissing every pending comment whose `file_path` is missing from `git diff --name-only`. Issue #912 extended the validator to also body-scan general comments (null `file_path`): a general comment that cites one or more file-path-shaped tokens — and whose cited paths are all absent from the diff — is dismissed under the same fabrication-guard rationale only when none of those cited paths resolve to real repo files. When at least one cited out-of-diff path exists in the repo, the comment is preserved and returned under `out_of_diff_real` so the orchestrator can consider a follow-up task rather than treating it as fabricated. General comments that cite at least one in-diff path or cite no path tokens at all are preserved. Dismissed comments keep an explanatory `resolution_note` so the audit trail records the fabrication rather than silently hiding it.
+After the reviewer agent completes, run the **diff-scope validation** before reading any comments. The reviewer agent occasionally confabulates findings that reference files, behavior, or migrations outside the actual diff — issue #783 caught one review where 3 of 5 findings (60%) named files that did not exist in the diff, the branch, or the project. `tusk review validate-comments` enforces an objective ground truth by re-deriving the diff range (with the same worktree-aware logic `tusk review begin` uses) and dismissing every pending comment whose `file_path` is missing from `git diff --name-only`. Issue #912 extended the validator to also body-scan general comments (null `file_path`): a general comment that cites one or more file-path-shaped tokens — and whose cited paths are all absent from the diff — is dismissed under the same fabrication-guard rationale only when none of those cited paths resolve to real repo files. When at least one cited out-of-diff path exists in the repo, the comment is preserved and returned under `out_of_diff_real` so the orchestrator can consider a follow-up task rather than treating it as fabricated. Issue #1162 added `flagged_symbol_mismatch` for stale-line comments whose referenced symbol exists elsewhere in the same in-diff file: these are preserved because the reviewer may have found a real issue on a moved symbol, but the line anchor is unreliable. General comments that cite at least one in-diff path or cite no path tokens at all are preserved. Dismissed comments keep an explanatory `resolution_note` so the audit trail records the fabrication rather than silently hiding it.
 
 ```bash
 VALIDATION_JSON=$(tusk review validate-comments $REVIEW_ID)
 DISMISSED_COUNT=$(printf '%s' "$VALIDATION_JSON" | jq '(.dismissed | length) + (.dismissed_general | length)')
 OUT_OF_DIFF_REAL_COUNT=$(printf '%s' "$VALIDATION_JSON" | jq '(.out_of_diff_real // [] | length)')
+FLAGGED_SYMBOL_MISMATCH_COUNT=$(printf '%s' "$VALIDATION_JSON" | jq '(.flagged_symbol_mismatch // [] | length)')
 ```
 
 If `$DISMISSED_COUNT > 0`, surface both `dismissed` (file_path-driven) and `dismissed_general` (body-scan-driven) entries to the user verbatim so they can see what the reviewer agent fabricated — do not silently drop them. General comments preserved by the body-scan (no path tokens, or at least one in-diff token) still surface in the per-comment loop below; if one lacks a diff-line quote, downgrade it to `suggest` or dismiss it manually.
 
 If `$OUT_OF_DIFF_REAL_COUNT > 0`, surface the `out_of_diff_real` entries separately as scope-adjacent findings: the cited files exist in the repo but are not part of this diff. Do not fix those files in the current review unless the task scope already allows it. If the substance is valid, create or recommend a focused follow-up task; if it is not actionable, dismiss the preserved comment manually with that rationale.
+
+If `$FLAGGED_SYMBOL_MISMATCH_COUNT > 0`, surface the `flagged_symbol_mismatch` entries separately as stale-line symbol findings. Re-review the cited symbol in the current diff before acting: if the finding is valid, fix it at the symbol's current location when task scope allows; if the finding is valid but outside this task's scope, create or recommend a focused follow-up; if the line-anchor mismatch makes it unactionable, dismiss the preserved comment manually with that rationale. Do not ignore these entries just because validation preserved them.
 
 Then fetch the full review results:
 
@@ -308,6 +313,7 @@ For each open `must_fix` comment:
    ```bash
    tusk review resolve <comment_id> fixed
    ```
+   If the fix exposed a spec authoring gap, carry the classification: `tusk review resolve <comment_id> fixed --spec-gap-type missing_criterion` or `--spec-gap-type missing_verification`.
 
 If there are many `must_fix` comments (more than 5), consider spawning a background implementation agent instead:
 
@@ -329,6 +335,8 @@ Task tool call:
 ### suggest comments
 
 These are optional improvements. For each `suggest` comment, **decide autonomously** between four branches — do not ask the user:
+
+Before choosing a branch, check whether the comment is really a spec gap. If it says the task lacked an acceptance criterion, record `--spec-gap-type missing_criterion` and either add the missing criterion now with `tusk criteria add <task_id> "<criterion>"` when it belongs to the current task, preserve the learning as `tusk context add <task_id> --source review --type decision|assumption|risk|question|memory ...`, or spin it into a follow-up task. If it says the task lacked proof, record `--spec-gap-type missing_verification` and add a typed verification criterion when possible, otherwise preserve context or create a follow-up. Use `ambiguous_spec` for unclear intent and `design_discovery` when review surfaced a new design decision that should be durable.
 
 - **Fix**: implement the suggestion, append every file you modified to `REVIEW_FIX_FILES` (`REVIEW_FIX_FILES+=("<file_path>")`), then run `tusk review resolve <comment_id> fixed`
   - Apply when the fix is small, clearly correct, and within the current task's scope.
@@ -399,7 +407,7 @@ Otherwise, loop while `can_retry` is true:
 
 2. **Branch on diff size to decide review strategy.**
 
-   **For small or documentation-only diffs (`$DIFF_LINES_MEANINGFUL` below ~200, or only non-code files), when `review.reviewer` is absent from config, or when Tusk is running under a Codex install without an explicit subagent opt-in:** skip agent spawning and perform an inline review. Read the diff yourself, evaluate it against the reviewer focus area, and record the result directly (approve or request-changes + add-comment). The meaningful count subtracts generated review-noise sections (lockfiles and generated API clients), so regenerated dependency or client code does not push a small hand-authored feature into agent-based review. After recording the inline decision, skip to step 3.
+   **For small or documentation-only diffs (`$DIFF_LINES_MEANINGFUL` below ~200, or only non-code files), when `review.reviewer` is absent from config, or when Tusk is running under a Codex install without an explicit subagent opt-in:** skip agent spawning and perform an inline review. Read the diff yourself, evaluate it against the reviewer focus area, and record the result directly (approve or request-changes + add-comment). The meaningful count subtracts auto-generated lockfile sections (issue #761) so a single `npm install --save-dev` does not push a small feature into agent-based review. After recording the inline decision, skip to step 3.
 
    To detect the Codex case, read the `install-mode` marker (Claude installs are marked `claude-…`; Codex installs are marked `codex-…`) and check whether the user's `/review-commits` invocation contains an explicit subagent opt-in phrase:
 

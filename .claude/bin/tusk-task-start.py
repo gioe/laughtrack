@@ -75,6 +75,133 @@ _DEFER_TRIGGER_RE = re.compile(
     re.IGNORECASE,
 )
 
+_SPEC_RIGOR_VERIFICATION_COMPLEXITIES = frozenset({"M", "L", "XL"})
+_SPEC_RIGOR_CONTEXT_COMPLEXITIES = frozenset({"L", "XL"})
+_SPEC_RIGOR_VAGUE_CRITERION_RE = re.compile(
+    r"^\s*(?:improve|support|handle|clean\s+up|make\s+better|enhance|optimize|"
+    r"refine|polish|address)\b",
+    re.IGNORECASE,
+)
+
+
+def _single_int(conn: sqlite3.Connection, query: str, params: tuple = ()) -> int | None:
+    """Return a scalar count, or None when an optional table is unavailable."""
+    try:
+        row = conn.execute(query, params).fetchone()
+    except sqlite3.OperationalError as exc:
+        if "no such table" in str(exc) or "no such column" in str(exc):
+            return None
+        raise
+    return int(row[0]) if row is not None else 0
+
+
+def _task_complexity(conn: sqlite3.Connection, task_id: int) -> str | None:
+    try:
+        row = conn.execute(
+            "SELECT complexity FROM tasks WHERE id = ?",
+            (task_id,),
+        ).fetchone()
+    except sqlite3.OperationalError as exc:
+        if "no such column" in str(exc):
+            return None
+        raise
+    return row["complexity"] if row else None
+
+
+def _vague_acceptance_criteria(conn: sqlite3.Connection, task_id: int) -> list[str]:
+    try:
+        rows = conn.execute(
+            """
+            SELECT criterion
+            FROM acceptance_criteria
+            WHERE task_id = ?
+              AND COALESCE(is_deferred, 0) = 0
+            ORDER BY id
+            """,
+            (task_id,),
+        ).fetchall()
+    except sqlite3.OperationalError as exc:
+        if "no such table" in str(exc) or "no such column" in str(exc):
+            return []
+        raise
+    return [
+        row["criterion"]
+        for row in rows
+        if row["criterion"] and _SPEC_RIGOR_VAGUE_CRITERION_RE.search(row["criterion"])
+    ]
+
+
+def _spec_rigor_advisory_lines(conn: sqlite3.Connection, task_id: int) -> list[str]:
+    """Return proportional spec-readiness warnings for task-start.
+
+    This is deliberately advisory. Small tasks should not gain ceremony; larger
+    tasks get lightweight reminders when the durable handoff lacks verification,
+    objective, or risk/assumption/decision signals.
+    """
+    complexity = _task_complexity(conn, task_id)
+    if complexity not in _SPEC_RIGOR_VERIFICATION_COMPLEXITIES:
+        return []
+
+    lines: list[str] = []
+    vague_criteria = _vague_acceptance_criteria(conn, task_id)
+    if vague_criteria:
+        preview = "; ".join(vague_criteria[:3])
+        if len(vague_criteria) > 3:
+            preview += f"; +{len(vague_criteria) - 3} more"
+        lines.append(
+            "Task has vague acceptance criteria; make each criterion observable "
+            f"before pickup: {preview}"
+        )
+
+    verification_count = _single_int(
+        conn,
+        """
+        SELECT COUNT(*)
+        FROM acceptance_criteria
+        WHERE task_id = ?
+          AND COALESCE(is_deferred, 0) = 0
+          AND verification_spec IS NOT NULL
+          AND TRIM(verification_spec) <> ''
+        """,
+        (task_id,),
+    )
+    if verification_count == 0:
+        lines.append(
+            f"{complexity} task has no verification-backed criteria; add typed "
+            "criteria specs when the proof can be executed or inspected."
+        )
+
+    if complexity in _SPEC_RIGOR_CONTEXT_COMPLEXITIES:
+        objective_count = _single_int(
+            conn,
+            "SELECT COUNT(*) FROM objective_tasks WHERE task_id = ?",
+            (task_id,),
+        )
+        if objective_count == 0:
+            lines.append(
+                f"{complexity} task is not linked to an objective; large work "
+                "should preserve the higher-level intent when one exists."
+            )
+
+        context_count = _single_int(
+            conn,
+            """
+            SELECT COUNT(*)
+            FROM task_context_items
+            WHERE task_id = ?
+              AND status = 'active'
+              AND item_type IN ('risk', 'assumption', 'decision')
+            """,
+            (task_id,),
+        )
+        if context_count == 0:
+            lines.append(
+                f"{complexity} task has no active risk, assumption, or decision "
+                "context; capture durable context before pickup when relevant."
+            )
+
+    return lines
+
 
 def _stem_token(word: str) -> str:
     """Crude suffix stripping so "cache"/"caching" and "typo"/"typos" collide.
@@ -241,6 +368,55 @@ def _task_commits_on_default(
     except Exception:
         return True
     return bool(kept)
+
+
+def _git_ref_exists(repo_root: str, ref: str) -> bool:
+    result = subprocess.run(
+        ["git", "rev-parse", "--verify", "--quiet", ref],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        cwd=repo_root,
+    )
+    return result.returncode == 0
+
+
+def _unmerged_task_commits(task_id: int, repo_root: str | None) -> list:
+    """Return [TASK-id] commits reachable from any ref but not default.
+
+    Best-effort diagnostic only: task-start must not fail just because git
+    history is unavailable or a repo has no remote-tracking default branch.
+    """
+    if not repo_root:
+        return []
+    try:
+        default = _git_helpers.default_branch(repo_root)
+    except Exception:
+        return []
+    refs = ["--all", "--not", default]
+    origin_default = f"origin/{default}"
+    if _git_ref_exists(repo_root, origin_default):
+        refs.extend(["--not", origin_default])
+    return _git_helpers.find_task_commits(task_id, repo_root, refs=refs)
+
+
+def _closed_tusk_skill_run_status(conn: sqlite3.Connection, task_id: int) -> str | None:
+    row = conn.execute(
+        "SELECT ended_at, cost_dollars, model, metadata "
+        "FROM skill_runs "
+        "WHERE task_id = ? AND skill_name = 'tusk' "
+        "ORDER BY started_at DESC, id DESC LIMIT 1",
+        (task_id,),
+    ).fetchone()
+    if row is None or row["ended_at"] is None:
+        return None
+    if (
+        row["cost_dollars"] == 0
+        and (row["model"] or "") == ""
+        and row["metadata"] is None
+    ):
+        return "cancelled"
+    return "finished"
 
 
 def _count_criteria_already_passing(conn: sqlite3.Connection, task_id: int) -> int:
@@ -467,82 +643,6 @@ def _same_path(left: str | None, right: str | None) -> bool:
     if not left or not right:
         return False
     return os.path.realpath(left) == os.path.realpath(right)
-
-
-def _run_git(cwd: str, args: list[str]) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        ["git", "-C", cwd, *args],
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-    )
-
-
-def _force_session_workspace_warnings(
-    task_id: int, workspace_path: str | None, repo_root: str | None
-) -> list[str]:
-    """Return advisory warnings for risky --force-session workspace state.
-
-    These checks run while task-start is already choosing to reuse an existing
-    session, so they are deliberately best-effort: a missing worktree, broken
-    git executable, or failed object scan must not prevent the caller from
-    resuming the task.
-    """
-    if not workspace_path:
-        return []
-
-    warnings: list[str] = []
-
-    try:
-        status = _run_git(workspace_path, ["status", "--porcelain"])
-        if status.returncode == 0 and status.stdout.strip():
-            detail = status.stdout.strip()
-            warnings.append(
-                "recorded task workspace is dirty; recoverable work may be "
-                f"present at {workspace_path}:\n{detail}"
-            )
-    except (OSError, subprocess.SubprocessError):
-        pass
-
-    if not repo_root:
-        return warnings
-
-    try:
-        branch_result = _run_git(workspace_path, ["branch", "--show-current"])
-        branch = branch_result.stdout.strip() if branch_result.returncode == 0 else ""
-        if not branch:
-            return warnings
-
-        commits, recovered_via = _git_helpers.find_task_commits_with_recovery(
-            task_id, repo_root
-        )
-        if not commits:
-            return warnings
-
-        missing = []
-        for sha in commits:
-            contains = _run_git(
-                repo_root, ["merge-base", "--is-ancestor", sha, branch]
-            )
-            if contains.returncode != 0:
-                missing.append(sha)
-
-        if missing:
-            count = len(missing)
-            noun = "commit" if count == 1 else "commits"
-            recovered = f" recovered via {recovered_via}" if recovered_via else ""
-            preview = ", ".join(missing[:3])
-            if len(missing) > 3:
-                preview += ", ..."
-            warnings.append(
-                f"recorded task branch {branch} at {workspace_path} does not "
-                f"contain {count} existing [TASK-{task_id}] {noun}{recovered}: "
-                f"{preview}"
-            )
-    except (OSError, subprocess.SubprocessError, RuntimeError):
-        pass
-
-    return warnings
 
 
 def main(argv: list[str]) -> int:
@@ -789,6 +889,18 @@ def main(argv: list[str]) -> int:
                             "Create/reuse one with `tusk task-worktree create`, or pass "
                             "--force-session to explicitly reuse the active session."
                         )
+                    skill_run_status = _closed_tusk_skill_run_status(conn, task_id)
+                    unmerged_commits = _unmerged_task_commits(task_id, current_root)
+                    if skill_run_status and unmerged_commits:
+                        lines.append(
+                            f"Active session {session_id} is likely abandoned: "
+                            f"its tusk skill-run is {skill_run_status} and "
+                            f"TASK-{task_id} has unmerged commits."
+                        )
+                        lines.append(
+                            "Resume with --force-session if you are taking over "
+                            "that abandoned work."
+                        )
                     if current_root:
                         lines.append(f"Current checkout: {current_root}")
                     print("\n".join(lines), file=sys.stderr)
@@ -798,10 +910,6 @@ def main(argv: list[str]) -> int:
                     f"(session {session_id}); reusing it due to --force-session.",
                     file=sys.stderr,
                 )
-                for warning in _force_session_workspace_warnings(
-                    task_id, workspace_path, current_root or workspace_path
-                ):
-                    print(f"Warning: {warning}", file=sys.stderr)
             # Update agent_name on reused session if --agent was passed
             if agent_name is not None:
                 conn.execute(
@@ -947,6 +1055,12 @@ def main(argv: list[str]) -> int:
                 file=sys.stderr,
             )
 
+        spec_rigor_lines = _spec_rigor_advisory_lines(conn, task_id)
+        if spec_rigor_lines:
+            print("Warning: progressive spec rigor advisory:", file=sys.stderr)
+            for line in spec_rigor_lines:
+                print(f"  {line}", file=sys.stderr)
+
         # Convergence-recency hint (issue #1048): surface commits touching files
         # named in this task's description/criteria that landed near its filing
         # and reference another [TASK-N] — the cheap signal that a sibling task
@@ -958,22 +1072,33 @@ def main(argv: list[str]) -> int:
         # --task-id <id>` immediately after task-start into a single CLI round-trip.
         skill_run_info = None
         if skill_name is not None:
-            cur = conn.execute(
-                "INSERT INTO skill_runs (skill_name, task_id) VALUES (?, ?)",
-                (skill_name, task_id),
-            )
-            conn.commit()
-            run_id = cur.lastrowid
             run_row = conn.execute(
-                "SELECT id, skill_name, started_at, task_id FROM skill_runs WHERE id = ?",
-                (run_id,),
+                "SELECT id, skill_name, started_at, task_id "
+                "FROM skill_runs "
+                "WHERE task_id = ? AND skill_name = ? AND ended_at IS NULL "
+                "ORDER BY started_at DESC, id DESC LIMIT 1",
+                (task_id, skill_name),
             ).fetchone()
+            reused_skill_run = run_row is not None
+            if run_row is None:
+                cur = conn.execute(
+                    "INSERT INTO skill_runs (skill_name, task_id) VALUES (?, ?)",
+                    (skill_name, task_id),
+                )
+                conn.commit()
+                run_id = cur.lastrowid
+                run_row = conn.execute(
+                    "SELECT id, skill_name, started_at, task_id FROM skill_runs WHERE id = ?",
+                    (run_id,),
+                ).fetchone()
             skill_run_info = {
                 "run_id": run_row["id"],
                 "skill_name": run_row["skill_name"],
                 "started_at": run_row["started_at"],
                 "task_id": run_row["task_id"],
             }
+            if reused_skill_run:
+                skill_run_info["reused"] = True
 
         result = {
             "task": task_dict,
