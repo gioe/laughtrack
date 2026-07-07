@@ -93,3 +93,12 @@ a generated OpenAPI client, both produced from the single source-of-truth spec a
 **both** regenerated clients in lockstep in the same PR (convention #220) — see
 `ios/CLAUDE.md` for the iOS recipe and `android/README.md` for the Android
 `regen-openapi.sh` / drift-check workflow.
+
+**Store-listing screenshots** are also at parity across the two native clients: both
+generate their store screenshots from an instrumented UI test and upload them via
+fastlane, rather than managing them by hand in the store console. iOS uses `snapshot`
+(`AppStoreScreenshotTests`) + `deliver`; Android uses fastlane screengrab
+(`AppStoreScreenshotTest`) + `supply` via the `screenshots` / `upload_screenshots`
+lanes — see `android/README.md` **Store-listing screenshots** and
+`tusk conventions search "HiltTestActivity screengrab"`. A UI change to a captured
+screen should refresh both clients' screenshots.
