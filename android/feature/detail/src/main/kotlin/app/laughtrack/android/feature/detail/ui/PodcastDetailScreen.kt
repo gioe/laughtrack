@@ -1,23 +1,33 @@
 package app.laughtrack.android.feature.detail.ui
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -25,11 +35,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.laughtrack.android.core.data.UiState
 import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.network.generated.model.PodcastDetailEpisode
+import app.laughtrack.android.core.network.generated.model.PodcastDetailHost
 import app.laughtrack.android.core.network.generated.model.PodcastDetailPodcast
 import app.laughtrack.android.core.network.generated.model.PodcastDetailResponse
 import app.laughtrack.android.core.playback.PodcastPlaybackItem
+import app.laughtrack.android.core.ui.components.RemoteImage
+import app.laughtrack.android.core.ui.theme.LaughTrackColors
 import app.laughtrack.android.feature.detail.ui.components.DetailError
-import app.laughtrack.android.feature.detail.ui.components.DetailHero
 import app.laughtrack.android.feature.detail.ui.components.DetailLoading
 import app.laughtrack.android.feature.detail.ui.components.DetailScaffold
 import app.laughtrack.android.feature.detail.ui.components.EntityAvatar
@@ -75,22 +87,43 @@ private fun PodcastDetailBody(
         modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        DetailHero(url = podcast.imageUrl, contentDescription = podcast.title)
+        // Centered cover-art + host-avatar header, mirroring iOS 09_PodcastDetail
+        // (MarqueeHero .podcastRail): a centered album-style cover card, the title
+        // and author centered beneath it, then the podcast hosts as tappable avatars.
         Column(
-            Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(podcast.title, style = MaterialTheme.typography.headlineSmall)
-            podcast.authorName?.takeIf { it.isNotBlank() }?.let {
+            PodcastCoverCard(url = podcast.imageUrl)
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
                 Text(
-                    it,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    podcast.title,
+                    style = MaterialTheme.typography.headlineSmall,
+                    textAlign = TextAlign.Center,
                 )
+                podcast.authorName?.takeIf { it.isNotBlank() }?.let {
+                    Text(
+                        it,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+                podcast.description?.takeIf { it.isNotBlank() }?.let {
+                    Text(
+                        it,
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center,
+                    )
+                }
             }
-            podcast.description?.takeIf { it.isNotBlank() }?.let {
-                Text(it, style = MaterialTheme.typography.bodyMedium)
-            }
+            PodcastHostRow(podcast.hosts, onOpenEntity)
         }
 
         PodcastRelatedRow(data, onOpenEntity)
@@ -104,6 +137,47 @@ private fun PodcastDetailBody(
             )
         } else {
             data.episodes.forEach { episode -> EpisodeRow(podcast, episode, onPlay) }
+        }
+    }
+}
+
+/** Centered album-style cover card (square, rounded, lifted) — the iOS podcast-rail cover. */
+@Composable
+private fun PodcastCoverCard(url: String?) {
+    val shape = RoundedCornerShape(16.dp)
+    Surface(
+        shape = shape,
+        color = LaughTrackColors.SurfaceElevated,
+        shadowElevation = 8.dp,
+        modifier =
+            Modifier
+                .size(200.dp)
+                .clip(shape)
+                .border(1.dp, LaughTrackColors.BorderSubtle, shape),
+    ) {
+        // Decorative: the podcast title is announced by the heading below.
+        RemoteImage(url = url, contentDescription = null, modifier = Modifier.fillMaxSize())
+    }
+}
+
+/** Centered row of the podcast's hosts as tappable avatars, mirroring the iOS host chips. */
+@Composable
+private fun PodcastHostRow(
+    hosts: List<PodcastDetailHost>,
+    onOpenEntity: (AppRoute) -> Unit,
+) {
+    if (hosts.isEmpty()) return
+    Row(
+        Modifier.horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        hosts.forEach { host ->
+            EntityAvatar(
+                name = host.name,
+                imageUrl = host.imageUrl,
+                subtitle = "Host",
+                onClick = { onOpenEntity(AppRoute.ComedianDetail(host.id)) },
+            )
         }
     }
 }
