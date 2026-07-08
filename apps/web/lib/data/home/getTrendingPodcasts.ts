@@ -1,9 +1,9 @@
-import zipcodes from "zipcodes";
 import { db } from "@/lib/db";
 import type { PodcastDTO } from "@/lib/data/podcast/interface";
 import { buildPodcastArtworkUrl } from "@/lib/data/podcast/imageUrl";
 import type { Prisma } from "@prisma/client";
 import { DEFAULT_HOME_RADIUS_MILES } from "@/util/constants/radiusConstants";
+import { resolveNearbyZips } from "@/util/location/resolveNearbyZips";
 import {
     ACCEPTED_PODCAST_COHOST_WHERE,
     ACCEPTED_PODCAST_HOST_WHERE,
@@ -12,18 +12,6 @@ import {
 
 const DEFAULT_LIMIT = 8;
 const MAX_LIMIT = 50;
-
-function resolveZipCodes(zipCode: string, radius: number): string[] {
-    try {
-        const results = zipcodes.radius(zipCode, radius);
-        if (!results || results.length === 0) return [zipCode];
-        return results.map((z: string | zipcodes.ZipCode) =>
-            typeof z === "string" ? z : z.zip,
-        );
-    } catch {
-        return [zipCode];
-    }
-}
 
 function plainText(value: string | null): string | null {
     if (!value) return null;
@@ -62,7 +50,7 @@ function whereFor(
     }
 
     const now = new Date();
-    const nearbyZips = resolveZipCodes(zipCode, radius);
+    const nearbyZips = resolveNearbyZips(zipCode, radius);
     const comedianWhere = {
         visible: true,
         parentComedianId: null,

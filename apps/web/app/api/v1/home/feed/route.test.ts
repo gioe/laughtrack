@@ -188,6 +188,19 @@ describe("GET /api/v1/home/feed", () => {
             expect(body.error).toMatch(/distance/i);
             expect(mockGetHeroContext).not.toHaveBeenCalled();
         });
+
+        it("returns 400 quickly when distance is 500 miles", async () => {
+            const res = await GET(
+                makeRequest({ zip: "94108", distance: "500" }),
+            );
+            const body = await res.json();
+
+            expect(res.status).toBe(400);
+            expect(body.error).toBe(
+                "distance must be a number between 1 and 100 miles",
+            );
+            expect(mockGetHeroContext).not.toHaveBeenCalled();
+        });
     });
 
     describe("zipCode resolution precedence", () => {

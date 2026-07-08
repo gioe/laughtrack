@@ -17,7 +17,7 @@ import { readTimezoneHeader } from "@/util/timezone";
 const ZIP_RE = /^\d{5}$/;
 const HERO_SHOW_COUNT = 3;
 const MIN_DISTANCE_MILES = 1;
-const MAX_DISTANCE_MILES = 500;
+const MAX_DISTANCE_MILES = 100;
 // Personalized by session zipCode + Vercel geo-IP, so we opt out of shared
 // CDN caching. Short browser cache still absorbs rapid back-button refetches.
 const PRIVATE_CACHE_CONTROL = "private, max-age=60";
@@ -52,7 +52,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
         distanceMiles > MAX_DISTANCE_MILES
     ) {
         return NextResponse.json(
-            { error: "distance must be a number between 1 and 500 miles" },
+            { error: "distance must be a number between 1 and 100 miles" },
             { status: 400, headers: rateLimitHeaders(rl) },
         );
     }

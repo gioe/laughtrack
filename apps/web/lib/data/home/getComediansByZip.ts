@@ -1,8 +1,8 @@
-import zipcodes from "zipcodes";
 import { db } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { buildComedianImageUrl } from "@/util/imageUtil";
+import { resolveNearbyZips } from "@/util/location/resolveNearbyZips";
 
 type NearYouComedianRow = {
     id: number;
@@ -20,21 +20,6 @@ type NearYouComedianRow = {
     has_image: boolean;
     show_count: number;
 };
-
-function resolveZipCodes(zipCode: string, radius?: number): string[] {
-    if (!radius || radius < 1 || radius > 500) {
-        return [zipCode];
-    }
-    try {
-        const results = zipcodes.radius(zipCode, radius);
-        if (!results || results.length === 0) return [zipCode];
-        return results.map((z: string | zipcodes.ZipCode) =>
-            typeof z === "string" ? z : z.zip,
-        );
-    } catch {
-        return [zipCode];
-    }
-}
 
 interface GetComediansByZipOptions {
     // "popularity" (default) ranks by the stored popularity score — used by the
@@ -54,7 +39,7 @@ export async function getComediansByZip(
     if (!/^\d{5}(-\d{4})?$/.test(zipCode)) return [];
 
     const now = new Date();
-    const nearbyZips = resolveZipCodes(zipCode, radius);
+    const nearbyZips = resolveNearbyZips(zipCode, radius);
     const orderByClause =
         options?.sortBy === "upcomingShows"
             ? Prisma.sql`ORDER BY has_image DESC, show_count DESC, popularity DESC`

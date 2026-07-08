@@ -1,20 +1,7 @@
 import { fromZonedTime, toZonedTime, format } from "date-fns-tz";
-import zipcodes from "zipcodes";
 import { ShowDTO } from "@/objects/class/show/show.interface";
+import { resolveNearbyZips } from "@/util/location/resolveNearbyZips";
 import { findShowsForHome } from "./findShowsForHome";
-
-function resolveZipCodes(zipCode: string, radius?: number): string[] {
-    if (!radius || radius < 1 || radius > 500) return [zipCode];
-    try {
-        const results = zipcodes.radius(zipCode, radius);
-        if (!results || results.length === 0) return [zipCode];
-        return results.map((z: string | zipcodes.ZipCode) =>
-            typeof z === "string" ? z : z.zip,
-        );
-    } catch {
-        return [zipCode];
-    }
-}
 
 export async function getTrendingShowsThisWeek(
     timezone: string = "UTC",
@@ -33,7 +20,7 @@ export async function getTrendingShowsThisWeek(
     const endOfWeekDay = fromZonedTime(`${weekOutDate}T23:59:59.999`, timezone);
     const nearbyZips =
         zipCode && /^\d{5}(-\d{4})?$/.test(zipCode)
-            ? resolveZipCodes(zipCode, radius)
+            ? resolveNearbyZips(zipCode, radius)
             : null;
 
     return findShowsForHome(

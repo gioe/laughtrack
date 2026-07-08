@@ -1,8 +1,8 @@
 import { Prisma } from "@prisma/client";
-import zipcodes from "zipcodes";
 import { db } from "@/lib/db";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { buildComedianImageUrl } from "@/util/imageUtil";
+import { resolveNearbyZips } from "@/util/location/resolveNearbyZips";
 
 type TrendingComedianRow = {
     id: number;
@@ -34,19 +34,6 @@ const MAX_POOL_SIZE = 50;
 const MIN_UPCOMING_SHOWS = 3;
 const MIN_POPULARITY = 0.4;
 
-function resolveZipCodes(zipCode: string, radius?: number): string[] {
-    if (!radius || radius < 1 || radius > 500) return [zipCode];
-    try {
-        const results = zipcodes.radius(zipCode, radius);
-        if (!results || results.length === 0) return [zipCode];
-        return results.map((z: string | zipcodes.ZipCode) =>
-            typeof z === "string" ? z : z.zip,
-        );
-    } catch {
-        return [zipCode];
-    }
-}
-
 export async function getTrendingComedians(
     limit = 8,
     offset = 0,
@@ -56,7 +43,7 @@ export async function getTrendingComedians(
     const now = new Date();
     const nearbyZips =
         options.zipCode && /^\d{5}(-\d{4})?$/.test(options.zipCode)
-            ? resolveZipCodes(options.zipCode, options.distanceMiles)
+            ? resolveNearbyZips(options.zipCode, options.distanceMiles)
             : null;
     const zipJoin = nearbyZips
         ? Prisma.sql`JOIN clubs cl ON cl.id = s.club_id`

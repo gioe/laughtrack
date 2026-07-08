@@ -1,26 +1,13 @@
-import zipcodes from "zipcodes";
 import { db } from "@/lib/db";
 import { ClubDTO } from "@/objects/class/club/club.interface";
 import { buildClubImageUrl } from "@/util/imageUtil";
 import { Prisma } from "@prisma/client";
+import { resolveNearbyZips } from "@/util/location/resolveNearbyZips";
 
 const MAX_CLUBS_LIMIT = 100;
 
 interface GetClubsByZipOptions {
     requireImage?: boolean;
-}
-
-function resolveZipCodes(zipCode: string, radius?: number): string[] {
-    if (!radius || radius < 1 || radius > 500) return [zipCode];
-    try {
-        const results = zipcodes.radius(zipCode, radius);
-        if (!results || results.length === 0) return [zipCode];
-        return results.map((z: string | zipcodes.ZipCode) =>
-            typeof z === "string" ? z : z.zip,
-        );
-    } catch {
-        return [zipCode];
-    }
 }
 
 // ZIP-scoped sibling of getClubs(). Powers the "Popular clubs near you" home
@@ -37,7 +24,7 @@ export async function getClubsByZip(
 
     const safeLimit = Math.min(Math.max(1, limit), MAX_CLUBS_LIMIT);
     const now = new Date();
-    const nearbyZips = resolveZipCodes(zipCode, radius);
+    const nearbyZips = resolveNearbyZips(zipCode, radius);
 
     // Mirrors getClubs() discovery rules (active, requires upcoming shows,
     // optionally requires an image) plus a zip-proximity filter.
