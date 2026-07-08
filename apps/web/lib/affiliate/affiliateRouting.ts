@@ -317,6 +317,38 @@ export function resolveAffiliateDestination({
     };
 }
 
+/**
+ * Returns true when `destinationUrl`'s origin matches the origin of at least one
+ * of the show's known ticket purchase URLs. Used by the outbound ticket
+ * redirector to prevent an open redirect: showId/clubId are enumerable public
+ * ints, so the show/club-match guard alone does not stop a phishing link off the
+ * trusted apex domain. Affiliate rewrites preserve the destination host, so the
+ * ORIGINAL (pre-rewrite) url is what must be validated. Null/malformed purchase
+ * URLs are skipped; if none match, the redirect is not permitted.
+ */
+export function isOriginAllowed(
+    destinationUrl: string,
+    allowedUrls: Array<string | null | undefined>,
+): boolean {
+    let destinationOrigin: string;
+    try {
+        destinationOrigin = new URL(destinationUrl).origin;
+    } catch {
+        return false;
+    }
+    for (const candidate of allowedUrls) {
+        if (!candidate) continue;
+        try {
+            if (new URL(candidate).origin === destinationOrigin) {
+                return true;
+            }
+        } catch {
+            continue;
+        }
+    }
+    return false;
+}
+
 export function getPriorityAffiliatePrograms(): PriorityAffiliateProgram[] {
     return PRIORITY_PROGRAMS.map((program) => ({
         ...program,

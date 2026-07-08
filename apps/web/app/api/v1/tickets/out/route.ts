@@ -9,6 +9,7 @@ import {
 } from "@/lib/rateLimit";
 import {
     affiliateRulesFromEnv,
+    isOriginAllowed,
     resolveAffiliateDestination,
 } from "@/lib/affiliate/affiliateRouting";
 import { Prisma } from "@prisma/client";
@@ -93,6 +94,27 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     if (show.clubId !== clubId) {
         return NextResponse.json(
             { error: "Club does not match show" },
+            { status: 400 },
+        );
+    }
+
+    // Prevent open redirect: showId/clubId are enumerable public ints, so the
+    // show/club-match guard above does not stop a phishing link off the trusted
+    // apex domain. Require the original url's origin to match one of the show's
+    // real ticket purchaseUrl origins. Affiliate rewrites preserve the host, so
+    // validate the ORIGINAL (pre-rewrite) url.
+    const tickets = await db.ticket.findMany({
+        where: { showId },
+        select: { purchaseUrl: true },
+    });
+    if (
+        !isOriginAllowed(
+            destination.originalUrl,
+            tickets.map((ticket) => ticket.purchaseUrl),
+        )
+    ) {
+        return NextResponse.json(
+            { error: "Destination URL not permitted for show" },
             { status: 400 },
         );
     }
