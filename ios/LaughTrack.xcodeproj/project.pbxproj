@@ -111,6 +111,7 @@
 		7170F0CD6E2E66D3E13E260D /* HostedViewDumpTreeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5984C96F90F11803C896B6D2 /* HostedViewDumpTreeTests.swift */; };
 		71D04A047E2361629E448EC9 /* PodcastSearchModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42A7A4F2703ED8DC9253F0B7 /* PodcastSearchModel.swift */; };
 		725123B701491B774F14F4B9 /* LaughTrackAPIClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DE90DE11FF14510C06890AB7 /* LaughTrackAPIClient.framework */; };
+		72BF34BAEDB969D4243B9611 /* HomeShowsTonightModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 082FCD365A9C645637B8FE89 /* HomeShowsTonightModelTests.swift */; };
 		739A95D851F561B8547F9395 /* OpenAPIURLSession in Frameworks */ = {isa = PBXBuildFile; productRef = 61CB6BEBA8E2ACC482982705 /* OpenAPIURLSession */; };
 		73B82A20165EC8C3D1174EEC /* DetailNavigationChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7488519FE0E33B0A18BB456 /* DetailNavigationChrome.swift */; };
 		751A527C1B22183FBA02767E /* ComedianFavoriteStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7DFA8DEA5A7A187DDF42A01 /* ComedianFavoriteStoreTests.swift */; };
@@ -214,7 +215,6 @@
 		D8230A7E91161475D358210D /* HTTPTypes in Frameworks */ = {isa = PBXBuildFile; productRef = 02C7C5A65A09BD0E6A833275 /* HTTPTypes */; };
 		D9DE226178A12B65ADAEDC5A /* LaughTrackCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8EA13D0C5CA2F5439E19E122 /* LaughTrackCore.framework */; };
 		DA0F832F0AAA38B99EA936B2 /* HomeTrendingComediansModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD43FA8CA520F809B5C8C6DA /* HomeTrendingComediansModel.swift */; };
-		DA291F923EC7BD8D3C171614 /* HomeHeroHeaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 328F12C707EF4EC81785C09D /* HomeHeroHeaderTests.swift */; };
 		DB42ABFE9CEFC0D3D27C17ED /* LaughTrackBrowseComponentsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 392FD90AD816C46171226847 /* LaughTrackBrowseComponentsTests.swift */; };
 		DCC2D6D27C477BEA61B4C2D9 /* DMSans-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CBC30DB631FF770E06F873EE /* DMSans-Regular.ttf */; };
 		DCF255F920A82556C2EEF714 /* URLHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6B2075FA65F8D0AEAF5531A /* URLHelpers.swift */; };
@@ -387,6 +387,7 @@
 		039D68E0AF3A931C7C2455F6 /* PersistentMainPageCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistentMainPageCache.swift; sourceTree = "<group>"; };
 		04CFFD13E68CA73C10918B74 /* ComedianOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComedianOnboardingView.swift; sourceTree = "<group>"; };
 		05DDCB75107CBE67C0FD9CEB /* LoginModalPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginModalPresenter.swift; sourceTree = "<group>"; };
+		082FCD365A9C645637B8FE89 /* HomeShowsTonightModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeShowsTonightModelTests.swift; sourceTree = "<group>"; };
 		0922F9FD8AA0FC38E52DC666 /* ClubFavoriteStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClubFavoriteStore.swift; sourceTree = "<group>"; };
 		0A4A91F43782F9FDA4187D3F /* LaughTrackCacheKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackCacheKey.swift; sourceTree = "<group>"; };
 		0D814E25911EA53326F6AC0E /* ClubFavoriteStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClubFavoriteStoreTests.swift; sourceTree = "<group>"; };
@@ -427,7 +428,6 @@
 		30A5BFA6B85E33D7160F45F9 /* DetailNavigationChromeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailNavigationChromeTests.swift; sourceTree = "<group>"; };
 		30BC17288637FF61B8F14864 /* CurrentLocationZipResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentLocationZipResolver.swift; sourceTree = "<group>"; };
 		324C096B40915E61CCD9B19F /* SafariView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariView.swift; sourceTree = "<group>"; };
-		328F12C707EF4EC81785C09D /* HomeHeroHeaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeHeroHeaderTests.swift; sourceTree = "<group>"; };
 		362FB74E179068F3F3E96CB7 /* DetailLinkCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailLinkCard.swift; sourceTree = "<group>"; };
 		3700564FAB149798B936D4CC /* TokenRefreshMiddlewareIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenRefreshMiddlewareIntegrationTests.swift; sourceTree = "<group>"; };
 		373E44114089F7B2E6F7B524 /* ComedianDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComedianDetailView.swift; sourceTree = "<group>"; };
@@ -711,7 +711,7 @@
 				A280D021B0C670980CD04CEE /* ForegroundLocationRefresherTests.swift */,
 				BBD1E03DEE921EB7238CF022 /* HomeContentSectionTests.swift */,
 				B9A5892A66D03149C905170F /* HomeFavoriteShowsRailTests.swift */,
-				328F12C707EF4EC81785C09D /* HomeHeroHeaderTests.swift */,
+				082FCD365A9C645637B8FE89 /* HomeShowsTonightModelTests.swift */,
 				5984C96F90F11803C896B6D2 /* HostedViewDumpTreeTests.swift */,
 				F2A090D0A39069956E88CB02 /* HostedViewTestSupport.swift */,
 				392FD90AD816C46171226847 /* LaughTrackBrowseComponentsTests.swift */,
@@ -1592,7 +1592,7 @@
 				B1739E243A5C4214974DB544 /* ForegroundLocationRefresherTests.swift in Sources */,
 				E49A08F9662BCA60AABF8BAA /* HomeContentSectionTests.swift in Sources */,
 				F80B120EE62E089ED0A9403B /* HomeFavoriteShowsRailTests.swift in Sources */,
-				DA291F923EC7BD8D3C171614 /* HomeHeroHeaderTests.swift in Sources */,
+				72BF34BAEDB969D4243B9611 /* HomeShowsTonightModelTests.swift in Sources */,
 				7170F0CD6E2E66D3E13E260D /* HostedViewDumpTreeTests.swift in Sources */,
 				8106A1BA0F8DA2BFFE165D2B /* HostedViewTestSupport.swift in Sources */,
 				DB42ABFE9CEFC0D3D27C17ED /* LaughTrackBrowseComponentsTests.swift in Sources */,
