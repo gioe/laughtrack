@@ -185,6 +185,24 @@ Ensure `DATABASE_URL` and `DIRECT_URL` are set in the environment before running
 
 The `migrations` job in `.github/workflows/web-ci.yml` validates pending migrations **before merge** by running `prisma migrate deploy` against an ephemeral [Neon branch](https://neon.tech/docs/introduction/branching) — an instant copy-on-write clone of prod. Because the branch carries prod's real schema **and data**, a migration whose backfill or new constraint collides with existing rows fails the PR check instead of the prod Vercel deploy. This catches the class of failure that caused the TASK-3462 incident (a `club_aliases` backfill hit duplicate onboarding-seeded alias rows: P3009 / `23505`), which an empty-schema check cannot surface and a from-empty replay cannot reproduce (this repo's migration history is baselined and not replayable from scratch — see the `migrate dev` note above).
 
+### CI is post-merge by design
+
+Direct pushes to `main` are the normal owner-approved workflow for this repo.
+Those pushes bypass GitHub status checks, and Vercel deploys `main`
+immediately with `prisma migrate deploy && next build`. That means the
+`migrations` job can detect a bad Prisma migration after the push, but it
+cannot prevent the dominant direct-push workflow from reaching production.
+
+Before pushing any change that adds or modifies files under
+`apps/web/prisma/migrations/`, validate the migration before the push:
+
+1. Open a PR and wait for the `Web CI/CD / Migrations` job to pass, or
+2. Run the `Web CI/CD` workflow manually with `workflow_dispatch` and wait for
+   the `Migrations` job to pass.
+
+Do not treat the push-triggered CI run on `main` as the first migration
+validation for a production-affecting Prisma change.
+
 **Activate the gate** by adding these to the GitHub repository (Settings → Secrets and variables → Actions). Until `NEON_PROJECT_ID` is set the job is **skipped, not failed** (same pattern as the `e2e` job's `E2E_BASE_URL` gate):
 
 | Kind | Name | Value |
