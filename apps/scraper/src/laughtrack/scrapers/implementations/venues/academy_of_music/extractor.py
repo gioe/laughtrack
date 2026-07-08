@@ -9,6 +9,7 @@ from zoneinfo import ZoneInfo
 
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.models.types import JSONDict
+from laughtrack.foundation.utilities.number import parse_price_text
 
 from .data import AcademyOfMusicEvent
 
@@ -23,7 +24,6 @@ _DEFAULT_TZ = "America/New_York"
 _ORDINAL_RE = re.compile(r"(\d{1,2})(?:st|nd|rd|th)", re.IGNORECASE)
 _AMPM_RE = re.compile(r"\s*([AaPp][Mm])\b")
 _DATE_FMT = "%A, %B %d, %Y %I:%M%p"
-_PRICE_RE = re.compile(r"\$?\s*(\d+(?:\.\d{1,2})?)")
 
 
 def _div_text(html: str, css_class: str) -> Optional[str]:
@@ -48,17 +48,7 @@ def _parse_datetime(raw: Optional[str], tz: str) -> Optional[datetime]:
 
 def _parse_price(raw: Optional[str]) -> Optional[float]:
     """Lowest advertised price; 0.0 for explicit FREE; None when unknown."""
-    if not raw:
-        return None
-    if "free" in raw.lower():
-        return 0.0
-    m = _PRICE_RE.search(raw)
-    if not m:
-        return None
-    try:
-        return float(m.group(1))
-    except ValueError:
-        return None
+    return parse_price_text(raw)
 
 
 def _ticket_url(html: str) -> str:
