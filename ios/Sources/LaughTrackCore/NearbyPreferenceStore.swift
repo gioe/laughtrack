@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import LaughTrackAPIClient
 import LaughTrackBridge
 import SharedKit
 
@@ -191,44 +192,26 @@ public protocol ProfileLocationPreferenceSyncing: Sendable {
     func setProfileLocation(zipCode: String?, distanceMiles: Int?) async throws
 }
 
-public final class ProfileLocationPreferenceSyncClient: ProfileLocationPreferenceSyncing, @unchecked Sendable {
-    private let baseURL: URL
-    private let tokenManager: AuthTokenManager
-    private let urlSession: URLSession
+/// Routes the Near-Me location PATCH through the generated OpenAPI client (and
+/// thus TokenRefreshMiddleware), replacing the former hand-rolled URLRequest
+/// client (TASK-3631). A nil zipCode/distance is encoded as an omitted field by
+/// the generated client; the server treats an omitted field as null (clearing
+/// it) — see apps/web me/location/route.ts.
+public final class APIProfileLocationPreferenceSyncClient: ProfileLocationPreferenceSyncing, @unchecked Sendable {
+    private let apiClient: Client
 
-    public init(
-        baseURL: URL = AppConfiguration.apiBaseURL,
-        tokenManager: AuthTokenManager,
-        urlSession: URLSession = .shared
-    ) {
-        self.baseURL = baseURL
-        self.tokenManager = tokenManager
-        self.urlSession = urlSession
+    public init(apiClient: Client) {
+        self.apiClient = apiClient
     }
 
     public func setProfileLocation(zipCode: String?, distanceMiles: Int?) async throws {
-        let accessToken = await MainActor.run { tokenManager.retrieveAccessToken() }
-        guard let accessToken else {
-            throw URLError(.userAuthenticationRequired)
-        }
-
-        var request = URLRequest(url: baseURL.appendingPathComponent("api/v1/me/location"))
-        request.httpMethod = "PATCH"
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-        request.httpBody = try JSONSerialization.data(
-            withJSONObject: [
-                "zipCode": zipCode.map { $0 as Any } ?? NSNull(),
-                "nearbyDistanceMiles": distanceMiles.map { $0 as Any } ?? NSNull()
-            ],
-            options: []
+        let output = try await apiClient.patchMeLocation(
+            .init(body: .json(.init(zipCode: zipCode, nearbyDistanceMiles: distanceMiles)))
         )
-
-        let (_, response) = try await urlSession.data(for: request)
-        guard let httpResponse = response as? HTTPURLResponse,
-              (200..<300).contains(httpResponse.statusCode)
-        else {
+        switch output {
+        case .ok:
+            return
+        case .badRequest, .unauthorized, .unprocessableContent, .tooManyRequests, .undocumented:
             throw URLError(.badServerResponse)
         }
     }

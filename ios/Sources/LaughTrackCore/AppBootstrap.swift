@@ -183,6 +183,7 @@ public struct AppBootstrap {
         ServiceRegistration.configureZipLocationResolver(container, apiClient: apiClient)
         ServiceRegistration.configureOfflineQueue(container, apiClient: apiClient)
         ServiceRegistration.configureNotificationPreferenceSync(container, apiClient: apiClient)
+        ServiceRegistration.configureProfileLocationSync(container, apiClient: apiClient)
     }
 
     private static func configureSentryIfNeeded() {

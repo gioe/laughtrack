@@ -56,13 +56,6 @@ public enum ServiceRegistration {
                 analytics: container.resolveOptional(AnalyticsManagerProtocol.self)
             )
         }
-        container.register((any ProfileLocationPreferenceSyncing).self, scope: .appLevel) {
-            ProfileLocationPreferenceSyncClient(
-                tokenManager: AuthTokenManager(
-                    secureStorage: container.resolve(SecureStorageProtocol.self)
-                )
-            )
-        }
         container.register((any NearbyLocationResolving).self, scope: .appLevel) {
             CurrentLocationZipResolver()
         }
@@ -98,6 +91,13 @@ public enum ServiceRegistration {
     public static func configureNotificationPreferenceSync(_ container: ServiceContainer, apiClient: Client) {
         container.register((any NotificationPreferenceSyncing).self, scope: .appLevel) {
             APINotificationPreferenceSyncClient(apiClient: apiClient)
+        }
+    }
+
+    @MainActor
+    public static func configureProfileLocationSync(_ container: ServiceContainer, apiClient: Client) {
+        container.register((any ProfileLocationPreferenceSyncing).self, scope: .appLevel) {
+            APIProfileLocationPreferenceSyncClient(apiClient: apiClient)
         }
     }
 

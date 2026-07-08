@@ -90,7 +90,6 @@ struct ServiceRegistrationTests {
         #expect(container.resolveOptional(AppStateStorageProtocol.self) != nil)
         #expect(container.resolveOptional(DataCache<LaughTrackCacheKey>.self) != nil)
         #expect(container.resolveOptional(NotificationPreferenceStore.self) != nil)
-        #expect(container.resolveOptional((any ProfileLocationPreferenceSyncing).self) != nil)
     }
 
     @Test("configureNotificationPreferenceSync registers NotificationPreferenceSyncing backed by the generated client")
@@ -101,6 +100,16 @@ struct ServiceRegistrationTests {
         ServiceRegistration.configureNotificationPreferenceSync(container, apiClient: makeStubClient())
 
         #expect(container.resolveOptional((any NotificationPreferenceSyncing).self) != nil)
+    }
+
+    @Test("configureProfileLocationSync registers ProfileLocationPreferenceSyncing backed by the generated client")
+    @MainActor
+    func configureProfileLocationSyncRegistersClient() {
+        let container = ServiceContainer()
+        ServiceRegistration.configure(container)
+        ServiceRegistration.configureProfileLocationSync(container, apiClient: makeStubClient())
+
+        #expect(container.resolveOptional((any ProfileLocationPreferenceSyncing).self) != nil)
     }
 
     @Test("configure plus configureZipLocationResolver registers the full nearby-location stack")
