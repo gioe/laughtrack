@@ -9,6 +9,7 @@ SquarespaceEvent.to_show() transformation path.
 from datetime import datetime, timedelta, timezone
 
 import pytest
+import time_machine
 
 from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.squarespace import SquarespaceEvent
@@ -205,16 +206,23 @@ def test_extract_products_parses_ordinal_title_date_and_bare_time():
     assert show.date.minute == 0
 
 
+# Frozen inside the nightly UTC/venue divergence window: 01:30 UTC on Jul 9 is
+# still 21:30 EDT on Jul 8 in the venue's timezone. Yearless staleness must be
+# judged on the VENUE's calendar (Jul 8), not the machine's (Jul 9) — the
+# original wall-clock version of this test failed only when run between
+# 20:00 and 24:00 Eastern for exactly this reason (TASK-3670).
+_FROZEN_UTC = datetime(2026, 7, 9, 1, 30, tzinfo=timezone.utc)
+
+
+@time_machine.travel(_FROZEN_UTC)
 def test_extract_products_skips_recently_past_yearless_dates():
-    """Yearless product dates just before today are stale, not next year's show."""
-    yesterday = datetime.now(timezone.utc) - timedelta(days=1)
-    title = f"{yesterday.strftime('%b')} {yesterday.day}"
+    """Yearless product dates just before venue-today are stale, not next year's show."""
     events = SquarespaceExtractor.extract_products(
         [
             {
                 "id": "stale-1",
-                "title": f"Thurs {title} Open Mic 8pm",
-                "fullUrl": f"/tickets/p/thurs-{title.lower().replace(' ', '-')}-open-mic-8pm",
+                "title": "Tues Jul 7 Open Mic 8pm",
+                "fullUrl": "/tickets/p/tues-jul-7-open-mic-8pm",
                 "excerpt": "",
             }
         ],
@@ -223,6 +231,28 @@ def test_extract_products_skips_recently_past_yearless_dates():
     )
 
     assert events == []
+
+
+@time_machine.travel(_FROZEN_UTC)
+def test_extract_products_keeps_yearless_show_dated_today_in_venue_tz():
+    """A show dated today in the venue tz is upcoming even after UTC midnight."""
+    events = SquarespaceExtractor.extract_products(
+        [
+            {
+                "id": "tonight-1",
+                "title": "Weds Jul 8 Open Mic 8pm",
+                "fullUrl": "/tickets/p/weds-jul-8-open-mic-8pm",
+                "excerpt": "",
+            }
+        ],
+        "https://www.rhinoimprov.com",
+        timezone_name="America/New_York",
+    )
+
+    assert len(events) == 1
+    start = datetime.fromtimestamp(events[0].start_date_ms / 1000, tz=timezone.utc)
+    # Jul 8 2026, 8pm EDT == Jul 9 00:00 UTC.
+    assert start.isoformat() == "2026-07-09T00:00:00+00:00"
 
 
 # ---------------------------------------------------------------------------
