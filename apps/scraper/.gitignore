@@ -322,3 +322,6 @@ output.json
 
 # Web app generated files
 web/venue_lookup/standalone.html
+
+# Scratch data (one-off review CSVs/JSONL) — never track; see TASK-3637
+tmp/
