@@ -36,9 +36,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import app.laughtrack.android.core.ui.UiState
 import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.network.generated.model.NotificationItem
+import app.laughtrack.android.core.ui.UiState
 import java.time.ZonedDateTime
 
 @OptIn(ExperimentalMaterial3Api::class)

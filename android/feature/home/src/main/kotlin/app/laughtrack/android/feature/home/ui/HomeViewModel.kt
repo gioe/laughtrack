@@ -2,7 +2,6 @@ package app.laughtrack.android.feature.home.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import app.laughtrack.android.core.ui.UiState
 import app.laughtrack.android.core.data.runCatchingCancellable
 import app.laughtrack.android.core.data.search.SearchSeed
 import app.laughtrack.android.core.data.search.SearchShortcut
@@ -12,6 +11,7 @@ import app.laughtrack.android.core.network.generated.model.ComedianListItem
 import app.laughtrack.android.core.network.generated.model.HomeFeed
 import app.laughtrack.android.core.network.generated.model.HomeFeedPodcast
 import app.laughtrack.android.core.network.generated.model.Show
+import app.laughtrack.android.core.ui.UiState
 import app.laughtrack.android.feature.home.data.HomeFeedCache
 import app.laughtrack.android.feature.home.data.HomeFeedRepository
 import app.laughtrack.android.feature.home.location.HomeLocationResolver

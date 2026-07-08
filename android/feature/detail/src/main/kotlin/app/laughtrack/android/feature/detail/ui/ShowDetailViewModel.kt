@@ -2,9 +2,9 @@ package app.laughtrack.android.feature.detail.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import app.laughtrack.android.core.ui.UiState
 import app.laughtrack.android.core.data.auth.CurrentUserState
 import app.laughtrack.android.core.data.runCatchingCancellable
+import app.laughtrack.android.core.ui.UiState
 import app.laughtrack.android.feature.detail.data.ShowDetailRepository
 import app.laughtrack.android.feature.detail.model.ShowDetailUi
 import dagger.hilt.android.lifecycle.HiltViewModel

@@ -1,6 +1,5 @@
 package app.laughtrack.android.feature.home
 
-import app.laughtrack.android.core.ui.UiState
 import app.laughtrack.android.core.data.search.SearchShortcut
 import app.laughtrack.android.core.data.search.SearchShortcutCoordinator
 import app.laughtrack.android.core.network.generated.model.ClubListItem
@@ -10,6 +9,7 @@ import app.laughtrack.android.core.network.generated.model.HomeFeedHero
 import app.laughtrack.android.core.network.generated.model.HomeFeedPodcast
 import app.laughtrack.android.core.network.generated.model.Show
 import app.laughtrack.android.core.network.generated.model.SocialData
+import app.laughtrack.android.core.ui.UiState
 import app.laughtrack.android.feature.home.data.HomeFeedCache
 import app.laughtrack.android.feature.home.data.HomeFeedRepository
 import app.laughtrack.android.feature.home.location.HomeLocationResolver
