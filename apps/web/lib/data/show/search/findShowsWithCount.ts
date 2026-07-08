@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import {
+    AVAILABLE_SHOW_WHERE,
     buildShowSelect,
     mapShowRowToDTO,
     type PublicShowRow,
@@ -22,20 +23,6 @@ interface ClubShowsOptions {
     profileId?: string;
     userId?: string;
 }
-
-const AVAILABLE_SHOW_WHERE: Prisma.ShowWhereInput = {
-    AND: [
-        {
-            NOT: [
-                { name: { contains: "sold out", mode: "insensitive" } },
-                { name: { contains: "sold-out", mode: "insensitive" } },
-            ],
-        },
-        {
-            ticketsSoldOut: false,
-        },
-    ],
-};
 
 export async function findShowsWithCount(
     helper: QueryHelper,

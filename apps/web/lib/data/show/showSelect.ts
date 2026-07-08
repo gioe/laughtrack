@@ -102,6 +102,24 @@ export const PUBLIC_SHOW_SELECT = {
     },
 } satisfies Prisma.ShowSelect;
 
+// Shared "available" filter both public show paths AND into their where clause:
+// exclude shows whose title says sold out and shows flagged ticketsSoldOut. Kept
+// here alongside PUBLIC_SHOW_SELECT so a change to what counts as available stays
+// a single edit (previously copy-pasted in the search and home fetchers).
+export const AVAILABLE_SHOW_WHERE: Prisma.ShowWhereInput = {
+    AND: [
+        {
+            NOT: [
+                { name: { contains: "sold out", mode: "insensitive" } },
+                { name: { contains: "sold-out", mode: "insensitive" } },
+            ],
+        },
+        {
+            ticketsSoldOut: false,
+        },
+    ],
+};
+
 interface BuildShowSelectOptions {
     /** Add `description: true` (search path fetches it; home does not). */
     includeDescription?: boolean;

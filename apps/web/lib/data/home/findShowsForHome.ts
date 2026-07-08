@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import {
+    AVAILABLE_SHOW_WHERE,
     PUBLIC_SHOW_SELECT,
     getLineupItemPopularity,
     mapShowRowToDTO,
@@ -14,20 +15,6 @@ interface HomeShowQueryOptions {
 }
 
 const HOME_RELEVANCE_CANDIDATE_TAKE = 50;
-
-const AVAILABLE_HOME_SHOW_WHERE: Prisma.ShowWhereInput = {
-    AND: [
-        {
-            NOT: [
-                { name: { contains: "sold out", mode: "insensitive" } },
-                { name: { contains: "sold-out", mode: "insensitive" } },
-            ],
-        },
-        {
-            ticketsSoldOut: false,
-        },
-    ],
-};
 
 /**
  * Shared query + mapper for home-page show sections.
@@ -52,7 +39,7 @@ export async function findShowsForHome(
         ? Math.max(take, HOME_RELEVANCE_CANDIDATE_TAKE)
         : take;
     const shows = await db.show.findMany({
-        where: { AND: [where, AVAILABLE_HOME_SHOW_WHERE] },
+        where: { AND: [where, AVAILABLE_SHOW_WHERE] },
         select: PUBLIC_SHOW_SELECT,
         orderBy,
         take: queryTake,
