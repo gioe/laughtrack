@@ -234,6 +234,13 @@ by name — the same list is mirrored in `create_grafana_readonly_role.sql`; not
      The workflow also supports manual `workflow_dispatch` (with a dry-run
      input) from the Actions tab.
 
+     A monthly schedule trigger (cron `0 8 1 * *`) runs the reconcile with a
+     forced `--dry-run` as a token-rot canary (scheduled runs never write), and
+     a **Notify Discord on failure** step posts to `#laughtrack` when a
+     push/schedule run on `main` fails — so an expired `GRAFANA_ACCOUNT_TOKEN`
+     surfaces within a month instead of staying silent until the next real
+     reconcile (TASK-3640).
+
 4. **Apply the Discord message template (manual — not auto-provisioned).** The
    YAML's `templates` block defines `scraper_health.discord.message` (TASK-2834):
    it leads with the club or alert name, includes the rule's
