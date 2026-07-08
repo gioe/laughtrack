@@ -11,6 +11,18 @@ on:
         type: boolean
         default: false
 
+# Serialize this pipeline against itself: a manual workflow_dispatch during the
+# 90-180min nightly would otherwise run two full concurrent scrapes — doubled
+# load on ticketing hosts (bot-block risk) and corrupted trailing-7-run Grafana
+# baselines. cancel-in-progress: false QUEUES the second run instead of killing a
+# half-finished one; a run cancelled mid-persist writes a partial scraper_runs
+# row that misleads the dropped-to-zero alerts (TASK-3634, audit T2.2). This
+# group intentionally does NOT include scraper-verify.yml, which stays free to
+# run alongside the pipeline.
+concurrency:
+  group: scraper-pipeline
+  cancel-in-progress: false
+
 jobs:
   scrape:
     runs-on: ubuntu-24.04
