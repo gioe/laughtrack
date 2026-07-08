@@ -26,6 +26,13 @@ type TrendingComedianOptions = {
     distanceMiles?: number;
 };
 
+type TrendingComediansQueryArgs = {
+    now: Date;
+    fetchLimit: number;
+    fetchOffset: number;
+    nearbyZips?: readonly string[] | null;
+};
+
 const MAX_COMEDIANS_LIMIT = 100;
 // Fetch 4× the requested limit from DB (capped at 50) so the app-layer shuffle
 // has enough variety without pulling an unbounded result set.
@@ -34,31 +41,44 @@ const MAX_POOL_SIZE = 50;
 const MIN_UPCOMING_SHOWS = 3;
 const MIN_POPULARITY = 0.4;
 
-export async function getTrendingComedians(
-    limit = 8,
-    offset = 0,
-    options: TrendingComedianOptions = {},
-): Promise<ComedianDTO[]> {
-    const safeLimit = Math.min(Math.max(1, limit), MAX_COMEDIANS_LIMIT);
-    const now = new Date();
-    const nearbyZips =
-        options.zipCode && /^\d{5}(-\d{4})?$/.test(options.zipCode)
-            ? resolveNearbyZips(options.zipCode, options.distanceMiles)
-            : null;
-    const zipJoin = nearbyZips
+export function buildTrendingComediansQuery({
+    now,
+    fetchLimit,
+    fetchOffset,
+    nearbyZips,
+}: TrendingComediansQueryArgs): Prisma.Sql {
+    const hasZipScope = Boolean(nearbyZips?.length);
+    const zipJoin = hasZipScope
         ? Prisma.sql`JOIN clubs cl ON cl.id = s.club_id`
         : Prisma.empty;
-    const zipFilter = nearbyZips
-        ? Prisma.sql`AND cl.zip_code IN (${Prisma.join(nearbyZips)})`
+    const zipFilter = hasZipScope
+        ? Prisma.sql`AND cl.zip_code IN (${Prisma.join(nearbyZips ?? [])})`
         : Prisma.empty;
 
     // Table/column mappings: comedians@@map, lineup_items@@map, shows@@map,
     // tagged_comedians@@map, tags@@map. Comedian.uuid=comedians.uuid,
-    // LineupItem.comedianId=lineup_items.comedian_id, Comedian.parentComedianId=parent_comedian_id
-    const cteQuery = (fetchLimit: number, fetchOffset: number) => db.$queryRaw<
-        TrendingComedianRow[]
-    >`
-        WITH comedian_counts AS (
+    // LineupItem.comedianId=lineup_items.comedian_id, Comedian.parentComedianId=parent_comedian_id.
+    return Prisma.sql`
+        WITH eligible_lineups AS (
+            SELECT
+                CASE
+                    WHEN performer.parent_comedian_id IS NULL THEN performer.id
+                    ELSE performer.parent_comedian_id
+                END AS canonical_comedian_id,
+                COUNT(*)::int AS show_count
+            FROM lineup_items li
+            JOIN comedians performer ON performer.uuid = li.comedian_id
+            JOIN shows s ON s.id = li.show_id
+            ${zipJoin}
+            WHERE s.date > ${now}
+              ${zipFilter}
+              AND (
+                  performer.parent_comedian_id IS NULL
+                  OR performer.visible = true
+              )
+            GROUP BY canonical_comedian_id
+        ),
+        comedian_counts AS (
             SELECT
                 c.id,
                 c.uuid,
@@ -73,30 +93,9 @@ export async function getTrendingComedians(
                 c.popularity,
                 c.linktree,
                 c.has_image,
-                (
-                    (
-                        SELECT COUNT(*)
-                        FROM lineup_items li
-                        JOIN shows s ON s.id = li.show_id
-                        ${zipJoin}
-                        WHERE li.comedian_id = c.uuid
-                          AND s.date > ${now}
-                          ${zipFilter}
-                    ) + COALESCE((
-                        SELECT SUM(cnt) FROM (
-                            SELECT COUNT(*) AS cnt
-                            FROM comedians alt
-                            JOIN lineup_items li ON li.comedian_id = alt.uuid
-                            JOIN shows s ON s.id = li.show_id
-                            ${zipJoin}
-                            WHERE alt.parent_comedian_id = c.id
-                              AND alt.visible = true
-                              AND s.date > ${now}
-                              ${zipFilter}
-                        ) t
-                    ), 0)
-                )::int AS show_count
+                el.show_count
             FROM comedians c
+            JOIN eligible_lineups el ON el.canonical_comedian_id = c.id
             WHERE
                 c.visible = true
                 AND c.popularity > ${MIN_POPULARITY}
@@ -111,25 +110,6 @@ export async function getTrendingComedians(
                     SELECT 1 FROM comedian_deny_list dl
                     WHERE dl.name = c.name
                 )
-                AND (
-                    EXISTS (
-                        SELECT 1 FROM lineup_items li
-                        JOIN shows s ON s.id = li.show_id
-                        ${zipJoin}
-                        WHERE li.comedian_id = c.uuid
-                          AND s.date > ${now}
-                          ${zipFilter}
-                    ) OR EXISTS (
-                        SELECT 1 FROM comedians alt
-                        JOIN lineup_items li ON li.comedian_id = alt.uuid
-                        JOIN shows s ON s.id = li.show_id
-                        ${zipJoin}
-                        WHERE alt.parent_comedian_id = c.id
-                          AND alt.visible = true
-                          AND s.date > ${now}
-                          ${zipFilter}
-                    )
-                )
         )
         SELECT *
         FROM comedian_counts
@@ -138,6 +118,29 @@ export async function getTrendingComedians(
         LIMIT ${fetchLimit}
         OFFSET ${fetchOffset}
     `;
+}
+
+export async function getTrendingComedians(
+    limit = 8,
+    offset = 0,
+    options: TrendingComedianOptions = {},
+): Promise<ComedianDTO[]> {
+    const safeLimit = Math.min(Math.max(1, limit), MAX_COMEDIANS_LIMIT);
+    const now = new Date();
+    const nearbyZips =
+        options.zipCode && /^\d{5}(-\d{4})?$/.test(options.zipCode)
+            ? resolveNearbyZips(options.zipCode, options.distanceMiles)
+            : null;
+
+    const cteQuery = (fetchLimit: number, fetchOffset: number) =>
+        db.$queryRaw<TrendingComedianRow[]>(
+            buildTrendingComediansQuery({
+                now,
+                fetchLimit,
+                fetchOffset,
+                nearbyZips,
+            }),
+        );
 
     let selected: TrendingComedianRow[];
     try {

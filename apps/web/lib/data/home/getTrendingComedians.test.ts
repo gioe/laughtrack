@@ -1,3 +1,4 @@
+import { PGlite } from "@electric-sql/pglite";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("@/lib/db", () => ({
@@ -9,10 +10,14 @@ vi.mock("@/util/imageUtil", () => ({
     ),
 }));
 
-import { getTrendingComedians } from "./getTrendingComedians";
+import {
+    buildTrendingComediansQuery,
+    getTrendingComedians,
+} from "./getTrendingComedians";
 import { db } from "@/lib/db";
 
 const mockQueryRaw = vi.mocked(db.$queryRaw);
+const FIXTURE_NOW = new Date("2026-07-01T00:00:00Z");
 
 function makeRow(
     overrides: Partial<{
@@ -55,6 +60,282 @@ beforeEach(() => {
     vi.clearAllMocks();
 });
 
+type SqlLike = {
+    strings: readonly string[];
+    values: readonly unknown[];
+};
+
+function toPgliteQuery(query: SqlLike) {
+    const values = query.values.map((value) =>
+        value instanceof Date ? value.toISOString() : value,
+    );
+    const text = query.strings.reduce((sql, chunk, index) => {
+        if (index >= values.length) {
+            return sql + chunk;
+        }
+        return `${sql}${chunk}$${index + 1}`;
+    }, "");
+    return { text, values };
+}
+
+function firstQueryRawSql() {
+    const query = mockQueryRaw.mock.calls[0]?.[0] as SqlLike;
+    return {
+        sql: query.strings.join("?"),
+        values: query.values,
+    };
+}
+
+const TRENDING_COMEDIANS_FIXTURE_SCHEMA = `
+    CREATE TABLE comedians (
+        id INTEGER PRIMARY KEY,
+        uuid TEXT NOT NULL UNIQUE,
+        name TEXT NOT NULL,
+        instagram_account TEXT,
+        instagram_followers INTEGER,
+        tiktok_account TEXT,
+        tiktok_followers INTEGER,
+        youtube_account TEXT,
+        youtube_followers INTEGER,
+        website TEXT,
+        popularity DOUBLE PRECISION NOT NULL DEFAULT 0,
+        linktree TEXT,
+        has_image BOOLEAN NOT NULL DEFAULT false,
+        visible BOOLEAN NOT NULL DEFAULT true,
+        parent_comedian_id INTEGER REFERENCES comedians(id)
+    );
+
+    CREATE TABLE clubs (
+        id INTEGER PRIMARY KEY,
+        zip_code TEXT
+    );
+
+    CREATE TABLE shows (
+        id INTEGER PRIMARY KEY,
+        date TIMESTAMPTZ NOT NULL,
+        club_id INTEGER NOT NULL REFERENCES clubs(id)
+    );
+
+    CREATE TABLE lineup_items (
+        show_id INTEGER NOT NULL REFERENCES shows(id),
+        comedian_id TEXT NOT NULL REFERENCES comedians(uuid),
+        PRIMARY KEY (show_id, comedian_id)
+    );
+
+    CREATE TABLE tags (
+        id INTEGER PRIMARY KEY,
+        slug TEXT
+    );
+
+    CREATE TABLE tagged_comedians (
+        id INTEGER PRIMARY KEY,
+        comedian_id TEXT NOT NULL REFERENCES comedians(uuid),
+        tag_id INTEGER NOT NULL REFERENCES tags(id)
+    );
+
+    CREATE TABLE comedian_deny_list (
+        name TEXT PRIMARY KEY
+    );
+`;
+
+async function seedTrendingComediansFixture(db: PGlite) {
+    await db.exec(TRENDING_COMEDIANS_FIXTURE_SCHEMA);
+    await db.query(`
+        INSERT INTO clubs (id, zip_code) VALUES
+            (1, '10001'),
+            (2, '94108')
+    `);
+    await db.query(`
+        INSERT INTO comedians (
+            id,
+            uuid,
+            name,
+            popularity,
+            has_image,
+            visible,
+            parent_comedian_id
+        ) VALUES
+            (1, 'alice', 'Alice Headliner', 0.90, true, true, NULL),
+            (2, 'alice-alt', 'Alice Alias', 0.10, false, true, 1),
+            (3, 'alice-hidden-alt', 'Alice Hidden Alias', 0.10, false, false, 1),
+            (4, 'bob', 'Bob Regular', 0.80, false, true, NULL),
+            (5, 'tagged', 'Tagged Alias Comic', 0.90, true, true, NULL),
+            (6, 'denied', 'Denied Comic', 0.90, true, true, NULL),
+            (7, 'low-popularity', 'Low Popularity Comic', 0.20, true, true, NULL),
+            (8, 'no-shows', 'No Shows Comic', 0.90, true, true, NULL)
+    `);
+    await db.query("INSERT INTO tags (id, slug) VALUES (1, 'alias')");
+    await db.query(
+        "INSERT INTO tagged_comedians (id, comedian_id, tag_id) VALUES (1, 'tagged', 1)",
+    );
+    await db.query(
+        "INSERT INTO comedian_deny_list (name) VALUES ('Denied Comic')",
+    );
+
+    const shows = [
+        [101, "2026-08-01T00:00:00Z", 1],
+        [102, "2026-08-02T00:00:00Z", 1],
+        [103, "2026-08-03T00:00:00Z", 1],
+        [104, "2026-08-04T00:00:00Z", 2],
+        [105, "2026-08-05T00:00:00Z", 1],
+        [106, "2026-06-01T00:00:00Z", 1],
+        [201, "2026-08-01T00:00:00Z", 1],
+        [202, "2026-08-02T00:00:00Z", 1],
+        [203, "2026-08-03T00:00:00Z", 2],
+        [204, "2026-08-04T00:00:00Z", 2],
+        [301, "2026-08-01T00:00:00Z", 1],
+        [302, "2026-08-02T00:00:00Z", 1],
+        [303, "2026-08-03T00:00:00Z", 1],
+        [304, "2026-08-04T00:00:00Z", 1],
+        [401, "2026-08-01T00:00:00Z", 1],
+        [402, "2026-08-02T00:00:00Z", 1],
+        [403, "2026-08-03T00:00:00Z", 1],
+        [404, "2026-08-04T00:00:00Z", 1],
+        [501, "2026-08-01T00:00:00Z", 1],
+        [502, "2026-08-02T00:00:00Z", 1],
+        [503, "2026-08-03T00:00:00Z", 1],
+        [504, "2026-08-04T00:00:00Z", 1],
+    ] as const;
+
+    for (const [id, date, clubId] of shows) {
+        await db.query(
+            "INSERT INTO shows (id, date, club_id) VALUES ($1, $2, $3)",
+            [id, date, clubId],
+        );
+    }
+
+    const lineupItems = [
+        [101, "alice"],
+        [102, "alice"],
+        [103, "alice-alt"],
+        [104, "alice-alt"],
+        [105, "alice-hidden-alt"],
+        [106, "alice"],
+        [201, "bob"],
+        [202, "bob"],
+        [203, "bob"],
+        [204, "bob"],
+        [301, "tagged"],
+        [302, "tagged"],
+        [303, "tagged"],
+        [304, "tagged"],
+        [401, "denied"],
+        [402, "denied"],
+        [403, "denied"],
+        [404, "denied"],
+        [501, "low-popularity"],
+        [502, "low-popularity"],
+        [503, "low-popularity"],
+        [504, "low-popularity"],
+    ] as const;
+
+    for (const [showId, comedianId] of lineupItems) {
+        await db.query(
+            "INSERT INTO lineup_items (show_id, comedian_id) VALUES ($1, $2)",
+            [showId, comedianId],
+        );
+    }
+}
+
+function legacyTrendingComediansCountSql(zipCodes?: readonly string[]) {
+    const zipJoin = zipCodes?.length
+        ? "JOIN clubs cl ON cl.id = s.club_id"
+        : "";
+    const zipFilter = zipCodes?.length ? "AND cl.zip_code = ANY($4)" : "";
+    const values = zipCodes?.length
+        ? [FIXTURE_NOW.toISOString(), 0.4, 3, zipCodes]
+        : [FIXTURE_NOW.toISOString(), 0.4, 3];
+    return {
+        text: `
+            WITH comedian_counts AS (
+                SELECT
+                    c.id,
+                    c.name,
+                    c.has_image,
+                    (
+                        (
+                            SELECT COUNT(*)
+                            FROM lineup_items li
+                            JOIN shows s ON s.id = li.show_id
+                            ${zipJoin}
+                            WHERE li.comedian_id = c.uuid
+                              AND s.date > $1
+                              ${zipFilter}
+                        ) + COALESCE((
+                            SELECT SUM(cnt) FROM (
+                                SELECT COUNT(*) AS cnt
+                                FROM comedians alt
+                                JOIN lineup_items li ON li.comedian_id = alt.uuid
+                                JOIN shows s ON s.id = li.show_id
+                                ${zipJoin}
+                                WHERE alt.parent_comedian_id = c.id
+                                  AND alt.visible = true
+                                  AND s.date > $1
+                                  ${zipFilter}
+                            ) t
+                        ), 0)
+                    )::int AS show_count
+                FROM comedians c
+                WHERE
+                    c.visible = true
+                    AND c.popularity > $2
+                    AND c.parent_comedian_id IS NULL
+                    AND NOT EXISTS (
+                        SELECT 1 FROM tagged_comedians tc
+                        JOIN tags t ON t.id = tc.tag_id
+                        WHERE tc.comedian_id = c.uuid
+                            AND t.slug IN ('alias', 'non_human', 'non comic')
+                    )
+                    AND NOT EXISTS (
+                        SELECT 1 FROM comedian_deny_list dl
+                        WHERE dl.name = c.name
+                    )
+                    AND (
+                        EXISTS (
+                            SELECT 1 FROM lineup_items li
+                            JOIN shows s ON s.id = li.show_id
+                            ${zipJoin}
+                            WHERE li.comedian_id = c.uuid
+                              AND s.date > $1
+                              ${zipFilter}
+                        ) OR EXISTS (
+                            SELECT 1 FROM comedians alt
+                            JOIN lineup_items li ON li.comedian_id = alt.uuid
+                            JOIN shows s ON s.id = li.show_id
+                            ${zipJoin}
+                            WHERE alt.parent_comedian_id = c.id
+                              AND alt.visible = true
+                              AND s.date > $1
+                              ${zipFilter}
+                        )
+                    )
+            )
+            SELECT id, name, show_count
+            FROM comedian_counts
+            WHERE show_count > $3
+            ORDER BY has_image DESC, show_count DESC, name ASC
+        `,
+        values,
+    };
+}
+
+async function trendingCountsFromQuery(
+    db: PGlite,
+    query: { text: string; values: unknown[] },
+) {
+    const result = await db.query<{
+        id: number;
+        name: string;
+        show_count: number | bigint;
+    }>(query.text, query.values);
+
+    return result.rows.map((row) => ({
+        id: Number(row.id),
+        name: row.name,
+        show_count: Number(row.show_count),
+    }));
+}
+
 describe("getTrendingComedians", () => {
     describe("mock setup — db.$queryRaw is injectable", () => {
         it("queries the DB when called with default args", async () => {
@@ -73,34 +354,10 @@ describe("getTrendingComedians", () => {
                 distanceMiles: 25,
             });
 
-            const [strings, ...values] = mockQueryRaw.mock.calls[0] as [
-                TemplateStringsArray,
-                ...unknown[],
-            ];
-            const sql = Array.from(strings).join("?");
-            const nestedSql = values
-                .flatMap((value) =>
-                    typeof value === "object" &&
-                    value !== null &&
-                    "strings" in value
-                        ? Array.from(
-                              (value as { strings: readonly string[] }).strings,
-                          )
-                        : [],
-                )
-                .join(" ");
-            const nestedValues = values.flatMap((value) =>
-                typeof value === "object" && value !== null && "values" in value
-                    ? Array.from(
-                          (value as { values: readonly unknown[] }).values,
-                      )
-                    : [],
-            );
-            expect(`${sql} ${nestedSql}`).toContain(
-                "JOIN clubs cl ON cl.id = s.club_id",
-            );
-            expect(`${sql} ${nestedSql}`).toContain("cl.zip_code IN");
-            expect(nestedValues).toContain("94108");
+            const { sql, values } = firstQueryRawSql();
+            expect(sql).toContain("JOIN clubs cl ON cl.id = s.club_id");
+            expect(sql).toContain("cl.zip_code IN");
+            expect(values).toContain("94108");
         });
 
         it("does not add club zip filters for generic trending comedians", async () => {
@@ -108,11 +365,7 @@ describe("getTrendingComedians", () => {
 
             await getTrendingComedians();
 
-            const [strings] = mockQueryRaw.mock.calls[0] as [
-                TemplateStringsArray,
-                ...unknown[],
-            ];
-            const sql = Array.from(strings).join("?");
+            const { sql } = firstQueryRawSql();
             expect(sql).not.toContain("JOIN clubs cl ON cl.id = s.club_id");
             expect(sql).not.toContain("cl.zip_code IN");
         });
@@ -124,11 +377,7 @@ describe("getTrendingComedians", () => {
 
             await getTrendingComedians();
 
-            const [strings, ...values] = mockQueryRaw.mock.calls[0] as [
-                TemplateStringsArray,
-                ...unknown[],
-            ];
-            const sql = Array.from(strings).join("?");
+            const { sql, values } = firstQueryRawSql();
             expect(sql).toContain("c.popularity >");
             expect(values).toContain(0.4);
         });
@@ -188,6 +437,49 @@ describe("getTrendingComedians", () => {
     });
 
     describe("show_count > 3 contract", () => {
+        it("matches the legacy own-plus-visible-alias show_count query on fixture data", async () => {
+            const fixtureDb = new PGlite();
+            try {
+                await seedTrendingComediansFixture(fixtureDb);
+
+                for (const nearbyZips of [undefined, ["10001"]] as const) {
+                    const legacyRows = await trendingCountsFromQuery(
+                        fixtureDb,
+                        legacyTrendingComediansCountSql(nearbyZips),
+                    );
+                    const groupedRows = await trendingCountsFromQuery(
+                        fixtureDb,
+                        toPgliteQuery(
+                            buildTrendingComediansQuery({
+                                now: FIXTURE_NOW,
+                                fetchLimit: 50,
+                                fetchOffset: 0,
+                                nearbyZips,
+                            }),
+                        ),
+                    );
+
+                    expect(groupedRows).toEqual(legacyRows);
+                }
+            } finally {
+                await fixtureDb.close();
+            }
+        });
+
+        it("uses one grouped lineup join instead of correlated show-count subqueries", async () => {
+            mockQueryRaw.mockResolvedValue([]);
+
+            await getTrendingComedians();
+
+            const query = mockQueryRaw.mock.calls[0]?.[0] as SqlLike;
+            const sql = query.strings.join(" ");
+
+            expect(sql).toContain("GROUP BY canonical_comedian_id");
+            expect(sql).toContain("JOIN eligible_lineups el");
+            expect(sql).not.toContain("SELECT COUNT(*)");
+            expect(sql).not.toContain("SELECT SUM(cnt)");
+        });
+
         it("returns comedians whose show_count > 3 (SQL enforces this; mock simulates correct DB output)", async () => {
             const rows = [
                 makeRow({
