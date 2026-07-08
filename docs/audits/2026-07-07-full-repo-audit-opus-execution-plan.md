@@ -244,6 +244,7 @@ This document is self-contained. You do not need the audit session's context. Ev
 - **Effort:** M. **Verify:** `npx vitest run lib/data/show lib/data/home`.
 
 ### T3.14 (WEB-7 + WEB-10) Dead code + icon-dep pruning
+- **[Partially executed — TASK-3654, 2026-07-08]** `ui/components/google/` deleted. **`ui/components/divider/` was NOT dead and is retained**: the zero-import-sites claim missed a relative import (`cards/show/index.tsx` imports `../../divider` and renders it) — do not re-attempt that deletion. Icon-dep pruning below is tracked as TASK-3688.
 - Delete `apps/web/ui/components/divider/` and `ui/components/google/` (zero import sites; `GoogleAdsense` is an ad-script component with no callers). Scope the pre-delete grep to import paths, not the word "Divider"; check for `next/dynamic` string refs. Then replace the 3 `react-icons` + 3 `@radix-ui/react-icons` usages with lucide equivalents (match glyphs visually — names differ) and drop both deps; first confirm `@radix-ui/react-icons` isn't a peer of another radix package.
 - **Effort:** S. **Verify:** `npx tsc --noEmit`; `npm run build`; `grep -rn "react-icons\|@radix-ui/react-icons" ui app` → nothing.
 
