@@ -34,6 +34,10 @@ verify scrape that returned shows is still valid evidence the club is not dark.
   - Error count by run (over time)
   - Clubs dropped to zero shows (latest run)
   - Bot-block providers (error counts by type)
+  - Ticketless shows per club (over time) — per-club count of shows transformed
+    with zero tickets (`raw_stat->>'ticketless_shows'`, TASK-3629; ticketless
+    shows are invisible in all three clients). Only clubs with a nonzero count
+    are plotted. Companion to the consecutive-runs alert (rule 6 below).
 - `scraper-health-alerts.yaml` — unified-alerting **rules-as-code** that baseline
   each run against the trailing-N-run rolling average and fire to Discord on a
   regression (see **Regression alerts** below).
@@ -86,7 +90,7 @@ Full operator walkthrough lives in `apps/web/DEPLOYMENT.md` →
 
 ## Regression alerts
 
-`scraper-health-alerts.yaml` defines five unified-alerting rules routed to a
+`scraper-health-alerts.yaml` defines six unified-alerting rules routed to a
 Discord contact point. Rules 1 and 3 compare the **latest run** against the
 **trailing 7-run rolling average** (rows `rn BETWEEN 2 AND 8` in the SQL —
 widen/narrow by editing those bounds):
@@ -130,6 +134,24 @@ widen/narrow by editing those bounds):
    failed the pre-scrape migrate step and silently skipped ~4 nightly runs with
    no alert.) The GHA `Notify on failure` step (`scraper-schedule.yml`) also now
    posts to Discord on a hard job failure as an immediate same-run signal.
+6. **Club reporting ticketless shows on consecutive runs** (TASK-3680) — fires
+   when a club reported a nonzero `ticketless_shows` count (shows transformed
+   with an empty tickets list, invisible in all three clients) in the last 2
+   consecutive full scrape runs. TASK-3629 records the per-club counter into
+   `scraper_run_clubs.raw_stat` via `PerClubStat.ticketless_shows` and
+   deliberately stopped at recording, so the charting (panel above) and this
+   alert live here, not in the scraper. Unlike rules 1–4 this is an **inline
+   live query** against `raw_stat ->> 'ticketless_shows'` (like rule 5), **not**
+   a materialized-view read: adding a `mv_` + a `REFRESH` call would mean
+   touching the scraper, which TASK-3680 forbids. The firing set is small (only
+   clubs actually emitting ticketless shows twice in a row — every show is
+   supposed to emit ≥1 ticket) so the inline scan stays cheap at the 6-hour
+   cadence. Semantics mirror rule 4's self-healing consecutive condition (keeps
+   firing every evaluation until the club recovers), and the query emits a
+   0-valued row for one extra run when the previous 2-run window fired but the
+   latest did not, so a recovery resolves as **Normal** rather than
+   MissingSeries (the TASK-2834 series-retention trick, done inline). One alert
+   instance per club (the `club` and `club_id` labels).
 
 These replace the scraper's old unconditional per-run Discord summary (gated off
 in TASK-2511): a healthy run produces no Discord post, so Discord carries only

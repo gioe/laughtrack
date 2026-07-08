@@ -449,3 +449,115 @@ groups:
                 - evaluator:
                     type: gt
                     params: [26]
+
+      # 6) Ticketless shows on consecutive runs (TASK-3680): a club reported a
+      #    nonzero ticketless_shows count (shows transformed with an empty
+      #    tickets list — invisible in all three clients) in the last 2
+      #    consecutive full scrape runs. TASK-3629 records this per club into
+      #    scraper_run_clubs.raw_stat via PerClubStat.ticketless_shows; the
+      #    scraper deliberately stopped at recording, so the charting/alerting
+      #    lives here.
+      #
+      #    Unlike rules 1-4 this is an INLINE live query, NOT a materialized-view
+      #    read (like rule 5). Adding a mv_ + a REFRESH call would mean touching
+      #    the scraper, which TASK-3680 scope forbids ("do not rebuild alerting
+      #    in the scraper"). The 6h group cadence + the small firing set (only
+      #    clubs actually emitting ticketless shows twice in a row, normally a
+      #    handful — every show is supposed to emit >=1 ticket) keep the inline
+      #    scan cheap. Semantics mirror rule 2b's self-healing consecutive
+      #    condition: it keeps firing every evaluation until the club recovers,
+      #    so a missed evaluation only delays the alert by one interval.
+      #
+      #    Series-retention (matches the TASK-2834 trick rules 2/4 get from their
+      #    views): the query also emits a 0-valued row for any club whose 2-run
+      #    ticketless window held as of the PREVIOUS run but not the latest, so a
+      #    recovering club's series flips 1 -> 0 and resolves as Normal instead
+      #    of vanishing into a MissingSeries resolution — Discord only sees
+      #    meaningful state changes. One series per club (club + club_id labels)
+      #    -> one alert instance per club; club_id feeds the Discord template's
+      #    scraper-verify next step.
+      - uid: scraper-club-ticketless-consecutive
+        title: Club reporting ticketless shows on consecutive runs
+        condition: C
+        for: 0m
+        noDataState: OK
+        execErrState: Alerting
+        labels:
+          service: scraper-health
+          severity: warning
+        annotations:
+          summary: '{{ $labels.club }} reported ticketless shows on 2 consecutive runs'
+          description: >
+            {{ $labels.club }} transformed one or more shows with zero tickets in
+            the last 2 consecutive full scrape runs (raw_stat->>'ticketless_shows'
+            > 0). Ticketless shows are hidden in all three clients, so this is a
+            silent enrichment gap — check the venue's ticket source and the
+            scraper's ticket extraction.
+        data:
+          - refId: A
+            relativeTimeRange: { from: 0, to: 0 }
+            datasourceUid: dfnjxqagicw74a
+            model:
+              refId: A
+              format: table
+              rawSql: |
+                -- Inline live read of scraper_run_clubs.raw_stat->>'ticketless_shows'
+                -- (TASK-3629 / TASK-3680). No materialized view: charting/alerting
+                -- for this metric lives entirely in apps/web/monitoring/grafana so
+                -- the scraper is not touched. Pivots the last 3 full 'scraper' runs
+                -- per club, fires (1) when the latest 2 are both nonzero, and
+                -- retains a 0-valued row for one extra run when the PREVIOUS 2-run
+                -- window fired but the latest did not, so a recovery resolves as
+                -- Normal rather than MissingSeries (the TASK-2834 series-retention
+                -- trick, done inline here). run_type='scraper' excludes 'pipeline'
+                -- and single-club 'verify' rows from the comparison window.
+                WITH last_runs AS (
+                    SELECT id,
+                           ROW_NUMBER() OVER (ORDER BY exported_at DESC) AS rn
+                    FROM scraper_runs
+                    WHERE run_type = 'scraper'
+                    ORDER BY exported_at DESC
+                    LIMIT 3
+                ),
+                club_run_ticketless AS (
+                    SELECT c.club_name AS club,
+                           c.club_id,
+                           lr.rn,
+                           SUM(COALESCE((c.raw_stat->>'ticketless_shows')::int, 0)) AS ticketless
+                    FROM scraper_run_clubs c
+                    JOIN last_runs lr ON c.run_id = lr.id
+                    GROUP BY c.club_name, c.club_id, lr.rn
+                ),
+                pivoted AS (
+                    SELECT club,
+                           club_id,
+                           COALESCE(MAX(ticketless) FILTER (WHERE rn = 1), 0) AS t1,
+                           COALESCE(MAX(ticketless) FILTER (WHERE rn = 2), 0) AS t2,
+                           COALESCE(MAX(ticketless) FILTER (WHERE rn = 3), 0) AS t3
+                    FROM club_run_ticketless
+                    GROUP BY club, club_id
+                )
+                SELECT club,
+                       club_id,
+                       CASE WHEN t1 > 0 AND t2 > 0 THEN 1 ELSE 0 END AS ticketless_consecutive
+                FROM pivoted
+                WHERE (t1 > 0 AND t2 > 0)
+                   OR (t2 > 0 AND t3 > 0)
+                ORDER BY club;
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [0]
