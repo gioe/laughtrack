@@ -19,6 +19,7 @@ from dateutil import parser as dateutil_parser
 from laughtrack.core.entities.event.ticketweb import TicketWebEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.utilities.html.utils import HtmlUtils
+from laughtrack.foundation.utilities.number import parse_price_text
 
 
 class TicketWebExtractor:
@@ -71,7 +72,6 @@ class TicketWebExtractor:
         r'class="tw-price"[^>]*>(.*?)</span>', re.DOTALL
     )
 
-    _DOLLAR_AMOUNT_PATTERN = re.compile(r"\$\s*(\d+(?:\.\d{1,2})?)")
 
     @staticmethod
     def extract_calendar_events(html: str) -> List[Dict]:
@@ -223,14 +223,9 @@ class TicketWebExtractor:
         if not match:
             return None
 
-        amount = TicketWebExtractor._DOLLAR_AMOUNT_PATTERN.search(match.group(1))
-        if not amount:
-            return None
-
-        try:
-            return float(amount.group(1))
-        except ValueError:
-            return None
+        # The tw-price span content is a targeted price string; the shared
+        # parser's min-of-$ equals the old first-$ low end for low-first ranges.
+        return parse_price_text(match.group(1))
 
     @staticmethod
     def build_events(
