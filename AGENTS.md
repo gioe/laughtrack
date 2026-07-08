@@ -4,9 +4,9 @@ Detailed, cross-cutting project conventions live in the tusk conventions databas
 not only in this file. Before touching an unfamiliar area, query relevant rules:
 
 ```bash
-./.claude/bin/tusk conventions inject <path>      # path-based convention hints
-./.claude/bin/tusk conventions search <term>      # semantic search, best for domain rules
-./.claude/bin/tusk conventions list --topic <tag> # exact topic filter
+tusk conventions inject <path>      # path-based convention hints
+tusk conventions search <term>      # semantic search, best for domain rules
+tusk conventions list --topic <tag> # exact topic filter
 ```
 
 Do not rely only on path injection for domain invariants. If a task involves a
@@ -81,27 +81,37 @@ When editing repo-local skills:
 The sync script also refreshes `.claude/tusk-manifest.json`, so do **not** hand-edit
 `.agents/skills/` or manually maintain the Claude manifest entries for skill files.
 
-## Tusk in Worktrees — Use the Active Checkout's Binary
+## Tusk Runtime — Machine-Level Install; .claude/bin Is Untracked
 
-When running task workflow commands from a git worktree, use the project-local
-tusk binary from that active checkout:
-
-```bash
-./.claude/bin/tusk <subcommand>
-```
-
-If you use bare `tusk`, first verify it resolves inside the current LaughTrack
-checkout:
+`.claude/bin/` is gitignored and untracked (TASK-3636). A checkout that
+fast-forwards past the untrack commit has git delete any previously tracked
+`.claude/bin` files from its working tree — this is expected and does NOT
+break the runtime. Invoke tusk from the primary checkout or any worktree as
+bare `tusk`:
 
 ```bash
-command -v tusk
+tusk <subcommand>
 ```
 
-Failure mode: bare `tusk` can resolve to another project's installed tusk
-scripts while the active database is still LaughTrack's. That mismatched code
-and DB schema produces false errors such as `no such column: is_deferred`, and
-can affect DB-mutating operations like `task-start`, `criteria done`, `commit`,
-`merge`, `review`, `skill-run`, and `retro`.
+`tusk` on PATH is a machine-level wrapper (e.g. `~/.local/bin/tusk`) that
+execs the machine's tusk install; the project database is resolved from the
+current working directory, so the same binary serves every checkout and
+worktree. The `.claude/hooks/` scripts resolve tusk the same way: they fall
+back to `command -v tusk` automatically when `$REPO_ROOT/.claude/bin/tusk`
+is absent (see `.claude/hooks/hook-common.sh`).
+
+Recovery when `command -v tusk` resolves nothing (fresh machine, deleted
+wrapper): run `install.sh` from a gioe/tusk checkout inside this repo — it
+regenerates `.claude/bin/` and the PATH session hook. Note that `tusk
+upgrade` does NOT recreate a deleted repo-local `.claude/bin`; it updates
+the install that is running plus this repo's `.claude/skills` and
+`.claude/hooks`.
+
+If tusk commands fail with schema errors such as `no such column: ...`, the
+shared install and this project's database have drifted — run `tusk upgrade`
+followed by `tusk migrate` from the repo before retrying DB-mutating
+operations (`task-start`, `criteria done`, `commit`, `merge`, `review`,
+`skill-run`, `retro`).
 
 ## Scraper Platform Reference
 
