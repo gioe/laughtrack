@@ -20,6 +20,7 @@ from bs4 import BeautifulSoup
 
 from laughtrack.core.entities.event.booktix import BookTixEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+from laughtrack.foundation.utilities.number import parse_price_text
 
 # Production codes link as /dept/main/e/{code} on the box office home.
 _EVENT_CODE_RE = re.compile(r"/dept/main/e/([A-Za-z0-9_-]+)")
@@ -28,8 +29,6 @@ _EVENT_CODE_RE = re.compile(r"/dept/main/e/([A-Za-z0-9_-]+)")
 _SHOWTIME_RE = re.compile(
     r"(?:Sun|Mon|Tue|Wed|Thu|Fri|Sat) [A-Z][a-z]{2} \d{1,2} \d{4} - \d{1,2}:\d{2} (?:AM|PM)"
 )
-
-_PRICE_RE = re.compile(r"\$(\d+(?:\.\d{2})?)")
 
 
 def extract_event_urls(home_html: str, base_url: str) -> List[str]:
@@ -51,8 +50,9 @@ def extract_event_urls(home_html: str, base_url: str) -> List[str]:
 
 def _extract_price(html: str) -> Optional[float]:
     """Return the lowest dollar price on the page, or None if none present."""
-    prices = [float(p) for p in _PRICE_RE.findall(html)]
-    return min(prices) if prices else None
+    # detect_free=False: this scans the whole page HTML, where an incidental
+    # "free" (e.g. "free parking") must not zero out a real price.
+    return parse_price_text(html, detect_free=False)
 
 
 def extract_events(detail_html: str, detail_url: str) -> List[BookTixEvent]:
