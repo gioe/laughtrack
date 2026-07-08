@@ -2,6 +2,8 @@ import Foundation
 import SwiftUI
 import Testing
 import Combine
+import HTTPTypes
+import OpenAPIRuntime
 import LaughTrackAPIClient
 import LaughTrackBridge
 import LaughTrackCore
@@ -82,43 +84,55 @@ struct SearchRootViewTests {
         #expect(page.total == 1)
     }
 
-    @Test("podcast URLSession fetcher uses dedicated podcast search endpoint")
-    func podcastURLSessionFetcherUsesDedicatedPodcastSearchEndpoint() async throws {
-        let session = URLSession.stubbed(json: """
-        {
-            "data": [
-                {
-                    "id": 42,
-                    "slug": "comedy-bang-bang",
-                    "title": "Comedy Bang Bang",
-                    "authorName": "Earwolf",
-                    "websiteUrl": null,
-                    "feedUrl": "https://example.com/feed.xml",
-                    "imageUrl": "https://example.com/cbb.jpg",
-                    "description": "A comedy podcast.",
-                    "episodeCount": 12
-                }
-            ],
-            "total": 1
+    @Test("podcast generated-client fetcher uses dedicated podcast search endpoint")
+    func podcastGeneratedFetcherUsesDedicatedPodcastSearchEndpoint() async throws {
+        let transport = StubClientTransport()
+        transport.setHandler { _, _, _, _ in
+            var response = HTTPResponse(status: .ok)
+            response.headerFields[.contentType] = "application/json"
+            return (response, HTTPBody("""
+            {
+                "data": [
+                    {
+                        "id": 42,
+                        "slug": "comedy-bang-bang",
+                        "title": "Comedy Bang Bang",
+                        "authorName": "Earwolf",
+                        "websiteUrl": null,
+                        "feedUrl": "https://example.com/feed.xml",
+                        "imageUrl": "https://example.com/cbb.jpg",
+                        "description": "A comedy podcast.",
+                        "episodeCount": 12,
+                        "hosts": []
+                    }
+                ],
+                "total": 1,
+                "filters": []
+            }
+            """))
         }
-        """) { request in
-            #expect(request.url?.path == "/api/v1/podcasts/search")
-            let url = try #require(request.url)
-            let components = try #require(URLComponents(url: url, resolvingAgainstBaseURL: false))
-            #expect(components.queryItems?.first(where: { $0.name == "q" })?.value == "")
-            #expect(components.queryItems?.first(where: { $0.name == "page" })?.value == "0")
-            #expect(components.queryItems?.first(where: { $0.name == "size" })?.value == "20")
-            #expect(components.queryItems?.first(where: { $0.name == "sort" })?.value == "popularity_desc")
-            #expect(components.queryItems?.first(where: { $0.name == "includeEmpty" })?.value == "true")
-            #expect(components.queryItems?.first(where: { $0.name == "type" }) == nil)
-            #expect(components.queryItems?.first(where: { $0.name == "limit" }) == nil)
-        }
-        let fetcher = URLSessionPodcastSearchFetcher(
-            baseURL: URL(string: "https://example.test")!,
-            urlSession: session
+        let apiClient = Client(
+            serverURL: URL(string: "https://example.test")!,
+            transport: transport,
+            middlewares: [APIVersionPathMiddleware()]
         )
+        let fetcher = APIPodcastSearchFetcher(apiClient: apiClient)
 
         let result = await fetcher.searchPodcasts(.init(query: "", limit: 20, sort: "popularity_desc", includeEmpty: true))
+
+        let captured = try #require(transport.capturedRequests.first)
+        #expect(captured.operationID == "searchPodcasts")
+        #expect(captured.method == .get)
+        let path = try #require(captured.path)
+        let components = try #require(URLComponents(string: "https://example.test\(path)"))
+        #expect(components.path == "/api/v1/podcasts/search")
+        #expect(components.queryItems?.first(where: { $0.name == "q" })?.value == "")
+        #expect(components.queryItems?.first(where: { $0.name == "page" })?.value == "0")
+        #expect(components.queryItems?.first(where: { $0.name == "size" })?.value == "20")
+        #expect(components.queryItems?.first(where: { $0.name == "sort" })?.value == "popularity_desc")
+        #expect(components.queryItems?.first(where: { $0.name == "includeEmpty" })?.value == "true")
+        #expect(components.queryItems?.first(where: { $0.name == "type" }) == nil)
+        #expect(components.queryItems?.first(where: { $0.name == "limit" }) == nil)
 
         guard case .success(let response) = result else {
             Issue.record("Expected podcast search fetcher to decode successfully")

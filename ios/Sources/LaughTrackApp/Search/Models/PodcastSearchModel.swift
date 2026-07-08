@@ -1,4 +1,5 @@
 import Foundation
+import LaughTrackAPIClient
 import LaughTrackCore
 
 struct PodcastSearchRequest: Equatable, Sendable {
@@ -52,11 +53,6 @@ final class PodcastSearchModel: EntitySearchModel<PodcastRequestKey, PodcastSear
     @Published var includeEmpty: Bool = false
     private let fetcher: any PodcastSearchFetching
 
-    override init() {
-        self.fetcher = URLSessionPodcastSearchFetcher()
-        super.init()
-    }
-
     init(fetcher: any PodcastSearchFetching) {
         self.fetcher = fetcher
         super.init()
@@ -99,82 +95,61 @@ struct PodcastRequestKey: Hashable, Sendable {
     let includeEmpty: Bool
 }
 
+/// Routes podcast search through the generated OpenAPI client (and thus
+/// TokenRefreshMiddleware), replacing the former hand-rolled URLSession fetcher
+/// that skipped auto-refresh on 401 (TASK-3631). LoadFailure classification
+/// reuses the shared `classifyUndocumented`/`classifyRequestError` helpers, so
+/// a 401 still surfaces "Sign in to load podcasts."
 @MainActor
-final class URLSessionPodcastSearchFetcher: PodcastSearchFetching {
-    fileprivate struct APIPodcast: Decodable {
-        let id: Int
-        let slug: String
-        let title: String
-        let authorName: String?
-        let websiteUrl: String?
-        let feedUrl: String?
-        let imageUrl: String?
-    }
+final class APIPodcastSearchFetcher: PodcastSearchFetching {
+    private let apiClient: Client
 
-    private struct APIResponse: Decodable {
-        let data: [APIPodcast]
-        let total: Int
-    }
-
-    private let baseURL: URL
-    private let urlSession: URLSession
-
-    init(
-        baseURL: URL = AppConfiguration.apiBaseURL,
-        urlSession: URLSession = .shared
-    ) {
-        self.baseURL = baseURL
-        self.urlSession = urlSession
+    init(apiClient: Client) {
+        self.apiClient = apiClient
     }
 
     func searchPodcasts(_ request: PodcastSearchRequest) async -> Result<PodcastSearchResponse, LoadFailure> {
-        guard var components = URLComponents(url: baseURL.appendingPathComponent("api/v1/podcasts/search"), resolvingAgainstBaseURL: false) else {
-            return .failure(.unexpected(status: 0, message: "LaughTrack could not build the podcast search URL."))
-        }
-
-        components.queryItems = [
-            URLQueryItem(name: "q", value: request.query),
-            URLQueryItem(name: "page", value: String(request.page)),
-            URLQueryItem(name: "size", value: String(request.limit)),
-            URLQueryItem(name: "sort", value: request.sort),
-            request.includeEmpty ? URLQueryItem(name: "includeEmpty", value: "true") : nil,
-        ].compactMap { $0 }
-
-        guard let url = components.url else {
-            return .failure(.unexpected(status: 0, message: "LaughTrack could not build the podcast search URL."))
-        }
-
         do {
-            let (data, response) = try await urlSession.data(from: url)
-            let status = (response as? HTTPURLResponse)?.statusCode ?? 0
-            switch status {
-            case 200:
-                let decoded = try JSONDecoder().decode(APIResponse.self, from: data)
-                return .success(.init(
-                    items: decoded.data.map(PodcastSearchResult.init(apiPodcast:)),
-                    total: decoded.total
+            let output = try await apiClient.searchPodcasts(
+                .init(query: .init(
+                    q: request.query,
+                    sort: request.sort,
+                    page: request.page,
+                    size: request.limit,
+                    includeEmpty: request.includeEmpty ? "true" : nil
                 ))
-            case 400:
-                return .failure(.badParams("LaughTrack could not apply that podcast search."))
-            case 401:
-                return .failure(.unauthorized("Sign in to load podcasts."))
-            case 429:
-                return .failure(.rateLimited(retryAfter: nil, message: "LaughTrack is rate-limiting podcast results right now."))
-            case 500..<600:
-                return .failure(.serverError(status: status, message: nil))
-            default:
-                return .failure(.unexpected(status: status, message: "LaughTrack returned an unexpected podcast response."))
+            )
+
+            switch output {
+            case .ok(let ok):
+                let response = try ok.body.json
+                return .success(.init(
+                    items: response.data.map(PodcastSearchResult.init(apiPodcast:)),
+                    total: response.total
+                ))
+            case .tooManyRequests(let tooManyRequests):
+                let retryAfter = tooManyRequests.headers.retryAfter.map(TimeInterval.init)
+                return .failure(.rateLimited(
+                    retryAfter: retryAfter,
+                    message: (try? tooManyRequests.body.json.error) ?? "LaughTrack is rate-limiting podcast results right now."
+                ))
+            case .internalServerError(let serverError):
+                return .failure(.serverError(status: 500, message: (try? serverError.body.json.error)))
+            case .undocumented(let status, _):
+                return .failure(classifyUndocumented(status: status, context: "podcasts"))
             }
-        } catch is DecodingError {
-            return .failure(.decoding("LaughTrack reached the podcast search service, but could not read the response. Please try again."))
         } catch {
-            return .failure(.network("LaughTrack couldn't reach the podcast search service. Check your connection and try again."))
+            return .failure(classifyRequestError(
+                error,
+                context: "the podcast search service",
+                networkMessage: "LaughTrack couldn't reach the podcast search service. Check your connection and try again."
+            ))
         }
     }
 }
 
 private extension PodcastSearchResult {
-    init(apiPodcast: URLSessionPodcastSearchFetcher.APIPodcast) {
+    init(apiPodcast: Components.Schemas.PodcastSearchItem) {
         self.init(
             id: "podcast-\(apiPodcast.id)",
             title: apiPodcast.title,

@@ -18,7 +18,7 @@ struct SearchRootView: View {
     @StateObject private var showsModel: ShowsListModel
     @StateObject private var comediansModel = ComediansDiscoveryModel()
     @StateObject private var clubsModel = ClubsDiscoveryModel()
-    @StateObject private var podcastsModel = PodcastSearchModel()
+    @StateObject private var podcastsModel: PodcastSearchModel
 
     init(
         apiClient: Client,
@@ -41,6 +41,11 @@ struct SearchRootView: View {
             wrappedValue: ShowsListModel(
                 nearbyLocationController: nearbyLocationController,
                 initialUseDateRange: false
+            )
+        )
+        _podcastsModel = StateObject(
+            wrappedValue: PodcastSearchModel(
+                fetcher: APIPodcastSearchFetcher(apiClient: apiClient)
             )
         )
     }
