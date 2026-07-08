@@ -1,7 +1,5 @@
 """HTML extraction for a Multipass venue box-office listing page."""
 
-import re
-
 from datetime import datetime, timedelta
 from typing import List, Optional
 from urllib.parse import urljoin, urlparse
@@ -13,8 +11,7 @@ from laughtrack.core.entities.event.multipass import (
     parse_multipass_datetime,
 )
 from laughtrack.foundation.infrastructure.logger.logger import Logger
-
-_PRICE_RE = re.compile(r"(\d+(?:\.\d{1,2})?)")
+from laughtrack.foundation.utilities.number import parse_price_text
 
 # A Multipass venue page renders ALL events (past + future) in static HTML and
 # relies on a client-side "Show Past Events" toggle to hide past ones. The
@@ -109,12 +106,7 @@ class MultipassExtractor:
         price = None
         price_span = card.find("span", class_="eventPrice")
         if price_span:
-            m = _PRICE_RE.search(price_span.get_text(strip=True))
-            if m:
-                try:
-                    price = float(m.group(1))
-                except ValueError:
-                    price = None
+            price = parse_price_text(price_span.get_text(strip=True))
 
         return MultipassEvent(
             title=title,
