@@ -44,9 +44,12 @@ Top MCP Servers:
 - /groom-backlog — Close stale tickets, reprioritize, reassign agents.
 - /investigate — Scope out an unfamiliar problem area before committing to an approach.
 - /loop — Autonomously work through the backlog (dispatches /tusk or /chain repeatedly).
-- /refresh-screenshots — Regenerate iOS + web reference screenshots under `screenshots/<view>/{ios,web}.jpg` for cross-platform UX comparison.
-- /tour-date-club-onboarding — Pop the next tour_dates-only club and onboard it onto a real scraper source.
-- /fastlane-beta / /fastlane-release / /fastlane-submit-review — iOS TestFlight + App Store pipelines.
+- /retro — Review a just-finished session for process learnings and file follow-up tasks. Runs automatically after each task closes.
+- /chain — Execute a task dependency chain in parallel waves of background agents.
+- /objective — Run a multi-task objective end to end (decompose → execute the sub-DAG → roll up → close).
+- /ship-ios — Cut an iOS TestFlight beta (or App Store) release via fastlane, with the preflight safety checklist.
+- /analyze-scraping-data — Audit production scraping output to find broken or degraded scrapers.
+- /address-issue — Turn a GitHub issue into a tusk task and work it through /tusk.
 
 ## Team Tips
 
