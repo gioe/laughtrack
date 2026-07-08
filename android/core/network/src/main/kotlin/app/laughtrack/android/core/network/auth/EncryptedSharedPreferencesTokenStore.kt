@@ -6,6 +6,7 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.security.KeyStore
 
 /**
  * Token store backed by [EncryptedSharedPreferences].
@@ -113,4 +114,16 @@ private fun createEncryptedPrefs(context: Context): SharedPreferences =
 
 private fun deleteEncryptedPrefs(context: Context) {
     context.deleteSharedPreferences(PREFS_NAME)
+    // The prefs file holds the Tink data keyset, but the wrapping key lives in the
+    // AndroidKeyStore. If the MasterKey itself is the corrupt component, deleting
+    // only the prefs file leaves the recreate throwing the same exception and the
+    // crash loop intact. Drop the MasterKey alias too so a fresh key is generated.
+    // Best-effort: a failure to delete the alias must not abort recovery.
+    runCatching {
+        KeyStore.getInstance(ANDROID_KEYSTORE)
+            .apply { load(null) }
+            .deleteEntry(MasterKey.DEFAULT_MASTER_KEY_ALIAS)
+    }
 }
+
+private const val ANDROID_KEYSTORE = "AndroidKeyStore"

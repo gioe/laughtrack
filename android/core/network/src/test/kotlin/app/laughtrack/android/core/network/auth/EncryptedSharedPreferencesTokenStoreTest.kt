@@ -1,9 +1,11 @@
 package app.laughtrack.android.core.network.auth
 
 import android.content.SharedPreferences
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
 import org.junit.Test
 import java.security.GeneralSecurityException
 
@@ -84,6 +86,25 @@ class EncryptedSharedPreferencesTokenStoreTest {
 
             assertEquals(saved, store.read())
         }
+
+    @Test
+    fun unrecoverableKeystoreSurfacesInsteadOfBeingSilentlyMasked() {
+        // If clearing storage cannot fix the corruption (e.g. the AndroidKeyStore
+        // itself is unusable), the recreate throws again. There is no safe fallback
+        // store, so the failure must surface rather than be silently swallowed into
+        // a broken store. clearCorruptedStorage still runs exactly once.
+        var clearCalls = 0
+        val store =
+            EncryptedSharedPreferencesTokenStore(
+                prefsFactory = { throw GeneralSecurityException("keystore unusable") },
+                clearCorruptedStorage = { clearCalls++ },
+            )
+
+        assertThrows(GeneralSecurityException::class.java) {
+            runBlocking { store.read() }
+        }
+        assertEquals(1, clearCalls)
+    }
 }
 
 /** Minimal in-memory [SharedPreferences] for unit tests (no Android runtime). */
