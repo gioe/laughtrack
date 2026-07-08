@@ -1,5 +1,7 @@
 package app.laughtrack.android.core.data
 
+import kotlinx.coroutines.CancellationException
+
 /**
  * Shared async-load state used by every ViewModel, mirroring the iOS LoadPhase
  * enum (idle -> loading -> success / failure). Feature view models expose a
@@ -14,3 +16,15 @@ sealed interface UiState<out T> {
 
     data class Failure(val error: Throwable) : UiState<Nothing>
 }
+
+/**
+ * Like [runCatching], but preserves structured coroutine cancellation.
+ */
+suspend inline fun <T> runCatchingCancellable(crossinline block: suspend () -> T): Result<T> =
+    try {
+        Result.success(block())
+    } catch (error: CancellationException) {
+        throw error
+    } catch (error: Throwable) {
+        Result.failure(error)
+    }

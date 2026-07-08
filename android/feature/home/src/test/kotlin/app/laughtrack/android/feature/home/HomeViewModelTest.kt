@@ -14,6 +14,7 @@ import app.laughtrack.android.feature.home.data.HomeFeedCache
 import app.laughtrack.android.feature.home.data.HomeFeedRepository
 import app.laughtrack.android.feature.home.location.HomeLocationResolver
 import app.laughtrack.android.feature.home.ui.HomeViewModel
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -137,6 +138,28 @@ class HomeViewModelTest {
         }
 
     @Test
+    fun device_location_load_cancels_superseded_manual_zip_load() =
+        runTest {
+            val repository = SupersededHomeFeedRepository()
+            val resolver = FakeLocationResolver(zip = "60614")
+            val viewModel = viewModel(repository, resolver = resolver)
+            advanceUntilIdle()
+
+            viewModel.setManualZip("90210")
+            advanceUntilIdle()
+            viewModel.useDeviceLocation()
+            advanceUntilIdle()
+
+            assertEquals("60614", viewModel.state.value.zip)
+
+            repository.completeManualZip()
+            advanceUntilIdle()
+
+            assertEquals("60614", viewModel.state.value.zip)
+            assertEquals("ZIP 60614", viewModel.state.value.locationTitle)
+        }
+
+    @Test
     fun request_shortcut_publishes_seed_with_location_context() =
         runTest {
             val coordinator = SearchShortcutCoordinator()
@@ -208,7 +231,29 @@ class HomeViewModelTest {
         override suspend fun resolveZip(): String? = zip
     }
 
-    private fun homeFeed(): HomeFeed {
+    private inner class SupersededHomeFeedRepository : HomeFeedRepository {
+        private val manualZipFeed = CompletableDeferred<HomeFeed>()
+
+        override suspend fun getHomeFeed(
+            zip: String?,
+            distance: Int?,
+        ): HomeFeed =
+            when (zip) {
+                "90210" -> manualZipFeed.await()
+                "60614" -> homeFeed(zipCode = "60614", city = null, state = null)
+                else -> homeFeed()
+            }
+
+        fun completeManualZip() {
+            manualZipFeed.complete(homeFeed(zipCode = "90210", city = null, state = null))
+        }
+    }
+
+    private fun homeFeed(
+        zipCode: String = "10001",
+        city: String? = "New York",
+        state: String? = "NY",
+    ): HomeFeed {
         val heroShow = show(1, "Friday Night Laughs")
         val tonightShow = show(2, "Late Show")
         val weekShow = show(3, "Weekend Showcase")
@@ -216,9 +261,9 @@ class HomeViewModelTest {
             hero =
                 HomeFeedHero(
                     shows = listOf(heroShow),
-                    zipCode = "10001",
-                    city = "New York",
-                    state = "NY",
+                    zipCode = zipCode,
+                    city = city,
+                    state = state,
                 ),
             trendingComedians = listOf(comedian()),
             comediansNearYou = emptyList(),

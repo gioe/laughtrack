@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.laughtrack.android.core.analytics.AnalyticsEvents
 import app.laughtrack.android.core.analytics.AnalyticsManager
+import app.laughtrack.android.core.data.runCatchingCancellable
 import app.laughtrack.android.core.data.search.SearchSeed
 import app.laughtrack.android.core.data.search.SearchShortcut
 import app.laughtrack.android.core.data.search.SearchShortcutCoordinator
@@ -208,7 +209,7 @@ class SearchViewModel
             if (page > 1) updatePivot(pivot) { it.copy(results = it.results.loading()) }
             loadJobs[pivot] =
                 viewModelScope.launch {
-                    runCatching { repository.search(pivot, query, page) }
+                    runCatchingCancellable { repository.search(pivot, query, page) }
                         .onSuccess { result ->
                             updatePivot(pivot) {
                                 it.copy(

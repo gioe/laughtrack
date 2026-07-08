@@ -3,6 +3,7 @@ package app.laughtrack.android.feature.detail.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.laughtrack.android.core.data.UiState
+import app.laughtrack.android.core.data.runCatchingCancellable
 import app.laughtrack.android.core.network.generated.model.PodcastDetailResponse
 import app.laughtrack.android.core.playback.PodcastPlaybackController
 import app.laughtrack.android.core.playback.PodcastPlaybackItem
@@ -31,7 +32,7 @@ class PodcastDetailViewModel
             loadedId = id
             _state.value = UiState.Loading
             viewModelScope.launch {
-                runCatching { repository.getPodcast(id) }
+                runCatchingCancellable { repository.getPodcast(id) }
                     .onSuccess { _state.value = UiState.Success(it) }
                     .onFailure { _state.value = UiState.Failure(it) }
             }

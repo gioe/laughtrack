@@ -1,5 +1,6 @@
 package app.laughtrack.android.feature.detail.data
 
+import app.laughtrack.android.core.data.runCatchingCancellable
 import app.laughtrack.android.core.network.generated.api.ComediansApi
 import app.laughtrack.android.core.network.generated.infrastructure.ApiClient
 import app.laughtrack.android.feature.detail.model.ComedianDetailUi
@@ -31,15 +32,19 @@ class ComedianDetailRepository
 
                 val upcomingDeferred =
                     async {
-                        runCatching { comediansApi.getComedianUpcomingRuns(id).body()?.data }.getOrNull().orEmpty()
+                        runCatchingCancellable {
+                            comediansApi.getComedianUpcomingRuns(id).body()?.data
+                        }.getOrNull().orEmpty()
                     }
                 val coBillDeferred =
                     async {
-                        runCatching { comediansApi.getComedianCoBill(id).body()?.data }.getOrNull().orEmpty()
+                        runCatchingCancellable {
+                            comediansApi.getComedianCoBill(id).body()?.data
+                        }.getOrNull().orEmpty()
                     }
                 val pastShowsDeferred =
                     async {
-                        runCatching {
+                        runCatchingCancellable {
                             comediansApi.getComedianPastShows(
                                 detail.name,
                             ).body()?.data

@@ -1,5 +1,6 @@
 package app.laughtrack.android.feature.detail.data
 
+import app.laughtrack.android.core.data.runCatchingCancellable
 import app.laughtrack.android.core.network.generated.api.ClubsApi
 import app.laughtrack.android.core.network.generated.infrastructure.ApiClient
 import app.laughtrack.android.feature.detail.model.ClubDetailUi
@@ -23,7 +24,7 @@ class ClubDetailRepository
                 clubResponse.body()?.data
                     ?: error("Club unavailable (HTTP ${clubResponse.code()})")
             val shows =
-                runCatching {
+                runCatchingCancellable {
                     clubsApi.getClubShows(
                         id = id,
                         page = 0,

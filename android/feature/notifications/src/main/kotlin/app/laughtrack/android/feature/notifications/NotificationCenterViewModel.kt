@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import app.laughtrack.android.core.analytics.AnalyticsEvents
 import app.laughtrack.android.core.analytics.AnalyticsManager
 import app.laughtrack.android.core.data.UiState
+import app.laughtrack.android.core.data.runCatchingCancellable
 import app.laughtrack.android.core.network.generated.model.NotificationListResponseData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,7 +32,7 @@ class NotificationCenterViewModel
             loaded = true
             _state.value = UiState.Loading
             viewModelScope.launch {
-                runCatching { repository.getNotifications() }
+                runCatchingCancellable { repository.getNotifications() }
                     .onSuccess { data ->
                         _state.value = UiState.Success(data)
                         analytics.logEvent(

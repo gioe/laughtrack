@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.laughtrack.android.core.data.UiState
 import app.laughtrack.android.core.data.auth.CurrentUserState
+import app.laughtrack.android.core.data.runCatchingCancellable
 import app.laughtrack.android.feature.detail.data.ShowDetailRepository
 import app.laughtrack.android.feature.detail.model.ShowDetailUi
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -34,7 +35,7 @@ class ShowDetailViewModel
             loadedId = id
             _state.value = UiState.Loading
             viewModelScope.launch {
-                runCatching { repository.getShow(id) }
+                runCatchingCancellable { repository.getShow(id) }
                     .onSuccess { _state.value = UiState.Success(it) }
                     .onFailure { _state.value = UiState.Failure(it) }
             }

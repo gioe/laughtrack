@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.laughtrack.android.core.analytics.AnalyticsEvents
 import app.laughtrack.android.core.analytics.AnalyticsManager
+import app.laughtrack.android.core.data.runCatchingCancellable
 import app.laughtrack.android.core.network.generated.model.ComedianSearchItem
 import app.laughtrack.android.feature.onboarding.data.ComedianOnboardingRepository
 import app.laughtrack.android.feature.onboarding.push.SoftPushPromptCoordinator
@@ -58,7 +59,7 @@ class ComedianOnboardingViewModel
 
         fun loadMoreSuggestions() {
             viewModelScope.launch {
-                runCatching { repository.suggestions() }
+                runCatchingCancellable { repository.suggestions() }
                     .onSuccess { appendSuggestions(it) }
                     .onFailure { showError("LaughTrack couldn't load more comedians.") }
             }
@@ -73,7 +74,7 @@ class ComedianOnboardingViewModel
                     return@launch
                 }
                 _state.update { it.copy(isLoading = true, isSearchMode = true, errorMessage = null) }
-                runCatching { repository.search(trimmed) }
+                runCatchingCancellable { repository.search(trimmed) }
                     .onSuccess { results ->
                         _state.update {
                             it.copy(
@@ -98,7 +99,7 @@ class ComedianOnboardingViewModel
             val next = !current
             _state.update { it.copy(favorites = it.favorites + (uuid to next), errorMessage = null) }
             viewModelScope.launch {
-                runCatching { repository.setFavorite(uuid, next) }
+                runCatchingCancellable { repository.setFavorite(uuid, next) }
                     .onSuccess { persisted ->
                         _state.update { it.copy(favorites = it.favorites + (uuid to persisted)) }
                         if (
@@ -183,7 +184,7 @@ class ComedianOnboardingViewModel
         fun continueOnboarding() {
             viewModelScope.launch {
                 _state.update { it.copy(isSaving = true, errorMessage = null) }
-                runCatching { repository.completeOnboarding() }
+                runCatchingCancellable { repository.completeOnboarding() }
                     .onSuccess {
                         _state.update { it.copy(isSaving = false, isComplete = true) }
                         analytics.logEvent(AnalyticsEvents.Onboarding.COMPLETED)
@@ -202,7 +203,7 @@ class ComedianOnboardingViewModel
         private fun loadInitialSuggestions() {
             viewModelScope.launch {
                 _state.update { it.copy(isLoading = true, errorMessage = null) }
-                runCatching { repository.suggestions() }
+                runCatchingCancellable { repository.suggestions() }
                     .onSuccess { comedians ->
                         _state.update {
                             it.copy(

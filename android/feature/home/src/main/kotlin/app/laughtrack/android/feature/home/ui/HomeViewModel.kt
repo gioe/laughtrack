@@ -3,6 +3,7 @@ package app.laughtrack.android.feature.home.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.laughtrack.android.core.data.UiState
+import app.laughtrack.android.core.data.runCatchingCancellable
 import app.laughtrack.android.core.data.search.SearchSeed
 import app.laughtrack.android.core.data.search.SearchShortcut
 import app.laughtrack.android.core.data.search.SearchShortcutCoordinator
@@ -15,6 +16,7 @@ import app.laughtrack.android.feature.home.data.HomeFeedCache
 import app.laughtrack.android.feature.home.data.HomeFeedRepository
 import app.laughtrack.android.feature.home.location.HomeLocationResolver
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -85,6 +87,7 @@ class HomeViewModel
 
         /** The ZIP currently driving the feed (null = server-inferred from the caller). */
         private var currentZip: String? = null
+        private var loadJob: Job? = null
 
         init {
             load(currentZip)
@@ -128,29 +131,31 @@ class HomeViewModel
         }
 
         private fun load(zip: String?) {
+            loadJob?.cancel()
             val distance = HomeFeedRepository.DEFAULT_DISTANCE_MILES
-            viewModelScope.launch {
-                // Render the persisted snapshot immediately, if any, so relaunch is instant;
-                // otherwise show the skeleton while the network call is in flight.
-                val cached = cache.get(zip, distance)
-                _state.value =
-                    HomeUiState(
-                        feed = cached?.let { UiState.Success(it) } ?: UiState.Loading,
-                        zip = zip,
-                    )
-                runCatching { repository.getHomeFeed(zip, distance) }
-                    .onSuccess { feed ->
-                        cache.set(zip, distance, feed)
-                        _state.value = HomeUiState(feed = UiState.Success(feed), zip = zip)
-                    }
-                    .onFailure { error ->
-                        // Keep the cached feed visible on a refresh failure; only surface an
-                        // error when there was nothing to fall back on.
-                        if (cached == null) {
-                            _state.value = HomeUiState(feed = UiState.Failure(error), zip = zip)
+            loadJob =
+                viewModelScope.launch {
+                    // Render the persisted snapshot immediately, if any, so relaunch is instant;
+                    // otherwise show the skeleton while the network call is in flight.
+                    val cached = cache.get(zip, distance)
+                    _state.value =
+                        HomeUiState(
+                            feed = cached?.let { UiState.Success(it) } ?: UiState.Loading,
+                            zip = zip,
+                        )
+                    runCatchingCancellable { repository.getHomeFeed(zip, distance) }
+                        .onSuccess { feed ->
+                            cache.set(zip, distance, feed)
+                            _state.value = HomeUiState(feed = UiState.Success(feed), zip = zip)
                         }
-                    }
-            }
+                        .onFailure { error ->
+                            // Keep the cached feed visible on a refresh failure; only surface an
+                            // error when there was nothing to fall back on.
+                            if (cached == null) {
+                                _state.value = HomeUiState(feed = UiState.Failure(error), zip = zip)
+                            }
+                        }
+                }
         }
 
         private companion object {

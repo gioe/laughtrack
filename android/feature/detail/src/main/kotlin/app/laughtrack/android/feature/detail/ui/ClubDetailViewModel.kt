@@ -6,6 +6,7 @@ import app.laughtrack.android.core.data.UiState
 import app.laughtrack.android.core.data.favorites.FavoriteEntity
 import app.laughtrack.android.core.data.favorites.FavoritesRepository
 import app.laughtrack.android.core.data.favorites.FavoritesSnapshot
+import app.laughtrack.android.core.data.runCatchingCancellable
 import app.laughtrack.android.feature.detail.data.ClubDetailRepository
 import app.laughtrack.android.feature.detail.model.ClubDetailUi
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -37,7 +38,7 @@ class ClubDetailViewModel
             loadedId = id
             _state.value = UiState.Loading
             viewModelScope.launch {
-                runCatching { repository.getClub(id) }
+                runCatchingCancellable { repository.getClub(id) }
                     .onSuccess { _state.value = UiState.Success(it) }
                     .onFailure { _state.value = UiState.Failure(it) }
             }
