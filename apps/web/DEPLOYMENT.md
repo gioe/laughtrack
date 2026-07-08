@@ -477,7 +477,7 @@ Dashboard JSON is the source of truth — see `apps/web/monitoring/grafana/READM
 
 ### Regression alerts
 
-`apps/web/monitoring/grafana/scraper-health-alerts.yaml` defines three unified-alerting rules-as-code that baseline each run against the **trailing 7-run rolling average** and route to a Discord contact point:
+`apps/web/monitoring/grafana/scraper-health-alerts.yaml` defines the unified-alerting rules-as-code (see the yaml for the current set) that baseline each run against the **trailing 7-run rolling average** and route to a Discord contact point:
 
 - **Success-rate regression** — latest run's `scraper_runs.success_rate` is >10 percentage points below the trailing average.
 - **Club dropped to zero shows** — a club returned shows in the previous run but zero in the latest run. The rule matches the *transition* (prev > 0, latest = 0), so it fires **exactly once** per drop and resolves on the next run (one alert instance per club).
