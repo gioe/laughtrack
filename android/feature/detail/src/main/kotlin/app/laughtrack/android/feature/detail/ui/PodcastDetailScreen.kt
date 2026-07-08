@@ -67,9 +67,9 @@ fun PodcastDetailScreen(
         onBack = onBack,
         onShare = data?.let { loaded -> { context.shareLink(loaded.podcast.websiteUrl, loaded.podcast.title) } },
     ) { modifier ->
-        when (state) {
+        when (val s = state) {
             is UiState.Failure -> DetailError(onRetry = viewModel::retry, modifier = modifier)
-            is UiState.Success -> PodcastDetailBody(data!!, modifier, onOpenEntity, viewModel::play)
+            is UiState.Success -> PodcastDetailBody(s.value, modifier, onOpenEntity, viewModel::play)
             else -> DetailLoading(modifier)
         }
     }

@@ -96,24 +96,25 @@ fun ComedianDetailScreen(
     LaunchedEffect(id) { viewModel.load(id) }
     val state by viewModel.state.collectAsStateWithLifecycle()
     val favoritesSnapshot by viewModel.favoritesSnapshot.collectAsStateWithLifecycle()
-    val ui = (state as? UiState.Success)?.value
 
     Box(
         Modifier
             .fillMaxSize()
             .background(LaughTrackColors.Canvas),
     ) {
-        when (state) {
+        when (val s = state) {
             is UiState.Failure -> DetailError(onRetry = viewModel::retry, modifier = Modifier.fillMaxSize())
-            is UiState.Success ->
+            is UiState.Success -> {
+                val ui = s.value
                 ComedianDetailBody(
-                    ui = ui!!,
+                    ui = ui,
                     onBack = onBack,
                     isFavorite = favoritesSnapshot.comedianValues[ui.detail.uuid] == true,
                     isFavoritePending = viewModel.isFavoritePending(ui.detail.uuid),
                     onFavorite = { viewModel.toggleFavorite(ui.detail.uuid) },
                     onOpenEntity = onOpenEntity,
                 )
+            }
             else -> DetailLoading(Modifier.fillMaxSize())
         }
     }
