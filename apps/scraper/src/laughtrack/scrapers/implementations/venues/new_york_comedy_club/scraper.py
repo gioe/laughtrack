@@ -24,6 +24,7 @@ from laughtrack.core.entities.event.event import (
 )
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.utilities.datetime import DateTimeUtils
+from laughtrack.foundation.utilities.number import parse_price_text
 from laughtrack.foundation.utilities.url import URLUtils
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 
@@ -263,7 +264,7 @@ def _cheapest_normal_offer_from_event_page(html_content: str, event_url: str) ->
             continue
 
         price_node = row.select_one(".breakdown-base-original") or row.select_one(".ticket-price.original")
-        price = _parse_price_text(price_node.get_text(" ", strip=True) if price_node else "")
+        price = parse_price_text(price_node.get_text(" ", strip=True) if price_node else "")
         if price is None or price == 0.0:
             continue
 
@@ -296,13 +297,6 @@ def _normalize_ticket_name(name: str) -> str:
 def _is_special_offer_ticket(name: str) -> bool:
     normalized = name.lower()
     return "special offer" in normalized or "comp" in normalized or "free" in normalized
-
-
-def _parse_price_text(text: str) -> Optional[float]:
-    match = re.search(r"\$?\s*(\d+(?:\.\d{1,2})?)", text or "")
-    if not match:
-        return None
-    return float(match.group(1))
 
 
 def _extract_rendered_calendar_events(html_content: str, timezone: str) -> list[JsonLdEvent]:
