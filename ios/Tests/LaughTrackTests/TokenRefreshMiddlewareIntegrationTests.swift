@@ -234,6 +234,104 @@ struct TokenRefreshMiddlewareIntegrationTests {
         #expect(recorded.count == 3)
     }
 
+    // TASK-3631: the /me preference-sync clients used to build their own
+    // URLRequest and bypass TokenRefreshMiddleware, so a PATCH after access-token
+    // expiry silently failed. Now that they route through the shared apiClient,
+    // an expired access token must transparently refresh and the sync must
+    // succeed. Drives the real converted client (APINotificationPreferenceSyncClient)
+    // through the production middleware stack, scripting 401 -> refresh -> 200.
+    @Test("converted /me preference-sync client succeeds after a 401 -> refresh -> 200 cycle")
+    @MainActor
+    func convertedPreferenceSyncClientSucceedsAfterRefresh() async throws {
+        let secureStorage = InMemorySecureStorage()
+        let tokenManager = AuthTokenManager(secureStorage: secureStorage)
+        try tokenManager.storeTokens(
+            accessToken: "stale-access-\(UUID().uuidString)",
+            refreshToken: "refresh-token-\(UUID().uuidString)"
+        )
+
+        let suiteName = "TokenRefreshMiddlewareIntegrationTests.\(UUID().uuidString)"
+        let appStateStorage = AppStateStorage(userDefaults: UserDefaults(suiteName: suiteName)!)
+
+        let serverURL = URL(string: "https://test.example.com")!
+        let factory = APIClientFactory(
+            serverURL: serverURL,
+            retryConfiguration: .init(maxRetries: 0),
+            secureStorage: secureStorage
+        )
+
+        let authManager = AuthManager(
+            tokenManager: tokenManager,
+            authMiddleware: factory.authMiddleware,
+            appStateStorage: appStateStorage,
+            oauthSessionRunner: StubOAuthSessionRunner()
+        )
+        await authManager.restoreSession()
+
+        let transport = ScriptedTransport()
+        await transport.seed([
+            .response(status: .unauthorized, bodyJSON: #"{"error":"Session expired."}"#),
+            .response(
+                status: .ok,
+                bodyJSON: #"{"accessToken":"rotated-access","refreshToken":"rotated-refresh","expiresIn":900}"#
+            ),
+            .response(
+                status: .ok,
+                bodyJSON: #"{"data":{"emailShowNotifications":true,"pushShowNotifications":false}}"#
+            ),
+        ])
+
+        let refreshClient = Client(
+            serverURL: serverURL,
+            transport: transport,
+            middlewares: [
+                APIVersionPathMiddleware(),
+                factory.retryMiddleware,
+                factory.loggingMiddleware,
+            ]
+        )
+        let tokenRefreshMiddleware = TokenRefreshMiddleware(
+            authMiddleware: factory.authMiddleware,
+            refreshEndpointOperationID: Operations.RefreshToken.id,
+            refreshHandler: makeProductionStyleRefreshClosure(
+                tokenManager: tokenManager,
+                refreshClient: refreshClient,
+                unauthorizedHandler: { [authManager] in
+                    await authManager.handleUnauthorizedResponse()
+                }
+            )
+        )
+        let unauthorizedMiddleware = UnauthorizedResponseMiddleware { [authManager] in
+            await authManager.handleUnauthorizedResponse()
+        }
+        let apiClient = Client(
+            serverURL: serverURL,
+            transport: transport,
+            middlewares: [
+                APIVersionPathMiddleware(),
+                unauthorizedMiddleware,
+                tokenRefreshMiddleware,
+                factory.authMiddleware,
+                factory.retryMiddleware,
+                factory.loggingMiddleware,
+            ]
+        )
+
+        // The converted preference-sync client: its PATCH must survive the
+        // access-token expiry instead of throwing on the un-refreshed 401.
+        let syncClient = APINotificationPreferenceSyncClient(apiClient: apiClient)
+        try await syncClient.setFavoriteComedianAlertsEnabled(true, channel: .email)
+
+        #expect(tokenManager.retrieveAccessToken() == "rotated-access")
+        guard case .authenticated = authManager.state else {
+            Issue.record("Expected AuthManager to stay .authenticated after refresh, got \(authManager.state)")
+            return
+        }
+        // patchMeNotifications (401) -> refreshToken (200) -> patchMeNotifications retry (200)
+        let recorded = await transport.recordedRequests
+        #expect(recorded.count == 3)
+    }
+
     // Edge case 1 of TASK-1754: when /auth/refresh itself returns 401 (refresh token
     // expired or revoked server-side), the closure's response check fails, the closure
     // calls handleUnauthorizedResponse, and throws. TRM must NOT loop — it must propagate
