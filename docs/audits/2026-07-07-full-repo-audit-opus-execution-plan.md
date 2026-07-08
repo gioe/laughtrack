@@ -192,6 +192,7 @@ This document is self-contained. You do not need the audit session's context. Ev
 - **Effort:** S. **Verify:** `swift test --filter ShowRowTests` and `--filter ShowsListViewPresentationTests` — confirm nonzero test counts.
 
 ### T3.3 (IOS-6) One ISO8601 parse helper instead of four
+- **[Executed — TASK-3643, 2026-07-08]** `Date.laughTrackISO8601(_:)` added in `LaughTrackAPIConfiguration.swift`, backed by a shared lock-guarded formatter cache (`LaughTrackISO8601Formatters`); the transcoder delegates to the same cache and all three inline copies are deleted. Both verify suites pass (12 + 3 tests).
 - Duplicates: `ComedianDetailView.swift:617-619`, `PodcastDetailView.swift:403-405`, `NotificationCenterModel.swift:218-223`; canonical: `LaughTrackAPIClient/LaughTrackAPIConfiguration.swift:10-25` (`LaughTrackFlexibleISO8601DateTranscoder`). Add `Date.laughTrackISO8601(_:)` in `LaughTrackAPIClient` (hand-written file — safe; NOT `GeneratedSources/`), backed by cached static formatters; delete the three inline copies. `ISO8601DateFormatter` options are set-at-init only.
 - **Effort:** S. **Verify:** `swift test --filter NotificationCenterModelTests` + `--filter APIClientConfigurationTests` (nonzero counts).
 
