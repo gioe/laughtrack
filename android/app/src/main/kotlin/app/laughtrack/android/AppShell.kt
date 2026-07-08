@@ -54,6 +54,7 @@ import app.laughtrack.android.feature.onboarding.ui.ComedianOnboardingScreen
 import app.laughtrack.android.feature.profile.LoginPromptSheet
 import app.laughtrack.android.feature.profile.ProfileScreen
 import app.laughtrack.android.feature.search.ui.SearchScreen
+import kotlin.reflect.KClass
 
 /**
  * Root app shell: a three-tab bottom bar (Discover/Search/Favorites) over a typed
@@ -315,58 +316,41 @@ internal object AppShellTabs {
 }
 
 internal object AppShellChrome {
-    fun showsTopAppBar(route: AppRoute): Boolean =
-        when (route) {
-            AppRoute.Discover,
-            AppRoute.Search,
-            -> false
+    /**
+     * Canonical chrome membership per route class — the single source the
+     * shipping predicates below read. Every [AppRoute] class must appear in
+     * at least one of these three sets ([fullScreenRoutes] = neither bar);
+     * AppShellChromeTest fails on any unclassified route.
+     */
+    val topAppBarRoutes: Set<KClass<out AppRoute>> =
+        setOf(
+            AppRoute.Favorites::class,
+            AppRoute.ComedianOnboarding::class,
+            AppRoute.NowPlaying::class,
+            AppRoute.Profile::class,
+        )
 
-            is AppRoute.Favorites,
-            AppRoute.ComedianOnboarding,
-            AppRoute.NowPlaying,
-            AppRoute.Profile,
-            -> true
+    /** Root-tab routes that keep the bottom navigation bar visible. */
+    val bottomBarRoutes: Set<KClass<out AppRoute>> =
+        setOf(
+            AppRoute.Discover::class,
+            AppRoute.Search::class,
+            AppRoute.Favorites::class,
+        )
 
-            is AppRoute.ShowDetail,
-            is AppRoute.ComedianDetail,
-            is AppRoute.ClubDetail,
-            is AppRoute.PodcastDetail,
-            AppRoute.NotificationCenter,
-            -> false
-        }
+    /** Routes that own their whole screen and render no shell bar at all. */
+    val fullScreenRoutes: Set<KClass<out AppRoute>> =
+        setOf(
+            AppRoute.ShowDetail::class,
+            AppRoute.ComedianDetail::class,
+            AppRoute.ClubDetail::class,
+            AppRoute.PodcastDetail::class,
+            AppRoute.NotificationCenter::class,
+        )
 
-    fun showsTopAppBar(destination: NavDestination?): Boolean {
-        if (destination == null) return true
+    fun showsTopAppBar(destination: NavDestination?): Boolean =
+        destination == null || topAppBarRoutes.any { destination.hasRoute(it) }
 
-        return destination.hasRoute(AppRoute.Favorites::class) ||
-            destination.hasRoute(AppRoute.ComedianOnboarding::class) ||
-            destination.hasRoute(AppRoute.NowPlaying::class) ||
-            destination.hasRoute(AppRoute.Profile::class)
-    }
-
-    fun showsBottomBar(route: AppRoute): Boolean =
-        when (route) {
-            AppRoute.Discover,
-            AppRoute.Search,
-            is AppRoute.Favorites,
-            -> true
-
-            AppRoute.ComedianOnboarding,
-            AppRoute.NowPlaying,
-            AppRoute.Profile,
-            is AppRoute.ShowDetail,
-            is AppRoute.ComedianDetail,
-            is AppRoute.ClubDetail,
-            is AppRoute.PodcastDetail,
-            AppRoute.NotificationCenter,
-            -> false
-        }
-
-    fun showsBottomBar(destination: NavDestination?): Boolean {
-        if (destination == null) return true
-
-        return destination.hasRoute(AppRoute.Discover::class) ||
-            destination.hasRoute(AppRoute.Search::class) ||
-            destination.hasRoute(AppRoute.Favorites::class)
-    }
+    fun showsBottomBar(destination: NavDestination?): Boolean =
+        destination == null || bottomBarRoutes.any { destination.hasRoute(it) }
 }
