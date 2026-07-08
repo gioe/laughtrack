@@ -25,6 +25,10 @@ _DOLLAR_AMOUNT_RE = re.compile(r"\$\s*(\d+(?:\.\d{1,2})?)")
 # A bare numeric amount, used only as a fallback when the text carries no ``$``.
 _BARE_AMOUNT_RE = re.compile(r"(\d+(?:\.\d{1,2})?)")
 
+# "free" as a whole word — a word boundary avoids false-positives on price
+# strings that merely contain the letters (e.g. "freezing", "freestyle night").
+_FREE_RE = re.compile(r"\bfree\b", re.IGNORECASE)
+
 
 def parse_price_text(text: str) -> Optional[float]:
     """Parse a human-facing price string into a float dollar amount.
@@ -48,7 +52,7 @@ def parse_price_text(text: str) -> Optional[float]:
     if not text:
         return None
 
-    if "free" in text.lower():
+    if _FREE_RE.search(text):
         return 0.0
 
     # Strip thousands separators so "1,234.50" parses as one number.

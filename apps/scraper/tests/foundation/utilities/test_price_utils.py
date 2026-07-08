@@ -40,6 +40,13 @@ def test_parse_price_text_free_takes_precedence_over_numbers():
     assert parse_price_text("Free show, doors at 7") == 0.0
 
 
+def test_parse_price_text_free_requires_word_boundary():
+    # A substring match would wrongly treat these as free and discard the price;
+    # a word boundary keeps the real price.
+    assert parse_price_text("Freezing cold beers $10") == 10.0
+    assert parse_price_text("Freestyle comedy night $15") == 15.0
+
+
 def test_parse_price_text_prefers_dollar_anchored_amount_over_stray_numbers():
     # A stray leading number (e.g. a time) should not beat the $-anchored price.
     assert parse_price_text("7:30pm show $25") == 25.0
