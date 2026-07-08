@@ -220,6 +220,30 @@ class DateTimeUtils:
         return utc_dt.isoformat().replace("+00:00", "Z")
 
     @staticmethod
+    def venue_wall_clock_to_utc(naive_dt: datetime, tz_name: str) -> datetime:
+        """Convert a venue-local wall-clock time to a UTC-aware datetime.
+
+        Forty-plus sites hand-rolled ``pytz.timezone(tz).localize(dt).astimezone(
+        pytz.UTC)`` for exactly this conversion. Localizing (rather than
+        ``replace(tzinfo=...)``) is what makes it DST-safe: pytz picks the correct
+        offset for the wall-clock date. This is the single shared helper.
+
+        Args:
+            naive_dt: A naive datetime holding the venue's local wall-clock time.
+                If it is already timezone-aware it is converted directly.
+            tz_name: IANA timezone name for the venue (e.g. "America/New_York").
+
+        Returns:
+            The same instant as a UTC-aware datetime.
+        """
+        tz = pytz.timezone(tz_name)
+        if naive_dt.tzinfo is None:
+            localized = tz.localize(naive_dt)
+        else:
+            localized = naive_dt
+        return localized.astimezone(pytz.UTC)
+
+    @staticmethod
     def get_current_year() -> int:
         """Get the current year."""
         return datetime.now().year

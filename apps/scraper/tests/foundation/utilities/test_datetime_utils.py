@@ -1,4 +1,6 @@
-from datetime import date
+from datetime import date, datetime
+
+import pytz
 
 from laughtrack.foundation.utilities.datetime import DateTimeUtils
 
@@ -65,3 +67,34 @@ def test_infer_year_uses_weekday_to_disambiguate_across_years():
 
     assert DateTimeUtils.infer_year(1, 2, today=today, weekday_abbr="Sat") == 2027
     assert DateTimeUtils.infer_year(1, 2, today=today, weekday_abbr="Fri") == 2026
+
+
+def test_venue_wall_clock_to_utc_summer_uses_edt_offset():
+    # July in America/New_York is EDT (UTC-4): 8pm local -> midnight UTC next day.
+    result = DateTimeUtils.venue_wall_clock_to_utc(datetime(2026, 7, 15, 20, 0), "America/New_York")
+
+    assert result.tzinfo == pytz.UTC
+    assert result == datetime(2026, 7, 16, 0, 0, tzinfo=pytz.UTC)
+
+
+def test_venue_wall_clock_to_utc_winter_uses_est_offset():
+    # January in America/New_York is EST (UTC-5): 8pm local -> 1am UTC next day.
+    result = DateTimeUtils.venue_wall_clock_to_utc(datetime(2026, 1, 15, 20, 0), "America/New_York")
+
+    assert result == datetime(2026, 1, 16, 1, 0, tzinfo=pytz.UTC)
+
+
+def test_venue_wall_clock_to_utc_honors_west_coast_zone():
+    # July in America/Los_Angeles is PDT (UTC-7): 8pm local -> 3am UTC next day.
+    result = DateTimeUtils.venue_wall_clock_to_utc(datetime(2026, 7, 15, 20, 0), "America/Los_Angeles")
+
+    assert result == datetime(2026, 7, 16, 3, 0, tzinfo=pytz.UTC)
+
+
+def test_venue_wall_clock_to_utc_passes_through_aware_datetime():
+    aware = pytz.timezone("America/New_York").localize(datetime(2026, 7, 15, 20, 0))
+
+    result = DateTimeUtils.venue_wall_clock_to_utc(aware, "America/Los_Angeles")
+
+    # Already-aware input is converted directly, ignoring tz_name.
+    assert result == datetime(2026, 7, 16, 0, 0, tzinfo=pytz.UTC)
