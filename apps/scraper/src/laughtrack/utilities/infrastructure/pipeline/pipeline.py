@@ -1,8 +1,8 @@
 """
 Data transformation pipeline for orchestrating multiple transformers.
 
-This module provides the main pipeline class that manages transformers,
-field extractors, and validators.
+This module provides the main pipeline class that manages transformers
+and field extractors.
 """
 
 from typing import Callable, Dict, List
@@ -22,7 +22,7 @@ class ShowTransformationPipeline:
     Features:
     - Multiple transformer support
     - Automatic format detection
-    - Validation and error handling
+    - Error handling
     - Extensible transformer registration
     """
 
@@ -30,15 +30,10 @@ class ShowTransformationPipeline:
         self.club = club
         self.transformers: List[DataTransformer] = []
         self.field_extractors: Dict[str, Callable] = {}
-        self.validators: List[Callable[[Show], bool]] = []
 
     def register_transformer(self, transformer: DataTransformer):
         """Register a data transformer."""
         self.transformers.append(transformer)
-
-    def register_validator(self, validator: Callable[[Show], bool]):
-        """Register a show validator function."""
-        self.validators.append(validator)
 
     def transform(self, raw_data: EventListContainer) -> List[Show]:
         """
