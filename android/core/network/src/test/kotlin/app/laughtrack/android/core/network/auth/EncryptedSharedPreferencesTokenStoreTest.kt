@@ -60,6 +60,39 @@ class EncryptedSharedPreferencesTokenStoreTest {
         }
 
     @Test
+    fun corruptedKeysetRecoveryReportsForcedSignOutWithCause() =
+        runTest {
+            var factoryCalls = 0
+            val cause = GeneralSecurityException("corrupted keyset")
+            val recoveryEvents = mutableListOf<TokenStoreRecoveryEvent>()
+            val store =
+                EncryptedSharedPreferencesTokenStore(
+                    prefsFactory = {
+                        factoryCalls++
+                        if (factoryCalls == 1) {
+                            throw cause
+                        }
+                        FakeSharedPreferences()
+                    },
+                    clearCorruptedStorage = {},
+                    onRecovery = recoveryEvents::add,
+                )
+
+            val tokens = store.read()
+
+            assertNull(tokens)
+            assertEquals(
+                listOf(
+                    TokenStoreRecoveryEvent(
+                        cause = cause,
+                        forcedSignOut = true,
+                    ),
+                ),
+                recoveryEvents,
+            )
+        }
+
+    @Test
     fun recreatedStoreRoundTripsTokensAfterRecovery() =
         runTest {
             var factoryCalls = 0

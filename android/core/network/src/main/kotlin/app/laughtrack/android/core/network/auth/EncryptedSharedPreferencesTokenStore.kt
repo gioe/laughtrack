@@ -2,11 +2,17 @@ package app.laughtrack.android.core.network.auth
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.security.KeyStore
+
+data class TokenStoreRecoveryEvent(
+    val cause: Throwable,
+    val forcedSignOut: Boolean,
+)
 
 /**
  * Token store backed by [EncryptedSharedPreferences].
@@ -31,10 +37,18 @@ import java.security.KeyStore
 class EncryptedSharedPreferencesTokenStore internal constructor(
     private val prefsFactory: () -> SharedPreferences,
     private val clearCorruptedStorage: () -> Unit,
+    private val onRecovery: (TokenStoreRecoveryEvent) -> Unit = {},
 ) : TokenStore {
     constructor(context: Context) : this(
         prefsFactory = { createEncryptedPrefs(context) },
         clearCorruptedStorage = { deleteEncryptedPrefs(context) },
+        onRecovery = { event ->
+            Log.w(
+                TAG,
+                "Recovered from encrypted token-store corruption; forcedSignOut=${event.forcedSignOut}",
+                event.cause,
+            )
+        },
     )
 
     // Built lazily so no Keystore/Tink work happens at Hilt injection time; the first
@@ -44,10 +58,8 @@ class EncryptedSharedPreferencesTokenStore internal constructor(
 
     // A corrupted alpha06 Tink keyset surfaces as several unrelated exception types
     // (GeneralSecurityException, IOException, and runtime IllegalState/IllegalArgument
-    // from Tink), so the catch is intentionally broad and intentionally swallows the
-    // cause: recovery (delete + recreate) is the whole point, and there is no logger
-    // dependency in this module. Narrowing the catch would risk re-introducing the
-    // crash loop for a variant we did not enumerate.
+    // from Tink), so the catch is intentionally broad. Narrowing the catch would
+    // risk re-introducing the crash loop for a variant we did not enumerate.
     @Suppress("TooGenericExceptionCaught", "SwallowedException")
     private fun openOrRecover(): SharedPreferences =
         try {
@@ -56,6 +68,12 @@ class EncryptedSharedPreferencesTokenStore internal constructor(
             // Delete the encrypted prefs so a fresh keyset is generated on the retry —
             // the user is signed out rather than trapped in a permanent launch-time
             // crash loop.
+            onRecovery(
+                TokenStoreRecoveryEvent(
+                    cause = e,
+                    forcedSignOut = true,
+                ),
+            )
             clearCorruptedStorage()
             prefsFactory()
         }
@@ -96,6 +114,7 @@ class EncryptedSharedPreferencesTokenStore internal constructor(
         const val KEY_ACCESS_TOKEN = "access_token"
         const val KEY_REFRESH_TOKEN = "refresh_token"
         const val KEY_EXPIRES_AT = "expires_at_epoch_seconds"
+        const val TAG = "TokenStore"
     }
 }
 
