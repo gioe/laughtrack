@@ -214,16 +214,8 @@ struct NotificationCenterItem: Identifiable, Equatable {
         return [relativeSentAt]
     }
 
-    private static let isoFormatter: ISO8601DateFormatter = {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return formatter
-    }()
-
-    private static let isoFormatterNoFraction = ISO8601DateFormatter()
-
     static func parseTimestamp(_ raw: String) -> Date? {
-        isoFormatter.date(from: raw) ?? isoFormatterNoFraction.date(from: raw)
+        Date.laughTrackISO8601(raw)
     }
 }
 

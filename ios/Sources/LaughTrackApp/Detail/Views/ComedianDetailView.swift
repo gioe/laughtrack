@@ -612,12 +612,7 @@ enum ComedianPodcastPresentation {
     }
 
     static func formattedReleaseDate(_ value: String?) -> String? {
-        guard let value, !value.isEmpty else { return nil }
-
-        let fractional = ISO8601DateFormatter()
-        fractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        let date = fractional.date(from: value) ?? ISO8601DateFormatter().date(from: value)
-        guard let date else { return nil }
+        guard let value, let date = Date.laughTrackISO8601(value) else { return nil }
 
         return releaseDateFormatter.string(from: date)
     }
