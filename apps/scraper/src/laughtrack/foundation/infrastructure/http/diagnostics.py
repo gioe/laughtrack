@@ -70,6 +70,15 @@ class ScrapeDiagnostics:
     # metric row's error field so Grafana can alert on lock-timeout
     # specifically rather than on the generic zero-show outcome.
     persist_lock_timeouts: List[Tuple[str, int]] = field(default_factory=list)
+    # Shows that finished transformation with an empty tickets list. Every show
+    # must emit >=1 ticket (all three clients hide ticketless shows), so a
+    # scraper regression that stops attaching tickets makes shows invisible
+    # while the run still classifies HEALTHY. The transformation pipeline WARNs
+    # per show and ticks this counter; the base scraper copies it onto
+    # ClubScrapingResult so it reaches scraper_run_clubs.raw_stat for Grafana.
+    # WARN only — ticketless shows are still persisted, since enrichment may
+    # attach tickets later (TASK-3629).
+    ticketless_shows: int = 0
     # Exception text from per-target fetch/transform failures that the base
     # scraper pipeline catches and logs without re-raising. fetches_failed
     # counts the fetch-stage exceptions but discards their text, and the
@@ -126,6 +135,9 @@ class ScrapeDiagnostics:
 
     def record_fetch_failed(self) -> None:
         self.fetches_failed += 1
+
+    def record_ticketless_show(self) -> None:
+        self.ticketless_shows += 1
 
     def note_cross_host_redirect(self, original_host: str, final_host: str) -> bool:
         """Record a cross-host redirect tuple. Returns True if this is the

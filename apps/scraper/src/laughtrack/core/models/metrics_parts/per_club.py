@@ -25,6 +25,10 @@ class PerClubStat:
     bot_block_stage: Optional[str] = None
     playwright_fallback_used: bool = False
     items_before_filter: Optional[int] = None
+    # Count of shows transformed with an empty tickets list (pipeline WARNs per
+    # show, shows still persisted). Lands in scraper_run_clubs.raw_stat via
+    # asdict so Grafana can chart it without a schema migration (TASK-3629).
+    ticketless_shows: Optional[int] = None
     # Synthetic-proxy discriminator carried from ClubScrapingResult so dashboards
     # and the postgres snapshot can attribute a per-company organizer scrape to
     # its ProductionCompany without inspecting club_id sign. Replaces the older

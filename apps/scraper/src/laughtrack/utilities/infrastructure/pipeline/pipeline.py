@@ -9,6 +9,7 @@ from typing import Callable, Dict, List
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.show.model import Show
+from laughtrack.foundation.infrastructure.http.diagnostics import current_diagnostics
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.ports.scraping import EventListContainer
 
@@ -64,6 +65,7 @@ class ShowTransformationPipeline:
                         transformer_show = transformer.transform_to_show(event_data)
                         if transformer_show is not None:
                             shows.append(transformer_show)
+                            self._warn_if_ticketless(transformer_show)
                         else:
                             Logger.debug(
                                 f"{transformer.__class__.__name__} returned None for event "
@@ -85,6 +87,25 @@ class ShowTransformationPipeline:
             Logger.warn(f"No valid shows found for {self.club.name}")
 
         return shows
+
+    def _warn_if_ticketless(self, show: Show) -> None:
+        """WARN and tick the run diagnostics counter for a show with no tickets.
+
+        Every show must emit >=1 ticket — all three clients hide ticketless
+        shows, so a scraper regression that stops attaching tickets makes
+        shows invisible while the run still classifies HEALTHY. The show is
+        never dropped: enrichment may attach tickets later.
+        """
+        if show.tickets:
+            return
+        Logger.warn(
+            f"Ticketless show '{show.name}' at {self.club.name} — clients hide "
+            f"shows with zero tickets; persisting anyway (enrichment may attach "
+            f"tickets later)"
+        )
+        diagnostics = current_diagnostics()
+        if diagnostics is not None:
+            diagnostics.record_ticketless_show()
 
 
 def create_standard_pipeline(club: Club) -> ShowTransformationPipeline:

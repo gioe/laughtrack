@@ -50,6 +50,7 @@ class MetricsAggregator:
                     bot_block_stage=result.bot_block_stage,
                     playwright_fallback_used=result.playwright_fallback_used,
                     items_before_filter=result.items_before_filter,
+                    ticketless_shows=result.ticketless_shows,
                     is_synthetic=result.is_synthetic,
                     production_company_id=result.production_company_id,
                 )

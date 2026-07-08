@@ -797,6 +797,7 @@ class BaseScraper(HttpConvenienceMixin, ABC):
                     targets_collected=diagnostics.targets_collected,
                     fetches_ok=diagnostics.fetches_ok,
                     fetches_failed=diagnostics.fetches_failed,
+                    ticketless_shows=diagnostics.ticketless_shows,
                     cross_host_redirects=set(diagnostics.cross_host_redirects_warned),
                     is_synthetic=getattr(self.club, 'is_synthetic', False),
                     production_company_id=getattr(self.club, 'production_company_id', None),

@@ -45,6 +45,11 @@ class ClubScrapingResult:
     targets_collected: Optional[int] = None
     fetches_ok: Optional[int] = None
     fetches_failed: Optional[int] = None
+    # Count of shows transformed with an empty tickets list (the pipeline WARNs
+    # per show and still persists them). Non-zero on an otherwise healthy run
+    # is the signal that a scraper stopped attaching tickets — those shows are
+    # invisible in all three clients (TASK-3629).
+    ticketless_shows: Optional[int] = None
     # True when every enabled scraping_source's scraper_key for this club
     # failed to resolve against the runtime scraper registry. Distinguishes
     # config drift (unmerged module, renamed key, gitignored file) from a
