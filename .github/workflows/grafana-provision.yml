@@ -15,6 +15,12 @@ on:
       - apps/web/monitoring/grafana/scraper-health-alerts.yaml
       - apps/web/monitoring/grafana/provision_alert_rules.py
       - .github/workflows/grafana-provision.yml
+  # Monthly canary: run the reconcile in --dry-run so an expired
+  # GRAFANA_ACCOUNT_TOKEN (a provisioning-API failure -> exit 1) surfaces on
+  # Discord within a month, instead of staying silent until the next alert-YAML
+  # edit push fails. Runs 08:00 UTC on the 1st. Dry-run never writes to Grafana.
+  schedule:
+    - cron: '0 8 1 * *'
   workflow_dispatch:
     inputs:
       dry_run:
@@ -43,5 +49,23 @@ jobs:
         env:
           GRAFANA_ACCOUNT_TOKEN: ${{ secrets.GRAFANA_ACCOUNT_TOKEN }}
         run: |
+          # Scheduled (canary) runs ALWAYS dry-run so they never write; a push
+          # (real reconcile) writes; a manual dispatch honors its dry_run input.
           python apps/web/monitoring/grafana/provision_alert_rules.py \
-            ${{ inputs.dry_run && '--dry-run' || '' }}
+            ${{ (github.event_name == 'schedule' || inputs.dry_run) && '--dry-run' || '' }}
+
+      - name: Notify Discord on failure
+        # Scoped to push (real reconcile) and schedule (token-rot canary) on main
+        # so a failing manual dispatch or PR check doesn't spam Discord.
+        if: ${{ failure() && (github.event_name == 'push' || github.event_name == 'schedule') && github.ref == 'refs/heads/main' }}
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          if [ -z "$DISCORD_WEBHOOK_URL" ]; then
+            echo "DISCORD_WEBHOOK_URL not set; skipping Discord failure alert"
+            exit 0
+          fi
+          MSG="[grafana-provision] alert-rule reconcile failed on main (check GRAFANA_ACCOUNT_TOKEN). View run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          curl -fsS --retry 3 --max-time 10 -X POST "$DISCORD_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -nc --arg c "$MSG" '{content: $c}')"
