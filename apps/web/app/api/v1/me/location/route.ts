@@ -10,12 +10,17 @@ import {
     rateLimitResponse,
 } from "@/lib/rateLimit";
 
+// A cleared field may arrive as explicit JSON null OR as an omitted key: the
+// generated OpenAPI clients (iOS swift-openapi-generator / Android) encode a
+// nil field by omitting it rather than emitting null, so `.nullish()` (accepts
+// null AND undefined) plus the `?? null` coalesce below treats "absent" the
+// same as "null" — clearing the saved value either way. TASK-3631.
 const ProfileLocationUpdateSchema = z.object({
     zipCode: z
         .string()
         .regex(/^\d{5}$/, "zipCode must be a 5-digit US zip code")
-        .nullable(),
-    nearbyDistanceMiles: z.number().int().positive().nullable(),
+        .nullish(),
+    nearbyDistanceMiles: z.number().int().positive().nullish(),
 });
 
 export const PATCH = withRequestMetrics(async function PATCH(req: NextRequest) {
@@ -60,8 +65,8 @@ export const PATCH = withRequestMetrics(async function PATCH(req: NextRequest) {
     const updatedProfile = await db.userProfile.update({
         where: { userid: authCtx.userId },
         data: {
-            zipCode: parsed.data.zipCode,
-            nearbyDistanceMiles: parsed.data.nearbyDistanceMiles,
+            zipCode: parsed.data.zipCode ?? null,
+            nearbyDistanceMiles: parsed.data.nearbyDistanceMiles ?? null,
         },
         select: {
             zipCode: true,

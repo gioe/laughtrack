@@ -132,4 +132,32 @@ describe("PATCH /api/v1/me/location", () => {
             },
         });
     });
+
+    it("treats an omitted field as null (generated clients omit nil fields)", async () => {
+        mockResolveAuth.mockResolvedValue({
+            userId: "user-123",
+            profileId: "profile-123",
+        });
+        mockUpdateProfile.mockResolvedValue({
+            zipCode: null,
+            nearbyDistanceMiles: 25,
+        } as never);
+
+        // The generated OpenAPI clients omit a nil field rather than sending
+        // explicit null; the handler must still clear it (TASK-3631).
+        const res = await PATCH(makeRequest({ nearbyDistanceMiles: 25 }));
+
+        expect(res.status).toBe(200);
+        expect(mockUpdateProfile).toHaveBeenCalledWith({
+            where: { userid: "user-123" },
+            data: {
+                zipCode: null,
+                nearbyDistanceMiles: 25,
+            },
+            select: {
+                zipCode: true,
+                nearbyDistanceMiles: true,
+            },
+        });
+    });
 });
