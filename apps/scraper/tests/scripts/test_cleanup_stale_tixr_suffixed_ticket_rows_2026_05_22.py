@@ -13,7 +13,7 @@ _SCRAPER_ROOT = Path(__file__).resolve().parents[2]
 _SCRIPT_PATH = (
     _SCRAPER_ROOT
     / "scripts"
-    / "core"
+    / "archive"
     / "cleanup_stale_tixr_suffixed_ticket_rows_2026_05_22.py"
 )
 

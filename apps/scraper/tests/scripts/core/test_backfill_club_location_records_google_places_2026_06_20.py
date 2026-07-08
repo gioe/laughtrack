@@ -11,7 +11,7 @@ for p in (str(_src_path), str(_repo_root)):
     if p not in sys.path:
         sys.path.insert(0, p)
 
-from scripts.core import backfill_club_location_records_google_places_2026_06_20 as mod  # noqa: E402
+from scripts.archive import backfill_club_location_records_google_places_2026_06_20 as mod  # noqa: E402
 
 
 def _row(**kwargs) -> mod.ClubCandidate:

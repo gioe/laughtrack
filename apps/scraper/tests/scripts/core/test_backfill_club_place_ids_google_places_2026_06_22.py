@@ -5,7 +5,7 @@ validation) directly — no HTTP, no DB — mirroring the sibling
 test_backfill_club_location_records_google_places_2026_06_20 pattern.
 """
 
-from scripts.core import backfill_club_place_ids_google_places_2026_06_22 as mod
+from scripts.archive import backfill_club_place_ids_google_places_2026_06_22 as mod
 
 
 def _row(**kwargs):

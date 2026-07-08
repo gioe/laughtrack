@@ -12,7 +12,7 @@ _SCRAPER_ROOT = Path(__file__).resolve().parents[2]  # apps/scraper/
 _SCRIPT_PATH = (
     _SCRAPER_ROOT
     / "scripts"
-    / "core"
+    / "archive"
     / "disposition_seatengine_no_events_2026_05_06.py"
 )
 _MODULE_NAME = "disposition_seatengine_no_events_2026_05_06"

@@ -5,7 +5,7 @@ from pathlib import Path
 from types import ModuleType
 
 _SCRAPER_ROOT = Path(__file__).resolve().parents[3]
-_SCRIPT_PATH = _SCRAPER_ROOT / "scripts" / "core" / "backfill_comedy_connection_seatengine_urls_2026_05_27.py"
+_SCRIPT_PATH = _SCRAPER_ROOT / "scripts" / "archive" / "backfill_comedy_connection_seatengine_urls_2026_05_27.py"
 
 
 def _load_module() -> ModuleType:

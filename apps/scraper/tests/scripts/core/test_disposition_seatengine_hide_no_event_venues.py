@@ -8,7 +8,7 @@ import importlib.util
 from pathlib import Path
 from types import ModuleType
 
-_SCRIPTS_DIR = Path(__file__).resolve().parents[3] / "scripts" / "core"
+_SCRIPTS_DIR = Path(__file__).resolve().parents[3] / "scripts" / "archive"
 _SCRIPT_PATH = _SCRIPTS_DIR / "disposition_seatengine_hide_no_event_venues_2026_05_06.py"
 
 
