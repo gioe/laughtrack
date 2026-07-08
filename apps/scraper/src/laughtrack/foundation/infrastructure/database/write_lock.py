@@ -54,7 +54,7 @@ _T = TypeVar("_T")
 
 # Cascade-detection threshold for serialized_db_call. Legitimate large-batch
 # upserts finish in tens of seconds (per the orchestrator's _DB_WRITE_TIMEOUT
-# comment in core/services/scraping/__init__.py), so 30s gives ~3x headroom
+# comment in core/services/scraping/service.py), so 30s gives ~3x headroom
 # before declaring the prior writer stuck. Well below the orchestrator's 300s
 # per-call timeout, so the fail-fast fires inside the executor thread before
 # the orchestrator's asyncio.wait_for would. Module-level for tests.
@@ -62,7 +62,7 @@ _T = TypeVar("_T")
 # TASK-2557: read at use-time via _lock_hold_timeout() so the
 # ``LOCK_HOLD_TIMEOUT`` env var can tune the threshold for nightly runs
 # without a code change, mirroring the MAX_CONCURRENT_CLUBS pattern in
-# core/services/scraping/__init__.py. Patching this module attribute still
+# core/services/scraping/service.py. Patching this module attribute still
 # changes the effective bound (it is the fallback), so existing tests keep
 # working.
 _LOCK_HOLD_TIMEOUT = 30.0

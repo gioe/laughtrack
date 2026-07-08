@@ -95,11 +95,11 @@ class TestProxyPoolWiredIntoScrapers:
         """proxy_pool attribute on ScrapingService holds the value from from_env()."""
         fake_pool = ProxyPool(proxies=["http://proxy1:8080"])
 
-        with patch("laughtrack.core.services.scraping.ProxyPool") as MockPool, \
-             patch("laughtrack.core.services.scraping.ClubHandler"), \
-             patch("laughtrack.core.services.scraping.ClubSelector"), \
-             patch("laughtrack.core.services.scraping.ScraperResolver"), \
-             patch("laughtrack.core.services.scraping.build_services"):
+        with patch("laughtrack.core.services.scraping.service.ProxyPool") as MockPool, \
+             patch("laughtrack.core.services.scraping.service.ClubHandler"), \
+             patch("laughtrack.core.services.scraping.service.ClubSelector"), \
+             patch("laughtrack.core.services.scraping.service.ScraperResolver"), \
+             patch("laughtrack.core.services.scraping.service.build_services"):
             MockPool.from_env.return_value = fake_pool
             from importlib import import_module, reload
             import laughtrack.core.services.scraping as svc_module

@@ -1,4 +1,11 @@
-"""Scraping service package (public path preserved)."""
+"""Scraping orchestrator implementation.
+
+The public import path is the package (``laughtrack.core.services.scraping``),
+whose ``__init__`` re-exports every name defined here. Tests that patch this
+module's collaborators or constants (Logger, ProxyPool, _DB_WRITE_TIMEOUT, ...)
+must target ``laughtrack.core.services.scraping.service`` — module-level
+lookups resolve against THIS module's globals, not the package's re-exports.
+"""
 
 import asyncio
 import concurrent.futures
@@ -6,9 +13,7 @@ import json
 import os
 import re
 import threading
-import uuid
 from collections import defaultdict
-from datetime import datetime, timezone
 import copy
 from typing import Dict, Optional, List, Tuple
 from urllib.parse import urlparse
@@ -122,6 +127,7 @@ _PER_SCRAPER_TIMEOUT_OVERRIDES: Dict[str, int] = {
 
 def _per_club_timeout_for(scraper_key: str) -> int:
     return _PER_SCRAPER_TIMEOUT_OVERRIDES.get(scraper_key, _DEFAULT_PER_CLUB_TIMEOUT)
+
 
 # Cause hint included in the ERROR log and ClubScrapingResult.error when the
 # runtime scraper registry has no class for a configured scraper_key. Tells
@@ -442,6 +448,28 @@ def _copy_diagnostics_into_metrics(
     metrics.error_message = result.error
 
 
+class _ConcurrentRun:
+    """Shared mutable state for one _scrape_clubs_concurrently invocation.
+
+    Bundles the loop-scoped primitives so the per-club phase methods
+    (partition/dispatch/persist/collect) don't need a closure over the
+    orchestrator's locals. db_lock serializes all DB writes: only one club
+    writes at a time, which keeps ShowService thread-safe regardless of its
+    internals.
+    """
+
+    def __init__(
+        self,
+        loop: asyncio.AbstractEventLoop,
+        semaphore: asyncio.Semaphore,
+        db_lock: asyncio.Lock,
+    ) -> None:
+        self.loop = loop
+        self.semaphore = semaphore
+        self.db_lock = db_lock
+        self.total_db_result = DatabaseOperationResult()
+
+
 class ScrapingService:
     def __init__(self, success_rate_threshold: float = _DEFAULT_SUCCESS_RATE_THRESHOLD):
         self.club_handler = ClubHandler()
@@ -699,293 +727,372 @@ class ScrapingService:
     async def _scrape_clubs_concurrently(
         self, clubs: List[Club]
     ) -> tuple[List[ClubScrapingResult], ScrapingRunSummary, DatabaseOperationResult]:
+        """Orchestrate one concurrent run: partition/dispatch per club, then collect."""
         max_concurrent = self._max_concurrent_clubs
         Logger.warn(f"Scraping {len(clubs)} clubs with max_concurrent_clubs={max_concurrent}")
-        semaphore = asyncio.Semaphore(max_concurrent)
         loop = asyncio.get_running_loop()
+        run = _ConcurrentRun(
+            loop=loop,
+            semaphore=asyncio.Semaphore(max_concurrent),
+            db_lock=asyncio.Lock(),
+        )
         executor = concurrent.futures.ThreadPoolExecutor(thread_name_prefix="scraper-club")
         loop.set_default_executor(executor)
-        total_db_result = DatabaseOperationResult()
-        # db_lock serializes all DB writes: only one club writes at a time,
-        # which keeps ShowService thread-safe regardless of its internals.
-        db_lock = asyncio.Lock()
         self.result_processor.start_run()
+        task_results = await self._dispatch_scrapes(run, clubs, executor)
+        return self._summarize_run(task_results, run.total_db_result)
 
-        async def scrape_one(
-            club: Club,
-        ) -> tuple[Optional[ClubScrapingResult], Optional[DomainRequestMetrics]]:
-            nonlocal total_db_result
-            sources = self._sorted_enabled_sources(club)
-            if not sources and club.scraping_source is not None:
-                sources = [club.scraping_source]
-            if not sources:
-                Logger.warn(f"Club '{club.name}' has no scraper key configured; skipping")
-                return None, None
-            async with semaphore:
-                metrics = DomainRequestMetrics(
-                    club_name=club.name,
-                    club_id=getattr(club, "id", None),
-                    scraper_type=sources[0].scraper_key,
-                )
-                metrics.total += 1
-                last_result: Optional[ClubScrapingResult] = None
-                last_key = sources[0].scraper_key
-                unresolved_keys: List[str] = []
-                for index, source in enumerate(sources):
-                    attempt_club = _build_source_proxy_club(club, source)
-                    key = source.scraper_key
-                    last_key = key
-                    scraper_cls = self._scraping_resolver.get(key)
-                    if not scraper_cls:
-                        Logger.error(
-                            f"No scraper found for club '{club.name}' with key '{key}': "
-                            f"{_UNREGISTERED_SCRAPER_KEY_CAUSE_HINT}"
-                        )
-                        unresolved_keys.append(key)
-                        continue
-                    if index > 0:
-                        Logger.warn(
-                            f"Club '{club.name}': trying fallback source priority={source.priority} "
-                            f"with scraper '{key}'"
-                        )
-                    per_club_timeout = _per_club_timeout_for(key)
-                    try:
-                        scraper: BaseScraper = scraper_cls(attempt_club, proxy_pool=self.proxy_pool)
-                        try:
-                            result = await asyncio.wait_for(
-                                loop.run_in_executor(None, _scrape_with_context, scraper, attempt_club),
-                                timeout=per_club_timeout,
-                            )
-                        except asyncio.TimeoutError:
-                            Logger.warn(
-                                f"scrape_one: club '{club.name}' timed out after {per_club_timeout}s "
-                                f"with scraper '{key}'"
-                            )
-                            last_result = ClubScrapingResult(
-                                club_name=club.name,
-                                shows=[],
-                                execution_time=float(per_club_timeout),
-                                error=f"timed out after {per_club_timeout}s",
-                                club_id=club.id,
-                                is_synthetic=club.is_synthetic,
-                                production_company_id=club.production_company_id,
-                            )
-                            continue
+    # --- Concurrent-run phases (partition / dispatch / collect / summarize) ---
 
-                        last_result = result
-                        if (result.error or result.num_shows == 0) and index < len(sources) - 1:
-                            reason = result.error or "zero shows"
-                            Logger.warn(
-                                f"Club '{club.name}': scraper '{key}' produced {reason}; trying fallback"
-                            )
-                            continue
+    def _partition_club_sources(self, club: Club) -> List[ScrapingSource]:
+        """Partition phase: order one club's enabled sources (empty list = skip)."""
+        sources = self._sorted_enabled_sources(club)
+        if not sources and club.scraping_source is not None:
+            sources = [club.scraping_source]
+        if not sources:
+            Logger.warn(f"Club '{club.name}' has no scraper key configured; skipping")
+        return sources
 
-                        # Stamp production_company_id on matching shows before persistence
-                        # when scraping via a production company proxy club.
-                        # If the company has show_name_keywords configured, only shows
-                        # whose name matches at least one keyword get stamped.
-                        pc_id = club.production_company_id
-                        if pc_id is not None:
-                            pc: Optional[ProductionCompany] = club.production_company
-                            stamped = 0
-                            for show in result.shows:
-                                if pc is None or pc.matches_show_name(show.name):
-                                    show.production_company_id = pc_id
-                                    stamped += 1
-                            if pc and pc.show_name_keywords and stamped < len(result.shows):
-                                Logger.info(
-                                    f"Production company '{pc.name}': stamped {stamped}/{len(result.shows)} "
-                                    f"shows (filtered by keywords)"
-                                )
+    async def _dispatch_scrapes(
+        self,
+        run: _ConcurrentRun,
+        clubs: List[Club],
+        executor: concurrent.futures.ThreadPoolExecutor,
+    ) -> List[tuple[Optional[ClubScrapingResult], Optional[DomainRequestMetrics]]]:
+        """Dispatch phase: fan out per-club scrapes, then tear the run down.
 
-                        # Persist immediately after this club completes scraping.
-                        # db_lock orders writes within the orchestrator's loop;
-                        # serialized_db_call additionally serializes against
-                        # writes from worker-thread scrapers (e.g. EventbriteScraper
-                        # organizer-mode per-venue upserts) running on different loops.
-                        try:
-                            async with db_lock:
-                                # Push club context before run_in_executor so the thread
-                                # inherits it via contextvars copy - ensures DB log lines
-                                # show the correct club name/id instead of club=-.
-                                with Logger.use_context(club.as_context()):
-                                    try:
-                                        club_db_result = await asyncio.wait_for(
-                                            loop.run_in_executor(
-                                                None,
-                                                serialized_db_call,
-                                                self.result_processor.insert_club_result,
-                                                result,
-                                            ),
-                                            timeout=_DB_WRITE_TIMEOUT,
-                                        )
-                                    except asyncio.TimeoutError:
-                                        # Silent data loss: the scrape succeeded but
-                                        # the writes never landed. ERROR (was WARN)
-                                        # so it surfaces in nightly summaries, and
-                                        # mutate result.error so the per-club metric
-                                        # below flips ok→error and the alert path
-                                        # picks it up like any fetch/parse failure.
-                                        Logger.error(
-                                            f"scrape_one: DB write for club '{club.name}' timed out after "
-                                            f"{_DB_WRITE_TIMEOUT}s - skipping persist "
-                                            f"({len(result.shows)} shows lost)"
-                                        )
-                                        club_db_result = DatabaseOperationResult()
-                                        persist_err = (
-                                            f"persist timed out after {_DB_WRITE_TIMEOUT}s; "
-                                            f"{len(result.shows)} shows not written"
-                                        )
-                                        result.error = (
-                                            f"{result.error}; {persist_err}"
-                                            if result.error else persist_err
-                                        )
-                                total_db_result = total_db_result + club_db_result
-                        except Exception as insert_err:
-                            # Sibling to the TimeoutError branch above: stamp
-                            # result.error so the per-club metric below flips
-                            # ok→error. Without this, an unexpected persist
-                            # exception (ORM/DB connection error, etc.) is
-                            # logged loudly but the club is still counted as
-                            # ok and the outage alert path never engages.
-                            Logger.error(f"Failed to persist shows for club '{club.name}': {insert_err}")
-                            persist_err = f"persist failed: {insert_err}"
-                            result.error = (
-                                f"{result.error}; {persist_err}"
-                                if result.error else persist_err
-                            )
-
-                        metrics.scraper_type = key
-                        if result.error:
-                            metrics.error += 1
-                        elif result.num_shows == 0:
-                            metrics.none_resp += 1
-                        else:
-                            metrics.ok += 1
-                        # Carry per-stage diagnostics into the run-end metrics
-                        # so DomainRequestMetrics.outcome can distinguish an
-                        # empty calendar from a fetch/parse failure.
-                        _copy_diagnostics_into_metrics(result, metrics)
-                        return result, metrics
-                    except Exception as e:
-                        Logger.error(f"Failed to scrape club '{club.name}' with scraper '{key}': {e}")
-                        last_result = ClubScrapingResult(
-                            club_name=club.name,
-                            shows=[],
-                            execution_time=0.0,
-                            error=str(e),
-                            club_id=club.id,
-                            is_synthetic=club.is_synthetic,
-                            production_company_id=club.production_company_id,
-                        )
-                        if index == len(sources) - 1:
-                            break
-
-                metrics.scraper_type = last_key
-                if last_result is None:
-                    metrics.error += 1
-                    # When unresolved_keys is non-empty, every enabled source for this
-                    # club failed to resolve against the runtime scraper registry — a
-                    # configuration error, not a fetch/parse failure. Flag it with
-                    # config_error so the entry script can exit non-zero instead of
-                    # treating it as a legitimate zero-shows scrape.
-                    if unresolved_keys:
-                        joined_keys = ", ".join(repr(k) for k in unresolved_keys)
-                        error_msg = (
-                            f"no scraper registered for configured key(s) {joined_keys}: "
-                            f"{_UNREGISTERED_SCRAPER_KEY_CAUSE_HINT}"
-                        )
-                        metrics.error_message = error_msg
-                        return ClubScrapingResult(
-                            club_name=club.name,
-                            shows=[],
-                            execution_time=0.0,
-                            error=error_msg,
-                            club_id=club.id,
-                            config_error=True,
-                            is_synthetic=club.is_synthetic,
-                            production_company_id=club.production_company_id,
-                        ), metrics
-                    metrics.error_message = "no enabled scraping source could be resolved"
-                    return ClubScrapingResult(
-                        club_name=club.name,
-                        shows=[],
-                        execution_time=0.0,
-                        error="no enabled scraping source could be resolved",
-                        club_id=club.id,
-                        is_synthetic=club.is_synthetic,
-                        production_company_id=club.production_company_id,
-                    ), metrics
-                if last_result.error:
-                    metrics.error += 1
-                elif last_result.num_shows == 0:
-                    metrics.none_resp += 1
-                else:
-                    metrics.ok += 1
-                _copy_diagnostics_into_metrics(last_result, metrics)
-                return last_result, metrics
-
-        # Close the shared Playwright browser while the event loop is still running
-        # so Playwright objects are torn down on the correct loop — making the
-        # atexit handler a safe no-op and preventing the 90-minute CI timeout.
-        # The finally block ensures teardown even if gather raises unexpectedly.
+        Close the shared Playwright browser while the event loop is still running
+        so Playwright objects are torn down on the correct loop — making the
+        atexit handler a safe no-op and preventing the 90-minute CI timeout.
+        The finally block ensures teardown even if gather raises unexpectedly.
+        """
         from laughtrack.foundation.infrastructure.http.client import close_js_browser  # noqa: PLC0415
         try:
-            task_results = await asyncio.gather(*[scrape_one(club) for club in clubs])
+            return await asyncio.gather(*[self._scrape_one_club(run, club) for club in clubs])
         finally:
             _BROWSER_CLOSE_TIMEOUT = 30
             try:
                 await asyncio.wait_for(close_js_browser(), timeout=_BROWSER_CLOSE_TIMEOUT)
             except asyncio.TimeoutError:
                 Logger.warn(f"close_js_browser timed out after {_BROWSER_CLOSE_TIMEOUT}s — Playwright node may be unresponsive")
-            # wait=True joins the worker threads before we enumerate. All futures
-            # are already complete (gather() just returned), so the workers only
-            # need one loop iteration to observe the shutdown flag and exit —
-            # near-instant in practice. wait=False was racy with the subsequent
-            # threading.enumerate(), producing a cosmetic "threads still alive"
-            # WARNING because workers hadn't finished exiting their pool loop.
-            #
-            # TASK-2558: bound the wait. A worker stuck in serialized_db_call
-            # past the LockHeldError fail-fast window would otherwise block
-            # shutdown indefinitely. Run shutdown on a dedicated one-shot
-            # helper executor (can't reuse `executor` — we're shutting it
-            # down, and the loop's default executor IS `executor`) and gate
-            # the await with asyncio.wait_for. On timeout the pool is
-            # abandoned; the alive-thread WARN below surfaces the leak.
-            shutdown_executor = concurrent.futures.ThreadPoolExecutor(
-                max_workers=1,
-                thread_name_prefix="scraper-club-shutdown",
-            )
-            try:
-                try:
-                    await asyncio.wait_for(
-                        loop.run_in_executor(shutdown_executor, executor.shutdown, True),
-                        timeout=_EXECUTOR_SHUTDOWN_TIMEOUT,
-                    )
-                except asyncio.TimeoutError:
-                    Logger.error(
-                        f"executor.shutdown(wait=True) did not complete within "
-                        f"{_EXECUTOR_SHUTDOWN_TIMEOUT}s — abandoning thread pool "
-                        f"to prevent orchestrator hang (TASK-2558)"
-                    )
-            finally:
-                # Don't wait for the shutdown helper itself — if outer
-                # shutdown is still running, joining here would re-introduce
-                # the hang we just bounded.
-                shutdown_executor.shutdown(wait=False)
-                # Detach the (possibly still-shutting-down) pool from the
-                # loop so asyncio.run's loop-close path doesn't re-join it
-                # via loop.shutdown_default_executor() and block the wrapper
-                # thread in _scrape_clubs_with_metrics. The public
-                # loop.set_default_executor() requires a ThreadPoolExecutor
-                # instance (None raises TypeError on every released Python),
-                # so reach for the private attribute — the loop is about to
-                # be closed and discarded by the asyncio.run wrapper anyway.
-                loop._default_executor = None
+            await self._shutdown_scraper_executor(run.loop, executor)
             alive = [t.name for t in threading.enumerate() if t.name.startswith("scraper-club")]
             if alive:
                 Logger.warn(f"scraper-club threads still alive after gather: {alive}")
 
+    @staticmethod
+    async def _shutdown_scraper_executor(
+        loop: asyncio.AbstractEventLoop, executor: concurrent.futures.ThreadPoolExecutor
+    ) -> None:
+        """Bounded executor shutdown, isolating the private-loop-attribute workaround.
+
+        wait=True joins the worker threads before the caller enumerates them.
+        All futures are already complete (gather() just returned), so the
+        workers only need one loop iteration to observe the shutdown flag and
+        exit — near-instant in practice. wait=False was racy with the
+        subsequent threading.enumerate(), producing a cosmetic "threads still
+        alive" WARNING because workers hadn't finished exiting their pool loop.
+
+        TASK-2558: bound the wait. A worker stuck in serialized_db_call
+        past the LockHeldError fail-fast window would otherwise block
+        shutdown indefinitely. Run shutdown on a dedicated one-shot
+        helper executor (can't reuse `executor` — we're shutting it
+        down, and the loop's default executor IS `executor`) and gate
+        the await with asyncio.wait_for. On timeout the pool is
+        abandoned; the alive-thread WARN in _dispatch_scrapes surfaces the leak.
+        """
+        shutdown_executor = concurrent.futures.ThreadPoolExecutor(
+            max_workers=1,
+            thread_name_prefix="scraper-club-shutdown",
+        )
+        try:
+            try:
+                await asyncio.wait_for(
+                    loop.run_in_executor(shutdown_executor, executor.shutdown, True),
+                    timeout=_EXECUTOR_SHUTDOWN_TIMEOUT,
+                )
+            except asyncio.TimeoutError:
+                Logger.error(
+                    f"executor.shutdown(wait=True) did not complete within "
+                    f"{_EXECUTOR_SHUTDOWN_TIMEOUT}s — abandoning thread pool "
+                    f"to prevent orchestrator hang (TASK-2558)"
+                )
+        finally:
+            # Don't wait for the shutdown helper itself — if outer
+            # shutdown is still running, joining here would re-introduce
+            # the hang we just bounded.
+            shutdown_executor.shutdown(wait=False)
+            # Detach the (possibly still-shutting-down) pool from the
+            # loop so asyncio.run's loop-close path doesn't re-join it
+            # via loop.shutdown_default_executor() and block the wrapper
+            # thread in _scrape_clubs_with_metrics. The public
+            # loop.set_default_executor() requires a ThreadPoolExecutor
+            # instance (None raises TypeError on every released Python),
+            # so reach for the private attribute — the loop is about to
+            # be closed and discarded by the asyncio.run wrapper anyway.
+            loop._default_executor = None
+
+    async def _scrape_one_club(
+        self, run: _ConcurrentRun, club: Club
+    ) -> tuple[Optional[ClubScrapingResult], Optional[DomainRequestMetrics]]:
+        sources = self._partition_club_sources(club)
+        if not sources:
+            return None, None
+        async with run.semaphore:
+            return await self._scrape_club_sources(run, club, sources)
+
+    async def _scrape_club_sources(
+        self, run: _ConcurrentRun, club: Club, sources: List[ScrapingSource]
+    ) -> tuple[Optional[ClubScrapingResult], Optional[DomainRequestMetrics]]:
+        """Walk one club's sources in priority order, falling back on failure."""
+        metrics = DomainRequestMetrics(
+            club_name=club.name,
+            club_id=getattr(club, "id", None),
+            scraper_type=sources[0].scraper_key,
+        )
+        metrics.total += 1
+        last_result: Optional[ClubScrapingResult] = None
+        last_key = sources[0].scraper_key
+        unresolved_keys: List[str] = []
+        for index, source in enumerate(sources):
+            attempt_club = _build_source_proxy_club(club, source)
+            key = source.scraper_key
+            last_key = key
+            scraper_cls = self._scraping_resolver.get(key)
+            if not scraper_cls:
+                Logger.error(
+                    f"No scraper found for club '{club.name}' with key '{key}': "
+                    f"{_UNREGISTERED_SCRAPER_KEY_CAUSE_HINT}"
+                )
+                unresolved_keys.append(key)
+                continue
+            if index > 0:
+                Logger.warn(
+                    f"Club '{club.name}': trying fallback source priority={source.priority} "
+                    f"with scraper '{key}'"
+                )
+            per_club_timeout = _per_club_timeout_for(key)
+            try:
+                scraper: BaseScraper = scraper_cls(attempt_club, proxy_pool=self.proxy_pool)
+                result, timed_out = await self._fetch_club_result(
+                    run, club, attempt_club, scraper, key, per_club_timeout
+                )
+                last_result = result
+                if timed_out:
+                    continue
+                if self._should_try_fallback(result, index, len(sources)):
+                    reason = result.error or "zero shows"
+                    Logger.warn(
+                        f"Club '{club.name}': scraper '{key}' produced {reason}; trying fallback"
+                    )
+                    continue
+                self._stamp_production_company_shows(club, result)
+                await self._persist_club_result(run, club, result)
+                metrics.scraper_type = key
+                self._record_result_in_metrics(result, metrics)
+                return result, metrics
+            except Exception as e:
+                Logger.error(f"Failed to scrape club '{club.name}' with scraper '{key}': {e}")
+                last_result = ClubScrapingResult(
+                    club_name=club.name,
+                    shows=[],
+                    execution_time=0.0,
+                    error=str(e),
+                    club_id=club.id,
+                    is_synthetic=club.is_synthetic,
+                    production_company_id=club.production_company_id,
+                )
+                if index == len(sources) - 1:
+                    break
+
+        metrics.scraper_type = last_key
+        if last_result is None:
+            return self._result_for_unresolved_club(club, metrics, unresolved_keys)
+        self._record_result_in_metrics(last_result, metrics)
+        return last_result, metrics
+
+    @staticmethod
+    def _should_try_fallback(result: ClubScrapingResult, index: int, source_count: int) -> bool:
+        """True when this attempt errored or found zero shows and another source remains."""
+        return bool(result.error or result.num_shows == 0) and index < source_count - 1
+
+    async def _fetch_club_result(
+        self,
+        run: _ConcurrentRun,
+        club: Club,
+        attempt_club: Club,
+        scraper: BaseScraper,
+        key: str,
+        per_club_timeout: int,
+    ) -> tuple[ClubScrapingResult, bool]:
+        """Fetch phase for one (club, source) attempt; the bool flag means timed out."""
+        try:
+            result = await asyncio.wait_for(
+                run.loop.run_in_executor(None, _scrape_with_context, scraper, attempt_club),
+                timeout=per_club_timeout,
+            )
+            return result, False
+        except asyncio.TimeoutError:
+            Logger.warn(
+                f"scrape_one: club '{club.name}' timed out after {per_club_timeout}s "
+                f"with scraper '{key}'"
+            )
+            return ClubScrapingResult(
+                club_name=club.name,
+                shows=[],
+                execution_time=float(per_club_timeout),
+                error=f"timed out after {per_club_timeout}s",
+                club_id=club.id,
+                is_synthetic=club.is_synthetic,
+                production_company_id=club.production_company_id,
+            ), True
+
+    @staticmethod
+    def _stamp_production_company_shows(club: Club, result: ClubScrapingResult) -> None:
+        """Stamp production_company_id on matching shows before persistence.
+
+        Applies when scraping via a production company proxy club. If the
+        company has show_name_keywords configured, only shows whose name
+        matches at least one keyword get stamped.
+        """
+        pc_id = club.production_company_id
+        if pc_id is None:
+            return
+        pc: Optional[ProductionCompany] = club.production_company
+        stamped = 0
+        for show in result.shows:
+            if pc is None or pc.matches_show_name(show.name):
+                show.production_company_id = pc_id
+                stamped += 1
+        if pc and pc.show_name_keywords and stamped < len(result.shows):
+            Logger.info(
+                f"Production company '{pc.name}': stamped {stamped}/{len(result.shows)} "
+                f"shows (filtered by keywords)"
+            )
+
+    async def _persist_club_result(
+        self, run: _ConcurrentRun, club: Club, result: ClubScrapingResult
+    ) -> None:
+        """Persist phase: write one club's shows immediately after its scrape.
+
+        run.db_lock orders writes within the orchestrator's loop;
+        serialized_db_call additionally serializes against writes from
+        worker-thread scrapers (e.g. EventbriteScraper organizer-mode
+        per-venue upserts) running on different loops.
+        """
+        try:
+            async with run.db_lock:
+                # Push club context before run_in_executor so the thread
+                # inherits it via contextvars copy - ensures DB log lines
+                # show the correct club name/id instead of club=-.
+                with Logger.use_context(club.as_context()):
+                    try:
+                        club_db_result = await asyncio.wait_for(
+                            run.loop.run_in_executor(
+                                None,
+                                serialized_db_call,
+                                self.result_processor.insert_club_result,
+                                result,
+                            ),
+                            timeout=_DB_WRITE_TIMEOUT,
+                        )
+                    except asyncio.TimeoutError:
+                        # Silent data loss: the scrape succeeded but
+                        # the writes never landed. ERROR (was WARN)
+                        # so it surfaces in nightly summaries, and
+                        # mutate result.error so the per-club metric
+                        # flips ok→error and the alert path picks it
+                        # up like any fetch/parse failure.
+                        Logger.error(
+                            f"scrape_one: DB write for club '{club.name}' timed out after "
+                            f"{_DB_WRITE_TIMEOUT}s - skipping persist "
+                            f"({len(result.shows)} shows lost)"
+                        )
+                        club_db_result = DatabaseOperationResult()
+                        persist_err = (
+                            f"persist timed out after {_DB_WRITE_TIMEOUT}s; "
+                            f"{len(result.shows)} shows not written"
+                        )
+                        result.error = (
+                            f"{result.error}; {persist_err}"
+                            if result.error else persist_err
+                        )
+                run.total_db_result = run.total_db_result + club_db_result
+        except Exception as insert_err:
+            # Sibling to the TimeoutError branch above: stamp
+            # result.error so the per-club metric flips ok→error.
+            # Without this, an unexpected persist exception (ORM/DB
+            # connection error, etc.) is logged loudly but the club is
+            # still counted as ok and the outage alert path never engages.
+            Logger.error(f"Failed to persist shows for club '{club.name}': {insert_err}")
+            persist_err = f"persist failed: {insert_err}"
+            result.error = (
+                f"{result.error}; {persist_err}"
+                if result.error else persist_err
+            )
+
+    @staticmethod
+    def _record_result_in_metrics(result: ClubScrapingResult, metrics: DomainRequestMetrics) -> None:
+        """Count one final result and carry its per-stage diagnostics into metrics.
+
+        The diagnostics copy lets DomainRequestMetrics.outcome distinguish an
+        empty calendar from a fetch/parse failure.
+        """
+        if result.error:
+            metrics.error += 1
+        elif result.num_shows == 0:
+            metrics.none_resp += 1
+        else:
+            metrics.ok += 1
+        _copy_diagnostics_into_metrics(result, metrics)
+
+    @staticmethod
+    def _result_for_unresolved_club(
+        club: Club, metrics: DomainRequestMetrics, unresolved_keys: List[str]
+    ) -> tuple[ClubScrapingResult, DomainRequestMetrics]:
+        """Tail case: no source produced any result for this club.
+
+        When unresolved_keys is non-empty, every enabled source for this
+        club failed to resolve against the runtime scraper registry — a
+        configuration error, not a fetch/parse failure. Flag it with
+        config_error so the entry script can exit non-zero instead of
+        treating it as a legitimate zero-shows scrape.
+        """
+        metrics.error += 1
+        if unresolved_keys:
+            joined_keys = ", ".join(repr(k) for k in unresolved_keys)
+            error_msg = (
+                f"no scraper registered for configured key(s) {joined_keys}: "
+                f"{_UNREGISTERED_SCRAPER_KEY_CAUSE_HINT}"
+            )
+            metrics.error_message = error_msg
+            return ClubScrapingResult(
+                club_name=club.name,
+                shows=[],
+                execution_time=0.0,
+                error=error_msg,
+                club_id=club.id,
+                config_error=True,
+                is_synthetic=club.is_synthetic,
+                production_company_id=club.production_company_id,
+            ), metrics
+        metrics.error_message = "no enabled scraping source could be resolved"
+        return ClubScrapingResult(
+            club_name=club.name,
+            shows=[],
+            execution_time=0.0,
+            error="no enabled scraping source could be resolved",
+            club_id=club.id,
+            is_synthetic=club.is_synthetic,
+            production_company_id=club.production_company_id,
+        ), metrics
+
+    @staticmethod
+    def _summarize_run(
+        task_results: List[tuple[Optional[ClubScrapingResult], Optional[DomainRequestMetrics]]],
+        total_db_result: DatabaseOperationResult,
+    ) -> tuple[List[ClubScrapingResult], ScrapingRunSummary, DatabaseOperationResult]:
+        """Collect/summarize phase: fold per-club (result, metrics) pairs into run outputs."""
         results: List[ClubScrapingResult] = []
         summary = ScrapingRunSummary()
         skipped = 0
@@ -998,7 +1105,6 @@ class ScrapingService:
                 skipped += 1
         if skipped > 0:
             Logger.warn(f"{skipped} club(s) skipped: no scraper key or no matching scraper class")
-
         return results, summary, total_db_result
 
     def _emit_summary(self, summary: ScrapingRunSummary) -> None:

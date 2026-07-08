@@ -27,8 +27,8 @@ def test_geocoding_outage_does_not_fail_scrape_all_clubs_run_summary_still_posts
          patch.object(svc, "_scrape_production_companies", return_value=([], ScrapingRunSummary(), DatabaseOperationResult())), \
          patch.object(svc, "_emit_summary"), \
          patch.object(svc, "_check_and_alert"), \
-         patch("laughtrack.core.services.scraping.geocode_missing_clubs", side_effect=RuntimeError("nominatim down")), \
-         patch("laughtrack.core.services.scraping.Logger.warn") as mock_warn, \
+         patch("laughtrack.core.services.scraping.service.geocode_missing_clubs", side_effect=RuntimeError("nominatim down")), \
+         patch("laughtrack.core.services.scraping.service.Logger.warn") as mock_warn, \
          patch.object(svc, "_send_run_summary") as mock_summary:
         svc.scrape_all_clubs()
 

@@ -635,7 +635,7 @@ class TestScrapeClubsWithMetrics:
         bad_key_club = self._make_club(name="Bad Key Club", scraper_key=None)
         bad_key_club.scraper = None
 
-        with patch('laughtrack.core.services.scraping.Logger') as mock_logger:
+        with patch('laughtrack.core.services.scraping.service.Logger') as mock_logger:
             results, summary, _ = await svc._scrape_clubs_concurrently([no_key_club, bad_key_club])
 
         assert len(results) == 0
@@ -715,7 +715,7 @@ class TestScrapeClubsWithMetrics:
         the nightly alert path. Pre-fix this was Logger.warn + empty
         DatabaseOperationResult + result.error untouched, hiding seven clubs
         per nightly run in the cascade documented in run 26762966336."""
-        import laughtrack.core.services.scraping as scraping_mod
+        import laughtrack.core.services.scraping.service as scraping_mod
         from laughtrack.core.services.scraping import ScrapingService
         svc = self._make_service()
 
@@ -769,7 +769,7 @@ class TestScrapeClubsWithMetrics:
         result.error gets stamped, the per-club metric flips ok→error, and the
         nightly alert path engages instead of hiding the failure."""
         from laughtrack.core.services.scraping import ScrapingService
-        import laughtrack.core.services.scraping as scraping_mod
+        import laughtrack.core.services.scraping.service as scraping_mod
         svc = self._make_service()
 
         result = ClubScrapingResult(club_name="Bad Persist Club", shows=[MagicMock()], execution_time=1.0)
@@ -818,7 +818,7 @@ class TestScrapeClubsWithMetrics:
         executor thread is genuinely hung); clubs 2 and 3 stamped with the
         LockHeldError message and the per-club metric still records error.
         """
-        import laughtrack.core.services.scraping as scraping_mod
+        import laughtrack.core.services.scraping.service as scraping_mod
         from laughtrack.foundation.infrastructure.database import write_lock as write_lock_mod
 
         svc = self._make_service()
@@ -939,7 +939,7 @@ class TestScrapeClubsWithMetrics:
         ERROR log naming the abandoned shutdown is emitted; the alive-thread
         WARN surfaces the leak.
         """
-        import laughtrack.core.services.scraping as scraping_mod
+        import laughtrack.core.services.scraping.service as scraping_mod
         from laughtrack.foundation.infrastructure.database import write_lock as write_lock_mod
 
         svc = self._make_service()
@@ -1055,7 +1055,7 @@ class TestEmitSummary:
         good = _make_metric("Good", ok=1, error=0)
         summary = _make_multi_club_summary([empty, good])
 
-        with patch('laughtrack.core.services.scraping.Logger') as mock_logger:
+        with patch('laughtrack.core.services.scraping.service.Logger') as mock_logger:
             svc._emit_summary(summary)
 
         info_messages = [c.args[0] for c in mock_logger.info.call_args_list if c.args]
@@ -1075,7 +1075,7 @@ class TestEmitSummary:
         )
         summary = _make_multi_club_summary([rejected])
 
-        with patch('laughtrack.core.services.scraping.Logger') as mock_logger:
+        with patch('laughtrack.core.services.scraping.service.Logger') as mock_logger:
             svc._emit_summary(summary)
 
         info_messages = [c.args[0] for c in mock_logger.info.call_args_list if c.args]
