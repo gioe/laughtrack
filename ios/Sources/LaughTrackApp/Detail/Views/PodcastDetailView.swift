@@ -74,7 +74,7 @@ final class PodcastDetailModel: EntityDetailModel<PodcastDetailResponse> {
 
     init(
         podcastID: Int,
-        fetcher: any PodcastDetailFetching = URLSessionPodcastDetailFetcher()
+        fetcher: any PodcastDetailFetching
     ) {
         self.podcastID = podcastID
         self.fetcher = fetcher
@@ -145,7 +145,7 @@ struct PodcastDetailView: View {
         self.apiClient = apiClient
         _model = StateObject(wrappedValue: PodcastDetailModel(
             podcastID: podcastID,
-            fetcher: fetcher ?? URLSessionPodcastDetailFetcher()
+            fetcher: fetcher ?? APIPodcastDetailFetcher(apiClient: apiClient)
         ))
     }
 
@@ -632,47 +632,102 @@ private struct PodcastRelatedComedianRow: View {
     }
 }
 
-private final class URLSessionPodcastDetailFetcher: PodcastDetailFetching {
-    private let baseURL: URL
-    private let urlSession: URLSession
+/// Routes podcast-detail loads through the generated OpenAPI client (and thus
+/// TokenRefreshMiddleware), replacing the former hand-rolled URLSession fetcher
+/// that skipped auto-refresh on 401 (TASK-3631). The generated
+/// `Components.Schemas.PodcastDetailResponse` is mapped to the local
+/// `PodcastDetailResponse` the views and cache already consume (see
+/// `PodcastDetailResponse.init(schema:)`).
+@MainActor
+final class APIPodcastDetailFetcher: PodcastDetailFetching {
+    private let apiClient: Client
 
-    init(
-        baseURL: URL = AppConfiguration.apiBaseURL,
-        urlSession: URLSession = .shared
-    ) {
-        self.baseURL = baseURL
-        self.urlSession = urlSession
+    init(apiClient: Client) {
+        self.apiClient = apiClient
     }
 
     func podcastDetail(id: Int) async -> Result<PodcastDetailResponse, LoadFailure> {
-        let url = baseURL
-            .appendingPathComponent("api")
-            .appendingPathComponent("v1")
-            .appendingPathComponent("podcasts")
-            .appendingPathComponent(String(id))
-
         do {
-            let (data, response) = try await urlSession.data(from: url)
-            let status = (response as? HTTPURLResponse)?.statusCode ?? 0
-
-            switch status {
-            case 200:
-                return .success(try JSONDecoder().decode(PodcastDetailResponse.self, from: data))
-            case 400:
+            let output = try await apiClient.getPodcast(.init(path: .init(id: id)))
+            switch output {
+            case .ok(let ok):
+                return .success(PodcastDetailResponse(schema: try ok.body.json))
+            case .badRequest:
                 return .failure(.badParams("LaughTrack could not load this podcast right now."))
-            case 404:
+            case .notFound:
                 return .failure(.unexpected(status: 404, message: "This podcast could not be found."))
-            case 429:
-                return .failure(.rateLimited(retryAfter: nil, message: "LaughTrack is rate-limiting podcast details right now."))
-            case 500..<600:
-                return .failure(.serverError(status: status, message: nil))
-            default:
-                return .failure(.unexpected(status: status, message: "LaughTrack returned an unexpected podcast response."))
+            case .tooManyRequests(let tooManyRequests):
+                return .failure(.rateLimited(
+                    retryAfter: nil,
+                    message: (try? tooManyRequests.body.json.error) ?? "LaughTrack is rate-limiting podcast details right now."
+                ))
+            case .internalServerError(let serverError):
+                return .failure(.serverError(status: 500, message: (try? serverError.body.json.error)))
+            case .undocumented(let status, _):
+                return .failure(classifyUndocumented(status: status, context: "podcast details"))
             }
-        } catch is DecodingError {
-            return .failure(.decoding("LaughTrack reached the podcast service, but could not read the response. Please try again."))
         } catch {
             return .failure(classifyDetailFetchError(error, context: "podcast details"))
         }
+    }
+}
+
+// Maps the generated podcast-detail schema onto the local view/cache model.
+extension PodcastDetailResponse {
+    init(schema: Components.Schemas.PodcastDetailResponse) {
+        self.init(
+            podcast: PodcastDetail(schema: schema.podcast),
+            episodes: schema.episodes.map(PodcastDetailEpisode.init(schema:)),
+            relatedComedians: schema.relatedComedians.map(PodcastRelatedComedian.init(schema:))
+        )
+    }
+}
+
+extension PodcastDetail {
+    init(schema: Components.Schemas.PodcastDetailPodcast) {
+        self.init(
+            id: schema.id,
+            title: schema.title,
+            authorName: schema.authorName,
+            websiteUrl: schema.websiteUrl,
+            feedUrl: schema.feedUrl,
+            imageUrl: schema.imageUrl,
+            description: schema.description,
+            episodeCount: schema.episodeCount,
+            hosts: schema.hosts.map(PodcastDetailHost.init(schema:))
+        )
+    }
+}
+
+extension PodcastDetailHost {
+    init(schema: Components.Schemas.PodcastDetailHost) {
+        self.init(id: schema.id, uuid: schema.uuid, name: schema.name, imageUrl: schema.imageUrl)
+    }
+}
+
+extension PodcastDetailEpisode {
+    init(schema: Components.Schemas.PodcastDetailEpisode) {
+        self.init(
+            id: schema.id,
+            title: schema.title,
+            description: schema.description,
+            releaseDate: schema.releaseDate,
+            durationSeconds: schema.durationSeconds,
+            episodeUrl: schema.episodeUrl,
+            audioUrl: schema.audioUrl,
+            appearances: schema.appearances.map(PodcastDetailEpisodeAppearance.init(schema:))
+        )
+    }
+}
+
+extension PodcastDetailEpisodeAppearance {
+    init(schema: Components.Schemas.PodcastDetailEpisodeAppearance) {
+        self.init(id: schema.id, uuid: schema.uuid, name: schema.name, imageUrl: schema.imageUrl)
+    }
+}
+
+extension PodcastRelatedComedian {
+    init(schema: Components.Schemas.ComedianSearchItem) {
+        self.init(id: schema.id, uuid: schema.uuid, name: schema.name, imageUrl: schema.imageUrl)
     }
 }
