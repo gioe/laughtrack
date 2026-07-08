@@ -25,19 +25,28 @@ data class PagedList<T>(
      * Fold a freshly-loaded page into the state. Page 1 (or 0) replaces the list
      * — that is how a query/filter change resets pagination — while later pages
      * append.
+     *
+     * [dedupKey] drops rows whose key was already loaded (first occurrence wins,
+     * so existing rows keep their position). Required when the rendering
+     * LazyColumn keys rows by that same identity: offset pagination can return
+     * an entity on two pages when the result set shifts mid-scroll, and a
+     * duplicate key crashes the list instead of just re-binding it.
      */
     fun appendPage(
         loadedPage: Int,
         pageItems: List<T>,
         total: Int,
-    ): PagedList<T> =
-        copy(
-            items = if (loadedPage <= 1) pageItems else items + pageItems,
+        dedupKey: ((T) -> Any)? = null,
+    ): PagedList<T> {
+        val merged = if (loadedPage <= 1) pageItems else items + pageItems
+        return copy(
+            items = if (dedupKey != null) merged.distinctBy(dedupKey) else merged,
             page = loadedPage,
             total = total,
             isLoading = false,
             error = null,
         )
+    }
 
     fun failed(message: String): PagedList<T> = copy(isLoading = false, error = message)
 }

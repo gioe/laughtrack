@@ -685,7 +685,9 @@ private fun LazyListScope.resultsContent(
             modifier = Modifier.padding(horizontal = 2.dp).padding(top = 2.dp),
         )
     }
-    items(results) { result ->
+    // route is the row's entity identity (SearchResult has no id field); stringified
+    // because LazyColumn keys must be Bundle-saveable and AppRoute is not Parcelable.
+    items(results, key = { it.route.toString() }) { result ->
         if (pivot == SearchPivot.SHOWS) {
             ShowResultRow(result = result, onOpen = onOpen)
         } else {

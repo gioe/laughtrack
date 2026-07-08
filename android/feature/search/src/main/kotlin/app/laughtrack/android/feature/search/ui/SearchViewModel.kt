@@ -213,7 +213,15 @@ class SearchViewModel
                         .onSuccess { result ->
                             updatePivot(pivot) {
                                 it.copy(
-                                    results = it.results.appendPage(page, result.results, result.total),
+                                    // Dedup by route — the results LazyColumn keys rows by route,
+                                    // and a duplicate key crashes the list.
+                                    results =
+                                        it.results.appendPage(
+                                            page,
+                                            result.results,
+                                            result.total,
+                                            dedupKey = { r -> r.route },
+                                        ),
                                     // Facets accompany every page but only change with the query, not
                                     // the page — refresh them from page 1 so the sheets reflect the
                                     // current search without being reset mid-pagination.
