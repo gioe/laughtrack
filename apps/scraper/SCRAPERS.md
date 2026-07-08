@@ -2681,7 +2681,7 @@ ON CONFLICT (name) DO UPDATE SET scraping_url = EXCLUDED.scraping_url, website =
 **Reference implementation:**
 - `apps/scraper/src/laughtrack/scrapers/implementations/ticket_tailor/`
 - Event entity: `apps/scraper/src/laughtrack/core/entities/event/ticket_tailor.py`
-- Synthetic-proxy dispatch: `_build_synthetic_proxy_for_company` in `core/services/scraping/__init__.py`
+- Synthetic-proxy dispatch: `_build_synthetic_proxy_for_company` in `core/services/scraping/service.py`
 - Reference producer/task: Milwaukee Comedy (account `milwaukeecomedy`), TASK-3023
 
 ---
@@ -2788,7 +2788,7 @@ SET website = EXCLUDED.website,
 
 **Reference implementation:**
 - `apps/scraper/src/laughtrack/scrapers/implementations/next_stop_comedy/`
-- Synthetic-proxy dispatch: `_build_synthetic_proxy_for_company` in `core/services/scraping/__init__.py`
+- Synthetic-proxy dispatch: `_build_synthetic_proxy_for_company` in `core/services/scraping/service.py`
 - Reference production company: Next Stop Comedy (`production_companies.slug='next-stop-comedy'`)
 
 ---
