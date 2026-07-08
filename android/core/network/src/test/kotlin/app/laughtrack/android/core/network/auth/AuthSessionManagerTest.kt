@@ -6,7 +6,14 @@ import app.laughtrack.android.core.network.generated.model.MeResponse
 import app.laughtrack.android.core.network.generated.model.MeUpdateRequest
 import app.laughtrack.android.core.network.generated.model.MeUpdateResponse
 import app.laughtrack.android.core.network.generated.model.NotificationListResponse
+import app.laughtrack.android.core.network.generated.model.NotificationPreferenceUpdateRequest
+import app.laughtrack.android.core.network.generated.model.NotificationPreferenceUpdateResponse
 import app.laughtrack.android.core.network.generated.model.NotificationsSeenResponse
+import app.laughtrack.android.core.network.generated.model.ProfileLocationUpdateRequest
+import app.laughtrack.android.core.network.generated.model.ProfileLocationUpdateResponse
+import app.laughtrack.android.core.network.generated.model.PushTokenDeleteResponse
+import app.laughtrack.android.core.network.generated.model.PushTokenRegisterRequest
+import app.laughtrack.android.core.network.generated.model.PushTokenRegisterResponse
 import app.laughtrack.android.core.network.generated.model.RefreshTokenRequest
 import app.laughtrack.android.core.network.generated.model.SignoutResponse
 import app.laughtrack.android.core.network.generated.model.TokenResponse
@@ -179,6 +186,10 @@ class AuthSessionManagerTest {
     private object UnsupportedAuthApi : AuthApi {
         override suspend fun deleteMe(): Response<AccountDeletionResponse> = unsupported()
 
+        override suspend fun deleteMePushToken(
+            pushTokenRegisterRequest: PushTokenRegisterRequest,
+        ): Response<PushTokenDeleteResponse> = unsupported()
+
         override suspend fun exchangeToken(): Response<TokenResponse> = unsupported()
 
         override suspend fun getMe(): Response<MeResponse> = unsupported()
@@ -187,8 +198,20 @@ class AuthSessionManagerTest {
 
         override suspend fun markMeNotificationsSeen(): Response<NotificationsSeenResponse> = unsupported()
 
+        override suspend fun patchMeLocation(
+            profileLocationUpdateRequest: ProfileLocationUpdateRequest,
+        ): Response<ProfileLocationUpdateResponse> = unsupported()
+
+        override suspend fun patchMeNotifications(
+            notificationPreferenceUpdateRequest: NotificationPreferenceUpdateRequest,
+        ): Response<NotificationPreferenceUpdateResponse> = unsupported()
+
         override suspend fun refreshToken(refreshTokenRequest: RefreshTokenRequest): Response<TokenResponse> =
             unsupported()
+
+        override suspend fun registerMePushToken(
+            pushTokenRegisterRequest: PushTokenRegisterRequest,
+        ): Response<PushTokenRegisterResponse> = unsupported()
 
         override suspend fun signout(): Response<SignoutResponse> = unsupported()
 
