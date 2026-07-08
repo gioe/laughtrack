@@ -194,7 +194,7 @@ private fun PodcastRelatedRow(
             contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            items(data.relatedComedians) { comedian ->
+            items(data.relatedComedians, key = { it.uuid }) { comedian ->
                 EntityAvatar(
                     name = comedian.name,
                     imageUrl = comedian.imageUrl,

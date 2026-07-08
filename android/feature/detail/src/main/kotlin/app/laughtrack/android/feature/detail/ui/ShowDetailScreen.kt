@@ -473,7 +473,7 @@ private fun ShowLineupSection(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(horizontal = 2.dp),
         ) {
-            items(lineup) { item ->
+            items(lineup, key = { it.id }) { item ->
                 LineupMarqueeCard(
                     item = item,
                     onClick = { onOpenEntity(AppRoute.ComedianDetail(item.id)) },

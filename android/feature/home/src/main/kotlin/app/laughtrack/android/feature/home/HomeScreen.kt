@@ -496,7 +496,7 @@ private fun ComedianRail(
 ) {
     FeedRailCard(title = "Comedians to watch", emptyMessage = "No comedians found.", itemCount = comedians.size) {
         LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            items(comedians) { comedian ->
+            items(comedians, key = { it.uuid }) { comedian ->
                 FeedCard(
                     title = comedian.name,
                     subtitle = "${comedian.showCount} shows",
@@ -516,7 +516,7 @@ private fun ClubRail(
 ) {
     FeedRailCard(title = "Popular clubs", emptyMessage = "No clubs found.", itemCount = clubs.size) {
         LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            items(clubs) { club ->
+            items(clubs, key = { it.id }) { club ->
                 FeedCard(
                     title = club.name,
                     subtitle = club.address,
@@ -536,7 +536,7 @@ private fun PodcastRail(
 ) {
     FeedRailCard(title = "Comedy podcasts", emptyMessage = "No podcasts found.", itemCount = podcasts.size) {
         LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            items(podcasts) { podcast ->
+            items(podcasts, key = { it.id }) { podcast ->
                 FeedCard(
                     title = podcast.title,
                     subtitle = podcast.authorName ?: "${podcast.episodeCount} episodes",

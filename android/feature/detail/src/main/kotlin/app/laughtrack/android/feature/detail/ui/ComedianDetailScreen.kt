@@ -690,7 +690,7 @@ private fun ComedianRelatedTab(
         contentPadding = PaddingValues(16.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        items(ui.coBill) { comedian ->
+        items(ui.coBill, key = { it.id }) { comedian ->
             EntityAvatar(
                 name = comedian.name,
                 imageUrl = comedian.imageUrl,
