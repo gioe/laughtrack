@@ -89,6 +89,14 @@ module = [
 ]
 ignore_errors = true
 
+# Archived one-off scripts (completed backfills/dispositions) are kept for
+# reference only — never re-run, never type-checked.
+[[tool.mypy.overrides]]
+module = [
+    "scripts.archive.*",
+]
+ignore_errors = true
+
 # =============================================================================
 # ARCHITECTURE: IMPORT-LINTER CONTRACTS
 # =============================================================================

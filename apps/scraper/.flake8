@@ -26,7 +26,8 @@ exclude =
     dist,
     *.egg-info,
     .eggs,
-    logs/
+    logs/,
+    scripts/archive/
 
 # Files to include in linting
 filename = *.py
