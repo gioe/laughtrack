@@ -143,7 +143,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
             deviceMetadata: {
                 outboundRoute: true,
             } satisfies Prisma.JsonObject,
-        } as any,
+        },
     });
 
     const response = NextResponse.redirect(destination.routedUrl, {
