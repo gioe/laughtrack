@@ -4,7 +4,6 @@ import { NextRequest, NextResponse } from "next/server";
 vi.mock("@/lib/db", () => ({
     db: {
         show: { findUnique: vi.fn() },
-        ticket: { findMany: vi.fn() },
         ticketPurchaseClickEvent: { create: vi.fn() },
     },
 }));
@@ -35,7 +34,6 @@ import { resolveAuth } from "@/lib/auth/resolveAuth";
 
 const mockResolveAuth = vi.mocked(resolveAuth);
 const mockShowFindUnique = vi.mocked(db.show.findUnique as any);
-const mockTicketFindMany = vi.mocked(db.ticket.findMany as any);
 const mockClickCreate = vi.mocked(db.ticketPurchaseClickEvent.create as any);
 
 function makeGet(params: Record<string, string>) {
@@ -49,10 +47,11 @@ describe("/api/v1/tickets/out", () => {
     beforeEach(() => {
         vi.clearAllMocks();
         mockResolveAuth.mockResolvedValue(null);
-        mockShowFindUnique.mockResolvedValue({ id: 42, clubId: 24 });
-        mockTicketFindMany.mockResolvedValue([
-            { purchaseUrl: "https://tickets.example.com/buy?ref=abc" },
-        ]);
+        mockShowFindUnique.mockResolvedValue({
+            id: 42,
+            clubId: 24,
+            tickets: [{ purchaseUrl: "https://tickets.example.com/buy?ref=abc" }],
+        });
         mockClickCreate.mockResolvedValue({ id: 1 });
     });
 
@@ -70,9 +69,13 @@ describe("/api/v1/tickets/out", () => {
         expect(res.headers.get("location")).toBe(
             "https://tickets.example.com/event/99",
         );
-        expect(mockTicketFindMany).toHaveBeenCalledWith({
-            where: { showId: 42 },
-            select: { purchaseUrl: true },
+        expect(mockShowFindUnique).toHaveBeenCalledWith({
+            where: { id: 42 },
+            select: {
+                id: true,
+                clubId: true,
+                tickets: { select: { purchaseUrl: true } },
+            },
         });
         expect(mockClickCreate).toHaveBeenCalledWith({
             data: expect.objectContaining({
@@ -102,7 +105,11 @@ describe("/api/v1/tickets/out", () => {
     });
 
     it("400s when the show has only null purchaseUrls so no origin can be validated", async () => {
-        mockTicketFindMany.mockResolvedValue([{ purchaseUrl: null }]);
+        mockShowFindUnique.mockResolvedValue({
+            id: 42,
+            clubId: 24,
+            tickets: [{ purchaseUrl: null }],
+        });
 
         const res = await GET(
             makeGet({

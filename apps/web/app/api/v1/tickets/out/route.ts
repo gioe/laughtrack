@@ -86,7 +86,11 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
 
     const show = await db.show.findUnique({
         where: { id: showId },
-        select: { id: true, clubId: true },
+        select: {
+            id: true,
+            clubId: true,
+            tickets: { select: { purchaseUrl: true } },
+        },
     });
     if (!show) {
         return NextResponse.json({ error: "Show not found" }, { status: 404 });
@@ -102,15 +106,12 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     // show/club-match guard above does not stop a phishing link off the trusted
     // apex domain. Require the original url's origin to match one of the show's
     // real ticket purchaseUrl origins. Affiliate rewrites preserve the host, so
-    // validate the ORIGINAL (pre-rewrite) url.
-    const tickets = await db.ticket.findMany({
-        where: { showId },
-        select: { purchaseUrl: true },
-    });
+    // validate the ORIGINAL (pre-rewrite) url. The purchaseUrls come from the
+    // show query above, so this adds no extra DB round trip.
     if (
         !isOriginAllowed(
             destination.originalUrl,
-            tickets.map((ticket) => ticket.purchaseUrl),
+            show.tickets.map((ticket) => ticket.purchaseUrl),
         )
     ) {
         return NextResponse.json(

@@ -4,7 +4,6 @@ import { NextRequest, NextResponse } from "next/server";
 vi.mock("@/lib/db", () => ({
     db: {
         show: { findUnique: vi.fn() },
-        ticket: { findMany: vi.fn() },
         ticketPurchaseClickEvent: { create: vi.fn() },
     },
 }));
@@ -36,8 +35,15 @@ import { checkRateLimit } from "@/lib/rateLimit";
 
 const mockResolveAuth = vi.mocked(resolveAuth);
 const mockShowFindUnique = vi.mocked(db.show.findUnique as any);
-const mockTicketFindMany = vi.mocked(db.ticket.findMany as any);
 const mockClickCreate = vi.mocked(db.ticketPurchaseClickEvent.create as any);
+
+function showWithTicketUrls(...purchaseUrls: Array<string | null>) {
+    return {
+        id: 42,
+        clubId: 24,
+        tickets: purchaseUrls.map((purchaseUrl) => ({ purchaseUrl })),
+    };
+}
 const mockCheckRateLimit = vi.mocked(checkRateLimit);
 
 function makeOutboundRequest(destinationUrl: string): NextRequest {
@@ -60,9 +66,9 @@ describe("affiliate outbound click tracking", () => {
     });
 
     it("redirects to the routed destination and records provider, fallback, and show context", async () => {
-        mockTicketFindMany.mockResolvedValue([
-            { purchaseUrl: "https://www.eventbrite.com/e/show-123" },
-        ]);
+        mockShowFindUnique.mockResolvedValue(
+            showWithTicketUrls("https://www.eventbrite.com/e/show-123"),
+        );
         const res = await GET(
             makeOutboundRequest("https://www.eventbrite.com/e/show-123"),
         );
@@ -114,9 +120,9 @@ describe("affiliate outbound click tracking", () => {
     ])(
         "redirects and stores full query-string destination for %s",
         async (_name, destinationUrl) => {
-            mockTicketFindMany.mockResolvedValue([
-                { purchaseUrl: destinationUrl },
-            ]);
+            mockShowFindUnique.mockResolvedValue(
+                showWithTicketUrls(destinationUrl),
+            );
             const res = await GET(makeOutboundRequest(destinationUrl));
 
             expect(res.status).toBe(302);
