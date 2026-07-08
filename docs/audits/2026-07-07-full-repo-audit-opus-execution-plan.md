@@ -243,6 +243,7 @@ This document is self-contained. You do not need the audit session's context. Ev
 - **Effort:** S. **Verify:** compile + existing tests.
 
 ### T3.13 (WEB-6) Deduplicate `SHOW_SELECT` + DTO mappers
+- **[Executed — TASK-3653, 2026-07-08]** Extracted `PUBLIC_SHOW_SELECT` + `buildShowSelect` + `mapShowRowToDTO` into `apps/web/lib/data/show/showSelect.ts`; search (`findShowsWithCount.ts`) and home (`findShowsForHome.ts`) now import it. Per-path DTO field parity preserved exactly (223 data-layer tests + tsc green). The still-duplicated `AVAILABLE_SHOW_WHERE` where-clause and the show-detail `findShowById` select were out of this task's scope — tracked as follow-ups.
 - Near-identical select+map logic in `apps/web/lib/data/show/search/findShowsWithCount.ts:27-97,296-328` and `lib/data/home/findShowsForHome.ts:20-85,131-168` (plus the zip helper from T1.2). Extract `PUBLIC_SHOW_SELECT` + `mapShowRowToDTO` into `lib/data/show/showSelect.ts`; parameterize the real differences (search adds `favoriteComedians` when `profileId` present + `description`; home adds `getBestLineupImageUrl`). Field parity is consumed by iOS/Android — keep DTO shapes exact.
 - **Effort:** M. **Verify:** `npx vitest run lib/data/show lib/data/home`.
 
