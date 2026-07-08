@@ -25,6 +25,7 @@ from laughtrack.core.entities.comedian.handler import ComedianHandler
 from laughtrack.core.entities.event.etix import EtixEvent
 from laughtrack.core.entities.lineup.handler import LineupHandler
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+from laughtrack.foundation.utilities.datetime import DateTimeUtils
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.scrapers.utils.comedy_filter import (
     is_comedy_filter_enabled,
@@ -836,7 +837,7 @@ class EtixScraper(BaseScraper):
         except ValueError:
             return None
 
-        year = title_year or date.today().year
+        year = title_year or DateTimeUtils.infer_year(month, day, today=date.today())
 
         hour, minute = 20, 0
         tm = _FB_SHOW_TIME_RE.search(time_text or "")

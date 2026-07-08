@@ -10,6 +10,7 @@ import pytz
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.show.model import Show
 from laughtrack.core.protocols.show_convertible import ShowConvertible
+from laughtrack.foundation.utilities.datetime import DateTimeUtils
 from laughtrack.utilities.domain.show.factory import ShowFactoryUtils
 
 _MONTH_ABBREVS = {
@@ -26,14 +27,7 @@ def _infer_year(month: int, day: int, tz: str) -> int:
     except Exception:
         zone = pytz.utc
     now = datetime.now(zone)
-    year = now.year
-    try:
-        candidate = zone.localize(datetime(year, month, day))
-    except Exception:
-        return year
-    if candidate.date() < now.date():
-        year += 1
-    return year
+    return DateTimeUtils.infer_year(month, day, today=now.date())
 
 
 @dataclass

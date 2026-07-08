@@ -3,6 +3,9 @@
 from datetime import date
 
 import pytest
+import time_machine
+
+from laughtrack.foundation.utilities.datetime import DateTimeUtils
 
 ETIX_URL = "https://www.etix.com/ticket/mvc/online/upcomingEvents/venue?venue_id=21745&orderBy=1&pageNumber=1"
 HOME_URL = "https://nashville.zanies.com/"
@@ -108,10 +111,10 @@ async def test_zanies_nashville_fallback_uses_owned_homepage(monkeypatch):
 
     by_title_date = {(e.title, e.start_date): e for e in result.event_list}
 
-    # The solo card is year-less ("Sun, May 10"); the parser falls back to
-    # date.today().year when the title carries no year, so mirror that here
-    # rather than pinning a literal year that rots every January (TASK-3586).
-    solo = by_title_date[("Karen Mills", f"{date.today().year:04d}-05-10T18:00:00")]
+    # The solo card carries no year in the fixture; mirror the shared inference
+    # rule rather than pinning a literal year that rots every January.
+    solo_year = DateTimeUtils.infer_year(5, 10, today=date.today())
+    solo = by_title_date[("Karen Mills", f"{solo_year:04d}-05-10T18:00:00")]
     assert solo.ticket_url == SOLO_TICKET_URL
     assert solo.event_url == SOLO_EVENT_URL
 
@@ -151,3 +154,17 @@ def test_zanies_nashville_fallback_only_triggers_for_venue_21745():
 
     other_etix = "https://www.etix.com/ticket/mvc/online/upcomingEvents/venue?venue_id=12345&orderBy=1&pageNumber=1"
     assert not scraper._uses_zanies_nashville_fallback(other_etix)
+
+
+@time_machine.travel(date(2026, 12, 28))
+def test_zanies_nashville_single_event_rolls_yearless_january_into_next_year():
+    from laughtrack.scrapers.implementations.api.etix.scraper import EtixScraper
+
+    show_date = date(2027, 1, 2)
+    parsed = EtixScraper._zanies_nashville_iso_datetime(
+        show_date.strftime("%b %d"),
+        "Doors: 5 pm Show: 7:30 pm",
+        title_year=None,
+    )
+
+    assert parsed == "2027-01-02T19:30:00"

@@ -2,8 +2,8 @@
 
 import calendar
 import re
-from datetime import datetime, timedelta
-from typing import Any, List, Optional
+from datetime import date, datetime, timedelta
+from typing import Any, Optional
 
 import pytz
 
@@ -24,6 +24,40 @@ _MONTH_NAME_TO_NUMBER["sept"] = 9
 
 class DateTimeUtils:
     """Pure utility class for date and time operations."""
+
+    @staticmethod
+    def infer_year(
+        month: int,
+        day: int,
+        *,
+        today: date,
+        horizon_days: int = 2,
+        weekday_abbr: Optional[str] = None,
+    ) -> int:
+        """
+        Infer the year for a yearless month/day near a scraped reference date.
+
+        Picks the nearest candidate on or after ``today - horizon_days`` so
+        recently elapsed dates survive short scrape delays, including Jan -> Dec
+        around New Year. When a weekday is supplied, only years whose weekday
+        matches are considered.
+        """
+        candidates: list[date] = []
+        for year in range(today.year - 1, today.year + 3):
+            try:
+                candidate = date(year, month, day)
+            except ValueError:
+                continue
+            if weekday_abbr and candidate.strftime("%a").lower() != weekday_abbr[:3].lower():
+                continue
+            candidates.append(candidate)
+
+        future = [candidate for candidate in candidates if candidate >= today - timedelta(days=horizon_days)]
+        if future:
+            return min(future).year
+        if candidates:
+            return max(candidates).year
+        return today.year
 
     @staticmethod
     def validate_datetime(value: Any, field_name: str) -> Optional[str]:

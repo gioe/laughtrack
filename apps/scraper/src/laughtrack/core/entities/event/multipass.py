@@ -18,11 +18,12 @@ Each card provides:
 import pytz
 
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta
+from datetime import datetime
 from typing import Optional
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.protocols.show_convertible import ShowConvertible
+from laughtrack.foundation.utilities.datetime import DateTimeUtils
 
 import re
 
@@ -43,28 +44,8 @@ _DATETIME_RE = re.compile(
 
 
 def _infer_year(month: int, day: int, weekday_abbr: Optional[str], now: datetime) -> int:
-    """
-    Multipass cards omit the year. Infer it from the weekday + month/day, picking
-    the nearest occurrence on or after today. When a weekday is given it uniquely
-    disambiguates the year within a multi-year window; otherwise fall back to the
-    current/next year by date alone. Handles the Dec -> Jan rollover.
-    """
-    candidates = []
-    for y in range(now.year - 1, now.year + 3):
-        try:
-            d = date(y, month, day)
-        except ValueError:
-            continue
-        if weekday_abbr and d.strftime("%a").lower() != weekday_abbr[:3].lower():
-            continue
-        candidates.append(d)
-
-    future = [d for d in candidates if d >= now.date() - timedelta(days=2)]
-    if future:
-        return min(future).year
-    if candidates:
-        return max(candidates).year
-    return now.year
+    """Backward-compatible wrapper around the shared yearless-date inference."""
+    return DateTimeUtils.infer_year(month, day, today=now.date(), weekday_abbr=weekday_abbr)
 
 
 def parse_multipass_datetime(text: str, now: Optional[datetime] = None) -> Optional[str]:

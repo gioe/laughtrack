@@ -1,3 +1,5 @@
+from datetime import date
+
 from laughtrack.foundation.utilities.datetime import DateTimeUtils
 
 
@@ -37,3 +39,29 @@ def test_parse_flexible_date_accepts_full_month_day_year_without_comma():
     assert parsed.year == 2026
     assert parsed.month == 5
     assert parsed.day == 2
+
+
+def test_infer_year_rolls_january_forward_from_late_december_clock():
+    today = date(2026, 12, 28)
+
+    assert DateTimeUtils.infer_year(1, 2, today=today) == 2027
+
+
+def test_infer_year_keeps_recent_late_december_from_early_january_clock():
+    today = date(2027, 1, 2)
+
+    assert DateTimeUtils.infer_year(12, 31, today=today) == 2026
+
+
+def test_infer_year_respects_horizon_for_recent_past_dates():
+    today = date(2027, 1, 2)
+
+    assert DateTimeUtils.infer_year(12, 31, today=today, horizon_days=2) == 2026
+    assert DateTimeUtils.infer_year(12, 30, today=today, horizon_days=2) == 2027
+
+
+def test_infer_year_uses_weekday_to_disambiguate_across_years():
+    today = date(2026, 12, 28)
+
+    assert DateTimeUtils.infer_year(1, 2, today=today, weekday_abbr="Sat") == 2027
+    assert DateTimeUtils.infer_year(1, 2, today=today, weekday_abbr="Fri") == 2026
