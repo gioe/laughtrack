@@ -1,22 +1,12 @@
-"""Unit tests for the per-show ticketless WARN + diagnostics counter (TASK-3629)."""
+"""Unit tests for the per-show ticketless WARN + diagnostics counter (TASK-3629).
 
-import sys
+Stubbing of gioe_libs / laughtrack.utilities.infrastructure happens in this
+directory's conftest.py via the shared tests/gioe_stubs.py helper.
+"""
+
 from dataclasses import dataclass, field
-from pathlib import Path
-from types import ModuleType
 from typing import List
 from unittest.mock import MagicMock, patch
-
-# ---------------------------------------------------------------------------
-# Pre-stub laughtrack.utilities.infrastructure so __init__.py does not run
-# (it imports RateLimiter → gioe_libs, an optional dep not installed here).
-# Setting __path__ lets Python find submodules (pipeline/, transformer/) on disk.
-# ---------------------------------------------------------------------------
-_SCRAPER_SRC = Path(__file__).parents[3] / "src"
-_infra_stub = ModuleType("laughtrack.utilities.infrastructure")
-_infra_stub.__path__ = [str(_SCRAPER_SRC / "laughtrack/utilities/infrastructure")]
-_infra_stub.__package__ = "laughtrack.utilities.infrastructure"
-sys.modules.setdefault("laughtrack.utilities.infrastructure", _infra_stub)
 
 from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.foundation.infrastructure.http.diagnostics import (
