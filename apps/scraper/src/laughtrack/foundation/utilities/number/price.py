@@ -30,12 +30,12 @@ _BARE_AMOUNT_RE = re.compile(r"(\d+(?:\.\d{1,2})?)")
 _FREE_RE = re.compile(r"\bfree\b", re.IGNORECASE)
 
 
-def parse_price_text(text: str) -> Optional[float]:
+def parse_price_text(text: str, detect_free: bool = True) -> Optional[float]:
     """Parse a human-facing price string into a float dollar amount.
 
     Behaviour (the union the 15 hand-rolled copies collectively implemented):
 
-    - Explicit "free" text returns ``0.0``.
+    - Explicit "free" text returns ``0.0`` (unless ``detect_free=False``).
     - Ranges ("$20-$30", "$20 to $30") return the **minimum** advertised price.
     - Thousands separators are stripped ("$1,234.50" -> ``1234.5``).
     - When several ``$`` amounts appear, the lowest is returned; otherwise the
@@ -45,6 +45,12 @@ def parse_price_text(text: str) -> Optional[float]:
 
     Args:
         text: Raw price string from a listing (may be ``None``/empty).
+        detect_free: When ``True`` (default), whole-word "free" returns ``0.0``.
+            Pass ``False`` for callers that scan **broad HTML or multi-line
+            blobs** where the literal substring "free" can appear in non-price
+            context (e.g. "free parking", a ``class="...free..."`` attribute) —
+            there it would false-positive to ``0.0`` and discard a real price.
+            With ``detect_free=False`` the parser is a pure min-of-``$`` scan.
 
     Returns:
         The parsed dollar amount, ``0.0`` for free, or ``None`` when unknown.
@@ -52,7 +58,7 @@ def parse_price_text(text: str) -> Optional[float]:
     if not text:
         return None
 
-    if _FREE_RE.search(text):
+    if detect_free and _FREE_RE.search(text):
         return 0.0
 
     # Strip thousands separators so "1,234.50" parses as one number.
