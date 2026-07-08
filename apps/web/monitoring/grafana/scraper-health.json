@@ -142,6 +142,25 @@
           "rawSql": "SELECT COALESCE(c.bot_block_provider, 'unknown') AS provider, COUNT(*) AS blocks FROM scraper_run_clubs c JOIN scraper_runs r ON c.run_id = r.id WHERE c.bot_block_detected AND r.run_type = 'scraper' GROUP BY c.bot_block_provider ORDER BY blocks DESC"
         }
       ]
+    },
+    {
+      "id": 7,
+      "title": "Ticketless shows per club (over time)",
+      "description": "Per-club count of shows transformed with zero tickets (raw_stat->>'ticketless_shows', TASK-3629). Ticketless shows are invisible in all three clients, so a persistent nonzero count is a silent enrichment gap. Only clubs with a nonzero count are plotted to keep the chart readable; the companion 'Ticketless shows on consecutive runs' alert pages when a club stays nonzero across two nightly runs.",
+      "type": "timeseries",
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "${datasource}" },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 25 },
+      "fieldConfig": { "defaults": { "custom": { "drawStyle": "line", "showPoints": "always" } }, "overrides": [] },
+      "options": {},
+      "targets": [
+        {
+          "refId": "A",
+          "format": "time_series",
+          "rawQuery": true,
+          "datasource": { "type": "grafana-postgresql-datasource", "uid": "${datasource}" },
+          "rawSql": "SELECT r.exported_at AS \"time\", c.club_name AS metric, COALESCE((c.raw_stat->>'ticketless_shows')::int, 0) AS ticketless_shows FROM scraper_run_clubs c JOIN scraper_runs r ON c.run_id = r.id WHERE r.run_type = 'scraper' AND $__timeFilter(r.exported_at) AND COALESCE((c.raw_stat->>'ticketless_shows')::int, 0) > 0 ORDER BY r.exported_at"
+        }
+      ]
     }
   ]
 }
