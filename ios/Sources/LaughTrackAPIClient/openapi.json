@@ -3,7 +3,7 @@
   "info": {
     "title": "LaughTrack API",
     "version": "1.0.0",
-    "description": "LaughTrack v1 REST API — comedy shows, clubs, comedians, and favorites."
+    "description": "LaughTrack v1 REST API \u2014 comedy shows, clubs, comedians, and favorites. "
   },
   "servers": [
     {
@@ -17,7 +17,9 @@
         "operationId": "exchangeToken",
         "summary": "Exchange a session cookie for an access + refresh token pair",
         "description": "iOS clients call this after completing OAuth via ASWebAuthenticationSession. Returns a short-lived access JWT (15 minutes) plus a long-lived opaque refresh token (30 days). Store both in the keychain separately.",
-        "tags": ["auth"],
+        "tags": [
+          "auth"
+        ],
         "responses": {
           "200": {
             "description": "Token pair issued successfully",
@@ -33,7 +35,9 @@
             "description": "No active session",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -41,7 +45,9 @@
             "description": "Invalid origin (CSRF protection)",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -50,12 +56,17 @@
             "headers": {
               "Retry-After": {
                 "description": "Number of seconds the client should wait before retrying.",
-                "schema": { "type": "integer", "minimum": 0 }
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
               }
             },
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -66,8 +77,10 @@
       "post": {
         "operationId": "refreshToken",
         "summary": "Rotate a refresh token for a new access + refresh pair",
-        "description": "Atomically revokes the submitted refresh token and issues a new access+refresh pair. Revoked, expired, or unknown tokens return 401. No Bearer authentication required — the refresh token itself is the credential.",
-        "tags": ["auth"],
+        "description": "Atomically revokes the submitted refresh token and issues a new access+refresh pair. Revoked, expired, or unknown tokens return 401. No Bearer authentication required \u2014 the refresh token itself is the credential.",
+        "tags": [
+          "auth"
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -93,7 +106,9 @@
             "description": "Missing or malformed body",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -101,7 +116,9 @@
             "description": "Refresh token is unknown, revoked, or expired",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -110,12 +127,17 @@
             "headers": {
               "Retry-After": {
                 "description": "Number of seconds the client should wait before retrying.",
-                "schema": { "type": "integer", "minimum": 0 }
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
               }
             },
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -127,8 +149,14 @@
         "operationId": "signout",
         "summary": "Revoke every active refresh token for the authenticated user",
         "description": "Requires a valid Bearer access token. Marks every non-revoked refresh_token row for the caller as revoked. iOS clients should still clear local keychain entries after the call completes.",
-        "tags": ["auth"],
-        "security": [{ "bearerAuth": [] }],
+        "tags": [
+          "auth"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Tokens revoked",
@@ -144,7 +172,9 @@
             "description": "Missing or invalid Bearer token",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -152,7 +182,9 @@
             "description": "Authenticated user has no UserProfile row",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -161,12 +193,17 @@
             "headers": {
               "Retry-After": {
                 "description": "Number of seconds the client should wait before retrying.",
-                "schema": { "type": "integer", "minimum": 0 }
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
               }
             },
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -178,14 +215,22 @@
         "operationId": "getMe",
         "summary": "Get the authenticated user's identity (display name, email, avatar URL)",
         "description": "Returns the User row backing the access token. iOS clients use this to render real account info on the Profile tab instead of the OAuth provider stub.",
-        "tags": ["auth"],
-        "security": [{ "bearerAuth": [] }],
+        "tags": [
+          "auth"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "User profile",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/MeResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/MeResponse"
+                }
               }
             }
           },
@@ -193,7 +238,9 @@
             "description": "Missing or invalid Bearer token",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -201,7 +248,9 @@
             "description": "Authenticated user has no UserProfile row",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -210,12 +259,17 @@
             "headers": {
               "Retry-After": {
                 "description": "Number of seconds the client should wait before retrying.",
-                "schema": { "type": "integer", "minimum": 0 }
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
               }
             },
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -225,13 +279,21 @@
         "operationId": "updateMe",
         "summary": "Update authenticated user profile state",
         "description": "Updates durable profile state for the authenticated user. iOS clients use this to mark comedian onboarding complete after the user finishes or skips onboarding.",
-        "tags": ["auth"],
-        "security": [{ "bearerAuth": [] }],
+        "tags": [
+          "auth"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/MeUpdateRequest" }
+              "schema": {
+                "$ref": "#/components/schemas/MeUpdateRequest"
+              }
             }
           }
         },
@@ -240,7 +302,9 @@
             "description": "Profile state updated",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/MeUpdateResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/MeUpdateResponse"
+                }
               }
             }
           },
@@ -248,7 +312,9 @@
             "description": "Invalid request body",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -256,7 +322,9 @@
             "description": "Missing or invalid Bearer token",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -264,7 +332,9 @@
             "description": "Authenticated user has no UserProfile row",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -273,12 +343,17 @@
             "headers": {
               "Retry-After": {
                 "description": "Number of seconds the client should wait before retrying.",
-                "schema": { "type": "integer", "minimum": 0 }
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
               }
             },
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -288,14 +363,22 @@
         "operationId": "deleteMe",
         "summary": "Delete the authenticated user account",
         "description": "Requires a valid Bearer access token. Deletes profile-owned rows before deleting the caller user. User-linked accounts, refresh tokens, and sent notifications are removed by database cascades. iOS clients should clear local keychain entries after a 200 response.",
-        "tags": ["auth"],
-        "security": [{ "bearerAuth": [] }],
+        "tags": [
+          "auth"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Account deleted",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/AccountDeletionResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/AccountDeletionResponse"
+                }
               }
             }
           },
@@ -303,7 +386,9 @@
             "description": "Missing or invalid Bearer token",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -311,7 +396,9 @@
             "description": "Authenticated user has no UserProfile row",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -320,12 +407,17 @@
             "headers": {
               "Retry-After": {
                 "description": "Number of seconds the client should wait before retrying.",
-                "schema": { "type": "integer", "minimum": 0 }
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
               }
             },
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -333,7 +425,9 @@
             "description": "Account deletion failed",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -345,14 +439,22 @@
         "operationId": "getMeNotifications",
         "summary": "List the authenticated user's notification history",
         "description": "Returns the user's comedian-arrival notifications (push + email), reconstructed from sent-notification records and grouped per (comedian, show). iOS renders these in the notification center. Capped at the 100 most-recent; no cursor pagination.",
-        "tags": ["auth"],
-        "security": [{ "bearerAuth": [] }],
+        "tags": [
+          "auth"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Notification history",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/NotificationListResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationListResponse"
+                }
               }
             }
           },
@@ -360,7 +462,9 @@
             "description": "Missing or invalid Bearer token",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -368,7 +472,9 @@
             "description": "Authenticated user has no UserProfile row",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -377,12 +483,17 @@
             "headers": {
               "Retry-After": {
                 "description": "Number of seconds the client should wait before retrying.",
-                "schema": { "type": "integer", "minimum": 0 }
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
               }
             },
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -394,14 +505,22 @@
         "operationId": "markMeNotificationsSeen",
         "summary": "Mark the notification center as seen",
         "description": "Stamps the notifications last-seen high-water mark to now, clearing the unread badge. iOS calls this when the user opens the notification center.",
-        "tags": ["auth"],
-        "security": [{ "bearerAuth": [] }],
+        "tags": [
+          "auth"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Last-seen timestamp updated",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/NotificationsSeenResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationsSeenResponse"
+                }
               }
             }
           },
@@ -409,7 +528,9 @@
             "description": "Missing or invalid Bearer token",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -417,7 +538,9 @@
             "description": "Authenticated user has no UserProfile row",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -426,12 +549,17 @@
             "headers": {
               "Retry-After": {
                 "description": "Number of seconds the client should wait before retrying.",
-                "schema": { "type": "integer", "minimum": 0 }
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
               }
             },
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -442,17 +570,28 @@
       "get": {
         "operationId": "listClubs",
         "summary": "List active clubs with upcoming shows",
-        "tags": ["clubs"],
+        "tags": [
+          "clubs"
+        ],
         "parameters": [
           {
             "name": "limit",
             "in": "query",
-            "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 8 }
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 8
+            }
           },
           {
             "name": "offset",
             "in": "query",
-            "schema": { "type": "integer", "minimum": 0, "default": 0 }
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
           }
         ],
         "responses": {
@@ -462,11 +601,15 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["data"],
+                  "required": [
+                    "data"
+                  ],
                   "properties": {
                     "data": {
                       "type": "array",
-                      "items": { "$ref": "#/components/schemas/ClubListItem" }
+                      "items": {
+                        "$ref": "#/components/schemas/ClubListItem"
+                      }
                     }
                   }
                 }
@@ -477,7 +620,9 @@
             "description": "Invalid parameters",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -486,12 +631,17 @@
             "headers": {
               "Retry-After": {
                 "description": "Number of seconds the client should wait before retrying.",
-                "schema": { "type": "integer", "minimum": 0 }
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
               }
             },
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -499,7 +649,9 @@
             "description": "Server error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -510,13 +662,17 @@
       "get": {
         "operationId": "getClub",
         "summary": "Get a single club by ID",
-        "tags": ["clubs"],
+        "tags": [
+          "clubs"
+        ],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": { "type": "integer" }
+            "schema": {
+              "type": "integer"
+            }
           }
         ],
         "responses": {
@@ -526,9 +682,13 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["data"],
+                  "required": [
+                    "data"
+                  ],
                   "properties": {
-                    "data": { "$ref": "#/components/schemas/ClubDetail" }
+                    "data": {
+                      "$ref": "#/components/schemas/ClubDetail"
+                    }
                   }
                 }
               }
@@ -538,7 +698,9 @@
             "description": "Non-numeric ID",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -546,7 +708,9 @@
             "description": "Club not found or inactive",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -554,7 +718,9 @@
             "description": "Server error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -565,33 +731,50 @@
       "get": {
         "operationId": "getClubShows",
         "summary": "List upcoming shows for a club",
-        "tags": ["clubs"],
+        "tags": [
+          "clubs"
+        ],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": { "type": "integer" }
+            "schema": {
+              "type": "integer"
+            }
           },
           {
             "name": "page",
             "in": "query",
             "description": "Zero-indexed page number",
-            "schema": { "type": "integer", "minimum": 0 }
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
           },
           {
             "name": "size",
             "in": "query",
-            "schema": { "type": "integer", "minimum": 1 }
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
           }
         ],
-        "security": [{ "bearerAuth": [] }, {}],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {}
+        ],
         "responses": {
           "200": {
             "description": "Club upcoming shows",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ClubShowsResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ClubShowsResponse"
+                }
               }
             }
           },
@@ -599,7 +782,9 @@
             "description": "Invalid parameters",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -608,12 +793,17 @@
             "headers": {
               "Retry-After": {
                 "description": "Number of seconds the client should wait before retrying.",
-                "schema": { "type": "integer", "minimum": 0 }
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
               }
             },
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -621,7 +811,9 @@
             "description": "Server error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -632,47 +824,66 @@
       "get": {
         "operationId": "searchClubs",
         "summary": "Search clubs with filters and pagination",
-        "tags": ["clubs"],
+        "tags": [
+          "clubs"
+        ],
         "parameters": [
           {
             "name": "club",
             "in": "query",
             "description": "Search term for club name",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "sort",
             "in": "query",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "filters",
             "in": "query",
             "description": "JSON-encoded filter object",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "page",
             "in": "query",
             "description": "Zero-indexed page number",
-            "schema": { "type": "integer", "minimum": 0 }
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
           },
           {
             "name": "size",
             "in": "query",
-            "schema": { "type": "integer", "minimum": 1 }
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
           },
           {
             "name": "includeEmpty",
             "in": "query",
             "description": "Include clubs with no upcoming shows",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "X-Timezone",
             "in": "header",
             "description": "IANA timezone identifier (defaults to UTC)",
-            "schema": { "type": "string", "default": "UTC" }
+            "schema": {
+              "type": "string",
+              "default": "UTC"
+            }
           }
         ],
         "responses": {
@@ -680,7 +891,9 @@
             "description": "Search results",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ClubSearchResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ClubSearchResponse"
+                }
               }
             }
           },
@@ -688,7 +901,9 @@
             "description": "Invalid X-Timezone header (non-IANA value)",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -697,12 +912,17 @@
             "headers": {
               "Retry-After": {
                 "description": "Number of seconds the client should wait before retrying.",
-                "schema": { "type": "integer", "minimum": 0 }
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
               }
             },
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -710,7 +930,9 @@
             "description": "Server error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -721,17 +943,28 @@
       "get": {
         "operationId": "listComedians",
         "summary": "List trending comedians (3+ upcoming shows)",
-        "tags": ["comedians"],
+        "tags": [
+          "comedians"
+        ],
         "parameters": [
           {
             "name": "limit",
             "in": "query",
-            "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 8 }
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 8
+            }
           },
           {
             "name": "offset",
             "in": "query",
-            "schema": { "type": "integer", "minimum": 0, "default": 0 }
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
           }
         ],
         "responses": {
@@ -741,11 +974,15 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["data"],
+                  "required": [
+                    "data"
+                  ],
                   "properties": {
                     "data": {
                       "type": "array",
-                      "items": { "$ref": "#/components/schemas/ComedianListItem" }
+                      "items": {
+                        "$ref": "#/components/schemas/ComedianListItem"
+                      }
                     }
                   }
                 }
@@ -756,7 +993,9 @@
             "description": "Invalid parameters",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -764,7 +1003,9 @@
             "description": "Server error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -775,13 +1016,17 @@
       "get": {
         "operationId": "getComedian",
         "summary": "Get a single comedian by numeric ID",
-        "tags": ["comedians"],
+        "tags": [
+          "comedians"
+        ],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": { "type": "integer" }
+            "schema": {
+              "type": "integer"
+            }
           }
         ],
         "responses": {
@@ -791,9 +1036,13 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["data"],
+                  "required": [
+                    "data"
+                  ],
                   "properties": {
-                    "data": { "$ref": "#/components/schemas/ComedianDetail" }
+                    "data": {
+                      "$ref": "#/components/schemas/ComedianDetail"
+                    }
                   }
                 }
               }
@@ -803,7 +1052,9 @@
             "description": "Non-numeric ID",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -811,7 +1062,9 @@
             "description": "Comedian not found",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -819,7 +1072,9 @@
             "description": "Server error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -831,38 +1086,57 @@
         "operationId": "getComedianUpcomingRuns",
         "summary": "List upcoming show runs for a comedian",
         "description": "Returns upcoming shows grouped into consecutive same-club runs, ordered by first show date ascending.",
-        "tags": ["comedians"],
-        "security": [{ "bearerAuth": [] }, {}],
+        "tags": [
+          "comedians"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {}
+        ],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": { "type": "integer" }
+            "schema": {
+              "type": "integer"
+            }
           },
           {
             "name": "club",
             "in": "query",
             "description": "Optional club-name filter",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "location",
             "in": "query",
             "description": "Optional venue location filter",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "date",
             "in": "query",
             "description": "Optional show date in YYYY-MM-DD format",
-            "schema": { "type": "string", "format": "date" }
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
           },
           {
             "name": "X-Timezone",
             "in": "header",
             "description": "IANA timezone identifier (defaults to UTC)",
-            "schema": { "type": "string", "default": "UTC" }
+            "schema": {
+              "type": "string",
+              "default": "UTC"
+            }
           }
         ],
         "responses": {
@@ -870,7 +1144,9 @@
             "description": "Upcoming runs for the comedian",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/UpcomingRunResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/UpcomingRunResponse"
+                }
               }
             }
           },
@@ -878,7 +1154,9 @@
             "description": "Invalid id, date, or X-Timezone",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -887,12 +1165,17 @@
             "headers": {
               "Retry-After": {
                 "description": "Number of seconds the client should wait before retrying.",
-                "schema": { "type": "integer", "minimum": 0 }
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
               }
             },
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -900,7 +1183,9 @@
             "description": "Server error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -911,13 +1196,17 @@
       "get": {
         "operationId": "getComedianCoBill",
         "summary": "List comedians who have recently shared bills with a comedian",
-        "tags": ["comedians"],
+        "tags": [
+          "comedians"
+        ],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": { "type": "integer" }
+            "schema": {
+              "type": "integer"
+            }
           }
         ],
         "responses": {
@@ -927,11 +1216,15 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["data"],
+                  "required": [
+                    "data"
+                  ],
                   "properties": {
                     "data": {
                       "type": "array",
-                      "items": { "$ref": "#/components/schemas/ComedianLineup" }
+                      "items": {
+                        "$ref": "#/components/schemas/ComedianLineup"
+                      }
                     }
                   }
                 }
@@ -942,7 +1235,9 @@
             "description": "Non-numeric ID",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -951,12 +1246,17 @@
             "headers": {
               "Retry-After": {
                 "description": "Number of seconds the client should wait before retrying.",
-                "schema": { "type": "integer", "minimum": 0 }
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
               }
             },
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -964,7 +1264,9 @@
             "description": "Server error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -975,54 +1277,80 @@
       "get": {
         "operationId": "searchComedians",
         "summary": "Search comedians with filters and pagination",
-        "tags": ["comedians"],
-        "security": [{ "bearerAuth": [] }, {}],
+        "tags": [
+          "comedians"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {}
+        ],
         "parameters": [
           {
             "name": "comedian",
             "in": "query",
             "description": "Search term for comedian name",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "sort",
             "in": "query",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "filters",
             "in": "query",
             "description": "JSON-encoded filter object",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "page",
             "in": "query",
             "description": "Zero-indexed page number",
-            "schema": { "type": "integer", "minimum": 0 }
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
           },
           {
             "name": "size",
             "in": "query",
-            "schema": { "type": "integer", "minimum": 1 }
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
           },
           {
             "name": "includeEmpty",
             "in": "query",
             "description": "Include comedians with no upcoming shows",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "homeCity",
             "in": "query",
             "description": "Filter to comedians whose home city matches this 'city|state' token (from the values in homeCityFilters).",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "X-Timezone",
             "in": "header",
             "description": "IANA timezone identifier (defaults to UTC)",
-            "schema": { "type": "string", "default": "UTC" }
+            "schema": {
+              "type": "string",
+              "default": "UTC"
+            }
           }
         ],
         "responses": {
@@ -1030,7 +1358,9 @@
             "description": "Search results",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ComedianSearchResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ComedianSearchResponse"
+                }
               }
             }
           },
@@ -1038,7 +1368,9 @@
             "description": "Invalid X-Timezone header (non-IANA value)",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -1047,12 +1379,17 @@
             "headers": {
               "Retry-After": {
                 "description": "Number of seconds the client should wait before retrying.",
-                "schema": { "type": "integer", "minimum": 0 }
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
               }
             },
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -1060,7 +1397,9 @@
             "description": "Server error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -1072,8 +1411,15 @@
         "operationId": "getComedianSuggestions",
         "summary": "Popularity-weighted random comedian suggestions for onboarding",
         "description": "Returns a fresh popularity-weighted random sample of comedians with upcoming shows for the post-auth favorite-a-comedian onboarding grid. Unlike comedian search (deterministic popularity sort), membership and order vary per call. Optional auth: when a bearer token is supplied, isFavorite reflects the caller's existing favorites.",
-        "tags": ["comedians"],
-        "security": [{ "bearerAuth": [] }, {}],
+        "tags": [
+          "comedians"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {}
+        ],
         "responses": {
           "200": {
             "description": "Comedian suggestions",
@@ -1081,11 +1427,15 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["data"],
+                  "required": [
+                    "data"
+                  ],
                   "properties": {
                     "data": {
                       "type": "array",
-                      "items": { "$ref": "#/components/schemas/ComedianSearchItem" }
+                      "items": {
+                        "$ref": "#/components/schemas/ComedianSearchItem"
+                      }
                     }
                   }
                 }
@@ -1097,12 +1447,17 @@
             "headers": {
               "Retry-After": {
                 "description": "Number of seconds the client should wait before retrying.",
-                "schema": { "type": "integer", "minimum": 0 }
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
               }
             },
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -1110,7 +1465,9 @@
             "description": "Server error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -1122,35 +1479,55 @@
         "operationId": "getComedianPastShows",
         "summary": "List past shows for a comedian",
         "description": "Returns past shows (date < now) where the named comedian appeared in the lineup, ordered by date desc. Paginated.",
-        "tags": ["comedians"],
+        "tags": [
+          "comedians"
+        ],
         "parameters": [
           {
             "name": "comedian",
             "in": "query",
             "required": true,
             "description": "Comedian name to match against lineup items",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "page",
             "in": "query",
             "description": "Zero-indexed page number (defaults to 0)",
-            "schema": { "type": "integer", "minimum": 0 }
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
           },
           {
             "name": "size",
             "in": "query",
             "description": "Page size (1-50, defaults to 20)",
-            "schema": { "type": "integer", "minimum": 1, "maximum": 50, "default": 20 }
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            }
           },
           {
             "name": "X-Timezone",
             "in": "header",
             "description": "IANA timezone identifier (defaults to UTC)",
-            "schema": { "type": "string", "default": "UTC" }
+            "schema": {
+              "type": "string",
+              "default": "UTC"
+            }
           }
         ],
-        "security": [{ "bearerAuth": [] }, {}],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {}
+        ],
         "responses": {
           "200": {
             "description": "Past shows for the comedian",
@@ -1158,13 +1535,20 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["data", "total"],
+                  "required": [
+                    "data",
+                    "total"
+                  ],
                   "properties": {
                     "data": {
                       "type": "array",
-                      "items": { "$ref": "#/components/schemas/Show" }
+                      "items": {
+                        "$ref": "#/components/schemas/Show"
+                      }
                     },
-                    "total": { "type": "integer" }
+                    "total": {
+                      "type": "integer"
+                    }
                   }
                 }
               }
@@ -1174,7 +1558,9 @@
             "description": "Missing comedian, invalid page/size, or invalid X-Timezone",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -1183,12 +1569,17 @@
             "headers": {
               "Retry-After": {
                 "description": "Number of seconds the client should wait before retrying.",
-                "schema": { "type": "integer", "minimum": 0 }
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
               }
             },
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -1196,7 +1587,9 @@
             "description": "Server error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -1207,70 +1600,106 @@
       "get": {
         "operationId": "listShows",
         "summary": "List shows near a ZIP code",
-        "tags": ["shows"],
+        "tags": [
+          "shows"
+        ],
         "parameters": [
           {
             "name": "zip",
             "in": "query",
             "required": true,
             "description": "5-digit US ZIP code",
-            "schema": { "type": "string", "pattern": "^\\d{5}$" }
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{5}$"
+            }
           },
           {
             "name": "from",
             "in": "query",
             "description": "Start date (YYYY-MM-DD)",
-            "schema": { "type": "string", "format": "date" }
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
           },
           {
             "name": "to",
             "in": "query",
             "description": "End date (YYYY-MM-DD)",
-            "schema": { "type": "string", "format": "date" }
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
           },
           {
             "name": "page",
             "in": "query",
             "description": "Zero-indexed page number",
-            "schema": { "type": "integer", "minimum": 0 }
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
           },
           {
             "name": "size",
             "in": "query",
-            "schema": { "type": "integer", "minimum": 1 }
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
           },
           {
             "name": "comedian",
             "in": "query",
             "description": "Filter by comedian name",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "filters",
             "in": "query",
             "description": "JSON-encoded filter object",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "distance",
             "in": "query",
             "description": "Radius in miles (1-500, default 25)",
-            "schema": { "type": "integer", "minimum": 1, "maximum": 500, "default": 25 }
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "default": 25
+            }
           },
           {
             "name": "X-Timezone",
             "in": "header",
             "description": "IANA timezone identifier (defaults to UTC)",
-            "schema": { "type": "string", "default": "UTC" }
+            "schema": {
+              "type": "string",
+              "default": "UTC"
+            }
           }
         ],
-        "security": [{ "bearerAuth": [] }, {}],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {}
+        ],
         "responses": {
           "200": {
             "description": "Show list",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ShowListResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ShowListResponse"
+                }
               }
             }
           },
@@ -1278,7 +1707,9 @@
             "description": "Invalid parameters (zip, date format, distance range)",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -1287,12 +1718,17 @@
             "headers": {
               "Retry-After": {
                 "description": "Number of seconds the client should wait before retrying.",
-                "schema": { "type": "integer", "minimum": 0 }
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
               }
             },
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -1300,7 +1736,9 @@
             "description": "Server error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -1311,81 +1749,120 @@
       "get": {
         "operationId": "searchShows",
         "summary": "Search shows with flexible filters",
-        "description": "More flexible than /shows — ZIP is optional, supports club filter and sort.",
-        "tags": ["shows"],
+        "description": "More flexible than /shows \u2014 ZIP is optional, supports club filter and sort.",
+        "tags": [
+          "shows"
+        ],
         "parameters": [
           {
             "name": "zip",
             "in": "query",
             "description": "5-digit US ZIP code (optional here, unlike /shows)",
-            "schema": { "type": "string", "pattern": "^\\d{5}$" }
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{5}$"
+            }
           },
           {
             "name": "from",
             "in": "query",
             "description": "Start date (YYYY-MM-DD)",
-            "schema": { "type": "string", "format": "date" }
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
           },
           {
             "name": "to",
             "in": "query",
             "description": "End date (YYYY-MM-DD)",
-            "schema": { "type": "string", "format": "date" }
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
           },
           {
             "name": "page",
             "in": "query",
             "description": "Zero-indexed page number",
-            "schema": { "type": "integer", "minimum": 0 }
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
           },
           {
             "name": "size",
             "in": "query",
-            "schema": { "type": "integer", "minimum": 1 }
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
           },
           {
             "name": "comedian",
             "in": "query",
             "description": "Filter by comedian name",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "club",
             "in": "query",
             "description": "Filter by club name",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "filters",
             "in": "query",
             "description": "JSON-encoded filter object",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "distance",
             "in": "query",
             "description": "Radius in miles (1-500, defaults to 25 when zip provided)",
-            "schema": { "type": "integer", "minimum": 1, "maximum": 500 }
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500
+            }
           },
           {
             "name": "sort",
             "in": "query",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "X-Timezone",
             "in": "header",
             "description": "IANA timezone identifier (defaults to UTC)",
-            "schema": { "type": "string", "default": "UTC" }
+            "schema": {
+              "type": "string",
+              "default": "UTC"
+            }
           }
         ],
-        "security": [{ "bearerAuth": [] }, {}],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {}
+        ],
         "responses": {
           "200": {
             "description": "Search results",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ShowSearchResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ShowSearchResponse"
+                }
               }
             }
           },
@@ -1393,7 +1870,9 @@
             "description": "Invalid parameters",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -1402,12 +1881,17 @@
             "headers": {
               "Retry-After": {
                 "description": "Number of seconds the client should wait before retrying.",
-                "schema": { "type": "integer", "minimum": 0 }
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
               }
             },
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -1415,7 +1899,9 @@
             "description": "Server error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -1426,59 +1912,88 @@
       "get": {
         "operationId": "getShowsDensity",
         "summary": "Per-day show counts for a date range",
-        "description": "Returns a map of ISO date string (YYYY-MM-DD) to the number of shows scheduled on that day. Used to render density dots on the date-picker calendar. Range is capped at 90 days; if `to` exceeds the cap, it is silently clamped server-side.\n\nOptional `comedian` and `club` filters scope the result to dates where the named entity appears in the show lineup (comedian) or hosts the show (club). The two are mutually exclusive — supplying both returns 400. Either may be combined with `zip` + `distance` for an additional geographic narrow.",
-        "tags": ["shows"],
+        "description": "Returns a map of ISO date string (YYYY-MM-DD) to the number of shows scheduled on that day. Used to render density dots on the date-picker calendar. Range is capped at 90 days; if `to` exceeds the cap, it is silently clamped server-side.\n\nOptional `comedian` and `club` filters scope the result to dates where the named entity appears in the show lineup (comedian) or hosts the show (club). The two are mutually exclusive \u2014 supplying both returns 400. Either may be combined with `zip` + `distance` for an additional geographic narrow.",
+        "tags": [
+          "shows"
+        ],
         "parameters": [
           {
             "name": "zip",
             "in": "query",
             "description": "5-digit US ZIP code; required for distance filtering.",
-            "schema": { "type": "string", "pattern": "^\\d{5}$" }
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{5}$"
+            }
           },
           {
             "name": "from",
             "in": "query",
             "description": "Start date (YYYY-MM-DD). Defaults to today.",
-            "schema": { "type": "string", "format": "date" }
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
           },
           {
             "name": "to",
             "in": "query",
             "description": "End date (YYYY-MM-DD). Defaults to from+89 days.",
-            "schema": { "type": "string", "format": "date" }
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
           },
           {
             "name": "distance",
             "in": "query",
             "description": "Radius in miles (1-500, defaults to 25 when zip provided).",
-            "schema": { "type": "integer", "minimum": 1, "maximum": 500 }
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500
+            }
           },
           {
             "name": "comedian",
             "in": "query",
             "description": "Filter density to dates where this comedian appears in the show lineup. Mutually exclusive with `club`.",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "club",
             "in": "query",
             "description": "Filter density to dates hosted by this venue. Mutually exclusive with `comedian`.",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "X-Timezone",
             "in": "header",
             "description": "IANA timezone identifier (defaults to UTC).",
-            "schema": { "type": "string", "default": "UTC" }
+            "schema": {
+              "type": "string",
+              "default": "UTC"
+            }
           }
         ],
-        "security": [{ "bearerAuth": [] }, {}],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {}
+        ],
         "responses": {
           "200": {
             "description": "Per-day show counts keyed by YYYY-MM-DD.",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ShowDensityResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ShowDensityResponse"
+                }
               }
             }
           },
@@ -1486,7 +2001,9 @@
             "description": "Invalid parameters",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -1495,12 +2012,17 @@
             "headers": {
               "Retry-After": {
                 "description": "Number of seconds the client should wait before retrying.",
-                "schema": { "type": "integer", "minimum": 0 }
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
               }
             },
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -1508,7 +2030,9 @@
             "description": "Server error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -1519,13 +2043,17 @@
       "get": {
         "operationId": "getShow",
         "summary": "Get a single show by ID",
-        "tags": ["shows"],
+        "tags": [
+          "shows"
+        ],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": { "type": "integer" }
+            "schema": {
+              "type": "integer"
+            }
           }
         ],
         "responses": {
@@ -1533,7 +2061,9 @@
             "description": "Show detail",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ShowDetailResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ShowDetailResponse"
+                }
               }
             }
           },
@@ -1541,7 +2071,9 @@
             "description": "Non-numeric ID",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -1549,7 +2081,9 @@
             "description": "Show not found or hidden",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -1558,12 +2092,17 @@
             "headers": {
               "Retry-After": {
                 "description": "Number of seconds the client should wait before retrying.",
-                "schema": { "type": "integer", "minimum": 0 }
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
               }
             },
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -1571,7 +2110,9 @@
             "description": "Server error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -1582,28 +2123,41 @@
       "get": {
         "operationId": "getHomeFeed",
         "summary": "Composite home-screen feed (hero + six curated sections)",
-        "description": "Single round-trip replacement for seven per-section calls. Returns hero context (zip/city/state + up to 3 near-you shows) plus arrays for trendingComedians, comediansNearYou, showsTonight, moreNearYou, trendingThisWeek, and popularClubs. Rate limit: 60 req/min anon, 300 req/min authenticated. Cache-Control: private, max-age=60 — response is personalized by session profile zipCode and Vercel geo-IP, so shared CDN caching is disabled.",
-        "tags": ["home"],
+        "description": "Single round-trip replacement for seven per-section calls. Returns hero context (zip/city/state + up to 3 near-you shows) plus arrays for trendingComedians, comediansNearYou, showsTonight, moreNearYou, trendingThisWeek, and popularClubs. Rate limit: 60 req/min anon, 300 req/min authenticated. Cache-Control: private, max-age=60 \u2014 response is personalized by session profile zipCode and Vercel geo-IP, so shared CDN caching is disabled.",
+        "tags": [
+          "home"
+        ],
         "parameters": [
           {
             "name": "zip",
             "in": "query",
             "required": false,
-            "description": "Optional 5-digit US zip override. When supplied, beats the signed-in user's profile zipCode for this request — used for anonymous callers or profile-preview.",
-            "schema": { "type": "string", "pattern": "^\\d{5}$" }
+            "description": "Optional 5-digit US zip override. When supplied, beats the signed-in user's profile zipCode for this request \u2014 used for anonymous callers or profile-preview.",
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{5}$"
+            }
           },
           {
             "name": "distance",
             "in": "query",
             "required": false,
             "description": "Radius in miles for zip-scoped recommendations (1-500, default 25).",
-            "schema": { "type": "integer", "minimum": 1, "maximum": 500, "default": 25 }
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "default": 25
+            }
           },
           {
             "name": "X-Timezone",
             "in": "header",
             "description": "IANA timezone identifier (defaults to UTC)",
-            "schema": { "type": "string", "default": "UTC" }
+            "schema": {
+              "type": "string",
+              "default": "UTC"
+            }
           }
         ],
         "responses": {
@@ -1611,7 +2165,9 @@
             "description": "Home feed payload",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/HomeFeedResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/HomeFeedResponse"
+                }
               }
             }
           },
@@ -1619,7 +2175,9 @@
             "description": "Invalid zip parameter",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -1627,7 +2185,9 @@
             "description": "Rate limit exceeded",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -1635,7 +2195,9 @@
             "description": "Server error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -1646,36 +2208,50 @@
       "get": {
         "operationId": "searchPodcasts",
         "summary": "Search podcasts with sorting and pagination",
-        "tags": ["podcasts"],
+        "tags": [
+          "podcasts"
+        ],
         "parameters": [
           {
             "name": "q",
             "in": "query",
             "description": "Search term matched against podcast title, author, and description",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "sort",
             "in": "query",
             "description": "Sort order (e.g. show_count_desc, name_asc); defaults to show_count_desc",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "page",
             "in": "query",
             "description": "Zero-indexed page number",
-            "schema": { "type": "integer", "minimum": 0 }
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
           },
           {
             "name": "size",
             "in": "query",
-            "schema": { "type": "integer", "minimum": 1 }
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
           },
           {
             "name": "includeEmpty",
             "in": "query",
             "description": "Include podcasts with no episodes",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -1683,7 +2259,9 @@
             "description": "Search results",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/PodcastSearchResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/PodcastSearchResponse"
+                }
               }
             }
           },
@@ -1692,12 +2270,17 @@
             "headers": {
               "Retry-After": {
                 "description": "Number of seconds the client should wait before retrying.",
-                "schema": { "type": "integer", "minimum": 0 }
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
               }
             },
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -1705,7 +2288,9 @@
             "description": "Server error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -1717,14 +2302,19 @@
         "operationId": "getPodcast",
         "summary": "Get podcast detail with recent episodes",
         "description": "Returns podcast metadata, recent episodes, related comedians, and approved comedian appearances per episode.",
-        "tags": ["podcasts"],
+        "tags": [
+          "podcasts"
+        ],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
             "description": "Podcast numeric id",
-            "schema": { "type": "integer", "minimum": 1 }
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
           }
         ],
         "responses": {
@@ -1732,7 +2322,9 @@
             "description": "Podcast detail payload",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/PodcastDetailResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/PodcastDetailResponse"
+                }
               }
             }
           },
@@ -1740,7 +2332,9 @@
             "description": "Invalid podcast id",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -1748,7 +2342,9 @@
             "description": "Podcast not found",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -1756,7 +2352,9 @@
             "description": "Rate limit exceeded",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -1764,7 +2362,9 @@
             "description": "Server error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -1774,15 +2374,23 @@
     "/favorites": {
       "get": {
         "operationId": "getFavorites",
-        "summary": "List the signed-in user’s saved favorite comedians",
-        "tags": ["favorites"],
-        "security": [{ "bearerAuth": [] }],
+        "summary": "List the signed-in user\u2019s saved favorite comedians",
+        "tags": [
+          "favorites"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Favorite comedians",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/FavoriteListResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/FavoriteListResponse"
+                }
               }
             }
           },
@@ -1790,7 +2398,9 @@
             "description": "Not authenticated",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -1798,7 +2408,9 @@
             "description": "User profile not found (re-auth needed)",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -1806,7 +2418,9 @@
             "description": "Server error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -1815,15 +2429,23 @@
       "post": {
         "operationId": "addFavorite",
         "summary": "Favorite a comedian",
-        "tags": ["favorites"],
-        "security": [{ "bearerAuth": [] }],
+        "tags": [
+          "favorites"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["comedianId"],
+                "required": [
+                  "comedianId"
+                ],
                 "properties": {
                   "comedianId": {
                     "type": "string",
@@ -1839,7 +2461,9 @@
             "description": "Favorited successfully",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/FavoriteResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/FavoriteResponse"
+                }
               }
             }
           },
@@ -1847,7 +2471,9 @@
             "description": "Missing or invalid comedianId",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -1855,7 +2481,9 @@
             "description": "Not authenticated",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -1863,7 +2491,9 @@
             "description": "Comedian not found",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -1871,7 +2501,9 @@
             "description": "User profile not found (re-auth needed)",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -1879,7 +2511,9 @@
             "description": "Server error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -1890,15 +2524,23 @@
       "delete": {
         "operationId": "removeFavorite",
         "summary": "Unfavorite a comedian",
-        "tags": ["favorites"],
-        "security": [{ "bearerAuth": [] }],
+        "tags": [
+          "favorites"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "comedianId",
             "in": "path",
             "required": true,
             "description": "Comedian UUID",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -1906,7 +2548,9 @@
             "description": "Unfavorited successfully",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/FavoriteResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/FavoriteResponse"
+                }
               }
             }
           },
@@ -1914,7 +2558,9 @@
             "description": "Missing comedianId",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -1922,7 +2568,9 @@
             "description": "Not authenticated",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -1930,7 +2578,9 @@
             "description": "Favorite not found",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -1938,7 +2588,9 @@
             "description": "User profile not found (re-auth needed)",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -1946,7 +2598,9 @@
             "description": "Server error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -1956,15 +2610,23 @@
     "/favorite-podcasts": {
       "get": {
         "operationId": "getFavoritePodcasts",
-        "summary": "List the signed-in user’s saved favorite podcasts",
-        "tags": ["favorites"],
-        "security": [{ "bearerAuth": [] }],
+        "summary": "List the signed-in user\u2019s saved favorite podcasts",
+        "tags": [
+          "favorites"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Favorite podcasts",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/FavoritePodcastListResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/FavoritePodcastListResponse"
+                }
               }
             }
           },
@@ -1972,7 +2634,9 @@
             "description": "Not authenticated",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -1980,7 +2644,9 @@
             "description": "User profile not found (re-auth needed)",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -1988,7 +2654,9 @@
             "description": "Server error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -1997,15 +2665,23 @@
       "post": {
         "operationId": "addFavoritePodcast",
         "summary": "Favorite a podcast",
-        "tags": ["favorites"],
-        "security": [{ "bearerAuth": [] }],
+        "tags": [
+          "favorites"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["podcastId"],
+                "required": [
+                  "podcastId"
+                ],
                 "properties": {
                   "podcastId": {
                     "type": "integer",
@@ -2021,7 +2697,9 @@
             "description": "Favorited successfully",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/FavoriteResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/FavoriteResponse"
+                }
               }
             }
           },
@@ -2029,7 +2707,9 @@
             "description": "Missing or invalid podcastId",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -2037,7 +2717,9 @@
             "description": "Not authenticated",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -2045,7 +2727,9 @@
             "description": "Podcast not found",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -2053,7 +2737,9 @@
             "description": "User profile not found (re-auth needed)",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -2061,7 +2747,9 @@
             "description": "Server error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -2072,15 +2760,23 @@
       "delete": {
         "operationId": "removeFavoritePodcast",
         "summary": "Unfavorite a podcast",
-        "tags": ["favorites"],
-        "security": [{ "bearerAuth": [] }],
+        "tags": [
+          "favorites"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "podcastId",
             "in": "path",
             "required": true,
             "description": "Podcast numeric id",
-            "schema": { "type": "integer" }
+            "schema": {
+              "type": "integer"
+            }
           }
         ],
         "responses": {
@@ -2088,7 +2784,9 @@
             "description": "Unfavorited successfully",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/FavoriteResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/FavoriteResponse"
+                }
               }
             }
           },
@@ -2096,7 +2794,9 @@
             "description": "Missing podcastId",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -2104,7 +2804,9 @@
             "description": "Not authenticated",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -2112,7 +2814,9 @@
             "description": "Favorite not found",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -2120,7 +2824,9 @@
             "description": "User profile not found (re-auth needed)",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -2128,7 +2834,9 @@
             "description": "Server error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -2139,7 +2847,9 @@
       "get": {
         "operationId": "getFavoriteShows",
         "summary": "List upcoming shows featuring the signed-in user's saved favorite comedians",
-        "tags": ["favorites"],
+        "tags": [
+          "favorites"
+        ],
         "parameters": [
           {
             "name": "page",
@@ -2163,13 +2873,19 @@
             }
           }
         ],
-        "security": [{ "bearerAuth": [] }],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Favorite comedian shows",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/FavoriteShowListResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/FavoriteShowListResponse"
+                }
               }
             }
           },
@@ -2177,7 +2893,9 @@
             "description": "Not authenticated",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -2185,7 +2903,9 @@
             "description": "User profile not found (re-auth needed)",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -2202,7 +2922,9 @@
             },
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -2210,7 +2932,9 @@
             "description": "Server error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -2220,15 +2944,23 @@
     "/favorite-clubs": {
       "get": {
         "operationId": "getFavoriteClubs",
-        "summary": "List the signed-in user’s saved favorite clubs",
-        "tags": ["favorites"],
-        "security": [{ "bearerAuth": [] }],
+        "summary": "List the signed-in user\u2019s saved favorite clubs",
+        "tags": [
+          "favorites"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Favorite clubs",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/FavoriteClubListResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/FavoriteClubListResponse"
+                }
               }
             }
           },
@@ -2236,7 +2968,9 @@
             "description": "Not authenticated",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -2244,7 +2978,9 @@
             "description": "User profile not found (re-auth needed)",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -2252,7 +2988,9 @@
             "description": "Server error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -2261,15 +2999,23 @@
       "post": {
         "operationId": "addFavoriteClub",
         "summary": "Favorite a club",
-        "tags": ["favorites"],
-        "security": [{ "bearerAuth": [] }],
+        "tags": [
+          "favorites"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["clubId"],
+                "required": [
+                  "clubId"
+                ],
                 "properties": {
                   "clubId": {
                     "type": "integer",
@@ -2285,7 +3031,9 @@
             "description": "Favorited successfully",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/FavoriteResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/FavoriteResponse"
+                }
               }
             }
           },
@@ -2293,7 +3041,9 @@
             "description": "Missing or invalid clubId",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -2301,7 +3051,9 @@
             "description": "Not authenticated",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -2309,7 +3061,9 @@
             "description": "Club not found",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -2317,7 +3071,9 @@
             "description": "User profile not found (re-auth needed)",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -2325,7 +3081,9 @@
             "description": "Server error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -2336,23 +3094,33 @@
       "delete": {
         "operationId": "removeFavoriteClub",
         "summary": "Unfavorite a club",
-        "tags": ["favorites"],
-        "security": [{ "bearerAuth": [] }],
+        "tags": [
+          "favorites"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "clubId",
             "in": "path",
             "required": true,
             "description": "Club numeric id",
-            "schema": { "type": "integer" }
+            "schema": {
+              "type": "integer"
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "Unfavorited successfully (idempotent — succeeds whether or not the favorite existed)",
+            "description": "Unfavorited successfully (idempotent \u2014 succeeds whether or not the favorite existed)",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/FavoriteResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/FavoriteResponse"
+                }
               }
             }
           },
@@ -2360,7 +3128,9 @@
             "description": "Missing clubId",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -2368,7 +3138,9 @@
             "description": "Not authenticated",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -2376,7 +3148,9 @@
             "description": "User profile not found (re-auth needed)",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -2384,7 +3158,9 @@
             "description": "Server error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -2396,13 +3172,22 @@
         "operationId": "recordTicketClick",
         "summary": "Record an outbound ticket purchase click",
         "description": "Records first-party analytics for ticket CTA clicks. Authenticated requests are attributed to the caller profile; anonymous requests are attributed to an opaque visitor cookie.",
-        "tags": ["analytics"],
-        "security": [{ "bearerAuth": [] }, {}],
+        "tags": [
+          "analytics"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {}
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/TicketClickRequest" }
+              "schema": {
+                "$ref": "#/components/schemas/TicketClickRequest"
+              }
             }
           }
         },
@@ -2414,7 +3199,9 @@
             "description": "Invalid click payload",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -2422,7 +3209,9 @@
             "description": "Invalid Bearer token",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -2431,12 +3220,17 @@
             "headers": {
               "Retry-After": {
                 "description": "Number of seconds the client should wait before retrying.",
-                "schema": { "type": "integer", "minimum": 0 }
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
               }
             },
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -2444,7 +3238,9 @@
             "description": "Server error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -2456,14 +3252,19 @@
         "operationId": "lookupZip",
         "summary": "Resolve a US ZIP code to its city and state",
         "description": "Resolves a 5-digit US ZIP code to its city and state using the bundled `zipcodes` dataset. iOS clients call this to refine a manually entered ZIP into a city/state label without invoking CoreLocation.",
-        "tags": ["geo"],
+        "tags": [
+          "geo"
+        ],
         "parameters": [
           {
             "name": "zip",
             "in": "query",
             "required": true,
             "description": "5-digit US ZIP code",
-            "schema": { "type": "string", "pattern": "^\\d{5}$" }
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{5}$"
+            }
           }
         ],
         "responses": {
@@ -2471,7 +3272,9 @@
             "description": "ZIP resolved",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ZipLookupResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ZipLookupResponse"
+                }
               }
             }
           },
@@ -2479,7 +3282,9 @@
             "description": "Missing or malformed ZIP",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -2487,7 +3292,9 @@
             "description": "ZIP not found in the dataset",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -2496,12 +3303,17 @@
             "headers": {
               "Retry-After": {
                 "description": "Number of seconds the client should wait before retrying.",
-                "schema": { "type": "integer", "minimum": 0 }
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
               }
             },
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -2521,27 +3333,54 @@
     "schemas": {
       "ErrorResponse": {
         "type": "object",
-        "required": ["error"],
+        "required": [
+          "error"
+        ],
         "properties": {
-          "error": { "type": "string" }
+          "error": {
+            "type": "string"
+          }
         }
       },
       "TicketClickRequest": {
         "type": "object",
-        "required": ["showId", "clubId", "destinationUrl", "sourceSurface"],
+        "required": [
+          "showId",
+          "clubId",
+          "destinationUrl",
+          "sourceSurface"
+        ],
         "properties": {
-          "showId": { "type": "integer", "minimum": 1 },
-          "clubId": { "type": "integer", "minimum": 1 },
-          "destinationUrl": { "type": "string", "format": "uri" },
+          "showId": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "clubId": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "destinationUrl": {
+            "type": "string",
+            "format": "uri"
+          },
           "sourceSurface": {
             "type": "string",
-            "enum": ["show_detail", "show_card", "compact_show_card", "ios_show_detail"]
+            "enum": [
+              "show_detail",
+              "show_card",
+              "compact_show_card",
+              "ios_show_detail"
+            ]
           }
         }
       },
       "TokenResponse": {
         "type": "object",
-        "required": ["accessToken", "refreshToken", "expiresIn"],
+        "required": [
+          "accessToken",
+          "refreshToken",
+          "expiresIn"
+        ],
         "properties": {
           "accessToken": {
             "type": "string",
@@ -2560,7 +3399,9 @@
       },
       "RefreshTokenRequest": {
         "type": "object",
-        "required": ["refreshToken"],
+        "required": [
+          "refreshToken"
+        ],
         "properties": {
           "refreshToken": {
             "type": "string",
@@ -2570,7 +3411,9 @@
       },
       "SignoutResponse": {
         "type": "object",
-        "required": ["revoked"],
+        "required": [
+          "revoked"
+        ],
         "properties": {
           "revoked": {
             "type": "integer",
@@ -2580,27 +3423,39 @@
       },
       "AccountDeletionResponse": {
         "type": "object",
-        "required": ["data"],
+        "required": [
+          "data"
+        ],
         "properties": {
           "data": {
             "type": "object",
-            "required": ["deleted"],
+            "required": [
+              "deleted"
+            ],
             "properties": {
-              "deleted": { "type": "boolean" }
+              "deleted": {
+                "type": "boolean"
+              }
             }
           }
         }
       },
       "MeResponse": {
         "type": "object",
-        "required": ["data"],
+        "required": [
+          "data"
+        ],
         "properties": {
-          "data": { "$ref": "#/components/schemas/MeData" }
+          "data": {
+            "$ref": "#/components/schemas/MeData"
+          }
         }
       },
       "MeUpdateRequest": {
         "type": "object",
-        "required": ["comedianOnboardingCompleted"],
+        "required": [
+          "comedianOnboardingCompleted"
+        ],
         "properties": {
           "comedianOnboardingCompleted": {
             "type": "boolean",
@@ -2610,11 +3465,15 @@
       },
       "MeUpdateResponse": {
         "type": "object",
-        "required": ["data"],
+        "required": [
+          "data"
+        ],
         "properties": {
           "data": {
             "type": "object",
-            "required": ["comedianOnboardingCompleted"],
+            "required": [
+              "comedianOnboardingCompleted"
+            ],
             "properties": {
               "comedianOnboardingCompleted": {
                 "type": "boolean",
@@ -2626,11 +3485,20 @@
       },
       "MeData": {
         "type": "object",
-        "required": ["userId", "email", "isAdmin", "emailShowNotifications", "pushShowNotifications", "comedianOnboardingCompleted", "zipCode", "nearbyDistanceMiles"],
+        "required": [
+          "userId",
+          "email",
+          "isAdmin",
+          "emailShowNotifications",
+          "pushShowNotifications",
+          "comedianOnboardingCompleted",
+          "zipCode",
+          "nearbyDistanceMiles"
+        ],
         "properties": {
           "userId": {
             "type": "string",
-            "description": "Opaque server-issued user identifier (User.id, a CUID). Stable across email/displayName changes — iOS clients pass this to analytics setUserID verbatim. Required: every /v1/me response carries it (TASK-2612 rollout complete)."
+            "description": "Opaque server-issued user identifier (User.id, a CUID). Stable across email/displayName changes \u2014 iOS clients pass this to analytics setUserID verbatim. Required: every /v1/me response carries it (TASK-2612 rollout complete)."
           },
           "displayName": {
             "type": "string",
@@ -2663,11 +3531,17 @@
             "description": "Whether comedian onboarding has been completed or skipped."
           },
           "zipCode": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Saved profile ZIP code used for Near Me."
           },
           "nearbyDistanceMiles": {
-            "type": ["integer", "null"],
+            "type": [
+              "integer",
+              "null"
+            ],
             "description": "Saved profile distance in miles used for Near Me."
           },
           "notificationsUnreadCount": {
@@ -2678,22 +3552,33 @@
       },
       "NotificationListResponse": {
         "type": "object",
-        "required": ["data"],
+        "required": [
+          "data"
+        ],
         "properties": {
           "data": {
             "type": "object",
-            "required": ["items", "unreadCount", "lastSeenAt"],
+            "required": [
+              "items",
+              "unreadCount",
+              "lastSeenAt"
+            ],
             "properties": {
               "items": {
                 "type": "array",
-                "items": { "$ref": "#/components/schemas/NotificationItem" }
+                "items": {
+                  "$ref": "#/components/schemas/NotificationItem"
+                }
               },
               "unreadCount": {
                 "type": "integer",
                 "description": "Number of unread items in this feed (items with isUnread true)."
               },
               "lastSeenAt": {
-                "type": ["string", "null"],
+                "type": [
+                  "string",
+                  "null"
+                ],
                 "description": "ISO-8601 timestamp the user last opened the notification center; null if never opened."
               }
             }
@@ -2702,66 +3587,161 @@
       },
       "NotificationShow": {
         "type": "object",
-        "required": ["showId", "subtitle"],
+        "required": [
+          "showId",
+          "subtitle"
+        ],
         "properties": {
-          "showId": { "type": "integer", "description": "Show id; a single-show entry deep-links here on tap." },
-          "subtitle": { "type": "string", "description": "Per-show line, e.g. \"The Comedy Store on Tuesday, June 30 at 7:00 pm PDT\"." },
-          "showPageUrl": { "type": "string", "nullable": true, "description": "Canonical show page URL." },
-          "showDate": { "type": "string", "nullable": true, "description": "ISO-8601 show date; null if the show row was purged." },
-          "clubName": { "type": "string", "nullable": true, "description": "Venue name." },
-          "city": { "type": "string", "nullable": true, "description": "Venue city." },
-          "state": { "type": "string", "nullable": true, "description": "Venue state." }
+          "showId": {
+            "type": "integer",
+            "description": "Show id; a single-show entry deep-links here on tap."
+          },
+          "subtitle": {
+            "type": "string",
+            "description": "Per-show line, e.g. \"The Comedy Store on Tuesday, June 30 at 7:00 pm PDT\"."
+          },
+          "showPageUrl": {
+            "type": "string",
+            "nullable": true,
+            "description": "Canonical show page URL."
+          },
+          "showDate": {
+            "type": "string",
+            "nullable": true,
+            "description": "ISO-8601 show date; null if the show row was purged."
+          },
+          "clubName": {
+            "type": "string",
+            "nullable": true,
+            "description": "Venue name."
+          },
+          "city": {
+            "type": "string",
+            "nullable": true,
+            "description": "Venue city."
+          },
+          "state": {
+            "type": "string",
+            "nullable": true,
+            "description": "Venue state."
+          }
         }
       },
       "NotificationComedian": {
         "type": "object",
-        "required": ["comedianId", "comedianName", "comedianImageUrl"],
+        "required": [
+          "comedianId",
+          "comedianName",
+          "comedianImageUrl"
+        ],
         "properties": {
-          "comedianId": { "type": "string", "description": "Comedian UUID." },
-          "comedianName": { "type": "string", "description": "Comedian display name." },
-          "comedianImageUrl": { "type": "string", "description": "Avatar image URL, or an empty string when unavailable." }
+          "comedianId": {
+            "type": "string",
+            "description": "Comedian UUID."
+          },
+          "comedianName": {
+            "type": "string",
+            "description": "Comedian display name."
+          },
+          "comedianImageUrl": {
+            "type": "string",
+            "description": "Avatar image URL, or an empty string when unavailable."
+          }
         }
       },
       "NotificationItem": {
         "type": "object",
-        "required": ["id", "title", "body", "comedianName", "comedianImageUrl", "comedians", "shows", "channels", "sentAt", "isUnread"],
+        "required": [
+          "id",
+          "title",
+          "body",
+          "comedianName",
+          "comedianImageUrl",
+          "comedians",
+          "shows",
+          "channels",
+          "sentAt",
+          "isUnread"
+        ],
         "properties": {
-          "id": { "type": "string", "description": "Stable entry id: the notification group id, or \"legacy:{comedianId}:{showId}\" for pre-grouping rows." },
-          "title": { "type": "string", "description": "Reconstructed headline mirroring the push, e.g. \"Taylor Tomlinson has 2 shows near you\"." },
-          "body": { "type": "string", "description": "Single-show subtitle; empty string for a grouped entry (render `shows` instead)." },
-          "comedianId": { "type": "string", "nullable": true, "description": "Primary (soonest-show) comedian UUID; null when unknown." },
-          "comedianName": { "type": "string", "description": "Primary comedian display name for the row." },
-          "comedianImageUrl": { "type": "string", "description": "Primary comedian avatar URL for the row, or an empty string." },
+          "id": {
+            "type": "string",
+            "description": "Stable entry id: the notification group id, or \"legacy:{comedianId}:{showId}\" for pre-grouping rows."
+          },
+          "title": {
+            "type": "string",
+            "description": "Reconstructed headline mirroring the push, e.g. \"Taylor Tomlinson has 2 shows near you\"."
+          },
+          "body": {
+            "type": "string",
+            "description": "Single-show subtitle; empty string for a grouped entry (render `shows` instead)."
+          },
+          "comedianId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Primary (soonest-show) comedian UUID; null when unknown."
+          },
+          "comedianName": {
+            "type": "string",
+            "description": "Primary comedian display name for the row."
+          },
+          "comedianImageUrl": {
+            "type": "string",
+            "description": "Primary comedian avatar URL for the row, or an empty string."
+          },
           "comedians": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/NotificationComedian" },
+            "items": {
+              "$ref": "#/components/schemas/NotificationComedian"
+            },
             "description": "Distinct comedians in the entry, soonest-show first."
           },
           "shows": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/NotificationShow" },
+            "items": {
+              "$ref": "#/components/schemas/NotificationShow"
+            },
             "description": "Shows in the entry, soonest first. A single-show entry has exactly one."
           },
-          "route": { "type": "string", "nullable": true, "description": "\"favorites\" for a grouped entry (tap opens the Favorites tab); null for a single-show entry (tap opens shows[0])." },
+          "route": {
+            "type": "string",
+            "nullable": true,
+            "description": "\"favorites\" for a grouped entry (tap opens the Favorites tab); null for a single-show entry (tap opens shows[0])."
+          },
           "channels": {
             "type": "array",
-            "items": { "type": "string" },
+            "items": {
+              "type": "string"
+            },
             "description": "Delivery channels that fired for this entry, e.g. [\"push\", \"email\"]."
           },
-          "sentAt": { "type": "string", "description": "ISO-8601 timestamp of the most recent delivery in the entry." },
-          "isUnread": { "type": "boolean", "description": "Whether this entry's latest send is newer than the last-seen mark." }
+          "sentAt": {
+            "type": "string",
+            "description": "ISO-8601 timestamp of the most recent delivery in the entry."
+          },
+          "isUnread": {
+            "type": "boolean",
+            "description": "Whether this entry's latest send is newer than the last-seen mark."
+          }
         }
       },
       "NotificationsSeenResponse": {
         "type": "object",
-        "required": ["data"],
+        "required": [
+          "data"
+        ],
         "properties": {
           "data": {
             "type": "object",
-            "required": ["lastSeenAt"],
+            "required": [
+              "lastSeenAt"
+            ],
             "properties": {
               "lastSeenAt": {
-                "type": ["string", "null"],
+                "type": [
+                  "string",
+                  "null"
+                ],
                 "description": "The newly-stamped last-seen timestamp (ISO-8601)."
               }
             }
@@ -2770,253 +3750,631 @@
       },
       "FavoriteResponse": {
         "type": "object",
-        "required": ["data"],
+        "required": [
+          "data"
+        ],
         "properties": {
           "data": {
             "type": "object",
-            "required": ["isFavorited"],
+            "required": [
+              "isFavorited"
+            ],
             "properties": {
-              "isFavorited": { "type": "boolean" }
+              "isFavorited": {
+                "type": "boolean"
+              }
             }
           }
         }
       },
       "FavoriteListResponse": {
         "type": "object",
-        "required": ["data"],
+        "required": [
+          "data"
+        ],
         "properties": {
           "data": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/ComedianSearchItem" }
+            "items": {
+              "$ref": "#/components/schemas/ComedianSearchItem"
+            }
           }
         }
       },
       "FavoriteClubItem": {
         "type": "object",
-        "required": ["id", "name", "imageUrl", "isFavorite"],
+        "required": [
+          "id",
+          "name",
+          "imageUrl",
+          "isFavorite"
+        ],
         "properties": {
-          "id": { "type": "integer" },
-          "name": { "type": "string" },
-          "imageUrl": { "type": "string" },
-          "isFavorite": { "type": "boolean" }
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "isFavorite": {
+            "type": "boolean"
+          }
         }
       },
       "FavoriteClubListResponse": {
         "type": "object",
-        "required": ["data"],
+        "required": [
+          "data"
+        ],
         "properties": {
           "data": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/FavoriteClubItem" }
+            "items": {
+              "$ref": "#/components/schemas/FavoriteClubItem"
+            }
           }
         }
       },
       "FavoritePodcastItem": {
         "type": "object",
-        "required": ["id", "title", "episodeCount", "isFavorite"],
+        "required": [
+          "id",
+          "title",
+          "episodeCount",
+          "isFavorite"
+        ],
         "properties": {
-          "id": { "type": "integer" },
-          "title": { "type": "string" },
-          "authorName": { "type": ["string", "null"] },
-          "websiteUrl": { "type": ["string", "null"] },
-          "feedUrl": { "type": ["string", "null"] },
-          "imageUrl": { "type": ["string", "null"] },
-          "description": { "type": ["string", "null"] },
-          "episodeCount": { "type": "integer" },
-          "isFavorite": { "type": "boolean" }
+          "id": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          },
+          "authorName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "websiteUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "feedUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "imageUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "episodeCount": {
+            "type": "integer"
+          },
+          "isFavorite": {
+            "type": "boolean"
+          }
         }
       },
       "FavoritePodcastListResponse": {
         "type": "object",
-        "required": ["data"],
+        "required": [
+          "data"
+        ],
         "properties": {
           "data": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/FavoritePodcastItem" }
+            "items": {
+              "$ref": "#/components/schemas/FavoritePodcastItem"
+            }
           }
         }
       },
       "PodcastDetailPodcast": {
         "type": "object",
-        "required": ["id", "slug", "title", "episodeCount", "hosts"],
+        "required": [
+          "id",
+          "slug",
+          "title",
+          "episodeCount",
+          "hosts"
+        ],
         "properties": {
-          "id": { "type": "integer" },
-          "slug": { "type": "string" },
-          "title": { "type": "string" },
-          "authorName": { "type": ["string", "null"] },
-          "websiteUrl": { "type": ["string", "null"] },
-          "feedUrl": { "type": ["string", "null"] },
-          "imageUrl": { "type": ["string", "null"] },
-          "description": { "type": ["string", "null"] },
-          "episodeCount": { "type": "integer" },
+          "id": {
+            "type": "integer"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "authorName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "websiteUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "feedUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "imageUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "episodeCount": {
+            "type": "integer"
+          },
           "hosts": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/PodcastDetailHost" }
+            "items": {
+              "$ref": "#/components/schemas/PodcastDetailHost"
+            }
           },
-          "isFavorite": { "type": "boolean" }
+          "isFavorite": {
+            "type": "boolean"
+          }
         }
       },
       "PodcastSearchItem": {
         "type": "object",
-        "required": ["id", "slug", "title", "episodeCount", "hosts"],
+        "required": [
+          "id",
+          "slug",
+          "title",
+          "episodeCount",
+          "hosts"
+        ],
         "properties": {
-          "id": { "type": "integer" },
-          "slug": { "type": "string" },
-          "title": { "type": "string" },
-          "authorName": { "type": ["string", "null"] },
-          "websiteUrl": { "type": ["string", "null"] },
-          "feedUrl": { "type": ["string", "null"] },
-          "imageUrl": { "type": ["string", "null"] },
-          "description": { "type": ["string", "null"] },
-          "episodeCount": { "type": "integer" },
+          "id": {
+            "type": "integer"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "authorName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "websiteUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "feedUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "imageUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "episodeCount": {
+            "type": "integer"
+          },
           "hosts": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/PodcastDetailHost" }
+            "items": {
+              "$ref": "#/components/schemas/PodcastDetailHost"
+            }
           },
-          "isFavorite": { "type": "boolean" }
+          "isFavorite": {
+            "type": "boolean"
+          }
         }
       },
       "PodcastSearchResponse": {
         "type": "object",
-        "required": ["data", "total", "filters"],
+        "required": [
+          "data",
+          "total",
+          "filters"
+        ],
         "properties": {
           "data": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/PodcastSearchItem" }
+            "items": {
+              "$ref": "#/components/schemas/PodcastSearchItem"
+            }
           },
-          "total": { "type": "integer" },
+          "total": {
+            "type": "integer"
+          },
           "filters": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Filter" }
+            "items": {
+              "$ref": "#/components/schemas/Filter"
+            }
           }
         }
       },
       "PodcastDetailHost": {
         "type": "object",
-        "required": ["id", "uuid", "name", "imageUrl"],
+        "required": [
+          "id",
+          "uuid",
+          "name",
+          "imageUrl"
+        ],
         "properties": {
-          "id": { "type": "integer" },
-          "uuid": { "type": "string" },
-          "name": { "type": "string" },
-          "imageUrl": { "type": "string" }
+          "id": {
+            "type": "integer"
+          },
+          "uuid": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string"
+          }
         }
       },
       "PodcastDetailEpisodeAppearance": {
         "type": "object",
-        "required": ["id", "uuid", "name", "imageUrl"],
+        "required": [
+          "id",
+          "uuid",
+          "name",
+          "imageUrl"
+        ],
         "properties": {
-          "id": { "type": "integer" },
-          "uuid": { "type": "string" },
-          "name": { "type": "string" },
-          "imageUrl": { "type": "string" }
+          "id": {
+            "type": "integer"
+          },
+          "uuid": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string"
+          }
         }
       },
       "PodcastDetailEpisode": {
         "type": "object",
-        "required": ["id", "title", "description", "releaseDate", "durationSeconds", "episodeUrl", "audioUrl", "appearances"],
+        "required": [
+          "id",
+          "title",
+          "description",
+          "releaseDate",
+          "durationSeconds",
+          "episodeUrl",
+          "audioUrl",
+          "appearances"
+        ],
         "properties": {
-          "id": { "type": "integer" },
-          "title": { "type": "string" },
-          "description": { "type": ["string", "null"] },
-          "releaseDate": { "type": ["string", "null"] },
-          "durationSeconds": { "type": ["integer", "null"] },
-          "episodeUrl": { "type": ["string", "null"] },
-          "audioUrl": { "type": ["string", "null"] },
+          "id": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "releaseDate": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "durationSeconds": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "episodeUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "audioUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "appearances": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/PodcastDetailEpisodeAppearance" }
+            "items": {
+              "$ref": "#/components/schemas/PodcastDetailEpisodeAppearance"
+            }
           }
         }
       },
       "PodcastDetailResponse": {
         "type": "object",
-        "required": ["podcast", "episodes", "relatedComedians"],
+        "required": [
+          "podcast",
+          "episodes",
+          "relatedComedians"
+        ],
         "properties": {
-          "podcast": { "$ref": "#/components/schemas/PodcastDetailPodcast" },
+          "podcast": {
+            "$ref": "#/components/schemas/PodcastDetailPodcast"
+          },
           "episodes": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/PodcastDetailEpisode" }
+            "items": {
+              "$ref": "#/components/schemas/PodcastDetailEpisode"
+            }
           },
           "relatedComedians": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/ComedianSearchItem" }
+            "items": {
+              "$ref": "#/components/schemas/ComedianSearchItem"
+            }
           }
         }
       },
       "FavoriteShowListResponse": {
         "type": "object",
-        "required": ["data", "total", "page", "size", "totalPages"],
+        "required": [
+          "data",
+          "total",
+          "page",
+          "size",
+          "totalPages"
+        ],
         "properties": {
           "data": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Show" }
+            "items": {
+              "$ref": "#/components/schemas/Show"
+            }
           },
-          "total": { "type": "integer" },
-          "page": { "type": "integer" },
-          "size": { "type": "integer" },
-          "totalPages": { "type": "integer" }
+          "total": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "size": {
+            "type": "integer"
+          },
+          "totalPages": {
+            "type": "integer"
+          }
         }
       },
       "SocialData": {
         "type": "object",
-        "required": ["id"],
+        "required": [
+          "id"
+        ],
         "properties": {
-          "id": { "type": "integer" },
-          "instagramAccount": { "type": ["string", "null"] },
-          "instagramFollowers": { "type": ["integer", "null"] },
-          "tiktokAccount": { "type": ["string", "null"] },
-          "tiktokFollowers": { "type": ["integer", "null"] },
-          "youtubeAccount": { "type": ["string", "null"] },
-          "youtubeFollowers": { "type": ["integer", "null"] },
-          "website": { "type": ["string", "null"] },
-          "popularity": { "type": ["number", "null"] },
-          "linktree": { "type": ["string", "null"] }
+          "id": {
+            "type": "integer"
+          },
+          "instagramAccount": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "instagramFollowers": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "tiktokAccount": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tiktokFollowers": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "youtubeAccount": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "youtubeFollowers": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "website": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "popularity": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "linktree": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       },
       "Filter": {
         "type": "object",
-        "required": ["id", "slug", "name"],
+        "required": [
+          "id",
+          "slug",
+          "name"
+        ],
         "properties": {
-          "id": { "type": "integer" },
-          "slug": { "type": "string" },
-          "name": { "type": "string" },
-          "selected": { "type": "boolean" }
+          "id": {
+            "type": "integer"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "selected": {
+            "type": "boolean"
+          }
         }
       },
       "HomeCityFilter": {
         "type": "object",
         "description": "A selectable comedian home-city option. 'value' is the 'city|state' token to pass back as the homeCity query param; 'label' is the human-readable city; 'count' is the number of matching comedians.",
-        "required": ["value", "label", "count"],
+        "required": [
+          "value",
+          "label",
+          "count"
+        ],
         "properties": {
-          "value": { "type": "string" },
-          "label": { "type": "string" },
-          "count": { "type": "integer" }
+          "value": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer"
+          }
         }
       },
       "Ticket": {
         "type": "object",
         "properties": {
-          "price": { "type": ["number", "null"] },
-          "purchaseUrl": { "type": ["string", "null"] },
-          "soldOut": { "type": ["boolean", "null"] },
-          "type": { "type": ["string", "null"] }
+          "price": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "purchaseUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "soldOut": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       },
       "ComedianLineup": {
         "type": "object",
-        "required": ["name", "imageUrl", "uuid", "id"],
+        "required": [
+          "name",
+          "imageUrl",
+          "uuid",
+          "id"
+        ],
         "properties": {
-          "name": { "type": "string" },
-          "imageUrl": { "type": "string" },
-          "uuid": { "type": "string" },
-          "id": { "type": "integer" },
-          "userId": { "type": "integer" },
-          "socialData": { "$ref": "#/components/schemas/SocialData" },
-          "isFavorite": { "type": "boolean" },
-          "showCount": { "type": "integer" },
-          "role": { "type": ["string", "null"] },
-          "isAlias": { "type": "boolean" },
-          "parentComedian": { "$ref": "#/components/schemas/ComedianLineup" },
+          "name": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "uuid": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "userId": {
+            "type": "integer"
+          },
+          "socialData": {
+            "$ref": "#/components/schemas/SocialData"
+          },
+          "isFavorite": {
+            "type": "boolean"
+          },
+          "showCount": {
+            "type": "integer"
+          },
+          "role": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "isAlias": {
+            "type": "boolean"
+          },
+          "parentComedian": {
+            "$ref": "#/components/schemas/ComedianLineup"
+          },
           "lineupItems": {
             "type": "array",
             "items": {}
@@ -3025,318 +4383,781 @@
       },
       "Tag": {
         "type": "object",
-        "required": ["slug", "name"],
+        "required": [
+          "slug",
+          "name"
+        ],
         "properties": {
-          "slug": { "type": "string" },
-          "name": { "type": "string" }
+          "slug": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
         }
       },
       "Show": {
         "type": "object",
-        "required": ["id", "clubId", "date", "imageUrl"],
+        "required": [
+          "id",
+          "clubId",
+          "date",
+          "imageUrl"
+        ],
         "properties": {
-          "id": { "type": "integer" },
-          "clubId": { "type": "integer" },
-          "clubName": { "type": "string" },
-          "clubCity": { "type": ["string", "null"] },
-          "clubState": { "type": ["string", "null"] },
-          "date": { "type": "string", "format": "date-time" },
+          "id": {
+            "type": "integer"
+          },
+          "clubId": {
+            "type": "integer"
+          },
+          "clubName": {
+            "type": "string"
+          },
+          "clubCity": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "clubState": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "date": {
+            "type": "string",
+            "format": "date-time"
+          },
           "tickets": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Ticket" }
+            "items": {
+              "$ref": "#/components/schemas/Ticket"
+            }
           },
-          "name": { "type": ["string", "null"] },
-          "popularityScore": { "type": ["number", "null"] },
-          "socialData": { "$ref": "#/components/schemas/SocialData" },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "popularityScore": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "socialData": {
+            "$ref": "#/components/schemas/SocialData"
+          },
           "lineup": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/ComedianLineup" }
+            "items": {
+              "$ref": "#/components/schemas/ComedianLineup"
+            }
           },
           "tags": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Tag" }
+            "items": {
+              "$ref": "#/components/schemas/Tag"
+            }
           },
-          "description": { "type": "string" },
-          "address": { "type": "string" },
-          "room": { "type": ["string", "null"] },
-          "imageUrl": { "type": "string" },
-          "soldOut": { "type": "boolean" },
-          "distanceMiles": { "type": ["number", "null"] },
-          "timezone": { "type": ["string", "null"] }
+          "description": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "room": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "soldOut": {
+            "type": "boolean"
+          },
+          "distanceMiles": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "timezone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       },
       "ShowListResponse": {
         "type": "object",
-        "required": ["total", "data", "filters"],
+        "required": [
+          "total",
+          "data",
+          "filters"
+        ],
         "properties": {
-          "total": { "type": "integer" },
+          "total": {
+            "type": "integer"
+          },
           "data": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Show" }
+            "items": {
+              "$ref": "#/components/schemas/Show"
+            }
           },
           "filters": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Filter" }
+            "items": {
+              "$ref": "#/components/schemas/Filter"
+            }
           }
         }
       },
       "ShowDensityResponse": {
         "type": "object",
         "description": "Map of ISO date strings (YYYY-MM-DD) to per-day show counts. Days with no shows are omitted.",
-        "additionalProperties": { "type": "integer", "minimum": 0 }
+        "additionalProperties": {
+          "type": "integer",
+          "minimum": 0
+        }
       },
       "ShowSearchResponse": {
         "type": "object",
-        "required": ["data", "total", "filters", "zipCapTriggered"],
+        "required": [
+          "data",
+          "total",
+          "filters",
+          "zipCapTriggered"
+        ],
         "properties": {
           "data": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Show" }
+            "items": {
+              "$ref": "#/components/schemas/Show"
+            }
           },
-          "total": { "type": "integer" },
+          "total": {
+            "type": "integer"
+          },
           "filters": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Filter" }
+            "items": {
+              "$ref": "#/components/schemas/Filter"
+            }
           },
-          "zipCapTriggered": { "type": "boolean" }
+          "zipCapTriggered": {
+            "type": "boolean"
+          }
         }
       },
       "UpcomingRun": {
         "type": "object",
-        "required": ["clubId", "clubName", "clubImageUrl", "shows"],
+        "required": [
+          "clubId",
+          "clubName",
+          "clubImageUrl",
+          "shows"
+        ],
         "properties": {
-          "clubId": { "type": "integer" },
-          "clubName": { "type": "string" },
-          "clubImageUrl": { "type": "string" },
+          "clubId": {
+            "type": "integer"
+          },
+          "clubName": {
+            "type": "string"
+          },
+          "clubImageUrl": {
+            "type": "string"
+          },
           "shows": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Show" }
+            "items": {
+              "$ref": "#/components/schemas/Show"
+            }
           }
         }
       },
       "UpcomingRunResponse": {
         "type": "object",
-        "required": ["data"],
+        "required": [
+          "data"
+        ],
         "properties": {
           "data": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/UpcomingRun" }
+            "items": {
+              "$ref": "#/components/schemas/UpcomingRun"
+            }
           }
         }
       },
       "ShowDetailClub": {
         "type": "object",
-        "required": ["id", "name", "imageUrl"],
+        "required": [
+          "id",
+          "name",
+          "imageUrl"
+        ],
         "properties": {
-          "id": { "type": "integer" },
-          "name": { "type": "string" },
-          "address": { "type": ["string", "null"] },
-          "imageUrl": { "type": "string" },
-          "timezone": { "type": ["string", "null"] }
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "timezone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       },
       "ShowDetailCta": {
         "type": "object",
-        "required": ["label", "isSoldOut"],
+        "required": [
+          "label",
+          "isSoldOut"
+        ],
         "properties": {
-          "url": { "type": ["string", "null"] },
-          "label": { "type": "string" },
-          "isSoldOut": { "type": "boolean" }
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "label": {
+            "type": "string"
+          },
+          "isSoldOut": {
+            "type": "boolean"
+          }
         }
       },
       "ShowDetail": {
         "type": "object",
-        "required": ["id", "date", "imageUrl", "showPageUrl", "club", "cta"],
+        "required": [
+          "id",
+          "date",
+          "imageUrl",
+          "showPageUrl",
+          "club",
+          "cta"
+        ],
         "properties": {
-          "id": { "type": "integer" },
-          "clubName": { "type": "string" },
-          "date": { "type": "string", "format": "date-time" },
+          "id": {
+            "type": "integer"
+          },
+          "clubName": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date-time"
+          },
           "tickets": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Ticket" }
+            "items": {
+              "$ref": "#/components/schemas/Ticket"
+            }
           },
-          "name": { "type": ["string", "null"] },
-          "socialData": { "$ref": "#/components/schemas/SocialData" },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "socialData": {
+            "$ref": "#/components/schemas/SocialData"
+          },
           "lineup": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/ComedianLineup" }
+            "items": {
+              "$ref": "#/components/schemas/ComedianLineup"
+            }
           },
           "tags": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Tag" }
+            "items": {
+              "$ref": "#/components/schemas/Tag"
+            }
           },
-          "description": { "type": "string" },
-          "address": { "type": "string" },
-          "room": { "type": ["string", "null"] },
-          "imageUrl": { "type": "string" },
-          "soldOut": { "type": "boolean" },
-          "distanceMiles": { "type": ["number", "null"] },
-          "timezone": { "type": ["string", "null"] },
-          "showPageUrl": { "type": "string" },
-          "club": { "$ref": "#/components/schemas/ShowDetailClub" },
-          "cta": { "$ref": "#/components/schemas/ShowDetailCta" }
+          "description": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "room": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "soldOut": {
+            "type": "boolean"
+          },
+          "distanceMiles": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "timezone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "showPageUrl": {
+            "type": "string"
+          },
+          "club": {
+            "$ref": "#/components/schemas/ShowDetailClub"
+          },
+          "cta": {
+            "$ref": "#/components/schemas/ShowDetailCta"
+          }
         }
       },
       "ShowDetailResponse": {
         "type": "object",
-        "required": ["data", "relatedShows"],
+        "required": [
+          "data",
+          "relatedShows"
+        ],
         "properties": {
-          "data": { "$ref": "#/components/schemas/ShowDetail" },
+          "data": {
+            "$ref": "#/components/schemas/ShowDetail"
+          },
           "relatedShows": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Show" }
+            "items": {
+              "$ref": "#/components/schemas/Show"
+            }
           }
         }
       },
       "ClubListItem": {
         "type": "object",
-        "required": ["id", "address", "name", "imageUrl", "activeComedianCount"],
+        "required": [
+          "id",
+          "address",
+          "name",
+          "imageUrl",
+          "activeComedianCount"
+        ],
         "properties": {
-          "id": { "type": "integer" },
-          "address": { "type": "string" },
-          "name": { "type": "string" },
-          "zipCode": { "type": ["string", "null"] },
-          "imageUrl": { "type": "string" },
-          "activeComedianCount": { "type": "integer" }
+          "id": {
+            "type": "integer"
+          },
+          "address": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "zipCode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "activeComedianCount": {
+            "type": "integer"
+          }
         }
       },
       "ClubDetail": {
         "type": "object",
-        "required": ["id", "name", "imageUrl", "heroImageUrl", "website", "address"],
+        "required": [
+          "id",
+          "name",
+          "imageUrl",
+          "heroImageUrl",
+          "website",
+          "address"
+        ],
         "properties": {
-          "id": { "type": "integer" },
-          "name": { "type": "string" },
-          "imageUrl": { "type": "string" },
-          "heroImageUrl": { "type": "string" },
-          "website": { "type": "string" },
-          "address": { "type": "string" },
-          "zipCode": { "type": ["string", "null"] },
-          "phoneNumber": { "type": ["string", "null"] },
-          "latitude": { "type": ["number", "null"] },
-          "longitude": { "type": ["number", "null"] },
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "heroImageUrl": {
+            "type": "string"
+          },
+          "website": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "zipCode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "phoneNumber": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "latitude": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "longitude": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
           "relatedVenues": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/ClubRelatedVenue" }
+            "items": {
+              "$ref": "#/components/schemas/ClubRelatedVenue"
+            }
           }
         }
       },
       "ClubRelatedVenue": {
         "type": "object",
-        "required": ["id", "name", "imageUrl"],
+        "required": [
+          "id",
+          "name",
+          "imageUrl"
+        ],
         "properties": {
-          "id": { "type": "integer" },
-          "name": { "type": "string" },
-          "city": { "type": ["string", "null"] },
-          "state": { "type": ["string", "null"] },
-          "imageUrl": { "type": "string" }
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "city": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "state": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "imageUrl": {
+            "type": "string"
+          }
         }
       },
       "ClubShowsResponse": {
         "type": "object",
-        "required": ["data", "total"],
+        "required": [
+          "data",
+          "total"
+        ],
         "properties": {
           "data": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Show" }
+            "items": {
+              "$ref": "#/components/schemas/Show"
+            }
           },
-          "total": { "type": "integer" }
+          "total": {
+            "type": "integer"
+          }
         }
       },
       "ClubSearchItem": {
         "type": "object",
-        "required": ["imageUrl"],
+        "required": [
+          "imageUrl"
+        ],
         "properties": {
-          "id": { "type": "integer" },
-          "address": { "type": "string" },
-          "name": { "type": "string" },
-          "zipCode": { "type": ["string", "null"] },
-          "imageUrl": { "type": "string" },
-          "showCount": { "type": "integer" },
-          "isFavorite": { "type": "boolean" },
-          "city": { "type": ["string", "null"] },
-          "state": { "type": ["string", "null"] },
-          "phoneNumber": { "type": ["string", "null"] },
-          "socialData": { "$ref": "#/components/schemas/SocialData" },
-          "activeComedianCount": { "type": "integer" },
-          "distanceMiles": { "type": ["number", "null"] }
+          "id": {
+            "type": "integer"
+          },
+          "address": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "zipCode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "showCount": {
+            "type": "integer"
+          },
+          "isFavorite": {
+            "type": "boolean"
+          },
+          "city": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "state": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "phoneNumber": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "socialData": {
+            "$ref": "#/components/schemas/SocialData"
+          },
+          "activeComedianCount": {
+            "type": "integer"
+          },
+          "distanceMiles": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
         }
       },
       "ClubSearchResponse": {
         "type": "object",
-        "required": ["data", "total", "filters"],
+        "required": [
+          "data",
+          "total",
+          "filters"
+        ],
         "properties": {
           "data": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/ClubSearchItem" }
+            "items": {
+              "$ref": "#/components/schemas/ClubSearchItem"
+            }
           },
-          "total": { "type": "integer" },
+          "total": {
+            "type": "integer"
+          },
           "filters": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Filter" }
+            "items": {
+              "$ref": "#/components/schemas/Filter"
+            }
           }
         }
       },
       "ComedianListItem": {
         "type": "object",
-        "required": ["id", "uuid", "name", "imageUrl", "socialData", "showCount"],
+        "required": [
+          "id",
+          "uuid",
+          "name",
+          "imageUrl",
+          "socialData",
+          "showCount"
+        ],
         "properties": {
-          "id": { "type": "integer" },
-          "uuid": { "type": "string" },
-          "name": { "type": "string" },
-          "imageUrl": { "type": "string" },
-          "socialData": { "$ref": "#/components/schemas/SocialData" },
-          "showCount": { "type": "integer" }
+          "id": {
+            "type": "integer"
+          },
+          "uuid": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "socialData": {
+            "$ref": "#/components/schemas/SocialData"
+          },
+          "showCount": {
+            "type": "integer"
+          }
         }
       },
       "ComedianDetail": {
         "type": "object",
-        "required": ["id", "uuid", "name", "imageUrl", "socialData", "podcastAppearances"],
+        "required": [
+          "id",
+          "uuid",
+          "name",
+          "imageUrl",
+          "socialData",
+          "podcastAppearances"
+        ],
         "properties": {
-          "id": { "type": "integer" },
-          "uuid": { "type": "string" },
-          "name": { "type": "string" },
-          "imageUrl": { "type": "string" },
-          "socialData": { "$ref": "#/components/schemas/SocialData" },
+          "id": {
+            "type": "integer"
+          },
+          "uuid": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "socialData": {
+            "$ref": "#/components/schemas/SocialData"
+          },
           "podcastAppearances": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/PodcastAppearance" }
+            "items": {
+              "$ref": "#/components/schemas/PodcastAppearance"
+            }
           },
-          "homeLocation": { "$ref": "#/components/schemas/ComedianHomeLocation" }
+          "homeLocation": {
+            "$ref": "#/components/schemas/ComedianHomeLocation"
+          }
         }
       },
       "ComedianHomeLocation": {
         "type": "object",
         "description": "Derived home base for a comedian. Every field is nullable; the whole object is optional so existing clients that do not request it are unaffected.",
         "properties": {
-          "city": { "type": ["string", "null"] },
-          "state": { "type": ["string", "null"] },
-          "country": { "type": ["string", "null"] },
-          "clubId": { "type": ["integer", "null"] },
-          "clubName": { "type": ["string", "null"] }
+          "city": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "state": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "country": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "clubId": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "clubName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       },
       "PodcastAppearance": {
         "type": "object",
-        "required": ["id", "role", "podcast", "episode"],
+        "required": [
+          "id",
+          "role",
+          "podcast",
+          "episode"
+        ],
         "properties": {
-          "id": { "type": "integer" },
-          "role": { "type": "string" },
-          "podcast": { "$ref": "#/components/schemas/Podcast" },
-          "episode": { "$ref": "#/components/schemas/PodcastEpisode" }
+          "id": {
+            "type": "integer"
+          },
+          "role": {
+            "type": "string"
+          },
+          "podcast": {
+            "$ref": "#/components/schemas/Podcast"
+          },
+          "episode": {
+            "$ref": "#/components/schemas/PodcastEpisode"
+          }
         }
       },
       "Podcast": {
         "type": "object",
-        "required": ["id", "source", "sourcePodcastId", "title"],
+        "required": [
+          "id",
+          "source",
+          "sourcePodcastId",
+          "title"
+        ],
         "properties": {
-          "id": { "type": "integer" },
-          "source": { "type": "string" },
-          "sourcePodcastId": { "type": "string" },
-          "title": { "type": "string" },
-          "imageUrl": { "type": ["string", "null"] },
-          "websiteUrl": { "type": ["string", "null"] },
-          "feedUrl": { "type": ["string", "null"] },
-          "authorName": { "type": ["string", "null"] }
+          "id": {
+            "type": "integer"
+          },
+          "source": {
+            "type": "string"
+          },
+          "sourcePodcastId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "websiteUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "feedUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "authorName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       },
       "PodcastEpisode": {
@@ -3354,104 +5175,250 @@
           "guests"
         ],
         "properties": {
-          "id": { "type": "integer" },
-          "source": { "type": "string" },
-          "sourceEpisodeId": { "type": "string" },
-          "title": { "type": "string" },
-          "audioUrl": { "type": "string" },
-          "episodeUrl": { "type": ["string", "null"] },
-          "releaseDate": { "type": ["string", "null"] },
-          "durationSeconds": { "type": ["integer", "null"] },
+          "id": {
+            "type": "integer"
+          },
+          "source": {
+            "type": "string"
+          },
+          "sourceEpisodeId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "audioUrl": {
+            "type": "string"
+          },
+          "episodeUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "releaseDate": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "durationSeconds": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
           "hosts": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/PodcastEpisodeLineup" }
+            "items": {
+              "$ref": "#/components/schemas/PodcastEpisodeLineup"
+            }
           },
           "guests": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/PodcastEpisodeLineup" }
+            "items": {
+              "$ref": "#/components/schemas/PodcastEpisodeLineup"
+            }
           }
         }
       },
       "PodcastEpisodeLineup": {
         "type": "object",
-        "required": ["id", "uuid", "name", "imageUrl", "hasImage", "role"],
+        "required": [
+          "id",
+          "uuid",
+          "name",
+          "imageUrl",
+          "hasImage",
+          "role"
+        ],
         "properties": {
-          "id": { "type": "integer" },
-          "uuid": { "type": "string" },
-          "name": { "type": "string" },
-          "imageUrl": { "type": "string" },
-          "hasImage": { "type": "boolean" },
-          "role": { "type": "string" }
+          "id": {
+            "type": "integer"
+          },
+          "uuid": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "hasImage": {
+            "type": "boolean"
+          },
+          "role": {
+            "type": "string"
+          }
         }
       },
       "ComedianSearchItem": {
         "type": "object",
-        "required": ["name", "imageUrl", "uuid", "id", "socialData", "showCount"],
+        "required": [
+          "name",
+          "imageUrl",
+          "uuid",
+          "id",
+          "socialData",
+          "showCount"
+        ],
         "properties": {
-          "id": { "type": "integer" },
-          "uuid": { "type": "string" },
-          "name": { "type": "string" },
-          "imageUrl": { "type": "string" },
-          "socialData": { "$ref": "#/components/schemas/SocialData" },
-          "showCount": { "type": "integer" },
-          "isFavorite": { "type": "boolean" }
+          "id": {
+            "type": "integer"
+          },
+          "uuid": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "socialData": {
+            "$ref": "#/components/schemas/SocialData"
+          },
+          "showCount": {
+            "type": "integer"
+          },
+          "isFavorite": {
+            "type": "boolean"
+          }
         }
       },
       "ComedianSearchResponse": {
         "type": "object",
-        "required": ["data", "total", "filters", "homeCityFilters"],
+        "required": [
+          "data",
+          "total",
+          "filters",
+          "homeCityFilters"
+        ],
         "properties": {
           "data": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/ComedianSearchItem" }
+            "items": {
+              "$ref": "#/components/schemas/ComedianSearchItem"
+            }
           },
-          "total": { "type": "integer" },
+          "total": {
+            "type": "integer"
+          },
           "filters": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Filter" }
+            "items": {
+              "$ref": "#/components/schemas/Filter"
+            }
           },
           "homeCityFilters": {
             "type": "array",
             "description": "Available comedian home-city filter options. Empty when no home-location data qualifies; clients omit the control in that case.",
-            "items": { "$ref": "#/components/schemas/HomeCityFilter" }
+            "items": {
+              "$ref": "#/components/schemas/HomeCityFilter"
+            }
           }
         }
       },
       "ZipLookupResponse": {
         "type": "object",
-        "required": ["city", "state"],
+        "required": [
+          "city",
+          "state"
+        ],
         "properties": {
-          "city": { "type": "string" },
-          "state": { "type": "string" }
+          "city": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          }
         }
       },
       "HomeFeedHero": {
         "type": "object",
-        "required": ["shows"],
+        "required": [
+          "shows"
+        ],
         "properties": {
-          "zipCode": { "type": ["string", "null"] },
-          "city": { "type": ["string", "null"] },
-          "state": { "type": ["string", "null"] },
+          "zipCode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "city": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "state": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "shows": {
             "type": "array",
             "description": "Up to 3 shows near the hero zip, for the top-of-home carousel.",
-            "items": { "$ref": "#/components/schemas/Show" }
+            "items": {
+              "$ref": "#/components/schemas/Show"
+            }
           }
         }
       },
       "HomeFeedPodcast": {
         "type": "object",
-        "required": ["id", "slug", "title", "episodeCount"],
+        "required": [
+          "id",
+          "slug",
+          "title",
+          "episodeCount"
+        ],
         "properties": {
-          "id": { "type": "integer" },
-          "slug": { "type": "string" },
-          "title": { "type": "string" },
-          "authorName": { "type": ["string", "null"] },
-          "websiteUrl": { "type": ["string", "null"] },
-          "feedUrl": { "type": ["string", "null"] },
-          "imageUrl": { "type": ["string", "null"] },
-          "description": { "type": ["string", "null"] },
-          "episodeCount": { "type": "integer" }
+          "id": {
+            "type": "integer"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "authorName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "websiteUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "feedUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "imageUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "episodeCount": {
+            "type": "integer"
+          }
         }
       },
       "HomeFeed": {
@@ -3467,45 +5434,65 @@
           "popularClubs"
         ],
         "properties": {
-          "hero": { "$ref": "#/components/schemas/HomeFeedHero" },
+          "hero": {
+            "$ref": "#/components/schemas/HomeFeedHero"
+          },
           "trendingComedians": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/ComedianListItem" }
+            "items": {
+              "$ref": "#/components/schemas/ComedianListItem"
+            }
           },
           "comediansNearYou": {
             "type": "array",
             "description": "Empty when no zipCode is resolved (no profile zip, no ?zip param, no geo-IP).",
-            "items": { "$ref": "#/components/schemas/ComedianListItem" }
+            "items": {
+              "$ref": "#/components/schemas/ComedianListItem"
+            }
           },
           "showsTonight": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Show" }
+            "items": {
+              "$ref": "#/components/schemas/Show"
+            }
           },
           "moreNearYou": {
             "type": "array",
             "description": "Shows near the hero zip beyond the first 3 surfaced in hero.shows.",
-            "items": { "$ref": "#/components/schemas/Show" }
+            "items": {
+              "$ref": "#/components/schemas/Show"
+            }
           },
           "trendingThisWeek": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Show" }
+            "items": {
+              "$ref": "#/components/schemas/Show"
+            }
           },
           "trendingPodcasts": {
             "type": "array",
             "description": "Podcasts featuring local comedians when a hero zip is resolved, otherwise globally popular comedian-owned podcasts.",
-            "items": { "$ref": "#/components/schemas/HomeFeedPodcast" }
+            "items": {
+              "$ref": "#/components/schemas/HomeFeedPodcast"
+            }
           },
           "popularClubs": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/ClubListItem" }
+            "items": {
+              "$ref": "#/components/schemas/ClubListItem"
+            }
           }
         }
       },
       "HomeFeedResponse": {
         "type": "object",
-        "required": ["data"],
+        "required": [
+          "data"
+        ],
         "properties": {
-          "data": { "$ref": "#/components/schemas/HomeFeed" }
+          "data": {
+            "$ref": "#/components/schemas/HomeFeed"
+          }
         }
       }
     }
