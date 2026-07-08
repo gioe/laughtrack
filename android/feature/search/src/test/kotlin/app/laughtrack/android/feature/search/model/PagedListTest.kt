@@ -55,4 +55,31 @@ class PagedListTest {
         assertEquals("boom", state.error)
         assertFalse(state.isLoading)
     }
+
+    @Test
+    fun dedup_key_drops_rows_already_loaded_keeping_first_occurrence() {
+        // Offset pagination can re-serve an entity on a later page when the
+        // result set shifts mid-scroll; the route-keyed LazyColumn would crash
+        // on the duplicate key without this.
+        val state =
+            PagedList<String>()
+                .appendPage(1, listOf("a", "b"), total = 5, dedupKey = { it })
+                .appendPage(2, listOf("b", "c"), total = 5, dedupKey = { it })
+        assertEquals(listOf("a", "b", "c"), state.items)
+    }
+
+    @Test
+    fun dedup_key_applies_within_a_single_page() {
+        val state = PagedList<String>().appendPage(1, listOf("a", "a", "b"), total = 3, dedupKey = { it })
+        assertEquals(listOf("a", "b"), state.items)
+    }
+
+    @Test
+    fun append_without_dedup_key_keeps_duplicates() {
+        val state =
+            PagedList<String>()
+                .appendPage(1, listOf("a", "b"), total = 4)
+                .appendPage(2, listOf("b", "c"), total = 4)
+        assertEquals(listOf("a", "b", "b", "c"), state.items)
+    }
 }
