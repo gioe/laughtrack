@@ -46,7 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import app.laughtrack.android.core.data.UiState
+import app.laughtrack.android.core.ui.UiState
 import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.network.generated.model.ClubDetail
 import app.laughtrack.android.core.network.generated.model.ClubRelatedVenue

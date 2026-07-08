@@ -2,7 +2,7 @@ package app.laughtrack.android.feature.detail.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import app.laughtrack.android.core.data.UiState
+import app.laughtrack.android.core.ui.UiState
 import app.laughtrack.android.core.data.favorites.FavoriteEntity
 import app.laughtrack.android.core.data.favorites.FavoritesRepository
 import app.laughtrack.android.core.data.favorites.FavoritesSnapshot

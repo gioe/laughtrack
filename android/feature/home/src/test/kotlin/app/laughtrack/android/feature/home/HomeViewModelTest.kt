@@ -1,6 +1,6 @@
 package app.laughtrack.android.feature.home
 
-import app.laughtrack.android.core.data.UiState
+import app.laughtrack.android.core.ui.UiState
 import app.laughtrack.android.core.data.search.SearchShortcut
 import app.laughtrack.android.core.data.search.SearchShortcutCoordinator
 import app.laughtrack.android.core.network.generated.model.ClubListItem

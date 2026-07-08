@@ -2,7 +2,7 @@ package app.laughtrack.android.feature.detail.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import app.laughtrack.android.core.data.UiState
+import app.laughtrack.android.core.ui.UiState
 import app.laughtrack.android.core.data.runCatchingCancellable
 import app.laughtrack.android.core.network.generated.model.PodcastDetailResponse
 import app.laughtrack.android.core.playback.PodcastPlaybackController

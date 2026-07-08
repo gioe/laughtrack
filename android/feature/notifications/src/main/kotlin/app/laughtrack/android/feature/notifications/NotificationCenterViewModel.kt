@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.laughtrack.android.core.analytics.AnalyticsEvents
 import app.laughtrack.android.core.analytics.AnalyticsManager
-import app.laughtrack.android.core.data.UiState
+import app.laughtrack.android.core.ui.UiState
 import app.laughtrack.android.core.data.runCatchingCancellable
 import app.laughtrack.android.core.network.generated.model.NotificationListResponseData
 import dagger.hilt.android.lifecycle.HiltViewModel

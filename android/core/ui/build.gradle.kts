@@ -30,9 +30,6 @@ android {
 }
 
 dependencies {
-    // UiStateContent renders the shared UiState defined in :core:data.
-    implementation(project(":core:data"))
-
     implementation(platform(libs.androidx.compose.bom))
     api(libs.androidx.compose.ui)
     api(libs.androidx.compose.ui.graphics)
@@ -40,4 +37,6 @@ dependencies {
     api(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.coil.compose)
     debugImplementation(libs.androidx.compose.ui.tooling)
+
+    testImplementation(libs.junit)
 }

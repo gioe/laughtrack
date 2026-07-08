@@ -1,4 +1,4 @@
-package app.laughtrack.android.core.data
+package app.laughtrack.android.core.ui
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue

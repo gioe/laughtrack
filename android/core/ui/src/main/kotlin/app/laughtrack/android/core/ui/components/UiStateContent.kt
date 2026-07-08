@@ -12,7 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import app.laughtrack.android.core.data.UiState
+import app.laughtrack.android.core.ui.UiState
 
 /**
  * Renders a [UiState] through per-case slots so every feature screen handles
