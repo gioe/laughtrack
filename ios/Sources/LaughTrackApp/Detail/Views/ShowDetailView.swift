@@ -194,6 +194,10 @@ enum ShowDetailPresentation {
         []
     }
 
+    // @MainActor because it calls ShowFormatting.listDate, which now reads a
+    // @MainActor-isolated per-timezone formatter cache (TASK-3676). Every caller
+    // is a SwiftUI view body or an already-@MainActor presentation test.
+    @MainActor
     static func summaryFacts(for show: Components.Schemas.ShowDetail) -> [ShowDetailFact] {
         let isOpenMic = isOpenMic(show)
         return [

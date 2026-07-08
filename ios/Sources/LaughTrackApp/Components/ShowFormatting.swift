@@ -25,6 +25,7 @@ enum ShowFormatting {
     @MainActor private static var weekdayStackFormatters: [String: DateFormatter] = [:]
     @MainActor private static var dayStackFormatters: [String: DateFormatter] = [:]
     @MainActor private static var timeStackFormatters: [String: DateFormatter] = [:]
+    @MainActor private static var listDateFormatters: [String: DateFormatter] = [:]
 
     @MainActor
     private static func cachedFormatter(
@@ -42,15 +43,12 @@ enum ShowFormatting {
         return formatter
     }
 
-    // Allocates a fresh formatter per call. This path is not a shared-static race
-    // (nothing shared is mutated), so it stays nonisolated to keep its callers
-    // (some of which are nonisolated) unchanged.
+    @MainActor
     static func listDate(_ date: Date, timezoneID: String? = nil) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .short
-        if let timezoneID, let timezone = TimeZone(identifier: timezoneID) {
-            formatter.timeZone = timezone
+        let resolvedTimezone = timezoneID.flatMap(TimeZone.init(identifier:)) ?? TimeZone.current
+        let formatter = cachedFormatter(in: &listDateFormatters, timezone: resolvedTimezone) {
+            $0.dateStyle = .medium
+            $0.timeStyle = .short
         }
         return formatter.string(from: date)
     }
@@ -113,16 +111,6 @@ enum ShowFormatting {
 
     static func apiDate(_ date: Date) -> String {
         apiFormatter.string(from: date)
-    }
-
-    static func detailDate(_ date: Date, timezoneID: String?) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .full
-        formatter.timeStyle = .short
-        if let timezoneID, let timezone = TimeZone(identifier: timezoneID) {
-            formatter.timeZone = timezone
-        }
-        return formatter.string(from: date)
     }
 
     static func distance(_ miles: Double?) -> String? {

@@ -4,6 +4,7 @@ import LaughTrackAPIClient
 @testable import LaughTrackApp
 
 @Suite("Detail hero layout")
+@MainActor
 struct DetailHeroLayoutTests {
     @Test("detail hero keeps media landscape and below most of a phone viewport")
     func detailHeroUsesCompactLandscapeMedia() {
