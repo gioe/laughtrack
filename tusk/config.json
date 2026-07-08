@@ -181,5 +181,6 @@
       "ios/bin"
     ]
   },
-  "init_intent": null
+  "init_intent": null,
+  "path_test_commands_skip_unmatched": false
 }
