@@ -16,26 +16,35 @@ enum ShowFormatting {
         return formatter
     }()
 
-    private static let weekdayStackFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "EEE"
-        return formatter
-    }()
+    // Timezone-keyed formatter caches for the hot list/stack paths. Each entry is
+    // configured once at creation and never mutated again, so concurrent reads
+    // are safe. @MainActor isolation matches every call site (SwiftUI view bodies)
+    // and replaces the former per-call `.timeZone` mutation of a shared `static let`
+    // — a DateFormatter data race that could render wrong times when two shows
+    // with different timezones formatted concurrently (TASK-3663).
+    @MainActor private static var weekdayStackFormatters: [String: DateFormatter] = [:]
+    @MainActor private static var dayStackFormatters: [String: DateFormatter] = [:]
+    @MainActor private static var timeStackFormatters: [String: DateFormatter] = [:]
 
-    private static let dayStackFormatter: DateFormatter = {
+    @MainActor
+    private static func cachedFormatter(
+        in cache: inout [String: DateFormatter],
+        timezone: TimeZone,
+        configure: (DateFormatter) -> Void
+    ) -> DateFormatter {
+        if let existing = cache[timezone.identifier] {
+            return existing
+        }
         let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "d"
+        configure(formatter)
+        formatter.timeZone = timezone
+        cache[timezone.identifier] = formatter
         return formatter
-    }()
+    }
 
-    private static let timeStackFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        return formatter
-    }()
-
+    // Allocates a fresh formatter per call. This path is not a shared-static race
+    // (nothing shared is mutated), so it stays nonisolated to keep its callers
+    // (some of which are nonisolated) unchanged.
     static func listDate(_ date: Date, timezoneID: String? = nil) -> String {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
@@ -46,6 +55,7 @@ enum ShowFormatting {
         return formatter.string(from: date)
     }
 
+    @MainActor
     static func dateStack(
         _ date: Date,
         timezoneID: String? = nil,
@@ -53,18 +63,27 @@ enum ShowFormatting {
     ) -> ShowDateStack {
         let resolvedTimezone = timezoneID.flatMap(TimeZone.init(identifier:)) ?? TimeZone.current
 
-        weekdayStackFormatter.timeZone = resolvedTimezone
-        dayStackFormatter.timeZone = resolvedTimezone
-        timeStackFormatter.timeZone = resolvedTimezone
-        let time = timeStackFormatter.string(from: date)
+        let weekdayFormatter = cachedFormatter(in: &weekdayStackFormatters, timezone: resolvedTimezone) {
+            $0.locale = Locale(identifier: "en_US_POSIX")
+            $0.dateFormat = "EEE"
+        }
+        let dayFormatter = cachedFormatter(in: &dayStackFormatters, timezone: resolvedTimezone) {
+            $0.locale = Locale(identifier: "en_US_POSIX")
+            $0.dateFormat = "d"
+        }
+        let timeFormatter = cachedFormatter(in: &timeStackFormatters, timezone: resolvedTimezone) {
+            $0.timeStyle = .short
+        }
+
+        let time = timeFormatter.string(from: date)
         let timezoneAbbreviation = resolvedTimezone.abbreviation(for: date)
         let timezoneSuffix = resolvedTimezone.identifier == localTimezone.identifier
             ? ""
             : timezoneAbbreviation.map { " \($0)" } ?? ""
 
         return ShowDateStack(
-            weekday: weekdayStackFormatter.string(from: date).uppercased(),
-            day: dayStackFormatter.string(from: date),
+            weekday: weekdayFormatter.string(from: date).uppercased(),
+            day: dayFormatter.string(from: date),
             time: "\(time)\(timezoneSuffix)"
         )
     }

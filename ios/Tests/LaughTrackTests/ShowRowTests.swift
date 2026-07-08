@@ -4,6 +4,7 @@ import LaughTrackAPIClient
 @testable import LaughTrackApp
 
 @Suite("Show row")
+@MainActor
 struct ShowRowTests {
     @Test("show row exposes a compact paper ticket presentation for home rails")
     func showRowExposesCompactPaperTicketPresentationForHomeRails() throws {

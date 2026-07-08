@@ -478,17 +478,24 @@ struct ShowRow: View {
         .background(ticketStubBackground)
     }
 
-    private static let monthStackFormatter: DateFormatter = {
+    // Timezone-keyed month-abbreviation formatter cache. Each entry is configured
+    // once and never mutated again, replacing the former per-call `.timeZone`
+    // mutation of a shared `static let` (a DateFormatter data race). @MainActor
+    // isolation matches the call site (the SwiftUI ticket-stub view body) (TASK-3663).
+    @MainActor private static var monthStackFormatters: [String: DateFormatter] = [:]
+
+    @MainActor
+    private static func monthAbbreviation(_ date: Date, timezoneID: String?) -> String {
+        let resolved = timezoneID.flatMap(TimeZone.init(identifier:)) ?? TimeZone.current
+        if let existing = monthStackFormatters[resolved.identifier] {
+            return existing.string(from: date).uppercased()
+        }
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.dateFormat = "MMM"
-        return formatter
-    }()
-
-    private static func monthAbbreviation(_ date: Date, timezoneID: String?) -> String {
-        let resolved = timezoneID.flatMap(TimeZone.init(identifier:)) ?? TimeZone.current
-        monthStackFormatter.timeZone = resolved
-        return monthStackFormatter.string(from: date).uppercased()
+        formatter.timeZone = resolved
+        monthStackFormatters[resolved.identifier] = formatter
+        return formatter.string(from: date).uppercased()
     }
 
     static func title(for show: Components.Schemas.Show) -> String {
