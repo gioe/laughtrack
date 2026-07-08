@@ -5,11 +5,16 @@ on:
     branches: [main]
     paths:
       - "apps/web/**"
+      # /api/v1 contract source of truth — route tests validate responses
+      # against it via openapiResponseValidator, so a spec-only edit must
+      # re-run the web test suite (see the `changes` job for per-job gating)
+      - "ios/Sources/LaughTrackAPIClient/openapi.json"
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened]
     paths:
       - "apps/web/**"
+      - "ios/Sources/LaughTrackAPIClient/openapi.json"
   workflow_dispatch:
     inputs:
       update_baselines:
@@ -18,9 +23,37 @@ on:
         default: false
 
 jobs:
+  # Per-job path gating (same pattern as scraper-ci.yml): the workflow triggers
+  # on the union of web sources and the OpenAPI spec, then this filter decides
+  # which sub-area actually changed so a spec-only push runs only the Test job
+  # (whose route tests validate /api/v1 responses against the spec) without
+  # paying for lint/build/e2e-visual. workflow_dispatch bypasses the filter in
+  # every downstream `if` — dorny outputs are unreliable on that event, and the
+  # update_baselines dispatch must always reach e2e-visual.
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      web: ${{ steps.filter.outputs.web }}
+      spec: ${{ steps.filter.outputs.spec }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+      - name: Compute changed sub-areas
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            web:
+              - 'apps/web/**'
+              - '.github/workflows/web-ci.yml'
+            spec:
+              - 'ios/Sources/LaughTrackAPIClient/openapi.json'
+
   type-check:
     name: Type Check
     runs-on: ubuntu-latest
+    needs: changes
+    if: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.web == 'true' }}
     defaults:
       run:
         working-directory: apps/web
@@ -45,6 +78,8 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    needs: changes
+    if: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.web == 'true' }}
     defaults:
       run:
         working-directory: apps/web
@@ -69,6 +104,10 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    needs: changes
+    # Runs on BOTH web and spec-only changes — the route tests are the contract
+    # check between the /api/v1 handlers and the OpenAPI spec.
+    if: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.web == 'true' || needs.changes.outputs.spec == 'true' }}
     defaults:
       run:
         working-directory: apps/web
@@ -221,6 +260,8 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    needs: changes
+    if: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.web == 'true' }}
     defaults:
       run:
         working-directory: apps/web
@@ -275,7 +316,10 @@ jobs:
     #   var    NEON_PARENT_BRANCH  — prod branch to copy (e.g. "production"/"main")
     #   var    NEON_DB_NAME        — database name (e.g. "neondb")
     #   var    NEON_DB_ROLE        — role to connect as
-    if: ${{ vars.NEON_PROJECT_ID != '' }}
+    # Also path-gated on web changes: migrations live under apps/web/prisma,
+    # so a spec-only trigger never needs the ephemeral Neon branch.
+    if: ${{ vars.NEON_PROJECT_ID != '' && (github.event_name == 'workflow_dispatch' || needs.changes.outputs.web == 'true') }}
+    needs: changes
     defaults:
       run:
         working-directory: apps/web
@@ -329,7 +373,7 @@ jobs:
   notify-failure:
     name: Notify Discord on failure
     runs-on: ubuntu-latest
-    needs: [type-check, lint, test, e2e, e2e-visual, build, migrations]
+    needs: [changes, type-check, lint, test, e2e, e2e-visual, build, migrations]
     # failure() runs this job when any needed job failed; scoped to push/schedule
     # on main so failing PR checks don't spam Discord.
     if: ${{ failure() && (github.event_name == 'push' || github.event_name == 'schedule') && github.ref == 'refs/heads/main' }}
