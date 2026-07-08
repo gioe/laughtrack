@@ -34,14 +34,6 @@ public enum ServiceRegistration {
                 appStateStorage: container.resolve(AppStateStorageProtocol.self)
             )
         }
-        container.register((any PushDeviceTokenManaging).self, scope: .appLevel) {
-            PushDeviceTokenManager(
-                tokenManager: AuthTokenManager(
-                    secureStorage: container.resolve(SecureStorageProtocol.self)
-                ),
-                appStateStorage: container.resolve(AppStateStorageProtocol.self)
-            )
-        }
         container.register(PushPermissionStateStore.self, scope: .appLevel) {
             PushPermissionStateStore(
                 appStateStorage: container.resolve(AppStateStorageProtocol.self)
@@ -91,6 +83,16 @@ public enum ServiceRegistration {
     public static func configureNotificationPreferenceSync(_ container: ServiceContainer, apiClient: Client) {
         container.register((any NotificationPreferenceSyncing).self, scope: .appLevel) {
             APINotificationPreferenceSyncClient(apiClient: apiClient)
+        }
+    }
+
+    @MainActor
+    public static func configurePushDeviceTokenManager(_ container: ServiceContainer, apiClient: Client) {
+        container.register((any PushDeviceTokenManaging).self, scope: .appLevel) {
+            PushDeviceTokenManager(
+                apiClient: apiClient,
+                appStateStorage: container.resolve(AppStateStorageProtocol.self)
+            )
         }
     }
 

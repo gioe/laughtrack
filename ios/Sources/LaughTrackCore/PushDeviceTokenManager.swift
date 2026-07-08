@@ -1,4 +1,5 @@
 import Foundation
+import LaughTrackAPIClient
 import LaughTrackBridge
 
 #if canImport(UIKit)
@@ -11,22 +12,20 @@ public protocol PushDeviceTokenManaging: Sendable {
     func deactivateCurrentDeviceToken() async
 }
 
+/// Routes push-token registration/deactivation through the generated OpenAPI
+/// client (and thus TokenRefreshMiddleware), replacing the former hand-rolled
+/// URLRequest client that built its own bearer header and so silently failed
+/// after access-token expiry (TASK-3631).
 public final class PushDeviceTokenManager: PushDeviceTokenManaging, @unchecked Sendable {
-    private let baseURL: URL
-    private let tokenManager: AuthTokenManager
+    private let apiClient: Client
     private let appStateStorage: AppStateStorageProtocol
-    private let urlSession: URLSession
 
     public init(
-        baseURL: URL = AppConfiguration.apiBaseURL,
-        tokenManager: AuthTokenManager,
-        appStateStorage: AppStateStorageProtocol,
-        urlSession: URLSession = .shared
+        apiClient: Client,
+        appStateStorage: AppStateStorageProtocol
     ) {
-        self.baseURL = baseURL
-        self.tokenManager = tokenManager
+        self.apiClient = apiClient
         self.appStateStorage = appStateStorage
-        self.urlSession = urlSession
     }
 
     public func registerForRemoteNotifications() async {
@@ -42,8 +41,17 @@ public final class PushDeviceTokenManager: PushDeviceTokenManaging, @unchecked S
         guard !token.isEmpty else { return }
 
         do {
-            try await send(method: "POST", token: token)
-            appStateStorage.setValue(token, forKey: StorageKey.currentDeviceToken)
+            let output = try await apiClient.registerMePushToken(
+                .init(body: .json(.init(token: token, platform: .ios)))
+            )
+            switch output {
+            case .ok:
+                appStateStorage.setValue(token, forKey: StorageKey.currentDeviceToken)
+            case .badRequest, .unauthorized, .unprocessableContent, .tooManyRequests, .undocumented:
+                // Best-effort — leave the stored token untouched so a later
+                // token callback or settings change retries the upload.
+                break
+            }
         } catch {
             // APNs refresh upload is best-effort; the system will deliver future
             // token callbacks and settings changes can trigger registration again.
@@ -59,35 +67,13 @@ public final class PushDeviceTokenManager: PushDeviceTokenManaging, @unchecked S
         }
 
         do {
-            try await send(method: "DELETE", token: token)
+            _ = try await apiClient.deleteMePushToken(
+                .init(body: .json(.init(token: token, platform: .ios)))
+            )
         } catch {
             // Local opt-out/sign-out should proceed even if the server is offline.
         }
         appStateStorage.removeValue(forKey: StorageKey.currentDeviceToken)
-    }
-
-    private func send(method: String, token: String) async throws {
-        let accessToken = await MainActor.run { tokenManager.retrieveAccessToken() }
-        guard let accessToken else {
-            throw URLError(.userAuthenticationRequired)
-        }
-
-        var request = URLRequest(url: baseURL.appendingPathComponent("api/v1/me/push-tokens"))
-        request.httpMethod = method
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-        request.httpBody = try JSONSerialization.data(
-            withJSONObject: ["token": token, "platform": "ios"],
-            options: []
-        )
-
-        let (_, response) = try await urlSession.data(for: request)
-        guard let httpResponse = response as? HTTPURLResponse,
-              (200..<300).contains(httpResponse.statusCode)
-        else {
-            throw URLError(.badServerResponse)
-        }
     }
 
     private static func hexString(from data: Data) -> String {

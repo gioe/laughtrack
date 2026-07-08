@@ -1,5 +1,8 @@
 import Foundation
+import HTTPTypes
+import OpenAPIRuntime
 import Testing
+import LaughTrackAPIClient
 import LaughTrackBridge
 @testable import LaughTrackCore
 
@@ -153,68 +156,63 @@ struct NotificationPreferenceStoreTests {
         #expect(opener.openCount == 1)
     }
 
-    @Test("push token manager uploads refreshed APNs tokens with bearer auth")
+    @Test("push token manager registers refreshed APNs tokens through the generated client")
     func pushTokenManagerUploadsDeviceToken() async throws {
         let storage = makeStorage(name: "push-upload")
-        let secureStorage = InMemorySecureStorage()
-        let tokenManager = AuthTokenManager(secureStorage: secureStorage)
-        try tokenManager.storeTokens(
-            accessToken: "access-token",
-            refreshToken: "refresh-token"
-        )
-        let recorder = PushTokenRequestRecorder()
+        let transport = StubClientTransport()
+        let bodies = PushTokenBodyRecorder()
+        transport.setHandler { _, body, _, _ in
+            await bodies.record(body)
+            return pushTokenJSONResponse(
+                status: 200,
+                body: #"{"data":{"id":"1","platform":"ios","isActive":true}}"#
+            )
+        }
         let manager = PushDeviceTokenManager(
-            baseURL: URL(string: "https://example.com")!,
-            tokenManager: tokenManager,
-            appStateStorage: storage,
-            urlSession: StubURLProtocol.makeSession { request in
-                recorder.record(request)
-                return Self.jsonResponse(for: request, body: #"{"data":{"id":"1"}}"#)
-            }
+            apiClient: makePushTokenClient(transport: transport),
+            appStateStorage: storage
         )
 
         await manager.uploadDeviceToken(Data([0xAB, 0xCD, 0xEF]))
 
-        let request = try #require(recorder.lastRequest)
-        #expect(request.httpMethod == "POST")
-        #expect(request.url?.path == "/api/v1/me/push-tokens")
-        #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer access-token")
-        let body = try #require(requestBodyData(from: request))
-        let json = try #require(JSONSerialization.jsonObject(with: body) as? [String: String])
-        #expect(json["token"] == "abcdef")
-        #expect(json["platform"] == "ios")
+        let captured = try #require(transport.capturedRequests.first)
+        #expect(captured.operationID == "registerMePushToken")
+        #expect(captured.method == .post)
+        #expect(captured.path == "/api/v1/me/push-tokens")
+        let json = try #require(await bodies.lastJSON())
+        #expect(json["token"] as? String == "abcdef")
+        #expect(json["platform"] as? String == "ios")
     }
 
-    @Test("push token manager deactivates the current uploaded token")
+    @Test("push token manager deactivates the current uploaded token through the generated client")
     func pushTokenManagerDeactivatesCurrentDeviceToken() async throws {
         let storage = makeStorage(name: "push-deactivate")
-        let secureStorage = InMemorySecureStorage()
-        let tokenManager = AuthTokenManager(secureStorage: secureStorage)
-        try tokenManager.storeTokens(
-            accessToken: "access-token",
-            refreshToken: "refresh-token"
-        )
-        let recorder = PushTokenRequestRecorder()
+        let transport = StubClientTransport()
+        let bodies = PushTokenBodyRecorder()
+        transport.setHandler { request, body, _, _ in
+            await bodies.record(body)
+            let successBody = request.method == .delete
+                ? #"{"data":{"deactivated":true}}"#
+                : #"{"data":{"id":"1","platform":"ios","isActive":true}}"#
+            return pushTokenJSONResponse(status: 200, body: successBody)
+        }
         let manager = PushDeviceTokenManager(
-            baseURL: URL(string: "https://example.com")!,
-            tokenManager: tokenManager,
-            appStateStorage: storage,
-            urlSession: StubURLProtocol.makeSession { request in
-                recorder.record(request)
-                return Self.jsonResponse(for: request, body: #"{"data":{"deactivated":true}}"#)
-            }
+            apiClient: makePushTokenClient(transport: transport),
+            appStateStorage: storage
         )
 
+        // Upload first so a device token is persisted for deactivation to send.
         await manager.uploadDeviceToken(Data([0x01, 0x23]))
         await manager.deactivateCurrentDeviceToken()
 
-        let request = try #require(recorder.lastRequest)
-        #expect(request.httpMethod == "DELETE")
-        #expect(request.url?.path == "/api/v1/me/push-tokens")
-        let body = try #require(requestBodyData(from: request))
-        let json = try #require(JSONSerialization.jsonObject(with: body) as? [String: String])
-        #expect(json["token"] == "0123")
-        #expect(json["platform"] == "ios")
+        let deleteRequest = try #require(
+            transport.capturedRequests.first(where: { $0.method == .delete })
+        )
+        #expect(deleteRequest.operationID == "deleteMePushToken")
+        #expect(deleteRequest.path == "/api/v1/me/push-tokens")
+        let json = try #require(await bodies.lastJSON())
+        #expect(json["token"] as? String == "0123")
+        #expect(json["platform"] as? String == "ios")
     }
 
     @Test("push toggle emits push_settings_toggle_changed for both enable and disable")
@@ -353,39 +351,6 @@ struct NotificationPreferenceStoreTests {
         return AppStateStorage(userDefaults: defaults)
     }
 
-    private func requestBodyData(from request: URLRequest) -> Data? {
-        if let httpBody = request.httpBody {
-            return httpBody
-        }
-        guard let stream = request.httpBodyStream else {
-            return nil
-        }
-
-        stream.open()
-        defer { stream.close() }
-
-        var data = Data()
-        var buffer = [UInt8](repeating: 0, count: 1024)
-        while stream.hasBytesAvailable {
-            let count = stream.read(&buffer, maxLength: buffer.count)
-            if count <= 0 {
-                break
-            }
-            data.append(buffer, count: count)
-        }
-        return data
-    }
-
-    nonisolated private static func jsonResponse(for request: URLRequest, body: String) -> (HTTPURLResponse, Data) {
-        let response = HTTPURLResponse(
-            url: request.url ?? URL(string: "https://example.com")!,
-            statusCode: 200,
-            httpVersion: nil,
-            headerFields: ["Content-Type": "application/json"]
-        )!
-        return (response, Data(body.utf8))
-    }
-
     private func waitUntil(
         timeout: TimeInterval = 1,
         condition: @escaping () async -> Bool
@@ -417,18 +382,34 @@ private actor RecordingNotificationPreferenceSync: NotificationPreferenceSyncing
     }
 }
 
-private final class PushTokenRequestRecorder: @unchecked Sendable {
-    private let lock = NSLock()
-    private var request: URLRequest?
+@MainActor
+private func makePushTokenClient(transport: any ClientTransport) -> Client {
+    Client(
+        serverURL: URL(string: "https://test.example.com")!,
+        transport: transport,
+        middlewares: [APIVersionPathMiddleware()]
+    )
+}
 
-    var lastRequest: URLRequest? {
-        lock.withLock { request }
+private func pushTokenJSONResponse(status: Int, body: String) -> (HTTPResponse, HTTPBody?) {
+    var response = HTTPResponse(status: .init(code: status))
+    response.headerFields[.contentType] = "application/json"
+    return (response, HTTPBody(body))
+}
+
+/// Collects request bodies from the stub transport so the push-token tests can
+/// assert on the JSON payload the generated client serialized.
+private actor PushTokenBodyRecorder {
+    private var lastBody: Data?
+
+    func record(_ body: HTTPBody?) async {
+        guard let body else { return }
+        lastBody = try? await Data(collecting: body, upTo: 1024)
     }
 
-    func record(_ request: URLRequest) {
-        lock.withLock {
-            self.request = request
-        }
+    func lastJSON() -> [String: Any]? {
+        guard let lastBody else { return nil }
+        return (try? JSONSerialization.jsonObject(with: lastBody)) as? [String: Any]
     }
 }
 

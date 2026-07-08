@@ -51,7 +51,6 @@ public struct AppBootstrap {
             appStateStorage: appStateStorage,
             oauthSessionRunner: oauthSessionRunner
         )
-        authManager.pushTokenManager = container.resolveOptional((any PushDeviceTokenManaging).self)
         self.authManager = authManager
 
         self.analyticsLifecycleCancellables = Self.attachAnalyticsLifecycle(
@@ -184,6 +183,12 @@ public struct AppBootstrap {
         ServiceRegistration.configureOfflineQueue(container, apiClient: apiClient)
         ServiceRegistration.configureNotificationPreferenceSync(container, apiClient: apiClient)
         ServiceRegistration.configureProfileLocationSync(container, apiClient: apiClient)
+        ServiceRegistration.configurePushDeviceTokenManager(container, apiClient: apiClient)
+
+        // Resolve the push-token manager only after it has been registered
+        // against the generated client above, so its /me/push-tokens calls flow
+        // through TokenRefreshMiddleware (TASK-3631).
+        authManager.pushTokenManager = container.resolveOptional((any PushDeviceTokenManaging).self)
     }
 
     private static func configureSentryIfNeeded() {
