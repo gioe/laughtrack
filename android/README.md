@@ -23,10 +23,10 @@ domain (shows, clubs, comedians, podcasts) and consume the same Next.js
 android/
 ├── app/                # Application + MainActivity (intent dispatch), AppShell, DI host
 ├── core/
-│   ├── ui/             # Design system: theme tokens (mirrors iOS), Compose theme
+│   ├── ui/             # Design system: theme tokens (mirrors iOS), Compose theme, shared UiState
 │   ├── navigation/     # AppRoute model + LaughTrackDeepLink (laughtrack:// + FCM routing)
 │   ├── network/        # OkHttp/Retrofit, generated OpenAPI client, AuthSessionManager
-│   ├── data/           # Repositories, stores, offline queue, shared UiState
+│   ├── data/           # Repositories, stores, offline queue, runCatchingCancellable
 │   └── playback/       # Media3/ExoPlayer podcast playback controller
 └── feature/
     ├── home/           # Discover/Home rails + location header
