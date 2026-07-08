@@ -202,6 +202,7 @@ This document is self-contained. You do not need the audit session's context. Ev
 - **Effort:** M. **Verify:** `make test`; `.venv/bin/python -c "from laughtrack.core.services.scraping import ScrapingService"`.
 
 ### T3.5 (SCR-5) Archive the `scripts/core` graveyard (116 modules)
+- **[Executed — TASK-3645, 2026-07-08]** 51 dated one-offs moved to `scripts/archive/` (git renames; 8 referencing test files repointed); mypy override + flake8 exclude added; mypy errors 756 → 695. Keep-list verified: zero workflow/Makefile references to moved modules. Remaining undated one-offs (`fold_task_1984_dup_pairs.py` etc.) need individual triage — tracked as TASK-3690; naming convention #325 requires date suffixes on new one-offs.
 - Move every dated one-off (`*_20XX_XX_XX.py`) and completed disposition to `scripts/archive/`; exclude the archive from mypy (`[[tool.mypy.overrides]]`) and flake8 (`.flake8 exclude`).
 - **CRITICAL:** first build the keep-list: `grep -rn "scripts.core" .github/workflows/ Makefile` — the nightly and six other workflows invoke `python -m scripts.core.<module>` directly (`scrape_shows`, `update_popularity`, and modules in `scraper-schedule.yml`, `scraper-verify.yml`, `cdn-image-audit.yml`, `discover-clubs-from-comedian-show-pages.yml`, `check-comedian-website-health.yml`, `podcast-episode-sync.yml`, `social-follower-refresh.yml`). Moving a referenced module breaks production.
 - **Effort:** S/M. **Verify:** the grep shows no reference to moved files; `make test`; mypy error count drops.
