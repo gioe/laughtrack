@@ -26,6 +26,7 @@ from laughtrack.core.entities.event.etix import EtixEvent
 from laughtrack.core.entities.lineup.handler import LineupHandler
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.utilities.datetime import DateTimeUtils
+from laughtrack.foundation.utilities.number import parse_price_text
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.scrapers.utils.comedy_filter import (
     is_comedy_filter_enabled,
@@ -69,7 +70,6 @@ _FB_SHOW_TIME_RE = re.compile(
     r"Show:\s*(\d{1,2}(?::\d{2})?)\s*([ap]m)", re.IGNORECASE
 )
 _FB_MONTH_YEAR_RE = re.compile(r"([A-Za-z]+)\s+(\d{4})")
-_FB_PRICE_RE = re.compile(r"\$\s*(\d+(?:\.\d{1,2})?)")
 _TITLE_YEAR_PREFIX_RE = re.compile(r"^\s*(\d{4})\s+(.+)$")
 _MAX_PAGES = 10
 
@@ -750,14 +750,9 @@ class EtixScraper(BaseScraper):
         if price_el is None:
             return None
 
-        match = _FB_PRICE_RE.search(price_el.get_text(" ", strip=True))
-        if not match:
-            return None
-
-        try:
-            return float(match.group(1))
-        except ValueError:
-            return None
+        # Targeted cost-text element ("$60 to $100"): shared parser returns the
+        # min of the range, matching the old first-$ result for low-first ranges.
+        return parse_price_text(price_el.get_text(" ", strip=True))
 
     @staticmethod
     def _funny_bone_iso_datetime(
