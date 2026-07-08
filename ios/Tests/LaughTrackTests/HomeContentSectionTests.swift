@@ -73,7 +73,7 @@ struct HomeContentSectionTests {
 
     @Test("home cards use cached async images")
     func homeCardsUseCachedAsyncImages() throws {
-        let source = try String(contentsOf: homeViewSourceURL(), encoding: .utf8)
+        let source = try homeSourceText()
 
         #expect(!source.contains("\n            AsyncImage(url:"))
         #expect(source.contains("CachedAsyncImage(url:"))
@@ -81,7 +81,7 @@ struct HomeContentSectionTests {
 
     @Test("home club cards fit club artwork without cropping")
     func homeClubCardsFitClubArtworkWithoutCropping() throws {
-        let source = try String(contentsOf: homeViewSourceURL(), encoding: .utf8)
+        let source = try homeSourceText()
         let block = try sourceBlock(
             in: source,
             from: "private struct HomePopularClubCard",
@@ -94,7 +94,7 @@ struct HomeContentSectionTests {
 
     @Test("home podcast cards show podcast title without owner subtitle")
     func homePodcastCardsShowPodcastTitleWithoutOwnerSubtitle() throws {
-        let source = try String(contentsOf: homeViewSourceURL(), encoding: .utf8)
+        let source = try homeSourceText()
         let block = try sourceBlock(
             in: source,
             from: "private struct HomeTrendingPodcastCard",
@@ -109,7 +109,7 @@ struct HomeContentSectionTests {
 
     @Test("home podcast cards use RSS badge artwork treatment")
     func homePodcastCardsUseRSSBadgeArtworkTreatment() throws {
-        let source = try String(contentsOf: homeViewSourceURL(), encoding: .utf8)
+        let source = try homeSourceText()
         let block = try sourceBlock(
             in: source,
             from: "private struct HomeTrendingPodcastCard",
@@ -136,7 +136,7 @@ struct HomeContentSectionTests {
 
     @Test("home source uses fixed-width carousel hero grid entity rails and lifted rail copy")
     func homeSourceUsesFixedWidthCarouselHeroGridEntityRailsAndLiftedRailCopy() throws {
-        let source = try String(contentsOf: homeViewSourceURL(), encoding: .utf8)
+        let source = try homeSourceText()
         let carouselBlock = try sourceBlock(
             in: source,
             from: "private struct HomeShowsTonightCarousel",
@@ -183,12 +183,12 @@ struct HomeContentSectionTests {
 
     @Test("discover page uses shared club-stage chrome beyond the tonight rail")
     func discoverPageUsesSharedClubStageChromeBeyondTheTonightRail() throws {
-        let source = try String(contentsOf: homeViewSourceURL(), encoding: .utf8)
+        let source = try homeSourceText()
 
         #expect(source.contains("struct LaughTrackAtmosphereBackground"))
-        #expect(source.contains("private struct HomeDiscoverRailCard"))
+        #expect(source.contains("struct HomeDiscoverRailCard"))
         #expect(source.contains("struct HomeMarqueeStageBackground"))
-        #expect(source.contains("private struct HomeBulbFrame"))
+        #expect(source.contains("struct HomeBulbFrame"))
         #expect(source.contains("case spotlight"))
         #expect(source.contains("case scheduleBoard"))
         #expect(source.contains("variant: .posterGrid"))
@@ -212,20 +212,20 @@ struct HomeContentSectionTests {
 
     @Test("discover location chip owns location copy for saved and feed default locations")
     func discoverLocationChipOwnsLocationCopyForSavedAndFeedDefaultLocations() throws {
-        let source = try String(contentsOf: homeViewSourceURL(), encoding: .utf8)
+        let source = try homeSourceText()
         let headerBlock = try sourceBlock(
             in: source,
             from: "private struct HomeDiscoverHeader",
-            to: "private struct HomeLocationPrompt"
+            to: "struct HomeLocationPrompt"
         )
         let promptBlock = try sourceBlock(
             in: source,
-            from: "private struct HomeLocationPrompt",
-            to: "private struct HomeLocationEditorSheet"
+            from: "struct HomeLocationPrompt",
+            to: "struct HomeLocationEditorSheet"
         )
         let railBlock = try sourceBlock(
             in: source,
-            from: "private struct HomeShowsTonightRail",
+            from: "struct HomeShowsTonightRail",
             to: "private struct HomeShowsTonightCarousel"
         )
 
@@ -243,10 +243,10 @@ struct HomeContentSectionTests {
 
     @Test("discover location sheet uses compact form-first layout")
     func discoverLocationSheetUsesCompactFormFirstLayout() throws {
-        let source = try String(contentsOf: homeViewSourceURL(), encoding: .utf8)
+        let source = try homeSourceText()
         let block = try sourceBlock(
             in: source,
-            from: "private struct HomeLocationEditorSheet",
+            from: "struct HomeLocationEditorSheet",
             to: "private func applyZip()"
         )
 
@@ -264,7 +264,7 @@ struct HomeContentSectionTests {
 
     @Test("discover comedian cards use club wall framed headshots")
     func discoverComedianCardsUseClubWallFramedHeadshots() throws {
-        let source = try String(contentsOf: homeViewSourceURL(), encoding: .utf8)
+        let source = try homeSourceText()
         let block = try sourceBlock(
             in: source,
             from: "private struct HomeTrendingComedianCard",
@@ -295,7 +295,7 @@ struct HomeContentSectionTests {
 
     @Test("popular club cards use square art with warmer sparser bulb lights")
     func popularClubCardsUseSquareArtWithWarmerSparserBulbLights() throws {
-        let source = try String(contentsOf: homeViewSourceURL(), encoding: .utf8)
+        let source = try homeSourceText()
         let block = try sourceBlock(
             in: source,
             from: "private struct HomePopularClubCard",
@@ -303,7 +303,7 @@ struct HomeContentSectionTests {
         )
         let bulbFrameBlock = try sourceBlock(
             in: source,
-            from: "private struct HomeBulbFrame",
+            from: "struct HomeBulbFrame",
             to: "private struct HomeDiscoverHeader"
         )
 
@@ -322,7 +322,7 @@ struct HomeContentSectionTests {
 
     @Test("tonight hero artwork uses club wall framed headshot treatment")
     func tonightHeroArtworkUsesClubWallFramedHeadshotTreatment() throws {
-        let source = try String(contentsOf: homeViewSourceURL(), encoding: .utf8)
+        let source = try homeSourceText()
         let block = try sourceBlock(
             in: source,
             from: "private struct HomeShowsTonightHeroCard",
@@ -349,7 +349,7 @@ struct HomeContentSectionTests {
 
     @Test("tonight hero keeps the headshot nameplate prominent while reducing show metadata")
     func tonightHeroKeepsTheHeadshotNameplateProminentWhileReducingShowMetadata() throws {
-        let source = try String(contentsOf: homeViewSourceURL(), encoding: .utf8)
+        let source = try homeSourceText()
         let block = try sourceBlock(
             in: source,
             from: "private struct HomeShowsTonightHeroCard",
@@ -411,18 +411,43 @@ struct HomeContentSectionTests {
         #expect(HomeShowsTonightHeroPresentation.artworkImageURL(for: show) == mikeImage)
     }
 
-    private func homeViewSourceURL(filePath: String = #filePath) throws -> URL {
+    // The Home surface was split out of the single HomeView.swift (TASK-3641)
+    // into Home/Models and Home/Views/Rails. Source-inspection assertions read
+    // the concatenation of every Home source file; the order interleaves each
+    // rail with its model so pre-split block markers (card -> model) still
+    // resolve across what are now file boundaries.
+    private func homeSourceText(filePath: String = #filePath) throws -> String {
         let testFileURL = URL(fileURLWithPath: filePath)
         let iosRoot = testFileURL
             .deletingLastPathComponent()
             .deletingLastPathComponent()
             .deletingLastPathComponent()
-        let sourceURL = iosRoot
-            .appendingPathComponent("Sources/LaughTrackApp/Home/Views/HomeView.swift")
-        guard FileManager.default.fileExists(atPath: sourceURL.path) else {
-            throw CocoaError(.fileNoSuchFile)
+        let homeRoot = iosRoot.appendingPathComponent("Sources/LaughTrackApp/Home")
+        let relativePaths = [
+            "Views/Rails/HomeRailChrome.swift",
+            "Views/HomeView.swift",
+            "Views/HomeLocationEditor.swift",
+            "Views/Rails/HomeShowsTonightRail.swift",
+            "Models/HomeShowsTonightModel.swift",
+            "Models/HomeFavoriteShowsModel.swift",
+            "Views/Rails/HomeTrendingComediansRail.swift",
+            "Models/HomeTrendingComediansModel.swift",
+            "Views/Rails/HomePopularClubsRail.swift",
+            "Models/HomePopularClubsModel.swift",
+            "Views/Rails/HomeTrendingPodcastsRail.swift",
+            "Models/HomeTrendingPodcastsModel.swift",
+            "Models/MainPageCache.swift",
+            "Models/HomeFeedRequestCoalescer.swift",
+        ]
+        var combined = ""
+        for relative in relativePaths {
+            let url = homeRoot.appendingPathComponent(relative)
+            guard FileManager.default.fileExists(atPath: url.path) else {
+                throw CocoaError(.fileNoSuchFile)
+            }
+            combined += try String(contentsOf: url, encoding: .utf8) + "\n"
         }
-        return sourceURL
+        return combined
     }
 
     private func sourceBlock(in source: String, from startMarker: String, to endMarker: String) throws -> String {
