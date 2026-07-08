@@ -20,6 +20,10 @@ import { buildClubJsonLd, buildShowJsonLd } from "@/util/jsonLd";
 import FestivalDateRange from "@/ui/pages/entity/club/festivalDateRange";
 import { readTimezoneCookie } from "@/util/timezone";
 import ClubDetailTabs from "@/ui/pages/entity/club/detailTabs";
+import {
+    applyFavoriteOverlay,
+    buildDetailCacheKey,
+} from "@/lib/data/detail/personalizedOverlay";
 
 type DetailSearchParams = Record<string, string | string[] | undefined>;
 
@@ -87,6 +91,12 @@ export default async function ClubDetailPage(props: {
         slug: slug?.name,
     };
 
+    const anonymousRequestData = {
+        ...requestData,
+        userId: undefined,
+        profileId: undefined,
+    };
+
     const getCachedDetailPageData = (requestData: ParameterizedRequestData) =>
         unstable_cache(
             async () => {
@@ -97,17 +107,17 @@ export default async function ClubDetailPage(props: {
                     throw error;
                 }
             },
-            ["club-detail-data", JSON.stringify(requestData)],
+            buildDetailCacheKey("club-detail-data", requestData),
             {
                 revalidate: CACHE.detailPage,
-                tags: ["club-detail-data", JSON.stringify(requestData)],
+                tags: ["club-detail-data"],
             },
         );
 
     let result;
     let closedClub: { clubName: string; closedAt: Date | null } | null = null;
     try {
-        result = await getCachedDetailPageData(requestData)();
+        result = await getCachedDetailPageData(anonymousRequestData)();
     } catch (error) {
         if (error instanceof ClosedClubError) {
             closedClub = { clubName: error.clubName, closedAt: error.closedAt };
@@ -116,6 +126,10 @@ export default async function ClubDetailPage(props: {
         } else {
             throw error;
         }
+    }
+
+    if (result) {
+        result = await applyFavoriteOverlay(result, session?.profile?.id);
     }
 
     if (closedClub) {

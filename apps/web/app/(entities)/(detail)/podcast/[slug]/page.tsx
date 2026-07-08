@@ -11,6 +11,7 @@ import { getPodcastDetailPageData } from "@/lib/data/podcast/detail/getPodcastDe
 import { buildPodcastJsonLd } from "@/util/jsonLd";
 import { stripHtmlTags } from "@/util/primatives/stringUtil";
 import { PUBLIC_PODCAST_ACCEPTED_ATTRIBUTION_WHERE } from "@/lib/data/podcast/publicWhere";
+import { isPodcastFavorite } from "@/lib/data/detail/personalizedOverlay";
 
 export async function generateMetadata(props: {
     params: Promise<{ slug: string }>;
@@ -72,11 +73,11 @@ export default async function PodcastDetailPage(props: {
     const [session, { slug }] = await Promise.all([auth(), props.params]);
     const profileId = session?.profile?.id;
     const getCached = unstable_cache(
-        async () => getPodcastDetailPageData(slug, profileId),
-        ["podcast-detail-data-v2", slug, profileId ?? "anonymous"],
+        async () => getPodcastDetailPageData(slug),
+        ["podcast-detail-data-v2", slug],
         {
             revalidate: CACHE.detailPage,
-            tags: ["podcast-detail-data-v2", slug, profileId ?? "anonymous"],
+            tags: ["podcast-detail-data-v2", slug],
         },
     );
 
@@ -89,6 +90,10 @@ export default async function PodcastDetailPage(props: {
         }
         throw error;
     }
+    result.podcast.isFavorite = await isPodcastFavorite(
+        result.podcast.id,
+        profileId,
+    );
 
     return (
         <>

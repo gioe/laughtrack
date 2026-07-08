@@ -17,6 +17,10 @@ import { buildComedianImageUrl } from "@/util/imageUtil";
 import JsonLd from "@/ui/components/JsonLd";
 import { buildComedianJsonLd, buildShowJsonLd } from "@/util/jsonLd";
 import { readTimezoneCookie } from "@/util/timezone";
+import {
+    applyFavoriteOverlay,
+    buildDetailCacheKey,
+} from "@/lib/data/detail/personalizedOverlay";
 
 type DetailSearchParams = Record<string, string | string[] | undefined>;
 
@@ -90,6 +94,12 @@ export default async function ComedianDetailsPage(props: {
         slug: slug?.name,
     };
 
+    const anonymousRequestData = {
+        ...requestData,
+        userId: undefined,
+        profileId: undefined,
+    };
+
     const getCachedDetailPageData = (requestData: ParameterizedRequestData) =>
         unstable_cache(
             async () => {
@@ -103,22 +113,23 @@ export default async function ComedianDetailsPage(props: {
                     throw error;
                 }
             },
-            ["comedian-detail-data", JSON.stringify(requestData)],
+            buildDetailCacheKey("comedian-detail-data", requestData),
             {
                 revalidate: CACHE.detailPage,
-                tags: ["comedian-detail-data", JSON.stringify(requestData)],
+                tags: ["comedian-detail-data"],
             },
         );
 
     let result;
     try {
-        result = await getCachedDetailPageData(requestData)();
+        result = await getCachedDetailPageData(anonymousRequestData)();
     } catch (error) {
         if (error instanceof NotFoundError) {
             notFound();
         }
         throw error;
     }
+    result = await applyFavoriteOverlay(result, session?.profile?.id);
 
     const {
         data,
