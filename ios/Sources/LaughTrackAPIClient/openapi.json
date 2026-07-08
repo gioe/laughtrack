@@ -387,6 +387,90 @@
             }
           }
         }
+      },
+      "patch": {
+        "operationId": "patchMeNotifications",
+        "summary": "Update the authenticated user's show-notification preferences",
+        "description": "Updates the email/push show-notification toggles for the authenticated user. At least one field must be provided; omitted fields are left unchanged.",
+        "tags": [
+          "auth"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotificationPreferenceUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Notification preferences updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationPreferenceUpdateResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body or no preference provided",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid Bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Authenticated user has no UserProfile row",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "headers": {
+              "Retry-After": {
+                "description": "Number of seconds the client should wait before retrying.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/me/notifications/seen": {
@@ -432,6 +516,262 @@
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/me/location": {
+      "patch": {
+        "operationId": "patchMeLocation",
+        "summary": "Update the authenticated user's Near-Me location preferences",
+        "description": "Sets the saved ZIP code and nearby search radius used for Near Me. Send null for a field to clear it (the client sends explicit JSON null to clear the saved ZIP / distance).",
+        "tags": [
+          "auth"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileLocationUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Location preferences updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileLocationUpdateResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body (zipCode must be a 5-digit US ZIP, distance a positive integer)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid Bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Authenticated user has no UserProfile row",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "headers": {
+              "Retry-After": {
+                "description": "Number of seconds the client should wait before retrying.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/me/push-tokens": {
+      "post": {
+        "operationId": "registerMePushToken",
+        "summary": "Register a device push token for the authenticated user",
+        "description": "Upserts an APNs (iOS) or FCM (Android) device token so the user receives comedian-arrival push notifications. iOS APNs hex tokens are stored lowercased; Android FCM tokens are stored verbatim.",
+        "tags": [
+          "auth"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PushTokenRegisterRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Push token registered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PushTokenRegisterResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body (token length / platform)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid Bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Authenticated user has no UserProfile row",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "headers": {
+              "Retry-After": {
+                "description": "Number of seconds the client should wait before retrying.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteMePushToken",
+        "summary": "Deactivate a device push token for the authenticated user",
+        "description": "Deactivates (soft-deletes) a previously registered device token so the device stops receiving push notifications.",
+        "tags": [
+          "auth"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PushTokenRegisterRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Push token deactivation result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PushTokenDeleteResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body (token length / platform)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid Bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Authenticated user has no UserProfile row",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "headers": {
+              "Retry-After": {
+                "description": "Number of seconds the client should wait before retrying.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -2519,6 +2859,172 @@
       }
     },
     "schemas": {
+      "ProfileLocationUpdateRequest": {
+        "type": "object",
+        "required": [
+          "zipCode",
+          "nearbyDistanceMiles"
+        ],
+        "properties": {
+          "zipCode": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^\\d{5}$",
+            "description": "5-digit US ZIP code, or null to clear the saved ZIP."
+          },
+          "nearbyDistanceMiles": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "description": "Nearby search radius in miles, or null to clear the saved distance."
+          }
+        }
+      },
+      "ProfileLocationUpdateResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "zipCode",
+              "nearbyDistanceMiles"
+            ],
+            "properties": {
+              "zipCode": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Saved profile ZIP code used for Near Me."
+              },
+              "nearbyDistanceMiles": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "description": "Saved profile distance in miles used for Near Me."
+              }
+            }
+          }
+        }
+      },
+      "NotificationPreferenceUpdateRequest": {
+        "type": "object",
+        "description": "At least one of the two toggles must be present; omitted toggles are left unchanged.",
+        "properties": {
+          "emailShowNotifications": {
+            "type": "boolean",
+            "description": "Whether the user receives email notifications for new shows from saved comedians."
+          },
+          "pushShowNotifications": {
+            "type": "boolean",
+            "description": "Whether the user receives push notifications for new shows from saved comedians."
+          }
+        }
+      },
+      "NotificationPreferenceUpdateResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "emailShowNotifications",
+              "pushShowNotifications"
+            ],
+            "properties": {
+              "emailShowNotifications": {
+                "type": "boolean"
+              },
+              "pushShowNotifications": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      },
+      "PushTokenRegisterRequest": {
+        "type": "object",
+        "required": [
+          "token"
+        ],
+        "properties": {
+          "token": {
+            "type": "string",
+            "minLength": 16,
+            "maxLength": 4096,
+            "description": "APNs hex device token (iOS) or FCM registration token (Android)."
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "ios",
+              "android"
+            ],
+            "default": "ios",
+            "description": "Push platform. Defaults to ios."
+          }
+        }
+      },
+      "PushTokenRegisterResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "id",
+              "platform",
+              "isActive"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Server id of the stored push-token row."
+              },
+              "platform": {
+                "type": "string",
+                "description": "Push platform the token was stored under."
+              },
+              "isActive": {
+                "type": "boolean",
+                "description": "Whether the token is active."
+              }
+            }
+          }
+        }
+      },
+      "PushTokenDeleteResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "deactivated"
+            ],
+            "properties": {
+              "deactivated": {
+                "type": "boolean",
+                "description": "True if a matching active token was deactivated."
+              }
+            }
+          }
+        }
+      },
       "ErrorResponse": {
         "type": "object",
         "required": ["error"],

@@ -13,7 +13,14 @@ import app.laughtrack.android.core.network.generated.model.MeResponse
 import app.laughtrack.android.core.network.generated.model.MeUpdateRequest
 import app.laughtrack.android.core.network.generated.model.MeUpdateResponse
 import app.laughtrack.android.core.network.generated.model.NotificationListResponse
+import app.laughtrack.android.core.network.generated.model.NotificationPreferenceUpdateRequest
+import app.laughtrack.android.core.network.generated.model.NotificationPreferenceUpdateResponse
 import app.laughtrack.android.core.network.generated.model.NotificationsSeenResponse
+import app.laughtrack.android.core.network.generated.model.ProfileLocationUpdateRequest
+import app.laughtrack.android.core.network.generated.model.ProfileLocationUpdateResponse
+import app.laughtrack.android.core.network.generated.model.PushTokenDeleteResponse
+import app.laughtrack.android.core.network.generated.model.PushTokenRegisterRequest
+import app.laughtrack.android.core.network.generated.model.PushTokenRegisterResponse
 import app.laughtrack.android.core.network.generated.model.RefreshTokenRequest
 import app.laughtrack.android.core.network.generated.model.SignoutResponse
 import app.laughtrack.android.core.network.generated.model.TokenResponse
@@ -33,6 +40,22 @@ interface AuthApi {
      */
     @DELETE("me")
     suspend fun deleteMe(): Response<AccountDeletionResponse>
+
+    /**
+     * Deactivate a device push token for the authenticated user
+     * Deactivates (soft-deletes) a previously registered device token so the device stops receiving push notifications.
+     * Responses:
+     *  - 200: Push token deactivation result
+     *  - 400: Invalid request body (token length / platform)
+     *  - 401: Missing or invalid Bearer token
+     *  - 422: Authenticated user has no UserProfile row
+     *  - 429: Rate limit exceeded
+     *
+     * @param pushTokenRegisterRequest 
+     * @return [PushTokenDeleteResponse]
+     */
+    @DELETE("me/push-tokens")
+    suspend fun deleteMePushToken(@Body pushTokenRegisterRequest: PushTokenRegisterRequest): Response<PushTokenDeleteResponse>
 
     /**
      * Exchange a session cookie for an access + refresh token pair
@@ -91,6 +114,38 @@ interface AuthApi {
     suspend fun markMeNotificationsSeen(): Response<NotificationsSeenResponse>
 
     /**
+     * Update the authenticated user&#39;s Near-Me location preferences
+     * Sets the saved ZIP code and nearby search radius used for Near Me. Send null for a field to clear it (the client sends explicit JSON null to clear the saved ZIP / distance).
+     * Responses:
+     *  - 200: Location preferences updated
+     *  - 400: Invalid request body (zipCode must be a 5-digit US ZIP, distance a positive integer)
+     *  - 401: Missing or invalid Bearer token
+     *  - 422: Authenticated user has no UserProfile row
+     *  - 429: Rate limit exceeded
+     *
+     * @param profileLocationUpdateRequest 
+     * @return [ProfileLocationUpdateResponse]
+     */
+    @PATCH("me/location")
+    suspend fun patchMeLocation(@Body profileLocationUpdateRequest: ProfileLocationUpdateRequest): Response<ProfileLocationUpdateResponse>
+
+    /**
+     * Update the authenticated user&#39;s show-notification preferences
+     * Updates the email/push show-notification toggles for the authenticated user. At least one field must be provided; omitted fields are left unchanged.
+     * Responses:
+     *  - 200: Notification preferences updated
+     *  - 400: Invalid request body or no preference provided
+     *  - 401: Missing or invalid Bearer token
+     *  - 422: Authenticated user has no UserProfile row
+     *  - 429: Rate limit exceeded
+     *
+     * @param notificationPreferenceUpdateRequest 
+     * @return [NotificationPreferenceUpdateResponse]
+     */
+    @PATCH("me/notifications")
+    suspend fun patchMeNotifications(@Body notificationPreferenceUpdateRequest: NotificationPreferenceUpdateRequest): Response<NotificationPreferenceUpdateResponse>
+
+    /**
      * Rotate a refresh token for a new access + refresh pair
      * Atomically revokes the submitted refresh token and issues a new access+refresh pair. Revoked, expired, or unknown tokens return 401. No Bearer authentication required — the refresh token itself is the credential.
      * Responses:
@@ -104,6 +159,22 @@ interface AuthApi {
      */
     @POST("auth/refresh")
     suspend fun refreshToken(@Body refreshTokenRequest: RefreshTokenRequest): Response<TokenResponse>
+
+    /**
+     * Register a device push token for the authenticated user
+     * Upserts an APNs (iOS) or FCM (Android) device token so the user receives comedian-arrival push notifications. iOS APNs hex tokens are stored lowercased; Android FCM tokens are stored verbatim.
+     * Responses:
+     *  - 200: Push token registered
+     *  - 400: Invalid request body (token length / platform)
+     *  - 401: Missing or invalid Bearer token
+     *  - 422: Authenticated user has no UserProfile row
+     *  - 429: Rate limit exceeded
+     *
+     * @param pushTokenRegisterRequest 
+     * @return [PushTokenRegisterResponse]
+     */
+    @POST("me/push-tokens")
+    suspend fun registerMePushToken(@Body pushTokenRegisterRequest: PushTokenRegisterRequest): Response<PushTokenRegisterResponse>
 
     /**
      * Revoke every active refresh token for the authenticated user

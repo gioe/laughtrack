@@ -60,6 +60,13 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `GET /me/notifications`.
     /// - Remark: Generated from `#/paths//me/notifications/get(getMeNotifications)`.
     func getMeNotifications(_ input: Operations.GetMeNotifications.Input) async throws -> Operations.GetMeNotifications.Output
+    /// Update the authenticated user's show-notification preferences
+    ///
+    /// Updates the email/push show-notification toggles for the authenticated user. At least one field must be provided; omitted fields are left unchanged.
+    ///
+    /// - Remark: HTTP `PATCH /me/notifications`.
+    /// - Remark: Generated from `#/paths//me/notifications/patch(patchMeNotifications)`.
+    func patchMeNotifications(_ input: Operations.PatchMeNotifications.Input) async throws -> Operations.PatchMeNotifications.Output
     /// Mark the notification center as seen
     ///
     /// Stamps the notifications last-seen high-water mark to now, clearing the unread badge. iOS calls this when the user opens the notification center.
@@ -67,6 +74,27 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `POST /me/notifications/seen`.
     /// - Remark: Generated from `#/paths//me/notifications/seen/post(markMeNotificationsSeen)`.
     func markMeNotificationsSeen(_ input: Operations.MarkMeNotificationsSeen.Input) async throws -> Operations.MarkMeNotificationsSeen.Output
+    /// Update the authenticated user's Near-Me location preferences
+    ///
+    /// Sets the saved ZIP code and nearby search radius used for Near Me. Send null for a field to clear it (the client sends explicit JSON null to clear the saved ZIP / distance).
+    ///
+    /// - Remark: HTTP `PATCH /me/location`.
+    /// - Remark: Generated from `#/paths//me/location/patch(patchMeLocation)`.
+    func patchMeLocation(_ input: Operations.PatchMeLocation.Input) async throws -> Operations.PatchMeLocation.Output
+    /// Register a device push token for the authenticated user
+    ///
+    /// Upserts an APNs (iOS) or FCM (Android) device token so the user receives comedian-arrival push notifications. iOS APNs hex tokens are stored lowercased; Android FCM tokens are stored verbatim.
+    ///
+    /// - Remark: HTTP `POST /me/push-tokens`.
+    /// - Remark: Generated from `#/paths//me/push-tokens/post(registerMePushToken)`.
+    func registerMePushToken(_ input: Operations.RegisterMePushToken.Input) async throws -> Operations.RegisterMePushToken.Output
+    /// Deactivate a device push token for the authenticated user
+    ///
+    /// Deactivates (soft-deletes) a previously registered device token so the device stops receiving push notifications.
+    ///
+    /// - Remark: HTTP `DELETE /me/push-tokens`.
+    /// - Remark: Generated from `#/paths//me/push-tokens/delete(deleteMePushToken)`.
+    func deleteMePushToken(_ input: Operations.DeleteMePushToken.Input) async throws -> Operations.DeleteMePushToken.Output
     /// List active clubs with upcoming shows
     ///
     /// - Remark: HTTP `GET /clubs`.
@@ -316,6 +344,21 @@ extension APIProtocol {
     public func getMeNotifications(headers: Operations.GetMeNotifications.Input.Headers = .init()) async throws -> Operations.GetMeNotifications.Output {
         try await getMeNotifications(Operations.GetMeNotifications.Input(headers: headers))
     }
+    /// Update the authenticated user's show-notification preferences
+    ///
+    /// Updates the email/push show-notification toggles for the authenticated user. At least one field must be provided; omitted fields are left unchanged.
+    ///
+    /// - Remark: HTTP `PATCH /me/notifications`.
+    /// - Remark: Generated from `#/paths//me/notifications/patch(patchMeNotifications)`.
+    public func patchMeNotifications(
+        headers: Operations.PatchMeNotifications.Input.Headers = .init(),
+        body: Operations.PatchMeNotifications.Input.Body
+    ) async throws -> Operations.PatchMeNotifications.Output {
+        try await patchMeNotifications(Operations.PatchMeNotifications.Input(
+            headers: headers,
+            body: body
+        ))
+    }
     /// Mark the notification center as seen
     ///
     /// Stamps the notifications last-seen high-water mark to now, clearing the unread badge. iOS calls this when the user opens the notification center.
@@ -324,6 +367,51 @@ extension APIProtocol {
     /// - Remark: Generated from `#/paths//me/notifications/seen/post(markMeNotificationsSeen)`.
     public func markMeNotificationsSeen(headers: Operations.MarkMeNotificationsSeen.Input.Headers = .init()) async throws -> Operations.MarkMeNotificationsSeen.Output {
         try await markMeNotificationsSeen(Operations.MarkMeNotificationsSeen.Input(headers: headers))
+    }
+    /// Update the authenticated user's Near-Me location preferences
+    ///
+    /// Sets the saved ZIP code and nearby search radius used for Near Me. Send null for a field to clear it (the client sends explicit JSON null to clear the saved ZIP / distance).
+    ///
+    /// - Remark: HTTP `PATCH /me/location`.
+    /// - Remark: Generated from `#/paths//me/location/patch(patchMeLocation)`.
+    public func patchMeLocation(
+        headers: Operations.PatchMeLocation.Input.Headers = .init(),
+        body: Operations.PatchMeLocation.Input.Body
+    ) async throws -> Operations.PatchMeLocation.Output {
+        try await patchMeLocation(Operations.PatchMeLocation.Input(
+            headers: headers,
+            body: body
+        ))
+    }
+    /// Register a device push token for the authenticated user
+    ///
+    /// Upserts an APNs (iOS) or FCM (Android) device token so the user receives comedian-arrival push notifications. iOS APNs hex tokens are stored lowercased; Android FCM tokens are stored verbatim.
+    ///
+    /// - Remark: HTTP `POST /me/push-tokens`.
+    /// - Remark: Generated from `#/paths//me/push-tokens/post(registerMePushToken)`.
+    public func registerMePushToken(
+        headers: Operations.RegisterMePushToken.Input.Headers = .init(),
+        body: Operations.RegisterMePushToken.Input.Body
+    ) async throws -> Operations.RegisterMePushToken.Output {
+        try await registerMePushToken(Operations.RegisterMePushToken.Input(
+            headers: headers,
+            body: body
+        ))
+    }
+    /// Deactivate a device push token for the authenticated user
+    ///
+    /// Deactivates (soft-deletes) a previously registered device token so the device stops receiving push notifications.
+    ///
+    /// - Remark: HTTP `DELETE /me/push-tokens`.
+    /// - Remark: Generated from `#/paths//me/push-tokens/delete(deleteMePushToken)`.
+    public func deleteMePushToken(
+        headers: Operations.DeleteMePushToken.Input.Headers = .init(),
+        body: Operations.DeleteMePushToken.Input.Body
+    ) async throws -> Operations.DeleteMePushToken.Output {
+        try await deleteMePushToken(Operations.DeleteMePushToken.Input(
+            headers: headers,
+            body: body
+        ))
     }
     /// List active clubs with upcoming shows
     ///
@@ -743,6 +831,258 @@ public enum Servers {
 public enum Components {
     /// Types generated from the `#/components/schemas` section of the OpenAPI document.
     public enum Schemas {
+        /// - Remark: Generated from `#/components/schemas/ProfileLocationUpdateRequest`.
+        public struct ProfileLocationUpdateRequest: Codable, Hashable, Sendable {
+            /// 5-digit US ZIP code, or null to clear the saved ZIP.
+            ///
+            /// - Remark: Generated from `#/components/schemas/ProfileLocationUpdateRequest/zipCode`.
+            public var zipCode: Swift.String?
+            /// Nearby search radius in miles, or null to clear the saved distance.
+            ///
+            /// - Remark: Generated from `#/components/schemas/ProfileLocationUpdateRequest/nearbyDistanceMiles`.
+            public var nearbyDistanceMiles: Swift.Int?
+            /// Creates a new `ProfileLocationUpdateRequest`.
+            ///
+            /// - Parameters:
+            ///   - zipCode: 5-digit US ZIP code, or null to clear the saved ZIP.
+            ///   - nearbyDistanceMiles: Nearby search radius in miles, or null to clear the saved distance.
+            public init(
+                zipCode: Swift.String? = nil,
+                nearbyDistanceMiles: Swift.Int? = nil
+            ) {
+                self.zipCode = zipCode
+                self.nearbyDistanceMiles = nearbyDistanceMiles
+            }
+            public enum CodingKeys: String, CodingKey {
+                case zipCode
+                case nearbyDistanceMiles
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/ProfileLocationUpdateResponse`.
+        public struct ProfileLocationUpdateResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/ProfileLocationUpdateResponse/data`.
+            public struct DataPayload: Codable, Hashable, Sendable {
+                /// Saved profile ZIP code used for Near Me.
+                ///
+                /// - Remark: Generated from `#/components/schemas/ProfileLocationUpdateResponse/data/zipCode`.
+                public var zipCode: Swift.String?
+                /// Saved profile distance in miles used for Near Me.
+                ///
+                /// - Remark: Generated from `#/components/schemas/ProfileLocationUpdateResponse/data/nearbyDistanceMiles`.
+                public var nearbyDistanceMiles: Swift.Int?
+                /// Creates a new `DataPayload`.
+                ///
+                /// - Parameters:
+                ///   - zipCode: Saved profile ZIP code used for Near Me.
+                ///   - nearbyDistanceMiles: Saved profile distance in miles used for Near Me.
+                public init(
+                    zipCode: Swift.String? = nil,
+                    nearbyDistanceMiles: Swift.Int? = nil
+                ) {
+                    self.zipCode = zipCode
+                    self.nearbyDistanceMiles = nearbyDistanceMiles
+                }
+                public enum CodingKeys: String, CodingKey {
+                    case zipCode
+                    case nearbyDistanceMiles
+                }
+            }
+            /// - Remark: Generated from `#/components/schemas/ProfileLocationUpdateResponse/data`.
+            public var data: Components.Schemas.ProfileLocationUpdateResponse.DataPayload
+            /// Creates a new `ProfileLocationUpdateResponse`.
+            ///
+            /// - Parameters:
+            ///   - data:
+            public init(data: Components.Schemas.ProfileLocationUpdateResponse.DataPayload) {
+                self.data = data
+            }
+            public enum CodingKeys: String, CodingKey {
+                case data
+            }
+        }
+        /// At least one of the two toggles must be present; omitted toggles are left unchanged.
+        ///
+        /// - Remark: Generated from `#/components/schemas/NotificationPreferenceUpdateRequest`.
+        public struct NotificationPreferenceUpdateRequest: Codable, Hashable, Sendable {
+            /// Whether the user receives email notifications for new shows from saved comedians.
+            ///
+            /// - Remark: Generated from `#/components/schemas/NotificationPreferenceUpdateRequest/emailShowNotifications`.
+            public var emailShowNotifications: Swift.Bool?
+            /// Whether the user receives push notifications for new shows from saved comedians.
+            ///
+            /// - Remark: Generated from `#/components/schemas/NotificationPreferenceUpdateRequest/pushShowNotifications`.
+            public var pushShowNotifications: Swift.Bool?
+            /// Creates a new `NotificationPreferenceUpdateRequest`.
+            ///
+            /// - Parameters:
+            ///   - emailShowNotifications: Whether the user receives email notifications for new shows from saved comedians.
+            ///   - pushShowNotifications: Whether the user receives push notifications for new shows from saved comedians.
+            public init(
+                emailShowNotifications: Swift.Bool? = nil,
+                pushShowNotifications: Swift.Bool? = nil
+            ) {
+                self.emailShowNotifications = emailShowNotifications
+                self.pushShowNotifications = pushShowNotifications
+            }
+            public enum CodingKeys: String, CodingKey {
+                case emailShowNotifications
+                case pushShowNotifications
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/NotificationPreferenceUpdateResponse`.
+        public struct NotificationPreferenceUpdateResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/NotificationPreferenceUpdateResponse/data`.
+            public struct DataPayload: Codable, Hashable, Sendable {
+                /// - Remark: Generated from `#/components/schemas/NotificationPreferenceUpdateResponse/data/emailShowNotifications`.
+                public var emailShowNotifications: Swift.Bool
+                /// - Remark: Generated from `#/components/schemas/NotificationPreferenceUpdateResponse/data/pushShowNotifications`.
+                public var pushShowNotifications: Swift.Bool
+                /// Creates a new `DataPayload`.
+                ///
+                /// - Parameters:
+                ///   - emailShowNotifications:
+                ///   - pushShowNotifications:
+                public init(
+                    emailShowNotifications: Swift.Bool,
+                    pushShowNotifications: Swift.Bool
+                ) {
+                    self.emailShowNotifications = emailShowNotifications
+                    self.pushShowNotifications = pushShowNotifications
+                }
+                public enum CodingKeys: String, CodingKey {
+                    case emailShowNotifications
+                    case pushShowNotifications
+                }
+            }
+            /// - Remark: Generated from `#/components/schemas/NotificationPreferenceUpdateResponse/data`.
+            public var data: Components.Schemas.NotificationPreferenceUpdateResponse.DataPayload
+            /// Creates a new `NotificationPreferenceUpdateResponse`.
+            ///
+            /// - Parameters:
+            ///   - data:
+            public init(data: Components.Schemas.NotificationPreferenceUpdateResponse.DataPayload) {
+                self.data = data
+            }
+            public enum CodingKeys: String, CodingKey {
+                case data
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/PushTokenRegisterRequest`.
+        public struct PushTokenRegisterRequest: Codable, Hashable, Sendable {
+            /// APNs hex device token (iOS) or FCM registration token (Android).
+            ///
+            /// - Remark: Generated from `#/components/schemas/PushTokenRegisterRequest/token`.
+            public var token: Swift.String
+            /// Push platform. Defaults to ios.
+            ///
+            /// - Remark: Generated from `#/components/schemas/PushTokenRegisterRequest/platform`.
+            @frozen public enum PlatformPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                case ios = "ios"
+                case android = "android"
+            }
+            /// Push platform. Defaults to ios.
+            ///
+            /// - Remark: Generated from `#/components/schemas/PushTokenRegisterRequest/platform`.
+            public var platform: Components.Schemas.PushTokenRegisterRequest.PlatformPayload?
+            /// Creates a new `PushTokenRegisterRequest`.
+            ///
+            /// - Parameters:
+            ///   - token: APNs hex device token (iOS) or FCM registration token (Android).
+            ///   - platform: Push platform. Defaults to ios.
+            public init(
+                token: Swift.String,
+                platform: Components.Schemas.PushTokenRegisterRequest.PlatformPayload? = nil
+            ) {
+                self.token = token
+                self.platform = platform
+            }
+            public enum CodingKeys: String, CodingKey {
+                case token
+                case platform
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/PushTokenRegisterResponse`.
+        public struct PushTokenRegisterResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/PushTokenRegisterResponse/data`.
+            public struct DataPayload: Codable, Hashable, Sendable {
+                /// Server id of the stored push-token row.
+                ///
+                /// - Remark: Generated from `#/components/schemas/PushTokenRegisterResponse/data/id`.
+                public var id: Swift.String
+                /// Push platform the token was stored under.
+                ///
+                /// - Remark: Generated from `#/components/schemas/PushTokenRegisterResponse/data/platform`.
+                public var platform: Swift.String
+                /// Whether the token is active.
+                ///
+                /// - Remark: Generated from `#/components/schemas/PushTokenRegisterResponse/data/isActive`.
+                public var isActive: Swift.Bool
+                /// Creates a new `DataPayload`.
+                ///
+                /// - Parameters:
+                ///   - id: Server id of the stored push-token row.
+                ///   - platform: Push platform the token was stored under.
+                ///   - isActive: Whether the token is active.
+                public init(
+                    id: Swift.String,
+                    platform: Swift.String,
+                    isActive: Swift.Bool
+                ) {
+                    self.id = id
+                    self.platform = platform
+                    self.isActive = isActive
+                }
+                public enum CodingKeys: String, CodingKey {
+                    case id
+                    case platform
+                    case isActive
+                }
+            }
+            /// - Remark: Generated from `#/components/schemas/PushTokenRegisterResponse/data`.
+            public var data: Components.Schemas.PushTokenRegisterResponse.DataPayload
+            /// Creates a new `PushTokenRegisterResponse`.
+            ///
+            /// - Parameters:
+            ///   - data:
+            public init(data: Components.Schemas.PushTokenRegisterResponse.DataPayload) {
+                self.data = data
+            }
+            public enum CodingKeys: String, CodingKey {
+                case data
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/PushTokenDeleteResponse`.
+        public struct PushTokenDeleteResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/PushTokenDeleteResponse/data`.
+            public struct DataPayload: Codable, Hashable, Sendable {
+                /// True if a matching active token was deactivated.
+                ///
+                /// - Remark: Generated from `#/components/schemas/PushTokenDeleteResponse/data/deactivated`.
+                public var deactivated: Swift.Bool
+                /// Creates a new `DataPayload`.
+                ///
+                /// - Parameters:
+                ///   - deactivated: True if a matching active token was deactivated.
+                public init(deactivated: Swift.Bool) {
+                    self.deactivated = deactivated
+                }
+                public enum CodingKeys: String, CodingKey {
+                    case deactivated
+                }
+            }
+            /// - Remark: Generated from `#/components/schemas/PushTokenDeleteResponse/data`.
+            public var data: Components.Schemas.PushTokenDeleteResponse.DataPayload
+            /// Creates a new `PushTokenDeleteResponse`.
+            ///
+            /// - Parameters:
+            ///   - data:
+            public init(data: Components.Schemas.PushTokenDeleteResponse.DataPayload) {
+                self.data = data
+            }
+            public enum CodingKeys: String, CodingKey {
+                case data
+            }
+        }
         /// - Remark: Generated from `#/components/schemas/ErrorResponse`.
         public struct ErrorResponse: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/ErrorResponse/error`.
@@ -5900,6 +6240,354 @@ public enum Operations {
             }
         }
     }
+    /// Update the authenticated user's show-notification preferences
+    ///
+    /// Updates the email/push show-notification toggles for the authenticated user. At least one field must be provided; omitted fields are left unchanged.
+    ///
+    /// - Remark: HTTP `PATCH /me/notifications`.
+    /// - Remark: Generated from `#/paths//me/notifications/patch(patchMeNotifications)`.
+    public enum PatchMeNotifications {
+        public static let id: Swift.String = "patchMeNotifications"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/me/notifications/PATCH/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.PatchMeNotifications.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.PatchMeNotifications.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.PatchMeNotifications.Input.Headers
+            /// - Remark: Generated from `#/paths/me/notifications/PATCH/requestBody`.
+            @frozen public enum Body: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/notifications/PATCH/requestBody/content/application\/json`.
+                case json(Components.Schemas.NotificationPreferenceUpdateRequest)
+            }
+            public var body: Operations.PatchMeNotifications.Input.Body
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - headers:
+            ///   - body:
+            public init(
+                headers: Operations.PatchMeNotifications.Input.Headers = .init(),
+                body: Operations.PatchMeNotifications.Input.Body
+            ) {
+                self.headers = headers
+                self.body = body
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/notifications/PATCH/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/notifications/PATCH/responses/200/content/application\/json`.
+                    case json(Components.Schemas.NotificationPreferenceUpdateResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.NotificationPreferenceUpdateResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.PatchMeNotifications.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.PatchMeNotifications.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Notification preferences updated
+            ///
+            /// - Remark: Generated from `#/paths//me/notifications/patch(patchMeNotifications)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.PatchMeNotifications.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.PatchMeNotifications.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct BadRequest: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/notifications/PATCH/responses/400/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/notifications/PATCH/responses/400/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.PatchMeNotifications.Output.BadRequest.Body
+                /// Creates a new `BadRequest`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.PatchMeNotifications.Output.BadRequest.Body) {
+                    self.body = body
+                }
+            }
+            /// Invalid request body or no preference provided
+            ///
+            /// - Remark: Generated from `#/paths//me/notifications/patch(patchMeNotifications)/responses/400`.
+            ///
+            /// HTTP response code: `400 badRequest`.
+            case badRequest(Operations.PatchMeNotifications.Output.BadRequest)
+            /// The associated value of the enum case if `self` is `.badRequest`.
+            ///
+            /// - Throws: An error if `self` is not `.badRequest`.
+            /// - SeeAlso: `.badRequest`.
+            public var badRequest: Operations.PatchMeNotifications.Output.BadRequest {
+                get throws {
+                    switch self {
+                    case let .badRequest(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "badRequest",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Unauthorized: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/notifications/PATCH/responses/401/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/notifications/PATCH/responses/401/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.PatchMeNotifications.Output.Unauthorized.Body
+                /// Creates a new `Unauthorized`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.PatchMeNotifications.Output.Unauthorized.Body) {
+                    self.body = body
+                }
+            }
+            /// Missing or invalid Bearer token
+            ///
+            /// - Remark: Generated from `#/paths//me/notifications/patch(patchMeNotifications)/responses/401`.
+            ///
+            /// HTTP response code: `401 unauthorized`.
+            case unauthorized(Operations.PatchMeNotifications.Output.Unauthorized)
+            /// The associated value of the enum case if `self` is `.unauthorized`.
+            ///
+            /// - Throws: An error if `self` is not `.unauthorized`.
+            /// - SeeAlso: `.unauthorized`.
+            public var unauthorized: Operations.PatchMeNotifications.Output.Unauthorized {
+                get throws {
+                    switch self {
+                    case let .unauthorized(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unauthorized",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct UnprocessableContent: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/notifications/PATCH/responses/422/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/notifications/PATCH/responses/422/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.PatchMeNotifications.Output.UnprocessableContent.Body
+                /// Creates a new `UnprocessableContent`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.PatchMeNotifications.Output.UnprocessableContent.Body) {
+                    self.body = body
+                }
+            }
+            /// Authenticated user has no UserProfile row
+            ///
+            /// - Remark: Generated from `#/paths//me/notifications/patch(patchMeNotifications)/responses/422`.
+            ///
+            /// HTTP response code: `422 unprocessableContent`.
+            case unprocessableContent(Operations.PatchMeNotifications.Output.UnprocessableContent)
+            /// The associated value of the enum case if `self` is `.unprocessableContent`.
+            ///
+            /// - Throws: An error if `self` is not `.unprocessableContent`.
+            /// - SeeAlso: `.unprocessableContent`.
+            public var unprocessableContent: Operations.PatchMeNotifications.Output.UnprocessableContent {
+                get throws {
+                    switch self {
+                    case let .unprocessableContent(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unprocessableContent",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/notifications/PATCH/responses/429/headers`.
+                public struct Headers: Sendable, Hashable {
+                    /// Number of seconds the client should wait before retrying.
+                    ///
+                    /// - Remark: Generated from `#/paths/me/notifications/PATCH/responses/429/headers/Retry-After`.
+                    public var retryAfter: Swift.Int?
+                    /// Creates a new `Headers`.
+                    ///
+                    /// - Parameters:
+                    ///   - retryAfter: Number of seconds the client should wait before retrying.
+                    public init(retryAfter: Swift.Int? = nil) {
+                        self.retryAfter = retryAfter
+                    }
+                }
+                /// Received HTTP response headers
+                public var headers: Operations.PatchMeNotifications.Output.TooManyRequests.Headers
+                /// - Remark: Generated from `#/paths/me/notifications/PATCH/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/notifications/PATCH/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.PatchMeNotifications.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - headers: Received HTTP response headers
+                ///   - body: Received HTTP response body
+                public init(
+                    headers: Operations.PatchMeNotifications.Output.TooManyRequests.Headers = .init(),
+                    body: Operations.PatchMeNotifications.Output.TooManyRequests.Body
+                ) {
+                    self.headers = headers
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded
+            ///
+            /// - Remark: Generated from `#/paths//me/notifications/patch(patchMeNotifications)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.PatchMeNotifications.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.PatchMeNotifications.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
     /// Mark the notification center as seen
     ///
     /// Stamps the notifications last-seen high-water mark to now, clearing the unread badge. iOS calls this when the user opens the notification center.
@@ -6143,6 +6831,1050 @@ public enum Operations {
             /// - Throws: An error if `self` is not `.tooManyRequests`.
             /// - SeeAlso: `.tooManyRequests`.
             public var tooManyRequests: Operations.MarkMeNotificationsSeen.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Update the authenticated user's Near-Me location preferences
+    ///
+    /// Sets the saved ZIP code and nearby search radius used for Near Me. Send null for a field to clear it (the client sends explicit JSON null to clear the saved ZIP / distance).
+    ///
+    /// - Remark: HTTP `PATCH /me/location`.
+    /// - Remark: Generated from `#/paths//me/location/patch(patchMeLocation)`.
+    public enum PatchMeLocation {
+        public static let id: Swift.String = "patchMeLocation"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/me/location/PATCH/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.PatchMeLocation.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.PatchMeLocation.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.PatchMeLocation.Input.Headers
+            /// - Remark: Generated from `#/paths/me/location/PATCH/requestBody`.
+            @frozen public enum Body: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/location/PATCH/requestBody/content/application\/json`.
+                case json(Components.Schemas.ProfileLocationUpdateRequest)
+            }
+            public var body: Operations.PatchMeLocation.Input.Body
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - headers:
+            ///   - body:
+            public init(
+                headers: Operations.PatchMeLocation.Input.Headers = .init(),
+                body: Operations.PatchMeLocation.Input.Body
+            ) {
+                self.headers = headers
+                self.body = body
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/location/PATCH/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/location/PATCH/responses/200/content/application\/json`.
+                    case json(Components.Schemas.ProfileLocationUpdateResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ProfileLocationUpdateResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.PatchMeLocation.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.PatchMeLocation.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Location preferences updated
+            ///
+            /// - Remark: Generated from `#/paths//me/location/patch(patchMeLocation)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.PatchMeLocation.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.PatchMeLocation.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct BadRequest: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/location/PATCH/responses/400/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/location/PATCH/responses/400/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.PatchMeLocation.Output.BadRequest.Body
+                /// Creates a new `BadRequest`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.PatchMeLocation.Output.BadRequest.Body) {
+                    self.body = body
+                }
+            }
+            /// Invalid request body (zipCode must be a 5-digit US ZIP, distance a positive integer)
+            ///
+            /// - Remark: Generated from `#/paths//me/location/patch(patchMeLocation)/responses/400`.
+            ///
+            /// HTTP response code: `400 badRequest`.
+            case badRequest(Operations.PatchMeLocation.Output.BadRequest)
+            /// The associated value of the enum case if `self` is `.badRequest`.
+            ///
+            /// - Throws: An error if `self` is not `.badRequest`.
+            /// - SeeAlso: `.badRequest`.
+            public var badRequest: Operations.PatchMeLocation.Output.BadRequest {
+                get throws {
+                    switch self {
+                    case let .badRequest(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "badRequest",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Unauthorized: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/location/PATCH/responses/401/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/location/PATCH/responses/401/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.PatchMeLocation.Output.Unauthorized.Body
+                /// Creates a new `Unauthorized`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.PatchMeLocation.Output.Unauthorized.Body) {
+                    self.body = body
+                }
+            }
+            /// Missing or invalid Bearer token
+            ///
+            /// - Remark: Generated from `#/paths//me/location/patch(patchMeLocation)/responses/401`.
+            ///
+            /// HTTP response code: `401 unauthorized`.
+            case unauthorized(Operations.PatchMeLocation.Output.Unauthorized)
+            /// The associated value of the enum case if `self` is `.unauthorized`.
+            ///
+            /// - Throws: An error if `self` is not `.unauthorized`.
+            /// - SeeAlso: `.unauthorized`.
+            public var unauthorized: Operations.PatchMeLocation.Output.Unauthorized {
+                get throws {
+                    switch self {
+                    case let .unauthorized(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unauthorized",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct UnprocessableContent: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/location/PATCH/responses/422/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/location/PATCH/responses/422/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.PatchMeLocation.Output.UnprocessableContent.Body
+                /// Creates a new `UnprocessableContent`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.PatchMeLocation.Output.UnprocessableContent.Body) {
+                    self.body = body
+                }
+            }
+            /// Authenticated user has no UserProfile row
+            ///
+            /// - Remark: Generated from `#/paths//me/location/patch(patchMeLocation)/responses/422`.
+            ///
+            /// HTTP response code: `422 unprocessableContent`.
+            case unprocessableContent(Operations.PatchMeLocation.Output.UnprocessableContent)
+            /// The associated value of the enum case if `self` is `.unprocessableContent`.
+            ///
+            /// - Throws: An error if `self` is not `.unprocessableContent`.
+            /// - SeeAlso: `.unprocessableContent`.
+            public var unprocessableContent: Operations.PatchMeLocation.Output.UnprocessableContent {
+                get throws {
+                    switch self {
+                    case let .unprocessableContent(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unprocessableContent",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/location/PATCH/responses/429/headers`.
+                public struct Headers: Sendable, Hashable {
+                    /// Number of seconds the client should wait before retrying.
+                    ///
+                    /// - Remark: Generated from `#/paths/me/location/PATCH/responses/429/headers/Retry-After`.
+                    public var retryAfter: Swift.Int?
+                    /// Creates a new `Headers`.
+                    ///
+                    /// - Parameters:
+                    ///   - retryAfter: Number of seconds the client should wait before retrying.
+                    public init(retryAfter: Swift.Int? = nil) {
+                        self.retryAfter = retryAfter
+                    }
+                }
+                /// Received HTTP response headers
+                public var headers: Operations.PatchMeLocation.Output.TooManyRequests.Headers
+                /// - Remark: Generated from `#/paths/me/location/PATCH/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/location/PATCH/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.PatchMeLocation.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - headers: Received HTTP response headers
+                ///   - body: Received HTTP response body
+                public init(
+                    headers: Operations.PatchMeLocation.Output.TooManyRequests.Headers = .init(),
+                    body: Operations.PatchMeLocation.Output.TooManyRequests.Body
+                ) {
+                    self.headers = headers
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded
+            ///
+            /// - Remark: Generated from `#/paths//me/location/patch(patchMeLocation)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.PatchMeLocation.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.PatchMeLocation.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Register a device push token for the authenticated user
+    ///
+    /// Upserts an APNs (iOS) or FCM (Android) device token so the user receives comedian-arrival push notifications. iOS APNs hex tokens are stored lowercased; Android FCM tokens are stored verbatim.
+    ///
+    /// - Remark: HTTP `POST /me/push-tokens`.
+    /// - Remark: Generated from `#/paths//me/push-tokens/post(registerMePushToken)`.
+    public enum RegisterMePushToken {
+        public static let id: Swift.String = "registerMePushToken"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/me/push-tokens/POST/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.RegisterMePushToken.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.RegisterMePushToken.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.RegisterMePushToken.Input.Headers
+            /// - Remark: Generated from `#/paths/me/push-tokens/POST/requestBody`.
+            @frozen public enum Body: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/push-tokens/POST/requestBody/content/application\/json`.
+                case json(Components.Schemas.PushTokenRegisterRequest)
+            }
+            public var body: Operations.RegisterMePushToken.Input.Body
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - headers:
+            ///   - body:
+            public init(
+                headers: Operations.RegisterMePushToken.Input.Headers = .init(),
+                body: Operations.RegisterMePushToken.Input.Body
+            ) {
+                self.headers = headers
+                self.body = body
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/push-tokens/POST/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/push-tokens/POST/responses/200/content/application\/json`.
+                    case json(Components.Schemas.PushTokenRegisterResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.PushTokenRegisterResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.RegisterMePushToken.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.RegisterMePushToken.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Push token registered
+            ///
+            /// - Remark: Generated from `#/paths//me/push-tokens/post(registerMePushToken)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.RegisterMePushToken.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.RegisterMePushToken.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct BadRequest: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/push-tokens/POST/responses/400/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/push-tokens/POST/responses/400/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.RegisterMePushToken.Output.BadRequest.Body
+                /// Creates a new `BadRequest`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.RegisterMePushToken.Output.BadRequest.Body) {
+                    self.body = body
+                }
+            }
+            /// Invalid request body (token length / platform)
+            ///
+            /// - Remark: Generated from `#/paths//me/push-tokens/post(registerMePushToken)/responses/400`.
+            ///
+            /// HTTP response code: `400 badRequest`.
+            case badRequest(Operations.RegisterMePushToken.Output.BadRequest)
+            /// The associated value of the enum case if `self` is `.badRequest`.
+            ///
+            /// - Throws: An error if `self` is not `.badRequest`.
+            /// - SeeAlso: `.badRequest`.
+            public var badRequest: Operations.RegisterMePushToken.Output.BadRequest {
+                get throws {
+                    switch self {
+                    case let .badRequest(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "badRequest",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Unauthorized: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/push-tokens/POST/responses/401/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/push-tokens/POST/responses/401/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.RegisterMePushToken.Output.Unauthorized.Body
+                /// Creates a new `Unauthorized`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.RegisterMePushToken.Output.Unauthorized.Body) {
+                    self.body = body
+                }
+            }
+            /// Missing or invalid Bearer token
+            ///
+            /// - Remark: Generated from `#/paths//me/push-tokens/post(registerMePushToken)/responses/401`.
+            ///
+            /// HTTP response code: `401 unauthorized`.
+            case unauthorized(Operations.RegisterMePushToken.Output.Unauthorized)
+            /// The associated value of the enum case if `self` is `.unauthorized`.
+            ///
+            /// - Throws: An error if `self` is not `.unauthorized`.
+            /// - SeeAlso: `.unauthorized`.
+            public var unauthorized: Operations.RegisterMePushToken.Output.Unauthorized {
+                get throws {
+                    switch self {
+                    case let .unauthorized(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unauthorized",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct UnprocessableContent: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/push-tokens/POST/responses/422/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/push-tokens/POST/responses/422/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.RegisterMePushToken.Output.UnprocessableContent.Body
+                /// Creates a new `UnprocessableContent`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.RegisterMePushToken.Output.UnprocessableContent.Body) {
+                    self.body = body
+                }
+            }
+            /// Authenticated user has no UserProfile row
+            ///
+            /// - Remark: Generated from `#/paths//me/push-tokens/post(registerMePushToken)/responses/422`.
+            ///
+            /// HTTP response code: `422 unprocessableContent`.
+            case unprocessableContent(Operations.RegisterMePushToken.Output.UnprocessableContent)
+            /// The associated value of the enum case if `self` is `.unprocessableContent`.
+            ///
+            /// - Throws: An error if `self` is not `.unprocessableContent`.
+            /// - SeeAlso: `.unprocessableContent`.
+            public var unprocessableContent: Operations.RegisterMePushToken.Output.UnprocessableContent {
+                get throws {
+                    switch self {
+                    case let .unprocessableContent(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unprocessableContent",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/push-tokens/POST/responses/429/headers`.
+                public struct Headers: Sendable, Hashable {
+                    /// Number of seconds the client should wait before retrying.
+                    ///
+                    /// - Remark: Generated from `#/paths/me/push-tokens/POST/responses/429/headers/Retry-After`.
+                    public var retryAfter: Swift.Int?
+                    /// Creates a new `Headers`.
+                    ///
+                    /// - Parameters:
+                    ///   - retryAfter: Number of seconds the client should wait before retrying.
+                    public init(retryAfter: Swift.Int? = nil) {
+                        self.retryAfter = retryAfter
+                    }
+                }
+                /// Received HTTP response headers
+                public var headers: Operations.RegisterMePushToken.Output.TooManyRequests.Headers
+                /// - Remark: Generated from `#/paths/me/push-tokens/POST/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/push-tokens/POST/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.RegisterMePushToken.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - headers: Received HTTP response headers
+                ///   - body: Received HTTP response body
+                public init(
+                    headers: Operations.RegisterMePushToken.Output.TooManyRequests.Headers = .init(),
+                    body: Operations.RegisterMePushToken.Output.TooManyRequests.Body
+                ) {
+                    self.headers = headers
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded
+            ///
+            /// - Remark: Generated from `#/paths//me/push-tokens/post(registerMePushToken)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.RegisterMePushToken.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.RegisterMePushToken.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Deactivate a device push token for the authenticated user
+    ///
+    /// Deactivates (soft-deletes) a previously registered device token so the device stops receiving push notifications.
+    ///
+    /// - Remark: HTTP `DELETE /me/push-tokens`.
+    /// - Remark: Generated from `#/paths//me/push-tokens/delete(deleteMePushToken)`.
+    public enum DeleteMePushToken {
+        public static let id: Swift.String = "deleteMePushToken"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/me/push-tokens/DELETE/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.DeleteMePushToken.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.DeleteMePushToken.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.DeleteMePushToken.Input.Headers
+            /// - Remark: Generated from `#/paths/me/push-tokens/DELETE/requestBody`.
+            @frozen public enum Body: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/push-tokens/DELETE/requestBody/content/application\/json`.
+                case json(Components.Schemas.PushTokenRegisterRequest)
+            }
+            public var body: Operations.DeleteMePushToken.Input.Body
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - headers:
+            ///   - body:
+            public init(
+                headers: Operations.DeleteMePushToken.Input.Headers = .init(),
+                body: Operations.DeleteMePushToken.Input.Body
+            ) {
+                self.headers = headers
+                self.body = body
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/push-tokens/DELETE/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/push-tokens/DELETE/responses/200/content/application\/json`.
+                    case json(Components.Schemas.PushTokenDeleteResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.PushTokenDeleteResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.DeleteMePushToken.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.DeleteMePushToken.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Push token deactivation result
+            ///
+            /// - Remark: Generated from `#/paths//me/push-tokens/delete(deleteMePushToken)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.DeleteMePushToken.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.DeleteMePushToken.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct BadRequest: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/push-tokens/DELETE/responses/400/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/push-tokens/DELETE/responses/400/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.DeleteMePushToken.Output.BadRequest.Body
+                /// Creates a new `BadRequest`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.DeleteMePushToken.Output.BadRequest.Body) {
+                    self.body = body
+                }
+            }
+            /// Invalid request body (token length / platform)
+            ///
+            /// - Remark: Generated from `#/paths//me/push-tokens/delete(deleteMePushToken)/responses/400`.
+            ///
+            /// HTTP response code: `400 badRequest`.
+            case badRequest(Operations.DeleteMePushToken.Output.BadRequest)
+            /// The associated value of the enum case if `self` is `.badRequest`.
+            ///
+            /// - Throws: An error if `self` is not `.badRequest`.
+            /// - SeeAlso: `.badRequest`.
+            public var badRequest: Operations.DeleteMePushToken.Output.BadRequest {
+                get throws {
+                    switch self {
+                    case let .badRequest(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "badRequest",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Unauthorized: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/push-tokens/DELETE/responses/401/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/push-tokens/DELETE/responses/401/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.DeleteMePushToken.Output.Unauthorized.Body
+                /// Creates a new `Unauthorized`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.DeleteMePushToken.Output.Unauthorized.Body) {
+                    self.body = body
+                }
+            }
+            /// Missing or invalid Bearer token
+            ///
+            /// - Remark: Generated from `#/paths//me/push-tokens/delete(deleteMePushToken)/responses/401`.
+            ///
+            /// HTTP response code: `401 unauthorized`.
+            case unauthorized(Operations.DeleteMePushToken.Output.Unauthorized)
+            /// The associated value of the enum case if `self` is `.unauthorized`.
+            ///
+            /// - Throws: An error if `self` is not `.unauthorized`.
+            /// - SeeAlso: `.unauthorized`.
+            public var unauthorized: Operations.DeleteMePushToken.Output.Unauthorized {
+                get throws {
+                    switch self {
+                    case let .unauthorized(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unauthorized",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct UnprocessableContent: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/push-tokens/DELETE/responses/422/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/push-tokens/DELETE/responses/422/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.DeleteMePushToken.Output.UnprocessableContent.Body
+                /// Creates a new `UnprocessableContent`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.DeleteMePushToken.Output.UnprocessableContent.Body) {
+                    self.body = body
+                }
+            }
+            /// Authenticated user has no UserProfile row
+            ///
+            /// - Remark: Generated from `#/paths//me/push-tokens/delete(deleteMePushToken)/responses/422`.
+            ///
+            /// HTTP response code: `422 unprocessableContent`.
+            case unprocessableContent(Operations.DeleteMePushToken.Output.UnprocessableContent)
+            /// The associated value of the enum case if `self` is `.unprocessableContent`.
+            ///
+            /// - Throws: An error if `self` is not `.unprocessableContent`.
+            /// - SeeAlso: `.unprocessableContent`.
+            public var unprocessableContent: Operations.DeleteMePushToken.Output.UnprocessableContent {
+                get throws {
+                    switch self {
+                    case let .unprocessableContent(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unprocessableContent",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/push-tokens/DELETE/responses/429/headers`.
+                public struct Headers: Sendable, Hashable {
+                    /// Number of seconds the client should wait before retrying.
+                    ///
+                    /// - Remark: Generated from `#/paths/me/push-tokens/DELETE/responses/429/headers/Retry-After`.
+                    public var retryAfter: Swift.Int?
+                    /// Creates a new `Headers`.
+                    ///
+                    /// - Parameters:
+                    ///   - retryAfter: Number of seconds the client should wait before retrying.
+                    public init(retryAfter: Swift.Int? = nil) {
+                        self.retryAfter = retryAfter
+                    }
+                }
+                /// Received HTTP response headers
+                public var headers: Operations.DeleteMePushToken.Output.TooManyRequests.Headers
+                /// - Remark: Generated from `#/paths/me/push-tokens/DELETE/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/push-tokens/DELETE/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.DeleteMePushToken.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - headers: Received HTTP response headers
+                ///   - body: Received HTTP response body
+                public init(
+                    headers: Operations.DeleteMePushToken.Output.TooManyRequests.Headers = .init(),
+                    body: Operations.DeleteMePushToken.Output.TooManyRequests.Body
+                ) {
+                    self.headers = headers
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded
+            ///
+            /// - Remark: Generated from `#/paths//me/push-tokens/delete(deleteMePushToken)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.DeleteMePushToken.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.DeleteMePushToken.Output.TooManyRequests {
                 get throws {
                     switch self {
                     case let .tooManyRequests(response):
