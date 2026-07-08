@@ -163,6 +163,9 @@ Examples:
         elif args.club_id:
             scrape_results = scraping_service.scrape_single_club(club_id=args.club_id); performed_primary = True
         elif args.club:
+            if selected_club is None:
+                Logger.error(f"Club not found: {args.club}")
+                sys.exit(1)
             scrape_results = scraping_service.scrape_single_club(club_id=selected_club.id); performed_primary = True
         elif args.scraper_type:
             scrape_results = scraping_service.scrape_by_scraper_type(args.scraper_type); performed_primary = True
