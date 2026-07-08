@@ -336,7 +336,7 @@ The same bleed exists for in-memory request coalescing, not just disk
 caches: the four home-feed rail models (`HomeShowsTonightModel`,
 `HomeTrendingComediansModel`, `HomePopularClubsModel`,
 `HomeTrendingPodcastsModel`) coalesce their feed loads through
-`HomeFeedRequestCoalescer.shared` (HomeView.swift), keyed only by
+`HomeFeedRequestCoalescer.shared` (Home/Models/HomeFeedRequestCoalescer.swift), keyed only by
 `zip|distance`. Test suites running concurrently with the same key (e.g.
 both with zip nil) join each other's in-flight request, and the loser
 receives the other suite's mock-transport feed — the TASK-2756 flake was
