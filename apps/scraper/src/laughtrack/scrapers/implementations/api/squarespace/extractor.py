@@ -2,7 +2,7 @@
 
 import re
 import time
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from typing import Any, Dict, List, Optional, Pattern, Sequence
 from zoneinfo import ZoneInfo
 
@@ -159,7 +159,7 @@ class SquarespaceExtractor:
         Squarespace body copy such as ``Show at 9``, else
         ``_DEFAULT_HOUR``. Returns a tz-aware datetime, or None if no date found.
         """
-        ymd = SquarespaceExtractor._date_from_slug(full_url) or SquarespaceExtractor._date_from_title(title)
+        ymd = SquarespaceExtractor._date_from_slug(full_url, tz) or SquarespaceExtractor._date_from_title(title, tz)
         if ymd is None:
             return None
         year, month, day = ymd
@@ -170,7 +170,7 @@ class SquarespaceExtractor:
             return None
 
     @staticmethod
-    def _date_from_slug(full_url: str) -> Optional[tuple]:
+    def _date_from_slug(full_url: str, tz) -> Optional[tuple]:
         m = _SLUG_DATE_RE.search(full_url or "")
         if not m:
             return None
@@ -180,11 +180,11 @@ class SquarespaceExtractor:
         day = int(m.group(2))
         if m.group(3):
             return int(m.group(3)), month, day
-        year = SquarespaceExtractor._infer_year(month, day)
+        year = SquarespaceExtractor._infer_year(month, day, tz)
         return (year, month, day) if year is not None else None
 
     @staticmethod
-    def _date_from_title(title: str) -> Optional[tuple]:
+    def _date_from_title(title: str, tz) -> Optional[tuple]:
         m = _TITLE_DATE_RE.search(title or "")
         if not m:
             return None
@@ -192,19 +192,21 @@ class SquarespaceExtractor:
         if not month:
             return None
         day = int(m.group(2))
-        year = SquarespaceExtractor._infer_year(month, day)
+        year = SquarespaceExtractor._infer_year(month, day, tz)
         return (year, month, day) if year is not None else None
 
     @staticmethod
-    def _infer_year(month: int, day: int) -> Optional[int]:
+    def _infer_year(month: int, day: int, tz) -> Optional[int]:
         # Yearless product dates carry no year. A recent past date on a current
         # products page is stale and should be skipped; a far-past date usually
-        # means the next occurrence crosses the year boundary.
-        from datetime import date as _date
-        today = _date.today()
+        # means the next occurrence crosses the year boundary. "Today" must be
+        # the VENUE's calendar date, not the machine's: on a UTC runner between
+        # 00:00-04:00 UTC a New York venue's tonight-dated show is still today
+        # locally, and machine-local date.today() would misclassify it as stale.
+        today = datetime.now(tz).date()
         year = today.year
         try:
-            candidate = _date(year, month, day)
+            candidate = date(year, month, day)
             if candidate < today:
                 if (today - candidate).days <= 180:
                     return None
