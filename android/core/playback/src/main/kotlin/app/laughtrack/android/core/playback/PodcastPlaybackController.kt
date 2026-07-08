@@ -21,6 +21,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -35,37 +36,38 @@ class PodcastPlaybackController
         private val _state = MutableStateFlow(PodcastPlaybackState())
         val state: StateFlow<PodcastPlaybackState> = _state.asStateFlow()
 
-        val player: ExoPlayer = ExoPlayer.Builder(context).build()
-        val mediaSession: MediaSession = MediaSession.Builder(context, player).build()
+        val player: ExoPlayer by lazy {
+            ExoPlayer.Builder(context).build().also { exoPlayer ->
+                exoPlayer.addListener(
+                    object : Player.Listener {
+                        override fun onPlaybackStateChanged(playbackState: Int) {
+                            publishState()
+                        }
+
+                        override fun onIsPlayingChanged(isPlaying: Boolean) {
+                            if (isPlaying) {
+                                positionTicker.start()
+                            } else {
+                                positionTicker.stop(finalPublish = true)
+                            }
+                        }
+
+                        override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters) {
+                            publishState()
+                        }
+                    },
+                )
+            }
+        }
+
+        val mediaSession: MediaSession by lazy { MediaSession.Builder(context, player).build() }
+
+        private val positionTicker = PlaybackPositionTicker(scope, ::publishState)
 
         // The armed sleep-timer coroutine (pre-fade delay -> volume fade -> pause);
         // cancelled and nulled whenever the timer is reset, a new episode starts,
         // or playback stops.
         private var sleepJob: Job? = null
-
-        init {
-            player.addListener(
-                object : Player.Listener {
-                    override fun onPlaybackStateChanged(playbackState: Int) {
-                        publishState()
-                    }
-
-                    override fun onIsPlayingChanged(isPlaying: Boolean) {
-                        publishState()
-                    }
-
-                    override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters) {
-                        publishState()
-                    }
-                },
-            )
-            scope.launch {
-                while (true) {
-                    publishState()
-                    delay(500)
-                }
-            }
-        }
 
         fun play(item: PodcastPlaybackItem) {
             // A new episode clears any sleep timer armed for the previous one.
@@ -90,6 +92,7 @@ class PodcastPlaybackController
             player.setMediaItem(mediaItem)
             player.prepare()
             player.play()
+            positionTicker.start()
             publishState()
         }
 
@@ -153,6 +156,7 @@ class PodcastPlaybackController
             sleepJob = null
             player.volume = 1f
             player.stop()
+            positionTicker.stop(finalPublish = true)
             context.stopService(Intent(context, PodcastPlaybackService::class.java))
             _state.value = PodcastPlaybackState()
         }
@@ -191,6 +195,36 @@ class PodcastPlaybackController
             private const val SLEEP_FADE_STEPS = 20
         }
     }
+
+internal class PlaybackPositionTicker(
+    private val scope: CoroutineScope,
+    private val publishState: () -> Unit,
+) {
+    private var job: Job? = null
+
+    fun start() {
+        if (job?.isActive == true) return
+        job =
+            scope.launch {
+                while (isActive) {
+                    publishState()
+                    delay(POSITION_POLL_MS)
+                }
+            }
+    }
+
+    fun stop(finalPublish: Boolean) {
+        job?.cancel()
+        job = null
+        if (finalPublish) publishState()
+    }
+
+    internal fun isRunningForTest(): Boolean = job?.isActive == true
+
+    private companion object {
+        const val POSITION_POLL_MS = 500L
+    }
+}
 
 /**
  * The seek target after applying [deltaMs] to [currentMs], clamped to
