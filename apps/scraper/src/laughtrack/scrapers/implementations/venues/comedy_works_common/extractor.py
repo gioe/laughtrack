@@ -15,10 +15,10 @@ from laughtrack.core.entities.event.comedy_works_downtown import (
     ComedyWorksDowntownEvent,
     ComedyWorksDowntownShowtime,
 )
+from laughtrack.foundation.utilities.number import parse_price_text
 
 _SLUG_RE = re.compile(r"/comedians/([\w-]+)")
 _SECTION_ID_RE = re.compile(r"seating-sections-(\d+)")
-_PRICE_RE = re.compile(r"\$(\d+(?:\.\d{2})?)")
 _AGE_RE = re.compile(r"(\d+\+)")
 
 
@@ -154,9 +154,7 @@ class ComedyWorksBaseExtractor:
             tier_name = name_el.get_text(strip=True) if name_el else "General Admission"
             tier_price: Optional[float] = None
             if price_el:
-                pm = _PRICE_RE.search(price_el.get_text(strip=True))
-                if pm:
-                    tier_price = float(pm.group(1))
+                tier_price = parse_price_text(price_el.get_text(strip=True))
 
             tiers.append({
                 "name": tier_name,
