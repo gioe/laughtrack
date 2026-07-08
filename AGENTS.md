@@ -371,7 +371,7 @@ would require either:
 
 Both options are disproportionate to the impact: only the handful of library
 components using internal `useId()` are affected, and each can be fixed with a
-literal ID in ~3 lines. New code that embeds HeadlessUI/Radix/HeroUI primitives
+literal ID in ~3 lines. New code that embeds HeadlessUI/Radix primitives
 on a search page should pass a **static** `id` / `contentId` prop rather than
 relying on the library's internal `useId()`. If a component renders more than
 once on the page, use a stable key derived from props (e.g.
