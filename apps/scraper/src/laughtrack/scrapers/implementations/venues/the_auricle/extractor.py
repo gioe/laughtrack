@@ -6,6 +6,7 @@ from typing import Any, List, Optional
 
 from laughtrack.core.entities.event.the_auricle import TheAuricleEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+from laughtrack.foundation.utilities.number import parse_price_text
 
 # The Auricle is a music/variety venue, so we keep only events whose name or
 # description marks them as comedy. "Open mic" alone is excluded (it is usually
@@ -48,9 +49,7 @@ def _parse_dt_str(event: dict) -> Optional[str]:
 
 
 def _parse_price(event: dict) -> Optional[float]:
-    raw = str(event.get("ticket_price") or "").strip()
-    m = re.search(r"(\d+(?:\.\d{1,2})?)", raw)
-    return float(m.group(1)) if m else None
+    return parse_price_text(str(event.get("ticket_price") or "").strip())
 
 
 class TheAuricleEventExtractor:
