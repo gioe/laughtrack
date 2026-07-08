@@ -438,7 +438,17 @@ struct HomeContentSectionTests {
             "Models/HomeTrendingPodcastsModel.swift",
             "Models/MainPageCache.swift",
             "Models/HomeFeedRequestCoalescer.swift",
+            "Components/SessionBannerCard.swift",
         ]
+        // Guard against silent drift: a Swift file added under Home/ that is
+        // missing from the ordered list above would otherwise escape every
+        // whole-source negative assertion in this suite.
+        let enumerated = try FileManager.default
+            .subpathsOfDirectory(atPath: homeRoot.path)
+            .filter { $0.hasSuffix(".swift") }
+        guard Set(enumerated) == Set(relativePaths) else {
+            throw CocoaError(.fileReadCorruptFile)
+        }
         var combined = ""
         for relative in relativePaths {
             let url = homeRoot.appendingPathComponent(relative)
