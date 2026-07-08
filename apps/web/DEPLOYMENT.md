@@ -166,6 +166,8 @@ Program setup references:
 
 ## Running Migrations
 
+> **Two migration systems write this one Neon database.** This section covers the **web/Prisma** migrations (`apps/web/prisma/migrations/`), which own the relational **table DDL** and apply via `prisma migrate deploy` on merge. The **scraper** has a separate system — plain SQL in `apps/scraper/migrations/`, applied nightly by `bin/migrate` — that owns data fixes and scraper-only objects (e.g. the `scraper_health` materialized views on Prisma-owned tables). Ownership, idempotency, deploy ordering, the materialized-view DROP+recreate rule, and filename conventions for that system are documented in [`apps/scraper/migrations/README.md`](../../apps/scraper/migrations/README.md). Read it before adding a scraper migration.
+
 > **Important:** `prisma migrate dev` cannot be used in **any** environment (local or production) in this project. The shadow database validation fails on a migration that requires existing data (`Gotham Comedy Club` must exist). Always use `prisma migrate deploy`.
 >
 > For new migrations: write the SQL manually, create the directory `prisma/migrations/<timestamp>_<name>/migration.sql`, update `prisma/schema.prisma`, and commit both files. Then run `prisma migrate deploy` to apply.
