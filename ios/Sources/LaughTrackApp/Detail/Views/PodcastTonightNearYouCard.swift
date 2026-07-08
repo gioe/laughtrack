@@ -95,11 +95,10 @@ enum TonightNearYouLoader {
         podcastID: Int,
         apiClient: Client,
         zipCode: String?,
-        urlSession: URLSession = .shared,
         cache: DataCache<LaughTrackCacheKey>? = nil,
         cacheTTL: TimeInterval = MainPageCache.defaultTTL
     ) async -> TonightNearYouMatch? {
-        async let detailTask = fetchPodcastDetail(podcastID: podcastID, urlSession: urlSession, cache: cache, cacheTTL: cacheTTL)
+        async let detailTask = fetchPodcastDetail(podcastID: podcastID, apiClient: apiClient, cache: cache, cacheTTL: cacheTTL)
         async let feedTask = fetchHomeFeed(apiClient: apiClient, zipCode: zipCode, cache: cache, cacheTTL: cacheTTL)
 
         guard
@@ -117,7 +116,7 @@ enum TonightNearYouLoader {
 
     private static func fetchPodcastDetail(
         podcastID: Int,
-        urlSession: URLSession,
+        apiClient: Client,
         cache: DataCache<LaughTrackCacheKey>?,
         cacheTTL: TimeInterval
     ) async -> PodcastDetailResponse? {
@@ -130,16 +129,15 @@ enum TonightNearYouLoader {
             return cached
         }
 
-        let url = AppConfiguration.apiBaseURL
-            .appendingPathComponent("api")
-            .appendingPathComponent("v1")
-            .appendingPathComponent("podcasts")
-            .appendingPathComponent(String(podcastID))
-
+        // Routes through the generated client (and TokenRefreshMiddleware),
+        // replacing the former raw URLSession fetch (TASK-3631). Best-effort:
+        // any non-200 or decode failure yields nil so the card just hides.
         guard
-            let (data, _) = try? await urlSession.data(from: url),
-            let decoded = try? JSONDecoder().decode(PodcastDetailResponse.self, from: data)
+            let output = try? await apiClient.getPodcast(.init(path: .init(id: podcastID))),
+            case .ok(let ok) = output,
+            let schema = try? ok.body.json
         else { return nil }
+        let decoded = PodcastDetailResponse(schema: schema)
         await MainPageCache.set(decoded, forKey: cacheKey, in: cache, ttl: cacheTTL, persistentCache: nil)
         return decoded
     }
