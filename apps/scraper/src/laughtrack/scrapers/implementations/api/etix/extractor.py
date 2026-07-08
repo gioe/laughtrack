@@ -6,6 +6,7 @@ from typing import List, Optional
 
 from laughtrack.core.entities.event.etix import EtixEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+from laughtrack.foundation.utilities.number import parse_price_text
 
 # Split on each <li> containing a performance card.
 _CARD_RE = re.compile(
@@ -34,7 +35,6 @@ _DATETIME_RE = re.compile(
     r'class="performance-datetime">\s*(.*?)\s*</div>', re.DOTALL | re.IGNORECASE
 )
 
-_PRICE_RE = re.compile(r"\$\s*(\d+(?:\.\d{1,2})?)")
 
 # Pagination: max page number from the pagination nav.
 _PAGE_NUM_RE = re.compile(r"pageNumber=(\d+)")
@@ -135,10 +135,6 @@ class EtixExtractor:
 
     @staticmethod
     def _extract_ticket_price(card_html: str) -> Optional[float]:
-        prices: List[float] = []
-        for match in _PRICE_RE.finditer(card_html or ""):
-            try:
-                prices.append(float(match.group(1)))
-            except ValueError:
-                continue
-        return min(prices) if prices else None
+        # detect_free=False: card HTML can carry "free" in non-price context;
+        # this is a pure min-of-$ scan matching the old _PRICE_RE finditer+min.
+        return parse_price_text(card_html or "", detect_free=False)
