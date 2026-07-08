@@ -2,7 +2,7 @@
 
 Comedy show discovery platform — find clubs, comedians, and shows near you.
 
-This is a monorepo containing three apps:
+This is a monorepo containing four apps:
 
 ## Apps
 
@@ -11,6 +11,7 @@ This is a monorepo containing three apps:
 | `web` | [`apps/web`](apps/web/) | Next.js web application |
 | `scraper` | [`apps/scraper`](apps/scraper/) | Python show scraper |
 | `ios` | [`ios`](ios/) | Native SwiftUI iOS app (consumes the web app's `/api/v1` contract) |
+| `android` | [`android`](android/) | Native Kotlin/Compose Android app (consumes the web app's `/api/v1` contract) |
 
 ## Getting Started
 
@@ -43,6 +44,16 @@ swift test           # pure-Swift unit tests (macOS)
 
 See [`ios/CLAUDE.md`](ios/CLAUDE.md) for the simulator test flow, OpenAPI client regeneration, and the ios-libs bridge architecture.
 
+### Android App
+
+```bash
+cd android
+./gradlew assembleDebug   # build the debug APK
+./gradlew testDebugUnitTest
+```
+
+See [`android/README.md`](android/README.md) for the module layout, the OpenAPI client regen/drift workflow, and design-token parity with iOS + web.
+
 ## Structure
 
 ```
@@ -51,6 +62,7 @@ laughtrack/
 │   ├── web/       # Next.js 15 app (TypeScript, Tailwind, Prisma)
 │   └── scraper/   # Python scraper (see apps/scraper/README.md)
 ├── ios/           # SwiftUI iOS app (see ios/CLAUDE.md)
+├── android/       # Kotlin/Compose Android app (see android/README.md)
 ├── docs/          # Cross-cutting design + ops docs
 ├── .github/
 │   └── workflows/ # CI for all apps
