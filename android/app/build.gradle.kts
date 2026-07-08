@@ -179,6 +179,9 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
     testImplementation(libs.junit)
+    // AppShellChromeTest walks AppRoute::class.sealedSubclasses to enforce
+    // that every route has an explicit chrome classification.
+    testImplementation(kotlin("reflect"))
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
