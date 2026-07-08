@@ -66,3 +66,14 @@ def test_parse_price_text_detect_free_false_still_returns_min_of_dollars():
     assert parse_price_text("$30 GA / $20 balcony", detect_free=False) == 20.0
     # No dollar amount and no free detection -> None (unknown), not 0.0.
     assert parse_price_text("Free show", detect_free=False) is None
+
+
+def test_parse_price_text_dollar_only_suppresses_bare_fallback():
+    # Blob scanners pass dollar_only=True so a stray non-price integer (a
+    # day-of-month, a time, an ID) is not mistaken for a price.
+    block = "Free Jam\nFri July 10 - 7PM\nNAMBA Arts"
+    assert parse_price_text(block, detect_free=False, dollar_only=True) is None
+    # A real $-anchored price is still found (min across the blob).
+    assert parse_price_text("Fri July 10 $15 - $25", detect_free=False, dollar_only=True) == 15.0
+    # Default (dollar_only=False) keeps the bare fallback for single strings.
+    assert parse_price_text("25") == 25.0

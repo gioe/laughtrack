@@ -30,7 +30,9 @@ _BARE_AMOUNT_RE = re.compile(r"(\d+(?:\.\d{1,2})?)")
 _FREE_RE = re.compile(r"\bfree\b", re.IGNORECASE)
 
 
-def parse_price_text(text: str, detect_free: bool = True) -> Optional[float]:
+def parse_price_text(
+    text: str, detect_free: bool = True, dollar_only: bool = False
+) -> Optional[float]:
     """Parse a human-facing price string into a float dollar amount.
 
     Behaviour (the union the 15 hand-rolled copies collectively implemented):
@@ -39,7 +41,7 @@ def parse_price_text(text: str, detect_free: bool = True) -> Optional[float]:
     - Ranges ("$20-$30", "$20 to $30") return the **minimum** advertised price.
     - Thousands separators are stripped ("$1,234.50" -> ``1234.5``).
     - When several ``$`` amounts appear, the lowest is returned; otherwise the
-      first bare number is used.
+      first bare number is used (unless ``dollar_only=True``).
     - Returns ``None`` when there is no numeric price signal (unknown), which
       callers keep distinct from ``0.0`` (explicitly free).
 
@@ -50,7 +52,12 @@ def parse_price_text(text: str, detect_free: bool = True) -> Optional[float]:
             blobs** where the literal substring "free" can appear in non-price
             context (e.g. "free parking", a ``class="...free..."`` attribute) —
             there it would false-positive to ``0.0`` and discard a real price.
-            With ``detect_free=False`` the parser is a pure min-of-``$`` scan.
+        dollar_only: When ``True``, consider **only** ``$``-anchored amounts and
+            never fall back to a bare number. Blob scanners (HTML / multi-line
+            text containing dates, times, and IDs) must pass this so a stray
+            non-price integer like a day-of-month is not mistaken for a price;
+            with no ``$`` amount present the result is ``None`` (unknown).
+            Single-price-string callers leave it ``False`` (bare fallback on).
 
     Returns:
         The parsed dollar amount, ``0.0`` for free, or ``None`` when unknown.
@@ -67,6 +74,9 @@ def parse_price_text(text: str, detect_free: bool = True) -> Optional[float]:
     dollar_amounts = _DOLLAR_AMOUNT_RE.findall(cleaned)
     if dollar_amounts:
         return min(float(amount) for amount in dollar_amounts)
+
+    if dollar_only:
+        return None
 
     match = _BARE_AMOUNT_RE.search(cleaned)
     if not match:
