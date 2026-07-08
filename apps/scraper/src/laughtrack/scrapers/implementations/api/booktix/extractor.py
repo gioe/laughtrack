@@ -50,9 +50,10 @@ def extract_event_urls(home_html: str, base_url: str) -> List[str]:
 
 def _extract_price(html: str) -> Optional[float]:
     """Return the lowest dollar price on the page, or None if none present."""
-    # detect_free=False: this scans the whole page HTML, where an incidental
-    # "free" (e.g. "free parking") must not zero out a real price.
-    return parse_price_text(html, detect_free=False)
+    # Scans the whole page HTML: dollar_only=True so a stray integer (an ID,
+    # a date) is never read as a price, detect_free=False so an incidental
+    # "free" (e.g. "free parking") does not zero out a real price.
+    return parse_price_text(html, detect_free=False, dollar_only=True)
 
 
 def extract_events(detail_html: str, detail_url: str) -> List[BookTixEvent]:

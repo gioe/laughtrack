@@ -135,6 +135,7 @@ class EtixExtractor:
 
     @staticmethod
     def _extract_ticket_price(card_html: str) -> Optional[float]:
-        # detect_free=False: card HTML can carry "free" in non-price context;
-        # this is a pure min-of-$ scan matching the old _PRICE_RE finditer+min.
-        return parse_price_text(card_html or "", detect_free=False)
+        # Card HTML scan: dollar_only=True (never read a stray integer as a
+        # price) + detect_free=False (ignore incidental "free" text). Matches
+        # the old _PRICE_RE finditer+min exactly.
+        return parse_price_text(card_html or "", detect_free=False, dollar_only=True)

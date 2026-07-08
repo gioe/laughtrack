@@ -15,6 +15,7 @@ from typing import List, Optional
 
 from laughtrack.core.entities.event.ventura_improv import VenturaImprovEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+from laughtrack.foundation.utilities.number import parse_price_text
 
 # Free-form date line: "FRI July 10 - 7PM" / "Sat August 2 - 7:30 PM".
 # weekday (ignored) + month name + day + en-dash/hyphen + time.
@@ -24,7 +25,6 @@ _DATE_RE = re.compile(
     r"(\d{1,2})(?::(\d{2}))?\s*([AP]M)",
     re.IGNORECASE,
 )
-_PRICE_RE = re.compile(r"\$\s*(\d+(?:\.\d{1,2})?)")
 # Off-site ticket link (NAMBA Arts Tickera/WooCommerce event page).
 _TICKET_HREF_RE = re.compile(r'href="(https://(?:www\.)?nambaarts\.com/[^"]+)"', re.IGNORECASE)
 
@@ -114,8 +114,10 @@ class VenturaImprovExtractor:
             Logger.warn("VenturaImprovExtractor: no show title before date line", logger_context)
             return []
 
-        prices = [float(p) for ln in lines for p in _PRICE_RE.findall(ln)]
-        price = min(prices) if prices else None
+        # Blob of free-text lines (dates, times, title): dollar_only=True so a
+        # stray integer is never mistaken for a price, detect_free=False so
+        # "free" in non-price text doesn't zero it out. Same $-only min as before.
+        price = parse_price_text("\n".join(lines), detect_free=False, dollar_only=True)
 
         href = _TICKET_HREF_RE.search(block)
         ticket_url = href.group(1) if href else _SHOWS_URL
