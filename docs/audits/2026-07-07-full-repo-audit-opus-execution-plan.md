@@ -228,6 +228,7 @@ This document is self-contained. You do not need the audit session's context. Ev
 - **Effort:** M. **Verify:** `./gradlew :feature:home:testDebugUnitTest :feature:search:testDebugUnitTest ktlintCheck detekt`; screenshot test on CI.
 
 ### T3.10 (AND-5) Single source of truth for AppShell chrome routing
+- **[Executed — TASK-3650, 2026-07-08]** Canonical `topAppBarRoutes`/`bottomBarRoutes`/`fullScreenRoutes` KClass sets in `AppShellChrome`; the shipping `NavDestination` predicates read them and the `when(AppRoute)` overloads are deleted. `AppShellChromeTest` pins the sets and adds a kotlin-reflect `sealedSubclasses` exhaustiveness test (replaces the lost compile-time forcing function). Note: the `hasRoute` adapter sliver is covered only by instrumented `AppShellTest` (red on CI — TASK-3679, risk atom attached).
 - **File:** `android/app/src/main/kotlin/app/laughtrack/android/AppShell.kt:317-372`. `showsTopAppBar`/`showsBottomBar` exist twice (exhaustive `when(AppRoute)` vs hand-maintained `NavDestination.hasRoute` list); production uses the `NavDestination` versions, tests test the `AppRoute` versions — a new route can pass tests while shipping wrong chrome. Derive both from one canonical route-class set (e.g. `private val TOP_BAR_ROUTES = setOf(AppRoute.Favorites::class, ...)`); point `AppShellChromeTest.kt` at the shipping path. Don't rename `AppShell`'s public params (androidTest `AppShellTest.kt` uses them).
 - **Effort:** S. **Verify:** `./gradlew :app:testDebugUnitTest`.
 
