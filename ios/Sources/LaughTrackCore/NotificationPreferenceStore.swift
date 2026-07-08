@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import LaughTrackAPIClient
 import LaughTrackBridge
 
 public enum NotificationPreferenceChannel: String, Codable, Equatable, Sendable {
@@ -14,54 +15,33 @@ public protocol NotificationPreferenceSyncing: Sendable {
     ) async throws
 }
 
-public final class ProfileNotificationPreferenceSyncClient: NotificationPreferenceSyncing, @unchecked Sendable {
-    private let baseURL: URL
-    private let tokenManager: AuthTokenManager
-    private let urlSession: URLSession
+/// Routes the notification-preference PATCH through the generated OpenAPI client
+/// (and thus TokenRefreshMiddleware), replacing the former hand-rolled
+/// URLRequest client that skipped auto-refresh on 401 (TASK-3631). Only the
+/// toggled channel is sent; the server leaves the omitted toggle unchanged.
+public final class APINotificationPreferenceSyncClient: NotificationPreferenceSyncing, @unchecked Sendable {
+    private let apiClient: Client
 
-    public init(
-        baseURL: URL = AppConfiguration.apiBaseURL,
-        tokenManager: AuthTokenManager,
-        urlSession: URLSession = .shared
-    ) {
-        self.baseURL = baseURL
-        self.tokenManager = tokenManager
-        self.urlSession = urlSession
+    public init(apiClient: Client) {
+        self.apiClient = apiClient
     }
 
     public func setFavoriteComedianAlertsEnabled(
         _ enabled: Bool,
         channel: NotificationPreferenceChannel
     ) async throws {
-        let accessToken = await MainActor.run { tokenManager.retrieveAccessToken() }
-        guard let accessToken else {
-            throw URLError(.userAuthenticationRequired)
-        }
-
-        var request = URLRequest(url: baseURL.appendingPathComponent("api/v1/me/notifications"))
-        request.httpMethod = "PATCH"
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-        request.httpBody = try JSONSerialization.data(
-            withJSONObject: [Self.payloadKey(for: channel): enabled],
-            options: []
-        )
-
-        let (_, response) = try await urlSession.data(for: request)
-        guard let httpResponse = response as? HTTPURLResponse,
-              (200..<300).contains(httpResponse.statusCode)
-        else {
-            throw URLError(.badServerResponse)
-        }
-    }
-
-    private static func payloadKey(for channel: NotificationPreferenceChannel) -> String {
-        switch channel {
+        let payload: Components.Schemas.NotificationPreferenceUpdateRequest = switch channel {
         case .email:
-            return "emailShowNotifications"
+            .init(emailShowNotifications: enabled)
         case .push:
-            return "pushShowNotifications"
+            .init(pushShowNotifications: enabled)
+        }
+        let output = try await apiClient.patchMeNotifications(.init(body: .json(payload)))
+        switch output {
+        case .ok:
+            return
+        case .badRequest, .unauthorized, .unprocessableContent, .tooManyRequests, .undocumented:
+            throw URLError(.badServerResponse)
         }
     }
 }

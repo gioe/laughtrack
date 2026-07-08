@@ -34,13 +34,6 @@ public enum ServiceRegistration {
                 appStateStorage: container.resolve(AppStateStorageProtocol.self)
             )
         }
-        container.register((any NotificationPreferenceSyncing).self, scope: .appLevel) {
-            ProfileNotificationPreferenceSyncClient(
-                tokenManager: AuthTokenManager(
-                    secureStorage: container.resolve(SecureStorageProtocol.self)
-                )
-            )
-        }
         container.register((any PushDeviceTokenManaging).self, scope: .appLevel) {
             PushDeviceTokenManager(
                 tokenManager: AuthTokenManager(
@@ -95,6 +88,16 @@ public enum ServiceRegistration {
     public static func configureZipLocationResolver(_ container: ServiceContainer, apiClient: Client) {
         container.register((any ZipLocationResolving).self, scope: .appLevel) {
             APIZipLocationResolver(apiClient: apiClient)
+        }
+    }
+
+    // Generated-client-backed /me sync clients (TASK-3631): registered here
+    // rather than in configure() because they need the generated Client (built
+    // in AppBootstrap) so their calls flow through TokenRefreshMiddleware.
+    @MainActor
+    public static func configureNotificationPreferenceSync(_ container: ServiceContainer, apiClient: Client) {
+        container.register((any NotificationPreferenceSyncing).self, scope: .appLevel) {
+            APINotificationPreferenceSyncClient(apiClient: apiClient)
         }
     }
 
