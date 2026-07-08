@@ -127,14 +127,10 @@ final class APIPodcastSearchFetcher: PodcastSearchFetching {
                     items: response.data.map(PodcastSearchResult.init(apiPodcast:)),
                     total: response.total
                 ))
-            case .tooManyRequests(let tooManyRequests):
-                let retryAfter = tooManyRequests.headers.retryAfter.map(TimeInterval.init)
-                return .failure(.rateLimited(
-                    retryAfter: retryAfter,
-                    message: (try? tooManyRequests.body.json.error) ?? "LaughTrack is rate-limiting podcast results right now."
-                ))
-            case .internalServerError(let serverError):
-                return .failure(.serverError(status: 500, message: (try? serverError.body.json.error)))
+            case .tooManyRequests:
+                return .failure(classifyUndocumented(status: 429, context: "podcasts"))
+            case .internalServerError:
+                return .failure(classifyUndocumented(status: 500, context: "podcasts"))
             case .undocumented(let status, _):
                 return .failure(classifyUndocumented(status: status, context: "podcasts"))
             }

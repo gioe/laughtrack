@@ -1,7 +1,10 @@
 import Foundation
+import HTTPTypes
+import LaughTrackAPIClient
 import Testing
 @testable import LaughTrackApp
 import LaughTrackCore
+import OpenAPIRuntime
 
 @Suite("Podcast detail view")
 @MainActor
@@ -44,6 +47,31 @@ struct PodcastDetailViewTests {
         }
 
         #expect(failure.message == "This podcast could not be found. (HTTP 404)")
+    }
+
+    @Test("podcast detail generated-client fetcher uses shared failure classification")
+    func podcastDetailGeneratedFetcherUsesSharedFailureClassification() async throws {
+        let transport = StubClientTransport()
+        transport.setHandler { _, _, _, _ in
+            (
+                HTTPResponse(status: .badRequest, headerFields: [.contentType: "application/json"]),
+                HTTPBody(#"{"error":"Custom bad-request copy"}"#)
+            )
+        }
+        let apiClient = Client(
+            serverURL: URL(string: "https://example.test")!,
+            transport: transport,
+            middlewares: [APIVersionPathMiddleware()]
+        )
+        let fetcher = APIPodcastDetailFetcher(apiClient: apiClient)
+
+        let result = await fetcher.podcastDetail(id: 42)
+
+        guard case .failure(let failure) = result else {
+            Issue.record("Expected podcast detail fetcher to classify bad-request failure")
+            return
+        }
+        #expect(failure.message == "LaughTrack could not apply those podcast details filters. (HTTP 400)")
     }
 
     @Test("podcast detail presentation creates playable episode rows")

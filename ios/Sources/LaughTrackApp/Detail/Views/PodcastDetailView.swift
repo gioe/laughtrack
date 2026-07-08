@@ -644,22 +644,20 @@ final class APIPodcastDetailFetcher: PodcastDetailFetching {
     func podcastDetail(id: Int) async -> Result<PodcastDetailResponse, LoadFailure> {
         do {
             let output = try await apiClient.getPodcast(.init(path: .init(id: id)))
+            let notFoundMessage = "This podcast could not be found."
             switch output {
             case .ok(let ok):
                 return .success(PodcastDetailResponse(schema: try ok.body.json))
             case .badRequest:
-                return .failure(.badParams("LaughTrack could not load this podcast right now."))
+                return .failure(classifyUndocumented(status: 400, context: "podcast details"))
             case .notFound:
-                return .failure(.unexpected(status: 404, message: "This podcast could not be found."))
-            case .tooManyRequests(let tooManyRequests):
-                return .failure(.rateLimited(
-                    retryAfter: nil,
-                    message: (try? tooManyRequests.body.json.error) ?? "LaughTrack is rate-limiting podcast details right now."
-                ))
-            case .internalServerError(let serverError):
-                return .failure(.serverError(status: 500, message: (try? serverError.body.json.error)))
+                return .failure(classifyUndocumented(status: 404, context: "podcast details", notFoundMessage: notFoundMessage))
+            case .tooManyRequests:
+                return .failure(classifyUndocumented(status: 429, context: "podcast details"))
+            case .internalServerError:
+                return .failure(classifyUndocumented(status: 500, context: "podcast details"))
             case .undocumented(let status, _):
-                return .failure(classifyUndocumented(status: status, context: "podcast details"))
+                return .failure(classifyUndocumented(status: status, context: "podcast details", notFoundMessage: notFoundMessage))
             }
         } catch {
             return .failure(classifyDetailFetchError(error, context: "podcast details"))

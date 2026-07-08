@@ -94,3 +94,10 @@ public func classifyUndocumented(status: Int, context: String) -> LoadFailure {
         return .unexpected(status: status, message: "LaughTrack returned an unexpected \(context) response.")
     }
 }
+
+public func classifyUndocumented(status: Int, context: String, notFoundMessage: String?) -> LoadFailure {
+    if status == 404, let notFoundMessage {
+        return .unexpected(status: status, message: notFoundMessage)
+    }
+    return classifyUndocumented(status: status, context: context)
+}

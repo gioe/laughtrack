@@ -150,6 +150,31 @@ struct SearchRootViewTests {
         ])
     }
 
+    @Test("Podcast generated-client fetcher uses shared failure classification")
+    func podcastGeneratedFetcherUsesSharedFailureClassification() async throws {
+        let transport = StubClientTransport()
+        transport.setHandler { _, _, _, _ in
+            (
+                HTTPResponse(status: .tooManyRequests, headerFields: [.contentType: "application/json"]),
+                HTTPBody(#"{"error":"Custom rate-limit copy"}"#)
+            )
+        }
+        let apiClient = Client(
+            serverURL: URL(string: "https://example.test")!,
+            transport: transport,
+            middlewares: [APIVersionPathMiddleware()]
+        )
+        let fetcher = APIPodcastSearchFetcher(apiClient: apiClient)
+
+        let result = await fetcher.searchPodcasts(.init(query: "", limit: 20, sort: "popularity_desc", includeEmpty: true))
+
+        guard case .failure(let failure) = result else {
+            Issue.record("Expected podcast search fetcher to classify rate-limit failure")
+            return
+        }
+        #expect(failure.message == "LaughTrack is rate-limiting podcasts right now. Please try again in a moment. (HTTP 429)")
+    }
+
     @Test("podcast search results resolve to podcast detail navigation")
     func podcastSearchResultResolvesPodcastDetailNavigation() throws {
         let result = PodcastSearchResult(
