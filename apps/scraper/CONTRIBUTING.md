@@ -410,6 +410,26 @@ loader.exec_module(mod)
 Do NOT use `spec_from_file_location(name, path)` for extension-less scripts —
 it silently returns `None`, causing `AttributeError` on `spec.loader`.
 
+#### Preferred: Shared gioe_stubs Conftest (not per-file stubs)
+
+Before hand-rolling any of the stub patterns below, use the shared helper at
+`tests/gioe_stubs.py`. A two-line per-directory `conftest.py` registers an
+async-compatible `gioe_libs` stub AND the `laughtrack.utilities.infrastructure`
+`__path__` stub (bypassing its `__init__.py`) for every test in the directory:
+
+```python
+from pathlib import Path
+from gioe_stubs import register_stubs
+
+register_stubs(Path(__file__).parents[N] / "src")  # N hops to apps/scraper/
+```
+
+See `tests/utilities/infrastructure/conftest.py` for a live example. It uses
+`sys.modules.setdefault()` throughout, so it composes safely with parent
+conftests and already-imported real packages. The inline patterns below remain
+documented for test files that have not migrated yet (TASK-3681 removed the
+first redundant inline stub) and for cases the shared helper does not cover.
+
 #### Bypass Package `__init__` with SourceFileLoader
 
 When a test file needs to import from `laughtrack.utilities.infrastructure` (e.g.
