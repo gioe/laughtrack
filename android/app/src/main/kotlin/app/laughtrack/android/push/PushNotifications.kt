@@ -8,15 +8,18 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
+import android.graphics.drawable.BitmapDrawable
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import app.laughtrack.android.MainActivity
 import app.laughtrack.android.R
-import java.net.HttpURLConnection
-import java.net.URL
+import coil.imageLoader
+import coil.request.ImageRequest
+import coil.request.SuccessResult
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Notification channel + posting for comedian-arrival pushes. The tap PendingIntent
@@ -97,7 +100,7 @@ object PushNotifications {
         // Rich push: show the comedian headshot as the large icon collapsed and a
         // big picture when expanded. Falls back to BigText when there's no image
         // or the download fails.
-        val headshot = content.imageUrl?.let(::loadBitmap)
+        val headshot = content.imageUrl?.let { loadBitmap(context, it) }
         if (headshot != null) {
             builder
                 .setLargeIcon(headshot)
@@ -113,25 +116,43 @@ object PushNotifications {
         NotificationManagerCompat.from(context).notify(notificationId, builder.build())
     }
 
+    // BigPicture headshots come from the CDN at arbitrary resolutions; cap the
+    // decode so a huge original can't OOM the process or overflow the binder
+    // transaction that carries the notification (TransactionTooLargeException).
+    private const val MAX_IMAGE_DIMENSION_PX = 1024
+
+    // FCM's onMessageReceived budget is ~10s; give the image fetch half of it so
+    // the notification still posts (BigText fallback) when the CDN is slow.
+    private const val IMAGE_FETCH_TIMEOUT_MS = 5_000L
+
     /**
-     * Blocking fetch of a remote image into a Bitmap. Only called from
+     * Blocking fetch of a remote image into a Bitmap via Coil's singleton
+     * [coil.ImageLoader] (shared connection pool and memory/disk caches with
+     * core:ui's RemoteImage). Only called from
      * [LaughTrackMessagingService.onMessageReceived], which runs on an FCM
-     * background thread, so a synchronous download is safe here. Returns null on
-     * any failure so the notification still posts without the image.
+     * background thread, so blocking here is safe. Returns null on any failure
+     * or timeout so the notification still posts without the image.
      */
-    private fun loadBitmap(imageUrl: String): Bitmap? =
+    private fun loadBitmap(
+        context: Context,
+        imageUrl: String,
+    ): Bitmap? =
         runCatching {
-            val connection =
-                (URL(imageUrl).openConnection() as HttpURLConnection).apply {
-                    connectTimeout = 5_000
-                    readTimeout = 5_000
-                    doInput = true
+            val request =
+                ImageRequest.Builder(context)
+                    .data(imageUrl)
+                    .size(MAX_IMAGE_DIMENSION_PX)
+                    // Notifications render through RemoteViews, which cannot
+                    // draw hardware bitmaps.
+                    .allowHardware(false)
+                    .build()
+            val result =
+                runBlocking {
+                    withTimeoutOrNull(IMAGE_FETCH_TIMEOUT_MS) {
+                        context.imageLoader.execute(request)
+                    }
                 }
-            try {
-                connection.inputStream.use { BitmapFactory.decodeStream(it) }
-            } finally {
-                connection.disconnect()
-            }
+            ((result as? SuccessResult)?.drawable as? BitmapDrawable)?.bitmap
         }.getOrNull()
 
     private fun hasPostPermission(context: Context): Boolean =

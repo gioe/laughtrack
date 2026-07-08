@@ -148,6 +148,11 @@ dependencies {
     implementation(libs.firebase.analytics)
     implementation(libs.sentry.android)
 
+    // Push-notification image fetch (PushNotifications.loadBitmap) goes through
+    // Coil's singleton ImageLoader so it shares the connection pool and caches
+    // with core:ui's RemoteImage instead of a hand-rolled HttpURLConnection.
+    implementation(libs.coil)
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

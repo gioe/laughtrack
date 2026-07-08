@@ -81,6 +81,7 @@ androidx-browser = { group = "androidx.browser", name = "browser", version.ref =
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "fusedLocation" }
 
 # Images
+coil = { group = "io.coil-kt", name = "coil", version.ref = "coil" }
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 
 # Media playback
