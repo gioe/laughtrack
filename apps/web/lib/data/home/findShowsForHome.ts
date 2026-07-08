@@ -1,14 +1,12 @@
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
-import { LINEUP_COMEDIAN_SELECT } from "@/lib/data/comedian/lineupComedianSelect";
-import { PARENT_COMEDIAN_LINEUP_SELECT } from "@/lib/data/comedian/parentComedianSelect";
+import {
+    PUBLIC_SHOW_SELECT,
+    getLineupItemPopularity,
+    mapShowRowToDTO,
+} from "@/lib/data/show/showSelect";
 import { ComedianLineupDTO } from "@/objects/class/comedian/comedianLineup.interface";
 import { ShowDTO } from "@/objects/class/show/show.interface";
-import { buildClubImageUrl } from "@/util/imageUtil";
-import { mapTickets } from "@/util/ticket/ticketUtil";
-import { filterAndMapLineupItems } from "@/util/comedian/comedianUtil";
-import { computeDistanceMiles } from "@/util/distanceUtil";
-import { computeShowSoldOut } from "@/util/show/soldOutUtil";
 
 interface HomeShowQueryOptions {
     zipCode?: string;
@@ -16,73 +14,6 @@ interface HomeShowQueryOptions {
 }
 
 const HOME_RELEVANCE_CANDIDATE_TAKE = 50;
-
-const HOME_SHOW_SELECT = {
-    id: true,
-    name: true,
-    date: true,
-    popularity: true,
-    room: true,
-    tickets: {
-        select: {
-            price: true,
-            soldOut: true,
-            purchaseUrl: true,
-            type: true,
-        },
-    },
-    club: {
-        select: {
-            id: true,
-            name: true,
-            address: true,
-            city: true,
-            state: true,
-            zipCode: true,
-            hasImage: true,
-            timezone: true,
-        },
-    },
-    lineupItems: {
-        where: {
-            comedian: {
-                visible: true,
-                taggedComedians: {
-                    none: { tag: { userFacing: false } },
-                },
-            },
-        },
-        select: {
-            role: true,
-            comedian: {
-                select: {
-                    ...LINEUP_COMEDIAN_SELECT,
-                    _count: {
-                        select: {
-                            lineupItems: true,
-                        },
-                    },
-                    parentComedian: {
-                        select: {
-                            ...PARENT_COMEDIAN_LINEUP_SELECT,
-                            _count: {
-                                select: {
-                                    lineupItems: true,
-                                },
-                            },
-                        },
-                    },
-                },
-            },
-        },
-    },
-    taggedShows: {
-        where: { tag: { visibility: "PUBLIC" } },
-        select: {
-            tag: { select: { slug: true, name: true } },
-        },
-    },
-} satisfies Prisma.ShowSelect;
 
 const AVAILABLE_HOME_SHOW_WHERE: Prisma.ShowWhereInput = {
     AND: [
@@ -122,48 +53,27 @@ export async function findShowsForHome(
         : take;
     const shows = await db.show.findMany({
         where: { AND: [where, AVAILABLE_HOME_SHOW_WHERE] },
-        select: HOME_SHOW_SELECT,
+        select: PUBLIC_SHOW_SELECT,
         orderBy,
         take: queryTake,
         skip,
     });
 
     const mapped = shows.map((show) => {
-        const lineup = filterAndMapLineupItems(show.lineupItems);
-        const distanceMiles = options.zipCode
-            ? computeDistanceMiles(options.zipCode, show.club.zipCode)
-            : undefined;
+        // Home derives imageUrl from the best lineup photo, maps room null →
+        // undefined, and only computes distanceMiles when a zip is supplied
+        // (search, by contrast, always computes it). See mapShowRowToDTO.
+        const dto = mapShowRowToDTO(show, {
+            zipCode: options.zipCode,
+            imageSource: "lineup",
+            room: "coalesce",
+            distanceWhenNoZip: "undefined",
+        });
 
         return {
-            dto: {
-                id: show.id,
-                name: show.name,
-                date: show.date,
-                clubId: show.club.id,
-                clubName: show.club.name,
-                clubCity: show.club.city,
-                clubState: show.club.state,
-                address: show.club.address,
-                imageUrl:
-                    getBestLineupImageUrl(lineup) ??
-                    buildClubImageUrl(show.club.name, show.club.hasImage),
-                soldOut: computeShowSoldOut(show.name, show.tickets),
-                lineup,
-                tickets: mapTickets(show.tickets),
-                room: show.room ?? undefined,
-                distanceMiles,
-                timezone: show.club.timezone,
-                tags: (show.taggedShows ?? [])
-                    .map((tt) => tt.tag)
-                    .filter(
-                        (tag): tag is { slug: string; name: string } =>
-                            typeof tag?.slug === "string" &&
-                            typeof tag?.name === "string",
-                    )
-                    .map((tag) => ({ slug: tag.slug, name: tag.name })),
-            },
+            dto,
             showPopularity: show.popularity,
-            lineupPopularity: getLineupPopularity(lineup),
+            lineupPopularity: getLineupPopularity(dto.lineup ?? []),
         };
     });
 
@@ -174,29 +84,11 @@ export async function findShowsForHome(
     return mapped.slice(0, take).map((show) => show.dto);
 }
 
-function getBestLineupImageUrl(lineup: ComedianLineupDTO[]): string | null {
-    let best: ComedianLineupDTO | null = null;
-    for (const comedian of lineup) {
-        if (!comedian.imageUrl) continue;
-        if (
-            !best ||
-            getLineupItemPopularity(comedian) > getLineupItemPopularity(best)
-        ) {
-            best = comedian;
-        }
-    }
-    return best?.imageUrl ?? null;
-}
-
 function getLineupPopularity(lineup: ComedianLineupDTO[]): number {
     return lineup.reduce(
         (score, comedian) => score + getLineupItemPopularity(comedian),
         0,
     );
-}
-
-function getLineupItemPopularity(comedian: ComedianLineupDTO): number {
-    return comedian.showCount ?? 0;
 }
 
 function compareHomeShowRelevance(

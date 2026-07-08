@@ -415,7 +415,9 @@ describe("findShowsWithCount", () => {
             expect(comedianSelect.favoriteComedians!.select).toEqual({
                 id: true,
             });
-            expect(helper.getProfileId).toHaveBeenCalledTimes(2);
+            // buildShowSelect reads profileId once (the caller passes the value
+            // in); the pre-extraction inline select called getProfileId twice.
+            expect(helper.getProfileId).toHaveBeenCalledTimes(1);
         });
 
         it("selects comedian lineup counts for native featured-comedian rows", async () => {

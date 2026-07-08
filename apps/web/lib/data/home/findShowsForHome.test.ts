@@ -245,7 +245,9 @@ describe("findShowsForHome", () => {
 
             await findShowsForHome({}, { date: "asc" });
 
-            expect(mockFilter).toHaveBeenCalledWith(lineupItems);
+            // The shared mapShowRowToDTO forwards an explicit userId (undefined
+            // for the home path, which never marks favorites).
+            expect(mockFilter).toHaveBeenCalledWith(lineupItems, undefined);
         });
 
         it("returns empty lineup when filterAndMapLineupItems returns empty array", async () => {

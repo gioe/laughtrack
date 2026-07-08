@@ -1,14 +1,13 @@
 import { db } from "@/lib/db";
-import { LINEUP_COMEDIAN_SELECT } from "@/lib/data/comedian/lineupComedianSelect";
-import { PARENT_COMEDIAN_LINEUP_SELECT } from "@/lib/data/comedian/parentComedianSelect";
+import {
+    buildShowSelect,
+    mapShowRowToDTO,
+    type PublicShowRow,
+} from "@/lib/data/show/showSelect";
 import { QueryHelper, SHOW_SORT_MAP } from "@/objects/class/query/QueryHelper";
 import { SortParamValue } from "@/objects/enum/sortParamValue";
 import { ShowDTO } from "@/objects/class/show/show.interface";
-import { filterAndMapLineupItems } from "@/util/comedian/comedianUtil";
-import { computeDistanceMiles } from "@/util/distanceUtil";
-import { buildClubImageUrl } from "@/util/imageUtil";
 import { computeShowSoldOut } from "@/util/show/soldOutUtil";
-import { mapTickets } from "@/util/ticket/ticketUtil";
 import { Prisma } from "@prisma/client";
 
 interface ShowsResponse {
@@ -23,78 +22,6 @@ interface ClubShowsOptions {
     profileId?: string;
     userId?: string;
 }
-
-const SHOW_SELECT = {
-    id: true,
-    name: true,
-    date: true,
-    description: true,
-    room: true,
-    popularity: true,
-    tickets: {
-        select: {
-            price: true,
-            soldOut: true,
-            purchaseUrl: true,
-            type: true,
-        },
-    },
-    club: {
-        select: {
-            id: true,
-            name: true,
-            address: true,
-            city: true,
-            state: true,
-            zipCode: true,
-            hasImage: true,
-            timezone: true,
-        },
-    },
-    lineupItems: {
-        where: {
-            comedian: {
-                visible: true,
-                taggedComedians: {
-                    none: {
-                        tag: {
-                            userFacing: false,
-                        },
-                    },
-                },
-            },
-        },
-        select: {
-            role: true,
-            comedian: {
-                select: {
-                    ...LINEUP_COMEDIAN_SELECT,
-                    _count: {
-                        select: {
-                            lineupItems: true,
-                        },
-                    },
-                    parentComedian: {
-                        select: {
-                            ...PARENT_COMEDIAN_LINEUP_SELECT,
-                            _count: {
-                                select: {
-                                    lineupItems: true,
-                                },
-                            },
-                        },
-                    },
-                },
-            },
-        },
-    },
-    taggedShows: {
-        where: { tag: { visibility: "PUBLIC" } },
-        select: {
-            tag: { select: { slug: true, name: true } },
-        },
-    },
-} as const;
 
 const AVAILABLE_SHOW_WHERE: Prisma.ShowWhereInput = {
     AND: [
@@ -164,34 +91,10 @@ export async function findShowsWithCount(
 
         const filteredShows = await db.show.findMany({
             where: whereClause,
-            select: {
-                ...SHOW_SELECT,
-                lineupItems: {
-                    ...SHOW_SELECT.lineupItems,
-                    select: {
-                        role: true,
-                        comedian: {
-                            select: {
-                                ...SHOW_SELECT.lineupItems.select.comedian
-                                    .select,
-                                ...(helper.getProfileId()
-                                    ? {
-                                          favoriteComedians: {
-                                              where: {
-                                                  profileId:
-                                                      helper.getProfileId(),
-                                              },
-                                              select: {
-                                                  id: true,
-                                              },
-                                          },
-                                      }
-                                    : {}),
-                            },
-                        },
-                    },
-                },
-            },
+            select: buildShowSelect({
+                includeDescription: true,
+                favoriteComediansProfileId: helper.getProfileId(),
+            }),
             ...helper.getGenericClauses(totalCount, SHOW_SORT_MAP, [
                 { date: "asc" },
                 { id: "asc" },
@@ -210,7 +113,7 @@ export async function findShowsWithCount(
                 totalCount - (filteredShows.length - availableShows.length),
             ),
             shows: availableShows.map((show) =>
-                mapShowToDTO(show, helper, searchedZip),
+                mapSearchShowToDTO(show, helper, searchedZip),
             ),
         };
     } catch (error) {
@@ -248,32 +151,10 @@ export async function findUpcomingShowsForClub(
     const totalCount = await db.show.count({ where: whereClause });
     const filteredShows = await db.show.findMany({
         where: whereClause,
-        select: {
-            ...SHOW_SELECT,
-            lineupItems: {
-                ...SHOW_SELECT.lineupItems,
-                select: {
-                    role: true,
-                    comedian: {
-                        select: {
-                            ...SHOW_SELECT.lineupItems.select.comedian.select,
-                            ...(helper.getProfileId()
-                                ? {
-                                      favoriteComedians: {
-                                          where: {
-                                              profileId: helper.getProfileId(),
-                                          },
-                                          select: {
-                                              id: true,
-                                          },
-                                      },
-                                  }
-                                : {}),
-                        },
-                    },
-                },
-            },
-        },
+        select: buildShowSelect({
+            includeDescription: true,
+            favoriteComediansProfileId: helper.getProfileId(),
+        }),
         ...helper.getGenericClauses(totalCount, SHOW_SORT_MAP, [
             { date: "asc" },
             { id: "asc" },
@@ -289,40 +170,26 @@ export async function findUpcomingShowsForClub(
             0,
             totalCount - (filteredShows.length - availableShows.length),
         ),
-        shows: availableShows.map((show) => mapShowToDTO(show, helper)),
+        shows: availableShows.map((show) => mapSearchShowToDTO(show, helper)),
     };
 }
 
-function mapShowToDTO(
-    show: Prisma.ShowGetPayload<{ select: typeof SHOW_SELECT }>,
+// Search DTO options: search fetches description + a profileId-keyed
+// favoriteComedians block, emits description/popularityScore, uses the club
+// image, and (unlike home) always computes distanceMiles — yielding null when no
+// zip was searched, which cards use to hide the distance label.
+function mapSearchShowToDTO(
+    show: PublicShowRow,
     helper: QueryHelper,
     searchedZip?: string,
 ): ShowDTO {
-    return {
-        id: show.id,
-        date: show.date,
-        name: show.name,
-        popularityScore: show.popularity,
-        description: show.description ?? undefined,
-        room: show.room,
-        address: show.club.address,
-        clubId: show.club.id,
-        clubName: show.club.name,
-        clubCity: show.club.city,
-        clubState: show.club.state,
-        imageUrl: buildClubImageUrl(show.club.name, show.club.hasImage),
-        soldOut: computeShowSoldOut(show.name, show.tickets),
-        lineup: filterAndMapLineupItems(show.lineupItems, helper.getUserId()),
-        tickets: mapTickets(show.tickets),
-        distanceMiles: computeDistanceMiles(searchedZip, show.club.zipCode),
-        timezone: show.club.timezone,
-        tags: (show.taggedShows ?? [])
-            .map((tt) => tt.tag)
-            .filter(
-                (tag): tag is { slug: string; name: string } =>
-                    typeof tag?.slug === "string" &&
-                    typeof tag?.name === "string",
-            )
-            .map((tag) => ({ slug: tag.slug, name: tag.name })),
-    };
+    return mapShowRowToDTO(show, {
+        userId: helper.getUserId(),
+        zipCode: searchedZip,
+        imageSource: "club",
+        includeDescription: true,
+        includePopularityScore: true,
+        room: "raw",
+        distanceWhenNoZip: "compute",
+    });
 }
