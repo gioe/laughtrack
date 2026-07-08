@@ -93,6 +93,31 @@ class EncryptedSharedPreferencesTokenStoreTest {
         }
 
     @Test
+    fun recoveryStillClearsStorageWhenTelemetryCallbackFails() =
+        runTest {
+            var factoryCalls = 0
+            var clearCalls = 0
+            val store =
+                EncryptedSharedPreferencesTokenStore(
+                    prefsFactory = {
+                        factoryCalls++
+                        if (factoryCalls == 1) {
+                            throw GeneralSecurityException("corrupted keyset")
+                        }
+                        FakeSharedPreferences()
+                    },
+                    clearCorruptedStorage = { clearCalls++ },
+                    onRecovery = { throw IllegalStateException("telemetry unavailable") },
+                )
+
+            val tokens = store.read()
+
+            assertNull(tokens)
+            assertEquals(1, clearCalls)
+            assertEquals(2, factoryCalls)
+        }
+
+    @Test
     fun recreatedStoreRoundTripsTokensAfterRecovery() =
         runTest {
             var factoryCalls = 0

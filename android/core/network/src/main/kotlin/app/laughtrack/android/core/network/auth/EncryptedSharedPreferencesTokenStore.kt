@@ -68,12 +68,14 @@ class EncryptedSharedPreferencesTokenStore internal constructor(
             // Delete the encrypted prefs so a fresh keyset is generated on the retry —
             // the user is signed out rather than trapped in a permanent launch-time
             // crash loop.
-            onRecovery(
-                TokenStoreRecoveryEvent(
-                    cause = e,
-                    forcedSignOut = true,
-                ),
-            )
+            runCatching {
+                onRecovery(
+                    TokenStoreRecoveryEvent(
+                        cause = e,
+                        forcedSignOut = true,
+                    ),
+                )
+            }
             clearCorruptedStorage()
             prefsFactory()
         }
