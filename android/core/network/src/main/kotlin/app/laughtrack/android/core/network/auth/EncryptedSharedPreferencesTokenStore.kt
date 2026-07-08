@@ -1,24 +1,63 @@
 package app.laughtrack.android.core.network.auth
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class EncryptedSharedPreferencesTokenStore(
-    context: Context,
+/**
+ * Token store backed by [EncryptedSharedPreferences].
+ *
+ * Two hardening measures guard against the Tink keyset-corruption crash loop that
+ * the deprecated `androidx.security-crypto` 1.1.0-alpha06 is prone to:
+ *
+ *  1. **Lazy initialization** — [EncryptedSharedPreferences]/[MasterKey] construction
+ *     does Keystore + Tink work that can throw. Doing it eagerly in the constructor
+ *     runs it on the main thread at Hilt injection time, so a corrupted keyset crashes
+ *     the app before anything can catch it. Here the prefs are built lazily on first
+ *     access, which always happens inside `withContext(Dispatchers.IO)` below.
+ *  2. **Corruption recovery** — if building the prefs throws (a corrupted keyset surfaces
+ *     as `GeneralSecurityException` / `IOException` / `IllegalStateException` depending on
+ *     the failure), the corrupted storage is deleted and the prefs are rebuilt with a
+ *     fresh keyset. This signs the user out instead of crash-looping on every launch.
+ *
+ * The [prefsFactory]/[clearCorruptedStorage] seams exist so the recovery path can be
+ * unit-tested without a real Android Keystore; production callers use the primary
+ * constructor, which wires the real [EncryptedSharedPreferences] factory.
+ */
+class EncryptedSharedPreferencesTokenStore internal constructor(
+    private val prefsFactory: () -> SharedPreferences,
+    private val clearCorruptedStorage: () -> Unit,
 ) : TokenStore {
-    private val prefs =
-        EncryptedSharedPreferences.create(
-            context,
-            PREFS_NAME,
-            MasterKey.Builder(context)
-                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-                .build(),
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
-        )
+    constructor(context: Context) : this(
+        prefsFactory = { createEncryptedPrefs(context) },
+        clearCorruptedStorage = { deleteEncryptedPrefs(context) },
+    )
+
+    // Built lazily so no Keystore/Tink work happens at Hilt injection time; the first
+    // access below always runs on Dispatchers.IO. `lazy` defaults to thread-safe
+    // (SYNCHRONIZED) initialization.
+    private val prefs: SharedPreferences by lazy { openOrRecover() }
+
+    // A corrupted alpha06 Tink keyset surfaces as several unrelated exception types
+    // (GeneralSecurityException, IOException, and runtime IllegalState/IllegalArgument
+    // from Tink), so the catch is intentionally broad and intentionally swallows the
+    // cause: recovery (delete + recreate) is the whole point, and there is no logger
+    // dependency in this module. Narrowing the catch would risk re-introducing the
+    // crash loop for a variant we did not enumerate.
+    @Suppress("TooGenericExceptionCaught", "SwallowedException")
+    private fun openOrRecover(): SharedPreferences =
+        try {
+            prefsFactory()
+        } catch (e: Exception) {
+            // Delete the encrypted prefs so a fresh keyset is generated on the retry —
+            // the user is signed out rather than trapped in a permanent launch-time
+            // crash loop.
+            clearCorruptedStorage()
+            prefsFactory()
+        }
 
     override suspend fun read(): SessionTokens? =
         withContext(Dispatchers.IO) {
@@ -53,9 +92,25 @@ class EncryptedSharedPreferencesTokenStore(
     }
 
     private companion object {
-        const val PREFS_NAME = "laughtrack_session_tokens"
         const val KEY_ACCESS_TOKEN = "access_token"
         const val KEY_REFRESH_TOKEN = "refresh_token"
         const val KEY_EXPIRES_AT = "expires_at_epoch_seconds"
     }
+}
+
+private const val PREFS_NAME = "laughtrack_session_tokens"
+
+private fun createEncryptedPrefs(context: Context): SharedPreferences =
+    EncryptedSharedPreferences.create(
+        context,
+        PREFS_NAME,
+        MasterKey.Builder(context)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build(),
+        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
+    )
+
+private fun deleteEncryptedPrefs(context: Context) {
+    context.deleteSharedPreferences(PREFS_NAME)
 }
