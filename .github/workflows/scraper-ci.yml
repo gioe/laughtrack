@@ -86,9 +86,10 @@ jobs:
             apps/scraper/coverage.xml
           retention-days: 30
 
-      # Scoped to push/schedule on main so failing PR checks don't spam Discord.
+      # Scoped to push on main so failing PR checks don't spam Discord. (This
+      # workflow has no schedule trigger, so only push events reach here.)
       - name: Notify Discord on failure
-        if: ${{ failure() && (github.event_name == 'push' || github.event_name == 'schedule') && github.ref == 'refs/heads/main' }}
+        if: ${{ failure() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
@@ -174,7 +175,8 @@ jobs:
           retention-days: 30
 
       - name: Notify Discord on failure
-        if: ${{ failure() && (github.event_name == 'push' || github.event_name == 'schedule') && github.ref == 'refs/heads/main' }}
+        # No schedule trigger on this workflow, so this is scoped to push on main.
+        if: ${{ failure() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |

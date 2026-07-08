@@ -280,12 +280,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Required GitHub Actions secrets for this step:
-      #   DATABASE_URL  — Neon serverless connection string (runtime + Prisma client)
-      #   DIRECT_URL    — Direct Neon connection string (Prisma migrate deploy only)
-      #   AUTH_SECRET   — NextAuth v5 session token signing secret (openssl rand -base64 32)
-      # See apps/web/.env.example for variable descriptions and provisioning guidance.
-      # BUNNYCDN_CDN_HOST is the public Bunny CDN pull-zone hostname (not a secret —
+      # This job runs `next build` with NO database/auth secrets — it needs only
+      # BUNNYCDN_CDN_HOST, the public Bunny CDN pull-zone hostname (not a secret —
       # also hardcoded in next.config.mjs and middleware.ts CSP). next build needs
       # it because apps/web/util/imageUtil.ts throws at module load if unset.
       - name: Build
@@ -374,9 +370,10 @@ jobs:
     name: Notify Discord on failure
     runs-on: ubuntu-latest
     needs: [changes, type-check, lint, test, e2e, e2e-visual, build, migrations]
-    # failure() runs this job when any needed job failed; scoped to push/schedule
-    # on main so failing PR checks don't spam Discord.
-    if: ${{ failure() && (github.event_name == 'push' || github.event_name == 'schedule') && github.ref == 'refs/heads/main' }}
+    # failure() runs this job when any needed job failed; scoped to push on main
+    # so failing PR checks don't spam Discord. (This workflow has no schedule
+    # trigger, so only push events reach here.)
+    if: ${{ failure() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     steps:
       - name: Post failure to Discord
         env:
