@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.laughtrack.android.core.analytics.AnalyticsEvents
 import app.laughtrack.android.core.analytics.AnalyticsManager
+import app.laughtrack.android.core.data.location.HomeLocation
+import app.laughtrack.android.core.data.location.HomeLocationState
 import app.laughtrack.android.core.data.runCatchingCancellable
 import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.network.generated.model.Filter
@@ -37,14 +39,26 @@ data class PivotState(
     val homeCityFilters: List<HomeCityFilter> = emptyList(),
 )
 
-/** Seeds each pivot with its server-default sort (and a default radius for geo pivots). */
-private fun defaultPivotStates(): Map<SearchPivot, PivotState> =
+/**
+ * Seeds each pivot with its server-default sort. Geo pivots inherit the Home
+ * feed's location (saved or hero-inferred ZIP plus radius) so Search opens
+ * scoped to the same area Home is showing, the way iOS seeds SearchRootModel
+ * from the nearby preference; with no Home location they fall back to the
+ * global corpus with the default radius, as before.
+ */
+private fun defaultPivotStates(homeLocation: HomeLocation? = null): Map<SearchPivot, PivotState> =
     SearchPivot.entries.associateWith { pivot ->
         PivotState(
             query =
                 SearchQuery(
                     sort = SearchSort.defaultFor(pivot),
-                    distance = if (pivot.isGeoScoped) DEFAULT_DISTANCE_MILES else null,
+                    zip = if (pivot.isGeoScoped) homeLocation?.zip else null,
+                    distance =
+                        if (pivot.isGeoScoped) {
+                            homeLocation?.distanceMiles ?: DEFAULT_DISTANCE_MILES
+                        } else {
+                            null
+                        },
                 ),
         )
     }
@@ -62,8 +76,14 @@ class SearchViewModel
     constructor(
         private val repository: SearchRepository,
         private val analytics: AnalyticsManager,
+        homeLocationState: HomeLocationState,
     ) : ViewModel() {
-        private val _state = MutableStateFlow(SearchUiState())
+        // One-shot snapshot at creation: later Home edits do not clobber a search
+        // the user has already adjusted; reopening Search (new ViewModel) re-seeds.
+        private val _state =
+            MutableStateFlow(
+                SearchUiState(states = defaultPivotStates(homeLocationState.location.value)),
+            )
         val state: StateFlow<SearchUiState> = _state.asStateFlow()
 
         private val loadJobs = mutableMapOf<SearchPivot, Job>()

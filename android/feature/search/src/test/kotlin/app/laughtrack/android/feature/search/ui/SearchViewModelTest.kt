@@ -1,11 +1,15 @@
 package app.laughtrack.android.feature.search.ui
 
 import app.laughtrack.android.core.analytics.AnalyticsManager
+import app.laughtrack.android.core.data.location.HomeLocation
+import app.laughtrack.android.core.data.location.HomeLocationState
 import app.laughtrack.android.core.network.generated.api.ShowsApi
 import app.laughtrack.android.core.network.generated.model.ShowDetailResponse
 import app.laughtrack.android.core.network.generated.model.ShowListResponse
 import app.laughtrack.android.core.network.generated.model.ShowSearchResponse
 import app.laughtrack.android.feature.search.data.SearchRepository
+import app.laughtrack.android.feature.search.model.DEFAULT_DISTANCE_MILES
+import app.laughtrack.android.feature.search.model.SearchPivot
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -55,7 +59,42 @@ class SearchViewModelTest {
             advanceUntilIdle()
         }
 
-    private fun viewModel(showsApi: ShowsApi): SearchViewModel =
+    @Test
+    fun search_seeds_shows_pivot_from_home_location() =
+        runTest {
+            val showsApi = SuspendingShowsApi()
+            val viewModel = viewModel(showsApi, homeLocation = HomeLocation("60614", 50))
+            advanceUntilIdle()
+
+            val query = viewModel.state.value.states.getValue(SearchPivot.SHOWS).query
+            assertEquals("60614", query.zip)
+            assertEquals(50, query.distance)
+            // Non-geo pivots stay nationwide.
+            assertNull(viewModel.state.value.states.getValue(SearchPivot.COMEDIANS).query.zip)
+
+            showsApi.completeLatestSearch()
+            advanceUntilIdle()
+        }
+
+    @Test
+    fun search_stays_global_without_home_location() =
+        runTest {
+            val showsApi = SuspendingShowsApi()
+            val viewModel = viewModel(showsApi)
+            advanceUntilIdle()
+
+            val query = viewModel.state.value.states.getValue(SearchPivot.SHOWS).query
+            assertNull(query.zip)
+            assertEquals(DEFAULT_DISTANCE_MILES, query.distance)
+
+            showsApi.completeLatestSearch()
+            advanceUntilIdle()
+        }
+
+    private fun viewModel(
+        showsApi: ShowsApi,
+        homeLocation: HomeLocation? = null,
+    ): SearchViewModel =
         SearchViewModel(
             repository =
                 SearchRepository(
@@ -65,6 +104,10 @@ class SearchViewModelTest {
                     podcastsApi = throwingApi(),
                 ),
             analytics = AnalyticsManager(emptyList()),
+            homeLocationState =
+                HomeLocationState().apply {
+                    homeLocation?.let { update(it.zip, it.distanceMiles) }
+                },
         )
 
     private class SuspendingShowsApi : ShowsApi {

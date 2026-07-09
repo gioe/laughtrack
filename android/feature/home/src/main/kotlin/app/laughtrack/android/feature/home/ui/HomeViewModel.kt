@@ -2,6 +2,7 @@ package app.laughtrack.android.feature.home.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.laughtrack.android.core.data.location.HomeLocationState
 import app.laughtrack.android.core.data.runCatchingCancellable
 import app.laughtrack.android.core.network.generated.model.ClubListItem
 import app.laughtrack.android.core.network.generated.model.ComedianListItem
@@ -91,6 +92,7 @@ class HomeViewModel
         private val repository: HomeFeedRepository,
         private val cache: HomeFeedCache,
         private val locationResolver: HomeLocationResolver,
+        private val homeLocationState: HomeLocationState,
     ) : ViewModel() {
         private val _state = MutableStateFlow(HomeUiState(feed = UiState.Loading))
         val state: StateFlow<HomeUiState> = _state.asStateFlow()
@@ -160,35 +162,48 @@ class HomeViewModel
                     // Render the persisted snapshot immediately, if any, so relaunch is instant;
                     // otherwise show the skeleton while the network call is in flight.
                     val cached = cache.get(zip, distance)
-                    _state.value =
+                    publishState(
                         HomeUiState(
                             feed = cached?.let { UiState.Success(it) } ?: UiState.Loading,
                             zip = zip,
                             distanceMiles = distance,
-                        )
+                        ),
+                    )
                     runCatchingCancellable { repository.getHomeFeed(zip, distance) }
                         .onSuccess { feed ->
                             cache.set(zip, distance, feed)
-                            _state.value =
+                            publishState(
                                 HomeUiState(
                                     feed = UiState.Success(feed),
                                     zip = zip,
                                     distanceMiles = distance,
-                                )
+                                ),
+                            )
                         }
                         .onFailure { error ->
                             // Keep the cached feed visible on a refresh failure; only surface an
                             // error when there was nothing to fall back on.
                             if (cached == null) {
-                                _state.value =
+                                publishState(
                                     HomeUiState(
                                         feed = UiState.Failure(error),
                                         zip = zip,
                                         distanceMiles = distance,
-                                    )
+                                    ),
+                                )
                             }
                         }
                 }
+        }
+
+        /**
+         * Publish the new feed state and mirror its active area into the shared
+         * HomeLocationState so Search seeds its geo pivots from the same location
+         * Home is showing (TASK-3698, mirrors iOS SearchRootModel seeding).
+         */
+        private fun publishState(state: HomeUiState) {
+            _state.value = state
+            homeLocationState.update(state.activeZip, state.distanceMiles)
         }
 
         private companion object {

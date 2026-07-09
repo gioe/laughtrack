@@ -1,5 +1,7 @@
 package app.laughtrack.android.feature.home
 
+import app.laughtrack.android.core.data.location.HomeLocation
+import app.laughtrack.android.core.data.location.HomeLocationState
 import app.laughtrack.android.core.network.generated.model.ClubListItem
 import app.laughtrack.android.core.network.generated.model.ComedianListItem
 import app.laughtrack.android.core.network.generated.model.HomeFeed
@@ -232,11 +234,32 @@ class HomeViewModelTest {
             assertEquals(1, repository.loads)
         }
 
+    @Test
+    fun load_publishes_active_location_for_search_seeding() =
+        runTest {
+            // Search seeds its geo pivots from this holder (TASK-3698): the hero
+            // ZIP and current radius must be mirrored on every feed publication.
+            val locationState = HomeLocationState()
+            val viewModel = viewModel(FakeHomeFeedRepository(feed = homeFeed()), locationState = locationState)
+            advanceUntilIdle()
+
+            assertEquals(
+                HomeLocation("10001", HomeFeedRepository.DEFAULT_DISTANCE_MILES),
+                locationState.location.value,
+            )
+
+            viewModel.setDistance(50)
+            advanceUntilIdle()
+
+            assertEquals(HomeLocation("10001", 50), locationState.location.value)
+        }
+
     private fun viewModel(
         repository: HomeFeedRepository,
         cache: HomeFeedCache = FakeHomeFeedCache(),
         resolver: HomeLocationResolver = FakeLocationResolver(),
-    ) = HomeViewModel(repository, cache, resolver)
+        locationState: HomeLocationState = HomeLocationState(),
+    ) = HomeViewModel(repository, cache, resolver, locationState)
 
     private class FakeHomeFeedRepository(
         private val failuresBeforeSuccess: Int = 0,
