@@ -83,6 +83,10 @@ export async function findPastShowsForComedian(
                     select: {
                         role: true,
                         comedian: {
+                            // Deliberately does not compose
+                            // buildLineupItemComedianSelect(): past-shows has
+                            // historically omitted lineup[].showCount, and the
+                            // shared helper always selects _count for showCount.
                             select: {
                                 ...LINEUP_COMEDIAN_SELECT,
                                 parentComedian: {

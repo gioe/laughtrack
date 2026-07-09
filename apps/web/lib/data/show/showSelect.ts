@@ -1,6 +1,5 @@
 import { Prisma } from "@prisma/client";
-import { LINEUP_COMEDIAN_SELECT } from "@/lib/data/comedian/lineupComedianSelect";
-import { PARENT_COMEDIAN_LINEUP_SELECT } from "@/lib/data/comedian/parentComedianSelect";
+import { buildLineupItemComedianSelect } from "@/lib/data/comedian/lineupComedianSelect";
 import { ComedianLineupDTO } from "@/objects/class/comedian/comedianLineup.interface";
 import { ShowDTO } from "@/objects/class/show/show.interface";
 import { filterAndMapLineupItems } from "@/util/comedian/comedianUtil";
@@ -23,30 +22,6 @@ import { mapTickets } from "@/util/ticket/ticketUtil";
 // differences are PARAMETERIZED (see buildShowSelect / MapShowRowOptions) rather
 // than collapsed. DTO shapes are consumed by iOS/Android via the OpenAPI
 // contract, so per-path field parity must stay exact.
-
-// Build the comedian select nested under each lineup item. The single source
-// of the _count shape at both depths: no countWhere yields the all-time
-// lineupItems count (search/home); a countWhere filters it (detail passes an
-// upcoming-only date bound via buildShowSelect's lineupCountWhere).
-function buildLineupItemComedianSelect(
-    countWhere?: Prisma.LineupItemWhereInput,
-) {
-    const lineupItemsCount = {
-        select: {
-            lineupItems: countWhere ? { where: countWhere } : true,
-        },
-    };
-    return {
-        ...LINEUP_COMEDIAN_SELECT,
-        _count: lineupItemsCount,
-        parentComedian: {
-            select: {
-                ...PARENT_COMEDIAN_LINEUP_SELECT,
-                _count: lineupItemsCount,
-            },
-        },
-    } satisfies Prisma.ComedianSelect;
-}
 
 // The all-time-count comedian select, common to the search and home paths. The
 // search path spreads this and adds a favoriteComedians block (see
@@ -276,9 +251,7 @@ export function mapShowRowToDTO(
         id: show.id,
         date: show.date,
         name: show.name,
-        ...(includePopularityScore
-            ? { popularityScore: show.popularity }
-            : {}),
+        ...(includePopularityScore ? { popularityScore: show.popularity } : {}),
         ...(includeDescription
             ? { description: show.description ?? undefined }
             : {}),

@@ -1,6 +1,5 @@
 import { db } from "@/lib/db";
-import { LINEUP_COMEDIAN_SELECT } from "@/lib/data/comedian/lineupComedianSelect";
-import { PARENT_COMEDIAN_LINEUP_SELECT } from "@/lib/data/comedian/parentComedianSelect";
+import { buildLineupItemComedianSelect } from "@/lib/data/comedian/lineupComedianSelect";
 import { filterAndMapLineupItems } from "@/util/comedian/comedianUtil";
 import { buildClubImageUrl } from "@/util/imageUtil";
 import { mapTickets } from "@/util/ticket/ticketUtil";
@@ -53,24 +52,7 @@ const UPCOMING_RUN_SHOW_SELECT = {
         select: {
             role: true,
             comedian: {
-                select: {
-                    ...LINEUP_COMEDIAN_SELECT,
-                    _count: {
-                        select: {
-                            lineupItems: true,
-                        },
-                    },
-                    parentComedian: {
-                        select: {
-                            ...PARENT_COMEDIAN_LINEUP_SELECT,
-                            _count: {
-                                select: {
-                                    lineupItems: true,
-                                },
-                            },
-                        },
-                    },
-                },
+                select: buildLineupItemComedianSelect(),
             },
         },
     },

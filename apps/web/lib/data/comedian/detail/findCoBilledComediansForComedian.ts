@@ -1,6 +1,5 @@
 import { db } from "@/lib/db";
-import { LINEUP_COMEDIAN_SELECT } from "@/lib/data/comedian/lineupComedianSelect";
-import { PARENT_COMEDIAN_LINEUP_SELECT } from "@/lib/data/comedian/parentComedianSelect";
+import { buildLineupItemComedianSelect } from "@/lib/data/comedian/lineupComedianSelect";
 import { ComedianLineupDTO } from "@/objects/class/comedian/comedianLineup.interface";
 import { filterAndMapLineupItems } from "@/util/comedian/comedianUtil";
 import { Prisma } from "@prisma/client";
@@ -74,24 +73,7 @@ export async function findCoBilledComediansForComedian({
     const uuids = rows.map((row) => row.uuid);
     const comedians = await db.comedian.findMany({
         where: { uuid: { in: uuids }, visible: true },
-        select: {
-            ...LINEUP_COMEDIAN_SELECT,
-            _count: {
-                select: {
-                    lineupItems: true,
-                },
-            },
-            parentComedian: {
-                select: {
-                    ...PARENT_COMEDIAN_LINEUP_SELECT,
-                    _count: {
-                        select: {
-                            lineupItems: true,
-                        },
-                    },
-                },
-            },
-        },
+        select: buildLineupItemComedianSelect(),
     });
 
     const comediansByUuid = new Map(
