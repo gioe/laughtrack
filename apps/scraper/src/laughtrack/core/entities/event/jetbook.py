@@ -21,6 +21,21 @@ from laughtrack.core.protocols.show_convertible import ShowConvertible
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
 
+def build_ticket_url(slug: str) -> Optional[str]:
+    """Build the per-event detail URL from a JetBook slug.
+
+    Owned by the entity so ``to_show()`` needs no scraper import (core
+    entities must not depend on laughtrack.scrapers — TASK-3695).
+    ``JetBookExtractor.build_ticket_url`` delegates here, keeping the
+    ``https://jetbook.co/e/<slug>`` format single-sourced — it is asserted
+    by production traffic and must not drift between callers.
+    """
+    slug = (slug or "").strip()
+    if not slug:
+        return None
+    return f"https://jetbook.co/e/{slug}"
+
+
 def _parse_bubble_millis(ms: int, timezone_name: str) -> Optional[datetime]:
     """Parse a Bubble.io Unix-millisecond timestamp and localize to *timezone_name*."""
     try:
@@ -42,7 +57,6 @@ class JetBookEvent(ShowConvertible):
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None):
         """Convert to a Show domain object."""
-        from laughtrack.scrapers.implementations.jetbook.extractor import JetBookExtractor
         from laughtrack.utilities.domain.show.factory import ShowFactoryUtils
 
         if not self.title or not self.start_time_ms or not self.slug:
@@ -62,7 +76,7 @@ class JetBookEvent(ShowConvertible):
         if start_dt is None:
             return None
 
-        ticket_url = url or JetBookExtractor.build_ticket_url(self.slug)
+        ticket_url = url or build_ticket_url(self.slug)
         tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url, price=self.price)]
 
         return ShowFactoryUtils.create_enhanced_show_base(

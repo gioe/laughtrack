@@ -44,6 +44,7 @@ import time
 from typing import Iterable, List, Optional
 
 from laughtrack.core.entities.event.jetbook import JetBookEvent
+from laughtrack.core.entities.event.jetbook import build_ticket_url as _build_ticket_url
 
 
 def _is_bookable_event_source(source: dict) -> bool:
@@ -188,12 +189,10 @@ class JetBookExtractor:
     def build_ticket_url(slug: str) -> Optional[str]:
         """Build the per-event detail URL from a JetBook slug.
 
-        Centralizing the URL pattern here keeps ``JetBookEvent.to_show()``
-        and any future callers (e.g. tests, auditing tools) in sync — the
-        ``https://jetbook.co/e/<slug>`` format is asserted by production
-        traffic and must not drift between the entity and the extractor.
+        Delegates to the entity-owned implementation in
+        ``laughtrack.core.entities.event.jetbook`` — core entities must not
+        import scrapers (TASK-3695), and scrapers importing core is the
+        allowed direction. Kept as an extractor method so existing callers
+        (scraper.py, tests) keep their import site.
         """
-        slug = (slug or "").strip()
-        if not slug:
-            return None
-        return f"https://jetbook.co/e/{slug}"
+        return _build_ticket_url(slug)
