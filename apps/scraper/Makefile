@@ -305,7 +305,8 @@ install-dev: setup-venv
 install-optional: setup-venv
 	@echo "📊 Installing optional dependencies..."
 	@echo "   → Streamlit dashboards, advanced analytics, visualization tools"
-	$(activate_venv) $(PIP) install -r requirements-optional.txt
+	@command -v uv >/dev/null 2>&1 || { echo "❌ uv is required (brew install uv)"; exit 1; }
+	uv pip install -r requirements-optional.txt
 	@echo "✅ Optional dependencies installed successfully!"
 
 # Complete installation - everything needed for full development and production
@@ -1299,5 +1300,9 @@ endif
 clean:
 	@echo "🧹 Cleaning Python cache files..."
 	@echo "   → Removing __pycache__ directories and .pyc files"
-	$(activate_venv) pyclean .
+	@$(activate_venv) pyclean . 2>/dev/null || { \
+		echo "   → pyclean not installed (dev dependency group) — using find fallback"; \
+		find . -type d -name __pycache__ -prune -exec rm -rf {} + ; \
+		find . -type f -name "*.pyc" -delete ; \
+	}
 	@echo "✅ Cache cleanup completed"
