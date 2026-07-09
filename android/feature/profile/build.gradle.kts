@@ -51,4 +51,7 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+    // ProfileViewModelTest builds a real ProfileRepository from interface fakes
+    // whose contracts reference core:network generated models (MeData).
+    testImplementation(project(":core:network"))
 }
