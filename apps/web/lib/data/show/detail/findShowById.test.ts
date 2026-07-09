@@ -137,7 +137,12 @@ describe("findShowById", () => {
             await findShowById(1);
 
             expect(mockMapTickets).toHaveBeenCalledWith(tickets);
-            expect(mockFilterAndMap).toHaveBeenCalledWith(lineupItems);
+            // The shared mapper forwards its (absent) userId — detail never
+            // supplies one, so isFavorite stays false for every lineup member.
+            expect(mockFilterAndMap).toHaveBeenCalledWith(
+                lineupItems,
+                undefined,
+            );
         });
 
         it("selects comedian popularity at both lineup depths so headliner selection has real data", async () => {
@@ -166,6 +171,58 @@ describe("findShowById", () => {
                     }
                 ).select.popularity,
             ).toBe(true);
+        });
+
+        it("filters the lineup _count to upcoming shows at both depths", async () => {
+            // Detail-page showCount counts upcoming shows only, unlike the
+            // search/home paths which count all-time lineup items — this is
+            // the lineupCountWhere parameterization of the shared
+            // buildShowSelect (TASK-3692).
+            mockFindUnique.mockResolvedValue(makeShowRow() as never);
+
+            await findShowById(1);
+
+            const select = mockFindUnique.mock.calls[0][0]
+                ?.select as Prisma.ShowSelect;
+            const comedianSelect = (
+                select.lineupItems as {
+                    select: {
+                        comedian: { select: Record<string, unknown> };
+                    };
+                }
+            ).select.comedian.select;
+            type FilteredCount = {
+                select: {
+                    lineupItems: {
+                        where: { show: { date: { gt: Date } } };
+                    };
+                };
+            };
+            const count = comedianSelect._count as FilteredCount;
+            expect(
+                count.select.lineupItems.where.show.date.gt,
+            ).toBeInstanceOf(Date);
+            const parentCount = (
+                comedianSelect.parentComedian as {
+                    select: { _count: FilteredCount };
+                }
+            ).select._count;
+            expect(
+                parentCount.select.lineupItems.where.show.date.gt,
+            ).toBeInstanceOf(Date);
+        });
+
+        it("does not emit clubCity/clubState/popularityScore (ShowDetail contract parity)", async () => {
+            // The /api/v1/shows/[id] route spreads this DTO into its response
+            // and the OpenAPI ShowDetail schema declares none of these fields,
+            // so the shared mapper must not add them (TASK-3692).
+            mockFindUnique.mockResolvedValue(makeShowRow() as never);
+
+            const result = await findShowById(1);
+
+            expect("clubCity" in result.show).toBe(false);
+            expect("clubState" in result.show).toBe(false);
+            expect("popularityScore" in result.show).toBe(false);
         });
 
         it("propagates description when present", async () => {
