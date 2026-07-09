@@ -1,5 +1,8 @@
 package app.laughtrack.android.feature.detail.util
 
+import app.laughtrack.android.core.network.generated.model.Ticket
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.net.URLEncoder
 import java.time.Duration
 import java.time.OffsetDateTime
@@ -88,6 +91,29 @@ fun formatCountdown(
         hours >= 1 -> "In $hours ${plural(hours, "hour")}"
         minutes >= 1 -> "In $minutes ${plural(minutes, "minute")}"
         else -> "Starting soon"
+    }
+}
+
+/**
+ * Label for a ticket-stub footer: "Sold out", "Free", or the cheapest available
+ * price ("$25.00"). Null when the show has no priced, available tickets.
+ */
+fun formatTicketPriceLabel(
+    tickets: List<Ticket>?,
+    soldOut: Boolean?,
+): String? {
+    if (soldOut == true) return "Sold out"
+    val price =
+        tickets
+            .orEmpty()
+            .asSequence()
+            .filter { it.soldOut != true }
+            .mapNotNull { it.price }
+            .minOrNull() ?: return null
+    return if (price.compareTo(BigDecimal.ZERO) == 0) {
+        "Free"
+    } else {
+        "$" + price.setScale(2, RoundingMode.HALF_UP).toPlainString()
     }
 }
 

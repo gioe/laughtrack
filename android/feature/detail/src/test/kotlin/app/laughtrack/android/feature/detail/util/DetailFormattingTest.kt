@@ -1,9 +1,11 @@
 package app.laughtrack.android.feature.detail.util
 
+import app.laughtrack.android.core.network.generated.model.Ticket
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.math.BigDecimal
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
@@ -91,5 +93,33 @@ class DetailFormattingTest {
         assertEquals("The Stand", formatHomeClubName("  The Stand  "))
         assertNull(formatHomeClubName(null))
         assertNull(formatHomeClubName("   "))
+    }
+
+    @Test
+    fun `ticket price label prefers sold out, then cheapest available price`() {
+        assertEquals("Sold out", formatTicketPriceLabel(tickets = null, soldOut = true))
+        assertEquals(
+            "$20.00",
+            formatTicketPriceLabel(
+                tickets =
+                    listOf(
+                        Ticket(price = BigDecimal("25")),
+                        Ticket(price = BigDecimal("20")),
+                        Ticket(price = BigDecimal("10"), soldOut = true),
+                    ),
+                soldOut = false,
+            ),
+        )
+        assertEquals(
+            "Free",
+            formatTicketPriceLabel(tickets = listOf(Ticket(price = BigDecimal.ZERO)), soldOut = null),
+        )
+    }
+
+    @Test
+    fun `ticket price label is null without priced tickets`() {
+        assertNull(formatTicketPriceLabel(tickets = null, soldOut = null))
+        assertNull(formatTicketPriceLabel(tickets = emptyList(), soldOut = false))
+        assertNull(formatTicketPriceLabel(tickets = listOf(Ticket(price = null)), soldOut = null))
     }
 }

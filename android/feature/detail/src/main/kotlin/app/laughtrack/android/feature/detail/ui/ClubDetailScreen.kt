@@ -56,10 +56,10 @@ import app.laughtrack.android.core.ui.theme.LaughTrackColors
 import app.laughtrack.android.feature.detail.model.ClubDetailUi
 import app.laughtrack.android.feature.detail.ui.components.DetailError
 import app.laughtrack.android.feature.detail.ui.components.DetailLoading
+import app.laughtrack.android.feature.detail.util.formatTicketPriceLabel
 import app.laughtrack.android.feature.detail.util.openMap
 import app.laughtrack.android.feature.detail.util.openUrl
 import app.laughtrack.android.feature.detail.util.parseShowDateTime
-import java.math.BigDecimal
 import java.time.format.TextStyle
 import java.util.Locale
 
@@ -557,20 +557,4 @@ private fun Show.lineupNames(): String? =
         ?.joinToString(", ") { it.name }
         ?.takeIf { it.isNotBlank() }
 
-private fun Show.ticketLabel(): String? {
-    if (soldOut == true) return "Sold out"
-    val price =
-        tickets
-            .orEmpty()
-            .asSequence()
-            .filter { it.soldOut != true }
-            .mapNotNull { it.price }
-            .minOrNull()
-    return price?.let {
-        if (it.compareTo(BigDecimal.ZERO) == 0) {
-            "Free"
-        } else {
-            "$" + it.setScale(2, java.math.RoundingMode.HALF_UP).toPlainString()
-        }
-    }
-}
+private fun Show.ticketLabel(): String? = formatTicketPriceLabel(tickets, soldOut)
