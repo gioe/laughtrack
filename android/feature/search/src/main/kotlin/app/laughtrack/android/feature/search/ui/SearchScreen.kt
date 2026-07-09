@@ -21,12 +21,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DateRangePicker
@@ -358,16 +358,18 @@ private fun LocationPill(
                 }
             },
             confirmButton = {
-                TextButton(onClick = {
-                    onZip(zipText)
-                    showDialog = false
-                }) { Text("Apply") }
+                TextButton(
+                    // An empty apply clears the filter; partial ZIPs are rejected to
+                    // keep parity with the Home sheet's five-digit gate.
+                    enabled = zipText.isEmpty() || zipText.length == 5,
+                    onClick = {
+                        onZip(zipText)
+                        showDialog = false
+                    },
+                ) { Text("Apply") }
             },
             dismissButton = {
-                TextButton(onClick = {
-                    onZip("")
-                    showDialog = false
-                }) { Text("Clear") }
+                TextButton(onClick = { showDialog = false }) { Text("Cancel") }
             },
         )
     }

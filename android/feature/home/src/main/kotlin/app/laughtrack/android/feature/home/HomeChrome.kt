@@ -41,6 +41,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -162,7 +163,10 @@ internal fun LocationHeader(
     onManualZip: (String) -> Unit,
     onUseLocation: () -> Unit,
 ) {
-    var showSheet by remember { mutableStateOf(false) }
+    // Saveable so an activity recreation while the system permission dialog is up
+    // (rotation, process death) re-composes the sheet and its permission launcher,
+    // keeping the grant result deliverable.
+    var showSheet by rememberSaveable { mutableStateOf(false) }
     val shape = RoundedCornerShape(12.dp)
 
     Surface(
