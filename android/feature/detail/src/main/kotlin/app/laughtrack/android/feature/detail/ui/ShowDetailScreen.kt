@@ -75,11 +75,6 @@ import kotlinx.coroutines.delay
 import java.math.BigDecimal
 import java.time.ZonedDateTime
 
-private val TicketPaper = Color(0xFFF0DFB7)
-private val TicketShade = Color(0xFFE0C993)
-private val TicketInk = Color(0xFF22170B)
-private val TicketMuted = Color(0xFF755F3F)
-
 @Composable
 fun ShowDetailScreen(
     id: Int,
@@ -335,8 +330,12 @@ private fun ShowTicketSummary(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .border(1.dp, TicketMuted.copy(alpha = 0.35f), RoundedCornerShape(18.dp)),
-        color = TicketPaper,
+                .border(
+                    width = 1.dp,
+                    color = LaughTrackColors.TicketBorder,
+                    shape = RoundedCornerShape(18.dp),
+                ),
+        color = LaughTrackColors.TicketPaper,
         shape = RoundedCornerShape(18.dp),
     ) {
         Column(Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) {
@@ -381,7 +380,7 @@ private fun ShowTicketSummary(
                         Text(
                             if (show.cta.isSoldOut) "SOLD OUT" else show.cta.label.uppercase(),
                             style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Black),
-                            color = TicketMuted,
+                            color = LaughTrackColors.TicketInkMuted,
                         )
                     }
                 },
@@ -411,7 +410,7 @@ private fun TicketFactRow(
         Surface(
             modifier = Modifier.size(42.dp),
             shape = CircleShape,
-            color = TicketShade,
+            color = LaughTrackColors.TicketStub,
             contentColor = LaughTrackColors.AccentStrong,
         ) {
             Box(contentAlignment = Alignment.Center) {
@@ -422,7 +421,7 @@ private fun TicketFactRow(
             Text(
                 label.uppercase(),
                 style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                color = TicketMuted,
+                color = LaughTrackColors.TicketInkMuted,
             )
             Text(
                 value,
@@ -431,14 +430,14 @@ private fun TicketFactRow(
                         fontFamily = FontFamily.Monospace,
                         fontWeight = FontWeight.Bold,
                     ),
-                color = TicketInk,
+                color = LaughTrackColors.TicketInk,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
         }
         trailingContent?.invoke()
         trailing?.let {
-            Text(it, style = MaterialTheme.typography.headlineMedium, color = TicketMuted)
+            Text(it, style = MaterialTheme.typography.headlineMedium, color = LaughTrackColors.TicketInkMuted)
         }
     }
 }
@@ -450,7 +449,7 @@ private fun TicketDivider() {
             .fillMaxWidth()
             .padding(start = 58.dp)
             .height(1.dp)
-            .background(TicketMuted.copy(alpha = 0.25f)),
+            .background(LaughTrackColors.TicketBorder),
     )
 }
 
@@ -461,7 +460,7 @@ private fun TicketPerforation() {
             .fillMaxWidth()
             .padding(vertical = 8.dp)
             .height(1.dp)
-            .background(TicketMuted.copy(alpha = 0.4f)),
+            .background(LaughTrackColors.TicketBorder),
     )
 }
 
