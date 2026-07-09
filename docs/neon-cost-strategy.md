@@ -111,8 +111,15 @@ continuous compute usage.
 
 ## Manual Neon Console Steps
 
-No repository configuration change is required for TASK-3571. The recommended
-controls are Neon project settings and branch lifecycle operations:
+`apps/web/vercel.json` runs `prisma migrate deploy` only for Vercel Production
+builds. Preview builds still compile against their configured database, but
+they must not apply migrations while Preview shares Production's
+`DATABASE_URL` or `DIRECT_URL`. If Preview is later assigned an isolated Neon
+branch, migration deployment may be enabled for that environment as part of
+the branch provisioning and cleanup lifecycle.
+
+The remaining controls are Neon project settings and branch lifecycle
+operations:
 
 1. Confirm non-production computes have scale-to-zero enabled.
 2. Confirm the production history window matches the current recovery target.
