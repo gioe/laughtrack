@@ -15,8 +15,12 @@ real VBO Tickets plugin responses:
 """
 
 import importlib.util
+import os
+import time
+from datetime import datetime, timezone
 
 import pytest
+import time_machine
 
 pytestmark = pytest.mark.skipif(
     importlib.util.find_spec("curl_cffi") is None,
@@ -33,6 +37,9 @@ from laughtrack.scrapers.implementations.venues.csz_philadelphia.extractor impor
 from laughtrack.scrapers.implementations.venues.csz_philadelphia.data import (
     CszPhillyPageData,
     CszPhillyShowInstance,
+)
+from laughtrack.scrapers.implementations.venues.csz_philadelphia.transformer import (
+    CszPhillyEventTransformer,
 )
 
 
@@ -347,3 +354,61 @@ async def test_transformation_pipeline_produces_shows(monkeypatch):
         assert show.name == "ComedySportz"
         assert show.date is not None
         assert show.club_id == 99
+
+
+# ---------------------------------------------------------------------------
+# Year-inference month-boundary regression (TASK-3693)
+# ---------------------------------------------------------------------------
+
+# Frozen inside the month-boundary divergence window: 00:30 UTC on Aug 1 is
+# still 20:30 EDT on Jul 31 at the venue. Year inference must read the month
+# off the VENUE's clock (Jul), not the machine's (Aug) — the naive
+# datetime.now() version rolled a "Jul" show a full year forward on UTC
+# runners (same clock-skew class as the squarespace TASK-3670 fix).
+_MONTH_BOUNDARY_UTC = datetime(2026, 8, 1, 0, 30, tzinfo=timezone.utc)
+
+
+@pytest.fixture(params=["UTC", "America/New_York"])
+def machine_tz(request):
+    """Force the machine TZ so the regression is exercised under both a UTC
+    CI-runner clock and a venue-local developer clock."""
+    original = os.environ.get("TZ")
+    os.environ["TZ"] = request.param
+    time.tzset()
+    yield request.param
+    if original is None:
+        os.environ.pop("TZ", None)
+    else:
+        os.environ["TZ"] = original
+    time.tzset()
+
+
+@time_machine.travel(_MONTH_BOUNDARY_UTC)
+def test_infer_year_uses_venue_clock_at_month_boundary(machine_tz):
+    transformer = CszPhillyEventTransformer(_club(), SESSION_KEY)
+
+    # Venue-local date is Jul 31: a "Jul" show is later tonight — this year.
+    assert transformer._infer_year("Jul") == 2026
+    assert transformer._infer_year("Aug") == 2026
+    # June has already passed on the venue calendar — next year.
+    assert transformer._infer_year("Jun") == 2027
+
+
+@time_machine.travel(_MONTH_BOUNDARY_UTC)
+def test_transform_month_boundary_show_lands_this_year(machine_tz):
+    """End-to-end: a Jul 31 evening show transforms to a 2026 venue-local date."""
+    transformer = CszPhillyEventTransformer(_club(), SESSION_KEY)
+    raw = CszPhillyShowInstance(
+        event_id=2062,
+        event_date_id=655663,
+        event_name="ComedySportz",
+        month="Jul",
+        day=31,
+        weekday="Fri",
+        time="8:30 PM",
+    )
+
+    show = transformer.transform_to_show(raw)
+
+    assert show is not None
+    assert (show.date.year, show.date.month, show.date.day) == (2026, 7, 31)
