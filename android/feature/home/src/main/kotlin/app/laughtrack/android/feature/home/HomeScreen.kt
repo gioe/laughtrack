@@ -2,17 +2,10 @@
 
 package app.laughtrack.android.feature.home
 
-import android.Manifest
-import android.content.Context
-import android.content.pm.PackageManager
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -34,42 +27,30 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.laughtrack.android.core.data.search.SearchShortcut
@@ -83,14 +64,14 @@ import app.laughtrack.android.core.ui.UiState
 import app.laughtrack.android.core.ui.components.RemoteImage
 import app.laughtrack.android.core.ui.components.SkeletonBox
 import app.laughtrack.android.core.ui.components.SkeletonLine
+import app.laughtrack.android.core.ui.components.TicketDashedDivider
+import app.laughtrack.android.core.ui.components.TicketStub
+import app.laughtrack.android.core.ui.components.TicketStubColors
+import app.laughtrack.android.core.ui.components.ticketStubDateParts
 import app.laughtrack.android.core.ui.theme.LaughTrackColors
 import app.laughtrack.android.core.ui.theme.LaughTrackTheme
 import app.laughtrack.android.feature.home.ui.HomeUiState
 import app.laughtrack.android.feature.home.ui.HomeViewModel
-import java.math.BigDecimal
-import java.time.OffsetDateTime
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 /** Discover/Home surface backed by the composite home feed endpoint. */
@@ -198,260 +179,6 @@ private fun HomeContent(
         }
     }
 }
-
-@Composable
-private fun DiscoverHeader(onOpenEntity: (AppRoute) -> Unit) {
-    Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp, bottom = 0.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        HeaderCircleButton(
-            onClick = { onOpenEntity(AppRoute.Profile) },
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Person,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.size(28.dp),
-            )
-        }
-
-        Row(
-            modifier =
-                Modifier
-                    .weight(1f)
-                    .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            PrimitiveChip("Shows")
-            PrimitiveChip("Comedians")
-            PrimitiveChip("Clubs")
-        }
-
-        HeaderCircleButton(
-            onClick = { onOpenEntity(AppRoute.Profile) },
-        ) {
-            Icon(
-                imageVector = Icons.Filled.LocationOn,
-                contentDescription = null,
-                tint = LaughTrackColors.AccentStrong,
-                modifier = Modifier.size(27.dp),
-            )
-        }
-    }
-}
-
-@Composable
-private fun HeaderCircleButton(
-    onClick: () -> Unit,
-    content: @Composable () -> Unit,
-) {
-    Surface(
-        modifier =
-            Modifier
-                .size(48.dp)
-                .clip(CircleShape)
-                .clickable(onClick = onClick)
-                .border(1.dp, LaughTrackColors.BorderSubtle, CircleShape),
-        color = LaughTrackColors.SurfaceElevated.copy(alpha = 0.94f),
-        shape = CircleShape,
-    ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center,
-        ) {
-            content()
-        }
-    }
-}
-
-@Composable
-private fun PrimitiveChip(title: String) {
-    Surface(
-        shape = RoundedCornerShape(999.dp),
-        color = LaughTrackColors.Canvas.copy(alpha = 0.1f),
-        modifier =
-            Modifier
-                .height(34.dp)
-                .border(1.dp, LaughTrackColors.AccentMuted, RoundedCornerShape(999.dp)),
-    ) {
-        Box(
-            modifier = Modifier.padding(horizontal = 14.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = title.uppercase(Locale.US),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-            )
-        }
-    }
-}
-
-/**
- * Interactive location header: shows the ZIP/city the feed is scoped to, a manual
- * ZIP field, and a "Use location" button that requests coarse/fine location and
- * reverse-geocodes the device position to a ZIP. Mirrors the iOS HomeView header.
- */
-@Composable
-private fun LocationHeader(
-    title: String,
-    subtitle: String,
-    zip: String?,
-    isResolving: Boolean,
-    onManualZip: (String) -> Unit,
-    onUseLocation: () -> Unit,
-) {
-    val context = LocalContext.current
-    val permissionLauncher =
-        rememberLauncherForActivityResult(
-            ActivityResultContracts.RequestMultiplePermissions(),
-        ) { grants ->
-            if (grants.values.any { it }) onUseLocation()
-        }
-
-    Surface(
-        color = LaughTrackColors.SurfaceElevated,
-        shape = RoundedCornerShape(12.dp),
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .border(1.dp, LaughTrackColors.BorderSubtle, RoundedCornerShape(12.dp)),
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(
-                    modifier =
-                        Modifier
-                            .size(34.dp)
-                            .clip(CircleShape)
-                            .background(LaughTrackColors.AccentStrong.copy(alpha = 0.14f)),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.LocationOn,
-                        contentDescription = null,
-                        tint = LaughTrackColors.AccentStrong,
-                        modifier = Modifier.size(19.dp),
-                    )
-                }
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
-                ) {
-                    Text(title, style = MaterialTheme.typography.titleMedium)
-                    Text(
-                        subtitle,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                var zipText by remember(zip) { mutableStateOf(zip.orEmpty()) }
-                OutlinedTextField(
-                    value = zipText,
-                    onValueChange = { entry ->
-                        zipText = entry.filter(Char::isDigit).take(ZIP_LENGTH)
-                        if (zipText.length == ZIP_LENGTH) onManualZip(zipText)
-                    },
-                    label = { Text("ZIP") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.weight(1f),
-                )
-                Button(
-                    onClick = {
-                        if (hasLocationPermission(context)) {
-                            onUseLocation()
-                        } else {
-                            permissionLauncher.launch(
-                                arrayOf(
-                                    Manifest.permission.ACCESS_COARSE_LOCATION,
-                                    Manifest.permission.ACCESS_FINE_LOCATION,
-                                ),
-                            )
-                        }
-                    },
-                    enabled = !isResolving,
-                ) {
-                    Text(if (isResolving) "Locating…" else "Use location")
-                }
-            }
-        }
-    }
-}
-
-private fun hasLocationPermission(context: Context): Boolean =
-    ContextCompat.checkSelfPermission(
-        context,
-        Manifest.permission.ACCESS_COARSE_LOCATION,
-    ) == PackageManager.PERMISSION_GRANTED ||
-        ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.ACCESS_FINE_LOCATION,
-        ) == PackageManager.PERMISSION_GRANTED
-
-@Composable
-private fun ShortcutRow(onShortcut: (SearchShortcut) -> Unit) {
-    Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        ShortcutChip("Tonight") { onShortcut(SearchShortcut.TONIGHT) }
-        ShortcutChip("This Week") { onShortcut(SearchShortcut.THIS_WEEK) }
-        ShortcutChip("Near Me") { onShortcut(SearchShortcut.NEAR_ME) }
-    }
-}
-
-@Composable
-private fun ShortcutChip(
-    label: String,
-    onClick: () -> Unit,
-) {
-    Surface(
-        shape = RoundedCornerShape(999.dp),
-        color = LaughTrackColors.AccentStrong.copy(alpha = 0.12f),
-        modifier =
-            Modifier
-                .height(36.dp)
-                .clip(RoundedCornerShape(999.dp))
-                .clickable(onClick = onClick)
-                .border(1.dp, LaughTrackColors.AccentMuted, RoundedCornerShape(999.dp)),
-    ) {
-        Box(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-            )
-        }
-    }
-}
-
-private const val ZIP_LENGTH = 5
 
 @Composable
 private fun ShowsTonightRail(
@@ -834,6 +561,7 @@ private fun ShowListRow(
             )
 
             TicketDashedDivider(
+                color = LaughTrackColors.ForegroundMuted.copy(alpha = 0.6f),
                 modifier =
                     Modifier
                         .fillMaxHeight()
@@ -986,70 +714,22 @@ private fun ShowTitleOnlyBlock(show: Show) {
 }
 
 @Composable
-private fun TicketDashedDivider(modifier: Modifier = Modifier) {
-    val color = LaughTrackColors.ForegroundMuted.copy(alpha = 0.6f)
-    Canvas(modifier = modifier.width(1.dp)) {
-        drawLine(
-            color = color,
-            start = Offset(size.width / 2, 0f),
-            end = Offset(size.width / 2, size.height),
-            strokeWidth = 1.dp.toPx(),
-            pathEffect = PathEffect.dashPathEffect(floatArrayOf(6f, 6f)),
-        )
-    }
-}
-
-@Composable
 private fun ShowTicketStub(
     show: Show,
     modifier: Modifier = Modifier,
 ) {
-    val dateParts = showDateParts(show)
-    val price = formatPrice(show.tickets?.mapNotNull { it.price })
-    Column(
-        modifier =
-            modifier
-                .background(LaughTrackColors.Surface)
-                .padding(vertical = 10.dp, horizontal = 6.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text(
-            dateParts.weekday,
-            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold, letterSpacing = 1.4.sp),
-            color = LaughTrackColors.AccentStrong,
-            maxLines = 1,
-        )
-        Text(
-            dateParts.day,
-            fontWeight = FontWeight.Black,
-            fontSize = 26.sp,
-            color = MaterialTheme.colorScheme.onSurface,
-            maxLines = 1,
-        )
-        Text(
-            dateParts.month,
-            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold, letterSpacing = 1.2.sp),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1,
-        )
-        Text(
-            dateParts.time,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1,
-            modifier = Modifier.padding(top = 2.dp),
-        )
-        if (price != null) {
-            Text(
-                price,
-                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-                color = LaughTrackColors.AccentStrong,
-                maxLines = 1,
-                modifier = Modifier.padding(top = 2.dp),
-            )
-        }
-    }
+    TicketStub(
+        dateParts = ticketStubDateParts(isoDateTime = show.date, timezone = show.timezone),
+        priceLabel = formatPrice(show.tickets?.mapNotNull { it.price }),
+        colors =
+            TicketStubColors(
+                background = LaughTrackColors.Surface,
+                accent = LaughTrackColors.AccentStrong,
+                primary = MaterialTheme.colorScheme.onSurface,
+                muted = MaterialTheme.colorScheme.onSurfaceVariant,
+            ),
+        modifier = modifier,
+    )
 }
 
 @Composable
@@ -1122,93 +802,6 @@ private fun FeedCard(
             }
         }
     }
-}
-
-private data class ShowDateParts(
-    val weekday: String,
-    val day: String,
-    val month: String,
-    val time: String,
-)
-
-private fun showHeadliner(show: Show): ComedianLineup? =
-    show.lineup
-        ?.map(::effectiveComedian)
-        ?.filter { it.imageUrl.isNotBlank() }
-        ?.maxByOrNull { it.showCount ?: 0 }
-
-private fun showSupportingLineup(
-    show: Show,
-    excluding: ComedianLineup?,
-): List<ComedianLineup> =
-    show.lineup
-        ?.map(::effectiveComedian)
-        ?.filter { excluding == null || it.id != excluding.id }
-        ?.sortedByDescending { it.showCount ?: 0 }
-        ?.take(3)
-        .orEmpty()
-
-private fun effectiveComedian(comedian: ComedianLineup): ComedianLineup = comedian.parentComedian ?: comedian
-
-private fun showTicketBadges(show: Show): List<String> =
-    buildList {
-        if (isOpenMic(show)) add("Open mic")
-        if (show.soldOut == true) add("Sold out")
-    }
-
-private fun isOpenMic(show: Show): Boolean {
-    val title = show.name.orEmpty()
-    val tags = show.tags.orEmpty()
-    return title.contains("open mic", ignoreCase = true) ||
-        tags.any { tag ->
-            tag.slug.contains("open-mic", ignoreCase = true) ||
-                tag.name.contains("open mic", ignoreCase = true)
-        }
-}
-
-private fun showListTitle(show: Show): String {
-    val title = show.name?.trim().orEmpty()
-    if (title.isNotEmpty()) return title
-    return show.clubName?.let { "Comedy show at $it" } ?: "Comedy show"
-}
-
-private fun roomLabel(show: Show): String? {
-    val room = show.room?.trim().orEmpty()
-    if (room.isEmpty()) return null
-    val club = show.clubName?.trim().orEmpty()
-    return room.takeUnless { it.equals(club, ignoreCase = true) }
-}
-
-private fun showDateParts(show: Show): ShowDateParts =
-    runCatching {
-        val zone = show.timezone?.let(ZoneId::of) ?: ZoneId.systemDefault()
-        val dateTime = OffsetDateTime.parse(show.date).atZoneSameInstant(zone)
-        ShowDateParts(
-            weekday = dateTime.format(DateTimeFormatter.ofPattern("EEE", Locale.US)).uppercase(Locale.US),
-            day = dateTime.format(DateTimeFormatter.ofPattern("d", Locale.US)),
-            month = dateTime.format(DateTimeFormatter.ofPattern("MMM", Locale.US)).uppercase(Locale.US),
-            time = dateTime.format(DateTimeFormatter.ofPattern("h:mm a", Locale.US)),
-        )
-    }.getOrElse {
-        ShowDateParts(
-            weekday = "",
-            day = "",
-            month = "",
-            time = formatShowTime(show).orEmpty(),
-        )
-    }
-
-private fun formatShowTime(show: Show): String? =
-    runCatching {
-        val zone = show.timezone?.let(ZoneId::of) ?: ZoneId.systemDefault()
-        OffsetDateTime.parse(show.date)
-            .atZoneSameInstant(zone)
-            .format(DateTimeFormatter.ofPattern("h:mm a", Locale.US))
-    }.getOrNull()
-
-private fun formatPrice(prices: List<BigDecimal>?): String? {
-    val price = prices?.filter { it >= BigDecimal.ZERO }?.minOrNull() ?: return null
-    return "$${price.stripTrailingZeros().toPlainString()}"
 }
 
 @Composable
