@@ -65,6 +65,60 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y tesseract-ocr tesseract-ocr-eng
 
+      - name: Run scraper lint ratchet
+        run: |
+          set +e
+          python -m flake8 src \
+            --select=F821,F811,F401 \
+            --max-line-length=120 \
+            --extend-ignore=E203,W503 \
+            > /tmp/scraper-flake8.txt
+          python -m mypy src \
+            --config-file pyproject.toml \
+            --no-error-summary \
+            --show-error-codes \
+            > /tmp/scraper-mypy.txt
+          set -e
+
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          import sys
+          import tomllib
+
+          config = tomllib.loads(Path("pyproject.toml").read_text())
+          baseline = config["tool"]["laughtrack_quality_baseline"]
+
+          flake8_output = Path("/tmp/scraper-flake8.txt").read_text()
+          mypy_output = Path("/tmp/scraper-mypy.txt").read_text()
+
+          flake8_errors = len(
+              [
+                  line
+                  for line in flake8_output.splitlines()
+                  if re.match(r"^src/.+:\d+:\d+:\s+[A-Z]\d{3}\b", line)
+              ]
+          )
+          mypy_errors = len([line for line in mypy_output.splitlines() if " error: " in line])
+
+          checks = [
+              ("flake8", flake8_errors, int(baseline["flake8_max_errors"])),
+              ("mypy", mypy_errors, int(baseline["mypy_max_errors"])),
+          ]
+
+          failed = False
+          for name, actual, maximum in checks:
+              print(f"{name}: {actual} errors; baseline maximum {maximum}")
+              if actual > maximum:
+                  failed = True
+                  print(f"::error::{name} error count increased from {maximum} to {actual}")
+
+          if failed:
+              print("\nflake8 output:\n" + flake8_output)
+              print("\nmypy output:\n" + mypy_output)
+              sys.exit(1)
+          PY
+
       - name: Run tests
         env:
           # Playwright binaries are not installed in CI; disable the Chromium fallback so tests stay fast and hermetic

@@ -97,6 +97,16 @@ module = [
 ]
 ignore_errors = true
 
+[tool.laughtrack_quality_baseline]
+# Ratcheting CI gate for TASK-3666. Keep scripts excluded from the ratchet
+# until the archived-script split is complete; unused-ignore is still checked
+# across src/ and scripts/ by direct mypy runs.
+flake8_paths = ["src"]
+flake8_select = ["F821", "F811", "F401"]
+flake8_max_errors = 73
+mypy_paths = ["src"]
+mypy_max_errors = 608
+
 # =============================================================================
 # ARCHITECTURE: IMPORT-LINTER CONTRACTS
 # =============================================================================
