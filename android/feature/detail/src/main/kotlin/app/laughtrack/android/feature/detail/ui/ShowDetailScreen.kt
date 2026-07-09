@@ -70,6 +70,7 @@ import app.laughtrack.android.feature.detail.util.formatShowDateTime
 import app.laughtrack.android.feature.detail.util.formatTicketPriceLabel
 import app.laughtrack.android.feature.detail.util.openUrl
 import app.laughtrack.android.feature.detail.util.parseShowDateTime
+import app.laughtrack.android.feature.detail.util.showRowTitleSubtitle
 import kotlinx.coroutines.delay
 import java.math.BigDecimal
 import java.time.ZonedDateTime
@@ -534,14 +535,10 @@ private fun RelatedShowsSection(
     DetailDarkCard(eyebrow = "MORE SHOWS", title = "More at this venue") {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             shows.forEach { show ->
-                val title = show.name ?: show.clubName ?: "Show"
+                val (title, subtitle) = showRowTitleSubtitle(show.name, show.clubName, show.clubCity)
                 TicketShowRow(
                     title = title,
-                    subtitle =
-                        listOfNotNull(
-                            show.clubName?.takeUnless { it.equals(title, ignoreCase = true) },
-                            show.clubCity,
-                        ).joinToString(" · ").ifBlank { null },
+                    subtitle = subtitle,
                     imageUrl = show.imageUrl,
                     dateParts = ticketStubDateParts(isoDateTime = show.date, timezone = show.timezone),
                     priceLabel = formatTicketPriceLabel(show.tickets, show.soldOut),

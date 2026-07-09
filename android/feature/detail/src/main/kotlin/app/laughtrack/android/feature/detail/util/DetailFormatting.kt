@@ -103,18 +103,33 @@ fun formatTicketPriceLabel(
     soldOut: Boolean?,
 ): String? {
     if (soldOut == true) return "Sold out"
-    val price =
-        tickets
-            .orEmpty()
-            .asSequence()
-            .filter { it.soldOut != true }
-            .mapNotNull { it.price }
-            .minOrNull() ?: return null
+    val available = tickets.orEmpty().filter { it.soldOut != true }
+    if (available.isEmpty() && !tickets.isNullOrEmpty()) return "Sold out"
+    val price = available.mapNotNull { it.price }.minOrNull() ?: return null
     return if (price.compareTo(BigDecimal.ZERO) == 0) {
         "Free"
     } else {
         "$" + price.setScale(2, RoundingMode.HALF_UP).toPlainString()
     }
+}
+
+/**
+ * Title/subtitle pair for a show list row: the title prefers the show name and
+ * falls back to the club name; the subtitle drops the club name when it would
+ * repeat the title, joining what remains with the club city.
+ */
+fun showRowTitleSubtitle(
+    name: String?,
+    clubName: String?,
+    clubCity: String?,
+): Pair<String, String?> {
+    val title = name ?: clubName ?: "Show"
+    val subtitle =
+        listOfNotNull(
+            clubName?.takeUnless { it.equals(title, ignoreCase = true) },
+            clubCity,
+        ).joinToString(" · ").ifBlank { null }
+    return title to subtitle
 }
 
 /** Formats an episode duration in seconds as "1h 12m" / "47m" / "0m". */

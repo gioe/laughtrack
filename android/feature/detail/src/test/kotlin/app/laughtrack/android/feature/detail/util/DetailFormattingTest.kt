@@ -122,4 +122,32 @@ class DetailFormattingTest {
         assertNull(formatTicketPriceLabel(tickets = emptyList(), soldOut = false))
         assertNull(formatTicketPriceLabel(tickets = listOf(Ticket(price = null)), soldOut = null))
     }
+
+    @Test
+    fun `ticket price label reports sold out when every ticket is sold out`() {
+        assertEquals(
+            "Sold out",
+            formatTicketPriceLabel(
+                tickets = listOf(Ticket(price = BigDecimal("20"), soldOut = true), Ticket(soldOut = true)),
+                soldOut = null,
+            ),
+        )
+    }
+
+    @Test
+    fun `show row title prefers name and dedupes the club from the subtitle`() {
+        assertEquals(
+            "Late Show" to "The Stand · New York",
+            showRowTitleSubtitle("Late Show", "The Stand", "New York"),
+        )
+        assertEquals(
+            "The Stand" to "New York",
+            showRowTitleSubtitle(null, "The Stand", "New York"),
+        )
+        assertEquals(
+            "THE STAND" to "New York",
+            showRowTitleSubtitle("THE STAND", "The Stand", "New York"),
+        )
+        assertEquals("Show" to null, showRowTitleSubtitle(null, null, null))
+    }
 }

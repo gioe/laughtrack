@@ -86,6 +86,7 @@ import app.laughtrack.android.feature.detail.util.formatHomeCity
 import app.laughtrack.android.feature.detail.util.formatHomeClubName
 import app.laughtrack.android.feature.detail.util.formatTicketPriceLabel
 import app.laughtrack.android.feature.detail.util.openUrl
+import app.laughtrack.android.feature.detail.util.showRowTitleSubtitle
 
 private val COMEDIAN_TABS = listOf("Shows", "Podcasts", "Related")
 
@@ -511,14 +512,10 @@ private fun ComedianShowsTab(
             if (filteredPast.isNotEmpty()) {
                 SectionHeader("Past shows")
                 filteredPast.forEach { show ->
-                    val title = show.name ?: show.clubName ?: "Show"
+                    val (title, subtitle) = showRowTitleSubtitle(show.name, show.clubName, show.clubCity)
                     TicketShowRow(
                         title = title,
-                        subtitle =
-                            listOfNotNull(
-                                show.clubName?.takeUnless { it.equals(title, ignoreCase = true) },
-                                show.clubCity,
-                            ).joinToString(" · ").ifBlank { null },
+                        subtitle = subtitle,
                         imageUrl = show.imageUrl,
                         dateParts = ticketStubDateParts(isoDateTime = show.date, timezone = show.timezone),
                         priceLabel = null,
