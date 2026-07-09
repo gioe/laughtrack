@@ -170,7 +170,7 @@ using the report to prioritize query or egress work.
 
 ## Where things live
 
-- Domain models and entities: `src/laughtrack/domain/` (public surface for types)
+- Domain models and entities: `src/laughtrack/core/entities/` (import `laughtrack.core` directly — the old `laughtrack.domain` facade was deleted in TASK-3646 and an import-linter contract forbids reintroducing it)
 - Scraper base + pipeline: `src/laughtrack/scrapers/base/` (`pipeline.py` re-exports the standard pipeline)
 - Scraper utilities: `src/laughtrack/scrapers/utils/` (`url_discovery.py`, `rate_limiting.py`)
 - Batch concurrency helper: `src/laughtrack/utilities/infrastructure/scraper/scraper.py` (`BatchScraper`)
