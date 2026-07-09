@@ -105,6 +105,20 @@ class HomeViewModel
         private var loadJob: Job? = null
 
         init {
+            // Mirror every settled feed publication into the shared HomeLocationState
+            // so Search seeds its geo pivots from the same area Home is showing
+            // (TASK-3698, mirrors iOS SearchRootModel seeding). Derived from the
+            // state flow so no publication path can silently bypass the mirror, and
+            // gated on Success so transient Loading states (a cache-miss reload
+            // publishes zip=null before the hero answers) never blank the shared
+            // location mid-reload.
+            viewModelScope.launch {
+                state.collect { snapshot ->
+                    if (snapshot.feed is UiState.Success<*>) {
+                        homeLocationState.update(snapshot.activeZip, snapshot.distanceMiles)
+                    }
+                }
+            }
             load(currentZip)
         }
 
@@ -162,48 +176,35 @@ class HomeViewModel
                     // Render the persisted snapshot immediately, if any, so relaunch is instant;
                     // otherwise show the skeleton while the network call is in flight.
                     val cached = cache.get(zip, distance)
-                    publishState(
+                    _state.value =
                         HomeUiState(
                             feed = cached?.let { UiState.Success(it) } ?: UiState.Loading,
                             zip = zip,
                             distanceMiles = distance,
-                        ),
-                    )
+                        )
                     runCatchingCancellable { repository.getHomeFeed(zip, distance) }
                         .onSuccess { feed ->
                             cache.set(zip, distance, feed)
-                            publishState(
+                            _state.value =
                                 HomeUiState(
                                     feed = UiState.Success(feed),
                                     zip = zip,
                                     distanceMiles = distance,
-                                ),
-                            )
+                                )
                         }
                         .onFailure { error ->
                             // Keep the cached feed visible on a refresh failure; only surface an
                             // error when there was nothing to fall back on.
                             if (cached == null) {
-                                publishState(
+                                _state.value =
                                     HomeUiState(
                                         feed = UiState.Failure(error),
                                         zip = zip,
                                         distanceMiles = distance,
-                                    ),
-                                )
+                                    )
                             }
                         }
                 }
-        }
-
-        /**
-         * Publish the new feed state and mirror its active area into the shared
-         * HomeLocationState so Search seeds its geo pivots from the same location
-         * Home is showing (TASK-3698, mirrors iOS SearchRootModel seeding).
-         */
-        private fun publishState(state: HomeUiState) {
-            _state.value = state
-            homeLocationState.update(state.activeZip, state.distanceMiles)
         }
 
         private companion object {
