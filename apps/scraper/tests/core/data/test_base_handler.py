@@ -250,3 +250,38 @@ class TestAcquireConnectionFallbackClose:
         exc_type, exc_val, _tb = conn.__exit__.call_args.args
         assert exc_type is _Boom
         assert isinstance(exc_val, _Boom)
+
+
+# ---------------------------------------------------------------------------
+# Database adapter seam (TASK-3701)
+# ---------------------------------------------------------------------------
+
+class TestDatabaseAdapterSeam:
+    """create_connection routes through the injected ports.database adapter."""
+
+    def setup_method(self):
+        self._saved_adapter = _base_handler_mod._db_adapter
+
+    def teardown_method(self):
+        _base_handler_mod._db_adapter = self._saved_adapter
+
+    def test_unconfigured_seam_raises_actionable_error(self):
+        _base_handler_mod._db_adapter = None
+        handler = _ConcreteHandler()
+
+        with pytest.raises(RuntimeError) as excinfo:
+            handler.create_connection()
+
+        # The message must tell the caller how to wire the adapter.
+        assert "laughtrack.adapters.db" in str(excinfo.value)
+        assert "configure_database" in str(excinfo.value)
+
+    def test_configured_adapter_provides_connection_with_explicit_transactions(self):
+        adapter = MagicMock()
+        _base_handler_mod.configure_database(adapter)
+        handler = _ConcreteHandler()
+
+        conn = handler.create_connection()
+
+        assert conn is adapter.create_connection.return_value
+        assert conn.autocommit is False

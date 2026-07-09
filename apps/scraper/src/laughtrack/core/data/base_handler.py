@@ -9,9 +9,35 @@ import psycopg2.extras
 from psycopg2.extras import DictRow, execute_values
 
 from laughtrack.foundation.models.types import T
-from laughtrack.adapters.db import create_connection
 from laughtrack.foundation.infrastructure.database.operation import DatabaseOperationLogger
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+from laughtrack.ports.database import DatabaseConnection
+
+# The concrete DB adapter, injected through this module-level seam so core
+# never imports laughtrack.adapters or laughtrack.infrastructure (the
+# core.entities import-linter contract forbids both, and all eleven entity
+# handlers extend BaseDatabaseHandler — TASK-3701). laughtrack.adapters.db
+# self-registers here at import time; the composition roots that guarantee
+# that import are scripts/__init__.py (every python -m scripts.* entry point)
+# and laughtrack.app.wiring (the app layer).
+_db_adapter: Optional[DatabaseConnection] = None
+
+
+def configure_database(adapter: DatabaseConnection) -> None:
+    """Install the concrete database adapter used by all entity handlers."""
+    global _db_adapter
+    _db_adapter = adapter
+
+
+def _require_db_adapter() -> DatabaseConnection:
+    if _db_adapter is None:
+        raise RuntimeError(
+            "Database adapter not configured: import laughtrack.adapters.db "
+            "(which self-registers) or call "
+            "laughtrack.core.data.base_handler.configure_database(adapter) "
+            "before using entity handlers"
+        )
+    return _db_adapter
 
 
 class BaseDatabaseHandler(Generic[T], ABC):
@@ -39,14 +65,14 @@ class BaseDatabaseHandler(Generic[T], ABC):
 
     def create_connection(self) -> psycopg2.extensions.connection:
         """
-        Create a database connection using standardized utility.
+        Create a database connection through the injected adapter.
 
         Returns:
             psycopg2 connection object with autocommit=False (explicit transaction
             control). Used as a context manager: commits on clean __exit__, rolls
             back on exception.
         """
-        conn = create_connection()
+        conn = _require_db_adapter().create_connection()
         conn.autocommit = False  # Explicit transaction control
         return conn
 

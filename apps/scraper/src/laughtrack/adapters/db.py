@@ -38,3 +38,13 @@ class _DbAdapter(DatabaseConnection):
 
 # Export default adapter instance
 db: DatabaseConnection = _DbAdapter()
+
+# Self-register into the core.data.base_handler seam: core cannot import the
+# adapters layer (core.entities import-linter contract), so the concrete
+# adapter binds itself whenever this module loads. scripts/__init__.py and
+# laughtrack.app.wiring both import this module, covering every entry-point
+# family (TASK-3701). Imported at the bottom to keep the edge acyclic:
+# base_handler imports only ports/foundation, never adapters.
+from laughtrack.core.data.base_handler import configure_database as _configure_base_handler_db
+
+_configure_base_handler_db(db)
