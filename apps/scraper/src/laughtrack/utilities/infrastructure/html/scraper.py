@@ -396,7 +396,7 @@ class HtmlScraper:
                 # BeautifulSoup typing for find(*) doesn't include class_; suppress type checker noise
                 if not isinstance(a, Tag):
                     continue
-                child = a.find(child_tag, class_=child_class)  # type: ignore[call-arg]
+                child = a.find(child_tag, class_=child_class)
                 if child:
                     href = HtmlScraper._safe_get_href(a)
                     if href:
@@ -442,10 +442,10 @@ class HtmlScraper:
 
                 # Find an anchor that contains the child_tag/class
                 anchor = None
-                for a in card.find_all("a", href=True):  # type: ignore[attr-defined]
+                for a in card.find_all("a", href=True):
                     if not isinstance(a, Tag):
                         continue
-                    child = a.find(child_tag, class_=child_class)  # type: ignore[call-arg]
+                    child = a.find(child_tag, class_=child_class)
                     if child:
                         anchor = a
                         break
@@ -497,7 +497,7 @@ class HtmlScraper:
                     continue
 
                 # Find the child element by tag and class. Using class_ will match multi-class elements.
-                child = card.find(child_tag, class_=child_class)  # type: ignore[call-arg]
+                child = card.find(child_tag, class_=child_class)
                 if not child:
                     # Try via CSS selector as a fallback to handle space-separated classes precisely
                     # Example: child_class "tessera-venue" should match <div class="tessera-venue fw-bold">
@@ -719,7 +719,7 @@ class HtmlScraper:
 
             # Note: BeautifulSoup's href=True filter only checks presence; we'll safely read it via helper
             # Pylance: container is a bs4 element at runtime; suppress dynamic attr warning
-            link_candidates = container.find_all(  # type: ignore[attr-defined]
+            link_candidates = container.find_all(
                 link_tag, href=True if href_required else False, attrs=attrs_filter
             )
 
@@ -729,7 +729,7 @@ class HtmlScraper:
                     attr_val_raw = None
                     if hasattr(link, "get"):
                         try:
-                            attr_val_raw = link.get(attr_name)  # type: ignore[call-arg]
+                            attr_val_raw = link.get(attr_name)
                         except Exception:
                             attr_val_raw = None
 

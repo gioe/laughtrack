@@ -28,7 +28,7 @@ def _preload_scraper_modules() -> None:
     imports of package __init__ modules that may create cycles.
     """
     try:
-        import laughtrack.scrapers.implementations as impl_pkg  # type: ignore
+        import laughtrack.scrapers.implementations as impl_pkg
     except Exception:
         return
 
@@ -69,8 +69,7 @@ class ScraperResolver:
         _preload_scraper_modules()
 
         # Step 2: Walk BaseScraper subclass tree
-        from laughtrack.scrapers.base.base_scraper import BaseScraper  # type: ignore
-
+        from laughtrack.scrapers.base.base_scraper import BaseScraper
         discovered: Dict[str, Type[Any]] = {}
         duplicates: Dict[str, List[str]] = {}
 
@@ -123,7 +122,7 @@ class ScraperResolver:
         assert self._registry is not None
         return list(self._registry.keys())
 
-    def items(self):  # type: ignore[override]
+    def items(self):
         self._ensure_loaded()
         assert self._registry is not None
         return self._registry.items()

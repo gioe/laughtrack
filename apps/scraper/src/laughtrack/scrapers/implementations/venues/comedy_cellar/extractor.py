@@ -459,7 +459,7 @@ class ComedyCellarExtractor:
             # without linking to /comedians/ pages.
             try:
                 if hasattr(container, "find_all"):
-                    name_spans = container.find_all("span", class_="name")  # type: ignore[attr-defined]
+                    name_spans = container.find_all("span", class_="name")
                     for span in name_spans:
                         name = span.get_text(strip=True) if hasattr(span, "get_text") else ""
                         if name and name not in names:
@@ -471,7 +471,7 @@ class ComedyCellarExtractor:
             try:
                 link_selector = lambda href: bool(href and ComedyCellarExtractor.COMEDIAN_LINK_PATTERN in href)
                 if hasattr(container, "find_all"):
-                    links = container.find_all("a", href=link_selector)  # type: ignore[attr-defined]
+                    links = container.find_all("a", href=link_selector)
                     for link in links:
                         try:
                             imgs = link.find_all("img") if hasattr(link, "find_all") else []

@@ -25,7 +25,7 @@ class MonitoringService:
         self._monitoring_task = None
         self._monitoring_running = False
 
-    def _create_alert_system(self):  # type: ignore[no-untyped-def]
+    def _create_alert_system(self):
         channels: list
         try:
             build_channels = getattr(self._provider, "build_channels", None)
@@ -37,7 +37,7 @@ class MonitoringService:
             channels = self._build_channels_default()
         return self._provider.create_alert_system(self.failure_monitor, channels, self.config)
 
-    def _build_channels_default(self) -> list:  # type: ignore[override]
+    def _build_channels_default(self) -> list:
         channels = []
         if self.config.is_email_configured() and self.config.alert_recipients:
             channels.append(EmailAlertChannel(recipients=self.config.alert_recipients))

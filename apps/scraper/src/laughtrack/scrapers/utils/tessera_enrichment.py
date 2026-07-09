@@ -93,7 +93,7 @@ class TesseraTicketBatchEnricher(BaseTicketBatchEnricher):
             return URLUtils.build_url(self._base_url, url)
         return url
 
-    def _attach(self, events: List[Any], tickets_map: Dict[str, List], show_url):  # type: ignore[override]
+    def _attach(self, events: List[Any], tickets_map: Dict[str, List], show_url):
         """Attach tickets and warn only when the final ticket URL is invalid."""
         enriched: List[Any] = []
         for e in events:

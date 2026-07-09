@@ -130,8 +130,7 @@ def main() -> None:
         sys.path.insert(0, str(project_root))
 
     # Import new core implementation (legacy shim retained for a short period)
-    from laughtrack.core.dashboard import generate_html_dashboard  # type: ignore
-
+    from laughtrack.core.dashboard import generate_html_dashboard
     output_path = ProjectPaths.resolve_output_path(args.output)
     print(f"🛠️  Rendering dashboard from: {path.name}")
     generate_html_dashboard(metrics, str(output_path))

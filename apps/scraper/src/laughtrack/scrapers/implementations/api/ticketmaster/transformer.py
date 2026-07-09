@@ -21,11 +21,11 @@ _UNCATEGORISED_GENRE_NAMES = {"miscellaneous", "undefined", "other"}
 
 
 class TicketmasterEventTransformer(DataTransformer[JSONDict]):
-    def can_transform(self, raw_data: JSONDict) -> bool:  # type: ignore[override]
+    def can_transform(self, raw_data: JSONDict) -> bool:
         # Basic shape check for Ticketmaster API events
         return isinstance(raw_data, dict) and ("id" in raw_data or "dates" in raw_data)
 
-    def transform_to_show(self, raw_data: JSONDict, source_url: Optional[str] = None) -> Optional[Show]:  # type: ignore[override]
+    def transform_to_show(self, raw_data: JSONDict, source_url: Optional[str] = None) -> Optional[Show]:
         try:
             if not self._is_comedy_event(raw_data):
                 event_name = raw_data.get("name", "unknown")

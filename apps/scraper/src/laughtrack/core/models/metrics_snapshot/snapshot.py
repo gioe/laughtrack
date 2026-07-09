@@ -303,7 +303,7 @@ class ScrapingMetricsSnapshot:
                 return series if series is not None else 0
             if all(k in data for k in ("session", "shows", "clubs", "errors")):
                 if isinstance(data.get("session"), dict) and not data["session"].get("exported_at"):
-                    data["session"]["exported_at"] = exported_at  # type: ignore[index]
+                    data["session"]["exported_at"] = exported_at
                 return cls.from_json(data, timestamp=dt.isoformat(), dt=dt)
             def _val(primary: Any, *fallbacks: Any) -> Any:
                 for v in (primary, *fallbacks):

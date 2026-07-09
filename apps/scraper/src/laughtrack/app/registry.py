@@ -52,8 +52,7 @@ def discover_scrapers() -> Dict[str, Type[Any]]:
     _preload_scraper_modules()
 
     # Import here to avoid import-time cycles
-    from laughtrack.scrapers.base.base_scraper import BaseScraper  # type: ignore
-
+    from laughtrack.scrapers.base.base_scraper import BaseScraper
     scrapers: Dict[str, Type[Any]] = {}
     stack = [BaseScraper]
     while stack:
@@ -78,27 +77,27 @@ class _LazyRegistry(dict):
             self._loaded = True
 
     # Override common dict methods to trigger load
-    def get(self, key: Any, default: Any = None) -> Any:  # type: ignore[override]
+    def get(self, key: Any, default: Any = None) -> Any:
         self._ensure_loaded()
         return super().get(key, default)
 
-    def __getitem__(self, key: Any) -> Any:  # type: ignore[override]
+    def __getitem__(self, key: Any) -> Any:
         self._ensure_loaded()
         return super().__getitem__(key)
 
-    def keys(self):  # type: ignore[override]
+    def keys(self):
         self._ensure_loaded()
         return super().keys()
 
-    def items(self):  # type: ignore[override]
+    def items(self):
         self._ensure_loaded()
         return super().items()
 
-    def __iter__(self):  # type: ignore[override]
+    def __iter__(self):
         self._ensure_loaded()
         return super().__iter__()
 
-    def __len__(self) -> int:  # type: ignore[override]
+    def __len__(self) -> int:
         self._ensure_loaded()
         return super().__len__()
 

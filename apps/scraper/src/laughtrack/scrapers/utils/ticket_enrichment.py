@@ -19,7 +19,7 @@ class ShowPageUrlTicketAdapter:
         from laughtrack.core.entities.ticket.model import Ticket
 
         if hasattr(self._underlying, "to_ticket") and callable(getattr(self._underlying, "to_ticket")):
-            t = self._underlying.to_ticket()  # type: ignore[call-arg]
+            t = self._underlying.to_ticket()
         elif isinstance(self._underlying, Ticket):
             t = self._underlying
         else:

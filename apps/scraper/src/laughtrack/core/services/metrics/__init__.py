@@ -19,8 +19,7 @@ from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.core.models.metrics import ScrapingMetricsSnapshot
 from laughtrack.core.models.results import ClubScrapingResult, ScrapingSessionResult
 from laughtrack.foundation.models.operation_result import DatabaseOperationResult
-from laughtrack.core.dashboard import generate_html_dashboard  # type: ignore
-
+from laughtrack.core.dashboard import generate_html_dashboard
 # Internal components
 from .repository import MetricsRepository
 from .reporter import MetricsReporter

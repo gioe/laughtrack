@@ -59,14 +59,14 @@ def _parse_seatengine_classic_date(date_str: str, timezone: str) -> Optional[str
 
 class SeatEngineClassicTransformer(DataTransformer[JSONDict]):
 
-    def can_transform(self, raw_data: JSONDict) -> bool:  # type: ignore[override]
+    def can_transform(self, raw_data: JSONDict) -> bool:
         return isinstance(raw_data, dict) and "name" in raw_data and "date_str" in raw_data
 
     def transform_to_show(
         self,
         raw_data: JSONDict,
         source_url: Optional[str] = None,
-    ) -> Optional[Show]:  # type: ignore[override]
+    ) -> Optional[Show]:
         try:
             date_str = raw_data.get("date_str") or ""
             parsed_date = None

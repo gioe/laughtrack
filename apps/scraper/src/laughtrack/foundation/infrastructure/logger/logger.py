@@ -80,7 +80,7 @@ class Logger:
     class _ContextInjectFilter(logging.Filter):
         """Filter that injects task-local context into every LogRecord."""
 
-        def filter(self, record: logging.LogRecord) -> bool:  # type: ignore[override]
+        def filter(self, record: logging.LogRecord) -> bool:
             try:
                 ctx = Logger._context.get()
                 if isinstance(ctx, dict):
