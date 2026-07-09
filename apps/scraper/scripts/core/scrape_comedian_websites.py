@@ -24,6 +24,12 @@ for _path in (_root / "src", _root):
     if str(_path) not in sys.path:
         sys.path.insert(0, str(_path))
 
+# Wire the concrete DB adapter into the base_handler seam. Needed here (not
+# just scripts/__init__.py) because this script supports direct-file
+# invocation (make run-script / python path/to/script.py), which never
+# executes the scripts package init (TASK-3701).
+import laughtrack.adapters.db  # noqa: F401  # isort: skip
+
 from laughtrack.core.entities.club.handler import ClubHandler
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
