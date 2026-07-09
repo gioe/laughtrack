@@ -96,6 +96,11 @@ _ensure_psycopg2_stubbed()
 
 # ---------------------------------------------------------------------------
 # Foundation / utilities stubs
+#
+# These remain here intentionally as the shared tests/core/entities conftest
+# mechanism. gioe_stubs covers gioe_libs and infrastructure package imports;
+# entity tests also need DB/entity-specific stand-ins while loading source files
+# directly without a live database.
 # ---------------------------------------------------------------------------
 
 _stub("laughtrack.foundation.protocols.database_entity", DatabaseEntity=object)

@@ -39,7 +39,11 @@ def make_campaign(**overrides) -> FakeCampaign:
 
 @pytest.fixture(autouse=True)
 def stub_ticket_module(monkeypatch):
-    """Stub Ticket used by BroadwayTicket.to_ticket to avoid heavy imports."""
+    """Stub Ticket used by BroadwayTicket.to_ticket to avoid heavy imports.
+
+    This is intentionally monkeypatch-scoped to this file's Ticket conversion
+    path rather than shared through gioe_stubs.
+    """
     mod_name = "laughtrack.core.entities.ticket.model"
     dummy = types.ModuleType(mod_name)
 

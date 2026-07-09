@@ -148,8 +148,9 @@ def test_build_service_passes_env_credentials_to_google(monkeypatch):
         captured["service_built"] = True
         return object()
 
-    # Inject fake google modules into sys.modules so the lazy imports inside
-    # _build_service resolve without the real google-auth package installed.
+    # Intentional test-local stubs: these fake optional Google SDK modules for
+    # one lazy-import path and are scoped by monkeypatch, so they should not move
+    # to the shared gioe_stubs conftest.
     fake_google = types.ModuleType("google")
     fake_oauth2 = types.ModuleType("google.oauth2")
     fake_oauth2_creds = types.ModuleType("google.oauth2.credentials")

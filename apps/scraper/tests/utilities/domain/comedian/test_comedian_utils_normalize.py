@@ -18,9 +18,10 @@ _SCRAPER_ROOT = Path(__file__).parents[4]  # apps/scraper/
 def _load_real_utils() -> type:
     """Load ComedianUtils directly from source, bypassing sys.modules stubs.
 
-    Uses save/restore around sys.modules writes so that the temporary stubs
-    needed to load utils.py don't leak into the broader pytest session and
-    corrupt other test files that depend on the real module objects.
+    Intentional direct-assignment stubs: this test must bypass existing
+    session-level ComedianUtils stubs to load the real utility module, so it
+    saves/restores sys.modules around the temporary imports instead of using the
+    shared gioe_stubs conftest.
     """
 
     _stub_names = [

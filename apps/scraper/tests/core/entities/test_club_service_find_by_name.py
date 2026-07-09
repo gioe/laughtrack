@@ -18,7 +18,9 @@ from unittest.mock import MagicMock, patch
 from _entities_test_helpers import _load_module, _stub
 
 
-# Non-foundation stubs (foundation modules are registered by conftest.py)
+# Non-foundation, file-specific stubs. The broad foundation/db scaffolding lives
+# in tests/core/entities/conftest.py; these model/handler substitutions are
+# specific to loading ClubService without the real DB-backed ClubHandler.
 from typing import TypeVar as _TypeVar
 from laughtrack.core.entities.club.model import ScrapingSource
 _T = _TypeVar("T")
