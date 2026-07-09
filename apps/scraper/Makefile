@@ -298,15 +298,15 @@ install-dev: setup-venv
 	@echo "🔧 Installing development dependencies..."
 	@echo "   → Runtime deps + the pyproject dev dependency group, via uv.lock"
 	@command -v uv >/dev/null 2>&1 || { echo "❌ uv is required (brew install uv)"; exit 1; }
-	uv sync
+	uv sync --no-group viz
 	@echo "✅ Development dependencies installed successfully!"
 
 # Optional dependencies - visualization, dashboards, and advanced features
 install-optional: setup-venv
 	@echo "📊 Installing optional dependencies..."
-	@echo "   → Streamlit dashboards, advanced analytics, visualization tools"
+	@echo "   → Runtime/default groups + pyproject viz dependency group, via uv.lock"
 	@command -v uv >/dev/null 2>&1 || { echo "❌ uv is required (brew install uv)"; exit 1; }
-	uv pip install -r requirements-optional.txt
+	uv sync --group viz
 	@echo "✅ Optional dependencies installed successfully!"
 
 # Complete installation - everything needed for full development and production

@@ -15,10 +15,12 @@ uv sync --no-dev
 # Install development dependencies (runtime + test/lint tools)
 make install-dev
 # OR
-uv sync
+uv sync --no-group viz
 
 # Install visualization tools (optional)  
 make install-optional
+# OR
+uv sync --group viz
 ```
 
 Tip: use make help to see all available commands.
@@ -77,8 +79,13 @@ python bin/neon-cost-diagnostics --limit 10
 
 - **Core + Development**: `pyproject.toml` (locked in `uv.lock`) - runtime deps
   live in `[project.dependencies]`; test/lint tooling lives in the
-  `[dependency-groups]` dev group, which plain `uv sync` installs by default
-- **Optional**: `requirements-optional.txt` - Visualization and analysis tools
+  `[dependency-groups]` dev group; `make install-dev` runs
+  `uv sync --no-group viz` for a dev-only environment
+- **Optional visualization**: `pyproject.toml` (locked in `uv.lock`) - dashboard
+  and analysis tools live in the `[dependency-groups]` viz group and install with
+  `make install-optional` or `uv sync --group viz`; the viz group is also in
+  `tool.uv.default-groups` so a later plain `uv sync` keeps those packages
+  instead of pruning them
 
 ### Testing
 
@@ -107,7 +114,7 @@ make test-critical
 
 ### Optional Dependencies
 
-- `streamlit`, `plotly`, `pandas` - Visualization dashboards
+- `streamlit`, `plotly`, `pandas`, `matplotlib`, `seaborn`, `jupyter` - Visualization dashboards
 - `Pillow` - Image processing
 
 ## Environment variables
