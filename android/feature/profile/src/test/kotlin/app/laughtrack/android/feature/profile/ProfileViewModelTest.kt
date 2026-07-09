@@ -165,6 +165,23 @@ class ProfileViewModelTest {
             assertTrue(settingsService.locationUpdates.isEmpty())
         }
 
+    @Test
+    fun failed_notification_save_surfaces_the_sync_error() =
+        runTest {
+            val settingsService = FakeProfileSettingsService(succeeds = false)
+            val viewModel = viewModel(settingsService = settingsService)
+            subscribe(viewModel)
+
+            viewModel.setEmailNotifications(true)
+            advanceUntilIdle()
+
+            assertEquals(
+                "LaughTrack could not save that alert preference.",
+                viewModel.uiState.value.message,
+            )
+            assertEquals(1, settingsService.notificationUpdates.size)
+        }
+
     // -- helpers ----------------------------------------------------------------
 
     /** uiState is stateIn(WhileSubscribed): the combine only runs while collected. */
@@ -204,7 +221,6 @@ class ProfileViewModelTest {
     private class FakeProfileAccountService(
         private val hasSession: Boolean,
         private val me: MeData? = null,
-        private val signOutSucceeds: Boolean = true,
         private val deleteSucceeds: Boolean = true,
     ) : ProfileAccountService {
         var signOutCalled = false
@@ -223,7 +239,9 @@ class ProfileViewModelTest {
 
         override suspend fun signOut(): Boolean {
             signOutCalled = true
-            return signOutSucceeds
+            // The ViewModel resets state regardless of the result, so there is no
+            // failure branch to exercise here.
+            return true
         }
 
         override suspend fun deleteAccount(): Boolean {
