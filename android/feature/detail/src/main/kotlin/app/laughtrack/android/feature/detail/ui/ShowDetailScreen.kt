@@ -58,12 +58,12 @@ import app.laughtrack.android.core.network.generated.model.Show
 import app.laughtrack.android.core.network.generated.model.ShowDetail
 import app.laughtrack.android.core.ui.UiState
 import app.laughtrack.android.core.ui.components.RemoteImage
+import app.laughtrack.android.core.ui.components.TicketShowRow
 import app.laughtrack.android.core.ui.components.ticketStubDateParts
 import app.laughtrack.android.core.ui.theme.LaughTrackColors
 import app.laughtrack.android.feature.detail.model.ShowDetailUi
 import app.laughtrack.android.feature.detail.ui.components.DetailError
 import app.laughtrack.android.feature.detail.ui.components.DetailLoading
-import app.laughtrack.android.feature.detail.ui.components.TicketShowRow
 import app.laughtrack.android.feature.detail.util.addEventToCalendar
 import app.laughtrack.android.feature.detail.util.formatCountdown
 import app.laughtrack.android.feature.detail.util.formatShowDateTime

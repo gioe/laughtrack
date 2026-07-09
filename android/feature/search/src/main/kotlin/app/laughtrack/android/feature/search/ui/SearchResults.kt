@@ -8,16 +8,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -41,9 +36,7 @@ import androidx.compose.ui.unit.dp
 import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.ui.components.RemoteImage
 import app.laughtrack.android.core.ui.components.SkeletonLine
-import app.laughtrack.android.core.ui.components.TicketDashedDivider
-import app.laughtrack.android.core.ui.components.TicketStub
-import app.laughtrack.android.core.ui.components.TicketStubColors
+import app.laughtrack.android.core.ui.components.TicketShowRow
 import app.laughtrack.android.core.ui.components.ticketStubDateParts
 import app.laughtrack.android.core.ui.theme.LaughTrackColors
 import app.laughtrack.android.feature.search.model.SearchPivot
@@ -120,46 +113,13 @@ private fun ShowResultRow(
     result: SearchResult,
     onOpen: (AppRoute) -> Unit,
 ) {
-    Surface(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .height(IntrinsicSize.Min)
-                .clip(RoundedCornerShape(12.dp))
-                .clickable { onOpen(result.route) }
-                .testTag(SEARCH_RESULT_ROW_TEST_TAG)
-                .border(1.dp, LaughTrackColors.TicketBorder, RoundedCornerShape(12.dp)),
-        color = LaughTrackColors.TicketPaper,
-        shape = RoundedCornerShape(12.dp),
-    ) {
-        Row(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 104.dp),
-        ) {
-            ShowResultBody(
-                result = result,
-                modifier =
-                    Modifier
-                        .weight(1f)
-                        .fillMaxHeight(),
-            )
-            TicketDashedDivider(
-                color = LaughTrackColors.TicketBorder,
-                modifier =
-                    Modifier
-                        .fillMaxHeight()
-                        .padding(vertical = 10.dp),
-            )
-            ShowResultStub(
-                result = result,
-                modifier =
-                    Modifier
-                        .width(88.dp)
-                        .fillMaxHeight(),
-            )
-        }
+    TicketShowRow(
+        dateParts = ticketStubDateParts(isoDateTime = result.showDate, timezone = result.showTimezone),
+        priceLabel = result.showPriceLabel,
+        onClick = { onOpen(result.route) },
+        modifier = Modifier.testTag(SEARCH_RESULT_ROW_TEST_TAG),
+    ) { bodyModifier ->
+        ShowResultBody(result = result, modifier = bodyModifier)
     }
 }
 
@@ -231,25 +191,6 @@ private fun ShowResultBody(
             }
         }
     }
-}
-
-@Composable
-private fun ShowResultStub(
-    result: SearchResult,
-    modifier: Modifier = Modifier,
-) {
-    TicketStub(
-        dateParts = ticketStubDateParts(isoDateTime = result.showDate, timezone = result.showTimezone),
-        priceLabel = result.showPriceLabel,
-        colors =
-            TicketStubColors(
-                background = LaughTrackColors.TicketStub,
-                accent = LaughTrackColors.TicketAccent,
-                primary = LaughTrackColors.TicketInk,
-                muted = LaughTrackColors.TicketInkMuted,
-            ),
-        modifier = modifier,
-    )
 }
 
 @Composable

@@ -11,15 +11,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -63,8 +60,8 @@ import app.laughtrack.android.core.ui.UiState
 import app.laughtrack.android.core.ui.components.RemoteImage
 import app.laughtrack.android.core.ui.components.SkeletonBox
 import app.laughtrack.android.core.ui.components.SkeletonLine
-import app.laughtrack.android.core.ui.components.TicketDashedDivider
-import app.laughtrack.android.core.ui.components.TicketStub
+import app.laughtrack.android.core.ui.components.TicketShowRow
+import app.laughtrack.android.core.ui.components.TicketShowRowColors
 import app.laughtrack.android.core.ui.components.TicketStubColors
 import app.laughtrack.android.core.ui.components.ticketStubDateParts
 import app.laughtrack.android.core.ui.theme.LaughTrackColors
@@ -534,48 +531,25 @@ private fun ShowListRow(
     show: Show,
     onClick: () -> Unit,
 ) {
-    Surface(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .height(IntrinsicSize.Min)
-                .clip(RoundedCornerShape(12.dp))
-                .clickable(onClick = onClick)
-                .border(1.dp, LaughTrackColors.BorderSubtle, RoundedCornerShape(12.dp)),
-        color = LaughTrackColors.SurfaceElevated,
-        shape = RoundedCornerShape(12.dp),
-    ) {
-        Row(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 104.dp),
-            horizontalArrangement = Arrangement.spacedBy(0.dp),
-        ) {
-            ShowTicketBody(
-                show = show,
-                modifier =
-                    Modifier
-                        .weight(1f)
-                        .fillMaxHeight(),
-            )
-
-            TicketDashedDivider(
-                color = LaughTrackColors.ForegroundMuted.copy(alpha = 0.6f),
-                modifier =
-                    Modifier
-                        .fillMaxHeight()
-                        .padding(vertical = 10.dp),
-            )
-
-            ShowTicketStub(
-                show = show,
-                modifier =
-                    Modifier
-                        .width(88.dp)
-                        .fillMaxHeight(),
-            )
-        }
+    TicketShowRow(
+        dateParts = ticketStubDateParts(isoDateTime = show.date, timezone = show.timezone),
+        priceLabel = formatPrice(show.tickets?.mapNotNull { it.price }),
+        onClick = onClick,
+        colors =
+            TicketShowRowColors(
+                paper = LaughTrackColors.SurfaceElevated,
+                border = LaughTrackColors.BorderSubtle,
+                divider = LaughTrackColors.ForegroundMuted.copy(alpha = 0.6f),
+                stub =
+                    TicketStubColors(
+                        background = LaughTrackColors.Surface,
+                        accent = LaughTrackColors.AccentStrong,
+                        primary = MaterialTheme.colorScheme.onSurface,
+                        muted = MaterialTheme.colorScheme.onSurfaceVariant,
+                    ),
+            ),
+    ) { bodyModifier ->
+        ShowTicketBody(show = show, modifier = bodyModifier)
     }
 }
 
@@ -711,25 +685,6 @@ private fun ShowTitleOnlyBlock(show: Show) {
             )
         }
     }
-}
-
-@Composable
-private fun ShowTicketStub(
-    show: Show,
-    modifier: Modifier = Modifier,
-) {
-    TicketStub(
-        dateParts = ticketStubDateParts(isoDateTime = show.date, timezone = show.timezone),
-        priceLabel = formatPrice(show.tickets?.mapNotNull { it.price }),
-        colors =
-            TicketStubColors(
-                background = LaughTrackColors.Surface,
-                accent = LaughTrackColors.AccentStrong,
-                primary = MaterialTheme.colorScheme.onSurface,
-                muted = MaterialTheme.colorScheme.onSurfaceVariant,
-            ),
-        modifier = modifier,
-    )
 }
 
 @Composable

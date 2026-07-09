@@ -1,16 +1,12 @@
 package app.laughtrack.android.feature.detail.ui.components
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -23,7 +19,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -37,11 +32,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.laughtrack.android.core.ui.components.RemoteImage
 import app.laughtrack.android.core.ui.components.SkeletonLine
-import app.laughtrack.android.core.ui.components.TicketDashedDivider
-import app.laughtrack.android.core.ui.components.TicketDateParts
-import app.laughtrack.android.core.ui.components.TicketStub
-import app.laughtrack.android.core.ui.components.TicketStubColors
-import app.laughtrack.android.core.ui.theme.LaughTrackColors
 
 /**
  * Detail-screen chrome: a top bar with a back affordance and an optional trailing
@@ -205,99 +195,6 @@ fun ShowRow(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-        }
-    }
-}
-
-/**
- * A compact cream "ticket" show row mirroring the iOS ShowRow `.compactTicket`
- * presentation: paper body with artwork + title/subtitle, a dashed perforation,
- * and a date stub, all drawn with the shared LaughTrackColors.Ticket* tokens.
- * Used for the Comedian-detail upcoming/past show lists and the Show-detail
- * "More shows" list. Non-show lists (e.g. podcast appearances) keep the plain
- * [ShowRow] — they are not ticketed events.
- */
-@Composable
-fun TicketShowRow(
-    title: String,
-    subtitle: String?,
-    imageUrl: String?,
-    dateParts: TicketDateParts,
-    priceLabel: String?,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Surface(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .height(IntrinsicSize.Min)
-                .clip(RoundedCornerShape(12.dp))
-                .clickable(onClick = onClick)
-                .border(1.dp, LaughTrackColors.TicketBorder, RoundedCornerShape(12.dp)),
-        color = LaughTrackColors.TicketPaper,
-        shape = RoundedCornerShape(12.dp),
-    ) {
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .heightIn(min = 88.dp),
-        ) {
-            Row(
-                modifier =
-                    Modifier
-                        .weight(1f)
-                        .fillMaxHeight()
-                        .padding(10.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                RemoteImage(
-                    url = imageUrl,
-                    contentDescription = title,
-                    modifier = Modifier.size(56.dp).clip(RoundedCornerShape(8.dp)),
-                )
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(
-                        title,
-                        style = MaterialTheme.typography.titleSmall,
-                        color = LaughTrackColors.TicketInk,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    subtitle?.takeIf { it.isNotBlank() }?.let {
-                        Text(
-                            it,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = LaughTrackColors.TicketInkMuted,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                }
-            }
-            TicketDashedDivider(
-                color = LaughTrackColors.TicketBorder,
-                modifier =
-                    Modifier
-                        .fillMaxHeight()
-                        .padding(vertical = 10.dp),
-            )
-            TicketStub(
-                dateParts = dateParts,
-                priceLabel = priceLabel,
-                colors =
-                    TicketStubColors(
-                        background = LaughTrackColors.TicketStub,
-                        accent = LaughTrackColors.TicketAccent,
-                        primary = LaughTrackColors.TicketInk,
-                        muted = LaughTrackColors.TicketInkMuted,
-                    ),
-                modifier =
-                    Modifier
-                        .width(88.dp)
-                        .fillMaxHeight(),
-            )
         }
     }
 }

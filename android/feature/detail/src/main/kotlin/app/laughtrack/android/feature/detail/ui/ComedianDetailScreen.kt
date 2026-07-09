@@ -73,6 +73,7 @@ import app.laughtrack.android.core.network.generated.model.SocialData
 import app.laughtrack.android.core.network.generated.model.UpcomingRun
 import app.laughtrack.android.core.ui.UiState
 import app.laughtrack.android.core.ui.components.RemoteImage
+import app.laughtrack.android.core.ui.components.TicketShowRow
 import app.laughtrack.android.core.ui.components.ticketStubDateParts
 import app.laughtrack.android.core.ui.theme.LaughTrackColors
 import app.laughtrack.android.feature.detail.model.ComedianDetailUi
@@ -81,7 +82,6 @@ import app.laughtrack.android.feature.detail.ui.components.DetailLoading
 import app.laughtrack.android.feature.detail.ui.components.EntityAvatar
 import app.laughtrack.android.feature.detail.ui.components.SectionHeader
 import app.laughtrack.android.feature.detail.ui.components.ShowRow
-import app.laughtrack.android.feature.detail.ui.components.TicketShowRow
 import app.laughtrack.android.feature.detail.util.formatHomeCity
 import app.laughtrack.android.feature.detail.util.formatHomeClubName
 import app.laughtrack.android.feature.detail.util.formatTicketPriceLabel
