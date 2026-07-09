@@ -24,13 +24,18 @@ import javax.inject.Inject
 data class HomeUiState(
     val feed: UiState<HomeFeed> = UiState.Idle,
     val zip: String? = null,
+    val distanceMiles: Int = HomeFeedRepository.DEFAULT_DISTANCE_MILES,
     val isResolvingLocation: Boolean = false,
 ) {
     private val loadedFeed: HomeFeed?
         get() = (feed as? UiState.Success<HomeFeed>)?.value
 
-    /** The ZIP the feed is actually scoped to: the feed's hero ZIP wins, else the requested ZIP. */
-    private val activeZip: String?
+    /**
+     * The ZIP the feed is actually scoped to: the feed's hero ZIP wins, else the
+     * requested ZIP. Public so the location editor sheet can prefill its field
+     * with the same ZIP the Saved ZIP subtitle reports (TASK-3697).
+     */
+    val activeZip: String?
         get() = loadedFeed?.hero?.zipCode?.takeIf { it.isNotBlank() } ?: zip
 
     val locationTitle: String
@@ -47,7 +52,7 @@ data class HomeUiState(
 
     val locationSubtitle: String
         get() =
-            activeZip?.let { "Saved ZIP - ${HomeFeedRepository.DEFAULT_DISTANCE_MILES} mi" }
+            activeZip?.let { "Saved ZIP - $distanceMiles mi" }
                 ?: "Get shows, clubs, and comedians near you."
 
     val showsTonight: List<Show>
@@ -83,6 +88,9 @@ class HomeViewModel
 
         /** The ZIP currently driving the feed (null = server-inferred from the caller). */
         private var currentZip: String? = null
+
+        /** The geo radius currently driving the feed, in miles. */
+        private var currentDistance: Int = HomeFeedRepository.DEFAULT_DISTANCE_MILES
         private var loadJob: Job? = null
 
         init {
@@ -115,9 +123,29 @@ class HomeViewModel
             }
         }
 
+        /** Set the feed geo radius (from the sheet's distance chips) and reload. */
+        fun setDistance(miles: Int) {
+            if (miles != currentDistance) {
+                currentDistance = miles
+                load(currentZip)
+            }
+        }
+
+        /**
+         * Drop the explicit location back to the server-inferred default area,
+         * resetting the radius too (mirrors iOS clearNearbyPreference).
+         */
+        fun clearLocation() {
+            if (currentZip != null || currentDistance != HomeFeedRepository.DEFAULT_DISTANCE_MILES) {
+                currentZip = null
+                currentDistance = HomeFeedRepository.DEFAULT_DISTANCE_MILES
+                load(null)
+            }
+        }
+
         private fun load(zip: String?) {
             loadJob?.cancel()
-            val distance = HomeFeedRepository.DEFAULT_DISTANCE_MILES
+            val distance = currentDistance
             loadJob =
                 viewModelScope.launch {
                     // Render the persisted snapshot immediately, if any, so relaunch is instant;
@@ -127,17 +155,28 @@ class HomeViewModel
                         HomeUiState(
                             feed = cached?.let { UiState.Success(it) } ?: UiState.Loading,
                             zip = zip,
+                            distanceMiles = distance,
                         )
                     runCatchingCancellable { repository.getHomeFeed(zip, distance) }
                         .onSuccess { feed ->
                             cache.set(zip, distance, feed)
-                            _state.value = HomeUiState(feed = UiState.Success(feed), zip = zip)
+                            _state.value =
+                                HomeUiState(
+                                    feed = UiState.Success(feed),
+                                    zip = zip,
+                                    distanceMiles = distance,
+                                )
                         }
                         .onFailure { error ->
                             // Keep the cached feed visible on a refresh failure; only surface an
                             // error when there was nothing to fall back on.
                             if (cached == null) {
-                                _state.value = HomeUiState(feed = UiState.Failure(error), zip = zip)
+                                _state.value =
+                                    HomeUiState(
+                                        feed = UiState.Failure(error),
+                                        zip = zip,
+                                        distanceMiles = distance,
+                                    )
                             }
                         }
                 }

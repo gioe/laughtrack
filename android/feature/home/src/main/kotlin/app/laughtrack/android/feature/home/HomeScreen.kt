@@ -90,6 +90,8 @@ fun HomeScreen(
                 onOpenEntity = onOpenEntity,
                 onManualZip = viewModel::setManualZip,
                 onUseLocation = viewModel::useDeviceLocation,
+                onSetDistance = viewModel::setDistance,
+                onClearLocation = viewModel::clearLocation,
                 modifier = modifier,
             )
         else -> HomeLoading(modifier)
@@ -102,6 +104,8 @@ private fun HomeContent(
     onOpenEntity: (AppRoute) -> Unit,
     onManualZip: (String) -> Unit,
     onUseLocation: () -> Unit,
+    onSetDistance: (Int) -> Unit,
+    onClearLocation: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -130,10 +134,15 @@ private fun HomeContent(
                 LocationHeader(
                     title = state.locationTitle,
                     subtitle = state.locationSubtitle,
-                    zip = state.zip,
+                    // activeZip (not the requested zip) so the sheet prefills the same
+                    // ZIP the Saved ZIP subtitle reports, including the hero fallback.
+                    zip = state.activeZip,
+                    distanceMiles = state.distanceMiles,
                     isResolving = state.isResolvingLocation,
                     onManualZip = onManualZip,
                     onUseLocation = onUseLocation,
+                    onSetDistance = onSetDistance,
+                    onClearLocation = onClearLocation,
                 )
             }
             item {

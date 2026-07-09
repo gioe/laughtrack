@@ -22,6 +22,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -155,6 +156,54 @@ class HomeViewModelTest {
             assertEquals("ZIP 60614", viewModel.state.value.locationTitle)
         }
 
+    @Test
+    fun set_distance_reloads_feed_with_that_radius() =
+        runTest {
+            val repository = FakeHomeFeedRepository(feed = homeFeed())
+            val viewModel = viewModel(repository)
+            advanceUntilIdle()
+
+            viewModel.setDistance(50)
+            advanceUntilIdle()
+
+            assertEquals(50, repository.lastDistance)
+            assertEquals(50, viewModel.state.value.distanceMiles)
+            assertEquals("Saved ZIP - 50 mi", viewModel.state.value.locationSubtitle)
+            assertEquals(2, repository.loads)
+        }
+
+    @Test
+    fun clear_location_reverts_to_server_inferred_default_area() =
+        runTest {
+            val repository = FakeHomeFeedRepository(feed = homeFeed())
+            val viewModel = viewModel(repository)
+            advanceUntilIdle()
+            viewModel.setManualZip("90210")
+            advanceUntilIdle()
+            viewModel.setDistance(100)
+            advanceUntilIdle()
+
+            viewModel.clearLocation()
+            advanceUntilIdle()
+
+            assertNull(repository.lastZip)
+            assertEquals(HomeFeedRepository.DEFAULT_DISTANCE_MILES, repository.lastDistance)
+            assertNull(viewModel.state.value.zip)
+            assertEquals(HomeFeedRepository.DEFAULT_DISTANCE_MILES, viewModel.state.value.distanceMiles)
+        }
+
+    @Test
+    fun active_zip_falls_back_to_hero_zip_for_sheet_prefill() =
+        runTest {
+            // Fresh launch: no requested zip, but the hero reports the inferred ZIP —
+            // the sheet prefill (activeZip) must expose it (TASK-3697).
+            val viewModel = viewModel(FakeHomeFeedRepository(feed = homeFeed()))
+            advanceUntilIdle()
+
+            assertNull(viewModel.state.value.zip)
+            assertEquals("10001", viewModel.state.value.activeZip)
+        }
+
     private fun viewModel(
         repository: HomeFeedRepository,
         cache: HomeFeedCache = FakeHomeFeedCache(),
@@ -167,6 +216,7 @@ class HomeViewModelTest {
     ) : HomeFeedRepository {
         var loads = 0
         var lastZip: String? = null
+        var lastDistance: Int? = null
 
         override suspend fun getHomeFeed(
             zip: String?,
@@ -174,6 +224,7 @@ class HomeViewModelTest {
         ): HomeFeed {
             loads += 1
             lastZip = zip
+            lastDistance = distance
             if (loads <= failuresBeforeSuccess) {
                 throw IOException("Home feed failed")
             }

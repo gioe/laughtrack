@@ -30,12 +30,14 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -159,9 +161,12 @@ internal fun LocationHeader(
     title: String,
     subtitle: String,
     zip: String?,
+    distanceMiles: Int,
     isResolving: Boolean,
     onManualZip: (String) -> Unit,
     onUseLocation: () -> Unit,
+    onSetDistance: (Int) -> Unit,
+    onClearLocation: () -> Unit,
 ) {
     // Saveable so an activity recreation while the system permission dialog is up
     // (rotation, process death) re-composes the sheet and its permission launcher,
@@ -222,28 +227,37 @@ internal fun LocationHeader(
     if (showSheet) {
         LocationEditorSheet(
             zip = zip,
+            distanceMiles = distanceMiles,
             isResolving = isResolving,
             onManualZip = onManualZip,
             onUseLocation = onUseLocation,
+            onSetDistance = onSetDistance,
+            onClearLocation = onClearLocation,
             onDismiss = { showSheet = false },
         )
     }
 }
 
 /**
- * Bottom-sheet editor for the Discover location: manual ZIP entry (applies once
- * five digits are typed, then dismisses) and a "Use my location" button carrying
- * the permission-request flow that previously lived inline on the Home surface.
- * Both actions dismiss the sheet immediately; resolution progress reads off the
- * collapsed row's "Locating…" subtitle.
+ * Bottom-sheet editor for the Discover location, mirroring the iOS
+ * HomeLocationEditorSheet: manual ZIP entry prefilled with the active ZIP
+ * (applies once five digits are typed, then dismisses), a distance chip row
+ * that applies immediately and keeps the sheet open (iOS chip-picker binding
+ * semantics), a "Use my location" button carrying the permission-request flow,
+ * and — only while a location is set — a "Clear location" action that reverts
+ * to the server-inferred default area. ZIP/location/clear dismiss the sheet;
+ * resolution progress reads off the collapsed row's "Locating…" subtitle.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun LocationEditorSheet(
     zip: String?,
+    distanceMiles: Int,
     isResolving: Boolean,
     onManualZip: (String) -> Unit,
     onUseLocation: () -> Unit,
+    onSetDistance: (Int) -> Unit,
+    onClearLocation: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -284,7 +298,9 @@ private fun LocationEditorSheet(
                 value = zipText,
                 onValueChange = { entry ->
                     zipText = entry.filter(Char::isDigit).take(ZIP_LENGTH)
-                    if (zipText.length == ZIP_LENGTH) {
+                    // Only a ZIP different from the prefilled active one applies —
+                    // otherwise the prefill itself would immediately dismiss the sheet.
+                    if (zipText.length == ZIP_LENGTH && zipText != zip) {
                         onManualZip(zipText)
                         onDismiss()
                     }
@@ -294,6 +310,21 @@ private fun LocationEditorSheet(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth(),
             )
+
+            Text(
+                "DISTANCE",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                DISTANCE_OPTIONS_MILES.forEach { miles ->
+                    FilterChip(
+                        selected = miles == distanceMiles,
+                        onClick = { onSetDistance(miles) },
+                        label = { Text("$miles mi") },
+                    )
+                }
+            }
 
             Button(
                 onClick = {
@@ -314,6 +345,19 @@ private fun LocationEditorSheet(
             ) {
                 Text(if (isResolving) "Locating…" else "Use my location")
             }
+
+            // Mirrors iOS: the clear action only renders while a location is set.
+            if (zip != null) {
+                TextButton(
+                    onClick = {
+                        onClearLocation()
+                        onDismiss()
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text("Clear location")
+                }
+            }
         }
     }
 }
@@ -329,3 +373,7 @@ private fun hasLocationPermission(context: Context): Boolean =
         ) == PackageManager.PERMISSION_GRANTED
 
 private const val ZIP_LENGTH = 5
+
+// Mirrors iOS NearbyPreferenceStore.distanceOptions so the two clients offer the
+// same radius choices.
+private val DISTANCE_OPTIONS_MILES = listOf(10, 25, 50, 100)
