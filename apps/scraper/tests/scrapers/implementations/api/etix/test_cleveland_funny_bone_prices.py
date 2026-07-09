@@ -114,9 +114,13 @@ async def test_public_listing_extracts_visible_price_ranges(monkeypatch):
 
 
 def test_etix_event_to_show_uses_extracted_price_range():
-    from laughtrack.scrapers.implementations.api.etix.scraper import EtixScraper
+    from datetime import date
 
-    event = EtixScraper(_club())._extract_funny_bone_events(_shows_html())[0]
+    from laughtrack.scrapers.implementations.api.etix.rockhouse import (
+        extract_rockhouse_events,
+    )
+
+    event = extract_rockhouse_events(_shows_html(), today=date(2026, 5, 1))[0]
 
     show = event.to_show(_club())
 
@@ -125,10 +129,14 @@ def test_etix_event_to_show_uses_extracted_price_range():
 
 
 def test_missing_price_remains_null_instead_of_free():
-    from laughtrack.scrapers.implementations.api.etix.scraper import EtixScraper
+    from datetime import date
 
-    event = EtixScraper(_club())._extract_funny_bone_events(
-        _shows_html(include_price=False)
+    from laughtrack.scrapers.implementations.api.etix.rockhouse import (
+        extract_rockhouse_events,
+    )
+
+    event = extract_rockhouse_events(
+        _shows_html(include_price=False), today=date(2026, 5, 1)
     )[0]
 
     show = event.to_show(_club())
