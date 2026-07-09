@@ -24,27 +24,34 @@ import { mapTickets } from "@/util/ticket/ticketUtil";
 // than collapsed. DTO shapes are consumed by iOS/Android via the OpenAPI
 // contract, so per-path field parity must stay exact.
 
-// The comedian select nested under each lineup item, common to both paths. The
-// search path spreads this and adds a favoriteComedians block (see
-// buildShowSelect); home uses it as-is.
-const LINEUP_ITEM_COMEDIAN_SELECT = {
-    ...LINEUP_COMEDIAN_SELECT,
-    _count: {
+// Build the comedian select nested under each lineup item. The single source
+// of the _count shape at both depths: no countWhere yields the all-time
+// lineupItems count (search/home); a countWhere filters it (detail passes an
+// upcoming-only date bound via buildShowSelect's lineupCountWhere).
+function buildLineupItemComedianSelect(
+    countWhere?: Prisma.LineupItemWhereInput,
+) {
+    const lineupItemsCount = {
         select: {
-            lineupItems: true,
+            lineupItems: countWhere ? { where: countWhere } : true,
         },
-    },
-    parentComedian: {
-        select: {
-            ...PARENT_COMEDIAN_LINEUP_SELECT,
-            _count: {
-                select: {
-                    lineupItems: true,
-                },
+    };
+    return {
+        ...LINEUP_COMEDIAN_SELECT,
+        _count: lineupItemsCount,
+        parentComedian: {
+            select: {
+                ...PARENT_COMEDIAN_LINEUP_SELECT,
+                _count: lineupItemsCount,
             },
         },
-    },
-} satisfies Prisma.ComedianSelect;
+    } satisfies Prisma.ComedianSelect;
+}
+
+// The all-time-count comedian select, common to the search and home paths. The
+// search path spreads this and adds a favoriteComedians block (see
+// buildShowSelect); home uses it as-is via PUBLIC_SHOW_SELECT.
+const LINEUP_ITEM_COMEDIAN_SELECT = buildLineupItemComedianSelect();
 
 // The base public show select: the fields both the search and home paths fetch.
 // Deliberate per-path additions (search: `description`, and a favoriteComedians
@@ -149,19 +156,6 @@ interface BuildShowSelectOptions {
  * passes PUBLIC_SHOW_SELECT directly.
  */
 export function buildShowSelect(options: BuildShowSelectOptions = {}) {
-    // Identical to LINEUP_ITEM_COMEDIAN_SELECT's count shape when no filter is
-    // supplied, so search/home output is unchanged.
-    const lineupItemsCount = options.lineupCountWhere
-        ? {
-              select: {
-                  lineupItems: { where: options.lineupCountWhere },
-              },
-          }
-        : {
-              select: {
-                  lineupItems: true,
-              },
-          };
     return {
         ...PUBLIC_SHOW_SELECT,
         ...(options.includeDescription ? { description: true } : {}),
@@ -171,14 +165,9 @@ export function buildShowSelect(options: BuildShowSelectOptions = {}) {
                 role: true,
                 comedian: {
                     select: {
-                        ...LINEUP_ITEM_COMEDIAN_SELECT,
-                        _count: lineupItemsCount,
-                        parentComedian: {
-                            select: {
-                                ...PARENT_COMEDIAN_LINEUP_SELECT,
-                                _count: lineupItemsCount,
-                            },
-                        },
+                        ...buildLineupItemComedianSelect(
+                            options.lineupCountWhere,
+                        ),
                         ...(options.favoriteComediansProfileId
                             ? {
                                   favoriteComedians: {
