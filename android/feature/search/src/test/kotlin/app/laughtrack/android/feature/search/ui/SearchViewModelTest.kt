@@ -1,7 +1,6 @@
 package app.laughtrack.android.feature.search.ui
 
 import app.laughtrack.android.core.analytics.AnalyticsManager
-import app.laughtrack.android.core.data.search.SearchShortcutCoordinator
 import app.laughtrack.android.core.network.generated.api.ShowsApi
 import app.laughtrack.android.core.network.generated.model.ShowDetailResponse
 import app.laughtrack.android.core.network.generated.model.ShowListResponse
@@ -66,7 +65,6 @@ class SearchViewModelTest {
                     podcastsApi = throwingApi(),
                 ),
             analytics = AnalyticsManager(emptyList()),
-            shortcutCoordinator = SearchShortcutCoordinator(),
         )
 
     private class SuspendingShowsApi : ShowsApi {

@@ -5,9 +5,6 @@ import androidx.lifecycle.viewModelScope
 import app.laughtrack.android.core.analytics.AnalyticsEvents
 import app.laughtrack.android.core.analytics.AnalyticsManager
 import app.laughtrack.android.core.data.runCatchingCancellable
-import app.laughtrack.android.core.data.search.SearchSeed
-import app.laughtrack.android.core.data.search.SearchShortcut
-import app.laughtrack.android.core.data.search.SearchShortcutCoordinator
 import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.network.generated.model.Filter
 import app.laughtrack.android.core.network.generated.model.HomeCityFilter
@@ -27,8 +24,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 /** Per-pivot search state, retained when switching tabs (mirrors iOS per-pivot models). */
@@ -67,7 +62,6 @@ class SearchViewModel
     constructor(
         private val repository: SearchRepository,
         private val analytics: AnalyticsManager,
-        private val shortcutCoordinator: SearchShortcutCoordinator,
     ) : ViewModel() {
         private val _state = MutableStateFlow(SearchUiState())
         val state: StateFlow<SearchUiState> = _state.asStateFlow()
@@ -84,25 +78,7 @@ class SearchViewModel
                     if (pivot == _state.value.pivot) reload(pivot)
                 }
             }
-            // A Home shortcut chip publishes a seed; apply it to the Shows pivot when it arrives.
-            viewModelScope.launch {
-                shortcutCoordinator.seed.collect { seed -> seed?.let(::applySeed) }
-            }
             selectPivot(SearchPivot.SHOWS)
-        }
-
-        /**
-         * Apply a Home shortcut: pivot to Shows, pre-set the geo + date-window filters
-         * (Tonight / This Week / Near Me), re-query, then clear the seed so it isn't
-         * re-applied on the next recomposition. Mirrors iOS SearchRootModel shortcuts.
-         */
-        private fun applySeed(seed: SearchSeed) {
-            _state.update { it.copy(pivot = SearchPivot.SHOWS) }
-            updatePivot(SearchPivot.SHOWS) { pivotState ->
-                pivotState.copy(query = buildShortcutQuery(seed, pivotState.query, LocalDate.now()))
-            }
-            reload(SearchPivot.SHOWS)
-            shortcutCoordinator.consume()
         }
 
         /** Free-text edit: reflected in the field immediately, but the query is debounced. */
@@ -252,33 +228,3 @@ class SearchViewModel
             const val TEXT_DEBOUNCE_MS = 300L
         }
     }
-
-/** Server sort key for "earliest showtime first" (mirrors iOS ShowSort.earliest). */
-private const val SORT_EARLIEST = "date_asc"
-
-/**
- * Pure mapping from a Home shortcut seed to the Shows-pivot query, carrying the
- * seed's location (zip/distance) and layering the shortcut's date window on top.
- * The server treats [from]/[to] as INCLUSIVE end-of-day bounds (mirrors iOS
- * applyShortcutFilters), so Tonight = today..tomorrow, This Week = today..+7 days,
- * Near Me = no date bound (just the geo scope). All sort earliest-first. [today]
- * is injected so the date math is deterministically testable.
- */
-internal fun buildShortcutQuery(
-    seed: SearchSeed,
-    base: SearchQuery,
-    today: LocalDate,
-): SearchQuery {
-    val fmt = DateTimeFormatter.ISO_LOCAL_DATE
-    val withLocation = base.copy(zip = seed.zip, distance = seed.distanceMiles, sort = SORT_EARLIEST)
-    return when (seed.shortcut) {
-        SearchShortcut.TONIGHT ->
-            withLocation.copy(from = today.format(fmt), to = today.plusDays(1).format(fmt))
-        SearchShortcut.THIS_WEEK ->
-            withLocation.copy(from = today.format(fmt), to = today.plusDays(DAYS_IN_WEEK).format(fmt))
-        SearchShortcut.NEAR_ME ->
-            withLocation.copy(from = null, to = null)
-    }
-}
-
-private const val DAYS_IN_WEEK = 7L
