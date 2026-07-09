@@ -14,48 +14,50 @@ import javax.inject.Inject
  * unions `GET /comedians/{id}/upcoming-runs` with `GET /comedians/past-shows`
  * (keyed by name, not id); the Related tab is `GET /comedians/{id}/co-bill`. The
  * three secondary calls run concurrently and degrade to empty lists on failure so
- * one slow/absent endpoint never blanks the whole screen.
+ * one slow/absent endpoint never blanks the whole screen. The primary constructor
+ * takes the generated [ComediansApi] interface directly so JVM unit tests can
+ * construct the repository over a fake; the Hilt path builds the service from the
+ * shared configured [ApiClient].
  */
-class ComedianDetailRepository
+class ComedianDetailRepository(
+    private val comediansApi: ComediansApi,
+) {
     @Inject
-    constructor(
-        apiClient: ApiClient,
-    ) {
-        private val comediansApi: ComediansApi = apiClient.createService(ComediansApi::class.java)
+    constructor(apiClient: ApiClient) : this(apiClient.createService(ComediansApi::class.java))
 
-        suspend fun getComedian(id: Int): ComedianDetailUi =
-            coroutineScope {
-                val detailResponse = comediansApi.getComedian(id)
-                val detail =
-                    detailResponse.body()?.data
-                        ?: error("Comedian unavailable (HTTP ${detailResponse.code()})")
+    suspend fun getComedian(id: Int): ComedianDetailUi =
+        coroutineScope {
+            val detailResponse = comediansApi.getComedian(id)
+            val detail =
+                detailResponse.body()?.data
+                    ?: error("Comedian unavailable (HTTP ${detailResponse.code()})")
 
-                val upcomingDeferred =
-                    async {
-                        runCatchingCancellable {
-                            comediansApi.getComedianUpcomingRuns(id).body()?.data
-                        }.getOrNull().orEmpty()
-                    }
-                val coBillDeferred =
-                    async {
-                        runCatchingCancellable {
-                            comediansApi.getComedianCoBill(id).body()?.data
-                        }.getOrNull().orEmpty()
-                    }
-                val pastShowsDeferred =
-                    async {
-                        runCatchingCancellable {
-                            comediansApi.getComedianPastShows(
-                                detail.name,
-                            ).body()?.data
-                        }.getOrNull().orEmpty()
-                    }
+            val upcomingDeferred =
+                async {
+                    runCatchingCancellable {
+                        comediansApi.getComedianUpcomingRuns(id).body()?.data
+                    }.getOrNull().orEmpty()
+                }
+            val coBillDeferred =
+                async {
+                    runCatchingCancellable {
+                        comediansApi.getComedianCoBill(id).body()?.data
+                    }.getOrNull().orEmpty()
+                }
+            val pastShowsDeferred =
+                async {
+                    runCatchingCancellable {
+                        comediansApi.getComedianPastShows(
+                            detail.name,
+                        ).body()?.data
+                    }.getOrNull().orEmpty()
+                }
 
-                ComedianDetailUi(
-                    detail = detail,
-                    upcomingRuns = upcomingDeferred.await(),
-                    pastShows = pastShowsDeferred.await(),
-                    coBill = coBillDeferred.await(),
-                )
-            }
-    }
+            ComedianDetailUi(
+                detail = detail,
+                upcomingRuns = upcomingDeferred.await(),
+                pastShows = pastShowsDeferred.await(),
+                coBill = coBillDeferred.await(),
+            )
+        }
+}

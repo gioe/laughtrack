@@ -7,17 +7,19 @@ import javax.inject.Inject
 
 /**
  * Loads Podcast detail from `GET /podcasts/{id}`, which returns the podcast
- * metadata, its episode list, and related comedians in one payload.
+ * metadata, its episode list, and related comedians in one payload. The primary
+ * constructor takes the generated [PodcastsApi] interface directly so JVM unit
+ * tests can construct the repository over a fake; the Hilt path builds the
+ * service from the shared configured [ApiClient].
  */
-class PodcastDetailRepository
+class PodcastDetailRepository(
+    private val podcastsApi: PodcastsApi,
+) {
     @Inject
-    constructor(
-        apiClient: ApiClient,
-    ) {
-        private val podcastsApi: PodcastsApi = apiClient.createService(PodcastsApi::class.java)
+    constructor(apiClient: ApiClient) : this(apiClient.createService(PodcastsApi::class.java))
 
-        suspend fun getPodcast(id: Int): PodcastDetailResponse {
-            val response = podcastsApi.getPodcast(id)
-            return response.body() ?: error("Podcast unavailable (HTTP ${response.code()})")
-        }
+    suspend fun getPodcast(id: Int): PodcastDetailResponse {
+        val response = podcastsApi.getPodcast(id)
+        return response.body() ?: error("Podcast unavailable (HTTP ${response.code()})")
     }
+}
