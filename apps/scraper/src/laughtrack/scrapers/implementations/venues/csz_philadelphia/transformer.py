@@ -7,6 +7,7 @@ calendar year from the current date and the abbreviated month name.
 
 from datetime import datetime
 from typing import Optional
+from zoneinfo import ZoneInfo
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.show.model import Show
@@ -91,11 +92,15 @@ class CszPhillyEventTransformer(DataTransformer[CszPhillyShowInstance]):
 
         Events returned by the VBO ``showevents`` endpoint are always upcoming,
         so month numbers earlier than the current month belong to the next year.
+        "Current" must be read off the VENUE's clock, not the machine's: on a
+        UTC runner during the first hours of a new month (00:30 UTC Aug 1 is
+        still 20:30 EDT Jul 31), a show later that night would otherwise roll
+        a full year into the future (same clock-skew class as TASK-3670).
         """
         month_num = DateTimeUtils.month_name_to_number(month_abbr)
         if month_num is None:
             return None
-        now = datetime.now()
+        now = datetime.now(ZoneInfo(self.club.timezone or "America/New_York"))
         if month_num >= now.month:
             return now.year
         return now.year + 1
