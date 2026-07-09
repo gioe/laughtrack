@@ -25,14 +25,18 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,7 +49,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import app.laughtrack.android.core.data.search.SearchShortcut
 import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.ui.theme.LaughTrackColors
 import java.util.Locale
@@ -145,9 +148,10 @@ private fun PrimitiveChip(title: String) {
 }
 
 /**
- * Interactive location header: shows the ZIP/city the feed is scoped to, a manual
- * ZIP field, and a "Use location" button that requests coarse/fine location and
- * reverse-geocodes the device position to a ZIP. Mirrors the iOS HomeView header.
+ * Location header, matching the iOS HomeLocationPrompt: a single tappable row
+ * (location icon, "Near City, ST" / "ZIP xxxxx" title, source subtitle, trailing
+ * chevron). The manual-ZIP field and "Use my location" action live behind the tap
+ * in a bottom sheet, mirroring the iOS HomeLocationEditorSheet.
  */
 @Composable
 internal fun LocationHeader(
@@ -158,91 +162,153 @@ internal fun LocationHeader(
     onManualZip: (String) -> Unit,
     onUseLocation: () -> Unit,
 ) {
+    var showSheet by remember { mutableStateOf(false) }
+    val shape = RoundedCornerShape(12.dp)
+
+    Surface(
+        color = LaughTrackColors.SurfaceElevated,
+        shape = shape,
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clip(shape)
+                .clickable { showSheet = true }
+                .border(1.dp, LaughTrackColors.BorderSubtle, shape),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier =
+                    Modifier
+                        .size(34.dp)
+                        .clip(CircleShape)
+                        .background(LaughTrackColors.AccentStrong.copy(alpha = 0.14f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.LocationOn,
+                    contentDescription = null,
+                    tint = LaughTrackColors.AccentStrong,
+                    modifier = Modifier.size(19.dp),
+                )
+            }
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                Text(title, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    if (isResolving) "Locating…" else subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = "Edit location",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(22.dp),
+            )
+        }
+    }
+
+    if (showSheet) {
+        LocationEditorSheet(
+            zip = zip,
+            isResolving = isResolving,
+            onManualZip = onManualZip,
+            onUseLocation = onUseLocation,
+            onDismiss = { showSheet = false },
+        )
+    }
+}
+
+/**
+ * Bottom-sheet editor for the Discover location: manual ZIP entry (applies once
+ * five digits are typed, then dismisses) and a "Use my location" button carrying
+ * the permission-request flow that previously lived inline on the Home surface.
+ * Both actions dismiss the sheet immediately; resolution progress reads off the
+ * collapsed row's "Locating…" subtitle.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun LocationEditorSheet(
+    zip: String?,
+    isResolving: Boolean,
+    onManualZip: (String) -> Unit,
+    onUseLocation: () -> Unit,
+    onDismiss: () -> Unit,
+) {
     val context = LocalContext.current
     val permissionLauncher =
         rememberLauncherForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions(),
         ) { grants ->
-            if (grants.values.any { it }) onUseLocation()
+            if (grants.values.any { it }) {
+                onUseLocation()
+                onDismiss()
+            }
         }
 
-    Surface(
-        color = LaughTrackColors.SurfaceElevated,
-        shape = RoundedCornerShape(12.dp),
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .border(1.dp, LaughTrackColors.BorderSubtle, RoundedCornerShape(12.dp)),
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(),
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+                    .padding(bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(
-                    modifier =
-                        Modifier
-                            .size(34.dp)
-                            .clip(CircleShape)
-                            .background(LaughTrackColors.AccentStrong.copy(alpha = 0.14f)),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.LocationOn,
-                        contentDescription = null,
-                        tint = LaughTrackColors.AccentStrong,
-                        modifier = Modifier.size(19.dp),
-                    )
-                }
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
-                ) {
-                    Text(title, style = MaterialTheme.typography.titleMedium)
-                    Text(
-                        subtitle,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
+            Text(
+                "Set your location",
+                style = MaterialTheme.typography.titleMedium,
+            )
+            Text(
+                "Choose where Discover looks for shows, clubs, and comedians.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
 
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalAlignment = Alignment.CenterVertically,
+            var zipText by remember(zip) { mutableStateOf(zip.orEmpty()) }
+            OutlinedTextField(
+                value = zipText,
+                onValueChange = { entry ->
+                    zipText = entry.filter(Char::isDigit).take(ZIP_LENGTH)
+                    if (zipText.length == ZIP_LENGTH) {
+                        onManualZip(zipText)
+                        onDismiss()
+                    }
+                },
+                label = { Text("ZIP") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth(),
+            )
+
+            Button(
+                onClick = {
+                    if (hasLocationPermission(context)) {
+                        onUseLocation()
+                        onDismiss()
+                    } else {
+                        permissionLauncher.launch(
+                            arrayOf(
+                                Manifest.permission.ACCESS_COARSE_LOCATION,
+                                Manifest.permission.ACCESS_FINE_LOCATION,
+                            ),
+                        )
+                    }
+                },
+                enabled = !isResolving,
+                modifier = Modifier.fillMaxWidth(),
             ) {
-                var zipText by remember(zip) { mutableStateOf(zip.orEmpty()) }
-                OutlinedTextField(
-                    value = zipText,
-                    onValueChange = { entry ->
-                        zipText = entry.filter(Char::isDigit).take(ZIP_LENGTH)
-                        if (zipText.length == ZIP_LENGTH) onManualZip(zipText)
-                    },
-                    label = { Text("ZIP") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.weight(1f),
-                )
-                Button(
-                    onClick = {
-                        if (hasLocationPermission(context)) {
-                            onUseLocation()
-                        } else {
-                            permissionLauncher.launch(
-                                arrayOf(
-                                    Manifest.permission.ACCESS_COARSE_LOCATION,
-                                    Manifest.permission.ACCESS_FINE_LOCATION,
-                                ),
-                            )
-                        }
-                    },
-                    enabled = !isResolving,
-                ) {
-                    Text(if (isResolving) "Locating…" else "Use location")
-                }
+                Text(if (isResolving) "Locating…" else "Use my location")
             }
         }
     }
@@ -257,49 +323,5 @@ private fun hasLocationPermission(context: Context): Boolean =
             context,
             Manifest.permission.ACCESS_FINE_LOCATION,
         ) == PackageManager.PERMISSION_GRANTED
-
-@Composable
-internal fun ShortcutRow(onShortcut: (SearchShortcut) -> Unit) {
-    Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        ShortcutChip("Tonight") { onShortcut(SearchShortcut.TONIGHT) }
-        ShortcutChip("This Week") { onShortcut(SearchShortcut.THIS_WEEK) }
-        ShortcutChip("Near Me") { onShortcut(SearchShortcut.NEAR_ME) }
-    }
-}
-
-@Composable
-private fun ShortcutChip(
-    label: String,
-    onClick: () -> Unit,
-) {
-    Surface(
-        shape = RoundedCornerShape(999.dp),
-        color = LaughTrackColors.AccentStrong.copy(alpha = 0.12f),
-        modifier =
-            Modifier
-                .height(36.dp)
-                .clip(RoundedCornerShape(999.dp))
-                .clickable(onClick = onClick)
-                .border(1.dp, LaughTrackColors.AccentMuted, RoundedCornerShape(999.dp)),
-    ) {
-        Box(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-            )
-        }
-    }
-}
 
 private const val ZIP_LENGTH = 5

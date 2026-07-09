@@ -53,7 +53,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import app.laughtrack.android.core.data.search.SearchShortcut
 import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.network.generated.model.ClubListItem
 import app.laughtrack.android.core.network.generated.model.ComedianLineup
@@ -78,16 +77,10 @@ import java.util.Locale
 @Composable
 fun HomeScreen(
     onOpenEntity: (AppRoute) -> Unit,
-    onNavigateToSearch: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-
-    val onShortcut: (SearchShortcut) -> Unit = { shortcut ->
-        viewModel.requestShortcut(shortcut)
-        onNavigateToSearch()
-    }
 
     when (state.feed) {
         is UiState.Failure -> HomeError(onRetry = viewModel::retry, modifier = modifier)
@@ -97,7 +90,6 @@ fun HomeScreen(
                 onOpenEntity = onOpenEntity,
                 onManualZip = viewModel::setManualZip,
                 onUseLocation = viewModel::useDeviceLocation,
-                onShortcut = onShortcut,
                 modifier = modifier,
             )
         else -> HomeLoading(modifier)
@@ -110,7 +102,6 @@ private fun HomeContent(
     onOpenEntity: (AppRoute) -> Unit,
     onManualZip: (String) -> Unit,
     onUseLocation: () -> Unit,
-    onShortcut: (SearchShortcut) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -144,9 +135,6 @@ private fun HomeContent(
                     onManualZip = onManualZip,
                     onUseLocation = onUseLocation,
                 )
-            }
-            item {
-                ShortcutRow(onShortcut = onShortcut)
             }
             item {
                 ShowsTonightRail(

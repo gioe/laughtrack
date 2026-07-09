@@ -1,7 +1,5 @@
 package app.laughtrack.android.feature.home
 
-import app.laughtrack.android.core.data.search.SearchShortcut
-import app.laughtrack.android.core.data.search.SearchShortcutCoordinator
 import app.laughtrack.android.core.network.generated.model.ClubListItem
 import app.laughtrack.android.core.network.generated.model.ComedianListItem
 import app.laughtrack.android.core.network.generated.model.HomeFeed
@@ -24,8 +22,6 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -159,32 +155,11 @@ class HomeViewModelTest {
             assertEquals("ZIP 60614", viewModel.state.value.locationTitle)
         }
 
-    @Test
-    fun request_shortcut_publishes_seed_with_location_context() =
-        runTest {
-            val coordinator = SearchShortcutCoordinator()
-            val repository = FakeHomeFeedRepository(feed = homeFeed())
-            val viewModel = viewModel(repository, coordinator = coordinator)
-            advanceUntilIdle()
-            assertNull(coordinator.seed.value)
-
-            viewModel.setManualZip("10001")
-            advanceUntilIdle()
-            viewModel.requestShortcut(SearchShortcut.TONIGHT)
-
-            val seed = coordinator.seed.value
-            assertNotNull(seed)
-            assertEquals(SearchShortcut.TONIGHT, seed?.shortcut)
-            assertEquals("10001", seed?.zip)
-            assertEquals(HomeFeedRepository.DEFAULT_DISTANCE_MILES, seed?.distanceMiles)
-        }
-
     private fun viewModel(
         repository: HomeFeedRepository,
         cache: HomeFeedCache = FakeHomeFeedCache(),
         resolver: HomeLocationResolver = FakeLocationResolver(),
-        coordinator: SearchShortcutCoordinator = SearchShortcutCoordinator(),
-    ) = HomeViewModel(repository, cache, resolver, coordinator)
+    ) = HomeViewModel(repository, cache, resolver)
 
     private class FakeHomeFeedRepository(
         private val failuresBeforeSuccess: Int = 0,

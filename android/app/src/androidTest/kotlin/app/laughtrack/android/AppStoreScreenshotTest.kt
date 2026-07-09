@@ -63,7 +63,7 @@ class AppStoreScreenshotTest {
     fun setUp() {
         hiltRule.inject()
         Screengrab.setDefaultScreenshotStrategy(UiAutomatorScreenshotStrategy())
-        // Pre-grant location so tapping "Use location" calls the ViewModel directly
+        // Pre-grant location so tapping "Use my location" calls the ViewModel directly
         // instead of launching the system permission dialog (which would destroy the
         // test activity). The FakeHomeLocationResolver still short-circuits GPS and
         // returns 90028 — the grant only keeps the in-app permission check happy.
@@ -81,10 +81,15 @@ class AppStoreScreenshotTest {
             LaughTrackTheme { AppShell() }
         }
 
-        // 01 — Near Me. Trigger use-device-location so the fake resolver (90028)
-        // drives the Discover feed, then wait for the LA feed to resolve.
-        waitFor(hasText("Use location"))
-        composeRule.onNodeWithText("Use location").performClick()
+        // 01 — Near Me. The location controls live behind the header row's bottom
+        // sheet (TASK-3624): open it via the chevron's stable contentDescription
+        // (the row title varies with the server-inferred area), trigger
+        // use-device-location so the fake resolver (90028) drives the Discover
+        // feed, then wait for the LA feed.
+        waitFor(hasContentDescription("Edit location"))
+        composeRule.onNodeWithContentDescription("Edit location").performClick()
+        waitFor(hasText("Use my location"))
+        composeRule.onNodeWithText("Use my location").performClick()
         waitFor(
             hasText("Near ", substring = true) or hasText("90028", substring = true),
             timeoutMs = 30_000,

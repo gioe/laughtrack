@@ -26,6 +26,8 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.DropdownMenu
@@ -52,6 +54,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -71,7 +74,7 @@ import java.util.Locale
 
 /**
  * Search tab with the same branded shell as iOS SearchRootView: primitive chips,
- * title copy, a rounded search/filter card, and entity result rows.
+ * a rounded search/filter card, and entity result rows.
  */
 @Composable
 fun SearchScreen(
@@ -107,7 +110,6 @@ fun SearchScreen(
                     onSelectPivot = viewModel::selectPivot,
                 )
             }
-            item { SearchIntro() }
 
             if (!state.pivot.isAvailable) {
                 item { CenteredMessage("Podcast search is coming soon.") }
@@ -247,22 +249,6 @@ private fun PrimitiveChip(
 }
 
 @Composable
-private fun SearchIntro() {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(
-            "Search",
-            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        Text(
-            "Find shows, comedians, clubs, and podcasts across LaughTrack.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}
-
-@Composable
 private fun SearchControls(
     pivot: SearchPivot,
     query: SearchQuery,
@@ -310,6 +296,7 @@ private fun SearchControls(
                 SortPill(pivot = pivot, selected = query.sort, onSort = onSort)
                 if (pivot.isGeoScoped) {
                     DistancePill(distance = query.distance, onDistance = onDistance)
+                    LocationPill(zip = query.zip, onZip = onZip)
                     DateRangePill(from = query.from, to = query.to, onDateRange = onDateRange)
                 }
                 if (pivot.supportsTagFilters && filters.isNotEmpty()) {
@@ -329,18 +316,60 @@ private fun SearchControls(
                     )
                 }
             }
-
-            if (pivot.isGeoScoped) {
-                OutlinedTextField(
-                    value = query.zip.orEmpty(),
-                    onValueChange = onZip,
-                    label = { Text("ZIP code") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(14.dp),
-                )
-            }
         }
+    }
+}
+
+/**
+ * Location pill (geo pivots only) — mirrors the iOS "Location" chip: the ZIP the
+ * search is scoped to lives behind a dialog instead of an always-visible field.
+ */
+@Composable
+private fun LocationPill(
+    zip: String?,
+    onZip: (String) -> Unit,
+) {
+    var showDialog by remember { mutableStateOf(false) }
+    FilterPillButton(
+        label = zip?.takeIf { it.isNotBlank() }?.let { "ZIP $it" } ?: "Location",
+        active = !zip.isNullOrBlank(),
+        onClick = { showDialog = true },
+    )
+    if (showDialog) {
+        var zipText by remember { mutableStateOf(zip.orEmpty()) }
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("Set location") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        "Scope results to a ZIP code.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    OutlinedTextField(
+                        value = zipText,
+                        onValueChange = { entry -> zipText = entry.filter(Char::isDigit).take(5) },
+                        label = { Text("ZIP code") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    onZip(zipText)
+                    showDialog = false
+                }) { Text("Apply") }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    onZip("")
+                    showDialog = false
+                }) { Text("Clear") }
+            },
+        )
     }
 }
 

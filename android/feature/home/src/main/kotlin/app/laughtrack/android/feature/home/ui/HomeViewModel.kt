@@ -3,9 +3,6 @@ package app.laughtrack.android.feature.home.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.laughtrack.android.core.data.runCatchingCancellable
-import app.laughtrack.android.core.data.search.SearchSeed
-import app.laughtrack.android.core.data.search.SearchShortcut
-import app.laughtrack.android.core.data.search.SearchShortcutCoordinator
 import app.laughtrack.android.core.network.generated.model.ClubListItem
 import app.laughtrack.android.core.network.generated.model.ComedianListItem
 import app.laughtrack.android.core.network.generated.model.HomeFeed
@@ -80,7 +77,6 @@ class HomeViewModel
         private val repository: HomeFeedRepository,
         private val cache: HomeFeedCache,
         private val locationResolver: HomeLocationResolver,
-        private val shortcutCoordinator: SearchShortcutCoordinator,
     ) : ViewModel() {
         private val _state = MutableStateFlow(HomeUiState(feed = UiState.Loading))
         val state: StateFlow<HomeUiState> = _state.asStateFlow()
@@ -117,17 +113,6 @@ class HomeViewModel
                     load(zip)
                 }
             }
-        }
-
-        /** Publish a shortcut seed (carrying the current location) for the Search tab. */
-        fun requestShortcut(shortcut: SearchShortcut) {
-            shortcutCoordinator.request(
-                SearchSeed(
-                    shortcut = shortcut,
-                    zip = currentZip,
-                    distanceMiles = HomeFeedRepository.DEFAULT_DISTANCE_MILES,
-                ),
-            )
         }
 
         private fun load(zip: String?) {
