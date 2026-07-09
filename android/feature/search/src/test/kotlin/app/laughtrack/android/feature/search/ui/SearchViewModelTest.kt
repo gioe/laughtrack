@@ -94,6 +94,78 @@ class SearchViewModelTest {
         }
 
     @Test
+    fun search_created_before_home_location_resolves_reseeds_when_home_location_arrives() =
+        runTest {
+            val showsApi = SuspendingShowsApi()
+            val homeLocationState = HomeLocationState()
+            val viewModel = viewModel(showsApi, homeLocationState = homeLocationState)
+            advanceUntilIdle()
+            assertNull(showsApi.lastZip)
+            assertEquals(DEFAULT_DISTANCE_MILES, showsApi.lastDistance)
+
+            homeLocationState.update("60614", 50)
+            advanceUntilIdle()
+
+            val query = viewModel.state.value.states.getValue(SearchPivot.SHOWS).query
+            assertEquals("60614", query.zip)
+            assertEquals(50, query.distance)
+            assertEquals(2, showsApi.searchCalls)
+            assertEquals("60614", showsApi.lastZip)
+            assertEquals(50, showsApi.lastDistance)
+
+            showsApi.completeLatestSearch()
+            advanceUntilIdle()
+        }
+
+    @Test
+    fun home_location_change_updates_untouched_search_seed() =
+        runTest {
+            val showsApi = SuspendingShowsApi()
+            val homeLocationState = HomeLocationState().apply { update("60614", 50) }
+            val viewModel = viewModel(showsApi, homeLocationState = homeLocationState)
+            advanceUntilIdle()
+            showsApi.completeLatestSearch()
+            advanceUntilIdle()
+
+            homeLocationState.update("10001", 100)
+            advanceUntilIdle()
+
+            val query = viewModel.state.value.states.getValue(SearchPivot.SHOWS).query
+            assertEquals("10001", query.zip)
+            assertEquals(100, query.distance)
+            assertEquals(2, showsApi.searchCalls)
+            assertEquals("10001", showsApi.lastZip)
+            assertEquals(100, showsApi.lastDistance)
+
+            showsApi.completeLatestSearch()
+            advanceUntilIdle()
+        }
+
+    @Test
+    fun user_edited_search_location_stops_home_location_sync() =
+        runTest {
+            val showsApi = SuspendingShowsApi()
+            val homeLocationState = HomeLocationState().apply { update("60614", 50) }
+            val viewModel = viewModel(showsApi, homeLocationState = homeLocationState)
+            advanceUntilIdle()
+
+            viewModel.setZip("90210")
+            advanceUntilIdle()
+            homeLocationState.update("10001", 100)
+            advanceUntilIdle()
+
+            val query = viewModel.state.value.states.getValue(SearchPivot.SHOWS).query
+            assertEquals("90210", query.zip)
+            assertEquals(50, query.distance)
+            assertEquals(2, showsApi.searchCalls)
+            assertEquals("90210", showsApi.lastZip)
+            assertEquals(50, showsApi.lastDistance)
+
+            showsApi.completeLatestSearch()
+            advanceUntilIdle()
+        }
+
+    @Test
     fun text_edits_are_debounced_into_a_single_reload() =
         runTest {
             val showsApi = SuspendingShowsApi()
@@ -172,6 +244,10 @@ class SearchViewModelTest {
     private fun viewModel(
         showsApi: ShowsApi,
         homeLocation: HomeLocation? = null,
+        homeLocationState: HomeLocationState =
+            HomeLocationState().apply {
+                homeLocation?.let { update(it.zip, it.distanceMiles) }
+            },
     ): SearchViewModel =
         SearchViewModel(
             repository =
@@ -182,15 +258,14 @@ class SearchViewModelTest {
                     podcastsApi = throwingApi(),
                 ),
             analytics = AnalyticsManager(emptyList()),
-            homeLocationState =
-                HomeLocationState().apply {
-                    homeLocation?.let { update(it.zip, it.distanceMiles) }
-                },
+            homeLocationState = homeLocationState,
         )
 
     private class SuspendingShowsApi : ShowsApi {
         var searchCalls = 0
         var lastPage: Int? = null
+        var lastZip: String? = null
+        var lastDistance: Int? = null
         private val pendingSearches = mutableListOf<CompletableDeferred<Response<ShowSearchResponse>>>()
 
         override suspend fun searchShows(
@@ -208,6 +283,8 @@ class SearchViewModelTest {
         ): Response<ShowSearchResponse> {
             searchCalls += 1
             lastPage = page
+            lastZip = zip
+            lastDistance = distance
             val pending = CompletableDeferred<Response<ShowSearchResponse>>()
             pendingSearches += pending
             return pending.await()

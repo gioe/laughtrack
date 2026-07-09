@@ -122,7 +122,7 @@ fun SearchScreen(
                         homeCityFilters = pivotState.homeCityFilters,
                         total = pivotState.results.total,
                         onText = viewModel::onTextChange,
-                        onZip = { value -> viewModel.updateQuery { it.copy(zip = value.ifBlank { null }) } },
+                        onZip = viewModel::setZip,
                         onSort = viewModel::setSort,
                         onDistance = viewModel::setDistance,
                         onDateRange = viewModel::setDateRange,
