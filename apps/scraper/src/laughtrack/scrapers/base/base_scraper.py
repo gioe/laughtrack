@@ -29,7 +29,7 @@ from laughtrack.foundation.infrastructure.http.diagnostics import (
 from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 from laughtrack.shared.types import ScrapingTarget
 from laughtrack.ports.scraping import EventListContainer
-from laughtrack.ports.http import HttpConvenienceMixin
+from laughtrack.core.data.mixins.http_convenience_mixin import HttpConvenienceMixin
 
 from laughtrack.shared.errors import ErrorHandler, RetryConfig
 from laughtrack.scrapers.utils.rate_limiting import RateLimiter

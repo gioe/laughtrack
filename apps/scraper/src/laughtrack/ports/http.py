@@ -1,17 +1,12 @@
 """HTTP ports and protocols.
 
 Stable, dependency-free Protocols describing HTTP capabilities used by scrapers.
-We keep re-exports of the current mixins for backward compatibility during the
-transition period.
 """
 
 from typing import Any, Dict, Optional, Protocol, runtime_checkable
 
 from laughtrack.foundation.models.types import JSONDict
 from laughtrack.core.data.mixins.async_http_mixin import AsyncHttpMixin  # noqa: F401
-from laughtrack.core.data.mixins.http_convenience_mixin import (  # noqa: F401
-    HttpConvenienceMixin,
-)
 
 
 @runtime_checkable
