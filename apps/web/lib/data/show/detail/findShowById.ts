@@ -1,11 +1,9 @@
 import { db } from "@/lib/db";
-import { LINEUP_COMEDIAN_SELECT } from "@/lib/data/comedian/lineupComedianSelect";
-import { PARENT_COMEDIAN_LINEUP_SELECT } from "@/lib/data/comedian/parentComedianSelect";
+import {
+    buildShowSelect,
+    mapShowRowToDTO,
+} from "@/lib/data/show/showSelect";
 import { NotFoundError } from "@/objects/NotFoundError";
-import { filterAndMapLineupItems } from "@/util/comedian/comedianUtil";
-import { buildClubImageUrl } from "@/util/imageUtil";
-import { computeShowSoldOut } from "@/util/show/soldOutUtil";
-import { mapTickets } from "@/util/ticket/ticketUtil";
 import { Prisma } from "@prisma/client";
 import { ShowDetailDTO } from "./interface";
 
@@ -16,71 +14,25 @@ export interface FindShowByIdResult {
 
 export async function findShowById(id: number): Promise<FindShowByIdResult> {
     try {
-        const upcomingShowsCount = {
-            select: {
-                lineupItems: {
-                    where: { show: { date: { gt: new Date() } } },
-                },
-            },
-        } as const;
+        // Shared public show select (TASK-3692), parameterized for the detail
+        // page: description is emitted, and each lineup member's showCount
+        // counts upcoming shows only (search/home count all-time lineup
+        // items). Evaluated per request so the date boundary is "now".
+        const baseSelect = buildShowSelect({
+            includeDescription: true,
+            lineupCountWhere: { show: { date: { gt: new Date() } } },
+        });
 
         const row = await db.show.findUnique({
             where: { id },
             select: {
-                id: true,
-                name: true,
-                date: true,
-                description: true,
-                room: true,
+                ...baseSelect,
                 showPageUrl: true,
-                tickets: {
-                    select: {
-                        price: true,
-                        soldOut: true,
-                        purchaseUrl: true,
-                        type: true,
-                    },
-                },
+                // `visible` feeds the hidden-club gate below; it stays out of
+                // the shared select because the list paths (search/home)
+                // filter club visibility in their WHERE clause instead.
                 club: {
-                    select: {
-                        id: true,
-                        name: true,
-                        address: true,
-                        hasImage: true,
-                        timezone: true,
-                        visible: true,
-                    },
-                },
-                lineupItems: {
-                    where: {
-                        comedian: {
-                            visible: true,
-                            taggedComedians: {
-                                none: { tag: { userFacing: false } },
-                            },
-                        },
-                    },
-                    select: {
-                        role: true,
-                        comedian: {
-                            select: {
-                                ...LINEUP_COMEDIAN_SELECT,
-                                _count: upcomingShowsCount,
-                                parentComedian: {
-                                    select: {
-                                        ...PARENT_COMEDIAN_LINEUP_SELECT,
-                                        _count: upcomingShowsCount,
-                                    },
-                                },
-                            },
-                        },
-                    },
-                },
-                taggedShows: {
-                    where: { tag: { visibility: "PUBLIC" } },
-                    select: {
-                        tag: { select: { slug: true, name: true } },
-                    },
+                    select: { ...baseSelect.club.select, visible: true },
                 },
             },
         });
@@ -95,31 +47,15 @@ export async function findShowById(id: number): Promise<FindShowByIdResult> {
             throw new NotFoundError(`Show with id "${id}" not found`);
         }
 
-        const clubName = row.club.name;
-        const tags = (row.taggedShows ?? [])
-            .map((tt) => tt.tag)
-            .filter(
-                (tag): tag is { slug: string; name: string } =>
-                    typeof tag?.slug === "string" && typeof tag?.name === "string",
-            )
-            .map((tag) => ({ slug: tag.slug, name: tag.name }));
         const show: ShowDetailDTO = {
-            id: row.id,
-            name: row.name,
-            date: row.date,
-            description: row.description ?? undefined,
-            room: row.room,
-            address: row.club.address,
-            clubId: row.club.id,
-            clubName,
-            imageUrl: buildClubImageUrl(clubName, row.club.hasImage),
-            soldOut: computeShowSoldOut(row.name, row.tickets),
-            lineup: filterAndMapLineupItems(row.lineupItems),
-            tickets: mapTickets(row.tickets),
-            distanceMiles: null,
-            timezone: row.club.timezone,
+            // includeClubLocation: false — the /api/v1/shows/[id] route
+            // spreads this DTO into its response and the OpenAPI ShowDetail
+            // schema has no clubCity/clubState (nested club object instead).
+            ...mapShowRowToDTO(row, {
+                includeDescription: true,
+                includeClubLocation: false,
+            }),
             showPageUrl: row.showPageUrl,
-            tags,
         };
         return { show, clubId: row.club.id };
     } catch (error) {

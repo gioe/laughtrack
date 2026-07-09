@@ -10,14 +10,16 @@ import { computeShowSoldOut } from "@/util/show/soldOutUtil";
 import { mapTickets } from "@/util/ticket/ticketUtil";
 
 // Single source of truth for the public show select + DTO mapper shared by the
-// search data path (lib/data/show/search/findShowsWithCount.ts) and the home
-// data path (lib/data/home/findShowsForHome.ts). Previously each file carried a
+// search data path (lib/data/show/search/findShowsWithCount.ts), the home
+// data path (lib/data/home/findShowsForHome.ts), and the show-detail data path
+// (lib/data/show/detail/findShowById.ts). Previously each file carried a
 // near-identical copy of this select and mapping logic, so a lineup-visibility
 // or tag-filter fix needed synchronized edits and silent drift changed what the
-// API returned (T3.13, 2026-07-07 Full-Repo Audit). The two paths still differ
+// API returned (T3.13, 2026-07-07 Full-Repo Audit). The paths still differ
 // deliberately — search adds `description` and a profileId-keyed
 // favoriteComedians block to the select and emits description/popularityScore in
-// the DTO; home derives imageUrl from the best lineup photo — so those
+// the DTO; home derives imageUrl from the best lineup photo; detail counts only
+// upcoming shows per lineup member and omits clubCity/clubState — so those
 // differences are PARAMETERIZED (see buildShowSelect / MapShowRowOptions) rather
 // than collapsed. DTO shapes are consumed by iOS/Android via the OpenAPI
 // contract, so per-path field parity must stay exact.
@@ -129,14 +131,37 @@ interface BuildShowSelectOptions {
      * search path supplies this.
      */
     favoriteComediansProfileId?: string;
+    /**
+     * When set, replace the all-time lineupItems relation count with a
+     * filtered count at BOTH lineup depths (comedian and parentComedian), so
+     * each lineup member's showCount reflects only the matching shows. The
+     * show-detail path passes { show: { date: { gt: new Date() } } } so the
+     * detail page shows upcoming-show counts; search and home omit this and
+     * keep all-time counts.
+     */
+    lineupCountWhere?: Prisma.LineupItemWhereInput;
 }
 
 /**
- * Compose the show select for a path that needs the search-specific additions
- * (description column and/or a profileId-keyed favoriteComedians block) on top
- * of PUBLIC_SHOW_SELECT. Home passes PUBLIC_SHOW_SELECT directly.
+ * Compose the show select for a path that needs per-path additions (search:
+ * description column and/or a profileId-keyed favoriteComedians block; detail:
+ * an upcoming-only lineup count filter) on top of PUBLIC_SHOW_SELECT. Home
+ * passes PUBLIC_SHOW_SELECT directly.
  */
 export function buildShowSelect(options: BuildShowSelectOptions = {}) {
+    // Identical to LINEUP_ITEM_COMEDIAN_SELECT's count shape when no filter is
+    // supplied, so search/home output is unchanged.
+    const lineupItemsCount = options.lineupCountWhere
+        ? {
+              select: {
+                  lineupItems: { where: options.lineupCountWhere },
+              },
+          }
+        : {
+              select: {
+                  lineupItems: true,
+              },
+          };
     return {
         ...PUBLIC_SHOW_SELECT,
         ...(options.includeDescription ? { description: true } : {}),
@@ -147,6 +172,13 @@ export function buildShowSelect(options: BuildShowSelectOptions = {}) {
                 comedian: {
                     select: {
                         ...LINEUP_ITEM_COMEDIAN_SELECT,
+                        _count: lineupItemsCount,
+                        parentComedian: {
+                            select: {
+                                ...PARENT_COMEDIAN_LINEUP_SELECT,
+                                _count: lineupItemsCount,
+                            },
+                        },
                         ...(options.favoriteComediansProfileId
                             ? {
                                   favoriteComedians: {
@@ -209,6 +241,14 @@ export interface MapShowRowOptions {
      * omits the computation (home behavior).
      */
     distanceWhenNoZip?: "compute" | "undefined";
+    /**
+     * Emit clubCity/clubState in the DTO (search and home; default). The
+     * show-detail path passes false: the /api/v1/shows/[id] route spreads the
+     * DTO into its response and the OpenAPI ShowDetail schema has no
+     * clubCity/clubState (it carries a nested club object instead), so
+     * emitting them would leak undeclared fields into the contract.
+     */
+    includeClubLocation?: boolean;
 }
 
 /**
@@ -228,6 +268,7 @@ export function mapShowRowToDTO(
         includePopularityScore = false,
         room = "raw",
         distanceWhenNoZip = "compute",
+        includeClubLocation = true,
     } = options;
 
     const lineup = filterAndMapLineupItems(show.lineupItems, userId);
@@ -256,8 +297,9 @@ export function mapShowRowToDTO(
         address: show.club.address,
         clubId: show.club.id,
         clubName: show.club.name,
-        clubCity: show.club.city,
-        clubState: show.club.state,
+        ...(includeClubLocation
+            ? { clubCity: show.club.city, clubState: show.club.state }
+            : {}),
         imageUrl,
         soldOut: computeShowSoldOut(show.name, show.tickets),
         lineup,
