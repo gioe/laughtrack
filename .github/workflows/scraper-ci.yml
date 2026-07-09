@@ -72,16 +72,21 @@ jobs:
             --select=F821,F811,F401 \
             --max-line-length=120 \
             --extend-ignore=E203,W503 \
-            > /tmp/scraper-flake8.txt
+            > /tmp/scraper-flake8.txt 2>&1
+          flake8_rc=$?
           python -m mypy src \
             --config-file pyproject.toml \
             --no-error-summary \
             --show-error-codes \
-            > /tmp/scraper-mypy.txt
+            > /tmp/scraper-mypy.txt 2>&1
+          mypy_rc=$?
           set -e
 
+          export SCRAPER_FLAKE8_RC="$flake8_rc"
+          export SCRAPER_MYPY_RC="$mypy_rc"
           python - <<'PY'
           from pathlib import Path
+          import os
           import re
           import sys
           import tomllib
@@ -102,13 +107,16 @@ jobs:
           mypy_errors = len([line for line in mypy_output.splitlines() if " error: " in line])
 
           checks = [
-              ("flake8", flake8_errors, int(baseline["flake8_max_errors"])),
-              ("mypy", mypy_errors, int(baseline["mypy_max_errors"])),
+              ("flake8", flake8_errors, int(baseline["flake8_max_errors"]), int(os.environ["SCRAPER_FLAKE8_RC"])),
+              ("mypy", mypy_errors, int(baseline["mypy_max_errors"]), int(os.environ["SCRAPER_MYPY_RC"])),
           ]
 
           failed = False
-          for name, actual, maximum in checks:
+          for name, actual, maximum, rc in checks:
               print(f"{name}: {actual} errors; baseline maximum {maximum}")
+              if rc != 0 and actual == 0:
+                  failed = True
+                  print(f"::error::{name} exited {rc} without countable diagnostics")
               if actual > maximum:
                   failed = True
                   print(f"::error::{name} error count increased from {maximum} to {actual}")
