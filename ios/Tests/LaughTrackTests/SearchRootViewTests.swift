@@ -471,8 +471,8 @@ struct SearchRootModelTests {
         #expect(bridge.request == nil)
     }
 
-    @Test("shortcut selection applies show date filters")
-    func shortcutSelectionAppliesShowDateFilters() async throws {
+    @Test("shortcut seed applies show date filters")
+    func shortcutSeedAppliesShowDateFilters() async throws {
         let model = SearchRootModel()
         let showsModel = ShowsListModel(
             nearbyLocationController: NearbyLocationController(
@@ -485,7 +485,7 @@ struct SearchRootModelTests {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(secondsFromGMT: 0)!
 
-        model.selectShortcut("Tonight")
+        model.applySeed(.init(pivot: .shows, query: "", shortcut: "Tonight"))
         model.applyShortcutFilters(to: showsModel, now: now, calendar: calendar)
 
         #expect(model.activePivot == .shows)
@@ -574,22 +574,6 @@ struct SearchRootModelTests {
         #expect(showsModel.requestKey.sanitizedZip == "30309")
     }
 
-    @Test("near me shortcut resolves current location when no nearby preference exists")
-    func nearMeShortcutResolvesCurrentLocation() async throws {
-        let model = SearchRootModel()
-        let showsModel = makeShowsListModel(
-            name: "near-me-resolves",
-            resolver: MockSearchNearbyLocationResolver(result: .success("10012"))
-        )
-
-        let succeeded = await model.selectShortcut("Near Me", showsModel: showsModel)
-
-        #expect(succeeded)
-        #expect(model.activePivot == .shows)
-        #expect(model.selectedShortcut == "Near Me")
-        #expect(showsModel.activeNearbyPreference == NearbyPreference(zipCode: "10012", source: .geolocated, distanceMiles: 25))
-    }
-
     @Test("shows search location changes stay local to the search model")
     func showsSearchLocationDoesNotRewriteSharedNearMeDefault() async throws {
         let suiteName = "SearchRootModelTests.local-search-location.\(UUID().uuidString)"
@@ -617,24 +601,6 @@ struct SearchRootModelTests {
         #expect(appliedCurrentLocation)
         #expect(showsModel.activeNearbyPreference == NearbyPreference(zipCode: "10012", source: .geolocated, distanceMiles: 50))
         #expect(store.preference == NearbyPreference(zipCode: "94108", source: .manual, distanceMiles: 25))
-    }
-
-    @Test("near me shortcut clears an already resolved nearby preference")
-    func nearMeShortcutClearsResolvedLocation() async throws {
-        let model = SearchRootModel()
-        let showsModel = makeShowsListModel(
-            name: "near-me-clears",
-            resolver: MockSearchNearbyLocationResolver(result: .success("10012"))
-        )
-        showsModel.zipCodeDraft = "30309"
-        _ = showsModel.applyManualZip()
-
-        let succeeded = await model.selectShortcut("Near Me", showsModel: showsModel)
-
-        #expect(succeeded)
-        #expect(model.activePivot == .shows)
-        #expect(model.selectedShortcut == nil)
-        #expect(showsModel.activeNearbyPreference == nil)
     }
 
     @Test("root query is applied only to the active pivot model")
