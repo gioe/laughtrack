@@ -196,12 +196,40 @@ class HomeViewModelTest {
     fun active_zip_falls_back_to_hero_zip_for_sheet_prefill() =
         runTest {
             // Fresh launch: no requested zip, but the hero reports the inferred ZIP —
-            // the sheet prefill (activeZip) must expose it (TASK-3697).
+            // the sheet prefill (activeZip) must expose it (TASK-3697). The hero
+            // fallback alone must NOT count as an explicit, clearable location.
             val viewModel = viewModel(FakeHomeFeedRepository(feed = homeFeed()))
             advanceUntilIdle()
 
             assertNull(viewModel.state.value.zip)
             assertEquals("10001", viewModel.state.value.activeZip)
+            assertTrue(!viewModel.state.value.hasExplicitLocation)
+        }
+
+    @Test
+    fun set_distance_with_current_value_does_not_reload() =
+        runTest {
+            val repository = FakeHomeFeedRepository(feed = homeFeed())
+            val viewModel = viewModel(repository)
+            advanceUntilIdle()
+
+            viewModel.setDistance(HomeFeedRepository.DEFAULT_DISTANCE_MILES)
+            advanceUntilIdle()
+
+            assertEquals(1, repository.loads)
+        }
+
+    @Test
+    fun clear_location_without_explicit_location_does_not_reload() =
+        runTest {
+            val repository = FakeHomeFeedRepository(feed = homeFeed())
+            val viewModel = viewModel(repository)
+            advanceUntilIdle()
+
+            viewModel.clearLocation()
+            advanceUntilIdle()
+
+            assertEquals(1, repository.loads)
         }
 
     private fun viewModel(

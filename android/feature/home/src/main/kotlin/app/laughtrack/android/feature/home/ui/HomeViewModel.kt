@@ -50,6 +50,15 @@ data class HomeUiState(
             }
         }
 
+    /**
+     * True while the user has explicitly set a location or radius — exactly when
+     * clearLocation() would change anything. Gates the sheet's Clear action
+     * (mirrors iOS, which shows Clear only when nearbyPreference is non-nil);
+     * the hero/server-inferred fallback alone must NOT count as clearable.
+     */
+    val hasExplicitLocation: Boolean
+        get() = zip != null || distanceMiles != HomeFeedRepository.DEFAULT_DISTANCE_MILES
+
     val locationSubtitle: String
         get() =
             activeZip?.let { "Saved ZIP - $distanceMiles mi" }

@@ -135,8 +135,11 @@ private fun HomeContent(
                     title = state.locationTitle,
                     subtitle = state.locationSubtitle,
                     // activeZip (not the requested zip) so the sheet prefills the same
-                    // ZIP the Saved ZIP subtitle reports, including the hero fallback.
+                    // ZIP the Saved ZIP subtitle reports, including the hero fallback;
+                    // the requested zip separately drives the sheet's apply guard.
                     zip = state.activeZip,
+                    requestedZip = state.zip,
+                    hasExplicitLocation = state.hasExplicitLocation,
                     distanceMiles = state.distanceMiles,
                     isResolving = state.isResolvingLocation,
                     onManualZip = onManualZip,

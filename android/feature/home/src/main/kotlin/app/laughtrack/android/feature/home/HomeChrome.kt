@@ -161,6 +161,8 @@ internal fun LocationHeader(
     title: String,
     subtitle: String,
     zip: String?,
+    requestedZip: String?,
+    hasExplicitLocation: Boolean,
     distanceMiles: Int,
     isResolving: Boolean,
     onManualZip: (String) -> Unit,
@@ -227,6 +229,8 @@ internal fun LocationHeader(
     if (showSheet) {
         LocationEditorSheet(
             zip = zip,
+            requestedZip = requestedZip,
+            hasExplicitLocation = hasExplicitLocation,
             distanceMiles = distanceMiles,
             isResolving = isResolving,
             onManualZip = onManualZip,
@@ -252,6 +256,8 @@ internal fun LocationHeader(
 @Composable
 private fun LocationEditorSheet(
     zip: String?,
+    requestedZip: String?,
+    hasExplicitLocation: Boolean,
     distanceMiles: Int,
     isResolving: Boolean,
     onManualZip: (String) -> Unit,
@@ -293,14 +299,19 @@ private fun LocationEditorSheet(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
-            var zipText by remember(zip) { mutableStateOf(zip.orEmpty()) }
+            // Snapshot the prefill once per sheet presentation: a distance-chip tap
+            // keeps the sheet open while the feed reloads, and during that reload
+            // activeZip transiently falls back to null — a remember(zip)-keyed field
+            // would blank and wipe any digits the user typed mid-reload.
+            var zipText by remember { mutableStateOf(zip.orEmpty()) }
             OutlinedTextField(
                 value = zipText,
                 onValueChange = { entry ->
                     zipText = entry.filter(Char::isDigit).take(ZIP_LENGTH)
-                    // Only a ZIP different from the prefilled active one applies —
-                    // otherwise the prefill itself would immediately dismiss the sheet.
-                    if (zipText.length == ZIP_LENGTH && zipText != zip) {
+                    // Compare against the explicitly requested ZIP (not the prefill):
+                    // re-entering an already-saved ZIP stays a no-op, but a user can
+                    // pin the hero-inferred prefill by retyping it.
+                    if (zipText.length == ZIP_LENGTH && zipText != requestedZip) {
                         onManualZip(zipText)
                         onDismiss()
                     }
@@ -316,7 +327,12 @@ private fun LocationEditorSheet(
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                // Scrollable so the 100 mi chip stays reachable on narrow widths
+                // and large font scales — FilterChips do not shrink.
+                modifier = Modifier.horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
                 DISTANCE_OPTIONS_MILES.forEach { miles ->
                     FilterChip(
                         selected = miles == distanceMiles,
@@ -346,8 +362,10 @@ private fun LocationEditorSheet(
                 Text(if (isResolving) "Locating…" else "Use my location")
             }
 
-            // Mirrors iOS: the clear action only renders while a location is set.
-            if (zip != null) {
+            // Mirrors iOS (nearbyPreference != nil): the clear action only renders
+            // while an EXPLICIT location or radius is set — the hero/server-inferred
+            // fallback alone is not clearable, so the button is never a dead action.
+            if (hasExplicitLocation) {
                 TextButton(
                     onClick = {
                         onClearLocation()
