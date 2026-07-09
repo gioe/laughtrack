@@ -1,9 +1,10 @@
 name: Scraper Python setup
 description: >-
-  Set up Python, cache pip, and install apps/scraper from pyproject.toml
-  (with the optional dev dependency group). Tesseract is intentionally not
-  installed here — only OCR-touching workflows should pay that cost; install
-  it in the calling workflow as a separate apt-get step.
+  Set up Python + uv and install apps/scraper from uv.lock via uv sync
+  --frozen (with the optional dev dependency group), so CI runs the exact
+  pins local dev uses. Tesseract is intentionally not installed here — only
+  OCR-touching workflows should pay that cost; install it in the calling
+  workflow as a separate apt-get step.
 inputs:
   python-version:
     description: Python version to install.
@@ -24,28 +25,32 @@ runs:
       with:
         python-version: ${{ inputs.python-version }}
 
-    - name: Cache pip dependencies
-      uses: actions/cache@v5
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v7
       with:
-        path: ~/.cache/pip
-        # Hashes pyproject.toml — the single dependency manifest since
-        # TASK-3711 (runtime deps in [project.dependencies], test/lint deps
-        # in the dev dependency group). requirements*.txt no longer exist.
-        key: ${{ runner.os }}-pip-${{ inputs.python-version }}-${{ hashFiles('apps/scraper/pyproject.toml') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-${{ inputs.python-version }}-
-          ${{ runner.os }}-pip-
+        # Caches the uv cache dir; a re-lock changes uv.lock and busts the key.
+        enable-cache: true
+        cache-dependency-glob: apps/scraper/uv.lock
 
     - name: Install Python dependencies
       shell: bash
       working-directory: apps/scraper
       env:
         INSTALL_DEV: ${{ inputs.install-dev }}
+        PYTHON_VERSION: ${{ inputs.python-version }}
       run: |
-        # pip >= 25.1 is required for the PEP 735 dependency-group install
-        # (pip install --group); the upgrade below guarantees it.
-        python -m pip install --upgrade pip
-        pip install -e .
+        # --frozen installs exactly what uv.lock pins (no re-resolution), so a
+        # transitive release can never drift CI away from local dev. The
+        # project itself is installed editable into apps/scraper/.venv.
         if [ "$INSTALL_DEV" = "true" ]; then
-          pip install --group dev
+          uv sync --frozen --python "$PYTHON_VERSION"
+        else
+          uv sync --frozen --no-dev --python "$PYTHON_VERSION"
         fi
+        # Calling workflows invoke bare python / pytest / playwright /
+        # bin/migrate and previously relied on pip installing into the
+        # setup-python interpreter. uv sync installs into .venv instead, so
+        # put the venv first on PATH (and export VIRTUAL_ENV) for every
+        # subsequent step in the job.
+        echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+        echo "VIRTUAL_ENV=$PWD/.venv" >> "$GITHUB_ENV"
