@@ -124,13 +124,23 @@ type = "forbidden"
 source_modules = ["laughtrack.scrapers"]
 forbidden_modules = ["laughtrack.app"]
 
+## laughtrack.domain was a pure re-export facade over laughtrack.core, deleted
+## in TASK-3646. Import laughtrack.core directly; do not reintroduce the facade.
+## Sources enumerate every laughtrack subpackage (not the root) because
+## import-linter rejects a contract whose forbidden module is a descendant of a
+## source module once that module exists again.
 [[tool.importlinter.contracts]]
-name = "Domain does not import infrastructure or scrapers"
+name = "The deleted laughtrack.domain facade must not be reintroduced"
 type = "forbidden"
-source_modules = ["laughtrack.domain"]
-forbidden_modules = [
-    "laughtrack.infrastructure",
-    "laughtrack.scrapers",
+source_modules = [
     "laughtrack.adapters",
     "laughtrack.app",
+    "laughtrack.core",
+    "laughtrack.foundation",
+    "laughtrack.infrastructure",
+    "laughtrack.ports",
+    "laughtrack.scrapers",
+    "laughtrack.shared",
+    "laughtrack.utilities",
 ]
+forbidden_modules = ["laughtrack.domain"]
