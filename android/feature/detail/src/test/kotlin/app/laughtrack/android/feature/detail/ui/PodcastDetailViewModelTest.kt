@@ -4,6 +4,7 @@ import app.laughtrack.android.core.network.generated.api.PodcastsApi
 import app.laughtrack.android.core.network.generated.model.PodcastDetailPodcast
 import app.laughtrack.android.core.network.generated.model.PodcastDetailResponse
 import app.laughtrack.android.core.playback.PodcastPlaybackItem
+import app.laughtrack.android.core.testing.throwingApi
 import app.laughtrack.android.core.ui.UiState
 import app.laughtrack.android.feature.detail.data.PodcastDetailRepository
 import kotlinx.coroutines.Dispatchers
@@ -20,7 +21,6 @@ import org.junit.Before
 import org.junit.Test
 import retrofit2.Response
 import java.io.IOException
-import java.lang.reflect.Proxy
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PodcastDetailViewModelTest {
@@ -113,12 +113,5 @@ class PodcastDetailViewModelTest {
                 ),
             )
         }
-    }
-
-    private companion object {
-        inline fun <reified T : Any> throwingApi(): T =
-            Proxy.newProxyInstance(T::class.java.classLoader, arrayOf(T::class.java)) { _, method, _ ->
-                error("Unexpected ${method.name} call")
-            } as T
     }
 }

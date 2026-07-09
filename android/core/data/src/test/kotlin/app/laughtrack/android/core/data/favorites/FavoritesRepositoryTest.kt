@@ -15,6 +15,7 @@ import app.laughtrack.android.core.network.generated.model.FavoritePodcastListRe
 import app.laughtrack.android.core.network.generated.model.FavoriteResponse
 import app.laughtrack.android.core.network.generated.model.FavoriteResponseData
 import app.laughtrack.android.core.network.generated.model.FavoriteShowListResponse
+import app.laughtrack.android.core.testing.throwingApi
 import kotlinx.coroutines.test.runTest
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
@@ -23,7 +24,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import retrofit2.Response
 import java.io.IOException
-import java.lang.reflect.Proxy
 import java.time.Clock
 
 class FavoritesRepositoryTest {
@@ -271,10 +271,5 @@ class FavoritesRepositoryTest {
             )
 
         fun errorResponse(code: Int): Response<FavoriteResponse> = Response.error(code, "".toResponseBody())
-
-        inline fun <reified T : Any> throwingApi(): T =
-            Proxy.newProxyInstance(T::class.java.classLoader, arrayOf(T::class.java)) { _, method, _ ->
-                error("Unexpected ${method.name} call")
-            } as T
     }
 }

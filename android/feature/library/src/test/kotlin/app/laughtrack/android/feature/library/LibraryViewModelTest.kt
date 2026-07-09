@@ -1,13 +1,5 @@
 package app.laughtrack.android.feature.library
 
-import app.laughtrack.android.core.data.auth.LoginPromptController
-import app.laughtrack.android.core.data.favorites.FavoriteEntity
-import app.laughtrack.android.core.data.favorites.FavoriteQueue
-import app.laughtrack.android.core.data.favorites.FavoritesRepository
-import app.laughtrack.android.core.network.auth.AuthSessionManager
-import app.laughtrack.android.core.network.auth.SessionTokens
-import app.laughtrack.android.core.network.auth.TokenStore
-import app.laughtrack.android.core.network.generated.api.AuthApi
 import app.laughtrack.android.core.network.generated.api.FavoritesApi
 import app.laughtrack.android.core.network.generated.model.ComedianSearchItem
 import app.laughtrack.android.core.network.generated.model.FavoriteClubItem
@@ -17,6 +9,8 @@ import app.laughtrack.android.core.network.generated.model.FavoritePodcastItem
 import app.laughtrack.android.core.network.generated.model.FavoritePodcastListResponse
 import app.laughtrack.android.core.network.generated.model.FavoriteShowListResponse
 import app.laughtrack.android.core.network.generated.model.SocialData
+import app.laughtrack.android.core.testing.signedOutFavoritesRepository
+import app.laughtrack.android.core.testing.throwingApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
@@ -35,8 +29,6 @@ import org.junit.Before
 import org.junit.Test
 import retrofit2.Response
 import java.io.IOException
-import java.lang.reflect.Proxy
-import java.time.Clock
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class LibraryViewModelTest {
@@ -55,7 +47,7 @@ class LibraryViewModelTest {
     @Test
     fun signed_in_refresh_populates_snapshot() =
         runTest {
-            val viewModel = LibraryViewModel(favoritesRepository(FakeFavoritesApi()))
+            val viewModel = LibraryViewModel(signedOutFavoritesRepository(FakeFavoritesApi()))
             collectSnapshot(viewModel)
 
             viewModel.refresh(signedIn = true)
@@ -73,7 +65,7 @@ class LibraryViewModelTest {
     @Test
     fun failed_refresh_publishes_error_message_and_stops_loading() =
         runTest {
-            val viewModel = LibraryViewModel(favoritesRepository(FakeFavoritesApi(refreshFails = true)))
+            val viewModel = LibraryViewModel(signedOutFavoritesRepository(FakeFavoritesApi(refreshFails = true)))
             collectSnapshot(viewModel)
 
             viewModel.refresh(signedIn = true)
@@ -89,7 +81,7 @@ class LibraryViewModelTest {
     fun signed_out_refresh_resets_snapshot() =
         runTest {
             val api = FakeFavoritesApi()
-            val viewModel = LibraryViewModel(favoritesRepository(api))
+            val viewModel = LibraryViewModel(signedOutFavoritesRepository(api))
             collectSnapshot(viewModel)
 
             viewModel.refresh(signedIn = true)
@@ -149,40 +141,5 @@ class LibraryViewModelTest {
                 socialData = SocialData(id = 1),
                 showCount = 12,
             )
-
-        fun favoritesRepository(api: FavoritesApi): FavoritesRepository =
-            FavoritesRepository(
-                favoritesApi = api,
-                offlineQueue = NoOpQueue,
-                authSessionManager =
-                    AuthSessionManager(
-                        tokenStore = NullTokenStore,
-                        authApi = throwingApi<AuthApi>(),
-                        websiteBaseUrl = "https://www.laugh-track.com",
-                        clock = Clock.systemUTC(),
-                    ),
-                loginPromptController = LoginPromptController(),
-            )
-
-        object NoOpQueue : FavoriteQueue {
-            override fun enqueue(
-                entity: FavoriteEntity,
-                id: String,
-                isFavorite: Boolean,
-            ) = Unit
-        }
-
-        object NullTokenStore : TokenStore {
-            override suspend fun read(): SessionTokens? = null
-
-            override suspend fun save(tokens: SessionTokens) = Unit
-
-            override suspend fun clear() = Unit
-        }
-
-        inline fun <reified T : Any> throwingApi(): T =
-            Proxy.newProxyInstance(T::class.java.classLoader, arrayOf(T::class.java)) { _, method, _ ->
-                error("Unexpected ${method.name} call")
-            } as T
     }
 }

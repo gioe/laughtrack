@@ -6,6 +6,7 @@ import app.laughtrack.android.core.network.generated.model.ShowDetail
 import app.laughtrack.android.core.network.generated.model.ShowDetailClub
 import app.laughtrack.android.core.network.generated.model.ShowDetailCta
 import app.laughtrack.android.core.network.generated.model.ShowDetailResponse
+import app.laughtrack.android.core.testing.throwingApi
 import app.laughtrack.android.core.ui.UiState
 import app.laughtrack.android.feature.detail.data.ShowDetailRepository
 import kotlinx.coroutines.Dispatchers
@@ -22,7 +23,6 @@ import org.junit.Before
 import org.junit.Test
 import retrofit2.Response
 import java.io.IOException
-import java.lang.reflect.Proxy
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ShowDetailViewModelTest {
@@ -126,10 +126,5 @@ class ShowDetailViewModelTest {
                 cta = ShowDetailCta(label = "Buy tickets", isSoldOut = false, url = "https://tickets.example.com/$id"),
                 name = "Show $id",
             )
-
-        inline fun <reified T : Any> throwingApi(): T =
-            Proxy.newProxyInstance(T::class.java.classLoader, arrayOf(T::class.java)) { _, method, _ ->
-                error("Unexpected ${method.name} call")
-            } as T
     }
 }

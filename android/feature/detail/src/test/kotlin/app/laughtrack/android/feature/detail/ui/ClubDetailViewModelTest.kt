@@ -1,19 +1,12 @@
 package app.laughtrack.android.feature.detail.ui
 
-import app.laughtrack.android.core.data.auth.LoginPromptController
-import app.laughtrack.android.core.data.favorites.FavoriteEntity
-import app.laughtrack.android.core.data.favorites.FavoriteQueue
-import app.laughtrack.android.core.data.favorites.FavoritesRepository
-import app.laughtrack.android.core.network.auth.AuthSessionManager
-import app.laughtrack.android.core.network.auth.SessionTokens
-import app.laughtrack.android.core.network.auth.TokenStore
-import app.laughtrack.android.core.network.generated.api.AuthApi
 import app.laughtrack.android.core.network.generated.api.ClubsApi
-import app.laughtrack.android.core.network.generated.api.FavoritesApi
 import app.laughtrack.android.core.network.generated.model.ClubDetail
 import app.laughtrack.android.core.network.generated.model.ClubShowsResponse
 import app.laughtrack.android.core.network.generated.model.GetClub200Response
 import app.laughtrack.android.core.network.generated.model.Show
+import app.laughtrack.android.core.testing.signedOutFavoritesRepository
+import app.laughtrack.android.core.testing.throwingApi
 import app.laughtrack.android.core.ui.UiState
 import app.laughtrack.android.feature.detail.data.ClubDetailRepository
 import kotlinx.coroutines.Dispatchers
@@ -30,8 +23,6 @@ import org.junit.Before
 import org.junit.Test
 import retrofit2.Response
 import java.io.IOException
-import java.lang.reflect.Proxy
-import java.time.Clock
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ClubDetailViewModelTest {
@@ -136,40 +127,5 @@ class ClubDetailViewModelTest {
             clubName = "Comedy Room",
             name = "Show $id",
         )
-
-        fun signedOutFavoritesRepository(): FavoritesRepository =
-            FavoritesRepository(
-                favoritesApi = throwingApi<FavoritesApi>(),
-                offlineQueue = NoOpQueue,
-                authSessionManager =
-                    AuthSessionManager(
-                        tokenStore = NullTokenStore,
-                        authApi = throwingApi<AuthApi>(),
-                        websiteBaseUrl = "https://www.laugh-track.com",
-                        clock = Clock.systemUTC(),
-                    ),
-                loginPromptController = LoginPromptController(),
-            )
-
-        object NoOpQueue : FavoriteQueue {
-            override fun enqueue(
-                entity: FavoriteEntity,
-                id: String,
-                isFavorite: Boolean,
-            ) = Unit
-        }
-
-        object NullTokenStore : TokenStore {
-            override suspend fun read(): SessionTokens? = null
-
-            override suspend fun save(tokens: SessionTokens) = Unit
-
-            override suspend fun clear() = Unit
-        }
-
-        inline fun <reified T : Any> throwingApi(): T =
-            Proxy.newProxyInstance(T::class.java.classLoader, arrayOf(T::class.java)) { _, method, _ ->
-                error("Unexpected ${method.name} call")
-            } as T
     }
 }

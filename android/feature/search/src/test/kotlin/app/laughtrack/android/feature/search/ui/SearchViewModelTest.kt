@@ -8,6 +8,7 @@ import app.laughtrack.android.core.network.generated.model.Show
 import app.laughtrack.android.core.network.generated.model.ShowDetailResponse
 import app.laughtrack.android.core.network.generated.model.ShowListResponse
 import app.laughtrack.android.core.network.generated.model.ShowSearchResponse
+import app.laughtrack.android.core.testing.throwingApi
 import app.laughtrack.android.feature.search.data.SearchRepository
 import app.laughtrack.android.feature.search.model.DEFAULT_DISTANCE_MILES
 import app.laughtrack.android.feature.search.model.SearchPivot
@@ -27,7 +28,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import retrofit2.Response
-import java.lang.reflect.Proxy
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SearchViewModelTest {
@@ -332,9 +332,4 @@ class SearchViewModelTest {
             xTimezone: String?,
         ): Response<ShowListResponse> = error("Unexpected listShows call")
     }
-
-    private inline fun <reified T : Any> throwingApi(): T =
-        Proxy.newProxyInstance(T::class.java.classLoader, arrayOf(T::class.java)) { _, method, _ ->
-            error("Unexpected ${method.name} call")
-        } as T
 }
