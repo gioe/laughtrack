@@ -68,10 +68,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.network.generated.model.ComedianHomeLocation
 import app.laughtrack.android.core.network.generated.model.PodcastAppearance
+import app.laughtrack.android.core.network.generated.model.Show
 import app.laughtrack.android.core.network.generated.model.SocialData
 import app.laughtrack.android.core.network.generated.model.UpcomingRun
 import app.laughtrack.android.core.ui.UiState
 import app.laughtrack.android.core.ui.components.RemoteImage
+import app.laughtrack.android.core.ui.components.ticketStubDateParts
 import app.laughtrack.android.core.ui.theme.LaughTrackColors
 import app.laughtrack.android.feature.detail.model.ComedianDetailUi
 import app.laughtrack.android.feature.detail.ui.components.DetailError
@@ -79,9 +81,10 @@ import app.laughtrack.android.feature.detail.ui.components.DetailLoading
 import app.laughtrack.android.feature.detail.ui.components.EntityAvatar
 import app.laughtrack.android.feature.detail.ui.components.SectionHeader
 import app.laughtrack.android.feature.detail.ui.components.ShowRow
+import app.laughtrack.android.feature.detail.ui.components.TicketShowRow
 import app.laughtrack.android.feature.detail.util.formatHomeCity
 import app.laughtrack.android.feature.detail.util.formatHomeClubName
-import app.laughtrack.android.feature.detail.util.formatShowDateTime
+import app.laughtrack.android.feature.detail.util.formatTicketPriceLabel
 import app.laughtrack.android.feature.detail.util.openUrl
 
 private val COMEDIAN_TABS = listOf("Shows", "Podcasts", "Related")
@@ -501,17 +504,24 @@ private fun ComedianShowsTab(
             }
             filteredRuns.forEach { run ->
                 run.shows.forEach { show ->
-                    UpcomingRunRow(run = run, showId = show.id, date = show.date, onOpenEntity = onOpenEntity)
+                    UpcomingRunRow(run = run, show = show, onOpenEntity = onOpenEntity)
                 }
             }
 
             if (filteredPast.isNotEmpty()) {
                 SectionHeader("Past shows")
                 filteredPast.forEach { show ->
-                    ShowRow(
-                        title = show.name ?: show.clubName ?: "Show",
-                        subtitle = listOfNotNull(show.clubName, show.clubCity).joinToString(" · ").ifBlank { null },
+                    val title = show.name ?: show.clubName ?: "Show"
+                    TicketShowRow(
+                        title = title,
+                        subtitle =
+                            listOfNotNull(
+                                show.clubName?.takeUnless { it.equals(title, ignoreCase = true) },
+                                show.clubCity,
+                            ).joinToString(" · ").ifBlank { null },
                         imageUrl = show.imageUrl,
+                        dateParts = ticketStubDateParts(isoDateTime = show.date, timezone = show.timezone),
+                        priceLabel = null,
                         onClick = { onOpenEntity(AppRoute.ShowDetail(show.id)) },
                     )
                 }
@@ -618,43 +628,17 @@ private fun EmptyShowsPanel(
 @Composable
 private fun UpcomingRunRow(
     run: UpcomingRun,
-    showId: Int,
-    date: String,
+    show: Show,
     onOpenEntity: (AppRoute) -> Unit,
 ) {
-    Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .clickable { onOpenEntity(AppRoute.ShowDetail(showId)) }
-                .padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-    ) {
-        RemoteImage(
-            url = run.clubImageUrl,
-            contentDescription = run.clubName,
-            modifier =
-                Modifier
-                    .size(56.dp)
-                    .clip(RoundedCornerShape(10.dp)),
-        )
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(
-                run.clubName,
-                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(
-                formatShowDateTime(date),
-                style = MaterialTheme.typography.bodySmall,
-                color = LaughTrackColors.ForegroundMuted,
-                maxLines = 1,
-            )
-        }
-    }
+    TicketShowRow(
+        title = run.clubName,
+        subtitle = show.name?.takeUnless { it.equals(run.clubName, ignoreCase = true) },
+        imageUrl = run.clubImageUrl,
+        dateParts = ticketStubDateParts(isoDateTime = show.date, timezone = show.timezone),
+        priceLabel = formatTicketPriceLabel(show.tickets, show.soldOut),
+        onClick = { onOpenEntity(AppRoute.ShowDetail(show.id)) },
+    )
 }
 
 @Composable
