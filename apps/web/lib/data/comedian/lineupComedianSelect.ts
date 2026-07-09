@@ -6,9 +6,9 @@ import { PARENT_COMEDIAN_LINEUP_SELECT } from "@/lib/data/comedian/parentComedia
 // findShowsForHome) and the comedian-detail trio (findUpcomingRunsForComedian,
 // findPastShowsForComedian, findCoBilledComediansForComedian). Unlike PARENT_COMEDIAN_LINEUP_SELECT, this
 // shape is not visibility-gate-critical — hidden comedians are filtered at the
-// WHERE level via `comedian: { visible: true }`. Sites spread this and add
-// their own _count flavor (lineupItems vs filtered-upcoming subset),
-// parentComedian, and the conditional profileId-keyed favoriteComedians block.
+// WHERE level via `comedian: { visible: true }`. Counted lineup callers compose
+// buildLineupItemComedianSelect below; no-count callers can still spread this
+// base and add parentComedian or path-specific fields.
 export const LINEUP_COMEDIAN_SELECT = {
     id: true,
     uuid: true,
