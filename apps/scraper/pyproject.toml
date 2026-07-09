@@ -140,7 +140,9 @@ forbidden_modules = ["laughtrack.app"]
 ## legitimately reaches infrastructure today (e.g. metrics.reporter ->
 ## infrastructure.email.service). core/entities/__init__.py exists so this
 ## source is a regular package — import-linter rejects implicit namespace
-## packages as sources.
+## packages as sources. base_handler reaches the DB through the
+## ports.database seam (adapters.db self-registers at import — TASK-3701),
+## so no ignore_imports grandfathering remains.
 [[tool.importlinter.contracts]]
 name = "Core entities do not depend on app/infra/scrapers/adapters"
 type = "forbidden"
@@ -150,15 +152,6 @@ forbidden_modules = [
     "laughtrack.infrastructure",
     "laughtrack.scrapers",
     "laughtrack.adapters",
-]
-## Grandfathered debt edge: every entity handler extends
-## core.data.base_handler, whose connection factory comes from adapters.db
-## (itself a facade over infrastructure.database.connection). The real fix is
-## injecting a ports.database connection factory through the handlers; until
-## then this one edge is ignored so the contract still catches every other
-## direct or transitive path from entities into the forbidden layers.
-ignore_imports = [
-    "laughtrack.core.data.base_handler -> laughtrack.adapters.db",
 ]
 
 ## laughtrack.domain was a pure re-export facade over laughtrack.core, deleted
