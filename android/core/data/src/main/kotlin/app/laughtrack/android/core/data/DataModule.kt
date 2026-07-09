@@ -2,6 +2,8 @@ package app.laughtrack.android.core.data
 
 import android.content.Context
 import androidx.work.WorkManager
+import app.laughtrack.android.core.data.favorites.FavoriteOfflineQueue
+import app.laughtrack.android.core.data.favorites.FavoriteQueue
 import app.laughtrack.android.core.data.profile.AuthSessionProfileAccountService
 import app.laughtrack.android.core.data.profile.DataStoreProfileLocalPreferences
 import app.laughtrack.android.core.data.profile.NetworkProfileSettingsService
@@ -24,6 +26,10 @@ object DataModule {
     fun provideWorkManager(
         @ApplicationContext context: Context,
     ): WorkManager = WorkManager.getInstance(context)
+
+    @Provides
+    @Singleton
+    fun provideFavoriteQueue(queue: FavoriteOfflineQueue): FavoriteQueue = queue
 
     @Provides
     @Singleton

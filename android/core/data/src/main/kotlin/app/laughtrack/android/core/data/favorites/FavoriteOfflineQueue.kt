@@ -21,13 +21,26 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * Seam for the offline favorite-replay queue so JVM unit tests can substitute a
+ * recording fake: the catalog has no mocking library, and faking WorkManager
+ * itself would mean implementing its full abstract surface (TASK-3659).
+ */
+interface FavoriteQueue {
+    fun enqueue(
+        entity: FavoriteEntity,
+        id: String,
+        isFavorite: Boolean,
+    )
+}
+
 @Singleton
 class FavoriteOfflineQueue
     @Inject
     constructor(
         private val workManager: WorkManager,
-    ) {
-        fun enqueue(
+    ) : FavoriteQueue {
+        override fun enqueue(
             entity: FavoriteEntity,
             id: String,
             isFavorite: Boolean,

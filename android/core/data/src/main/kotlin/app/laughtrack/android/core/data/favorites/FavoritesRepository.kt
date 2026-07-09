@@ -47,7 +47,7 @@ class FavoritesRepository
     @Inject
     constructor(
         private val favoritesApi: FavoritesApi,
-        private val offlineQueue: FavoriteOfflineQueue,
+        private val offlineQueue: FavoriteQueue,
         private val authSessionManager: AuthSessionManager,
         private val loginPromptController: LoginPromptController,
     ) {
