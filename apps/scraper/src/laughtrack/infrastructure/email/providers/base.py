@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from laughtrack.domain.entities.email import EmailMessage
+from laughtrack.core.entities.email.local.email_models import EmailMessage
 
 
 class EmailProvider(ABC):

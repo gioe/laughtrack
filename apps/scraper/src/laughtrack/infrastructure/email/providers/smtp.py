@@ -6,7 +6,7 @@ from email.mime.text import MIMEText
 from email.utils import formataddr
 from typing import Optional
 
-from laughtrack.domain.entities.email import EmailMessage
+from laughtrack.core.entities.email.local.email_models import EmailMessage
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.models.types import JSONDict
 from laughtrack.infrastructure.config.config_manager import ConfigManager

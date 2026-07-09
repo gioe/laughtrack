@@ -2,7 +2,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Optional, Union
 
-from laughtrack.domain.entities.email import EmailMessage, EmailTemplate
+from laughtrack.core.entities.email.local.email_models import EmailMessage, EmailTemplate
 from laughtrack.foundation.models.types import JSONDict
 from laughtrack.infrastructure.config.config_manager import ConfigManager
 from laughtrack.infrastructure.email.providers import EmailProvider, MockEmailProvider, SMTPProvider

@@ -1,6 +1,6 @@
 from typing import Any, Dict
 
-from laughtrack.domain.entities.email import EmailMessage
+from laughtrack.core.entities.email.local.email_models import EmailMessage
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.models.types import JSONDict
 from laughtrack.infrastructure.email.providers.base import EmailProvider

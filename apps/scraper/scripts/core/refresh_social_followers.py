@@ -21,7 +21,7 @@ import argparse
 import os
 import sys
 
-from laughtrack.domain.entities.comedian import ComedianService
+from laughtrack.core.entities.comedian.service import ComedianService
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
 

@@ -103,6 +103,13 @@ _ensure_psycopg2_stubbed()
 # directly without a live database.
 # ---------------------------------------------------------------------------
 
+# Pre-load the REAL comedian utils (and its real foundation deps) before the
+# MagicMock stubs below register. _stub() uses sys.modules.setdefault, so
+# whichever lands first wins for the whole pytest session: test modules
+# collected later (headliner/title-extraction consumers) bind ComedianUtils at
+# import time and fail on real string input if a leaked MagicMock wins.
+import laughtrack.utilities.domain.comedian.utils  # noqa: F401, E402
+
 _stub("laughtrack.foundation.protocols.database_entity", DatabaseEntity=object)
 _stub("laughtrack.foundation.protocols", as_package=True, DatabaseEntity=object)
 _stub("laughtrack.foundation.infrastructure.logger.logger", Logger=MagicMock())

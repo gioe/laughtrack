@@ -1,7 +1,7 @@
 # flake8: noqa: E501,W293
 from typing import Dict
 
-from laughtrack.domain.entities.email import EmailTemplate
+from laughtrack.core.entities.email.local.email_models import EmailTemplate
 
 
 class EmailTemplateRegistry:

@@ -1,4 +1,4 @@
-from laughtrack.domain.entities.email import EmailMessage, EmailTemplate
+from laughtrack.core.entities.email.local.email_models import EmailMessage, EmailTemplate
 from laughtrack.foundation.models.types import JSONDict
 
 

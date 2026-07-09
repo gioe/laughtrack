@@ -2,7 +2,7 @@ import json
 from abc import ABC
 from typing import List
 
-from laughtrack.domain.entities.email import EmailMessage
+from laughtrack.core.entities.email.local.email_models import EmailMessage
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.infrastructure.email.service import EmailService
 

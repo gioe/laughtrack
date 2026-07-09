@@ -22,9 +22,9 @@ Examples:
 import argparse
 import sys
 
-from laughtrack.domain.entities.club import ClubService
-from laughtrack.domain.entities.comedian import ComedianService
-from laughtrack.domain.entities.show import ShowService
+from laughtrack.core.entities.club.service import ClubService
+from laughtrack.core.entities.comedian.service import ComedianService
+from laughtrack.core.entities.show.service import ShowService
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
 def main():
