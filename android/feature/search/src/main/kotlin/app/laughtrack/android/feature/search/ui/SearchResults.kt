@@ -128,8 +128,8 @@ private fun ShowResultBody(
     result: SearchResult,
     modifier: Modifier = Modifier,
 ) {
-    // Body paper comes from the enclosing ShowResultRow Surface (color = TicketPaper);
-    // no separate background needed here.
+    // Body paper comes from the shared TicketShowRow Surface in core:ui (default
+    // creamColors paper); no separate background needed here.
     Box(
         modifier = modifier,
         contentAlignment = Alignment.CenterStart,
