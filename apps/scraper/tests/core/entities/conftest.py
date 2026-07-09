@@ -103,11 +103,11 @@ _ensure_psycopg2_stubbed()
 # directly without a live database.
 # ---------------------------------------------------------------------------
 
-# Pre-load the REAL comedian utils (and its real foundation deps) before the
-# MagicMock stubs below register. _stub() uses sys.modules.setdefault, so
-# whichever lands first wins for the whole pytest session: test modules
-# collected later (headliner/title-extraction consumers) bind ComedianUtils at
-# import time and fail on real string input if a leaked MagicMock wins.
+# Import the REAL comedian utils (and its real parent packages) instead of
+# stubbing them. _stub() uses sys.modules.setdefault, so whichever lands first
+# wins for the whole pytest session: test modules collected later
+# (headliner/title-extraction consumers) bind ComedianUtils at import time and
+# fail on real string input if a leaked MagicMock wins.
 import laughtrack.utilities.domain.comedian.utils  # noqa: F401, E402
 
 _stub("laughtrack.foundation.protocols.database_entity", DatabaseEntity=object)
@@ -120,10 +120,6 @@ _stub("laughtrack.foundation.utilities.popularity", as_package=True, PopularityS
 _stub("laughtrack.foundation.utilities.string", StringUtils=MagicMock())
 _stub("laughtrack.foundation.utilities", as_package=True, StringUtils=MagicMock())
 _stub("laughtrack.foundation", as_package=True, DatabaseEntity=object)
-_stub("laughtrack.utilities.domain.comedian.utils", ComedianUtils=MagicMock())
-_stub("laughtrack.utilities.domain.comedian", as_package=True, ComedianUtils=MagicMock())
-_stub("laughtrack.utilities.domain", as_package=True, ComedianUtils=MagicMock())
-_stub("laughtrack.utilities", as_package=True, ComedianUtils=MagicMock())
 _stub("laughtrack.foundation.infrastructure.database", as_package=True, BatchTemplateGenerator=MagicMock())
 _stub("laughtrack.foundation.infrastructure.database.template", BatchTemplateGenerator=MagicMock())
 _stub("laughtrack.foundation.infrastructure.database.operation", DatabaseOperationLogger=MagicMock())
