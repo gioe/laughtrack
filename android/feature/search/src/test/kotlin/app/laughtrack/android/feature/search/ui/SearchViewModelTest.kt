@@ -4,6 +4,7 @@ import app.laughtrack.android.core.analytics.AnalyticsManager
 import app.laughtrack.android.core.data.location.HomeLocation
 import app.laughtrack.android.core.data.location.HomeLocationState
 import app.laughtrack.android.core.network.generated.api.ShowsApi
+import app.laughtrack.android.core.network.generated.model.Show
 import app.laughtrack.android.core.network.generated.model.ShowDetailResponse
 import app.laughtrack.android.core.network.generated.model.ShowListResponse
 import app.laughtrack.android.core.network.generated.model.ShowSearchResponse
@@ -14,6 +15,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -91,6 +93,82 @@ class SearchViewModelTest {
             advanceUntilIdle()
         }
 
+    @Test
+    fun text_edits_are_debounced_into_a_single_reload() =
+        runTest {
+            val showsApi = SuspendingShowsApi()
+            val viewModel = viewModel(showsApi)
+            advanceUntilIdle()
+            showsApi.completeLatestSearch()
+            advanceUntilIdle()
+            check(showsApi.searchCalls == 1)
+
+            viewModel.onTextChange("st")
+            viewModel.onTextChange("stand")
+            viewModel.onTextChange("stand up")
+            advanceTimeBy(299)
+
+            // Still inside the debounce window: no reload has fired yet.
+            assertEquals(1, showsApi.searchCalls)
+
+            advanceUntilIdle()
+
+            // One settled query, one reload — not one per keystroke.
+            assertEquals(2, showsApi.searchCalls)
+            showsApi.completeLatestSearch()
+            advanceUntilIdle()
+        }
+
+    @Test
+    fun reselecting_a_loaded_pivot_does_not_reload_it() =
+        runTest {
+            val showsApi = SuspendingShowsApi()
+            val viewModel = viewModel(showsApi)
+            advanceUntilIdle()
+            showsApi.completeLatestSearch()
+            advanceUntilIdle()
+            check(showsApi.searchCalls == 1)
+
+            viewModel.selectPivot(SearchPivot.SHOWS)
+            advanceUntilIdle()
+
+            // Per-pivot state is retained; a loaded pivot is not refetched on select.
+            assertEquals(1, showsApi.searchCalls)
+        }
+
+    @Test
+    fun load_more_requests_the_next_page() =
+        runTest {
+            val showsApi = SuspendingShowsApi()
+            val viewModel = viewModel(showsApi)
+            advanceUntilIdle()
+            // Page 1 returns 1 of 30 results, so more pages exist.
+            showsApi.completeLatestSearch(data = listOf(show(1)), total = 30)
+            advanceUntilIdle()
+            check(showsApi.lastPage == 1)
+
+            viewModel.loadMore()
+            advanceUntilIdle()
+
+            assertEquals(2, showsApi.searchCalls)
+            assertEquals(2, showsApi.lastPage)
+            showsApi.completeLatestSearch(data = listOf(show(2)), total = 30)
+            advanceUntilIdle()
+
+            // Both pages accumulated in the pivot state.
+            assertEquals(2, viewModel.state.value.current.results.items.size)
+        }
+
+    private fun show(id: Int) =
+        Show(
+            id = id,
+            clubId = 10 + id,
+            date = "2026-06-25T20:00:00-04:00",
+            imageUrl = "https://example.com/show-$id.jpg",
+            clubName = "Comedy Room",
+            name = "Show $id",
+        )
+
     private fun viewModel(
         showsApi: ShowsApi,
         homeLocation: HomeLocation? = null,
@@ -112,6 +190,7 @@ class SearchViewModelTest {
 
     private class SuspendingShowsApi : ShowsApi {
         var searchCalls = 0
+        var lastPage: Int? = null
         private val pendingSearches = mutableListOf<CompletableDeferred<Response<ShowSearchResponse>>>()
 
         override suspend fun searchShows(
@@ -128,19 +207,23 @@ class SearchViewModelTest {
             xTimezone: String?,
         ): Response<ShowSearchResponse> {
             searchCalls += 1
+            lastPage = page
             val pending = CompletableDeferred<Response<ShowSearchResponse>>()
             pendingSearches += pending
             return pending.await()
         }
 
-        fun completeLatestSearch() {
+        fun completeLatestSearch(
+            data: List<Show> = emptyList(),
+            total: Int = data.size,
+        ) {
             pendingSearches
                 .last()
                 .complete(
                     Response.success(
                         ShowSearchResponse(
-                            data = emptyList(),
-                            total = 0,
+                            data = data,
+                            total = total,
                             filters = emptyList(),
                             zipCapTriggered = false,
                         ),
