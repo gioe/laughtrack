@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if [[ "${VERCEL_ENV:-}" == "production" ]]; then
+    : "${DIRECT_URL:?DIRECT_URL must be set to the direct (non-pooled) Neon URL; prisma migrate deploy hangs on advisory locks over the pooled DATABASE_URL}"
+    prisma migrate deploy
+else
+    echo "Skipping prisma migrate deploy for ${VERCEL_ENV:-unknown} build"
+fi
+
+npm run build
