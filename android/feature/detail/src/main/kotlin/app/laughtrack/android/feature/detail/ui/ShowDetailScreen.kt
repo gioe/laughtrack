@@ -58,14 +58,16 @@ import app.laughtrack.android.core.network.generated.model.Show
 import app.laughtrack.android.core.network.generated.model.ShowDetail
 import app.laughtrack.android.core.ui.UiState
 import app.laughtrack.android.core.ui.components.RemoteImage
+import app.laughtrack.android.core.ui.components.ticketStubDateParts
 import app.laughtrack.android.core.ui.theme.LaughTrackColors
 import app.laughtrack.android.feature.detail.model.ShowDetailUi
 import app.laughtrack.android.feature.detail.ui.components.DetailError
 import app.laughtrack.android.feature.detail.ui.components.DetailLoading
-import app.laughtrack.android.feature.detail.ui.components.ShowRow
+import app.laughtrack.android.feature.detail.ui.components.TicketShowRow
 import app.laughtrack.android.feature.detail.util.addEventToCalendar
 import app.laughtrack.android.feature.detail.util.formatCountdown
 import app.laughtrack.android.feature.detail.util.formatShowDateTime
+import app.laughtrack.android.feature.detail.util.formatTicketPriceLabel
 import app.laughtrack.android.feature.detail.util.openUrl
 import app.laughtrack.android.feature.detail.util.parseShowDateTime
 import kotlinx.coroutines.delay
@@ -530,14 +532,20 @@ private fun RelatedShowsSection(
 ) {
     if (shows.isEmpty()) return
     DetailDarkCard(eyebrow = "MORE SHOWS", title = "More at this venue") {
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             shows.forEach { show ->
-                ShowRow(
-                    title = show.name ?: show.clubName ?: "Show",
-                    subtitle = listOfNotNull(formatShowDateTime(show.date), show.clubCity).joinToString(" · "),
+                val title = show.name ?: show.clubName ?: "Show"
+                TicketShowRow(
+                    title = title,
+                    subtitle =
+                        listOfNotNull(
+                            show.clubName?.takeUnless { it.equals(title, ignoreCase = true) },
+                            show.clubCity,
+                        ).joinToString(" · ").ifBlank { null },
                     imageUrl = show.imageUrl,
+                    dateParts = ticketStubDateParts(isoDateTime = show.date, timezone = show.timezone),
+                    priceLabel = formatTicketPriceLabel(show.tickets, show.soldOut),
                     onClick = { onOpenEntity(AppRoute.ShowDetail(show.id)) },
-                    modifier = Modifier.clip(RoundedCornerShape(12.dp)),
                 )
             }
         }
