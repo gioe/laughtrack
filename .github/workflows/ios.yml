@@ -160,6 +160,13 @@ jobs:
 
       - name: Run tests on the iOS 26.x simulator (watcher)
         run: cd ios && bundle exec fastlane test_ios26_watch
+        # Same showBuildSettings headroom as sim-tests-ios-18 above. Without it
+        # the watcher died in fastlane startup (3s base timeout, 4 retries) on
+        # 4 of 5 runs on 2026-07-08 — infra noise that makes the watcher's
+        # green-transition signal (the drop-the-18.x-pin cue) unreadable.
+        env:
+          FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT: "30"
+          FASTLANE_XCODEBUILD_SETTINGS_RETRIES: "6"
 
   check-pbxproj:
     name: "iOS Xcode project sync guard"
