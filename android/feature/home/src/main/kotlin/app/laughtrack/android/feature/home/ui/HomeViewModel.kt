@@ -171,14 +171,17 @@ class HomeViewModel
         private fun load(zip: String?) {
             loadJob?.cancel()
             val distance = currentDistance
+            val previousFeed = (_state.value.feed as? UiState.Success<HomeFeed>)?.value
             loadJob =
                 viewModelScope.launch {
                     // Render the persisted snapshot immediately, if any, so relaunch is instant;
-                    // otherwise show the skeleton while the network call is in flight.
+                    // otherwise keep the last feed mounted during a refresh. Only show the
+                    // skeleton when there is no prior content to preserve.
                     val cached = cache.get(zip, distance)
+                    val fallbackFeed = cached ?: previousFeed
                     _state.value =
                         HomeUiState(
-                            feed = cached?.let { UiState.Success(it) } ?: UiState.Loading,
+                            feed = fallbackFeed?.let { UiState.Success(it) } ?: UiState.Loading,
                             zip = zip,
                             distanceMiles = distance,
                         )
@@ -193,9 +196,9 @@ class HomeViewModel
                                 )
                         }
                         .onFailure { error ->
-                            // Keep the cached feed visible on a refresh failure; only surface an
+                            // Keep fallback content visible on a refresh failure; only surface an
                             // error when there was nothing to fall back on.
-                            if (cached == null) {
+                            if (fallbackFeed == null) {
                                 _state.value =
                                     HomeUiState(
                                         feed = UiState.Failure(error),

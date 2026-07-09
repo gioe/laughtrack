@@ -175,6 +175,34 @@ class HomeViewModelTest {
         }
 
     @Test
+    fun distance_reload_with_prior_feed_does_not_publish_bare_loading_on_cache_miss() =
+        runTest {
+            val reloadFeed = CompletableDeferred<HomeFeed>()
+            val initialFeed = homeFeed()
+            val repository =
+                DelayedDistanceHomeFeedRepository(
+                    delayedDistance = 50,
+                    delayedFeed = reloadFeed,
+                    initialFeed = initialFeed,
+                )
+            val viewModel = viewModel(repository)
+            advanceUntilIdle()
+
+            viewModel.setDistance(50)
+            advanceUntilIdle()
+
+            val refreshingState = viewModel.state.value
+            assertEquals(50, refreshingState.distanceMiles)
+            assertEquals(UiState.Success(initialFeed), refreshingState.feed)
+
+            val refreshedFeed = homeFeed(city = "Brooklyn")
+            reloadFeed.complete(refreshedFeed)
+            advanceUntilIdle()
+
+            assertEquals(UiState.Success(refreshedFeed), viewModel.state.value.feed)
+        }
+
+    @Test
     fun clear_location_reverts_to_server_inferred_default_area() =
         runTest {
             val repository = FakeHomeFeedRepository(feed = homeFeed())
@@ -286,18 +314,23 @@ class HomeViewModelTest {
     private class FakeHomeFeedCache(
         private val stored: HomeFeed? = null,
     ) : HomeFeedCache {
+        private val storedByKey =
+            mutableMapOf<Pair<String?, Int?>, HomeFeed>().apply {
+                stored?.let { put(null to HomeFeedRepository.DEFAULT_DISTANCE_MILES, it) }
+            }
         var sets = 0
 
         override suspend fun get(
             zip: String?,
             distance: Int?,
-        ): HomeFeed? = stored
+        ): HomeFeed? = storedByKey[zip to distance]
 
         override suspend fun set(
             zip: String?,
             distance: Int?,
             feed: HomeFeed,
         ) {
+            storedByKey[zip to distance] = feed
             sets += 1
         }
     }
@@ -324,6 +357,22 @@ class HomeViewModelTest {
         fun completeManualZip() {
             manualZipFeed.complete(homeFeed(zipCode = "90210", city = null, state = null))
         }
+    }
+
+    private class DelayedDistanceHomeFeedRepository(
+        private val delayedDistance: Int,
+        private val delayedFeed: CompletableDeferred<HomeFeed>,
+        private val initialFeed: HomeFeed,
+    ) : HomeFeedRepository {
+        override suspend fun getHomeFeed(
+            zip: String?,
+            distance: Int?,
+        ): HomeFeed =
+            if (distance == delayedDistance) {
+                delayedFeed.await()
+            } else {
+                initialFeed
+            }
     }
 
     private fun homeFeed(
