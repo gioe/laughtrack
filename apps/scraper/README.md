@@ -10,10 +10,12 @@ A Python-based web scraping project designed to extract and process comedy show 
 # Install core dependencies
 make install
 # OR
-pip install -r requirements.txt
+uv sync --no-dev
 
-# Install development dependencies (optional)
+# Install development dependencies (runtime + test/lint tools)
 make install-dev
+# OR
+uv sync
 
 # Install visualization tools (optional)  
 make install-optional
@@ -73,8 +75,9 @@ python bin/neon-cost-diagnostics --limit 10
 
 ### Requirements
 
-- **Core**: `requirements.txt` - Basic scraping functionality
-- **Development**: `requirements-dev.txt` - Development tools and testing
+- **Core + Development**: `pyproject.toml` (locked in `uv.lock`) - runtime deps
+  live in `[project.dependencies]`; test/lint tooling lives in the
+  `[dependency-groups]` dev group, which plain `uv sync` installs by default
 - **Optional**: `requirements-optional.txt` - Visualization and analysis tools
 
 ### Testing

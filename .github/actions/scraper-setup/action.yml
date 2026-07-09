@@ -1,9 +1,9 @@
 name: Scraper Python setup
 description: >-
-  Set up Python, cache pip, and install apps/scraper requirements
-  (with optional dev deps). Tesseract is intentionally not installed
-  here — only OCR-touching workflows should pay that cost; install it
-  in the calling workflow as a separate apt-get step.
+  Set up Python, cache pip, and install apps/scraper from pyproject.toml
+  (with the optional dev dependency group). Tesseract is intentionally not
+  installed here — only OCR-touching workflows should pay that cost; install
+  it in the calling workflow as a separate apt-get step.
 inputs:
   python-version:
     description: Python version to install.
@@ -11,9 +11,9 @@ inputs:
     default: "3.13"
   install-dev:
     description: >-
-      Set to "true" to also install apps/scraper/requirements-dev.txt
-      (test/lint deps). Production workflows leave this false so the
-      pip cache key stays stable when only dev deps move.
+      Set to "true" to also install the pyproject [dependency-groups] dev
+      group (test/lint deps). Production workflows leave this false so the
+      installed set stays minimal.
     required: false
     default: "false"
 runs:
@@ -28,11 +28,10 @@ runs:
       uses: actions/cache@v5
       with:
         path: ~/.cache/pip
-        # Hashes requirements.txt only — dev deps are excluded so a
-        # requirements-dev.txt churn doesn't bust the production cache.
-        # scraper-ci.yml previously hashed requirements*.txt; CI gives up
-        # that extra invalidation in exchange for a single shared key.
-        key: ${{ runner.os }}-pip-${{ inputs.python-version }}-${{ hashFiles('apps/scraper/requirements.txt') }}
+        # Hashes pyproject.toml — the single dependency manifest since
+        # TASK-3711 (runtime deps in [project.dependencies], test/lint deps
+        # in the dev dependency group). requirements*.txt no longer exist.
+        key: ${{ runner.os }}-pip-${{ inputs.python-version }}-${{ hashFiles('apps/scraper/pyproject.toml') }}
         restore-keys: |
           ${{ runner.os }}-pip-${{ inputs.python-version }}-
           ${{ runner.os }}-pip-
@@ -43,9 +42,10 @@ runs:
       env:
         INSTALL_DEV: ${{ inputs.install-dev }}
       run: |
+        # pip >= 25.1 is required for the PEP 735 dependency-group install
+        # (pip install --group); the upgrade below guarantees it.
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
         pip install -e .
         if [ "$INSTALL_DEV" = "true" ]; then
-          pip install -r requirements-dev.txt
+          pip install --group dev
         fi

@@ -434,8 +434,9 @@ first redundant inline stub) and for cases the shared helper does not cover.
 
 When a test file needs to import from `laughtrack.utilities.infrastructure` (e.g.
 `error_handling.py`), importing through the package triggers `__init__.py` which
-imports `RateLimiter` → `gioe_libs` (an optional private dep not in requirements.txt).
-This causes a `ModuleNotFoundError` in any environment where `gioe_libs` is absent.
+imports `RateLimiter` → `gioe_libs` (a private git dependency declared in
+pyproject.toml). This causes a `ModuleNotFoundError` in any stripped-down
+environment where `gioe_libs` is absent.
 
 **Fix**: load the module file directly via `SourceFileLoader`, bypassing `__init__.py`:
 

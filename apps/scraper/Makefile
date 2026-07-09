@@ -288,15 +288,17 @@ help-cleanup: help-clean
 # Core production dependencies - minimal install for production deployment
 install: setup-venv
 	@echo "📦 Installing core production dependencies..."
-	@echo "   → Web scraping, database, and essential libraries"
-	$(activate_venv) $(PIP) install -r requirements.txt
+	@echo "   → Runtime deps from pyproject.toml, resolved via uv.lock"
+	@command -v uv >/dev/null 2>&1 || { echo "❌ uv is required (brew install uv)"; exit 1; }
+	uv sync --no-dev
 	@echo "✅ Core dependencies installed successfully!"
 
 # Development dependencies - additional tools for testing and development
 install-dev: setup-venv
 	@echo "🔧 Installing development dependencies..."
-	@echo "   → Testing frameworks, linting tools, debugging utilities"
-	$(activate_venv) $(PIP) install -r requirements-dev.txt
+	@echo "   → Runtime deps + the pyproject dev dependency group, via uv.lock"
+	@command -v uv >/dev/null 2>&1 || { echo "❌ uv is required (brew install uv)"; exit 1; }
+	uv sync
 	@echo "✅ Development dependencies installed successfully!"
 
 # Optional dependencies - visualization, dashboards, and advanced features
