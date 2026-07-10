@@ -2,6 +2,7 @@
 
 package app.laughtrack.android.feature.search.ui
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -18,6 +19,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -44,6 +47,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,6 +57,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -193,21 +198,48 @@ private fun SearchHeader(
             }
         }
 
-        Row(
-            modifier =
-                Modifier
-                    .weight(1f)
-                    .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            SearchPivot.entries.forEach { pivot ->
-                PrimitiveChip(
-                    title = pivot.label,
-                    selected = pivot == selectedPivot,
-                    enabled = pivot.isAvailable,
-                    onClick = { onSelectPivot(pivot) },
-                )
+        SearchPivotRow(
+            selectedPivot = selectedPivot,
+            onSelectPivot = onSelectPivot,
+            modifier = Modifier.weight(1f),
+        )
+    }
+}
+
+internal const val SEARCH_PIVOT_ROW_TEST_TAG = "searchPivotRow"
+
+internal fun searchPivotTestTag(pivot: SearchPivot) = "searchPivot-${pivot.name}"
+
+@Composable
+@OptIn(ExperimentalFoundationApi::class)
+internal fun SearchPivotRow(
+    selectedPivot: SearchPivot,
+    onSelectPivot: (SearchPivot) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier =
+            modifier
+                .testTag(SEARCH_PIVOT_ROW_TEST_TAG)
+                .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        SearchPivot.entries.forEach { pivot ->
+            val bringIntoViewRequester = remember(pivot) { BringIntoViewRequester() }
+            val selected = pivot == selectedPivot
+            LaunchedEffect(selected) {
+                if (selected) bringIntoViewRequester.bringIntoView()
             }
+            PrimitiveChip(
+                title = pivot.label,
+                selected = selected,
+                enabled = pivot.isAvailable,
+                onClick = { onSelectPivot(pivot) },
+                modifier =
+                    Modifier
+                        .testTag(searchPivotTestTag(pivot))
+                        .bringIntoViewRequester(bringIntoViewRequester),
+            )
         }
     }
 }
@@ -218,6 +250,7 @@ private fun PrimitiveChip(
     selected: Boolean,
     enabled: Boolean,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val shape = RoundedCornerShape(999.dp)
     Surface(
@@ -228,7 +261,7 @@ private fun PrimitiveChip(
         // text color, matching the iOS/Android divergence noted in the task.
         color = if (selected) LaughTrackColors.AccentStrong else Color.Black.copy(alpha = 0.98f),
         modifier =
-            Modifier
+            modifier
                 .height(34.dp)
                 .clip(shape)
                 .clickable(enabled = enabled, onClick = onClick)
