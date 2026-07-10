@@ -110,15 +110,18 @@ jobs:
           api-level: 34
           arch: x86_64
           working-directory: android
-          # Only :app has instrumented tests (the Hilt-backed AppShellTest);
-          # every other module has no androidTest sources AND no
-          # androidx.test.runner / testInstrumentationRunner, so a project-wide
-          # `connectedDebugAndroidTest` falls back to the legacy
-          # android.test.InstrumentationTestRunner in those modules, which ANRs at
-          # startup ("failed to complete startup") and reports "Process crashed".
-          # Target the only module that has real instrumented tests; add others
-          # here once they declare an AndroidJUnitRunner + androidTest sources.
-          script: gradle :app:connectedDebugAndroidTest --no-daemon --stacktrace
+          # Only modules that declare an AndroidJUnitRunner + androidTest sources
+          # are targeted (currently :app with the Hilt-backed AppShellTest +
+          # AppStoreScreenshotTest, and :core:ui with RemoteImageFallbackTest from
+          # TASK-3716). A project-wide `connectedDebugAndroidTest` falls back to
+          # the legacy android.test.InstrumentationTestRunner in runner-less
+          # modules, which ANRs at startup ("failed to complete startup") and
+          # reports "Process crashed" — add modules here explicitly as they gain
+          # instrumented suites. Separate invocations so each module's result is
+          # attributable in the log even when the other is red.
+          script: |
+            gradle :core:ui:connectedDebugAndroidTest --no-daemon --stacktrace
+            gradle :app:connectedDebugAndroidTest --no-daemon --stacktrace
 
   # Alert on Discord when any job fails on a push to main. Merges to main land
   # via direct fast-forward push, which bypasses required status checks, so these

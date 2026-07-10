@@ -166,6 +166,17 @@ cd android
 ./gradlew connectedCheck       # instrumented tests (needs an emulator/device)
 ```
 
+CI (`.github/workflows/android.yml`, path-gated on `android/**`) runs the
+instrumented suites on every push/PR via `reactivecircus/android-emulator-runner`
+(API 34, x86_64, KVM-accelerated `ubuntu-latest`): the job targets
+`:core:ui:connectedDebugAndroidTest` (RemoteImageFallbackTest) and then
+`:app:connectedDebugAndroidTest` explicitly — never project-wide, because
+runner-less modules crash the legacy instrumentation runner. Whole-job runtime
+is **~7 minutes** (≈2 min emulator boot + ≈5 min build-and-test); add new
+modules to the job's `script` as they gain androidTest sources. Note the jobs
+run post-merge (main merges bypass required checks), so a red run alerts
+Discord rather than blocking the push.
+
 ### Tusk commit/merge test gate for `android/**`
 
 Commits that touch **only** `android/**` resolve to an Android-specific Tusk
