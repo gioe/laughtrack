@@ -138,7 +138,7 @@ struct NowPlayingView: View {
         return RoundedRectangle(cornerRadius: 24, style: .continuous)
             .fill(laughTrack.colors.surfaceElevated)
             .overlay {
-                Image(systemName: "music.mic")
+                Image(systemName: "headphones")
                     .font(.system(size: 72, weight: .semibold))
                     .foregroundStyle(laughTrack.colors.accentStrong)
             }

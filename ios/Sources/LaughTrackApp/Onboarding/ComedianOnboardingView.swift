@@ -666,7 +666,8 @@ private struct ComedianOnboardingRow: View {
         return ZStack {
             RemoteImageView(
                 urlString: comedian.imageUrl,
-                aspectRatio: 1
+                aspectRatio: 1,
+                fallback: .comedian
             )
             .frame(width: Self.posterSize, height: Self.posterSize)
             .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
@@ -727,7 +728,8 @@ private struct ComedianSwipeCard: View {
             ZStack {
                 RemoteImageView(
                     urlString: comedian.imageUrl,
-                    aspectRatio: 1
+                    aspectRatio: 1,
+                    fallback: .comedian
                 )
                 .frame(width: Self.posterSize, height: Self.posterSize)
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
