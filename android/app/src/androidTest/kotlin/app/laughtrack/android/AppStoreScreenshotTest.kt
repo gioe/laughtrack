@@ -11,11 +11,20 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.platform.app.InstrumentationRegistry
+import app.laughtrack.android.core.network.ApiClientModule
+import app.laughtrack.android.core.network.generated.infrastructure.ApiClient
 import app.laughtrack.android.core.ui.theme.LaughTrackTheme
 import app.laughtrack.android.feature.detail.ui.components.DETAIL_LOADING_TEST_TAG
 import app.laughtrack.android.feature.search.ui.SEARCH_RESULT_ROW_TEST_TAG
+import app.laughtrack.android.screenshots.ScreenshotFixtureServer
+import app.laughtrack.android.screenshots.ScreenshotImageTracker
+import coil.Coil
+import coil.ImageLoader
+import dagger.hilt.android.testing.BindValue
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
+import dagger.hilt.android.testing.UninstallModules
+import okhttp3.OkHttpClient
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -41,11 +50,27 @@ import tools.fastlane.screengrab.locale.LocaleTestRule
  * only consulted from useDeviceLocation(), never on the initial zip=null load —
  * hence the explicit tap.)
  *
- * Result data comes from the production /api/v1 backend, so the exact shows/clubs
- * shown vary run to run; the flow only assumes at least one result exists per pivot.
+ * Result data comes from the local fixture server, which keeps every entity and
+ * bundled artwork stable while still exercising the app's real API parsing path.
  */
 @HiltAndroidTest
+@UninstallModules(ApiClientModule::class)
 class AppStoreScreenshotTest {
+    @BindValue
+    @JvmField
+    val screenshotApiClient =
+        ApiClient(
+            baseUrl = ScreenshotFixtureServer.apiBaseUrl,
+            okHttpClientBuilder = OkHttpClient.Builder(),
+        )
+
+    @BindValue
+    @JvmField
+    @javax.inject.Named("apiBaseUrl")
+    val screenshotApiBaseUrl = ScreenshotFixtureServer.apiBaseUrl
+
+    private val imageTracker = ScreenshotImageTracker()
+
     @get:Rule(order = 0)
     val hiltRule = HiltAndroidRule(this)
 
@@ -68,6 +93,12 @@ class AppStoreScreenshotTest {
         // test activity). The FakeHomeLocationResolver still short-circuits GPS and
         // returns 90028 — the grant only keeps the in-app permission check happy.
         val instrumentation = InstrumentationRegistry.getInstrumentation()
+        Coil.setImageLoader(
+            ImageLoader.Builder(instrumentation.targetContext)
+                .crossfade(false)
+                .eventListener(imageTracker)
+                .build(),
+        )
         val pkg = instrumentation.targetContext.packageName
         listOf(
             Manifest.permission.ACCESS_FINE_LOCATION,
@@ -94,53 +125,51 @@ class AppStoreScreenshotTest {
             hasText("Near ", substring = true) or hasText("90028", substring = true),
             timeoutMs = 30_000,
         )
-        settle()
-        Screengrab.screenshot("01_NearMe")
+        capture("01_NearMe", "taylor")
 
         // 02 — Search / Shows (the default pivot). The Search tab's contentDescription
         // lives on the icon, which NavigationBarItem merges under its label Text — so
         // it only resolves in the unmerged tree. Clicking the icon node still triggers
         // the item's onClick.
         composeRule.onNode(hasContentDescription("Search"), useUnmergedTree = true).performClick()
+        waitFor(hasText("Search nearby comedy"), timeoutMs = 30_000)
         waitForResults()
-        settle()
-        Screengrab.screenshot("02_SearchShows")
+        capture("02_SearchShows", "taylor")
 
         // 03 — Search / Comedians. Pivot chips render their label uppercased.
         selectPivot("COMEDIANS")
-        settle()
-        Screengrab.screenshot("03_SearchComedians")
+        capture("03_SearchComedians", "ali-wong")
 
         // 04 — Search / Clubs.
         selectPivot("CLUBS")
-        settle()
-        Screengrab.screenshot("04_SearchClubs")
+        capture("04_SearchClubs", "comedy-store")
 
         // 05 — Club detail (open the first Clubs result, capture, return).
         openFirstResult()
-        Screengrab.screenshot("05_ClubDetail")
+        capture("05_ClubDetail", "comedy-store")
         goBack()
 
         // 06 — Show detail (Shows pivot → first result).
         selectPivot("SHOWS")
         openFirstResult()
-        Screengrab.screenshot("06_ShowDetail")
+        capture("06_ShowDetail", "taylor")
         goBack()
 
         // 07 — Comedian detail.
         selectPivot("COMEDIANS")
         openFirstResult()
-        Screengrab.screenshot("07_ComedianDetail")
+        capture("07_ComedianDetail", "ali-wong")
         goBack()
 
         // 08 — Search / Podcasts.
         selectPivot("PODCASTS")
-        settle()
-        Screengrab.screenshot("08_SearchPodcasts")
+        capture("08_SearchPodcasts", "joe-rogan")
 
         // 09 — Podcast detail.
         openFirstResult()
-        Screengrab.screenshot("09_PodcastDetail")
+        capture("09_PodcastDetail", "joe-rogan")
+
+        ScreenshotFixtureServer.assertNoUnexpectedRequests()
     }
 
     /** Select a search pivot by its uppercased chip label and wait for its results. */
@@ -167,7 +196,26 @@ class AppStoreScreenshotTest {
     }
 
     /** Wait until at least one search result row is present. */
-    private fun waitForResults() = waitFor(hasTestTag(SEARCH_RESULT_ROW_TEST_TAG), timeoutMs = 30_000)
+    private fun waitForResults() = waitForStable(hasTestTag(SEARCH_RESULT_ROW_TEST_TAG), timeoutMs = 30_000)
+
+    /** Require a node to remain present across recompositions, not merely flash during navigation. */
+    private fun waitForStable(
+        matcher: SemanticsMatcher,
+        timeoutMs: Long,
+        stableMs: Long = 750,
+    ) {
+        var presentSince = 0L
+        composeRule.waitUntil(timeoutMillis = timeoutMs) {
+            val now = android.os.SystemClock.uptimeMillis()
+            if (composeRule.onAllNodes(matcher).fetchSemanticsNodes().isEmpty()) {
+                presentSince = 0L
+                false
+            } else {
+                if (presentSince == 0L) presentSince = now
+                now - presentSince >= stableMs
+            }
+        }
+    }
 
     /** Block until at least one node matches [matcher], or the timeout elapses. */
     private fun waitFor(
@@ -192,5 +240,17 @@ class AppStoreScreenshotTest {
     /** Let animations/recomposition quiesce before capturing a frame. */
     private fun settle() {
         composeRule.waitForIdle()
+    }
+
+    /** Wait for the screen's contract artwork and Coil decode before capture. */
+    private fun capture(
+        name: String,
+        artworkKey: String,
+    ) {
+        settle()
+        ScreenshotFixtureServer.awaitArtwork(artworkKey)
+        imageTracker.awaitIdle()
+        settle()
+        Screengrab.screenshot(name)
     }
 }
