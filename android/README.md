@@ -27,7 +27,9 @@ android/
 │   ├── navigation/     # AppRoute model + LaughTrackDeepLink (laughtrack:// + FCM routing)
 │   ├── network/        # OkHttp/Retrofit, generated OpenAPI client, AuthSessionManager
 │   ├── data/           # Repositories, stores, offline queue, runCatchingCancellable
-│   └── playback/       # Media3/ExoPlayer podcast playback controller
+│   ├── playback/       # Media3/ExoPlayer podcast playback controller
+│   ├── analytics/      # Analytics events + AnalyticsManager
+│   └── testing/        # Shared JVM test fixtures (throwingApi, signed-out FavoritesRepository)
 └── feature/
     ├── home/           # Discover/Home rails + location header
     ├── search/         # Search across shows, clubs, comedians
