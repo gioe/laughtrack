@@ -4,6 +4,7 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import androidx.compose.foundation.layout.size
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.ComposeContentTestRule
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -74,7 +75,7 @@ class RemoteImageFallbackTest {
 
         compose.waitForTag(RemoteImageTestTags.fallback(RemoteImageFallback.Club))
         compose.onNodeWithTag(RemoteImageTestTags.fallback(RemoteImageFallback.Club)).assertIsDisplayed()
-        compose.onAllNodesWithTag(RemoteImageTestTags.SKELETON).assertCountIsZero()
+        compose.onAllNodesWithTag(RemoteImageTestTags.SKELETON).assertCountEquals(0)
     }
 
     @Test
@@ -91,7 +92,7 @@ class RemoteImageFallbackTest {
 
         compose.waitForTag(RemoteImageTestTags.SKELETON)
         compose.onNodeWithTag(RemoteImageTestTags.SKELETON).assertIsDisplayed()
-        compose.onAllNodesWithTag(RemoteImageTestTags.fallback(RemoteImageFallback.Show)).assertCountIsZero()
+        compose.onAllNodesWithTag(RemoteImageTestTags.fallback(RemoteImageFallback.Show)).assertCountEquals(0)
     }
 
     @Test
@@ -115,7 +116,7 @@ class RemoteImageFallbackTest {
         compose.waitUntil(TIMEOUT_MS) {
             compose.onAllNodesWithTag(RemoteImageTestTags.SKELETON).fetchSemanticsNodes().isEmpty()
         }
-        compose.onAllNodesWithTag(RemoteImageTestTags.fallback(RemoteImageFallback.Podcast)).assertCountIsZero()
+        compose.onAllNodesWithTag(RemoteImageTestTags.fallback(RemoteImageFallback.Podcast)).assertCountEquals(0)
     }
 
     private fun installLoader(interceptor: suspend (Interceptor.Chain) -> ImageResult) {
@@ -128,10 +129,6 @@ class RemoteImageFallbackTest {
 
     private fun ComposeContentTestRule.waitForTag(tag: String) {
         waitUntil(TIMEOUT_MS) { onAllNodesWithTag(tag).fetchSemanticsNodes().isNotEmpty() }
-    }
-
-    private fun androidx.compose.ui.test.SemanticsNodeInteractionCollection.assertCountIsZero() {
-        assert(fetchSemanticsNodes().isEmpty()) { "Expected no matching nodes" }
     }
 
     private companion object {

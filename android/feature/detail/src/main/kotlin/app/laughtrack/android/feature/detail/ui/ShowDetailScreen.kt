@@ -509,7 +509,7 @@ private fun LineupMarqueeCard(
         ) {
             RemoteImage(
                 url = item.imageUrl,
-                fallback = RemoteImageFallback.Show,
+                fallback = RemoteImageFallback.Comedian,
                 contentDescription = item.name,
                 modifier =
                     Modifier
