@@ -494,7 +494,7 @@ struct ComedianOnboardingView: View {
                     .fill(tokens.colors.surfaceMuted)
                     .frame(width: 120, height: 120)
                     .overlay {
-                        Image(systemName: "music.mic")
+                        Image(systemName: ArtworkFallbackKind.comedian.systemImage)
                             .font(.system(size: 44, weight: .semibold))
                             .foregroundStyle(tokens.colors.accentStrong)
                     }

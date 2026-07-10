@@ -51,7 +51,7 @@ struct ComedianDetailView: View {
                             thumbnailCaption: comedian.name,
                             actions: comedianHeroActions(socialData: comedian.socialData),
                             openURL: { url in openURL(url) },
-                            fallbackSystemImage: "music.mic"
+                            fallbackSystemImage: ArtworkFallbackKind.comedian.systemImage
                         )
 
                         VStack(alignment: .leading, spacing: 20) {
@@ -747,7 +747,7 @@ struct ComedianPodcastPanel: View {
         let fallback = RoundedRectangle(cornerRadius: 12, style: .continuous)
             .fill(laughTrack.colors.surfaceElevated)
             .overlay {
-                Image(systemName: "headphones")
+                Image(systemName: ArtworkFallbackKind.podcast.systemImage)
                     .font(.system(size: 28, weight: .semibold))
                     .foregroundStyle(laughTrack.colors.accentStrong)
             }
@@ -896,7 +896,7 @@ struct ComedianPodcastPanel: View {
         let fallback = RoundedRectangle(cornerRadius: 8, style: .continuous)
             .fill(laughTrack.colors.surfaceElevated)
             .overlay {
-                Image(systemName: "music.mic")
+                Image(systemName: ArtworkFallbackKind.podcast.systemImage)
                     .font(.system(size: theme.iconSizes.md, weight: .semibold))
                     .foregroundStyle(laughTrack.colors.accentStrong)
             }
@@ -1129,7 +1129,7 @@ struct PodcastAppearanceRow: View {
     private var fallbackArtwork: some View {
         artworkBackground
             .overlay {
-                Image(systemName: "music.mic")
+                Image(systemName: ArtworkFallbackKind.podcast.systemImage)
                     .font(.system(size: theme.iconSizes.lg, weight: .semibold))
                     .foregroundStyle(theme.laughTrackTokens.colors.accentStrong)
             }

@@ -91,6 +91,7 @@
 		527B0FC890A60821C39FDFE8 /* PushPermissionStateStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8028E5CE6757E7382895D1F /* PushPermissionStateStoreTests.swift */; };
 		528AF747B0A0687C9C11078B /* SnapshotHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = A74BC487918A42A77595DEB3 /* SnapshotHelper.swift */; };
 		5518B3838A0551BE0358E7FA /* HTTPTypes in Frameworks */ = {isa = PBXBuildFile; productRef = 3EE680D7B2961BCF494CE024 /* HTTPTypes */; };
+		57E32EDCA8AFBAF565847F1B /* ArtworkFallbackKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BE7A273080385947804C2BB /* ArtworkFallbackKind.swift */; };
 		59B8303D81EB6A24B64FE033 /* LocationPermissionPitchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03760E9F0943F566D7BA4BCE /* LocationPermissionPitchView.swift */; };
 		5A4285ADBE378CD0C587B7C7 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CF86F29E41E550F89B40A3E /* AppSettings.swift */; };
 		5AFDB082808517D1D6ACEEA0 /* HomeFeedRequestCoalescer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C34F645AA5FAAD71CD51D6D /* HomeFeedRequestCoalescer.swift */; };
@@ -448,6 +449,7 @@
 		43EE3334A9C17B5E93FDB4F4 /* LoadFailure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadFailure.swift; sourceTree = "<group>"; };
 		46FBFF4A89FC9B1EE438A9EE /* ConsoleAnalyticsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsoleAnalyticsProvider.swift; sourceTree = "<group>"; };
 		498BFB68E6063E822195D27C /* NearbyLocationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NearbyLocationController.swift; sourceTree = "<group>"; };
+		4BE7A273080385947804C2BB /* ArtworkFallbackKind.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtworkFallbackKind.swift; sourceTree = "<group>"; };
 		4C08909C0DEBE7950766D93E /* SoftPushPromptSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoftPushPromptSheet.swift; sourceTree = "<group>"; };
 		4CF86F29E41E550F89B40A3E /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		4F6241EF98C5364C9ADF43F1 /* ComedianDetailViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComedianDetailViewTests.swift; sourceTree = "<group>"; };
@@ -1041,6 +1043,7 @@
 		972D4E3777C6BD77ECF7577D /* DesignSystem */ = {
 			isa = PBXGroup;
 			children = (
+				4BE7A273080385947804C2BB /* ArtworkFallbackKind.swift */,
 				50E74EE4E67E5475B4FDB8BA /* LaughTrackBrowseComponents.swift */,
 				F97636A6D9A525F2A93EEBBD /* LaughTrackComponents.swift */,
 			);
@@ -1404,6 +1407,7 @@
 				5A4285ADBE378CD0C587B7C7 /* AppSettings.swift in Sources */,
 				7BF5BA4980BD8A9267682209 /* AppShellView.swift in Sources */,
 				9009C5A81846DBC1B9A15358 /* AppTab.swift in Sources */,
+				57E32EDCA8AFBAF565847F1B /* ArtworkFallbackKind.swift in Sources */,
 				B6400391B2D887C2DD9E88EB /* AuthLoadingView.swift in Sources */,
 				3B430DA4BB446FE59C018E9B /* ClubDetailView.swift in Sources */,
 				69DAA965C9A4EC53475DE815 /* ClubWallHeadshotFrame.swift in Sources */,

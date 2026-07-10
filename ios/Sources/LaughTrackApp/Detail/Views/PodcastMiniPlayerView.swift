@@ -158,7 +158,7 @@ struct PodcastMiniPlayerView: View {
         return RoundedRectangle(cornerRadius: 8, style: .continuous)
             .fill(laughTrack.colors.surfaceMuted)
             .overlay {
-                Image(systemName: "headphones")
+                Image(systemName: ArtworkFallbackKind.podcast.systemImage)
                     .font(.system(size: 18, weight: .semibold))
                     .foregroundStyle(laughTrack.colors.accentStrong)
             }

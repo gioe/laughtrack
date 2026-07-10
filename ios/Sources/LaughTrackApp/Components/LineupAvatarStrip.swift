@@ -69,7 +69,7 @@ struct LineupAvatarStrip: View {
         Circle()
             .fill(theme.laughTrackTokens.colors.surfaceMuted)
             .overlay {
-                Image(systemName: "person.fill")
+                Image(systemName: ArtworkFallbackKind.person.systemImage)
                     .foregroundStyle(theme.laughTrackTokens.colors.accentStrong)
             }
     }

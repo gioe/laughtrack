@@ -202,7 +202,7 @@ struct PodcastDetailView: View {
                             hosts: PodcastDetailPresentation.heroHosts(for: response.podcast),
                             openURL: { url in openURL(url) },
                             openComedian: { coordinator.open(.comedian($0)) },
-                            fallbackSystemImage: "headphones"
+                            fallbackSystemImage: ArtworkFallbackKind.podcast.systemImage
                         )
 
                         VStack(alignment: .leading, spacing: 20) {
@@ -620,7 +620,7 @@ private struct PodcastRelatedComedianRow: View {
             .fill(theme.laughTrackTokens.colors.surfaceMuted)
             .frame(width: 44, height: 44)
             .overlay {
-                Image(systemName: "person.fill")
+                Image(systemName: ArtworkFallbackKind.person.systemImage)
                     .font(.system(size: theme.iconSizes.md, weight: .semibold))
                     .foregroundStyle(theme.laughTrackTokens.colors.accentStrong)
             }

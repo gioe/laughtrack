@@ -316,7 +316,7 @@ struct ShowRow: View {
         return Circle()
             .fill(laughTrack.colors.surfaceMuted)
             .overlay {
-                Image(systemName: "person.fill")
+                Image(systemName: ArtworkFallbackKind.person.systemImage)
                     .font(.system(size: 22, weight: .semibold))
                     .foregroundStyle(laughTrack.colors.accentStrong)
             }
@@ -388,7 +388,7 @@ struct ShowRow: View {
         return Circle()
             .fill(laughTrack.colors.surfaceMuted)
             .overlay {
-                Image(systemName: "person.fill")
+                Image(systemName: ArtworkFallbackKind.person.systemImage)
                     .font(.system(size: 10, weight: .semibold))
                     .foregroundStyle(laughTrack.colors.accentStrong)
             }

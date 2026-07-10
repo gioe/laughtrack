@@ -67,7 +67,7 @@ struct SavedFavoritesSection: View {
                             LaughTrackEntityRow(
                                 title: comedian.name,
                                 subtitle: Self.subtitle(for: comedian),
-                                systemImage: "person.fill",
+                                systemImage: ArtworkFallbackKind.person.systemImage,
                                 imageURL: comedian.imageUrl,
                                 showsDisclosureIndicator: true
                             )

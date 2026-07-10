@@ -206,7 +206,7 @@ private struct HomeTrendingComedianCard: View {
         return Rectangle()
             .fill(laughTrack.colors.surfaceMuted)
             .overlay {
-                Image(systemName: "music.mic")
+                Image(systemName: ArtworkFallbackKind.comedian.systemImage)
                     .font(.system(size: theme.iconSizes.lg, weight: .semibold))
                     .foregroundStyle(laughTrack.colors.accentStrong)
             }

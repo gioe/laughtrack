@@ -66,7 +66,7 @@ struct ShowDetailView: View {
                             thumbnailCaption: ShowDetailPresentation.heroThumbnailCaption(for: show),
                             thumbnailHeadshots: ShowDetailPresentation.heroHeadshots(for: show),
                             badges: ShowDetailPresentation.heroBadges(for: show),
-                            fallbackSystemImage: "ticket.fill"
+                            fallbackSystemImage: ArtworkFallbackKind.show.systemImage
                         )
 
                         if authManager.currentUser?.isAdmin == true {
@@ -884,7 +884,7 @@ private struct ComedianLineupTile: View {
         return Rectangle()
             .fill(laughTrack.colors.surfaceMuted)
             .overlay {
-                Image(systemName: "music.mic")
+                Image(systemName: ArtworkFallbackKind.comedian.systemImage)
                     .font(.system(size: theme.iconSizes.lg, weight: .semibold))
                     .foregroundStyle(laughTrack.colors.accentStrong)
             }

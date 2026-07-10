@@ -249,7 +249,7 @@ struct DetailHero: View {
             .fill(laughTrack.colors.surfaceMuted)
             .frame(width: diameter, height: diameter)
             .overlay {
-                Image(systemName: "person.fill")
+                Image(systemName: ArtworkFallbackKind.person.systemImage)
                     .font(.system(size: theme.iconSizes.md, weight: .semibold))
                     .foregroundStyle(laughTrack.colors.accentStrong)
             }

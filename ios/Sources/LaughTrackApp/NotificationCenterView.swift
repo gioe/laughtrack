@@ -240,7 +240,7 @@ private struct NotificationRow: View {
     private var avatarFallback: some View {
         let tokens = theme.laughTrackTokens
 
-        return Image(systemName: "person.fill")
+        return Image(systemName: ArtworkFallbackKind.person.systemImage)
             .font(.system(size: 20, weight: .semibold))
             .foregroundStyle(tokens.colors.accentStrong)
     }

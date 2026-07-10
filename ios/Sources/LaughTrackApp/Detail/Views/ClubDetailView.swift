@@ -49,7 +49,7 @@ struct ClubDetailView: View {
                         openURL: { url in
                             openURL(url)
                         },
-                        fallbackSystemImage: "building.2.fill"
+                        fallbackSystemImage: ArtworkFallbackKind.club.systemImage
                     )
 
                     VStack(alignment: .leading, spacing: 20) {

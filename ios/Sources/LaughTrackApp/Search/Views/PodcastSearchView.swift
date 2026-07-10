@@ -242,7 +242,7 @@ struct PodcastSearchRow: View {
         return Rectangle()
             .fill(laughTrack.colors.surfaceMuted)
             .overlay {
-                Image(systemName: "headphones")
+                Image(systemName: ArtworkFallbackKind.podcast.systemImage)
                     .font(.system(size: 22, weight: .semibold))
                     .foregroundStyle(laughTrack.colors.accentStrong)
             }

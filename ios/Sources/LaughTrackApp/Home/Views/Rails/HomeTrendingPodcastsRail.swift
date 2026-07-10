@@ -257,7 +257,7 @@ private struct HomeTrendingPodcastCard: View {
         return Rectangle()
             .fill(laughTrack.colors.surfaceMuted)
             .overlay {
-                Image(systemName: "headphones")
+                Image(systemName: ArtworkFallbackKind.podcast.systemImage)
                     .font(.system(size: theme.iconSizes.lg, weight: .semibold))
                     .foregroundStyle(laughTrack.colors.accentStrong)
             }

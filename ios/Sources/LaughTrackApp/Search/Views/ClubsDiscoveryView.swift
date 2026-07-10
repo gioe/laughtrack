@@ -268,7 +268,7 @@ struct ClubRow: View {
         return Rectangle()
             .fill(laughTrack.colors.surfaceMuted)
             .overlay {
-                Image(systemName: "building.2.fill")
+                Image(systemName: ArtworkFallbackKind.club.systemImage)
                     .font(.system(size: 22, weight: .semibold))
                     .foregroundStyle(laughTrack.colors.accentStrong)
             }

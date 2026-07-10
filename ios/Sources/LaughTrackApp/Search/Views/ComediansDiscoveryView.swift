@@ -374,7 +374,7 @@ struct ComedianRow: View {
         return Rectangle()
             .fill(laughTrack.colors.surfaceMuted)
             .overlay {
-                Image(systemName: "music.mic")
+                Image(systemName: ArtworkFallbackKind.comedian.systemImage)
                     .font(.system(size: 22, weight: .semibold))
                     .foregroundStyle(laughTrack.colors.accentStrong)
             }

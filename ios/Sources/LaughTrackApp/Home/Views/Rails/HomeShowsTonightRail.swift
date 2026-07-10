@@ -393,7 +393,7 @@ private struct HomeShowsTonightHeroCard: View {
         return Rectangle()
             .fill(laughTrack.colors.surfaceMuted)
             .overlay {
-                Image(systemName: "ticket.fill")
+                Image(systemName: ArtworkFallbackKind.show.systemImage)
                     .font(.system(size: 28, weight: .semibold))
                     .foregroundStyle(laughTrack.colors.accentStrong)
             }
