@@ -154,6 +154,7 @@ fun TicketShowRow(
         ) {
             RemoteImage(
                 url = imageUrl,
+                fallback = RemoteImageFallback.Show,
                 contentDescription = title,
                 modifier = Modifier.size(56.dp).clip(RoundedCornerShape(8.dp)),
             )

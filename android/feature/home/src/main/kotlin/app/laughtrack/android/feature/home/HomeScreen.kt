@@ -58,6 +58,7 @@ import app.laughtrack.android.core.network.generated.model.HomeFeedPodcast
 import app.laughtrack.android.core.network.generated.model.Show
 import app.laughtrack.android.core.ui.UiState
 import app.laughtrack.android.core.ui.components.RemoteImage
+import app.laughtrack.android.core.ui.components.RemoteImageFallback
 import app.laughtrack.android.core.ui.components.SkeletonBox
 import app.laughtrack.android.core.ui.components.SkeletonLine
 import app.laughtrack.android.core.ui.components.TicketShowRow
@@ -225,6 +226,7 @@ private fun ComedianRail(
                     title = comedian.name,
                     subtitle = "${comedian.showCount} shows",
                     imageUrl = comedian.imageUrl,
+                    fallback = RemoteImageFallback.Comedian,
                     width = 156.dp,
                     onClick = { onOpenEntity(AppRoute.ComedianDetail(comedian.id)) },
                 )
@@ -245,6 +247,7 @@ private fun ClubRail(
                     title = club.name,
                     subtitle = club.address,
                     imageUrl = club.imageUrl,
+                    fallback = RemoteImageFallback.Club,
                     width = 168.dp,
                     onClick = { onOpenEntity(AppRoute.ClubDetail(club.id)) },
                 )
@@ -265,6 +268,7 @@ private fun PodcastRail(
                     title = podcast.title,
                     subtitle = podcast.authorName ?: "${podcast.episodeCount} episodes",
                     imageUrl = podcast.imageUrl,
+                    fallback = RemoteImageFallback.Podcast,
                     width = 168.dp,
                     onClick = { onOpenEntity(AppRoute.PodcastDetail(podcast.id)) },
                 )
@@ -515,6 +519,7 @@ private fun MarqueeArtwork(show: Show) {
         ) {
             RemoteImage(
                 url = show.imageUrl,
+                fallback = RemoteImageFallback.Show,
                 contentDescription = show.name ?: "Show",
                 modifier =
                     Modifier
@@ -614,6 +619,7 @@ private fun ShowHeadlinerBlock(
         ) {
             RemoteImage(
                 url = headliner.imageUrl,
+                fallback = RemoteImageFallback.Comedian,
                 contentDescription = headliner.name,
                 modifier =
                     Modifier
@@ -716,6 +722,7 @@ private fun FeedCard(
     title: String,
     subtitle: String?,
     imageUrl: String?,
+    fallback: RemoteImageFallback,
     width: Dp,
     onClick: () -> Unit,
 ) {
@@ -734,6 +741,7 @@ private fun FeedCard(
                 url = imageUrl,
                 contentDescription = title,
                 modifier = Modifier.fillMaxWidth().height(106.dp),
+                fallback = fallback,
             )
             Column(
                 Modifier.padding(10.dp),

@@ -40,6 +40,7 @@ import app.laughtrack.android.core.network.generated.model.PodcastDetailResponse
 import app.laughtrack.android.core.playback.PodcastPlaybackItem
 import app.laughtrack.android.core.ui.UiState
 import app.laughtrack.android.core.ui.components.RemoteImage
+import app.laughtrack.android.core.ui.components.RemoteImageFallback
 import app.laughtrack.android.core.ui.theme.LaughTrackColors
 import app.laughtrack.android.feature.detail.ui.components.DetailError
 import app.laughtrack.android.feature.detail.ui.components.DetailLoading
@@ -156,7 +157,12 @@ private fun PodcastCoverCard(url: String?) {
                 .border(1.dp, LaughTrackColors.BorderSubtle, shape),
     ) {
         // Decorative: the podcast title is announced by the heading below.
-        RemoteImage(url = url, contentDescription = null, modifier = Modifier.fillMaxSize())
+        RemoteImage(
+            url = url,
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            fallback = RemoteImageFallback.Podcast,
+        )
     }
 }
 
@@ -177,6 +183,7 @@ private fun PodcastHostRow(
                 imageUrl = host.imageUrl,
                 subtitle = "Host",
                 onClick = { onOpenEntity(AppRoute.ComedianDetail(host.id)) },
+                fallback = RemoteImageFallback.Comedian,
             )
         }
     }
@@ -200,6 +207,7 @@ private fun PodcastRelatedRow(
                     imageUrl = comedian.imageUrl,
                     subtitle = "${comedian.showCount} shows",
                     onClick = { onOpenEntity(AppRoute.ComedianDetail(comedian.id)) },
+                    fallback = RemoteImageFallback.Comedian,
                 )
             }
         }

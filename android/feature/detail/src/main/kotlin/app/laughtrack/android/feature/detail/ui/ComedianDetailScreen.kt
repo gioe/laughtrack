@@ -73,6 +73,7 @@ import app.laughtrack.android.core.network.generated.model.SocialData
 import app.laughtrack.android.core.network.generated.model.UpcomingRun
 import app.laughtrack.android.core.ui.UiState
 import app.laughtrack.android.core.ui.components.RemoteImage
+import app.laughtrack.android.core.ui.components.RemoteImageFallback
 import app.laughtrack.android.core.ui.components.TicketShowRow
 import app.laughtrack.android.core.ui.components.ticketStubDateParts
 import app.laughtrack.android.core.ui.theme.LaughTrackColors
@@ -261,6 +262,7 @@ private fun ComedianPolaroid(
         // headline below (mirrors iOS marking the polaroid caption accessibilityHidden).
         RemoteImage(
             url = imageUrl,
+            fallback = RemoteImageFallback.Comedian,
             contentDescription = null,
             modifier =
                 Modifier
@@ -678,6 +680,7 @@ private fun ComedianRelatedTab(
                 imageUrl = comedian.imageUrl,
                 subtitle = comedian.showCount?.let { "$it shows" },
                 onClick = { onOpenEntity(AppRoute.ComedianDetail(comedian.id)) },
+                fallback = RemoteImageFallback.Comedian,
             )
         }
     }

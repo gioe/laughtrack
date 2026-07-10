@@ -35,6 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.laughtrack.android.core.ui.components.RemoteImage
+import app.laughtrack.android.core.ui.components.RemoteImageFallback
 import kotlinx.coroutines.delay
 
 @Composable
@@ -64,6 +65,7 @@ fun PodcastMiniPlayer(
             ) {
                 RemoteImage(
                     url = item.artworkUrl,
+                    fallback = RemoteImageFallback.Podcast,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.size(48.dp),
@@ -123,6 +125,7 @@ fun NowPlayingScreen(
     ) {
         RemoteImage(
             url = item.artworkUrl,
+            fallback = RemoteImageFallback.Podcast,
             contentDescription = item.podcastTitle,
             contentScale = ContentScale.Crop,
             modifier =

@@ -19,7 +19,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -35,6 +34,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.ui.components.RemoteImage
+import app.laughtrack.android.core.ui.components.RemoteImageFallback
 import app.laughtrack.android.core.ui.components.SkeletonLine
 import app.laughtrack.android.core.ui.components.TicketShowRow
 import app.laughtrack.android.core.ui.components.ticketStubDateParts
@@ -256,23 +256,15 @@ private fun SearchArtwork(result: SearchResult) {
                 .background(LaughTrackColors.AccentStrong.copy(alpha = 0.14f)),
         contentAlignment = Alignment.Center,
     ) {
-        if (result.artworkUrl != null) {
-            RemoteImage(
-                url = result.artworkUrl,
-                contentDescription = result.title,
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .clip(CircleShape),
-            )
-        } else {
-            Icon(
-                Icons.Filled.Search,
-                contentDescription = null,
-                tint = LaughTrackColors.AccentStrong,
-                modifier = Modifier.size(28.dp),
-            )
-        }
+        RemoteImage(
+            url = result.artworkUrl,
+            contentDescription = result.title,
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .clip(CircleShape),
+            fallback = result.imageFallback,
+        )
     }
 }
 
@@ -302,3 +294,14 @@ internal fun CenteredMessage(
         }
     }
 }
+
+/** Entity-branded artwork fallback derived from the result's typed destination. */
+private val SearchResult.imageFallback: RemoteImageFallback
+    get() =
+        when (route) {
+            is AppRoute.ComedianDetail -> RemoteImageFallback.Comedian
+            is AppRoute.ClubDetail -> RemoteImageFallback.Club
+            is AppRoute.ShowDetail -> RemoteImageFallback.Show
+            is AppRoute.PodcastDetail -> RemoteImageFallback.Podcast
+            else -> RemoteImageFallback.Generic
+        }

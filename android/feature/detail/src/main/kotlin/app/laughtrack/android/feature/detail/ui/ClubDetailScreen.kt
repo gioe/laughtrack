@@ -52,6 +52,7 @@ import app.laughtrack.android.core.network.generated.model.ClubRelatedVenue
 import app.laughtrack.android.core.network.generated.model.Show
 import app.laughtrack.android.core.ui.UiState
 import app.laughtrack.android.core.ui.components.RemoteImage
+import app.laughtrack.android.core.ui.components.RemoteImageFallback
 import app.laughtrack.android.core.ui.theme.LaughTrackColors
 import app.laughtrack.android.feature.detail.model.ClubDetailUi
 import app.laughtrack.android.feature.detail.ui.components.DetailError
@@ -239,6 +240,7 @@ private fun ClubPoster(
         }
         RemoteImage(
             url = url,
+            fallback = RemoteImageFallback.Club,
             contentDescription = contentDescription,
             modifier =
                 Modifier
@@ -370,6 +372,7 @@ private fun ClubShowCard(
             ) {
                 RemoteImage(
                     url = show.primaryImageUrl(),
+                    fallback = RemoteImageFallback.Show,
                     contentDescription = show.name,
                     modifier =
                         Modifier
@@ -480,6 +483,7 @@ private fun ClubRelatedVenuesSection(
                 ) {
                     RemoteImage(
                         url = venue.imageUrl,
+                        fallback = RemoteImageFallback.Club,
                         contentDescription = venue.name,
                         modifier =
                             Modifier

@@ -58,6 +58,7 @@ import app.laughtrack.android.core.network.generated.model.Show
 import app.laughtrack.android.core.network.generated.model.ShowDetail
 import app.laughtrack.android.core.ui.UiState
 import app.laughtrack.android.core.ui.components.RemoteImage
+import app.laughtrack.android.core.ui.components.RemoteImageFallback
 import app.laughtrack.android.core.ui.components.TicketShowRow
 import app.laughtrack.android.core.ui.components.ticketStubDateParts
 import app.laughtrack.android.core.ui.theme.LaughTrackColors
@@ -292,6 +293,7 @@ private fun DottedPoster(
     ) {
         RemoteImage(
             url = url,
+            fallback = RemoteImageFallback.Show,
             contentDescription = contentDescription,
             modifier =
                 Modifier
@@ -507,6 +509,7 @@ private fun LineupMarqueeCard(
         ) {
             RemoteImage(
                 url = item.imageUrl,
+                fallback = RemoteImageFallback.Show,
                 contentDescription = item.name,
                 modifier =
                     Modifier

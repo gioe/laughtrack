@@ -58,6 +58,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.laughtrack.android.core.network.generated.model.ComedianSearchItem
 import app.laughtrack.android.core.ui.components.RemoteImage
+import app.laughtrack.android.core.ui.components.RemoteImageFallback
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -339,6 +340,7 @@ private fun ComedianCard(
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             RemoteImage(
                 url = comedian.imageUrl,
+                fallback = RemoteImageFallback.Comedian,
                 contentDescription = comedian.name,
                 modifier = Modifier.fillMaxWidth().height(260.dp).clip(RoundedCornerShape(12.dp)),
             )
@@ -371,6 +373,7 @@ private fun ComedianRow(
     ) {
         RemoteImage(
             url = comedian.imageUrl,
+            fallback = RemoteImageFallback.Comedian,
             contentDescription = comedian.name,
             modifier = Modifier.size(56.dp).clip(RoundedCornerShape(10.dp)),
         )

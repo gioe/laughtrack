@@ -31,6 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.laughtrack.android.core.ui.components.RemoteImage
+import app.laughtrack.android.core.ui.components.RemoteImageFallback
 import app.laughtrack.android.core.ui.components.SkeletonLine
 
 /**
@@ -122,6 +123,7 @@ fun EntityAvatar(
     subtitle: String?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    fallback: RemoteImageFallback = RemoteImageFallback.Person,
 ) {
     Column(
         modifier
@@ -135,6 +137,7 @@ fun EntityAvatar(
             url = imageUrl,
             contentDescription = name,
             modifier = Modifier.size(80.dp).clip(CircleShape),
+            fallback = fallback,
         )
         Text(
             name,
@@ -178,6 +181,7 @@ fun ShowRow(
             url = imageUrl,
             contentDescription = title,
             modifier = Modifier.size(56.dp).clip(RoundedCornerShape(8.dp)),
+            fallback = RemoteImageFallback.Show,
         )
         Column(Modifier.weight(1f)) {
             Text(

@@ -50,6 +50,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import app.laughtrack.android.core.data.profile.ProfileAccount
 import app.laughtrack.android.core.data.profile.ProfilePreferences
 import app.laughtrack.android.core.ui.components.RemoteImage
+import app.laughtrack.android.core.ui.components.RemoteImageFallback
 
 @Composable
 fun ProfileScreen(viewModel: ProfileViewModel = hiltViewModel()) {
@@ -234,6 +235,7 @@ private fun Avatar(
         if (url != null) {
             RemoteImage(
                 url = url,
+                fallback = RemoteImageFallback.Person,
                 contentDescription = "Profile photo",
                 modifier = Modifier.fillMaxSize(),
             )
