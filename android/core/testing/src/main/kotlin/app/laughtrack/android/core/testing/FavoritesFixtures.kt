@@ -32,7 +32,10 @@ object NullTokenStore : TokenStore {
 /**
  * Real [FavoritesRepository] over a signed-out auth session: no stored tokens, no
  * offline queue, and an [AuthApi] that must never be called. Pass [favoritesApi]
- * when the test drives refresh flows; the default throws on any use.
+ * when the test drives refresh flows; the default throws on any use. Signed-out
+ * describes only the repository's auth session — ViewModels that take their own
+ * signedIn flag (e.g. LibraryViewModel.refresh) drive refreshes independently of
+ * it, so this fixture backs those signed-in-flow tests too.
  */
 fun signedOutFavoritesRepository(favoritesApi: FavoritesApi = throwingApi()): FavoritesRepository =
     FavoritesRepository(
