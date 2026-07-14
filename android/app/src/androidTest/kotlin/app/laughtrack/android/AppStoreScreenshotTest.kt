@@ -10,6 +10,7 @@ import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.test.platform.app.InstrumentationRegistry
 import app.laughtrack.android.core.network.ApiClientModule
 import app.laughtrack.android.core.network.generated.infrastructure.ApiClient
@@ -174,7 +175,7 @@ class AppStoreScreenshotTest {
 
     /** Select a search pivot by its uppercased chip label and wait for its results. */
     private fun selectPivot(label: String) {
-        composeRule.onNodeWithText(label).performClick()
+        composeRule.onNodeWithText(label).performScrollTo().performClick()
         waitForResults()
     }
 
