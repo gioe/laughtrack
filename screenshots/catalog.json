@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "scenarios": [
+    {
+      "id": "01_NearMe",
+      "locale": "en-US",
+      "timezone": "America/Los_Angeles",
+      "capture_context": {
+        "screen": "near_me",
+        "location": { "postal_code": "90028", "label": "Hollywood" }
+      }
+    },
+    {
+      "id": "02_SearchShows",
+      "locale": "en-US",
+      "timezone": "America/Los_Angeles",
+      "capture_context": { "screen": "search", "entity": "show" }
+    },
+    {
+      "id": "03_SearchComedians",
+      "locale": "en-US",
+      "timezone": "America/Los_Angeles",
+      "capture_context": { "screen": "search", "entity": "comedian" }
+    },
+    {
+      "id": "04_SearchClubs",
+      "locale": "en-US",
+      "timezone": "America/Los_Angeles",
+      "capture_context": { "screen": "search", "entity": "club" }
+    },
+    {
+      "id": "05_ClubDetail",
+      "locale": "en-US",
+      "timezone": "America/Los_Angeles",
+      "capture_context": {
+        "screen": "club_detail",
+        "source_scenario_id": "04_SearchClubs",
+        "selection": "first_result"
+      }
+    },
+    {
+      "id": "06_ShowDetail",
+      "locale": "en-US",
+      "timezone": "America/Los_Angeles",
+      "capture_context": {
+        "screen": "show_detail",
+        "source_scenario_id": "02_SearchShows",
+        "selection": "first_result"
+      }
+    },
+    {
+      "id": "07_ComedianDetail",
+      "locale": "en-US",
+      "timezone": "America/Los_Angeles",
+      "capture_context": {
+        "screen": "comedian_detail",
+        "source_scenario_id": "03_SearchComedians",
+        "selection": "first_result"
+      }
+    },
+    {
+      "id": "08_SearchPodcasts",
+      "locale": "en-US",
+      "timezone": "America/Los_Angeles",
+      "capture_context": { "screen": "search", "entity": "podcast" }
+    },
+    {
+      "id": "09_PodcastDetail",
+      "locale": "en-US",
+      "timezone": "America/Los_Angeles",
+      "capture_context": {
+        "screen": "podcast_detail",
+        "source_scenario_id": "08_SearchPodcasts",
+        "selection": "first_result"
+      }
+    }
+  ],
+  "profiles": [
+    { "id": "ios_phone", "platform": "ios", "form_factor": "phone" },
+    {
+      "id": "ios_large_tablet",
+      "platform": "ios",
+      "form_factor": "large_tablet"
+    },
+    {
+      "id": "android_phone",
+      "platform": "android",
+      "form_factor": "phone"
+    },
+    {
+      "id": "android_small_tablet",
+      "platform": "android",
+      "form_factor": "small_tablet"
+    },
+    {
+      "id": "android_large_tablet",
+      "platform": "android",
+      "form_factor": "large_tablet"
+    }
+  ]
+}
