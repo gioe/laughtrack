@@ -141,6 +141,15 @@ def test_manifest_rejects_duplicate_capture_key(
         validate_manifest(completed_run, catalog, repo_root=tmp_path)
 
 
+@pytest.mark.parametrize("field", ["profile_id", "scenario_id"])
+def test_manifest_reports_non_string_capture_ids_without_crashing(
+    field: str, tmp_path: Path, catalog: dict, completed_run: dict
+) -> None:
+    completed_run["images"][0][field] = 123
+    with pytest.raises(ContractError, match=rf"{field} must be a string"):
+        validate_manifest(completed_run, catalog, repo_root=tmp_path, require_files=False)
+
+
 def test_manifest_rejects_noncanonical_image_order(
     tmp_path: Path, catalog: dict, completed_run: dict
 ) -> None:
@@ -248,7 +257,7 @@ def test_cli_plan_emits_canonical_profile_scenario_order(
                 "--profile",
                 "ios_phone",
                 "--profile",
-                "android_phone",
+                "ios_large_tablet",
             ]
         )
         == 0
@@ -256,4 +265,22 @@ def test_cli_plan_emits_canonical_profile_scenario_order(
     plan = json.loads(capsys.readouterr().out)
     assert len(plan) == 18
     assert plan[0] == {"profile_id": "ios_phone", "scenario_id": "01_NearMe"}
-    assert plan[-1] == {"profile_id": "android_phone", "scenario_id": "09_PodcastDetail"}
+    assert plan[-1] == {"profile_id": "ios_large_tablet", "scenario_id": "09_PodcastDetail"}
+
+
+def test_cli_plan_rejects_partial_platform_matrix(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    assert (
+        main(
+            [
+                "plan",
+                "--catalog",
+                str(CATALOG_PATH),
+                "--profile",
+                "ios_phone",
+            ]
+        )
+        == 1
+    )
+    assert "every form factor" in capsys.readouterr().err

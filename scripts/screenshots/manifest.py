@@ -348,9 +348,11 @@ def validate_manifest(
         if tuple(actual_keys) != expected_keys:
             expected_set = set(expected_keys)
             actual_set = set(actual_keys)
-            missing = sorted(expected_set - actual_set)
-            unexpected = sorted(actual_set - expected_set)
-            duplicates = sorted({key for key in actual_keys if actual_keys.count(key) > 1})
+            missing = sorted(expected_set - actual_set, key=repr)
+            unexpected = sorted(actual_set - expected_set, key=repr)
+            duplicates = sorted(
+                {key for key in actual_keys if actual_keys.count(key) > 1}, key=repr
+            )
             detail = []
             if missing:
                 detail.append(f"missing={missing}")
@@ -402,10 +404,30 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.command == "validate-catalog":
             print(f"valid catalog: {len(catalog['scenarios'])} scenarios")
         elif args.command == "plan":
-            known_profiles = {profile["id"] for profile in catalog["profiles"]}
+            catalog_profiles = {profile["id"]: profile for profile in catalog["profiles"]}
+            known_profiles = set(catalog_profiles)
             unknown = [profile for profile in args.profiles if profile not in known_profiles]
             if unknown:
                 raise ContractError(["unknown profiles: " + ", ".join(unknown)])
+            canonical_selected = [
+                profile["id"]
+                for profile in catalog["profiles"]
+                if profile["id"] in args.profiles
+            ]
+            if args.profiles != canonical_selected:
+                raise ContractError(["profiles must be unique and follow catalog order"])
+            selected_platforms = {
+                catalog_profiles[profile_id]["platform"] for profile_id in args.profiles
+            }
+            complete_platform_profiles = [
+                profile["id"]
+                for profile in catalog["profiles"]
+                if profile["platform"] in selected_platforms
+            ]
+            if args.profiles != complete_platform_profiles:
+                raise ContractError(
+                    ["profiles must include every form factor for each selected platform"]
+                )
             plan = [
                 {"profile_id": profile_id, "scenario_id": scenario_id}
                 for profile_id, scenario_id in expected_capture_keys(catalog, args.profiles)
