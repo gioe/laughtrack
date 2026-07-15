@@ -83,16 +83,22 @@ class ThePitScraper(JsonLdScraper):
 
         self._apply_cash_prices(wordpress_shows)
 
-        # Persistence has the same identity constraint: (club_id, date, room).
         # Keep PatronTicket first so an overlap retains its direct Salesforce
-        # URL, allocation tiers, prices, and sold-out state.
+        # URL, allocation tiers, prices, and sold-out state. PIT's WordPress
+        # JSON-LD occasionally emits local wall-clock values as UTC, making the
+        # same show four hours earlier than PatronTicket. The Salesforce
+        # instance URL is authoritative across that offset; date/room remains
+        # the fallback identity for shows without an online instance.
         combined: list[Show] = []
-        seen: set[tuple] = set()
+        seen_keys: set[tuple] = set()
+        seen_instances: set[str] = set()
         for show in [*patron_ticket_shows, *wordpress_shows]:
             key = show.to_unique_key()
-            if key in seen:
+            instances = self._patron_instance_urls(show)
+            if key in seen_keys or instances & seen_instances:
                 continue
-            seen.add(key)
+            seen_keys.add(key)
+            seen_instances.update(instances)
             combined.append(show)
 
         Logger.info(
@@ -101,6 +107,15 @@ class ThePitScraper(JsonLdScraper):
             self.logger_context,
         )
         return combined
+
+    @staticmethod
+    def _patron_instance_urls(show: Show) -> set[str]:
+        return {
+            ticket.purchase_url.rstrip("/")
+            for ticket in show.tickets
+            if ticket.purchase_url
+            and "/ticket/#/instances/" in ticket.purchase_url.lower()
+        }
 
     async def _scrape_patron_ticket(self) -> list[Show]:
         try:

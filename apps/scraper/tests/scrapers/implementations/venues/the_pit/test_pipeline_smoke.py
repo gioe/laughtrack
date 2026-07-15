@@ -88,12 +88,12 @@ async def test_combines_sources_and_deduplicates_overlaps(monkeypatch):
     )
     wordpress_overlap = _show(
         "Slightly Different WordPress Title",
-        20,
+        16,
         url="https://thepit-nyc.com/events/online-one",
         tickets=[
             Ticket(
                 price=None,
-                purchase_url="https://thepit-nyc.com/events/online-one/",
+                purchase_url=f"{_PATRONTICKET_URL}/#/instances/online-one",
             )
         ],
     )
