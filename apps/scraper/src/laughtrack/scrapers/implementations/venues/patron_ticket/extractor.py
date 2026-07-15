@@ -9,9 +9,13 @@ event category.
 """
 
 import re
+from decimal import Decimal, InvalidOperation
 from typing import Any, Dict, Iterable, List, Optional, Sequence
 
-from laughtrack.core.entities.event.patron_ticket import PatronTicketEvent
+from laughtrack.core.entities.event.patron_ticket import (
+    PatronTicketEvent,
+    PatronTicketTier,
+)
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
 # Per-method auth config block inlined in the PatronTicket page HTML.
@@ -20,6 +24,76 @@ _FETCH_EVENTS_CONFIG_RE = re.compile(
     r'"csrf":"([^"]+)","authorization":"([^"]+)"'
 )
 _VID_RE = re.compile(r'"vid":"([^"]+)"')
+
+
+def _parse_amount(value: Any) -> Optional[Decimal]:
+    """Return a finite, non-negative currency amount, or None if invalid."""
+    if isinstance(value, bool) or value is None:
+        return None
+
+    try:
+        amount = Decimal(str(value))
+    except (InvalidOperation, ValueError):
+        return None
+
+    if not amount.is_finite() or amount < 0:
+        return None
+    return amount
+
+
+def _extract_ticket_tiers(
+    instance: Dict[str, Any], instance_sold_out: bool
+) -> List[PatronTicketTier]:
+    """Normalize allocation levels into uniquely named, customer-visible tiers."""
+    allocations = instance.get("allocations") or []
+    if not isinstance(allocations, list):
+        return []
+
+    tiers: List[PatronTicketTier] = []
+    used_names: set = set()
+    for allocation in allocations:
+        if not isinstance(allocation, dict):
+            continue
+
+        allocation_name = str(allocation.get("name") or "").strip()
+        allocation_sold_out = bool(allocation.get("soldOut", False))
+        levels = allocation.get("levels") or []
+        if not isinstance(levels, list):
+            continue
+
+        for level in levels:
+            if not isinstance(level, dict):
+                continue
+
+            level_name = str(level.get("name") or "").strip()
+            ticket_type = level_name or allocation_name or "General Admission"
+            candidate = ticket_type
+            if candidate.casefold() in used_names and allocation_name:
+                qualified = f"{allocation_name} - {ticket_type}"
+                if qualified.casefold() not in used_names:
+                    candidate = qualified
+            suffix = 2
+            while candidate.casefold() in used_names:
+                candidate = f"{ticket_type} ({suffix})"
+                suffix += 1
+            used_names.add(candidate.casefold())
+
+            base_price = _parse_amount(level.get("price"))
+            fee = _parse_amount(level.get("fee", 0))
+            price = (
+                float(base_price + fee)
+                if base_price is not None and fee is not None
+                else None
+            )
+            tiers.append(
+                PatronTicketTier(
+                    ticket_type=candidate,
+                    price=price,
+                    sold_out=instance_sold_out or allocation_sold_out,
+                )
+            )
+
+    return tiers
 
 
 class PatronTicketExtractor:
@@ -152,6 +226,7 @@ class PatronTicketExtractor:
                     )
                     continue
 
+                sold_out = bool(instance.get("soldOut", False))
                 result.append(
                     PatronTicketEvent(
                         event_name=event_name,
@@ -161,10 +236,11 @@ class PatronTicketExtractor:
                         date_str=formatted.get("LONG_MONTH_DAY_YEAR", ""),
                         time_str=formatted.get("TIME_STRING", ""),
                         purchase_url=instance.get("purchaseUrl", ""),
-                        sold_out=bool(instance.get("soldOut", False)),
+                        sold_out=sold_out,
                         description=description,
                         categories=event_categories,
                         name_strip_suffixes=suffix_list,
+                        ticket_tiers=_extract_ticket_tiers(instance, sold_out),
                     )
                 )
 

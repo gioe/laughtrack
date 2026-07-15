@@ -14,6 +14,10 @@ from typing import Any, List, Optional
 import pytest
 
 from laughtrack.core.entities.club.model import Club, ScrapingSource
+from laughtrack.core.entities.event.patron_ticket import (
+    PatronTicketEvent,
+    PatronTicketTier,
+)
 from laughtrack.scrapers.implementations.venues.patron_ticket.data import (
     PatronTicketPageData,
 )
@@ -109,6 +113,7 @@ def _instance(
     epoch_ms: int = _FAR_FUTURE_EPOCH_MS,
     sold_out: bool = False,
     purchase_url: str = "https://example.my.salesforce-sites.com/ticket/#/instances/x",
+    allocations: Optional[List[dict]] = None,
 ) -> dict:
     return {
         "id": instance_id,
@@ -116,6 +121,7 @@ def _instance(
         "name": "Friday Show",
         "purchaseUrl": purchase_url,
         "soldOut": sold_out,
+        "allocations": allocations or [],
         "formattedDates": {
             "ISO8601": epoch_ms,
             "LONG_MONTH_DAY_YEAR": "January 1, 2099",
@@ -269,6 +275,103 @@ def test_extract_events_deduplicates_repeated_instance_ids():
 
     events = PatronTicketExtractor.extract_events(response, venue_ids=["VENUE_A"])
     assert [e.instance_id for e in events] == ["DUP"]
+
+
+# ---------------------------------------------------------------------------
+# Allocation-level ticket prices
+# ---------------------------------------------------------------------------
+
+
+def test_extract_events_preserves_all_in_allocation_prices():
+    purchase_url = "https://pit.my.salesforce-sites.com/ticket/#/instances/I-PIT"
+    instance = _instance(
+        instance_id="I-PIT",
+        venue_id="VENUE_A",
+        sold_out=True,
+        purchase_url=purchase_url,
+        allocations=[
+            {
+                "name": "General Admission",
+                "soldOut": False,
+                "levels": [{"name": "General Admission", "price": 10.01, "fee": 1.99}],
+            }
+        ],
+    )
+
+    events = PatronTicketExtractor.extract_events(
+        _api_response(
+            [_event_blob(name="PIT Show", category="Comedy", instances=[instance])]
+        ),
+        venue_ids=["VENUE_A"],
+    )
+
+    assert len(events) == 1
+    assert events[0].purchase_url == purchase_url
+    assert events[0].sold_out is True
+    assert events[0].ticket_tiers == [
+        PatronTicketTier(
+            ticket_type="General Admission", price=12.0, sold_out=True
+        )
+    ]
+
+
+def test_extract_events_maps_multiple_price_levels():
+    instance = _instance(
+        instance_id="I-TIERS",
+        venue_id="VENUE_A",
+        allocations=[
+            {
+                "name": "Admission",
+                "levels": [
+                    {"name": "General Admission", "price": "15.00", "fee": "2.50"},
+                    {"name": "VIP", "price": 30, "fee": 4},
+                ],
+            }
+        ],
+    )
+
+    events = PatronTicketExtractor.extract_events(
+        _api_response(
+            [_event_blob(name="Tiered Show", category="Comedy", instances=[instance])]
+        ),
+        venue_ids=["VENUE_A"],
+    )
+
+    assert [(tier.ticket_type, tier.price) for tier in events[0].ticket_tiers] == [
+        ("General Admission", 17.5),
+        ("VIP", 34.0),
+    ]
+
+
+def test_extract_events_missing_price_degrades_to_unknown():
+    instance = _instance(
+        instance_id="I-UNKNOWN",
+        venue_id="VENUE_A",
+        allocations=[
+            {
+                "name": "Admission",
+                "levels": [
+                    {"name": "Missing price", "fee": 2},
+                    {"name": "Malformed price", "price": "not-a-price", "fee": 2},
+                ],
+            }
+        ],
+    )
+
+    events = PatronTicketExtractor.extract_events(
+        _api_response(
+            [_event_blob(name="Unpriced Show", category="Comedy", instances=[instance])]
+        ),
+        venue_ids=["VENUE_A"],
+    )
+    show = events[0].to_show(_club())
+
+    assert len(events) == 1
+    assert show is not None
+    assert [(ticket.type, ticket.price) for ticket in show.tickets] == [
+        ("Missing price", None),
+        ("Malformed price", None),
+    ]
 
 
 # ---------------------------------------------------------------------------
@@ -543,8 +646,6 @@ async def test_get_data_returns_none_when_auth_config_is_unavailable(monkeypatch
 
 
 def _make_event(event_name: str, suffixes: List[str]) -> Any:
-    from laughtrack.core.entities.event.patron_ticket import PatronTicketEvent
-
     return PatronTicketEvent(
         event_name=event_name,
         instance_name=event_name,
@@ -558,6 +659,26 @@ def _make_event(event_name: str, suffixes: List[str]) -> Any:
         categories="Comedy",
         name_strip_suffixes=suffixes,
     )
+
+
+def test_patron_ticket_event_to_show_preserves_ticket_fields():
+    event = _make_event("PIT Show", suffixes=[])
+    event.purchase_url = "https://pit.my.salesforce-sites.com/ticket/#/instances/I"
+    event.ticket_tiers = [
+        PatronTicketTier(ticket_type="General Admission", price=12.0, sold_out=False),
+        PatronTicketTier(ticket_type="VIP", price=25.0, sold_out=True),
+    ]
+
+    show = event.to_show(_club())
+
+    assert show is not None
+    assert [
+        (ticket.type, ticket.price, ticket.purchase_url, ticket.sold_out)
+        for ticket in show.tickets
+    ] == [
+        ("General Admission", 12.0, event.purchase_url, False),
+        ("VIP", 25.0, event.purchase_url, True),
+    ]
 
 
 def test_to_show_strips_configured_suffix_from_event_name():

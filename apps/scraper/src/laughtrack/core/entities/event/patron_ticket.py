@@ -20,6 +20,15 @@ from laughtrack.utilities.domain.show.factory import ShowFactoryUtils
 
 
 @dataclass
+class PatronTicketTier:
+    """A normalized PatronTicket allocation level ready for persistence."""
+
+    ticket_type: str
+    price: Optional[float]
+    sold_out: bool = False
+
+
+@dataclass
 class PatronTicketEvent(ShowConvertible):
     """A single comedy show instance on a Salesforce PatronTicket site.
 
@@ -38,6 +47,8 @@ class PatronTicketEvent(ShowConvertible):
                             name (per-venue config; the Lost Church names append a
                             " - San Francisco" suffix on the upstream side, for
                             example). Default empty.
+      ticket_tiers    ← normalized allocation levels, including customer-visible
+                            all-in prices. Default empty for older/unpriced responses.
     """
 
     event_name: str
@@ -51,6 +62,7 @@ class PatronTicketEvent(ShowConvertible):
     description: str
     categories: str
     name_strip_suffixes: List[str] = field(default_factory=list)
+    ticket_tiers: List[PatronTicketTier] = field(default_factory=list)
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None) -> Optional[Show]:
         try:
@@ -61,11 +73,22 @@ class PatronTicketEvent(ShowConvertible):
             return None
 
         ticket_url = url or self.purchase_url
-        tickets = [
-            ShowFactoryUtils.create_fallback_ticket(
-                ticket_url, sold_out=self.sold_out
-            )
-        ]
+        if self.ticket_tiers:
+            tickets = [
+                ShowFactoryUtils.create_fallback_ticket(
+                    ticket_url,
+                    price=tier.price,
+                    ticket_type=tier.ticket_type,
+                    sold_out=tier.sold_out,
+                )
+                for tier in self.ticket_tiers
+            ]
+        else:
+            tickets = [
+                ShowFactoryUtils.create_fallback_ticket(
+                    ticket_url, sold_out=self.sold_out
+                )
+            ]
 
         name = self.event_name
         for suffix in self.name_strip_suffixes:
