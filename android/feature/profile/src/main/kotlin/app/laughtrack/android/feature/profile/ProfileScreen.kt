@@ -61,21 +61,78 @@ fun ProfileScreen(viewModel: ProfileViewModel = hiltViewModel()) {
         viewModel.refresh()
     }
 
+    ProfileContent(
+        state = state,
+        actions =
+            ProfileActions(
+                dismissDeleteAccount = viewModel::dismissDeleteAccount,
+                deleteAccount = viewModel::deleteAccount,
+                clearMessage = viewModel::clearMessage,
+                googleSignIn = { launchSignIn(context, viewModel.buildGoogleSignInUrl()) },
+                appleSignIn = { launchSignIn(context, viewModel.buildAppleSignInUrl()) },
+                emailSignIn = { launchSignIn(context, viewModel.buildEmailSignInUrl()) },
+                signOut = viewModel::signOut,
+                requestDeleteAccount = viewModel::requestDeleteAccount,
+                setZipCodeDraft = viewModel::setZipCodeDraft,
+                setSelectedDistance = viewModel::setSelectedDistance,
+                saveLocation = viewModel::saveLocation,
+                clearLocation = viewModel::clearLocation,
+                setEmailNotifications = viewModel::setEmailNotifications,
+                setPushNotifications = viewModel::setPushNotifications,
+            ),
+    )
+}
+
+/** Render the real profile UI from deterministic state without creating a Hilt ViewModel. */
+@Composable
+fun ProfileScreen(stateOverride: ProfileUiState) {
+    ProfileContent(state = stateOverride, actions = ProfileActions())
+}
+
+private fun launchSignIn(
+    context: android.content.Context,
+    url: String,
+) {
+    CustomTabsIntent.Builder().build().launchUrl(context, Uri.parse(url))
+}
+
+private data class ProfileActions(
+    val dismissDeleteAccount: () -> Unit = {},
+    val deleteAccount: () -> Unit = {},
+    val clearMessage: () -> Unit = {},
+    val googleSignIn: () -> Unit = {},
+    val appleSignIn: () -> Unit = {},
+    val emailSignIn: () -> Unit = {},
+    val signOut: () -> Unit = {},
+    val requestDeleteAccount: () -> Unit = {},
+    val setZipCodeDraft: (String) -> Unit = {},
+    val setSelectedDistance: (Int) -> Unit = {},
+    val saveLocation: () -> Unit = {},
+    val clearLocation: () -> Unit = {},
+    val setEmailNotifications: (Boolean) -> Unit = {},
+    val setPushNotifications: (Boolean) -> Unit = {},
+)
+
+@Composable
+private fun ProfileContent(
+    state: ProfileUiState,
+    actions: ProfileActions,
+) {
     if (state.showDeleteConfirmation) {
         AlertDialog(
-            onDismissRequest = viewModel::dismissDeleteAccount,
+            onDismissRequest = actions.dismissDeleteAccount,
             title = { Text("Delete your LaughTrack account?") },
             text = { Text("This permanently removes your account and saved favorites. This cannot be undone.") },
             confirmButton = {
                 TextButton(
                     enabled = !state.isMutating,
-                    onClick = viewModel::deleteAccount,
+                    onClick = actions.deleteAccount,
                 ) {
                     Text("Delete account")
                 }
             },
             dismissButton = {
-                TextButton(onClick = viewModel::dismissDeleteAccount) {
+                TextButton(onClick = actions.dismissDeleteAccount) {
                     Text("Cancel")
                 }
             },
@@ -100,7 +157,7 @@ fun ProfileScreen(viewModel: ProfileViewModel = hiltViewModel()) {
 
         if (state.message != null) {
             AssistChip(
-                onClick = viewModel::clearMessage,
+                onClick = actions.clearMessage,
                 label = { Text(state.message.orEmpty()) },
             )
         }
@@ -109,23 +166,11 @@ fun ProfileScreen(viewModel: ProfileViewModel = hiltViewModel()) {
             signedIn = state.signedIn,
             account = state.account,
             isMutating = state.isMutating,
-            onGoogleSignIn = {
-                CustomTabsIntent.Builder()
-                    .build()
-                    .launchUrl(context, Uri.parse(viewModel.buildGoogleSignInUrl()))
-            },
-            onAppleSignIn = {
-                CustomTabsIntent.Builder()
-                    .build()
-                    .launchUrl(context, Uri.parse(viewModel.buildAppleSignInUrl()))
-            },
-            onEmailSignIn = {
-                CustomTabsIntent.Builder()
-                    .build()
-                    .launchUrl(context, Uri.parse(viewModel.buildEmailSignInUrl()))
-            },
-            onSignOut = viewModel::signOut,
-            onDeleteAccount = viewModel::requestDeleteAccount,
+            onGoogleSignIn = actions.googleSignIn,
+            onAppleSignIn = actions.appleSignIn,
+            onEmailSignIn = actions.emailSignIn,
+            onSignOut = actions.signOut,
+            onDeleteAccount = actions.requestDeleteAccount,
         )
 
         if (state.signedIn) {
@@ -134,16 +179,16 @@ fun ProfileScreen(viewModel: ProfileViewModel = hiltViewModel()) {
                 zipCodeDraft = state.zipCodeDraft,
                 selectedDistanceMiles = state.selectedDistanceMiles,
                 isMutating = state.isMutating,
-                onZipChange = viewModel::setZipCodeDraft,
-                onDistanceChange = viewModel::setSelectedDistance,
-                onSave = viewModel::saveLocation,
-                onClear = viewModel::clearLocation,
+                onZipChange = actions.setZipCodeDraft,
+                onDistanceChange = actions.setSelectedDistance,
+                onSave = actions.saveLocation,
+                onClear = actions.clearLocation,
             )
             NotificationsSection(
                 preferences = state.preferences,
                 enabled = !state.isMutating,
-                onEmailChange = viewModel::setEmailNotifications,
-                onPushChange = viewModel::setPushNotifications,
+                onEmailChange = actions.setEmailNotifications,
+                onPushChange = actions.setPushNotifications,
             )
         } else {
             GuestPreview()

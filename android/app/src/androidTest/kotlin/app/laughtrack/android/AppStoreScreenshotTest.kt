@@ -2,6 +2,9 @@ package app.laughtrack.android
 
 import android.Manifest
 import android.os.SystemClock
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasSetTextAction
@@ -17,14 +20,15 @@ import androidx.compose.ui.test.performTextInput
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.test.platform.app.InstrumentationRegistry
-import app.laughtrack.android.core.ui.components.RemoteImageTestTags
-import app.laughtrack.android.core.ui.theme.LaughTrackTheme
 import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.playback.PodcastPlaybackController
 import app.laughtrack.android.core.playback.PodcastPlaybackItem
+import app.laughtrack.android.core.ui.components.RemoteImageTestTags
+import app.laughtrack.android.core.ui.theme.LaughTrackTheme
 import app.laughtrack.android.feature.detail.ui.CLUB_SHOW_ROW_TEST_TAG
 import app.laughtrack.android.feature.detail.ui.components.DETAIL_LOADING_TEST_TAG
 import app.laughtrack.android.feature.search.ui.SEARCH_RESULT_ROW_TEST_TAG
+import app.laughtrack.android.screenshots.AuthenticatedScreenshotPersona
 import app.laughtrack.android.screenshots.ScreenshotImageTracker
 import coil.Coil
 import coil.ImageLoader
@@ -119,11 +123,18 @@ class AppStoreScreenshotTest {
     @Test
     fun captureAppStoreScreenshots() {
         lateinit var navController: NavHostController
+        var screenshotPersona by mutableStateOf<AuthenticatedScreenshotPersona?>(null)
         val playbackController = PodcastPlaybackController(InstrumentationRegistry.getInstrumentation().targetContext)
         composeRule.setContent {
             navController = rememberNavController()
             LaughTrackTheme {
-                AppShell(navController = navController, playbackController = playbackController)
+                AppShell(
+                    navController = navController,
+                    signedIn = screenshotPersona != null,
+                    hasFavorites = screenshotPersona != null,
+                    playbackController = playbackController,
+                    screenshotPersona = screenshotPersona,
+                )
             }
         }
 
@@ -221,9 +232,28 @@ class AppStoreScreenshotTest {
         }
         waitFor(hasText("The LaughTrack Comedy Roundup"))
         capture("14_NowPlaying")
+
+        // Keep the guest catalog above intact, then opt into the credentials-free
+        // persona explicitly for equivalent populated authenticated screens.
+        composeRule.runOnIdle { screenshotPersona = AuthenticatedScreenshotPersona }
+
+        navigate(navController, AppRoute.Favorites())
+        waitFor(hasText("Taylor Tomlinson"))
+        capture("15_AuthenticatedFavorites")
+
+        navigate(navController, AppRoute.Profile)
+        waitFor(hasText("Jordan Rivera"))
+        capture("16_AuthenticatedProfile")
+
+        navigate(navController, AppRoute.NotificationCenter)
+        waitFor(hasText("Taylor Tomlinson has a show near you"))
+        capture("17_AuthenticatedNotifications")
     }
 
-    private fun navigate(navController: NavHostController, route: AppRoute) {
+    private fun navigate(
+        navController: NavHostController,
+        route: AppRoute,
+    ) {
         composeRule.runOnIdle { navController.navigate(route) }
         settle()
     }

@@ -49,6 +49,52 @@ fun LibraryScreen(
         viewModel.refresh(signedIn)
     }
 
+    LibraryContent(
+        signedIn = signedIn,
+        snapshot = snapshot,
+        message = message,
+        scopedShowIds = scopedShowIds,
+        onOpenProfile = onOpenProfile,
+        onClearMessage = viewModel::clearMessage,
+        onToggleComedian = viewModel::toggleComedian,
+        onToggleClub = viewModel::toggleClub,
+        onTogglePodcast = viewModel::togglePodcast,
+    )
+}
+
+/** Render the real library UI from deterministic state without creating a Hilt ViewModel. */
+@Composable
+fun LibraryScreen(
+    signedIn: Boolean,
+    onOpenProfile: () -> Unit,
+    snapshotOverride: FavoritesSnapshot,
+    scopedShowIds: List<Int> = emptyList(),
+) {
+    LibraryContent(
+        signedIn = signedIn,
+        snapshot = snapshotOverride,
+        message = null,
+        scopedShowIds = scopedShowIds,
+        onOpenProfile = onOpenProfile,
+        onClearMessage = {},
+        onToggleComedian = {},
+        onToggleClub = {},
+        onTogglePodcast = {},
+    )
+}
+
+@Composable
+private fun LibraryContent(
+    signedIn: Boolean,
+    snapshot: FavoritesSnapshot,
+    message: String?,
+    scopedShowIds: List<Int>,
+    onOpenProfile: () -> Unit,
+    onClearMessage: () -> Unit,
+    onToggleComedian: (String) -> Unit,
+    onToggleClub: (Int) -> Unit,
+    onTogglePodcast: (Int) -> Unit,
+) {
     Column(
         modifier =
             Modifier
@@ -61,7 +107,7 @@ fun LibraryScreen(
 
         if (message != null) {
             AssistChip(
-                onClick = viewModel::clearMessage,
+                onClick = onClearMessage,
                 label = { Text(message.orEmpty()) },
             )
         }
@@ -76,9 +122,9 @@ fun LibraryScreen(
             SignedInLibrary(
                 snapshot = snapshot,
                 scopedShowIds = scopedShowIds,
-                onToggleComedian = viewModel::toggleComedian,
-                onToggleClub = viewModel::toggleClub,
-                onTogglePodcast = viewModel::togglePodcast,
+                onToggleComedian = onToggleComedian,
+                onToggleClub = onToggleClub,
+                onTogglePodcast = onTogglePodcast,
             )
         } else {
             GuestLibraryPreview(onOpenProfile)
