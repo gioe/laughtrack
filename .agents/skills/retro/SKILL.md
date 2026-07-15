@@ -86,7 +86,7 @@ The output is an array of `{id, task_id, pattern, source, reason, locked_at, loc
 - **`unbounded` rows on tasks that turned out to touch < 5 files** — the operator opted out of the guard for a task that didn't actually need it. Category A if tusk made declaring scope too hard or unclear.
 - **Locked-but-still-grew tasks** — a `locked_at` timestamp followed by a later `expanded_mid_task` row means the lock was an aspirational ceremony, not a hard checkpoint. Category A: consider whether `tusk scope add` should refuse after lock, or whether lock should require an explicit `--unlock` for further growth.
 
-Empty array on a task that has commits → the operator bypassed the guard for the entire session, or the task was created before migration 73 and scope was never declared. The former is a Category A finding; the latter is expected for legacy work and produces no finding.
+Empty array on a task that has commits → first check `task.scope_enforced` from `tusk task-get $RETRO_TASK_ID`. If `scope_enforced=1` and the task has task-scoped commits, do **not** infer a guard bypass from `scope list` alone: the commit-time guard and task-scoped commits are the source of truth for the shipped diff, and older installed wrappers or pre-rederive rows can make `scope list` empty after the fact. Only record a Category A finding when there is direct evidence that scope enforcement was bypassed (for example `TUSK_SCOPE_GUARD_BYPASS=1`, commit output saying the guard was skipped, or off-scope files that the guard should have rejected). For `scope_enforced=0` legacy tasks, an empty list is expected when scope was never declared and produces no finding.
 
 **Check for custom focus areas first.** Attempt to read `<base_directory>/FOCUS.md`.
 - If the file exists: use the categories defined in it for the analysis below.
@@ -246,7 +246,7 @@ For each approved project-issue finding routed here:
 
       If **any** condition fails, fall through to step 3d (three-option prompt). Do not partially auto-apply.
 
-      If **all** conditions hold and `retro.auto_apply` is enabled, **apply the edit immediately using the Edit tool — skip the three-option prompt entirely**. Record a one-line entry in `$AUTO_APPLIED` (file path + brief description, one entry per line) for the LR-3 summary, and do **not** create a task for this finding. Proceed to the next finding.
+      If **all** conditions hold and `retro.auto_apply` is enabled, **apply the edit immediately using the Edit tool — skip the three-option prompt entirely**, then follow step 3h to persist it. Record a one-line entry in `$AUTO_APPLIED` (file path + brief description, one entry per line) for the LR-3 summary only after the commit succeeds, and do **not** create a task for this finding. Proceed to the next finding.
 
    d. Otherwise, present the patch with three options:
 
@@ -262,9 +262,18 @@ For each approved project-issue finding routed here:
       > **defer** — create a task with this diff included in the description
       > **skip** — create a generic task as usual
 
-   e. **If approved**: apply the edit in-session using the Edit tool. Do **not** create a task for this finding.
+   e. **If approved**: apply the edit in-session using the Edit tool, then follow step 3h to persist it. Do **not** create a task for this finding.
    f. **If deferred**: include the proposed diff verbatim in the task description when calling `tusk task-insert`.
    g. **If skipped, or if no target file was identified**: proceed to normal task creation (step 4 in LR-2).
+   h. **Persist file edits immediately**: after any LR-2a file edit is applied by the Edit tool (auto-applied or manually approved), commit just the edited file before continuing:
+
+      ```bash
+      tusk commit "$RETRO_TASK_ID" "Apply retro inline patch: <short description>" "<target file>" --skip-verify
+      ```
+
+      Use the originating retro task id for `$RETRO_TASK_ID`; if the variable is unavailable, use the task id passed to `/retro`. The commit must include only the edited file. Convention DB writes already persist atomically through `tusk conventions add`, so this commit step applies only to narrative/reference file patches.
+
+      If the commit fails, do not record the finding as auto-applied and do not tell the operator the patch was fully applied. Surface the failure, leave the working-tree edit visible, and create or defer a fallback task that includes the proposed diff plus the commit failure summary.
 
 ### LR-2b: Apply Lint Rules Inline (only if lint-rule action candidates exist)
 

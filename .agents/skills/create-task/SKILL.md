@@ -98,7 +98,7 @@ Each task carries three text fields with distinct intents — keep them sharp. B
 
 ### Durable context atoms
 
-Some input is useful future memory but is neither the task deliverable nor a completion condition. Route that information to `tusk context add` after task insertion instead of stuffing it into the description or criteria.
+Some input is useful future memory but is neither the task deliverable nor a completion condition. Route that information to `tusk context add` after task insertion instead of burying or stuffing it into the description or criteria.
 
 Use the smallest durable unit:
 
@@ -330,7 +330,7 @@ If the proposal has candidate context atoms, show them under the affected task a
 
 ## Step 5: Deduplicate, Insert, and Generate Criteria
 
-For each approved task, generate **2–5 acceptance criteria** — concrete, testable conditions that define "done."
+For each approved task, generate **2–5 acceptance criteria** — concrete, testable conditions that define "done." When the source material provides enough information, attach a verification hint by choosing a typed criterion (`test`, `code`, or `file`) and a concrete `spec`; leave a criterion manual only when the proof genuinely requires judgment.
 
 ### Test-first default
 
@@ -465,7 +465,9 @@ Before inserting, apply these rules to every generated criterion:
 
 Revise the criterion and present it to the user for approval before proceeding to insertion.
 
-Then insert the task with criteria in a single call using `tusk task-insert`. This validates enum values against config, runs a heuristic duplicate check internally, and inserts the task + criteria in one transaction. Pass the scope decisions confirmed in Step 4 as `--scope` / `--creates` / `--unbounded` flags — the operator's review is the gate, not the heuristic:
+When two or more tasks are approved, materialize them with `tusk task-import`, not repeated `tusk task-insert` calls. Build one JSON plan with a top-level `tasks` array, run `tusk task-import --stdin --dry-run` first, show and fix any `failed` or `skipped` outcomes, then run the same JSON without `--dry-run` after approval. Include stable local `key` values and `depends_on` entries for any ordering relationships; import creates rows first, then resolves local dependency keys, objective links, duplicate policies, and rollback in one batch.
+
+For a single approved task, or when the operator explicitly asks for one row only, insert the task with criteria in a single call using `tusk task-insert`. This validates enum values against config, runs a heuristic duplicate check internally, and inserts the task + criteria in one transaction. Pass the scope decisions confirmed in Step 4 as `--scope` / `--creates` / `--unbounded` flags — the operator's review is the gate, not the heuristic:
 
 ```bash
 tusk task-insert "<summary>" "<description>" \
@@ -533,6 +535,10 @@ The command prints JSON with `matched_task_id` and `similarity`. Report which ex
 ### Exit code 2 — Error
 
 Report the error and skip.
+
+### `task-import` output
+
+`task-import` prints one JSON object with `created`, `skipped`, and `failed` maps keyed by input index. `created` entries include `task_id`, `criteria_ids`, and optional `key`; `--dry-run` entries use `{"dry_run": true}` instead of IDs. Treat any non-empty `failed` map as a blocker unless the operator explicitly chose `--best-effort`; treat `skipped` duplicate entries as skipped tasks in Step 8's final summary.
 
 ## Step 7: Propose Dependencies
 

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Compare Store Screenshots"
+  short_description: "Capture and compare iOS and Android screenshots"
+  default_prompt: "Use $compare-store-screenshots to regenerate and compare every iOS and Android store screenshot pair."
