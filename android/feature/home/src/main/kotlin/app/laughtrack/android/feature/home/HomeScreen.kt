@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -41,6 +42,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -57,6 +61,7 @@ import app.laughtrack.android.core.network.generated.model.ComedianListItem
 import app.laughtrack.android.core.network.generated.model.HomeFeedPodcast
 import app.laughtrack.android.core.network.generated.model.Show
 import app.laughtrack.android.core.ui.UiState
+import app.laughtrack.android.core.ui.components.LaughTrackAtmosphereBackground
 import app.laughtrack.android.core.ui.components.RemoteImage
 import app.laughtrack.android.core.ui.components.RemoteImageFallback
 import app.laughtrack.android.core.ui.components.SkeletonBox
@@ -80,19 +85,24 @@ fun HomeScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    when (state.feed) {
-        is UiState.Failure -> HomeError(onRetry = viewModel::retry, modifier = modifier)
-        is UiState.Success ->
-            HomeContent(
-                state = state,
-                onOpenEntity = onOpenEntity,
-                onManualZip = viewModel::setManualZip,
-                onUseLocation = viewModel::useDeviceLocation,
-                onSetDistance = viewModel::setDistance,
-                onClearLocation = viewModel::clearLocation,
-                modifier = modifier,
-            )
-        else -> HomeLoading(modifier)
+    Box(modifier = modifier.fillMaxSize()) {
+        LaughTrackAtmosphereBackground()
+
+        Box(Modifier.fillMaxSize().statusBarsPadding()) {
+            when (state.feed) {
+                is UiState.Failure -> HomeError(onRetry = viewModel::retry)
+                is UiState.Success ->
+                    HomeContent(
+                        state = state,
+                        onOpenEntity = onOpenEntity,
+                        onManualZip = viewModel::setManualZip,
+                        onUseLocation = viewModel::useDeviceLocation,
+                        onSetDistance = viewModel::setDistance,
+                        onClearLocation = viewModel::clearLocation,
+                    )
+                else -> HomeLoading()
+            }
+        }
     }
 }
 
@@ -107,22 +117,11 @@ private fun HomeContent(
     modifier: Modifier = Modifier,
 ) {
     Box(
-        modifier =
-            modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors =
-                            listOf(
-                                LaughTrackColors.Highlight.copy(alpha = 0.28f),
-                                LaughTrackColors.Canvas,
-                            ),
-                    ),
-                ),
+        modifier = modifier.fillMaxSize(),
     ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             item {
@@ -148,18 +147,14 @@ private fun HomeContent(
             }
             item {
                 ShowsTonightRail(
-                    cityTitle =
-                        state.locationTitle
-                            .removePrefix("Near ")
-                            .takeIf { state.locationTitle.startsWith("Near ") },
                     shows = state.showsTonight,
                     onOpenEntity = onOpenEntity,
                 )
             }
             item {
                 ShowListRail(
-                    eyebrow = "This week",
-                    title = "Best shows later this week",
+                    eyebrow = "Coming Up",
+                    title = "Best shows this week",
                     emptyMessage = "No upcoming shows are listed near you this week.",
                     shows = state.trendingThisWeek,
                     onOpenEntity = onOpenEntity,
@@ -180,13 +175,11 @@ private fun HomeContent(
 
 @Composable
 private fun ShowsTonightRail(
-    cityTitle: String?,
     shows: List<Show>,
     onOpenEntity: (AppRoute) -> Unit,
 ) {
     FeedRailCard(
-        eyebrow = "Tonight",
-        title = cityTitle?.let { "Shows tonight near $it" } ?: "Shows tonight",
+        title = null,
         emptyMessage = "No shows are listed for tonight yet.",
         itemCount = shows.size,
     ) {
@@ -280,39 +273,53 @@ private fun PodcastRail(
 @Composable
 private fun FeedRailCard(
     eyebrow: String? = null,
-    title: String,
+    title: String?,
     emptyMessage: String,
     itemCount: Int,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    Surface(
-        color = LaughTrackColors.SurfaceElevated,
-        shape = RoundedCornerShape(14.dp),
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .border(1.dp, LaughTrackColors.BorderSubtle, RoundedCornerShape(14.dp)),
-    ) {
-        Column(
-            modifier = Modifier.padding(10.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+    Box(modifier = Modifier.fillMaxWidth()) {
+        Surface(
+            color = LaughTrackColors.SurfaceElevated,
+            shape = RoundedCornerShape(14.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .border(1.dp, LaughTrackColors.BorderSubtle, RoundedCornerShape(14.dp)),
         ) {
-            ShelfHeader(eyebrow = eyebrow, title = title)
-            if (itemCount == 0) {
-                Text(
-                    emptyMessage,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 6.dp),
-                )
-            } else {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                    content = content,
-                )
+            Column(
+                modifier = Modifier.padding(10.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                if (title != null) {
+                    ShelfHeader(eyebrow = eyebrow, title = title)
+                }
+                if (itemCount == 0) {
+                    Text(
+                        emptyMessage,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 6.dp),
+                    )
+                } else {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                        content = content,
+                    )
+                }
             }
         }
+        Box(
+            modifier =
+                Modifier
+                    .align(Alignment.TopStart)
+                    .padding(start = 10.dp)
+                    .width(52.dp)
+                    .height(2.dp)
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(LaughTrackColors.AccentStrong.copy(alpha = 0.72f)),
+        )
     }
 }
 
@@ -437,7 +444,7 @@ private fun TonightHeroCard(
                     text = formatShowTime(show) ?: "",
                     color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Black,
-                    fontSize = 34.sp,
+                    fontSize = 30.sp,
                     maxLines = 1,
                 )
                 Text(
@@ -450,8 +457,13 @@ private fun TonightHeroCard(
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Text(
-                    text = "At ${show.clubName ?: "Unknown club"}",
-                    style = MaterialTheme.typography.labelSmall,
+                    text = "At ${show.clubName ?: "Unknown club"}".uppercase(Locale.US),
+                    style =
+                        MaterialTheme.typography.labelSmall.copy(
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = 2.sp,
+                        ),
                     textAlign = TextAlign.Center,
                     color = LaughTrackColors.AccentStrong,
                     maxLines = 2,
@@ -492,11 +504,17 @@ private fun PricePill(price: String?) {
 
 @Composable
 private fun MarqueeArtwork(show: Show) {
+    val artworkFallback =
+        if (heroArtworkComedian(show) != null) {
+            RemoteImageFallback.Comedian
+        } else {
+            RemoteImageFallback.Show
+        }
     Box(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .height(168.dp)
+                .height(198.dp)
                 .clip(RoundedCornerShape(16.dp))
                 .background(
                     Brush.radialGradient(
@@ -509,23 +527,48 @@ private fun MarqueeArtwork(show: Show) {
                 ),
         contentAlignment = Alignment.Center,
     ) {
-        Box(
+        Column(
             modifier =
                 Modifier
-                    .size(148.dp)
-                    .border(2.dp, LaughTrackColors.AccentStrong, RoundedCornerShape(12.dp))
-                    .padding(10.dp),
-            contentAlignment = Alignment.Center,
+                    .width(154.dp)
+                    .height(170.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(
+                        Brush.linearGradient(
+                            listOf(
+                                LaughTrackColors.Foreground.copy(alpha = 0.94f),
+                                Color(0xFFD1C2A8),
+                            ),
+                        ),
+                    )
+                    .border(2.dp, Color.Black.copy(alpha = 0.72f), RoundedCornerShape(8.dp))
+                    .padding(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(5.dp),
         ) {
             RemoteImage(
-                url = show.imageUrl,
-                fallback = RemoteImageFallback.Show,
+                url = heroArtworkUrl(show),
+                fallback = artworkFallback,
                 contentDescription = show.name ?: "Show",
                 modifier =
                     Modifier
-                        .size(128.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .border(1.dp, LaughTrackColors.Canvas.copy(alpha = 0.55f), RoundedCornerShape(8.dp)),
+                        .width(138.dp)
+                        .height(132.dp)
+                        .clip(RectangleShape)
+                        .border(1.dp, Color.Black.copy(alpha = 0.5f), RectangleShape),
+            )
+            Text(
+                text = heroArtworkCaption(show).uppercase(Locale.US),
+                style =
+                    MaterialTheme.typography.labelSmall.copy(
+                        fontFamily = FontFamily.Serif,
+                        fontWeight = FontWeight.SemiBold,
+                    ),
+                color = Color.Black.copy(alpha = 0.74f),
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.fillMaxWidth().background(Color.White.copy(alpha = 0.30f)),
             )
         }
     }

@@ -9,10 +9,12 @@ import app.laughtrack.android.core.network.generated.model.HomeFeedHero
 import app.laughtrack.android.core.network.generated.model.HomeFeedPodcast
 import app.laughtrack.android.core.network.generated.model.Show
 import app.laughtrack.android.core.network.generated.model.SocialData
+import app.laughtrack.android.core.network.generated.model.Ticket
 import app.laughtrack.android.core.ui.UiState
 import app.laughtrack.android.feature.home.data.HomeFeedCache
 import app.laughtrack.android.feature.home.data.HomeFeedRepository
 import app.laughtrack.android.feature.home.location.HomeLocationResolver
+import app.laughtrack.android.feature.home.ui.HomeUiState
 import app.laughtrack.android.feature.home.ui.HomeViewModel
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -56,7 +58,7 @@ class HomeViewModelTest {
             val state = viewModel.state.value
             assertTrue(state.feed is UiState.Success)
             assertEquals("Near New York, NY", state.locationTitle)
-            assertEquals(2, state.showsTonight.size)
+            assertEquals(3, state.showsTonight.size)
             assertEquals(1, state.trendingThisWeek.size)
             assertEquals(1, state.comedians.size)
             assertEquals(1, state.clubs.size)
@@ -83,6 +85,31 @@ class HomeViewModelTest {
             assertTrue(viewModel.state.value.feed is UiState.Success)
             assertEquals(2, repository.loads)
         }
+
+    @Test
+    fun tonight_hero_matches_ios_candidate_filtering_and_display_limit() {
+        val candidates =
+            listOf(
+                show(1, "Sold out by show").copy(soldOut = true),
+                show(2, "Sold out by tickets").copy(tickets = listOf(Ticket(soldOut = true))),
+                show(3, "Available 3"),
+                show(4, "Available 4"),
+                show(5, "Available 5"),
+                show(6, "Available 6"),
+                show(7, "Available 7"),
+                show(8, "Capped 8"),
+            )
+        val feed =
+            homeFeed().copy(
+                hero = homeFeed().hero.copy(shows = emptyList()),
+                showsTonight = candidates,
+                trendingThisWeek = listOf(show(3, "Duplicate 3")),
+            )
+
+        val state = HomeUiState(feed = UiState.Success(feed))
+
+        assertEquals(listOf(3, 4, 5, 6, 7), state.showsTonight.map { it.id })
+    }
 
     @Test
     fun cached_feed_survives_network_failure() =
@@ -272,14 +299,14 @@ class HomeViewModelTest {
             advanceUntilIdle()
 
             assertEquals(
-                HomeLocation("10001", HomeFeedRepository.DEFAULT_DISTANCE_MILES),
+                HomeLocation("10001", HomeFeedRepository.DEFAULT_DISTANCE_MILES, "New York, NY"),
                 locationState.location.value,
             )
 
             viewModel.setDistance(50)
             advanceUntilIdle()
 
-            assertEquals(HomeLocation("10001", 50), locationState.location.value)
+            assertEquals(HomeLocation("10001", 50, "New York, NY"), locationState.location.value)
         }
 
     private fun viewModel(

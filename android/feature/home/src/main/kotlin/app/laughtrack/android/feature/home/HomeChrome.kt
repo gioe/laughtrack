@@ -59,10 +59,7 @@ import java.util.Locale
 @Composable
 internal fun DiscoverHeader(onOpenEntity: (AppRoute) -> Unit) {
     Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp, bottom = 0.dp),
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -87,17 +84,7 @@ internal fun DiscoverHeader(onOpenEntity: (AppRoute) -> Unit) {
             PrimitiveChip("Shows")
             PrimitiveChip("Comedians")
             PrimitiveChip("Clubs")
-        }
-
-        HeaderCircleButton(
-            onClick = { onOpenEntity(AppRoute.Profile) },
-        ) {
-            Icon(
-                imageVector = Icons.Filled.LocationOn,
-                contentDescription = null,
-                tint = LaughTrackColors.AccentStrong,
-                modifier = Modifier.size(27.dp),
-            )
+            PrimitiveChip("Podcasts")
         }
     }
 }
@@ -130,7 +117,7 @@ private fun HeaderCircleButton(
 private fun PrimitiveChip(title: String) {
     Surface(
         shape = RoundedCornerShape(999.dp),
-        color = LaughTrackColors.Canvas.copy(alpha = 0.1f),
+        color = androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.96f),
         modifier =
             Modifier
                 .height(34.dp)
@@ -187,7 +174,7 @@ internal fun LocationHeader(
                 .border(1.dp, LaughTrackColors.BorderSubtle, shape),
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {

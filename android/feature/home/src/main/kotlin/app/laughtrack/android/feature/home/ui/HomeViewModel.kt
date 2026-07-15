@@ -51,6 +51,12 @@ data class HomeUiState(
             }
         }
 
+    val activeLocationLabel: String?
+        get() {
+            val hero = loadedFeed?.hero
+            return listOfNotNull(hero?.city, hero?.state).joinToString(", ").ifBlank { null }
+        }
+
     /**
      * True while the user has explicitly set a location or radius — exactly when
      * clearLocation() would change anything. Gates the sheet's Clear action
@@ -66,13 +72,20 @@ data class HomeUiState(
                 ?: "Get shows, clubs, and comedians near you."
 
     val showsTonight: List<Show>
-        get() = loadedFeed?.let { dedupeShows(it.showsTonight + it.hero.shows) }.orEmpty()
+        get() =
+            loadedFeed
+                ?.let { feed ->
+                    dedupeShows(feed.showsTonight + feed.hero.shows + feed.trendingThisWeek)
+                        .filterNot(::isSoldOut)
+                        .take(HOME_HERO_DISPLAY_LIMIT)
+                }.orEmpty()
 
     val trendingThisWeek: List<Show>
         get() =
             loadedFeed?.let { feed ->
-                val tonightIds = showsTonight.map { it.id }.toSet()
+                val tonightIds = (feed.showsTonight + feed.hero.shows).map { it.id }.toSet()
                 dedupeShows((feed.trendingThisWeek + feed.moreNearYou).filterNot { it.id in tonightIds })
+                    .filterNot(::isSoldOut)
             }.orEmpty()
 
     val comedians: List<ComedianListItem>
@@ -115,7 +128,11 @@ class HomeViewModel
             viewModelScope.launch {
                 state.collect { snapshot ->
                     if (snapshot.feed is UiState.Success<*>) {
-                        homeLocationState.update(snapshot.activeZip, snapshot.distanceMiles)
+                        homeLocationState.update(
+                            snapshot.activeZip,
+                            snapshot.distanceMiles,
+                            snapshot.activeLocationLabel,
+                        )
                     }
                 }
             }
@@ -219,6 +236,14 @@ private fun dedupeShows(shows: List<Show>): List<Show> {
     val seen = mutableSetOf<Int>()
     return shows.filter { show -> seen.add(show.id) }
 }
+
+private fun isSoldOut(show: Show): Boolean {
+    if (show.soldOut == true) return true
+    val tickets = show.tickets.orEmpty()
+    return tickets.isNotEmpty() && tickets.all { it.soldOut == true }
+}
+
+private const val HOME_HERO_DISPLAY_LIMIT = 5
 
 private fun dedupeComedians(comedians: List<ComedianListItem>): List<ComedianListItem> {
     val seen = mutableSetOf<String>()

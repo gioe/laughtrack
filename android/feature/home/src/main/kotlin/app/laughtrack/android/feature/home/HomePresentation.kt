@@ -4,6 +4,10 @@ import app.laughtrack.android.core.network.generated.model.ComedianLineup
 import app.laughtrack.android.core.network.generated.model.Show
 import app.laughtrack.android.core.ui.components.ticketStubDateParts
 import java.math.BigDecimal
+import java.time.OffsetDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 internal fun showHeadliner(show: Show): ComedianLineup? =
     show.lineup
@@ -23,6 +27,20 @@ internal fun showSupportingLineup(
         .orEmpty()
 
 private fun effectiveComedian(comedian: ComedianLineup): ComedianLineup = comedian.parentComedian ?: comedian
+
+internal fun heroArtworkComedian(show: Show): ComedianLineup? {
+    val showImage = show.imageUrl.trim()
+    val lineup = show.lineup.orEmpty().map(::effectiveComedian)
+    return lineup.firstOrNull { showImage.isNotEmpty() && it.imageUrl.trim() == showImage }
+        ?: lineup.filter { it.imageUrl.isNotBlank() }.maxByOrNull { it.showCount ?: 0 }
+}
+
+internal fun heroArtworkUrl(show: Show): String? =
+    heroArtworkComedian(show)?.imageUrl?.takeIf { it.isNotBlank() }
+        ?: show.imageUrl.takeIf { it.isNotBlank() }
+
+internal fun heroArtworkCaption(show: Show): String =
+    heroArtworkComedian(show)?.name?.takeIf { it.isNotBlank() } ?: showListTitle(show)
 
 internal fun showTicketBadges(show: Show): List<String> =
     buildList {
@@ -58,7 +76,17 @@ internal fun formatPrice(prices: List<BigDecimal>?): String? {
     return "$${price.stripTrailingZeros().toPlainString()}"
 }
 
-internal fun formatShowTime(show: Show): String? =
-    ticketStubDateParts(isoDateTime = show.date, timezone = show.timezone)
-        .time
-        .takeIf { it.isNotBlank() }
+internal fun formatShowTime(show: Show): String? {
+    val time =
+        ticketStubDateParts(isoDateTime = show.date, timezone = show.timezone)
+            .time
+            .takeIf { it.isNotBlank() } ?: return null
+    val zone =
+        runCatching {
+            val zoneId = show.timezone?.let(ZoneId::of) ?: return@runCatching null
+            OffsetDateTime.parse(show.date)
+                .atZoneSameInstant(zoneId)
+                .format(DateTimeFormatter.ofPattern("z", Locale.US))
+        }.getOrNull()
+    return listOfNotNull(time, zone).joinToString(" ")
+}
