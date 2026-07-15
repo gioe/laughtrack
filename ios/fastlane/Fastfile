@@ -1,4 +1,6 @@
+require "fileutils"
 require "json"
+require "tmpdir"
 
 default_platform(:ios)
 
@@ -10,6 +12,8 @@ PROJECT_YML_PATH = "../project.yml"
 IPA_NAME = "LaughTrack.ipa"
 TEAM_ID = "4HDNC3V5Q6"
 SCREENSHOT_CATALOG_PATH = File.expand_path("../../screenshots/catalog.json", __dir__)
+SCREENSHOT_EXPORT_PATH = File.expand_path("../../scripts/screenshots/export.py", __dir__)
+REPO_ROOT = File.expand_path("../..", __dir__)
 IOS_SCREENSHOT_PROFILE_SETTINGS = {
   "ios_phone" => {
     device_name: "iPhone 16 Pro Max",
@@ -49,8 +53,8 @@ IOS_SCREENSHOT_COLLECTION = load_ios_screenshot_collection
 CANONICAL_IOS_SCREENSHOT_IDS = IOS_SCREENSHOT_COLLECTION.fetch(:scenario_ids)
 IOS_SCREENSHOT_PROFILES = IOS_SCREENSHOT_COLLECTION.fetch(:profiles)
 
-def validate_ios_screenshot_collection
-  directory = File.expand_path("screenshots/en-US", __dir__)
+def validate_ios_screenshot_collection(screenshot_root)
+  directory = File.join(screenshot_root, "en-US")
   expected = IOS_SCREENSHOT_PROFILES.flat_map do |profile|
     CANONICAL_IOS_SCREENSHOT_IDS.map do |scenario_id|
       "#{profile.fetch(:device_name)}-#{scenario_id}.png"
@@ -62,6 +66,24 @@ def validate_ios_screenshot_collection
   UI.user_error!(
     "Expected the canonical #{expected.length}-image iOS collection in #{directory}; " \
     "missing=#{expected - actual}, unexpected=#{actual - expected}",
+  )
+end
+
+def export_app_store_projection(capture_root, run_root)
+  sh(
+    "python3", SCREENSHOT_EXPORT_PATH,
+    "--catalog", SCREENSHOT_CATALOG_PATH,
+    "collect", "ios",
+    "--source-root", capture_root,
+    "--run-root", run_root,
+    "--repo-root", REPO_ROOT,
+  )
+  sh(
+    "python3", SCREENSHOT_EXPORT_PATH,
+    "--catalog", SCREENSHOT_CATALOG_PATH,
+    "export", "app-store", File.join(run_root, "manifest.json"),
+    "--repo-root", run_root,
+    "--output-root", File.expand_path("screenshots", __dir__),
   )
 end
 
@@ -322,11 +344,15 @@ platform :ios do
     end
   end
 
-  desc "Capture all canonical App Store scenarios on iPhone and iPad"
+  desc "Capture a complete iOS matrix, validate its run manifest, and export the App Store projection"
   lane :screenshots do
     patch_snapshot_destination_for_18_3_1
-    capture_screenshots
-    validate_ios_screenshot_collection
+    Dir.mktmpdir("laughtrack-ios-screenshots") do |tmpdir|
+      capture_root = File.join(tmpdir, "capture")
+      capture_screenshots(output_directory: capture_root)
+      validate_ios_screenshot_collection(capture_root)
+      export_app_store_projection(capture_root, File.join(tmpdir, "run"))
+    end
   end
 
   desc "Add device frames and captions to screenshots"

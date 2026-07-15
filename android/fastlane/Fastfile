@@ -24,6 +24,8 @@ DEBUG_TEST_APK_PATH = "app/build/outputs/apk/androidTest/debug/app-debug-android
 # 440 x 956 dp, matching the iOS screenshot's logical viewport and producing the
 # same 1320 x 2868 output dimensions for a direct storefront comparison.
 SCREENSHOT_CATALOG_PATH = File.expand_path("../../screenshots/catalog.json", __dir__)
+SCREENSHOT_EXPORT_PATH = File.expand_path("../../scripts/screenshots/export.py", __dir__)
+REPO_ROOT = File.expand_path("../..", __dir__)
 ANDROID_SCREENSHOT_PROFILE_SETTINGS = {
   "android_phone" => {
     name: "phone",
@@ -80,23 +82,6 @@ ANDROID_SCREENSHOT_COLLECTION = load_android_screenshot_collection
 CANONICAL_SCREENSHOT_IDS = ANDROID_SCREENSHOT_COLLECTION.fetch(:scenario_ids)
 SCREENSHOT_PROFILES = ANDROID_SCREENSHOT_COLLECTION.fetch(:profiles)
 
-# Google Play accepts at most eight phone screenshots per locale. Keep all nine
-# captures on disk for the one-to-one iOS/Android visual audit, but publish this
-# curated subset to Play. Search Podcasts is omitted because the other three
-# search pivots already demonstrate search/filter UI, while Podcast Detail shows
-# the platform-specific podcast experience.
-PLAY_STORE_PHONE_SCREENSHOT_IDS = %w[
-  01_NearMe
-  02_SearchShows
-  03_SearchComedians
-  04_SearchClubs
-  05_ClubDetail
-  06_ShowDetail
-  07_ComedianDetail
-  09_PodcastDetail
-].freeze
-PLAY_STORE_TABLET_SCREENSHOT_IDS = %w[01_NearMe 02_SearchShows 05_ClubDetail 06_ShowDetail].freeze
-
 def image_files(directory)
   Dir.glob(File.join(directory, "*.{png,jpg,jpeg}"))
 end
@@ -112,50 +97,22 @@ def validate_canonical_screenshot_directory(directory)
   )
 end
 
-def clear_android_screenshot_collection
-  screenshot_root = File.expand_path("metadata/android/en-US/images", __dir__)
-  SCREENSHOT_PROFILES.each do |profile|
-    image_files(File.join(screenshot_root, profile[:output_directory])).each { |path| FileUtils.rm_f(path) }
-  end
-end
-
-def stage_screenshot_subset(directory, selected_ids)
-  validate_canonical_screenshot_directory(directory)
-  selected_names = selected_ids.map { |id| "#{id}.png" }
-  image_files(directory).each do |path|
-    FileUtils.rm_f(path) unless selected_names.include?(File.basename(path))
-  end
-  UI.message("Staged #{selected_names.length} of #{CANONICAL_SCREENSHOT_IDS.length} screenshots from #{directory}")
-end
-
-# Supply uploads every screenshot it finds under metadata_path. Stage a
-# temporary copy containing the Play-safe eight-screen subset so the canonical
-# nine-screen capture set remains intact for cross-platform comparison.
-def with_play_store_metadata
-  source = File.expand_path("metadata/android", __dir__)
-  UI.user_error!("Play metadata directory not found: #{source}") unless Dir.exist?(source)
-
-  Dir.mktmpdir("laughtrack-play-metadata") do |tmpdir|
-    staged = File.join(tmpdir, "android")
-    FileUtils.cp_r(source, staged)
-
-    locale_dirs = Dir.glob(File.join(staged, "*")).select { |path| File.directory?(path) }
-    UI.user_error!("No Play locale directories found under #{source}") if locale_dirs.empty?
-
-    locale_dirs.each do |locale_dir|
-      phone_directory = File.join(locale_dir, "images", "phoneScreenshots")
-      UI.user_error!("Play phone screenshots not found: #{phone_directory}") unless Dir.exist?(phone_directory)
-
-      stage_screenshot_subset(phone_directory, PLAY_STORE_PHONE_SCREENSHOT_IDS)
-
-      %w[sevenInchScreenshots tenInchScreenshots].each do |device_directory|
-        directory = File.join(locale_dir, "images", device_directory)
-        stage_screenshot_subset(directory, PLAY_STORE_TABLET_SCREENSHOT_IDS)
-      end
-    end
-
-    yield staged
-  end
+def export_play_projection(capture_root, run_root)
+  sh(
+    "python3", SCREENSHOT_EXPORT_PATH,
+    "--catalog", SCREENSHOT_CATALOG_PATH,
+    "collect", "android",
+    "--source-root", capture_root,
+    "--run-root", run_root,
+    "--repo-root", REPO_ROOT,
+  )
+  sh(
+    "python3", SCREENSHOT_EXPORT_PATH,
+    "--catalog", SCREENSHOT_CATALOG_PATH,
+    "export", "play", File.join(run_root, "manifest.json"),
+    "--repo-root", run_root,
+    "--output-root", File.expand_path("metadata/android", __dir__),
+  )
 end
 
 # Read a `KEY=value` line from gradle.properties. Raises if absent so a renamed
@@ -274,7 +231,7 @@ def configure_screenshot_emulator(adb, serial, profile)
   { size: original_size, density: original_density }
 end
 
-def capture_screenshot_profile(adb, serial, profile)
+def capture_screenshot_profile(adb, serial, profile, output_directory)
   original = configure_screenshot_emulator(adb, serial, profile)
   begin
     capture_android_screenshots(
@@ -282,6 +239,7 @@ def capture_screenshot_profile(adb, serial, profile)
       tests_apk_path: DEBUG_TEST_APK_PATH,
       specific_device: serial,
       device_type: profile[:device_type],
+      output_directory: output_directory,
     )
   ensure
     restore_screenshot_emulator(adb, serial, original)
@@ -463,75 +421,64 @@ platform :android do
     generate_release_notes(version_code: version_code)
     screenshots
 
-    with_play_store_metadata do |metadata_path|
-      upload_to_play_store(
-        # Source track the build currently lives on (uploaded by the internal lane),
-        # promoted to production. Setting `track` to production would make supply look
-        # for the build on the production edit, where it does not yet exist.
-        track: "internal",
-        track_promote_to: "production",
-        version_code: version_code,
-        metadata_path: metadata_path,
-        rollout: rollout,
-        # A partial rollout must be staged as inProgress; a full (1.0) rollout is a
-        # completed release. Some supply versions reject a <1 rollout without this.
-        release_status: rollout.to_f < 1 ? "inProgress" : "completed",
-        skip_upload_aab: true,
-        skip_upload_apk: true,
-        skip_upload_metadata: false,
-        skip_upload_images: false,
-        skip_upload_screenshots: false,
-        skip_upload_changelogs: false,
-      )
-    end
+    upload_to_play_store(
+      # Source track the build currently lives on (uploaded by the internal lane),
+      # promoted to production. Setting `track` to production would make supply look
+      # for the build on the production edit, where it does not yet exist.
+      track: "internal",
+      track_promote_to: "production",
+      version_code: version_code,
+      metadata_path: "fastlane/metadata/android",
+      rollout: rollout,
+      # A partial rollout must be staged as inProgress; a full (1.0) rollout is a
+      # completed release. Some supply versions reject a <1 rollout without this.
+      release_status: rollout.to_f < 1 ? "inProgress" : "completed",
+      skip_upload_aab: true,
+      skip_upload_apk: true,
+      skip_upload_metadata: false,
+      skip_upload_images: false,
+      skip_upload_screenshots: false,
+      skip_upload_changelogs: false,
+    )
     UI.success("Promoted versionCode #{version_code} from internal to production (rollout #{rollout})")
   end
 
-  desc "Start an available Android emulator if needed, then capture all canonical scenarios " \
-       "for phone and both Play tablet classes via screengrab. Builds the debug + androidTest " \
-       "APKs and drives AppStoreScreenshotTest (TASK-3616). Lands PNGs in Fastlane's phone, " \
-       "sevenInch, and tenInch metadata directories for `supply`."
+  desc "Capture a complete Android matrix, validate its run manifest, and export the Play projection"
   lane :screenshots do
     adb, serial = boot_screenshot_emulator
     prior_android_serial = ENV["ANDROID_SERIAL"]
     ENV["ANDROID_SERIAL"] = serial
     begin
       gradle(task: "assembleDebug assembleDebugAndroidTest", project_dir: ".")
-      # Screengrab clears only the destination for the profile currently being
-      # captured. Remove the whole prior matrix up front so its HTML report does
-      # not reclassify legacy files from another device directory.
-      clear_android_screenshot_collection
-      SCREENSHOT_PROFILES.each do |profile|
-        capture_screenshot_profile(adb, serial, profile)
-      end
-      screenshot_root = File.expand_path("metadata/android/en-US/images", __dir__)
-      SCREENSHOT_PROFILES.each do |profile|
-        validate_canonical_screenshot_directory(File.join(screenshot_root, profile[:output_directory]))
+      Dir.mktmpdir("laughtrack-android-screenshots") do |tmpdir|
+        capture_root = File.join(tmpdir, "capture")
+        SCREENSHOT_PROFILES.each do |profile|
+          capture_screenshot_profile(adb, serial, profile, capture_root)
+        end
+        SCREENSHOT_PROFILES.each do |profile|
+          validate_canonical_screenshot_directory(
+            File.join(capture_root, "en-US", "images", profile[:output_directory]),
+          )
+        end
+        export_play_projection(capture_root, File.join(tmpdir, "run"))
       end
     ensure
       ENV["ANDROID_SERIAL"] = prior_android_serial
     end
   end
 
-  desc "Upload the store-listing screenshots/images to the Play Console (no binary). " \
-       "Run after `screenshots`; supply pushes whatever screengrab left under " \
-       "fastlane/metadata/android. Listing images are app-level, so the track is only " \
-       "the edit anchor."
+  desc "Upload the already-exported store-listing projection to Play (no binary)"
   lane :upload_screenshots do
-    with_play_store_metadata do |metadata_path|
-      upload_to_play_store(
-        track: "internal",
-        metadata_path: metadata_path,
-        skip_upload_aab: true,
-        skip_upload_apk: true,
-        skip_upload_metadata: true,
-        skip_upload_changelogs: true,
-        # The whole point of this lane: push the checked-in listing graphics and
-        # the curated eight-screen Play subset from the temporary metadata tree.
-        skip_upload_images: false,
-        skip_upload_screenshots: false,
-      )
-    end
+    upload_to_play_store(
+      track: "internal",
+      metadata_path: "fastlane/metadata/android",
+      skip_upload_aab: true,
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true,
+      skip_upload_images: false,
+      skip_upload_screenshots: false,
+    )
   end
 
   desc "Capture the listing screenshots and upload them to Play in one step " \
