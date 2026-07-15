@@ -73,7 +73,6 @@ struct SearchRootView: View {
             theme: theme,
             isPodcastMiniPlayerVisible: podcastPlayer.currentItem != nil
         )
-        .accessibilityIdentifier(LaughTrackViewTestID.searchTabScreen)
         .background(Color.clear)
         .navigationTitle("Search")
         .modifier(LaughTrackNavigationChrome(background: .clear))
@@ -150,6 +149,7 @@ struct SearchRootView: View {
                 model: podcastsModel,
                 unifiedSearchText: $model.query,
                 unifiedSearchPrompt: model.activePivot.queryPrompt,
+                displaysSearchInput: false,
                 isActive: isActive
             )
         }

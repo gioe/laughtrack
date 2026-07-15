@@ -10,6 +10,7 @@ enum LaughTrackViewTestID {
     static let homeScreen = "laughtrack.home.screen"
     static let searchTabScreen = "laughtrack.search-tab.screen"
     static let searchHeader = "laughtrack.search.header"
+    static let primitiveFilterScroller = "laughtrack.primitive-filter.scroller"
     static let searchRootField = "laughtrack.search.field"
     static let favoritesTabScreen = "laughtrack.favorites-tab.screen"
     static let libraryTabScreen = favoritesTabScreen
@@ -62,6 +63,7 @@ enum LaughTrackViewTestID {
     static let comediansSearchScreen = "laughtrack.comedians-search.screen"
     static let showDetailScreen = "laughtrack.show-detail.screen"
     static let comedianDetailScreen = "laughtrack.comedian-detail.screen"
+    static let podcastDetailScreen = "laughtrack.podcast-detail-screen"
     static let comedianDetailTabPicker = "laughtrack.comedian-detail.tab-picker"
     static let podcastMiniPlayer = "laughtrack.podcast-mini-player"
     static let clubDetailScreen = "laughtrack.club-detail.screen"
@@ -118,6 +120,10 @@ enum LaughTrackViewTestID {
 
     static func clubsSearchResultButton(_ id: Int) -> String {
         "laughtrack.clubs-search.result-\(id)"
+    }
+
+    static func podcastsSearchResultButton(_ id: String) -> String {
+        "laughtrack.podcasts-search.result-\(id)"
     }
 
     static func primitiveFilterButton(_ primitive: String) -> String {

@@ -25,19 +25,21 @@ struct ComediansDiscoveryView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: theme.laughTrackTokens.browseDensity.shelfGap) {
-                if let unifiedSearchText {
-                    SearchField(
-                        title: "Search",
-                        prompt: unifiedSearchPrompt ?? "Search comedian names",
-                        text: unifiedSearchText,
-                        showsTitle: false
-                    )
-                } else if displaysSearchInput {
-                    SearchField(
-                        title: "Comedian name",
-                        prompt: "Mark Normand, Atsuko Okatsuka…",
-                        text: $model.searchText
-                    )
+                if displaysSearchInput {
+                    if let unifiedSearchText {
+                        SearchField(
+                            title: "Search",
+                            prompt: unifiedSearchPrompt ?? "Search comedian names",
+                            text: unifiedSearchText,
+                            showsTitle: false
+                        )
+                    } else {
+                        SearchField(
+                            title: "Comedian name",
+                            prompt: "Mark Normand, Atsuko Okatsuka…",
+                            text: $model.searchText
+                        )
+                    }
                 }
 
                 ChipFlowLayout(spacing: theme.spacing.sm, rowSpacing: theme.spacing.sm) {
@@ -100,7 +102,6 @@ struct ComediansDiscoveryView: View {
                                     feedbackMessage: $feedbackMessage,
                                     openDetail: { coordinator.open(.comedian(comedian.id)) }
                                 )
-                                .accessibilityIdentifier(LaughTrackViewTestID.comediansSearchResultButton(comedian.id))
                             }
 
                             if let paginationFailure = model.paginationFailure {
@@ -147,7 +148,6 @@ struct ComediansDiscoveryView: View {
         }, message: {
             Text(feedbackMessage ?? "")
         })
-        .accessibilityIdentifier(LaughTrackViewTestID.comediansSearchScreen)
         .overlayPreferenceValue(PillDropdownAnchorKey.self) { anchors in
             GeometryReader { proxy in
                 PillDropdownOverlay(
@@ -301,6 +301,7 @@ struct ComedianRow: View {
             .buttonStyle(.plain)
             .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityLabel(comedian.name)
+            .accessibilityIdentifier(LaughTrackViewTestID.comediansSearchResultButton(comedian.id))
 
             FavoriteButton(
                 isFavorite: isFavorite,

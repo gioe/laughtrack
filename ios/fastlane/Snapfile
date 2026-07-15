@@ -1,8 +1,8 @@
-# Required: 6.9" iPhone covers all mandatory App Store iPhone sizes.
-# App Store Connect auto-scales for smaller devices.
-# When iPad support is enabled, add "iPad Pro 13-inch (M4)".
+# Canonical iOS capture profiles: the 6.9" iPhone covers all mandatory App
+# Store iPhone sizes, and the 13" iPad is the large-tablet comparison profile.
 devices([
-  "iPhone 16 Pro Max"
+  "iPhone 16 Pro Max",
+  "iPad Pro 13-inch (M4)"
 ])
 
 languages(["en-US"])
@@ -15,6 +15,11 @@ languages(["en-US"])
 # run_tests directly, so it isn't affected by this snapshot quirk.
 
 scheme("LaughTrack")
+
+# The shipping app intentionally remains iPhone-only. Build the screenshot
+# matrix as a universal app so the iPad profile renders native tablet geometry
+# instead of iPhone compatibility mode without changing release configuration.
+xcargs("TARGETED_DEVICE_FAMILY=1,2")
 
 output_directory("./fastlane/screenshots")
 

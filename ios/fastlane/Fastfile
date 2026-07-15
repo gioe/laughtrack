@@ -1,3 +1,5 @@
+require "json"
+
 default_platform(:ios)
 
 APP_IDENTIFIER = "app.laughtrack.ios"
@@ -7,6 +9,61 @@ INFO_PLIST_PATH = "Sources/LaughTrackApp/Info.plist"
 PROJECT_YML_PATH = "../project.yml"
 IPA_NAME = "LaughTrack.ipa"
 TEAM_ID = "4HDNC3V5Q6"
+SCREENSHOT_CATALOG_PATH = File.expand_path("../../screenshots/catalog.json", __dir__)
+IOS_SCREENSHOT_PROFILE_SETTINGS = {
+  "ios_phone" => {
+    device_name: "iPhone 16 Pro Max",
+  },
+  "ios_large_tablet" => {
+    device_name: "iPad Pro 13-inch (M4)",
+  },
+}.freeze
+
+def load_ios_screenshot_collection
+  catalog = JSON.parse(File.read(SCREENSHOT_CATALOG_PATH))
+  scenario_ids = catalog.fetch("scenarios").map { |scenario| scenario.fetch("id") }
+  profiles = catalog.fetch("profiles").select { |profile| profile.fetch("platform") == "ios" }
+  profile_ids = profiles.map { |profile| profile.fetch("id") }
+
+  if scenario_ids.empty? || scenario_ids.uniq.length != scenario_ids.length
+    raise "Screenshot catalog must define unique scenarios"
+  end
+  unless profile_ids == IOS_SCREENSHOT_PROFILE_SETTINGS.keys
+    raise "Screenshot catalog iOS profiles #{profile_ids.inspect} do not match adapter profiles " \
+          "#{IOS_SCREENSHOT_PROFILE_SETTINGS.keys.inspect}"
+  end
+
+  {
+    scenario_ids: scenario_ids.freeze,
+    profiles: profiles.map do |profile|
+      IOS_SCREENSHOT_PROFILE_SETTINGS.fetch(profile.fetch("id")).merge(
+        id: profile.fetch("id"),
+      ).freeze
+    end.freeze,
+  }.freeze
+rescue Errno::ENOENT, JSON::ParserError, KeyError => e
+  raise "Invalid screenshot catalog at #{SCREENSHOT_CATALOG_PATH}: #{e.message}"
+end
+
+IOS_SCREENSHOT_COLLECTION = load_ios_screenshot_collection
+CANONICAL_IOS_SCREENSHOT_IDS = IOS_SCREENSHOT_COLLECTION.fetch(:scenario_ids)
+IOS_SCREENSHOT_PROFILES = IOS_SCREENSHOT_COLLECTION.fetch(:profiles)
+
+def validate_ios_screenshot_collection
+  directory = File.expand_path("screenshots/en-US", __dir__)
+  expected = IOS_SCREENSHOT_PROFILES.flat_map do |profile|
+    CANONICAL_IOS_SCREENSHOT_IDS.map do |scenario_id|
+      "#{profile.fetch(:device_name)}-#{scenario_id}.png"
+    end
+  end.sort
+  actual = Dir.glob(File.join(directory, "*.png")).map { |path| File.basename(path) }.sort
+  return if actual == expected
+
+  UI.user_error!(
+    "Expected the canonical #{expected.length}-image iOS collection in #{directory}; " \
+    "missing=#{expected - actual}, unexpected=#{actual - expected}",
+  )
+end
 
 # Test simulator pin (TASK-2339). The iOS 26.1 / 26.2 SDK has a regression in
 # _UIHostingView's accessibility-tree wiring that fails ~18 tests across 16
@@ -265,10 +322,11 @@ platform :ios do
     end
   end
 
-  desc "Capture App Store screenshots on all devices"
+  desc "Capture all canonical App Store scenarios on iPhone and iPad"
   lane :screenshots do
     patch_snapshot_destination_for_18_3_1
     capture_screenshots
+    validate_ios_screenshot_collection
   end
 
   desc "Add device frames and captions to screenshots"

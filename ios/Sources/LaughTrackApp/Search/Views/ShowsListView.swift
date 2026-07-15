@@ -15,8 +15,9 @@ import UIKit
 /// unreliable (TASK-2535).
 struct ShowsListChromeVisibility: Equatable {
     let compactMode: Bool
+    var displaysSearchFields = true
 
-    var showsSearchFields: Bool { !compactMode }
+    var showsSearchFields: Bool { !compactMode && displaysSearchFields }
     var showsSortControl: Bool { !compactMode }
     var showsFilterControl: Bool { !compactMode }
     var showsDateControl: Bool { true }
@@ -56,7 +57,10 @@ struct ShowsListView: View {
     }
 
     private var chrome: ShowsListChromeVisibility {
-        ShowsListChromeVisibility(compactMode: compactMode)
+        ShowsListChromeVisibility(
+            compactMode: compactMode,
+            displaysSearchFields: displaysSearchFields
+        )
     }
 
     var body: some View {
@@ -69,7 +73,7 @@ struct ShowsListView: View {
                             text: unifiedSearchText,
                             showsTitle: false
                         )
-                    } else if displaysSearchFields {
+                    } else {
                         if !model.isComedianPinned {
                             SearchField(
                                 title: "Comedian",
@@ -178,7 +182,6 @@ struct ShowsListView: View {
         .sheet(isPresented: $isDateEditorPresented) {
             ShowsDateRangeSheet(model: model, apiClient: apiClient, isPresented: $isDateEditorPresented)
         }
-        .accessibilityIdentifier(LaughTrackViewTestID.showsSearchScreen)
         .overlayPreferenceValue(PillDropdownAnchorKey.self) { anchors in
             GeometryReader { proxy in
                 PillDropdownOverlay(

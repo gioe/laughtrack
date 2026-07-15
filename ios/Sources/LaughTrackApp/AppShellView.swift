@@ -661,6 +661,7 @@ struct AppShellView: View {
                 .padding(.horizontal, 1)
                 .padding(.vertical, 1)
         }
+        .accessibilityIdentifier(LaughTrackViewTestID.primitiveFilterScroller)
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 }

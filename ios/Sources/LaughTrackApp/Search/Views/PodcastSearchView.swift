@@ -8,6 +8,7 @@ struct PodcastSearchView: View {
     @ObservedObject var model: PodcastSearchModel
     var unifiedSearchText: Binding<String>?
     var unifiedSearchPrompt: String?
+    var displaysSearchInput = true
     var isActive = true
 
     @Environment(\.appTheme) private var theme
@@ -20,7 +21,7 @@ struct PodcastSearchView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: theme.laughTrackTokens.browseDensity.shelfGap) {
-                if let unifiedSearchText {
+                if displaysSearchInput, let unifiedSearchText {
                     SearchField(
                         title: "Search",
                         prompt: unifiedSearchPrompt ?? "Search podcast titles",
@@ -158,6 +159,7 @@ struct PodcastSearchRow: View {
             .disabled(!canOpenDetail)
             .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityLabel(podcast.title)
+            .accessibilityIdentifier(LaughTrackViewTestID.podcastsSearchResultButton(podcast.id))
 
             if let numericID {
                 FavoriteButton(

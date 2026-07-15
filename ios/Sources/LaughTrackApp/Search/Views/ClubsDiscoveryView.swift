@@ -23,19 +23,21 @@ struct ClubsDiscoveryView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: theme.laughTrackTokens.browseDensity.shelfGap) {
-                if let unifiedSearchText {
-                    SearchField(
-                        title: "Search",
-                        prompt: unifiedSearchPrompt ?? "Search club names",
-                        text: unifiedSearchText,
-                        showsTitle: false
-                    )
-                } else if displaysSearchInput {
-                    SearchField(
-                        title: "Club name",
-                        prompt: "Comedy Cellar, The Stand…",
-                        text: $model.searchText
-                    )
+                if displaysSearchInput {
+                    if let unifiedSearchText {
+                        SearchField(
+                            title: "Search",
+                            prompt: unifiedSearchPrompt ?? "Search club names",
+                            text: unifiedSearchText,
+                            showsTitle: false
+                        )
+                    } else {
+                        SearchField(
+                            title: "Club name",
+                            prompt: "Comedy Cellar, The Stand…",
+                            text: $model.searchText
+                        )
+                    }
                 }
 
                 ChipFlowLayout(spacing: theme.spacing.sm, rowSpacing: theme.spacing.sm) {
@@ -120,7 +122,6 @@ struct ClubsDiscoveryView: View {
             )
             .presentationDetents([.medium, .large])
         }
-        .accessibilityIdentifier(LaughTrackViewTestID.clubsSearchScreen)
         .overlayPreferenceValue(PillDropdownAnchorKey.self) { anchors in
             GeometryReader { proxy in
                 PillDropdownOverlay(

@@ -225,7 +225,7 @@ struct PodcastDetailView: View {
             }
         }
         .ignoresSafeArea(.container, edges: .top)
-        .accessibilityIdentifier("laughtrack.podcast-detail-screen")
+        .accessibilityIdentifier(LaughTrackViewTestID.podcastDetailScreen)
         .modifier(DetailAtmosphereRouteBackground())
         .overlay(alignment: .top) {
             DetailChromeBar(
