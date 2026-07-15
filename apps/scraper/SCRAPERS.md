@@ -1690,12 +1690,22 @@ live music plus a weekly "Comedy Open Mic". Onboarded with `scraper_key='json_ld
 `metadata={"detail_fetch": {"enabled": true, "url_path_prefix": "/shows/"}, "comedy_filter": true}`
 → scrapes only the comedy open mics.
 
-**WordPress feed-detail example — The PIT (TASK-3566):** the `/events/` page is
-too broad for safe link crawling, but `/events/feed/` is a WordPress RSS feed of
-event detail links. Each detail page embeds schema.org `Event` JSON-LD; recurring
-shows put individual performances in `subEvent`. Onboarded with
-`scraper_key='json_ld'`, `source_url='https://thepit-nyc.com/events/feed/'`, and
-`metadata={"detail_fetch": {"feed_item_links": true, "set_same_as_to_detail_url": true, "skip_parent_events_with_subevents": true}}`.
+**PatronTicket + WordPress composite — The PIT (TASK-3732):**
+`/events/feed/` exposes only 10 rotating WordPress parent events, so it cannot be
+the authoritative paid-show calendar. The venue uses `scraper_key='the_pit'` and
+keeps the feed as `source_url` for cash, jam, and open-mic events while a child
+PatronTicket scrape supplies the complete online inventory. Configure
+`metadata.patronticket_source_url`, `metadata.patronticket_venue_id`, and
+`metadata.patronticket_categories='*'` alongside the existing `detail_fetch`
+settings; `'*'` is required because valid PIT events use Improv, Sketch, Variety,
+Theater, and blank categories rather than only Comedy. PatronTicket wins overlaps:
+the composite first deduplicates by stable Salesforce instance URL (which also
+handles PIT JSON-LD's four-hour timestamp offset), then by the normal
+club/date/room key. WordPress-only fallback tickets receive prices only from
+explicit phrases such as `$5 CASH` or `$10 for the evening`. Preserve older
+`json_ld` attribution for events outside the capped feed window; legacy online
+rows instead promote their Salesforce ticket URL to `show_page_url` so the normal
+PatronTicket instance reconciler can converge them deterministically.
 
 **City-arts multi-venue example — The Hive Black Box Theater / Pompano Beach Arts (TASK-3360):**
 a municipal performing-arts network (`pompanobeacharts.org`) whose single `/events` page lists
