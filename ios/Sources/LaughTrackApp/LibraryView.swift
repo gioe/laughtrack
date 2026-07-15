@@ -86,7 +86,12 @@ private struct AuthenticatedFavoritesSnapshot: View {
                 LaughTrackCard {
                     VStack(alignment: .leading, spacing: tokens.spacing.tight) {
                         ForEach(persona.favoriteShows, id: \.title) { show in
-                            TeaserRow(title: show.title, subtitle: show.detail)
+                            TeaserRow(
+                                title: show.title,
+                                subtitle: show.detail,
+                                systemImage: "calendar",
+                                isPlaceholder: false
+                            )
                         }
                     }
                 }
@@ -100,7 +105,12 @@ private struct AuthenticatedFavoritesSnapshot: View {
                 LaughTrackCard {
                     VStack(alignment: .leading, spacing: tokens.spacing.tight) {
                         ForEach(persona.favoriteComedians, id: \.self) { name in
-                            TeaserRow(title: name, subtitle: "Following · notifications on")
+                            TeaserRow(
+                                title: name,
+                                subtitle: "Following · notifications on",
+                                systemImage: "person.fill",
+                                isPlaceholder: false
+                            )
                         }
                     }
                 }
@@ -337,6 +347,8 @@ private struct TeaserSection<Content: View>: View {
 private struct TeaserRow: View {
     let title: String
     let subtitle: String
+    var systemImage: String? = nil
+    var isPlaceholder = true
 
     @Environment(\.appTheme) private var theme
 
@@ -344,18 +356,24 @@ private struct TeaserRow: View {
         let tokens = theme.laughTrackTokens
 
         HStack(spacing: theme.spacing.sm) {
-            RoundedRectangle(cornerRadius: 8)
-                .fill(tokens.colors.textSecondary.opacity(0.15))
-                .frame(width: 40, height: 40)
+            ZStack {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(tokens.colors.textSecondary.opacity(0.15))
+                if let systemImage {
+                    Image(systemName: systemImage)
+                        .foregroundStyle(tokens.colors.accent)
+                }
+            }
+            .frame(width: 40, height: 40)
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .font(tokens.typography.cardTitle)
-                    .foregroundStyle(tokens.colors.textPrimary.opacity(0.6))
-                    .redacted(reason: .placeholder)
+                    .foregroundStyle(tokens.colors.textPrimary.opacity(isPlaceholder ? 0.6 : 1))
+                    .redacted(reason: isPlaceholder ? .placeholder : [])
                 Text(subtitle)
                     .font(tokens.typography.metadata)
-                    .foregroundStyle(tokens.colors.textSecondary.opacity(0.6))
-                    .redacted(reason: .placeholder)
+                    .foregroundStyle(tokens.colors.textSecondary.opacity(isPlaceholder ? 0.6 : 1))
+                    .redacted(reason: isPlaceholder ? .placeholder : [])
             }
             Spacer(minLength: 0)
         }
