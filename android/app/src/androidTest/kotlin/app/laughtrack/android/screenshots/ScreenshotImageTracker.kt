@@ -5,39 +5,43 @@ import coil.EventListener
 import coil.request.ErrorResult
 import coil.request.ImageRequest
 import coil.request.SuccessResult
-import java.util.concurrent.atomic.AtomicInteger
+import java.util.Collections
+import java.util.IdentityHashMap
 
 /** Tracks Coil requests so screenshots never capture an in-flight decode. */
 class ScreenshotImageTracker : EventListener {
-    private val inFlight = AtomicInteger(0)
+    private val inFlight =
+        Collections.synchronizedSet(
+            Collections.newSetFromMap(IdentityHashMap<ImageRequest, Boolean>()),
+        )
 
     override fun onStart(request: ImageRequest) {
-        inFlight.incrementAndGet()
+        inFlight.add(request)
     }
 
     override fun onCancel(request: ImageRequest) {
-        inFlight.decrementAndGet()
+        inFlight.remove(request)
     }
 
     override fun onError(
         request: ImageRequest,
         result: ErrorResult,
     ) {
-        inFlight.decrementAndGet()
+        inFlight.remove(request)
     }
 
     override fun onSuccess(
         request: ImageRequest,
         result: SuccessResult,
     ) {
-        inFlight.decrementAndGet()
+        inFlight.remove(request)
     }
 
     fun awaitIdle(timeoutMs: Long = 10_000) {
         val deadline = SystemClock.uptimeMillis() + timeoutMs
-        while (inFlight.get() != 0 && SystemClock.uptimeMillis() < deadline) {
+        while (inFlight.isNotEmpty() && SystemClock.uptimeMillis() < deadline) {
             SystemClock.sleep(20)
         }
-        check(inFlight.get() == 0) { "${inFlight.get()} screenshot artwork request(s) still in flight" }
+        check(inFlight.isEmpty()) { "${inFlight.size} screenshot artwork request(s) still in flight" }
     }
 }

@@ -1,8 +1,10 @@
 package app.laughtrack.android
 
 import android.Manifest
+import android.os.SystemClock
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -11,21 +13,18 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTextInput
 import androidx.test.platform.app.InstrumentationRegistry
-import app.laughtrack.android.core.network.ApiClientModule
-import app.laughtrack.android.core.network.generated.infrastructure.ApiClient
+import app.laughtrack.android.core.ui.components.RemoteImageTestTags
 import app.laughtrack.android.core.ui.theme.LaughTrackTheme
+import app.laughtrack.android.feature.detail.ui.CLUB_SHOW_ROW_TEST_TAG
 import app.laughtrack.android.feature.detail.ui.components.DETAIL_LOADING_TEST_TAG
 import app.laughtrack.android.feature.search.ui.SEARCH_RESULT_ROW_TEST_TAG
-import app.laughtrack.android.screenshots.ScreenshotFixtureServer
 import app.laughtrack.android.screenshots.ScreenshotImageTracker
 import coil.Coil
 import coil.ImageLoader
-import dagger.hilt.android.testing.BindValue
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
-import dagger.hilt.android.testing.UninstallModules
-import okhttp3.OkHttpClient
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -51,25 +50,12 @@ import tools.fastlane.screengrab.locale.LocaleTestRule
  * only consulted from useDeviceLocation(), never on the initial zip=null load —
  * hence the explicit tap.)
  *
- * Result data comes from the local fixture server, which keeps every entity and
- * bundled artwork stable while still exercising the app's real API parsing path.
+ * Result data and artwork come from the production API, matching the iOS store
+ * screenshot lane. Only location resolution is faked so both platforms request
+ * Hollywood (90028) without depending on emulator GPS or runner geo-IP.
  */
 @HiltAndroidTest
-@UninstallModules(ApiClientModule::class)
 class AppStoreScreenshotTest {
-    @BindValue
-    @JvmField
-    val screenshotApiClient =
-        ApiClient(
-            baseUrl = ScreenshotFixtureServer.apiBaseUrl,
-            okHttpClientBuilder = OkHttpClient.Builder(),
-        )
-
-    @BindValue
-    @JvmField
-    @javax.inject.Named("apiBaseUrl")
-    val screenshotApiBaseUrl = ScreenshotFixtureServer.apiBaseUrl
-
     private val imageTracker = ScreenshotImageTracker()
 
     @get:Rule(order = 0)
@@ -94,6 +80,24 @@ class AppStoreScreenshotTest {
         // test activity). The FakeHomeLocationResolver still short-circuits GPS and
         // returns 90028 — the grant only keeps the in-app permission check happy.
         val instrumentation = InstrumentationRegistry.getInstrumentation()
+        // Screengrab enters demo mode after the fastlane preflight. Reset it once
+        // here before applying the canonical chrome: Android 15 otherwise adds a
+        // duplicate Wi-Fi slot each time the network demo command is repeated.
+        instrumentation.uiAutomation
+            .executeShellCommand("am broadcast -a com.android.systemui.demo -e command exit")
+            .close()
+        // SystemUI handles demo broadcasts asynchronously. Let the exit finish before
+        // sending the canonical state or its reset can win the race and restore real
+        // time/notification icons while screenshots are being captured.
+        SystemClock.sleep(500)
+        listOf(
+            "am broadcast -a com.android.systemui.demo -e command clock -e hhmm 0941",
+            "am broadcast -a com.android.systemui.demo -e command notifications -e visible false",
+            "am broadcast -a com.android.systemui.demo -e command network -e mobile hide",
+            "am broadcast -a com.android.systemui.demo -e command network -e wifi show -e level 4 -e fully true",
+            "am broadcast -a com.android.systemui.demo -e command battery -e level 100 -e plugged false",
+        ).forEach { command -> instrumentation.uiAutomation.executeShellCommand(command).close() }
+        SystemClock.sleep(300)
         Coil.setImageLoader(
             ImageLoader.Builder(instrumentation.targetContext)
                 .crossfade(false)
@@ -109,6 +113,9 @@ class AppStoreScreenshotTest {
 
     @Test
     fun captureAppStoreScreenshots() {
+        val tabletMode =
+            InstrumentationRegistry.getArguments().getString("screenshotMode") == "tablet"
+
         composeRule.setContent {
             LaughTrackTheme { AppShell() }
         }
@@ -123,10 +130,10 @@ class AppStoreScreenshotTest {
         waitFor(hasText("Use my location"))
         composeRule.onNodeWithText("Use my location").performClick()
         waitFor(
-            hasText("Near ", substring = true) or hasText("90028", substring = true),
+            hasText("Near Los Angeles", substring = true) or hasText("90028", substring = true),
             timeoutMs = 30_000,
         )
-        capture("01_NearMe", "taylor")
+        capture("01_NearMe")
 
         // 02 — Search / Shows (the default pivot). The Search tab's contentDescription
         // lives on the icon, which NavigationBarItem merges under its label Text — so
@@ -135,42 +142,63 @@ class AppStoreScreenshotTest {
         composeRule.onNode(hasContentDescription("Search"), useUnmergedTree = true).performClick()
         waitFor(hasText("Search nearby comedy"), timeoutMs = 30_000)
         waitForResults()
-        capture("02_SearchShows", "taylor")
+        capture("02_SearchShows")
+
+        if (tabletMode) {
+            // Google Play's tablet listing needs at least four representative
+            // large-screen captures. Keep this focused on the discovery/search
+            // journey and its two most important detail destinations.
+            selectPivot("CLUBS")
+            searchFor("New York Comedy Club Midtown")
+            openFirstResult()
+            capture("05_ClubDetail")
+
+            waitFor(hasTestTag(CLUB_SHOW_ROW_TEST_TAG), timeoutMs = 30_000)
+            composeRule.onAllNodes(hasTestTag(CLUB_SHOW_ROW_TEST_TAG)).onFirst().performScrollTo().performClick()
+            waitFor(hasContentDescription("Home"), timeoutMs = 20_000)
+            waitForDetail()
+            capture("06_ShowDetail")
+            return
+        }
 
         // 03 — Search / Comedians. Pivot chips render their label uppercased.
         selectPivot("COMEDIANS")
-        capture("03_SearchComedians", "ali-wong")
+        capture("03_SearchComedians")
 
         // 04 — Search / Clubs.
         selectPivot("CLUBS")
-        capture("04_SearchClubs", "comedy-store")
+        capture("04_SearchClubs")
 
-        // 05 — Club detail (open the first Clubs result, capture, return).
+        // 05 — Match iOS's curated live club selection.
+        searchFor("New York Comedy Club Midtown")
         openFirstResult()
-        capture("05_ClubDetail", "comedy-store")
-        goBack()
+        capture("05_ClubDetail")
 
-        // 06 — Show detail (Shows pivot → first result).
-        selectPivot("SHOWS")
-        openFirstResult()
-        capture("06_ShowDetail", "taylor")
+        // 06 — Show detail. Match iOS by opening the first upcoming show from
+        // the selected club's calendar rather than returning to global Shows.
+        waitFor(hasTestTag(CLUB_SHOW_ROW_TEST_TAG), timeoutMs = 30_000)
+        composeRule.onAllNodes(hasTestTag(CLUB_SHOW_ROW_TEST_TAG)).onFirst().performScrollTo().performClick()
+        waitFor(hasContentDescription("Home"), timeoutMs = 20_000)
+        waitForDetail()
+        capture("06_ShowDetail")
+        goBackToClubDetail()
         goBack()
 
         // 07 — Comedian detail.
         selectPivot("COMEDIANS")
+        searchFor("Andrew Schulz")
         openFirstResult()
-        capture("07_ComedianDetail", "ali-wong")
+        capture("07_ComedianDetail")
         goBack()
 
         // 08 — Search / Podcasts.
         selectPivot("PODCASTS")
-        capture("08_SearchPodcasts", "joe-rogan")
+        capture("08_SearchPodcasts")
 
-        // 09 — Podcast detail.
+        // 09 — Match iOS's curated live podcast selection.
+        searchFor("The D.L. Hughley Show")
         openFirstResult()
-        capture("09_PodcastDetail", "joe-rogan")
-
-        ScreenshotFixtureServer.assertNoUnexpectedRequests()
+        capture("09_PodcastDetail")
     }
 
     /** Select a search pivot by its uppercased chip label and wait for its results. */
@@ -179,20 +207,34 @@ class AppStoreScreenshotTest {
         waitForResults()
     }
 
+    /** Narrow the active live endpoint to the entity curated by the iOS flow. */
+    private fun searchFor(query: String) {
+        composeRule.onAllNodes(hasSetTextAction()).onFirst().performTextInput(query)
+        waitForResults()
+    }
+
     /** Tap the first search result row and wait for the detail screen to finish loading. */
     private fun openFirstResult() {
         waitFor(hasTestTag(SEARCH_RESULT_ROW_TEST_TAG), timeoutMs = 30_000)
         composeRule.onAllNodes(hasTestTag(SEARCH_RESULT_ROW_TEST_TAG)).onFirst().performClick()
+        waitForDetail()
+    }
+
+    private fun waitForDetail() {
         waitFor(hasContentDescription("Back"), timeoutMs = 20_000)
-        // The detail scaffold (Back arrow) renders immediately; wait for the loading
-        // skeleton to disappear so the capture shows real content, not placeholders.
         waitUntilGone(hasTestTag(DETAIL_LOADING_TEST_TAG), timeoutMs = 30_000)
         settle()
     }
 
+    private fun goBackToClubDetail() {
+        composeRule.onNodeWithContentDescription("Back").performClick()
+        waitFor(hasTestTag(CLUB_SHOW_ROW_TEST_TAG), timeoutMs = 20_000)
+        waitUntilGone(hasTestTag(DETAIL_LOADING_TEST_TAG), timeoutMs = 30_000)
+    }
+
     /** Return from a detail screen to the search list. */
     private fun goBack() {
-        composeRule.onNodeWithContentDescription("Back").performClick()
+        composeRule.onNodeWithContentDescription("Back").performScrollTo().performClick()
         waitForResults()
     }
 
@@ -243,14 +285,14 @@ class AppStoreScreenshotTest {
         composeRule.waitForIdle()
     }
 
-    /** Wait for the screen's contract artwork and Coil decode before capture. */
-    private fun capture(
-        name: String,
-        artworkKey: String,
-    ) {
+    /** Wait for live artwork requests and Coil decode before capture. */
+    private fun capture(name: String) {
         settle()
-        ScreenshotFixtureServer.awaitArtwork(artworkKey)
-        imageTracker.awaitIdle()
+        imageTracker.awaitIdle(timeoutMs = 30_000)
+        waitUntilGone(hasTestTag(RemoteImageTestTags.SKELETON))
+        // Coil can report success just before Compose commits the decoded bitmap.
+        // Give that final frame time to land before asking screengrab to capture.
+        android.os.SystemClock.sleep(250)
         settle()
         Screengrab.screenshot(name)
     }

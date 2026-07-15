@@ -1,6 +1,9 @@
 package app.laughtrack.android
 
+import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
@@ -18,4 +21,15 @@ import dagger.hilt.android.AndroidEntryPoint
  * APK keeps it in the same process as the instrumentation.
  */
 @AndroidEntryPoint
-class HiltTestActivity : ComponentActivity()
+class HiltTestActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        // Keep the screenshot/test host's window behavior identical to MainActivity.
+        // Without this, screengrab captures opaque black system-bar bands that users
+        // never see in the production app.
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
+        )
+    }
+}

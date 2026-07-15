@@ -1,3 +1,6 @@
+require "fileutils"
+require "tmpdir"
+
 default_platform(:android)
 
 PACKAGE_NAME = "app.laughtrack.android"
@@ -16,6 +19,98 @@ AAB_PATH = "app/build/outputs/bundle/release/app-release.aab"
 # Debug + instrumentation APKs consumed by screengrab (action CWD = android/, no "../").
 DEBUG_APK_PATH = "app/build/outputs/apk/debug/app-debug.apk"
 DEBUG_TEST_APK_PATH = "app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk"
+# Use the iPhone 16 Pro Max capture frame on Android as well. At 480 dpi this is
+# 440 x 956 dp, matching the iOS screenshot's logical viewport and producing the
+# same 1320 x 2868 output dimensions for a direct storefront comparison.
+SCREENSHOT_PROFILES = [
+  {
+    name: "phone",
+    device_type: "phone",
+    size: "1320x2868",
+    density: "480",
+    launch_arguments: nil,
+  },
+  {
+    name: "7-inch tablet",
+    device_type: "sevenInch",
+    # 9:16 Play listing frame with a 600 dp smallest width.
+    size: "1200x2133",
+    density: "320",
+    launch_arguments: ["screenshotMode tablet"],
+  },
+  {
+    name: "10-inch tablet",
+    device_type: "tenInch",
+    # 9:16 Play listing frame with an 800 dp smallest width.
+    size: "1600x2844",
+    density: "320",
+    launch_arguments: ["screenshotMode tablet"],
+  },
+].freeze
+TABLET_SCREENSHOT_COUNT = 4
+
+# Google Play accepts at most eight phone screenshots per locale. Keep all nine
+# captures on disk for the one-to-one iOS/Android visual audit, but publish this
+# curated subset to Play. Search Podcasts is omitted because the other three
+# search pivots already demonstrate search/filter UI, while Podcast Detail shows
+# the platform-specific podcast experience.
+PLAY_STORE_SCREENSHOT_PREFIXES = %w[
+  01_NearMe_
+  02_SearchShows_
+  03_SearchComedians_
+  04_SearchClubs_
+  05_ClubDetail_
+  06_ShowDetail_
+  07_ComedianDetail_
+  09_PodcastDetail_
+].freeze
+
+# Supply uploads every screenshot it finds under metadata_path. Stage a
+# temporary copy containing the Play-safe eight-screen subset so the canonical
+# nine-screen capture set remains intact for cross-platform comparison.
+def with_play_store_metadata
+  source = File.expand_path("metadata/android", __dir__)
+  UI.user_error!("Play metadata directory not found: #{source}") unless Dir.exist?(source)
+
+  Dir.mktmpdir("laughtrack-play-metadata") do |tmpdir|
+    staged = File.join(tmpdir, "android")
+    FileUtils.cp_r(source, staged)
+
+    locale_dirs = Dir.glob(File.join(staged, "*")).select { |path| File.directory?(path) }
+    UI.user_error!("No Play locale directories found under #{source}") if locale_dirs.empty?
+
+    locale_dirs.each do |locale_dir|
+      phone_directory = File.join(locale_dir, "images", "phoneScreenshots")
+      UI.user_error!("Play phone screenshots not found: #{phone_directory}") unless Dir.exist?(phone_directory)
+
+      screenshots = Dir.glob(File.join(phone_directory, "*.{png,jpg,jpeg}"))
+      selected = PLAY_STORE_SCREENSHOT_PREFIXES.map do |prefix|
+        matches = screenshots.select { |path| File.basename(path).start_with?(prefix) }
+        if matches.length != 1
+          UI.user_error!("Expected exactly one #{prefix} screenshot in #{phone_directory}, found #{matches.length}")
+        end
+        matches.first
+      end
+
+      (screenshots - selected).each { |path| FileUtils.rm_f(path) }
+      UI.message("Staged #{selected.length} of #{screenshots.length} phone screenshots for Google Play")
+
+      %w[sevenInchScreenshots tenInchScreenshots].each do |device_directory|
+        directory = File.join(locale_dir, "images", device_directory)
+        tablet_screenshots = Dir.glob(File.join(directory, "*.{png,jpg,jpeg}"))
+        if tablet_screenshots.length != TABLET_SCREENSHOT_COUNT
+          UI.user_error!(
+            "Expected #{TABLET_SCREENSHOT_COUNT} #{device_directory} images in #{directory}, " \
+            "found #{tablet_screenshots.length}. Run the screenshots lane first.",
+          )
+        end
+        UI.message("Staged #{tablet_screenshots.length} #{device_directory} images for Google Play")
+      end
+    end
+
+    yield staged
+  end
+end
 
 # Read a `KEY=value` line from gradle.properties. Raises if absent so a renamed
 # or missing key fails loudly instead of silently shipping the wrong version.
@@ -71,6 +166,89 @@ def highest_play_version_code
   codes.empty? ? nil : codes.max
 end
 
+# Screengrab requires a fully booted device but does not start one. Prefer an
+# already-connected emulator/device; otherwise start the first local AVD and
+# wait for Android to finish booting. This keeps the screenshots lane usable
+# from a cold local machine without making it responsible for SDK/AVD setup.
+def boot_screenshot_emulator
+  adb = ENV.fetch("ANDROID_HOME", ENV.fetch("ANDROID_SDK_ROOT", File.expand_path("~/Library/Android/sdk"))) + "/platform-tools/adb"
+  adb = "adb" unless File.executable?(adb)
+  emulator = ENV.fetch("ANDROID_HOME", ENV.fetch("ANDROID_SDK_ROOT", File.expand_path("~/Library/Android/sdk"))) + "/emulator/emulator"
+  emulator = "emulator" unless File.executable?(emulator)
+
+  connected_emulator = sh("#{adb} devices").lines.map do |line|
+    serial, state = line.split
+    serial if serial&.start_with?("emulator-") && state == "device"
+  end.compact.first
+  return [adb, connected_emulator] if connected_emulator
+
+  avds = sh("#{emulator} -list-avds").lines.map(&:strip).reject(&:empty?)
+  UI.user_error!("No connected Android device and no local AVD found. Create an AVD before running screenshots.") if avds.empty?
+
+  avd = avds.find { |name| name.start_with?("LaughTrack") } || avds.first
+  log_path = File.expand_path("../screenshot-emulator.log", __dir__)
+  UI.message("Starting Android screenshot emulator #{avd}…")
+  pid = Process.spawn(emulator, "-avd", avd, "-no-boot-anim", "-no-snapshot-save", out: log_path, err: log_path)
+
+  deadline = Time.now + 300
+  loop do
+    serial = `#{adb} devices 2>/dev/null`.lines.map do |line|
+      candidate, state = line.split
+      candidate if candidate&.start_with?("emulator-") && state == "device"
+    end.compact.first
+    booted = serial && `#{adb} -s #{serial} shell getprop sys.boot_completed 2>/dev/null`.strip == "1"
+    return [adb, serial] if booted
+
+    exited = Process.waitpid(pid, Process::WNOHANG)
+    if exited
+      UI.user_error!("Android emulator exited before booting. See #{log_path} for details.")
+    end
+    UI.user_error!("Android emulator #{avd} did not boot within 5 minutes. See #{log_path} for details.") if Time.now >= deadline
+    sleep 2
+  end
+end
+
+# The iOS screenshot simulator captures the Hollywood fixture in Pacific time.
+# Keep Android's request header and date rendering in the same zone so "earliest"
+# searches return the same live result window on both platforms.
+def configure_screenshot_emulator(adb, serial, profile)
+  device = "#{adb} -s #{serial}"
+  original_size = sh("#{device} shell wm size")[/Override size:\s*(\d+x\d+)/, 1]
+  original_density = sh("#{device} shell wm density")[/Override density:\s*(\d+)/, 1]
+
+  UI.message("Configuring #{profile[:name]} screenshot frame (#{profile[:size]} @ #{profile[:density]} dpi)…")
+  sh("#{device} shell wm size #{profile[:size]}")
+  sh("#{device} shell wm density #{profile[:density]}")
+  sh("#{device} shell cmd alarm set-timezone America/Los_Angeles")
+  # Screengrab enters demo mode later. AppStoreScreenshotTest applies the final
+  # canonical chrome exactly once after that transition, avoiding duplicate
+  # SystemUI icon slots on Android 15.
+  sh("#{device} shell settings put global sysui_demo_allowed 1")
+
+  { size: original_size, density: original_density }
+end
+
+def capture_screenshot_profile(adb, serial, profile)
+  original = configure_screenshot_emulator(adb, serial, profile)
+  begin
+    capture_android_screenshots(
+      app_apk_path: DEBUG_APK_PATH,
+      tests_apk_path: DEBUG_TEST_APK_PATH,
+      specific_device: serial,
+      device_type: profile[:device_type],
+      launch_arguments: profile[:launch_arguments],
+    )
+  ensure
+    restore_screenshot_emulator(adb, serial, original)
+  end
+end
+
+def restore_screenshot_emulator(adb, serial, original)
+  device = "#{adb} -s #{serial}"
+  sh("#{device} shell wm size #{original[:size] || 'reset'}")
+  sh("#{device} shell wm density #{original[:density] || 'reset'}")
+end
+
 platform :android do
   desc "Run unit tests + static analysis (parity with the iOS `test` lane)"
   lane :test do
@@ -113,6 +291,93 @@ platform :android do
     )
   end
 
+  desc "Generate a Play changelog from [release] commit subjects since the last tag, " \
+       "with a safe fallback. Pass version_code:<code>; defaults to the highest Play code."
+  lane :generate_release_notes do |options|
+    version_code = (options[:version_code] || highest_play_version_code || read_gradle_property("VERSION_CODE")).to_i
+    UI.user_error!("A positive version_code is required to generate Play release notes.") if version_code <= 0
+
+    tag = last_git_tag
+    if tag.nil? || tag.empty?
+      UI.important("No previous tag found — using the last 50 commits that touched android/")
+      raw = changelog_from_git_commits(commits_count: 50, pretty: "%s", app_path: ".")
+    else
+      raw = changelog_from_git_commits(between: [tag, "HEAD"], pretty: "%s", app_path: ".")
+    end
+
+    # Store copy must not leak task IDs, class names, or review/CI details. A
+    # commit opts into the public changelog with `[release] Customer-facing copy`.
+    # With no marked commits, publish the standard safe fallback below.
+    entries = raw.split("\n").map(&:strip).reject(&:empty?)
+                 .map { |line| line.sub(/^\[TASK-\d+\]\s*/i, "") }
+                 .map do |line|
+                   match = line.match(/^(?:\[release\]|release(?: note)?\s*:)\s*(.+)$/i)
+                   match && match[1].strip
+                 end
+                 .compact
+                 .map do |line|
+                   next line if line.length <= 140
+
+                   shortened = line[0...137].sub(/\s+\S*\z/, "")
+                   "#{shortened}…"
+                 end
+                 .uniq
+
+    features = []
+    fixes = []
+    improvements = []
+    entries.each do |summary|
+      lower = summary.downcase
+      if lower.match?(/\bfix(es|ed)?\b|\bbug\b|\bcrash\b|\bresolve[sd]?\b|\bpatch\b/)
+        fixes << summary
+      elsif lower.match?(/\badd(s|ed)?\b|\bnew\b|\bcreate[sd]?\b|\bintroduce[sd]?\b|\bimplement(?:s|ed)?\b|\bfeature\b/)
+        features << summary
+      else
+        improvements << summary
+      end
+    end
+
+    sections = []
+    sections << "New features\n#{features.map { |entry| "• #{entry}" }.join("\n")}" unless features.empty?
+    sections << "Bug fixes\n#{fixes.map { |entry| "• #{entry}" }.join("\n")}" unless fixes.empty?
+    sections << "Improvements\n#{improvements.map { |entry| "• #{entry}" }.join("\n")}" unless improvements.empty?
+    notes_text = sections.empty? ? "Bug fixes and performance improvements." : sections.join("\n\n")
+
+    # Google Play accepts at most 500 Unicode characters per locale. Preserve
+    # complete lines so truncation never leaves a partial user-facing sentence.
+    max_len = 500
+    if notes_text.length > max_len
+      truncated = notes_text[0...max_len]
+      last_newline = truncated.rindex("\n")
+      notes_text = last_newline ? truncated[0...last_newline] : truncated
+    end
+
+    changelog_path = File.join(Dir.pwd, "metadata", "android", "en-US", "changelogs", "#{version_code}.txt")
+    FileUtils.mkdir_p(File.dirname(changelog_path))
+    File.write(changelog_path, "#{notes_text}\n")
+    UI.success("Wrote Play changelog #{version_code}.txt (#{notes_text.length} chars)")
+
+    notes_text
+  end
+
+  desc "Generate release notes and upload Play listing text + changelog (no binary or images). " \
+       "Pass version_code:<code>; defaults to the highest code already on Play."
+  lane :upload_metadata do |options|
+    version_code = (options[:version_code] || highest_play_version_code || read_gradle_property("VERSION_CODE")).to_i
+    generate_release_notes(version_code: version_code)
+    upload_to_play_store(
+      track: "internal",
+      version_code: version_code,
+      metadata_path: "fastlane/metadata/android",
+      skip_upload_aab: true,
+      skip_upload_apk: true,
+      skip_upload_metadata: false,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      skip_upload_changelogs: false,
+    )
+  end
+
   desc "Bump the build number, build a signed AAB, and upload it to the Play " \
        "internal-test track. The internal track needs no review, so this is the " \
        "first stop for every release."
@@ -123,10 +388,8 @@ platform :android do
       track: "internal",
       aab: AAB_PATH,
       release_status: "completed",
-      # This lane ships only the binary. Listing screenshots/images are captured and
-      # pushed via the dedicated `screenshots` / `upload_screenshots` lanes; title,
-      # description, and changelogs remain managed in the Play Console. Skip every
-      # metadata surface here so the binary upload stays fast.
+      # This lane ships only the binary. The production and dedicated metadata /
+      # screenshot lanes publish the storefront listing, keeping test-track uploads fast.
       skip_upload_metadata: true,
       skip_upload_images: true,
       skip_upload_screenshots: true,
@@ -135,9 +398,9 @@ platform :android do
     UI.success("Uploaded versionCode #{read_gradle_property('VERSION_CODE')} to the internal track")
   end
 
-  desc "Promote the latest internal-track build to production. Run after the " \
-       "internal build has been validated. Uploads at 100% rollout by default; " \
-       "pass rollout: '0.1' for a staged rollout."
+  desc "Generate Play release notes and screenshots, upload listing text and screenshots, then " \
+       "promote the latest internal-track build to production. Run after validation. " \
+       "Uploads at 100% rollout by default; pass rollout: '0.1' for a staged rollout."
   lane :production do |options|
     rollout = options[:rollout] || "1"
     # Promote whatever build is currently the highest on Play, NOT the value in
@@ -149,38 +412,52 @@ platform :android do
     if version_code.nil?
       UI.user_error!("No build found on any Play track to promote. Run the `internal` lane first.")
     end
-    upload_to_play_store(
-      # Source track the build currently lives on (uploaded by the internal lane),
-      # promoted to production. Setting `track` to production would make supply look
-      # for the build on the production edit, where it does not yet exist.
-      track: "internal",
-      track_promote_to: "production",
-      version_code: version_code,
-      rollout: rollout,
-      # A partial rollout must be staged as inProgress; a full (1.0) rollout is a
-      # completed release. Some supply versions reject a <1 rollout without this.
-      release_status: rollout.to_f < 1 ? "inProgress" : "completed",
-      skip_upload_aab: true,
-      skip_upload_apk: true,
-      skip_upload_metadata: true,
-      skip_upload_images: true,
-      skip_upload_screenshots: true,
-      skip_upload_changelogs: true,
-    )
+
+    # Match the iOS release lane: release notes and screenshots are regenerated,
+    # then all checked-in storefront metadata is uploaded. Internal stays binary-only.
+    generate_release_notes(version_code: version_code)
+    screenshots
+
+    with_play_store_metadata do |metadata_path|
+      upload_to_play_store(
+        # Source track the build currently lives on (uploaded by the internal lane),
+        # promoted to production. Setting `track` to production would make supply look
+        # for the build on the production edit, where it does not yet exist.
+        track: "internal",
+        track_promote_to: "production",
+        version_code: version_code,
+        metadata_path: metadata_path,
+        rollout: rollout,
+        # A partial rollout must be staged as inProgress; a full (1.0) rollout is a
+        # completed release. Some supply versions reject a <1 rollout without this.
+        release_status: rollout.to_f < 1 ? "inProgress" : "completed",
+        skip_upload_aab: true,
+        skip_upload_apk: true,
+        skip_upload_metadata: false,
+        skip_upload_images: false,
+        skip_upload_screenshots: false,
+        skip_upload_changelogs: false,
+      )
+    end
     UI.success("Promoted versionCode #{version_code} from internal to production (rollout #{rollout})")
   end
 
-  desc "Capture the nine Play Store listing screenshots via screengrab. Builds the " \
-       "debug + androidTest APKs, then drives AppStoreScreenshotTest (TASK-3616) on a " \
-       "booted emulator/AVD — required, the same way the iOS `screenshots` lane needs " \
-       "a running simulator. Reads Screengrabfile config and lands PNGs under " \
-       "fastlane/metadata/android/<locale>/images/phoneScreenshots for `supply`."
+  desc "Start an available Android emulator if needed, then capture nine phone and four " \
+       "screenshots for each Play tablet class via screengrab. Builds the debug + androidTest " \
+       "APKs and drives AppStoreScreenshotTest (TASK-3616). Lands PNGs in Fastlane's phone, " \
+       "sevenInch, and tenInch metadata directories for `supply`."
   lane :screenshots do
-    gradle(task: "assembleDebug assembleDebugAndroidTest", project_dir: ".")
-    capture_android_screenshots(
-      app_apk_path: DEBUG_APK_PATH,
-      tests_apk_path: DEBUG_TEST_APK_PATH,
-    )
+    adb, serial = boot_screenshot_emulator
+    prior_android_serial = ENV["ANDROID_SERIAL"]
+    ENV["ANDROID_SERIAL"] = serial
+    begin
+      gradle(task: "assembleDebug assembleDebugAndroidTest", project_dir: ".")
+      SCREENSHOT_PROFILES.each do |profile|
+        capture_screenshot_profile(adb, serial, profile)
+      end
+    ensure
+      ENV["ANDROID_SERIAL"] = prior_android_serial
+    end
   end
 
   desc "Upload the store-listing screenshots/images to the Play Console (no binary). " \
@@ -188,16 +465,20 @@ platform :android do
        "fastlane/metadata/android. Listing images are app-level, so the track is only " \
        "the edit anchor."
   lane :upload_screenshots do
-    upload_to_play_store(
-      track: "internal",
-      skip_upload_aab: true,
-      skip_upload_apk: true,
-      skip_upload_metadata: true,
-      skip_upload_changelogs: true,
-      # The whole point of this lane: push the screengrab-captured listing images.
-      skip_upload_images: false,
-      skip_upload_screenshots: false,
-    )
+    with_play_store_metadata do |metadata_path|
+      upload_to_play_store(
+        track: "internal",
+        metadata_path: metadata_path,
+        skip_upload_aab: true,
+        skip_upload_apk: true,
+        skip_upload_metadata: true,
+        skip_upload_changelogs: true,
+        # The whole point of this lane: push the checked-in listing graphics and
+        # the curated eight-screen Play subset from the temporary metadata tree.
+        skip_upload_images: false,
+        skip_upload_screenshots: false,
+      )
+    end
   end
 
   desc "Capture the listing screenshots and upload them to Play in one step " \

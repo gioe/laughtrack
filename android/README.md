@@ -239,23 +239,45 @@ collide with or regress below what Play has seen.
 bundle install                              # one-time: install fastlane
 bundle exec fastlane internal               # bump code, build signed AAB, upload to the internal track
 bundle exec fastlane internal bump:minor    # also raise VERSION_NAME (patch|minor|major)
-bundle exec fastlane production rollout:0.1  # promote the current build to production (staged 10%)
+bundle exec fastlane production rollout:0.1  # refresh the full listing, then promote (staged 10%)
 bundle exec fastlane test                   # unit tests + ktlint + detekt (parity with iOS `test`)
 ```
+
+**Store-listing metadata.** The English Play listing is version-controlled under
+`fastlane/metadata/android/en-US/`: `title.txt`, `short_description.txt`, and
+`full_description.txt`. Release notes are collected from commit subjects formatted as
+`[release] Customer-facing change`, then written to the version-code-specific
+`changelogs/<versionCode>.txt` file that `supply` expects. When a release has no marked
+commits, the lane uses a safe bug-fixes-and-performance fallback instead of exposing
+task IDs or implementation details.
+
+```sh
+bundle exec fastlane generate_release_notes version_code:42 # generate only
+bundle exec fastlane upload_metadata version_code:42        # generate + upload text/changelog
+```
+
+The `production` lane performs both automatically before promotion. The `internal`
+lane intentionally skips all listing metadata for a fast test-track upload.
 
 **Store-listing screenshots.** The nine Play listing screenshots are generated the
 same way iOS generates its App Store set — an instrumented UI test captures them and
 `supply` uploads them, rather than managing them by hand in the Play Console:
 
 ```sh
-bundle exec fastlane screenshots            # build APKs + drive AppStoreScreenshotTest via screengrab
+bundle exec fastlane screenshots            # starts an available AVD if needed, then builds/captures
 bundle exec fastlane upload_screenshots     # supply pushes the captured images (no binary)
 bundle exec fastlane screenshots_and_upload # both in one step (mirrors the iOS lane)
 ```
 
-- **Capture** requires a **booted emulator/AVD** (the Android analogue of the iOS
-  `screenshots` lane needing a running simulator). `capture_android_screenshots`
-  (fastlane screengrab, configured by `fastlane/Screengrabfile`) drives
+The `production` lane regenerates and uploads the nine screenshots together with the
+listing text and release notes before promoting the validated internal build, matching
+the iOS `beta` / `release` split.
+
+- **Capture** uses a connected Android device when one is available; otherwise the
+  lane starts the first local `LaughTrack*` AVD (or the first available AVD) and waits
+  for it to boot. It still requires Android SDK tooling and at least one configured AVD.
+  `capture_android_screenshots` (fastlane screengrab, configured by
+  `fastlane/Screengrabfile`) drives
   `AppStoreScreenshotTest` (`app/src/androidTest/`), which walks the real `AppShell`
   through the nine screens (Near Me → Search {Shows,Comedians,Clubs,Podcasts} →
   Club/Show/Comedian/Podcast detail) by Compose semantics.

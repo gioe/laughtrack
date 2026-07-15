@@ -1,6 +1,7 @@
 package app.laughtrack.android
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -100,6 +101,10 @@ fun AppShell(
     }
 
     Scaffold(
+        // TopAppBar/NavigationBar and detail heroes own their respective safe-area
+        // padding. Reserving safeDrawing here as well leaves an opaque status-bar
+        // strip above detail artwork instead of allowing true edge-to-edge chrome.
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             if (AppShellChrome.showsTopAppBar(currentDestination)) {
                 TopAppBar(

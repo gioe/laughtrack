@@ -87,7 +87,8 @@ jobs:
           echo "$ANDROID_UPLOAD_KEYSTORE_B64" | base64 --decode > upload-keystore.jks
           printf '%s' "$PLAY_SERVICE_ACCOUNT_JSON" > play-service-account.json
 
-      - name: Fastlane release
+      - name: Fastlane internal release
+        if: ${{ github.event.inputs.track == 'internal' }}
         env:
           # Signing — read by app/build.gradle.kts
           ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/android/upload-keystore.jks
@@ -95,18 +96,34 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           # Play service account — read by fastlane supply (Appfile json_key_file)
           SUPPLY_JSON_KEY: ${{ github.workspace }}/android/play-service-account.json
-          # Dispatch inputs pass through env (not expanded into the script body) so
-          # a free-form value like production_rollout can't inject shell.
-          RELEASE_TRACK: ${{ github.event.inputs.track }}
           MARKETING_BUMP: ${{ github.event.inputs.marketing_bump }}
-          PRODUCTION_ROLLOUT: ${{ github.event.inputs.production_rollout }}
         run: |
           BUMP_OPT=""
           if [ "$MARKETING_BUMP" != "none" ]; then
             BUMP_OPT="bump:$MARKETING_BUMP"
           fi
-          if [ "$RELEASE_TRACK" = "production" ]; then
-            bundle exec fastlane production rollout:"$PRODUCTION_ROLLOUT"
-          else
-            bundle exec fastlane internal $BUMP_OPT
-          fi
+          bundle exec fastlane internal $BUMP_OPT
+
+      # Production regenerates the Play screenshots before uploading the listing.
+      # Give screengrab a hardware-accelerated emulator; the Fastlane lane detects
+      # this connected device and does not try to create a local AVD itself.
+      - name: Enable KVM for production screenshots
+        if: ${{ github.event.inputs.track == 'production' }}
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+        working-directory: .
+
+      - name: Fastlane production release
+        if: ${{ github.event.inputs.track == 'production' }}
+        uses: reactivecircus/android-emulator-runner@v2
+        env:
+          SUPPLY_JSON_KEY: ${{ github.workspace }}/android/play-service-account.json
+          PRODUCTION_ROLLOUT: ${{ github.event.inputs.production_rollout }}
+        with:
+          api-level: 34
+          arch: x86_64
+          working-directory: android
+          script: bundle exec fastlane production rollout:"$PRODUCTION_ROLLOUT"

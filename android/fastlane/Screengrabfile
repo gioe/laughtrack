@@ -1,8 +1,8 @@
 # fastlane screengrab configuration — the Android counterpart to the iOS Snapfile.
 # Captures Google Play listing screenshots from the AppStoreScreenshotTest
 # instrumented test (added under TASK-3616) and lands them where `supply` expects
-# them. Driven by the fastlane `screenshots` lane (wired in TASK-3617); needs a
-# booted emulator/device, just as the iOS snapshot lane needs a simulator.
+# them. Driven by the fastlane `screenshots` lane (wired in TASK-3617), which
+# boots an emulator when needed and captures phone, 7-inch, and 10-inch profiles.
 
 # App + instrumentation package ids. The debug build type carries the `.debug`
 # applicationIdSuffix (see app/build.gradle.kts), and the instrumentation APK id
