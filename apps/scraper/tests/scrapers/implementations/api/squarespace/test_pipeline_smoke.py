@@ -180,6 +180,7 @@ def test_extract_events_stacked_page_drops_past_events():
     assert [event.title for event in events] == ["Future Show"]
 
 
+@time_machine.travel("2026-07-06T12:00:00Z", tick=False)
 def test_extract_products_parses_ordinal_title_date_and_bare_time():
     """Products mode parses titles like Rhino's 'Sat July 11th ... 8pm'."""
     events = SquarespaceExtractor.extract_products(
