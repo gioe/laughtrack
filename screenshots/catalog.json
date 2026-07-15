@@ -103,6 +103,24 @@
       "locale": "en-US",
       "timezone": "America/Los_Angeles",
       "capture_context": { "screen": "now_playing", "content": "deterministic_demo_episode" }
+    },
+    {
+      "id": "15_AuthenticatedFavorites",
+      "locale": "en-US",
+      "timezone": "America/Los_Angeles",
+      "capture_context": { "screen": "favorites", "auth_state": "authenticated", "persona": "screenshot-persona" }
+    },
+    {
+      "id": "16_AuthenticatedProfile",
+      "locale": "en-US",
+      "timezone": "America/Los_Angeles",
+      "capture_context": { "screen": "profile", "auth_state": "authenticated", "persona": "screenshot-persona" }
+    },
+    {
+      "id": "17_AuthenticatedNotifications",
+      "locale": "en-US",
+      "timezone": "America/Los_Angeles",
+      "capture_context": { "screen": "notifications", "auth_state": "authenticated", "persona": "screenshot-persona" }
     }
   ],
   "profiles": [

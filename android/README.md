@@ -270,7 +270,7 @@ bundle exec fastlane upload_screenshots     # supply pushes the captured images 
 bundle exec fastlane screenshots_and_upload # both in one step (mirrors the iOS lane)
 ```
 
-The `production` lane regenerates the complete 42-image comparison matrix and uploads the curated
+The `production` lane regenerates the complete 51-image comparison matrix and uploads the curated
 Play-safe subsets together with the listing text and release notes before promoting the
 validated internal build, matching the iOS `beta` / `release` split.
 
