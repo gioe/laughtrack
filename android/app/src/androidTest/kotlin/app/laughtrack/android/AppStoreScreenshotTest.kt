@@ -19,6 +19,7 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import androidx.test.espresso.Espresso.closeSoftKeyboard
 import androidx.test.platform.app.InstrumentationRegistry
 import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.playback.PodcastPlaybackController
@@ -344,6 +345,10 @@ class AppStoreScreenshotTest {
 
     /** Wait for live artwork requests and Coil decode before capture. */
     private fun capture(name: String) {
+        // Search and profile fields can retain focus after route changes. Screengrab
+        // captures the whole device, so an IME left open on one screen otherwise
+        // contaminates every screenshot that follows it.
+        closeSoftKeyboard()
         settle()
         imageTracker.awaitIdle(timeoutMs = 30_000)
         waitUntilGone(hasTestTag(RemoteImageTestTags.SKELETON))
