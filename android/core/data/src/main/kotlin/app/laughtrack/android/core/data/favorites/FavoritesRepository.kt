@@ -216,6 +216,34 @@ class FavoritesRepository
                 queue = { next -> offlineQueue.enqueue(FavoriteEntity.PODCAST, id.toString(), next) },
             )
 
+        suspend fun setPodcastFavorite(
+            id: Int,
+            isFavorite: Boolean,
+        ): FavoriteToggleResult {
+            val currentValue = _snapshot.value.podcastValues[id] ?: false
+            if (currentValue == isFavorite) return FavoriteToggleResult.Updated(isFavorite)
+            return toggle(
+                key = FavoriteEntity.PODCAST.name + id,
+                currentValue = currentValue,
+                optimistic = { next ->
+                    val current = _snapshot.value
+                    _snapshot.value =
+                        current.copy(
+                            podcastValues = current.podcastValues + (id to next),
+                            podcasts = if (next) current.podcasts else current.podcasts.filterNot { it.id == id },
+                        )
+                },
+                serverCall = { next ->
+                    if (next) {
+                        favoritesApi.addFavoritePodcast(AddFavoritePodcastRequest(id))
+                    } else {
+                        favoritesApi.removeFavoritePodcast(id)
+                    }
+                },
+                queue = { next -> offlineQueue.enqueue(FavoriteEntity.PODCAST, id.toString(), next) },
+            )
+        }
+
         private suspend fun toggle(
             key: String,
             currentValue: Boolean,

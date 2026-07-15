@@ -61,8 +61,11 @@ fun RemoteImage(
     SubcomposeAsyncImage(
         model =
             ImageRequest.Builder(LocalContext.current)
-                .data(url)
-                .crossfade(true)
+                .data(normalizeRemoteImageUrl(url))
+                // A request-level crossfade overrides the screenshot lane's
+                // non-animated ImageLoader and can leave large hero artwork
+                // visibly translucent even after Coil reports success.
+                .crossfade(false)
                 .build(),
         contentDescription = contentDescription,
         contentScale = contentScale,
@@ -76,6 +79,20 @@ fun RemoteImage(
         },
         error = { FallbackArtwork(fallback, Modifier.matchParentSize()) },
     )
+}
+
+/**
+ * Resolves API-relative artwork paths and scheme-less external image URLs the
+ * same way the iOS URL helper does before handing them to the image loader.
+ */
+internal fun normalizeRemoteImageUrl(rawUrl: String?): String? {
+    val url = rawUrl?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+    return when {
+        url.startsWith("//") -> "https:$url"
+        url.startsWith("/") -> "$LAUGH_TRACK_WEB_ORIGIN$url"
+        URL_SCHEME.matches(url.substringBefore('/')) -> url
+        else -> "https://$url"
+    }
 }
 
 @Composable
@@ -104,3 +121,5 @@ private fun FallbackArtwork(
 // Icon scales with its container so the fallback reads at rail-thumbnail and
 // full-bleed hero sizes alike.
 private const val ICON_FRACTION = 0.34f
+private const val LAUGH_TRACK_WEB_ORIGIN = "https://www.laugh-track.com"
+private val URL_SCHEME = Regex("[A-Za-z][A-Za-z0-9+.-]*:")

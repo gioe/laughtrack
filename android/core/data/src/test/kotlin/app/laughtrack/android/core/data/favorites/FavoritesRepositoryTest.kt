@@ -154,6 +154,17 @@ class FavoritesRepositoryTest {
             assertEquals(0, api.comedianCalls)
         }
 
+    @Test
+    fun set_podcast_favorite_uses_the_explicit_current_value_contract() =
+        runTest {
+            val repository = repository(ProgrammableFavoritesApi(), signedIn = true)
+
+            val result = repository.setPodcastFavorite(7, isFavorite = true)
+
+            assertEquals(FavoriteToggleResult.Updated(isFavorite = true), result)
+            assertEquals(true, repository.snapshot.value.podcastValues[7])
+        }
+
     // -- helpers ----------------------------------------------------------------
 
     private suspend fun repository(

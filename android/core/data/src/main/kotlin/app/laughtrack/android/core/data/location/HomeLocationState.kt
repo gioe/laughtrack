@@ -10,6 +10,7 @@ import javax.inject.Singleton
 data class HomeLocation(
     val zip: String,
     val distanceMiles: Int,
+    val locationLabel: String? = null,
 )
 
 /**
@@ -32,7 +33,8 @@ class HomeLocationState
         fun update(
             zip: String?,
             distanceMiles: Int,
+            locationLabel: String? = null,
         ) {
-            _location.value = zip?.let { HomeLocation(it, distanceMiles) }
+            _location.value = zip?.let { HomeLocation(it, distanceMiles, locationLabel) }
         }
     }
