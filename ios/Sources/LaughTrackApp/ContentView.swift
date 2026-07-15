@@ -364,10 +364,14 @@ struct ContentView: View {
                     notificationPreferenceSyncClient: serviceContainer.resolveOptional((any NotificationPreferenceSyncing).self),
                     pushTokenManager: serviceContainer.resolveOptional((any PushDeviceTokenManaging).self),
                     profileLocationPreferenceSyncClient: serviceContainer.resolveOptional((any ProfileLocationPreferenceSyncing).self),
-                    analytics: serviceContainer.resolveOptional(AnalyticsManagerProtocol.self)
+                    analytics: serviceContainer.resolveOptional(AnalyticsManagerProtocol.self),
+                    screenshotPersona: AuthenticatedScreenshotPersona.active
                 )
             case .notifications:
-                NotificationCenterView(apiClient: apiClient)
+                NotificationCenterView(
+                    apiClient: apiClient,
+                    screenshotItems: AuthenticatedScreenshotPersona.active?.notifications
+                )
             case .showDetail(let id):
                 ShowDetailView(showID: id, apiClient: apiClient)
             case .comedianDetail(let id):

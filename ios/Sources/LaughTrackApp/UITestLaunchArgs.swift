@@ -67,4 +67,8 @@ enum UITestLaunchArgs {
     /// DEBUG-only screenshot seam that exposes the guest Favorites tab and
     /// seeds a deterministic podcast episode for the Now Playing capture.
     static let forceComparisonScreens = "UITEST_FORCE_COMPARISON_SCREENS"
+
+    /// Renders the credentials-free authenticated screenshot persona. This
+    /// never installs tokens or calls a production authentication endpoint.
+    static let authenticatedScreenshotPersona = "UITEST_AUTHENTICATED_SCREENSHOT_PERSONA"
 }

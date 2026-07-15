@@ -166,7 +166,8 @@ struct AppShellView: View {
 
     private var showFavoritesTab: Bool {
 #if DEBUG
-        if ProcessInfo.processInfo.environment[UITestLaunchArgs.forceComparisonScreens] == "1" {
+        if ProcessInfo.processInfo.environment[UITestLaunchArgs.forceComparisonScreens] == "1"
+            || AuthenticatedScreenshotPersona.active != nil {
             return true
         }
 #endif
@@ -212,7 +213,8 @@ struct AppShellView: View {
                     apiClient: apiClient,
                     selectedPrimitive: shellState.selectedPrimitive,
                     scopedShowIDs: scopedFavoriteShowIDs,
-                    searchNavigationBridge: searchNavigationBridge
+                    searchNavigationBridge: searchNavigationBridge,
+                    screenshotPersona: AuthenticatedScreenshotPersona.active
                 )
                     .tabItem { Label("Favorites", systemImage: "heart.fill") }
                     .tag(AppTab.favorites)

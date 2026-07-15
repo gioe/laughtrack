@@ -128,6 +128,19 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         miniPlayer.coordinate(withNormalizedOffset: CGVector(dx: 0.35, dy: 0.5)).tap()
         assertExists("laughtrack.now-playing-screen", message: "Expected Now Playing screen")
         snapshot("14_NowPlaying")
+
+        relaunch(route: "favorites:0", authenticatedPersona: true)
+        assertExists("laughtrack.favorites-tab.screen", message: "Expected authenticated Favorites screen")
+        assertTextExists("Taylor Tomlinson", message: "Expected seeded favorite comedian")
+        snapshot("15_AuthenticatedFavorites")
+
+        relaunch(route: "profile:0", authenticatedPersona: true)
+        assertTextExists("Jordan Rivera", message: "Expected seeded authenticated profile")
+        snapshot("16_AuthenticatedProfile")
+
+        relaunch(route: "notifications:0", authenticatedPersona: true)
+        assertTextExists("Taylor Tomlinson has a show near you", message: "Expected seeded notification")
+        snapshot("17_AuthenticatedNotifications")
     }
 
     private func tapPrimitive(_ primitive: String) {
@@ -164,17 +177,22 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
     private func relaunch(
         route: String? = nil,
         comparisonScreens: Bool = false,
+        authenticatedPersona: Bool = false,
         environment: [String: String] = [:]
     ) {
         app.terminate()
         app.launchEnvironment.removeValue(forKey: "LAUNCHTRACK_DEBUG_ROUTE")
         app.launchEnvironment.removeValue(forKey: UITestLaunchArgs.forceComparisonScreens)
         app.launchEnvironment.removeValue(forKey: UITestLaunchArgs.forceComedianOnboardingScreen)
+        app.launchEnvironment.removeValue(forKey: UITestLaunchArgs.authenticatedScreenshotPersona)
         if let route {
             app.launchEnvironment["LAUNCHTRACK_DEBUG_ROUTE"] = route
         }
         if comparisonScreens {
             app.launchEnvironment[UITestLaunchArgs.forceComparisonScreens] = "1"
+        }
+        if authenticatedPersona {
+            app.launchEnvironment[UITestLaunchArgs.authenticatedScreenshotPersona] = "1"
         }
         environment.forEach { app.launchEnvironment[$0.key] = $0.value }
         app.launch()
@@ -207,6 +225,10 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
 
     private func assertExists(_ identifier: String, message: String) {
         XCTAssertTrue(element(identifier).waitForExistence(timeout: 15), message)
+    }
+
+    private func assertTextExists(_ text: String, message: String) {
+        XCTAssertTrue(app.staticTexts[text].waitForExistence(timeout: 15), message)
     }
 
     private func element(_ identifier: String) -> XCUIElement {

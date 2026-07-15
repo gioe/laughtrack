@@ -13,6 +13,7 @@ struct LibraryView: View {
     /// Show ids from a notification tap; scopes the touring section (empty = all).
     let scopedShowIDs: [Int]
     let searchNavigationBridge: SearchNavigationBridge
+    let screenshotPersona: AuthenticatedScreenshotPersona?
 
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var favorites: ComedianFavoriteStore
@@ -24,12 +25,14 @@ struct LibraryView: View {
         apiClient: Client,
         selectedPrimitive: SearchRootModel.Pivot? = nil,
         scopedShowIDs: [Int] = [],
-        searchNavigationBridge: SearchNavigationBridge
+        searchNavigationBridge: SearchNavigationBridge,
+        screenshotPersona: AuthenticatedScreenshotPersona? = nil
     ) {
         self.apiClient = apiClient
         self.selectedPrimitive = selectedPrimitive
         self.scopedShowIDs = scopedShowIDs
         self.searchNavigationBridge = searchNavigationBridge
+        self.screenshotPersona = screenshotPersona
     }
 
     var body: some View {
@@ -37,7 +40,9 @@ struct LibraryView: View {
 
         ScrollView {
             VStack(alignment: .leading, spacing: tokens.browseDensity.shelfGap) {
-                if authManager.currentSession != nil {
+                if let screenshotPersona {
+                    AuthenticatedFavoritesSnapshot(persona: screenshotPersona)
+                } else if authManager.currentSession != nil {
                     FavoritePrimitiveSections(
                         apiClient: apiClient,
                         selectedPrimitive: selectedPrimitive,
@@ -62,6 +67,45 @@ struct LibraryView: View {
         .background(LaughTrackAtmosphereBackground().ignoresSafeArea())
         .navigationTitle(Self.title)
         .modifier(LaughTrackNavigationChrome(background: .clear))
+    }
+}
+
+private struct AuthenticatedFavoritesSnapshot: View {
+    let persona: AuthenticatedScreenshotPersona
+
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        let tokens = theme.laughTrackTokens
+        VStack(alignment: .leading, spacing: tokens.browseDensity.shelfGap) {
+            TeaserSection(
+                eyebrow: "Favorites",
+                title: "Your favorites are touring",
+                subtitle: "Upcoming shows from comedians you follow."
+            ) {
+                LaughTrackCard {
+                    VStack(alignment: .leading, spacing: tokens.spacing.tight) {
+                        ForEach(persona.favoriteShows, id: \.title) { show in
+                            TeaserRow(title: show.title, subtitle: show.detail)
+                        }
+                    }
+                }
+            }
+
+            TeaserSection(
+                eyebrow: "Comedians",
+                title: "Saved comedians",
+                subtitle: "We'll keep their nearby dates in one place."
+            ) {
+                LaughTrackCard {
+                    VStack(alignment: .leading, spacing: tokens.spacing.tight) {
+                        ForEach(persona.favoriteComedians, id: \.self) { name in
+                            TeaserRow(title: name, subtitle: "Following · notifications on")
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

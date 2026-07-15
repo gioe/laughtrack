@@ -10,6 +10,7 @@ import LaughTrackCore
 /// profile-button unread badge clears.
 struct NotificationCenterView: View {
     let apiClient: Client
+    let screenshotItems: [NotificationCenterItem]?
 
     @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
     @EnvironmentObject private var authManager: AuthManager
@@ -19,13 +20,52 @@ struct NotificationCenterView: View {
     @StateObject private var model = NotificationCenterModel()
     @State private var openDropdownID: String?
 
+    init(apiClient: Client, screenshotItems: [NotificationCenterItem]? = nil) {
+        self.apiClient = apiClient
+        self.screenshotItems = screenshotItems
+    }
+
     private var analytics: (any AnalyticsManagerProtocol)? {
         serviceContainer.resolveOptional(AnalyticsManagerProtocol.self)
     }
 
     var body: some View {
         Group {
-            switch model.phase {
+            if let screenshotItems {
+                notificationList(items: screenshotItems)
+            } else {
+                liveContent
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(LaughTrackAtmosphereBackground().ignoresSafeArea())
+        .navigationTitle("Notifications")
+        .modifier(InlineNavigationTitle())
+        .modifier(LaughTrackNavigationChrome(background: .clear))
+        .accessibilityIdentifier(LaughTrackViewTestID.notificationCenterScreen)
+        .overlayPreferenceValue(PillDropdownAnchorKey.self) { anchors in
+            GeometryReader { proxy in
+                PillDropdownOverlay(
+                    id: NotificationSortPicker.dropdownID,
+                    options: NotificationSortOption.allCases,
+                    selected: $model.sort,
+                    triggerLabel: { $0.title },
+                    optionLabel: { $0.title },
+                    openDropdownID: $openDropdownID,
+                    anchors: anchors,
+                    proxy: proxy
+                )
+            }
+        }
+        .task {
+            guard screenshotItems == nil else { return }
+            await loadLiveNotifications()
+        }
+    }
+
+    @ViewBuilder
+    private var liveContent: some View {
+        switch model.phase {
             case .idle, .loading:
                 ProgressView()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -44,14 +84,15 @@ struct NotificationCenterView: View {
                     retry: nil
                 )
             case .loaded:
-                ScrollView {
-                    LazyVStack(spacing: theme.spacing.sm) {
-                        NotificationSortPicker(
-                            selection: $model.sort,
-                            openDropdownID: $openDropdownID
-                        )
+                notificationList(items: model.sortedItems)
+        }
+    }
 
-                        ForEach(model.sortedItems) { item in
+    private func notificationList(items: [NotificationCenterItem]) -> some View {
+        ScrollView {
+            LazyVStack(spacing: theme.spacing.sm) {
+                NotificationSortPicker(selection: $model.sort, openDropdownID: $openDropdownID)
+                ForEach(items) { item in
                             Button {
                                 switch item.tap {
                                 case .show(let showId):
@@ -77,32 +118,12 @@ struct NotificationCenterView: View {
                             .buttonStyle(.plain)
                             .accessibilityIdentifier(LaughTrackViewTestID.notificationRow)
                         }
-                    }
-                    .padding(theme.spacing.lg)
-                }
             }
+            .padding(theme.spacing.lg)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(LaughTrackAtmosphereBackground().ignoresSafeArea())
-        .navigationTitle("Notifications")
-        .modifier(InlineNavigationTitle())
-        .modifier(LaughTrackNavigationChrome(background: .clear))
-        .accessibilityIdentifier(LaughTrackViewTestID.notificationCenterScreen)
-        .overlayPreferenceValue(PillDropdownAnchorKey.self) { anchors in
-            GeometryReader { proxy in
-                PillDropdownOverlay(
-                    id: NotificationSortPicker.dropdownID,
-                    options: NotificationSortOption.allCases,
-                    selected: $model.sort,
-                    triggerLabel: { $0.title },
-                    optionLabel: { $0.title },
-                    openDropdownID: $openDropdownID,
-                    anchors: anchors,
-                    proxy: proxy
-                )
-            }
-        }
-        .task {
+    }
+
+    private func loadLiveNotifications() async {
             await model.loadIfNeeded(apiClient: apiClient)
             // Opening the center is the "seen" signal — but only mark seen once
             // the feed actually loaded. Marking seen after a failed/never-loaded
@@ -122,7 +143,6 @@ struct NotificationCenterView: View {
             if await model.markSeen(apiClient: apiClient) {
                 await authManager.refreshCurrentUser()
             }
-        }
     }
 }
 
