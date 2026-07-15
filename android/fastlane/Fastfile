@@ -449,7 +449,7 @@ platform :android do
     prior_android_serial = ENV["ANDROID_SERIAL"]
     ENV["ANDROID_SERIAL"] = serial
     begin
-      gradle(task: "assembleDebug assembleDebugAndroidTest", project_dir: ".")
+      gradle(task: ":app:assembleDebug :app:assembleDebugAndroidTest", project_dir: ".")
       Dir.mktmpdir("laughtrack-android-screenshots") do |tmpdir|
         capture_root = File.join(tmpdir, "capture")
         run_root = options[:run_root] ? File.expand_path(options[:run_root], REPO_ROOT) : File.join(tmpdir, "run")
