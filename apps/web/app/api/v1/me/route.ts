@@ -220,9 +220,17 @@ export const DELETE = withRequestMetrics(async function DELETE(
 
     try {
         await db.$transaction(async (tx) => {
-            await tx.favoriteComedian.deleteMany({
-                where: { profileId: authCtx.profileId },
-            });
+            await Promise.all([
+                tx.favoriteComedian.deleteMany({
+                    where: { profileId: authCtx.profileId },
+                }),
+                tx.favoriteClub.deleteMany({
+                    where: { profileId: authCtx.profileId },
+                }),
+                tx.favoritePodcast.deleteMany({
+                    where: { profileId: authCtx.profileId },
+                }),
+            ]);
             await tx.userProfile.delete({
                 where: { id: authCtx.profileId },
             });

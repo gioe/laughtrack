@@ -14,6 +14,7 @@ import { Button } from "@/ui/components/ui/button";
 import { NATIVE_AUTH_MARKER_COOKIE } from "@/lib/auth/nativeDeepLink";
 import { Form } from "../../ui/form";
 import { FormInput } from "../components/input";
+import ReviewAccessForm from "./review-access";
 
 const loginSchema = z.object({
     email: z.string().email("Please enter a valid email address"),
@@ -39,6 +40,9 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
     const isSubmitting = form.formState.isSubmitting;
     const isLoading = isSocialLoading || isSubmitting;
     const nativeCallbackUrl = getNativeCallbackUrl(searchParams);
+    const isNativeEmailFlow =
+        nativeCallbackUrl !== undefined &&
+        searchParams.get("nativeAuthProvider") === "email";
 
     const handleEmailSubmit = async (values: LoginFormValues) => {
         try {
@@ -148,6 +152,19 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
                     </div>
                 </form>
             </Form>
+
+            {isNativeEmailFlow && (
+                <>
+                    <div className="relative flex items-center gap-3">
+                        <div className="flex-1 border-t border-subtle" />
+                        <span className="text-sm text-muted-foreground font-dmSans">
+                            store review
+                        </span>
+                        <div className="flex-1 border-t border-subtle" />
+                    </div>
+                    <ReviewAccessForm nativeCallbackUrl={nativeCallbackUrl} />
+                </>
+            )}
 
             {/* Full-screen overlay only for social providers (they redirect away; email stays on page) */}
             {isSocialLoading && (

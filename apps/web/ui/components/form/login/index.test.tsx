@@ -133,6 +133,30 @@ describe("LoginForm native auth callbacks", () => {
         });
     });
 
+    it("offers credential access only in the native email flow", () => {
+        const callbackUrl =
+            "https://laughtrack.com/api/v1/auth/native/callback?provider=email&state=review-state";
+        mockSearchParamsGet = (key) => {
+            if (key === "callbackUrl") return callbackUrl;
+            if (key === "nativeAuthProvider") return "email";
+            return null;
+        };
+
+        render(<LoginForm onSubmit={vi.fn()} />);
+
+        expect(
+            screen.getByRole("button", { name: "App review access" }),
+        ).toBeTruthy();
+    });
+
+    it("does not expose credential access in the public web login", () => {
+        render(<LoginForm onSubmit={vi.fn()} />);
+
+        expect(
+            screen.queryByRole("button", { name: "App review access" }),
+        ).toBeNull();
+    });
+
     it("does not pass an unsafe callback URL into the magic-link request", async () => {
         mockSearchParamsGet = (key) =>
             key === "callbackUrl" ? "https://attacker.example/auth" : null;

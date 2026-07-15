@@ -12,9 +12,11 @@ const PrivacyPage = async () => {
             className="min-h-screen w-full bg-coconut-cream"
         >
             <div className="max-w-3xl mx-auto px-6 py-12 font-dmSans text-base leading-relaxed text-white/85">
-                <h1 className="text-3xl font-bold mb-2 text-white">Privacy Policy</h1>
+                <h1 className="text-3xl font-bold mb-2 text-white">
+                    Privacy Policy
+                </h1>
                 <p className="mb-10 text-xs text-white/55">
-                    Last Updated: May 20, 2026
+                    Last Updated: July 14, 2026
                 </p>
 
                 <div className="mb-10 space-y-4">
@@ -22,7 +24,7 @@ const PrivacyPage = async () => {
                         Laughtrack Digital, LLC (&ldquo;us&rdquo;,
                         &ldquo;we&rdquo;, or &ldquo;our&rdquo;) operates the
                         Laughtrack website at laugh-track.com and the Laughtrack
-                        iOS mobile application (together, the
+                        iOS and Android mobile applications (together, the
                         &ldquo;Service&rdquo;).
                     </p>
                     <p>
@@ -39,13 +41,16 @@ const PrivacyPage = async () => {
                     </h2>
 
                     <h3 className="text-xl font-semibold mt-6 mb-2">
-                        1.1 Account information (Google or Apple sign-in)
+                        1.1 Account information
                     </h3>
                     <p>
-                        You sign in with Google or Apple. When you do, the
-                        identity provider returns the following information to
-                        us, which we store so we can recognize your account on
-                        return visits:
+                        You can sign in with Google, Apple, or an emailed
+                        sign-in link. When you use Google or Apple, the identity
+                        provider returns account information to us. When you use
+                        an emailed sign-in link, you provide your email address
+                        directly. We store the following information as
+                        applicable so we can recognize your account on return
+                        visits:
                     </p>
                     <ul className="list-disc pl-6 space-y-1">
                         <li>Your email address</li>
@@ -59,11 +64,11 @@ const PrivacyPage = async () => {
                             provides one
                         </li>
                         <li>
-                            An internal user ID and the OAuth tokens issued by
-                            Google or Apple. We use the tokens only to keep you
-                            signed in and to refresh your session; we do not
-                            use them to read other data from your Google or
-                            Apple account.
+                            An internal user ID and sign-in credentials, which
+                            may include tokens issued by Google or Apple. We use
+                            these credentials only to authenticate you and
+                            maintain your session; we do not use them to read
+                            other data from your Google or Apple account.
                         </li>
                     </ul>
 
@@ -78,19 +83,23 @@ const PrivacyPage = async () => {
                     <ul className="list-disc pl-6 space-y-1">
                         <li>
                             <strong>By typing it in.</strong> On the website,
-                            your most recently chosen ZIP code is also cached
-                            in your browser&rsquo;s local storage so the site
+                            your most recently chosen ZIP code is also cached in
+                            your browser&rsquo;s local storage so the site
                             remembers it.
                         </li>
                         <li>
-                            <strong>From your device location (iOS only).</strong>{" "}
-                            If you tap &ldquo;Use my location&rdquo; in the iOS
-                            app and grant location permission, the app reads
-                            your device location, converts it to a 5-digit ZIP
-                            code on-device, and discards the underlying
-                            coordinates. Only the resulting ZIP code is sent to
-                            our servers. We do not store or share your precise
-                            location.
+                            <strong>
+                                From your device location (iOS and Android).
+                            </strong>{" "}
+                            If you tap &ldquo;Use my location&rdquo; in either
+                            mobile app and grant location permission, the app
+                            reads your current or last-known device location and
+                            uses operating-system location and geocoding
+                            services to convert it to a 5-digit ZIP code. The
+                            underlying coordinates are then discarded. Only the
+                            resulting ZIP code is sent to Laughtrack&rsquo;s
+                            servers. Laughtrack does not store your precise
+                            location or collect location in the background.
                         </li>
                     </ul>
 
@@ -105,8 +114,8 @@ const PrivacyPage = async () => {
                         <li>Comedians you favorite</li>
                         <li>Podcasts you favorite or claim ownership of</li>
                         <li>
-                            Email and push notification preferences (whether
-                            you want to be notified about shows)
+                            Email and push notification preferences (whether you
+                            want to be notified about shows)
                         </li>
                     </ul>
 
@@ -131,6 +140,21 @@ const PrivacyPage = async () => {
                         or app version, device type, the pages you visit, and
                         timestamps. We do not use this data for advertising and
                         we do not sell it.
+                    </p>
+                    <p>
+                        The Android app uses Google Firebase Analytics to record
+                        app interactions and basic app and device information.
+                        When you are signed in, analytics may also be associated
+                        with your opaque internal user ID and coarse account
+                        state, such as whether onboarding is complete and
+                        whether a ZIP code is set. We do not send your name or
+                        email address to Firebase Analytics.
+                    </p>
+                    <p>
+                        If you enable push notifications, the mobile app obtains
+                        a device notification token from Apple or Google and
+                        stores it with your Laughtrack account so we can deliver
+                        the notifications you requested.
                     </p>
                     <p>
                         We also set the cookies necessary to keep you signed in
@@ -174,21 +198,32 @@ const PrivacyPage = async () => {
                     </h2>
                     <p>
                         We use the following third parties to run the Service.
-                        They process data on our behalf, under their own
-                        privacy policies, and only for the purposes listed:
+                        They process data on our behalf, under their own privacy
+                        policies, and only for the purposes listed:
                     </p>
                     <ul className="list-disc pl-6 space-y-1">
                         <li>
-                            <strong>Google and Apple</strong> &mdash; identity
-                            providers for sign-in. They share your email, name,
-                            and (for Google) profile photo URL with us when you
-                            sign in.
+                            <strong>Google and Apple</strong> &mdash; provide
+                            identity services for sign-in, operating-system
+                            location and geocoding services, and mobile push
+                            notification delivery, as applicable. When you use
+                            their sign-in services, they share account details
+                            such as your email, name, and profile photo URL with
+                            us according to the choices they provide to you.
+                        </li>
+                        <li>
+                            <strong>Google Firebase</strong> &mdash; provides
+                            Android app analytics and push messaging. Depending
+                            on the feature used, Firebase processes app
+                            interaction data, app and device identifiers, an
+                            opaque internal user ID, coarse account-state
+                            properties, and a push notification token.
                         </li>
                         <li>
                             <strong>Vercel</strong> &mdash; hosts the website
                             and collects standard request logs and aggregate
-                            usage analytics (Vercel Analytics) so we can
-                            monitor traffic and performance.
+                            usage analytics (Vercel Analytics) so we can monitor
+                            traffic and performance.
                         </li>
                         <li>
                             <strong>Neon</strong> &mdash; hosts our PostgreSQL
@@ -197,9 +232,10 @@ const PrivacyPage = async () => {
                         </li>
                         <li>
                             <strong>Sentry</strong> &mdash; receives error and
-                            crash reports from the website so we can debug
-                            issues. Reports may include your user ID and the
-                            request that triggered the error.
+                            crash reports from the website and mobile apps so we
+                            can debug issues. Reports may include an internal
+                            user ID, app and device context, and the request or
+                            action that triggered the error.
                         </li>
                         <li>
                             <strong>Bunny CDN</strong> &mdash; serves images
@@ -216,9 +252,9 @@ const PrivacyPage = async () => {
                     </h2>
                     <p>
                         Your information may be processed and stored on servers
-                        located outside your country or region, including in
-                        the United States. By using the Service you consent to
-                        that transfer.
+                        located outside your country or region, including in the
+                        United States. By using the Service you consent to that
+                        transfer.
                     </p>
                 </div>
 
@@ -229,10 +265,10 @@ const PrivacyPage = async () => {
                     <p>
                         We may disclose your information if we believe in good
                         faith that doing so is necessary to comply with a legal
-                        obligation, protect the rights or property of
-                        Laughtrack Digital, LLC or its users, investigate
-                        possible wrongdoing in connection with the Service, or
-                        protect against legal liability.
+                        obligation, protect the rights or property of Laughtrack
+                        Digital, LLC or its users, investigate possible
+                        wrongdoing in connection with the Service, or protect
+                        against legal liability.
                     </p>
                 </div>
 
@@ -246,17 +282,25 @@ const PrivacyPage = async () => {
                     </h3>
                     <ul className="list-disc pl-6 space-y-1">
                         <li>
-                            You can revoke location or calendar permission for
-                            the iOS app at any time in iOS Settings.
+                            You can revoke location permission for either mobile
+                            app, and calendar permission for the iOS app, at any
+                            time in your device settings.
                         </li>
                         <li>
                             You can turn email and push notifications off in
                             your account settings.
                         </li>
                         <li>
-                            You can request that we delete your account and the
-                            personal data associated with it by emailing
-                            admin@laugh-track.com.
+                            You can delete your account and its associated saved
+                            data from the Profile screen in the mobile app, or
+                            use our{" "}
+                            <a
+                                href="/account-deletion"
+                                className="underline text-white"
+                            >
+                                account deletion page
+                            </a>{" "}
+                            to request deletion without the app.
                         </li>
                     </ul>
 
@@ -264,9 +308,9 @@ const PrivacyPage = async () => {
                         6.2 California residents (CCPA/CPRA)
                     </h3>
                     <p>
-                        If you are a California resident, you have the
-                        following rights under the California Consumer Privacy
-                        Act, as amended by the California Privacy Rights Act:
+                        If you are a California resident, you have the following
+                        rights under the California Consumer Privacy Act, as
+                        amended by the California Privacy Rights Act:
                     </p>
                     <ul className="list-disc pl-6 space-y-1">
                         <li>
@@ -274,22 +318,22 @@ const PrivacyPage = async () => {
                             confirmation of whether we process your personal
                             information and the categories of personal
                             information we have collected, the sources, the
-                            purposes for which it is used, and the categories
-                            of third parties with whom we share it. The
-                            categories we collect are described in Section 1
-                            of this policy.
+                            purposes for which it is used, and the categories of
+                            third parties with whom we share it. The categories
+                            we collect are described in Section 1 of this
+                            policy.
                         </li>
                         <li>
-                            <strong>Right to access.</strong> You may request
-                            a copy of the specific pieces of personal
-                            information we hold about you.
+                            <strong>Right to access.</strong> You may request a
+                            copy of the specific pieces of personal information
+                            we hold about you.
                         </li>
                         <li>
                             <strong>Right to delete.</strong> You may request
                             that we delete the personal information we have
-                            collected from you, subject to legal exceptions
-                            (for example, information we need to keep to
-                            comply with a legal obligation).
+                            collected from you, subject to legal exceptions (for
+                            example, information we need to keep to comply with
+                            a legal obligation).
                         </li>
                         <li>
                             <strong>Right to correct.</strong> You may request
@@ -297,19 +341,21 @@ const PrivacyPage = async () => {
                             hold about you.
                         </li>
                         <li>
-                            <strong>Right to opt out of sale or sharing.</strong>{" "}
-                            We do not sell your personal information and we
-                            do not share it for cross-context behavioral
-                            advertising, so there is nothing to opt out of.
-                            If that ever changes, we will update this policy
-                            and provide a clear opt-out before the change
-                            takes effect.
+                            <strong>
+                                Right to opt out of sale or sharing.
+                            </strong>{" "}
+                            We do not sell your personal information and we do
+                            not share it for cross-context behavioral
+                            advertising, so there is nothing to opt out of. If
+                            that ever changes, we will update this policy and
+                            provide a clear opt-out before the change takes
+                            effect.
                         </li>
                         <li>
                             <strong>Right to non-discrimination.</strong> We
                             will not deny you the Service, charge you a
-                            different price, or provide you a different level
-                            of quality for exercising any of these rights.
+                            different price, or provide you a different level of
+                            quality for exercising any of these rights.
                         </li>
                     </ul>
 
@@ -318,8 +364,8 @@ const PrivacyPage = async () => {
                     </h3>
                     <p>
                         If you are in the European Union, European Economic
-                        Area, or United Kingdom, you have the following
-                        rights under the GDPR and UK GDPR:
+                        Area, or United Kingdom, you have the following rights
+                        under the GDPR and UK GDPR:
                     </p>
                     <ul className="list-disc pl-6 space-y-1">
                         <li>
@@ -328,21 +374,20 @@ const PrivacyPage = async () => {
                             data and a copy of that data.
                         </li>
                         <li>
-                            <strong>Right to rectification.</strong> You may
-                            ask us to correct inaccurate or incomplete
-                            personal data.
+                            <strong>Right to rectification.</strong> You may ask
+                            us to correct inaccurate or incomplete personal
+                            data.
                         </li>
                         <li>
-                            <strong>Right to erasure.</strong> You may ask us
-                            to delete your personal data, subject to legal
+                            <strong>Right to erasure.</strong> You may ask us to
+                            delete your personal data, subject to legal
                             exceptions.
                         </li>
                         <li>
-                            <strong>Right to data portability.</strong> You
-                            may receive your personal data in a structured,
-                            commonly used, machine-readable format and ask us
-                            to transmit it to another controller where
-                            technically feasible.
+                            <strong>Right to data portability.</strong> You may
+                            receive your personal data in a structured, commonly
+                            used, machine-readable format and ask us to transmit
+                            it to another controller where technically feasible.
                         </li>
                         <li>
                             <strong>Right to restriction of processing.</strong>{" "}
@@ -350,21 +395,21 @@ const PrivacyPage = async () => {
                             data in certain circumstances.
                         </li>
                         <li>
-                            <strong>Right to object.</strong> You may object
-                            to our processing of your personal data,
-                            including for direct marketing.
+                            <strong>Right to object.</strong> You may object to
+                            our processing of your personal data, including for
+                            direct marketing.
                         </li>
                         <li>
-                            <strong>Right to withdraw consent.</strong> Where
-                            we rely on consent to process your data, you may
-                            withdraw that consent at any time without
-                            affecting the lawfulness of processing carried
-                            out before withdrawal.
+                            <strong>Right to withdraw consent.</strong> Where we
+                            rely on consent to process your data, you may
+                            withdraw that consent at any time without affecting
+                            the lawfulness of processing carried out before
+                            withdrawal.
                         </li>
                         <li>
                             <strong>Right to lodge a complaint.</strong> You
-                            have the right to lodge a complaint with your
-                            local data protection supervisory authority.
+                            have the right to lodge a complaint with your local
+                            data protection supervisory authority.
                         </li>
                     </ul>
 
@@ -379,48 +424,72 @@ const PrivacyPage = async () => {
                         >
                             admin@laugh-track.com
                         </a>{" "}
-                        from the email address associated with your
-                        Laughtrack account, or include enough information for
-                        us to verify your identity. We will respond within
+                        from the email address associated with your Laughtrack
+                        account, or include enough information for us to verify
+                        your identity. We will respond within
                         <strong> 30 days</strong> of receiving a verifiable
                         request. If we need more time (up to an additional 60
-                        days under the CCPA, or two months under the GDPR),
-                        we will let you know within the initial 30-day
-                        window. You may also designate an authorized agent to
-                        make a request on your behalf, subject to
-                        verification.
+                        days under the CCPA, or two months under the GDPR), we
+                        will let you know within the initial 30-day window. You
+                        may also designate an authorized agent to make a request
+                        on your behalf, subject to verification.
                     </p>
                 </div>
 
                 <div className="mb-10 space-y-4">
                     <h2 className="text-2xl font-semibold mt-8 mb-2">
-                        7. Security
+                        7. Data Retention and Deletion
+                    </h2>
+                    <p>
+                        We retain your account information, saved preferences,
+                        ZIP code, and active push notification tokens while your
+                        account remains active. When you delete your account, we
+                        delete the account and its associated saved data from
+                        our active systems, subject to limited exceptions where
+                        retention is necessary to comply with law, resolve
+                        disputes, prevent fraud or abuse, or enforce our
+                        agreements. Residual copies may remain temporarily in
+                        encrypted backups until those backups are overwritten.
+                    </p>
+                    <p>
+                        We retain operational logs, analytics, and diagnostic
+                        data only for as long as reasonably necessary for
+                        security, reliability, debugging, and legal compliance.
+                        Our service providers may retain this information under
+                        their own documented retention settings and policies. We
+                        may retain aggregated or de-identified information where
+                        it can no longer reasonably identify you.
+                    </p>
+                </div>
+
+                <div className="mb-10 space-y-4">
+                    <h2 className="text-2xl font-semibold mt-8 mb-2">
+                        8. Security
                     </h2>
                     <p>
                         We use commercially reasonable measures to protect your
                         information, but no method of transmission over the
-                        Internet or method of electronic storage is 100%
-                        secure, and we cannot guarantee absolute security.
+                        Internet or method of electronic storage is 100% secure,
+                        and we cannot guarantee absolute security.
                     </p>
                 </div>
 
                 <div className="mb-10 space-y-4">
                     <h2 className="text-2xl font-semibold mt-8 mb-2">
-                        8. Children&rsquo;s Privacy
+                        9. Children&rsquo;s Privacy
                     </h2>
                     <p>
                         The Service is not directed to anyone under the age of
                         18. We do not knowingly collect personal information
-                        from anyone under the age of 18. If you believe a
-                        minor has provided us with personal information,
-                        please email admin@laugh-track.com and we will delete
-                        it.
+                        from anyone under the age of 18. If you believe a minor
+                        has provided us with personal information, please email
+                        admin@laugh-track.com and we will delete it.
                     </p>
                 </div>
 
                 <div className="mb-10 space-y-4">
                     <h2 className="text-2xl font-semibold mt-8 mb-2">
-                        9. Changes To This Privacy Policy
+                        10. Changes To This Privacy Policy
                     </h2>
                     <p>
                         We may update this Privacy Policy from time to time.
@@ -433,7 +502,7 @@ const PrivacyPage = async () => {
 
                 <div className="mb-10 space-y-4">
                     <h2 className="text-2xl font-semibold mt-8 mb-2">
-                        10. Contact Us
+                        11. Contact Us
                     </h2>
                     <p>
                         Questions about this Privacy Policy? Email{" "}

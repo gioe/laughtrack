@@ -27,6 +27,12 @@ vi.mock("@/lib/db", () => ({
         favoriteComedian: {
             deleteMany: vi.fn(),
         },
+        favoriteClub: {
+            deleteMany: vi.fn(),
+        },
+        favoritePodcast: {
+            deleteMany: vi.fn(),
+        },
         userProfile: {
             delete: vi.fn(),
             update: vi.fn(),
@@ -52,6 +58,8 @@ const mockRateLimitHeaders = vi.mocked(rateLimitHeaders);
 const mockFindUser = vi.mocked(db.user.findUnique);
 const mockTransaction = vi.mocked(db.$transaction);
 const mockDeleteFavorites = vi.mocked(db.favoriteComedian.deleteMany);
+const mockDeleteFavoriteClubs = vi.mocked(db.favoriteClub.deleteMany);
+const mockDeleteFavoritePodcasts = vi.mocked(db.favoritePodcast.deleteMany);
 const mockDeleteProfile = vi.mocked(db.userProfile.delete);
 const mockUpdateProfile = vi.mocked(db.userProfile.update);
 const mockDeleteUser = vi.mocked(db.user.delete);
@@ -534,6 +542,12 @@ describe("DELETE /api/v1/me", () => {
         expect(mockDeleteFavorites).toHaveBeenCalledWith({
             where: { profileId: "profile-123" },
         });
+        expect(mockDeleteFavoriteClubs).toHaveBeenCalledWith({
+            where: { profileId: "profile-123" },
+        });
+        expect(mockDeleteFavoritePodcasts).toHaveBeenCalledWith({
+            where: { profileId: "profile-123" },
+        });
         expect(mockDeleteProfile).toHaveBeenCalledWith({
             where: { id: "profile-123" },
         });
@@ -543,6 +557,12 @@ describe("DELETE /api/v1/me", () => {
         expect(mockDeleteFavorites.mock.invocationCallOrder[0]).toBeLessThan(
             mockDeleteProfile.mock.invocationCallOrder[0],
         );
+        expect(
+            mockDeleteFavoriteClubs.mock.invocationCallOrder[0],
+        ).toBeLessThan(mockDeleteProfile.mock.invocationCallOrder[0]);
+        expect(
+            mockDeleteFavoritePodcasts.mock.invocationCallOrder[0],
+        ).toBeLessThan(mockDeleteProfile.mock.invocationCallOrder[0]);
         expect(mockDeleteProfile.mock.invocationCallOrder[0]).toBeLessThan(
             mockDeleteUser.mock.invocationCallOrder[0],
         );
