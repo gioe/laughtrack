@@ -1,4 +1,5 @@
 require "fileutils"
+require "json"
 require "tmpdir"
 
 default_platform(:android)
@@ -22,48 +23,110 @@ DEBUG_TEST_APK_PATH = "app/build/outputs/apk/androidTest/debug/app-debug-android
 # Use the iPhone 16 Pro Max capture frame on Android as well. At 480 dpi this is
 # 440 x 956 dp, matching the iOS screenshot's logical viewport and producing the
 # same 1320 x 2868 output dimensions for a direct storefront comparison.
-SCREENSHOT_PROFILES = [
-  {
+SCREENSHOT_CATALOG_PATH = File.expand_path("../../screenshots/catalog.json", __dir__)
+ANDROID_SCREENSHOT_PROFILE_SETTINGS = {
+  "android_phone" => {
     name: "phone",
     device_type: "phone",
     size: "1320x2868",
     density: "480",
-    launch_arguments: nil,
+    output_directory: "phoneScreenshots",
   },
-  {
+  "android_small_tablet" => {
     name: "7-inch tablet",
     device_type: "sevenInch",
     # 9:16 Play listing frame with a 600 dp smallest width.
     size: "1200x2133",
     density: "320",
-    launch_arguments: ["screenshotMode tablet"],
+    output_directory: "sevenInchScreenshots",
   },
-  {
+  "android_large_tablet" => {
     name: "10-inch tablet",
     device_type: "tenInch",
     # 9:16 Play listing frame with an 800 dp smallest width.
     size: "1600x2844",
     density: "320",
-    launch_arguments: ["screenshotMode tablet"],
+    output_directory: "tenInchScreenshots",
   },
-].freeze
-TABLET_SCREENSHOT_COUNT = 4
+}.freeze
+
+def load_android_screenshot_collection
+  catalog = JSON.parse(File.read(SCREENSHOT_CATALOG_PATH))
+  scenario_ids = catalog.fetch("scenarios").map { |scenario| scenario.fetch("id") }
+  profiles = catalog.fetch("profiles").select { |profile| profile.fetch("platform") == "android" }
+  profile_ids = profiles.map { |profile| profile.fetch("id") }
+
+  if scenario_ids.empty? || scenario_ids.uniq.length != scenario_ids.length
+    raise "Screenshot catalog must define unique scenarios"
+  end
+  unless profile_ids == ANDROID_SCREENSHOT_PROFILE_SETTINGS.keys
+    raise "Screenshot catalog Android profiles #{profile_ids.inspect} do not match adapter profiles " \
+          "#{ANDROID_SCREENSHOT_PROFILE_SETTINGS.keys.inspect}"
+  end
+
+  {
+    scenario_ids: scenario_ids.freeze,
+    profiles: profiles.map do |profile|
+      ANDROID_SCREENSHOT_PROFILE_SETTINGS.fetch(profile.fetch("id")).merge(
+        id: profile.fetch("id"),
+      ).freeze
+    end.freeze,
+  }.freeze
+rescue Errno::ENOENT, JSON::ParserError, KeyError => e
+  raise "Invalid screenshot catalog at #{SCREENSHOT_CATALOG_PATH}: #{e.message}"
+end
+
+ANDROID_SCREENSHOT_COLLECTION = load_android_screenshot_collection
+CANONICAL_SCREENSHOT_IDS = ANDROID_SCREENSHOT_COLLECTION.fetch(:scenario_ids)
+SCREENSHOT_PROFILES = ANDROID_SCREENSHOT_COLLECTION.fetch(:profiles)
 
 # Google Play accepts at most eight phone screenshots per locale. Keep all nine
 # captures on disk for the one-to-one iOS/Android visual audit, but publish this
 # curated subset to Play. Search Podcasts is omitted because the other three
 # search pivots already demonstrate search/filter UI, while Podcast Detail shows
 # the platform-specific podcast experience.
-PLAY_STORE_SCREENSHOT_PREFIXES = %w[
-  01_NearMe_
-  02_SearchShows_
-  03_SearchComedians_
-  04_SearchClubs_
-  05_ClubDetail_
-  06_ShowDetail_
-  07_ComedianDetail_
-  09_PodcastDetail_
+PLAY_STORE_PHONE_SCREENSHOT_IDS = %w[
+  01_NearMe
+  02_SearchShows
+  03_SearchComedians
+  04_SearchClubs
+  05_ClubDetail
+  06_ShowDetail
+  07_ComedianDetail
+  09_PodcastDetail
 ].freeze
+PLAY_STORE_TABLET_SCREENSHOT_IDS = %w[01_NearMe 02_SearchShows 05_ClubDetail 06_ShowDetail].freeze
+
+def image_files(directory)
+  Dir.glob(File.join(directory, "*.{png,jpg,jpeg}"))
+end
+
+def validate_canonical_screenshot_directory(directory)
+  actual = image_files(directory).map { |path| File.basename(path) }.sort
+  expected = CANONICAL_SCREENSHOT_IDS.map { |id| "#{id}.png" }.sort
+  return if actual == expected
+
+  UI.user_error!(
+    "Expected the canonical #{expected.length}-image collection in #{directory}; " \
+    "missing=#{expected - actual}, unexpected=#{actual - expected}",
+  )
+end
+
+def clear_android_screenshot_collection
+  screenshot_root = File.expand_path("metadata/android/en-US/images", __dir__)
+  SCREENSHOT_PROFILES.each do |profile|
+    image_files(File.join(screenshot_root, profile[:output_directory])).each { |path| FileUtils.rm_f(path) }
+  end
+end
+
+def stage_screenshot_subset(directory, selected_ids)
+  validate_canonical_screenshot_directory(directory)
+  selected_names = selected_ids.map { |id| "#{id}.png" }
+  image_files(directory).each do |path|
+    FileUtils.rm_f(path) unless selected_names.include?(File.basename(path))
+  end
+  UI.message("Staged #{selected_names.length} of #{CANONICAL_SCREENSHOT_IDS.length} screenshots from #{directory}")
+end
 
 # Supply uploads every screenshot it finds under metadata_path. Stage a
 # temporary copy containing the Play-safe eight-screen subset so the canonical
@@ -83,28 +146,11 @@ def with_play_store_metadata
       phone_directory = File.join(locale_dir, "images", "phoneScreenshots")
       UI.user_error!("Play phone screenshots not found: #{phone_directory}") unless Dir.exist?(phone_directory)
 
-      screenshots = Dir.glob(File.join(phone_directory, "*.{png,jpg,jpeg}"))
-      selected = PLAY_STORE_SCREENSHOT_PREFIXES.map do |prefix|
-        matches = screenshots.select { |path| File.basename(path).start_with?(prefix) }
-        if matches.length != 1
-          UI.user_error!("Expected exactly one #{prefix} screenshot in #{phone_directory}, found #{matches.length}")
-        end
-        matches.first
-      end
-
-      (screenshots - selected).each { |path| FileUtils.rm_f(path) }
-      UI.message("Staged #{selected.length} of #{screenshots.length} phone screenshots for Google Play")
+      stage_screenshot_subset(phone_directory, PLAY_STORE_PHONE_SCREENSHOT_IDS)
 
       %w[sevenInchScreenshots tenInchScreenshots].each do |device_directory|
         directory = File.join(locale_dir, "images", device_directory)
-        tablet_screenshots = Dir.glob(File.join(directory, "*.{png,jpg,jpeg}"))
-        if tablet_screenshots.length != TABLET_SCREENSHOT_COUNT
-          UI.user_error!(
-            "Expected #{TABLET_SCREENSHOT_COUNT} #{device_directory} images in #{directory}, " \
-            "found #{tablet_screenshots.length}. Run the screenshots lane first.",
-          )
-        end
-        UI.message("Staged #{tablet_screenshots.length} #{device_directory} images for Google Play")
+        stage_screenshot_subset(directory, PLAY_STORE_TABLET_SCREENSHOT_IDS)
       end
     end
 
@@ -236,7 +282,6 @@ def capture_screenshot_profile(adb, serial, profile)
       tests_apk_path: DEBUG_TEST_APK_PATH,
       specific_device: serial,
       device_type: profile[:device_type],
-      launch_arguments: profile[:launch_arguments],
     )
   ensure
     restore_screenshot_emulator(adb, serial, original)
@@ -442,8 +487,8 @@ platform :android do
     UI.success("Promoted versionCode #{version_code} from internal to production (rollout #{rollout})")
   end
 
-  desc "Start an available Android emulator if needed, then capture nine phone and four " \
-       "screenshots for each Play tablet class via screengrab. Builds the debug + androidTest " \
+  desc "Start an available Android emulator if needed, then capture all canonical scenarios " \
+       "for phone and both Play tablet classes via screengrab. Builds the debug + androidTest " \
        "APKs and drives AppStoreScreenshotTest (TASK-3616). Lands PNGs in Fastlane's phone, " \
        "sevenInch, and tenInch metadata directories for `supply`."
   lane :screenshots do
@@ -452,8 +497,16 @@ platform :android do
     ENV["ANDROID_SERIAL"] = serial
     begin
       gradle(task: "assembleDebug assembleDebugAndroidTest", project_dir: ".")
+      # Screengrab clears only the destination for the profile currently being
+      # captured. Remove the whole prior matrix up front so its HTML report does
+      # not reclassify legacy files from another device directory.
+      clear_android_screenshot_collection
       SCREENSHOT_PROFILES.each do |profile|
         capture_screenshot_profile(adb, serial, profile)
+      end
+      screenshot_root = File.expand_path("metadata/android/en-US/images", __dir__)
+      SCREENSHOT_PROFILES.each do |profile|
+        validate_canonical_screenshot_directory(File.join(screenshot_root, profile[:output_directory]))
       end
     ensure
       ENV["ANDROID_SERIAL"] = prior_android_serial

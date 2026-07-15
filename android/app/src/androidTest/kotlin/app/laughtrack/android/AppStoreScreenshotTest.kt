@@ -113,9 +113,6 @@ class AppStoreScreenshotTest {
 
     @Test
     fun captureAppStoreScreenshots() {
-        val tabletMode =
-            InstrumentationRegistry.getArguments().getString("screenshotMode") == "tablet"
-
         composeRule.setContent {
             LaughTrackTheme { AppShell() }
         }
@@ -143,23 +140,6 @@ class AppStoreScreenshotTest {
         waitFor(hasText("Search nearby comedy"), timeoutMs = 30_000)
         waitForResults()
         capture("02_SearchShows")
-
-        if (tabletMode) {
-            // Google Play's tablet listing needs at least four representative
-            // large-screen captures. Keep this focused on the discovery/search
-            // journey and its two most important detail destinations.
-            selectPivot("CLUBS")
-            searchFor("New York Comedy Club Midtown")
-            openFirstResult()
-            capture("05_ClubDetail")
-
-            waitFor(hasTestTag(CLUB_SHOW_ROW_TEST_TAG), timeoutMs = 30_000)
-            composeRule.onAllNodes(hasTestTag(CLUB_SHOW_ROW_TEST_TAG)).onFirst().performScrollTo().performClick()
-            waitFor(hasContentDescription("Home"), timeoutMs = 20_000)
-            waitForDetail()
-            capture("06_ShowDetail")
-            return
-        }
 
         // 03 — Search / Comedians. Pivot chips render their label uppercased.
         selectPivot("COMEDIANS")

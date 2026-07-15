@@ -23,6 +23,10 @@ locales(['en-US'])
 # Wipe prior captures so a re-run never mixes stale frames into the upload set.
 clear_previous_screenshots(true)
 
+# Canonical scenario IDs are stable artifact names. Fresh runs replace the
+# previous collection instead of adding millisecond suffixes to every file.
+use_timestamp_suffix(false)
+
 # Land captures under fastlane/metadata/android/<locale>/images/... so `supply`
 # uploads them directly from the same tree it reads listing metadata from.
 output_directory('fastlane/metadata/android')
