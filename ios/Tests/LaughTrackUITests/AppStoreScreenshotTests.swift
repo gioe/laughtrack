@@ -104,6 +104,30 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         )
         sleep(5)
         snapshot("09_PodcastDetail")
+
+        relaunch(route: "favorites:0", comparisonScreens: true)
+        assertExists("laughtrack.favorites-tab.screen", message: "Expected Favorites screen")
+        snapshot("10_Favorites")
+
+        relaunch(route: "profile:0")
+        assertExists("laughtrack.profile-tab.screen", message: "Expected Profile screen")
+        snapshot("11_Profile")
+
+        relaunch(route: "notifications:0")
+        assertExists("laughtrack.notifications.screen", message: "Expected Notifications screen")
+        snapshot("12_Notifications")
+
+        relaunch(environment: [UITestLaunchArgs.forceComedianOnboardingScreen: "1"])
+        assertExists("laughtrack.onboarding.screen", message: "Expected onboarding screen")
+        sleep(3)
+        snapshot("13_Onboarding")
+
+        relaunch(comparisonScreens: true)
+        let miniPlayer = element("laughtrack.podcast-mini-player")
+        XCTAssertTrue(miniPlayer.waitForExistence(timeout: 10), "Expected seeded podcast mini player")
+        miniPlayer.coordinate(withNormalizedOffset: CGVector(dx: 0.35, dy: 0.5)).tap()
+        assertExists("laughtrack.now-playing-screen", message: "Expected Now Playing screen")
+        snapshot("14_NowPlaying")
     }
 
     private func tapPrimitive(_ primitive: String) {
@@ -135,6 +159,26 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         sleep(5)
         tapSearchTab()
         sleep(2)
+    }
+
+    private func relaunch(
+        route: String? = nil,
+        comparisonScreens: Bool = false,
+        environment: [String: String] = [:]
+    ) {
+        app.terminate()
+        app.launchEnvironment.removeValue(forKey: "LAUNCHTRACK_DEBUG_ROUTE")
+        app.launchEnvironment.removeValue(forKey: UITestLaunchArgs.forceComparisonScreens)
+        app.launchEnvironment.removeValue(forKey: UITestLaunchArgs.forceComedianOnboardingScreen)
+        if let route {
+            app.launchEnvironment["LAUNCHTRACK_DEBUG_ROUTE"] = route
+        }
+        if comparisonScreens {
+            app.launchEnvironment[UITestLaunchArgs.forceComparisonScreens] = "1"
+        }
+        environment.forEach { app.launchEnvironment[$0.key] = $0.value }
+        app.launch()
+        sleep(5)
     }
 
     private func tapFirstResult(

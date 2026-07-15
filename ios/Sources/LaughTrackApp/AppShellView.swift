@@ -165,6 +165,11 @@ struct AppShellView: View {
     }
 
     private var showFavoritesTab: Bool {
+#if DEBUG
+        if ProcessInfo.processInfo.environment[UITestLaunchArgs.forceComparisonScreens] == "1" {
+            return true
+        }
+#endif
         guard authManager.currentSession != nil else { return false }
         return !favorites.savedFavoriteComedians.isEmpty
     }

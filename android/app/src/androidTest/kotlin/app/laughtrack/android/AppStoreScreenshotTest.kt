@@ -14,9 +14,14 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import androidx.test.platform.app.InstrumentationRegistry
 import app.laughtrack.android.core.ui.components.RemoteImageTestTags
 import app.laughtrack.android.core.ui.theme.LaughTrackTheme
+import app.laughtrack.android.core.navigation.AppRoute
+import app.laughtrack.android.core.playback.PodcastPlaybackController
+import app.laughtrack.android.core.playback.PodcastPlaybackItem
 import app.laughtrack.android.feature.detail.ui.CLUB_SHOW_ROW_TEST_TAG
 import app.laughtrack.android.feature.detail.ui.components.DETAIL_LOADING_TEST_TAG
 import app.laughtrack.android.feature.search.ui.SEARCH_RESULT_ROW_TEST_TAG
@@ -113,8 +118,13 @@ class AppStoreScreenshotTest {
 
     @Test
     fun captureAppStoreScreenshots() {
+        lateinit var navController: NavHostController
+        val playbackController = PodcastPlaybackController(InstrumentationRegistry.getInstrumentation().targetContext)
         composeRule.setContent {
-            LaughTrackTheme { AppShell() }
+            navController = rememberNavController()
+            LaughTrackTheme {
+                AppShell(navController = navController, playbackController = playbackController)
+            }
         }
 
         // 01 — Near Me. The location controls live behind the header row's bottom
@@ -179,6 +189,43 @@ class AppStoreScreenshotTest {
         searchFor("The D.L. Hughley Show")
         openFirstResult()
         capture("09_PodcastDetail")
+
+        navigate(navController, AppRoute.Favorites())
+        waitFor(hasText("Sign in to see your favorites"))
+        capture("10_Favorites")
+
+        navigate(navController, AppRoute.Profile)
+        waitFor(hasText("Guest mode"))
+        capture("11_Profile")
+
+        navigate(navController, AppRoute.NotificationCenter)
+        waitFor(hasText("Notifications"))
+        capture("12_Notifications")
+
+        navigate(navController, AppRoute.ComedianOnboarding)
+        waitFor(hasText("Pick comedians to follow"), timeoutMs = 30_000)
+        capture("13_Onboarding")
+
+        composeRule.runOnIdle {
+            playbackController.seedForScreenshot(
+                PodcastPlaybackItem(
+                    episodeId = -1,
+                    podcastId = -1,
+                    podcastTitle = "LaughTrack",
+                    episodeTitle = "The LaughTrack Comedy Roundup",
+                    audioUrl = "https://example.invalid/demo.mp3",
+                    artworkUrl = null,
+                ),
+            )
+            navController.navigate(AppRoute.NowPlaying)
+        }
+        waitFor(hasText("The LaughTrack Comedy Roundup"))
+        capture("14_NowPlaying")
+    }
+
+    private fun navigate(navController: NavHostController, route: AppRoute) {
+        composeRule.runOnIdle { navController.navigate(route) }
+        settle()
     }
 
     /** Select a search pivot by its uppercased chip label and wait for its results. */

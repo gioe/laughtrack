@@ -405,6 +405,22 @@ struct ContentView: View {
         .environmentObject(serviceContainer.resolve(SoftPushPromptCoordinator.self))
         #if DEBUG
         .task {
+            guard ProcessInfo.processInfo.environment[UITestLaunchArgs.forceComparisonScreens] == "1",
+                  podcastPlayer.currentItem == nil
+            else { return }
+            podcastPlayer.start(PodcastPlaybackItem(
+                id: -1,
+                episodeTitle: "The LaughTrack Comedy Roundup",
+                podcastName: "LaughTrack",
+                podcastImageURL: nil,
+                displayRole: "Episode",
+                audioURL: nil,
+                episodeURL: nil,
+                failedAudioURL: nil,
+                releaseDate: "Today"
+            ))
+        }
+        .task {
             await DebugSimulatedFavoriteHook.fireIfRequested(
                 coordinator: serviceContainer.resolve(SoftPushPromptCoordinator.self)
             )

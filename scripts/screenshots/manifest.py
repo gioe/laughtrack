@@ -25,6 +25,11 @@ SCENARIO_IDS = (
     "07_ComedianDetail",
     "08_SearchPodcasts",
     "09_PodcastDetail",
+    "10_Favorites",
+    "11_Profile",
+    "12_Notifications",
+    "13_Onboarding",
+    "14_NowPlaying",
 )
 PROFILE_IDS = (
     "ios_phone",
@@ -85,7 +90,7 @@ def validate_catalog(catalog: Any) -> None:
         actual_ids = [item.get("id") if isinstance(item, dict) else None for item in scenarios]
         if actual_ids != list(SCENARIO_IDS):
             errors.append(
-                "catalog.scenarios must contain the nine canonical IDs in order: "
+                "catalog.scenarios must contain the canonical IDs in order: "
                 + ", ".join(SCENARIO_IDS)
             )
         for index, scenario in enumerate(scenarios):

@@ -105,7 +105,7 @@ def test_completed_platform_run_records_and_validates_every_image(
     tmp_path: Path, catalog: dict, completed_run: dict
 ) -> None:
     validate_manifest(completed_run, catalog, repo_root=tmp_path)
-    assert len(completed_run["images"]) == 27
+    assert len(completed_run["images"]) == 42
 
 
 def test_png_dimensions_reads_ihdr(tmp_path: Path) -> None:
@@ -126,7 +126,7 @@ def test_manifest_requires_every_form_factor_for_selected_platform(
     tmp_path: Path, catalog: dict, completed_run: dict
 ) -> None:
     completed_run["profiles"] = ["android_phone"]
-    completed_run["images"] = completed_run["images"][:9]
+    completed_run["images"] = completed_run["images"][:14]
     with pytest.raises(ContractError, match="every form factor"):
         validate_manifest(completed_run, catalog, repo_root=tmp_path)
 
@@ -242,7 +242,7 @@ def test_manifest_enforces_freshness_boundary(
 
 def test_cli_validates_catalog(capsys: pytest.CaptureFixture[str]) -> None:
     assert main(["validate-catalog", "--catalog", str(CATALOG_PATH)]) == 0
-    assert "valid catalog: 9 scenarios" in capsys.readouterr().out
+    assert "valid catalog: 14 scenarios" in capsys.readouterr().out
 
 
 def test_cli_plan_emits_canonical_profile_scenario_order(
@@ -263,9 +263,9 @@ def test_cli_plan_emits_canonical_profile_scenario_order(
         == 0
     )
     plan = json.loads(capsys.readouterr().out)
-    assert len(plan) == 18
+    assert len(plan) == 28
     assert plan[0] == {"profile_id": "ios_phone", "scenario_id": "01_NearMe"}
-    assert plan[-1] == {"profile_id": "ios_large_tablet", "scenario_id": "09_PodcastDetail"}
+    assert plan[-1] == {"profile_id": "ios_large_tablet", "scenario_id": "14_NowPlaying"}
 
 
 def test_cli_plan_rejects_partial_platform_matrix(

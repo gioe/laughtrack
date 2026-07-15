@@ -63,4 +63,8 @@ enum UITestLaunchArgs {
     /// simulator's persisted cadence and in-app notification preference state.
     /// Release builds never read it.
     static let forceSoftPushPrompt = "FORCE_SOFT_PUSH_PROMPT"
+
+    /// DEBUG-only screenshot seam that exposes the guest Favorites tab and
+    /// seeds a deterministic podcast episode for the Now Playing capture.
+    static let forceComparisonScreens = "UITEST_FORCE_COMPARISON_SCREENS"
 }
