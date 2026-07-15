@@ -345,13 +345,15 @@ platform :ios do
   end
 
   desc "Capture a complete iOS matrix, validate its run manifest, and export the App Store projection"
-  lane :screenshots do
+  lane :screenshots do |options|
     patch_snapshot_destination_for_18_3_1
     Dir.mktmpdir("laughtrack-ios-screenshots") do |tmpdir|
       capture_root = File.join(tmpdir, "capture")
+      run_root = options[:run_root] ? File.expand_path(options[:run_root], REPO_ROOT) : File.join(tmpdir, "run")
       capture_screenshots(output_directory: capture_root)
       validate_ios_screenshot_collection(capture_root)
-      export_app_store_projection(capture_root, File.join(tmpdir, "run"))
+      export_app_store_projection(capture_root, run_root)
+      UI.success("Validated iOS screenshot run manifest: #{File.join(run_root, 'manifest.json')}")
     end
   end
 

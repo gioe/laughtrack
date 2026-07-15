@@ -444,7 +444,7 @@ platform :android do
   end
 
   desc "Capture a complete Android matrix, validate its run manifest, and export the Play projection"
-  lane :screenshots do
+  lane :screenshots do |options|
     adb, serial = boot_screenshot_emulator
     prior_android_serial = ENV["ANDROID_SERIAL"]
     ENV["ANDROID_SERIAL"] = serial
@@ -452,6 +452,7 @@ platform :android do
       gradle(task: "assembleDebug assembleDebugAndroidTest", project_dir: ".")
       Dir.mktmpdir("laughtrack-android-screenshots") do |tmpdir|
         capture_root = File.join(tmpdir, "capture")
+        run_root = options[:run_root] ? File.expand_path(options[:run_root], REPO_ROOT) : File.join(tmpdir, "run")
         SCREENSHOT_PROFILES.each do |profile|
           capture_screenshot_profile(adb, serial, profile, capture_root)
         end
@@ -460,7 +461,8 @@ platform :android do
             File.join(capture_root, "en-US", "images", profile[:output_directory]),
           )
         end
-        export_play_projection(capture_root, File.join(tmpdir, "run"))
+        export_play_projection(capture_root, run_root)
+        UI.success("Validated Android screenshot run manifest: #{File.join(run_root, 'manifest.json')}")
       end
     ensure
       ENV["ANDROID_SERIAL"] = prior_android_serial
