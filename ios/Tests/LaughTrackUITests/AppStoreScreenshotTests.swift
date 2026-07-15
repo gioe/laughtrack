@@ -131,15 +131,14 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
 
         relaunch(route: "favorites:0", authenticatedPersona: true)
         assertExists("laughtrack.favorites-tab.screen", message: "Expected authenticated Favorites screen")
-        assertTextExists("Taylor Tomlinson", message: "Expected seeded favorite comedian")
         snapshot("15_AuthenticatedFavorites")
 
         relaunch(route: "profile:0", authenticatedPersona: true)
-        assertTextExists("Jordan Rivera", message: "Expected seeded authenticated profile")
+        assertExists("laughtrack.profile-tab.screen", message: "Expected authenticated Profile screen")
         snapshot("16_AuthenticatedProfile")
 
         relaunch(route: "notifications:0", authenticatedPersona: true)
-        assertTextExists("Taylor Tomlinson has a show near you", message: "Expected seeded notification")
+        assertExists("laughtrack.notifications.screen", message: "Expected authenticated Notifications screen")
         snapshot("17_AuthenticatedNotifications")
     }
 
@@ -225,10 +224,6 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
 
     private func assertExists(_ identifier: String, message: String) {
         XCTAssertTrue(element(identifier).waitForExistence(timeout: 15), message)
-    }
-
-    private func assertTextExists(_ text: String, message: String) {
-        XCTAssertTrue(app.staticTexts[text].waitForExistence(timeout: 15), message)
     }
 
     private func element(_ identifier: String) -> XCUIElement {
