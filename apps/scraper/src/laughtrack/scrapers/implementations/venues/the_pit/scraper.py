@@ -6,6 +6,7 @@ from typing import Optional
 
 from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.show.model import Show
+from laughtrack.foundation.infrastructure.http.diagnostics import current_diagnostics
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.scrapers.implementations.json_ld.scraper import JsonLdScraper
 from laughtrack.scrapers.implementations.venues.patron_ticket.scraper import (
@@ -121,6 +122,7 @@ class ThePitScraper(JsonLdScraper):
         try:
             return await self._patron_ticket_scraper.scrape_async()
         except Exception as exc:
+            self._record_child_failure()
             Logger.error(
                 f"{self._log_prefix}: PatronTicket source failed: {exc}",
                 self.logger_context,
@@ -131,11 +133,20 @@ class ThePitScraper(JsonLdScraper):
         try:
             return await super().scrape_async()
         except Exception as exc:
+            self._record_child_failure()
             Logger.error(
                 f"{self._log_prefix}: WordPress source failed: {exc}",
                 self.logger_context,
             )
             return []
+
+    @staticmethod
+    def _record_child_failure() -> None:
+        diagnostics = current_diagnostics()
+        if diagnostics is not None:
+            # A partial union is useful enough to persist, but not trustworthy
+            # enough to reconcile shows omitted by the failed child source.
+            diagnostics.record_fetch_failed()
 
     @staticmethod
     def extract_cash_price(description: Optional[str]) -> Optional[float]:

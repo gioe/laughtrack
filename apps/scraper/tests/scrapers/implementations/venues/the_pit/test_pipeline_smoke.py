@@ -180,8 +180,7 @@ def test_cash_price_phrases_are_parsed_without_false_matches():
     assert ThePitScraper.extract_cash_price(None) is None
 
 
-@pytest.mark.asyncio
-async def test_one_source_failure_does_not_drop_the_other(monkeypatch):
+def test_one_source_failure_does_not_drop_the_other_or_reconcile(monkeypatch):
     wordpress = _show(
         "WordPress Survives",
         19,
@@ -198,7 +197,10 @@ async def test_one_source_failure_does_not_drop_the_other(monkeypatch):
     monkeypatch.setattr(PatronTicketScraper, "scrape_async", failed_patron_ticket)
     monkeypatch.setattr(JsonLdScraper, "scrape_async", fake_wordpress)
 
-    assert await ThePitScraper(_club()).scrape_async() == [wordpress]
+    result = ThePitScraper(_club()).scrape_with_result()
+
+    assert result.shows == [wordpress]
+    assert result.fetches_failed == 1
 
 
 def test_builds_unfiltered_patron_ticket_child_and_registers_key():
