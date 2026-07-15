@@ -236,7 +236,10 @@ class AppStoreScreenshotTest {
 
         // Keep the guest catalog above intact, then opt into the credentials-free
         // persona explicitly for equivalent populated authenticated screens.
-        composeRule.runOnIdle { screenshotPersona = AuthenticatedScreenshotPersona }
+        composeRule.runOnIdle {
+            playbackController.stop()
+            screenshotPersona = AuthenticatedScreenshotPersona
+        }
 
         navigate(navController, AppRoute.Favorites())
         waitFor(hasText("Taylor Tomlinson"))
