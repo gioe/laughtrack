@@ -33,6 +33,8 @@ data class PivotState(
     val query: SearchQuery = SearchQuery(),
     val results: PagedList<SearchResult> = PagedList(),
     val loaded: Boolean = false,
+    /** Human-readable label for the inherited Home location, when available. */
+    val locationLabel: String? = null,
     /** Tag facets echoed by the last successful response — populate the tag filter sheet. */
     val filters: List<Filter> = emptyList(),
     /** Comedian home-city facets echoed by the last successful response (comedians only). */
@@ -60,6 +62,7 @@ private fun defaultPivotStates(homeLocation: HomeLocation? = null): Map<SearchPi
                             null
                         },
                 ),
+            locationLabel = if (pivot.isGeoScoped) homeLocation?.locationLabel else null,
         )
     }
 
@@ -133,7 +136,15 @@ class SearchViewModel
         /** Set or clear the Shows ZIP filter. Explicit Search location edits stop Home sync. */
         fun setZip(zip: String?) {
             userEditedLocation = true
-            updateQuery { it.copy(zip = zip?.takeIf { value -> value.isNotBlank() }) }
+            val pivot = _state.value.pivot
+            updatePivot(pivot) {
+                it.copy(
+                    query = it.query.copy(zip = zip?.takeIf { value -> value.isNotBlank() }),
+                    // A manually entered ZIP no longer has a trustworthy resolved city label.
+                    locationLabel = null,
+                )
+            }
+            reload(pivot)
         }
 
         /** Set the geo radius (miles) for the Shows pivot (from the distance dropdown). */
@@ -199,11 +210,18 @@ class SearchViewModel
             val nextZip = location?.zip
             val nextDistance = location?.distanceMiles ?: DEFAULT_DISTANCE_MILES
             val current = _state.value.states.getValue(pivot)
-            if (current.query.zip == nextZip && current.query.distance == nextDistance) return
+            if (
+                current.query.zip == nextZip &&
+                current.query.distance == nextDistance &&
+                current.locationLabel == location?.locationLabel
+            ) {
+                return
+            }
 
             updatePivot(pivot) {
                 it.copy(
                     query = it.query.copy(zip = nextZip, distance = nextDistance),
+                    locationLabel = location?.locationLabel,
                     results = PagedList(),
                     loaded = false,
                 )
@@ -226,7 +244,7 @@ class SearchViewModel
                 )
             }
             updatePivot(pivot) { it.copy(results = PagedList<SearchResult>().loading(), loaded = true) }
-            fetch(pivot, page = 1)
+            fetch(pivot, page = 0)
         }
 
         private fun fetch(
@@ -235,7 +253,7 @@ class SearchViewModel
         ) {
             loadJobs[pivot]?.cancel()
             val query = _state.value.states.getValue(pivot).query
-            if (page > 1) updatePivot(pivot) { it.copy(results = it.results.loading()) }
+            if (page > 0) updatePivot(pivot) { it.copy(results = it.results.loading()) }
             loadJobs[pivot] =
                 viewModelScope.launch {
                     runCatchingCancellable { repository.search(pivot, query, page) }
@@ -252,10 +270,11 @@ class SearchViewModel
                                             dedupKey = { r -> r.route },
                                         ),
                                     // Facets accompany every page but only change with the query, not
-                                    // the page — refresh them from page 1 so the sheets reflect the
-                                    // current search without being reset mid-pagination.
-                                    filters = if (page == 1) result.filters else it.filters,
-                                    homeCityFilters = if (page == 1) result.homeCityFilters else it.homeCityFilters,
+                                    // the page — refresh them from the zero-indexed initial page so
+                                    // every filter-capable pivot exposes its sheet immediately without
+                                    // resetting the available options during pagination.
+                                    filters = if (page == 0) result.filters else it.filters,
+                                    homeCityFilters = if (page == 0) result.homeCityFilters else it.homeCityFilters,
                                 )
                             }
                         }

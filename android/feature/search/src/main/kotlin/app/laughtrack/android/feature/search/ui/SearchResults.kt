@@ -2,6 +2,7 @@
 
 package app.laughtrack.android.feature.search.ui
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -19,6 +20,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -28,10 +31,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import app.laughtrack.android.core.data.favorites.FavoriteEntity
+import app.laughtrack.android.core.data.favorites.FavoritesSnapshot
 import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.ui.components.RemoteImage
 import app.laughtrack.android.core.ui.components.RemoteImageFallback
@@ -39,6 +50,7 @@ import app.laughtrack.android.core.ui.components.SkeletonLine
 import app.laughtrack.android.core.ui.components.TicketShowRow
 import app.laughtrack.android.core.ui.components.ticketStubDateParts
 import app.laughtrack.android.core.ui.theme.LaughTrackColors
+import app.laughtrack.android.feature.search.model.SearchFavoriteTarget
 import app.laughtrack.android.feature.search.model.SearchPivot
 import app.laughtrack.android.feature.search.model.SearchResult
 import app.laughtrack.android.feature.search.model.searchResultSummary
@@ -57,6 +69,8 @@ internal fun LazyListScope.resultsContent(
     total: Int,
     loadMore: LoadMoreState,
     onOpen: (AppRoute) -> Unit,
+    favorites: FavoritesSnapshot,
+    onSetFavorite: (SearchFavoriteTarget, Boolean) -> Unit,
 ) {
     item {
         Text(
@@ -72,7 +86,13 @@ internal fun LazyListScope.resultsContent(
         if (pivot == SearchPivot.SHOWS) {
             ShowResultRow(result = result, onOpen = onOpen)
         } else {
-            ResultRow(result = result, onOpen = onOpen)
+            ResultRow(
+                pivot = pivot,
+                result = result,
+                favorites = favorites,
+                onOpen = onOpen,
+                onSetFavorite = onSetFavorite,
+            )
         }
     }
     when {
@@ -195,64 +215,138 @@ private fun ShowResultBody(
 
 @Composable
 private fun ResultRow(
+    pivot: SearchPivot,
     result: SearchResult,
+    favorites: FavoritesSnapshot,
     onOpen: (AppRoute) -> Unit,
+    onSetFavorite: (SearchFavoriteTarget, Boolean) -> Unit,
 ) {
+    val favoriteTarget = result.favoriteTarget
+    val isFavorite = result.favoriteValue(favorites)
+    val favoritePending = favoriteTarget?.let { favorites.pending.contains(it.pendingKey) } == true
     Surface(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .border(1.dp, LaughTrackColors.TicketBorder, RoundedCornerShape(14.dp)),
-        color = LaughTrackColors.TicketPaper,
+        modifier = Modifier.fillMaxWidth(),
+        border = BorderStroke(1.dp, LaughTrackColors.BorderSubtle),
+        color = LaughTrackColors.SurfaceElevated.copy(alpha = 0.96f),
         shape = RoundedCornerShape(14.dp),
     ) {
         Row(
             Modifier
                 .fillMaxWidth()
-                .clickable { onOpen(result.route) }
-                .testTag(SEARCH_RESULT_ROW_TEST_TAG)
-                .padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                .padding(10.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            SearchArtwork(result)
-            Column(
-                Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+            Row(
+                Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(10.dp))
+                    .clickable { onOpen(result.route) }
+                    .testTag(SEARCH_RESULT_ROW_TEST_TAG),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(
-                    result.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = LaughTrackColors.TicketInk,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                result.displayMetadata.take(3).forEach { line ->
+                SearchArtwork(result = result, pivot = pivot)
+                Column(
+                    Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
                     Text(
-                        line,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = LaughTrackColors.TicketInkMuted,
-                        maxLines = 1,
+                        result.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = LaughTrackColors.Foreground,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
+                    if (pivot == SearchPivot.CLUBS) {
+                        result.subtitle?.takeIf { it.isNotBlank() }?.let { location ->
+                            Text(
+                                location,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = LaughTrackColors.ForegroundMuted,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    }
+                }
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = LaughTrackColors.ForegroundMuted,
+                )
+            }
+            if (favoriteTarget != null) {
+                Surface(
+                    modifier = Modifier.size(46.dp),
+                    shape = CircleShape,
+                    color = LaughTrackColors.Canvas.copy(alpha = 0.72f),
+                    border = BorderStroke(1.dp, LaughTrackColors.BorderSubtle),
+                    enabled = !favoritePending,
+                    onClick = { onSetFavorite(favoriteTarget, !isFavorite) },
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                            contentDescription = if (isFavorite) "Remove favorite" else "Favorite",
+                            tint = if (isFavorite) LaughTrackColors.AccentStrong else LaughTrackColors.Foreground,
+                        )
+                    }
                 }
             }
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = null,
-                tint = LaughTrackColors.TicketInkMuted,
-            )
         }
     }
 }
 
 @Composable
-private fun SearchArtwork(result: SearchResult) {
+private fun SearchArtwork(
+    result: SearchResult,
+    pivot: SearchPivot? = null,
+) {
+    val circular = pivot == null
+    val shape = if (circular) CircleShape else RoundedCornerShape(8.dp)
+    val dottedFrameColor =
+        when (pivot) {
+            SearchPivot.CLUBS -> Color(0xFFFFC247)
+            SearchPivot.PODCASTS -> LaughTrackColors.AccentStrong
+            else -> LaughTrackColors.AccentMuted
+        }
     Box(
         modifier =
             Modifier
                 .size(66.dp)
-                .clip(CircleShape)
+                .then(
+                    when (pivot) {
+                        SearchPivot.COMEDIANS ->
+                            Modifier
+                                .clip(shape)
+                                .background(LaughTrackColors.TicketPaper)
+                                .border(2.dp, LaughTrackColors.TicketBorder, shape)
+                                .padding(4.dp)
+                        SearchPivot.CLUBS,
+                        SearchPivot.PODCASTS,
+                        ->
+                            Modifier
+                                .drawBehind {
+                                    drawRoundRect(
+                                        color = dottedFrameColor,
+                                        cornerRadius = CornerRadius(8.dp.toPx()),
+                                        style =
+                                            Stroke(
+                                                width = 1.5.dp.toPx(),
+                                                cap = StrokeCap.Round,
+                                                pathEffect =
+                                                    PathEffect.dashPathEffect(
+                                                        floatArrayOf(1.dp.toPx(), 5.dp.toPx()),
+                                                    ),
+                                            ),
+                                    )
+                                }
+                                .padding(4.dp)
+                        else -> Modifier
+                    },
+                )
+                .clip(shape)
                 .background(LaughTrackColors.AccentStrong.copy(alpha = 0.14f)),
         contentAlignment = Alignment.Center,
     ) {
@@ -262,11 +356,25 @@ private fun SearchArtwork(result: SearchResult) {
             modifier =
                 Modifier
                     .fillMaxSize()
-                    .clip(CircleShape),
+                    .clip(shape),
             fallback = result.imageFallback,
         )
     }
 }
+
+private fun SearchResult.favoriteValue(snapshot: FavoritesSnapshot): Boolean =
+    when (val target = favoriteTarget) {
+        is SearchFavoriteTarget.Comedian -> snapshot.comedianValues[target.uuid] ?: isFavorite
+        is SearchFavoriteTarget.Podcast -> snapshot.podcastValues[target.id] ?: isFavorite
+        null -> false
+    }
+
+private val SearchFavoriteTarget.pendingKey: String
+    get() =
+        when (this) {
+            is SearchFavoriteTarget.Comedian -> FavoriteEntity.COMEDIAN.name + uuid
+            is SearchFavoriteTarget.Podcast -> FavoriteEntity.PODCAST.name + id
+        }
 
 @Composable
 internal fun LoadingList() {

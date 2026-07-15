@@ -17,6 +17,8 @@ data class SearchResult(
     val showRoom: String? = null,
     val showPriceLabel: String? = null,
     val isSoldOut: Boolean = false,
+    val favoriteTarget: SearchFavoriteTarget? = null,
+    val isFavorite: Boolean = false,
 ) {
     val artworkUrl: String?
         get() = imageUrl?.trim()?.takeIf { it.isNotEmpty() }
@@ -26,6 +28,13 @@ data class SearchResult(
 
     val displayMetadata: List<String>
         get() = listOfNotNull(subtitle?.takeIf { it.isNotBlank() }) + metadata.filter { it.isNotBlank() }
+}
+
+/** Typed API identity used by the favorite control on parity search rows. */
+sealed interface SearchFavoriteTarget {
+    data class Comedian(val uuid: String) : SearchFavoriteTarget
+
+    data class Podcast(val id: Int) : SearchFavoriteTarget
 }
 
 fun searchResultSummary(
@@ -42,8 +51,9 @@ fun searchResultSummary(
 
 /**
  * Per-pivot query inputs. [zip]/[distance]/[from]/[to] only apply to the
- * geo-scoped Shows pivot; [text] filters comedians/clubs (and the club name for
- * shows); [sort] is the server sort key. [from]/[to] are inclusive YYYY-MM-DD
+ * geo-scoped Shows pivot; [text] filters comedians/clubs and is a comedian-name
+ * query for shows, matching iOS unified search; [sort] is the server sort key.
+ * [from]/[to] are inclusive YYYY-MM-DD
  * bounds set by the date-range picker (or the Home Tonight / This Week
  * shortcuts). [filters] holds selected tag slugs (joined into the `filters`
  * query param); [homeCity] is the `city|state` token for the comedians

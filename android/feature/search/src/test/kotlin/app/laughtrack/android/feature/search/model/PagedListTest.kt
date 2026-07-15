@@ -5,47 +5,47 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** Locks the pagination reducer: page-1 replaces (query reset), later pages append,
+/** Locks the pagination reducer: page 0 replaces (query reset), later pages append,
  *  hasMore derives from total, and failure clears loading. */
 class PagedListTest {
     @Test
     fun first_page_replaces_items_and_records_total() {
-        val state = PagedList<String>().loading().appendPage(1, listOf("a", "b"), total = 5)
+        val state = PagedList<String>().loading().appendPage(0, listOf("a", "b"), total = 5)
         assertEquals(listOf("a", "b"), state.items)
-        assertEquals(1, state.page)
+        assertEquals(0, state.page)
         assertEquals(5, state.total)
         assertTrue(state.hasMore)
         assertFalse(state.isLoading)
-        assertEquals(2, state.nextPage)
+        assertEquals(1, state.nextPage)
     }
 
     @Test
     fun later_pages_append() {
         val state =
             PagedList<String>()
-                .appendPage(1, listOf("a", "b"), total = 5)
-                .appendPage(2, listOf("c", "d"), total = 5)
+                .appendPage(0, listOf("a", "b"), total = 5)
+                .appendPage(1, listOf("c", "d"), total = 5)
         assertEquals(listOf("a", "b", "c", "d"), state.items)
-        assertEquals(2, state.page)
+        assertEquals(1, state.page)
         assertTrue(state.hasMore)
     }
 
     @Test
     fun has_more_is_false_once_all_items_loaded() {
-        val state = PagedList<String>().appendPage(1, listOf("a", "b"), total = 2)
+        val state = PagedList<String>().appendPage(0, listOf("a", "b"), total = 2)
         assertFalse(state.hasMore)
     }
 
     @Test
-    fun reloading_page_one_resets_accumulated_pages() {
+    fun reloading_page_zero_resets_accumulated_pages() {
         val loaded =
             PagedList<String>()
-                .appendPage(1, listOf("a", "b"), total = 5)
-                .appendPage(2, listOf("c"), total = 5)
-        // A query/filter change re-fetches page 1, which must replace, not append.
-        val reset = loaded.appendPage(1, listOf("x"), total = 1)
+                .appendPage(0, listOf("a", "b"), total = 5)
+                .appendPage(1, listOf("c"), total = 5)
+        // A query/filter change re-fetches page 0, which must replace, not append.
+        val reset = loaded.appendPage(0, listOf("x"), total = 1)
         assertEquals(listOf("x"), reset.items)
-        assertEquals(1, reset.page)
+        assertEquals(0, reset.page)
         assertFalse(reset.hasMore)
     }
 
@@ -63,14 +63,14 @@ class PagedListTest {
         // on the duplicate key without this.
         val state =
             PagedList<String>()
-                .appendPage(1, listOf("a", "b"), total = 5, dedupKey = { it })
-                .appendPage(2, listOf("b", "c"), total = 5, dedupKey = { it })
+                .appendPage(0, listOf("a", "b"), total = 5, dedupKey = { it })
+                .appendPage(1, listOf("b", "c"), total = 5, dedupKey = { it })
         assertEquals(listOf("a", "b", "c"), state.items)
     }
 
     @Test
     fun dedup_key_applies_within_a_single_page() {
-        val state = PagedList<String>().appendPage(1, listOf("a", "a", "b"), total = 3, dedupKey = { it })
+        val state = PagedList<String>().appendPage(0, listOf("a", "a", "b"), total = 3, dedupKey = { it })
         assertEquals(listOf("a", "b"), state.items)
     }
 
@@ -78,8 +78,8 @@ class PagedListTest {
     fun append_without_dedup_key_keeps_duplicates() {
         val state =
             PagedList<String>()
-                .appendPage(1, listOf("a", "b"), total = 4)
-                .appendPage(2, listOf("b", "c"), total = 4)
+                .appendPage(0, listOf("a", "b"), total = 4)
+                .appendPage(1, listOf("b", "c"), total = 4)
         assertEquals(listOf("a", "b", "b", "c"), state.items)
     }
 }

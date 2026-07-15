@@ -3,13 +3,13 @@ package app.laughtrack.android.feature.search.model
 /**
  * Immutable paginated-list state with a pure reducer, so pagination semantics
  * (append the next page, replace on a fresh query, derive hasMore from the server
- * total) are unit-testable without Android. The server paginates by 1-based
- * `page` + `size` and returns a `total`; a new query resets to an empty list and
- * loads page 1.
+ * total) are unit-testable without Android. The public search API paginates by
+ * zero-based `page` + `size` and returns a `total`; a new query resets to an
+ * empty list and loads page 0.
  */
 data class PagedList<T>(
     val items: List<T> = emptyList(),
-    val page: Int = 0,
+    val page: Int = -1,
     val total: Int = 0,
     val isLoading: Boolean = false,
     val error: String? = null,
@@ -22,7 +22,7 @@ data class PagedList<T>(
     fun loading(): PagedList<T> = copy(isLoading = true, error = null)
 
     /**
-     * Fold a freshly-loaded page into the state. Page 1 (or 0) replaces the list
+     * Fold a freshly-loaded page into the state. Page 0 replaces the list
      * — that is how a query/filter change resets pagination — while later pages
      * append.
      *
@@ -38,7 +38,7 @@ data class PagedList<T>(
         total: Int,
         dedupKey: ((T) -> Any)? = null,
     ): PagedList<T> {
-        val merged = if (loadedPage <= 1) pageItems else items + pageItems
+        val merged = if (loadedPage == 0) pageItems else items + pageItems
         return copy(
             items = if (dedupKey != null) merged.distinctBy(dedupKey) else merged,
             page = loadedPage,

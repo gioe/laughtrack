@@ -4,6 +4,7 @@ import app.laughtrack.android.core.analytics.AnalyticsManager
 import app.laughtrack.android.core.data.location.HomeLocation
 import app.laughtrack.android.core.data.location.HomeLocationState
 import app.laughtrack.android.core.network.generated.api.ShowsApi
+import app.laughtrack.android.core.network.generated.model.Filter
 import app.laughtrack.android.core.network.generated.model.Show
 import app.laughtrack.android.core.network.generated.model.ShowDetailResponse
 import app.laughtrack.android.core.network.generated.model.ShowListResponse
@@ -192,6 +193,24 @@ class SearchViewModelTest {
         }
 
     @Test
+    fun shows_text_queries_comedian_name_like_ios_unified_search() =
+        runTest {
+            val showsApi = SuspendingShowsApi()
+            val viewModel = viewModel(showsApi)
+            advanceUntilIdle()
+            showsApi.completeLatestSearch()
+            advanceUntilIdle()
+
+            viewModel.onTextChange("Atsuko")
+            advanceUntilIdle()
+
+            assertEquals("Atsuko", showsApi.lastComedian)
+            assertNull(showsApi.lastClub)
+            showsApi.completeLatestSearch()
+            advanceUntilIdle()
+        }
+
+    @Test
     fun reselecting_a_loaded_pivot_does_not_reload_it() =
         runTest {
             val showsApi = SuspendingShowsApi()
@@ -214,21 +233,35 @@ class SearchViewModelTest {
             val showsApi = SuspendingShowsApi()
             val viewModel = viewModel(showsApi)
             advanceUntilIdle()
-            // Page 1 returns 1 of 30 results, so more pages exist.
+            // Page 0 returns 1 of 30 results, so more pages exist.
             showsApi.completeLatestSearch(data = listOf(show(1)), total = 30)
             advanceUntilIdle()
-            check(showsApi.lastPage == 1)
+            check(showsApi.lastPage == 0)
 
             viewModel.loadMore()
             advanceUntilIdle()
 
             assertEquals(2, showsApi.searchCalls)
-            assertEquals(2, showsApi.lastPage)
+            assertEquals(1, showsApi.lastPage)
             showsApi.completeLatestSearch(data = listOf(show(2)), total = 30)
             advanceUntilIdle()
 
             // Both pages accumulated in the pivot state.
             assertEquals(2, viewModel.state.value.current.results.items.size)
+        }
+
+    @Test
+    fun initial_page_publishes_facets_for_filter_control() =
+        runTest {
+            val showsApi = SuspendingShowsApi()
+            val viewModel = viewModel(showsApi)
+            advanceUntilIdle()
+
+            val filters = listOf(Filter(id = 1, slug = "stand-up", name = "Stand-up"))
+            showsApi.completeLatestSearch(filters = filters)
+            advanceUntilIdle()
+
+            assertEquals(filters, viewModel.state.value.current.filters)
         }
 
     private fun show(id: Int) =
@@ -266,6 +299,8 @@ class SearchViewModelTest {
         var lastPage: Int? = null
         var lastZip: String? = null
         var lastDistance: Int? = null
+        var lastComedian: String? = null
+        var lastClub: String? = null
         private val pendingSearches = mutableListOf<CompletableDeferred<Response<ShowSearchResponse>>>()
 
         override suspend fun searchShows(
@@ -285,6 +320,8 @@ class SearchViewModelTest {
             lastPage = page
             lastZip = zip
             lastDistance = distance
+            lastComedian = comedian
+            lastClub = club
             val pending = CompletableDeferred<Response<ShowSearchResponse>>()
             pendingSearches += pending
             return pending.await()
@@ -293,6 +330,7 @@ class SearchViewModelTest {
         fun completeLatestSearch(
             data: List<Show> = emptyList(),
             total: Int = data.size,
+            filters: List<Filter> = emptyList(),
         ) {
             pendingSearches
                 .last()
@@ -301,7 +339,7 @@ class SearchViewModelTest {
                         ShowSearchResponse(
                             data = data,
                             total = total,
-                            filters = emptyList(),
+                            filters = filters,
                             zipCapTriggered = false,
                         ),
                     ),

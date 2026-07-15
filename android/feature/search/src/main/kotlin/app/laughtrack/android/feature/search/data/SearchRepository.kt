@@ -9,6 +9,7 @@ import app.laughtrack.android.core.network.generated.model.ComedianLineup
 import app.laughtrack.android.core.network.generated.model.Filter
 import app.laughtrack.android.core.network.generated.model.HomeCityFilter
 import app.laughtrack.android.core.network.generated.model.Show
+import app.laughtrack.android.feature.search.model.SearchFavoriteTarget
 import app.laughtrack.android.feature.search.model.SearchPivot
 import app.laughtrack.android.feature.search.model.SearchQuery
 import app.laughtrack.android.feature.search.model.SearchResult
@@ -68,7 +69,7 @@ class SearchRepository
                     to = query.to,
                     distance = query.distance,
                     sort = query.sort,
-                    club = query.text.ifBlank { null },
+                    comedian = query.text.ifBlank { null },
                     filters = query.filters.toFiltersParam(),
                     page = page,
                     size = size,
@@ -135,6 +136,8 @@ class SearchRepository
                                 ),
                             imageUrl = comedian.imageUrl,
                             route = AppRoute.ComedianDetail(comedian.id),
+                            favoriteTarget = SearchFavoriteTarget.Comedian(comedian.uuid),
+                            isFavorite = comedian.isFavorite == true,
                         )
                     },
                 total = body.total,
@@ -204,6 +207,8 @@ class SearchRepository
                                 ),
                             imageUrl = podcast.imageUrl,
                             route = AppRoute.PodcastDetail(podcast.id),
+                            favoriteTarget = SearchFavoriteTarget.Podcast(podcast.id),
+                            isFavorite = podcast.isFavorite == true,
                         )
                     },
                 total = body.total,

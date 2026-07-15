@@ -3,13 +3,14 @@
 package app.laughtrack.android.feature.search.ui
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
@@ -55,7 +57,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -66,6 +67,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.network.generated.model.Filter
 import app.laughtrack.android.core.network.generated.model.HomeCityFilter
+import app.laughtrack.android.core.ui.components.LaughTrackAtmosphereBackground
 import app.laughtrack.android.core.ui.theme.LaughTrackColors
 import app.laughtrack.android.feature.search.model.DEFAULT_DISTANCE_MILES
 import app.laughtrack.android.feature.search.model.DISTANCE_OPTIONS
@@ -86,27 +88,21 @@ fun SearchScreen(
     onOpenEntity: (AppRoute) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: SearchViewModel = hiltViewModel(),
+    favoritesViewModel: SearchFavoritesViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val favorites by favoritesViewModel.snapshot.collectAsStateWithLifecycle()
     val pivotState = state.current
 
     Box(
         modifier =
             modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors =
-                            listOf(
-                                LaughTrackColors.Highlight.copy(alpha = 0.18f),
-                                LaughTrackColors.Canvas,
-                            ),
-                    ),
-                ),
+                .fillMaxSize(),
     ) {
+        LaughTrackAtmosphereBackground()
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+            modifier = Modifier.fillMaxSize().statusBarsPadding(),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 12.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             item {
@@ -123,6 +119,7 @@ fun SearchScreen(
                     SearchControls(
                         pivot = state.pivot,
                         query = pivotState.query,
+                        locationLabel = pivotState.locationLabel,
                         filters = pivotState.filters,
                         homeCityFilters = pivotState.homeCityFilters,
                         total = pivotState.results.total,
@@ -159,6 +156,8 @@ fun SearchScreen(
                                 viewModel.logResultTapped(route)
                                 onOpenEntity(route)
                             },
+                            favorites = favorites,
+                            onSetFavorite = favoritesViewModel::setFavorite,
                         )
                 }
             }
@@ -172,10 +171,7 @@ private fun SearchHeader(
     onSelectPivot: (SearchPivot) -> Unit,
 ) {
     Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp),
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -282,9 +278,11 @@ private fun PrimitiveChip(
 }
 
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 private fun SearchControls(
     pivot: SearchPivot,
     query: SearchQuery,
+    locationLabel: String?,
     filters: List<Filter>,
     homeCityFilters: List<HomeCityFilter>,
     total: Int,
@@ -319,20 +317,20 @@ private fun SearchControls(
                 shape = RoundedCornerShape(14.dp),
             )
 
-            Row(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                SortPill(pivot = pivot, selected = query.sort, onSort = onSort)
                 if (pivot.isGeoScoped) {
                     DistancePill(distance = query.distance, onDistance = onDistance)
-                    LocationPill(zip = query.zip, onZip = onZip)
+                }
+                SortPill(pivot = pivot, selected = query.sort, onSort = onSort)
+                if (pivot.isGeoScoped) {
+                    LocationPill(zip = query.zip, locationLabel = locationLabel, onZip = onZip)
                     DateRangePill(from = query.from, to = query.to, onDateRange = onDateRange)
                 }
-                if (pivot.supportsTagFilters && filters.isNotEmpty()) {
+                if (pivot.supportsTagFilters) {
                     TagFilterPill(
                         available = filters,
                         selected = query.filters,
@@ -360,11 +358,17 @@ private fun SearchControls(
 @Composable
 private fun LocationPill(
     zip: String?,
+    locationLabel: String?,
     onZip: (String) -> Unit,
 ) {
     var showDialog by remember { mutableStateOf(false) }
     FilterPillButton(
-        label = zip?.takeIf { it.isNotBlank() }?.let { "ZIP $it" } ?: "Location",
+        label =
+            locationLabel
+                ?.takeIf { it.isNotBlank() }
+                ?.let { "Location $it" }
+                ?: zip?.takeIf { it.isNotBlank() }?.let { "ZIP $it" }
+                ?: "Location",
         active = !zip.isNullOrBlank(),
         onClick = { showDialog = true },
     )
