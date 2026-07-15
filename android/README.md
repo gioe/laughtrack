@@ -259,9 +259,10 @@ bundle exec fastlane upload_metadata version_code:42        # generate + upload 
 The `production` lane performs both automatically before promotion. The `internal`
 lane intentionally skips all listing metadata for a fast test-track upload.
 
-**Store-listing screenshots.** The nine Play listing screenshots are generated the
-same way iOS generates its App Store set — an instrumented UI test captures them and
-`supply` uploads them, rather than managing them by hand in the Play Console:
+**Store-listing screenshots.** The nine canonical scenarios are captured for phone,
+7-inch tablet, and 10-inch tablet profiles the same way iOS generates its App Store
+set — an instrumented UI test captures them and `supply` uploads curated Play-safe
+subsets, rather than managing them by hand in the Play Console:
 
 ```sh
 bundle exec fastlane screenshots            # starts an available AVD if needed, then builds/captures
@@ -269,9 +270,9 @@ bundle exec fastlane upload_screenshots     # supply pushes the captured images 
 bundle exec fastlane screenshots_and_upload # both in one step (mirrors the iOS lane)
 ```
 
-The `production` lane regenerates and uploads the nine screenshots together with the
-listing text and release notes before promoting the validated internal build, matching
-the iOS `beta` / `release` split.
+The `production` lane regenerates the complete 27-image matrix and uploads the curated
+Play-safe subsets together with the listing text and release notes before promoting the
+validated internal build, matching the iOS `beta` / `release` split.
 
 - **Capture** uses a connected Android device when one is available; otherwise the
   lane starts the first local `LaughTrack*` AVD (or the first available AVD) and waits
@@ -287,10 +288,11 @@ the iOS `beta` / `release` split.
   pre-grants location and taps *Use location* to route through it, so captures never
   leak the runner's geo-IP. Result data comes from the production `/api/v1` backend,
   so the exact shows vary run to run.
-- **Output** lands under `fastlane/metadata/android/<locale>/images/phoneScreenshots/`,
-  which is exactly where `supply` reads listing images from — so `upload_screenshots`
-  needs no path wiring. `internal` / `production` still skip images to keep binary
-  uploads fast.
+- **Output** lands under the `phoneScreenshots/`, `sevenInchScreenshots/`, and
+  `tenInchScreenshots/` directories below
+  `fastlane/metadata/android/<locale>/images/`. Every profile uses the same stable
+  scenario filenames; the upload lane stages the Play-safe phone and tablet subsets
+  before `supply` reads them. `internal` still skips images to keep binary uploads fast.
 - **Inspecting captures locally.** `./gradlew connectedDebugAndroidTest` uninstalls
   the app afterward, wiping screengrab output. To keep the PNGs, run the instrumentation
   directly (no uninstall) and pull them, after disabling animations:
