@@ -283,7 +283,7 @@ private fun ResultRow(
                     color = LaughTrackColors.Canvas.copy(alpha = 0.72f),
                     border = BorderStroke(1.dp, LaughTrackColors.BorderSubtle),
                     enabled = !favoritePending,
-                    onClick = { onSetFavorite(favoriteTarget, !isFavorite) },
+                    onClick = { onSetFavorite(favoriteTarget, isFavorite) },
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(

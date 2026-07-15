@@ -118,8 +118,9 @@ class FavoritesRepository
         suspend fun setComedianFavorite(
             uuid: String,
             isFavorite: Boolean,
+            knownCurrentValue: Boolean? = null,
         ): FavoriteToggleResult {
-            val currentValue = _snapshot.value.comedianValues[uuid] ?: false
+            val currentValue = knownCurrentValue ?: _snapshot.value.comedianValues[uuid] ?: false
             if (currentValue == isFavorite) return FavoriteToggleResult.Updated(isFavorite)
             return toggle(
                 key = FavoriteEntity.COMEDIAN.name + uuid,
@@ -219,8 +220,9 @@ class FavoritesRepository
         suspend fun setPodcastFavorite(
             id: Int,
             isFavorite: Boolean,
+            knownCurrentValue: Boolean? = null,
         ): FavoriteToggleResult {
-            val currentValue = _snapshot.value.podcastValues[id] ?: false
+            val currentValue = knownCurrentValue ?: _snapshot.value.podcastValues[id] ?: false
             if (currentValue == isFavorite) return FavoriteToggleResult.Updated(isFavorite)
             return toggle(
                 key = FavoriteEntity.PODCAST.name + id,

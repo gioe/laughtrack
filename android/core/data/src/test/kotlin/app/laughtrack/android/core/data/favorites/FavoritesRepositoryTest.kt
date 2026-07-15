@@ -165,6 +165,24 @@ class FavoritesRepositoryTest {
             assertEquals(true, repository.snapshot.value.podcastValues[7])
         }
 
+    @Test
+    fun set_podcast_favorite_can_remove_a_server_favorite_before_snapshot_hydration() =
+        runTest {
+            val api = ProgrammableFavoritesApi()
+            val repository = repository(api, signedIn = true)
+
+            val result =
+                repository.setPodcastFavorite(
+                    id = 7,
+                    isFavorite = false,
+                    knownCurrentValue = true,
+                )
+
+            assertEquals(FavoriteToggleResult.Updated(isFavorite = false), result)
+            assertEquals(false, repository.snapshot.value.podcastValues[7])
+            assertEquals(1, api.podcastCalls)
+        }
+
     // -- helpers ----------------------------------------------------------------
 
     private suspend fun repository(
@@ -201,6 +219,9 @@ class FavoritesRepositoryTest {
         var comedianCalls = 0
             private set
 
+        var podcastCalls = 0
+            private set
+
         override suspend fun addFavorite(addFavoriteRequest: AddFavoriteRequest): Response<FavoriteResponse> {
             comedianCalls += 1
             return comedianBehavior()
@@ -219,9 +240,15 @@ class FavoritesRepositoryTest {
 
         override suspend fun addFavoritePodcast(
             addFavoritePodcastRequest: AddFavoritePodcastRequest,
-        ): Response<FavoriteResponse> = podcastBehavior()
+        ): Response<FavoriteResponse> {
+            podcastCalls += 1
+            return podcastBehavior()
+        }
 
-        override suspend fun removeFavoritePodcast(podcastId: Int): Response<FavoriteResponse> = podcastBehavior()
+        override suspend fun removeFavoritePodcast(podcastId: Int): Response<FavoriteResponse> {
+            podcastCalls += 1
+            return podcastBehavior()
+        }
 
         override suspend fun getFavoriteClubs(): Response<FavoriteClubListResponse> =
             error(

@@ -28,14 +28,22 @@ class SearchFavoritesViewModel
 
         fun setFavorite(
             target: SearchFavoriteTarget,
-            isFavorite: Boolean,
+            currentValue: Boolean,
         ) {
             viewModelScope.launch {
                 when (target) {
                     is SearchFavoriteTarget.Comedian ->
-                        favoritesRepository.setComedianFavorite(target.uuid, isFavorite)
+                        favoritesRepository.setComedianFavorite(
+                            uuid = target.uuid,
+                            isFavorite = !currentValue,
+                            knownCurrentValue = currentValue,
+                        )
                     is SearchFavoriteTarget.Podcast ->
-                        favoritesRepository.setPodcastFavorite(target.id, isFavorite)
+                        favoritesRepository.setPodcastFavorite(
+                            id = target.id,
+                            isFavorite = !currentValue,
+                            knownCurrentValue = currentValue,
+                        )
                 }
             }
         }
