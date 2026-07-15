@@ -6,6 +6,7 @@ import java.math.RoundingMode
 import java.net.URLEncoder
 import java.time.Duration
 import java.time.OffsetDateTime
+import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
@@ -49,22 +50,36 @@ fun buildTicketOutboundUrl(
 
 /**
  * Parses an ISO-8601 timestamp (with or without an offset) from the API into an
- * absolute instant on the system zone, or null if it cannot be parsed.
+ * absolute instant in [timezone], or in the timestamp/system zone when no valid
+ * venue timezone is supplied. Returns null if [raw] cannot be parsed.
  */
-fun parseShowDateTime(raw: String): ZonedDateTime? {
+fun parseShowDateTime(
+    raw: String,
+    timezone: String? = null,
+): ZonedDateTime? {
     val trimmed = raw.trim()
     if (trimmed.isEmpty()) return null
-    return runCatching { OffsetDateTime.parse(trimmed).toZonedDateTime() }
-        .recoverCatching { ZonedDateTime.parse(trimmed) }
+    val venueZone = timezone?.let { runCatching { ZoneId.of(it) }.getOrNull() }
+    return runCatching {
+        val parsed = OffsetDateTime.parse(trimmed)
+        venueZone?.let(parsed::atZoneSameInstant) ?: parsed.toZonedDateTime()
+    }
         .recoverCatching {
-            java.time.LocalDateTime.parse(trimmed).atZone(java.time.ZoneId.systemDefault())
+            val parsed = ZonedDateTime.parse(trimmed)
+            venueZone?.let(parsed::withZoneSameInstant) ?: parsed
+        }
+        .recoverCatching {
+            java.time.LocalDateTime.parse(trimmed).atZone(venueZone ?: ZoneId.systemDefault())
         }
         .getOrNull()
 }
 
 /** Human-readable date/time for a show, e.g. "Fri, Jun 27, 8:00 PM". Falls back to the raw string. */
-fun formatShowDateTime(raw: String): String {
-    val parsed = parseShowDateTime(raw) ?: return raw
+fun formatShowDateTime(
+    raw: String,
+    timezone: String? = null,
+): String {
+    val parsed = parseShowDateTime(raw, timezone) ?: return raw
     val formatter =
         DateTimeFormatter
             .ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)

@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -24,22 +25,24 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -55,6 +58,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.font.FontFamily
@@ -81,7 +85,6 @@ import app.laughtrack.android.feature.detail.model.ComedianDetailUi
 import app.laughtrack.android.feature.detail.ui.components.DetailError
 import app.laughtrack.android.feature.detail.ui.components.DetailLoading
 import app.laughtrack.android.feature.detail.ui.components.EntityAvatar
-import app.laughtrack.android.feature.detail.ui.components.SectionHeader
 import app.laughtrack.android.feature.detail.ui.components.ShowRow
 import app.laughtrack.android.feature.detail.util.formatHomeCity
 import app.laughtrack.android.feature.detail.util.formatHomeClubName
@@ -89,7 +92,7 @@ import app.laughtrack.android.feature.detail.util.formatTicketPriceLabel
 import app.laughtrack.android.feature.detail.util.openUrl
 import app.laughtrack.android.feature.detail.util.showRowTitleSubtitle
 
-private val COMEDIAN_TABS = listOf("Shows", "Podcasts", "Related")
+private val COMEDIAN_TABS = listOf("Shows", "Podcasts")
 
 @Composable
 fun ComedianDetailScreen(
@@ -125,7 +128,6 @@ fun ComedianDetailScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ComedianDetailBody(
     ui: ComedianDetailUi,
@@ -136,56 +138,31 @@ private fun ComedianDetailBody(
     onOpenEntity: (AppRoute) -> Unit,
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
-    Scaffold(
-        containerColor = LaughTrackColors.Canvas,
-        topBar = {
-            TopAppBar(
-                title = {},
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                actions = {
-                    IconButton(onClick = onFavorite, enabled = !isFavoritePending) {
-                        Icon(
-                            imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                            contentDescription = if (isFavorite) "Remove favorite" else "Favorite",
-                            tint = if (isFavorite) LaughTrackColors.AccentStrong else LaughTrackColors.Foreground,
-                        )
-                    }
-                },
-                colors =
-                    TopAppBarDefaults.topAppBarColors(
-                        containerColor = LaughTrackColors.Canvas,
-                        navigationIconContentColor = LaughTrackColors.Foreground,
-                        actionIconContentColor = LaughTrackColors.Foreground,
-                        titleContentColor = LaughTrackColors.Foreground,
-                    ),
-            )
-        },
-    ) { innerPadding ->
+    Column(
+        Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(bottom = 28.dp),
+    ) {
+        ComedianIdentityBlock(
+            ui = ui,
+            onBack = onBack,
+            isFavorite = isFavorite,
+            isFavoritePending = isFavoritePending,
+            onFavorite = onFavorite,
+            onOpenEntity = onOpenEntity,
+        )
+
         Column(
             Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
-                .padding(bottom = 28.dp),
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
-            ComedianIdentityBlock(ui = ui, onOpenEntity = onOpenEntity)
-
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 10.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                ComedianTabPicker(selectedTab = selectedTab, onSelectTab = { selectedTab = it })
-                when (selectedTab) {
-                    0 -> ComedianShowsTab(ui, onOpenEntity)
-                    1 -> ComedianPodcastsTab(ui.detail.podcastAppearances, onOpenEntity)
-                    else -> ComedianRelatedTab(ui, onOpenEntity)
-                }
+            ComedianTabPicker(selectedTab = selectedTab, onSelectTab = { selectedTab = it })
+            when (selectedTab) {
+                0 -> ComedianShowsTab(ui, onOpenEntity)
+                else -> ComedianPodcastsTab(ui.detail.podcastAppearances, onOpenEntity)
             }
         }
     }
@@ -200,31 +177,88 @@ private fun ComedianDetailBody(
 @Composable
 private fun ComedianIdentityBlock(
     ui: ComedianDetailUi,
+    onBack: () -> Unit,
+    isFavorite: Boolean,
+    isFavoritePending: Boolean,
+    onFavorite: () -> Unit,
     onOpenEntity: (AppRoute) -> Unit,
 ) {
-    Column(
+    Box(
         Modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+            .background(
+                Brush.verticalGradient(
+                    listOf(Color(0xFF70451F), Color(0xFF321B13), LaughTrackColors.Canvas),
+                ),
+            ),
     ) {
-        ComedianPolaroid(imageUrl = ui.detail.imageUrl, name = ui.detail.name)
-        Text(
-            ui.detail.name,
-            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Black),
-            color = LaughTrackColors.Foreground,
-            textAlign = TextAlign.Center,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
-        ComedianSocialRow(ui.detail.socialData)
-        ui.detail.homeLocation?.let { homeLocation ->
-            if (HOME_LOCATION_UI_ENABLED) {
-                ComedianHomeLocationRow(homeLocation = homeLocation, onOpenEntity = onOpenEntity)
+        Row(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .padding(start = 16.dp, top = 24.dp, end = 16.dp, bottom = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            ComedianChromeButton(onClick = onBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+            }
+            ComedianChromeButton(onClick = onFavorite, enabled = !isFavoritePending) {
+                Icon(
+                    imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                    contentDescription = if (isFavorite) "Remove favorite" else "Favorite",
+                    tint = if (isFavorite) LaughTrackColors.AccentStrong else LaughTrackColors.Foreground,
+                )
+            }
+        }
+
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .padding(top = 118.dp, start = 20.dp, end = 20.dp, bottom = 18.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(18.dp),
+        ) {
+            Text(
+                ui.detail.name.uppercase(),
+                style =
+                    MaterialTheme.typography.headlineMedium.copy(
+                        fontWeight = FontWeight.Black,
+                        fontSize = 24.sp,
+                        lineHeight = 30.sp,
+                        letterSpacing = 0.4.sp,
+                    ),
+                color = LaughTrackColors.Foreground,
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+            ComedianPolaroid(imageUrl = ui.detail.imageUrl, name = ui.detail.name)
+            ComedianSocialRow(ui.detail.socialData)
+            ui.detail.homeLocation?.let { homeLocation ->
+                if (HOME_LOCATION_UI_ENABLED) {
+                    ComedianHomeLocationRow(homeLocation = homeLocation, onOpenEntity = onOpenEntity)
+                }
             }
         }
     }
+}
+
+@Composable
+private fun ComedianChromeButton(
+    onClick: () -> Unit,
+    enabled: Boolean = true,
+    content: @Composable () -> Unit,
+) {
+    Surface(
+        modifier = Modifier.size(40.dp),
+        shape = CircleShape,
+        color = Color(0xFF171717).copy(alpha = 0.96f),
+        border = androidx.compose.foundation.BorderStroke(1.dp, LaughTrackColors.BorderSubtle),
+        onClick = onClick,
+        enabled = enabled,
+        content = { Box(contentAlignment = Alignment.Center) { content() } },
+    )
 }
 
 /**
@@ -348,11 +382,12 @@ private fun ComedianSocialRow(social: SocialData) {
     Row(
         Modifier
             .horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         links.forEach { (label, url) ->
             ComedianSocialAction(
                 label = label,
+                icon = comedianSocialIcon(label),
                 onClick = { context.openUrl(url) },
             )
         }
@@ -362,27 +397,25 @@ private fun ComedianSocialRow(social: SocialData) {
 @Composable
 private fun ComedianSocialAction(
     label: String,
+    icon: ImageVector,
     onClick: () -> Unit,
 ) {
     Column(
         modifier =
             Modifier
-                .width(62.dp)
+                .width(56.dp)
                 .clickable(onClick = onClick),
         horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Surface(
-            modifier = Modifier.size(34.dp),
+            modifier = Modifier.size(40.dp),
             color = LaughTrackColors.SurfaceElevated.copy(alpha = 0.92f),
             contentColor = LaughTrackColors.Foreground,
             shape = CircleShape,
         ) {
             Box(contentAlignment = androidx.compose.ui.Alignment.Center) {
-                Text(
-                    text = label.take(1).uppercase(),
-                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Black),
-                )
+                Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp))
             }
         }
         Text(
@@ -394,6 +427,14 @@ private fun ComedianSocialAction(
         )
     }
 }
+
+private fun comedianSocialIcon(label: String): ImageVector =
+    when (label) {
+        "Instagram" -> Icons.Filled.CameraAlt
+        "TikTok" -> Icons.Filled.MusicNote
+        "YouTube" -> Icons.Filled.PlayArrow
+        else -> Icons.Filled.Explore
+    }
 
 @Composable
 private fun ComedianTabPicker(
@@ -439,89 +480,122 @@ private fun ComedianShowsTab(
     ui: ComedianDetailUi,
     onOpenEntity: (AppRoute) -> Unit,
 ) {
-    // The runs/shows are already loaded with the comedian, so filtering and
-    // ordering happen client-side — no refetch. (This tab is not geo-scoped, so
-    // the old distance/location/date pills never applied here.)
-    var clubFilter by remember { mutableStateOf("") }
-    var newestFirst by remember { mutableStateOf(true) }
-
-    val filteredRuns =
-        ui.upcomingRuns.filter { it.clubName.contains(clubFilter, ignoreCase = true) }
-    val filteredPast =
-        ui.pastShows
-            .filter { show ->
-                listOfNotNull(show.clubName, show.name).any { it.contains(clubFilter, ignoreCase = true) }
-            }
-            .let { shows ->
-                if (newestFirst) shows.sortedByDescending { it.date ?: "" } else shows.sortedBy { it.date ?: "" }
-            }
-
-    Surface(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .border(1.dp, LaughTrackColors.BorderSubtle, RoundedCornerShape(16.dp)),
-        color = LaughTrackColors.SurfaceElevated,
-        shape = RoundedCornerShape(16.dp),
-    ) {
-        Column(
-            Modifier
-                .fillMaxWidth()
-                .padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
+    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(
-                "CLUB",
-                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                color = LaughTrackColors.ForegroundMuted,
+                "CALENDAR",
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                color = LaughTrackColors.AccentStrong,
             )
-            ClubFilterField(
-                value = clubFilter,
-                onValueChange = { clubFilter = it },
+            Text(
+                "Search shows",
+                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Black),
+                color = LaughTrackColors.Foreground,
             )
             Row(
                 Modifier.horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                ShowOrderPill(
-                    newestFirst = newestFirst,
-                    onSelect = { newestFirst = it },
+                ComedianFilterPill("${ui.activeDistanceMiles} mi", Icons.Filled.ArrowDropDown)
+                ComedianFilterPill(
+                    ui.activeLocationLabel?.let { "Location $it" }
+                        ?: ui.activeZip?.let { "Location $it" }
+                        ?: "Location",
+                    Icons.Filled.LocationOn,
+                    active = ui.activeZip != null,
+                )
+                ComedianFilterPill("Any date", Icons.Filled.CalendarMonth)
+            }
+        }
+
+        if (ui.pinnedShows.isEmpty()) {
+            EmptyShowsPanel(
+                title = "No shows yet",
+                message =
+                    if (ui.activeZip != null) {
+                        "No shows matched this ZIP code yet. Broaden the radius or clear location filters."
+                    } else {
+                        "No matching shows are available right now."
+                    },
+            )
+        } else {
+            Text(
+                "Showing ${ui.pinnedShows.size} of ${ui.pinnedShowsTotal}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = LaughTrackColors.ForegroundMuted,
+            )
+            ui.pinnedShows.forEach { show ->
+                val (title, subtitle) = showRowTitleSubtitle(show.name, show.clubName, show.clubCity)
+                TicketShowRow(
+                    title = title,
+                    subtitle = subtitle,
+                    imageUrl = show.imageUrl,
+                    dateParts = ticketStubDateParts(isoDateTime = show.date, timezone = show.timezone),
+                    priceLabel = formatTicketPriceLabel(show.tickets, show.soldOut),
+                    onClick = { onOpenEntity(AppRoute.ShowDetail(show.id)) },
                 )
             }
+        }
 
-            if (filteredRuns.isEmpty() && filteredPast.isEmpty()) {
-                EmptyShowsPanel(
-                    title = "No shows found.",
-                    message =
-                        if (clubFilter.isBlank()) {
-                            "No shows listed for this comedian yet."
-                        } else {
-                            "No shows match \"$clubFilter\". Try a different club name."
-                        },
-                )
-                return@Column
-            }
+        ComedianRelatedPanel(ui.coBill, onOpenEntity)
+    }
+}
 
-            if (filteredRuns.isNotEmpty()) {
-                SectionHeader("Upcoming")
-            }
-            filteredRuns.forEach { run ->
-                run.shows.forEach { show ->
-                    UpcomingRunRow(run = run, show = show, onOpenEntity = onOpenEntity)
-                }
-            }
+@Composable
+private fun ComedianFilterPill(
+    label: String,
+    icon: ImageVector,
+    active: Boolean = false,
+) {
+    Surface(
+        shape = RoundedCornerShape(999.dp),
+        color = if (active) LaughTrackColors.Highlight else LaughTrackColors.Surface,
+        border = androidx.compose.foundation.BorderStroke(1.dp, LaughTrackColors.BorderSubtle),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 13.dp, vertical = 9.dp),
+            horizontalArrangement = Arrangement.spacedBy(7.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp))
+            Text(label, style = MaterialTheme.typography.bodyMedium, maxLines = 1)
+        }
+    }
+}
 
-            if (filteredPast.isNotEmpty()) {
-                SectionHeader("Past shows")
-                filteredPast.forEach { show ->
-                    val (title, subtitle) = showRowTitleSubtitle(show.name, show.clubName, show.clubCity)
-                    TicketShowRow(
-                        title = title,
-                        subtitle = subtitle,
-                        imageUrl = show.imageUrl,
-                        dateParts = ticketStubDateParts(isoDateTime = show.date, timezone = show.timezone),
-                        priceLabel = null,
-                        onClick = { onOpenEntity(AppRoute.ShowDetail(show.id)) },
+@Composable
+private fun ComedianRelatedPanel(
+    comedians: List<app.laughtrack.android.core.network.generated.model.ComedianLineup>,
+    onOpenEntity: (AppRoute) -> Unit,
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = LaughTrackColors.SurfaceElevated,
+        shape = RoundedCornerShape(16.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, LaughTrackColors.BorderSubtle),
+    ) {
+        Column(
+            Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                "SHARED BILLS",
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                color = LaughTrackColors.AccentStrong,
+            )
+            Text(
+                "Often on the same bill",
+                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Black),
+            )
+            if (comedians.isEmpty()) {
+                EmptyTab("No related comedians yet.")
+            } else {
+                comedians.take(6).forEach { comedian ->
+                    ShowRow(
+                        title = comedian.name,
+                        subtitle = comedian.showCount?.let { "$it shared shows" },
+                        imageUrl = comedian.imageUrl,
+                        onClick = { onOpenEntity(AppRoute.ComedianDetail(comedian.id)) },
                     )
                 }
             }
@@ -609,17 +683,27 @@ private fun EmptyShowsPanel(
     message: String,
 ) {
     Surface(
-        color = LaughTrackColors.Highlight.copy(alpha = 0.22f),
+        color = LaughTrackColors.SurfaceElevated,
         shape = RoundedCornerShape(12.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, LaughTrackColors.BorderSubtle),
     ) {
-        Column(
+        Row(
             Modifier
                 .fillMaxWidth()
                 .padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.Top,
         ) {
-            Text(title, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
-            Text(message, style = MaterialTheme.typography.bodySmall, color = LaughTrackColors.ForegroundMuted)
+            Icon(
+                Icons.Filled.AutoAwesome,
+                contentDescription = null,
+                tint = LaughTrackColors.AccentStrong,
+                modifier = Modifier.size(22.dp),
+            )
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(title, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
+                Text(message, style = MaterialTheme.typography.bodySmall, color = LaughTrackColors.ForegroundMuted)
+            }
         }
     }
 }

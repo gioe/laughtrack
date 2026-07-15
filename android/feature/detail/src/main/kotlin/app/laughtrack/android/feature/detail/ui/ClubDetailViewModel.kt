@@ -27,6 +27,8 @@ class ClubDetailViewModel
     ) : ViewModel() {
         private val _state = MutableStateFlow<UiState<ClubDetailUi>>(UiState.Idle)
         val state: StateFlow<UiState<ClubDetailUi>> = _state.asStateFlow()
+        private val _isLoadingMore = MutableStateFlow(false)
+        val isLoadingMore: StateFlow<Boolean> = _isLoadingMore.asStateFlow()
         val favoritesSnapshot: StateFlow<FavoritesSnapshot> =
             favoritesRepository.snapshot
                 .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), FavoritesSnapshot())
@@ -48,6 +50,33 @@ class ClubDetailViewModel
             val id = loadedId ?: return
             loadedId = null
             load(id)
+        }
+
+        fun loadMore() {
+            val current = (_state.value as? UiState.Success)?.value ?: return
+            if (!current.canLoadMore || _isLoadingMore.value) return
+
+            _isLoadingMore.value = true
+            viewModelScope.launch {
+                runCatchingCancellable {
+                    repository.getClubShows(
+                        id = current.detail.id,
+                        page = current.currentPage + 1,
+                    )
+                }.onSuccess { next ->
+                    _state.value =
+                        UiState.Success(
+                            current.copy(
+                                upcomingShows =
+                                    (current.upcomingShows + next.shows)
+                                        .distinctBy { it.id },
+                                totalShows = next.total,
+                                currentPage = next.page,
+                            ),
+                        )
+                }
+                _isLoadingMore.value = false
+            }
         }
 
         fun toggleFavorite(id: Int) {

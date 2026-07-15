@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import app.laughtrack.android.core.data.favorites.FavoriteEntity
 import app.laughtrack.android.core.data.favorites.FavoritesRepository
 import app.laughtrack.android.core.data.favorites.FavoritesSnapshot
+import app.laughtrack.android.core.data.location.HomeLocationState
 import app.laughtrack.android.core.data.runCatchingCancellable
 import app.laughtrack.android.core.ui.UiState
 import app.laughtrack.android.feature.detail.data.ComedianDetailRepository
@@ -24,6 +25,7 @@ class ComedianDetailViewModel
     constructor(
         private val repository: ComedianDetailRepository,
         private val favoritesRepository: FavoritesRepository,
+        private val homeLocationState: HomeLocationState,
     ) : ViewModel() {
         private val _state = MutableStateFlow<UiState<ComedianDetailUi>>(UiState.Idle)
         val state: StateFlow<UiState<ComedianDetailUi>> = _state.asStateFlow()
@@ -38,7 +40,15 @@ class ComedianDetailViewModel
             loadedId = id
             _state.value = UiState.Loading
             viewModelScope.launch {
-                runCatchingCancellable { repository.getComedian(id) }
+                val location = homeLocationState.location.value
+                runCatchingCancellable {
+                    repository.getComedian(
+                        id = id,
+                        zip = location?.zip,
+                        locationLabel = location?.locationLabel,
+                        distanceMiles = location?.distanceMiles ?: 25,
+                    )
+                }
                     .onSuccess { _state.value = UiState.Success(it) }
                     .onFailure { _state.value = UiState.Failure(it) }
             }

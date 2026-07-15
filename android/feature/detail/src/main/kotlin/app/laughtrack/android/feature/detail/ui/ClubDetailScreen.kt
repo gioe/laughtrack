@@ -7,12 +7,16 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -37,8 +41,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -49,6 +56,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.network.generated.model.ClubDetail
 import app.laughtrack.android.core.network.generated.model.ClubRelatedVenue
+import app.laughtrack.android.core.network.generated.model.ComedianLineup
 import app.laughtrack.android.core.network.generated.model.Show
 import app.laughtrack.android.core.ui.UiState
 import app.laughtrack.android.core.ui.components.RemoteImage
@@ -65,6 +73,11 @@ import java.time.format.TextStyle
 import java.util.Locale
 
 private val CalendarCard = Color(0xFF302C28)
+private val ClubBulb = Color(0xFFFFC73D)
+private val ProminentTicketPaper = Color(0xFFF5E3B3)
+private val ProminentTicketStub = Color(0xFFE0C27D)
+private val ProminentTicketBorder = Color(0xC7963B1A)
+private val ProminentTicketAccent = Color(0xFFA13D14)
 
 @Composable
 fun ClubDetailScreen(
@@ -75,6 +88,7 @@ fun ClubDetailScreen(
 ) {
     LaunchedEffect(id) { viewModel.load(id) }
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val isLoadingMore by viewModel.isLoadingMore.collectAsStateWithLifecycle()
     val favoritesSnapshot by viewModel.favoritesSnapshot.collectAsStateWithLifecycle()
 
     Box(
@@ -90,7 +104,9 @@ fun ClubDetailScreen(
                     ui = ui,
                     isFavorite = favoritesSnapshot.clubValues[ui.detail.id] == true,
                     isFavoritePending = viewModel.isFavoritePending(ui.detail.id),
+                    isLoadingMore = isLoadingMore,
                     onFavorite = { viewModel.toggleFavorite(ui.detail.id) },
+                    onLoadMore = viewModel::loadMore,
                     onBack = onBack,
                     onOpenEntity = onOpenEntity,
                 )
@@ -105,7 +121,9 @@ private fun ClubDetailBody(
     ui: ClubDetailUi,
     isFavorite: Boolean,
     isFavoritePending: Boolean,
+    isLoadingMore: Boolean,
     onFavorite: () -> Unit,
+    onLoadMore: () -> Unit,
     onBack: () -> Unit,
     onOpenEntity: (AppRoute) -> Unit,
 ) {
@@ -122,7 +140,15 @@ private fun ClubDetailBody(
             onFavorite = onFavorite,
             onBack = onBack,
         )
-        ClubCalendarSection(club = ui.detail, shows = ui.upcomingShows, onOpenEntity = onOpenEntity)
+        ClubCalendarSection(
+            club = ui.detail,
+            shows = ui.upcomingShows,
+            totalShows = ui.totalShows,
+            canLoadMore = ui.canLoadMore,
+            isLoadingMore = isLoadingMore,
+            onLoadMore = onLoadMore,
+            onOpenEntity = onOpenEntity,
+        )
         ClubRelatedVenuesSection(venues = ui.detail.relatedVenues.orEmpty(), onOpenEntity = onOpenEntity)
     }
 }
@@ -140,11 +166,11 @@ private fun ClubMarqueeHero(
         Modifier
             .fillMaxWidth()
             .background(
-                Brush.radialGradient(
+                Brush.verticalGradient(
                     colors =
                         listOf(
-                            LaughTrackColors.Highlight.copy(alpha = 0.58f),
-                            LaughTrackColors.Surface.copy(alpha = 0.96f),
+                            Color(0xFF70451F),
+                            Color(0xFF321B13),
                             LaughTrackColors.Canvas,
                         ),
                 ),
@@ -154,7 +180,8 @@ private fun ClubMarqueeHero(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                    .statusBarsPadding()
+                    .padding(start = 16.dp, top = 24.dp, end = 16.dp, bottom = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -174,20 +201,26 @@ private fun ClubMarqueeHero(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(top = 82.dp, start = 20.dp, end = 20.dp, bottom = 42.dp),
+                    .padding(top = 118.dp, start = 20.dp, end = 20.dp, bottom = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(18.dp),
         ) {
             Text(
                 club.name.uppercase(),
-                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Black),
+                style =
+                    MaterialTheme.typography.headlineMedium.copy(
+                        fontWeight = FontWeight.Black,
+                        fontSize = 24.sp,
+                        lineHeight = 30.sp,
+                        letterSpacing = 0.4.sp,
+                    ),
                 color = LaughTrackColors.Foreground,
                 textAlign = TextAlign.Center,
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
             )
             ClubPoster(url = club.heroImageUrl.ifBlank { club.imageUrl }, contentDescription = club.name)
-            Row(horizontalArrangement = Arrangement.spacedBy(28.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 ClubHeroAction(label = "Website", symbol = "↗", onClick = { context.openUrl(club.website) })
                 ClubHeroAction(label = "Maps", symbol = "▥", onClick = { context.openMap(club.address) })
             }
@@ -203,8 +236,7 @@ private fun ClubPoster(
     Box(
         modifier =
             Modifier
-                .size(214.dp)
-                .padding(2.dp),
+                .size(206.dp),
     ) {
         Canvas(Modifier.fillMaxSize()) {
             val cornerRadius = 20.dp.toPx()
@@ -217,7 +249,7 @@ private fun ClubPoster(
             val step = 11.dp.toPx()
 
             drawRoundRect(
-                color = LaughTrackColors.AccentStrong.copy(alpha = 0.24f),
+                color = ClubBulb.copy(alpha = 0.24f),
                 topLeft = Offset(left, top),
                 size = Size(right - left, bottom - top),
                 cornerRadius = CornerRadius(cornerRadius, cornerRadius),
@@ -226,15 +258,15 @@ private fun ClubPoster(
 
             var x = left + cornerRadius
             while (x <= right - cornerRadius) {
-                drawCircle(LaughTrackColors.AccentStrong, dotRadius, Offset(x, top))
-                drawCircle(LaughTrackColors.AccentStrong, dotRadius, Offset(x, bottom))
+                drawCircle(ClubBulb, dotRadius, Offset(x, top))
+                drawCircle(ClubBulb, dotRadius, Offset(x, bottom))
                 x += step
             }
 
             var y = top + cornerRadius
             while (y <= bottom - cornerRadius) {
-                drawCircle(LaughTrackColors.AccentStrong, dotRadius, Offset(left, y))
-                drawCircle(LaughTrackColors.AccentStrong, dotRadius, Offset(right, y))
+                drawCircle(ClubBulb, dotRadius, Offset(left, y))
+                drawCircle(ClubBulb, dotRadius, Offset(right, y))
                 y += step
             }
         }
@@ -242,9 +274,10 @@ private fun ClubPoster(
             url = url,
             fallback = RemoteImageFallback.Club,
             contentDescription = contentDescription,
+            contentScale = ContentScale.Fit,
             modifier =
                 Modifier
-                    .padding(15.dp)
+                    .padding(5.dp)
                     .fillMaxSize()
                     .clip(RoundedCornerShape(12.dp))
                     .border(1.dp, Color.Black.copy(alpha = 0.55f), RoundedCornerShape(12.dp)),
@@ -261,10 +294,10 @@ private fun ClubHeroAction(
     Column(
         modifier = Modifier.clickable(onClick = onClick),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
         Surface(
-            modifier = Modifier.size(48.dp),
+            modifier = Modifier.size(40.dp),
             color = LaughTrackColors.Surface.copy(alpha = 0.92f),
             contentColor = LaughTrackColors.Foreground,
             shape = CircleShape,
@@ -286,13 +319,17 @@ private fun ClubHeroAction(
 private fun ClubCalendarSection(
     club: ClubDetail,
     shows: List<Show>,
+    totalShows: Int,
+    canLoadMore: Boolean,
+    isLoadingMore: Boolean,
+    onLoadMore: () -> Unit,
     onOpenEntity: (AppRoute) -> Unit,
 ) {
     Column(
         Modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp, vertical = 10.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(
@@ -314,13 +351,13 @@ private fun ClubCalendarSection(
                 Text(
                     "▦  Any date",
                     style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                 )
             }
         }
 
         Text(
-            "Showing ${shows.size.coerceAtMost(20)} of ${shows.size}",
+            "Showing ${shows.size} of $totalShows",
             style = MaterialTheme.typography.titleSmall,
             color = LaughTrackColors.ForegroundMuted,
         )
@@ -334,12 +371,31 @@ private fun ClubCalendarSection(
             return@Column
         }
 
-        shows.take(10).forEach { show ->
+        val standoutShowId = clubShowStandoutId(shows)
+        shows.forEach { show ->
             ClubShowCard(
                 club = club,
                 show = show,
+                prominent = show.id == standoutShowId,
                 onClick = { onOpenEntity(AppRoute.ShowDetail(show.id)) },
             )
+        }
+
+        if (canLoadMore) {
+            Surface(
+                modifier = Modifier.fillMaxWidth().clickable(enabled = !isLoadingMore, onClick = onLoadMore),
+                color = LaughTrackColors.Surface,
+                contentColor = LaughTrackColors.Foreground,
+                shape = RoundedCornerShape(999.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, LaughTrackColors.BorderSubtle),
+            ) {
+                Text(
+                    if (isLoadingMore) "Loading…" else "Load more shows",
+                    modifier = Modifier.padding(horizontal = 18.dp, vertical = 12.dp),
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                )
+            }
         }
     }
 }
@@ -348,106 +404,198 @@ private fun ClubCalendarSection(
 private fun ClubShowCard(
     club: ClubDetail,
     show: Show,
+    prominent: Boolean,
     onClick: () -> Unit,
 ) {
     val date = show.dateParts()
+    val headliner = clubShowHeadliner(show)
+    val supporting = clubShowSupportingLineup(show, excluding = headliner)
+    val paper = if (prominent) ProminentTicketPaper else LaughTrackColors.TicketPaper
+    val stub = if (prominent) ProminentTicketStub else LaughTrackColors.TicketStub
+    val border = if (prominent) ProminentTicketBorder else LaughTrackColors.TicketBorder
+    val accent = if (prominent) ProminentTicketAccent else LaughTrackColors.TicketAccent
     Surface(
         modifier =
             Modifier
                 .fillMaxWidth()
+                .testTag(CLUB_SHOW_ROW_TEST_TAG)
                 .clip(RoundedCornerShape(18.dp))
                 .clickable(onClick = onClick),
-        color = LaughTrackColors.TicketPaper,
+        color = paper,
         shape = RoundedCornerShape(18.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, LaughTrackColors.TicketBorder),
+        border = androidx.compose.foundation.BorderStroke(if (prominent) 1.5.dp else 1.dp, border),
     ) {
-        Row(Modifier.height(142.dp)) {
+        Box {
             Row(
                 modifier =
                     Modifier
-                        .weight(1f)
-                        .padding(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(14.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                        .fillMaxWidth()
+                        .height(IntrinsicSize.Min)
+                        .heightIn(min = 120.dp),
             ) {
-                RemoteImage(
-                    url = show.primaryImageUrl(),
-                    fallback = RemoteImageFallback.Show,
-                    contentDescription = show.name,
+                Column(
                     modifier =
                         Modifier
-                            .size(70.dp)
-                            .clip(CircleShape)
-                            .border(1.dp, LaughTrackColors.TicketAccent.copy(alpha = 0.5f), CircleShape),
-                )
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .background(
+                                Brush.linearGradient(
+                                    colors =
+                                        listOf(
+                                            Color.White.copy(alpha = if (prominent) 0.30f else 0.24f),
+                                            LaughTrackColors.AccentStrong.copy(alpha = if (prominent) 0.13f else 0.10f),
+                                            Color.Black.copy(alpha = 0.03f),
+                                        ),
+                                ),
+                            )
+                            .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        RemoteImage(
+                            url = headliner?.imageUrl ?: show.imageUrl.takeIf { it.isNotBlank() },
+                            fallback =
+                                if (headliner != null) {
+                                    RemoteImageFallback.Comedian
+                                } else {
+                                    RemoteImageFallback.Show
+                                },
+                            contentDescription = headliner?.name ?: show.name,
+                            modifier =
+                                Modifier
+                                    .size(60.dp)
+                                    .clip(CircleShape)
+                                    .border(1.5.dp, accent.copy(alpha = 0.5f), CircleShape),
+                        )
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(
+                                headliner?.name ?: show.name ?: "Show",
+                                style =
+                                    MaterialTheme.typography.titleMedium.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 18.sp,
+                                    ),
+                                color = LaughTrackColors.TicketInk,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            Text(
+                                clubShowVenueLine(club, show),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = LaughTrackColors.TicketInkMuted,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    }
+                    if (supporting.isNotEmpty()) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Row(horizontalArrangement = Arrangement.spacedBy((-8).dp)) {
+                                supporting.forEach { comedian ->
+                                    RemoteImage(
+                                        url = comedian.imageUrl,
+                                        fallback = RemoteImageFallback.Comedian,
+                                        contentDescription = comedian.name,
+                                        modifier =
+                                            Modifier
+                                                .size(26.dp)
+                                                .clip(CircleShape)
+                                                .border(1.dp, paper, CircleShape),
+                                    )
+                                }
+                            }
+                            Text(
+                                "with ${supporting.joinToString(", ") { it.name }}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = LaughTrackColors.TicketInkMuted,
+                                maxLines = 3,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    }
+                }
+
+                ClubTicketPerforation(border)
+
+                Column(
+                    modifier =
+                        Modifier
+                            .width(88.dp)
+                            .fillMaxHeight()
+                            .background(stub)
+                            .padding(vertical = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
                     Text(
-                        show.name ?: show.lineup?.firstOrNull()?.name ?: "Show",
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                        date.weekday,
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Black),
+                        color = accent,
+                        letterSpacing = 1.4.sp,
+                    )
+                    Text(
+                        date.day,
+                        style =
+                            MaterialTheme.typography.headlineLarge.copy(
+                                fontWeight = FontWeight.Black,
+                                fontSize = 26.sp,
+                            ),
                         color = LaughTrackColors.TicketInk,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
                     )
                     Text(
-                        club.name,
-                        style = MaterialTheme.typography.titleSmall,
+                        date.month,
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Black),
                         color = LaughTrackColors.TicketInkMuted,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                        letterSpacing = 1.2.sp,
                     )
-                    show.lineupNames()?.let {
+                    Text(
+                        date.time,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = LaughTrackColors.TicketInkMuted,
+                        modifier = Modifier.padding(top = 2.dp),
+                    )
+                    clubShowTicketLabel(show)?.let { price ->
                         Text(
-                            "with $it",
-                            style = MaterialTheme.typography.titleSmall,
-                            color = LaughTrackColors.TicketInkMuted,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
+                            price,
+                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Black),
+                            color = accent,
                         )
                     }
                 }
             }
-
-            Column(
-                modifier =
-                    Modifier
-                        .width(94.dp)
-                        .fillMaxSize()
-                        .background(LaughTrackColors.TicketStub)
-                        .border(1.dp, LaughTrackColors.TicketBorder),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                Text(
-                    date.weekday,
-                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Black),
-                    color = LaughTrackColors.TicketAccent,
-                    letterSpacing = 2.sp,
-                )
-                Text(
-                    date.day,
-                    style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Black),
-                    color = LaughTrackColors.TicketInk,
-                )
-                Text(
-                    date.month,
-                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Black),
-                    color = LaughTrackColors.TicketInkMuted,
-                    letterSpacing = 2.sp,
-                )
-                Text(
-                    date.time,
-                    style = MaterialTheme.typography.titleSmall,
-                    color = LaughTrackColors.TicketInkMuted,
-                )
-                Text(
-                    show.ticketLabel() ?: "",
-                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Black),
-                    color = LaughTrackColors.TicketAccent,
-                )
+            if (prominent) {
+                Box(Modifier.fillMaxHeight().width(4.dp).background(ProminentTicketAccent.copy(alpha = 0.9f)))
             }
         }
     }
 }
+
+@Composable
+private fun ClubTicketPerforation(color: Color) {
+    Canvas(
+        Modifier
+            .width(1.dp)
+            .fillMaxHeight()
+            .padding(vertical = 8.dp),
+    ) {
+        drawLine(
+            color = color.copy(alpha = 0.6f),
+            start = Offset(size.width / 2, 0f),
+            end = Offset(size.width / 2, size.height),
+            strokeWidth = 1.dp.toPx(),
+            pathEffect = PathEffect.dashPathEffect(floatArrayOf(3.dp.toPx(), 3.dp.toPx())),
+        )
+    }
+}
+
+/** Stable semantics hook used to mirror the iOS club-detail → show-detail screenshot flow. */
+const val CLUB_SHOW_ROW_TEST_TAG = "club-show-row"
 
 @Composable
 private fun ClubRelatedVenuesSection(
@@ -513,7 +661,7 @@ private fun ClubChromeButton(
     Surface(
         modifier =
             Modifier
-                .size(42.dp)
+                .size(40.dp)
                 .clip(CircleShape)
                 .clickable(enabled = enabled, onClick = onClick)
                 .border(1.dp, LaughTrackColors.BorderSubtle, CircleShape),
@@ -535,7 +683,7 @@ private data class ClubShowDateParts(
 )
 
 private fun Show.dateParts(): ClubShowDateParts {
-    val parsed = parseShowDateTime(date)
+    val parsed = parseShowDateTime(date, timezone)
     return if (parsed == null) {
         ClubShowDateParts("", "", "", "")
     } else {
@@ -550,15 +698,53 @@ private fun Show.dateParts(): ClubShowDateParts {
     }
 }
 
-private fun Show.primaryImageUrl(): String? =
-    lineup.orEmpty().firstOrNull { it.imageUrl.isNotBlank() }?.imageUrl
-        ?: imageUrl.takeIf { it.isNotBlank() }
+internal fun clubShowHeadliner(show: Show): ComedianLineup? {
+    val featured =
+        show.lineup
+            .orEmpty()
+            .map(::effectiveClubShowComedian)
+            .maxByOrNull { it.showCount ?: 0 }
+    return featured?.takeIf { it.imageUrl.isNotBlank() }
+}
 
-private fun Show.lineupNames(): String? =
-    lineup
-        ?.drop(1)
-        ?.take(4)
-        ?.joinToString(", ") { it.name }
-        ?.takeIf { it.isNotBlank() }
+internal fun clubShowSupportingLineup(
+    show: Show,
+    excluding: ComedianLineup?,
+): List<ComedianLineup> {
+    val lineup = show.lineup.orEmpty().map(::effectiveClubShowComedian)
+    val filtered = lineup.filter { excluding == null || it.id != excluding.id }
+    val ordered =
+        if (filtered.any { it.showCount != null }) {
+            filtered.sortedByDescending { it.showCount ?: 0 }
+        } else {
+            filtered
+        }
+    return ordered.distinctBy { it.id }.take(3)
+}
+
+internal fun clubShowStandoutId(shows: List<Show>): Int? {
+    val scored =
+        shows.mapNotNull { show ->
+            show.popularityScore?.takeIf { it.signum() > 0 }?.let { show.id to it }
+        }
+    val topScore = scored.maxOfOrNull { it.second } ?: return null
+    return scored.singleOrNull { it.second.compareTo(topScore) == 0 }?.first
+}
+
+internal fun clubShowVenueLine(
+    club: ClubDetail,
+    show: Show,
+): String {
+    val location =
+        listOfNotNull(
+            show.clubCity?.trim()?.takeIf(String::isNotEmpty),
+            show.clubState?.trim()?.takeIf(String::isNotEmpty),
+        )
+    return if (location.isEmpty()) club.name else "${club.name} • ${location.joinToString(", ")}"
+}
+
+internal fun clubShowTicketLabel(show: Show): String? = show.ticketLabel()?.replace(Regex("\\.00(?=$|\\s)"), "")
+
+private fun effectiveClubShowComedian(comedian: ComedianLineup): ComedianLineup = comedian.parentComedian ?: comedian
 
 private fun Show.ticketLabel(): String? = formatTicketPriceLabel(tickets, soldOut)

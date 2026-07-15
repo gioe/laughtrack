@@ -66,7 +66,6 @@ import app.laughtrack.android.feature.detail.model.ShowDetailUi
 import app.laughtrack.android.feature.detail.ui.components.DetailError
 import app.laughtrack.android.feature.detail.ui.components.DetailLoading
 import app.laughtrack.android.feature.detail.util.addEventToCalendar
-import app.laughtrack.android.feature.detail.util.formatCountdown
 import app.laughtrack.android.feature.detail.util.formatShowDateTime
 import app.laughtrack.android.feature.detail.util.formatTicketPriceLabel
 import app.laughtrack.android.feature.detail.util.openUrl
@@ -74,7 +73,6 @@ import app.laughtrack.android.feature.detail.util.parseShowDateTime
 import app.laughtrack.android.feature.detail.util.showRowTitleSubtitle
 import kotlinx.coroutines.delay
 import java.math.BigDecimal
-import java.time.ZonedDateTime
 
 @Composable
 fun ShowDetailScreen(
@@ -117,7 +115,6 @@ private fun ShowDetailBody(
     onOpenEntity: (AppRoute) -> Unit,
 ) {
     val show = ui.detail
-    val now = remember { ZonedDateTime.now() }
     val context = LocalContext.current
     Column(
         Modifier
@@ -127,13 +124,12 @@ private fun ShowDetailBody(
     ) {
         ShowMarqueeHero(
             show = show,
-            now = now,
             onBack = onBack,
             onHome = onHome,
         )
         Column(
-            Modifier.padding(horizontal = 8.dp, vertical = 18.dp),
-            verticalArrangement = Arrangement.spacedBy(18.dp),
+            Modifier.padding(horizontal = 8.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             if (isAdmin) {
                 AdminShowIdBadge(showId = show.id)
@@ -143,7 +139,7 @@ private fun ShowDetailBody(
                 ticketOutboundUrl = ui.ticketOutboundUrl,
                 onVenue = { onOpenEntity(AppRoute.ClubDetail(show.club.id)) },
                 onCalendar = {
-                    parseShowDateTime(show.date)?.toInstant()?.toEpochMilli()?.let { start ->
+                    parseShowDateTime(show.date, show.venueTimezone())?.toInstant()?.toEpochMilli()?.let { start ->
                         context.addEventToCalendar(
                             title = show.name ?: show.club.name,
                             startMillis = start,
@@ -156,17 +152,9 @@ private fun ShowDetailBody(
                 onTickets = { url -> context.openUrl(url) },
             )
 
-            show.description?.takeIf { it.isNotBlank() }?.let {
-                DetailDarkCard(eyebrow = "EDITOR'S NOTE", title = "About this show") {
-                    Text(
-                        it,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = LaughTrackColors.Foreground,
-                    )
-                }
+            if (!showDetailIsOpenMic(show)) {
+                ShowLineupSection(show.lineup.orEmpty(), onOpenEntity)
             }
-
-            ShowLineupSection(show.lineup.orEmpty(), onOpenEntity)
             RelatedShowsSection(ui.relatedShows, onOpenEntity)
         }
     }
@@ -208,20 +196,20 @@ private fun AdminShowIdBadge(showId: Int) {
 @Composable
 private fun ShowMarqueeHero(
     show: ShowDetail,
-    now: ZonedDateTime,
     onBack: () -> Unit,
     onHome: (() -> Unit)?,
 ) {
-    val heroImage = show.headlinerImageUrl() ?: show.imageUrl
+    val heroComedian = showDetailHeroComedian(show)
+    val heroImage = showDetailHeroImageUrl(show)
     Box(
         Modifier
             .fillMaxWidth()
             .background(
-                Brush.radialGradient(
+                Brush.verticalGradient(
                     colors =
                         listOf(
-                            LaughTrackColors.Highlight.copy(alpha = 0.55f),
-                            LaughTrackColors.Surface.copy(alpha = 0.96f),
+                            Color(0xFF70451F),
+                            Color(0xFF321B13),
                             LaughTrackColors.Canvas,
                         ),
                 ),
@@ -252,30 +240,76 @@ private fun ShowMarqueeHero(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(top = 92.dp, start = 20.dp, end = 20.dp, bottom = 36.dp),
+                    .padding(top = 108.dp, start = 16.dp, end = 16.dp, bottom = 18.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(18.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Text(
-                show.club.name.uppercase(),
-                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Black),
-                color = LaughTrackColors.AccentStrong,
-                letterSpacing = 2.6.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center,
-            )
-            Text(
-                show.displayTitle().uppercase(),
-                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Black),
+                showDetailDisplayTitle(show).uppercase(),
+                style =
+                    MaterialTheme.typography.headlineSmall.copy(
+                        fontWeight = FontWeight.Black,
+                        fontSize = 18.sp,
+                        lineHeight = 22.sp,
+                    ),
                 color = LaughTrackColors.Foreground,
                 textAlign = TextAlign.Center,
-                maxLines = 4,
+                maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
             )
-            DottedPoster(url = heroImage, contentDescription = show.displayTitle())
-            formatCountdown(show.date, now)?.let { CountdownBadge(it) }
+            if (heroComedian != null) {
+                FramedComedianPoster(
+                    url = heroImage,
+                    caption = heroComedian.name,
+                    contentDescription = showDetailDisplayTitle(show),
+                )
+            } else {
+                DottedPoster(url = heroImage, contentDescription = showDetailDisplayTitle(show))
+            }
         }
+    }
+}
+
+@Composable
+private fun FramedComedianPoster(
+    url: String?,
+    caption: String,
+    contentDescription: String?,
+) {
+    Column(
+        modifier =
+            Modifier
+                .width(220.dp)
+                .background(Color(0xFFE1D8C7), RoundedCornerShape(8.dp))
+                .border(2.dp, Color(0xFF5A554D), RoundedCornerShape(8.dp))
+                .padding(10.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(7.dp),
+    ) {
+        RemoteImage(
+            url = url,
+            fallback = RemoteImageFallback.Comedian,
+            contentDescription = contentDescription,
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(190.dp)
+                    .clip(RoundedCornerShape(2.dp))
+                    .border(1.dp, Color.Black.copy(alpha = 0.55f), RoundedCornerShape(2.dp)),
+        )
+        Text(
+            caption.uppercase(),
+            modifier = Modifier.fillMaxWidth().background(Color(0xFFF0E9DC)).padding(vertical = 4.dp),
+            style =
+                MaterialTheme.typography.labelLarge.copy(
+                    fontFamily = FontFamily.Serif,
+                    fontWeight = FontWeight.Bold,
+                ),
+            color = Color(0xFF4C463E),
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 
@@ -305,22 +339,6 @@ private fun DottedPoster(
 }
 
 @Composable
-private fun CountdownBadge(text: String) {
-    Surface(
-        color = LaughTrackColors.AccentMuted.copy(alpha = 0.72f),
-        contentColor = LaughTrackColors.AccentStrong,
-        shape = RoundedCornerShape(999.dp),
-        modifier = Modifier.border(1.dp, LaughTrackColors.AccentStrong.copy(alpha = 0.42f), RoundedCornerShape(999.dp)),
-    ) {
-        Text(
-            text,
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 7.dp),
-        )
-    }
-}
-
-@Composable
 private fun ShowTicketSummary(
     show: ShowDetail,
     ticketOutboundUrl: String?,
@@ -340,10 +358,10 @@ private fun ShowTicketSummary(
         color = LaughTrackColors.TicketPaper,
         shape = RoundedCornerShape(18.dp),
     ) {
-        Column(Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) {
+        Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
             TicketFactRow(
                 label = "When",
-                value = formatShowDateTime(show.date),
+                value = formatShowDateTime(show.date, show.venueTimezone()),
                 icon = "▦",
                 onClick = onCalendar,
                 trailing = "›",
@@ -356,10 +374,18 @@ private fun ShowTicketSummary(
                 onClick = onVenue,
                 trailing = "›",
             )
+            show.distanceMiles?.let { distance ->
+                TicketDivider()
+                TicketFactRow(
+                    label = "Distance",
+                    value = distance.stripTrailingZeros().toPlainString() + " miles away",
+                    icon = "⌖",
+                )
+            }
             TicketPerforation()
             TicketFactRow(
                 label = "Tickets",
-                value = show.ticketSummary(),
+                value = if (showDetailIsOpenMic(show)) "RSVP" else show.ticketSummary(),
                 icon = "▤",
                 trailingContent = {
                     if (!show.cta.isSoldOut && ticketOutboundUrl != null) {
@@ -371,11 +397,11 @@ private fun ShowTicketSummary(
                                     contentColor = Color.White,
                                 ),
                             shape = RoundedCornerShape(999.dp),
-                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                         ) {
                             Text(
-                                "BUY TICKETS ↗",
-                                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Black),
+                                if (showDetailIsOpenMic(show)) "RSVP ↗" else "BUY TICKETS ↗",
+                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Black),
                             )
                         }
                     } else {
@@ -405,12 +431,12 @@ private fun TicketFactRow(
             Modifier
                 .fillMaxWidth()
                 .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
-                .padding(vertical = 10.dp),
+                .padding(vertical = 6.dp),
         horizontalArrangement = Arrangement.spacedBy(14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Surface(
-            modifier = Modifier.size(42.dp),
+            modifier = Modifier.size(36.dp),
             shape = CircleShape,
             color = LaughTrackColors.TicketStub,
             contentColor = LaughTrackColors.AccentStrong,
@@ -422,15 +448,17 @@ private fun TicketFactRow(
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(
                 label.uppercase(),
-                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                 color = LaughTrackColors.TicketInkMuted,
             )
             Text(
                 value,
                 style =
-                    MaterialTheme.typography.titleLarge.copy(
+                    MaterialTheme.typography.titleMedium.copy(
                         fontFamily = FontFamily.Monospace,
                         fontWeight = FontWeight.Bold,
+                        fontSize = 17.sp,
+                        lineHeight = 20.sp,
                     ),
                 color = LaughTrackColors.TicketInk,
                 maxLines = 2,
@@ -449,7 +477,7 @@ private fun TicketDivider() {
     Box(
         Modifier
             .fillMaxWidth()
-            .padding(start = 58.dp)
+            .padding(start = 50.dp)
             .height(1.dp)
             .background(LaughTrackColors.TicketBorder),
     )
@@ -460,7 +488,7 @@ private fun TicketPerforation() {
     Box(
         Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
+            .padding(vertical = 5.dp)
             .height(1.dp)
             .background(LaughTrackColors.TicketBorder),
     )
@@ -525,6 +553,16 @@ private fun LineupMarqueeCard(
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
         )
+        showLineupRoleBadge(item)?.let { role ->
+            Text(
+                role.uppercase(),
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                color = LaughTrackColors.AccentStrong,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
     }
 }
 
@@ -600,19 +638,70 @@ private fun FloatingChromeButton(
     }
 }
 
-private fun ShowDetail.displayTitle(): String =
-    name?.takeIf { it.isNotBlank() }
-        ?: lineup.orEmpty().takeIf { it.isNotEmpty() }?.joinToString(", ") { it.name }
-        ?: club.name
+private fun ShowDetail.venueTimezone(): String? = timezone ?: club.timezone
 
-private fun ShowDetail.headlinerImageUrl(): String? =
-    lineup
+internal fun showDetailHeroComedian(show: ShowDetail): ComedianLineup? {
+    if (showDetailIsOpenMic(show)) return null
+    return show.lineup
         .orEmpty()
-        .maxWithOrNull(
-            compareBy<ComedianLineup> { it.socialData?.popularity ?: -1 }
-                .thenBy { it.showCount ?: 0 },
-        )?.imageUrl
-        ?.takeIf { it.isNotBlank() }
+        .firstOrNull { it.imageUrl.isNotBlank() }
+}
+
+internal fun showDetailHeroImageUrl(show: ShowDetail): String? =
+    showDetailHeroComedian(show)?.imageUrl?.takeIf { it.isNotBlank() }
+        ?: show.club.imageUrl.takeIf { it.isNotBlank() }
+        ?: show.imageUrl.takeIf { it.isNotBlank() }
+
+internal fun showDetailIsOpenMic(show: ShowDetail): Boolean =
+    show.name.orEmpty().contains("open mic", ignoreCase = true) ||
+        show.tags.orEmpty().any { tag ->
+            tag.slug.contains("open-mic", ignoreCase = true) ||
+                tag.name.contains("open mic", ignoreCase = true)
+        }
+
+internal fun showDetailDisplayTitle(show: ShowDetail): String {
+    val title = show.name?.trim().orEmpty()
+    if (title.isEmpty()) return showDetailFallbackTitle(show.club.name)
+
+    val lineup = show.lineup.orEmpty()
+    if (lineup.size == 1) {
+        val comedian = lineup.single()
+        val lineupNames = listOfNotNull(comedian.name, comedian.parentComedian?.name)
+        if (lineupNames.any { it.trim().equals(title, ignoreCase = true) }) {
+            return "$title Headlines"
+        }
+    }
+
+    val showWords =
+        listOf(
+            "comedy",
+            "show",
+            "showcase",
+            "friends",
+            "night",
+            "live",
+            "open",
+            "mic",
+            "late",
+            "early",
+            "set",
+            "presents",
+            "special",
+            "festival",
+        )
+    val looksLikeShowTitle = showWords.any { title.contains(it, ignoreCase = true) }
+    val words = title.split(Regex("\\s+")).filter { it.isNotEmpty() }
+    val looksLikePerformer =
+        !looksLikeShowTitle &&
+            words.size in 2..3 &&
+            words.all { Regex("^[A-Z][A-Za-z.'-]*$").matches(it) }
+    return if (looksLikePerformer) showDetailFallbackTitle(show.club.name) else title
+}
+
+private fun showDetailFallbackTitle(clubName: String?): String =
+    clubName?.trim()?.takeIf { it.isNotEmpty() }?.let { "Comedy Show at $it" } ?: "Comedy show"
+
+internal fun showLineupRoleBadge(comedian: ComedianLineup): String? = comedian.role?.trim()?.takeIf { it.isNotEmpty() }
 
 private fun ShowDetail.ticketSummary(): String {
     if (cta.isSoldOut || soldOut == true) return "Sold out"

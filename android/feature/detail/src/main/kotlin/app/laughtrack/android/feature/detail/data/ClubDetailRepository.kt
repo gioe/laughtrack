@@ -4,6 +4,7 @@ import app.laughtrack.android.core.data.runCatchingCancellable
 import app.laughtrack.android.core.network.generated.api.ClubsApi
 import app.laughtrack.android.core.network.generated.infrastructure.ApiClient
 import app.laughtrack.android.feature.detail.model.ClubDetailUi
+import app.laughtrack.android.feature.detail.model.ClubShowsPage
 import javax.inject.Inject
 
 /**
@@ -24,15 +25,25 @@ class ClubDetailRepository(
         val club =
             clubResponse.body()?.data
                 ?: error("Club unavailable (HTTP ${clubResponse.code()})")
-        val shows =
+        val showsPage =
             runCatchingCancellable {
-                clubsApi.getClubShows(
-                    id = id,
-                    page = 0,
-                    size = CLUB_SHOWS_LIMIT,
-                ).body()?.data.orEmpty()
-            }.getOrDefault(emptyList())
-        return ClubDetailUi(detail = club, upcomingShows = shows)
+                getClubShows(id = id, page = 0)
+            }.getOrDefault(ClubShowsPage(shows = emptyList(), total = 0, page = 0))
+        return ClubDetailUi(
+            detail = club,
+            upcomingShows = showsPage.shows,
+            totalShows = showsPage.total,
+            currentPage = showsPage.page,
+        )
+    }
+
+    suspend fun getClubShows(
+        id: Int,
+        page: Int,
+    ): ClubShowsPage {
+        val response = clubsApi.getClubShows(id = id, page = page, size = CLUB_SHOWS_LIMIT)
+        val body = response.body() ?: error("Club shows unavailable (HTTP ${response.code()})")
+        return ClubShowsPage(shows = body.data, total = body.total, page = page)
     }
 
     private companion object {

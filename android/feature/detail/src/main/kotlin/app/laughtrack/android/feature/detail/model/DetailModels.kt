@@ -10,6 +10,16 @@ import app.laughtrack.android.core.network.generated.model.UpcomingRun
 data class ClubDetailUi(
     val detail: ClubDetail,
     val upcomingShows: List<Show>,
+    val totalShows: Int,
+    val currentPage: Int = 0,
+) {
+    val canLoadMore: Boolean get() = upcomingShows.size < totalShows
+}
+
+data class ClubShowsPage(
+    val shows: List<Show>,
+    val total: Int,
+    val page: Int,
 )
 
 /**
@@ -33,4 +43,9 @@ data class ComedianDetailUi(
     val upcomingRuns: List<UpcomingRun>,
     val pastShows: List<Show>,
     val coBill: List<ComedianLineup>,
+    val pinnedShows: List<Show> = emptyList(),
+    val pinnedShowsTotal: Int = 0,
+    val activeZip: String? = null,
+    val activeLocationLabel: String? = null,
+    val activeDistanceMiles: Int = 25,
 )

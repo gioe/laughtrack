@@ -1,10 +1,13 @@
 package app.laughtrack.android.feature.detail.ui
 
+import app.laughtrack.android.core.data.location.HomeLocationState
 import app.laughtrack.android.core.network.generated.api.ComediansApi
+import app.laughtrack.android.core.network.generated.api.ShowsApi
 import app.laughtrack.android.core.network.generated.model.ComedianDetail
 import app.laughtrack.android.core.network.generated.model.GetComedian200Response
 import app.laughtrack.android.core.network.generated.model.GetComedianCoBill200Response
 import app.laughtrack.android.core.network.generated.model.GetComedianPastShows200Response
+import app.laughtrack.android.core.network.generated.model.ShowSearchResponse
 import app.laughtrack.android.core.network.generated.model.SocialData
 import app.laughtrack.android.core.network.generated.model.UpcomingRun
 import app.laughtrack.android.core.network.generated.model.UpcomingRunResponse
@@ -90,9 +93,28 @@ class ComedianDetailViewModelTest {
 
     private fun viewModel(comediansApi: ComediansApi): ComedianDetailViewModel =
         ComedianDetailViewModel(
-            repository = ComedianDetailRepository(comediansApi),
+            repository = ComedianDetailRepository(comediansApi, FakeShowsApi()),
             favoritesRepository = signedOutFavoritesRepository(),
+            homeLocationState = HomeLocationState(),
         )
+
+    private class FakeShowsApi : ShowsApi by throwingApi() {
+        override suspend fun searchShows(
+            zip: String?,
+            from: String?,
+            to: String?,
+            page: Int?,
+            size: Int?,
+            comedian: String?,
+            club: String?,
+            filters: String?,
+            distance: Int?,
+            sort: String?,
+            xTimezone: String?,
+        ) = Response.success(
+            ShowSearchResponse(data = emptyList(), total = 0, filters = emptyList(), zipCapTriggered = false),
+        )
+    }
 
     private class FakeComediansApi(
         private val detailFails: Boolean = false,

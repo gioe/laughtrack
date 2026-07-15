@@ -49,6 +49,15 @@ class DetailFormattingTest {
     }
 
     @Test
+    fun `show timestamp is rendered in its venue timezone`() {
+        val parsed = parseShowDateTime("2026-07-13T23:00:00Z", "America/New_York")
+
+        assertEquals("America/New_York", parsed?.zone?.id)
+        assertEquals(19, parsed?.hour)
+        assertTrue(formatShowDateTime("2026-07-13T23:00:00Z", "America/New_York").contains("7:00 PM"))
+    }
+
+    @Test
     fun `countdown reports days, hours, minutes, and past`() {
         assertEquals("In 3 days", formatCountdown("2026-06-27T10:00:00Z", now))
         assertEquals("In 1 day", formatCountdown("2026-06-25T10:00:00Z", now))

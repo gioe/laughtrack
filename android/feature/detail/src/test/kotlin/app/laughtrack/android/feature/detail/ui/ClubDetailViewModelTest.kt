@@ -52,6 +52,23 @@ class ClubDetailViewModelTest {
             val ui = (state as UiState.Success).value
             assertEquals(42, ui.detail.id)
             assertEquals(1, ui.upcomingShows.size)
+            assertEquals(78, ui.totalShows)
+        }
+
+    @Test
+    fun load_more_appends_the_next_page_and_preserves_the_api_total() =
+        runTest {
+            val viewModel = viewModel(FakeClubsApi())
+
+            viewModel.load(42)
+            advanceUntilIdle()
+            viewModel.loadMore()
+            advanceUntilIdle()
+
+            val ui = (viewModel.state.value as UiState.Success).value
+            assertEquals(listOf(1, 2), ui.upcomingShows.map { it.id })
+            assertEquals(78, ui.totalShows)
+            assertEquals(1, ui.currentPage)
         }
 
     @Test
@@ -101,7 +118,12 @@ class ClubDetailViewModelTest {
             size: Int?,
         ): Response<ClubShowsResponse> {
             if (showsFail) throw IOException("network down")
-            return Response.success(ClubShowsResponse(data = listOf(show(1, clubId = id)), total = 1))
+            return Response.success(
+                ClubShowsResponse(
+                    data = listOf(show((page ?: 0) + 1, clubId = id)),
+                    total = 78,
+                ),
+            )
         }
     }
 
