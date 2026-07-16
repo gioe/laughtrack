@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import LaughTrackBridge
 import LaughTrackCore
 
@@ -10,6 +11,10 @@ struct LaughTrackLoginModalView: View {
     @EnvironmentObject private var loginModalPresenter: LoginModalPresenter
     @Environment(\.appTheme) private var theme
     @Environment(\.dismiss) private var dismiss
+
+    static func presentationDetents(for interfaceIdiom: UIUserInterfaceIdiom) -> Set<PresentationDetent> {
+        interfaceIdiom == .pad ? [.large] : [.medium, .large]
+    }
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
@@ -74,7 +79,7 @@ struct LaughTrackLoginModalView: View {
             .accessibilityLabel("Close")
             .padding(theme.spacing.lg)
         }
-        .presentationDetents([.medium, .large])
+        .presentationDetents(Self.presentationDetents(for: UIDevice.current.userInterfaceIdiom))
         .presentationDragIndicator(.hidden)
     }
 

@@ -3,6 +3,7 @@ import Testing
 import APIClient
 import LaughTrackBridge
 import LaughTrackCore
+import SwiftUI
 @testable import LaughTrackApp
 
 // TASK-2021: under iOS 26.1+ on iPhone 17, HostedView no longer wires the
@@ -81,6 +82,12 @@ struct ProfileViewTests {
         #expect(LaughTrackLoginModalView.signedOutAuthOptions == SignedOutAuthOption.all)
         #expect(ProfileView.signedOutAuthOptions == LaughTrackLoginModalView.signedOutAuthOptions)
         #expect(ProfileView.signedOutAuthOptions.map(\.provider) == [.apple, .google, .email])
+    }
+
+    @Test("login modal expands on iPad while preserving the phone detents")
+    func loginModalDetentsAdaptToInterfaceIdiom() {
+        #expect(LaughTrackLoginModalView.presentationDetents(for: .pad) == [.large])
+        #expect(LaughTrackLoginModalView.presentationDetents(for: .phone) == [.medium, .large])
     }
 
     @Test("signed-in auth state surfaces display-name hero and unlocks settings panel")
