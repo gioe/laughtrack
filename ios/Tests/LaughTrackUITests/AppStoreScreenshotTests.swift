@@ -85,29 +85,6 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         sleep(3)
         snapshot("07_ComedianDetail")
 
-        // Exercise the real protected guest action so the app presents its
-        // in-app auth sheet. Do not tap a provider: the external OAuth flow is
-        // intentionally outside the deterministic comparison corpus.
-        // Detail content can contain additional offscreen favorite controls.
-        // Restrict the semantic query to the visible sticky-chrome action.
-        let favoriteButtons = app.buttons.matching(
-            NSPredicate(format: "label == %@", "Add favorite")
-        )
-        XCTAssertTrue(favoriteButtons.firstMatch.waitForExistence(timeout: 10), "Expected guest favorite action")
-        let addFavorite = try XCTUnwrap(
-            favoriteButtons.allElementsBoundByIndex.first(where: \.isHittable),
-            "Expected a visible guest favorite action"
-        )
-        addFavorite.tap()
-        XCTAssertTrue(
-            app.staticTexts["Pick up where you left off"].waitForExistence(timeout: 10),
-            "Expected in-app auth prompt"
-        )
-        for option in ["Continue with Apple", "Continue with Google", "Email me a sign-in link"] {
-            XCTAssertTrue(app.buttons[option].exists, "Expected auth option: \(option)")
-        }
-        snapshot("18_AuthPrompt")
-
         // Restart again before the podcast captures; the comedian detail has
         // its own Shows/Podcasts segmented control, so coordinate taps there
         // are not the global Search tab pivots.
@@ -163,6 +140,22 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         relaunch(route: "notifications:0", authenticatedPersona: true)
         assertExists("laughtrack.notifications.screen", message: "Expected authenticated Notifications screen")
         snapshot("17_AuthenticatedNotifications")
+
+        // Use the real production login sheet through a DEBUG-only launch
+        // seam. Provider buttons remain untouched, so external OAuth is never
+        // part of the deterministic comparison run.
+        relaunch(
+            route: "profile:0",
+            environment: [UITestLaunchArgs.forceLoginPrompt: "1"]
+        )
+        XCTAssertTrue(
+            app.staticTexts["Pick up where you left off"].waitForExistence(timeout: 10),
+            "Expected in-app auth prompt"
+        )
+        for option in ["Continue with Apple", "Continue with Google", "Email me a sign-in link"] {
+            XCTAssertTrue(app.buttons[option].exists, "Expected auth option: \(option)")
+        }
+        snapshot("18_AuthPrompt")
     }
 
     private func tapPrimitive(_ primitive: String) {
@@ -207,6 +200,7 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         app.launchEnvironment.removeValue(forKey: UITestLaunchArgs.forceComparisonScreens)
         app.launchEnvironment.removeValue(forKey: UITestLaunchArgs.forceComedianOnboardingScreen)
         app.launchEnvironment.removeValue(forKey: UITestLaunchArgs.authenticatedScreenshotPersona)
+        app.launchEnvironment.removeValue(forKey: UITestLaunchArgs.forceLoginPrompt)
         if let route {
             app.launchEnvironment["LAUNCHTRACK_DEBUG_ROUTE"] = route
         }

@@ -214,6 +214,13 @@ struct ContentView: View {
         .task {
             await authManager.restoreSessionIfNeeded()
         }
+        .onAppear {
+            #if DEBUG
+            if ProcessInfo.processInfo.environment[UITestLaunchArgs.forceLoginPrompt] == "1" {
+                loginModalPresenter.present()
+            }
+            #endif
+        }
         .onReceive(authManager.$state) { state in
             if case .authenticated = state {
                 // Signing in resolves the first-entry choice, so a later sign-out

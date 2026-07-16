@@ -71,4 +71,9 @@ enum UITestLaunchArgs {
     /// Renders the credentials-free authenticated screenshot persona. This
     /// never installs tokens or calls a production authentication endpoint.
     static let authenticatedScreenshotPersona = "UITEST_AUTHENTICATED_SCREENSHOT_PERSONA"
+
+    /// Presents the real in-app login modal without selecting a provider.
+    /// This avoids external OAuth and makes comparison captures deterministic
+    /// across phone and tablet interaction models.
+    static let forceLoginPrompt = "UITEST_FORCE_LOGIN_PROMPT"
 }
