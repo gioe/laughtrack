@@ -43,7 +43,7 @@ import tools.fastlane.screengrab.UiAutomatorScreenshotStrategy
 import tools.fastlane.screengrab.locale.LocaleTestRule
 
 /**
- * Captures the nine Google Play listing screenshots, mirroring the iOS
+ * Captures the complete comparison screenshot set, mirroring the iOS
  * AppStoreScreenshotTests.swift set (ios/Tests/LaughTrackUITests). Driven by
  * fastlane screengrab via the `screenshots` lane (wired in TASK-3617); run it on a
  * booted emulator/device.
@@ -125,6 +125,7 @@ class AppStoreScreenshotTest {
     fun captureAppStoreScreenshots() {
         lateinit var navController: NavHostController
         var screenshotPersona by mutableStateOf<AuthenticatedScreenshotPersona?>(null)
+        var showLoginPrompt by mutableStateOf(false)
         val playbackController = PodcastPlaybackController(InstrumentationRegistry.getInstrumentation().targetContext)
         composeRule.setContent {
             navController = rememberNavController()
@@ -134,6 +135,8 @@ class AppStoreScreenshotTest {
                     signedIn = screenshotPersona != null,
                     hasFavorites = screenshotPersona != null,
                     playbackController = playbackController,
+                    showLoginPrompt = showLoginPrompt,
+                    onLoginPromptDismiss = { showLoginPrompt = false },
                     screenshotPersona = screenshotPersona,
                 )
             }
@@ -191,6 +194,16 @@ class AppStoreScreenshotTest {
         searchFor("Andrew Schulz")
         openFirstResult()
         capture("07_ComedianDetail")
+
+        // Render the real in-app prompt used by protected guest actions. No
+        // provider is clicked, so Custom Tabs / external OAuth never launches.
+        composeRule.runOnIdle { showLoginPrompt = true }
+        waitFor(hasText("Sign in to save favorites"))
+        listOf("Continue with Google", "Continue with Apple", "Email me a sign-in link").forEach { option ->
+            waitFor(hasText(option))
+        }
+        capture("18_AuthPrompt")
+        composeRule.runOnIdle { showLoginPrompt = false }
         goBack()
 
         // 08 — Search / Podcasts.

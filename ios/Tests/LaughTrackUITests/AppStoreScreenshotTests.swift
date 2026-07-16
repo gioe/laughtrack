@@ -1,7 +1,7 @@
 import SharedKitTesting
 import XCTest
 
-/// UI test that captures App Store screenshots in sequence.
+/// UI test that captures the complete comparison screenshot set in sequence.
 ///
 /// Driven by fastlane's `snapshot` tool via the `screenshots` lane:
 /// `bundle exec fastlane screenshots`
@@ -84,6 +84,22 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         )
         sleep(3)
         snapshot("07_ComedianDetail")
+
+        // Exercise the real protected guest action so the app presents its
+        // in-app auth sheet. Do not tap a provider: the external OAuth flow is
+        // intentionally outside the deterministic comparison corpus.
+        let addFavorite = app.buttons["Add favorite"]
+        XCTAssertTrue(addFavorite.waitForExistence(timeout: 10), "Expected guest favorite action")
+        XCTAssertTrue(addFavorite.isHittable, "Expected guest favorite action to be hittable")
+        addFavorite.tap()
+        XCTAssertTrue(
+            app.staticTexts["Pick up where you left off"].waitForExistence(timeout: 10),
+            "Expected in-app auth prompt"
+        )
+        for option in ["Continue with Apple", "Continue with Google", "Email me a sign-in link"] {
+            XCTAssertTrue(app.buttons[option].exists, "Expected auth option: \(option)")
+        }
+        snapshot("18_AuthPrompt")
 
         // Restart again before the podcast captures; the comedian detail has
         // its own Shows/Podcasts segmented control, so coordinate taps there
