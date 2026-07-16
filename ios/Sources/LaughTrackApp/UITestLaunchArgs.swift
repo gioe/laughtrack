@@ -76,4 +76,8 @@ enum UITestLaunchArgs {
     /// This avoids external OAuth and makes comparison captures deterministic
     /// across phone and tablet interaction models.
     static let forceLoginPrompt = "UITEST_FORCE_LOGIN_PROMPT"
+
+    /// Keeps mock mode from seeding past the real first-entry authentication
+    /// choice so screenshot tests can capture the production full-screen gate.
+    static let forceFirstEntryAuthChoice = "UITEST_FORCE_FIRST_ENTRY_AUTH_CHOICE"
 }

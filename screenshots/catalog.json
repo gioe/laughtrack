@@ -119,6 +119,17 @@
         "auth_state": "guest",
         "presentation": "in_app_modal"
       }
+    },
+    {
+      "id": "19_FirstEntryAuthChoice",
+      "locale": "en-US",
+      "timezone": "America/Los_Angeles",
+      "capture_context": {
+        "screen": "first_entry_auth_choice",
+        "auth_state": "guest",
+        "presentation": "full_screen",
+        "state": "unresolved"
+      }
     }
   ],
   "profiles": [

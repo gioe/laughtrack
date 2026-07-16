@@ -32,6 +32,7 @@ SCENARIO_IDS = (
     "16_AuthenticatedProfile",
     "17_AuthenticatedNotifications",
     "18_AuthPrompt",
+    "19_FirstEntryAuthChoice",
 )
 PROFILE_IDS = (
     "ios_phone",

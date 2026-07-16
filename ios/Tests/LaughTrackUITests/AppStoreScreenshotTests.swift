@@ -148,6 +148,18 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
             XCTAssertTrue(app.buttons[option].exists, "Expected auth option: \(option)")
         }
         snapshot("18_AuthPrompt")
+
+        // Mock mode normally records the guest choice so comparison captures can
+        // enter the shell. Suppress that one seed and capture the real root gate.
+        relaunch(environment: [UITestLaunchArgs.forceFirstEntryAuthChoice: "1"])
+        assertExists(
+            LaughTrackViewTestID.firstEntryAuthChoiceScreen,
+            message: "Expected full-screen first-entry auth choice"
+        )
+        for option in ["Continue as guest", "Continue with Apple", "Continue with Google", "Email me a sign-in link"] {
+            XCTAssertTrue(app.buttons[option].exists, "Expected first-entry option: \(option)")
+        }
+        snapshot("19_FirstEntryAuthChoice")
     }
 
     private func tapPrimitive(_ primitive: String) {
@@ -193,6 +205,7 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         app.launchEnvironment.removeValue(forKey: UITestLaunchArgs.forceComedianOnboardingScreen)
         app.launchEnvironment.removeValue(forKey: UITestLaunchArgs.authenticatedScreenshotPersona)
         app.launchEnvironment.removeValue(forKey: UITestLaunchArgs.forceLoginPrompt)
+        app.launchEnvironment.removeValue(forKey: UITestLaunchArgs.forceFirstEntryAuthChoice)
         if let route {
             app.launchEnvironment["LAUNCHTRACK_DEBUG_ROUTE"] = route
         }

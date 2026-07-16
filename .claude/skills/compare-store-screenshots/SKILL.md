@@ -73,17 +73,10 @@ scenario such as `--scenario 05_ClubDetail` to emit only that scenario across
 the selected profiles.
 
 Require the manifests to contain exactly one fresh, declared, readable image
-for every selected platform profile and each canonical scenario:
-
-1. `01_NearMe`
-2. `02_SearchShows`
-3. `03_SearchComedians`
-4. `04_SearchClubs`
-5. `05_ClubDetail`
-6. `06_ShowDetail`
-7. `07_ComedianDetail`
-8. `08_SearchPodcasts`
-9. `09_PodcastDetail`
+for every selected platform profile and every scenario in
+`screenshots/catalog.json`. This includes guest, authenticated-persona,
+protected-action auth-prompt, and first-entry auth-choice states; do not treat
+those authentication surfaces as interchangeable.
 
 Stop on missing, duplicate, stale, unreadable, or unexpected captures, mismatched
 Git revisions, or undeclared image files in either run. Do not silently select

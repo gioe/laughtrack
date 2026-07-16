@@ -126,19 +126,24 @@ class AppStoreScreenshotTest {
         lateinit var navController: NavHostController
         var screenshotPersona by mutableStateOf<AuthenticatedScreenshotPersona?>(null)
         var showLoginPrompt by mutableStateOf(false)
+        var showFirstEntryAuthChoice by mutableStateOf(false)
         val playbackController = PodcastPlaybackController(InstrumentationRegistry.getInstrumentation().targetContext)
         composeRule.setContent {
             navController = rememberNavController()
             LaughTrackTheme {
-                AppShell(
-                    navController = navController,
-                    signedIn = screenshotPersona != null,
-                    hasFavorites = screenshotPersona != null,
-                    playbackController = playbackController,
-                    showLoginPrompt = showLoginPrompt,
-                    onLoginPromptDismiss = { showLoginPrompt = false },
-                    screenshotPersona = screenshotPersona,
-                )
+                if (showFirstEntryAuthChoice) {
+                    FirstEntryAuthChoiceScreen(onContinueAsGuest = {})
+                } else {
+                    AppShell(
+                        navController = navController,
+                        signedIn = screenshotPersona != null,
+                        hasFavorites = screenshotPersona != null,
+                        playbackController = playbackController,
+                        showLoginPrompt = showLoginPrompt,
+                        onLoginPromptDismiss = { showLoginPrompt = false },
+                        screenshotPersona = screenshotPersona,
+                    )
+                }
             }
         }
 
@@ -257,6 +262,21 @@ class AppStoreScreenshotTest {
         navigate(navController, AppRoute.NotificationCenter)
         waitFor(hasText("Taylor Tomlinson has a show near you"))
         capture("17_AuthenticatedNotifications")
+
+        // Render the production root-level gate, distinct from the protected-action
+        // LoginPromptSheet captured above. Provider buttons are asserted but untouched.
+        composeRule.runOnIdle {
+            screenshotPersona = null
+            showFirstEntryAuthChoice = true
+        }
+        waitFor(hasTestTag(FIRST_ENTRY_AUTH_CHOICE_TEST_TAG))
+        listOf(
+            "Continue as guest",
+            "Continue with Google",
+            "Continue with Apple",
+            "Email me a sign-in link",
+        ).forEach { option -> waitFor(hasText(option)) }
+        capture("19_FirstEntryAuthChoice", dismissKeyboard = false)
     }
 
     private fun navigate(

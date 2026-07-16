@@ -622,6 +622,7 @@ private struct FirstEntryAuthChoiceView: View {
             .padding(.horizontal, theme.spacing.xl)
             .frame(maxWidth: 520)
         }
+        .accessibilityIdentifier(LaughTrackViewTestID.firstEntryAuthChoiceScreen)
         .onAppear {
             hasAppeared = true
         }

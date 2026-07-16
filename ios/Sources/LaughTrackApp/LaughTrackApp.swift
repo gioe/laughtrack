@@ -123,7 +123,9 @@ struct LaughTrackApp: App {
     private static func applyMockModeSeedData(container: ServiceContainer) {
         let store = container.resolve(NearbyPreferenceStore.self)
         store.setManualZip("90028", distanceMiles: 25, city: "Los Angeles", state: "CA")
-        UserDefaults.standard.set(true, forKey: FirstEntryAuthChoiceStore.storageKey)
+        if ProcessInfo.processInfo.environment[UITestLaunchArgs.forceFirstEntryAuthChoice] != "1" {
+            UserDefaults.standard.set(true, forKey: FirstEntryAuthChoiceStore.storageKey)
+        }
     }
 }
 #endif
