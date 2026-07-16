@@ -6,6 +6,8 @@
 
 set -euo pipefail
 
+export FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT="${FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT:-30}"
+
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "$script_dir/../.." && pwd)"
 default_output_root="$repo_root/apps/screenshot-comparisons/$(date +%Y-%m-%d)-current-catalog"

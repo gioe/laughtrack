@@ -17,3 +17,10 @@ to select another directory or `--no-open` for a headless run.
 
 The command requires a booted iOS simulator, an authorized Android emulator or
 device, Homebrew Ruby, Python 3, and ImageMagick.
+
+iOS build-settings discovery uses a 30-second timeout by default. Override it
+for slower environments by prefixing the command, for example:
+
+```bash
+FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT=60 scripts/screenshots/regenerate-comparisons
+```
