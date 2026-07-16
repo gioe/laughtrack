@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		01A3734A0000000000000001 /* AuthenticatedScreenshotPersona.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A3734A0000000000000011 /* AuthenticatedScreenshotPersona.swift */; };
+		01A3734A0000000000000002 /* AuthenticatedScreenshotPersonaTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A3734A0000000000000012 /* AuthenticatedScreenshotPersonaTests.swift */; };
 		02F5292558288AB4FA3DE54E /* SearchOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41925ABE34C9D35C075C67AA /* SearchOptions.swift */; };
 		03DB03946EACB4EC3CC920AD /* SearchFieldInputBehavior.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1FCFA6135148D9C41CD49A8 /* SearchFieldInputBehavior.swift */; };
 		03E5C3A13E13A63EDE0F87A0 /* AuthProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 613A6C65D3E6FDBC1FEE04C5 /* AuthProvider.swift */; };
@@ -380,6 +382,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		01A3734A0000000000000011 /* AuthenticatedScreenshotPersona.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticatedScreenshotPersona.swift; sourceTree = "<group>"; };
+		01A3734A0000000000000012 /* AuthenticatedScreenshotPersonaTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticatedScreenshotPersonaTests.swift; sourceTree = "<group>"; };
 		008683977BC9D75F1F750482 /* NotificationPreferenceStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationPreferenceStoreTests.swift; sourceTree = "<group>"; };
 		00935250DBF700278E692D7F /* PillSheetTrigger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PillSheetTrigger.swift; sourceTree = "<group>"; };
 		013C30ED4B343F94BCD7B193 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
@@ -692,6 +696,7 @@
 		0BB4CE2DAD4ACE080C47B71A /* LaughTrackTests */ = {
 			isa = PBXGroup;
 			children = (
+				01A3734A0000000000000012 /* AuthenticatedScreenshotPersonaTests.swift */,
 				412F8D40AC24BC4BCC958FFD /* APIClientConfigurationTests.swift */,
 				0E6C65B9D3165E104240C07E /* APIMockEncoder.swift */,
 				3F5A63806BF28FA2458ABDA5 /* APIZipLocationResolverTests.swift */,
@@ -936,6 +941,7 @@
 		60D274A90614E6596D6F336D /* LaughTrackApp */ = {
 			isa = PBXGroup;
 			children = (
+				01A3734A0000000000000011 /* AuthenticatedScreenshotPersona.swift */,
 				1C6A228D912DFFE3A74A36BB /* AppRoute.swift */,
 				4CF86F29E41E550F89B40A3E /* AppSettings.swift */,
 				B5E043BF19430E526D649ECA /* AppShellView.swift */,
@@ -1403,6 +1409,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				01A3734A0000000000000001 /* AuthenticatedScreenshotPersona.swift in Sources */,
 				92F47B2CCCE1D1296F3AE7BD /* AppRoute.swift in Sources */,
 				5A4285ADBE378CD0C587B7C7 /* AppSettings.swift in Sources */,
 				7BF5BA4980BD8A9267682209 /* AppShellView.swift in Sources */,
@@ -1575,6 +1582,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				01A3734A0000000000000002 /* AuthenticatedScreenshotPersonaTests.swift in Sources */,
 				F3C8EE9201D25C4B704F1B06 /* APIClientConfigurationTests.swift in Sources */,
 				7953953B4BE7765F645543A0 /* APIMockEncoder.swift in Sources */,
 				39AD5B489122169B7FDCAE19 /* APIZipLocationResolverTests.swift in Sources */,

@@ -2,6 +2,9 @@ package app.laughtrack.android
 
 import android.Manifest
 import android.os.SystemClock
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasSetTextAction
@@ -14,12 +17,19 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
+import androidx.test.espresso.Espresso.closeSoftKeyboard
 import androidx.test.platform.app.InstrumentationRegistry
+import app.laughtrack.android.core.navigation.AppRoute
+import app.laughtrack.android.core.playback.PodcastPlaybackController
+import app.laughtrack.android.core.playback.PodcastPlaybackItem
 import app.laughtrack.android.core.ui.components.RemoteImageTestTags
 import app.laughtrack.android.core.ui.theme.LaughTrackTheme
 import app.laughtrack.android.feature.detail.ui.CLUB_SHOW_ROW_TEST_TAG
 import app.laughtrack.android.feature.detail.ui.components.DETAIL_LOADING_TEST_TAG
 import app.laughtrack.android.feature.search.ui.SEARCH_RESULT_ROW_TEST_TAG
+import app.laughtrack.android.screenshots.AuthenticatedScreenshotPersona
 import app.laughtrack.android.screenshots.ScreenshotImageTracker
 import coil.Coil
 import coil.ImageLoader
@@ -33,7 +43,7 @@ import tools.fastlane.screengrab.UiAutomatorScreenshotStrategy
 import tools.fastlane.screengrab.locale.LocaleTestRule
 
 /**
- * Captures the nine Google Play listing screenshots, mirroring the iOS
+ * Captures the complete comparison screenshot set, mirroring the iOS
  * AppStoreScreenshotTests.swift set (ios/Tests/LaughTrackUITests). Driven by
  * fastlane screengrab via the `screenshots` lane (wired in TASK-3617); run it on a
  * booted emulator/device.
@@ -113,8 +123,23 @@ class AppStoreScreenshotTest {
 
     @Test
     fun captureAppStoreScreenshots() {
+        lateinit var navController: NavHostController
+        var screenshotPersona by mutableStateOf<AuthenticatedScreenshotPersona?>(null)
+        var showLoginPrompt by mutableStateOf(false)
+        val playbackController = PodcastPlaybackController(InstrumentationRegistry.getInstrumentation().targetContext)
         composeRule.setContent {
-            LaughTrackTheme { AppShell() }
+            navController = rememberNavController()
+            LaughTrackTheme {
+                AppShell(
+                    navController = navController,
+                    signedIn = screenshotPersona != null,
+                    hasFavorites = screenshotPersona != null,
+                    playbackController = playbackController,
+                    showLoginPrompt = showLoginPrompt,
+                    onLoginPromptDismiss = { showLoginPrompt = false },
+                    screenshotPersona = screenshotPersona,
+                )
+            }
         }
 
         // 01 — Near Me. The location controls live behind the header row's bottom
@@ -169,6 +194,16 @@ class AppStoreScreenshotTest {
         searchFor("Andrew Schulz")
         openFirstResult()
         capture("07_ComedianDetail")
+
+        // Render the real in-app prompt used by protected guest actions. No
+        // provider is clicked, so Custom Tabs / external OAuth never launches.
+        composeRule.runOnIdle { showLoginPrompt = true }
+        waitFor(hasText("Sign in to save favorites"))
+        listOf("Continue with Google", "Continue with Apple", "Email me a sign-in link").forEach { option ->
+            waitFor(hasText(option))
+        }
+        capture("18_AuthPrompt", dismissKeyboard = false)
+        composeRule.runOnIdle { showLoginPrompt = false }
         goBack()
 
         // 08 — Search / Podcasts.
@@ -179,6 +214,57 @@ class AppStoreScreenshotTest {
         searchFor("The D.L. Hughley Show")
         openFirstResult()
         capture("09_PodcastDetail")
+
+        navigate(navController, AppRoute.Profile)
+        waitFor(hasText("Guest mode"))
+        capture("11_Profile")
+
+        navigate(navController, AppRoute.ComedianOnboarding)
+        waitFor(hasText("Pick comedians to follow"), timeoutMs = 30_000)
+        capture("13_Onboarding")
+
+        composeRule.runOnIdle {
+            playbackController.seedForScreenshot(
+                PodcastPlaybackItem(
+                    episodeId = -1,
+                    podcastId = -1,
+                    podcastTitle = "LaughTrack",
+                    episodeTitle = "The LaughTrack Comedy Roundup",
+                    audioUrl = "https://example.invalid/demo.mp3",
+                    artworkUrl = null,
+                ),
+            )
+            navController.navigate(AppRoute.NowPlaying)
+        }
+        waitFor(hasText("The LaughTrack Comedy Roundup"))
+        capture("14_NowPlaying")
+
+        // Opt into the credentials-free persona explicitly for the populated
+        // authenticated screens, including the only valid Favorites state.
+        composeRule.runOnIdle {
+            playbackController.stop()
+            screenshotPersona = AuthenticatedScreenshotPersona
+        }
+
+        navigate(navController, AppRoute.Favorites())
+        waitFor(hasText("Taylor Tomlinson"))
+        capture("15_AuthenticatedFavorites")
+
+        navigate(navController, AppRoute.Profile)
+        waitFor(hasText("Jordan Rivera"))
+        capture("16_AuthenticatedProfile")
+
+        navigate(navController, AppRoute.NotificationCenter)
+        waitFor(hasText("Taylor Tomlinson has a show near you"))
+        capture("17_AuthenticatedNotifications")
+    }
+
+    private fun navigate(
+        navController: NavHostController,
+        route: AppRoute,
+    ) {
+        composeRule.runOnIdle { navController.navigate(route) }
+        settle()
     }
 
     /** Select a search pivot by its uppercased chip label and wait for its results. */
@@ -266,7 +352,16 @@ class AppStoreScreenshotTest {
     }
 
     /** Wait for live artwork requests and Coil decode before capture. */
-    private fun capture(name: String) {
+    private fun capture(
+        name: String,
+        dismissKeyboard: Boolean = true,
+    ) {
+        // Search and profile fields can retain focus after route changes. Screengrab
+        // captures the whole device, so an IME left open on one screen otherwise
+        // contaminates every screenshot that follows it.
+        if (dismissKeyboard) {
+            closeSoftKeyboard()
+        }
         settle()
         imageTracker.awaitIdle(timeoutMs = 30_000)
         waitUntilGone(hasTestTag(RemoteImageTestTags.SKELETON))

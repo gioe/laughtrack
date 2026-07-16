@@ -38,6 +38,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.network.generated.model.NotificationItem
+import app.laughtrack.android.core.network.generated.model.NotificationListResponseData
 import app.laughtrack.android.core.ui.UiState
 import java.time.ZonedDateTime
 
@@ -51,6 +52,43 @@ fun NotificationCenterScreen(
     LaunchedEffect(Unit) { viewModel.load() }
     val state by viewModel.state.collectAsStateWithLifecycle()
 
+    NotificationCenterContent(
+        state = state,
+        onOpenEntity = onOpenEntity,
+        onBack = onBack,
+        onRetry = viewModel::retry,
+        onCardTapped = viewModel::onCardTapped,
+    )
+}
+
+/** Render the real notification center from deterministic data without creating a Hilt ViewModel. */
+@Composable
+fun NotificationCenterScreen(
+    onOpenEntity: (AppRoute) -> Unit,
+    onBack: () -> Unit,
+    dataOverride: NotificationListResponseData,
+    referenceTime: ZonedDateTime,
+) {
+    NotificationCenterContent(
+        state = UiState.Success(dataOverride),
+        onOpenEntity = onOpenEntity,
+        onBack = onBack,
+        onRetry = {},
+        onCardTapped = {},
+        referenceTime = referenceTime,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun NotificationCenterContent(
+    state: UiState<NotificationListResponseData>,
+    onOpenEntity: (AppRoute) -> Unit,
+    onBack: () -> Unit,
+    onRetry: () -> Unit,
+    onCardTapped: (Int) -> Unit,
+    referenceTime: ZonedDateTime? = null,
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -65,7 +103,7 @@ fun NotificationCenterScreen(
     ) { padding ->
         val modifier = Modifier.padding(padding)
         when (val current = state) {
-            is UiState.Failure -> CenteredMessage("Couldn't load notifications.", viewModel::retry, modifier)
+            is UiState.Failure -> CenteredMessage("Couldn't load notifications.", onRetry, modifier)
             is UiState.Success ->
                 if (current.value.items.isEmpty()) {
                     CenteredMessage("No notifications yet.", null, modifier)
@@ -73,10 +111,11 @@ fun NotificationCenterScreen(
                     NotificationList(
                         items = current.value.items,
                         onCardTap = { route, analyticsShowId ->
-                            viewModel.onCardTapped(analyticsShowId)
+                            onCardTapped(analyticsShowId)
                             onOpenEntity(route)
                         },
                         modifier = modifier,
+                        referenceTime = referenceTime,
                     )
                 }
             else -> CenteredMessage("Loading…", null, modifier)
@@ -89,8 +128,9 @@ private fun NotificationList(
     items: List<NotificationItem>,
     onCardTap: (AppRoute, Int) -> Unit,
     modifier: Modifier,
+    referenceTime: ZonedDateTime? = null,
 ) {
-    val now = remember { ZonedDateTime.now() }
+    val now = remember(referenceTime) { referenceTime ?: ZonedDateTime.now() }
     LazyColumn(modifier.fillMaxSize()) {
         items(items, key = { it.id }) { item ->
             NotificationRow(item, now) { onCardTap(item.tapRoute(), item.analyticsShowId()) }

@@ -55,6 +55,7 @@ import app.laughtrack.android.feature.onboarding.ui.ComedianOnboardingScreen
 import app.laughtrack.android.feature.profile.LoginPromptSheet
 import app.laughtrack.android.feature.profile.ProfileScreen
 import app.laughtrack.android.feature.search.ui.SearchScreen
+import app.laughtrack.android.screenshots.AuthenticatedScreenshotPersona
 import kotlin.reflect.KClass
 
 /**
@@ -74,6 +75,7 @@ fun AppShell(
     playbackController: PodcastPlaybackController? = null,
     showLoginPrompt: Boolean = false,
     onLoginPromptDismiss: () -> Unit = {},
+    screenshotPersona: AuthenticatedScreenshotPersona? = null,
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
@@ -145,11 +147,21 @@ fun AppShell(
                     SearchScreen(onOpenEntity = navController::openEntity)
                 }
                 composable<AppRoute.Favorites> { entry ->
-                    LibraryScreen(
-                        signedIn = signedIn,
-                        scopedShowIds = entry.toRoute<AppRoute.Favorites>().showIds,
-                        onOpenProfile = { navController.openEntity(AppRoute.Profile) },
-                    )
+                    val scopedShowIds = entry.toRoute<AppRoute.Favorites>().showIds
+                    if (screenshotPersona == null) {
+                        LibraryScreen(
+                            signedIn = signedIn,
+                            scopedShowIds = scopedShowIds,
+                            onOpenProfile = { navController.openEntity(AppRoute.Profile) },
+                        )
+                    } else {
+                        LibraryScreen(
+                            signedIn = true,
+                            scopedShowIds = scopedShowIds,
+                            onOpenProfile = { navController.openEntity(AppRoute.Profile) },
+                            snapshotOverride = screenshotPersona.favoritesSnapshot,
+                        )
+                    }
                 }
                 composable<AppRoute.ComedianOnboarding> {
                     ComedianOnboardingScreen(
@@ -205,13 +217,26 @@ fun AppShell(
                 }
 
                 composable<AppRoute.Profile> {
-                    ProfileScreen()
+                    if (screenshotPersona == null) {
+                        ProfileScreen()
+                    } else {
+                        ProfileScreen(stateOverride = screenshotPersona.profileUiState)
+                    }
                 }
                 composable<AppRoute.NotificationCenter> {
-                    NotificationCenterScreen(
-                        onOpenEntity = navController::openEntity,
-                        onBack = { navController.popBackStack() },
-                    )
+                    if (screenshotPersona == null) {
+                        NotificationCenterScreen(
+                            onOpenEntity = navController::openEntity,
+                            onBack = { navController.popBackStack() },
+                        )
+                    } else {
+                        NotificationCenterScreen(
+                            onOpenEntity = navController::openEntity,
+                            onBack = { navController.popBackStack() },
+                            dataOverride = screenshotPersona.notificationListResponseData,
+                            referenceTime = screenshotPersona.notificationReferenceTime,
+                        )
+                    }
                 }
             }
 

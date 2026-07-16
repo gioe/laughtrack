@@ -96,6 +96,11 @@ class PodcastPlaybackController
             publishState()
         }
 
+        /** Seeds static Now Playing UI without starting Media3; screenshot tests only. */
+        fun seedForScreenshot(item: PodcastPlaybackItem) {
+            _state.value = PodcastPlaybackState(currentItem = item)
+        }
+
         fun togglePlayPause() {
             if (player.isPlaying) {
                 player.pause()

@@ -1,112 +1,177 @@
 #!/usr/bin/env python3
-"""Validate fresh, one-to-one iOS and Android store screenshot pairs."""
+"""Validate screenshot run manifests and emit adjacent cross-platform views."""
 
 from __future__ import annotations
 
 import argparse
 import json
-import struct
 import sys
+from datetime import datetime
 from pathlib import Path
+from typing import Any, Mapping, Sequence
 
 
-EXPECTED_KEYS = (
-    "01_NearMe",
-    "02_SearchShows",
-    "03_SearchComedians",
-    "04_SearchClubs",
-    "05_ClubDetail",
-    "06_ShowDetail",
-    "07_ComedianDetail",
-    "08_SearchPodcasts",
-    "09_PodcastDetail",
+REPO_ROOT = Path(__file__).resolve().parents[4]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from scripts.screenshots.manifest import (  # noqa: E402
+    ContractError,
+    SCENARIO_IDS,
+    load_catalog,
+    load_manifest,
+    validate_manifest,
 )
 
 
-def png_dimensions(path: Path) -> tuple[int, int]:
-    with path.open("rb") as image:
-        header = image.read(24)
-    if len(header) != 24 or header[:8] != b"\x89PNG\r\n\x1a\n":
-        raise ValueError("not a readable PNG")
-    return struct.unpack(">II", header[16:24])
+VIEW_PROFILES = {
+    "phone": ("ios_phone", "android_phone"),
+    "tablet": ("ios_large_tablet", "android_large_tablet", "android_small_tablet"),
+    "all": (
+        "ios_phone",
+        "android_phone",
+        "ios_large_tablet",
+        "android_large_tablet",
+        "android_small_tablet",
+    ),
+}
+IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg"}
 
 
-def capture_key(path: Path) -> str | None:
-    name = path.stem
-    for key in EXPECTED_KEYS:
-        if key in name:
-            return key
-    return None
+def parse_fresh_since(value: str) -> datetime:
+    """Parse a timezone-aware RFC 3339 freshness boundary."""
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("must be an RFC 3339 timestamp") from exc
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise argparse.ArgumentTypeError("must include a timezone offset")
+    return parsed
 
 
-def collect(directory: Path, fresh_since: float | None) -> tuple[dict[str, list[Path]], list[Path], list[Path]]:
-    grouped = {key: [] for key in EXPECTED_KEYS}
-    unexpected: list[Path] = []
-    stale: list[Path] = []
-    for path in sorted(directory.glob("*.png")):
-        key = capture_key(path)
-        if key is None:
-            unexpected.append(path)
-            continue
-        if fresh_since is not None and path.stat().st_mtime < fresh_since:
-            stale.append(path)
-            continue
-        grouped[key].append(path)
-    return grouped, unexpected, stale
-
-
-def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--repo-root", type=Path, default=Path.cwd())
-    parser.add_argument("--fresh-since", type=float)
-    args = parser.parse_args()
-
-    root = args.repo_root.resolve()
-    directories = {
-        "ios": root / "ios/fastlane/screenshots/en-US",
-        "android": root / "android/fastlane/metadata/android/en-US/images/phoneScreenshots",
+def _validate_run_files(run_root: Path, manifest: Mapping[str, Any], platform: str) -> None:
+    """Reject image files that exist in a normalized run but are undeclared."""
+    declared = {
+        image["path"]
+        for image in manifest["images"]
+        if isinstance(image, dict) and isinstance(image.get("path"), str)
     }
-    errors: list[str] = []
-    captures: dict[str, dict[str, list[Path]]] = {}
+    actual = {
+        path.relative_to(run_root).as_posix()
+        for path in run_root.rglob("*")
+        if path.is_file() and path.suffix.lower() in IMAGE_SUFFIXES
+    }
+    unexpected = sorted(actual - declared)
+    if unexpected:
+        raise ContractError([f"{platform}: unexpected captures: {', '.join(unexpected)}"])
 
-    for platform, directory in directories.items():
-        if not directory.is_dir():
-            errors.append(f"{platform}: output directory does not exist: {directory}")
-            continue
-        grouped, unexpected, stale = collect(directory, args.fresh_since)
-        captures[platform] = grouped
-        if unexpected:
-            errors.append(f"{platform}: unexpected PNGs: {', '.join(path.name for path in unexpected)}")
-        if stale:
-            errors.append(f"{platform}: stale PNGs: {', '.join(path.name for path in stale)}")
-        for key, paths in grouped.items():
-            if len(paths) != 1:
-                errors.append(f"{platform}: expected exactly one {key} capture, found {len(paths)}")
 
-    manifest: list[dict[str, object]] = []
-    if not errors:
-        for key in EXPECTED_KEYS:
-            row: dict[str, object] = {"key": key}
-            for platform in ("ios", "android"):
-                path = captures[platform][key][0]
-                try:
-                    width, height = png_dimensions(path)
-                except (OSError, ValueError) as exc:
-                    errors.append(f"{platform}: {path.name}: {exc}")
-                    continue
-                row[platform] = {
-                    "path": str(path),
-                    "width": width,
-                    "height": height,
+def build_view(
+    *,
+    ios_manifest_path: Path,
+    android_manifest_path: Path,
+    catalog_path: Path,
+    fresh_since: datetime | None,
+    view: str,
+    scenario: str | None,
+) -> dict[str, Any]:
+    """Validate two completed runs and return an ordered comparison view."""
+    catalog = load_catalog(catalog_path)
+    manifests: dict[str, tuple[Path, dict[str, Any]]] = {}
+    expected_profiles = {
+        platform: {
+            profile["id"] for profile in catalog["profiles"] if profile["platform"] == platform
+        }
+        for platform in ("ios", "android")
+    }
+
+    for platform, manifest_path in (
+        ("ios", ios_manifest_path),
+        ("android", android_manifest_path),
+    ):
+        resolved_manifest = manifest_path.resolve()
+        run_root = resolved_manifest.parent
+        manifest = load_manifest(resolved_manifest)
+        validate_manifest(
+            manifest,
+            catalog,
+            repo_root=run_root,
+            fresh_since=fresh_since,
+        )
+        actual_profiles = set(manifest["profiles"])
+        if actual_profiles != expected_profiles[platform]:
+            raise ContractError(
+                [
+                    f"{platform}: manifest profiles do not describe a complete {platform} run: "
+                    f"expected={sorted(expected_profiles[platform])}, "
+                    f"actual={sorted(actual_profiles)}"
+                ]
+            )
+        _validate_run_files(run_root, manifest, platform)
+        manifests[platform] = (run_root, manifest)
+
+    revisions = {manifest["git_revision"] for _, manifest in manifests.values()}
+    if len(revisions) != 1:
+        raise ContractError(["iOS and Android run manifests must record the same Git revision"])
+
+    indexed: dict[tuple[str, str], tuple[Path, Mapping[str, Any]]] = {}
+    for run_root, manifest in manifests.values():
+        for image in manifest["images"]:
+            indexed[(image["profile_id"], image["scenario_id"])] = (run_root, image)
+
+    scenario_ids = [scenario] if scenario else list(SCENARIO_IDS)
+    groups = []
+    for scenario_id in scenario_ids:
+        images = []
+        for profile_id in VIEW_PROFILES[view]:
+            run_root, image = indexed[(profile_id, scenario_id)]
+            images.append(
+                {
+                    "profile_id": profile_id,
+                    "platform": image["platform"],
+                    "form_factor": image["form_factor"],
+                    "path": str((run_root / image["path"]).resolve()),
+                    "width": image["width"],
+                    "height": image["height"],
                 }
-            manifest.append(row)
+            )
+        groups.append({"scenario_id": scenario_id, "images": images})
 
-    if errors:
-        for error in errors:
+    return {
+        "view": view,
+        "scenario": scenario,
+        "git_revision": revisions.pop(),
+        "groups": groups,
+    }
+
+
+def _build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--ios-manifest", type=Path, required=True)
+    parser.add_argument("--android-manifest", type=Path, required=True)
+    parser.add_argument("--catalog", type=Path, default=Path("screenshots/catalog.json"))
+    parser.add_argument("--fresh-since", type=parse_fresh_since, required=True)
+    parser.add_argument("--view", choices=tuple(VIEW_PROFILES), default="phone")
+    parser.add_argument("--scenario", choices=SCENARIO_IDS)
+    return parser
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    args = _build_parser().parse_args(argv)
+    try:
+        result = build_view(
+            ios_manifest_path=args.ios_manifest,
+            android_manifest_path=args.android_manifest,
+            catalog_path=args.catalog,
+            fresh_since=args.fresh_since,
+            view=args.view,
+            scenario=args.scenario,
+        )
+    except ContractError as exc:
+        for error in exc.errors:
             print(f"ERROR: {error}", file=sys.stderr)
         return 1
-
-    print(json.dumps({"pairs": manifest}, indent=2))
+    print(json.dumps(result, indent=2))
     return 0
 
 

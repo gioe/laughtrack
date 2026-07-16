@@ -73,6 +73,52 @@
         "source_scenario_id": "08_SearchPodcasts",
         "selection": "first_result"
       }
+    },
+    {
+      "id": "11_Profile",
+      "locale": "en-US",
+      "timezone": "America/Los_Angeles",
+      "capture_context": { "screen": "profile", "auth_state": "guest" }
+    },
+    {
+      "id": "13_Onboarding",
+      "locale": "en-US",
+      "timezone": "America/Los_Angeles",
+      "capture_context": { "screen": "comedian_onboarding", "state": "initial" }
+    },
+    {
+      "id": "14_NowPlaying",
+      "locale": "en-US",
+      "timezone": "America/Los_Angeles",
+      "capture_context": { "screen": "now_playing", "content": "deterministic_demo_episode" }
+    },
+    {
+      "id": "15_AuthenticatedFavorites",
+      "locale": "en-US",
+      "timezone": "America/Los_Angeles",
+      "capture_context": { "screen": "favorites", "auth_state": "authenticated", "persona": "screenshot-persona" }
+    },
+    {
+      "id": "16_AuthenticatedProfile",
+      "locale": "en-US",
+      "timezone": "America/Los_Angeles",
+      "capture_context": { "screen": "profile", "auth_state": "authenticated", "persona": "screenshot-persona" }
+    },
+    {
+      "id": "17_AuthenticatedNotifications",
+      "locale": "en-US",
+      "timezone": "America/Los_Angeles",
+      "capture_context": { "screen": "notifications", "auth_state": "authenticated", "persona": "screenshot-persona" }
+    },
+    {
+      "id": "18_AuthPrompt",
+      "locale": "en-US",
+      "timezone": "America/Los_Angeles",
+      "capture_context": {
+        "screen": "auth_prompt",
+        "auth_state": "guest",
+        "presentation": "in_app_modal"
+      }
     }
   ],
   "profiles": [

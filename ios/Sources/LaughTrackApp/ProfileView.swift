@@ -12,6 +12,7 @@ struct ProfileView: View {
     let apiClient: Client
     let signedOutMessage: String?
     let nearbyLocationController: NearbyLocationController
+    let screenshotPersona: AuthenticatedScreenshotPersona?
 
     @EnvironmentObject private var authManager: AuthManager
     @Environment(\.appTheme) private var theme
@@ -29,11 +30,13 @@ struct ProfileView: View {
         notificationPreferenceSyncClient: (any NotificationPreferenceSyncing)? = nil,
         pushTokenManager: (any PushDeviceTokenManaging)? = nil,
         profileLocationPreferenceSyncClient: (any ProfileLocationPreferenceSyncing)? = nil,
-        analytics: (any AnalyticsManagerProtocol)? = nil
+        analytics: (any AnalyticsManagerProtocol)? = nil,
+        screenshotPersona: AuthenticatedScreenshotPersona? = nil
     ) {
         self.apiClient = apiClient
         self.signedOutMessage = signedOutMessage
         self.nearbyLocationController = nearbyLocationController
+        self.screenshotPersona = screenshotPersona
         _settingsModel = StateObject(
             wrappedValue: SettingsNearbyPreferenceModel(
                 nearbyLocationController: nearbyLocationController,
@@ -57,10 +60,10 @@ struct ProfileView: View {
             VStack(alignment: .leading, spacing: tokens.spacing.sectionGap) {
                 profileCard
 
-                if authManager.currentSession == nil, let signedOutMessage {
+                if !isSignedIn, let signedOutMessage {
                     LaughTrackAuthMessageCard(message: signedOutMessage)
                 }
-                if let authenticatedUser = authManager.currentUser {
+                if let authenticatedUser = displayedUser {
                     ProfileSettingsSection(
                         authenticatedUser: authenticatedUser,
                         nearbyModel: settingsModel,
@@ -91,8 +94,8 @@ struct ProfileView: View {
         .profileNavigationTitleDisplayMode()
         .modifier(LaughTrackNavigationChrome(background: .clear))
         .onAppear {
-            refreshProfileLocation(from: authManager.currentUser)
-            refreshNotificationPreferences(from: authManager.currentUser)
+            refreshProfileLocation(from: displayedUser)
+            refreshNotificationPreferences(from: displayedUser)
         }
         .onChange(of: authManager.currentUser) { user in
             refreshProfileLocation(from: user)
@@ -119,13 +122,11 @@ struct ProfileView: View {
     // name with the sign-in options beneath.
     private var profileCard: some View {
         let laughTrack = theme.laughTrackTokens
-        let isSignedIn = authManager.currentSession != nil
-
         return LaughTrackCard(tone: .muted) {
             VStack(alignment: .leading, spacing: laughTrack.spacing.clusterGap) {
                 HStack(alignment: .center, spacing: theme.spacing.md) {
                     LaughTrackAvatar(
-                        style: .url(authManager.currentUser?.avatarURL, fallback: isSignedIn ? "person.crop.circle.fill" : "person.crop.circle.badge.plus"),
+                        style: .url(displayedUser?.avatarURL, fallback: isSignedIn ? "person.crop.circle.fill" : "person.crop.circle.badge.plus"),
                         size: 44,
                         highlighted: true
                     )
@@ -196,7 +197,15 @@ struct ProfileView: View {
     }
 
     private var heroTitle: String {
-        Self.makeHeroTitle(user: authManager.currentUser, session: authManager.currentSession)
+        Self.makeHeroTitle(user: displayedUser, session: authManager.currentSession)
+    }
+
+    private var displayedUser: AuthenticatedUser? {
+        screenshotPersona?.user ?? authManager.currentUser
+    }
+
+    private var isSignedIn: Bool {
+        screenshotPersona != nil || authManager.currentSession != nil
     }
 
     // Pure helpers extracted from instance computed properties so ProfileViewTests

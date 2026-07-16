@@ -87,18 +87,22 @@ final class RecordingPushAnalyticsManager: AnalyticsManagerProtocol {
 
     private(set) var events: [Recorded] = []
 
-    func addProvider(_ provider: AnalyticsProvider) {}
+    nonisolated func addProvider(_ provider: AnalyticsProvider) {}
 
-    func track(_ event: AnalyticsEvent) {
-        events.append(Recorded(name: event.name, parameters: event.parameters))
+    nonisolated func track(_ event: AnalyticsEvent) {
+        MainActor.assumeIsolated {
+            events.append(Recorded(name: event.name, parameters: event.parameters))
+        }
     }
 
-    func track(_ name: String, parameters: [String: Any]?) {
-        events.append(Recorded(name: name, parameters: parameters))
+    nonisolated func track(_ name: String, parameters: [String: Any]?) {
+        MainActor.assumeIsolated {
+            events.append(Recorded(name: name, parameters: parameters))
+        }
     }
 
-    func trackScreen(_ name: String, parameters: [String: Any]?) {}
-    func setUserProperty(_ value: String?, forName name: String) {}
-    func setUserID(_ userID: String?) {}
-    func reset() {}
+    nonisolated func trackScreen(_ name: String, parameters: [String: Any]?) {}
+    nonisolated func setUserProperty(_ value: String?, forName name: String) {}
+    nonisolated func setUserID(_ userID: String?) {}
+    nonisolated func reset() {}
 }

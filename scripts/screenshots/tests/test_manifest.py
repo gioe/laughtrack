@@ -105,7 +105,7 @@ def test_completed_platform_run_records_and_validates_every_image(
     tmp_path: Path, catalog: dict, completed_run: dict
 ) -> None:
     validate_manifest(completed_run, catalog, repo_root=tmp_path)
-    assert len(completed_run["images"]) == 27
+    assert len(completed_run["images"]) == 48
 
 
 def test_png_dimensions_reads_ihdr(tmp_path: Path) -> None:
@@ -126,7 +126,7 @@ def test_manifest_requires_every_form_factor_for_selected_platform(
     tmp_path: Path, catalog: dict, completed_run: dict
 ) -> None:
     completed_run["profiles"] = ["android_phone"]
-    completed_run["images"] = completed_run["images"][:9]
+    completed_run["images"] = completed_run["images"][:18]
     with pytest.raises(ContractError, match="every form factor"):
         validate_manifest(completed_run, catalog, repo_root=tmp_path)
 
@@ -242,7 +242,7 @@ def test_manifest_enforces_freshness_boundary(
 
 def test_cli_validates_catalog(capsys: pytest.CaptureFixture[str]) -> None:
     assert main(["validate-catalog", "--catalog", str(CATALOG_PATH)]) == 0
-    assert "valid catalog: 9 scenarios" in capsys.readouterr().out
+    assert "valid catalog: 16 scenarios" in capsys.readouterr().out
 
 
 def test_cli_plan_emits_canonical_profile_scenario_order(
@@ -263,9 +263,42 @@ def test_cli_plan_emits_canonical_profile_scenario_order(
         == 0
     )
     plan = json.loads(capsys.readouterr().out)
-    assert len(plan) == 18
+    assert len(plan) == 32
     assert plan[0] == {"profile_id": "ios_phone", "scenario_id": "01_NearMe"}
-    assert plan[-1] == {"profile_id": "ios_large_tablet", "scenario_id": "09_PodcastDetail"}
+    assert plan[-1] == {
+        "profile_id": "ios_large_tablet",
+        "scenario_id": "18_AuthPrompt",
+    }
+
+
+def test_catalog_keeps_valid_guest_authenticated_and_auth_prompt_scenarios_distinct(catalog: dict) -> None:
+    contexts = {scenario["id"]: scenario["capture_context"] for scenario in catalog["scenarios"]}
+
+    assert "10_Favorites" not in contexts
+    assert contexts["15_AuthenticatedFavorites"] == {
+        "screen": "favorites",
+        "auth_state": "authenticated",
+        "persona": "screenshot-persona",
+    }
+    assert "12_Notifications" not in contexts
+    assert contexts["17_AuthenticatedNotifications"] == {
+        "screen": "notifications",
+        "auth_state": "authenticated",
+        "persona": "screenshot-persona",
+    }
+
+    assert contexts["11_Profile"]["auth_state"] == "guest"
+    assert contexts["16_AuthenticatedProfile"] == {
+        "screen": contexts["11_Profile"]["screen"],
+        "auth_state": "authenticated",
+        "persona": "screenshot-persona",
+    }
+
+    assert contexts["18_AuthPrompt"] == {
+        "screen": "auth_prompt",
+        "auth_state": "guest",
+        "presentation": "in_app_modal",
+    }
 
 
 def test_cli_plan_rejects_partial_platform_matrix(

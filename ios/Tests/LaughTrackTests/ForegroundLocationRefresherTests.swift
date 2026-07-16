@@ -162,12 +162,12 @@ private final class SpySyncClient: ProfileLocationPreferenceSyncing, @unchecked 
     private var _calls: [SyncCall] = []
 
     var calls: [SyncCall] {
-        lock.lock(); defer { lock.unlock() }
-        return _calls
+        lock.withLock { _calls }
     }
 
     func setProfileLocation(zipCode: String?, distanceMiles: Int?) async throws {
-        lock.lock(); defer { lock.unlock() }
-        _calls.append(SyncCall(zipCode: zipCode, distanceMiles: distanceMiles))
+        lock.withLock {
+            _calls.append(SyncCall(zipCode: zipCode, distanceMiles: distanceMiles))
+        }
     }
 }

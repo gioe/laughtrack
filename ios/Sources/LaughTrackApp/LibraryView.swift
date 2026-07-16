@@ -13,6 +13,7 @@ struct LibraryView: View {
     /// Show ids from a notification tap; scopes the touring section (empty = all).
     let scopedShowIDs: [Int]
     let searchNavigationBridge: SearchNavigationBridge
+    let screenshotPersona: AuthenticatedScreenshotPersona?
 
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var favorites: ComedianFavoriteStore
@@ -24,12 +25,14 @@ struct LibraryView: View {
         apiClient: Client,
         selectedPrimitive: SearchRootModel.Pivot? = nil,
         scopedShowIDs: [Int] = [],
-        searchNavigationBridge: SearchNavigationBridge
+        searchNavigationBridge: SearchNavigationBridge,
+        screenshotPersona: AuthenticatedScreenshotPersona? = nil
     ) {
         self.apiClient = apiClient
         self.selectedPrimitive = selectedPrimitive
         self.scopedShowIDs = scopedShowIDs
         self.searchNavigationBridge = searchNavigationBridge
+        self.screenshotPersona = screenshotPersona
     }
 
     var body: some View {
@@ -37,7 +40,9 @@ struct LibraryView: View {
 
         ScrollView {
             VStack(alignment: .leading, spacing: tokens.browseDensity.shelfGap) {
-                if authManager.currentSession != nil {
+                if let screenshotPersona {
+                    AuthenticatedFavoritesSnapshot(persona: screenshotPersona)
+                } else if authManager.currentSession != nil {
                     FavoritePrimitiveSections(
                         apiClient: apiClient,
                         selectedPrimitive: selectedPrimitive,
@@ -62,6 +67,55 @@ struct LibraryView: View {
         .background(LaughTrackAtmosphereBackground().ignoresSafeArea())
         .navigationTitle(Self.title)
         .modifier(LaughTrackNavigationChrome(background: .clear))
+    }
+}
+
+private struct AuthenticatedFavoritesSnapshot: View {
+    let persona: AuthenticatedScreenshotPersona
+
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        let tokens = theme.laughTrackTokens
+        VStack(alignment: .leading, spacing: tokens.browseDensity.shelfGap) {
+            TeaserSection(
+                eyebrow: "Favorites",
+                title: "Your favorites are touring",
+                subtitle: "Upcoming shows from comedians you follow."
+            ) {
+                LaughTrackCard {
+                    VStack(alignment: .leading, spacing: tokens.spacing.tight) {
+                        ForEach(persona.favoriteShows, id: \.title) { show in
+                            TeaserRow(
+                                title: show.title,
+                                subtitle: show.detail,
+                                systemImage: "calendar",
+                                isPlaceholder: false
+                            )
+                        }
+                    }
+                }
+            }
+
+            TeaserSection(
+                eyebrow: "Comedians",
+                title: "Saved comedians",
+                subtitle: "We'll keep their nearby dates in one place."
+            ) {
+                LaughTrackCard {
+                    VStack(alignment: .leading, spacing: tokens.spacing.tight) {
+                        ForEach(persona.favoriteComedians, id: \.self) { name in
+                            TeaserRow(
+                                title: name,
+                                subtitle: "Following · notifications on",
+                                systemImage: "person.fill",
+                                isPlaceholder: false
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -293,6 +347,8 @@ private struct TeaserSection<Content: View>: View {
 private struct TeaserRow: View {
     let title: String
     let subtitle: String
+    var systemImage: String? = nil
+    var isPlaceholder = true
 
     @Environment(\.appTheme) private var theme
 
@@ -300,18 +356,24 @@ private struct TeaserRow: View {
         let tokens = theme.laughTrackTokens
 
         HStack(spacing: theme.spacing.sm) {
-            RoundedRectangle(cornerRadius: 8)
-                .fill(tokens.colors.textSecondary.opacity(0.15))
-                .frame(width: 40, height: 40)
+            ZStack {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(tokens.colors.textSecondary.opacity(0.15))
+                if let systemImage {
+                    Image(systemName: systemImage)
+                        .foregroundStyle(tokens.colors.accent)
+                }
+            }
+            .frame(width: 40, height: 40)
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .font(tokens.typography.cardTitle)
-                    .foregroundStyle(tokens.colors.textPrimary.opacity(0.6))
-                    .redacted(reason: .placeholder)
+                    .foregroundStyle(tokens.colors.textPrimary.opacity(isPlaceholder ? 0.6 : 1))
+                    .redacted(reason: isPlaceholder ? .placeholder : [])
                 Text(subtitle)
                     .font(tokens.typography.metadata)
-                    .foregroundStyle(tokens.colors.textSecondary.opacity(0.6))
-                    .redacted(reason: .placeholder)
+                    .foregroundStyle(tokens.colors.textSecondary.opacity(isPlaceholder ? 0.6 : 1))
+                    .redacted(reason: isPlaceholder ? .placeholder : [])
             }
             Spacer(minLength: 0)
         }

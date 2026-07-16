@@ -259,7 +259,7 @@ bundle exec fastlane upload_metadata version_code:42        # generate + upload 
 The `production` lane performs both automatically before promotion. The `internal`
 lane intentionally skips all listing metadata for a fast test-track upload.
 
-**Store-listing screenshots.** The nine canonical scenarios are captured for phone,
+**Store-listing screenshots.** The full comparison catalog is captured for phone,
 7-inch tablet, and 10-inch tablet profiles the same way iOS generates its App Store
 set — an instrumented UI test captures them and `supply` uploads curated Play-safe
 subsets, rather than managing them by hand in the Play Console:
@@ -270,7 +270,7 @@ bundle exec fastlane upload_screenshots     # supply pushes the captured images 
 bundle exec fastlane screenshots_and_upload # both in one step (mirrors the iOS lane)
 ```
 
-The `production` lane regenerates the complete 27-image matrix and uploads the curated
+The `production` lane regenerates the complete 51-image comparison matrix and uploads the curated
 Play-safe subsets together with the listing text and release notes before promoting the
 validated internal build, matching the iOS `beta` / `release` split.
 

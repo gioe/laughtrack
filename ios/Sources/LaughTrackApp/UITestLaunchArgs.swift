@@ -63,4 +63,17 @@ enum UITestLaunchArgs {
     /// simulator's persisted cadence and in-app notification preference state.
     /// Release builds never read it.
     static let forceSoftPushPrompt = "FORCE_SOFT_PUSH_PROMPT"
+
+    /// DEBUG-only screenshot seam that exposes the guest Favorites tab and
+    /// seeds a deterministic podcast episode for the Now Playing capture.
+    static let forceComparisonScreens = "UITEST_FORCE_COMPARISON_SCREENS"
+
+    /// Renders the credentials-free authenticated screenshot persona. This
+    /// never installs tokens or calls a production authentication endpoint.
+    static let authenticatedScreenshotPersona = "UITEST_AUTHENTICATED_SCREENSHOT_PERSONA"
+
+    /// Presents the real in-app login modal without selecting a provider.
+    /// This avoids external OAuth and makes comparison captures deterministic
+    /// across phone and tablet interaction models.
+    static let forceLoginPrompt = "UITEST_FORCE_LOGIN_PROMPT"
 }

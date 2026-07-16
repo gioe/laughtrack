@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 import pytest
+import time_machine
 
 from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.ports.scraping import EventListContainer
@@ -97,6 +98,7 @@ def test_extract_events_skips_past_and_invalid_rows():
     assert [event.title for event in events] == ["Future Show"]
 
 
+@time_machine.travel("2026-07-06T12:00:00Z", tick=False)
 def test_extract_events_localizes_naive_start_to_club_timezone():
     events = WixFunctionsShowsExtractor.extract_events(
         {"shows": [_raw_show(start_local="2026-07-10T20:00:00")]},

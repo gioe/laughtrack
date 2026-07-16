@@ -214,6 +214,13 @@ struct ContentView: View {
         .task {
             await authManager.restoreSessionIfNeeded()
         }
+        .onAppear {
+            #if DEBUG
+            if ProcessInfo.processInfo.environment[UITestLaunchArgs.forceLoginPrompt] == "1" {
+                loginModalPresenter.present()
+            }
+            #endif
+        }
         .onReceive(authManager.$state) { state in
             if case .authenticated = state {
                 // Signing in resolves the first-entry choice, so a later sign-out
@@ -364,10 +371,14 @@ struct ContentView: View {
                     notificationPreferenceSyncClient: serviceContainer.resolveOptional((any NotificationPreferenceSyncing).self),
                     pushTokenManager: serviceContainer.resolveOptional((any PushDeviceTokenManaging).self),
                     profileLocationPreferenceSyncClient: serviceContainer.resolveOptional((any ProfileLocationPreferenceSyncing).self),
-                    analytics: serviceContainer.resolveOptional(AnalyticsManagerProtocol.self)
+                    analytics: serviceContainer.resolveOptional(AnalyticsManagerProtocol.self),
+                    screenshotPersona: AuthenticatedScreenshotPersona.active
                 )
             case .notifications:
-                NotificationCenterView(apiClient: apiClient)
+                NotificationCenterView(
+                    apiClient: apiClient,
+                    screenshotItems: AuthenticatedScreenshotPersona.active?.notifications
+                )
             case .showDetail(let id):
                 ShowDetailView(showID: id, apiClient: apiClient)
             case .comedianDetail(let id):
@@ -404,6 +415,22 @@ struct ContentView: View {
         .environmentObject(podcastPlayer)
         .environmentObject(serviceContainer.resolve(SoftPushPromptCoordinator.self))
         #if DEBUG
+        .task {
+            guard ProcessInfo.processInfo.environment[UITestLaunchArgs.forceComparisonScreens] == "1",
+                  podcastPlayer.currentItem == nil
+            else { return }
+            podcastPlayer.start(PodcastPlaybackItem(
+                id: -1,
+                episodeTitle: "The LaughTrack Comedy Roundup",
+                podcastName: "LaughTrack",
+                podcastImageURL: nil,
+                displayRole: "Episode",
+                audioURL: nil,
+                episodeURL: nil,
+                failedAudioURL: nil,
+                releaseDate: "Today"
+            ))
+        }
         .task {
             await DebugSimulatedFavoriteHook.fireIfRequested(
                 coordinator: serviceContainer.resolve(SoftPushPromptCoordinator.self)

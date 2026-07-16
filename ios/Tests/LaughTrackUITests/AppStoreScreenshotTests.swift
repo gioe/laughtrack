@@ -1,7 +1,7 @@
 import SharedKitTesting
 import XCTest
 
-/// UI test that captures App Store screenshots in sequence.
+/// UI test that captures the complete comparison screenshot set in sequence.
 ///
 /// Driven by fastlane's `snapshot` tool via the `screenshots` lane:
 /// `bundle exec fastlane screenshots`
@@ -104,6 +104,50 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         )
         sleep(5)
         snapshot("09_PodcastDetail")
+
+        relaunch(route: "profile:0")
+        assertExists("laughtrack.profile-tab.screen", message: "Expected Profile screen")
+        snapshot("11_Profile")
+
+        relaunch(environment: [UITestLaunchArgs.forceComedianOnboardingScreen: "1"])
+        assertExists("laughtrack.onboarding.screen", message: "Expected onboarding screen")
+        sleep(3)
+        snapshot("13_Onboarding")
+
+        relaunch(comparisonScreens: true)
+        let miniPlayer = element("laughtrack.podcast-mini-player")
+        XCTAssertTrue(miniPlayer.waitForExistence(timeout: 10), "Expected seeded podcast mini player")
+        miniPlayer.coordinate(withNormalizedOffset: CGVector(dx: 0.35, dy: 0.5)).tap()
+        assertExists("laughtrack.now-playing-screen", message: "Expected Now Playing screen")
+        snapshot("14_NowPlaying")
+
+        relaunch(route: "favorites:0", authenticatedPersona: true)
+        assertExists("laughtrack.favorites-tab.screen", message: "Expected authenticated Favorites screen")
+        snapshot("15_AuthenticatedFavorites")
+
+        relaunch(route: "profile:0", authenticatedPersona: true)
+        assertExists("laughtrack.profile-tab.screen", message: "Expected authenticated Profile screen")
+        snapshot("16_AuthenticatedProfile")
+
+        relaunch(route: "notifications:0", authenticatedPersona: true)
+        assertExists("laughtrack.notifications.screen", message: "Expected authenticated Notifications screen")
+        snapshot("17_AuthenticatedNotifications")
+
+        // Use the real production login sheet through a DEBUG-only launch
+        // seam. Provider buttons remain untouched, so external OAuth is never
+        // part of the deterministic comparison run.
+        relaunch(
+            route: "profile:0",
+            environment: [UITestLaunchArgs.forceLoginPrompt: "1"]
+        )
+        XCTAssertTrue(
+            app.staticTexts["Pick up where you left off"].waitForExistence(timeout: 10),
+            "Expected in-app auth prompt"
+        )
+        for option in ["Continue with Apple", "Continue with Google", "Email me a sign-in link"] {
+            XCTAssertTrue(app.buttons[option].exists, "Expected auth option: \(option)")
+        }
+        snapshot("18_AuthPrompt")
     }
 
     private func tapPrimitive(_ primitive: String) {
@@ -135,6 +179,32 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         sleep(5)
         tapSearchTab()
         sleep(2)
+    }
+
+    private func relaunch(
+        route: String? = nil,
+        comparisonScreens: Bool = false,
+        authenticatedPersona: Bool = false,
+        environment: [String: String] = [:]
+    ) {
+        app.terminate()
+        app.launchEnvironment.removeValue(forKey: "LAUNCHTRACK_DEBUG_ROUTE")
+        app.launchEnvironment.removeValue(forKey: UITestLaunchArgs.forceComparisonScreens)
+        app.launchEnvironment.removeValue(forKey: UITestLaunchArgs.forceComedianOnboardingScreen)
+        app.launchEnvironment.removeValue(forKey: UITestLaunchArgs.authenticatedScreenshotPersona)
+        app.launchEnvironment.removeValue(forKey: UITestLaunchArgs.forceLoginPrompt)
+        if let route {
+            app.launchEnvironment["LAUNCHTRACK_DEBUG_ROUTE"] = route
+        }
+        if comparisonScreens {
+            app.launchEnvironment[UITestLaunchArgs.forceComparisonScreens] = "1"
+        }
+        if authenticatedPersona {
+            app.launchEnvironment[UITestLaunchArgs.authenticatedScreenshotPersona] = "1"
+        }
+        environment.forEach { app.launchEnvironment[$0.key] = $0.value }
+        app.launch()
+        sleep(5)
     }
 
     private func tapFirstResult(
