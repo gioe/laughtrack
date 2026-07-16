@@ -202,7 +202,7 @@ class AppStoreScreenshotTest {
         listOf("Continue with Google", "Continue with Apple", "Email me a sign-in link").forEach { option ->
             waitFor(hasText(option))
         }
-        capture("18_AuthPrompt")
+        capture("18_AuthPrompt", dismissKeyboard = false)
         composeRule.runOnIdle { showLoginPrompt = false }
         goBack()
 
@@ -360,11 +360,16 @@ class AppStoreScreenshotTest {
     }
 
     /** Wait for live artwork requests and Coil decode before capture. */
-    private fun capture(name: String) {
+    private fun capture(
+        name: String,
+        dismissKeyboard: Boolean = true,
+    ) {
         // Search and profile fields can retain focus after route changes. Screengrab
         // captures the whole device, so an IME left open on one screen otherwise
         // contaminates every screenshot that follows it.
-        closeSoftKeyboard()
+        if (dismissKeyboard) {
+            closeSoftKeyboard()
+        }
         settle()
         imageTracker.awaitIdle(timeoutMs = 30_000)
         waitUntilGone(hasTestTag(RemoteImageTestTags.SKELETON))
