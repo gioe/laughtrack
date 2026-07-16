@@ -105,10 +105,6 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         sleep(5)
         snapshot("09_PodcastDetail")
 
-        relaunch(route: "favorites:0", comparisonScreens: true)
-        assertExists("laughtrack.favorites-tab.screen", message: "Expected Favorites screen")
-        snapshot("10_Favorites")
-
         relaunch(route: "profile:0")
         assertExists("laughtrack.profile-tab.screen", message: "Expected Profile screen")
         snapshot("11_Profile")

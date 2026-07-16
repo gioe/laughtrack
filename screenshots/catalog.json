@@ -75,12 +75,6 @@
       }
     },
     {
-      "id": "10_Favorites",
-      "locale": "en-US",
-      "timezone": "America/Los_Angeles",
-      "capture_context": { "screen": "favorites", "auth_state": "guest" }
-    },
-    {
       "id": "11_Profile",
       "locale": "en-US",
       "timezone": "America/Los_Angeles",

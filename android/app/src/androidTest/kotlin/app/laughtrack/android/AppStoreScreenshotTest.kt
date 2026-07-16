@@ -215,10 +215,6 @@ class AppStoreScreenshotTest {
         openFirstResult()
         capture("09_PodcastDetail")
 
-        navigate(navController, AppRoute.Favorites())
-        waitFor(hasText("Sign in to see your favorites"))
-        capture("10_Favorites")
-
         navigate(navController, AppRoute.Profile)
         waitFor(hasText("Guest mode"))
         capture("11_Profile")
@@ -247,8 +243,8 @@ class AppStoreScreenshotTest {
         waitFor(hasText("The LaughTrack Comedy Roundup"))
         capture("14_NowPlaying")
 
-        // Keep the guest catalog above intact, then opt into the credentials-free
-        // persona explicitly for equivalent populated authenticated screens.
+        // Opt into the credentials-free persona explicitly for the populated
+        // authenticated screens, including the only valid Favorites state.
         composeRule.runOnIdle {
             playbackController.stop()
             screenshotPersona = AuthenticatedScreenshotPersona

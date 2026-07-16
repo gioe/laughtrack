@@ -25,7 +25,6 @@ SCENARIO_IDS = (
     "07_ComedianDetail",
     "08_SearchPodcasts",
     "09_PodcastDetail",
-    "10_Favorites",
     "11_Profile",
     "12_Notifications",
     "13_Onboarding",
