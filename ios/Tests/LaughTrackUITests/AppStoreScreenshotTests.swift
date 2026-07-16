@@ -153,7 +153,7 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         // enter the shell. Suppress that one seed and capture the real root gate.
         relaunch(environment: [UITestLaunchArgs.forceFirstEntryAuthChoice: "1"])
         assertExists(
-            LaughTrackViewTestID.firstEntryAuthChoiceScreen,
+            "laughtrack.auth-choice.screen",
             message: "Expected full-screen first-entry auth choice"
         )
         for option in ["Continue as guest", "Continue with Apple", "Continue with Google", "Email me a sign-in link"] {
