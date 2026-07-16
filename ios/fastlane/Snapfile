@@ -35,7 +35,7 @@ launch_arguments(["-UITestMockMode"])
 
 stop_after_first_error(true)
 
-# Don't erase — avoids full SPM re-resolution
+# The Fastfile clears LaughTrack's installed app state before snapshot launches.
 erase_simulator(false)
 
 # Run devices sequentially to avoid resource contention

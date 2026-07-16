@@ -16,7 +16,6 @@ import UIKit
 struct ShowsListChromeVisibility: Equatable {
     let compactMode: Bool
     var displaysSearchFields = true
-
     var showsSearchFields: Bool { !compactMode && displaysSearchFields }
     var showsSortControl: Bool { !compactMode }
     var showsFilterControl: Bool { !compactMode }

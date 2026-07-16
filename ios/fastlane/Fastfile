@@ -344,8 +344,33 @@ platform :ios do
     end
   end
 
+  # Start the Snapfile device and remove the installed app so its one-hour home
+  # feed cache cannot leak into a new store capture. Uninstalling only LaughTrack
+  # preserves the booted simulator's OS state and avoids the several-minute data
+  # migration triggered by a full simulator erase.
+  def boot_screenshot_simulator
+    require "json"
+
+    devices = JSON.parse(sh("xcrun simctl list devices available -j", log: false))
+                  .fetch("devices")
+                  .values
+                  .flatten
+    device = devices.find { |candidate| candidate["name"] == "iPhone 16 Pro Max" }
+    UI.user_error!("No available 'iPhone 16 Pro Max' simulator found. Install the configured Xcode runtime before running screenshots.") if device.nil?
+
+    UI.message("Booting iOS screenshot simulator #{device['udid']}…")
+    sh("xcrun simctl bootstatus #{device['udid']} -b")
+    UI.message("Clearing persisted LaughTrack screenshot state…")
+    system(
+      "xcrun", "simctl", "uninstall", device["udid"], "app.laughtrack.ios",
+      out: File::NULL,
+      err: File::NULL
+    )
+  end
+
   desc "Capture a complete iOS matrix, validate its run manifest, and export the App Store projection"
   lane :screenshots do
+    boot_screenshot_simulator
     patch_snapshot_destination_for_18_3_1
     Dir.mktmpdir("laughtrack-ios-screenshots") do |tmpdir|
       capture_root = File.join(tmpdir, "capture")

@@ -83,10 +83,13 @@ enum HomeFeedRequest {
         persistentCache: PersistentMainPageCache?
     ) async -> Result<Components.Schemas.HomeFeed, LoadFailure> {
         do {
+            let timezone = MockModeDetector.isMockMode
+                ? "America/Los_Angeles"
+                : TimeZone.autoupdatingCurrent.identifier
             let output = try await apiClient.getHomeFeed(
                 .init(
                     query: .init(zip: zipCode, distance: zipCode == nil ? nil : distanceMiles),
-                    headers: .init(xTimezone: TimeZone.autoupdatingCurrent.identifier)
+                    headers: .init(xTimezone: timezone)
                 )
             )
 

@@ -241,6 +241,12 @@ struct SearchRootViewTests {
         #expect(full.showsFilterControl)
         #expect(full.showsDateControl)
 
+        let unifiedRootChild = ShowsListChromeVisibility(compactMode: false, displaysSearchFields: false)
+        #expect(!unifiedRootChild.showsSearchFields)
+        #expect(unifiedRootChild.showsSortControl)
+        #expect(unifiedRootChild.showsFilterControl)
+        #expect(unifiedRootChild.showsDateControl)
+
         // The date control stays visible in compact mode and reflects the
         // default active "Today" range that the date pill renders.
         let model = ShowsListModel(
