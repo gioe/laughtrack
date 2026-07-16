@@ -121,6 +121,16 @@
       "locale": "en-US",
       "timezone": "America/Los_Angeles",
       "capture_context": { "screen": "notifications", "auth_state": "authenticated", "persona": "screenshot-persona" }
+    },
+    {
+      "id": "18_AuthPrompt",
+      "locale": "en-US",
+      "timezone": "America/Los_Angeles",
+      "capture_context": {
+        "screen": "auth_prompt",
+        "auth_state": "guest",
+        "presentation": "in_app_modal"
+      }
     }
   ],
   "profiles": [

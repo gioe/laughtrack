@@ -105,7 +105,7 @@ def test_completed_platform_run_records_and_validates_every_image(
     tmp_path: Path, catalog: dict, completed_run: dict
 ) -> None:
     validate_manifest(completed_run, catalog, repo_root=tmp_path)
-    assert len(completed_run["images"]) == 51
+    assert len(completed_run["images"]) == 54
 
 
 def test_png_dimensions_reads_ihdr(tmp_path: Path) -> None:
@@ -126,7 +126,7 @@ def test_manifest_requires_every_form_factor_for_selected_platform(
     tmp_path: Path, catalog: dict, completed_run: dict
 ) -> None:
     completed_run["profiles"] = ["android_phone"]
-    completed_run["images"] = completed_run["images"][:17]
+    completed_run["images"] = completed_run["images"][:18]
     with pytest.raises(ContractError, match="every form factor"):
         validate_manifest(completed_run, catalog, repo_root=tmp_path)
 
@@ -242,7 +242,7 @@ def test_manifest_enforces_freshness_boundary(
 
 def test_cli_validates_catalog(capsys: pytest.CaptureFixture[str]) -> None:
     assert main(["validate-catalog", "--catalog", str(CATALOG_PATH)]) == 0
-    assert "valid catalog: 17 scenarios" in capsys.readouterr().out
+    assert "valid catalog: 18 scenarios" in capsys.readouterr().out
 
 
 def test_cli_plan_emits_canonical_profile_scenario_order(
@@ -263,15 +263,15 @@ def test_cli_plan_emits_canonical_profile_scenario_order(
         == 0
     )
     plan = json.loads(capsys.readouterr().out)
-    assert len(plan) == 34
+    assert len(plan) == 36
     assert plan[0] == {"profile_id": "ios_phone", "scenario_id": "01_NearMe"}
     assert plan[-1] == {
         "profile_id": "ios_large_tablet",
-        "scenario_id": "17_AuthenticatedNotifications",
+        "scenario_id": "18_AuthPrompt",
     }
 
 
-def test_catalog_keeps_guest_and_authenticated_persona_scenarios_distinct(catalog: dict) -> None:
+def test_catalog_keeps_guest_authenticated_and_auth_prompt_scenarios_distinct(catalog: dict) -> None:
     contexts = {scenario["id"]: scenario["capture_context"] for scenario in catalog["scenarios"]}
 
     for guest_id, authenticated_id in (
@@ -285,6 +285,12 @@ def test_catalog_keeps_guest_and_authenticated_persona_scenarios_distinct(catalo
             "auth_state": "authenticated",
             "persona": "screenshot-persona",
         }
+
+    assert contexts["18_AuthPrompt"] == {
+        "screen": "auth_prompt",
+        "auth_state": "guest",
+        "presentation": "in_app_modal",
+    }
 
 
 def test_cli_plan_rejects_partial_platform_matrix(
