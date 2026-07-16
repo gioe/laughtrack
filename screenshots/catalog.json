@@ -81,12 +81,6 @@
       "capture_context": { "screen": "profile", "auth_state": "guest" }
     },
     {
-      "id": "12_Notifications",
-      "locale": "en-US",
-      "timezone": "America/Los_Angeles",
-      "capture_context": { "screen": "notifications", "auth_state": "guest" }
-    },
-    {
       "id": "13_Onboarding",
       "locale": "en-US",
       "timezone": "America/Los_Angeles",

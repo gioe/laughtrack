@@ -219,10 +219,6 @@ class AppStoreScreenshotTest {
         waitFor(hasText("Guest mode"))
         capture("11_Profile")
 
-        navigate(navController, AppRoute.NotificationCenter)
-        waitFor(hasText("Notifications"))
-        capture("12_Notifications")
-
         navigate(navController, AppRoute.ComedianOnboarding)
         waitFor(hasText("Pick comedians to follow"), timeoutMs = 30_000)
         capture("13_Onboarding")

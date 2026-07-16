@@ -130,7 +130,7 @@ def test_collection_serializes_normalized_validated_manifest(tmp_path: Path) -> 
 
     assert manifest["status"] == "completed"
     assert manifest["profiles"] == ["ios_phone", "ios_large_tablet"]
-    assert len(manifest["images"]) == 34
+    assert len(manifest["images"]) == 32
     assert manifest["images"][0]["path"] == "images/ios_phone/01_NearMe.png"
     assert all(Path(image["path"]).name == f"{image['scenario_id']}.png" for image in manifest["images"])
 

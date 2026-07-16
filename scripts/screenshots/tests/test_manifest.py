@@ -105,7 +105,7 @@ def test_completed_platform_run_records_and_validates_every_image(
     tmp_path: Path, catalog: dict, completed_run: dict
 ) -> None:
     validate_manifest(completed_run, catalog, repo_root=tmp_path)
-    assert len(completed_run["images"]) == 51
+    assert len(completed_run["images"]) == 48
 
 
 def test_png_dimensions_reads_ihdr(tmp_path: Path) -> None:
@@ -242,7 +242,7 @@ def test_manifest_enforces_freshness_boundary(
 
 def test_cli_validates_catalog(capsys: pytest.CaptureFixture[str]) -> None:
     assert main(["validate-catalog", "--catalog", str(CATALOG_PATH)]) == 0
-    assert "valid catalog: 17 scenarios" in capsys.readouterr().out
+    assert "valid catalog: 16 scenarios" in capsys.readouterr().out
 
 
 def test_cli_plan_emits_canonical_profile_scenario_order(
@@ -263,7 +263,7 @@ def test_cli_plan_emits_canonical_profile_scenario_order(
         == 0
     )
     plan = json.loads(capsys.readouterr().out)
-    assert len(plan) == 34
+    assert len(plan) == 32
     assert plan[0] == {"profile_id": "ios_phone", "scenario_id": "01_NearMe"}
     assert plan[-1] == {
         "profile_id": "ios_large_tablet",
@@ -280,17 +280,19 @@ def test_catalog_keeps_valid_guest_authenticated_and_auth_prompt_scenarios_disti
         "auth_state": "authenticated",
         "persona": "screenshot-persona",
     }
+    assert "12_Notifications" not in contexts
+    assert contexts["17_AuthenticatedNotifications"] == {
+        "screen": "notifications",
+        "auth_state": "authenticated",
+        "persona": "screenshot-persona",
+    }
 
-    for guest_id, authenticated_id in (
-        ("11_Profile", "16_AuthenticatedProfile"),
-        ("12_Notifications", "17_AuthenticatedNotifications"),
-    ):
-        assert contexts[guest_id]["auth_state"] == "guest"
-        assert contexts[authenticated_id] == {
-            "screen": contexts[guest_id]["screen"],
-            "auth_state": "authenticated",
-            "persona": "screenshot-persona",
-        }
+    assert contexts["11_Profile"]["auth_state"] == "guest"
+    assert contexts["16_AuthenticatedProfile"] == {
+        "screen": contexts["11_Profile"]["screen"],
+        "auth_state": "authenticated",
+        "persona": "screenshot-persona",
+    }
 
     assert contexts["18_AuthPrompt"] == {
         "screen": "auth_prompt",

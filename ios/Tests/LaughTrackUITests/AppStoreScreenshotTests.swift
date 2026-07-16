@@ -109,10 +109,6 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         assertExists("laughtrack.profile-tab.screen", message: "Expected Profile screen")
         snapshot("11_Profile")
 
-        relaunch(route: "notifications:0")
-        assertExists("laughtrack.notifications.screen", message: "Expected Notifications screen")
-        snapshot("12_Notifications")
-
         relaunch(environment: [UITestLaunchArgs.forceComedianOnboardingScreen: "1"])
         assertExists("laughtrack.onboarding.screen", message: "Expected onboarding screen")
         sleep(3)
