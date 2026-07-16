@@ -90,10 +90,14 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         // intentionally outside the deterministic comparison corpus.
         // Detail content can contain additional offscreen favorite controls.
         // Restrict the semantic query to the visible sticky-chrome action.
-        let addFavorite = app.buttons.matching(
-            NSPredicate(format: "label == %@ AND hittable == true", "Add favorite")
-        ).firstMatch
-        XCTAssertTrue(addFavorite.waitForExistence(timeout: 10), "Expected guest favorite action")
+        let favoriteButtons = app.buttons.matching(
+            NSPredicate(format: "label == %@", "Add favorite")
+        )
+        XCTAssertTrue(favoriteButtons.firstMatch.waitForExistence(timeout: 10), "Expected guest favorite action")
+        let addFavorite = try XCTUnwrap(
+            favoriteButtons.allElementsBoundByIndex.first(where: \.isHittable),
+            "Expected a visible guest favorite action"
+        )
         addFavorite.tap()
         XCTAssertTrue(
             app.staticTexts["Pick up where you left off"].waitForExistence(timeout: 10),
