@@ -70,6 +70,9 @@ class MainActivity : ComponentActivity() {
     private val signedIn = mutableStateOf(false)
     private val hasFavorites = mutableStateOf(false)
     private val showLoginPrompt = mutableStateOf(false)
+    private val sessionRestoreCompleted = mutableStateOf(false)
+    private val hasResolvedFirstEntryChoice = mutableStateOf(false)
+    private lateinit var firstEntryAuthChoiceStore: FirstEntryAuthChoiceStore
 
     // POST_NOTIFICATIONS runtime prompt (Android 13+). Registered at construction
     // so it is available before the activity is STARTED. Logs the OS-prompt result
@@ -89,6 +92,8 @@ class MainActivity : ComponentActivity() {
             navigationBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
         )
         PushNotifications.ensureChannel(this)
+        firstEntryAuthChoiceStore = FirstEntryAuthChoiceStore.create(this)
+        hasResolvedFirstEntryChoice.value = firstEntryAuthChoiceStore.hasResolvedFirstEntryChoice
         // Seed deep-link routing / auth-callback handling only on a fresh start; a
         // config-change recreation re-delivers the launch Intent and must not
         // re-navigate or re-handle the original link (3258). onNewIntent covers
@@ -100,15 +105,32 @@ class MainActivity : ComponentActivity() {
         setContent {
             LaughTrackTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    AppShell(
-                        pendingRoute = pendingRoute,
-                        onRouteConsumed = { pendingRoute = null },
-                        signedIn = signedIn.value,
-                        hasFavorites = hasFavorites.value,
-                        playbackController = playbackController,
-                        showLoginPrompt = showLoginPrompt.value,
-                        onLoginPromptDismiss = { loginPromptController.dismiss() },
-                    )
+                    when (
+                        firstEntryRootSurface(
+                            sessionRestoreCompleted = sessionRestoreCompleted.value,
+                            signedIn = signedIn.value,
+                            hasResolvedFirstEntryChoice = hasResolvedFirstEntryChoice.value,
+                        )
+                    ) {
+                        FirstEntryRootSurface.Loading -> FirstEntryLoadingScreen()
+                        FirstEntryRootSurface.AuthChoice ->
+                            FirstEntryAuthChoiceScreen(
+                                onContinueAsGuest = {
+                                    firstEntryAuthChoiceStore.continueAsGuest()
+                                    hasResolvedFirstEntryChoice.value = true
+                                },
+                            )
+                        FirstEntryRootSurface.AppShell ->
+                            AppShell(
+                                pendingRoute = pendingRoute,
+                                onRouteConsumed = { pendingRoute = null },
+                                signedIn = signedIn.value,
+                                hasFavorites = hasFavorites.value,
+                                playbackController = playbackController,
+                                showLoginPrompt = showLoginPrompt.value,
+                                onLoginPromptDismiss = { loginPromptController.dismiss() },
+                            )
+                    }
                 }
             }
         }
@@ -155,7 +177,11 @@ class MainActivity : ComponentActivity() {
             authSessionManager.signedIn.collectLatest { isSignedIn ->
                 signedIn.value = isSignedIn
                 // A completed sign-in resolves any open prompt.
-                if (isSignedIn) loginPromptController.dismiss()
+                if (isSignedIn) {
+                    firstEntryAuthChoiceStore.markSignedIn()
+                    hasResolvedFirstEntryChoice.value = true
+                    loginPromptController.dismiss()
+                }
                 // Load (or clear) favorites at the shell level so the Favorites tab's
                 // visibility is known before the user ever visits it — mirrors iOS
                 // AppShellView's auth-keyed favorites task.
@@ -178,7 +204,11 @@ class MainActivity : ComponentActivity() {
     private fun handleAuthRedirect(callbackUrl: String) {
         lifecycleScope.launch {
             when (authSessionManager.handleCallback(callbackUrl)) {
-                is AuthCallbackResult.Authenticated -> refreshSignedInUser()
+                is AuthCallbackResult.Authenticated -> {
+                    firstEntryAuthChoiceStore.markSignedIn()
+                    hasResolvedFirstEntryChoice.value = true
+                    refreshSignedInUser()
+                }
                 is AuthCallbackResult.Error -> signedIn.value = false
                 AuthCallbackResult.Ignored -> Unit
             }
@@ -189,11 +219,16 @@ class MainActivity : ComponentActivity() {
         val hasSession = authSessionManager.restoreSession() != null
         signedIn.value = hasSession
         if (hasSession) {
-            // Sync the FCM token while authenticated (no-ops without a Firebase
-            // project), and prompt for the notification permission on Android 13+.
-            maybeRequestNotificationPermission()
-            pushTokenManager.syncCurrentToken()
+            firstEntryAuthChoiceStore.markSignedIn()
+            hasResolvedFirstEntryChoice.value = true
         }
+        sessionRestoreCompleted.value = true
+        if (!hasSession) return
+
+        // Sync the FCM token while authenticated (no-ops without a Firebase
+        // project), and prompt for the notification permission on Android 13+.
+        maybeRequestNotificationPermission()
+        pushTokenManager.syncCurrentToken()
         authSessionManager.getMe().onSuccess { response ->
             // Cache the admin role so admin-only UI (the Show-ID badge) can gate on it
             // without re-fetching /me per screen.
