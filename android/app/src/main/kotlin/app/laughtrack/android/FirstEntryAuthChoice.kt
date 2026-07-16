@@ -187,12 +187,13 @@ private fun FirstEntryAuthChoiceContent(
                     "Find your next laugh",
                     style = MaterialTheme.typography.displaySmall,
                     fontWeight = FontWeight.Black,
+                    color = Color.White,
                     textAlign = TextAlign.Center,
                 )
                 Text(
                     "Tonight's lineups, hometown clubs, and the comics you follow — all in one place.",
                     style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = Color.White.copy(alpha = 0.72f),
                     textAlign = TextAlign.Center,
                 )
 
@@ -210,7 +211,7 @@ private fun FirstEntryAuthChoiceContent(
                     Text(
                         "or sign in to sync favorites & alerts",
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = Color.White.copy(alpha = 0.65f),
                     )
                     HorizontalDivider(modifier = Modifier.weight(1f), color = Color.White.copy(alpha = 0.2f))
                 }
