@@ -3,6 +3,7 @@ package app.laughtrack.android
 import android.content.Context
 import android.net.Uri
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -42,6 +44,7 @@ import app.laughtrack.android.core.ui.components.LaughTrackAtmosphereBackground
 import app.laughtrack.android.feature.profile.ProfileViewModel
 
 internal const val FIRST_ENTRY_AUTH_CHOICE_TEST_TAG = "first-entry-auth-choice"
+internal const val FIRST_ENTRY_BRAND_LOGO_CONTENT_DESCRIPTION = "LaughTrack microphone logo"
 
 /** Root surfaces shown while the app resolves its first-entry authentication choice. */
 internal enum class FirstEntryRootSurface {
@@ -150,21 +153,11 @@ private fun FirstEntryAuthChoiceContent(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
-                Box(
-                    modifier =
-                        Modifier
-                            .size(104.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primaryContainer),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        "LT",
-                        style = MaterialTheme.typography.displaySmall,
-                        fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
-                }
+                Image(
+                    painter = painterResource(R.mipmap.ic_launcher_foreground),
+                    contentDescription = FIRST_ENTRY_BRAND_LOGO_CONTENT_DESCRIPTION,
+                    modifier = Modifier.size(136.dp),
+                )
 
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     repeat(5) { index ->
