@@ -503,7 +503,7 @@ export default function AdminPodcastHostshipReviewManager({
     async function save(
         group: PodcastReviewGroup,
         hostOverride?: ComedianOption | null,
-        denyListed = false,
+        denyListed?: boolean,
     ) {
         const reason = notes[group.key]?.trim() ?? "";
         const host =
@@ -517,7 +517,7 @@ export default function AdminPodcastHostshipReviewManager({
                       (cohost) => cohost.id !== host?.id,
                   );
         const effectiveDenyListed =
-            denyListed || (host === null && cohosts.length === 0);
+            denyListed ?? (host === null && cohosts.length === 0);
         setStatus({ kind: "idle" });
         setPendingKey(group.key);
 
@@ -559,7 +559,9 @@ export default function AdminPodcastHostshipReviewManager({
             message: effectiveDenyListed
                 ? `${group.podcast.title} rejected and deny-listed.`
                 : host === null
-                  ? `${group.podcast.title} approved with co-host only.`
+                  ? cohosts.length > 0
+                      ? `${group.podcast.title} approved with co-host only.`
+                      : `${group.podcast.title} restored without a host.`
                   : `${group.podcast.title} approved with ${host.name} as host.`,
         });
         setSelectedHosts((prev) => ({
@@ -1175,21 +1177,46 @@ export default function AdminPodcastHostshipReviewManager({
                                                       Deny-list podcast
                                                   </Button>
                                                   {isDenied && (
-                                                      <Button
-                                                          type="button"
-                                                          variant="outline"
-                                                          className="border-copper-dark bg-white !text-copper-dark hover:bg-copper-dark hover:!text-white disabled:border-gray-300 disabled:bg-gray-100 disabled:!text-soft-charcoal disabled:opacity-100"
-                                                          onClick={() =>
-                                                              void save(group)
-                                                          }
-                                                          disabled={
-                                                              disabled ||
-                                                              !selectedHost
-                                                          }
-                                                          aria-label={`Restore ${group.podcast.title} with host`}
-                                                      >
-                                                          Restore with host
-                                                      </Button>
+                                                      <>
+                                                          <Button
+                                                              type="button"
+                                                              variant="outline"
+                                                              className="border-copper-dark bg-white !text-copper-dark hover:bg-copper-dark hover:!text-white disabled:border-gray-300 disabled:bg-gray-100 disabled:!text-soft-charcoal disabled:opacity-100"
+                                                              onClick={() =>
+                                                                  void save(
+                                                                      group,
+                                                                      null,
+                                                                      false,
+                                                                  )
+                                                              }
+                                                              disabled={
+                                                                  disabled
+                                                              }
+                                                              aria-label={`Restore ${group.podcast.title} without host`}
+                                                          >
+                                                              Restore without
+                                                              host
+                                                          </Button>
+                                                          <Button
+                                                              type="button"
+                                                              variant="outline"
+                                                              className="border-copper-dark bg-white !text-copper-dark hover:bg-copper-dark hover:!text-white disabled:border-gray-300 disabled:bg-gray-100 disabled:!text-soft-charcoal disabled:opacity-100"
+                                                              onClick={() =>
+                                                                  void save(
+                                                                      group,
+                                                                      undefined,
+                                                                      false,
+                                                                  )
+                                                              }
+                                                              disabled={
+                                                                  disabled ||
+                                                                  !selectedHost
+                                                              }
+                                                              aria-label={`Restore ${group.podcast.title} with host`}
+                                                          >
+                                                              Restore with host
+                                                          </Button>
+                                                      </>
                                                   )}
                                                   <Button
                                                       type="button"

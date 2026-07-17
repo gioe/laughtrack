@@ -602,6 +602,53 @@ describe("AdminPodcastHostshipReviewManager", () => {
         });
     });
 
+    it("restores a deny-listed podcast without assigning a host", async () => {
+        render(
+            <AdminPodcastHostshipReviewManager
+                candidates={[
+                    {
+                        ...candidate,
+                        podcast: {
+                            ...candidate.podcast!,
+                            denyListEntry: {
+                                id: 5,
+                                reason: "Not comedy",
+                                deniedAt: "2026-05-18T12:00:00.000Z",
+                                deniedBy: "profile-1",
+                            },
+                        },
+                    },
+                ]}
+            />,
+        );
+
+        openGroup(/The Jane Show/);
+        fireEvent.click(
+            screen.getByRole("button", {
+                name: "Restore The Jane Show without host",
+            }),
+        );
+
+        await waitFor(() => {
+            expect(global.fetch).toHaveBeenCalledWith(
+                "/api/admin/podcast-hostship-reviews",
+                expect.objectContaining({
+                    method: "POST",
+                    body: JSON.stringify({
+                        podcastId: 99,
+                        hostComedianIds: [],
+                        cohostComedianIds: [],
+                        denyListed: false,
+                        reason: "",
+                    }),
+                }),
+            );
+        });
+        expect(
+            await screen.findByText("The Jane Show restored without a host."),
+        ).toBeTruthy();
+    });
+
     it("can search for and add a different host", async () => {
         vi.mocked(global.fetch)
             .mockResolvedValueOnce({
