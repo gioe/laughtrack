@@ -69,19 +69,6 @@ struct ProfileView: View {
                         nearbyModel: settingsModel,
                         notificationModel: notificationModel
                     )
-                } else {
-                    #if DEBUG
-                    ProfileSettingsSection(
-                        authenticatedUser: AuthenticatedUser(
-                            userId: "design-preview-user-id",
-                            displayName: "Guest preview",
-                            email: "design-preview@example.invalid",
-                            avatarURL: nil
-                        ),
-                        nearbyModel: settingsModel,
-                        notificationModel: notificationModel
-                    )
-                    #endif
                 }
             }
             .padding(.horizontal, theme.spacing.lg)

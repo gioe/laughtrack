@@ -26,9 +26,9 @@ struct ProfileViewTests {
     func signedOutAuthStateProducesGuestHero() async throws {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "profile-signed-out")
 
-        // ProfileView.body branches on these — both nil means the account card
-        // and ProfileSettingsSection are not rendered, replacing the original
-        // "settings panel hidden" assertions.
+        // ProfileView.body branches on these — both nil select the guest account
+        // card. Guest settings visibility is verified visually because hosted
+        // SwiftUI accessibility traversal is unavailable on current runtimes.
         #expect(authManager.currentSession == nil)
         #expect(authManager.currentUser == nil)
 
