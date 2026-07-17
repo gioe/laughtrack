@@ -201,7 +201,7 @@ private fun ShowMarqueeHero(
 ) {
     val heroComedian = showDetailHeroComedian(show)
     val heroImage = showDetailHeroImageUrl(show)
-    Box(
+    Column(
         Modifier
             .fillMaxWidth()
             .background(
@@ -240,7 +240,7 @@ private fun ShowMarqueeHero(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(top = 108.dp, start = 16.dp, end = 16.dp, bottom = 18.dp),
+                    .padding(start = 16.dp, end = 16.dp, bottom = 18.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {

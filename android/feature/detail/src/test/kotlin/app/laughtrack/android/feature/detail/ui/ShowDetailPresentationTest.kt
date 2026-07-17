@@ -58,6 +58,16 @@ class ShowDetailPresentationTest {
     }
 
     @Test
+    fun long_show_title_is_preserved_for_multiline_layout() {
+        val longTitle = "Sean Patton, Mike Yard, Terry Thomas Jr., Erin Maguire + Surprise Guest"
+
+        assertEquals(
+            longTitle,
+            showDetailDisplayTitle(show(name = longTitle, lineup = emptyList())),
+        )
+    }
+
+    @Test
     fun lineup_role_badge_trims_and_omits_blank_roles() {
         assertEquals("Headliner", showLineupRoleBadge(comedian(1, "Comic", role = " Headliner ")))
         assertNull(showLineupRoleBadge(comedian(2, "Comic", role = " ")))
