@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+#
+# lane — run any Android fastlane lane without the boilerplate.
+#
+# Removes the two things you'd otherwise retype every time:
+#   • cd android  — this script locates android/ relative to itself, so run it
+#                   from anywhere in the repo.
+#   • PATH tweak — fastlane's pinned bundler (4.0.8) is not installed on the
+#                   system Ruby 2.6 that macOS puts first on PATH; it lives on
+#                   Homebrew Ruby. We prepend that here.
+#
+# Play credentials and signing material are NOT handled here — fastlane loads
+# local values from android/fastlane/.env, while CI provides them as environment
+# variables (see android/fastlane/.env.example).
+#
+# Usage (from anywhere in the repo):
+#   android/bin/lane internal
+#   android/bin/lane internal bump:minor
+#   android/bin/lane production rollout:0.1
+#   android/bin/lane test
+#   android/bin/lane lanes
+#
+set -euo pipefail
+
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+android_dir="$(cd "$script_dir/.." && pwd)"
+
+# --- Homebrew Ruby (fastlane's bundler 4.0.8 is absent from system Ruby 2.6) ---
+homebrew_ruby_bin="$(brew --prefix ruby 2>/dev/null || true)/bin"
+if [ ! -x "$homebrew_ruby_bin/ruby" ]; then
+  homebrew_ruby_bin="/opt/homebrew/opt/ruby/bin" # fallback: default Apple-silicon install path
+fi
+if [ ! -x "$homebrew_ruby_bin/ruby" ]; then
+  echo "error: Homebrew Ruby not found (looked in $homebrew_ruby_bin)." >&2
+  echo "       Install it with:  brew install ruby" >&2
+  exit 1
+fi
+export PATH="$homebrew_ruby_bin:$PATH"
+
+if [ "$#" -eq 0 ]; then
+  echo "usage: android/bin/lane <lane> [key:value ...]"
+  echo "examples:"
+  echo "  android/bin/lane internal"
+  echo "  android/bin/lane internal bump:minor"
+  echo "  android/bin/lane production rollout:0.1"
+  echo "  android/bin/lane test"
+  echo "  android/bin/lane lanes        # list all lanes"
+  exit 0
+fi
+
+cd "$android_dir"
+exec bundle exec fastlane "$@"
