@@ -49,6 +49,10 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         assertFirstResult(identifierPrefix: "laughtrack.clubs-search.result-", description: "club")
         snapshot("04_SearchClubs")
 
+        searchFor(
+            "New York Comedy Club Midtown",
+            resultIdentifierPrefix: "laughtrack.clubs-search.result-"
+        )
         tapFirstResult(
             identifierPrefix: "laughtrack.clubs-search.result-",
             detailIdentifier: Identifier.clubDetailScreen,
@@ -57,9 +61,8 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         sleep(3)
         snapshot("05_ClubDetail")
 
-        // The canonical Show Detail scenario is sourced from the first result
-        // of Search Shows, independently of whichever club was captured above.
-        relaunchOnSearchTab()
+        // Keep Show Detail tied to the same club fixture on both platforms.
+        // ClubDetailView's pinned calendar reuses the shows-search row IDs.
         tapFirstResult(
             identifierPrefix: "laughtrack.shows-search.result-",
             detailIdentifier: Identifier.showDetailScreen,
@@ -97,6 +100,10 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         assertFirstResult(identifierPrefix: "laughtrack.podcasts-search.result-", description: "podcast")
         snapshot("08_SearchPodcasts")
 
+        searchFor(
+            "The D.L. Hughley Show",
+            resultIdentifierPrefix: "laughtrack.podcasts-search.result-"
+        )
         tapFirstResult(
             identifierPrefix: "laughtrack.podcasts-search.result-",
             detailIdentifier: Identifier.podcastDetailScreen,
@@ -185,6 +192,14 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         search.tap()
     }
 
+    private func searchFor(_ query: String, resultIdentifierPrefix: String) {
+        let field = element("laughtrack.search.field")
+        XCTAssertTrue(field.waitForExistence(timeout: 10), "Expected global search field")
+        field.tap()
+        field.typeText(query)
+        assertFirstResult(identifierPrefix: resultIdentifierPrefix, description: query)
+    }
+
     private func relaunchOnSearchTab() {
         app.terminate()
         app.launch()
@@ -227,6 +242,9 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
     ) {
         let result = firstResult(identifierPrefix: identifierPrefix)
         XCTAssertTrue(result.waitForExistence(timeout: 15), "Expected first \(description) result")
+        for _ in 0..<3 where !result.isHittable {
+            app.swipeUp()
+        }
         XCTAssertTrue(result.isHittable, "Expected first \(description) result to be hittable")
         result.tap()
         assertExists(detailIdentifier, message: "Expected \(description) detail")

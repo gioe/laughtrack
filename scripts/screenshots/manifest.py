@@ -45,6 +45,44 @@ PLATFORMS = {"ios", "android"}
 FORM_FACTORS = {"phone", "small_tablet", "large_tablet"}
 GIT_REVISION_RE = re.compile(r"[0-9a-f]{40}\Z")
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
+FIXTURE_CAPTURE_CONTEXTS: Mapping[str, Mapping[str, Any]] = {
+    "05_ClubDetail": {
+        "screen": "club_detail",
+        "source_scenario_id": "04_SearchClubs",
+        "query": "New York Comedy Club Midtown",
+        "selection": "first_result",
+    },
+    "06_ShowDetail": {
+        "screen": "show_detail",
+        "source_scenario_id": "05_ClubDetail",
+        "selection": "first_upcoming_show",
+    },
+    "09_PodcastDetail": {
+        "screen": "podcast_detail",
+        "source_scenario_id": "08_SearchPodcasts",
+        "query": "The D.L. Hughley Show",
+        "selection": "first_result",
+    },
+    "15_AuthenticatedFavorites": {
+        "screen": "favorites",
+        "auth_state": "authenticated",
+        "persona": "screenshot-persona",
+        "saved_categories": ["shows", "comedians", "clubs", "podcasts"],
+        "saved_entities": {
+            "shows": ["Taylor Tomlinson Live", "Sam Jay Live"],
+            "comedians": ["Taylor Tomlinson", "Sam Jay"],
+            "clubs": ["The Comedy Cellar"],
+            "podcasts": ["Good One: A Podcast About Jokes"],
+        },
+    },
+    "18_AuthPrompt": {
+        "screen": "auth_prompt",
+        "auth_state": "guest",
+        "presentation": "in_app_modal",
+        "background_screen": "profile",
+        "trigger": "deterministic_test_seam",
+    },
+}
 
 
 class ContractError(ValueError):
@@ -107,6 +145,11 @@ def validate_catalog(catalog: Any) -> None:
             context = scenario.get("capture_context")
             if not isinstance(context, dict) or not context:
                 errors.append(f"{prefix}.capture_context must be a non-empty object")
+            expected_context = FIXTURE_CAPTURE_CONTEXTS.get(scenario.get("id"))
+            if expected_context is not None and context != expected_context:
+                errors.append(
+                    f"{prefix}.capture_context must match the cross-platform fixture contract"
+                )
 
     profiles = catalog.get("profiles")
     if not isinstance(profiles, list):

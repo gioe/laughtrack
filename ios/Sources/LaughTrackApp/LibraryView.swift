@@ -115,6 +115,44 @@ private struct AuthenticatedFavoritesSnapshot: View {
                     }
                 }
             }
+
+            TeaserSection(
+                eyebrow: "Clubs",
+                title: "Saved clubs",
+                subtitle: "Keep favorite venue calendars close."
+            ) {
+                LaughTrackCard {
+                    VStack(alignment: .leading, spacing: tokens.spacing.tight) {
+                        ForEach(persona.favoriteClubs, id: \.self) { name in
+                            TeaserRow(
+                                title: name,
+                                subtitle: "Saved venue",
+                                systemImage: "building.2.fill",
+                                isPlaceholder: false
+                            )
+                        }
+                    }
+                }
+            }
+
+            TeaserSection(
+                eyebrow: "Podcasts",
+                title: "Saved podcasts",
+                subtitle: "Find new episodes faster."
+            ) {
+                LaughTrackCard {
+                    VStack(alignment: .leading, spacing: tokens.spacing.tight) {
+                        ForEach(persona.favoritePodcasts, id: \.self) { title in
+                            TeaserRow(
+                                title: title,
+                                subtitle: "Vulture · 248 episodes",
+                                systemImage: "mic.fill",
+                                isPlaceholder: false
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }

@@ -11,12 +11,14 @@ import pytest
 
 from scripts.screenshots.manifest import (
     ContractError,
+    FIXTURE_CAPTURE_CONTEXTS,
     PROFILE_IDS,
     SCENARIO_IDS,
     expected_capture_keys,
     load_catalog,
     main,
     png_dimensions,
+    validate_catalog,
     validate_manifest,
 )
 
@@ -88,6 +90,22 @@ def test_checked_in_catalog_defines_exact_canonical_scenarios(catalog: dict) -> 
     assert all(scenario["locale"] for scenario in catalog["scenarios"])
     assert all(scenario["timezone"] for scenario in catalog["scenarios"])
     assert all(scenario["capture_context"] for scenario in catalog["scenarios"])
+
+
+def test_checked_in_catalog_defines_cross_platform_fixture_contracts(catalog: dict) -> None:
+    contexts = {scenario["id"]: scenario["capture_context"] for scenario in catalog["scenarios"]}
+    assert {scenario_id: contexts[scenario_id] for scenario_id in FIXTURE_CAPTURE_CONTEXTS} == dict(
+        FIXTURE_CAPTURE_CONTEXTS
+    )
+
+
+def test_catalog_rejects_cross_platform_fixture_drift(catalog: dict) -> None:
+    drifted = deepcopy(catalog)
+    club_detail = next(item for item in drifted["scenarios"] if item["id"] == "05_ClubDetail")
+    club_detail["capture_context"]["query"] = "Different club"
+
+    with pytest.raises(ContractError, match="cross-platform fixture contract"):
+        validate_catalog(drifted)
 
 
 def test_checked_in_catalog_defines_capture_profiles(catalog: dict) -> None:
@@ -279,6 +297,13 @@ def test_catalog_keeps_valid_guest_authenticated_and_auth_prompt_scenarios_disti
         "screen": "favorites",
         "auth_state": "authenticated",
         "persona": "screenshot-persona",
+        "saved_categories": ["shows", "comedians", "clubs", "podcasts"],
+        "saved_entities": {
+            "shows": ["Taylor Tomlinson Live", "Sam Jay Live"],
+            "comedians": ["Taylor Tomlinson", "Sam Jay"],
+            "clubs": ["The Comedy Cellar"],
+            "podcasts": ["Good One: A Podcast About Jokes"],
+        },
     }
     assert "12_Notifications" not in contexts
     assert contexts["17_AuthenticatedNotifications"] == {
@@ -298,6 +323,8 @@ def test_catalog_keeps_valid_guest_authenticated_and_auth_prompt_scenarios_disti
         "screen": "auth_prompt",
         "auth_state": "guest",
         "presentation": "in_app_modal",
+        "background_screen": "profile",
+        "trigger": "deterministic_test_seam",
     }
     assert contexts["19_FirstEntryAuthChoice"] == {
         "screen": "first_entry_auth_choice",

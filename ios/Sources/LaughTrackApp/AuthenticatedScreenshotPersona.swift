@@ -24,9 +24,11 @@ struct AuthenticatedScreenshotPersona: Equatable {
 
     let favoriteComedians = ["Taylor Tomlinson", "Sam Jay"]
     let favoriteShows = [
-        (title: "Taylor Tomlinson", detail: "Tonight · The Bell House"),
-        (title: "Sam Jay", detail: "Friday · Comedy Cellar"),
+        (title: "Taylor Tomlinson Live", detail: "July 18 · The Comedy Cellar · New York"),
+        (title: "Sam Jay Live", detail: "July 19 · The Bell House · Brooklyn"),
     ]
+    let favoriteClubs = ["The Comedy Cellar"]
+    let favoritePodcasts = ["Good One: A Podcast About Jokes"]
 
     let notifications = [
         NotificationCenterItem(
@@ -68,6 +70,9 @@ struct AuthenticatedScreenshotPersona: Equatable {
         lhs.user == rhs.user
             && lhs.favoriteComedians == rhs.favoriteComedians
             && lhs.favoriteShows.map(\.title) == rhs.favoriteShows.map(\.title)
+            && lhs.favoriteShows.map(\.detail) == rhs.favoriteShows.map(\.detail)
+            && lhs.favoriteClubs == rhs.favoriteClubs
+            && lhs.favoritePodcasts == rhs.favoritePodcasts
             && lhs.notifications == rhs.notifications
     }
 }

@@ -200,15 +200,6 @@ class AppStoreScreenshotTest {
         openFirstResult()
         capture("07_ComedianDetail")
 
-        // Render the real in-app prompt used by protected guest actions. No
-        // provider is clicked, so Custom Tabs / external OAuth never launches.
-        composeRule.runOnIdle { showLoginPrompt = true }
-        waitFor(hasText("Sign in to save favorites"))
-        listOf("Continue with Google", "Continue with Apple", "Email me a sign-in link").forEach { option ->
-            waitFor(hasText(option))
-        }
-        capture("18_AuthPrompt", dismissKeyboard = false)
-        composeRule.runOnIdle { showLoginPrompt = false }
         goBack()
 
         // 08 — Search / Podcasts.
@@ -223,6 +214,17 @@ class AppStoreScreenshotTest {
         navigate(navController, AppRoute.Profile)
         waitFor(hasText("Guest mode"))
         capture("11_Profile")
+
+        // Match iOS by presenting the real protected-action prompt over the
+        // guest Profile screen through the deterministic test seam. No provider
+        // is clicked, so Custom Tabs / external OAuth never launches.
+        composeRule.runOnIdle { showLoginPrompt = true }
+        waitFor(hasText("Sign in to save favorites"))
+        listOf("Continue with Google", "Continue with Apple", "Email me a sign-in link").forEach { option ->
+            waitFor(hasText(option))
+        }
+        capture("18_AuthPrompt", dismissKeyboard = false)
+        composeRule.runOnIdle { showLoginPrompt = false }
 
         navigate(navController, AppRoute.ComedianOnboarding)
         waitFor(hasText("Pick comedians to follow"), timeoutMs = 30_000)
