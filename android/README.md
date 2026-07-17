@@ -233,14 +233,22 @@ overrides. The `bump_build_number` lane sets `VERSION_CODE` to
 `max(highest code already on Play, current) + 1`, so the build number can never
 collide with or regress below what Play has seen.
 
-**Lanes** (run from `android/`):
+**Lanes.** Use `android/bin/lane` from anywhere in the repository. The wrapper
+selects Homebrew Ruby, changes to `android/`, and invokes the pinned Fastlane
+through Bundler:
 
 ```sh
-bundle install                              # one-time: install fastlane
-bundle exec fastlane internal               # bump code, build signed AAB, upload to the internal track
-bundle exec fastlane internal bump:minor    # also raise VERSION_NAME (patch|minor|major)
-bundle exec fastlane production rollout:0.1  # refresh the full listing, then promote (staged 10%)
-bundle exec fastlane test                   # unit tests + ktlint + detekt (parity with iOS `test`)
+android/bin/lane internal                # bump code, build signed AAB, upload to the internal track
+android/bin/lane internal bump:minor     # also raise VERSION_NAME (patch|minor|major)
+android/bin/lane production rollout:0.1  # refresh the full listing, then promote (staged 10%)
+android/bin/lane test                    # unit tests + ktlint + detekt (parity with iOS `test`)
+```
+
+Install the bundle once with Homebrew Ruby first if needed:
+
+```sh
+cd android
+PATH="$(brew --prefix ruby)/bin:$PATH" bundle install
 ```
 
 **Store-listing metadata.** The English Play listing is version-controlled under
@@ -252,8 +260,8 @@ commits, the lane uses a safe bug-fixes-and-performance fallback instead of expo
 task IDs or implementation details.
 
 ```sh
-bundle exec fastlane generate_release_notes version_code:42 # generate only
-bundle exec fastlane upload_metadata version_code:42        # generate + upload text/changelog
+android/bin/lane generate_release_notes version_code:42 # generate only
+android/bin/lane upload_metadata version_code:42        # generate + upload text/changelog
 ```
 
 The `production` lane performs both automatically before promotion. The `internal`
@@ -265,9 +273,9 @@ set — an instrumented UI test captures them and `supply` uploads curated Play-
 subsets, rather than managing them by hand in the Play Console:
 
 ```sh
-bundle exec fastlane screenshots            # starts an available AVD if needed, then builds/captures
-bundle exec fastlane upload_screenshots     # supply pushes the captured images (no binary)
-bundle exec fastlane screenshots_and_upload # both in one step (mirrors the iOS lane)
+android/bin/lane screenshots            # starts an available AVD if needed, then builds/captures
+android/bin/lane upload_screenshots     # supply pushes the captured images (no binary)
+android/bin/lane screenshots_and_upload # both in one step (mirrors the iOS lane)
 ```
 
 The `production` lane regenerates the complete 51-image comparison matrix and uploads the curated
