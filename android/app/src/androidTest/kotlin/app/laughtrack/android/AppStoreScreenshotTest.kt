@@ -270,6 +270,7 @@ class AppStoreScreenshotTest {
             showFirstEntryAuthChoice = true
         }
         waitFor(hasTestTag(FIRST_ENTRY_AUTH_CHOICE_TEST_TAG))
+        waitFor(hasContentDescription(FIRST_ENTRY_BRAND_LOGO_CONTENT_DESCRIPTION))
         listOf(
             "Continue as guest",
             "Continue with Google",
