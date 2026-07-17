@@ -179,6 +179,8 @@ enum DebugLaunchRoute {
         let idString = trimmed[trimmed.index(after: separator)...].trimmingCharacters(in: .whitespaces)
         guard let id = Int(idString) else { return nil }
         switch kind {
+        case "search":
+            return .search
         case "favorites", "library":
             return .library([])
         case "profile", "settings":

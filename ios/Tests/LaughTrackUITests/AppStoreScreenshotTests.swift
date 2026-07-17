@@ -32,8 +32,7 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         sleep(8)
         snapshot("01_NearMe")
 
-        tapSearchTab()
-        sleep(2)
+        relaunch(route: "search:0")
         assertFirstResult(identifierPrefix: "laughtrack.shows-search.result-", description: "show")
         snapshot("02_SearchShows")
 
@@ -183,17 +182,8 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         button.tap()
     }
 
-    private func tapSearchTab() {
-        // SwiftUI renders TabView as a tab bar on iPhone and an adaptive
-        // sidebar-style control on iPad. Query the semantic button directly
-        // so the same navigation works in either container.
-        let search = app.buttons["Search"]
-        XCTAssertTrue(search.waitForExistence(timeout: 10), "Expected Search tab")
-        search.tap()
-    }
-
     private func searchFor(_ query: String, resultIdentifierPrefix: String) {
-        let field = element("laughtrack.search.field")
+        let field = app.textFields["laughtrack.search.field"].firstMatch
         XCTAssertTrue(field.waitForExistence(timeout: 10), "Expected global search field")
         field.tap()
         field.typeText(query)
@@ -201,11 +191,7 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
     }
 
     private func relaunchOnSearchTab() {
-        app.terminate()
-        app.launch()
-        sleep(5)
-        tapSearchTab()
-        sleep(2)
+        relaunch(route: "search:0")
     }
 
     private func relaunch(
