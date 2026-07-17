@@ -79,6 +79,36 @@ describe("AdminPodcastHostshipReviewManager", () => {
         expect(screen.getByText(/matched_name/)).toBeTruthy();
     });
 
+    it("keeps the podcast and comedian review workflows accessible", () => {
+        render(<AdminPodcastHostshipReviewManager candidates={[candidate]} />);
+
+        openGroup(/The Jane Show/);
+
+        expect(screen.getByRole("region", { name: "Candidates" })).toBeTruthy();
+        expect(
+            screen.getByRole("region", { name: "Review controls" }),
+        ).toBeTruthy();
+        expect(
+            screen.getByLabelText("Add host", { selector: "input" }),
+        ).toBeTruthy();
+        expect(screen.getByLabelText("Review note")).toBeTruthy();
+        expect(
+            screen.getByRole("button", { name: "Save The Jane Show" }),
+        ).toBeTruthy();
+
+        fireEvent.click(screen.getByRole("button", { name: "By comedian" }));
+        openGroup(/Jane Comic/);
+
+        expect(screen.getByLabelText("Add arbitrary RSS feed")).toBeTruthy();
+        expect(screen.getByRole("button", { name: "Ingest RSS" })).toBeTruthy();
+        expect(
+            screen.getByRole("button", { name: "Set as host" }),
+        ).toBeTruthy();
+        expect(
+            screen.getByRole("button", { name: "Save The Jane Show" }),
+        ).toBeTruthy();
+    });
+
     it("does not preselect hosts for non-pending rejected candidates", () => {
         render(
             <AdminPodcastHostshipReviewManager

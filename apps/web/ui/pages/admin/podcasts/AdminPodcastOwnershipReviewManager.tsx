@@ -738,8 +738,8 @@ export default function AdminPodcastHostshipReviewManager({
                                   collapsed={isGroupCollapsed(frameKey)}
                                   onToggle={toggleGroup}
                               >
-                                  <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
-                                      <div className="min-w-0">
+                                  <div className="grid gap-4">
+                                      <div className="min-w-0 rounded-md border border-gray-200 bg-ecru-white p-3">
                                           <div className="flex flex-wrap items-center gap-2">
                                               <h2 className="font-urbanist-bold text-h3 leading-tight text-cedar">
                                                   {group.podcast.title}
@@ -911,12 +911,18 @@ export default function AdminPodcastHostshipReviewManager({
                                           </div>
                                       </div>
 
-                                      <div className="grid gap-3">
-                                          <div className="grid gap-2">
-                                              <p className="font-dmSans text-sm font-semibold text-cedar">
+                                      <div className="grid gap-4">
+                                          <section
+                                              aria-labelledby={`podcast-candidates-${group.key}`}
+                                              className="grid gap-2 rounded-md border border-gray-200 bg-white p-3"
+                                          >
+                                              <h3
+                                                  id={`podcast-candidates-${group.key}`}
+                                                  className="font-dmSans text-sm font-semibold text-cedar"
+                                              >
                                                   Candidates
-                                              </p>
-                                              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                                              </h3>
+                                              <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                                                   {group.comedianOptions.map(
                                                       (option) => {
                                                           const isHost =
@@ -1013,160 +1019,196 @@ export default function AdminPodcastHostshipReviewManager({
                                                       },
                                                   )}
                                               </div>
-                                          </div>
-                                          <div className="grid gap-1">
-                                              <label
-                                                  htmlFor={searchId}
+                                          </section>
+                                          <section
+                                              aria-labelledby={`podcast-review-controls-${group.key}`}
+                                              className="grid gap-3 rounded-md border border-gray-200 bg-ecru-white p-3"
+                                          >
+                                              <h3
+                                                  id={`podcast-review-controls-${group.key}`}
                                                   className="font-dmSans text-sm font-semibold text-cedar"
                                               >
-                                                  Add host
-                                              </label>
-                                              <div className="flex gap-2">
-                                                  <input
-                                                      id={searchId}
-                                                      value={
-                                                          searchTerms[
-                                                              group.key
-                                                          ] ?? ""
-                                                      }
-                                                      onChange={(event) =>
-                                                          setSearchTerms(
-                                                              (prev) => ({
-                                                                  ...prev,
-                                                                  [group.key]:
-                                                                      event
-                                                                          .target
-                                                                          .value,
-                                                              }),
-                                                          )
-                                                      }
-                                                      className="min-w-0 flex-1 rounded-md border border-gray-300 px-3 py-2 font-dmSans text-body font-normal text-foreground focus:border-copper-dark focus:outline-none focus:ring-2 focus:ring-copper-dark"
-                                                  />
-                                                  <Button
-                                                      type="button"
-                                                      variant="outline"
-                                                      className="gap-2 border-copper-dark bg-white !text-copper-dark hover:bg-copper-dark hover:!text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper-dark focus-visible:ring-0"
-                                                      onClick={() =>
-                                                          void searchComedians(
-                                                              group.key,
-                                                          )
-                                                      }
-                                                      disabled={
-                                                          disabled ||
-                                                          searchingKey ===
-                                                              group.key
-                                                      }
+                                                  Review controls
+                                              </h3>
+                                              <div className="grid gap-3 lg:grid-cols-2">
+                                                  <div className="grid content-start gap-2">
+                                                      <div className="grid gap-1">
+                                                          <label
+                                                              htmlFor={searchId}
+                                                              className="font-dmSans text-sm font-semibold text-cedar"
+                                                          >
+                                                              Add host
+                                                          </label>
+                                                          <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] md:grid-cols-[minmax(0,1fr)_auto] lg:grid-cols-[minmax(0,1fr)_auto]">
+                                                              <input
+                                                                  id={searchId}
+                                                                  value={
+                                                                      searchTerms[
+                                                                          group
+                                                                              .key
+                                                                      ] ?? ""
+                                                                  }
+                                                                  onChange={(
+                                                                      event,
+                                                                  ) =>
+                                                                      setSearchTerms(
+                                                                          (
+                                                                              prev,
+                                                                          ) => ({
+                                                                              ...prev,
+                                                                              [group.key]:
+                                                                                  event
+                                                                                      .target
+                                                                                      .value,
+                                                                          }),
+                                                                      )
+                                                                  }
+                                                                  className="min-w-0 w-full rounded-md border border-gray-300 px-3 py-2 font-dmSans text-body font-normal text-foreground focus:border-copper-dark focus:outline-none focus:ring-2 focus:ring-copper-dark"
+                                                              />
+                                                              <Button
+                                                                  type="button"
+                                                                  variant="outline"
+                                                                  className="gap-2 border-copper-dark bg-white !text-copper-dark hover:bg-copper-dark hover:!text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper-dark focus-visible:ring-0"
+                                                                  onClick={() =>
+                                                                      void searchComedians(
+                                                                          group.key,
+                                                                      )
+                                                                  }
+                                                                  disabled={
+                                                                      disabled ||
+                                                                      searchingKey ===
+                                                                          group.key
+                                                                  }
+                                                              >
+                                                                  <Search
+                                                                      className="h-4 w-4"
+                                                                      aria-hidden="true"
+                                                                  />
+                                                                  Search
+                                                              </Button>
+                                                          </div>
+                                                      </div>
+                                                      {resultRows.length >
+                                                          0 && (
+                                                          <div className="flex flex-wrap gap-2">
+                                                              {resultRows.map(
+                                                                  (result) => (
+                                                                      <button
+                                                                          key={
+                                                                              result.id
+                                                                          }
+                                                                          type="button"
+                                                                          onClick={() =>
+                                                                              setSelectedHosts(
+                                                                                  (
+                                                                                      prev,
+                                                                                  ) => ({
+                                                                                      ...prev,
+                                                                                      [group.key]:
+                                                                                          {
+                                                                                              ...result,
+                                                                                              popularity:
+                                                                                                  result.popularity ??
+                                                                                                  0,
+                                                                                          },
+                                                                                  }),
+                                                                              )
+                                                                          }
+                                                                          className="rounded-md border border-gray-300 bg-white px-3 py-1.5 font-dmSans text-sm font-semibold text-cedar hover:border-copper-dark"
+                                                                      >
+                                                                          {
+                                                                              result.name
+                                                                          }
+                                                                      </button>
+                                                                  ),
+                                                              )}
+                                                          </div>
+                                                      )}
+                                                  </div>
+                                                  <label
+                                                      htmlFor={noteId}
+                                                      className="grid gap-1 font-dmSans text-sm font-semibold text-cedar"
                                                   >
-                                                      <Search
-                                                          className="h-4 w-4"
-                                                          aria-hidden="true"
-                                                      />
-                                                      Search
-                                                  </Button>
-                                              </div>
-                                          </div>
-                                          {resultRows.length > 0 && (
-                                              <div className="flex flex-wrap gap-2">
-                                                  {resultRows.map((result) => (
-                                                      <button
-                                                          key={result.id}
-                                                          type="button"
-                                                          onClick={() =>
-                                                              setSelectedHosts(
+                                                      Review note
+                                                      <textarea
+                                                          id={noteId}
+                                                          value={
+                                                              notes[
+                                                                  group.key
+                                                              ] ?? ""
+                                                          }
+                                                          onChange={(event) =>
+                                                              setNotes(
                                                                   (prev) => ({
                                                                       ...prev,
                                                                       [group.key]:
-                                                                          {
-                                                                              ...result,
-                                                                              popularity:
-                                                                                  result.popularity ??
-                                                                                  0,
-                                                                          },
+                                                                          event
+                                                                              .target
+                                                                              .value,
                                                                   }),
                                                               )
                                                           }
-                                                          className="rounded-md border border-gray-300 bg-white px-3 py-1.5 font-dmSans text-sm font-semibold text-cedar hover:border-copper-dark"
-                                                      >
-                                                          {result.name}
-                                                      </button>
-                                                  ))}
+                                                          className="min-h-20 rounded-md border border-gray-300 px-3 py-2 font-dmSans text-body font-normal text-foreground focus:border-copper-dark focus:outline-none focus:ring-2 focus:ring-copper-dark"
+                                                          maxLength={1000}
+                                                      />
+                                                  </label>
                                               </div>
-                                          )}
-                                          <label
-                                              htmlFor={noteId}
-                                              className="grid gap-1 font-dmSans text-sm font-semibold text-cedar"
-                                          >
-                                              Review note
-                                              <textarea
-                                                  id={noteId}
-                                                  value={notes[group.key] ?? ""}
-                                                  onChange={(event) =>
-                                                      setNotes((prev) => ({
-                                                          ...prev,
-                                                          [group.key]:
-                                                              event.target
-                                                                  .value,
-                                                      }))
-                                                  }
-                                                  className="min-h-20 rounded-md border border-gray-300 px-3 py-2 font-dmSans text-body font-normal text-foreground focus:border-copper-dark focus:outline-none focus:ring-2 focus:ring-copper-dark"
-                                                  maxLength={1000}
-                                              />
-                                          </label>
-                                          <div className="flex flex-wrap gap-2">
-                                              <Button
-                                                  type="button"
-                                                  variant="outline"
-                                                  className="gap-2 border-red-700 bg-white !text-red-800 hover:bg-red-700 hover:!text-white disabled:border-gray-300 disabled:bg-gray-100 disabled:!text-soft-charcoal disabled:opacity-100"
-                                                  onClick={() =>
-                                                      void save(
-                                                          group,
-                                                          null,
-                                                          true,
-                                                      )
-                                                  }
-                                                  disabled={disabled}
-                                                  aria-label={`Block ${group.podcast.title}`}
-                                              >
-                                                  <Ban
-                                                      className="h-4 w-4"
-                                                      aria-hidden="true"
-                                                  />
-                                                  Deny-list podcast
-                                              </Button>
-                                              {isDenied && (
+                                              <div className="flex flex-col flex-wrap gap-2 sm:flex-row md:flex-row lg:flex-row lg:justify-end">
                                                   <Button
                                                       type="button"
                                                       variant="outline"
-                                                      className="border-copper-dark bg-white !text-copper-dark hover:bg-copper-dark hover:!text-white disabled:border-gray-300 disabled:bg-gray-100 disabled:!text-soft-charcoal disabled:opacity-100"
+                                                      className="gap-2 border-red-700 bg-white !text-red-800 hover:bg-red-700 hover:!text-white disabled:border-gray-300 disabled:bg-gray-100 disabled:!text-soft-charcoal disabled:opacity-100"
+                                                      onClick={() =>
+                                                          void save(
+                                                              group,
+                                                              null,
+                                                              true,
+                                                          )
+                                                      }
+                                                      disabled={disabled}
+                                                      aria-label={`Block ${group.podcast.title}`}
+                                                  >
+                                                      <Ban
+                                                          className="h-4 w-4"
+                                                          aria-hidden="true"
+                                                      />
+                                                      Deny-list podcast
+                                                  </Button>
+                                                  {isDenied && (
+                                                      <Button
+                                                          type="button"
+                                                          variant="outline"
+                                                          className="border-copper-dark bg-white !text-copper-dark hover:bg-copper-dark hover:!text-white disabled:border-gray-300 disabled:bg-gray-100 disabled:!text-soft-charcoal disabled:opacity-100"
+                                                          onClick={() =>
+                                                              void save(group)
+                                                          }
+                                                          disabled={
+                                                              disabled ||
+                                                              !selectedHost
+                                                          }
+                                                          aria-label={`Restore ${group.podcast.title} with host`}
+                                                      >
+                                                          Restore with host
+                                                      </Button>
+                                                  )}
+                                                  <Button
+                                                      type="button"
+                                                      className="gap-2 !text-white"
+                                                      variant="roundedShimmer"
                                                       onClick={() =>
                                                           void save(group)
                                                       }
-                                                      disabled={
-                                                          disabled ||
-                                                          !selectedHost
-                                                      }
-                                                      aria-label={`Restore ${group.podcast.title} with host`}
+                                                      disabled={disabled}
+                                                      aria-label={`Save ${group.podcast.title}`}
                                                   >
-                                                      Restore with host
+                                                      <Save
+                                                          className="h-4 w-4"
+                                                          aria-hidden="true"
+                                                      />
+                                                      Save
                                                   </Button>
-                                              )}
-                                              <Button
-                                                  type="button"
-                                                  className="gap-2 !text-white"
-                                                  variant="roundedShimmer"
-                                                  onClick={() =>
-                                                      void save(group)
-                                                  }
-                                                  disabled={disabled}
-                                                  aria-label={`Save ${group.podcast.title}`}
-                                              >
-                                                  <Save
-                                                      className="h-4 w-4"
-                                                      aria-hidden="true"
-                                                  />
-                                                  Save
-                                              </Button>
-                                          </div>
+                                              </div>
+                                          </section>
                                       </div>
                                   </div>
 
