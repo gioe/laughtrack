@@ -171,7 +171,9 @@
     "sparse_always_include": [
       "bin/tusk",
       "tests/conftest.py",
-      "ios/Sources/LaughTrackAPIClient/openapi.json"
+      "ios/Sources/LaughTrackAPIClient/openapi.json",
+      "screenshots/catalog.json",
+      "scripts/screenshots/export.py"
     ],
     "sparse_always_cone": [
       "ios/Sources",
