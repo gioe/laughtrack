@@ -64,7 +64,7 @@ command -v adb >/dev/null || fail "adb is required"
 command -v magick >/dev/null || fail "ImageMagick's magick command is required"
 command -v python3 >/dev/null || fail "python3 is required"
 [[ -x "$repo_root/ios/bin/lane" ]] || fail "ios/bin/lane is not executable"
-[[ -f "$repo_root/android/Gemfile" ]] || fail "android/Gemfile is missing"
+[[ -x "$repo_root/android/bin/lane" ]] || fail "android/bin/lane is not executable"
 
 # A stale local main silently captures an obsolete catalog. Feature branches
 # and detached worktrees remain valid because they may intentionally exercise
@@ -83,12 +83,6 @@ if ! adb devices | awk '$2 == "device" { found = 1 } END { exit !found }'; then
   fail "no authorized Android emulator/device; start one and confirm it appears in adb devices"
 fi
 
-homebrew_ruby_bin="$(brew --prefix ruby 2>/dev/null || true)/bin"
-if [[ ! -x "$homebrew_ruby_bin/ruby" ]]; then
-  homebrew_ruby_bin="/opt/homebrew/opt/ruby/bin"
-fi
-[[ -x "$homebrew_ruby_bin/ruby" ]] || fail "Homebrew Ruby is required for Android Fastlane"
-
 ios_run="$output_root/runs/ios"
 android_run="$output_root/runs/android"
 mkdir -p "$output_root/runs"
@@ -97,10 +91,7 @@ echo "Capturing iOS comparison matrix..."
 "$repo_root/ios/bin/lane" screenshots "run_root:$ios_run"
 
 echo "Capturing Android comparison matrix..."
-(
-  cd "$repo_root/android"
-  PATH="$homebrew_ruby_bin:$PATH" bundle exec fastlane screenshots "run_root:$android_run"
-)
+"$repo_root/android/bin/lane" screenshots "run_root:$android_run"
 
 echo "Validating persistent manifests..."
 python3 "$repo_root/scripts/screenshots/manifest.py" validate-run \
