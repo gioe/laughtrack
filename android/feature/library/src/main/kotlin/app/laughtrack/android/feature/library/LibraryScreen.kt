@@ -34,6 +34,13 @@ import app.laughtrack.android.core.network.generated.model.ComedianSearchItem
 import app.laughtrack.android.core.network.generated.model.FavoriteClubItem
 import app.laughtrack.android.core.network.generated.model.FavoritePodcastItem
 import app.laughtrack.android.core.network.generated.model.Show
+import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+import java.util.Locale
 
 @Composable
 fun LibraryScreen(
@@ -311,10 +318,46 @@ private fun FavoriteRow(
 private fun ShowRow(show: Show) {
     FavoriteRow(
         title = show.name ?: show.clubName ?: "Comedy show",
-        subtitle = listOfNotNull(show.clubName, show.clubCity, show.date).joinToString(" - "),
+        subtitle = favoriteShowSubtitle(show),
         isFavorite = true,
         onToggle = null,
     )
+}
+
+internal fun favoriteShowSubtitle(
+    show: Show,
+    locale: Locale = Locale.getDefault(),
+): String {
+    val formattedDate = formatFavoriteShowDate(show, locale)
+    return listOfNotNull(show.clubName, show.clubCity, formattedDate).joinToString(" - ")
+}
+
+private fun formatFavoriteShowDate(
+    show: Show,
+    locale: Locale,
+): String? {
+    val raw = show.date.trim()
+    if (raw.isEmpty()) return null
+
+    val venueZone = show.timezone?.let { runCatching { ZoneId.of(it) }.getOrNull() }
+    val dateTime =
+        runCatching {
+            val parsed = OffsetDateTime.parse(raw)
+            venueZone?.let(parsed::atZoneSameInstant) ?: parsed.toZonedDateTime()
+        }
+            .recoverCatching {
+                val parsed = ZonedDateTime.parse(raw)
+                venueZone?.let(parsed::withZoneSameInstant) ?: parsed
+            }
+            .recoverCatching {
+                LocalDateTime.parse(raw).atZone(venueZone ?: ZoneId.systemDefault())
+            }
+            .getOrNull()
+            ?: return null
+
+    val dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale)
+    val timeFormatter = DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(locale)
+    return "${dateTime.format(dateFormatter)} · ${dateTime.format(timeFormatter)}"
 }
 
 @Composable
