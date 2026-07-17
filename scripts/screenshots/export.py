@@ -71,6 +71,14 @@ PROFILE_LAYOUTS: dict[str, dict[str, str]] = {
     },
 }
 
+PROFILE_DIMENSIONS: dict[str, tuple[int, int]] = {
+    "ios_phone": (1320, 2868),
+    "ios_large_tablet": (2064, 2752),
+    "android_phone": (1320, 2868),
+    "android_small_tablet": (1200, 2133),
+    "android_large_tablet": (1600, 2844),
+}
+
 STOREFRONT_SELECTIONS: dict[str, dict[str, tuple[str, ...]]] = {
     "play": {
         "android_phone": (
@@ -163,6 +171,103 @@ def _replace_tree(staged: Path, destination: Path) -> None:
         shutil.rmtree(backup)
 
 
+def _capture_profile_errors(
+    *,
+    source_root: Path,
+    profile: Mapping[str, Any],
+    platform_profiles: Sequence[Mapping[str, Any]],
+    scenario_ids: Sequence[str],
+) -> list[str]:
+    profile_id = profile["id"]
+    layout = PROFILE_LAYOUTS.get(profile_id)
+    dimensions = PROFILE_DIMENSIONS.get(profile_id)
+    if layout is None or layout["platform"] != profile["platform"] or dimensions is None:
+        return [f"no Fastlane layout configured for profile {profile_id}"]
+
+    directory = source_root / layout["source_directory"]
+    expected_names = {f"{layout['source_prefix']}{scenario_id}.png" for scenario_id in scenario_ids}
+    allowed_names = {
+        f"{candidate_layout['source_prefix']}{scenario_id}.png"
+        for candidate in platform_profiles
+        if (candidate_layout := PROFILE_LAYOUTS.get(candidate["id"])) is not None
+        and candidate_layout["source_directory"] == layout["source_directory"]
+        for scenario_id in scenario_ids
+    }
+    actual_names = (
+        {path.name for path in directory.iterdir() if path.is_file() and path.suffix.lower() in IMAGE_SUFFIXES}
+        if directory.is_dir()
+        else set()
+    )
+    errors: list[str] = []
+    missing_names = expected_names - actual_names
+    unexpected_names = actual_names - allowed_names
+    if missing_names or unexpected_names:
+        errors.append(
+            f"capture directory {directory} is not canonical: "
+            f"missing={sorted(missing_names)}, "
+            f"unexpected={sorted(unexpected_names)}"
+        )
+
+    for name in sorted(expected_names & actual_names):
+        path = directory / name
+        try:
+            actual_dimensions = png_dimensions(path)
+        except ContractError as exc:
+            errors.extend(exc.errors)
+            continue
+        if actual_dimensions != dimensions:
+            errors.append(
+                f"capture image {path} has dimensions {actual_dimensions[0]}x{actual_dimensions[1]}; "
+                f"expected {dimensions[0]}x{dimensions[1]} for profile {profile_id}"
+            )
+    return errors
+
+
+def validate_capture_profile(
+    *,
+    profile_id: str,
+    source_root: Path,
+    catalog_path: Path,
+) -> None:
+    """Validate one durable Fastlane profile before treating it as resumable."""
+    catalog = load_catalog(catalog_path)
+    profile = next((item for item in catalog["profiles"] if item["id"] == profile_id), None)
+    if profile is None:
+        raise ContractError([f"unknown profile: {profile_id}"])
+    platform_profiles = [item for item in catalog["profiles"] if item["platform"] == profile["platform"]]
+    errors = _capture_profile_errors(
+        source_root=source_root.resolve(),
+        profile=profile,
+        platform_profiles=platform_profiles,
+        scenario_ids=[scenario["id"] for scenario in catalog["scenarios"]],
+    )
+    if errors:
+        raise ContractError(errors)
+
+
+def reusable_capture_profiles(
+    *,
+    platform: str,
+    source_root: Path,
+    catalog_path: Path,
+) -> tuple[str, ...]:
+    """Return complete, dimension-valid profile IDs in canonical catalog order."""
+    catalog = load_catalog(catalog_path)
+    scenario_ids = [scenario["id"] for scenario in catalog["scenarios"]]
+    source_root = source_root.resolve()
+    platform_profiles = [profile for profile in catalog["profiles"] if profile["platform"] == platform]
+    return tuple(
+        profile["id"]
+        for profile in platform_profiles
+        if not _capture_profile_errors(
+            source_root=source_root,
+            profile=profile,
+            platform_profiles=platform_profiles,
+            scenario_ids=scenario_ids,
+        )
+    )
+
+
 def collect_run(
     *,
     platform: str,
@@ -184,7 +289,6 @@ def collect_run(
 
     scenarios = [scenario["id"] for scenario in catalog["scenarios"]]
     sources: list[tuple[dict[str, Any], str, Path]] = []
-    expected_by_directory: dict[Path, set[str]] = {}
     errors: list[str] = []
     for profile in profiles:
         profile_id = profile["id"]
@@ -193,8 +297,14 @@ def collect_run(
             errors.append(f"no Fastlane layout configured for profile {profile_id}")
             continue
         directory = source_root / layout["source_directory"]
-        expected_names = {f"{layout['source_prefix']}{scenario_id}.png" for scenario_id in scenarios}
-        expected_by_directory.setdefault(directory, set()).update(expected_names)
+        errors.extend(
+            _capture_profile_errors(
+                source_root=source_root,
+                profile=profile,
+                platform_profiles=profiles,
+                scenario_ids=scenarios,
+            )
+        )
         for scenario_id in scenarios:
             sources.append(
                 (
@@ -204,18 +314,6 @@ def collect_run(
                 )
             )
 
-    for directory, expected_names in expected_by_directory.items():
-        actual_names = (
-            {path.name for path in directory.iterdir() if path.is_file() and path.suffix.lower() in IMAGE_SUFFIXES}
-            if directory.is_dir()
-            else set()
-        )
-        if actual_names != expected_names:
-            errors.append(
-                f"capture directory {directory} is not canonical: "
-                f"missing={sorted(expected_names - actual_names)}, "
-                f"unexpected={sorted(actual_names - expected_names)}"
-            )
     if errors:
         raise ContractError(errors)
 
@@ -340,6 +438,14 @@ def _build_parser() -> argparse.ArgumentParser:
     collect_parser.add_argument("--run-root", type=Path, required=True)
     collect_parser.add_argument("--repo-root", type=Path, default=Path.cwd())
 
+    reusable_parser = subparsers.add_parser("reusable-profiles")
+    reusable_parser.add_argument("platform", choices=("ios", "android"))
+    reusable_parser.add_argument("--source-root", type=Path, required=True)
+
+    profile_parser = subparsers.add_parser("validate-profile")
+    profile_parser.add_argument("profile_id", choices=tuple(PROFILE_LAYOUTS))
+    profile_parser.add_argument("--source-root", type=Path, required=True)
+
     export_parser = subparsers.add_parser("export")
     export_parser.add_argument("storefront", choices=tuple(STOREFRONT_SELECTIONS))
     export_parser.add_argument("manifest", type=Path)
@@ -360,6 +466,20 @@ def main(argv: Sequence[str] | None = None) -> int:
                 repo_root=args.repo_root,
             )
             print(f"validated run manifest: {manifest}")
+        elif args.command == "reusable-profiles":
+            profiles = reusable_capture_profiles(
+                platform=args.platform,
+                source_root=args.source_root,
+                catalog_path=args.catalog,
+            )
+            print("\n".join(profiles))
+        elif args.command == "validate-profile":
+            validate_capture_profile(
+                profile_id=args.profile_id,
+                source_root=args.source_root,
+                catalog_path=args.catalog,
+            )
+            print(f"valid capture profile: {args.profile_id}")
         else:
             exported = export_projection(
                 storefront=args.storefront,

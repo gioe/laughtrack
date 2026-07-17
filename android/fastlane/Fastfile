@@ -1,6 +1,7 @@
 require "fileutils"
+require "digest"
 require "json"
-require "tmpdir"
+require "open3"
 
 default_platform(:android)
 
@@ -79,22 +80,62 @@ rescue Errno::ENOENT, JSON::ParserError, KeyError => e
 end
 
 ANDROID_SCREENSHOT_COLLECTION = load_android_screenshot_collection
-CANONICAL_SCREENSHOT_IDS = ANDROID_SCREENSHOT_COLLECTION.fetch(:scenario_ids)
 SCREENSHOT_PROFILES = ANDROID_SCREENSHOT_COLLECTION.fetch(:profiles)
 
-def image_files(directory)
-  Dir.glob(File.join(directory, "*.{png,jpg,jpeg}"))
+def screenshot_profile_directory(capture_root, profile)
+  File.join(capture_root, "en-US", "images", profile[:output_directory])
 end
 
-def validate_canonical_screenshot_directory(directory)
-  actual = image_files(directory).map { |path| File.basename(path) }.sort
-  expected = CANONICAL_SCREENSHOT_IDS.map { |id| "#{id}.png" }.sort
-  return if actual == expected
+def screenshot_resume_fingerprint
+  revision, git_error, git_status = Open3.capture3("git", "-C", REPO_ROOT, "rev-parse", "HEAD")
+  UI.user_error!("Could not resolve screenshot source revision: #{git_error.strip}") unless git_status.success?
 
-  UI.user_error!(
-    "Expected the canonical #{expected.length}-image collection in #{directory}; " \
-    "missing=#{expected - actual}, unexpected=#{actual - expected}",
+  Digest::SHA256.hexdigest(
+    JSON.generate({
+      schema_version: 1,
+      git_revision: revision.strip,
+      catalog_sha256: Digest::SHA256.file(SCREENSHOT_CATALOG_PATH).hexdigest,
+      profiles: SCREENSHOT_PROFILES,
+    }),
   )
+end
+
+def prepare_screenshot_resume_root(capture_root)
+  metadata_path = File.join(capture_root, ".resume.json")
+  metadata = JSON.pretty_generate({
+    schema_version: 1,
+    fingerprint: screenshot_resume_fingerprint,
+  }) + "\n"
+  if File.directory?(capture_root) && (!File.file?(metadata_path) || File.read(metadata_path) != metadata)
+    UI.important("Discarding stale Android screenshot resume cache at #{capture_root}")
+    FileUtils.rm_rf(capture_root)
+  end
+  FileUtils.mkdir_p(capture_root)
+  File.write(metadata_path, metadata)
+end
+
+def reusable_screenshot_profile_ids(capture_root)
+  output, error, status = Open3.capture3(
+    "python3", SCREENSHOT_EXPORT_PATH,
+    "--catalog", SCREENSHOT_CATALOG_PATH,
+    "reusable-profiles", "android",
+    "--source-root", capture_root,
+  )
+  UI.user_error!("Could not inspect Android screenshot resume cache: #{error.strip}") unless status.success?
+  output.lines.map(&:strip).reject(&:empty?)
+end
+
+def validate_screenshot_profile!(capture_root, profile)
+  output, error, status = Open3.capture3(
+    "python3", SCREENSHOT_EXPORT_PATH,
+    "--catalog", SCREENSHOT_CATALOG_PATH,
+    "validate-profile", profile[:id],
+    "--source-root", capture_root,
+  )
+  return if status.success?
+
+  detail = error.strip.empty? ? output.strip : error.strip
+  UI.user_error!("Invalid #{profile[:name]} screenshot capture: #{detail}")
 end
 
 def export_play_projection(capture_root, run_root)
@@ -445,28 +486,37 @@ platform :android do
 
   desc "Capture a complete Android matrix, validate its run manifest, and export the Play projection"
   lane :screenshots do |options|
-    adb, serial = boot_screenshot_emulator
-    prior_android_serial = ENV["ANDROID_SERIAL"]
-    ENV["ANDROID_SERIAL"] = serial
-    begin
-      gradle(task: ":app:assembleDebug :app:assembleDebugAndroidTest", project_dir: ".")
-      Dir.mktmpdir("laughtrack-android-screenshots") do |tmpdir|
-        capture_root = File.join(tmpdir, "capture")
-        run_root = options[:run_root] ? File.expand_path(options[:run_root], REPO_ROOT) : File.join(tmpdir, "run")
-        SCREENSHOT_PROFILES.each do |profile|
+    run_root = if options[:run_root]
+                 File.expand_path(options[:run_root], REPO_ROOT)
+               else
+                 File.join(REPO_ROOT, "android", "build", "fastlane-screenshots", "run")
+               end
+    capture_root = "#{run_root}-capture"
+    prepare_screenshot_resume_root(capture_root)
+    reusable_ids = reusable_screenshot_profile_ids(capture_root)
+    pending_profiles = SCREENSHOT_PROFILES.reject { |profile| reusable_ids.include?(profile[:id]) }
+
+    reusable_ids.each { |profile_id| UI.success("Reusing completed Android screenshot profile #{profile_id}") }
+    unless pending_profiles.empty?
+      adb, serial = boot_screenshot_emulator
+      prior_android_serial = ENV["ANDROID_SERIAL"]
+      ENV["ANDROID_SERIAL"] = serial
+      begin
+        gradle(task: ":app:assembleDebug :app:assembleDebugAndroidTest", project_dir: ".")
+        pending_profiles.each do |profile|
+          FileUtils.rm_rf(screenshot_profile_directory(capture_root, profile))
           capture_screenshot_profile(adb, serial, profile, capture_root)
+          validate_screenshot_profile!(capture_root, profile)
         end
-        SCREENSHOT_PROFILES.each do |profile|
-          validate_canonical_screenshot_directory(
-            File.join(capture_root, "en-US", "images", profile[:output_directory]),
-          )
-        end
-        export_play_projection(capture_root, run_root)
-        UI.success("Validated Android screenshot run manifest: #{File.join(run_root, 'manifest.json')}")
+      ensure
+        ENV["ANDROID_SERIAL"] = prior_android_serial
       end
-    ensure
-      ENV["ANDROID_SERIAL"] = prior_android_serial
     end
+
+    SCREENSHOT_PROFILES.each { |profile| validate_screenshot_profile!(capture_root, profile) }
+    export_play_projection(capture_root, run_root)
+    FileUtils.rm_rf(capture_root)
+    UI.success("Validated Android screenshot run manifest: #{File.join(run_root, 'manifest.json')}")
   end
 
   desc "Upload the already-exported store-listing projection to Play (no binary)"

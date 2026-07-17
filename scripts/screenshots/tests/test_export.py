@@ -9,10 +9,14 @@ from pathlib import Path
 import pytest
 
 from scripts.screenshots.export import (
+    PROFILE_DIMENSIONS,
     PROFILE_LAYOUTS,
     STOREFRONT_SELECTIONS,
     collect_run,
     export_projection,
+    main as export_main,
+    reusable_capture_profiles,
+    validate_capture_profile,
 )
 from scripts.screenshots.manifest import ContractError, load_catalog
 
@@ -37,23 +41,16 @@ def file_hashes(root: Path) -> dict[str, str]:
     }
 
 
-def make_capture(root: Path, platform: str) -> None:
+def make_capture(root: Path, platform: str, profile_ids: set[str] | None = None) -> None:
     catalog = load_catalog(CATALOG_PATH)
-    dimensions = {
-        "ios_phone": (1320, 2868),
-        "ios_large_tablet": (2064, 2752),
-        "android_phone": (1320, 2868),
-        "android_small_tablet": (1200, 2133),
-        "android_large_tablet": (1600, 2844),
-    }
     for profile in catalog["profiles"]:
-        if profile["platform"] != platform:
+        if profile["platform"] != platform or (profile_ids is not None and profile["id"] not in profile_ids):
             continue
         layout = PROFILE_LAYOUTS[profile["id"]]
         for scenario in catalog["scenarios"]:
             write_png(
                 root / layout["source_directory"] / f"{layout['source_prefix']}{scenario['id']}.png",
-                *dimensions[profile["id"]],
+                *PROFILE_DIMENSIONS[profile["id"]],
             )
 
 
@@ -133,6 +130,84 @@ def test_collection_serializes_normalized_validated_manifest(tmp_path: Path) -> 
     assert len(manifest["images"]) == 34
     assert manifest["images"][0]["path"] == "images/ios_phone/01_NearMe.png"
     assert all(Path(image["path"]).name == f"{image['scenario_id']}.png" for image in manifest["images"])
+
+
+def test_completed_profile_is_reusable_while_later_profiles_are_incomplete(tmp_path: Path) -> None:
+    source = tmp_path / "android-capture"
+    make_capture(source, "android", {"android_phone"})
+    phone_directory = source / PROFILE_LAYOUTS["android_phone"]["source_directory"]
+    phone_before = file_hashes(phone_directory)
+
+    assert reusable_capture_profiles(
+        platform="android",
+        source_root=source,
+        catalog_path=CATALOG_PATH,
+    ) == ("android_phone",)
+
+    make_capture(source, "android", {"android_small_tablet", "android_large_tablet"})
+    manifest_path = collect_run(
+        platform="android",
+        source_root=source,
+        run_root=tmp_path / "android-run",
+        catalog_path=CATALOG_PATH,
+        repo_root=REPO_ROOT,
+    )
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+
+    assert file_hashes(phone_directory) == phone_before
+    assert manifest["profiles"] == ["android_phone", "android_small_tablet", "android_large_tablet"]
+    assert len(manifest["images"]) == 51
+
+
+def test_incomplete_or_wrong_sized_profile_is_not_reusable(tmp_path: Path) -> None:
+    source = tmp_path / "android-capture"
+    make_capture(source, "android", {"android_phone"})
+    directory = source / PROFILE_LAYOUTS["android_phone"]["source_directory"]
+    missing = directory / "09_PodcastDetail.png"
+    missing.unlink()
+
+    assert (
+        reusable_capture_profiles(
+            platform="android",
+            source_root=source,
+            catalog_path=CATALOG_PATH,
+        )
+        == ()
+    )
+    with pytest.raises(ContractError, match="not canonical"):
+        validate_capture_profile(
+            profile_id="android_phone",
+            source_root=source,
+            catalog_path=CATALOG_PATH,
+        )
+
+    write_png(missing, 10, 20)
+    with pytest.raises(ContractError, match="expected 1320x2868"):
+        validate_capture_profile(
+            profile_id="android_phone",
+            source_root=source,
+            catalog_path=CATALOG_PATH,
+        )
+
+
+def test_reusable_profiles_cli_emits_only_complete_profiles(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    source = tmp_path / "android-capture"
+    make_capture(source, "android", {"android_phone"})
+
+    assert (
+        export_main(
+            [
+                "--catalog",
+                str(CATALOG_PATH),
+                "reusable-profiles",
+                "android",
+                "--source-root",
+                str(source),
+            ]
+        )
+        == 0
+    )
+    assert capsys.readouterr().out == "android_phone\n"
 
 
 def test_collection_rejects_incomplete_capture_before_replacing_run(tmp_path: Path) -> None:
