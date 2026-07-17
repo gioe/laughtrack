@@ -566,7 +566,95 @@ describe("POST /api/admin/podcast-hostship-reviews", () => {
         });
     });
 
-    it("treats a no-host review as a rejected deny-list decision", async () => {
+    it("restores a deny-listed podcast without assigning hosts", async () => {
+        const podcast = {
+            id: 99,
+            slug: "jane-show",
+            title: "The Jane Show",
+            source: "podcast-index",
+            sourcePodcastId: "feed-99",
+            feedUrl: "https://pod.example/feed.xml",
+        };
+        const activeDenyListEntry = {
+            id: 5,
+            podcastId: 99,
+            source: "podcast-index",
+            sourcePodcastId: "feed-99",
+            feedUrl: "https://pod.example/feed.xml",
+            reason: "Not comedy",
+            deniedAt: new Date("2026-05-18T12:00:00Z"),
+            deniedBy: "profile-2",
+            restoredAt: null,
+            restoredBy: null,
+        };
+        const auditCreate = vi.fn();
+        const candidateUpdateMany = vi.fn();
+        const hostshipDeleteMany = vi.fn();
+        const denyListUpsert = vi.fn();
+        const denyListUpdateMany = vi.fn();
+        mockTransaction.mockImplementation(async (callback) =>
+            callback({
+                podcast: {
+                    findUnique: vi.fn().mockResolvedValue(podcast),
+                },
+                comedian: { findUnique: vi.fn() },
+                podcastCandidateReview: {
+                    findMany: vi.fn().mockResolvedValue([]),
+                    updateMany: candidateUpdateMany,
+                },
+                comedianPodcast: {
+                    findMany: vi.fn().mockResolvedValue([]),
+                    deleteMany: hostshipDeleteMany,
+                    upsert: vi.fn(),
+                },
+                podcastDenyList: {
+                    findMany: vi.fn().mockResolvedValue([activeDenyListEntry]),
+                    upsert: denyListUpsert,
+                    updateMany: denyListUpdateMany,
+                },
+                adminActionAudit: { create: auditCreate },
+            } as never),
+        );
+
+        const res = await POST(
+            makeRequest({
+                podcastId: 99,
+                hostComedianIds: [],
+                cohostComedianIds: [],
+                denyListed: false,
+                reason: "Restore without assigning a host",
+            }),
+        );
+
+        expect(res.status).toBe(200);
+        expect(denyListUpsert).not.toHaveBeenCalled();
+        expect(denyListUpdateMany).toHaveBeenCalledWith({
+            where: { podcastId: 99, restoredAt: null },
+            data: {
+                restoredAt: expect.any(Date),
+                restoredBy: "profile-1",
+            },
+        });
+        expect(auditCreate).toHaveBeenCalledWith({
+            data: expect.objectContaining({
+                actorProfileId: "profile-1",
+                action: "podcast_hostship_review.restore",
+                entityType: "podcast",
+                entityId: "99",
+                reason: "Restore without assigning a host",
+            }),
+        });
+        expect(mocks.revalidateTag).toHaveBeenCalledWith(
+            "podcasts-search-page-data-v3",
+        );
+        expect(mocks.revalidateTag).toHaveBeenCalledWith(
+            "podcast-detail-data-v2",
+        );
+        expect(mocks.revalidateTag).toHaveBeenCalledWith("podcast-metadata");
+        expect(mocks.revalidateTag).toHaveBeenCalledWith("jane-show");
+    });
+
+    it("treats an implicit no-host review as a rejected deny-list decision", async () => {
         const podcast = {
             id: 99,
             slug: "jane-show",
@@ -640,7 +728,6 @@ describe("POST /api/admin/podcast-hostship-reviews", () => {
                 podcastId: 99,
                 hostComedianIds: [],
                 cohostComedianIds: [],
-                denyListed: false,
                 reason: "",
             }),
         );

@@ -295,7 +295,7 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
     ] as const;
     const selectedComedianIds = selectedRoleRows.map((row) => row.comedianId);
     const denyListed =
-        (parsed.data.denyListed ?? false) || selectedComedianIds.length === 0;
+        parsed.data.denyListed ?? selectedComedianIds.length === 0;
     const reason = parsed.data.reason?.trim() || null;
     const decisionReason =
         reason ?? (denyListed ? "No accepted host after review" : null);
@@ -556,7 +556,9 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
                 action:
                     selectedComedianIds.length > 0
                         ? "podcast_hostship_review.approve"
-                        : "podcast_hostship_review.deny_list",
+                        : denyListed
+                          ? "podcast_hostship_review.deny_list"
+                          : "podcast_hostship_review.restore",
                 entityType: "podcast",
                 entityId: podcastId,
                 reason: decisionReason,
