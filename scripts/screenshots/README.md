@@ -16,8 +16,8 @@ fails after a profile completes, rerun the same command with the same output
 root. The lane reuses only profile directories whose canonical filenames and
 PNG dimensions still validate, captures the remaining profiles, and retains the
 resume cache until the final 51-image Android manifest and Play projection both
-succeed. A changed Git revision, screenshot catalog, or profile configuration
-invalidates the cache automatically.
+succeed. A changed Git revision, relevant uncommitted source file, screenshot
+catalog, or profile configuration invalidates the cache automatically.
 
 By default, output is written to
 `apps/screenshot-comparisons/YYYY-MM-DD-current-catalog/`. Use `--output-root`

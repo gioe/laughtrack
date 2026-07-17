@@ -27,6 +27,7 @@ DEBUG_TEST_APK_PATH = "app/build/outputs/apk/androidTest/debug/app-debug-android
 SCREENSHOT_CATALOG_PATH = File.expand_path("../../screenshots/catalog.json", __dir__)
 SCREENSHOT_EXPORT_PATH = File.expand_path("../../scripts/screenshots/export.py", __dir__)
 REPO_ROOT = File.expand_path("../..", __dir__)
+SCREENSHOT_FINGERPRINT_PATHS = %w[android screenshots scripts/screenshots].freeze
 ANDROID_SCREENSHOT_PROFILE_SETTINGS = {
   "android_phone" => {
     name: "phone",
@@ -86,14 +87,38 @@ def screenshot_profile_directory(capture_root, profile)
   File.join(capture_root, "en-US", "images", profile[:output_directory])
 end
 
+def screenshot_git_output(*args)
+  output, error, status = Open3.capture3("git", "-C", REPO_ROOT, *args)
+  UI.user_error!("Could not fingerprint screenshot sources: #{error.strip}") unless status.success?
+  output
+end
+
+def screenshot_worktree_fingerprint
+  tracked_diff = screenshot_git_output(
+    "diff", "--binary", "HEAD", "--", *SCREENSHOT_FINGERPRINT_PATHS,
+  )
+  untracked_paths = screenshot_git_output(
+    "ls-files", "--others", "--exclude-standard", "--", *SCREENSHOT_FINGERPRINT_PATHS,
+  ).lines.map(&:strip).reject(&:empty?).sort
+  untracked_hashes = untracked_paths.to_h do |relative_path|
+    path = File.join(REPO_ROOT, relative_path)
+    [relative_path, File.file?(path) ? Digest::SHA256.file(path).hexdigest : "missing"]
+  end
+
+  {
+    tracked_diff_sha256: Digest::SHA256.hexdigest(tracked_diff),
+    untracked_files: untracked_hashes,
+  }
+end
+
 def screenshot_resume_fingerprint
-  revision, git_error, git_status = Open3.capture3("git", "-C", REPO_ROOT, "rev-parse", "HEAD")
-  UI.user_error!("Could not resolve screenshot source revision: #{git_error.strip}") unless git_status.success?
+  revision = screenshot_git_output("rev-parse", "HEAD").strip
 
   Digest::SHA256.hexdigest(
     JSON.generate({
-      schema_version: 1,
-      git_revision: revision.strip,
+      schema_version: 2,
+      git_revision: revision,
+      working_tree: screenshot_worktree_fingerprint,
       catalog_sha256: Digest::SHA256.file(SCREENSHOT_CATALOG_PATH).hexdigest,
       profiles: SCREENSHOT_PROFILES,
     }),
