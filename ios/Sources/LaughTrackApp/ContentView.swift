@@ -561,6 +561,7 @@ private struct FirstEntryAuthChoiceView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 223)
+                    .accessibilityLabel("LaughTrack microphone logo")
                     .matchedGeometryEffect(id: "launch-logo", in: logoNamespace)
                     .shadow(color: laughTrack.colors.accent.opacity(0.42), radius: 38, y: 8)
                     // Reclaim the transparent glow margin (~33pt top and bottom
