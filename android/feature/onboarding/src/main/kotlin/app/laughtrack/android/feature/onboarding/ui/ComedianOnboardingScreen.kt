@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -51,8 +52,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -340,12 +343,19 @@ private fun ComedianCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest),
     ) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            RemoteImage(
-                url = comedian.imageUrl,
-                fallback = RemoteImageFallback.Comedian,
-                contentDescription = comedian.name,
-                modifier = Modifier.fillMaxWidth().height(260.dp).clip(RoundedCornerShape(12.dp)),
-            )
+            BoxWithConstraints(Modifier.fillMaxWidth()) {
+                RemoteImage(
+                    url = comedian.imageUrl,
+                    fallback = RemoteImageFallback.Comedian,
+                    contentDescription = comedian.name,
+                    contentScale = ContentScale.Fit,
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .height(onboardingPortraitHeight(maxWidth))
+                            .clip(RoundedCornerShape(12.dp)),
+                )
+            }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text(comedian.name, style = MaterialTheme.typography.titleLarge, maxLines = 1)
@@ -361,6 +371,12 @@ private fun ComedianCard(
 }
 
 private const val SWIPE_THRESHOLD_PX = 120f
+private const val PORTRAIT_HEIGHT_WIDTH_RATIO = 0.6f
+private val MIN_PORTRAIT_HEIGHT = 260.dp
+private val MAX_PORTRAIT_HEIGHT = 360.dp
+
+internal fun onboardingPortraitHeight(availableWidth: Dp): Dp =
+    (availableWidth * PORTRAIT_HEIGHT_WIDTH_RATIO).coerceIn(MIN_PORTRAIT_HEIGHT, MAX_PORTRAIT_HEIGHT)
 
 @Composable
 private fun ComedianRow(
