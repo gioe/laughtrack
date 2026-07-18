@@ -78,4 +78,30 @@ class AppShellChromeTest {
                 (AppShellChrome.topAppBarRoutes + AppShellChrome.bottomBarRoutes)
         assertTrue("fullScreenRoutes must not also claim a bar: $overlap", overlap.isEmpty())
     }
+
+    @Test
+    fun now_playing_is_the_only_route_that_replaces_the_app_atmosphere() {
+        assertEquals(setOf(AppRoute.NowPlaying::class), AppShellBackgrounds.opaqueRoutes)
+    }
+
+    @Test
+    fun every_ordinary_route_inherits_the_app_atmosphere() {
+        val atmosphereRoutes = AppRoute::class.sealedSubclasses.toSet() - AppShellBackgrounds.opaqueRoutes
+
+        assertEquals(
+            setOf(
+                AppRoute.Discover::class,
+                AppRoute.Search::class,
+                AppRoute.Favorites::class,
+                AppRoute.ComedianOnboarding::class,
+                AppRoute.ShowDetail::class,
+                AppRoute.ComedianDetail::class,
+                AppRoute.ClubDetail::class,
+                AppRoute.PodcastDetail::class,
+                AppRoute.Profile::class,
+                AppRoute.NotificationCenter::class,
+            ),
+            atmosphereRoutes,
+        )
+    }
 }
