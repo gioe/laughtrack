@@ -14,6 +14,7 @@ Run from the repository root. Confirm these prerequisites before starting:
 ```bash
 test -x ios/bin/lane
 test -f android/Gemfile
+test -x scripts/screenshots/regenerate-comparisons
 xcrun simctl list devices booted
 adb devices
 ```
@@ -24,28 +25,32 @@ Create persistent run directories and record an RFC 3339 freshness boundary imme
 
 ```bash
 SCREENSHOT_RUN_ROOT=$(mktemp -d "${TMPDIR:-/tmp}/laughtrack-screenshot-compare.XXXXXX")
-IOS_RUN_ROOT="$SCREENSHOT_RUN_ROOT/ios"
-ANDROID_RUN_ROOT="$SCREENSHOT_RUN_ROOT/android"
+IOS_RUN_ROOT="$SCREENSHOT_RUN_ROOT/runs/ios"
+ANDROID_RUN_ROOT="$SCREENSHOT_RUN_ROOT/runs/android"
 CAPTURE_STARTED_AT=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 ```
 
-Keep this directory until the audit is complete. Each lane writes a normalized
-`manifest.json` and its declared images below the corresponding run root.
+Keep this directory until the audit is complete. The regeneration command writes
+normalized manifests and their declared images below the corresponding run roots,
+plus the five platform contact sheets at the comparison root.
 
-## 2. Run both capture lanes
+## 2. Regenerate the comparison matrix
 
-Run the capture-only lanes sequentially so two UI-test workloads do not compete for host resources:
+Use the repository's single capture-only entry point. It runs the iOS and Android
+lanes sequentially, supplies the resilient Xcode build-settings timeout, validates
+both manifests, and generates all five contact sheets:
 
 ```bash
-ios/bin/lane screenshots run_root:"$IOS_RUN_ROOT"
-(cd android && bundle exec fastlane screenshots run_root:"$ANDROID_RUN_ROOT")
+scripts/screenshots/regenerate-comparisons \
+  --output-root "$SCREENSHOT_RUN_ROOT" \
+  --no-open
 ```
 
 Do not run `screenshots_and_upload`, `upload_screenshots`, `upload_metadata`, `release`, or any other upload/release lane. If either capture lane fails, report its failure and stop before qualitative analysis.
 
-These are capture-only lanes. The explicit `run_root` options preserve the
-validated raw runs for comparison; they do not change the normal storefront
-projections or upload anything. The expected manifests are:
+The wrapper invokes only capture lanes. The explicit output root preserves the
+validated raw runs for comparison; it does not upload anything. The expected
+manifests are:
 
 - iOS: `$IOS_RUN_ROOT/manifest.json`
 - Android: `$ANDROID_RUN_ROOT/manifest.json`
