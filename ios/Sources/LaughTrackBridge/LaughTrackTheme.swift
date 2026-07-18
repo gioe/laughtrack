@@ -371,10 +371,13 @@ public struct LaughTrackTheme: AppThemeProtocol {
             textPrimary: laughTrack.colors.textPrimary,
             textSecondary: laughTrack.colors.textSecondary,
             textTertiary: laughTrack.colors.textSecondary.opacity(0.72),
-            background: laughTrack.colors.canvas,
+            // Ordinary page containers stay transparent so the app scaffold's
+            // canonical atmosphere shows through. Specialized full-screen
+            // experiences must opt into an opaque semantic canvas explicitly.
+            background: .clear,
             backgroundSecondary: laughTrack.colors.surface,
             backgroundTertiary: laughTrack.colors.surfaceMuted,
-            backgroundGrouped: laughTrack.colors.canvas,
+            backgroundGrouped: .clear,
             statBlue: laughTrack.colors.accentStrong,
             statGreen: laughTrack.colors.success,
             statPurple: laughTrack.colors.heroStart,

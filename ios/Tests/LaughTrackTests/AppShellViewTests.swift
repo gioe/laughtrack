@@ -133,6 +133,16 @@ struct AppShellViewTests {
         #expect(!source.contains(".background(theme.laughTrackTokens.colors.canvas.opacity(0.97))"))
     }
 
+    @Test("generic page backgrounds inherit the shell atmosphere")
+    func genericPageBackgroundsInheritShellAtmosphere() throws {
+        let source = try String(contentsOf: laughTrackThemeSourceURL(), encoding: .utf8)
+
+        #expect(source.contains("background: .clear,"))
+        #expect(source.contains("backgroundGrouped: .clear,"))
+        #expect(source.contains("backgroundSecondary: laughTrack.colors.surface,"))
+        #expect(source.contains("backgroundTertiary: laughTrack.colors.surfaceMuted,"))
+    }
+
     @Test("authenticated shell triggers favorites fetch without visiting the Favorites tab")
     func authenticatedShellTriggersFavoritesFetch() async throws {
         // Regression guard for TASK-1762. The favorites load used to live on
@@ -182,6 +192,20 @@ struct AppShellViewTests {
             .deletingLastPathComponent()
         let sourceURL = iosRoot
             .appendingPathComponent("Sources/LaughTrackApp/AppShellView.swift")
+        guard FileManager.default.fileExists(atPath: sourceURL.path) else {
+            throw CocoaError(.fileNoSuchFile)
+        }
+        return sourceURL
+    }
+
+    private func laughTrackThemeSourceURL(filePath: String = #filePath) throws -> URL {
+        let testFileURL = URL(fileURLWithPath: filePath)
+        let iosRoot = testFileURL
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let sourceURL = iosRoot
+            .appendingPathComponent("Sources/LaughTrackBridge/LaughTrackTheme.swift")
         guard FileManager.default.fileExists(atPath: sourceURL.path) else {
             throw CocoaError(.fileNoSuchFile)
         }

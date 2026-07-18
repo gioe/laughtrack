@@ -125,6 +125,8 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         XCTAssertTrue(miniPlayer.waitForExistence(timeout: 10), "Expected seeded podcast mini player")
         miniPlayer.coordinate(withNormalizedOffset: CGVector(dx: 0.35, dy: 0.5)).tap()
         assertExists("laughtrack.now-playing-screen", message: "Expected Now Playing screen")
+        // Intentional background override: this immersive media surface uses
+        // an opaque semantic canvas instead of the inherited app atmosphere.
         snapshot("14_NowPlaying")
 
         relaunch(route: "favorites:0", authenticatedPersona: true)
@@ -153,6 +155,8 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         for option in ["Continue with Apple", "Continue with Google", "Email me a sign-in link"] {
             XCTAssertTrue(app.buttons[option].exists, "Expected auth option: \(option)")
         }
+        // Intentional background override: the focused authentication sheet
+        // uses an opaque semantic canvas over the ordinary catalog surface.
         snapshot("18_AuthPrompt")
 
         // Mock mode normally records the guest choice so comparison captures can
@@ -165,6 +169,8 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         for option in ["Continue as guest", "Continue with Apple", "Continue with Google", "Email me a sign-in link"] {
             XCTAssertTrue(app.buttons[option].exists, "Expected first-entry option: \(option)")
         }
+        // Intentional background override: the first-entry gate is a
+        // specialized authentication experience with an opaque canvas.
         snapshot("19_FirstEntryAuthChoice")
     }
 
