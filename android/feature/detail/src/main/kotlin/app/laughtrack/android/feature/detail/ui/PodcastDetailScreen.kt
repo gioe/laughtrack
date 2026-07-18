@@ -63,7 +63,6 @@ import app.laughtrack.android.core.network.generated.model.PodcastDetailPodcast
 import app.laughtrack.android.core.network.generated.model.PodcastDetailResponse
 import app.laughtrack.android.core.playback.PodcastPlaybackItem
 import app.laughtrack.android.core.ui.UiState
-import app.laughtrack.android.core.ui.components.LaughTrackAtmosphereBackground
 import app.laughtrack.android.core.ui.components.RemoteImage
 import app.laughtrack.android.core.ui.components.RemoteImageFallback
 import app.laughtrack.android.core.ui.theme.LaughTrackColors
@@ -92,12 +91,7 @@ fun PodcastDetailScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val favoritesSnapshot by viewModel.favoritesSnapshot.collectAsStateWithLifecycle()
 
-    Box(
-        Modifier
-            .fillMaxSize()
-            .background(LaughTrackColors.Canvas),
-    ) {
-        LaughTrackAtmosphereBackground()
+    Box(Modifier.fillMaxSize()) {
         when (val uiState = state) {
             is UiState.Failure -> DetailError(onRetry = viewModel::retry, modifier = Modifier.fillMaxSize())
             is UiState.Success -> {

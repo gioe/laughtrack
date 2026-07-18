@@ -1,5 +1,6 @@
 package app.laughtrack.android
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,6 +20,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -27,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
@@ -44,6 +47,8 @@ import app.laughtrack.android.core.navigation.AppTab
 import app.laughtrack.android.core.playback.NowPlayingScreen
 import app.laughtrack.android.core.playback.PodcastMiniPlayer
 import app.laughtrack.android.core.playback.PodcastPlaybackController
+import app.laughtrack.android.core.ui.components.LaughTrackAtmosphereBackground
+import app.laughtrack.android.core.ui.theme.LaughTrackColors
 import app.laughtrack.android.feature.detail.ui.ClubDetailScreen
 import app.laughtrack.android.feature.detail.ui.ComedianDetailScreen
 import app.laughtrack.android.feature.detail.ui.PodcastDetailScreen
@@ -80,6 +85,8 @@ fun AppShell(
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
     val showFavoritesTab = AppShellTabs.showsFavoritesTab(signedIn, hasFavorites)
+    val usesOpaqueCanvas = AppShellBackgrounds.usesOpaqueCanvas(currentDestination)
+    val topAppBarContainerColor = if (usesOpaqueCanvas) LaughTrackColors.Canvas else Color.Transparent
 
     // Route a deep link / push target once it is delivered, then clear it so a
     // recomposition or config change doesn't re-navigate.
@@ -102,150 +109,166 @@ fun AppShell(
         }
     }
 
-    Scaffold(
-        // TopAppBar/NavigationBar and detail heroes own their respective safe-area
-        // padding. Reserving safeDrawing here as well leaves an opaque status-bar
-        // strip above detail artwork instead of allowing true edge-to-edge chrome.
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        topBar = {
-            if (AppShellChrome.showsTopAppBar(currentDestination)) {
-                TopAppBar(
-                    title = { Text("LaughTrack") },
-                    actions = { ProfileMenu(navController) },
-                )
-            }
-        },
-        bottomBar = {
-            if (AppShellChrome.showsBottomBar(currentDestination)) {
-                NavigationBar {
-                    AppShellTabs.visibleTabs(signedIn, hasFavorites).forEach { tab ->
-                        val selected =
-                            currentDestination?.hierarchy?.any {
-                                it.hasRoute(tab.rootRoute::class)
-                            } == true
-                        NavigationBarItem(
-                            selected = selected,
-                            onClick = { navController.switchTab(tab) },
-                            icon = { Icon(tab.icon, contentDescription = tab.label) },
-                            label = { Text(tab.label) },
-                        )
-                    }
-                }
-            }
-        },
-    ) { padding ->
-        Box(Modifier.fillMaxSize().padding(padding)) {
-            NavHost(
-                navController = navController,
-                startDestination = AppRoute.Discover,
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                composable<AppRoute.Discover> {
-                    HomeScreen(onOpenEntity = navController::openEntity)
-                }
-                composable<AppRoute.Search> {
-                    SearchScreen(onOpenEntity = navController::openEntity)
-                }
-                composable<AppRoute.Favorites> { entry ->
-                    val scopedShowIds = entry.toRoute<AppRoute.Favorites>().showIds
-                    if (screenshotPersona == null) {
-                        LibraryScreen(
-                            signedIn = signedIn,
-                            scopedShowIds = scopedShowIds,
-                            onOpenProfile = { navController.openEntity(AppRoute.Profile) },
-                        )
-                    } else {
-                        LibraryScreen(
-                            signedIn = true,
-                            scopedShowIds = scopedShowIds,
-                            onOpenProfile = { navController.openEntity(AppRoute.Profile) },
-                            snapshotOverride = screenshotPersona.favoritesSnapshot,
-                        )
-                    }
-                }
-                composable<AppRoute.ComedianOnboarding> {
-                    ComedianOnboardingScreen(
-                        onComplete = {
-                            navController.navigate(AppRoute.Discover) {
-                                popUpTo(AppRoute.ComedianOnboarding) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                        },
-                    )
-                }
+    Box(Modifier.fillMaxSize()) {
+        LaughTrackAtmosphereBackground()
 
-                composable<AppRoute.ShowDetail> { entry ->
-                    ShowDetailScreen(
-                        id = entry.toRoute<AppRoute.ShowDetail>().id,
-                        onBack = { navController.popBackStack() },
-                        onHome = {
-                            navController.navigate(AppRoute.Discover) {
-                                popUpTo(AppRoute.Discover) { inclusive = false }
-                                launchSingleTop = true
-                            }
-                        },
-                        onOpenEntity = navController::openEntity,
+        Scaffold(
+            containerColor = Color.Transparent,
+            // TopAppBar/NavigationBar and detail heroes own their respective safe-area
+            // padding. Reserving safeDrawing here as well leaves an opaque status-bar
+            // strip above detail artwork instead of allowing true edge-to-edge chrome.
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
+            topBar = {
+                if (AppShellChrome.showsTopAppBar(currentDestination)) {
+                    TopAppBar(
+                        title = { Text("LaughTrack") },
+                        actions = { ProfileMenu(navController) },
+                        colors =
+                            TopAppBarDefaults.topAppBarColors(
+                                containerColor = topAppBarContainerColor,
+                                scrolledContainerColor = topAppBarContainerColor,
+                            ),
                     )
                 }
-                composable<AppRoute.ComedianDetail> { entry ->
-                    ComedianDetailScreen(
-                        id = entry.toRoute<AppRoute.ComedianDetail>().id,
-                        onBack = { navController.popBackStack() },
-                        onOpenEntity = navController::openEntity,
-                    )
-                }
-                composable<AppRoute.ClubDetail> { entry ->
-                    ClubDetailScreen(
-                        id = entry.toRoute<AppRoute.ClubDetail>().id,
-                        onBack = { navController.popBackStack() },
-                        onOpenEntity = navController::openEntity,
-                    )
-                }
-                composable<AppRoute.PodcastDetail> { entry ->
-                    PodcastDetailScreen(
-                        id = entry.toRoute<AppRoute.PodcastDetail>().id,
-                        onBack = { navController.popBackStack() },
-                        onOpenEntity = navController::openEntity,
-                    )
-                }
-                composable<AppRoute.NowPlaying> {
-                    if (playbackController != null) {
-                        NowPlayingScreen(playbackController = playbackController)
-                    } else {
-                        PlaceholderScreen("Now Playing")
+            },
+            bottomBar = {
+                if (AppShellChrome.showsBottomBar(currentDestination)) {
+                    NavigationBar {
+                        AppShellTabs.visibleTabs(signedIn, hasFavorites).forEach { tab ->
+                            val selected =
+                                currentDestination?.hierarchy?.any {
+                                    it.hasRoute(tab.rootRoute::class)
+                                } == true
+                            NavigationBarItem(
+                                selected = selected,
+                                onClick = { navController.switchTab(tab) },
+                                icon = { Icon(tab.icon, contentDescription = tab.label) },
+                                label = { Text(tab.label) },
+                            )
+                        }
                     }
                 }
+            },
+        ) { padding ->
+            Box(Modifier.fillMaxSize().padding(padding)) {
+                NavHost(
+                    navController = navController,
+                    startDestination = AppRoute.Discover,
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    composable<AppRoute.Discover> {
+                        HomeScreen(onOpenEntity = navController::openEntity)
+                    }
+                    composable<AppRoute.Search> {
+                        SearchScreen(onOpenEntity = navController::openEntity)
+                    }
+                    composable<AppRoute.Favorites> { entry ->
+                        val scopedShowIds = entry.toRoute<AppRoute.Favorites>().showIds
+                        if (screenshotPersona == null) {
+                            LibraryScreen(
+                                signedIn = signedIn,
+                                scopedShowIds = scopedShowIds,
+                                onOpenProfile = { navController.openEntity(AppRoute.Profile) },
+                            )
+                        } else {
+                            LibraryScreen(
+                                signedIn = true,
+                                scopedShowIds = scopedShowIds,
+                                onOpenProfile = { navController.openEntity(AppRoute.Profile) },
+                                snapshotOverride = screenshotPersona.favoritesSnapshot,
+                            )
+                        }
+                    }
+                    composable<AppRoute.ComedianOnboarding> {
+                        ComedianOnboardingScreen(
+                            onComplete = {
+                                navController.navigate(AppRoute.Discover) {
+                                    popUpTo(AppRoute.ComedianOnboarding) { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                            },
+                        )
+                    }
 
-                composable<AppRoute.Profile> {
-                    if (screenshotPersona == null) {
-                        ProfileScreen()
-                    } else {
-                        ProfileScreen(stateOverride = screenshotPersona.profileUiState)
-                    }
-                }
-                composable<AppRoute.NotificationCenter> {
-                    if (screenshotPersona == null) {
-                        NotificationCenterScreen(
-                            onOpenEntity = navController::openEntity,
+                    composable<AppRoute.ShowDetail> { entry ->
+                        ShowDetailScreen(
+                            id = entry.toRoute<AppRoute.ShowDetail>().id,
                             onBack = { navController.popBackStack() },
-                        )
-                    } else {
-                        NotificationCenterScreen(
+                            onHome = {
+                                navController.navigate(AppRoute.Discover) {
+                                    popUpTo(AppRoute.Discover) { inclusive = false }
+                                    launchSingleTop = true
+                                }
+                            },
                             onOpenEntity = navController::openEntity,
-                            onBack = { navController.popBackStack() },
-                            dataOverride = screenshotPersona.notificationListResponseData,
-                            referenceTime = screenshotPersona.notificationReferenceTime,
                         )
                     }
-                }
-            }
+                    composable<AppRoute.ComedianDetail> { entry ->
+                        ComedianDetailScreen(
+                            id = entry.toRoute<AppRoute.ComedianDetail>().id,
+                            onBack = { navController.popBackStack() },
+                            onOpenEntity = navController::openEntity,
+                        )
+                    }
+                    composable<AppRoute.ClubDetail> { entry ->
+                        ClubDetailScreen(
+                            id = entry.toRoute<AppRoute.ClubDetail>().id,
+                            onBack = { navController.popBackStack() },
+                            onOpenEntity = navController::openEntity,
+                        )
+                    }
+                    composable<AppRoute.PodcastDetail> { entry ->
+                        PodcastDetailScreen(
+                            id = entry.toRoute<AppRoute.PodcastDetail>().id,
+                            onBack = { navController.popBackStack() },
+                            onOpenEntity = navController::openEntity,
+                        )
+                    }
+                    composable<AppRoute.NowPlaying> {
+                        Box(
+                            Modifier
+                                .fillMaxSize()
+                                .background(LaughTrackColors.Canvas),
+                        ) {
+                            if (playbackController != null) {
+                                NowPlayingScreen(playbackController = playbackController)
+                            } else {
+                                PlaceholderScreen("Now Playing")
+                            }
+                        }
+                    }
 
-            if (playbackController != null) {
-                PodcastMiniPlayer(
-                    playbackController = playbackController,
-                    onExpand = { navController.openEntity(AppRoute.NowPlaying) },
-                    modifier = Modifier.align(Alignment.BottomCenter),
-                )
+                    composable<AppRoute.Profile> {
+                        if (screenshotPersona == null) {
+                            ProfileScreen()
+                        } else {
+                            ProfileScreen(stateOverride = screenshotPersona.profileUiState)
+                        }
+                    }
+                    composable<AppRoute.NotificationCenter> {
+                        if (screenshotPersona == null) {
+                            NotificationCenterScreen(
+                                onOpenEntity = navController::openEntity,
+                                onBack = { navController.popBackStack() },
+                            )
+                        } else {
+                            NotificationCenterScreen(
+                                onOpenEntity = navController::openEntity,
+                                onBack = { navController.popBackStack() },
+                                dataOverride = screenshotPersona.notificationListResponseData,
+                                referenceTime = screenshotPersona.notificationReferenceTime,
+                            )
+                        }
+                    }
+                }
+
+                if (playbackController != null) {
+                    PodcastMiniPlayer(
+                        playbackController = playbackController,
+                        onExpand = { navController.openEntity(AppRoute.NowPlaying) },
+                        modifier = Modifier.align(Alignment.BottomCenter),
+                    )
+                }
             }
         }
     }
@@ -380,4 +403,12 @@ internal object AppShellChrome {
 
     fun showsBottomBar(destination: NavDestination?): Boolean =
         destination == null || bottomBarRoutes.any { destination.hasRoute(it) }
+}
+
+internal object AppShellBackgrounds {
+    /** Specialized immersive routes that intentionally replace the inherited app atmosphere. */
+    val opaqueRoutes: Set<KClass<out AppRoute>> = setOf(AppRoute.NowPlaying::class)
+
+    fun usesOpaqueCanvas(destination: NavDestination?): Boolean =
+        destination != null && opaqueRoutes.any { destination.hasRoute(it) }
 }

@@ -223,6 +223,8 @@ class AppStoreScreenshotTest {
         listOf("Continue with Google", "Continue with Apple", "Email me a sign-in link").forEach { option ->
             waitFor(hasText(option))
         }
+        // Intentional background override: protected-action authentication is
+        // presented on its own opaque modal surface above the app atmosphere.
         capture("18_AuthPrompt", dismissKeyboard = false)
         composeRule.runOnIdle { showLoginPrompt = false }
 
@@ -244,6 +246,8 @@ class AppStoreScreenshotTest {
             navController.navigate(AppRoute.NowPlaying)
         }
         waitFor(hasText("The LaughTrack Comedy Roundup"))
+        // Intentional background override: this immersive media destination is
+        // the sole AppShell route that replaces the atmosphere with opaque Canvas.
         capture("14_NowPlaying")
 
         // Opt into the credentials-free persona explicitly for the populated
@@ -279,6 +283,8 @@ class AppStoreScreenshotTest {
             "Continue with Apple",
             "Email me a sign-in link",
         ).forEach { option -> waitFor(hasText(option)) }
+        // Specialized root owner: the first-entry gate lives outside AppShell
+        // and renders its own branded atmosphere and authentication treatments.
         capture("19_FirstEntryAuthChoice", dismissKeyboard = false)
     }
 

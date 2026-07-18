@@ -86,11 +86,7 @@ fun ShowDetailScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val isAdmin by viewModel.isAdmin.collectAsStateWithLifecycle()
 
-    Box(
-        Modifier
-            .fillMaxSize()
-            .background(LaughTrackColors.Canvas),
-    ) {
+    Box(Modifier.fillMaxSize()) {
         when (state) {
             is UiState.Failure -> DetailError(onRetry = viewModel::retry, modifier = Modifier.fillMaxSize())
             is UiState.Success ->

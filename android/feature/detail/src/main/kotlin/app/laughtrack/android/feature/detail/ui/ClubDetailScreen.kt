@@ -91,11 +91,7 @@ fun ClubDetailScreen(
     val isLoadingMore by viewModel.isLoadingMore.collectAsStateWithLifecycle()
     val favoritesSnapshot by viewModel.favoritesSnapshot.collectAsStateWithLifecycle()
 
-    Box(
-        Modifier
-            .fillMaxSize()
-            .background(LaughTrackColors.Canvas),
-    ) {
+    Box(Modifier.fillMaxSize()) {
         when (state) {
             is UiState.Failure -> DetailError(onRetry = viewModel::retry, modifier = Modifier.fillMaxSize())
             is UiState.Success -> {

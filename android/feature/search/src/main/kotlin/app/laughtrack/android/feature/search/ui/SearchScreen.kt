@@ -67,7 +67,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.network.generated.model.Filter
 import app.laughtrack.android.core.network.generated.model.HomeCityFilter
-import app.laughtrack.android.core.ui.components.LaughTrackAtmosphereBackground
 import app.laughtrack.android.core.ui.theme.LaughTrackColors
 import app.laughtrack.android.feature.search.model.DEFAULT_DISTANCE_MILES
 import app.laughtrack.android.feature.search.model.DISTANCE_OPTIONS
@@ -99,7 +98,6 @@ fun SearchScreen(
             modifier
                 .fillMaxSize(),
     ) {
-        LaughTrackAtmosphereBackground()
         LazyColumn(
             modifier = Modifier.fillMaxSize().statusBarsPadding(),
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 12.dp),

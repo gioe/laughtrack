@@ -61,7 +61,6 @@ import app.laughtrack.android.core.network.generated.model.ComedianListItem
 import app.laughtrack.android.core.network.generated.model.HomeFeedPodcast
 import app.laughtrack.android.core.network.generated.model.Show
 import app.laughtrack.android.core.ui.UiState
-import app.laughtrack.android.core.ui.components.LaughTrackAtmosphereBackground
 import app.laughtrack.android.core.ui.components.RemoteImage
 import app.laughtrack.android.core.ui.components.RemoteImageFallback
 import app.laughtrack.android.core.ui.components.SkeletonBox
@@ -86,8 +85,6 @@ fun HomeScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     Box(modifier = modifier.fillMaxSize()) {
-        LaughTrackAtmosphereBackground()
-
         Box(Modifier.fillMaxSize().statusBarsPadding()) {
             when (state.feed) {
                 is UiState.Failure -> HomeError(onRetry = viewModel::retry)
