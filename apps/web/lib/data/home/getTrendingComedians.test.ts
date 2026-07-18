@@ -1,5 +1,13 @@
 import { PGlite } from "@electric-sql/pglite";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import {
+    afterAll,
+    beforeAll,
+    beforeEach,
+    describe,
+    expect,
+    it,
+    vi,
+} from "vitest";
 
 vi.mock("@/lib/db", () => ({
     db: { $queryRaw: vi.fn() },
@@ -437,32 +445,36 @@ describe("getTrendingComedians", () => {
     });
 
     describe("show_count > 3 contract", () => {
+        let fixtureDb: PGlite;
+
+        beforeAll(async () => {
+            fixtureDb = new PGlite();
+            await seedTrendingComediansFixture(fixtureDb);
+        });
+
+        afterAll(async () => {
+            await fixtureDb.close();
+        });
+
         it("matches the legacy own-plus-visible-alias show_count query on fixture data", async () => {
-            const fixtureDb = new PGlite();
-            try {
-                await seedTrendingComediansFixture(fixtureDb);
+            for (const nearbyZips of [undefined, ["10001"]] as const) {
+                const legacyRows = await trendingCountsFromQuery(
+                    fixtureDb,
+                    legacyTrendingComediansCountSql(nearbyZips),
+                );
+                const groupedRows = await trendingCountsFromQuery(
+                    fixtureDb,
+                    toPgliteQuery(
+                        buildTrendingComediansQuery({
+                            now: FIXTURE_NOW,
+                            fetchLimit: 50,
+                            fetchOffset: 0,
+                            nearbyZips,
+                        }),
+                    ),
+                );
 
-                for (const nearbyZips of [undefined, ["10001"]] as const) {
-                    const legacyRows = await trendingCountsFromQuery(
-                        fixtureDb,
-                        legacyTrendingComediansCountSql(nearbyZips),
-                    );
-                    const groupedRows = await trendingCountsFromQuery(
-                        fixtureDb,
-                        toPgliteQuery(
-                            buildTrendingComediansQuery({
-                                now: FIXTURE_NOW,
-                                fetchLimit: 50,
-                                fetchOffset: 0,
-                                nearbyZips,
-                            }),
-                        ),
-                    );
-
-                    expect(groupedRows).toEqual(legacyRows);
-                }
-            } finally {
-                await fixtureDb.close();
+                expect(groupedRows).toEqual(legacyRows);
             }
         });
 
