@@ -237,16 +237,16 @@ class AppStoreScreenshotTest {
         waitFor(hasText("Guest mode"))
         capture("11_Profile")
 
-        // Match iOS by presenting the real protected-action prompt over the
-        // guest Profile screen through the deterministic test seam. No provider
+        // Present the protected-action prompt over a neutral app destination instead
+        // of making the guest Profile hierarchy compete with the modal. No provider
         // is clicked, so Custom Tabs / external OAuth never launches.
+        navigate(navController, AppRoute.Discover)
+        waitFor(hasContentDescription("Edit location"), timeoutMs = 20_000)
         composeRule.runOnIdle { showLoginPrompt = true }
         waitFor(hasText("Sign in to save favorites"))
         listOf("Continue with Google", "Continue with Apple", "Email me a sign-in link").forEach { option ->
             waitFor(hasText(option))
         }
-        // Intentional background override: protected-action authentication is
-        // presented on its own opaque modal surface above the app atmosphere.
         capture("18_AuthPrompt", dismissKeyboard = false)
         composeRule.runOnIdle { showLoginPrompt = false }
 
