@@ -78,6 +78,20 @@ def _lineup(base_url: str) -> dict:
     }
 
 
+def _comedian(base_url: str, index: int, name: str) -> dict:
+    entity_id = 301 + index
+    artwork_key = "ali-wong" if index == 0 else "taylor"
+    return {
+        "id": entity_id,
+        "uuid": f"fixture-{entity_id}",
+        "name": name,
+        "imageUrl": f"{base_url}/artwork/{artwork_key}.png",
+        "socialData": _social(entity_id, name.lower().replace(" ", "")),
+        "showCount": 28 - index,
+        "isFavorite": False,
+    }
+
+
 def _show(base_url: str, show_id: int = 101, name: str = "Taylor Tomlinson & Friends", hour: int = 20) -> dict:
     return {
         "id": show_id,
@@ -121,10 +135,12 @@ def fixture_response(path: str, base_url: str) -> dict | None:
         return {"data": shows, "total": 5, "filters": [], "zipCapTriggered": False}
     if path == f"{API_PREFIX}comedians/search":
         names = ["Ali Wong", "Taylor Tomlinson", "Andrew Schulz", "Josh Johnson", "Trevor Noah"]
-        return {"data": [
-            {"id": 301 + index, "uuid": f"fixture-{301 + index}", "name": name, "imageUrl": f"{base_url}/artwork/{'ali-wong' if index == 0 else 'taylor'}.png", "socialData": _social(301 + index, name.lower().replace(' ', '')), "showCount": 28 - index, "isFavorite": False}
-            for index, name in enumerate(names)
-        ], "total": 5, "filters": [], "homeCityFilters": []}
+        return {
+            "data": [_comedian(base_url, index, name) for index, name in enumerate(names)],
+            "total": 5,
+            "filters": [],
+            "homeCityFilters": [],
+        }
     if path == f"{API_PREFIX}clubs/search":
         names = ["The Comedy Store", "Comedy Cellar", "The Stand", "Hollywood Improv", "Largo at the Coronet"]
         return {"data": [
