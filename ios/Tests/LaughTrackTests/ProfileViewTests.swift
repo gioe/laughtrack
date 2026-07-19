@@ -20,6 +20,11 @@ struct ProfileViewTests {
     func profileCopySeamsStayStable() {
         #expect(ProfileView.signOutButtonTitle == "Sign out")
         #expect(ProfileView.deleteAccountButtonTitle == "Delete account")
+        #expect(ProfileView.signedOutBenefitMessage == "Sign in to sync favorite comedians across devices.")
+        #expect(ProfileView.signedOutBenefitPreviews.map(\.title) == [
+            "Saved Near Me location",
+            "Alert preferences",
+        ])
     }
 
     @Test("signed-out auth state surfaces guest-mode hero text and gates settings off")

@@ -118,6 +118,21 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
 
         relaunch(route: "profile:0")
         assertExists("laughtrack.profile-tab.screen", message: "Expected Profile screen")
+        for benefit in [
+            "Sign in to sync favorite comedians across devices.",
+            "Saved Near Me location",
+            "Alert preferences",
+        ] {
+            XCTAssertTrue(
+                app.staticTexts[benefit].waitForExistence(timeout: 10),
+                "Expected guest profile benefit: \(benefit)"
+            )
+        }
+        for option in ["Continue with Apple", "Continue with Google", "Email me a sign-in link"] {
+            let button = app.buttons[option]
+            XCTAssertTrue(button.waitForExistence(timeout: 10), "Expected auth option: \(option)")
+            XCTAssertTrue(button.isHittable, "Expected visible auth option: \(option)")
+        }
         snapshot("11_Profile")
 
         relaunch(environment: [UITestLaunchArgs.forceComedianOnboardingScreen: "1"])

@@ -8,6 +8,11 @@ struct ProfileView: View {
     static let signOutButtonTitle = "Sign out"
     static let deleteAccountButtonTitle = "Delete account"
     static let signedOutAuthOptions = SignedOutAuthOption.all
+    static let signedOutBenefitMessage = "Sign in to sync favorite comedians across devices."
+    static let signedOutBenefitPreviews = [
+        GuestProfileBenefit(title: "Saved Near Me location", systemImage: "location.fill"),
+        GuestProfileBenefit(title: "Alert preferences", systemImage: "bell.badge.fill"),
+    ]
 
     let apiClient: Client
     let signedOutMessage: String?
@@ -161,6 +166,14 @@ struct ProfileView: View {
                             .foregroundStyle(laughTrack.colors.danger)
                     }
                 } else {
+                    GuestProfileBenefitsView(
+                        message: Self.signedOutBenefitMessage,
+                        benefits: Self.signedOutBenefitPreviews
+                    )
+
+                    Divider()
+                        .overlay(laughTrack.colors.borderSubtle)
+
                     VStack(spacing: theme.spacing.sm) {
                         ForEach(Self.signedOutAuthOptions) { option in
                             SignedOutAuthOptionButton(option: option) { provider in
@@ -234,6 +247,47 @@ struct ProfileView: View {
         }
     }
 
+}
+
+struct GuestProfileBenefit: Identifiable, Equatable, Sendable {
+    let title: String
+    let systemImage: String
+
+    var id: String { title }
+}
+
+private struct GuestProfileBenefitsView: View {
+    let message: String
+    let benefits: [GuestProfileBenefit]
+
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        VStack(alignment: .leading, spacing: theme.spacing.sm) {
+            Text(message)
+                .font(laughTrack.typography.body)
+                .foregroundStyle(laughTrack.colors.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            VStack(alignment: .leading, spacing: theme.spacing.sm) {
+                ForEach(benefits) { benefit in
+                    HStack(spacing: theme.spacing.sm) {
+                        Image(systemName: benefit.systemImage)
+                            .font(.system(size: theme.iconSizes.sm, weight: .semibold))
+                            .foregroundStyle(laughTrack.colors.accent)
+                            .frame(width: 24)
+
+                        Text(benefit.title)
+                            .font(laughTrack.typography.metadata)
+                            .foregroundStyle(laughTrack.colors.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+            }
+        }
+    }
 }
 
 private extension View {
