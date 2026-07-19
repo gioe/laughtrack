@@ -22,6 +22,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.test.espresso.Espresso.closeSoftKeyboard
 import androidx.test.platform.app.InstrumentationRegistry
 import app.laughtrack.android.core.navigation.AppRoute
+import app.laughtrack.android.core.network.ApiClientModule
+import app.laughtrack.android.core.network.generated.infrastructure.ApiClient
 import app.laughtrack.android.core.playback.PodcastPlaybackController
 import app.laughtrack.android.core.playback.PodcastPlaybackItem
 import app.laughtrack.android.core.ui.components.RemoteImageTestTags
@@ -33,8 +35,11 @@ import app.laughtrack.android.screenshots.AuthenticatedScreenshotPersona
 import app.laughtrack.android.screenshots.ScreenshotImageTracker
 import coil.Coil
 import coil.ImageLoader
+import dagger.hilt.android.testing.BindValue
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
+import dagger.hilt.android.testing.UninstallModules
+import okhttp3.OkHttpClient
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -60,12 +65,25 @@ import tools.fastlane.screengrab.locale.LocaleTestRule
  * only consulted from useDeviceLocation(), never on the initial zip=null load —
  * hence the explicit tap.)
  *
- * Result data and artwork come from the production API, matching the iOS store
- * screenshot lane. Only location resolution is faked so both platforms request
- * Hollywood (90028) without depending on emulator GPS or runner geo-IP.
+ * Result data and artwork come from the same host-side fixture backend as iOS,
+ * while location resolution remains test-side and fixed to Hollywood (90028).
  */
 @HiltAndroidTest
+@UninstallModules(ApiClientModule::class)
 class AppStoreScreenshotTest {
+    @BindValue
+    @JvmField
+    val screenshotApiClient =
+        ApiClient(
+            baseUrl = "http://10.0.2.2:8765/api/v1/",
+            okHttpClientBuilder = OkHttpClient.Builder(),
+        )
+
+    @BindValue
+    @JvmField
+    @javax.inject.Named("apiBaseUrl")
+    val screenshotApiBaseUrl = "http://10.0.2.2:8765/api/v1/"
+
     private val imageTracker = ScreenshotImageTracker()
 
     @get:Rule(order = 0)
@@ -169,18 +187,21 @@ class AppStoreScreenshotTest {
         composeRule.onNode(hasContentDescription("Search"), useUnmergedTree = true).performClick()
         waitFor(hasText("Search nearby comedy"), timeoutMs = 30_000)
         waitForResults()
+        assertFixtureResultCount()
         capture("02_SearchShows")
 
         // 03 — Search / Comedians. Pivot chips render their label uppercased.
         selectPivot("COMEDIANS")
+        assertFixtureResultCount()
         capture("03_SearchComedians")
 
         // 04 — Search / Clubs.
         selectPivot("CLUBS")
+        assertFixtureResultCount()
         capture("04_SearchClubs")
 
-        // 05 — Match iOS's curated live club selection.
-        searchFor("New York Comedy Club Midtown")
+        // 05 — Open the catalog's fixed club fixture.
+        searchFor("The Comedy Store")
         openFirstResult()
         capture("05_ClubDetail")
 
@@ -196,7 +217,7 @@ class AppStoreScreenshotTest {
 
         // 07 — Comedian detail.
         selectPivot("COMEDIANS")
-        searchFor("Andrew Schulz")
+        searchFor("Ali Wong")
         openFirstResult()
         capture("07_ComedianDetail")
 
@@ -204,10 +225,11 @@ class AppStoreScreenshotTest {
 
         // 08 — Search / Podcasts.
         selectPivot("PODCASTS")
+        assertFixtureResultCount()
         capture("08_SearchPodcasts")
 
-        // 09 — Match iOS's curated live podcast selection.
-        searchFor("The D.L. Hughley Show")
+        // 09 — Open the catalog's fixed podcast fixture.
+        searchFor("The Joe Rogan Experience")
         openFirstResult()
         capture("09_PodcastDetail")
 
@@ -335,6 +357,10 @@ class AppStoreScreenshotTest {
 
     /** Wait until at least one search result row is present. */
     private fun waitForResults() = waitForStable(hasTestTag(SEARCH_RESULT_ROW_TEST_TAG), timeoutMs = 30_000)
+
+    private fun assertFixtureResultCount() {
+        waitFor(hasText("Showing 5 results"), timeoutMs = 15_000)
+    }
 
     /** Require a node to remain present across recompositions, not merely flash during navigation. */
     private fun waitForStable(

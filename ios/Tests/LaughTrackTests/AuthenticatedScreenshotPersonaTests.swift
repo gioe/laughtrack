@@ -17,6 +17,12 @@ struct AuthenticatedScreenshotPersonaTests {
         #expect(first.favoritePodcasts == ["Good One: A Podcast About Jokes"])
         #expect(first.notifications.count == 2)
         #expect(first.notifications.filter(\.isUnread).count == 1)
+        #expect(first.notifications.map(\.body) == [
+            "The Comedy Cellar on Saturday at 8:00 PM",
+            "The Comedy Cellar and The Bell House",
+        ])
+        #expect(first.notifications.allSatisfy { $0.sentAt != nil })
+        #expect(first.user.avatarURL == nil)
         #expect(first.user.email.hasSuffix(".invalid"))
     }
 }

@@ -18,6 +18,7 @@ from typing import Any, Mapping, Sequence
 try:
     from scripts.screenshots.manifest import (
         ContractError,
+        content_fixture_fingerprint,
         load_catalog,
         load_manifest,
         png_dimensions,
@@ -26,6 +27,7 @@ try:
 except ModuleNotFoundError:  # Direct execution: python scripts/screenshots/export.py
     from manifest import (  # type: ignore[no-redef]
         ContractError,
+        content_fixture_fingerprint,
         load_catalog,
         load_manifest,
         png_dimensions,
@@ -346,6 +348,7 @@ def collect_run(
             )
         manifest = {
             "schema_version": 1,
+            "content_fixture_fingerprint": content_fixture_fingerprint(catalog),
             "status": "completed",
             "run_id": f"{platform}-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}",
             "started_at": now,

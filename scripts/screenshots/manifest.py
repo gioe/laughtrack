@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import struct
@@ -49,7 +50,7 @@ FIXTURE_CAPTURE_CONTEXTS: Mapping[str, Mapping[str, Any]] = {
     "05_ClubDetail": {
         "screen": "club_detail",
         "source_scenario_id": "04_SearchClubs",
-        "query": "New York Comedy Club Midtown",
+        "query": "The Comedy Store",
         "selection": "first_result",
     },
     "06_ShowDetail": {
@@ -57,10 +58,16 @@ FIXTURE_CAPTURE_CONTEXTS: Mapping[str, Mapping[str, Any]] = {
         "source_scenario_id": "05_ClubDetail",
         "selection": "first_upcoming_show",
     },
+    "07_ComedianDetail": {
+        "screen": "comedian_detail",
+        "source_scenario_id": "03_SearchComedians",
+        "query": "Ali Wong",
+        "selection": "first_result",
+    },
     "09_PodcastDetail": {
         "screen": "podcast_detail",
         "source_scenario_id": "08_SearchPodcasts",
-        "query": "The D.L. Hughley Show",
+        "query": "The Joe Rogan Experience",
         "selection": "first_result",
     },
     "15_AuthenticatedFavorites": {
@@ -83,6 +90,12 @@ FIXTURE_CAPTURE_CONTEXTS: Mapping[str, Mapping[str, Any]] = {
         "trigger": "deterministic_test_seam",
     },
 }
+
+
+def content_fixture_fingerprint(catalog: Mapping[str, Any]) -> str:
+    fixture = catalog.get("content_fixture")
+    encoded = json.dumps(fixture, sort_keys=True, separators=(",", ":")).encode()
+    return hashlib.sha256(encoded).hexdigest()
 
 
 class ContractError(ValueError):
@@ -123,6 +136,17 @@ def validate_catalog(catalog: Any) -> None:
 
     if catalog.get("schema_version") != CATALOG_SCHEMA_VERSION:
         errors.append(f"catalog.schema_version must be {CATALOG_SCHEMA_VERSION}")
+
+    fixture = catalog.get("content_fixture")
+    if not isinstance(fixture, dict) or not fixture:
+        errors.append("catalog.content_fixture must be a non-empty object")
+    else:
+        try:
+            from scripts.screenshots.fixture_server import CONTENT_FIXTURE
+        except ModuleNotFoundError:
+            from fixture_server import CONTENT_FIXTURE  # type: ignore[no-redef]
+        if fixture != CONTENT_FIXTURE:
+            errors.append("catalog.content_fixture must match the shared fixture server contract")
 
     scenarios = catalog.get("scenarios")
     if not isinstance(scenarios, list):
@@ -254,6 +278,10 @@ def validate_manifest(
     revision = manifest.get("git_revision")
     if not _is_git_revision(revision):
         errors.append("manifest.git_revision must be a 40-character lowercase Git SHA")
+
+    expected_fixture_fingerprint = content_fixture_fingerprint(catalog)
+    if manifest.get("content_fixture_fingerprint") != expected_fixture_fingerprint:
+        errors.append("manifest.content_fixture_fingerprint must match the catalog content fixture")
     if not isinstance(manifest.get("git_dirty"), bool):
         errors.append("manifest.git_dirty must be a boolean")
 

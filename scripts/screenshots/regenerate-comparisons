@@ -76,13 +76,6 @@ if [[ "$branch" == "main" ]] && git -C "$repo_root" show-ref --verify --quiet re
   fi
 fi
 
-if ! xcrun simctl list devices booted | rg -q '\(Booted\)'; then
-  fail "no booted iOS simulator; start an iPhone or iPad simulator first"
-fi
-if ! adb devices | awk '$2 == "device" { found = 1 } END { exit !found }'; then
-  fail "no authorized Android emulator/device; start one and confirm it appears in adb devices"
-fi
-
 ios_run="$output_root/runs/ios"
 android_run="$output_root/runs/android"
 mkdir -p "$output_root/runs"

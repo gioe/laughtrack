@@ -4,6 +4,8 @@ import LaughTrackCore
 /// Credentials-free, immutable content used only by explicit screenshot launches.
 /// Keeping this at the view boundary prevents capture runs from touching auth or
 /// mutable production APIs while still rendering the real authenticated pages.
+/// Remote artwork is intentionally absent so both platforms exercise their
+/// branded, deterministic fallback policy instead of a network image cache.
 struct AuthenticatedScreenshotPersona: Equatable {
     static let launchEnvironmentKey = "UITEST_AUTHENTICATED_SCREENSHOT_PERSONA"
 
@@ -34,21 +36,21 @@ struct AuthenticatedScreenshotPersona: Equatable {
         NotificationCenterItem(
             id: "screenshot-notification-1",
             title: "Taylor Tomlinson has a show near you",
-            body: "Tonight at The Bell House",
+            body: "The Comedy Cellar on Saturday at 8:00 PM",
             tap: .show(41001),
             channels: ["push", "email"],
-            showDate: Self.date("2026-07-18T20:00:00Z"),
-            sentAt: nil,
+            showDate: Self.date("2026-07-19T00:00:00Z"),
+            sentAt: Self.date("2026-07-15T17:00:00Z"),
             isUnread: true
         ),
         NotificationCenterItem(
             id: "screenshot-notification-2",
             title: "Your favorites have 2 new shows",
-            body: "Sam Jay and Taylor Tomlinson added dates nearby",
+            body: "The Comedy Cellar and The Bell House",
             tap: .favorites([41002, 41003]),
             channels: ["push"],
-            showDate: Self.date("2026-07-19T20:00:00Z"),
-            sentAt: nil,
+            showDate: Self.date("2026-07-19T23:30:00Z"),
+            sentAt: Self.date("2026-07-14T19:00:00Z"),
             isUnread: false
         ),
     ]

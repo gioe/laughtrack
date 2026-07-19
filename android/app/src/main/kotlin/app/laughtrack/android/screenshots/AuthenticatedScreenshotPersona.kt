@@ -22,6 +22,8 @@ import java.time.ZonedDateTime
  * The persona deliberately contains no remote image URLs and never enters the
  * authentication or networking layers. It is passed explicitly by screenshot
  * tests; production navigation continues to use the Hilt-backed screen models.
+ * Empty artwork values intentionally exercise the same branded fallback policy
+ * as the iOS persona.
  */
 object AuthenticatedScreenshotPersona {
     const val COMEDIAN_UUID = "00000000-0000-4000-8000-000000000101"
@@ -150,7 +152,7 @@ object AuthenticatedScreenshotPersona {
                     NotificationItem(
                         id = "screenshot-notification-001",
                         title = "Taylor Tomlinson has a show near you",
-                        body = "The Bell House on Saturday at 8:00 PM",
+                        body = "The Comedy Cellar on Saturday at 8:00 PM",
                         comedianName = "Taylor Tomlinson",
                         comedianImageUrl = "",
                         comedians =
@@ -165,11 +167,11 @@ object AuthenticatedScreenshotPersona {
                             listOf(
                                 NotificationShow(
                                     showId = SHOW_ID,
-                                    subtitle = "The Bell House on Saturday at 8:00 PM",
+                                    subtitle = "The Comedy Cellar on Saturday at 8:00 PM",
                                     showPageUrl = null,
                                     showDate = "2026-07-18T20:00:00-04:00",
-                                    clubName = "The Bell House",
-                                    city = "Brooklyn",
+                                    clubName = "The Comedy Cellar",
+                                    city = "New York",
                                     state = "NY",
                                 ),
                             ),
@@ -181,7 +183,7 @@ object AuthenticatedScreenshotPersona {
                     NotificationItem(
                         id = "screenshot-notification-002",
                         title = "Your favorites have 2 new shows",
-                        body = "The Bell House and The Comedy Cellar",
+                        body = "The Comedy Cellar and The Bell House",
                         comedianName = "Taylor Tomlinson",
                         comedianImageUrl = "",
                         comedians =

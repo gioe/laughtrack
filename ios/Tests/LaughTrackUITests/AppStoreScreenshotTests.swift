@@ -8,9 +8,8 @@ import XCTest
 ///
 /// Inherits boilerplate from `BaseAppStoreScreenshotTests` (XCUIApplication
 /// setup and the `-UITestMockMode` launch argument).
-/// Mock mode is wired in `LaughTrackApp.init` to seed the saved nearby ZIP
-/// to Hollywood (90028) so the Near Me rail renders LA shows instead of
-/// leaking the runner's IP-based geolocation.
+/// Mock mode seeds Hollywood (90028), while the screenshot lane's local fixture
+/// backend pins every entity, count, date, narrative, and artwork response.
 @MainActor
 final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
     private enum Identifier {
@@ -23,12 +22,13 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
 
     override func prepareForSnapshot() {
         setupSnapshot(app)
+        let port = ProcessInfo.processInfo.environment["LAUGHTRACK_SCREENSHOT_FIXTURE_PORT"] ?? "8765"
+        app.launchEnvironment["LAUGHTRACK_API_BASE_URL"] = "http://127.0.0.1:\(port)"
     }
 
     func testGenerateAllScreenshots() throws {
-        // Time-based wait: the home rail loads from production API in ~3-5s.
         // SwiftUI's accessibility tree on iOS 18+ doesn't reliably surface
-        // Text() views to XCUI's element queries, so we sleep instead.
+        // every home-rail Text, so retain a short settle for the local fixture.
         sleep(8)
         snapshot("01_NearMe")
 
@@ -49,7 +49,7 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         snapshot("04_SearchClubs")
 
         searchFor(
-            "New York Comedy Club Midtown",
+            "The Comedy Store",
             resultIdentifierPrefix: "laughtrack.clubs-search.result-"
         )
         tapFirstResult(
@@ -79,6 +79,11 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         tapPrimitive("comedians")
         sleep(2)
 
+        searchFor(
+            "Ali Wong",
+            resultIdentifierPrefix: "laughtrack.comedians-search.result-"
+        )
+
         tapFirstResult(
             identifierPrefix: "laughtrack.comedians-search.result-",
             detailIdentifier: Identifier.comedianDetailScreen,
@@ -100,7 +105,7 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         snapshot("08_SearchPodcasts")
 
         searchFor(
-            "The D.L. Hughley Show",
+            "The Joe Rogan Experience",
             resultIdentifierPrefix: "laughtrack.podcasts-search.result-"
         )
         tapFirstResult(

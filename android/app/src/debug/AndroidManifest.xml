@@ -20,7 +20,9 @@
     <uses-permission android:name="android.permission.CHANGE_CONFIGURATION" />
     <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
 
-    <application>
+    <!-- Screenshot instrumentation reaches the host-only hermetic fixture
+         backend through the emulator's 10.0.2.2 bridge. Release is unaffected. -->
+    <application android:usesCleartextTraffic="true">
         <activity
             android:name="app.laughtrack.android.HiltTestActivity"
             android:exported="false"

@@ -14,6 +14,7 @@ from scripts.screenshots.manifest import (
     FIXTURE_CAPTURE_CONTEXTS,
     PROFILE_IDS,
     SCENARIO_IDS,
+    content_fixture_fingerprint,
     expected_capture_keys,
     load_catalog,
     main,
@@ -74,6 +75,7 @@ def completed_run(tmp_path: Path, catalog: dict) -> dict:
         )
     return {
         "schema_version": 1,
+        "content_fixture_fingerprint": content_fixture_fingerprint(catalog),
         "status": "completed",
         "run_id": "run-1",
         "started_at": "2026-07-14T14:00:00Z",
@@ -97,6 +99,26 @@ def test_checked_in_catalog_defines_cross_platform_fixture_contracts(catalog: di
     assert {scenario_id: contexts[scenario_id] for scenario_id in FIXTURE_CAPTURE_CONTEXTS} == dict(
         FIXTURE_CAPTURE_CONTEXTS
     )
+
+
+def test_checked_in_catalog_matches_shared_content_fixture(catalog: dict) -> None:
+    from scripts.screenshots.fixture_server import CONTENT_FIXTURE, fixture_response
+
+    assert catalog["content_fixture"] == CONTENT_FIXTURE
+    assert len(fixture_response("/api/v1/shows/search", "http://fixture")["data"]) == 5
+    assert len(fixture_response("/api/v1/comedians/search", "http://fixture")["data"]) == 5
+    assert len(fixture_response("/api/v1/clubs/search", "http://fixture")["data"]) == 5
+    assert len(fixture_response("/api/v1/podcasts/search", "http://fixture")["data"]) == 5
+    club_shows = fixture_response("/api/v1/clubs/201/shows", "http://fixture")
+    assert len(club_shows["data"]) == CONTENT_FIXTURE["result_count"]
+    assert club_shows["total"] == CONTENT_FIXTURE["result_count"]
+
+
+def test_manifest_rejects_content_fixture_drift(tmp_path: Path, catalog: dict, completed_run: dict) -> None:
+    completed_run["content_fixture_fingerprint"] = "0" * 64
+
+    with pytest.raises(ContractError, match="content_fixture_fingerprint"):
+        validate_manifest(completed_run, catalog, repo_root=tmp_path)
 
 
 def test_catalog_rejects_cross_platform_fixture_drift(catalog: dict) -> None:

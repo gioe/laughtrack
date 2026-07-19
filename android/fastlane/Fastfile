@@ -2,6 +2,7 @@ require "fileutils"
 require "digest"
 require "json"
 require "open3"
+require "socket"
 
 default_platform(:android)
 
@@ -26,6 +27,8 @@ DEBUG_TEST_APK_PATH = "app/build/outputs/apk/androidTest/debug/app-debug-android
 # same 1320 x 2868 output dimensions for a direct storefront comparison.
 SCREENSHOT_CATALOG_PATH = File.expand_path("../../screenshots/catalog.json", __dir__)
 SCREENSHOT_EXPORT_PATH = File.expand_path("../../scripts/screenshots/export.py", __dir__)
+SCREENSHOT_FIXTURE_SERVER_PATH = File.expand_path("../../scripts/screenshots/fixture_server.py", __dir__)
+SCREENSHOT_FIXTURE_PORT = 8765
 REPO_ROOT = File.expand_path("../..", __dir__)
 SCREENSHOT_FINGERPRINT_PATHS = %w[android screenshots scripts/screenshots].freeze
 ANDROID_SCREENSHOT_PROFILE_SETTINGS = {
@@ -82,6 +85,34 @@ end
 
 ANDROID_SCREENSHOT_COLLECTION = load_android_screenshot_collection
 SCREENSHOT_PROFILES = ANDROID_SCREENSHOT_COLLECTION.fetch(:profiles)
+
+def with_screenshot_fixture_server
+  log_path = File.join(Dir.tmpdir, "laughtrack-screenshot-fixture.log")
+  pid = Process.spawn(
+    "python3", SCREENSHOT_FIXTURE_SERVER_PATH, "--port", SCREENSHOT_FIXTURE_PORT.to_s,
+    out: log_path, err: [:child, :out],
+  )
+  ready = false
+  100.times do
+    if Process.waitpid(pid, Process::WNOHANG)
+      UI.user_error!("Screenshot fixture backend exited early:\n#{File.read(log_path)}")
+    end
+    begin
+      TCPSocket.open("127.0.0.1", SCREENSHOT_FIXTURE_PORT, &:close)
+      ready = true
+      break
+    rescue Errno::ECONNREFUSED
+      sleep(0.05)
+    end
+  end
+  UI.user_error!("Screenshot fixture backend did not become ready") unless ready
+  yield
+ensure
+  if defined?(pid) && pid
+    Process.kill("TERM", pid) rescue nil
+    Process.wait(pid) rescue nil
+  end
+end
 
 def screenshot_profile_directory(capture_root, profile)
   File.join(capture_root, "en-US", "images", profile[:output_directory])
@@ -511,37 +542,39 @@ platform :android do
 
   desc "Capture a complete Android matrix, validate its run manifest, and export the Play projection"
   lane :screenshots do |options|
-    run_root = if options[:run_root]
-                 File.expand_path(options[:run_root], REPO_ROOT)
-               else
-                 File.join(REPO_ROOT, "android", "build", "fastlane-screenshots", "run")
-               end
-    capture_root = "#{run_root}-capture"
-    prepare_screenshot_resume_root(capture_root)
-    reusable_ids = reusable_screenshot_profile_ids(capture_root)
-    pending_profiles = SCREENSHOT_PROFILES.reject { |profile| reusable_ids.include?(profile[:id]) }
+    with_screenshot_fixture_server do
+      run_root = if options[:run_root]
+                   File.expand_path(options[:run_root], REPO_ROOT)
+                 else
+                   File.join(REPO_ROOT, "android", "build", "fastlane-screenshots", "run")
+                 end
+      capture_root = "#{run_root}-capture"
+      prepare_screenshot_resume_root(capture_root)
+      reusable_ids = reusable_screenshot_profile_ids(capture_root)
+      pending_profiles = SCREENSHOT_PROFILES.reject { |profile| reusable_ids.include?(profile[:id]) }
 
-    reusable_ids.each { |profile_id| UI.success("Reusing completed Android screenshot profile #{profile_id}") }
-    unless pending_profiles.empty?
-      adb, serial = boot_screenshot_emulator
-      prior_android_serial = ENV["ANDROID_SERIAL"]
-      ENV["ANDROID_SERIAL"] = serial
-      begin
-        gradle(task: ":app:assembleDebug :app:assembleDebugAndroidTest", project_dir: ".")
-        pending_profiles.each do |profile|
-          FileUtils.rm_rf(screenshot_profile_directory(capture_root, profile))
-          capture_screenshot_profile(adb, serial, profile, capture_root)
-          validate_screenshot_profile!(capture_root, profile)
+      reusable_ids.each { |profile_id| UI.success("Reusing completed Android screenshot profile #{profile_id}") }
+      unless pending_profiles.empty?
+        adb, serial = boot_screenshot_emulator
+        prior_android_serial = ENV["ANDROID_SERIAL"]
+        ENV["ANDROID_SERIAL"] = serial
+        begin
+          gradle(task: ":app:assembleDebug :app:assembleDebugAndroidTest", project_dir: ".")
+          pending_profiles.each do |profile|
+            FileUtils.rm_rf(screenshot_profile_directory(capture_root, profile))
+            capture_screenshot_profile(adb, serial, profile, capture_root)
+            validate_screenshot_profile!(capture_root, profile)
+          end
+        ensure
+          ENV["ANDROID_SERIAL"] = prior_android_serial
         end
-      ensure
-        ENV["ANDROID_SERIAL"] = prior_android_serial
       end
-    end
 
-    SCREENSHOT_PROFILES.each { |profile| validate_screenshot_profile!(capture_root, profile) }
-    export_play_projection(capture_root, run_root)
-    FileUtils.rm_rf(capture_root)
-    UI.success("Validated Android screenshot run manifest: #{File.join(run_root, 'manifest.json')}")
+      SCREENSHOT_PROFILES.each { |profile| validate_screenshot_profile!(capture_root, profile) }
+      export_play_projection(capture_root, run_root)
+      FileUtils.rm_rf(capture_root)
+      UI.success("Validated Android screenshot run manifest: #{File.join(run_root, 'manifest.json')}")
+    end
   end
 
   desc "Upload the already-exported store-listing projection to Play (no binary)"

@@ -51,6 +51,13 @@ class AuthenticatedScreenshotPersonaTest {
             notifications.items.map { it.title },
         )
         assertEquals(
+            listOf(
+                "The Comedy Cellar on Saturday at 8:00 PM",
+                "The Comedy Cellar and The Bell House",
+            ),
+            notifications.items.map { it.body },
+        )
+        assertEquals(
             listOf("2026-07-15T13:00:00-04:00", "2026-07-14T15:00:00-04:00"),
             notifications.items.map { it.sentAt },
         )
