@@ -9,6 +9,8 @@ enum ShowRowPresentation {
 }
 
 struct ShowRow: View {
+    static let artworkSlotSize: CGFloat = 60
+
     @Environment(\.appTheme) private var theme
     @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
 
@@ -190,26 +192,31 @@ struct ShowRow: View {
         let venueLine = Self.venueLine(for: show)
         let roomName = Self.roomLabel(for: show)
 
-        return VStack(alignment: .leading, spacing: theme.spacing.xxs) {
-            Text(Self.listTitle(for: show))
-                .font(laughTrack.typography.bodyEmphasis)
-                .foregroundStyle(ticketInk)
-                .lineLimit(2)
-                .fixedSize(horizontal: false, vertical: true)
+        return HStack(alignment: .center, spacing: theme.spacing.sm) {
+            artworkSlot
 
-            if let venueLine {
-                Text(venueLine)
-                    .font(laughTrack.typography.metadata)
-                    .foregroundStyle(ticketInkMuted)
-                    .lineLimit(1)
-            }
+            VStack(alignment: .leading, spacing: theme.spacing.xxs) {
+                Text(Self.listTitle(for: show))
+                    .font(laughTrack.typography.bodyEmphasis)
+                    .foregroundStyle(ticketInk)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
 
-            if let roomName {
-                Text(roomName)
-                    .font(laughTrack.typography.metadata)
-                    .foregroundStyle(ticketInkMuted)
-                    .lineLimit(1)
+                if let venueLine {
+                    Text(venueLine)
+                        .font(laughTrack.typography.metadata)
+                        .foregroundStyle(ticketInkMuted)
+                        .lineLimit(1)
+                }
+
+                if let roomName {
+                    Text(roomName)
+                        .font(laughTrack.typography.metadata)
+                        .foregroundStyle(ticketInkMuted)
+                        .lineLimit(1)
+                }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
@@ -257,15 +264,7 @@ struct ShowRow: View {
 
         VStack(alignment: .leading, spacing: theme.spacing.xs) {
             HStack(alignment: .center, spacing: theme.spacing.sm) {
-                headlinerAvatar(for: headliner)
-                    .frame(width: 60, height: 60)
-                    .clipShape(Circle())
-                    .overlay(
-                        Circle().stroke(
-                            laughTrack.colors.accent.opacity(0.35),
-                            lineWidth: 1.5
-                        )
-                    )
+                artworkSlot
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(headliner.name)
@@ -292,31 +291,43 @@ struct ShowRow: View {
         .opacity(isSoldOut ? 0.6 : 1)
     }
 
-    @ViewBuilder
-    private func headlinerAvatar(for comedian: Components.Schemas.ComedianLineup) -> some View {
+    private var artworkSlot: some View {
         let laughTrack = theme.laughTrackTokens
-        let trimmed = comedian.imageUrl.trimmingCharacters(in: .whitespacesAndNewlines)
-        let normalized = trimmed.isEmpty ? nil : trimmed
 
-        if let url = URL.normalizedExternalURL(normalized) {
+        return artworkImage
+            .frame(width: Self.artworkSlotSize, height: Self.artworkSlotSize)
+            .clipShape(Circle())
+            .overlay(
+                Circle().stroke(
+                    laughTrack.colors.accent.opacity(0.35),
+                    lineWidth: 1.5
+                )
+            )
+    }
+
+    @ViewBuilder
+    private var artworkImage: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        if let rawURL = Self.artworkImageURL(for: show), let url = URL(string: rawURL) {
             CachedAsyncImage(url: url) { image in
                 image.resizable().scaledToFill()
             } placeholder: {
                 Circle().fill(laughTrack.colors.surfaceMuted)
             } error: { _ in
-                headlinerAvatarFallback
+                artworkFallback
             }
         } else {
-            headlinerAvatarFallback
+            artworkFallback
         }
     }
 
-    private var headlinerAvatarFallback: some View {
+    private var artworkFallback: some View {
         let laughTrack = theme.laughTrackTokens
         return Circle()
             .fill(laughTrack.colors.surfaceMuted)
             .overlay {
-                Image(systemName: ArtworkFallbackKind.person.systemImage)
+                Image(systemName: ArtworkFallbackKind.show.systemImage)
                     .font(.system(size: 22, weight: .semibold))
                     .foregroundStyle(laughTrack.colors.accentStrong)
             }
@@ -532,13 +543,32 @@ struct ShowRow: View {
     }
 
     static func artworkImageURL(for show: Components.Schemas.Show) -> String? {
-        artworkComedian(for: show)?.imageUrl.trimmingCharacters(in: .whitespacesAndNewlines).nonEmpty
+        if let comedian = artworkComedian(for: show) {
+            return absoluteArtworkImageURL(comedian.imageUrl)
+        }
+        return absoluteArtworkImageURL(show.imageUrl)
     }
 
     static func artworkComedian(for show: Components.Schemas.Show) -> Components.Schemas.ComedianLineup? {
-        guard let featured = featuredComedian(for: show) else { return nil }
-        let trimmed = featured.imageUrl.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? nil : featured
+        show.lineup?
+            .map(effectiveComedian)
+            .filter { absoluteArtworkImageURL($0.imageUrl) != nil }
+            .max { lhs, rhs in
+                (lhs.showCount ?? 0) < (rhs.showCount ?? 0)
+            }
+    }
+
+    static func absoluteArtworkImageURL(_ rawValue: String?) -> String? {
+        let trimmed = rawValue?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard
+            let url = URL(string: trimmed),
+            let scheme = url.scheme?.lowercased(),
+            scheme == "http" || scheme == "https",
+            url.host?.isEmpty == false
+        else {
+            return nil
+        }
+        return trimmed
     }
 
     static func metadata(for show: Components.Schemas.Show) -> [String] {
@@ -596,18 +626,6 @@ struct ShowRow: View {
         }
 
         return Array(ordered.prefix(limit))
-    }
-
-    private static func featuredComedian(for show: Components.Schemas.Show) -> Components.Schemas.ComedianLineup? {
-        guard let lineup = show.lineup, !lineup.isEmpty else {
-            return nil
-        }
-
-        return lineup
-            .map(effectiveComedian)
-            .max { lhs, rhs in
-                (lhs.showCount ?? 0) < (rhs.showCount ?? 0)
-            }
     }
 
     static func effectiveComedian(_ comedian: Components.Schemas.ComedianLineup) -> Components.Schemas.ComedianLineup {

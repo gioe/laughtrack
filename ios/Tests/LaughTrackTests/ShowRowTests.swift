@@ -146,11 +146,28 @@ struct ShowRowTests {
         #expect(ShowRow.artworkImageURL(for: show) == "https://example.com/parent.jpg")
     }
 
-    @Test("show row falls back to ticket artwork when lineup is empty")
+    @Test("show row falls back to absolute show artwork when lineup is empty")
     func showRowFallsBackToTicketArtworkWhenLineupIsEmpty() {
         let show = makeShow(lineup: [])
 
+        #expect(ShowRow.artworkImageURL(for: show) == "https://example.com/show.jpg")
+    }
+
+    @Test("show row ignores relative show artwork placeholders")
+    func showRowIgnoresRelativeShowArtworkPlaceholders() {
+        let show = makeShow(imageURL: "/placeholders/club-placeholder.svg", lineup: [])
+
         #expect(ShowRow.artworkImageURL(for: show) == nil)
+    }
+
+    @Test("show row uses a stable branded artwork slot")
+    func showRowUsesStableBrandedArtworkSlot() throws {
+        let source = try String(contentsOf: showRowSourceURL(), encoding: .utf8)
+
+        #expect(ShowRow.artworkSlotSize == 60)
+        #expect(source.contains("private var artworkSlot"))
+        #expect(source.contains("Image(systemName: ArtworkFallbackKind.show.systemImage)"))
+        #expect(source.components(separatedBy: "artworkSlot").count >= 4)
     }
 
     @Test("show row uses the first lineup image when popularity counts are absent")
@@ -270,14 +287,15 @@ struct ShowRowTests {
         #expect(ShowRow.topLineup(for: show, excluding: artwork).map(\.name) == ["Feature", "Opener", "Filler"])
     }
 
-    @Test("artwork comedian is nil when the most popular performer has no image")
-    func artworkComedianNilWhenFeaturedImageMissing() {
+    @Test("artwork comedian skips a more popular performer without absolute artwork")
+    func artworkComedianSkipsFeaturedPerformerWithoutAbsoluteArtwork() {
         let show = makeShow(lineup: [
-            lineup(name: "Headliner", imageURL: "   ", showCount: 50),
+            lineup(name: "Headliner", imageURL: "/relative/headliner.jpg", showCount: 50),
             lineup(name: "Feature", imageURL: "https://example.com/feature.jpg", showCount: 10),
         ])
 
-        #expect(ShowRow.artworkComedian(for: show) == nil)
+        #expect(ShowRow.artworkComedian(for: show)?.name == "Feature")
+        #expect(ShowRow.artworkImageURL(for: show) == "https://example.com/feature.jpg")
     }
 
     @Test("top lineup preserves order when show counts are absent")
@@ -430,6 +448,7 @@ struct ShowRowTests {
         room: String? = nil,
         tickets: [Components.Schemas.Ticket] = [],
         tags: [Components.Schemas.Tag]? = nil,
+        imageURL: String = "https://example.com/show.jpg",
         lineup: [Components.Schemas.ComedianLineup]?
     ) -> Components.Schemas.Show {
         Components.Schemas.Show(
@@ -444,7 +463,7 @@ struct ShowRowTests {
             lineup: lineup,
             tags: tags,
             room: room,
-            imageUrl: "https://example.com/show.jpg",
+            imageUrl: imageURL,
             distanceMiles: 2.1
         )
     }
