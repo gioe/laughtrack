@@ -11,6 +11,13 @@ persists validated manifests for all catalog scenarios and five device profiles,
 generates five contact sheets, and opens them. It never uploads screenshots or
 metadata to App Store Connect or Google Play.
 
+Each native lane starts the hermetic backend in `fixture_server.py` and points
+its app at that local server for the duration of the capture. The fixture pins
+result counts, featured entities, dates, narrative content, and generated
+artwork across both platforms. Its declared contract lives in
+`screenshots/catalog.json`, and every completed run manifest records the
+contract fingerprint so fixture drift is rejected during collection/export.
+
 Android capture is resumable by profile. If an emulator or instrumentation run
 fails after a profile completes, rerun the same command with the same output
 root. The lane reuses only profile directories whose canonical filenames and
