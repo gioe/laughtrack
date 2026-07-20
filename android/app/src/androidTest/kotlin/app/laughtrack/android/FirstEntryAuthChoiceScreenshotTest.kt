@@ -88,9 +88,11 @@ class FirstEntryAuthChoiceScreenshotTest {
                 renderedFrame.width * 3 / 4 to renderedFrame.height / 2,
             ).map { (x, y) ->
                 val pixel = renderedFrame.getPixel(x, y)
-                (android.graphics.Color.red(pixel) +
-                    android.graphics.Color.green(pixel) +
-                    android.graphics.Color.blue(pixel)) / 3
+                (
+                    android.graphics.Color.red(pixel) +
+                        android.graphics.Color.green(pixel) +
+                        android.graphics.Color.blue(pixel)
+                ) / 3
             }
         assertTrue("Focused screenshot frame must contain the dark auth surface", interiorLuminances.any { it < 128 })
         Screengrab.screenshot("19_FirstEntryAuthChoice")
