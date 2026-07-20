@@ -262,6 +262,35 @@ describe("AdminClubManager", () => {
         expect(screen.queryByText("Funny Bone Boston")).toBeTruthy();
     });
 
+    it("preserves unsaved row edits across group views", () => {
+        render(<AdminClubManager groups={groups} />);
+
+        fireEvent.click(getFunnyBoneGroupToggle());
+        fireEvent.change(screen.getAllByLabelText("Club name")[0], {
+            target: { value: "Albany Draft Name" },
+        });
+
+        fireEvent.click(screen.getByRole("button", { name: "By scraper" }));
+        fireEvent.click(screen.getByRole("button", { name: /seatengine/ }));
+
+        expect(
+            screen
+                .getAllByLabelText("Club name")
+                .some(
+                    (input) =>
+                        (input as HTMLInputElement).value ===
+                        "Albany Draft Name",
+                ),
+        ).toBe(true);
+
+        fireEvent.click(screen.getByRole("button", { name: "By chain" }));
+
+        expect(
+            (screen.getAllByLabelText("Club name")[0] as HTMLInputElement)
+                .value,
+        ).toBe("Albany Draft Name");
+    });
+
     it("starts chain groups closed and reopens them", () => {
         render(<AdminClubManager groups={groups} />);
 
