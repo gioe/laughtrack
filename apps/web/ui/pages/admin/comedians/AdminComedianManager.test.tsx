@@ -174,6 +174,10 @@ function expandAllPodcastSections() {
     });
 }
 
+function summaryValue(row: HTMLElement, label: string) {
+    return within(row).getByText(label).parentElement?.textContent;
+}
+
 beforeEach(() => {
     vi.clearAllMocks();
     global.fetch = vi.fn().mockResolvedValue({
@@ -797,6 +801,46 @@ describe("AdminComedianManager", () => {
         await waitFor(() => expect(mocks.refresh).toHaveBeenCalled());
     });
 
+    it("updates parent counts and Parent-filter membership when setting a relationship", async () => {
+        render(<AdminComedianManager comedians={comedians} />);
+        expandAllRows();
+
+        const parentRow = screen
+            .getByRole("heading", { level: 2, name: "Parent Comic" })
+            .closest("li");
+        expect(parentRow).not.toBeNull();
+        expect(summaryValue(parentRow!, "Children")).toBe("Children0");
+
+        fireEvent.click(
+            screen.getAllByRole("button", { name: /^Relationship/ })[0],
+        );
+        fireEvent.change(
+            screen.getAllByPlaceholderText("Search parent name")[0],
+            {
+                target: { value: "Parent" },
+            },
+        );
+        fireEvent.click(screen.getByRole("button", { name: "Parent Comic" }));
+        fireEvent.click(
+            screen.getAllByRole("button", { name: "Save relationship" })[0],
+        );
+
+        await waitFor(() => {
+            expect(
+                screen.queryByRole("heading", {
+                    level: 2,
+                    name: "Alias Comic",
+                }),
+            ).toBeNull();
+            expect(summaryValue(parentRow!, "Children")).toBe("Children1");
+        });
+
+        fireEvent.click(screen.getByRole("checkbox", { name: "Parent" }));
+        expect(
+            screen.getByRole("heading", { level: 2, name: "Parent Comic" }),
+        ).toBeTruthy();
+    });
+
     it("groups parent selection and children under one Relationship dropdown", () => {
         render(
             <AdminComedianManager
@@ -877,6 +921,84 @@ describe("AdminComedianManager", () => {
                 screen.getByRole("heading", { level: 2, name: "Alias Comic" }),
             ).toBeTruthy();
         });
+    });
+
+    it("updates parent counts and Parent-filter membership when removing a relationship", async () => {
+        vi.mocked(global.fetch).mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
+                ok: true,
+                comedian: { ...comedians[1], parent: null },
+            }),
+        } as never);
+        render(
+            <AdminComedianManager
+                comedians={[
+                    comedians[0],
+                    {
+                        ...comedians[1],
+                        parent: { id: 1, name: "Parent Comic" },
+                    },
+                ]}
+            />,
+        );
+        expandAllRows();
+
+        const parentRow = screen
+            .getByRole("heading", { level: 2, name: "Parent Comic" })
+            .closest("li");
+        expect(parentRow).not.toBeNull();
+        expect(summaryValue(parentRow!, "Children")).toBe("Children1");
+
+        fireEvent.click(screen.getByRole("button", { name: /^Relationship/ }));
+        fireEvent.click(screen.getByRole("button", { name: "Remove parent" }));
+
+        await waitFor(() => {
+            expect(
+                screen.getByRole("heading", {
+                    level: 2,
+                    name: "Alias Comic",
+                }),
+            ).toBeTruthy();
+            expect(summaryValue(parentRow!, "Children")).toBe("Children0");
+        });
+
+        fireEvent.click(screen.getByRole("checkbox", { name: "Parent" }));
+        expect(
+            screen.queryByRole("heading", {
+                level: 2,
+                name: "Parent Comic",
+            }),
+        ).toBeNull();
+    });
+
+    it("reconciles fresh canonical props without discarding an unsaved row draft", async () => {
+        const { rerender } = render(
+            <AdminComedianManager comedians={comedians} />,
+        );
+        expandAllRows();
+
+        const parentRow = screen
+            .getByRole("heading", { level: 2, name: "Parent Comic" })
+            .closest("li");
+        expect(parentRow).not.toBeNull();
+        const nameInput = within(parentRow!).getByLabelText("Comedian name");
+        fireEvent.change(nameInput, {
+            target: { value: "Unsaved Parent Name" },
+        });
+
+        rerender(
+            <AdminComedianManager
+                comedians={[{ ...comedians[0], popularity: 99 }, comedians[1]]}
+            />,
+        );
+
+        await waitFor(() => {
+            expect(summaryValue(parentRow!, "Popularity")).toBe("Popularity99");
+        });
+        expect((nameInput as HTMLInputElement).value).toBe(
+            "Unsaved Parent Name",
+        );
     });
 
     it("saves an inline comedian record edit", async () => {
@@ -1584,7 +1706,7 @@ describe("AdminComedianManager", () => {
         expect(
             screen.queryByRole("heading", { level: 2, name: "Alias Comic" }),
         ).toBeNull();
-        // The Parent filter checkbox is gone — child suppression is implicit.
-        expect(screen.queryByRole("checkbox", { name: "Parent" })).toBeNull();
+        // Child suppression remains implicit; Parent narrows the top-level rows.
+        expect(screen.getByRole("checkbox", { name: "Parent" })).toBeTruthy();
     });
 });

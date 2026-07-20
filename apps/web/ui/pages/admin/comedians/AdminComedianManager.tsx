@@ -73,6 +73,7 @@ export default function AdminComedianManager({ comedians }: Props) {
     const [query, setQuery] = useState("");
     const [sort, setSort] = useState<SortMode>("name-asc");
     const [blockedOnly, setBlockedOnly] = useState(false);
+    const [parentOnly, setParentOnly] = useState(false);
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(50);
     const [pendingRowIds, setPendingRowIds] = useState<Set<number>>(
@@ -99,6 +100,9 @@ export default function AdminComedianManager({ comedians }: Props) {
                 if (row.parent !== null || row.isBlocked !== blockedOnly) {
                     return false;
                 }
+                if (parentOnly && !childrenByParentId.has(row.id)) {
+                    return false;
+                }
                 if (!normalizedQuery) return true;
                 return [
                     row.name,
@@ -117,7 +121,7 @@ export default function AdminComedianManager({ comedians }: Props) {
             }),
             sort,
         );
-    }, [blockedOnly, childrenByParentId, query, rows, sort]);
+    }, [blockedOnly, childrenByParentId, parentOnly, query, rows, sort]);
 
     const totalPages = Math.max(1, Math.ceil(visibleRows.length / pageSize));
     const currentPage = clampAdminPage(page, totalPages);
@@ -126,7 +130,11 @@ export default function AdminComedianManager({ comedians }: Props) {
 
     useEffect(() => {
         setPage(1);
-    }, [blockedOnly, pageSize, query, sort]);
+    }, [blockedOnly, pageSize, parentOnly, query, sort]);
+
+    useEffect(() => {
+        setRows(comedians);
+    }, [comedians]);
 
     function updateCanonicalRow(updatedRow: AdminComedianListItem) {
         setRows((current) =>
@@ -225,6 +233,17 @@ export default function AdminComedianManager({ comedians }: Props) {
                             className="h-4 w-4 accent-copper-dark"
                         />
                         Blocked
+                    </label>
+                    <label className="inline-flex h-10 items-center gap-2 rounded-md border border-soft-charcoal/30 bg-white px-3 font-dmSans text-body font-semibold text-cedar">
+                        <input
+                            type="checkbox"
+                            checked={parentOnly}
+                            onChange={(event) =>
+                                setParentOnly(event.target.checked)
+                            }
+                            className="h-4 w-4 accent-copper-dark"
+                        />
+                        Parent
                     </label>
                 </div>
             </AdminToolbar>

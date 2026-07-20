@@ -1197,7 +1197,7 @@ export function AdminComedianRow({
                                 />
                                 <SummaryPill
                                     label="Children"
-                                    value={row.childCount.toLocaleString()}
+                                    value={children.length.toLocaleString()}
                                 />
                                 <SummaryPill
                                     label="Podcasts"
