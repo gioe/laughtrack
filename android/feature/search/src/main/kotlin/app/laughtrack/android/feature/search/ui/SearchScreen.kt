@@ -141,8 +141,7 @@ fun SearchScreen(
                     else ->
                         resultsContent(
                             pivot = state.pivot,
-                            results = results.items,
-                            total = results.total,
+                            results = results,
                             loadMore =
                                 LoadMoreState(
                                     isLoading = results.isLoading,
@@ -154,8 +153,11 @@ fun SearchScreen(
                                 viewModel.logResultTapped(route)
                                 onOpenEntity(route)
                             },
-                            favorites = favorites,
-                            onSetFavorite = favoritesViewModel::setFavorite,
+                            favorites =
+                                SearchResultFavorites(
+                                    snapshot = favorites,
+                                    onSetFavorite = favoritesViewModel::setFavorite,
+                                ),
                         )
                 }
             }

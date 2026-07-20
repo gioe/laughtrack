@@ -49,8 +49,7 @@ class ClubShowPresentationTest {
     fun venue_line_and_row_price_match_ios_compact_ticket_presentation() {
         val show =
             show(
-                clubCity = "New York",
-                clubState = "NY",
+                clubLocation = ClubLocation(city = "New York", state = "NY"),
                 tickets = listOf(Ticket(price = BigDecimal("25.00"))),
             )
 
@@ -62,8 +61,7 @@ class ClubShowPresentationTest {
         id: Int = 1,
         lineup: List<ComedianLineup> = emptyList(),
         popularity: String? = null,
-        clubCity: String? = null,
-        clubState: String? = null,
+        clubLocation: ClubLocation? = null,
         tickets: List<Ticket>? = null,
     ) = Show(
         id = id,
@@ -72,8 +70,8 @@ class ClubShowPresentationTest {
         imageUrl = "",
         lineup = lineup,
         popularityScore = popularity?.let(::BigDecimal),
-        clubCity = clubCity,
-        clubState = clubState,
+        clubCity = clubLocation?.city,
+        clubState = clubLocation?.state,
         tickets = tickets,
     )
 
@@ -101,5 +99,10 @@ class ClubShowPresentationTest {
         imageUrl = "https://example.com/$id.jpg",
         showCount = showCount,
         parentComedian = parent,
+    )
+
+    private data class ClubLocation(
+        val city: String,
+        val state: String,
     )
 }

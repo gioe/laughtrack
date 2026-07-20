@@ -50,6 +50,7 @@ import app.laughtrack.android.core.ui.components.SkeletonLine
 import app.laughtrack.android.core.ui.components.TicketShowRow
 import app.laughtrack.android.core.ui.components.ticketStubDateParts
 import app.laughtrack.android.core.ui.theme.LaughTrackColors
+import app.laughtrack.android.feature.search.model.PagedList
 import app.laughtrack.android.feature.search.model.SearchFavoriteTarget
 import app.laughtrack.android.feature.search.model.SearchPivot
 import app.laughtrack.android.feature.search.model.SearchResult
@@ -63,18 +64,21 @@ internal data class LoadMoreState(
     val onLoadMore: () -> Unit,
 )
 
+internal data class SearchResultFavorites(
+    val snapshot: FavoritesSnapshot,
+    val onSetFavorite: (SearchFavoriteTarget, Boolean) -> Unit,
+)
+
 internal fun LazyListScope.resultsContent(
     pivot: SearchPivot,
-    results: List<SearchResult>,
-    total: Int,
+    results: PagedList<SearchResult>,
     loadMore: LoadMoreState,
     onOpen: (AppRoute) -> Unit,
-    favorites: FavoritesSnapshot,
-    onSetFavorite: (SearchFavoriteTarget, Boolean) -> Unit,
+    favorites: SearchResultFavorites,
 ) {
     item {
         Text(
-            searchResultSummary(loaded = results.size, total = total),
+            searchResultSummary(loaded = results.items.size, total = results.total),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 2.dp).padding(top = 2.dp),
@@ -82,16 +86,16 @@ internal fun LazyListScope.resultsContent(
     }
     // route is the row's entity identity (SearchResult has no id field); stringified
     // because LazyColumn keys must be Bundle-saveable and AppRoute is not Parcelable.
-    items(results, key = { it.route.toString() }) { result ->
+    items(results.items, key = { it.route.toString() }) { result ->
         if (pivot == SearchPivot.SHOWS) {
             ShowResultRow(result = result, onOpen = onOpen)
         } else {
             ResultRow(
                 pivot = pivot,
                 result = result,
-                favorites = favorites,
+                favorites = favorites.snapshot,
                 onOpen = onOpen,
-                onSetFavorite = onSetFavorite,
+                onSetFavorite = favorites.onSetFavorite,
             )
         }
     }
