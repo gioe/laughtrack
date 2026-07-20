@@ -2,8 +2,14 @@
  * @vitest-environment happy-dom
  */
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import {
+    cleanup,
+    fireEvent,
+    render,
+    screen,
+    waitFor,
+} from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { AdminUserListItem } from "@/lib/admin/users";
 import AdminUsersManager from "./AdminUsersManager";
 
@@ -93,6 +99,12 @@ const users: AdminUserListItem[] = [
 
 afterEach(() => {
     cleanup();
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+});
+
+beforeEach(() => {
+    vi.stubGlobal("fetch", vi.fn());
 });
 
 describe("AdminUsersManager", () => {
@@ -157,5 +169,89 @@ describe("AdminUsersManager", () => {
         expect(screen.getByText("apns-...cdef")).toBeTruthy();
         expect(screen.getByText(/Last refreshed:/)).toBeTruthy();
         expect(screen.getByText(/May 27, 2026/)).toBeTruthy();
+    });
+
+    it("PATCHes a text field and reflects the saved value", async () => {
+        const fetchMock = vi.mocked(fetch);
+        fetchMock.mockImplementation(
+            async () =>
+                new Response(JSON.stringify({ ok: true }), { status: 200 }),
+        );
+        render(<AdminUsersManager users={[users[0]]} />);
+
+        const nameInput = screen.getByLabelText("Name") as HTMLInputElement;
+        fireEvent.change(nameInput, {
+            target: { value: "  Updated Name  " },
+        });
+        fireEvent.blur(nameInput);
+
+        await waitFor(() => {
+            expect(fetchMock).toHaveBeenCalledWith("/api/admin/users/user-1", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: "Updated Name" }),
+            });
+            expect(screen.getByRole("heading", { level: 3 }).textContent).toBe(
+                "Updated Name",
+            );
+            expect(nameInput.value).toBe("Updated Name");
+        });
+    });
+
+    it("PATCHes a checkbox field and reflects the saved value", async () => {
+        const fetchMock = vi.mocked(fetch);
+        fetchMock.mockImplementation(
+            async () =>
+                new Response(JSON.stringify({ ok: true }), { status: 200 }),
+        );
+        render(<AdminUsersManager users={[users[0]]} />);
+
+        const checkbox = screen.getByLabelText(
+            "Push show notifications",
+        ) as HTMLInputElement;
+        fireEvent.click(checkbox);
+
+        await waitFor(() => {
+            expect(fetchMock).toHaveBeenCalledWith("/api/admin/users/user-1", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ pushShowNotifications: true }),
+            });
+            expect(checkbox.checked).toBe(true);
+        });
+    });
+
+    it("shows an API error on the affected text field", async () => {
+        const fetchMock = vi.mocked(fetch);
+        fetchMock.mockImplementation(
+            async () =>
+                new Response(JSON.stringify({ error: "Name is invalid" }), {
+                    status: 400,
+                }),
+        );
+        render(<AdminUsersManager users={[users[0]]} />);
+
+        const nameInput = screen.getByLabelText("Name");
+        fireEvent.change(nameInput, { target: { value: "Invalid Name" } });
+        fireEvent.blur(nameInput);
+
+        expect(await screen.findByText("Name is invalid")).toBeTruthy();
+        expect(screen.getByRole("heading", { level: 3 }).textContent).toBe(
+            "Matt Gioe",
+        );
+    });
+
+    it("shows a network error on the affected checkbox field", async () => {
+        const fetchMock = vi.mocked(fetch);
+        fetchMock.mockRejectedValueOnce(new Error("Network unavailable"));
+        render(<AdminUsersManager users={[users[0]]} />);
+
+        const checkbox = screen.getByLabelText(
+            "Push show notifications",
+        ) as HTMLInputElement;
+        fireEvent.click(checkbox);
+
+        expect(await screen.findByText("Save failed")).toBeTruthy();
+        expect(checkbox.checked).toBe(false);
     });
 });
