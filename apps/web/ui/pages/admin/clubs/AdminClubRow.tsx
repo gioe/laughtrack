@@ -3,9 +3,9 @@
 import type { AdminClubListItem } from "@/lib/admin/clubManagement";
 import { CLUB_TYPE_OPTIONS } from "@/lib/admin/clubTaxonomy";
 import { Button } from "@/ui/components/ui/button";
-import { ExternalLink, Save, Trash2, Upload, X } from "lucide-react";
+import { ExternalLink, Save, Upload } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { AdminImageEditor } from "../shared/AdminImageEditor";
 import { useAdminClubRowController } from "./AdminClubRowController";
 
 const CLUB_STATUS_OPTIONS = ["active", "closed", "hiatus", "not_open_yet"];
@@ -37,27 +37,6 @@ function statusBadgeClass(club: AdminClubListItem) {
 
 function currentIconUrl(club: AdminClubListItem) {
     return club.activeImageAsset?.iconUrl ?? club.iconUrl;
-}
-
-function StagedPreview({
-    file,
-    alt,
-    className,
-}: {
-    file: File;
-    alt: string;
-    className: string;
-}) {
-    const [src, setSrc] = useState<string>("");
-
-    useEffect(() => {
-        const url = URL.createObjectURL(file);
-        setSrc(url);
-        return () => URL.revokeObjectURL(url);
-    }, [file]);
-
-    if (!src) return null;
-    return <img src={src} alt={alt} className={className} />;
 }
 
 export function AdminClubRow({ club }: { club: AdminClubListItem }) {
@@ -274,181 +253,68 @@ export function AdminClubRow({ club }: { club: AdminClubListItem }) {
                         Save status override
                     </Button>
                 </div>
-                <div className="space-y-3 rounded-md border border-copper/20 bg-white/80 p-3 md:col-span-2">
-                    <div className="flex items-center justify-between gap-2">
-                        <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                            Current image
-                        </div>
-                        {club.hasImage ? (
-                            <a
-                                href={currentIconUrl(club)}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="inline-flex items-center gap-1 font-dmSans text-caption font-semibold text-copper-dark hover:underline"
-                            >
-                                Open
-                                <ExternalLink className="h-3.5 w-3.5" />
-                            </a>
-                        ) : null}
-                    </div>
-                    {club.hasImage ? (
-                        <img
-                            src={currentIconUrl(club)}
-                            alt={`${club.name} current thumbnail image`}
-                            className="h-20 w-20 rounded-md border border-copper/20 object-contain"
-                        />
-                    ) : image.iconFile ? null : (
-                        <div className="flex h-20 w-20 items-center justify-center rounded-md border border-dashed border-soft-charcoal/30 bg-gray-50 font-dmSans text-caption text-soft-charcoal">
-                            Empty
-                        </div>
-                    )}
-                    <div className="grid gap-1">
-                        <label
-                            htmlFor={`club-icon-url-${club.id}`}
-                            className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal"
-                        >
-                            Thumbnail image URL
-                        </label>
-                        <div className="flex flex-wrap gap-2 sm:flex-nowrap">
-                            <input
-                                id={`club-icon-url-${club.id}`}
-                                aria-label="Club thumbnail image URL"
-                                type="url"
-                                value={image.icon}
-                                onChange={(event) =>
-                                    patchImage({
-                                        icon: event.target.value,
-                                        iconFile: null,
-                                    })
-                                }
-                                placeholder="https://example.com/club-logo.png"
-                                className="w-full min-w-0 flex-1 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
-                            />
-                            <Button
-                                type="button"
-                                variant="outline"
-                                aria-label="Save club thumbnail URL"
-                                className="shrink-0 gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                                disabled={
-                                    disabled ||
-                                    pending ||
-                                    !image.icon.trim() ||
-                                    image.icon.trim() === currentIconUrl(club)
-                                }
-                                onClick={() => void publishImage()}
-                            >
-                                <Save className="h-4 w-4" />
-                                Save URL
-                            </Button>
-                        </div>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-3">
-                        <input
-                            id={`club-icon-file-${club.id}`}
-                            aria-label="Upload club thumbnail file"
-                            type="file"
-                            accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
-                            className="sr-only"
-                            onChange={async (event) => {
-                                const file = event.target.files?.[0] ?? null;
-                                event.target.value = "";
-                                if (!file) return;
-                                await stageImage(file);
-                            }}
-                        />
+                <div className="md:col-span-2">
+                    <AdminImageEditor
+                        id={`club-icon-${club.id}`}
+                        title="Current image"
+                        currentImage={
+                            club.hasImage
+                                ? {
+                                      url: currentIconUrl(club),
+                                      alt: `${club.name} current thumbnail image`,
+                                      className:
+                                          "h-20 w-20 rounded-md border border-copper/20 object-contain",
+                                  }
+                                : undefined
+                        }
+                        emptyClassName="flex h-20 w-20 items-center justify-center rounded-md border border-dashed border-soft-charcoal/30 bg-gray-50 font-dmSans text-caption text-soft-charcoal"
+                        urlInput={{
+                            label: "Thumbnail image URL",
+                            ariaLabel: "Club thumbnail image URL",
+                            value: image.icon,
+                            placeholder: "https://example.com/club-logo.png",
+                            saveAriaLabel: "Save club thumbnail URL",
+                            canSave: Boolean(
+                                image.icon.trim() &&
+                                    image.icon.trim() !== currentIconUrl(club),
+                            ),
+                            onChange: (value) =>
+                                patchImage({ icon: value, iconFile: null }),
+                            onSave: publishImage,
+                        }}
+                        fileInput={{
+                            ariaLabel: "Upload club thumbnail file",
+                            chooseLabel: "Choose thumbnail file",
+                            guidance: "1:1 square, at least 600x600",
+                            stagedFile: image.iconFile,
+                            pendingLabel: "Pending thumbnail",
+                            pendingAlt: `${club.name} pending thumbnail`,
+                            previewClassName:
+                                "h-16 w-16 shrink-0 rounded-md border border-copper/30 object-contain",
+                            onSelect: stageImage,
+                            onPublish: publishImage,
+                            onDiscard: discardStagedFile,
+                        }}
+                        status={imageStatus}
+                        disabled={disabled || pending}
+                        remove={{
+                            visible: club.hasImage,
+                            label: "Remove thumbnail",
+                            onRemove: removeImage,
+                        }}
+                    />
+                    <div className="mt-3">
                         <Button
                             type="button"
                             variant="outline"
                             className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                            disabled={disabled || pending}
-                            onClick={() => {
-                                const input = document.getElementById(
-                                    `club-icon-file-${club.id}`,
-                                ) as HTMLInputElement | null;
-                                input?.click();
-                            }}
+                            disabled={disabled || pending || !imageDirty}
+                            onClick={() => void publishImage()}
                         >
                             <Upload className="h-4 w-4" />
-                            Choose thumbnail file
+                            Upload changed image
                         </Button>
-                        <span className="font-dmSans text-caption normal-case tracking-normal text-soft-charcoal">
-                            1:1 square, at least 600x600
-                        </span>
                     </div>
-                    {image.iconFile ? (
-                        <div className="inline-flex max-w-full flex-wrap items-center gap-3 rounded-md border border-copper/30 bg-coconut-cream/30 p-3">
-                            <StagedPreview
-                                file={image.iconFile}
-                                alt={`${club.name} pending thumbnail`}
-                                className="h-16 w-16 shrink-0 rounded-md border border-copper/30 object-contain"
-                            />
-                            <div className="grid min-w-[220px] flex-1 gap-2">
-                                <div>
-                                    <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                        Pending thumbnail
-                                    </div>
-                                    <div className="font-dmSans text-caption text-soft-charcoal">
-                                        Publish the staged file or discard it
-                                        before choosing another.
-                                    </div>
-                                </div>
-                                <div className="flex flex-wrap gap-2">
-                                    <Button
-                                        type="button"
-                                        className="gap-2 bg-copper-dark text-white hover:bg-cedar disabled:bg-gray-300 disabled:text-soft-charcoal disabled:opacity-100"
-                                        disabled={disabled || pending}
-                                        onClick={() => void publishImage()}
-                                    >
-                                        <Upload className="h-4 w-4" />
-                                        Publish to Bunny
-                                    </Button>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        className="gap-2 border-soft-charcoal/40 bg-white text-cedar hover:bg-gray-50"
-                                        disabled={disabled || pending}
-                                        onClick={discardStagedFile}
-                                    >
-                                        <X className="h-4 w-4" />
-                                        Discard
-                                    </Button>
-                                </div>
-                            </div>
-                        </div>
-                    ) : null}
-                    {imageStatus ? (
-                        <p
-                            className={
-                                imageStatus.kind === "error"
-                                    ? "rounded-md border border-red-700/30 bg-red-50 px-3 py-2 font-dmSans text-caption font-semibold text-red-900"
-                                    : "rounded-md border border-green-700/30 bg-green-50 px-3 py-2 font-dmSans text-caption font-semibold text-green-900"
-                            }
-                        >
-                            {imageStatus.message}
-                        </p>
-                    ) : null}
-                    {club.hasImage ? (
-                        <Button
-                            type="button"
-                            variant="outline"
-                            className="gap-2 border-red-800/40 bg-white text-red-950 hover:bg-red-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                            disabled={disabled || pending}
-                            onClick={() => void removeImage()}
-                        >
-                            <Trash2 className="h-4 w-4" />
-                            Remove thumbnail
-                        </Button>
-                    ) : null}
-                    <Button
-                        type="button"
-                        variant="outline"
-                        className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                        disabled={disabled || pending || !imageDirty}
-                        onClick={() => void publishImage()}
-                    >
-                        <Upload className="h-4 w-4" />
-                        Upload changed image
-                    </Button>
                 </div>
             </div>
         </li>
