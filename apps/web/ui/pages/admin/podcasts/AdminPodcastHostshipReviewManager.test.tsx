@@ -230,6 +230,42 @@ describe("AdminPodcastHostshipReviewManager", () => {
         expect(websiteLink.href).toBe("https://pod.example/");
     });
 
+    it("preserves unsaved host assignments across review views", () => {
+        const otherCandidate: AdminPodcastHostshipReviewCandidate = {
+            ...candidate,
+            id: 13,
+            comedian: {
+                id: 77,
+                uuid: "uuid-77",
+                name: "Other Host",
+                popularity: 31,
+            },
+        };
+        render(
+            <AdminPodcastHostshipReviewManager
+                candidates={[candidate, otherCandidate]}
+            />,
+        );
+
+        openGroup(/The Jane Show/);
+        fireEvent.click(
+            screen.getByRole("button", { name: "Set Other Host as host" }),
+        );
+        fireEvent.click(screen.getByRole("button", { name: "By comedian" }));
+        openGroup(/Other Host/);
+
+        expect(screen.getAllByText("Host: Other Host").length).toBeGreaterThan(
+            0,
+        );
+        expect(
+            (
+                screen.getByRole("button", {
+                    name: "Set as host",
+                }) as HTMLButtonElement
+            ).disabled,
+        ).toBe(true);
+    });
+
     it("filters the podcast view by podcast name", () => {
         const otherCandidate: AdminPodcastHostshipReviewCandidate = {
             ...candidate,
