@@ -1,0 +1,110 @@
+#!/usr/bin/env python3
+"""Run focused LaughTrack tests on a deterministic iOS simulator."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+sys.dont_write_bytecode = True
+
+from test_sim_destination import DestinationNotFoundError, select_destination
+
+
+DEFAULT_MODEL = "iPhone 16 Pro"
+DEFAULT_IOS_MAJOR = 18
+
+
+def _simctl_json(*arguments: str) -> dict[str, object]:
+    completed = subprocess.run(
+        ["xcrun", "simctl", "list", *arguments, "available", "--json"],
+        capture_output=True,
+        text=True,
+    )
+    if completed.returncode != 0:
+        detail = completed.stderr.strip() or "simctl produced no error output"
+        raise RuntimeError(f"could not list simulator {arguments[0]}: {detail}")
+    return json.loads(completed.stdout)
+
+
+def _parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description="Run LaughTrack Xcode tests on an exact simulator model and iOS major."
+    )
+    parser.add_argument(
+        "selectors",
+        nargs="*",
+        metavar="SUITE",
+        help="suite selector, e.g. LaughTrackTests/ProfileViewTests",
+    )
+    parser.add_argument(
+        "--model",
+        default=os.environ.get("TEST_SIM_NAME", DEFAULT_MODEL),
+        help=f"exact simulator model (env: TEST_SIM_NAME; default: {DEFAULT_MODEL})",
+    )
+    parser.add_argument(
+        "--ios-major",
+        type=int,
+        default=int(os.environ.get("TEST_IOS_MAJOR", DEFAULT_IOS_MAJOR)),
+        help=f"required iOS major (env: TEST_IOS_MAJOR; default: {DEFAULT_IOS_MAJOR})",
+    )
+    parser.add_argument(
+        "--udid",
+        default=os.environ.get("TEST_SIM_UDID"),
+        help="use an explicit available simulator UDID (env: TEST_SIM_UDID)",
+    )
+    parser.add_argument(
+        "--resolve-only",
+        action="store_true",
+        help="print the selected destination without running xcodebuild",
+    )
+    return parser
+
+
+def main() -> int:
+    args = _parser().parse_args()
+    if not args.resolve_only and not args.selectors:
+        _parser().error("at least one SUITE is required unless --resolve-only is used")
+
+    try:
+        destination = select_destination(
+            _simctl_json("devices"),
+            _simctl_json("runtimes"),
+            model=args.model,
+            ios_major=args.ios_major,
+            udid=args.udid,
+        )
+    except (DestinationNotFoundError, json.JSONDecodeError, RuntimeError) as error:
+        print(f"test-sim: {error}", file=sys.stderr)
+        return 2
+
+    print(
+        f"Selected simulator: {destination.name}, iOS {destination.version}, "
+        f"UDID {destination.udid}",
+        flush=True,
+    )
+    if args.resolve_only:
+        return 0
+
+    ios_dir = Path(__file__).resolve().parent.parent
+    command = [
+        "xcodebuild",
+        "-project",
+        str(ios_dir / "LaughTrack.xcodeproj"),
+        "-scheme",
+        "LaughTrack",
+        "-destination",
+        f"platform=iOS Simulator,id={destination.udid}",
+        "CODE_SIGNING_ALLOWED=NO",
+        "test",
+    ]
+    command.extend(f"-only-testing:{selector}" for selector in args.selectors)
+    return subprocess.run(command).returncode
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
