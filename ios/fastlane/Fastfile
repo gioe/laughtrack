@@ -1,3 +1,4 @@
+require "digest"
 require "fileutils"
 require "json"
 require "socket"
@@ -17,6 +18,18 @@ SCREENSHOT_EXPORT_PATH = File.expand_path("../../scripts/screenshots/export.py",
 SCREENSHOT_FIXTURE_SERVER_PATH = File.expand_path("../../scripts/screenshots/fixture_server.py", __dir__)
 SCREENSHOT_FIXTURE_PORT = 8765
 REPO_ROOT = File.expand_path("../..", __dir__)
+SCREENSHOT_WORKTREE_HASH = Digest::SHA256.hexdigest(REPO_ROOT)[0, 12]
+SCREENSHOT_DERIVED_DATA_PATH = ENV.fetch(
+  "LAUGHTRACK_SCREENSHOT_DERIVED_DATA_PATH",
+  File.join(
+    Dir.home,
+    "Library",
+    "Developer",
+    "Xcode",
+    "DerivedData",
+    "LaughTrack-screenshots-wt-#{SCREENSHOT_WORKTREE_HASH}",
+  ),
+)
 IOS_SCREENSHOT_PROFILE_SETTINGS = {
   "ios_phone" => {
     device_name: "iPhone 16 Pro Max",
@@ -407,12 +420,39 @@ platform :ios do
     with_screenshot_fixture_server do
       boot_screenshot_simulator
       patch_snapshot_destination_for_18_3_1
+      UI.message("Using persistent screenshot DerivedData: #{SCREENSHOT_DERIVED_DATA_PATH}")
       Dir.mktmpdir("laughtrack-ios-screenshots") do |tmpdir|
         capture_root = File.join(tmpdir, "capture")
         run_root = options[:run_root] ? File.expand_path(options[:run_root], REPO_ROOT) : File.join(tmpdir, "run")
-        capture_screenshots(output_directory: capture_root)
+
+        build_started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        run_tests(
+          project: "LaughTrack.xcodeproj",
+          scheme: SCHEME,
+          destination: "generic/platform=iOS Simulator",
+          build_for_testing: true,
+          derived_data_path: SCREENSHOT_DERIVED_DATA_PATH,
+          clean: false,
+          code_coverage: false,
+          skip_slack: true,
+          only_testing: ["LaughTrackUITests/AppStoreScreenshotTests/testGenerateAllScreenshots"],
+          xcargs: "TARGETED_DEVICE_FAMILY=1,2",
+          skip_package_dependencies_resolution: true,
+          disable_package_automatic_updates: true,
+          skip_package_repository_fetches: true,
+        )
+        build_duration = Process.clock_gettime(Process::CLOCK_MONOTONIC) - build_started_at
+
+        capture_started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        capture_screenshots(
+          output_directory: capture_root,
+          derived_data_path: SCREENSHOT_DERIVED_DATA_PATH,
+          test_without_building: true,
+        )
+        capture_duration = Process.clock_gettime(Process::CLOCK_MONOTONIC) - capture_started_at
         validate_ios_screenshot_collection(capture_root)
         export_app_store_projection(capture_root, run_root)
+        UI.success(format("Screenshot timings: build=%.1fs capture=%.1fs", build_duration, capture_duration))
         UI.success("Validated iOS screenshot run manifest: #{File.join(run_root, 'manifest.json')}")
       end
     end

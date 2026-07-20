@@ -21,6 +21,26 @@ scheme("LaughTrack")
 # instead of iPhone compatibility mode without changing release configuration.
 xcargs("TARGETED_DEVICE_FAMILY=1,2")
 
+# Snapshot otherwise creates and deletes a temporary DerivedData directory on
+# every run. Keep an isolated cache per worktree so repeated captures can reuse
+# build products without concurrent worktrees sharing incompatible artifacts.
+require "digest"
+screenshot_worktree = File.expand_path("../..", __dir__)
+screenshot_worktree_hash = Digest::SHA256.hexdigest(screenshot_worktree)[0, 12]
+derived_data_path(
+  ENV.fetch(
+    "LAUGHTRACK_SCREENSHOT_DERIVED_DATA_PATH",
+    File.join(Dir.home, "Library", "Developer", "Xcode", "DerivedData", "LaughTrack-screenshots-wt-#{screenshot_worktree_hash}"),
+  ),
+)
+
+# Package.resolved is authoritative. Avoid Fastlane's redundant resolve pass
+# and remote update checks while allowing xcodebuild to restore missing clones
+# into the persistent DerivedData cache on a genuinely cold run.
+skip_package_dependencies_resolution(true)
+disable_package_automatic_updates(true)
+skip_package_repository_fetches(true)
+
 output_directory("./fastlane/screenshots")
 
 clear_previous_screenshots(true)
