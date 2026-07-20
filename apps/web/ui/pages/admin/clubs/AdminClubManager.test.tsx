@@ -150,6 +150,17 @@ beforeEach(() => {
             },
         }),
     }) as never;
+
+    class FakeImage {
+        public onload: (() => void) | null = null;
+        public onerror: (() => void) | null = null;
+        public naturalWidth = 1000;
+        public naturalHeight = 1000;
+        set src(_value: string) {
+            queueMicrotask(() => this.onload?.());
+        }
+    }
+    (global as unknown as { Image: typeof FakeImage }).Image = FakeImage;
 });
 
 afterEach(() => {
@@ -489,6 +500,122 @@ describe("AdminClubManager", () => {
                 .getByAltText("Funny Bone Boston current thumbnail image")
                 .getAttribute("src"),
         ).toBe("https://cdn.test/club-images/11/new/icon.png");
+    });
+
+    it("stages and publishes a club thumbnail file", async () => {
+        vi.mocked(global.fetch).mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
+                ok: true,
+                clubId: 11,
+                hasImage: true,
+                asset: {
+                    id: 201,
+                    sourceImageUrl: "upload:thumbnail.png",
+                    originalPath: "club-images/11/new/original.png",
+                    iconPath: "club-images/11/new/icon.png",
+                    heroPath: null,
+                    iconUrl: "https://cdn.test/club-images/11/new/icon.png",
+                    heroUrl: null,
+                    mimeType: "image/png",
+                    width: 1000,
+                    height: 1000,
+                },
+            }),
+        } as never);
+        render(<AdminClubManager groups={groups} />);
+        fireEvent.click(getFunnyBoneGroupToggle());
+
+        const file = new File([new Uint8Array([1, 2, 3])], "thumbnail.png", {
+            type: "image/png",
+        });
+        fireEvent.change(
+            screen.getAllByLabelText("Upload club thumbnail file")[1],
+            { target: { files: [file] } },
+        );
+
+        expect(
+            await screen.findByAltText("Funny Bone Boston pending thumbnail"),
+        ).toBeTruthy();
+        expect(global.fetch).not.toHaveBeenCalled();
+
+        fireEvent.click(
+            screen.getByRole("button", { name: "Publish to Bunny" }),
+        );
+
+        await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(1));
+        const [url, options] = vi.mocked(global.fetch).mock.calls[0];
+        expect(url).toBe("/api/admin/clubs/images/publish");
+        expect(options).toEqual(expect.objectContaining({ method: "POST" }));
+        const body = (options as RequestInit).body as FormData;
+        expect(body.get("clubId")).toBe("11");
+        expect(body.get("iconFile")).toBe(file);
+        expect(
+            (
+                await screen.findByAltText(
+                    "Funny Bone Boston current thumbnail image",
+                )
+            ).getAttribute("src"),
+        ).toBe("https://cdn.test/club-images/11/new/icon.png");
+    });
+
+    it("rejects invalid club thumbnail dimensions before staging", async () => {
+        class WrongShapeImage {
+            public onload: (() => void) | null = null;
+            public onerror: (() => void) | null = null;
+            public naturalWidth = 400;
+            public naturalHeight = 600;
+            set src(_value: string) {
+                queueMicrotask(() => this.onload?.());
+            }
+        }
+        (global as unknown as { Image: typeof WrongShapeImage }).Image =
+            WrongShapeImage;
+
+        render(<AdminClubManager groups={groups} />);
+        fireEvent.click(getFunnyBoneGroupToggle());
+        const file = new File([new Uint8Array([1, 2, 3])], "thumbnail.png", {
+            type: "image/png",
+        });
+        fireEvent.change(
+            screen.getAllByLabelText("Upload club thumbnail file")[1],
+            { target: { files: [file] } },
+        );
+
+        expect((await screen.findByRole("alert")).textContent).toContain(
+            "Headshot is 400x600",
+        );
+        expect(
+            screen.queryByAltText("Funny Bone Boston pending thumbnail"),
+        ).toBeNull();
+        expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    it("discards a staged club thumbnail without publishing", async () => {
+        render(<AdminClubManager groups={groups} />);
+        fireEvent.click(getFunnyBoneGroupToggle());
+        const file = new File([new Uint8Array([1, 2, 3])], "thumbnail.png", {
+            type: "image/png",
+        });
+        fireEvent.change(
+            screen.getAllByLabelText("Upload club thumbnail file")[1],
+            { target: { files: [file] } },
+        );
+
+        expect(
+            await screen.findByAltText("Funny Bone Boston pending thumbnail"),
+        ).toBeTruthy();
+        fireEvent.click(screen.getByRole("button", { name: "Discard" }));
+
+        await waitFor(() =>
+            expect(
+                screen.queryByAltText("Funny Bone Boston pending thumbnail"),
+            ).toBeNull(),
+        );
+        expect(
+            screen.queryByRole("button", { name: "Publish to Bunny" }),
+        ).toBeNull();
+        expect(global.fetch).not.toHaveBeenCalled();
     });
 
     it("removes an existing club thumbnail", async () => {
