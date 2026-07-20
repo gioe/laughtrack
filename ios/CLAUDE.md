@@ -8,6 +8,7 @@ swift build --target LaughTrackApp     # Build app target only
 swift build --target LaughTrackBridge  # Build bridge target only
 make -C ios check-pbxproj              # Verify every Sources/*.swift is wired into LaughTrack.xcodeproj (run before push)
 make -C ios check-ios-libs-pin         # Verify ios-libs revision pins agree across project.yml + both Package.resolved files (run before push)
+ios/bin/test-sim LaughTrackTests/ProfileViewTests  # Run one full suite on the newest installed matching iOS 18.x simulator
 ```
 
 ## Releasing (fastlane)
@@ -37,21 +38,29 @@ the working tree doesn't typecheck clean (e.g. an in-flight change elsewhere in
 
 ## Testing
 
-iOS tests split across two runners:
+iOS tests use three verification paths:
 
 - **`swift test`** — runs pure Swift unit tests on macOS. Fast (~0.1s), but silently
   skips any file guarded by `#if canImport(UIKit)` (e.g. `AppShellViewTests`,
   `ContentViewNavigationTests`, and anything using `HostedView` from
   `HostedViewTestSupport.swift`). A green `swift test` run does NOT prove those
   test files were exercised.
-- **`test_sim`** via XcodeBuildMCP — runs the full Xcode test plan against an iOS
-  simulator. Required to cover HostedView integration tests, UI tests, and
-  anything depending on UIKit at runtime. Slower (~45s) but authoritative.
+- **`ios/bin/test-sim <target/suite> [...]`** — runs focused Xcode suites against
+  an exact `iPhone 16 Pro` on the highest installed iOS 18.x runtime. It resolves
+  the simulator by UDID, so patch-version changes do not break the destination.
+  Required to cover HostedView integration tests, UI tests, and anything depending
+  on UIKit at runtime. Use suite-level selectors, for example
+  `ios/bin/test-sim LaughTrackTests/ProfileViewTests`; pass multiple selectors as
+  separate arguments. Override intentionally with `--model`, `--ios-major`, or
+  `--udid`; use `--resolve-only` to inspect the chosen model, OS, and UDID.
+- **`test_sim` via XcodeBuildMCP** — runs the full configured Xcode test plan and
+  remains useful when an MCP-driven full-plan run is specifically required.
 
 For a refactor that touches code reachable from a HostedView test, always run
-`test_sim` before declaring the change verified. When UI-test failures appear,
-confirm pre-existing vs regression via `git stash push -u` + re-run against
-HEAD + `git stash pop` — `tusk test-precheck` doesn't cover MCP-invoked tests.
+the relevant suite with `ios/bin/test-sim` before declaring the change verified.
+When UI-test failures appear, confirm pre-existing vs regression via
+`git stash push -u` + re-run against HEAD + `git stash pop` — `tusk
+test-precheck` doesn't cover simulator-invoked tests.
 
 ### XcodeBuildMCP Session Defaults Persist Across Tusk Worktrees
 
