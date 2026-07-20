@@ -16,6 +16,21 @@ import Foundation
 import XCTest
 
 @MainActor
+struct SnapshotReadinessCondition {
+    let description: String
+    let isSatisfied: () -> Bool
+}
+
+private struct SnapshotReadinessError: LocalizedError {
+    let scenario: String
+    let missingConditions: [String]
+
+    var errorDescription: String? {
+        "Screenshot readiness timed out for \(scenario); missing: \(missingConditions.joined(separator: ", "))"
+    }
+}
+
+@MainActor
 func setupSnapshot(_ app: XCUIApplication, waitForAnimations: Bool = true) {
     Snapshot.setupSnapshot(app, waitForAnimations: waitForAnimations)
 }
@@ -35,6 +50,20 @@ func snapshot(_ name: String, waitForLoadingIndicator: Bool) {
 @MainActor
 func snapshot(_ name: String, timeWaitingForIdle timeout: TimeInterval = 20) {
     Snapshot.snapshot(name, timeWaitingForIdle: timeout)
+}
+
+/// Waits for scenario-specific UI and artwork readiness before capturing.
+///
+/// Every condition shares one deadline so a failed capture reports all of the
+/// screen, content, and artwork signals that are still missing.
+@MainActor
+func snapshot(
+    _ name: String,
+    whenReady conditions: [SnapshotReadinessCondition],
+    timeout: TimeInterval = 20
+) throws {
+    try Snapshot.waitUntilReady(scenario: name, conditions: conditions, timeout: timeout)
+    Snapshot.snapshot(name, timeWaitingForIdle: 0)
 }
 
 enum SnapshotError: Error, CustomDebugStringConvertible {
@@ -77,6 +106,103 @@ open class Snapshot: NSObject {
         } catch {
             NSLog(error.localizedDescription)
         }
+    }
+
+    class func waitUntilReady(
+        scenario: String,
+        conditions: [SnapshotReadinessCondition],
+        timeout: TimeInterval
+    ) throws {
+        guard let app else {
+            throw SnapshotReadinessError(
+                scenario: scenario,
+                missingConditions: ["XCUIApplication is not configured"]
+            )
+        }
+
+        let deadline = Date().addingTimeInterval(timeout)
+        var missingConditions = conditions.map(\.description)
+        var previousFrame: [UInt8]?
+        var stableFrameCount = 0
+
+        repeat {
+            missingConditions = conditions.compactMap { condition in
+                condition.isSatisfied() ? nil : condition.description
+            }
+            if missingConditions.isEmpty {
+                if let frame = renderedFrameSample() {
+                    stableFrameCount = previousFrame.map {
+                        renderedFramesMatch($0, frame) ? stableFrameCount + 1 : 1
+                    } ?? 1
+                    previousFrame = frame
+                } else {
+                    stableFrameCount = 0
+                }
+
+                if stableFrameCount >= 3 {
+                    return
+                }
+                missingConditions = ["required artwork/animation frame did not stabilize (\(stableFrameCount)/3 samples)"]
+            } else {
+                previousFrame = nil
+                stableFrameCount = 0
+            }
+
+            RunLoop.current.run(until: min(deadline, Date().addingTimeInterval(0.15)))
+        } while Date() < deadline
+
+        let screenshot = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        screenshot.name = "\(scenario)-readiness-timeout"
+        screenshot.lifetime = .keepAlways
+
+        let hierarchy = XCTAttachment(string: app.debugDescription)
+        hierarchy.name = "\(scenario)-accessibility-hierarchy"
+        hierarchy.lifetime = .keepAlways
+
+        XCTContext.runActivity(named: "Screenshot readiness timeout: \(scenario)") { activity in
+            activity.add(screenshot)
+            activity.add(hierarchy)
+        }
+
+        throw SnapshotReadinessError(
+            scenario: scenario,
+            missingConditions: missingConditions
+        )
+    }
+
+    private class func renderedFrameSample() -> [UInt8]? {
+        guard let source = XCUIScreen.main.screenshot().image.cgImage else { return nil }
+
+        let width = 32
+        let height = 32
+        let bytesPerPixel = 4
+        let bytesPerRow = width * bytesPerPixel
+        var pixels = [UInt8](repeating: 0, count: height * bytesPerRow)
+        let rendered = pixels.withUnsafeMutableBytes { buffer -> Bool in
+            guard let context = CGContext(
+                data: buffer.baseAddress,
+                width: width,
+                height: height,
+                bitsPerComponent: 8,
+                bytesPerRow: bytesPerRow,
+                space: CGColorSpaceCreateDeviceRGB(),
+                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+            ) else {
+                return false
+            }
+            context.interpolationQuality = .low
+            context.draw(source, in: CGRect(x: 0, y: 0, width: width, height: height))
+            return true
+        }
+        return rendered ? pixels : nil
+    }
+
+    private class func renderedFramesMatch(_ lhs: [UInt8], _ rhs: [UInt8]) -> Bool {
+        guard lhs.count == rhs.count, !lhs.isEmpty else { return false }
+        let totalDifference = zip(lhs, rhs).reduce(0) { difference, channels in
+            difference + abs(Int(channels.0) - Int(channels.1))
+        }
+        return Double(totalDifference) / Double(lhs.count) < 0.75
     }
 
     class func setLanguage(_ app: XCUIApplication) {

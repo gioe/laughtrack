@@ -27,26 +27,28 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
     }
 
     func testGenerateAllScreenshots() throws {
-        // SwiftUI's accessibility tree on iOS 18+ doesn't reliably surface
-        // every home-rail Text, so retain a short settle for the local fixture.
-        sleep(8)
-        snapshot("01_NearMe")
+        try capture(
+            "01_NearMe",
+            screen: identified("laughtrack.home.screen", as: "Near Me screen"),
+            content: [
+                identified("laughtrack.home.shows-tonight-rail", as: "Tonight rail"),
+                noLoadingLabels(["Loading shows", "Loading trending comedians", "Loading popular clubs", "Loading trending podcasts"]),
+            ]
+        )
 
         relaunch(route: "search:0")
         assertFirstResult(identifierPrefix: "laughtrack.shows-search.result-", description: "show")
-        snapshot("02_SearchShows")
+        try captureSearch("02_SearchShows", resultIdentifierPrefix: "laughtrack.shows-search.result-", description: "show")
 
         // Filter pills sit at the top of the search header. Use identifiers
         // instead of coordinates so the flow survives pill-width changes.
         tapPrimitive("comedians")
-        sleep(2)
         assertFirstResult(identifierPrefix: "laughtrack.comedians-search.result-", description: "comedian")
-        snapshot("03_SearchComedians")
+        try captureSearch("03_SearchComedians", resultIdentifierPrefix: "laughtrack.comedians-search.result-", description: "comedian")
 
         tapPrimitive("clubs")
-        sleep(2)
         assertFirstResult(identifierPrefix: "laughtrack.clubs-search.result-", description: "club")
-        snapshot("04_SearchClubs")
+        try captureSearch("04_SearchClubs", resultIdentifierPrefix: "laughtrack.clubs-search.result-", description: "club")
 
         searchFor(
             "The Comedy Store",
@@ -57,8 +59,15 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
             detailIdentifier: Identifier.clubDetailScreen,
             description: "club"
         )
-        sleep(3)
-        snapshot("05_ClubDetail")
+        try capture(
+            "05_ClubDetail",
+            screen: identified(Identifier.clubDetailScreen, as: "club detail screen"),
+            content: [
+                text("The Comedy Store", as: "club title"),
+                prefixed("laughtrack.shows-search.result-", as: "upcoming show"),
+                noLoadingLabels(["Loading", "Loading shows"]),
+            ]
+        )
 
         // Keep Show Detail tied to the same club fixture on both platforms.
         // ClubDetailView's pinned calendar reuses the shows-search row IDs.
@@ -67,8 +76,14 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
             detailIdentifier: Identifier.showDetailScreen,
             description: "show"
         )
-        sleep(3)
-        snapshot("06_ShowDetail")
+        try capture(
+            "06_ShowDetail",
+            screen: identified(Identifier.showDetailScreen, as: "show detail screen"),
+            content: [
+                text("Taylor Tomlinson & Friends", as: "show title"),
+                noLoadingLabels(["Loading"]),
+            ]
+        )
 
         // Restart before the remaining search-tab captures so the shared
         // search query is clear and the flow does not depend on back-stack
@@ -77,7 +92,6 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
 
         // Switch to Comedians filter for the comedian detail.
         tapPrimitive("comedians")
-        sleep(2)
 
         searchFor(
             "Ali Wong",
@@ -89,8 +103,16 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
             detailIdentifier: Identifier.comedianDetailScreen,
             description: "comedian"
         )
-        sleep(3)
-        snapshot("07_ComedianDetail")
+        try capture(
+            "07_ComedianDetail",
+            screen: identified(Identifier.comedianDetailScreen, as: "comedian detail screen"),
+            content: [
+                text("Ali Wong", as: "comedian title"),
+                identified("laughtrack.comedian-detail.tab-picker", as: "comedian detail tabs"),
+                prefixed("laughtrack.shows-search.result-", as: "upcoming comedian show"),
+                noLoadingLabels(["Loading", "Loading shows"]),
+            ]
+        )
 
         // Restart again before the podcast captures; the comedian detail has
         // its own Shows/Podcasts segmented control, so coordinate taps there
@@ -100,9 +122,8 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         // Switch to Podcasts. The helper scrolls the identified primitive
         // scroller only when the pill is offscreen on the phone profile.
         tapPrimitive("podcasts")
-        sleep(3)
         assertFirstResult(identifierPrefix: "laughtrack.podcasts-search.result-", description: "podcast")
-        snapshot("08_SearchPodcasts")
+        try captureSearch("08_SearchPodcasts", resultIdentifierPrefix: "laughtrack.podcasts-search.result-", description: "podcast")
 
         searchFor(
             "The Joe Rogan Experience",
@@ -113,8 +134,14 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
             detailIdentifier: Identifier.podcastDetailScreen,
             description: "podcast"
         )
-        sleep(5)
-        snapshot("09_PodcastDetail")
+        try capture(
+            "09_PodcastDetail",
+            screen: identified(Identifier.podcastDetailScreen, as: "podcast detail screen"),
+            content: [
+                text("The Joe Rogan Experience", as: "podcast title"),
+                noLoadingLabels(["Loading"]),
+            ]
+        )
 
         relaunch(route: "profile:0")
         assertExists("laughtrack.profile-tab.screen", message: "Expected Profile screen")
@@ -133,12 +160,22 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
             XCTAssertTrue(button.waitForExistence(timeout: 10), "Expected auth option: \(option)")
             XCTAssertTrue(button.isHittable, "Expected visible auth option: \(option)")
         }
-        snapshot("11_Profile")
+        try capture(
+            "11_Profile",
+            screen: identified("laughtrack.profile-tab.screen", as: "guest Profile screen"),
+            content: [allButtons(["Continue with Apple", "Continue with Google", "Email me a sign-in link"], as: "guest sign-in options")]
+        )
 
         relaunch(environment: [UITestLaunchArgs.forceComedianOnboardingScreen: "1"])
         assertExists("laughtrack.onboarding.screen", message: "Expected onboarding screen")
-        sleep(3)
-        snapshot("13_Onboarding")
+        try capture(
+            "13_Onboarding",
+            screen: identified("laughtrack.onboarding.screen", as: "onboarding screen"),
+            content: [
+                identified("laughtrack.onboarding.search-field", as: "onboarding search field"),
+                noLoadingLabels(["Loading comedians", "Finding more comedians"]),
+            ]
+        )
 
         relaunch(comparisonScreens: true)
         let miniPlayer = element("laughtrack.podcast-mini-player")
@@ -147,19 +184,35 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         assertExists("laughtrack.now-playing-screen", message: "Expected Now Playing screen")
         // Intentional background override: this immersive media surface uses
         // an opaque semantic canvas instead of the inherited app atmosphere.
-        snapshot("14_NowPlaying")
+        try capture(
+            "14_NowPlaying",
+            screen: identified("laughtrack.now-playing-screen", as: "Now Playing screen"),
+            content: [text("The LaughTrack Comedy Roundup", as: "seeded episode")]
+        )
 
         relaunch(route: "favorites:0", authenticatedPersona: true)
         assertExists("laughtrack.favorites-tab.screen", message: "Expected authenticated Favorites screen")
-        snapshot("15_AuthenticatedFavorites")
+        try capture(
+            "15_AuthenticatedFavorites",
+            screen: identified("laughtrack.favorites-tab.screen", as: "authenticated Favorites screen"),
+            content: [text("Taylor Tomlinson Live", as: "saved favorite show")]
+        )
 
         relaunch(route: "profile:0", authenticatedPersona: true)
         assertExists("laughtrack.profile-tab.screen", message: "Expected authenticated Profile screen")
-        snapshot("16_AuthenticatedProfile")
+        try capture(
+            "16_AuthenticatedProfile",
+            screen: identified("laughtrack.profile-tab.screen", as: "authenticated Profile screen"),
+            content: [text("Jordan Rivera", as: "authenticated persona")]
+        )
 
         relaunch(route: "notifications:0", authenticatedPersona: true)
         assertExists("laughtrack.notifications.screen", message: "Expected authenticated Notifications screen")
-        snapshot("17_AuthenticatedNotifications")
+        try capture(
+            "17_AuthenticatedNotifications",
+            screen: identified("laughtrack.notifications.screen", as: "authenticated Notifications screen"),
+            content: [text("Taylor Tomlinson has a show near you", as: "seeded notification")]
+        )
 
         // Use the real production login sheet through a DEBUG-only launch
         // seam. Provider buttons remain untouched, so external OAuth is never
@@ -177,7 +230,11 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         }
         // Intentional background override: the focused authentication sheet
         // uses an opaque semantic canvas over the ordinary catalog surface.
-        snapshot("18_AuthPrompt")
+        try capture(
+            "18_AuthPrompt",
+            screen: text("Pick up where you left off", as: "authentication prompt"),
+            content: [allButtons(["Continue with Apple", "Continue with Google", "Email me a sign-in link"], as: "authentication options")]
+        )
 
         // Mock mode normally records the guest choice so comparison captures can
         // enter the shell. Suppress that one seed and capture the real root gate.
@@ -191,7 +248,11 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         }
         // Intentional background override: the first-entry gate is a
         // specialized authentication experience with an opaque canvas.
-        snapshot("19_FirstEntryAuthChoice")
+        try capture(
+            "19_FirstEntryAuthChoice",
+            screen: identified("laughtrack.auth-choice.screen", as: "first-entry auth choice"),
+            content: [allButtons(["Continue as guest", "Continue with Apple", "Continue with Google", "Email me a sign-in link"], as: "first-entry options")]
+        )
     }
 
     private func tapPrimitive(_ primitive: String) {
@@ -244,7 +305,67 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         }
         environment.forEach { app.launchEnvironment[$0.key] = $0.value }
         app.launch()
-        sleep(5)
+    }
+
+    private func captureSearch(
+        _ name: String,
+        resultIdentifierPrefix: String,
+        description: String
+    ) throws {
+        try capture(
+            name,
+            screen: identified("laughtrack.search.field", as: "Search screen"),
+            content: [
+                prefixed(resultIdentifierPrefix, as: "loaded \(description) result"),
+                noLoadingLabels(["Loading \(description)s"]),
+            ]
+        )
+    }
+
+    private func capture(
+        _ name: String,
+        screen: SnapshotReadinessCondition,
+        content: [SnapshotReadinessCondition]
+    ) throws {
+        let artwork = SnapshotReadinessCondition(
+            description: "required artwork loaded (no visible activity indicators)"
+        ) { [unowned self] in
+            !self.app.activityIndicators.allElementsBoundByIndex.contains { indicator in
+                indicator.exists && !indicator.frame.isEmpty && self.app.frame.intersects(indicator.frame)
+            }
+        }
+        try snapshot(name, whenReady: [screen] + content + [artwork])
+    }
+
+    private func identified(_ identifier: String, as description: String) -> SnapshotReadinessCondition {
+        SnapshotReadinessCondition(description: "screen/content: \(description)") { [unowned self] in
+            self.app.descendants(matching: .any)[identifier].exists
+        }
+    }
+
+    private func prefixed(_ prefix: String, as description: String) -> SnapshotReadinessCondition {
+        SnapshotReadinessCondition(description: "loaded content: \(description)") { [unowned self] in
+            let predicate = NSPredicate(format: "identifier BEGINSWITH %@", prefix)
+            return self.app.descendants(matching: .any).matching(predicate).firstMatch.exists
+        }
+    }
+
+    private func text(_ value: String, as description: String) -> SnapshotReadinessCondition {
+        SnapshotReadinessCondition(description: "loaded content: \(description)") { [unowned self] in
+            self.app.staticTexts[value].exists
+        }
+    }
+
+    private func allButtons(_ values: [String], as description: String) -> SnapshotReadinessCondition {
+        SnapshotReadinessCondition(description: "loaded content: \(description)") { [unowned self] in
+            values.allSatisfy { self.app.buttons[$0].exists }
+        }
+    }
+
+    private func noLoadingLabels(_ labels: [String]) -> SnapshotReadinessCondition {
+        SnapshotReadinessCondition(description: "loaded content: no loading placeholders (\(labels.joined(separator: ", ")))") { [unowned self] in
+            labels.allSatisfy { !self.app.staticTexts[$0].exists }
+        }
     }
 
     private func tapFirstResult(
