@@ -10,6 +10,7 @@ import {
     AdminToolbar,
     clampAdminPage,
 } from "@/ui/pages/admin/shared/AdminControls";
+import { adminRequest } from "../shared/adminRequest";
 import {
     ChevronDown,
     ChevronRight,
@@ -453,17 +454,20 @@ export default function AdminComedianManager({ comedians }: Props) {
         setStatus({ kind: "idle" });
         setPendingId(row.id);
 
-        let res: Response;
+        let body: { comedian: AdminComedianListItem };
         try {
-            res = await fetch("/api/admin/comedians", {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    action: "set-parent",
-                    comedianId: row.id,
-                    parentComedianId: parent?.id ?? null,
-                }),
-            });
+            body = await adminRequest<{ comedian: AdminComedianListItem }>(
+                "/api/admin/comedians",
+                {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        action: "set-parent",
+                        comedianId: row.id,
+                        parentComedianId: parent?.id ?? null,
+                    }),
+                },
+            );
         } catch (error) {
             setPendingId(null);
             setStatus({
@@ -475,16 +479,6 @@ export default function AdminComedianManager({ comedians }: Props) {
         }
 
         setPendingId(null);
-        if (!res.ok) {
-            const body = await res.json().catch(() => ({}));
-            setStatus({
-                kind: "error",
-                message: body.error ?? `Request failed (${res.status})`,
-            });
-            return;
-        }
-
-        const body = (await res.json()) as { comedian: AdminComedianListItem };
         setRows((current) =>
             current.map((currentRow) =>
                 currentRow.id === row.id ? body.comedian : currentRow,
@@ -507,33 +501,40 @@ export default function AdminComedianManager({ comedians }: Props) {
         setStatus({ kind: "idle" });
         setPendingId(row.id);
 
-        let res: Response;
+        let body: { comedian: AdminComedianListItem };
         try {
-            res = await fetch("/api/admin/comedians", {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    comedianId: row.id,
-                    name,
-                    website: normalizedUrl(profileFieldValue(row, "website")),
-                    websiteScrapingUrl: normalizedUrl(
-                        profileFieldValue(row, "websiteScrapingUrl"),
-                    ),
-                    instagramAccount: normalizedUrl(
-                        profileFieldValue(row, "instagramAccount"),
-                    ),
-                    tiktokAccount: normalizedUrl(
-                        profileFieldValue(row, "tiktokAccount"),
-                    ),
-                    youtubeAccount: normalizedUrl(
-                        profileFieldValue(row, "youtubeAccount"),
-                    ),
-                    youtubeChannelId: normalizedUrl(
-                        profileFieldValue(row, "youtubeChannelId"),
-                    ),
-                    linktree: normalizedUrl(profileFieldValue(row, "linktree")),
-                }),
-            });
+            body = await adminRequest<{ comedian: AdminComedianListItem }>(
+                "/api/admin/comedians",
+                {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        comedianId: row.id,
+                        name,
+                        website: normalizedUrl(
+                            profileFieldValue(row, "website"),
+                        ),
+                        websiteScrapingUrl: normalizedUrl(
+                            profileFieldValue(row, "websiteScrapingUrl"),
+                        ),
+                        instagramAccount: normalizedUrl(
+                            profileFieldValue(row, "instagramAccount"),
+                        ),
+                        tiktokAccount: normalizedUrl(
+                            profileFieldValue(row, "tiktokAccount"),
+                        ),
+                        youtubeAccount: normalizedUrl(
+                            profileFieldValue(row, "youtubeAccount"),
+                        ),
+                        youtubeChannelId: normalizedUrl(
+                            profileFieldValue(row, "youtubeChannelId"),
+                        ),
+                        linktree: normalizedUrl(
+                            profileFieldValue(row, "linktree"),
+                        ),
+                    }),
+                },
+            );
         } catch (error) {
             setPendingId(null);
             setStatus({
@@ -545,16 +546,6 @@ export default function AdminComedianManager({ comedians }: Props) {
         }
 
         setPendingId(null);
-        if (!res.ok) {
-            const body = await res.json().catch(() => ({}));
-            setStatus({
-                kind: "error",
-                message: body.error ?? `Request failed (${res.status})`,
-            });
-            return;
-        }
-
-        const body = (await res.json()) as { comedian: AdminComedianListItem };
         setRows((current) =>
             current.map((currentRow) =>
                 currentRow.id === row.id ? body.comedian : currentRow,
@@ -578,17 +569,20 @@ export default function AdminComedianManager({ comedians }: Props) {
         setStatus({ kind: "idle" });
         setPendingId(row.id);
 
-        let res: Response;
+        let body: { comedian: AdminComedianListItem };
         try {
-            res = await fetch("/api/admin/comedians", {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    action: "blocklist-add",
-                    comedianId: row.id,
-                    reason: DEFAULT_BLOCK_REASON,
-                }),
-            });
+            body = await adminRequest<{ comedian: AdminComedianListItem }>(
+                "/api/admin/comedians",
+                {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        action: "blocklist-add",
+                        comedianId: row.id,
+                        reason: DEFAULT_BLOCK_REASON,
+                    }),
+                },
+            );
         } catch (error) {
             setPendingId(null);
             setStatus({
@@ -600,16 +594,6 @@ export default function AdminComedianManager({ comedians }: Props) {
         }
 
         setPendingId(null);
-        if (!res.ok) {
-            const body = await res.json().catch(() => ({}));
-            setStatus({
-                kind: "error",
-                message: body.error ?? `Request failed (${res.status})`,
-            });
-            return;
-        }
-
-        const body = (await res.json()) as { comedian: AdminComedianListItem };
         setRows((current) =>
             current.map((currentRow) =>
                 currentRow.id === row.id ? body.comedian : currentRow,
@@ -623,16 +607,19 @@ export default function AdminComedianManager({ comedians }: Props) {
         setStatus({ kind: "idle" });
         setPendingId(row.id);
 
-        let res: Response;
+        let body: { comedian: AdminComedianListItem };
         try {
-            res = await fetch("/api/admin/comedians", {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    action: "blocklist-remove",
-                    comedianId: row.id,
-                }),
-            });
+            body = await adminRequest<{ comedian: AdminComedianListItem }>(
+                "/api/admin/comedians",
+                {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        action: "blocklist-remove",
+                        comedianId: row.id,
+                    }),
+                },
+            );
         } catch (error) {
             setPendingId(null);
             setStatus({
@@ -644,16 +631,6 @@ export default function AdminComedianManager({ comedians }: Props) {
         }
 
         setPendingId(null);
-        if (!res.ok) {
-            const body = await res.json().catch(() => ({}));
-            setStatus({
-                kind: "error",
-                message: body.error ?? `Request failed (${res.status})`,
-            });
-            return;
-        }
-
-        const body = (await res.json()) as { comedian: AdminComedianListItem };
         setRows((current) =>
             current.map((currentRow) =>
                 currentRow.id === row.id ? body.comedian : currentRow,
@@ -675,9 +652,8 @@ export default function AdminComedianManager({ comedians }: Props) {
         setSavingWebSubKey(key);
         setStatus({ kind: "idle" });
 
-        let res: Response;
         try {
-            res = await fetch(
+            await adminRequest(
                 `/api/admin/youtube-websub/comedians/${encodeURIComponent(row.uuid)}`,
                 {
                     method: "PATCH",
@@ -696,15 +672,6 @@ export default function AdminComedianManager({ comedians }: Props) {
         }
 
         setSavingWebSubKey(null);
-        if (!res.ok) {
-            const body = await res.json().catch(() => ({}));
-            setStatus({
-                kind: "error",
-                message: body.error ?? `Request failed (${res.status})`,
-            });
-            return;
-        }
-
         setRows((current) =>
             current.map((currentRow) =>
                 currentRow.uuid === row.uuid
@@ -730,22 +697,25 @@ export default function AdminComedianManager({ comedians }: Props) {
         setStatus({ kind: "idle" });
         setPendingId(row.id);
 
-        let res: Response;
+        let body: { comedian: AdminComedianListItem };
         try {
-            res = await fetch("/api/admin/comedians", {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    action,
-                    comedianId: row.id,
-                    candidateReviewId: review.id,
-                    ...(action === "podcast-review-block-podcast"
-                        ? {
-                              reason: `Blocked from comedian podcast review for ${row.name}`,
-                          }
-                        : {}),
-                }),
-            });
+            body = await adminRequest<{ comedian: AdminComedianListItem }>(
+                "/api/admin/comedians",
+                {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        action,
+                        comedianId: row.id,
+                        candidateReviewId: review.id,
+                        ...(action === "podcast-review-block-podcast"
+                            ? {
+                                  reason: `Blocked from comedian podcast review for ${row.name}`,
+                              }
+                            : {}),
+                    }),
+                },
+            );
         } catch (error) {
             setPendingId(null);
             setStatus({
@@ -757,15 +727,6 @@ export default function AdminComedianManager({ comedians }: Props) {
         }
 
         setPendingId(null);
-        const body = await res.json().catch(() => ({}));
-        if (!res.ok) {
-            setStatus({
-                kind: "error",
-                message: body.error ?? `Request failed (${res.status})`,
-            });
-            return;
-        }
-
         setRows((current) =>
             current.map((currentRow) =>
                 currentRow.id === row.id ? body.comedian : currentRow,
@@ -934,17 +895,20 @@ export default function AdminComedianManager({ comedians }: Props) {
         setStatus({ kind: "idle" });
         setPendingId(row.id);
 
-        let res: Response;
+        let body: { podcast: AttributedPodcast };
         try {
-            res = await fetch("/api/admin/comedians/podcasts", {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    comedianId: row.id,
-                    podcastId: podcast.id,
-                    feedUrl,
-                }),
-            });
+            body = await adminRequest<{ podcast: AttributedPodcast }>(
+                "/api/admin/comedians/podcasts",
+                {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        comedianId: row.id,
+                        podcastId: podcast.id,
+                        feedUrl,
+                    }),
+                },
+            );
         } catch (error) {
             setPendingId(null);
             setStatus({
@@ -956,16 +920,7 @@ export default function AdminComedianManager({ comedians }: Props) {
         }
 
         setPendingId(null);
-        const body = await res.json().catch(() => ({}));
-        if (!res.ok) {
-            setStatus({
-                kind: "error",
-                message: body.error ?? `Request failed (${res.status})`,
-            });
-            return;
-        }
-
-        replacePodcastForRow(row.id, body.podcast as AttributedPodcast);
+        replacePodcastForRow(row.id, body.podcast);
         setPodcastFeedEdits((current) => {
             const next = { ...current };
             delete next[podcastFeedEditKey(row, podcast)];
@@ -982,9 +937,23 @@ export default function AdminComedianManager({ comedians }: Props) {
         setStatus({ kind: "idle" });
         setPendingId(row.id);
 
-        let res: Response;
+        let body: {
+            podcast: {
+                id: number;
+                slug: string;
+                title: string;
+                feedUrl: string | null;
+            };
+        };
         try {
-            res = await fetch("/api/admin/podcast-ownership-reviews", {
+            body = await adminRequest<{
+                podcast: {
+                    id: number;
+                    slug: string;
+                    title: string;
+                    feedUrl: string | null;
+                };
+            }>("/api/admin/podcast-ownership-reviews", {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -1004,21 +973,7 @@ export default function AdminComedianManager({ comedians }: Props) {
         }
 
         setPendingId(null);
-        const body = await res.json().catch(() => ({}));
-        if (!res.ok) {
-            setStatus({
-                kind: "error",
-                message: body.error ?? `Request failed (${res.status})`,
-            });
-            return;
-        }
-
-        const podcast = body.podcast as {
-            id: number;
-            slug: string;
-            title: string;
-            feedUrl: string | null;
-        };
+        const podcast = body.podcast;
         replacePodcastForRow(row.id, {
             id: podcast.id,
             slug: podcast.slug,
@@ -1095,7 +1050,9 @@ export default function AdminComedianManager({ comedians }: Props) {
 
         setPendingId(row.id);
 
-        let res: Response;
+        let body: {
+            asset: NonNullable<AdminComedianListItem["activeImageAsset"]>;
+        };
         try {
             const hasFile =
                 (includeHeadshot && inputs.headshotFile) ||
@@ -1120,18 +1077,28 @@ export default function AdminComedianManager({ comedians }: Props) {
                         formData.set("heroImageUrl", inputs.hero.trim());
                     }
                 }
-                res = await fetch("/api/admin/comedians/images/publish", {
+                body = await adminRequest<{
+                    asset: NonNullable<
+                        AdminComedianListItem["activeImageAsset"]
+                    >;
+                }>("/api/admin/comedians/images/publish", {
                     method: "POST",
                     body: formData,
                 });
             } else {
-                res = await fetch("/api/admin/comedians/images/publish", {
+                body = await adminRequest<{
+                    asset: NonNullable<
+                        AdminComedianListItem["activeImageAsset"]
+                    >;
+                }>("/api/admin/comedians/images/publish", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         comedianId: row.id,
                         ...(includeHeadshot && inputs.headshot.trim()
-                            ? { headshotImageUrl: inputs.headshot.trim() }
+                            ? {
+                                  headshotImageUrl: inputs.headshot.trim(),
+                              }
                             : {}),
                         ...(includeHero && inputs.hero.trim()
                             ? { heroImageUrl: inputs.hero.trim() }
@@ -1152,17 +1119,6 @@ export default function AdminComedianManager({ comedians }: Props) {
         }
 
         setPendingId(null);
-        const body = await res.json().catch(() => ({}));
-        if (!res.ok) {
-            const message = body.error ?? `Request failed (${res.status})`;
-            setStatus({ kind: "error", message });
-            setImageStatusByRow((current) => ({
-                ...current,
-                [row.id]: { kind: "error", message },
-            }));
-            return;
-        }
-
         setRows((current) =>
             current.map((currentRow) =>
                 currentRow.id === row.id
@@ -1207,13 +1163,16 @@ export default function AdminComedianManager({ comedians }: Props) {
         setStatus({ kind: "idle" });
         setPendingId(row.id);
 
-        let res: Response;
+        let body: { hasImage: boolean };
         try {
-            res = await fetch("/api/admin/comedians/images", {
-                method: "DELETE",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ comedianId: row.id, slot }),
-            });
+            body = await adminRequest<{ hasImage: boolean }>(
+                "/api/admin/comedians/images",
+                {
+                    method: "DELETE",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ comedianId: row.id, slot }),
+                },
+            );
         } catch (error) {
             setPendingId(null);
             setStatus({
@@ -1225,15 +1184,6 @@ export default function AdminComedianManager({ comedians }: Props) {
         }
 
         setPendingId(null);
-        const body = await res.json().catch(() => ({}));
-        if (!res.ok) {
-            setStatus({
-                kind: "error",
-                message: body.error ?? `Request failed (${res.status})`,
-            });
-            return;
-        }
-
         setRows((current) =>
             current.map((currentRow) =>
                 currentRow.id === row.id

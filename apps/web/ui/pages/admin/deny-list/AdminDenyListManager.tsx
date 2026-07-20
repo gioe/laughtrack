@@ -4,6 +4,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Button } from "@/ui/components/ui/button";
+import { adminRequest } from "../shared/adminRequest";
 
 export type AdminDenyListEntry = {
     name: string;
@@ -41,9 +42,8 @@ export default function AdminDenyListManager({ entries }: Props) {
         setStatus({ kind: "idle" });
         setPendingName(name.trim());
 
-        let res: Response;
         try {
-            res = await fetch("/api/admin/deny-list", {
+            await adminRequest("/api/admin/deny-list", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ name, reason }),
@@ -58,15 +58,6 @@ export default function AdminDenyListManager({ entries }: Props) {
         }
 
         setPendingName(null);
-        if (!res.ok) {
-            const body = await res.json().catch(() => ({}));
-            setStatus({
-                kind: "error",
-                message: body.error ?? `Request failed (${res.status})`,
-            });
-            return;
-        }
-
         setName("");
         setReason("");
         setStatus({ kind: "ok", message: "Entry saved." });
@@ -78,9 +69,8 @@ export default function AdminDenyListManager({ entries }: Props) {
         setStatus({ kind: "idle" });
         setPendingName(entryName);
 
-        let res: Response;
         try {
-            res = await fetch("/api/admin/deny-list", {
+            await adminRequest("/api/admin/deny-list", {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ name: entryName, reason: removeReason }),
@@ -95,15 +85,6 @@ export default function AdminDenyListManager({ entries }: Props) {
         }
 
         setPendingName(null);
-        if (!res.ok) {
-            const body = await res.json().catch(() => ({}));
-            setStatus({
-                kind: "error",
-                message: body.error ?? `Request failed (${res.status})`,
-            });
-            return;
-        }
-
         setRemoveReasons((prev) => {
             const next = { ...prev };
             delete next[entryName];

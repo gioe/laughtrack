@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { YouTubeWebSubSettingsView } from "@/lib/admin/youtubeWebSub";
+import { adminRequest } from "../shared/adminRequest";
 
 type SettingsFlag = keyof YouTubeWebSubSettingsView;
 
@@ -20,21 +21,21 @@ export default function AdminFeatureFlagsManager({
         setSavingFlag(flag);
         setError(null);
         try {
-            const response = await fetch("/api/admin/youtube-websub", {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ [flag]: value }),
-            });
-            const body = await response.json().catch(() => ({}));
-            if (!response.ok) {
-                setError(
-                    typeof body.error === "string" ? body.error : "Save failed",
-                );
-                return;
-            }
+            await adminRequest(
+                "/api/admin/youtube-websub",
+                {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ [flag]: value }),
+                },
+                {
+                    httpErrorMessage: "Save failed",
+                    networkErrorMessage: "Save failed",
+                },
+            );
             setValues((prev) => ({ ...prev, [flag]: value }));
-        } catch {
-            setError("Save failed");
+        } catch (error) {
+            setError(error instanceof Error ? error.message : "Save failed");
         } finally {
             setSavingFlag(null);
         }

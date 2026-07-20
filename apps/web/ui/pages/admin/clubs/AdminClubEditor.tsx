@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/ui/components/ui/button";
+import { adminRequest } from "../shared/adminRequest";
 
 interface Props {
     clubId: number;
@@ -31,19 +32,20 @@ export default function AdminClubEditor({
             description: description.trim() === "" ? null : description,
         };
         try {
-            const res = await fetch(`/api/admin/clubs/${clubId}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-            });
-            if (!res.ok) {
-                const body = await res.json().catch(() => ({}));
-                setStatus({
-                    kind: "error",
-                    message: body.error ?? `Request failed (${res.status})`,
-                });
-                return;
-            }
+            await adminRequest(
+                `/api/admin/clubs/${clubId}`,
+                {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload),
+                },
+                {
+                    networkErrorMessage: (error) =>
+                        error instanceof Error
+                            ? error.message
+                            : "Unknown network error",
+                },
+            );
             setStatus({ kind: "ok", message: "Saved." });
             startTransition(() => router.refresh());
         } catch (err) {

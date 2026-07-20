@@ -23,6 +23,7 @@ import {
     clampAdminPage,
 } from "@/ui/pages/admin/shared/AdminControls";
 import type { AdminPodcastHostshipReviewCandidate } from "@/lib/admin/podcastHostshipReviews";
+import { adminRequest } from "../shared/adminRequest";
 
 export type { AdminPodcastHostshipReviewCandidate };
 
@@ -521,9 +522,8 @@ export default function AdminPodcastHostshipReviewManager({
         setStatus({ kind: "idle" });
         setPendingKey(group.key);
 
-        let res: Response;
         try {
-            res = await fetch("/api/admin/podcast-hostship-reviews", {
+            await adminRequest("/api/admin/podcast-hostship-reviews", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -545,15 +545,6 @@ export default function AdminPodcastHostshipReviewManager({
         }
 
         setPendingKey(null);
-        if (!res.ok) {
-            const body = await res.json().catch(() => ({}));
-            setStatus({
-                kind: "error",
-                message: body.error ?? `Request failed (${res.status})`,
-            });
-            return;
-        }
-
         setStatus({
             kind: "ok",
             message: effectiveDenyListed
@@ -586,9 +577,15 @@ export default function AdminPodcastHostshipReviewManager({
         setStatus({ kind: "idle" });
         setIngestingKey(comedianGroup.key);
 
-        let res: Response;
+        let body: {
+            podcast?: { title?: string };
+            episodeCount?: number;
+        };
         try {
-            res = await fetch("/api/admin/podcast-hostship-reviews", {
+            body = await adminRequest<{
+                podcast?: { title?: string };
+                episodeCount?: number;
+            }>("/api/admin/podcast-hostship-reviews", {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -608,19 +605,6 @@ export default function AdminPodcastHostshipReviewManager({
         }
 
         setIngestingKey(null);
-        if (!res.ok) {
-            const body = await res.json().catch(() => ({}));
-            setStatus({
-                kind: "error",
-                message: body.error ?? `Request failed (${res.status})`,
-            });
-            return;
-        }
-
-        const body = (await res.json()) as {
-            podcast?: { title?: string };
-            episodeCount?: number;
-        };
         setManualFeedUrls((prev) => ({ ...prev, [comedianGroup.key]: "" }));
         setStatus({
             kind: "ok",

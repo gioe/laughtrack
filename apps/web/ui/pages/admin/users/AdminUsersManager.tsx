@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { adminRequest } from "../shared/adminRequest";
 import type { AdminUserListItem } from "@/lib/admin/users";
 import {
     AdminPagination,
@@ -278,28 +279,24 @@ function UserRow({ user }: { user: AdminUserListItem }) {
         setSavingField(field);
         setFieldError(null);
         try {
-            const response = await fetch(
+            await adminRequest(
                 `/api/admin/users/${encodeURIComponent(user.id)}`,
                 {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ [field]: value }),
                 },
+                {
+                    httpErrorMessage: "Save failed",
+                    networkErrorMessage: "Save failed",
+                },
             );
-            const body = await response.json().catch(() => ({}));
-            if (!response.ok) {
-                setFieldError({
-                    field,
-                    message:
-                        typeof body.error === "string"
-                            ? body.error
-                            : "Save failed",
-                });
-                return;
-            }
             setOverrides((prev) => ({ ...prev, [field]: value }));
-        } catch {
-            setFieldError({ field, message: "Save failed" });
+        } catch (error) {
+            setFieldError({
+                field,
+                message: error instanceof Error ? error.message : "Save failed",
+            });
         } finally {
             setSavingField(null);
         }

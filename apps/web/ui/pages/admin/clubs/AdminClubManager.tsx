@@ -14,6 +14,7 @@ import {
     AdminToolbar,
     clampAdminPage,
 } from "@/ui/pages/admin/shared/AdminControls";
+import { adminRequest } from "../shared/adminRequest";
 import {
     ChevronDown,
     ChevronRight,
@@ -510,18 +511,21 @@ export default function AdminClubManager({ groups }: Props) {
         setStatus({ kind: "idle" });
         setPendingId(club.id);
 
-        let res: Response;
+        let body: { club: AdminClubListItem };
         try {
-            res = await fetch(`/api/admin/clubs/${club.id}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    status: draft.status,
-                    visible: draft.visible,
-                    clubType: draft.clubType,
-                    closedAt: draft.closedAt || null,
-                }),
-            });
+            body = await adminRequest<{ club: AdminClubListItem }>(
+                `/api/admin/clubs/${club.id}`,
+                {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        status: draft.status,
+                        visible: draft.visible,
+                        clubType: draft.clubType,
+                        closedAt: draft.closedAt || null,
+                    }),
+                },
+            );
         } catch (error) {
             setPendingId(null);
             setStatus({
@@ -533,16 +537,6 @@ export default function AdminClubManager({ groups }: Props) {
         }
 
         setPendingId(null);
-        if (!res.ok) {
-            const body = await res.json().catch(() => ({}));
-            setStatus({
-                kind: "error",
-                message: body.error ?? `Request failed (${res.status})`,
-            });
-            return;
-        }
-
-        const body = (await res.json()) as { club: AdminClubListItem };
         replaceClub(body.club);
         setDrafts((current) => {
             const next = { ...current };
@@ -559,13 +553,16 @@ export default function AdminClubManager({ groups }: Props) {
         setStatus({ kind: "idle" });
         setPendingId(club.id);
 
-        let res: Response;
+        let body: { club: AdminClubListItem };
         try {
-            res = await fetch(`/api/admin/clubs/${club.id}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name }),
-            });
+            body = await adminRequest<{ club: AdminClubListItem }>(
+                `/api/admin/clubs/${club.id}`,
+                {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name }),
+                },
+            );
         } catch (error) {
             setPendingId(null);
             setStatus({
@@ -577,16 +574,6 @@ export default function AdminClubManager({ groups }: Props) {
         }
 
         setPendingId(null);
-        if (!res.ok) {
-            const body = await res.json().catch(() => ({}));
-            setStatus({
-                kind: "error",
-                message: body.error ?? `Request failed (${res.status})`,
-            });
-            return;
-        }
-
-        const body = (await res.json()) as { club: AdminClubListItem };
         replaceClub(body.club);
         setNameEdits((current) => {
             const next = { ...current };
@@ -631,18 +618,22 @@ export default function AdminClubManager({ groups }: Props) {
         setStatus({ kind: "idle" });
         setPendingId(club.id);
 
-        let res: Response;
+        let body: { asset: AdminClubListItem["activeImageAsset"] };
         try {
             if (input.iconFile) {
                 const formData = new FormData();
                 formData.set("clubId", String(club.id));
                 formData.set("iconFile", input.iconFile);
-                res = await fetch("/api/admin/clubs/images/publish", {
+                body = await adminRequest<{
+                    asset: AdminClubListItem["activeImageAsset"];
+                }>("/api/admin/clubs/images/publish", {
                     method: "POST",
                     body: formData,
                 });
             } else {
-                res = await fetch("/api/admin/clubs/images/publish", {
+                body = await adminRequest<{
+                    asset: AdminClubListItem["activeImageAsset"];
+                }>("/api/admin/clubs/images/publish", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -662,16 +653,7 @@ export default function AdminClubManager({ groups }: Props) {
         }
 
         setPendingId(null);
-        const body = await res.json().catch(() => ({}));
-        if (!res.ok) {
-            setStatus({
-                kind: "error",
-                message: body.error ?? `Request failed (${res.status})`,
-            });
-            return;
-        }
-
-        const asset = body.asset as AdminClubListItem["activeImageAsset"];
+        const asset = body.asset;
         const updated: AdminClubListItem = {
             ...club,
             hasImage: true,
@@ -698,9 +680,11 @@ export default function AdminClubManager({ groups }: Props) {
         setStatus({ kind: "idle" });
         setPendingId(club.id);
 
-        let res: Response;
+        let body: { asset: AdminClubListItem["activeImageAsset"] };
         try {
-            res = await fetch("/api/admin/clubs/images", {
+            body = await adminRequest<{
+                asset: AdminClubListItem["activeImageAsset"];
+            }>("/api/admin/clubs/images", {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ clubId: club.id }),
@@ -716,16 +700,7 @@ export default function AdminClubManager({ groups }: Props) {
         }
 
         setPendingId(null);
-        const body = await res.json().catch(() => ({}));
-        if (!res.ok) {
-            setStatus({
-                kind: "error",
-                message: body.error ?? `Request failed (${res.status})`,
-            });
-            return;
-        }
-
-        const asset = body.asset as AdminClubListItem["activeImageAsset"];
+        const asset = body.asset;
         const updated: AdminClubListItem = {
             ...club,
             hasImage: false,
