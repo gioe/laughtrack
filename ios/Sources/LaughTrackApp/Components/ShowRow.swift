@@ -267,11 +267,18 @@ struct ShowRow: View {
                 artworkSlot
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(headliner.name)
+                    Text(Self.primaryListTitle(for: show, headliner: headliner))
                         .font(laughTrack.typography.bodyEmphasis)
                         .foregroundStyle(ticketInk)
                         .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
+
+                    if let headlinerContext = Self.headlinerContext(for: show, headliner: headliner) {
+                        Text(headlinerContext)
+                            .font(laughTrack.typography.metadata)
+                            .foregroundStyle(ticketInkMuted)
+                            .lineLimit(1)
+                    }
 
                     if let venueLine {
                         Text(venueLine)
@@ -521,6 +528,25 @@ struct ShowRow: View {
         }
 
         return "Comedy show"
+    }
+
+    static func primaryListTitle(
+        for show: Components.Schemas.Show,
+        headliner: Components.Schemas.ComedianLineup
+    ) -> String {
+        let eventTitle = listTitle(for: show)
+        return eventTitle == "Comedy show" ? headliner.name : eventTitle
+    }
+
+    static func headlinerContext(
+        for show: Components.Schemas.Show,
+        headliner: Components.Schemas.ComedianLineup
+    ) -> String? {
+        let primaryTitle = primaryListTitle(for: show, headliner: headliner)
+        guard primaryTitle.localizedCaseInsensitiveCompare(headliner.name) != .orderedSame else {
+            return nil
+        }
+        return headliner.name
     }
 
     static func venueLine(for show: Components.Schemas.Show) -> String? {

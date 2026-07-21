@@ -101,6 +101,68 @@ struct ShowRowTests {
         #expect(ShowRow.listTitle(for: show) == "Golden Gate Comedy Night")
     }
 
+    @Test("artwork-backed rows preserve distinct event titles for the same headliner")
+    func artworkBackedRowsPreserveDistinctEventTitlesForSameHeadliner() {
+        let sharedHeadliner = lineup(
+            name: "Shared Headliner",
+            imageURL: "https://example.com/shared-headliner.jpg",
+            showCount: 42
+        )
+        let fridayShow = makeShow(
+            name: "Friday Night Showcase",
+            lineup: [sharedHeadliner]
+        )
+        let saturdayShow = makeShow(
+            name: "Saturday Night Showcase",
+            lineup: [sharedHeadliner]
+        )
+
+        #expect(ShowRow.primaryListTitle(for: fridayShow, headliner: sharedHeadliner) == "Friday Night Showcase")
+        #expect(ShowRow.primaryListTitle(for: saturdayShow, headliner: sharedHeadliner) == "Saturday Night Showcase")
+        #expect(ShowRow.headlinerContext(for: fridayShow, headliner: sharedHeadliner) == "Shared Headliner")
+        #expect(ShowRow.headlinerContext(for: saturdayShow, headliner: sharedHeadliner) == "Shared Headliner")
+    }
+
+    @Test("artwork-backed rows keep the performer primary for unnamed shows")
+    func artworkBackedRowsKeepPerformerPrimaryForUnnamedShows() {
+        let headliner = lineup(
+            name: "Featured Comic",
+            imageURL: "https://example.com/featured-comic.jpg",
+            showCount: 20
+        )
+        let show = makeShow(name: "", clubName: "", lineup: [headliner])
+
+        #expect(ShowRow.primaryListTitle(for: show, headliner: headliner) == "Featured Comic")
+        #expect(ShowRow.headlinerContext(for: show, headliner: headliner) == nil)
+    }
+
+    @Test("artwork-backed rows keep the performer primary for venue-fallback shows")
+    func artworkBackedRowsKeepPerformerPrimaryForVenueFallbackShows() {
+        let headliner = lineup(
+            name: "Featured Comic",
+            imageURL: "https://example.com/featured-comic.jpg",
+            showCount: 20
+        )
+        let show = makeShow(
+            name: "",
+            clubName: "The Broadway Comedy Club",
+            lineup: [headliner]
+        )
+
+        #expect(ShowRow.listTitle(for: show) == "Comedy show")
+        #expect(ShowRow.primaryListTitle(for: show, headliner: headliner) == "Featured Comic")
+        #expect(ShowRow.headlinerContext(for: show, headliner: headliner) == nil)
+        #expect(ShowRow.venueLine(for: show) == "The Broadway Comedy Club")
+    }
+
+    @Test("headliner block uses the event-first title presentation")
+    func headlinerBlockUsesEventFirstTitlePresentation() throws {
+        let source = try String(contentsOf: showRowSourceURL(), encoding: .utf8)
+
+        #expect(source.contains("Text(Self.primaryListTitle(for: show, headliner: headliner))"))
+        #expect(source.contains("Self.headlinerContext(for: show, headliner: headliner)"))
+    }
+
     @Test("show row venue line includes city and state when available")
     func showRowVenueLineIncludesCityAndState() {
         let show = makeShow(
