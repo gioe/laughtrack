@@ -83,6 +83,64 @@ def ios_screenshot_profile_config
   }
 end
 
+
+def ios_screenshot_native_target
+  xcode_output, xcode_error, xcode_status = Open3.capture3("xcodebuild", "-version")
+  UI.user_error!("Unable to identify Xcode: #{xcode_error.strip}") unless xcode_status.success?
+  xcode_lines = xcode_output.lines.map(&:strip).reject(&:empty?)
+  xcode_version = xcode_lines.first&.delete_prefix("Xcode ")
+  xcode_build = xcode_lines.find { |line| line.start_with?("Build version ") }&.delete_prefix("Build version ")
+  UI.user_error!("Unexpected xcodebuild -version output: #{xcode_output.strip}") if xcode_version.to_s.empty? || xcode_build.to_s.empty?
+
+  runtimes_output, runtimes_error, runtimes_status = Open3.capture3(
+    "xcrun", "simctl", "list", "runtimes", "available", "-j",
+  )
+  devices_output, devices_error, devices_status = Open3.capture3(
+    "xcrun", "simctl", "list", "devices", "available", "-j",
+  )
+  unless runtimes_status.success? && devices_status.success?
+    detail = [runtimes_error, devices_error].map(&:strip).reject(&:empty?).join("; ")
+    UI.user_error!("Unable to identify the installed iOS simulator runtime: #{detail}")
+  end
+
+  runtimes = JSON.parse(runtimes_output).fetch("runtimes")
+  devices_by_runtime = JSON.parse(devices_output).fetch("devices")
+  device_names = IOS_SCREENSHOT_PROFILES.map { |profile| profile.fetch(:device_name) }
+  candidates = runtimes.each_with_object([]) do |runtime, matches|
+    identifier = runtime["identifier"]
+    next unless identifier&.include?("SimRuntime.iOS") && runtime.fetch("isAvailable", true)
+
+    devices = devices_by_runtime.fetch(identifier, []).select { |device| device.fetch("isAvailable", true) }
+    next unless device_names.all? { |name| devices.any? { |device| device["name"] == name } }
+
+    matches << runtime.merge("devices" => devices)
+  end
+  runtime = candidates.max_by do |candidate|
+    components = candidate.fetch("version").split(".").map(&:to_i)
+    components.fill(0, components.length...3)
+    components.first(3) + [candidate.fetch("buildversion", "")]
+  end
+  UI.user_error!("No common available iOS simulator runtime contains #{device_names.join(' and ')}") if runtime.nil?
+
+  {
+    environment: {
+      xcode: { version: xcode_version, build: xcode_build },
+      simulator_runtime: {
+        identifier: runtime.fetch("identifier"),
+        version: runtime.fetch("version"),
+        build: runtime.fetch("buildversion"),
+      },
+    },
+    version: runtime.fetch("version"),
+    devices: device_names.to_h do |name|
+      [name, runtime.fetch("devices").find { |device| device["name"] == name }.fetch("udid")]
+    end,
+  }
+rescue JSON::ParserError, KeyError => e
+  UI.user_error!("Invalid simulator inventory while identifying the iOS screenshot runtime: #{e.message}")
+end
+
+
 def run_ios_screenshot_cache(*arguments)
   output, error, status = Open3.capture3(
     "python3", SCREENSHOT_CACHE_PATH,
@@ -96,25 +154,27 @@ rescue JSON::ParserError => e
   UI.user_error!("Screenshot profile cache returned invalid JSON: #{e.message}")
 end
 
-def plan_ios_screenshot_cache(capture_root, force_fresh:)
+def plan_ios_screenshot_cache(capture_root, native_environment, force_fresh:)
   arguments = [
     "plan", "ios",
     "--capture-root", capture_root,
     "--cache-root", SCREENSHOT_PROFILE_CACHE_PATH,
     "--repo-root", REPO_ROOT,
     "--profile-config-json", JSON.generate(ios_screenshot_profile_config),
+    "--native-environment-json", JSON.generate(native_environment),
   ]
   arguments << "--force-fresh" if force_fresh
   run_ios_screenshot_cache(*arguments)
 end
 
-def store_ios_screenshot_profile(capture_root, profile_id, expected_key)
+def store_ios_screenshot_profile(capture_root, profile_id, expected_key, native_environment)
   run_ios_screenshot_cache(
     "store-profile", "ios", profile_id,
     "--capture-root", capture_root,
     "--cache-root", SCREENSHOT_PROFILE_CACHE_PATH,
     "--repo-root", REPO_ROOT,
     "--profile-config-json", JSON.generate(ios_screenshot_profile_config),
+    "--native-environment-json", JSON.generate(native_environment),
     "--expected-key", expected_key,
   )
 end
@@ -449,21 +509,13 @@ platform :ios do
   # feed cache cannot leak into a new store capture. Uninstalling only LaughTrack
   # preserves the booted simulator's OS state and avoids the several-minute data
   # migration triggered by a full simulator erase.
-  def boot_screenshot_simulator
-    require "json"
-
-    devices = JSON.parse(sh("xcrun simctl list devices available -j", log: false))
-                  .fetch("devices")
-                  .values
-                  .flatten
-    device = devices.find { |candidate| candidate["name"] == "iPhone 16 Pro Max" }
-    UI.user_error!("No available 'iPhone 16 Pro Max' simulator found. Install the configured Xcode runtime before running screenshots.") if device.nil?
-
-    UI.message("Booting iOS screenshot simulator #{device['udid']}…")
-    sh("xcrun simctl bootstatus #{device['udid']} -b")
+  def boot_screenshot_simulator(native_target, device_name)
+    udid = native_target.fetch(:devices).fetch(device_name)
+    UI.message("Booting #{device_name} on iOS #{native_target.fetch(:version)}…")
+    sh("xcrun simctl bootstatus #{udid} -b")
     UI.message("Clearing persisted LaughTrack screenshot state…")
     system(
-      "xcrun", "simctl", "uninstall", device["udid"], "app.laughtrack.ios",
+      "xcrun", "simctl", "uninstall", udid, "app.laughtrack.ios",
       out: File::NULL,
       err: File::NULL
     )
@@ -476,7 +528,13 @@ platform :ios do
       run_root = options[:run_root] ? File.expand_path(options[:run_root], REPO_ROOT) : File.join(tmpdir, "run")
       force_fresh = options[:force_fresh].to_s == "true"
       comparison_only = options[:comparison_only].to_s == "true"
-      cache_plan = plan_ios_screenshot_cache(capture_root, force_fresh: force_fresh)
+      native_target = ios_screenshot_native_target
+      native_environment = native_target.fetch(:environment)
+      cache_plan = plan_ios_screenshot_cache(
+        capture_root,
+        native_environment,
+        force_fresh: force_fresh,
+      )
       pending_ids = cache_plan.fetch("pending_profiles")
       pending_profiles = IOS_SCREENSHOT_PROFILES.select { |profile| pending_ids.include?(profile.fetch(:id)) }
       cache_plan.fetch("reused_profiles").each do |profile_id|
@@ -487,7 +545,7 @@ platform :ios do
       capture_duration = 0.0
       unless pending_profiles.empty?
         with_screenshot_fixture_server do
-          boot_screenshot_simulator
+          boot_screenshot_simulator(native_target, pending_profiles.first.fetch(:device_name))
           patch_snapshot_destination_for_18_3_1
           UI.message("Using persistent screenshot DerivedData: #{SCREENSHOT_DERIVED_DATA_PATH}")
           build_started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
@@ -514,6 +572,7 @@ platform :ios do
             derived_data_path: SCREENSHOT_DERIVED_DATA_PATH,
             test_without_building: true,
             devices: pending_profiles.map { |profile| profile.fetch(:device_name) },
+            ios_version: native_target.fetch(:version),
             clear_previous_screenshots: false,
           )
           capture_duration = Process.clock_gettime(Process::CLOCK_MONOTONIC) - capture_started_at
@@ -523,6 +582,7 @@ platform :ios do
               capture_root,
               profile_id,
               cache_plan.fetch("profile_fingerprints").fetch(profile_id),
+              native_environment,
             )
           end
         end
