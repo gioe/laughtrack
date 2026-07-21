@@ -32,7 +32,7 @@ SCREENSHOT_FIXTURE_PORT = 8765
 REPO_ROOT = File.expand_path("../..", __dir__)
 SCREENSHOT_PROFILE_CACHE_PATH = ENV.fetch(
   "LAUGHTRACK_SCREENSHOT_CACHE_PATH",
-  File.join(REPO_ROOT, "screenshot-comparisons", ".profile-cache"),
+  File.join(REPO_ROOT, "apps", "screenshot-comparisons", ".profile-cache"),
 )
 ANDROID_SCREENSHOT_PROFILE_SETTINGS = {
   "android_phone" => {
@@ -154,13 +154,14 @@ def plan_android_screenshot_cache(capture_root, force_fresh:)
   run_android_screenshot_cache(*arguments)
 end
 
-def store_android_screenshot_profile(capture_root, profile_id)
+def store_android_screenshot_profile(capture_root, profile_id, expected_key)
   run_android_screenshot_cache(
     "store-profile", "android", profile_id,
     "--capture-root", capture_root,
     "--cache-root", SCREENSHOT_PROFILE_CACHE_PATH,
     "--repo-root", REPO_ROOT,
     "--profile-config-json", JSON.generate(android_screenshot_profile_config),
+    "--expected-key", expected_key,
   )
 end
 
@@ -551,7 +552,12 @@ platform :android do
             FileUtils.rm_rf(screenshot_profile_directory(capture_root, profile))
             capture_screenshot_profile(adb, serial, profile, capture_root)
             validate_screenshot_profile!(capture_root, profile)
-            store_android_screenshot_profile(capture_root, profile.fetch(:id))
+            profile_id = profile.fetch(:id)
+            store_android_screenshot_profile(
+              capture_root,
+              profile_id,
+              cache_plan.fetch("profile_fingerprints").fetch(profile_id),
+            )
           end
         ensure
           ENV["ANDROID_SERIAL"] = prior_android_serial

@@ -16,7 +16,7 @@ from scripts.screenshots.cache import (
     store_profile,
 )
 from scripts.screenshots.export import PROFILE_DIMENSIONS, PROFILE_LAYOUTS
-from scripts.screenshots.manifest import load_catalog
+from scripts.screenshots.manifest import ContractError, load_catalog
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 CATALOG_PATH = REPO_ROOT / "screenshots" / "catalog.json"
@@ -76,6 +76,16 @@ def _config(profile_id: str, device: str = "default") -> dict[str, dict[str, str
     }
 
 
+def _expected_key(repo: Path, platform: str, profile_id: str) -> str:
+    key, _ = profile_cache_key(
+        repo_root=repo,
+        platform=platform,
+        profile_id=profile_id,
+        profile_config=_config(profile_id)[profile_id],
+    )
+    return key
+
+
 def test_unchanged_profile_is_reused_and_materialized_with_capture_provenance(tmp_path: Path) -> None:
     repo = _make_repo(tmp_path)
     capture = tmp_path / "capture"
@@ -89,6 +99,7 @@ def test_unchanged_profile_is_reused_and_materialized_with_capture_provenance(tm
         repo_root=repo,
         catalog_path=CATALOG_PATH,
         profile_config=_config("ios_phone")["ios_phone"],
+        expected_key=_expected_key(repo, "ios", "ios_phone"),
     )
     shutil.rmtree(capture)
 
@@ -129,6 +140,11 @@ def test_relevant_modified_untracked_deleted_and_profile_config_inputs_change_ke
     base, _ = profile_cache_key(
         repo_root=repo, platform="ios", profile_id="ios_phone", profile_config={"device": "A"}
     )
+    (repo / "ios" / "App.swift").chmod(0o755)
+    executable, _ = profile_cache_key(
+        repo_root=repo, platform="ios", profile_id="ios_phone", profile_config={"device": "A"}
+    )
+    (repo / "ios" / "App.swift").chmod(0o644)
     (repo / "ios" / "App.swift").write_text("ios two\n", encoding="utf-8")
     modified, _ = profile_cache_key(
         repo_root=repo, platform="ios", profile_id="ios_phone", profile_config={"device": "A"}
@@ -145,9 +161,32 @@ def test_relevant_modified_untracked_deleted_and_profile_config_inputs_change_ke
         repo_root=repo, platform="ios", profile_id="ios_phone", profile_config={"device": "B"}
     )
 
-    assert len({base, modified, untracked, deleted, configured}) == 5
+    assert len({base, executable, modified, untracked, deleted, configured}) == 6
     assert {item["path"]: item["state"] for item in inputs}["ios/App.swift"] == "deleted"
     assert {item["path"] for item in inputs} >= {"ios/NewView.swift", "screenshots/catalog.json"}
+
+
+def test_store_rejects_inputs_that_changed_after_planning(tmp_path: Path) -> None:
+    repo = _make_repo(tmp_path)
+    capture = tmp_path / "capture"
+    cache = tmp_path / "cache"
+    planned_key = _expected_key(repo, "ios", "ios_phone")
+    (repo / "ios" / "App.swift").write_text("changed during capture\n", encoding="utf-8")
+    _make_capture(capture, "ios_phone")
+
+    with pytest.raises(ContractError, match="changed while capturing ios_phone"):
+        store_profile(
+            platform="ios",
+            profile_id="ios_phone",
+            capture_root=capture,
+            cache_root=cache,
+            repo_root=repo,
+            catalog_path=CATALOG_PATH,
+            profile_config=_config("ios_phone")["ios_phone"],
+            expected_key=planned_key,
+        )
+
+    assert not cache.exists()
 
 
 def test_docs_storefront_outputs_and_other_platform_do_not_invalidate_profile(tmp_path: Path) -> None:
@@ -190,6 +229,7 @@ def test_corrupt_cached_image_is_rejected_instead_of_materialized(tmp_path: Path
         repo_root=repo,
         catalog_path=CATALOG_PATH,
         profile_config=_config("android_phone")["android_phone"],
+        expected_key=_expected_key(repo, "android", "android_phone"),
     )
     entry = Path(stored["cache_entry"])
     next((entry / "capture").rglob("*.png")).write_bytes(b"corrupt")
@@ -217,6 +257,7 @@ def test_corrupt_cached_image_is_rejected_instead_of_materialized(tmp_path: Path
         repo_root=repo,
         catalog_path=CATALOG_PATH,
         profile_config=_config("android_phone")["android_phone"],
+        expected_key=_expected_key(repo, "android", "android_phone"),
     )
     assert repaired["cache_entry"] == str(entry)
 
@@ -234,6 +275,7 @@ def test_force_fresh_bypasses_valid_cache_without_materializing(tmp_path: Path) 
         repo_root=repo,
         catalog_path=CATALOG_PATH,
         profile_config=_config("ios_phone")["ios_phone"],
+        expected_key=_expected_key(repo, "ios", "ios_phone"),
     )
     shutil.rmtree(capture)
 
@@ -274,6 +316,7 @@ def test_invalid_cached_provenance_is_rejected(tmp_path: Path, field: str, value
         repo_root=repo,
         catalog_path=CATALOG_PATH,
         profile_config=_config("ios_phone")["ios_phone"],
+        expected_key=_expected_key(repo, "ios", "ios_phone"),
     )
     metadata_path = Path(stored["cache_entry"]) / "metadata.json"
     metadata = json.loads(metadata_path.read_text(encoding="utf-8"))

@@ -106,9 +106,27 @@ def render_inputs(repo_root: Path, platform: str) -> list[dict[str, Any]]:
     inputs: list[dict[str, Any]] = []
     for relative in sorted(path for path in candidates if _is_render_input(path, platform)):
         path = repo_root / relative
-        if path.is_file():
+        if path.is_symlink():
+            data = os.fsencode(os.readlink(path))
+            inputs.append(
+                {
+                    "path": relative,
+                    "state": "symlink",
+                    "mode": "120000",
+                    "sha256": hashlib.sha256(data).hexdigest(),
+                }
+            )
+        elif path.is_file():
             data = path.read_bytes()
-            inputs.append({"path": relative, "state": "present", "sha256": hashlib.sha256(data).hexdigest()})
+            executable = bool(path.stat().st_mode & 0o111)
+            inputs.append(
+                {
+                    "path": relative,
+                    "state": "present",
+                    "mode": "100755" if executable else "100644",
+                    "sha256": hashlib.sha256(data).hexdigest(),
+                }
+            )
         else:
             inputs.append({"path": relative, "state": "deleted"})
     return inputs
@@ -370,6 +388,7 @@ def store_profile(
     repo_root: Path,
     catalog_path: Path,
     profile_config: Mapping[str, Any],
+    expected_key: str,
 ) -> dict[str, Any]:
     layout = PROFILE_LAYOUTS.get(profile_id)
     if layout is None or layout["platform"] != platform:
@@ -378,6 +397,13 @@ def store_profile(
     key, inputs = profile_cache_key(
         repo_root=repo_root, platform=platform, profile_id=profile_id, profile_config=profile_config
     )
+    if key != expected_key:
+        raise ContractError(
+            [
+                f"render inputs changed while capturing {profile_id}; "
+                "discard this capture and retry"
+            ]
+        )
     entry = _cache_entry(cache_root, platform, profile_id, key)
     entry.parent.mkdir(parents=True, exist_ok=True)
     staged = Path(tempfile.mkdtemp(prefix=f".{key}-", dir=entry.parent))
@@ -397,6 +423,19 @@ def store_profile(
                     "sha256": hashlib.sha256(destination.read_bytes()).hexdigest(),
                     "size": destination.stat().st_size,
                 }
+            )
+        final_key, final_inputs = profile_cache_key(
+            repo_root=repo_root,
+            platform=platform,
+            profile_id=profile_id,
+            profile_config=profile_config,
+        )
+        if final_key != expected_key or final_inputs != inputs:
+            raise ContractError(
+                [
+                    f"render inputs changed while storing {profile_id}; "
+                    "discard this capture and retry"
+                ]
             )
         metadata = {
             "schema_version": SCHEMA_VERSION,
@@ -465,6 +504,7 @@ def _build_parser() -> argparse.ArgumentParser:
             command_parser.add_argument("--force-fresh", action="store_true")
         else:
             command_parser.add_argument("profile_id", choices=tuple(PROFILE_LAYOUTS))
+            command_parser.add_argument("--expected-key", required=True)
     return parser
 
 
@@ -493,6 +533,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 repo_root=args.repo_root,
                 catalog_path=args.catalog,
                 profile_config=configs[args.profile_id],
+                expected_key=args.expected_key,
             )
         print(json.dumps(result, sort_keys=True))
     except (ContractError, OSError, subprocess.CalledProcessError) as exc:
