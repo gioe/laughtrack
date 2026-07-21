@@ -30,6 +30,7 @@ SCREENSHOT_CACHE_PATH = File.expand_path("../../scripts/screenshots/cache.py", _
 SCREENSHOT_FIXTURE_SERVER_PATH = File.expand_path("../../scripts/screenshots/fixture_server.py", __dir__)
 SCREENSHOT_FIXTURE_PORT = 8765
 REPO_ROOT = File.expand_path("../..", __dir__)
+ANDROID_SCREENSHOT_BUILD_TOOLS_VERSION = "35.0.0"
 SCREENSHOT_PROFILE_CACHE_PATH = ENV.fetch(
   "LAUGHTRACK_SCREENSHOT_CACHE_PATH",
   File.join(REPO_ROOT, "apps", "screenshot-comparisons", ".profile-cache"),
@@ -97,6 +98,97 @@ def android_screenshot_profile_config
   }
 end
 
+
+def read_android_properties(path)
+  File.readlines(path, chomp: true).each_with_object({}) do |line, properties|
+    stripped = line.strip
+    next if stripped.empty? || stripped.start_with?("#") || !stripped.include?("=")
+
+    key, value = stripped.split("=", 2)
+    properties[key.strip] = value.strip
+  end
+end
+
+
+def android_sdk_root
+  configured = ENV["ANDROID_HOME"] || ENV["ANDROID_SDK_ROOT"]
+  return File.expand_path(configured) unless configured.to_s.empty?
+
+  local_properties = File.expand_path("../local.properties", __dir__)
+  if File.file?(local_properties)
+    sdk_dir = read_android_properties(local_properties)["sdk.dir"]
+    return File.expand_path(sdk_dir.gsub('\\\\', '\\')) unless sdk_dir.to_s.empty?
+  end
+  File.expand_path("~/Library/Android/sdk")
+end
+
+
+def android_screenshot_native_target
+  sdk_root = android_sdk_root
+  adb = File.join(sdk_root, "platform-tools", "adb")
+  adb = "adb" unless File.executable?(adb)
+  emulator = File.join(sdk_root, "emulator", "emulator")
+  emulator = "emulator" unless File.executable?(emulator)
+
+  avds_output, avds_error, avds_status = Open3.capture3(emulator, "-list-avds")
+  UI.user_error!("Unable to list Android AVDs: #{avds_error.strip}") unless avds_status.success?
+  avds = avds_output.lines.map(&:strip).reject(&:empty?)
+  avd = avds.find { |name| name.start_with?("LaughTrack") } || avds.first
+  UI.user_error!("No local Android AVD found. Create an AVD before running screenshots.") if avd.nil?
+
+  avd_root = ENV["ANDROID_AVD_HOME"] || File.join(ENV.fetch("ANDROID_USER_HOME", File.expand_path("~/.android")), "avd")
+  avd_config_path = File.join(File.expand_path(avd_root), "#{avd}.avd", "config.ini")
+  UI.user_error!("Missing AVD configuration for #{avd}: #{avd_config_path}") unless File.file?(avd_config_path)
+  image_relative_path = read_android_properties(avd_config_path).fetch("image.sysdir.1").sub(%r{/+$}, "")
+  image_properties_path = File.join(sdk_root, image_relative_path, "source.properties")
+  UI.user_error!("Missing system-image metadata for #{avd}: #{image_properties_path}") unless File.file?(image_properties_path)
+  image_properties = read_android_properties(image_properties_path)
+
+  build_tools_path = File.join(sdk_root, "build-tools", ANDROID_SCREENSHOT_BUILD_TOOLS_VERSION, "source.properties")
+  UI.user_error!("Missing Android Build Tools #{ANDROID_SCREENSHOT_BUILD_TOOLS_VERSION}") unless File.file?(build_tools_path)
+  build_tools_properties = read_android_properties(build_tools_path)
+
+  java = ENV["JAVA_HOME"].to_s.empty? ? "java" : File.join(ENV.fetch("JAVA_HOME"), "bin", "java")
+  _java_output, java_error, java_status = Open3.capture3(java, "-XshowSettings:properties", "-version")
+  UI.user_error!("Unable to identify the screenshot JDK: #{java_error.strip}") unless java_status.success?
+  java_properties = java_error.lines.each_with_object({}) do |line, properties|
+    match = line.match(/^\s*(java\.version|java\.vendor|java\.vm\.name|os\.arch)\s*=\s*(.+)$/)
+    properties[match[1]] = match[2].strip if match
+  end
+  required_java_properties = %w[java.version java.vendor java.vm.name os.arch]
+  missing_java_properties = required_java_properties - java_properties.keys
+  UI.user_error!("JDK identity is missing #{missing_java_properties.join(', ')}") unless missing_java_properties.empty?
+
+  image_package_path = image_relative_path.tr("/", ";")
+  {
+    adb: adb,
+    emulator: emulator,
+    avd: avd,
+    environment: {
+      jdk: {
+        version: java_properties.fetch("java.version"),
+        vendor: java_properties.fetch("java.vendor"),
+        vm_name: java_properties.fetch("java.vm.name"),
+        arch: java_properties.fetch("os.arch"),
+      },
+      build_tools: {
+        path: "build-tools;#{ANDROID_SCREENSHOT_BUILD_TOOLS_VERSION}",
+        revision: build_tools_properties.fetch("Pkg.Revision"),
+      },
+      system_image: {
+        path: image_package_path,
+        revision: image_properties.fetch("Pkg.Revision"),
+        api: image_properties.fetch("AndroidVersion.ApiLevel"),
+        tag: image_properties.fetch("SystemImage.TagId"),
+        abi: image_properties.fetch("SystemImage.Abi"),
+      },
+    },
+  }
+rescue Errno::ENOENT, KeyError => e
+  UI.user_error!("Unable to identify the Android screenshot environment: #{e.message}")
+end
+
+
 def with_screenshot_fixture_server
   log_path = File.join(Dir.tmpdir, "laughtrack-screenshot-fixture.log")
   pid = Process.spawn(
@@ -142,25 +234,27 @@ rescue JSON::ParserError => e
   UI.user_error!("Screenshot profile cache returned invalid JSON: #{e.message}")
 end
 
-def plan_android_screenshot_cache(capture_root, force_fresh:)
+def plan_android_screenshot_cache(capture_root, native_environment, force_fresh:)
   arguments = [
     "plan", "android",
     "--capture-root", capture_root,
     "--cache-root", SCREENSHOT_PROFILE_CACHE_PATH,
     "--repo-root", REPO_ROOT,
     "--profile-config-json", JSON.generate(android_screenshot_profile_config),
+    "--native-environment-json", JSON.generate(native_environment),
   ]
   arguments << "--force-fresh" if force_fresh
   run_android_screenshot_cache(*arguments)
 end
 
-def store_android_screenshot_profile(capture_root, profile_id, expected_key)
+def store_android_screenshot_profile(capture_root, profile_id, expected_key, native_environment)
   run_android_screenshot_cache(
     "store-profile", "android", profile_id,
     "--capture-root", capture_root,
     "--cache-root", SCREENSHOT_PROFILE_CACHE_PATH,
     "--repo-root", REPO_ROOT,
     "--profile-config-json", JSON.generate(android_screenshot_profile_config),
+    "--native-environment-json", JSON.generate(native_environment),
     "--expected-key", expected_key,
   )
 end
@@ -254,26 +348,23 @@ def highest_play_version_code
   codes.empty? ? nil : codes.max
 end
 
-# Screengrab requires a fully booted device but does not start one. Prefer an
-# already-connected emulator/device; otherwise start the first local AVD and
-# wait for Android to finish booting. This keeps the screenshots lane usable
-# from a cold local machine without making it responsible for SDK/AVD setup.
-def boot_screenshot_emulator
-  adb = ENV.fetch("ANDROID_HOME", ENV.fetch("ANDROID_SDK_ROOT", File.expand_path("~/Library/Android/sdk"))) + "/platform-tools/adb"
-  adb = "adb" unless File.executable?(adb)
-  emulator = ENV.fetch("ANDROID_HOME", ENV.fetch("ANDROID_SDK_ROOT", File.expand_path("~/Library/Android/sdk"))) + "/emulator/emulator"
-  emulator = "emulator" unless File.executable?(emulator)
-
+# Screengrab requires a fully booted device but does not start one. Reuse the
+# exact AVD fingerprinted before cache planning when it is connected; otherwise
+# start that AVD and wait for Android to finish booting. This keeps cache identity
+# and rendered system-image bits aligned without making the lane set up an SDK.
+def boot_screenshot_emulator(native_target)
+  adb = native_target.fetch(:adb)
+  emulator = native_target.fetch(:emulator)
+  avd = native_target.fetch(:avd)
   connected_emulator = sh("#{adb} devices").lines.map do |line|
     serial, state = line.split
-    serial if serial&.start_with?("emulator-") && state == "device"
+    next unless serial&.start_with?("emulator-") && state == "device"
+
+    active_avd, = Open3.capture2(adb, "-s", serial, "emu", "avd", "name")
+    serial if active_avd.lines.first&.strip == avd
   end.compact.first
   return [adb, connected_emulator] if connected_emulator
 
-  avds = sh("#{emulator} -list-avds").lines.map(&:strip).reject(&:empty?)
-  UI.user_error!("No connected Android device and no local AVD found. Create an AVD before running screenshots.") if avds.empty?
-
-  avd = avds.find { |name| name.start_with?("LaughTrack") } || avds.first
   log_path = File.expand_path("../screenshot-emulator.log", __dir__)
   UI.message("Starting Android screenshot emulator #{avd}…")
   pid = Process.spawn(emulator, "-avd", avd, "-no-boot-anim", "-no-snapshot-save", out: log_path, err: log_path)
@@ -282,7 +373,10 @@ def boot_screenshot_emulator
   loop do
     serial = `#{adb} devices 2>/dev/null`.lines.map do |line|
       candidate, state = line.split
-      candidate if candidate&.start_with?("emulator-") && state == "device"
+      next unless candidate&.start_with?("emulator-") && state == "device"
+
+      active_avd, = Open3.capture2(adb, "-s", candidate, "emu", "avd", "name")
+      candidate if active_avd.lines.first&.strip == avd
     end.compact.first
     booted = serial && `#{adb} -s #{serial} shell getprop sys.boot_completed 2>/dev/null`.strip == "1"
     return [adb, serial] if booted
@@ -538,7 +632,13 @@ platform :android do
     capture_root = "#{run_root}-capture"
     force_fresh = options[:force_fresh].to_s == "true"
     comparison_only = options[:comparison_only].to_s == "true"
-    cache_plan = plan_android_screenshot_cache(capture_root, force_fresh: force_fresh)
+    native_target = android_screenshot_native_target
+    native_environment = native_target.fetch(:environment)
+    cache_plan = plan_android_screenshot_cache(
+      capture_root,
+      native_environment,
+      force_fresh: force_fresh,
+    )
     pending_ids = cache_plan.fetch("pending_profiles")
     pending_profiles = SCREENSHOT_PROFILES.select { |profile| pending_ids.include?(profile.fetch(:id)) }
 
@@ -547,7 +647,7 @@ platform :android do
     end
     unless pending_profiles.empty?
       with_screenshot_fixture_server do
-        adb, serial = boot_screenshot_emulator
+        adb, serial = boot_screenshot_emulator(native_target)
         prior_android_serial = ENV["ANDROID_SERIAL"]
         ENV["ANDROID_SERIAL"] = serial
         begin
@@ -561,6 +661,7 @@ platform :android do
               capture_root,
               profile_id,
               cache_plan.fetch("profile_fingerprints").fetch(profile_id),
+              native_environment,
             )
           end
         ensure
