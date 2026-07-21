@@ -12,7 +12,7 @@ export default function AdminLoading() {
     return (
         <div role="status" aria-live="polite" className="space-y-6">
             <div className="flex items-center gap-3 rounded-md border border-copper/20 bg-surface-elevated px-4 py-3 font-dmSans text-body font-semibold text-foreground shadow-card">
-                <Loader2 className="h-5 w-5 animate-spin text-copper-dark" />
+                <Loader2 className="h-5 w-5 animate-spin text-copper" />
                 Loading admin section
             </div>
 

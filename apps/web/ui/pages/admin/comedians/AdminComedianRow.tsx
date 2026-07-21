@@ -1198,7 +1198,7 @@ export function AdminComedianRow({
                                             href={row.latestTicketPurchase.url}
                                             target="_blank"
                                             rel="noreferrer"
-                                            className="inline-flex min-w-0 items-center gap-1 font-semibold text-copper-dark hover:underline"
+                                            className="inline-flex min-w-0 items-center gap-1 font-semibold text-copper hover:underline"
                                         >
                                             <span>Latest ticket purchase</span>
                                             <ExternalLink className="h-3.5 w-3.5 shrink-0" />
@@ -1726,7 +1726,7 @@ export function AdminComedianRow({
                                                                     <a
                                                                         href={`/podcast/${podcast.slug}`}
                                                                         target="_blank"
-                                                                        className="inline-flex items-center gap-1 text-caption font-semibold text-copper-dark hover:underline"
+                                                                        className="inline-flex items-center gap-1 text-caption font-semibold text-copper hover:underline"
                                                                     >
                                                                         Public
                                                                         <ExternalLink className="h-3.5 w-3.5" />
@@ -1738,7 +1738,7 @@ export function AdminComedianRow({
                                                                             }
                                                                             target="_blank"
                                                                             rel="noreferrer"
-                                                                            className="inline-flex items-center gap-1 text-caption font-semibold text-copper-dark hover:underline"
+                                                                            className="inline-flex items-center gap-1 text-caption font-semibold text-copper hover:underline"
                                                                         >
                                                                             RSS
                                                                             <ExternalLink className="h-3.5 w-3.5" />
@@ -1797,7 +1797,7 @@ export function AdminComedianRow({
                                                                     <Button
                                                                         type="button"
                                                                         variant="outline"
-                                                                        className="gap-2 border-red-800/40 bg-surface-elevated text-red-950 hover:bg-red-50 disabled:border-strong disabled:bg-surface-muted disabled:text-muted-foreground disabled:opacity-100"
+                                                                        className="gap-2 border-red-400/50 bg-surface-elevated text-red-300 hover:bg-red-900/30 disabled:border-strong disabled:bg-surface-muted disabled:text-muted-foreground disabled:opacity-100"
                                                                         disabled={
                                                                             disabled ||
                                                                             pendingId ===
@@ -1925,7 +1925,7 @@ export function AdminComedianRow({
                                                                             <a
                                                                                 href={`/podcast/${podcast.slug}`}
                                                                                 target="_blank"
-                                                                                className="inline-flex items-center gap-1 text-copper-dark hover:underline"
+                                                                                className="inline-flex items-center gap-1 text-copper hover:underline"
                                                                             >
                                                                                 Public
                                                                                 page
@@ -1939,7 +1939,7 @@ export function AdminComedianRow({
                                                                                 }
                                                                                 target="_blank"
                                                                                 rel="noreferrer"
-                                                                                className="inline-flex max-w-full items-center gap-1 text-copper-dark hover:underline"
+                                                                                className="inline-flex max-w-full items-center gap-1 text-copper hover:underline"
                                                                             >
                                                                                 <span className="truncate">
                                                                                     RSS:{" "}
@@ -1963,7 +1963,7 @@ export function AdminComedianRow({
                                                                                 }
                                                                                 target="_blank"
                                                                                 rel="noreferrer"
-                                                                                className="inline-flex max-w-full items-center gap-1 text-copper-dark hover:underline"
+                                                                                className="inline-flex max-w-full items-center gap-1 text-copper hover:underline"
                                                                             >
                                                                                 Website
                                                                                 <ExternalLink className="h-3.5 w-3.5 shrink-0" />
@@ -1975,7 +1975,7 @@ export function AdminComedianRow({
                                                                     <Button
                                                                         type="button"
                                                                         variant="outline"
-                                                                        className="gap-2 border-green-800/40 bg-surface-elevated text-green-950 hover:bg-green-50 disabled:border-strong disabled:bg-surface-muted disabled:text-muted-foreground disabled:opacity-100"
+                                                                        className="gap-2 border-green-400/50 bg-surface-elevated text-green-300 hover:bg-green-900/30 disabled:border-strong disabled:bg-surface-muted disabled:text-muted-foreground disabled:opacity-100"
                                                                         disabled={
                                                                             disabled ||
                                                                             pendingId ===
@@ -2156,7 +2156,7 @@ export function AdminComedianRow({
                                         <Button
                                             type="button"
                                             variant="outline"
-                                            className="mt-3 gap-2 border-red-800/40 bg-surface-elevated text-red-950 hover:bg-red-50 disabled:border-strong disabled:bg-surface-muted disabled:text-muted-foreground disabled:opacity-100"
+                                            className="mt-3 gap-2 border-red-400/50 bg-surface-elevated text-red-300 hover:bg-red-900/30 disabled:border-strong disabled:bg-surface-muted disabled:text-muted-foreground disabled:opacity-100"
                                             disabled={
                                                 disabled || pendingId === row.id
                                             }

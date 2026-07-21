@@ -13,7 +13,7 @@ export default function AdminPageHeader({
 }: AdminPageHeaderProps) {
     return (
         <div>
-            <p className="font-dmSans text-caption font-semibold uppercase text-copper-dark">
+            <p className="font-dmSans text-caption font-semibold uppercase text-copper">
                 {eyebrow}
             </p>
             <h1 className="mt-1 font-chivo text-h1 text-foreground">{title}</h1>

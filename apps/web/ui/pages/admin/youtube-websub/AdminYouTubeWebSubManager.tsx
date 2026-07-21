@@ -168,7 +168,7 @@ function EventDetailPanel({
                 <button
                     type="button"
                     onClick={onClose}
-                    className="font-dmSans text-caption font-semibold text-copper-dark hover:underline"
+                    className="font-dmSans text-caption font-semibold text-copper hover:underline"
                 >
                     Close
                 </button>

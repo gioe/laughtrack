@@ -161,7 +161,7 @@ export default function AdminPipelineRunsTable({
                                                         )
                                                     }
                                                 >
-                                                    <span className="mt-1 text-copper-dark">
+                                                    <span className="mt-1 text-copper">
                                                         {groupOpen ? (
                                                             <ChevronDown className="h-4 w-4" />
                                                         ) : (
@@ -265,7 +265,7 @@ function PipelineRunAttempts({
                                         aria-controls={`pipeline-run-${run.id}`}
                                         onClick={() => toggleRun(run.id)}
                                     >
-                                        <span className="mt-1 text-copper-dark">
+                                        <span className="mt-1 text-copper">
                                             {isOpen ? (
                                                 <ChevronDown className="h-4 w-4" />
                                             ) : (
@@ -422,7 +422,7 @@ function PipelineRunDetails({ run }: { run: AdminPipelineRun }) {
                                 href={run.runUrl}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="inline-flex items-center gap-1 break-all font-semibold text-copper-dark hover:underline"
+                                className="inline-flex items-center gap-1 break-all font-semibold text-copper hover:underline"
                             >
                                 Open run
                                 <ExternalLink className="h-4 w-4" />

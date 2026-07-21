@@ -161,7 +161,7 @@ export function AdminPagination({
                 <Button
                     type="button"
                     variant="outline"
-                    className="border-copper-dark bg-surface-elevated text-copper-dark disabled:border-strong disabled:bg-surface-muted disabled:text-muted-foreground disabled:opacity-100"
+                    className="border-copper bg-surface-elevated text-copper disabled:border-strong disabled:bg-surface-muted disabled:text-muted-foreground disabled:opacity-100"
                     disabled={page <= 1}
                     onClick={() => onPageChange(page - 1)}
                 >
@@ -173,7 +173,7 @@ export function AdminPagination({
                 <Button
                     type="button"
                     variant="outline"
-                    className="border-copper-dark bg-surface-elevated text-copper-dark disabled:border-strong disabled:bg-surface-muted disabled:text-muted-foreground disabled:opacity-100"
+                    className="border-copper bg-surface-elevated text-copper disabled:border-strong disabled:bg-surface-muted disabled:text-muted-foreground disabled:opacity-100"
                     disabled={page >= totalPages}
                     onClick={() => onPageChange(page + 1)}
                 >

@@ -91,7 +91,7 @@ export function AdminImageEditor({
                         href={currentImage.url}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1 font-dmSans text-caption font-semibold text-copper-dark hover:underline"
+                        className="inline-flex items-center gap-1 font-dmSans text-caption font-semibold text-copper hover:underline"
                     >
                         Open
                         <ExternalLink
@@ -230,7 +230,7 @@ export function AdminImageEditor({
                 <Button
                     type="button"
                     variant="outline"
-                    className="gap-2 border-red-800/40 bg-surface-elevated text-red-950 hover:bg-red-50 disabled:border-strong disabled:bg-surface-muted disabled:text-muted-foreground disabled:opacity-100"
+                    className="gap-2 border-red-400/50 bg-surface-elevated text-red-300 hover:bg-red-900/30 disabled:border-strong disabled:bg-surface-muted disabled:text-muted-foreground disabled:opacity-100"
                     disabled={disabled}
                     onClick={remove.onRemove}
                 >

@@ -138,7 +138,7 @@ export function AdminPodcastHostshipAssignmentControls({
                                             className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-sm font-semibold ${
                                                 isHost
                                                     ? "border-green-500 bg-green-600 text-white"
-                                                    : "border-strong bg-surface-elevated text-foreground hover:border-copper-dark"
+                                                    : "border-strong bg-surface-elevated text-foreground hover:border-copper"
                                             }`}
                                             aria-label={`Set ${option.name} as host`}
                                         >
@@ -160,7 +160,7 @@ export function AdminPodcastHostshipAssignmentControls({
                                             className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-sm font-semibold ${
                                                 isCohost
                                                     ? "border-blue-500 bg-blue-600 text-white"
-                                                    : "border-strong bg-surface-elevated text-foreground hover:border-copper-dark"
+                                                    : "border-strong bg-surface-elevated text-foreground hover:border-copper"
                                             }`}
                                             aria-label={`Set ${option.name} as co-host`}
                                         >

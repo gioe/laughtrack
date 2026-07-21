@@ -174,7 +174,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                         aria-live="polite"
                         className="flex items-center gap-3 rounded-md border border-copper/25 bg-surface-elevated px-5 py-4 font-dmSans text-body font-semibold text-foreground shadow-floating"
                     >
-                        <Loader2 className="h-5 w-5 animate-spin text-copper-dark" />
+                        <Loader2 className="h-5 w-5 animate-spin text-copper" />
                         Updating comedian
                     </div>
                 </div>

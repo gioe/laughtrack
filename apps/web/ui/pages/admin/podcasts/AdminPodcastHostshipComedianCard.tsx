@@ -92,14 +92,14 @@ export function AdminPodcastHostshipComedianCard({
                         onChange={(event) =>
                             onManualFeedUrlChange(event.target.value)
                         }
-                        className="min-w-0 rounded-md border border-input bg-background px-3 py-2 font-dmSans text-body font-normal text-foreground placeholder:text-muted-foreground focus:border-copper-dark focus:outline-none focus:ring-2 focus:ring-copper-dark"
+                        className="min-w-0 rounded-md border border-input bg-background px-3 py-2 font-dmSans text-body font-normal text-foreground placeholder:text-muted-foreground focus:border-copper focus:outline-none focus:ring-2 focus:ring-copper"
                         placeholder="https://example.com/rss.xml"
                     />
                 </label>
                 <Button
                     type="button"
                     variant="outline"
-                    className="border-copper-dark bg-surface-elevated !text-copper-dark hover:bg-copper-dark hover:!text-white disabled:border-strong disabled:bg-surface-muted disabled:!text-muted-foreground disabled:opacity-100"
+                    className="border-copper bg-surface-elevated !text-copper hover:bg-copper-dark hover:!text-white disabled:border-strong disabled:bg-surface-muted disabled:!text-muted-foreground disabled:opacity-100"
                     disabled={ingestDisabled || !manualFeedUrl.trim()}
                     onClick={() => onIngest(group)}
                 >
@@ -151,7 +151,7 @@ export function AdminPodcastHostshipComedianCard({
                                             href={podcastGroup.podcast.feedUrl}
                                             target="_blank"
                                             rel="noreferrer"
-                                            className="inline-flex max-w-full items-center gap-1 text-copper-dark hover:underline"
+                                            className="inline-flex max-w-full items-center gap-1 text-copper hover:underline"
                                         >
                                             <span className="truncate">
                                                 RSS:{" "}
@@ -174,7 +174,7 @@ export function AdminPodcastHostshipComedianCard({
                                             }
                                             target="_blank"
                                             rel="noreferrer"
-                                            className="inline-flex max-w-full items-center gap-1 text-copper-dark hover:underline"
+                                            className="inline-flex max-w-full items-center gap-1 text-copper hover:underline"
                                         >
                                             <span className="truncate">
                                                 Website:{" "}
@@ -208,7 +208,7 @@ export function AdminPodcastHostshipComedianCard({
                                 <Button
                                     type="button"
                                     variant="outline"
-                                    className="border-copper-dark bg-surface-elevated !text-copper-dark hover:bg-copper-dark hover:!text-white"
+                                    className="border-copper bg-surface-elevated !text-copper hover:bg-copper-dark hover:!text-white"
                                     onClick={() =>
                                         onSelectHost(
                                             podcastGroup.key,

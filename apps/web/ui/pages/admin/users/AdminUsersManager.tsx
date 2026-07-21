@@ -309,13 +309,13 @@ function UserRow({ user }: { user: AdminUserListItem }) {
                     <h3 className="break-words font-urbanist-bold text-h3 text-foreground">
                         {currentName ?? "Unnamed user"}
                     </h3>
-                    <span className="rounded-md border border-copper/20 bg-surface-muted px-2 py-1 font-dmSans text-caption font-semibold text-copper-dark">
+                    <span className="rounded-md border border-copper/20 bg-surface-muted px-2 py-1 font-dmSans text-caption font-semibold text-copper">
                         {user.profile?.role ?? "no profile"}
                     </span>
                 </div>
                 <a
                     href={`mailto:${user.email}`}
-                    className="mt-1 block break-words font-dmSans text-body font-semibold text-copper-dark hover:underline"
+                    className="mt-1 block break-words font-dmSans text-body font-semibold text-copper hover:underline"
                 >
                     {user.email}
                 </a>
@@ -647,7 +647,7 @@ function UserRow({ user }: { user: AdminUserListItem }) {
                                 <Link
                                     key={comedian.uuid}
                                     href={`/comedian/${encodeURIComponent(comedian.name)}`}
-                                    className="rounded-md border border-copper/20 bg-surface-muted px-2 py-1 font-dmSans text-caption font-semibold text-copper-dark hover:border-copper hover:bg-surface-muted"
+                                    className="rounded-md border border-copper/20 bg-surface-muted px-2 py-1 font-dmSans text-caption font-semibold text-copper hover:border-copper hover:bg-surface-muted"
                                 >
                                     {comedian.name} ·{" "}
                                     {comedian.totalShows.toLocaleString()} shows
@@ -803,7 +803,7 @@ function CheckboxField({
                     checked={checked}
                     disabled={disabled || saving}
                     onChange={(event) => onChange(event.target.checked)}
-                    className="h-4 w-4 rounded border-strong text-copper-dark focus:ring-copper/30"
+                    className="h-4 w-4 rounded border-strong text-copper focus:ring-copper/30"
                 />
                 <span className="font-semibold">{label}</span>
                 {saving ? (

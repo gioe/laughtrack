@@ -92,7 +92,7 @@ function CheckboxField({
                 checked={checked}
                 disabled={saving}
                 onChange={(event) => onChange(event.target.checked)}
-                className="h-4 w-4 rounded border-strong text-copper-dark focus:ring-copper/30"
+                className="h-4 w-4 rounded border-strong text-copper focus:ring-copper/30"
             />
             <span className="font-semibold">{label}</span>
             {saving ? (

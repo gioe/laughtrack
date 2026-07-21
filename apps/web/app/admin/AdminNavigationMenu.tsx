@@ -117,7 +117,7 @@ export default function AdminNavigationMenu() {
                 onClick={() => setIsOpen((open) => !open)}
                 className="flex cursor-pointer list-none items-center gap-2 rounded-md border border-copper/35 bg-surface-elevated px-3 py-2 font-dmSans text-body font-semibold text-foreground shadow-card outline-none hover:bg-copper/10 focus-visible:ring-2 focus-visible:ring-copper/40"
             >
-                <Menu className="h-5 w-5 text-copper-dark" />
+                <Menu className="h-5 w-5 text-copper" />
                 Menu
             </button>
             {isOpen ? (
@@ -135,7 +135,7 @@ export default function AdminNavigationMenu() {
                                 className="flex items-center gap-3 border-b border-copper/10 px-4 py-3 text-left last:border-b-0 hover:bg-surface-muted/60"
                                 onClick={() => setIsOpen(false)}
                             >
-                                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-copper/20 bg-surface-muted text-copper-dark">
+                                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-copper/20 bg-surface-muted text-copper">
                                     <Icon className="h-5 w-5" />
                                 </span>
                                 <span className="min-w-0">

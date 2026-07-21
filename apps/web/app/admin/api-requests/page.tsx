@@ -51,7 +51,7 @@ function SummaryCard({
     return (
         <div className="rounded-md border border-copper/20 bg-surface-elevated p-4">
             <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-md bg-copper/10 text-copper-dark">
+                <span className="flex h-10 w-10 items-center justify-center rounded-md bg-copper/10 text-copper">
                     <Icon className="h-5 w-5" />
                 </span>
                 <div>
@@ -177,7 +177,7 @@ function TopRoutesTable({
                                             href={`/admin/api-requests?range=${rangeKey}&route=${encodeURIComponent(
                                                 route.routePattern,
                                             )}`}
-                                            className="font-mono text-caption text-copper-dark hover:underline"
+                                            className="font-mono text-caption text-copper hover:underline"
                                         >
                                             {route.routePattern}
                                         </Link>
@@ -230,7 +230,7 @@ function RouteTrend({
                 Per-route trend
             </h2>
             {selectedRoute ? (
-                <p className="mt-1 font-mono text-caption text-copper-dark">
+                <p className="mt-1 font-mono text-caption text-copper">
                     {selectedRoute}
                 </p>
             ) : null}

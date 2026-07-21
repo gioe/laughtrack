@@ -42,7 +42,7 @@ export default async function AdminLayout({
                         </div>
                     </Link>
                     <div className="flex shrink-0 items-center gap-2 rounded-md border border-copper/20 bg-surface-elevated/70 px-3 py-2 font-dmSans text-caption text-muted-foreground">
-                        <BadgeCheck className="h-4 w-4 text-copper-dark" />
+                        <BadgeCheck className="h-4 w-4 text-copper" />
                         Admin access
                     </div>
                 </div>
@@ -56,10 +56,10 @@ export default async function AdminLayout({
             <AdminCreateButton />
             <footer className="mx-auto flex max-w-7xl items-center gap-2 px-4 pb-8 font-dmSans text-caption text-muted-foreground md:px-8">
                 <span>LaughTrack operations</span>
-                <ChevronRight className="h-4 w-4 text-copper-dark" />
+                <ChevronRight className="h-4 w-4 text-copper" />
                 <Link
                     href="/"
-                    className="font-semibold text-copper-dark hover:underline"
+                    className="font-semibold text-copper hover:underline"
                 >
                     Back to public site
                 </Link>

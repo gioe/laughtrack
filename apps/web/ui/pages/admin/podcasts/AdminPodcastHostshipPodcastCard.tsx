@@ -139,7 +139,7 @@ export function AdminPodcastHostshipPodcastCard({
                     <div className="mt-3 flex flex-wrap gap-3 font-dmSans text-caption">
                         <a
                             href={`/podcast/${group.podcast.slug}`}
-                            className="inline-flex items-center gap-1 text-copper-dark hover:underline"
+                            className="inline-flex items-center gap-1 text-copper hover:underline"
                         >
                             Public page
                             <ExternalLink
@@ -150,7 +150,7 @@ export function AdminPodcastHostshipPodcastCard({
                         {group.podcast.websiteUrl && (
                             <a
                                 href={group.podcast.websiteUrl}
-                                className="inline-flex items-center gap-1 text-copper-dark hover:underline"
+                                className="inline-flex items-center gap-1 text-copper hover:underline"
                             >
                                 Website
                                 <ExternalLink
@@ -203,12 +203,12 @@ export function AdminPodcastHostshipPodcastCard({
                                                     event.target.value,
                                                 )
                                             }
-                                            className="min-w-0 w-full rounded-md border border-input bg-background px-3 py-2 font-dmSans text-body font-normal text-foreground focus:border-copper-dark focus:outline-none focus:ring-2 focus:ring-copper-dark"
+                                            className="min-w-0 w-full rounded-md border border-input bg-background px-3 py-2 font-dmSans text-body font-normal text-foreground focus:border-copper focus:outline-none focus:ring-2 focus:ring-copper"
                                         />
                                         <Button
                                             type="button"
                                             variant="outline"
-                                            className="gap-2 border-copper-dark bg-surface-elevated !text-copper-dark hover:bg-copper-dark hover:!text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper-dark focus-visible:ring-0"
+                                            className="gap-2 border-copper bg-surface-elevated !text-copper hover:bg-copper-dark hover:!text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper focus-visible:ring-0"
                                             onClick={() => onSearch(group.key)}
                                             disabled={disabled || searching}
                                         >
@@ -234,7 +234,7 @@ export function AdminPodcastHostshipPodcastCard({
                                                             0,
                                                     })
                                                 }
-                                                className="rounded-md border border-strong bg-surface-elevated px-3 py-1.5 font-dmSans text-sm font-semibold text-foreground hover:border-copper-dark"
+                                                className="rounded-md border border-strong bg-surface-elevated px-3 py-1.5 font-dmSans text-sm font-semibold text-foreground hover:border-copper"
                                             >
                                                 {result.name}
                                             </button>
@@ -256,7 +256,7 @@ export function AdminPodcastHostshipPodcastCard({
                                             event.target.value,
                                         )
                                     }
-                                    className="min-h-20 rounded-md border border-input bg-background px-3 py-2 font-dmSans text-body font-normal text-foreground focus:border-copper-dark focus:outline-none focus:ring-2 focus:ring-copper-dark"
+                                    className="min-h-20 rounded-md border border-input bg-background px-3 py-2 font-dmSans text-body font-normal text-foreground focus:border-copper focus:outline-none focus:ring-2 focus:ring-copper"
                                     maxLength={1000}
                                 />
                             </label>
@@ -265,7 +265,7 @@ export function AdminPodcastHostshipPodcastCard({
                             <Button
                                 type="button"
                                 variant="outline"
-                                className="gap-2 border-red-700 bg-surface-elevated !text-red-800 hover:bg-red-700 hover:!text-white disabled:border-strong disabled:bg-surface-muted disabled:!text-muted-foreground disabled:opacity-100"
+                                className="gap-2 border-red-400 bg-surface-elevated !text-red-300 hover:bg-red-700 hover:!text-white disabled:border-strong disabled:bg-surface-muted disabled:!text-muted-foreground disabled:opacity-100"
                                 onClick={() => onSave(group, null, true)}
                                 disabled={disabled}
                                 aria-label={`Block ${group.podcast.title}`}
@@ -278,7 +278,7 @@ export function AdminPodcastHostshipPodcastCard({
                                     <Button
                                         type="button"
                                         variant="outline"
-                                        className="border-copper-dark bg-surface-elevated !text-copper-dark hover:bg-copper-dark hover:!text-white disabled:border-strong disabled:bg-surface-muted disabled:!text-muted-foreground disabled:opacity-100"
+                                        className="border-copper bg-surface-elevated !text-copper hover:bg-copper-dark hover:!text-white disabled:border-strong disabled:bg-surface-muted disabled:!text-muted-foreground disabled:opacity-100"
                                         onClick={() =>
                                             onSave(group, null, false)
                                         }
@@ -290,7 +290,7 @@ export function AdminPodcastHostshipPodcastCard({
                                     <Button
                                         type="button"
                                         variant="outline"
-                                        className="border-copper-dark bg-surface-elevated !text-copper-dark hover:bg-copper-dark hover:!text-white disabled:border-strong disabled:bg-surface-muted disabled:!text-muted-foreground disabled:opacity-100"
+                                        className="border-copper bg-surface-elevated !text-copper hover:bg-copper-dark hover:!text-white disabled:border-strong disabled:bg-surface-muted disabled:!text-muted-foreground disabled:opacity-100"
                                         onClick={() =>
                                             onSave(group, undefined, false)
                                         }

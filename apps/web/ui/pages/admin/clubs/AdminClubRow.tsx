@@ -95,7 +95,7 @@ export function AdminClubRow({ club }: { club: AdminClubListItem }) {
                         href={club.website}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1 text-copper-dark hover:underline"
+                        className="inline-flex items-center gap-1 text-copper hover:underline"
                     >
                         Website
                         <ExternalLink className="h-3.5 w-3.5" />
@@ -103,7 +103,7 @@ export function AdminClubRow({ club }: { club: AdminClubListItem }) {
                     <Link
                         href={`/club/${encodeURIComponent(club.name)}`}
                         target="_blank"
-                        className="text-copper-dark hover:underline"
+                        className="text-copper hover:underline"
                     >
                         Public page
                     </Link>
@@ -245,7 +245,7 @@ export function AdminClubRow({ club }: { club: AdminClubListItem }) {
                     <Button
                         type="button"
                         variant="outline"
-                        className="gap-2 border-copper-dark bg-surface-elevated text-copper-dark disabled:border-strong disabled:bg-surface-muted disabled:text-muted-foreground disabled:opacity-100"
+                        className="gap-2 border-copper bg-surface-elevated text-copper disabled:border-strong disabled:bg-surface-muted disabled:text-muted-foreground disabled:opacity-100"
                         disabled={disabled || !statusDirty || pending}
                         onClick={() => void saveStatus()}
                     >

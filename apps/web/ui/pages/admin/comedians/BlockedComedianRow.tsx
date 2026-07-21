@@ -89,7 +89,7 @@ export function BlockedComedianRow({
                             : ""}
                     </div>
                 </div>
-                <label className="inline-flex w-fit items-center gap-2 rounded-md border border-red-800/35 bg-surface-elevated px-3 py-2 font-dmSans text-body font-semibold text-red-950">
+                <label className="inline-flex w-fit items-center gap-2 rounded-md border border-red-800/35 bg-surface-elevated px-3 py-2 font-dmSans text-body font-semibold text-red-300">
                     <input
                         type="checkbox"
                         checked
