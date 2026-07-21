@@ -8,7 +8,8 @@ scripts/screenshots/regenerate-comparisons
 
 The command runs the capture-only iOS and Android Fastlane lanes sequentially,
 persists validated manifests for all catalog scenarios and five device profiles,
-generates five contact sheets, and opens them. It never uploads screenshots or
+generates 17 labeled cross-platform scenario sheets, writes delta-aware audit
+metadata, and opens them. It never uploads screenshots or
 metadata to App Store Connect or Google Play.
 
 Each native lane starts the hermetic backend in `fixture_server.py` and points

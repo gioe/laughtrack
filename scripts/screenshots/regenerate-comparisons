@@ -20,8 +20,8 @@ usage() {
 Usage: scripts/screenshots/regenerate-comparisons [options]
 
 Capture all catalog scenarios for iOS phone/iPad and Android phone/7-inch/
-10-inch, persist validated manifests, generate five contact sheets, and open
-them. This command never uploads screenshots to either store.
+10-inch, persist validated manifests, generate 17 cross-platform scenario
+sheets, and open them. This command never uploads screenshots to either store.
 
 Options:
   --output-root PATH  Destination directory (default: dated comparison folder)
@@ -108,47 +108,16 @@ python3 "$repo_root/scripts/screenshots/manifest.py" validate-run \
   --catalog "$repo_root/screenshots/catalog.json" \
   --repo-root "$android_run"
 
-font=""
-for candidate in \
-  /System/Library/Fonts/Helvetica.ttc \
-  /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf \
-  /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf; do
-  if [[ -f "$candidate" ]]; then
-    font="$candidate"
-    break
-  fi
-done
-[[ -n "$font" ]] || fail "no supported contact-sheet font found"
+echo "Generating cross-platform scenario sheets and audit metadata..."
+python3 "$repo_root/scripts/screenshots/comparison.py" \
+  --ios-manifest "$ios_run/manifest.json" \
+  --android-manifest "$android_run/manifest.json" \
+  --catalog "$repo_root/screenshots/catalog.json" \
+  --baseline "$repo_root/apps/screenshot-comparisons/reviewed-baseline.json" \
+  --sheet-dir "$output_root/scenario-sheets" \
+  > "$output_root/comparison.json"
 
-generate_sheet() {
-  local profile_dir="$1"
-  local geometry="$2"
-  local destination="$3"
-  local images=("$profile_dir"/*.png)
-  ((${#images[@]} > 0)) || fail "no screenshots found in $profile_dir"
-  magick montage "${images[@]}" \
-    -font "$font" \
-    -thumbnail "$geometry" \
-    -tile 4x \
-    -geometry +16+16 \
-    -background '#202124' \
-    "$destination"
-}
-
-echo "Generating contact sheets..."
-generate_sheet "$ios_run/images/ios_phone" 360x800 "$output_root/all-ios-phone.png"
-generate_sheet "$ios_run/images/ios_large_tablet" 400x720 "$output_root/all-ios-ipad.png"
-generate_sheet "$android_run/images/android_phone" 360x800 "$output_root/all-android-phone.png"
-generate_sheet "$android_run/images/android_small_tablet" 400x720 "$output_root/all-android-7-inch.png"
-generate_sheet "$android_run/images/android_large_tablet" 400x720 "$output_root/all-android-10-inch.png"
-
-sheets=(
-  "$output_root/all-ios-phone.png"
-  "$output_root/all-ios-ipad.png"
-  "$output_root/all-android-phone.png"
-  "$output_root/all-android-7-inch.png"
-  "$output_root/all-android-10-inch.png"
-)
+sheets=("$output_root/scenario-sheets"/*.png)
 
 if [[ "$open_sheets" == true ]]; then
   if command -v open >/dev/null; then

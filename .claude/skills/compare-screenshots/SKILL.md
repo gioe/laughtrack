@@ -1,9 +1,9 @@
 ---
-name: compare-store-screenshots
+name: compare-screenshots
 description: Regenerate the complete iOS and Android screenshot matrices, validate fresh run manifests, compare selected phone and tablet profiles side by side, and report qualitative product-polish differences. Use when asked to run, audit, review, compare, or assess the mobile store screenshots across iOS and Android.
 ---
 
-# Compare Store Screenshots
+# Compare Screenshots
 
 Capture both native store-listing sets and evaluate the resulting images pair by pair. Treat this as a local capture and read-only product audit: never upload screenshots or invoke release lanes.
 
@@ -32,13 +32,15 @@ CAPTURE_STARTED_AT=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 Keep this directory until the audit is complete. The regeneration command writes
 normalized manifests and their declared images below the corresponding run roots,
-plus the five platform contact sheets at the comparison root.
+plus 17 labeled cross-platform sheets under `scenario-sheets/` and the
+delta-aware `comparison.json` at the comparison root.
 
 ## 2. Regenerate the comparison matrix
 
 Use the repository's single capture-only entry point. It runs the iOS and Android
 lanes sequentially, supplies the resilient Xcode build-settings timeout, validates
-both manifests, and generates all five contact sheets:
+both manifests, generates all 17 scenario sheets, and compares decoded pixels
+with the persistent reviewed baseline:
 
 ```bash
 scripts/screenshots/regenerate-comparisons \
@@ -55,27 +57,27 @@ manifests are:
 - iOS: `$IOS_RUN_ROOT/manifest.json`
 - Android: `$ANDROID_RUN_ROOT/manifest.json`
 
-## 3. Validate the capture set
+## 3. Validate the capture set and audit delta
 
-Run the bundled validator with both manifests and the recorded freshness boundary.
-Choose the comparison view that fits the audit:
-
-- `phone` — iOS phone adjacent to Android phone;
-- `tablet` — iPad adjacent to Android 10-inch, followed by Android 7-inch;
-- `all` — phone pair, large-tablet pair, then Android 7-inch.
+Run the bundled validator with both manifests, the recorded freshness boundary,
+and the persistent reviewed baseline. It hashes ImageMagick-decoded RGBA pixels,
+not encoded PNG bytes, so metadata and compression changes do not create false
+deltas. The canonical order is iOS phone, Android phone, iPad, Android 10-inch,
+then Android 7-inch.
 
 ```bash
-python3 .agents/skills/compare-store-screenshots/scripts/validate_pairs.py \
+REVIEWED_BASELINE="apps/screenshot-comparisons/reviewed-baseline.json"
+python3 .claude/skills/compare-screenshots/scripts/validate_pairs.py \
   --ios-manifest "$IOS_RUN_ROOT/manifest.json" \
   --android-manifest "$ANDROID_RUN_ROOT/manifest.json" \
   --fresh-since "$CAPTURE_STARTED_AT" \
-  --view phone \
+  --baseline "$REVIEWED_BASELINE" \
+  --sheet-dir "$SCREENSHOT_RUN_ROOT/scenario-sheets" \
   > "$SCREENSHOT_RUN_ROOT/comparison.json"
 ```
 
-Use `--view tablet` or `--view all` for the other profile sets. Add a canonical
-scenario such as `--scenario 05_ClubDetail` to emit only that scenario across
-the selected profiles.
+Add a canonical scenario such as `--scenario 05_ClubDetail` only for diagnosis;
+a partial comparison cannot be approved as the reviewed baseline.
 
 Require the manifests to contain exactly one fresh, declared, readable image
 for every selected platform profile and every scenario in
@@ -87,11 +89,17 @@ Stop on missing, duplicate, stale, unreadable, or unexpected captures, mismatche
 Git revisions, or undeclared image files in either run. Do not silently select
 among duplicates.
 
-## 4. Inspect every pair
+## 4. Inspect required scenario sheets
 
-Read `comparison.json` in group order. Open every listed image at high or
-original detail, keeping each group's images adjacent in the emitted order. Do
-not infer visual quality from source code, filenames, or manifest metadata.
+Read `comparison.json` in group order. On the first audit, a missing baseline
+marks all 17 groups `review_required`; open every scenario sheet at high detail.
+On later audits, open only sheets whose group has `review_required: true`.
+Changed pixels, a missing capture record, or invalid baseline catalog/source/order
+provenance must always require review. Never override those safeguards.
+
+Use each sheet as the primary review surface. Open an original image at high or
+original detail only when the sheet exposes a suspected defect that needs closer
+inspection. Do not infer visual quality from source code, filenames, or metadata.
 
 For each pair, assess:
 
@@ -111,7 +119,22 @@ Distinguish three causes when possible:
 
 Do not penalize normal iOS-versus-Android platform conventions. Call out different locations, dates, records, filters, or device aspect ratios when they prevent a clean comparison.
 
-## 5. Report the audit
+## 5. Approve the reviewed baseline and report
+
+Only after every required sheet and any suspect originals have been reviewed,
+write the complete current corpus as the next reviewed baseline:
+
+```bash
+python3 .claude/skills/compare-screenshots/scripts/validate_pairs.py \
+  --ios-manifest "$IOS_RUN_ROOT/manifest.json" \
+  --android-manifest "$ANDROID_RUN_ROOT/manifest.json" \
+  --fresh-since "$CAPTURE_STARTED_AT" \
+  --write-baseline "$REVIEWED_BASELINE" \
+  --reviewed-by "<reviewer identity>" \
+  > /dev/null
+```
+
+Never write or refresh the baseline before the visual review is complete.
 
 Lead with an honest overall judgment. Include:
 
