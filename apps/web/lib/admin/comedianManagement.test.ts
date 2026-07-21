@@ -39,6 +39,8 @@ function comedianRow(name: string) {
         popularity: 0,
         totalShows: 0,
         instagramAccount: null,
+        instagramFollowers: null,
+        instagramFollowersRefreshedAt: null,
         tiktokAccount: null,
         youtubeAccount: null,
         youtubeChannelId: null,
@@ -105,6 +107,8 @@ describe("listAdminComedians", () => {
         expect(mockFindMany).toHaveBeenCalledWith(
             expect.objectContaining({
                 select: expect.objectContaining({
+                    instagramFollowers: true,
+                    instagramFollowersRefreshedAt: true,
                     youtubeLiveFeedEnabled: true,
                     youtubeLiveNotificationsEnabled: true,
                     youtubeWebSubSubscriptions: expect.objectContaining({

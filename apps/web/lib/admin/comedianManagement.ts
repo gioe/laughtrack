@@ -19,6 +19,8 @@ export type AdminComedianListItem = {
     website: string | null;
     websiteScrapingUrl: string | null;
     instagramAccount: string | null;
+    instagramFollowers: number | null;
+    instagramFollowersRefreshedAt: string | null;
     tiktokAccount: string | null;
     youtubeAccount: string | null;
     youtubeChannelId: string | null;
@@ -125,6 +127,8 @@ export async function listAdminComedians(): Promise<AdminComedianListResult> {
                 website: true,
                 websiteScrapingUrl: true,
                 instagramAccount: true,
+                instagramFollowers: true,
+                instagramFollowersRefreshedAt: true,
                 tiktokAccount: true,
                 youtubeAccount: true,
                 youtubeChannelId: true,
@@ -317,6 +321,10 @@ export async function listAdminComedians(): Promise<AdminComedianListResult> {
                 website: comedian.website,
                 websiteScrapingUrl: comedian.websiteScrapingUrl,
                 instagramAccount: comedian.instagramAccount,
+                instagramFollowers: comedian.instagramFollowers,
+                instagramFollowersRefreshedAt: serializeDate(
+                    comedian.instagramFollowersRefreshedAt,
+                ),
                 tiktokAccount: comedian.tiktokAccount,
                 youtubeAccount: comedian.youtubeAccount,
                 youtubeChannelId: comedian.youtubeChannelId,

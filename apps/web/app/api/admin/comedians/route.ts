@@ -7,12 +7,15 @@ import {
     buildComedianImageUrls,
 } from "@/lib/data/comedian/imageAssets";
 import type { Prisma } from "@prisma/client";
+import { resolveInstagramFollowerCount } from "@/lib/instagram/instagramFollowerResolver";
 import { resolveYouTubeChannelId } from "@/lib/youtube/youtubeChannelResolver";
 import crypto from "crypto";
 import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { withRequestMetrics } from "@/lib/metrics";
+
+export const runtime = "nodejs";
 
 type ComedianSnapshot = {
     id: number;
@@ -22,6 +25,8 @@ type ComedianSnapshot = {
     website: string | null;
     websiteScrapingUrl: string | null;
     instagramAccount: string | null;
+    instagramFollowers: number | null;
+    instagramFollowersRefreshedAt: Date | null;
     tiktokAccount: string | null;
     youtubeAccount: string | null;
     youtubeChannelId: string | null;
@@ -235,6 +240,10 @@ function snapshotForAudit(comedian: ComedianSnapshot) {
         website: comedian.website,
         websiteScrapingUrl: comedian.websiteScrapingUrl,
         instagramAccount: comedian.instagramAccount,
+        instagramFollowers: comedian.instagramFollowers,
+        instagramFollowersRefreshedAt: serializeDate(
+            comedian.instagramFollowersRefreshedAt,
+        ),
         tiktokAccount: comedian.tiktokAccount,
         youtubeAccount: comedian.youtubeAccount,
         youtubeChannelId: comedian.youtubeChannelId,
@@ -284,6 +293,10 @@ function serializeComedian(
         website: comedian.website,
         websiteScrapingUrl: comedian.websiteScrapingUrl,
         instagramAccount: comedian.instagramAccount,
+        instagramFollowers: comedian.instagramFollowers,
+        instagramFollowersRefreshedAt: serializeDate(
+            comedian.instagramFollowersRefreshedAt,
+        ),
         tiktokAccount: comedian.tiktokAccount,
         youtubeAccount: comedian.youtubeAccount,
         youtubeChannelId: comedian.youtubeChannelId,
@@ -385,6 +398,8 @@ const comedianSnapshotSelect = {
     website: true,
     websiteScrapingUrl: true,
     instagramAccount: true,
+    instagramFollowers: true,
+    instagramFollowersRefreshedAt: true,
     tiktokAccount: true,
     youtubeAccount: true,
     youtubeChannelId: true,
@@ -1111,6 +1126,21 @@ export const PUT = withRequestMetrics(async function PUT(req: NextRequest) {
             : undefined;
 
     try {
+        const currentInstagram =
+            instagramAccount !== undefined
+                ? await db.comedian.findUnique({
+                      where: { id: parsed.data.comedianId },
+                      select: { instagramAccount: true },
+                  })
+                : null;
+        const shouldRefreshInstagram =
+            Boolean(currentInstagram) &&
+            Boolean(instagramAccount) &&
+            instagramAccount !== currentInstagram?.instagramAccount;
+        const instagramFollowerResolution = shouldRefreshInstagram
+            ? await resolveInstagramFollowerCount(instagramAccount)
+            : null;
+
         const result = await db.$transaction(
             async (tx: ComedianAdminWriter) => {
                 const before = await findComedianSnapshot(
@@ -1152,6 +1182,22 @@ export const PUT = withRequestMetrics(async function PUT(req: NextRequest) {
                             ? null
                             : undefined);
 
+                const instagramAccountChanged =
+                    instagramAccount !== undefined &&
+                    instagramAccount !== before.instagramAccount;
+                const instagramFollowerData = instagramAccountChanged
+                    ? instagramFollowerResolution?.status === "resolved"
+                        ? {
+                              instagramFollowers:
+                                  instagramFollowerResolution.followerCount,
+                              instagramFollowersRefreshedAt: new Date(),
+                          }
+                        : {
+                              instagramFollowers: null,
+                              instagramFollowersRefreshedAt: null,
+                          }
+                    : {};
+
                 await tx.comedian.update({
                     where: { id: before.id },
                     data: {
@@ -1164,6 +1210,7 @@ export const PUT = withRequestMetrics(async function PUT(req: NextRequest) {
                         ...(instagramAccount !== undefined
                             ? { instagramAccount }
                             : {}),
+                        ...instagramFollowerData,
                         ...(tiktokAccount !== undefined
                             ? { tiktokAccount }
                             : {}),
@@ -1197,6 +1244,11 @@ export const PUT = withRequestMetrics(async function PUT(req: NextRequest) {
                     comedian: serializeComedian(after, denyListEntry),
                     previousName: before.name,
                     name: after.name,
+                    instagramFollowerRefresh: instagramAccountChanged
+                        ? instagramAccount === null
+                            ? { status: "cleared" as const }
+                            : instagramFollowerResolution
+                        : null,
                 };
             },
         );
@@ -1210,7 +1262,11 @@ export const PUT = withRequestMetrics(async function PUT(req: NextRequest) {
 
         revalidateComedianSurfaces(result.previousName);
         revalidateComedianSurfaces(result.name);
-        return NextResponse.json({ ok: true, comedian: result.comedian });
+        return NextResponse.json({
+            ok: true,
+            comedian: result.comedian,
+            instagramFollowerRefresh: result.instagramFollowerRefresh,
+        });
     } catch (error) {
         console.error("Admin comedians PUT failed:", error);
         return NextResponse.json({ error: "Update failed" }, { status: 500 });

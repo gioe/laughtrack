@@ -73,7 +73,7 @@ export default function AdminComedianManager({ comedians }: Props) {
     const [query, setQuery] = useState("");
     const [sort, setSort] = useState<SortMode>("name-asc");
     const [blockedOnly, setBlockedOnly] = useState(false);
-    const [parentOnly, setParentOnly] = useState(false);
+    const [canonicalOnly, setCanonicalOnly] = useState(false);
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(50);
     const [pendingRowIds, setPendingRowIds] = useState<Set<number>>(
@@ -100,7 +100,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                 if (row.parent !== null || row.isBlocked !== blockedOnly) {
                     return false;
                 }
-                if (parentOnly && !childrenByParentId.has(row.id)) {
+                if (canonicalOnly && row.parent !== null) {
                     return false;
                 }
                 if (!normalizedQuery) return true;
@@ -121,7 +121,7 @@ export default function AdminComedianManager({ comedians }: Props) {
             }),
             sort,
         );
-    }, [blockedOnly, childrenByParentId, parentOnly, query, rows, sort]);
+    }, [blockedOnly, canonicalOnly, childrenByParentId, query, rows, sort]);
 
     const totalPages = Math.max(1, Math.ceil(visibleRows.length / pageSize));
     const currentPage = clampAdminPage(page, totalPages);
@@ -130,7 +130,7 @@ export default function AdminComedianManager({ comedians }: Props) {
 
     useEffect(() => {
         setPage(1);
-    }, [blockedOnly, pageSize, parentOnly, query, sort]);
+    }, [blockedOnly, canonicalOnly, pageSize, query, sort]);
 
     useEffect(() => {
         setRows(comedians);
@@ -237,13 +237,13 @@ export default function AdminComedianManager({ comedians }: Props) {
                     <label className="inline-flex h-10 items-center gap-2 rounded-md border border-strong bg-surface-elevated px-3 font-dmSans text-body font-semibold text-foreground">
                         <input
                             type="checkbox"
-                            checked={parentOnly}
+                            checked={canonicalOnly}
                             onChange={(event) =>
-                                setParentOnly(event.target.checked)
+                                setCanonicalOnly(event.target.checked)
                             }
                             className="h-4 w-4 accent-copper-dark"
                         />
-                        Parent
+                        Canonical
                     </label>
                 </div>
             </AdminToolbar>

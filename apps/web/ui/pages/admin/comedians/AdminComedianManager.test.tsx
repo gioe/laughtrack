@@ -33,6 +33,8 @@ const comedians: AdminComedianListItem[] = [
         website: "https://parent.example.com",
         websiteScrapingUrl: "https://parent.example.com/tour",
         instagramAccount: "parentcomic",
+        instagramFollowers: 123456,
+        instagramFollowersRefreshedAt: "2026-07-20T12:00:00.000Z",
         tiktokAccount: null,
         youtubeAccount: null,
         youtubeChannelId: "UC-parent",
@@ -115,6 +117,8 @@ const comedians: AdminComedianListItem[] = [
         website: null,
         websiteScrapingUrl: null,
         instagramAccount: null,
+        instagramFollowers: null,
+        instagramFollowersRefreshedAt: null,
         tiktokAccount: null,
         youtubeAccount: null,
         youtubeChannelId: null,
@@ -285,6 +289,13 @@ describe("AdminComedianManager", () => {
         expect(
             screen.getAllByLabelText("Comedian Instagram handle").length,
         ).toBeGreaterThan(0);
+        fireEvent.click(
+            screen.getAllByRole("button", { name: /^Social media/ })[1],
+        );
+        expect(
+            screen.getByLabelText("Instagram followers for Parent Comic")
+                .textContent,
+        ).toContain("123,456");
         const youtubeGroup = screen.getAllByRole("group", {
             name: "YouTube",
         })[0];
@@ -802,7 +813,7 @@ describe("AdminComedianManager", () => {
         await waitFor(() => expect(mocks.refresh).toHaveBeenCalled());
     });
 
-    it("updates parent counts and Parent-filter membership when setting a relationship", async () => {
+    it("updates parent counts and canonical-filter membership when setting a relationship", async () => {
         render(<AdminComedianManager comedians={comedians} />);
         expandAllRows();
 
@@ -836,7 +847,7 @@ describe("AdminComedianManager", () => {
             expect(summaryValue(parentRow!, "Children")).toBe("Children1");
         });
 
-        fireEvent.click(screen.getByRole("checkbox", { name: "Parent" }));
+        fireEvent.click(screen.getByRole("checkbox", { name: "Canonical" }));
         expect(
             screen.getByRole("heading", { level: 2, name: "Parent Comic" }),
         ).toBeTruthy();
@@ -924,7 +935,7 @@ describe("AdminComedianManager", () => {
         });
     });
 
-    it("updates parent counts and Parent-filter membership when removing a relationship", async () => {
+    it("updates parent counts and canonical-filter membership when removing a relationship", async () => {
         vi.mocked(global.fetch).mockResolvedValueOnce({
             ok: true,
             json: async () => ({
@@ -964,13 +975,19 @@ describe("AdminComedianManager", () => {
             expect(summaryValue(parentRow!, "Children")).toBe("Children0");
         });
 
-        fireEvent.click(screen.getByRole("checkbox", { name: "Parent" }));
+        fireEvent.click(screen.getByRole("checkbox", { name: "Canonical" }));
         expect(
-            screen.queryByRole("heading", {
+            screen.getByRole("heading", {
                 level: 2,
                 name: "Parent Comic",
             }),
-        ).toBeNull();
+        ).toBeTruthy();
+        expect(
+            screen.getByRole("heading", {
+                level: 2,
+                name: "Alias Comic",
+            }),
+        ).toBeTruthy();
     });
 
     it("reconciles fresh canonical props without discarding an unsaved row draft", async () => {
@@ -1095,6 +1112,12 @@ describe("AdminComedianManager", () => {
                 comedian: {
                     ...comedians[1],
                     instagramAccount: "aliashandle",
+                    instagramFollowers: 123_456,
+                    instagramFollowersRefreshedAt: "2026-07-21T12:00:00.000Z",
+                },
+                instagramFollowerRefresh: {
+                    status: "resolved",
+                    followerCount: 123_456,
                 },
             }),
         });
@@ -1102,7 +1125,15 @@ describe("AdminComedianManager", () => {
         await waitFor(() =>
             expect(screen.queryByText("Updating comedian")).toBeNull(),
         );
-        expect(screen.getByText("Alias Comic record saved.")).toBeTruthy();
+        expect(
+            screen.getByText(
+                "Alias Comic record saved. Instagram followers: 123,456.",
+            ),
+        ).toBeTruthy();
+        expect(
+            screen.getByLabelText("Instagram followers for Alias Comic")
+                .textContent,
+        ).toContain("123,456");
     });
 
     it("saves social media handles via the inline record edit", async () => {
@@ -1688,26 +1719,43 @@ describe("AdminComedianManager", () => {
         expect(screen.queryByText("Alias Comic")).toBeNull();
     });
 
-    it("hides children from the top level by default", () => {
+    it("includes standalone comedians in the canonical filter", () => {
         render(
             <AdminComedianManager
                 comedians={[
-                    comedians[0],
+                    { ...comedians[0], childCount: 1 },
                     {
                         ...comedians[1],
                         parent: { id: 1, name: "Parent Comic" },
+                    },
+                    {
+                        ...comedians[1],
+                        id: 3,
+                        uuid: "uuid-3",
+                        name: "Solo Comic",
                     },
                 ]}
             />,
         );
 
+        // Child profiles remain nested beneath their canonical comedian.
         expect(
             screen.getByRole("heading", { level: 2, name: "Parent Comic" }),
         ).toBeTruthy();
         expect(
             screen.queryByRole("heading", { level: 2, name: "Alias Comic" }),
         ).toBeNull();
-        // Child suppression remains implicit; Parent narrows the top-level rows.
-        expect(screen.getByRole("checkbox", { name: "Parent" })).toBeTruthy();
+        expect(
+            screen.getByRole("heading", { level: 2, name: "Solo Comic" }),
+        ).toBeTruthy();
+
+        fireEvent.click(screen.getByRole("checkbox", { name: "Canonical" }));
+
+        expect(
+            screen.getByRole("heading", { level: 2, name: "Parent Comic" }),
+        ).toBeTruthy();
+        expect(
+            screen.getByRole("heading", { level: 2, name: "Solo Comic" }),
+        ).toBeTruthy();
     });
 });

@@ -8,6 +8,9 @@ vi.mock("@/auth", () => ({
 vi.mock("@/lib/db", () => ({
     db: {
         $transaction: vi.fn(),
+        comedian: {
+            findUnique: vi.fn(),
+        },
         userProfile: {
             findFirst: vi.fn(),
         },
@@ -22,15 +25,24 @@ vi.mock("@/lib/youtube/youtubeChannelResolver", () => ({
     resolveYouTubeChannelId: vi.fn(),
 }));
 
+vi.mock("@/lib/instagram/instagramFollowerResolver", () => ({
+    resolveInstagramFollowerCount: vi.fn(),
+}));
+
 import { PATCH, POST, PUT } from "./route";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { resolveYouTubeChannelId } from "@/lib/youtube/youtubeChannelResolver";
+import { resolveInstagramFollowerCount } from "@/lib/instagram/instagramFollowerResolver";
 
 const mockAuth = vi.mocked(auth);
 const mockTransaction = vi.mocked(db.$transaction);
+const mockCurrentComedian = vi.mocked(db.comedian.findUnique);
 const mockFindUserProfile = vi.mocked(db.userProfile.findFirst);
 const mockResolveYouTubeChannelId = vi.mocked(resolveYouTubeChannelId);
+const mockResolveInstagramFollowerCount = vi.mocked(
+    resolveInstagramFollowerCount,
+);
 
 const adminSession = {
     profile: {
@@ -57,6 +69,8 @@ function makeComedian(overrides: Record<string, unknown> = {}) {
         website: null,
         websiteScrapingUrl: null,
         instagramAccount: null,
+        instagramFollowers: null,
+        instagramFollowersRefreshedAt: null,
         tiktokAccount: null,
         youtubeAccount: null,
         youtubeChannelId: null,
@@ -81,11 +95,16 @@ beforeEach(() => {
         reason: "not_found",
         sourceUrl: "https://www.youtube.com/@missing",
     });
+    mockResolveInstagramFollowerCount.mockResolvedValue({
+        status: "failed",
+        detail: "unavailable",
+    });
     mockFindUserProfile.mockResolvedValue({
         id: "profile-1",
         userid: "user-1",
         role: "admin",
     } as never);
+    mockCurrentComedian.mockResolvedValue({ instagramAccount: null } as never);
 });
 
 describe("PATCH /api/admin/comedians", () => {
@@ -521,6 +540,110 @@ describe("PUT /api/admin/comedians", () => {
         expect(body.comedian.websiteScrapingUrl).toBe(
             "https://alias.example.com/tour",
         );
+    });
+
+    it("refreshes and persists Instagram followers when the handle changes", async () => {
+        mockAuth.mockResolvedValue(adminSession as never);
+        mockResolveInstagramFollowerCount.mockResolvedValueOnce({
+            status: "resolved",
+            followerCount: 123_456,
+        });
+        const update = vi.fn();
+        const findUnique = vi
+            .fn()
+            .mockResolvedValueOnce(makeComedian())
+            .mockResolvedValueOnce(null)
+            .mockResolvedValueOnce(
+                makeComedian({
+                    instagramAccount: "aliascomic",
+                    instagramFollowers: 123_456,
+                    instagramFollowersRefreshedAt: new Date(
+                        "2026-07-21T12:00:00.000Z",
+                    ),
+                }),
+            );
+        mockTransaction.mockImplementation(async (callback) =>
+            callback({
+                comedian: { findUnique, update },
+                $queryRaw: vi.fn().mockResolvedValueOnce([]),
+                adminActionAudit: { create: vi.fn() },
+            } as never),
+        );
+
+        const res = await PUT(
+            makeRequest({
+                comedianId: 2,
+                name: "Alias Comic",
+                instagramAccount: "@aliascomic",
+            }),
+        );
+        const body = await res.json();
+
+        expect(res.status).toBe(200);
+        expect(mockResolveInstagramFollowerCount).toHaveBeenCalledWith(
+            "aliascomic",
+        );
+        expect(update).toHaveBeenCalledWith({
+            where: { id: 2 },
+            data: expect.objectContaining({
+                instagramAccount: "aliascomic",
+                instagramFollowers: 123_456,
+                instagramFollowersRefreshedAt: expect.any(Date),
+            }),
+        });
+        expect(body.comedian.instagramFollowers).toBe(123_456);
+        expect(body.instagramFollowerRefresh).toEqual({
+            status: "resolved",
+            followerCount: 123_456,
+        });
+    });
+
+    it("clears stale Instagram followers when a changed handle cannot be refreshed", async () => {
+        mockAuth.mockResolvedValue(adminSession as never);
+        mockCurrentComedian.mockResolvedValueOnce({
+            instagramAccount: "oldhandle",
+        } as never);
+        const update = vi.fn();
+        const findUnique = vi
+            .fn()
+            .mockResolvedValueOnce(
+                makeComedian({
+                    instagramAccount: "oldhandle",
+                    instagramFollowers: 500,
+                    instagramFollowersRefreshedAt: new Date(),
+                }),
+            )
+            .mockResolvedValueOnce(null)
+            .mockResolvedValueOnce(
+                makeComedian({ instagramAccount: "newhandle" }),
+            );
+        mockTransaction.mockImplementation(async (callback) =>
+            callback({
+                comedian: { findUnique, update },
+                $queryRaw: vi.fn().mockResolvedValueOnce([]),
+                adminActionAudit: { create: vi.fn() },
+            } as never),
+        );
+
+        const res = await PUT(
+            makeRequest({
+                comedianId: 2,
+                name: "Alias Comic",
+                instagramAccount: "newhandle",
+            }),
+        );
+        const body = await res.json();
+
+        expect(res.status).toBe(200);
+        expect(update).toHaveBeenCalledWith({
+            where: { id: 2 },
+            data: expect.objectContaining({
+                instagramAccount: "newhandle",
+                instagramFollowers: null,
+                instagramFollowersRefreshedAt: null,
+            }),
+        });
+        expect(body.instagramFollowerRefresh.status).toBe("failed");
     });
 
     it("resolves a YouTube channel ID when a YouTube account is saved without one", async () => {

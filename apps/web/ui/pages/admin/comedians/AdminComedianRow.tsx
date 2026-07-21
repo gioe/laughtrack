@@ -400,40 +400,41 @@ export function AdminComedianRow({
         setStatus({ kind: "idle" });
         setPendingId(row.id);
 
-        let body: { comedian: AdminComedianListItem };
+        let body: {
+            comedian: AdminComedianListItem;
+            instagramFollowerRefresh?:
+                | { status: "resolved"; followerCount: number }
+                | { status: "not_found" }
+                | { status: "failed"; detail: string }
+                | { status: "cleared" }
+                | null;
+        };
         try {
-            body = await adminRequest<{ comedian: AdminComedianListItem }>(
-                "/api/admin/comedians",
-                {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        comedianId: row.id,
-                        name,
-                        website: normalizedUrl(
-                            profileFieldValue(row, "website"),
-                        ),
-                        websiteScrapingUrl: normalizedUrl(
-                            profileFieldValue(row, "websiteScrapingUrl"),
-                        ),
-                        instagramAccount: normalizedUrl(
-                            profileFieldValue(row, "instagramAccount"),
-                        ),
-                        tiktokAccount: normalizedUrl(
-                            profileFieldValue(row, "tiktokAccount"),
-                        ),
-                        youtubeAccount: normalizedUrl(
-                            profileFieldValue(row, "youtubeAccount"),
-                        ),
-                        youtubeChannelId: normalizedUrl(
-                            profileFieldValue(row, "youtubeChannelId"),
-                        ),
-                        linktree: normalizedUrl(
-                            profileFieldValue(row, "linktree"),
-                        ),
-                    }),
-                },
-            );
+            body = await adminRequest<typeof body>("/api/admin/comedians", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    comedianId: row.id,
+                    name,
+                    website: normalizedUrl(profileFieldValue(row, "website")),
+                    websiteScrapingUrl: normalizedUrl(
+                        profileFieldValue(row, "websiteScrapingUrl"),
+                    ),
+                    instagramAccount: normalizedUrl(
+                        profileFieldValue(row, "instagramAccount"),
+                    ),
+                    tiktokAccount: normalizedUrl(
+                        profileFieldValue(row, "tiktokAccount"),
+                    ),
+                    youtubeAccount: normalizedUrl(
+                        profileFieldValue(row, "youtubeAccount"),
+                    ),
+                    youtubeChannelId: normalizedUrl(
+                        profileFieldValue(row, "youtubeChannelId"),
+                    ),
+                    linktree: normalizedUrl(profileFieldValue(row, "linktree")),
+                }),
+            });
         } catch (error) {
             setPendingId(null);
             setStatus({
@@ -456,7 +457,18 @@ export function AdminComedianRow({
             delete next[row.id];
             return next;
         });
-        setStatus({ kind: "ok", message: `${row.name} record saved.` });
+        const instagramRefresh = body.instagramFollowerRefresh;
+        setStatus({
+            kind: instagramRefresh?.status === "failed" ? "error" : "ok",
+            message:
+                instagramRefresh?.status === "resolved"
+                    ? `${row.name} record saved. Instagram followers: ${instagramRefresh.followerCount.toLocaleString()}.`
+                    : instagramRefresh?.status === "not_found"
+                      ? `${row.name} record saved, but the Instagram account was not found.`
+                      : instagramRefresh?.status === "failed"
+                        ? `${row.name} record saved, but Instagram followers could not be refreshed.`
+                        : `${row.name} record saved.`,
+        });
         startTransition(() => router.refresh());
     }
 
@@ -1353,6 +1365,20 @@ export function AdminComedianRow({
                                             placeholder="handle (without @)"
                                             className="rounded-md border border-input bg-background px-3 py-2 font-dmSans text-body normal-case tracking-normal text-foreground outline-none placeholder:text-muted-foreground focus:border-copper focus:ring-2 focus:ring-copper/30"
                                         />
+                                        <span
+                                            aria-label={`Instagram followers for ${row.name}`}
+                                            className="font-dmSans text-caption font-normal normal-case tracking-normal text-muted-foreground"
+                                        >
+                                            Followers:{" "}
+                                            {row.instagramFollowers === null
+                                                ? "Not available"
+                                                : row.instagramFollowers.toLocaleString()}
+                                            {row.instagramFollowersRefreshedAt
+                                                ? ` · Refreshed ${new Date(
+                                                      row.instagramFollowersRefreshedAt,
+                                                  ).toLocaleString()}`
+                                                : ""}
+                                        </span>
                                     </label>
                                     <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-muted-foreground">
                                         TikTok

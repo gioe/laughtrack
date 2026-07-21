@@ -50,6 +50,7 @@
         "date-fns": "^3.6.0",
         "date-fns-tz": "^3.2.0",
         "framer-motion": "^12.6.3",
+        "https-proxy-agent": "^7.0.6",
         "jsonwebtoken": "^9.0.2",
         "jwt-decode": "^4.0.0",
         "lucide-react": "^0.471.0",
