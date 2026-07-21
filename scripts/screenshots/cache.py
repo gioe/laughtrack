@@ -23,7 +23,7 @@ except ModuleNotFoundError:  # Direct execution: python scripts/screenshots/cach
     from manifest import ContractError, load_catalog  # type: ignore[no-redef]
 
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 PROVENANCE_FILENAME = ".screenshot-cache-provenance.json"
 SHARED_INPUTS = ("screenshots/catalog.json", "scripts/screenshots/fixture_server.py")
 PLATFORM_ROOTS = {"ios": "ios", "android": "android"}
@@ -133,7 +133,12 @@ def render_inputs(repo_root: Path, platform: str) -> list[dict[str, Any]]:
 
 
 def profile_cache_key(
-    *, repo_root: Path, platform: str, profile_id: str, profile_config: Mapping[str, Any]
+    *,
+    repo_root: Path,
+    platform: str,
+    profile_id: str,
+    profile_config: Mapping[str, Any],
+    native_environment: Mapping[str, Any],
 ) -> tuple[str, list[dict[str, Any]]]:
     inputs = render_inputs(repo_root.resolve(), platform)
     payload = {
@@ -141,6 +146,7 @@ def profile_cache_key(
         "platform": platform,
         "profile_id": profile_id,
         "profile_config": profile_config,
+        "native_environment": native_environment,
         "inputs": inputs,
     }
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
@@ -162,6 +168,16 @@ def _profile_configurations(raw: str, profile_ids: Sequence[str]) -> dict[str, M
     if missing:
         raise ContractError([f"profile config missing object(s): {', '.join(missing)}"])
     return {profile_id: value[profile_id] for profile_id in profile_ids}
+
+
+def _native_environment(raw: str) -> Mapping[str, Any]:
+    try:
+        value = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise ContractError([f"invalid native environment JSON: {exc}"]) from exc
+    if not isinstance(value, dict) or not value:
+        raise ContractError(["native environment JSON must be a non-empty object"])
+    return value
 
 
 def _profile_files(profile_id: str, catalog_path: Path, root: Path) -> list[tuple[str, Path]]:
@@ -238,6 +254,7 @@ def _validated_entry(
     catalog_path: Path,
     *,
     profile_config: Mapping[str, Any],
+    native_environment: Mapping[str, Any],
     inputs: Sequence[Mapping[str, Any]],
 ) -> dict[str, Any] | None:
     metadata_path = entry / "metadata.json"
@@ -259,6 +276,7 @@ def _validated_entry(
             )
             or not isinstance(metadata.get("capture_git_dirty"), bool)
             or metadata.get("profile_config") != profile_config
+            or metadata.get("native_environment") != native_environment
             or metadata.get("inputs") != list(inputs)
             or not isinstance(metadata.get("images"), list)
         ):
@@ -320,6 +338,7 @@ def plan_cache(
     repo_root: Path,
     catalog_path: Path,
     profile_configs: Mapping[str, Mapping[str, Any]],
+    native_environment: Mapping[str, Any],
     force_fresh: bool = False,
 ) -> dict[str, Any]:
     catalog = load_catalog(catalog_path)
@@ -333,6 +352,7 @@ def plan_cache(
             platform=platform,
             profile_id=profile_id,
             profile_config=profile_configs[profile_id],
+            native_environment=native_environment,
         )
         entry = _cache_entry(cache_root, platform, profile_id, key)
         metadata = (
@@ -343,6 +363,7 @@ def plan_cache(
                 profile_id,
                 catalog_path,
                 profile_config=profile_configs[profile_id],
+                native_environment=native_environment,
                 inputs=inputs,
             )
         )
@@ -388,6 +409,7 @@ def store_profile(
     repo_root: Path,
     catalog_path: Path,
     profile_config: Mapping[str, Any],
+    native_environment: Mapping[str, Any],
     expected_key: str,
 ) -> dict[str, Any]:
     layout = PROFILE_LAYOUTS.get(profile_id)
@@ -395,7 +417,11 @@ def store_profile(
         raise ContractError([f"profile {profile_id} does not belong to {platform}"])
     validate_capture_profile(profile_id=profile_id, source_root=capture_root, catalog_path=catalog_path)
     key, inputs = profile_cache_key(
-        repo_root=repo_root, platform=platform, profile_id=profile_id, profile_config=profile_config
+        repo_root=repo_root,
+        platform=platform,
+        profile_id=profile_id,
+        profile_config=profile_config,
+        native_environment=native_environment,
     )
     if key != expected_key:
         raise ContractError(
@@ -429,6 +455,7 @@ def store_profile(
             platform=platform,
             profile_id=profile_id,
             profile_config=profile_config,
+            native_environment=native_environment,
         )
         if final_key != expected_key or final_inputs != inputs:
             raise ContractError(
@@ -443,6 +470,7 @@ def store_profile(
             "profile_id": profile_id,
             "cache_key": key,
             "profile_config": profile_config,
+            "native_environment": native_environment,
             "captured_at": captured_at,
             "capture_git_revision": revision,
             "capture_git_dirty": dirty,
@@ -457,6 +485,7 @@ def store_profile(
                 profile_id,
                 catalog_path,
                 profile_config=profile_config,
+                native_environment=native_environment,
                 inputs=inputs,
             )
             is None
@@ -500,6 +529,7 @@ def _build_parser() -> argparse.ArgumentParser:
         command_parser.add_argument("--cache-root", type=Path, required=True)
         command_parser.add_argument("--repo-root", type=Path, default=Path.cwd())
         command_parser.add_argument("--profile-config-json", required=True)
+        command_parser.add_argument("--native-environment-json", required=True)
         if command == "plan":
             command_parser.add_argument("--force-fresh", action="store_true")
         else:
@@ -514,6 +544,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         catalog = load_catalog(args.catalog)
         profile_ids = [p["id"] for p in catalog["profiles"] if p["platform"] == args.platform]
         configs = _profile_configurations(args.profile_config_json, profile_ids)
+        native_environment = _native_environment(args.native_environment_json)
         if args.command == "plan":
             result = plan_cache(
                 platform=args.platform,
@@ -522,6 +553,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 repo_root=args.repo_root,
                 catalog_path=args.catalog,
                 profile_configs=configs,
+                native_environment=native_environment,
                 force_fresh=args.force_fresh,
             )
         else:
@@ -533,6 +565,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 repo_root=args.repo_root,
                 catalog_path=args.catalog,
                 profile_config=configs[args.profile_id],
+                native_environment=native_environment,
                 expected_key=args.expected_key,
             )
         print(json.dumps(result, sort_keys=True))
