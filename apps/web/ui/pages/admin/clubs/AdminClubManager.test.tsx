@@ -160,7 +160,7 @@ beforeEach(() => {
             queueMicrotask(() => this.onload?.());
         }
     }
-    (global as unknown as { Image: typeof FakeImage }).Image = FakeImage;
+    vi.stubGlobal("Image", FakeImage);
 });
 
 afterEach(() => {
@@ -569,8 +569,7 @@ describe("AdminClubManager", () => {
                 queueMicrotask(() => this.onload?.());
             }
         }
-        (global as unknown as { Image: typeof WrongShapeImage }).Image =
-            WrongShapeImage;
+        vi.stubGlobal("Image", WrongShapeImage);
 
         render(<AdminClubManager groups={groups} />);
         fireEvent.click(getFunnyBoneGroupToggle());
@@ -582,8 +581,12 @@ describe("AdminClubManager", () => {
             { target: { files: [file] } },
         );
 
-        expect((await screen.findByRole("alert")).textContent).toContain(
-            "Headshot is 400x600",
+        await waitFor(
+            () =>
+                expect(screen.getByRole("alert").textContent).toContain(
+                    "Headshot is 400x600",
+                ),
+            { timeout: 5_000 },
         );
         expect(
             screen.queryByAltText("Funny Bone Boston pending thumbnail"),
