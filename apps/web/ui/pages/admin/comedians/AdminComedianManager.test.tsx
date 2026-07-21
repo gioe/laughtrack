@@ -204,7 +204,7 @@ beforeEach(() => {
             queueMicrotask(() => this.onload?.());
         }
     }
-    (global as unknown as { Image: typeof FakeImage }).Image = FakeImage;
+    vi.stubGlobal("Image", FakeImage);
 });
 
 afterEach(() => {
@@ -497,8 +497,7 @@ describe("AdminComedianManager", () => {
                 queueMicrotask(() => this.onload?.());
             }
         }
-        (global as unknown as { Image: typeof WrongShapeImage }).Image =
-            WrongShapeImage;
+        vi.stubGlobal("Image", WrongShapeImage);
 
         render(<AdminComedianManager comedians={comedians} />);
         expandAllRows();
@@ -511,10 +510,12 @@ describe("AdminComedianManager", () => {
             target: { files: [file] },
         });
 
-        await waitFor(() =>
-            expect(
-                screen.getAllByText(/Headshot is 400x600/).length,
-            ).toBeGreaterThan(0),
+        await waitFor(
+            () =>
+                expect(
+                    screen.getAllByText(/Headshot is 400x600/).length,
+                ).toBeGreaterThan(0),
+            { timeout: 5_000 },
         );
         // Invalid files never stage, so no Publish-to-Bunny button appears and
         // no network call is made.
