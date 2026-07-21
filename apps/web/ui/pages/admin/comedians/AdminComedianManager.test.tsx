@@ -839,15 +839,21 @@ describe("AdminComedianManager", () => {
 
         await waitFor(() => {
             expect(
-                screen.queryByRole("heading", {
+                screen.getByRole("heading", {
                     level: 2,
                     name: "Alias Comic",
                 }),
-            ).toBeNull();
+            ).toBeTruthy();
             expect(summaryValue(parentRow!, "Children")).toBe("Children1");
         });
 
         fireEvent.click(screen.getByRole("checkbox", { name: "Canonical" }));
+        expect(
+            screen.queryByRole("heading", {
+                level: 2,
+                name: "Alias Comic",
+            }),
+        ).toBeNull();
         expect(
             screen.getByRole("heading", { level: 2, name: "Parent Comic" }),
         ).toBeTruthy();
@@ -866,23 +872,31 @@ describe("AdminComedianManager", () => {
             />,
         );
 
-        // Top-level list shows only the parent — the child is hidden.
+        // The unfiltered list shows every record, including the child profile.
         expect(
             screen.getByRole("heading", { level: 2, name: "Parent Comic" }),
         ).toBeTruthy();
         expect(
-            screen.queryByRole("heading", { level: 2, name: "Alias Comic" }),
-        ).toBeNull();
+            screen.getByRole("heading", { level: 2, name: "Alias Comic" }),
+        ).toBeTruthy();
 
         // Expand the parent and the Relationship sub-dropdown.
         expandAllRows();
-        fireEvent.click(screen.getByRole("button", { name: /^Relationship/ }));
+        const parentRow = screen
+            .getByRole("heading", { level: 2, name: "Parent Comic" })
+            .closest("li");
+        expect(parentRow).not.toBeNull();
+        fireEvent.click(
+            within(parentRow!).getByRole("button", {
+                name: /^Relationship/,
+            }),
+        );
 
-        expect(screen.getByText("Current parent")).toBeTruthy();
-        expect(screen.getByText("Find parent")).toBeTruthy();
-        expect(screen.getByText("Alias Comic")).toBeTruthy();
+        expect(within(parentRow!).getByText("Current parent")).toBeTruthy();
+        expect(within(parentRow!).getByText("Find parent")).toBeTruthy();
+        expect(within(parentRow!).getByText("Alias Comic")).toBeTruthy();
         expect(
-            screen.getByRole("button", { name: "Remove parent" }),
+            within(parentRow!).getByRole("button", { name: "Remove parent" }),
         ).toBeTruthy();
         expect(screen.queryByRole("button", { name: /^Children/ })).toBeNull();
     });
@@ -910,9 +924,24 @@ describe("AdminComedianManager", () => {
             />,
         );
         expandAllRows();
-        fireEvent.click(screen.getByRole("button", { name: /^Relationship/ }));
+        const childRow = screen
+            .getByRole("heading", { level: 2, name: "Alias Comic" })
+            .closest("li");
+        expect(childRow).not.toBeNull();
+        fireEvent.click(
+            within(childRow!).getByRole("button", { name: /^Relationship/ }),
+        );
 
-        fireEvent.click(screen.getByRole("button", { name: "Remove parent" }));
+        fireEvent.click(
+            within(childRow!).getByRole("button", {
+                name: "Clear parent for Alias Comic",
+            }),
+        );
+        fireEvent.click(
+            within(childRow!).getByRole("button", {
+                name: "Save relationship",
+            }),
+        );
 
         await waitFor(() => {
             expect(global.fetch).toHaveBeenCalledWith(
@@ -962,8 +991,23 @@ describe("AdminComedianManager", () => {
         expect(parentRow).not.toBeNull();
         expect(summaryValue(parentRow!, "Children")).toBe("Children1");
 
-        fireEvent.click(screen.getByRole("button", { name: /^Relationship/ }));
-        fireEvent.click(screen.getByRole("button", { name: "Remove parent" }));
+        const childRow = screen
+            .getByRole("heading", { level: 2, name: "Alias Comic" })
+            .closest("li");
+        expect(childRow).not.toBeNull();
+        fireEvent.click(
+            within(childRow!).getByRole("button", { name: /^Relationship/ }),
+        );
+        fireEvent.click(
+            within(childRow!).getByRole("button", {
+                name: "Clear parent for Alias Comic",
+            }),
+        );
+        fireEvent.click(
+            within(childRow!).getByRole("button", {
+                name: "Save relationship",
+            }),
+        );
 
         await waitFor(() => {
             expect(
@@ -1706,7 +1750,7 @@ describe("AdminComedianManager", () => {
 
         expect(screen.queryByRole("combobox", { name: "Blocked" })).toBeNull();
         expect(screen.getByText("Parent Comic")).toBeTruthy();
-        expect(screen.queryByText("Alias Comic")).toBeNull();
+        expect(screen.getByText("Alias Comic")).toBeTruthy();
 
         fireEvent.click(screen.getByRole("checkbox", { name: "Blocked" }));
 
@@ -1716,7 +1760,7 @@ describe("AdminComedianManager", () => {
         fireEvent.click(screen.getByRole("checkbox", { name: "Blocked" }));
 
         expect(screen.getByText("Parent Comic")).toBeTruthy();
-        expect(screen.queryByText("Alias Comic")).toBeNull();
+        expect(screen.getByText("Alias Comic")).toBeTruthy();
     });
 
     it("limits the canonical filter to active comedians without parents", () => {
@@ -1747,21 +1791,26 @@ describe("AdminComedianManager", () => {
             />,
         );
 
-        // Child profiles remain nested beneath their canonical comedian.
+        // With no mode selected, every record contributes to the result count.
         expect(
             screen.getByRole("heading", { level: 2, name: "Parent Comic" }),
         ).toBeTruthy();
         expect(
-            screen.queryByRole("heading", { level: 2, name: "Alias Comic" }),
-        ).toBeNull();
+            screen.getByRole("heading", { level: 2, name: "Alias Comic" }),
+        ).toBeTruthy();
         expect(
             screen.getByRole("heading", { level: 2, name: "Solo Comic" }),
         ).toBeTruthy();
+        expect(
+            screen.getByRole("heading", { level: 2, name: "Blocked Comic" }),
+        ).toBeTruthy();
+        expect(screen.getAllByText("1-4 of 4 comedians")).toHaveLength(2);
 
         fireEvent.click(screen.getByRole("checkbox", { name: "Blocked" }));
         expect(
             screen.getByRole("heading", { level: 2, name: "Blocked Comic" }),
         ).toBeTruthy();
+        expect(screen.getAllByText("1-1 of 1 comedians")).toHaveLength(2);
 
         fireEvent.click(screen.getByRole("checkbox", { name: "Canonical" }));
 
@@ -1777,6 +1826,7 @@ describe("AdminComedianManager", () => {
                 name: "Blocked Comic",
             }),
         ).toBeNull();
+        expect(screen.getAllByText("1-2 of 2 comedians")).toHaveLength(2);
         expect(
             (
                 screen.getByRole("checkbox", {

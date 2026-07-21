@@ -97,14 +97,10 @@ export default function AdminComedianManager({ comedians }: Props) {
         const normalizedQuery = query.trim().toLowerCase();
         return sortRows(
             rows.filter((row) => {
-                if (row.parent !== null) {
+                if (blockedOnly && !row.isBlocked) {
                     return false;
                 }
-                if (
-                    canonicalOnly
-                        ? row.isBlocked
-                        : row.isBlocked !== blockedOnly
-                ) {
+                if (canonicalOnly && (row.isBlocked || row.parent !== null)) {
                     return false;
                 }
                 if (!normalizedQuery) return true;
