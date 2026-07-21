@@ -22,11 +22,18 @@ Both native lanes persist successful captures in a content-addressed cache by
 profile. An unchanged run materializes every validated profile without building
 or launching native tests. Cache keys hash the current contents of each
 platform's render-affecting app and UI-test sources, the shared catalog and
-fixture server, and that profile's adapter configuration. Relevant tracked,
-untracked, modified, or deleted files invalidate the affected platform while
-documentation, storefront projections, and changes to the other platform do
-not. Cached entries are reused only when their canonical filenames, dimensions,
-and recorded SHA-256 image hashes still validate.
+fixture server, that profile's adapter configuration, and a normalized native
+environment identity. The iOS identity records the active Xcode version/build
+and the selected simulator runtime identifier/version/build. The Android
+identity records the JDK version/vendor/VM/architecture, installed Build Tools
+package/revision, and selected AVD system-image package/revision/API/tag/ABI.
+Host-specific paths, simulator UDIDs, emulator serials, device state, and other
+volatile metadata are deliberately excluded. Relevant tracked, untracked,
+modified, or deleted files—or changes to that platform's native identity—
+invalidate only the affected platform. Documentation, storefront projections,
+and changes to the other platform do not. Cached entries are reused only when
+their native identity, canonical filenames, dimensions, and recorded SHA-256
+image hashes still validate.
 
 Run `scripts/screenshots/regenerate-comparisons --force-fresh` to bypass every
 profile cache for one run. Set `LAUGHTRACK_SCREENSHOT_CACHE_PATH` to relocate the
@@ -41,8 +48,9 @@ By default, output is written to
 `apps/screenshot-comparisons/YYYY-MM-DD-current-catalog/`. Use `--output-root`
 to select another directory or `--no-open` for a headless run.
 
-The command requires a booted iOS simulator, an authorized Android emulator or
-device, Homebrew Ruby, Python 3, and ImageMagick.
+The command requires an installed iOS simulator runtime, a local Android AVD,
+Homebrew Ruby, Python 3, and ImageMagick. Each lane boots its selected native
+target only when one or more profiles miss the cache.
 
 iOS build-settings discovery uses a 30-second timeout by default. Override it
 for slower environments by prefixing the command, for example:
