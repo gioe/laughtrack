@@ -616,6 +616,7 @@ struct AppShellView: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel(primitive.title)
                 .accessibilityIdentifier(LaughTrackViewTestID.primitiveFilterButton(primitive.rawValue))
+                .id(primitive.id)
             }
         }
     }
@@ -663,13 +664,33 @@ struct AppShellView: View {
     }
 
     private var primitiveFilterScroller: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            primitiveFilterRow
-                .padding(.horizontal, 1)
-                .padding(.vertical, 1)
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                primitiveFilterRow
+                    .padding(.horizontal, 1)
+                    .padding(.vertical, 1)
+            }
+            .onAppear {
+                scrollToSelectedPrimitive(using: proxy, animated: false)
+            }
+            .onChange(of: shellState.selectedPrimitive) { _ in
+                scrollToSelectedPrimitive(using: proxy, animated: true)
+            }
         }
         .accessibilityIdentifier(LaughTrackViewTestID.primitiveFilterScroller)
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func scrollToSelectedPrimitive(using proxy: ScrollViewProxy, animated: Bool) {
+        guard let primitive = shellState.selectedPrimitive else { return }
+
+        if animated {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                proxy.scrollTo(primitive.id, anchor: .trailing)
+            }
+        } else {
+            proxy.scrollTo(primitive.id, anchor: .trailing)
+        }
     }
 }
 

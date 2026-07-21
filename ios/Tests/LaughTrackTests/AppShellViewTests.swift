@@ -133,6 +133,22 @@ struct AppShellViewTests {
         #expect(!source.contains(".background(theme.laughTrackTokens.colors.canvas.opacity(0.97))"))
     }
 
+    @Test("primitive filter reveals the selected chip while preserving marquee styling")
+    func primitiveFilterRevealsSelectedChip() throws {
+        let source = try String(contentsOf: appShellViewSourceURL(), encoding: .utf8)
+
+        #expect(source.contains("ScrollViewReader { proxy in"))
+        #expect(source.contains(".id(primitive.id)"))
+        #expect(source.contains("scrollToSelectedPrimitive(using: proxy, animated: false)"))
+        #expect(source.contains(".onChange(of: shellState.selectedPrimitive)"))
+        #expect(source.contains("scrollToSelectedPrimitive(using: proxy, animated: true)"))
+        #expect(source.contains("proxy.scrollTo(primitive.id, anchor: .trailing)"))
+        #expect(source.contains(".font(.system(size: 12, weight: .heavy, design: .rounded))"))
+        #expect(source.contains(".tracking(1.4)"))
+        #expect(source.contains("Capsule()"))
+        #expect(source.contains("dash: [0.5, 5]"))
+    }
+
     @Test("generic page backgrounds inherit the shell atmosphere")
     func genericPageBackgroundsInheritShellAtmosphere() throws {
         let source = try String(contentsOf: laughTrackThemeSourceURL(), encoding: .utf8)
