@@ -1,0 +1,295 @@
+from __future__ import annotations
+
+import json
+import shutil
+import struct
+import subprocess
+import zlib
+from pathlib import Path
+
+import pytest
+
+from scripts.screenshots.cache import (
+    PROVENANCE_FILENAME,
+    plan_cache,
+    profile_cache_key,
+    store_profile,
+)
+from scripts.screenshots.export import PROFILE_DIMENSIONS, PROFILE_LAYOUTS
+from scripts.screenshots.manifest import load_catalog
+
+REPO_ROOT = Path(__file__).resolve().parents[3]
+CATALOG_PATH = REPO_ROOT / "screenshots" / "catalog.json"
+
+
+def _png_chunk(kind: bytes, data: bytes) -> bytes:
+    return struct.pack(">I", len(data)) + kind + data + struct.pack(">I", zlib.crc32(kind + data))
+
+
+def _write_png(path: Path, width: int, height: int) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    ihdr = struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0)
+    path.write_bytes(b"\x89PNG\r\n\x1a\n" + _png_chunk(b"IHDR", ihdr) + _png_chunk(b"IEND", b""))
+
+
+def _git(repo: Path, *args: str) -> None:
+    subprocess.run(["git", "-C", str(repo), *args], check=True, capture_output=True)
+
+
+def _make_repo(tmp_path: Path) -> Path:
+    repo = tmp_path / "repo"
+    (repo / "ios").mkdir(parents=True)
+    (repo / "android").mkdir()
+    (repo / "docs").mkdir()
+    (repo / "screenshots").mkdir()
+    (repo / "scripts" / "screenshots").mkdir(parents=True)
+    (repo / "ios" / "App.swift").write_text("ios one\n", encoding="utf-8")
+    (repo / "android" / "App.kt").write_text("android one\n", encoding="utf-8")
+    (repo / "docs" / "screenshots.md").write_text("docs one\n", encoding="utf-8")
+    shutil.copy2(CATALOG_PATH, repo / "screenshots" / "catalog.json")
+    (repo / "scripts" / "screenshots" / "fixture_server.py").write_text("FIXTURE = 1\n", encoding="utf-8")
+    _git(repo, "init", "-q")
+    _git(repo, "config", "user.email", "tests@example.com")
+    _git(repo, "config", "user.name", "Screenshot Cache Tests")
+    _git(repo, "add", ".")
+    _git(repo, "commit", "-qm", "fixtures")
+    return repo
+
+
+def _make_capture(root: Path, profile_id: str) -> None:
+    catalog = load_catalog(CATALOG_PATH)
+    layout = PROFILE_LAYOUTS[profile_id]
+    for scenario in catalog["scenarios"]:
+        _write_png(
+            root / layout["source_directory"] / f"{layout['source_prefix']}{scenario['id']}.png",
+            *PROFILE_DIMENSIONS[profile_id],
+        )
+
+
+def _config(profile_id: str, device: str = "default") -> dict[str, dict[str, str]]:
+    platform = "ios" if profile_id.startswith("ios_") else "android"
+    catalog = load_catalog(CATALOG_PATH)
+    return {
+        profile["id"]: {"device": device, "locale": "en-US"}
+        for profile in catalog["profiles"]
+        if profile["platform"] == platform
+    }
+
+
+def test_unchanged_profile_is_reused_and_materialized_with_capture_provenance(tmp_path: Path) -> None:
+    repo = _make_repo(tmp_path)
+    capture = tmp_path / "capture"
+    cache = tmp_path / "cache"
+    _make_capture(capture, "ios_phone")
+    stored = store_profile(
+        platform="ios",
+        profile_id="ios_phone",
+        capture_root=capture,
+        cache_root=cache,
+        repo_root=repo,
+        catalog_path=CATALOG_PATH,
+        profile_config=_config("ios_phone")["ios_phone"],
+    )
+    shutil.rmtree(capture)
+
+    result = plan_cache(
+        platform="ios",
+        capture_root=capture,
+        cache_root=cache,
+        repo_root=repo,
+        catalog_path=CATALOG_PATH,
+        profile_configs=_config("ios_phone"),
+    )
+
+    assert result["reused_profiles"] == ["ios_phone"]
+    assert result["pending_profiles"] == ["ios_large_tablet"]
+    assert all(path.is_file() for _, path in _profile_paths(capture, "ios_phone"))
+    provenance = json.loads((capture / PROVENANCE_FILENAME).read_text(encoding="utf-8"))
+    record = provenance["profiles"]["ios_phone"]
+    assert record["source"] == "cache"
+    assert record["cache_key"] == stored["key"]
+    assert record["captured_at"] <= record["materialized_at"]
+    assert record["capture_git_dirty"] is False
+
+
+def _profile_paths(root: Path, profile_id: str) -> list[tuple[str, Path]]:
+    catalog = load_catalog(CATALOG_PATH)
+    layout = PROFILE_LAYOUTS[profile_id]
+    return [
+        (
+            scenario["id"],
+            root / layout["source_directory"] / f"{layout['source_prefix']}{scenario['id']}.png",
+        )
+        for scenario in catalog["scenarios"]
+    ]
+
+
+def test_relevant_modified_untracked_deleted_and_profile_config_inputs_change_key(tmp_path: Path) -> None:
+    repo = _make_repo(tmp_path)
+    base, _ = profile_cache_key(
+        repo_root=repo, platform="ios", profile_id="ios_phone", profile_config={"device": "A"}
+    )
+    (repo / "ios" / "App.swift").write_text("ios two\n", encoding="utf-8")
+    modified, _ = profile_cache_key(
+        repo_root=repo, platform="ios", profile_id="ios_phone", profile_config={"device": "A"}
+    )
+    (repo / "ios" / "NewView.swift").write_text("new\n", encoding="utf-8")
+    untracked, _ = profile_cache_key(
+        repo_root=repo, platform="ios", profile_id="ios_phone", profile_config={"device": "A"}
+    )
+    (repo / "ios" / "App.swift").unlink()
+    deleted, inputs = profile_cache_key(
+        repo_root=repo, platform="ios", profile_id="ios_phone", profile_config={"device": "A"}
+    )
+    configured, _ = profile_cache_key(
+        repo_root=repo, platform="ios", profile_id="ios_phone", profile_config={"device": "B"}
+    )
+
+    assert len({base, modified, untracked, deleted, configured}) == 5
+    assert {item["path"]: item["state"] for item in inputs}["ios/App.swift"] == "deleted"
+    assert {item["path"] for item in inputs} >= {"ios/NewView.swift", "screenshots/catalog.json"}
+
+
+def test_docs_storefront_outputs_and_other_platform_do_not_invalidate_profile(tmp_path: Path) -> None:
+    repo = _make_repo(tmp_path)
+    config = {"device": "A"}
+    ios_key, _ = profile_cache_key(
+        repo_root=repo, platform="ios", profile_id="ios_phone", profile_config=config
+    )
+    (repo / "docs" / "screenshots.md").write_text("docs two\n", encoding="utf-8")
+    (repo / "android" / "App.kt").write_text("android two\n", encoding="utf-8")
+    output = repo / "ios" / "fastlane" / "screenshots" / "en-US" / "output.png"
+    output.parent.mkdir(parents=True)
+    output.write_bytes(b"storefront")
+
+    unchanged, _ = profile_cache_key(
+        repo_root=repo, platform="ios", profile_id="ios_phone", profile_config=config
+    )
+    android_key, _ = profile_cache_key(
+        repo_root=repo, platform="android", profile_id="android_phone", profile_config=config
+    )
+    (repo / "ios" / "App.swift").write_text("ios two\n", encoding="utf-8")
+    android_unchanged, _ = profile_cache_key(
+        repo_root=repo, platform="android", profile_id="android_phone", profile_config=config
+    )
+
+    assert unchanged == ios_key
+    assert android_unchanged == android_key
+
+
+def test_corrupt_cached_image_is_rejected_instead_of_materialized(tmp_path: Path) -> None:
+    repo = _make_repo(tmp_path)
+    capture = tmp_path / "capture"
+    cache = tmp_path / "cache"
+    _make_capture(capture, "android_phone")
+    stored = store_profile(
+        platform="android",
+        profile_id="android_phone",
+        capture_root=capture,
+        cache_root=cache,
+        repo_root=repo,
+        catalog_path=CATALOG_PATH,
+        profile_config=_config("android_phone")["android_phone"],
+    )
+    entry = Path(stored["cache_entry"])
+    next((entry / "capture").rglob("*.png")).write_bytes(b"corrupt")
+    shutil.rmtree(capture)
+
+    result = plan_cache(
+        platform="android",
+        capture_root=capture,
+        cache_root=cache,
+        repo_root=repo,
+        catalog_path=CATALOG_PATH,
+        profile_configs=_config("android_phone"),
+    )
+
+    assert result["reused_profiles"] == []
+    assert result["pending_profiles"] == ["android_phone", "android_small_tablet", "android_large_tablet"]
+    assert not capture.exists()
+
+    _make_capture(capture, "android_phone")
+    repaired = store_profile(
+        platform="android",
+        profile_id="android_phone",
+        capture_root=capture,
+        cache_root=cache,
+        repo_root=repo,
+        catalog_path=CATALOG_PATH,
+        profile_config=_config("android_phone")["android_phone"],
+    )
+    assert repaired["cache_entry"] == str(entry)
+
+
+def test_force_fresh_bypasses_valid_cache_without_materializing(tmp_path: Path) -> None:
+    repo = _make_repo(tmp_path)
+    capture = tmp_path / "capture"
+    cache = tmp_path / "cache"
+    _make_capture(capture, "ios_phone")
+    store_profile(
+        platform="ios",
+        profile_id="ios_phone",
+        capture_root=capture,
+        cache_root=cache,
+        repo_root=repo,
+        catalog_path=CATALOG_PATH,
+        profile_config=_config("ios_phone")["ios_phone"],
+    )
+    shutil.rmtree(capture)
+
+    result = plan_cache(
+        platform="ios",
+        capture_root=capture,
+        cache_root=cache,
+        repo_root=repo,
+        catalog_path=CATALOG_PATH,
+        profile_configs=_config("ios_phone"),
+        force_fresh=True,
+    )
+
+    assert result["force_fresh"] is True
+    assert result["reused_profiles"] == []
+    assert result["pending_profiles"] == ["ios_phone", "ios_large_tablet"]
+    assert not capture.exists()
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("captured_at", "not-a-timestamp"),
+        ("profile_config", {"device": "wrong"}),
+        ("inputs", []),
+    ],
+)
+def test_invalid_cached_provenance_is_rejected(tmp_path: Path, field: str, value: object) -> None:
+    repo = _make_repo(tmp_path)
+    capture = tmp_path / "capture"
+    cache = tmp_path / "cache"
+    _make_capture(capture, "ios_phone")
+    stored = store_profile(
+        platform="ios",
+        profile_id="ios_phone",
+        capture_root=capture,
+        cache_root=cache,
+        repo_root=repo,
+        catalog_path=CATALOG_PATH,
+        profile_config=_config("ios_phone")["ios_phone"],
+    )
+    metadata_path = Path(stored["cache_entry"]) / "metadata.json"
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    metadata[field] = value
+    metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
+    shutil.rmtree(capture)
+
+    result = plan_cache(
+        platform="ios",
+        capture_root=capture,
+        cache_root=cache,
+        repo_root=repo,
+        catalog_path=CATALOG_PATH,
+        profile_configs=_config("ios_phone"),
+    )
+
+    assert result["reused_profiles"] == []
+    assert result["pending_profiles"] == ["ios_phone", "ios_large_tablet"]
+    assert not capture.exists()

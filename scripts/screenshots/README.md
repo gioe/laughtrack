@@ -18,13 +18,24 @@ artwork across both platforms. Its declared contract lives in
 `screenshots/catalog.json`, and every completed run manifest records the
 contract fingerprint so fixture drift is rejected during collection/export.
 
-Android capture is resumable by profile. If an emulator or instrumentation run
-fails after a profile completes, rerun the same command with the same output
-root. The lane reuses only profile directories whose canonical filenames and
-PNG dimensions still validate, captures the remaining profiles, and retains the
-resume cache until the final 51-image Android manifest and Play projection both
-succeed. A changed Git revision, relevant uncommitted source file, screenshot
-catalog, or profile configuration invalidates the cache automatically.
+Both native lanes persist successful captures in a content-addressed cache by
+profile. An unchanged run materializes every validated profile without building
+or launching native tests. Cache keys hash the current contents of each
+platform's render-affecting app and UI-test sources, the shared catalog and
+fixture server, and that profile's adapter configuration. Relevant tracked,
+untracked, modified, or deleted files invalidate the affected platform while
+documentation, storefront projections, and changes to the other platform do
+not. Cached entries are reused only when their canonical filenames, dimensions,
+and recorded SHA-256 image hashes still validate.
+
+Run `scripts/screenshots/regenerate-comparisons --force-fresh` to bypass every
+profile cache for one run. Set `LAUGHTRACK_SCREENSHOT_CACHE_PATH` to relocate the
+cache; by default it lives under the gitignored
+`apps/screenshot-comparisons/.profile-cache/` directory.
+
+Completed-run manifests keep physical capture provenance separate from the
+current run's materialization time. Cached images therefore retain their
+original capture timestamp and revision instead of appearing newly captured.
 
 By default, output is written to
 `apps/screenshot-comparisons/YYYY-MM-DD-current-catalog/`. Use `--output-root`

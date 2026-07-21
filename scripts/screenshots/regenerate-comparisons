@@ -13,6 +13,7 @@ repo_root="$(cd "$script_dir/../.." && pwd)"
 default_output_root="$repo_root/apps/screenshot-comparisons/$(date +%Y-%m-%d)-current-catalog"
 output_root="$default_output_root"
 open_sheets=true
+force_fresh=false
 
 usage() {
   cat <<'EOF'
@@ -25,6 +26,7 @@ them. This command never uploads screenshots to either store.
 Options:
   --output-root PATH  Destination directory (default: dated comparison folder)
   --no-open           Generate contact sheets without opening them
+  --force-fresh       Bypass all validated native profile caches
   -h, --help          Show this help
 EOF
 }
@@ -43,6 +45,10 @@ while (($#)); do
     ;;
   --no-open)
     open_sheets=false
+    shift
+    ;;
+  --force-fresh)
+    force_fresh=true
     shift
     ;;
   -h | --help)
@@ -81,10 +87,16 @@ android_run="$output_root/runs/android"
 mkdir -p "$output_root/runs"
 
 echo "Capturing iOS comparison matrix..."
-"$repo_root/ios/bin/lane" screenshots "run_root:$ios_run"
+ios_lane_args=(screenshots "run_root:$ios_run")
+android_lane_args=(screenshots "run_root:$android_run")
+if [[ "$force_fresh" == true ]]; then
+  ios_lane_args+=(force_fresh:true)
+  android_lane_args+=(force_fresh:true)
+fi
+"$repo_root/ios/bin/lane" "${ios_lane_args[@]}"
 
 echo "Capturing Android comparison matrix..."
-"$repo_root/android/bin/lane" screenshots "run_root:$android_run"
+"$repo_root/android/bin/lane" "${android_lane_args[@]}"
 
 echo "Validating persistent manifests..."
 python3 "$repo_root/scripts/screenshots/manifest.py" validate-run \
