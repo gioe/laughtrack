@@ -95,13 +95,15 @@ struct ComediansDiscoveryView: View {
                         VStack(alignment: .leading, spacing: theme.spacing.md) {
                             SearchResultsSummary(count: result.items.count, total: result.total)
 
-                            ForEach(result.items, id: \.uuid) { comedian in
-                                ComedianRow(
-                                    comedian: comedian,
-                                    apiClient: apiClient,
-                                    feedbackMessage: $feedbackMessage,
-                                    openDetail: { coordinator.open(.comedian(comedian.id)) }
-                                )
+                            AdaptiveSearchResults(spacing: theme.spacing.md) {
+                                ForEach(result.items, id: \.uuid) { comedian in
+                                    ComedianRow(
+                                        comedian: comedian,
+                                        apiClient: apiClient,
+                                        feedbackMessage: $feedbackMessage,
+                                        openDetail: { coordinator.open(.comedian(comedian.id)) }
+                                    )
+                                }
                             }
 
                             if let paginationFailure = model.paginationFailure {

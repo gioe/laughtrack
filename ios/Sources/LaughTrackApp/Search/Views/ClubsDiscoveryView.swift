@@ -80,17 +80,19 @@ struct ClubsDiscoveryView: View {
                         VStack(alignment: .leading, spacing: theme.spacing.md) {
                             SearchResultsSummary(count: result.items.count, total: result.total)
 
-                            ForEach(Array(result.items.enumerated()), id: \.offset) { _, club in
-                                Button {
-                                    if let id = club.id {
-                                        coordinator.open(.club(id))
+                            AdaptiveSearchResults(spacing: theme.spacing.md) {
+                                ForEach(Array(result.items.enumerated()), id: \.offset) { _, club in
+                                    Button {
+                                        if let id = club.id {
+                                            coordinator.open(.club(id))
+                                        }
+                                    } label: {
+                                        ClubRow(club: club)
                                     }
-                                } label: {
-                                    ClubRow(club: club)
+                                    .buttonStyle(.plain)
+                                    .disabled(club.id == nil)
+                                    .accessibilityIdentifier(club.id.map(LaughTrackViewTestID.clubsSearchResultButton) ?? "laughtrack.clubs-search.result-missing-id")
                                 }
-                                .buttonStyle(.plain)
-                                .disabled(club.id == nil)
-                                .accessibilityIdentifier(club.id.map(LaughTrackViewTestID.clubsSearchResultButton) ?? "laughtrack.clubs-search.result-missing-id")
                             }
 
                             if let paginationFailure = model.paginationFailure {

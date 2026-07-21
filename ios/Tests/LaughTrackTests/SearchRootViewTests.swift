@@ -12,6 +12,13 @@ import LaughTrackCore
 @Suite("Search root")
 @MainActor
 struct SearchRootViewTests {
+    @Test("search results select list and grid compositions from width class")
+    func searchResultsSelectAdaptiveComposition() {
+        #expect(SearchResultsComposition.resolve(horizontalSizeClass: .compact) == .compactList)
+        #expect(SearchResultsComposition.resolve(horizontalSizeClass: .regular) == .regularGrid)
+        #expect(SearchResultsComposition.resolve(horizontalSizeClass: nil) == .compactList)
+    }
+
     @Test("search root model keeps unified search state out of primitive model defaults")
     func searchRootModelUsesUnifiedSearchState() async throws {
         let model = SearchRootModel()

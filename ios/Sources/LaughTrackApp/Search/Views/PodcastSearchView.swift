@@ -61,12 +61,14 @@ struct PodcastSearchView: View {
                         VStack(alignment: .leading, spacing: theme.spacing.md) {
                             SearchResultsSummary(count: result.items.count, total: result.total)
 
-                            ForEach(result.items) { podcast in
-                                PodcastSearchRow(
-                                    podcast: podcast,
-                                    apiClient: apiClient,
-                                    feedbackMessage: $feedbackMessage
-                                )
+                            AdaptiveSearchResults(spacing: theme.spacing.md) {
+                                ForEach(result.items) { podcast in
+                                    PodcastSearchRow(
+                                        podcast: podcast,
+                                        apiClient: apiClient,
+                                        feedbackMessage: $feedbackMessage
+                                    )
+                                }
                             }
 
                             if let paginationFailure = model.paginationFailure {

@@ -171,3 +171,45 @@ struct SearchRootView: View {
         )
     }
 }
+
+enum SearchResultsComposition: Equatable {
+    case compactList
+    case regularGrid
+
+    static func resolve(horizontalSizeClass: UserInterfaceSizeClass?) -> Self {
+        horizontalSizeClass == .regular ? .regularGrid : .compactList
+    }
+}
+
+struct AdaptiveSearchResults<Content: View>: View {
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+    private let spacing: CGFloat
+    private let content: Content
+
+    init(spacing: CGFloat, @ViewBuilder content: () -> Content) {
+        self.spacing = spacing
+        self.content = content()
+    }
+
+    @ViewBuilder
+    var body: some View {
+        switch SearchResultsComposition.resolve(horizontalSizeClass: horizontalSizeClass) {
+        case .compactList:
+            VStack(alignment: .leading, spacing: spacing) {
+                content
+            }
+        case .regularGrid:
+            LazyVGrid(columns: regularColumns, alignment: .leading, spacing: spacing) {
+                content
+            }
+        }
+    }
+
+    private var regularColumns: [GridItem] {
+        [
+            GridItem(.flexible(), spacing: spacing, alignment: .top),
+            GridItem(.flexible(), spacing: spacing, alignment: .top),
+        ]
+    }
+}

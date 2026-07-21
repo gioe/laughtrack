@@ -3,6 +3,18 @@ import Testing
 
 @Suite("Search favorite row layout")
 struct SearchFavoriteRowLayoutTests {
+    @Test("entity search result rows use the shared adaptive composition")
+    func entitySearchRowsUseSharedAdaptiveComposition() throws {
+        for fileName in [
+            "ComediansDiscoveryView.swift",
+            "ClubsDiscoveryView.swift",
+            "PodcastSearchView.swift",
+        ] {
+            let source = try String(contentsOf: searchViewSourceURL(named: fileName), encoding: .utf8)
+            #expect(source.contains("AdaptiveSearchResults(spacing: theme.spacing.md)"))
+        }
+    }
+
     @Test("comedian search favorite button is integrated into the entity row")
     func comedianSearchFavoriteButtonIsIntegratedIntoEntityRow() throws {
         let source = try String(contentsOf: searchViewSourceURL(named: "ComediansDiscoveryView.swift"), encoding: .utf8)

@@ -17,6 +17,7 @@ struct ShowsListViewPresentationTests {
         #expect(rowBlock.contains("ShowRow("))
         #expect(rowBlock.contains("let standoutShowID = ShowsListStandout.resolveID(in: result.items)"))
         #expect(rowBlock.contains("show.id == standoutShowID ? .compactTicketProminent : .compactTicket"))
+        #expect(rowBlock.contains("AdaptiveSearchResults(spacing: theme.spacing.md)"))
     }
 
     @Test("standout resolver picks the single highest positive popularity score")

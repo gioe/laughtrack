@@ -133,17 +133,19 @@ struct ShowsListView: View {
                             SearchResultsSummary(count: result.items.count, total: result.total)
 
                             let standoutShowID = ShowsListStandout.resolveID(in: result.items)
-                            ForEach(result.items, id: \.id) { show in
-                                Button {
-                                    coordinator.open(.show(show.id))
-                                } label: {
-                                    ShowRow(
-                                        show: show,
-                                        presentation: show.id == standoutShowID ? .compactTicketProminent : .compactTicket
-                                    )
+                            AdaptiveSearchResults(spacing: theme.spacing.md) {
+                                ForEach(result.items, id: \.id) { show in
+                                    Button {
+                                        coordinator.open(.show(show.id))
+                                    } label: {
+                                        ShowRow(
+                                            show: show,
+                                            presentation: show.id == standoutShowID ? .compactTicketProminent : .compactTicket
+                                        )
+                                    }
+                                    .buttonStyle(.plain)
+                                    .accessibilityIdentifier(LaughTrackViewTestID.showsSearchResultButton(show.id))
                                 }
-                                .buttonStyle(.plain)
-                                .accessibilityIdentifier(LaughTrackViewTestID.showsSearchResultButton(show.id))
                             }
 
                             if let paginationFailure = model.paginationFailure {
