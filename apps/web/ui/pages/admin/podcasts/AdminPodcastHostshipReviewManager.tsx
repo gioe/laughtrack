@@ -565,7 +565,7 @@ export default function AdminPodcastHostshipReviewManager({
 
     if (groups.length === 0) {
         return (
-            <div className="rounded-md border border-copper/20 bg-white p-6 font-dmSans text-body text-soft-charcoal">
+            <div className="rounded-md border border-copper/20 bg-surface-elevated p-6 font-dmSans text-body text-muted-foreground">
                 No podcast hostship review records found.
             </div>
         );

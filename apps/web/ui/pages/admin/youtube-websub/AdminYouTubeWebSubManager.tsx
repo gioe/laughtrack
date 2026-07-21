@@ -58,24 +58,24 @@ function EventViewer({ events }: { events: YouTubeWebSubEventRow[] }) {
     }
 
     return (
-        <section className="rounded-md border border-copper/20 bg-white p-5">
-            <h2 className="font-urbanist-bold text-h3 text-cedar">
+        <section className="rounded-md border border-copper/20 bg-surface-elevated p-5">
+            <h2 className="font-urbanist-bold text-h3 text-foreground">
                 Received events
             </h2>
-            <p className="mt-1 font-dmSans text-caption text-soft-charcoal">
+            <p className="mt-1 font-dmSans text-caption text-muted-foreground">
                 Most recent WebSub notifications. Open one to inspect its raw
                 payload, parsed IDs, verification result, and suppression
                 reason.
             </p>
             {events.length === 0 ? (
-                <p className="mt-4 font-dmSans text-body text-soft-charcoal">
+                <p className="mt-4 font-dmSans text-body text-muted-foreground">
                     No events received yet.
                 </p>
             ) : (
                 <div className="mt-4 overflow-x-auto">
                     <table className="w-full border-collapse font-dmSans text-body">
                         <thead>
-                            <tr className="border-b border-copper/15 text-left text-caption uppercase text-soft-charcoal">
+                            <tr className="border-b border-copper/15 text-left text-caption uppercase text-muted-foreground">
                                 <th className="px-2 py-2">Received</th>
                                 <th className="px-2 py-2">Comedian</th>
                                 <th className="px-2 py-2">Video</th>
@@ -91,32 +91,32 @@ function EventViewer({ events }: { events: YouTubeWebSubEventRow[] }) {
                                     key={event.id}
                                     className="border-b border-copper/10 align-top"
                                 >
-                                    <td className="px-2 py-3 text-caption text-soft-charcoal">
+                                    <td className="px-2 py-3 text-caption text-muted-foreground">
                                         {formatDateTime(event.receivedAt)}
                                     </td>
                                     <td className="px-2 py-3">
-                                        <div className="text-cedar">
+                                        <div className="text-foreground">
                                             {event.comedianName ?? "—"}
                                         </div>
-                                        <div className="font-mono text-caption text-soft-charcoal">
+                                        <div className="font-mono text-caption text-muted-foreground">
                                             {event.youtubeChannelId ?? "—"}
                                         </div>
                                     </td>
                                     <td className="px-2 py-3">
-                                        <div className="text-cedar">
+                                        <div className="text-foreground">
                                             {event.videoTitle ?? "—"}
                                         </div>
-                                        <div className="font-mono text-caption text-soft-charcoal">
+                                        <div className="font-mono text-caption text-muted-foreground">
                                             {event.youtubeVideoId ?? "—"}
                                         </div>
                                     </td>
-                                    <td className="px-2 py-3 text-cedar">
+                                    <td className="px-2 py-3 text-foreground">
                                         {event.eventStatus}
                                     </td>
-                                    <td className="px-2 py-3 text-cedar">
+                                    <td className="px-2 py-3 text-foreground">
                                         {event.verificationStatus ?? "—"}
                                     </td>
-                                    <td className="px-2 py-3 text-cedar">
+                                    <td className="px-2 py-3 text-foreground">
                                         {event.suppressionReason ?? "—"}
                                     </td>
                                     <td className="px-2 py-3">
@@ -124,7 +124,7 @@ function EventViewer({ events }: { events: YouTubeWebSubEventRow[] }) {
                                             type="button"
                                             onClick={() => openEvent(event.id)}
                                             disabled={loadingId === event.id}
-                                            className="rounded-md border border-copper/35 bg-white px-3 py-1 font-dmSans text-caption font-semibold text-cedar hover:bg-copper/10 disabled:opacity-60"
+                                            className="rounded-md border border-copper/35 bg-surface-elevated px-3 py-1 font-dmSans text-caption font-semibold text-foreground hover:bg-copper/10 disabled:opacity-60"
                                         >
                                             {loadingId === event.id
                                                 ? "Loading…"
@@ -160,9 +160,9 @@ function EventDetailPanel({
     onClose: () => void;
 }) {
     return (
-        <div className="mt-5 rounded-md border border-copper/25 bg-coconut-cream/40 p-4">
+        <div className="mt-5 rounded-md border border-copper/25 bg-surface-muted/40 p-4">
             <div className="flex items-center justify-between">
-                <h3 className="font-urbanist-bold text-body text-cedar">
+                <h3 className="font-urbanist-bold text-body text-foreground">
                     Event #{event.id} payload
                 </h3>
                 <button
@@ -194,12 +194,12 @@ function EventDetailPanel({
                 />
             </dl>
             <div className="mt-3">
-                <p className="font-dmSans text-caption font-semibold uppercase text-soft-charcoal">
+                <p className="font-dmSans text-caption font-semibold uppercase text-muted-foreground">
                     Raw payload (XML)
                 </p>
                 <pre
                     data-testid="event-payload-xml"
-                    className="mt-1 max-h-72 overflow-auto rounded bg-cedar/95 p-3 font-mono text-caption text-coconut-cream"
+                    className="mt-1 max-h-72 overflow-auto rounded bg-cedar/95 p-3 font-mono text-caption text-foreground"
                 >
                     {event.payloadXml}
                 </pre>
@@ -211,10 +211,10 @@ function EventDetailPanel({
 function DetailItem({ label, value }: { label: string; value: string | null }) {
     return (
         <div>
-            <dt className="font-semibold uppercase text-soft-charcoal">
+            <dt className="font-semibold uppercase text-muted-foreground">
                 {label}
             </dt>
-            <dd className="font-mono text-cedar">{value ?? "—"}</dd>
+            <dd className="font-mono text-foreground">{value ?? "—"}</dd>
         </div>
     );
 }

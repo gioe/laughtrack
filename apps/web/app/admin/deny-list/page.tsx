@@ -55,9 +55,7 @@ export default async function AdminDenyListPage(props: {
 
     const entries = rows.map(serializeRow);
     const entryLabel = `${entries.length.toLocaleString()} entr${entries.length === 1 ? "y" : "ies"}`;
-    const summary = query
-        ? `${entryLabel} matching "${query}"`
-        : entryLabel;
+    const summary = query ? `${entryLabel} matching "${query}"` : entryLabel;
 
     return (
         <div className="space-y-6">
@@ -70,16 +68,16 @@ export default async function AdminDenyListPage(props: {
 
             <form
                 method="get"
-                className="grid gap-3 rounded-md border border-copper/20 bg-white p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end"
+                className="grid gap-3 rounded-md border border-copper/20 bg-surface-elevated p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end"
             >
-                <label className="grid gap-1 font-dmSans text-body font-semibold text-cedar">
+                <label className="grid gap-1 font-dmSans text-body font-semibold text-foreground">
                     Search
                     <input
                         type="search"
                         name="q"
                         defaultValue={query}
                         placeholder="Search name, reason, actor"
-                        className="w-full rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                        className="w-full rounded-md border border-input bg-background px-3 py-2 font-dmSans text-body text-foreground outline-none placeholder:text-muted-foreground focus:border-copper focus:ring-2 focus:ring-copper/30"
                     />
                 </label>
                 <Button type="submit" variant="roundedShimmer">

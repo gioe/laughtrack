@@ -15,16 +15,16 @@ function SummaryCard({
     icon: typeof UserRound;
 }) {
     return (
-        <div className="rounded-md border border-copper/20 bg-white p-4">
+        <div className="rounded-md border border-copper/20 bg-surface-elevated p-4">
             <div className="flex items-center gap-3">
                 <span className="flex h-10 w-10 items-center justify-center rounded-md bg-copper/10 text-copper-dark">
                     <Icon className="h-5 w-5" />
                 </span>
                 <div>
-                    <p className="font-dmSans text-caption font-semibold uppercase text-soft-charcoal">
+                    <p className="font-dmSans text-caption font-semibold uppercase text-muted-foreground">
                         {label}
                     </p>
-                    <p className="font-urbanist-bold text-h3 text-cedar">
+                    <p className="font-urbanist-bold text-h3 text-foreground">
                         {value}
                     </p>
                 </div>

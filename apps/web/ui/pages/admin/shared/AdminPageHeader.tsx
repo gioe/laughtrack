@@ -16,14 +16,14 @@ export default function AdminPageHeader({
             <p className="font-dmSans text-caption font-semibold uppercase text-copper-dark">
                 {eyebrow}
             </p>
-            <h1 className="mt-1 font-chivo text-h1 text-cedar">{title}</h1>
+            <h1 className="mt-1 font-chivo text-h1 text-foreground">{title}</h1>
             {description && (
-                <p className="mt-2 max-w-3xl font-dmSans text-body text-soft-charcoal">
+                <p className="mt-2 max-w-3xl font-dmSans text-body text-muted-foreground">
                     {description}
                 </p>
             )}
             {summary && (
-                <p className="mt-2 font-dmSans text-body text-soft-charcoal">
+                <p className="mt-2 font-dmSans text-body text-muted-foreground">
                     {summary}
                 </p>
             )}

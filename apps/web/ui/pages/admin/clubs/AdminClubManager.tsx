@@ -355,7 +355,7 @@ export default function AdminClubManager({ groups }: Props) {
                             placeholder="Name, city, chain, scraper, status"
                         />
                     </div>
-                    <div className="font-dmSans text-body text-soft-charcoal">
+                    <div className="font-dmSans text-body text-muted-foreground">
                         {flatClubCount.toLocaleString()} clubs ·{" "}
                         {scrapedShowCount.toLocaleString()} scraped shows
                     </div>

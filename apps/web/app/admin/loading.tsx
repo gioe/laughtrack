@@ -11,7 +11,7 @@ function SkeletonLine({ className }: { className: string }) {
 export default function AdminLoading() {
     return (
         <div role="status" aria-live="polite" className="space-y-6">
-            <div className="flex items-center gap-3 rounded-md border border-copper/20 bg-white px-4 py-3 font-dmSans text-body font-semibold text-cedar shadow-sm">
+            <div className="flex items-center gap-3 rounded-md border border-copper/20 bg-surface-elevated px-4 py-3 font-dmSans text-body font-semibold text-foreground shadow-card">
                 <Loader2 className="h-5 w-5 animate-spin text-copper-dark" />
                 Loading admin section
             </div>
@@ -26,7 +26,7 @@ export default function AdminLoading() {
                 {Array.from({ length: 6 }, (_, index) => (
                     <div
                         key={index}
-                        className="rounded-md border border-copper/20 bg-white p-4"
+                        className="rounded-md border border-copper/20 bg-surface-elevated p-4"
                     >
                         <div className="flex items-center gap-3">
                             <SkeletonLine className="h-10 w-10" />
@@ -39,9 +39,9 @@ export default function AdminLoading() {
                 ))}
             </div>
 
-            <div className="overflow-hidden rounded-md border border-copper/20 bg-white">
+            <div className="overflow-hidden rounded-md border border-copper/20 bg-surface-elevated">
                 <div className="border-b border-copper/20 bg-cedar px-4 py-3">
-                    <SkeletonLine className="h-7 w-28 bg-coconut-cream/25" />
+                    <SkeletonLine className="h-7 w-28 bg-surface-muted/25" />
                 </div>
                 <div className="divide-y divide-copper/15">
                     {Array.from({ length: 4 }, (_, index) => (

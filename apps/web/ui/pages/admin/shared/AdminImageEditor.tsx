@@ -81,9 +81,9 @@ export function AdminImageEditor({
     const fileInputId = `${id}-file`;
 
     return (
-        <div className="space-y-3 rounded-md border border-copper/20 bg-white/80 p-3">
+        <div className="space-y-3 rounded-md border border-copper/20 bg-surface-elevated/80 p-3">
             <div className="flex items-center justify-between gap-2">
-                <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-muted-foreground">
                     {title}
                 </div>
                 {currentImage ? (
@@ -113,7 +113,7 @@ export function AdminImageEditor({
             <div className="grid gap-1">
                 <label
                     htmlFor={urlInputId}
-                    className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal"
+                    className="font-dmSans text-caption font-semibold uppercase tracking-wide text-muted-foreground"
                 >
                     {urlInput.label}
                 </label>
@@ -127,13 +127,13 @@ export function AdminImageEditor({
                             urlInput.onChange(event.target.value)
                         }
                         placeholder={urlInput.placeholder}
-                        className="w-full min-w-0 flex-1 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                        className="w-full min-w-0 flex-1 rounded-md border border-input bg-background px-3 py-2 font-dmSans text-body normal-case tracking-normal text-foreground outline-none placeholder:text-muted-foreground focus:border-copper focus:ring-2 focus:ring-copper/30"
                     />
                     <Button
                         type="button"
                         variant="outline"
                         aria-label={urlInput.saveAriaLabel}
-                        className="shrink-0 gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                        className="shrink-0 gap-2 border-copper/40 bg-surface-elevated text-foreground hover:bg-copper/10 disabled:border-strong disabled:bg-surface-muted disabled:text-muted-foreground disabled:opacity-100"
                         disabled={disabled || !urlInput.canSave}
                         onClick={urlInput.onSave}
                     >
@@ -159,19 +159,19 @@ export function AdminImageEditor({
                 <Button
                     type="button"
                     variant="outline"
-                    className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                    className="gap-2 border-copper/40 bg-surface-elevated text-foreground hover:bg-copper/10 disabled:border-strong disabled:bg-surface-muted disabled:text-muted-foreground disabled:opacity-100"
                     disabled={disabled}
                     onClick={() => fileInputRef.current?.click()}
                 >
                     <Upload className="h-4 w-4" aria-hidden="true" />
                     {fileInput.chooseLabel}
                 </Button>
-                <span className="font-dmSans text-caption normal-case tracking-normal text-soft-charcoal">
+                <span className="font-dmSans text-caption normal-case tracking-normal text-muted-foreground">
                     {fileInput.guidance}
                 </span>
             </div>
             {fileInput.stagedFile ? (
-                <div className="inline-flex max-w-full flex-wrap items-center gap-3 rounded-md border border-copper/30 bg-coconut-cream/30 p-3">
+                <div className="inline-flex max-w-full flex-wrap items-center gap-3 rounded-md border border-copper/30 bg-surface-muted/30 p-3">
                     <StagedImagePreview
                         file={fileInput.stagedFile}
                         alt={fileInput.pendingAlt}
@@ -179,10 +179,10 @@ export function AdminImageEditor({
                     />
                     <div className="grid min-w-[220px] flex-1 gap-2">
                         <div>
-                            <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                            <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-muted-foreground">
                                 {fileInput.pendingLabel}
                             </div>
-                            <div className="font-dmSans text-caption text-soft-charcoal">
+                            <div className="font-dmSans text-caption text-muted-foreground">
                                 Publish the staged file or discard it before
                                 choosing another.
                             </div>
@@ -190,7 +190,7 @@ export function AdminImageEditor({
                         <div className="flex flex-wrap gap-2">
                             <Button
                                 type="button"
-                                className="gap-2 bg-copper-dark text-white hover:bg-cedar disabled:bg-gray-300 disabled:text-soft-charcoal disabled:opacity-100"
+                                className="gap-2 bg-copper-dark text-white hover:bg-cedar disabled:bg-surface-muted disabled:text-muted-foreground disabled:opacity-100"
                                 disabled={disabled}
                                 onClick={fileInput.onPublish}
                             >
@@ -203,7 +203,7 @@ export function AdminImageEditor({
                             <Button
                                 type="button"
                                 variant="outline"
-                                className="gap-2 border-soft-charcoal/40 bg-white text-cedar hover:bg-gray-50"
+                                className="gap-2 border-strong bg-surface-elevated text-foreground hover:bg-surface-muted"
                                 disabled={disabled}
                                 onClick={fileInput.onDiscard}
                             >
@@ -230,7 +230,7 @@ export function AdminImageEditor({
                 <Button
                     type="button"
                     variant="outline"
-                    className="gap-2 border-red-800/40 bg-white text-red-950 hover:bg-red-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                    className="gap-2 border-red-800/40 bg-surface-elevated text-red-950 hover:bg-red-50 disabled:border-strong disabled:bg-surface-muted disabled:text-muted-foreground disabled:opacity-100"
                     disabled={disabled}
                     onClick={remove.onRemove}
                 >

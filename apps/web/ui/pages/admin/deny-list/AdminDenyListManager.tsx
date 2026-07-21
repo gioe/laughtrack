@@ -98,7 +98,7 @@ export default function AdminDenyListManager({ entries }: Props) {
         <div className="space-y-6">
             <form
                 onSubmit={submitAdd}
-                className="grid gap-3 border border-gray-300 rounded-md p-4"
+                className="grid gap-3 border border-strong rounded-md p-4"
             >
                 <div className="grid gap-3 md:grid-cols-[minmax(0,240px)_1fr_auto]">
                     <label className="grid gap-1 text-sm font-medium">
@@ -107,7 +107,7 @@ export default function AdminDenyListManager({ entries }: Props) {
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-copper focus:border-copper"
+                            className="border border-input bg-background rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-copper focus:border-copper"
                             maxLength={255}
                             required
                         />
@@ -118,7 +118,7 @@ export default function AdminDenyListManager({ entries }: Props) {
                             type="text"
                             value={reason}
                             onChange={(e) => setReason(e.target.value)}
-                            className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-copper focus:border-copper"
+                            className="border border-input bg-background rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-copper focus:border-copper"
                             maxLength={1000}
                             required
                         />
@@ -141,20 +141,20 @@ export default function AdminDenyListManager({ entries }: Props) {
                 )}
             </form>
 
-            <ul className="divide-y divide-gray-300">
+            <ul className="divide-y divide-border">
                 {entries.map((entry) => (
                     <li
                         key={entry.name}
                         className="grid gap-3 py-4 lg:grid-cols-[minmax(0,1fr)_minmax(260px,360px)]"
                     >
                         <div className="min-w-0">
-                            <div className="font-semibold text-gray-950">
+                            <div className="font-semibold text-foreground">
                                 {entry.name}
                             </div>
-                            <div className="mt-1 text-sm text-gray-800">
+                            <div className="mt-1 text-sm text-foreground">
                                 {entry.reason}
                             </div>
-                            <div className="mt-2 text-xs text-gray-600">
+                            <div className="mt-2 text-xs text-muted-foreground">
                                 {entry.addedBy} ·{" "}
                                 <time dateTime={entry.addedAt}>
                                     {formatAddedAt(entry.addedAt)}
@@ -173,7 +173,7 @@ export default function AdminDenyListManager({ entries }: Props) {
                                             [entry.name]: e.target.value,
                                         }))
                                     }
-                                    className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-copper focus:border-copper"
+                                    className="border border-input bg-background rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-copper focus:border-copper"
                                     maxLength={1000}
                                 />
                             </label>

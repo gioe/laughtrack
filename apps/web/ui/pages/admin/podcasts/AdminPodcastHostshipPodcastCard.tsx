@@ -81,9 +81,9 @@ export function AdminPodcastHostshipPodcastCard({
             onToggle={onToggle}
         >
             <div className="grid gap-4">
-                <div className="min-w-0 rounded-md border border-gray-200 bg-ecru-white p-3">
+                <div className="min-w-0 rounded-md border border-subtle bg-surface-muted p-3">
                     <div className="flex flex-wrap items-center gap-2">
-                        <h2 className="font-urbanist-bold text-h3 leading-tight text-cedar">
+                        <h2 className="font-urbanist-bold text-h3 leading-tight text-foreground">
                             {group.podcast.title}
                         </h2>
                         <span
@@ -100,7 +100,7 @@ export function AdminPodcastHostshipPodcastCard({
                                   : "No host"}
                         </span>
                     </div>
-                    <div className="mt-2 font-dmSans text-body text-soft-charcoal">
+                    <div className="mt-2 font-dmSans text-body text-muted-foreground">
                         {group.podcast.authorName && (
                             <span>by {group.podcast.authorName}</span>
                         )}
@@ -123,7 +123,7 @@ export function AdminPodcastHostshipPodcastCard({
                                 : ""}
                         </p>
                     )}
-                    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 font-dmSans text-caption text-soft-charcoal">
+                    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 font-dmSans text-caption text-muted-foreground">
                         <span>
                             {group.candidates.length} candidate
                             {group.candidates.length === 1 ? "" : "s"}
@@ -176,11 +176,11 @@ export function AdminPodcastHostshipPodcastCard({
                     />
                     <section
                         aria-labelledby={`podcast-review-controls-${group.key}`}
-                        className="grid gap-3 rounded-md border border-gray-200 bg-ecru-white p-3"
+                        className="grid gap-3 rounded-md border border-subtle bg-surface-muted p-3"
                     >
                         <h3
                             id={`podcast-review-controls-${group.key}`}
-                            className="font-dmSans text-sm font-semibold text-cedar"
+                            className="font-dmSans text-sm font-semibold text-foreground"
                         >
                             Review controls
                         </h3>
@@ -189,7 +189,7 @@ export function AdminPodcastHostshipPodcastCard({
                                 <div className="grid gap-1">
                                     <label
                                         htmlFor={searchId}
-                                        className="font-dmSans text-sm font-semibold text-cedar"
+                                        className="font-dmSans text-sm font-semibold text-foreground"
                                     >
                                         Add host
                                     </label>
@@ -203,12 +203,12 @@ export function AdminPodcastHostshipPodcastCard({
                                                     event.target.value,
                                                 )
                                             }
-                                            className="min-w-0 w-full rounded-md border border-gray-300 px-3 py-2 font-dmSans text-body font-normal text-foreground focus:border-copper-dark focus:outline-none focus:ring-2 focus:ring-copper-dark"
+                                            className="min-w-0 w-full rounded-md border border-input bg-background px-3 py-2 font-dmSans text-body font-normal text-foreground focus:border-copper-dark focus:outline-none focus:ring-2 focus:ring-copper-dark"
                                         />
                                         <Button
                                             type="button"
                                             variant="outline"
-                                            className="gap-2 border-copper-dark bg-white !text-copper-dark hover:bg-copper-dark hover:!text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper-dark focus-visible:ring-0"
+                                            className="gap-2 border-copper-dark bg-surface-elevated !text-copper-dark hover:bg-copper-dark hover:!text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper-dark focus-visible:ring-0"
                                             onClick={() => onSearch(group.key)}
                                             disabled={disabled || searching}
                                         >
@@ -234,7 +234,7 @@ export function AdminPodcastHostshipPodcastCard({
                                                             0,
                                                     })
                                                 }
-                                                className="rounded-md border border-gray-300 bg-white px-3 py-1.5 font-dmSans text-sm font-semibold text-cedar hover:border-copper-dark"
+                                                className="rounded-md border border-strong bg-surface-elevated px-3 py-1.5 font-dmSans text-sm font-semibold text-foreground hover:border-copper-dark"
                                             >
                                                 {result.name}
                                             </button>
@@ -244,7 +244,7 @@ export function AdminPodcastHostshipPodcastCard({
                             </div>
                             <label
                                 htmlFor={noteId}
-                                className="grid gap-1 font-dmSans text-sm font-semibold text-cedar"
+                                className="grid gap-1 font-dmSans text-sm font-semibold text-foreground"
                             >
                                 Review note
                                 <textarea
@@ -256,7 +256,7 @@ export function AdminPodcastHostshipPodcastCard({
                                             event.target.value,
                                         )
                                     }
-                                    className="min-h-20 rounded-md border border-gray-300 px-3 py-2 font-dmSans text-body font-normal text-foreground focus:border-copper-dark focus:outline-none focus:ring-2 focus:ring-copper-dark"
+                                    className="min-h-20 rounded-md border border-input bg-background px-3 py-2 font-dmSans text-body font-normal text-foreground focus:border-copper-dark focus:outline-none focus:ring-2 focus:ring-copper-dark"
                                     maxLength={1000}
                                 />
                             </label>
@@ -265,7 +265,7 @@ export function AdminPodcastHostshipPodcastCard({
                             <Button
                                 type="button"
                                 variant="outline"
-                                className="gap-2 border-red-700 bg-white !text-red-800 hover:bg-red-700 hover:!text-white disabled:border-gray-300 disabled:bg-gray-100 disabled:!text-soft-charcoal disabled:opacity-100"
+                                className="gap-2 border-red-700 bg-surface-elevated !text-red-800 hover:bg-red-700 hover:!text-white disabled:border-strong disabled:bg-surface-muted disabled:!text-muted-foreground disabled:opacity-100"
                                 onClick={() => onSave(group, null, true)}
                                 disabled={disabled}
                                 aria-label={`Block ${group.podcast.title}`}
@@ -278,7 +278,7 @@ export function AdminPodcastHostshipPodcastCard({
                                     <Button
                                         type="button"
                                         variant="outline"
-                                        className="border-copper-dark bg-white !text-copper-dark hover:bg-copper-dark hover:!text-white disabled:border-gray-300 disabled:bg-gray-100 disabled:!text-soft-charcoal disabled:opacity-100"
+                                        className="border-copper-dark bg-surface-elevated !text-copper-dark hover:bg-copper-dark hover:!text-white disabled:border-strong disabled:bg-surface-muted disabled:!text-muted-foreground disabled:opacity-100"
                                         onClick={() =>
                                             onSave(group, null, false)
                                         }
@@ -290,7 +290,7 @@ export function AdminPodcastHostshipPodcastCard({
                                     <Button
                                         type="button"
                                         variant="outline"
-                                        className="border-copper-dark bg-white !text-copper-dark hover:bg-copper-dark hover:!text-white disabled:border-gray-300 disabled:bg-gray-100 disabled:!text-soft-charcoal disabled:opacity-100"
+                                        className="border-copper-dark bg-surface-elevated !text-copper-dark hover:bg-copper-dark hover:!text-white disabled:border-strong disabled:bg-surface-muted disabled:!text-muted-foreground disabled:opacity-100"
                                         onClick={() =>
                                             onSave(group, undefined, false)
                                         }
@@ -317,18 +317,18 @@ export function AdminPodcastHostshipPodcastCard({
                 </div>
             </div>
 
-            <details className="rounded-md bg-ecru-white p-3">
-                <summary className="cursor-pointer font-dmSans text-sm font-semibold text-cedar">
+            <details className="rounded-md bg-surface-muted p-3">
+                <summary className="cursor-pointer font-dmSans text-sm font-semibold text-foreground">
                     Evidence
                 </summary>
                 <div className="mt-3 grid gap-3">
                     {group.candidates.map((candidate) => (
                         <section
                             key={candidate.id}
-                            className="rounded-md bg-white p-3"
+                            className="rounded-md bg-surface-elevated p-3"
                         >
-                            <div className="flex flex-wrap items-center gap-2 font-dmSans text-caption text-soft-charcoal">
-                                <span className="font-semibold text-cedar">
+                            <div className="flex flex-wrap items-center gap-2 font-dmSans text-caption text-muted-foreground">
+                                <span className="font-semibold text-foreground">
                                     {candidate.comedian.name}
                                 </span>
                                 <span>
@@ -339,7 +339,7 @@ export function AdminPodcastHostshipPodcastCard({
                                 )}
                                 <span>{candidate.source}</span>
                             </div>
-                            <pre className="mt-2 overflow-auto whitespace-pre-wrap break-words font-mono text-xs text-soft-charcoal">
+                            <pre className="mt-2 overflow-auto whitespace-pre-wrap break-words font-mono text-xs text-muted-foreground">
                                 {evidencePreview(candidate.evidence)}
                             </pre>
                         </section>

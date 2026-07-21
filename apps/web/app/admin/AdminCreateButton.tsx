@@ -21,7 +21,7 @@ function entityFromPath(pathname: string): EntityKind | null {
 }
 
 function fieldClassName() {
-    return "rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body text-cedar outline-none focus:border-copper focus:ring-2 focus:ring-copper/30";
+    return "rounded-md border border-input bg-background px-3 py-2 font-dmSans text-body text-foreground outline-none focus:border-copper focus:ring-2 focus:ring-copper/30";
 }
 
 export default function AdminCreateButton() {
@@ -116,28 +116,28 @@ export default function AdminCreateButton() {
                 type="button"
                 size="icon"
                 aria-label={CREATE_BUTTON_LABEL}
-                className="fixed bottom-6 right-6 z-40 h-14 w-14 rounded-full bg-copper-dark text-white shadow-xl hover:bg-cedar focus-visible:ring-2 focus-visible:ring-copper/40"
+                className="fixed bottom-6 right-6 z-40 h-14 w-14 rounded-full bg-copper-dark text-white shadow-floating hover:bg-cedar focus-visible:ring-2 focus-visible:ring-copper/40"
                 onClick={() => setIsOpen(true)}
             >
                 <Plus className="h-6 w-6" />
             </Button>
 
             {isOpen ? (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 px-4 backdrop-blur-sm">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-canvas/90 px-4 backdrop-blur-sm">
                     <div
                         role="dialog"
                         aria-modal="true"
                         aria-label={title}
-                        className="w-full max-w-lg rounded-md border border-copper/20 bg-coconut-cream p-5 shadow-2xl outline-none"
+                        className="w-full max-w-lg rounded-md border border-copper/20 bg-surface-muted p-5 shadow-floating outline-none"
                     >
                         <div className="mb-4 flex items-center justify-between gap-3">
-                            <h2 className="font-urbanist-bold text-h2 text-cedar">
+                            <h2 className="font-urbanist-bold text-h2 text-foreground">
                                 {title}
                             </h2>
                             <button
                                 type="button"
                                 aria-label="Close dialog"
-                                className="rounded-md p-2 text-soft-charcoal hover:bg-copper/10 hover:text-cedar focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-copper/40"
+                                className="rounded-md p-2 text-muted-foreground hover:bg-copper/10 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-copper/40"
                                 onClick={closeModal}
                             >
                                 <X className="h-5 w-5" />
@@ -150,7 +150,7 @@ export default function AdminCreateButton() {
                                 onSubmit={handleSubmit}
                             >
                                 {entity === "comedian" ? (
-                                    <label className="grid gap-1 font-dmSans text-body font-semibold text-cedar">
+                                    <label className="grid gap-1 font-dmSans text-body font-semibold text-foreground">
                                         Name
                                         <input
                                             required
@@ -165,7 +165,7 @@ export default function AdminCreateButton() {
                                     </label>
                                 ) : (
                                     <>
-                                        <label className="grid gap-1 font-dmSans text-body font-semibold text-cedar">
+                                        <label className="grid gap-1 font-dmSans text-body font-semibold text-foreground">
                                             Name
                                             <input
                                                 required
@@ -178,7 +178,7 @@ export default function AdminCreateButton() {
                                                 className={fieldClassName()}
                                             />
                                         </label>
-                                        <label className="grid gap-1 font-dmSans text-body font-semibold text-cedar">
+                                        <label className="grid gap-1 font-dmSans text-body font-semibold text-foreground">
                                             Address
                                             <input
                                                 required
@@ -191,7 +191,7 @@ export default function AdminCreateButton() {
                                                 className={fieldClassName()}
                                             />
                                         </label>
-                                        <label className="grid gap-1 font-dmSans text-body font-semibold text-cedar">
+                                        <label className="grid gap-1 font-dmSans text-body font-semibold text-foreground">
                                             Website
                                             <input
                                                 required
@@ -218,7 +218,7 @@ export default function AdminCreateButton() {
                                     <Button
                                         type="button"
                                         variant="outline"
-                                        className="border-copper/40 bg-white text-cedar hover:bg-copper/10"
+                                        className="border-copper/40 bg-surface-elevated text-foreground hover:bg-copper/10"
                                         disabled={isSubmitting}
                                         onClick={closeModal}
                                     >
@@ -235,7 +235,7 @@ export default function AdminCreateButton() {
                             </form>
                         ) : (
                             <div className="grid gap-4">
-                                <p className="font-dmSans text-body text-soft-charcoal">
+                                <p className="font-dmSans text-body text-muted-foreground">
                                     Creation is available for Comedians and
                                     Clubs.
                                 </p>

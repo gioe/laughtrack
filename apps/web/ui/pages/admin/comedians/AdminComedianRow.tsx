@@ -129,12 +129,12 @@ function SummaryPill({
             ? "border-green-700/25 bg-green-50 text-green-950"
             : tone === "warn"
               ? "border-red-700/25 bg-red-50 text-red-950"
-              : "border-copper/20 bg-white text-cedar";
+              : "border-copper/20 bg-surface-elevated text-foreground";
     return (
         <span
             className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 font-dmSans text-caption ${toneClass}`}
         >
-            <span className="font-semibold uppercase text-soft-charcoal">
+            <span className="font-semibold uppercase text-muted-foreground">
                 {label}
             </span>
             <span className="font-semibold">{value}</span>
@@ -1128,23 +1128,23 @@ export function AdminComedianRow({
                         aria-expanded={rowOpen}
                         aria-controls={`comedian-row-${row.id}`}
                         onClick={() => toggleComedianRow(row.id)}
-                        className="flex w-full items-center gap-3 rounded-md px-2 py-2 text-left transition-colors hover:bg-coconut-cream/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-copper/40"
+                        className="flex w-full items-center gap-3 rounded-md px-2 py-2 text-left transition-colors hover:bg-surface-muted/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-copper/40"
                     >
                         {rowOpen ? (
-                            <ChevronDown className="h-4 w-4 shrink-0 text-cedar" />
+                            <ChevronDown className="h-4 w-4 shrink-0 text-foreground" />
                         ) : (
-                            <ChevronRight className="h-4 w-4 shrink-0 text-cedar" />
+                            <ChevronRight className="h-4 w-4 shrink-0 text-foreground" />
                         )}
                         <ComedianRowHeadshot row={row} />
                         <span className="min-w-0 flex-1">
                             <span
                                 role="heading"
                                 aria-level={2}
-                                className="block break-words font-urbanist-bold text-h3 leading-tight text-cedar"
+                                className="block break-words font-urbanist-bold text-h3 leading-tight text-foreground"
                             >
                                 {row.name}
                             </span>
-                            <span className="mt-1 flex flex-wrap gap-x-3 gap-y-1 font-dmSans text-caption text-soft-charcoal">
+                            <span className="mt-1 flex flex-wrap gap-x-3 gap-y-1 font-dmSans text-caption text-muted-foreground">
                                 <span>ID {row.id}</span>
                                 <span>
                                     {row.totalShows.toLocaleString()} shows
@@ -1166,7 +1166,7 @@ export function AdminComedianRow({
                             rowOpen ? "" : "hidden"
                         }`}
                     >
-                        <div className="col-span-full rounded-md border border-copper/20 bg-coconut-cream/35 p-3">
+                        <div className="col-span-full rounded-md border border-copper/20 bg-surface-muted/35 p-3">
                             <div className="flex flex-wrap gap-2">
                                 <SummaryPill label="ID" value={row.id} />
                                 <SummaryPill
@@ -1191,7 +1191,7 @@ export function AdminComedianRow({
                                     tone="good"
                                 />
                             </div>
-                            <div className="mt-3 font-dmSans text-caption text-soft-charcoal">
+                            <div className="mt-3 font-dmSans text-caption text-muted-foreground">
                                 {row.latestTicketPurchase ? (
                                     <span className="inline-flex min-w-0 flex-wrap items-center gap-1">
                                         <a
@@ -1203,7 +1203,7 @@ export function AdminComedianRow({
                                             <span>Latest ticket purchase</span>
                                             <ExternalLink className="h-3.5 w-3.5 shrink-0" />
                                         </a>
-                                        <span className="text-soft-charcoal">
+                                        <span className="text-muted-foreground">
                                             ·{" "}
                                             {row.latestTicketPurchase
                                                 .showName ??
@@ -1225,11 +1225,11 @@ export function AdminComedianRow({
                         <div
                             role="group"
                             aria-label={`Comedian editor for ${row.name}`}
-                            className="col-span-full rounded-md border border-copper/20 bg-white p-4 font-dmSans shadow-sm"
+                            className="col-span-full rounded-md border border-copper/20 bg-surface-elevated p-4 font-dmSans shadow-card"
                         >
                             <ComedianProfileSection rowName={row.name}>
                                 <div className="min-w-0 space-y-3">
-                                    <label className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                    <label className="font-dmSans text-caption font-semibold uppercase tracking-wide text-muted-foreground">
                                         Display name
                                     </label>
                                     <div className="mt-1 flex flex-wrap items-center gap-2 sm:flex-nowrap">
@@ -1244,12 +1244,12 @@ export function AdminComedianRow({
                                                         event.target.value,
                                                 }))
                                             }
-                                            className="min-w-[220px] flex-1 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                            className="min-w-[220px] flex-1 rounded-md border border-input bg-background px-3 py-2 font-dmSans text-body normal-case tracking-normal text-foreground outline-none focus:border-copper focus:ring-2 focus:ring-copper/30"
                                         />
                                         <Button
                                             type="button"
                                             variant="outline"
-                                            className="shrink-0 gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                            className="shrink-0 gap-2 border-copper/40 bg-surface-elevated text-foreground hover:bg-copper/10 disabled:border-strong disabled:bg-surface-muted disabled:text-muted-foreground disabled:opacity-100"
                                             disabled={
                                                 disabled ||
                                                 pendingId === row.id ||
@@ -1268,10 +1268,10 @@ export function AdminComedianRow({
                                     </div>
                                 </div>
                                 <div>
-                                    <div className="mb-2 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                    <div className="mb-2 font-dmSans text-caption font-semibold uppercase tracking-wide text-muted-foreground">
                                         Blocklist state
                                     </div>
-                                    <label className="inline-flex w-fit items-center gap-2 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body font-semibold text-cedar">
+                                    <label className="inline-flex w-fit items-center gap-2 rounded-md border border-strong bg-surface-elevated px-3 py-2 font-dmSans text-body font-semibold text-foreground">
                                         <input
                                             type="checkbox"
                                             checked={false}
@@ -1298,7 +1298,7 @@ export function AdminComedianRow({
                                     open={socialOpen}
                                     onToggle={() => toggleSocialSection(row.id)}
                                 >
-                                    <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                    <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-muted-foreground">
                                         Website
                                         <input
                                             aria-label="Comedian website"
@@ -1313,10 +1313,10 @@ export function AdminComedianRow({
                                                 })
                                             }
                                             placeholder="https://example.com"
-                                            className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                            className="rounded-md border border-input bg-background px-3 py-2 font-dmSans text-body normal-case tracking-normal text-foreground outline-none placeholder:text-muted-foreground focus:border-copper focus:ring-2 focus:ring-copper/30"
                                         />
                                     </label>
-                                    <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                    <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-muted-foreground">
                                         Tour scrape URL
                                         <input
                                             aria-label="Comedian website scraping URL"
@@ -1332,10 +1332,10 @@ export function AdminComedianRow({
                                                 })
                                             }
                                             placeholder="https://example.com/tour"
-                                            className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                            className="rounded-md border border-input bg-background px-3 py-2 font-dmSans text-body normal-case tracking-normal text-foreground outline-none placeholder:text-muted-foreground focus:border-copper focus:ring-2 focus:ring-copper/30"
                                         />
                                     </label>
-                                    <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                    <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-muted-foreground">
                                         Instagram
                                         <input
                                             aria-label="Comedian Instagram handle"
@@ -1351,10 +1351,10 @@ export function AdminComedianRow({
                                                 })
                                             }
                                             placeholder="handle (without @)"
-                                            className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                            className="rounded-md border border-input bg-background px-3 py-2 font-dmSans text-body normal-case tracking-normal text-foreground outline-none placeholder:text-muted-foreground focus:border-copper focus:ring-2 focus:ring-copper/30"
                                         />
                                     </label>
-                                    <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                    <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-muted-foreground">
                                         TikTok
                                         <input
                                             aria-label="Comedian TikTok handle"
@@ -1370,18 +1370,18 @@ export function AdminComedianRow({
                                                 })
                                             }
                                             placeholder="handle (without @)"
-                                            className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                            className="rounded-md border border-input bg-background px-3 py-2 font-dmSans text-body normal-case tracking-normal text-foreground outline-none placeholder:text-muted-foreground focus:border-copper focus:ring-2 focus:ring-copper/30"
                                         />
                                     </label>
                                     <div
                                         role="group"
                                         aria-label="YouTube"
-                                        className="grid gap-3 rounded-md border border-copper/20 bg-white p-3"
+                                        className="grid gap-3 rounded-md border border-copper/20 bg-surface-elevated p-3"
                                     >
-                                        <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                        <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-muted-foreground">
                                             YouTube
                                         </div>
-                                        <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                        <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-muted-foreground">
                                             Handle
                                             <input
                                                 aria-label="Comedian YouTube handle"
@@ -1397,10 +1397,10 @@ export function AdminComedianRow({
                                                     })
                                                 }
                                                 placeholder="@handle or channel id"
-                                                className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                className="rounded-md border border-input bg-background px-3 py-2 font-dmSans text-body normal-case tracking-normal text-foreground outline-none placeholder:text-muted-foreground focus:border-copper focus:ring-2 focus:ring-copper/30"
                                             />
                                         </label>
-                                        <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                        <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-muted-foreground">
                                             Channel ID
                                             <input
                                                 aria-label="Comedian YouTube channel ID"
@@ -1416,22 +1416,22 @@ export function AdminComedianRow({
                                                     })
                                                 }
                                                 placeholder="UC..."
-                                                className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                className="rounded-md border border-input bg-background px-3 py-2 font-dmSans text-body normal-case tracking-normal text-foreground outline-none placeholder:text-muted-foreground focus:border-copper focus:ring-2 focus:ring-copper/30"
                                             />
                                         </label>
-                                        <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                        <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-muted-foreground">
                                             YouTube WebSub
                                         </div>
-                                        <div className="mt-2 grid gap-2 font-dmSans text-caption text-soft-charcoal sm:grid-cols-2">
+                                        <div className="mt-2 grid gap-2 font-dmSans text-caption text-muted-foreground sm:grid-cols-2">
                                             <div>
-                                                <span className="font-semibold text-cedar">
+                                                <span className="font-semibold text-foreground">
                                                     Subscription
                                                 </span>{" "}
                                                 {row.subscriptionStatus ??
                                                     "none"}
                                             </div>
                                             <div>
-                                                <span className="font-semibold text-cedar">
+                                                <span className="font-semibold text-foreground">
                                                     Recent event
                                                 </span>{" "}
                                                 {row.recentEventStatus ??
@@ -1444,7 +1444,7 @@ export function AdminComedianRow({
                                             ) : null}
                                         </div>
                                         <div className="mt-3 flex flex-wrap gap-3">
-                                            <label className="inline-flex w-fit items-center gap-2 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body font-semibold text-cedar">
+                                            <label className="inline-flex w-fit items-center gap-2 rounded-md border border-strong bg-surface-elevated px-3 py-2 font-dmSans text-body font-semibold text-foreground">
                                                 <input
                                                     type="checkbox"
                                                     checked={
@@ -1470,7 +1470,7 @@ export function AdminComedianRow({
                                                 />
                                                 Live feed
                                             </label>
-                                            <label className="inline-flex w-fit items-center gap-2 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body font-semibold text-cedar">
+                                            <label className="inline-flex w-fit items-center gap-2 rounded-md border border-strong bg-surface-elevated px-3 py-2 font-dmSans text-body font-semibold text-foreground">
                                                 <input
                                                     type="checkbox"
                                                     checked={
@@ -1497,14 +1497,14 @@ export function AdminComedianRow({
                                                 Notifications
                                             </label>
                                             {!row.youtubeChannelId ? (
-                                                <span className="self-center font-dmSans text-caption text-soft-charcoal">
+                                                <span className="self-center font-dmSans text-caption text-muted-foreground">
                                                     Add a YouTube channel ID to
                                                     enable WebSub.
                                                 </span>
                                             ) : null}
                                         </div>
                                     </div>
-                                    <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                    <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-muted-foreground">
                                         Linktree
                                         <input
                                             aria-label="Comedian Linktree URL"
@@ -1520,13 +1520,13 @@ export function AdminComedianRow({
                                                 })
                                             }
                                             placeholder="https://linktr.ee/..."
-                                            className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                            className="rounded-md border border-input bg-background px-3 py-2 font-dmSans text-body normal-case tracking-normal text-foreground outline-none placeholder:text-muted-foreground focus:border-copper focus:ring-2 focus:ring-copper/30"
                                         />
                                     </label>
                                     <div className="flex justify-end">
                                         <Button
                                             type="button"
-                                            className="gap-2 bg-copper-dark text-white hover:bg-cedar disabled:bg-gray-300 disabled:text-soft-charcoal disabled:opacity-100"
+                                            className="gap-2 bg-copper-dark text-white hover:bg-cedar disabled:bg-surface-muted disabled:text-muted-foreground disabled:opacity-100"
                                             disabled={
                                                 disabled ||
                                                 pendingId === row.id ||
@@ -1553,7 +1553,7 @@ export function AdminComedianRow({
                                         toggleChildrenSection(row.id)
                                     }
                                 >
-                                    <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                    <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-muted-foreground">
                                         Current parent
                                     </div>
                                     {parent ? (
@@ -1578,12 +1578,12 @@ export function AdminComedianRow({
                                             </button>
                                         </div>
                                     ) : (
-                                        <div className="rounded-md border border-soft-charcoal/20 bg-gray-50 px-3 py-2 font-dmSans text-body text-soft-charcoal">
+                                        <div className="rounded-md border border-subtle bg-surface-muted px-3 py-2 font-dmSans text-body text-muted-foreground">
                                             No parent assigned
                                         </div>
                                     )}
 
-                                    <label className="grid gap-1 font-dmSans text-body font-semibold text-cedar">
+                                    <label className="grid gap-1 font-dmSans text-body font-semibold text-foreground">
                                         Find parent
                                         <input
                                             type="search"
@@ -1597,7 +1597,7 @@ export function AdminComedianRow({
                                                     }),
                                                 )
                                             }
-                                            className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                            className="rounded-md border border-input bg-background px-3 py-2 font-dmSans text-body text-foreground outline-none placeholder:text-muted-foreground focus:border-copper focus:ring-2 focus:ring-copper/30"
                                             placeholder="Search parent name"
                                         />
                                     </label>
@@ -1618,7 +1618,7 @@ export function AdminComedianRow({
                                                             }),
                                                         )
                                                     }
-                                                    className="rounded-md border border-copper/40 bg-white px-3 py-2 font-dmSans text-body font-semibold text-cedar hover:bg-copper/10"
+                                                    className="rounded-md border border-copper/40 bg-surface-elevated px-3 py-2 font-dmSans text-body font-semibold text-foreground hover:bg-copper/10"
                                                 >
                                                     {candidate.name}
                                                 </button>
@@ -1628,7 +1628,7 @@ export function AdminComedianRow({
                                     <Button
                                         type="button"
                                         variant="outline"
-                                        className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                        className="gap-2 border-copper/40 bg-surface-elevated text-foreground hover:bg-copper/10 disabled:border-strong disabled:bg-surface-muted disabled:text-muted-foreground disabled:opacity-100"
                                         disabled={
                                             disabled ||
                                             !isParentDirty(row) ||
@@ -1640,7 +1640,7 @@ export function AdminComedianRow({
                                         Save relationship
                                     </Button>
                                     {children.length > 0 ? (
-                                        <ul className="divide-y divide-copper/15 overflow-hidden rounded-md border border-copper/20 bg-white">
+                                        <ul className="divide-y divide-copper/15 overflow-hidden rounded-md border border-copper/20 bg-surface-elevated">
                                             {children.map((child) => (
                                                 <li
                                                     key={child.id}
@@ -1649,16 +1649,16 @@ export function AdminComedianRow({
                                                     <ComedianRowHeadshot
                                                         row={child}
                                                     />
-                                                    <span className="min-w-0 flex-1 break-words font-urbanist-bold text-body text-cedar">
+                                                    <span className="min-w-0 flex-1 break-words font-urbanist-bold text-body text-foreground">
                                                         {child.name}
                                                     </span>
-                                                    <span className="shrink-0 font-dmSans text-caption font-semibold text-soft-charcoal">
+                                                    <span className="shrink-0 font-dmSans text-caption font-semibold text-muted-foreground">
                                                         ID {child.id}
                                                     </span>
                                                     <Button
                                                         type="button"
                                                         variant="outline"
-                                                        className="shrink-0 gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                        className="shrink-0 gap-2 border-copper/40 bg-surface-elevated text-foreground hover:bg-copper/10 disabled:border-strong disabled:bg-surface-muted disabled:text-muted-foreground disabled:opacity-100"
                                                         disabled={
                                                             disabled ||
                                                             pendingId ===
@@ -1678,7 +1678,7 @@ export function AdminComedianRow({
                                             ))}
                                         </ul>
                                     ) : (
-                                        <div className="rounded-md border border-soft-charcoal/20 bg-white px-3 py-2 font-dmSans text-body text-soft-charcoal">
+                                        <div className="rounded-md border border-subtle bg-surface-elevated px-3 py-2 font-dmSans text-body text-muted-foreground">
                                             No child profiles.
                                         </div>
                                     )}
@@ -1696,7 +1696,7 @@ export function AdminComedianRow({
                                     }
                                 >
                                     <div>
-                                        <div className="mb-3 text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                        <div className="mb-3 text-caption font-semibold uppercase tracking-wide text-muted-foreground">
                                             Podcast RSS
                                         </div>
                                         {acceptedPodcasts.length > 0 ? (
@@ -1718,7 +1718,7 @@ export function AdminComedianRow({
                                                                 className="space-y-2"
                                                             >
                                                                 <div className="flex flex-wrap items-center gap-2">
-                                                                    <div className="font-semibold text-cedar">
+                                                                    <div className="font-semibold text-foreground">
                                                                         {
                                                                             podcast.title
                                                                         }
@@ -1745,7 +1745,7 @@ export function AdminComedianRow({
                                                                         </a>
                                                                     )}
                                                                 </div>
-                                                                <label className="grid gap-1 text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                                <label className="grid gap-1 text-caption font-semibold uppercase tracking-wide text-muted-foreground">
                                                                     RSS feed for{" "}
                                                                     {
                                                                         podcast.title
@@ -1768,14 +1768,14 @@ export function AdminComedianRow({
                                                                             )
                                                                         }
                                                                         placeholder="https://example.com/rss.xml"
-                                                                        className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                                        className="rounded-md border border-input bg-background px-3 py-2 font-dmSans text-body normal-case tracking-normal text-foreground outline-none placeholder:text-muted-foreground focus:border-copper focus:ring-2 focus:ring-copper/30"
                                                                     />
                                                                 </label>
                                                                 <div className="flex flex-wrap gap-2">
                                                                     <Button
                                                                         type="button"
                                                                         variant="outline"
-                                                                        className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                        className="gap-2 border-copper/40 bg-surface-elevated text-foreground hover:bg-copper/10 disabled:border-strong disabled:bg-surface-muted disabled:text-muted-foreground disabled:opacity-100"
                                                                         disabled={
                                                                             disabled ||
                                                                             pendingId ===
@@ -1797,7 +1797,7 @@ export function AdminComedianRow({
                                                                     <Button
                                                                         type="button"
                                                                         variant="outline"
-                                                                        className="gap-2 border-red-800/40 bg-white text-red-950 hover:bg-red-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                        className="gap-2 border-red-800/40 bg-surface-elevated text-red-950 hover:bg-red-50 disabled:border-strong disabled:bg-surface-muted disabled:text-muted-foreground disabled:opacity-100"
                                                                         disabled={
                                                                             disabled ||
                                                                             pendingId ===
@@ -1824,7 +1824,7 @@ export function AdminComedianRow({
                                             </div>
                                         ) : (
                                             <div className="max-w-3xl space-y-2">
-                                                <label className="grid gap-1 text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                <label className="grid gap-1 text-caption font-semibold uppercase tracking-wide text-muted-foreground">
                                                     RSS feed URL
                                                     <input
                                                         aria-label={`RSS feed URL for ${row.name}`}
@@ -1844,13 +1844,13 @@ export function AdminComedianRow({
                                                             )
                                                         }
                                                         placeholder="https://example.com/rss.xml"
-                                                        className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                        className="rounded-md border border-input bg-background px-3 py-2 font-dmSans text-body normal-case tracking-normal text-foreground outline-none placeholder:text-muted-foreground focus:border-copper focus:ring-2 focus:ring-copper/30"
                                                     />
                                                 </label>
                                                 <Button
                                                     type="button"
                                                     variant="outline"
-                                                    className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                    className="gap-2 border-copper/40 bg-surface-elevated text-foreground hover:bg-copper/10 disabled:border-strong disabled:bg-surface-muted disabled:text-muted-foreground disabled:opacity-100"
                                                     disabled={
                                                         disabled ||
                                                         pendingId === row.id ||
@@ -1873,7 +1873,7 @@ export function AdminComedianRow({
                                     {pendingPodcastCandidateReviews.length >
                                         0 && (
                                         <div className="border-t border-copper/20 pt-4">
-                                            <div className="mb-3 text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                            <div className="mb-3 text-caption font-semibold uppercase tracking-wide text-muted-foreground">
                                                 Podcast host reviews
                                             </div>
                                             <div className="grid gap-3">
@@ -1888,15 +1888,15 @@ export function AdminComedianRow({
                                                         return (
                                                             <div
                                                                 key={review.id}
-                                                                className="grid gap-3 rounded-md border border-copper/20 bg-white/80 p-3 lg:grid-cols-[minmax(0,1fr)_auto]"
+                                                                className="grid gap-3 rounded-md border border-copper/20 bg-surface-elevated/80 p-3 lg:grid-cols-[minmax(0,1fr)_auto]"
                                                             >
                                                                 <div className="min-w-0">
                                                                     <div className="flex flex-wrap items-center gap-2">
-                                                                        <div className="font-dmSans text-body font-semibold text-cedar">
+                                                                        <div className="font-dmSans text-body font-semibold text-foreground">
                                                                             {podcast?.title ??
                                                                                 review.sourcePodcastId}
                                                                         </div>
-                                                                        <span className="rounded-md border border-soft-charcoal/20 bg-gray-50 px-2 py-1 font-dmSans text-caption font-semibold text-soft-charcoal">
+                                                                        <span className="rounded-md border border-subtle bg-surface-muted px-2 py-1 font-dmSans text-caption font-semibold text-muted-foreground">
                                                                             {
                                                                                 review.candidateStatus
                                                                             }
@@ -1906,14 +1906,14 @@ export function AdminComedianRow({
                                                                                 Blocked
                                                                             </span>
                                                                         )}
-                                                                        <span className="font-dmSans text-caption text-soft-charcoal">
+                                                                        <span className="font-dmSans text-caption text-muted-foreground">
                                                                             {formatPercent(
                                                                                 review.confidence,
                                                                             )}
                                                                         </span>
                                                                     </div>
                                                                     {podcast?.authorName && (
-                                                                        <div className="mt-1 font-dmSans text-caption text-soft-charcoal">
+                                                                        <div className="mt-1 font-dmSans text-caption text-muted-foreground">
                                                                             by{" "}
                                                                             {
                                                                                 podcast.authorName
@@ -1950,7 +1950,7 @@ export function AdminComedianRow({
                                                                                 <ExternalLink className="h-3.5 w-3.5 shrink-0" />
                                                                             </a>
                                                                         ) : (
-                                                                            <span className="text-soft-charcoal">
+                                                                            <span className="text-muted-foreground">
                                                                                 RSS
                                                                                 feed
                                                                                 missing
@@ -1975,7 +1975,7 @@ export function AdminComedianRow({
                                                                     <Button
                                                                         type="button"
                                                                         variant="outline"
-                                                                        className="gap-2 border-green-800/40 bg-white text-green-950 hover:bg-green-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                        className="gap-2 border-green-800/40 bg-surface-elevated text-green-950 hover:bg-green-50 disabled:border-strong disabled:bg-surface-muted disabled:text-muted-foreground disabled:opacity-100"
                                                                         disabled={
                                                                             disabled ||
                                                                             pendingId ===
@@ -1997,7 +1997,7 @@ export function AdminComedianRow({
                                                                     <Button
                                                                         type="button"
                                                                         variant="outline"
-                                                                        className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                        className="gap-2 border-copper/40 bg-surface-elevated text-foreground hover:bg-copper/10 disabled:border-strong disabled:bg-surface-muted disabled:text-muted-foreground disabled:opacity-100"
                                                                         disabled={
                                                                             disabled ||
                                                                             pendingId ===
@@ -2044,7 +2044,7 @@ export function AdminComedianRow({
                                                       }
                                                     : undefined
                                             }
-                                            emptyClassName="flex h-24 w-24 items-center justify-center rounded-md border border-dashed border-soft-charcoal/30 bg-gray-50 font-dmSans text-caption text-soft-charcoal"
+                                            emptyClassName="flex h-24 w-24 items-center justify-center rounded-md border border-dashed border-strong bg-surface-muted font-dmSans text-caption text-muted-foreground"
                                             urlInput={{
                                                 label: "Headshot image URL",
                                                 ariaLabel: "Headshot image URL",
@@ -2128,7 +2128,7 @@ export function AdminComedianRow({
                                     <Button
                                         type="button"
                                         variant="outline"
-                                        className="mt-3 gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                        className="mt-3 gap-2 border-copper/40 bg-surface-elevated text-foreground hover:bg-copper/10 disabled:border-strong disabled:bg-surface-muted disabled:text-muted-foreground disabled:opacity-100"
                                         disabled={
                                             disabled ||
                                             pendingId === row.id ||
@@ -2143,7 +2143,7 @@ export function AdminComedianRow({
                                     </Button>
 
                                     {row.activeImageAsset ? (
-                                        <div className="mt-3 font-dmSans text-caption text-soft-charcoal">
+                                        <div className="mt-3 font-dmSans text-caption text-muted-foreground">
                                             Source{" "}
                                             {formatDimensions(
                                                 row.activeImageAsset.width,
@@ -2156,7 +2156,7 @@ export function AdminComedianRow({
                                         <Button
                                             type="button"
                                             variant="outline"
-                                            className="mt-3 gap-2 border-red-800/40 bg-white text-red-950 hover:bg-red-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                            className="mt-3 gap-2 border-red-800/40 bg-surface-elevated text-red-950 hover:bg-red-50 disabled:border-strong disabled:bg-surface-muted disabled:text-muted-foreground disabled:opacity-100"
                                             disabled={
                                                 disabled || pendingId === row.id
                                             }

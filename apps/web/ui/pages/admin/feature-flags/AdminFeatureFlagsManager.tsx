@@ -42,8 +42,8 @@ export default function AdminFeatureFlagsManager({
     }
 
     return (
-        <section className="rounded-md border border-copper/20 bg-white p-5">
-            <h2 className="font-urbanist-bold text-h3 text-cedar">
+        <section className="rounded-md border border-copper/20 bg-surface-elevated p-5">
+            <h2 className="font-urbanist-bold text-h3 text-foreground">
                 Feature flags
             </h2>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -85,18 +85,20 @@ function CheckboxField({
     onChange: (checked: boolean) => void;
 }) {
     return (
-        <label className="flex items-center gap-2 font-dmSans text-body text-cedar">
+        <label className="flex items-center gap-2 font-dmSans text-body text-foreground">
             <input
                 type="checkbox"
                 aria-label={label}
                 checked={checked}
                 disabled={saving}
                 onChange={(event) => onChange(event.target.checked)}
-                className="h-4 w-4 rounded border-soft-charcoal/40 text-copper-dark focus:ring-copper/30"
+                className="h-4 w-4 rounded border-strong text-copper-dark focus:ring-copper/30"
             />
             <span className="font-semibold">{label}</span>
             {saving ? (
-                <span className="text-caption text-soft-charcoal">Saving…</span>
+                <span className="text-caption text-muted-foreground">
+                    Saving…
+                </span>
             ) : null}
         </label>
     );

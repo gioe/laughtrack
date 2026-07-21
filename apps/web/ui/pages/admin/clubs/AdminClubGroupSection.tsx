@@ -47,7 +47,7 @@ export function AdminClubGroupSection({
     const panelId = `club-chain-${group.key}`;
 
     return (
-        <section className="overflow-hidden rounded-md border border-copper/20 bg-white">
+        <section className="overflow-hidden rounded-md border border-copper/20 bg-surface-elevated">
             <header className="border-b border-copper/20 bg-cedar px-4 py-3 text-white">
                 <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                     <button
@@ -99,9 +99,9 @@ export function AdminClubGroupSection({
                 hidden={collapsed}
                 className={`${collapsed ? "hidden" : ""}`}
             >
-                <div className="border-b border-copper/20 bg-ecru-white/70 px-4 py-3">
+                <div className="border-b border-copper/20 bg-surface-muted/70 px-4 py-3">
                     <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_180px_150px_150px_150px] md:items-end">
-                        <label className="grid gap-1 font-dmSans text-body font-semibold text-cedar">
+                        <label className="grid gap-1 font-dmSans text-body font-semibold text-foreground">
                             Search within {groupName}
                             <input
                                 aria-label={`Search within ${groupName}`}
@@ -112,11 +112,11 @@ export function AdminClubGroupSection({
                                         query: event.target.value,
                                     })
                                 }
-                                className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                className="rounded-md border border-input bg-background px-3 py-2 font-dmSans text-body text-foreground outline-none placeholder:text-muted-foreground focus:border-copper focus:ring-2 focus:ring-copper/30"
                                 placeholder="Club, city, status, scraper"
                             />
                         </label>
-                        <label className="grid gap-1 font-dmSans text-body font-semibold text-cedar">
+                        <label className="grid gap-1 font-dmSans text-body font-semibold text-foreground">
                             Sort clubs
                             <select
                                 aria-label={`Sort ${groupName} clubs`}
@@ -126,7 +126,7 @@ export function AdminClubGroupSection({
                                         sort: event.target.value,
                                     })
                                 }
-                                className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 text-cedar outline-none focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                className="rounded-md border border-input bg-background px-3 py-2 text-foreground outline-none focus:border-copper focus:ring-2 focus:ring-copper/30"
                             >
                                 <option value="name-asc">Name A-Z</option>
                                 <option value="name-desc">Name Z-A</option>
@@ -144,7 +144,7 @@ export function AdminClubGroupSection({
                                 </option>
                             </select>
                         </label>
-                        <label className="grid gap-1 font-dmSans text-body font-semibold text-cedar">
+                        <label className="grid gap-1 font-dmSans text-body font-semibold text-foreground">
                             Status filter
                             <select
                                 aria-label={`Filter ${groupName} clubs by status`}
@@ -154,7 +154,7 @@ export function AdminClubGroupSection({
                                         status: event.target.value,
                                     })
                                 }
-                                className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 text-cedar outline-none focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                className="rounded-md border border-input bg-background px-3 py-2 text-foreground outline-none focus:border-copper focus:ring-2 focus:ring-copper/30"
                             >
                                 <option value="all">All</option>
                                 {CLUB_STATUS_OPTIONS.map((option) => (
@@ -164,7 +164,7 @@ export function AdminClubGroupSection({
                                 ))}
                             </select>
                         </label>
-                        <label className="grid gap-1 font-dmSans text-body font-semibold text-cedar">
+                        <label className="grid gap-1 font-dmSans text-body font-semibold text-foreground">
                             Visibility filter
                             <select
                                 aria-label={`Filter ${groupName} clubs by visibility`}
@@ -174,14 +174,14 @@ export function AdminClubGroupSection({
                                         visibility: event.target.value,
                                     })
                                 }
-                                className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 text-cedar outline-none focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                className="rounded-md border border-input bg-background px-3 py-2 text-foreground outline-none focus:border-copper focus:ring-2 focus:ring-copper/30"
                             >
                                 <option value="all">All</option>
                                 <option value="visible">Visible</option>
                                 <option value="blocked">Blocked</option>
                             </select>
                         </label>
-                        <label className="grid gap-1 font-dmSans text-body font-semibold text-cedar">
+                        <label className="grid gap-1 font-dmSans text-body font-semibold text-foreground">
                             Type filter
                             <select
                                 aria-label={`Filter ${groupName} clubs by type`}
@@ -191,7 +191,7 @@ export function AdminClubGroupSection({
                                         clubType: event.target.value,
                                     })
                                 }
-                                className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 text-cedar outline-none focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                className="rounded-md border border-input bg-background px-3 py-2 text-foreground outline-none focus:border-copper focus:ring-2 focus:ring-copper/30"
                             >
                                 <option value="all">All</option>
                                 {CLUB_TYPE_OPTIONS.map((option) => (
@@ -202,7 +202,7 @@ export function AdminClubGroupSection({
                             </select>
                         </label>
                     </div>
-                    <div className="mt-2 font-dmSans text-caption font-semibold text-soft-charcoal">
+                    <div className="mt-2 font-dmSans text-caption font-semibold text-muted-foreground">
                         {clubs.length.toLocaleString()} of{" "}
                         {group.clubs.length.toLocaleString()} clubs shown
                     </div>

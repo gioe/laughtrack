@@ -115,7 +115,7 @@ export default function AdminNavigationMenu() {
                 aria-expanded={isOpen}
                 aria-label="Admin navigation"
                 onClick={() => setIsOpen((open) => !open)}
-                className="flex cursor-pointer list-none items-center gap-2 rounded-md border border-copper/35 bg-white px-3 py-2 font-dmSans text-body font-semibold text-cedar shadow-sm outline-none hover:bg-copper/10 focus-visible:ring-2 focus-visible:ring-copper/40"
+                className="flex cursor-pointer list-none items-center gap-2 rounded-md border border-copper/35 bg-surface-elevated px-3 py-2 font-dmSans text-body font-semibold text-foreground shadow-card outline-none hover:bg-copper/10 focus-visible:ring-2 focus-visible:ring-copper/40"
             >
                 <Menu className="h-5 w-5 text-copper-dark" />
                 Menu
@@ -124,7 +124,7 @@ export default function AdminNavigationMenu() {
                 <nav
                     id={MENU_ID}
                     aria-label="Admin navigation"
-                    className="absolute left-0 z-30 mt-2 w-72 overflow-hidden rounded-md border border-copper/20 bg-white shadow-xl"
+                    className="absolute left-0 z-30 mt-2 w-72 overflow-hidden rounded-md border border-copper/20 bg-surface-elevated shadow-floating"
                 >
                     {ADMIN_NAV_ITEMS.map((item) => {
                         const Icon = item.icon;
@@ -132,17 +132,17 @@ export default function AdminNavigationMenu() {
                             <Link
                                 key={item.href}
                                 href={item.href}
-                                className="flex items-center gap-3 border-b border-copper/10 px-4 py-3 text-left last:border-b-0 hover:bg-coconut-cream/60"
+                                className="flex items-center gap-3 border-b border-copper/10 px-4 py-3 text-left last:border-b-0 hover:bg-surface-muted/60"
                                 onClick={() => setIsOpen(false)}
                             >
-                                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-copper/20 bg-coconut-cream text-copper-dark">
+                                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-copper/20 bg-surface-muted text-copper-dark">
                                     <Icon className="h-5 w-5" />
                                 </span>
                                 <span className="min-w-0">
-                                    <span className="block font-urbanist-bold text-body leading-tight text-cedar">
+                                    <span className="block font-urbanist-bold text-body leading-tight text-foreground">
                                         {item.label}
                                     </span>
-                                    <span className="block truncate font-dmSans text-caption text-soft-charcoal">
+                                    <span className="block truncate font-dmSans text-caption text-muted-foreground">
                                         {item.description}
                                     </span>
                                 </span>

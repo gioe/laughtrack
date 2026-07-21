@@ -84,11 +84,11 @@ export function AdminPodcastHostshipAssignmentControls({
             {options && (
                 <section
                     aria-labelledby={`podcast-candidates-${groupKey}`}
-                    className="grid gap-2 rounded-md border border-gray-200 bg-white p-3"
+                    className="grid gap-2 rounded-md border border-subtle bg-surface-elevated p-3"
                 >
                     <h3
                         id={`podcast-candidates-${groupKey}`}
-                        className="font-dmSans text-sm font-semibold text-cedar"
+                        className="font-dmSans text-sm font-semibold text-foreground"
                     >
                         Candidates
                     </h3>
@@ -106,24 +106,24 @@ export function AdminPodcastHostshipAssignmentControls({
                                             ? "border-green-500 bg-green-50"
                                             : isCohost
                                               ? "border-blue-500 bg-blue-50"
-                                              : "border-gray-300 bg-white"
+                                              : "border-strong bg-surface-elevated"
                                     }`}
                                 >
                                     <div className="grid gap-1">
                                         <div className="flex flex-wrap items-center gap-2">
-                                            <span className="font-semibold text-cedar">
+                                            <span className="font-semibold text-foreground">
                                                 {option.name}
                                             </span>
                                             {option.confidence !==
                                                 undefined && (
-                                                <span className="text-caption font-normal text-soft-charcoal">
+                                                <span className="text-caption font-normal text-muted-foreground">
                                                     {formatPercent(
                                                         option.confidence,
                                                     )}
                                                 </span>
                                             )}
                                         </div>
-                                        <span className="text-caption font-semibold text-soft-charcoal">
+                                        <span className="text-caption font-semibold text-muted-foreground">
                                             {formatAssociationType(
                                                 option.associationType,
                                             )}
@@ -138,7 +138,7 @@ export function AdminPodcastHostshipAssignmentControls({
                                             className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-sm font-semibold ${
                                                 isHost
                                                     ? "border-green-500 bg-green-600 text-white"
-                                                    : "border-gray-300 bg-white text-cedar hover:border-copper-dark"
+                                                    : "border-strong bg-surface-elevated text-foreground hover:border-copper-dark"
                                             }`}
                                             aria-label={`Set ${option.name} as host`}
                                         >
@@ -160,7 +160,7 @@ export function AdminPodcastHostshipAssignmentControls({
                                             className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-sm font-semibold ${
                                                 isCohost
                                                     ? "border-blue-500 bg-blue-600 text-white"
-                                                    : "border-gray-300 bg-white text-cedar hover:border-copper-dark"
+                                                    : "border-strong bg-surface-elevated text-foreground hover:border-copper-dark"
                                             }`}
                                             aria-label={`Set ${option.name} as co-host`}
                                         >

@@ -49,16 +49,16 @@ function SummaryCard({
     icon: typeof Activity;
 }) {
     return (
-        <div className="rounded-md border border-copper/20 bg-white p-4">
+        <div className="rounded-md border border-copper/20 bg-surface-elevated p-4">
             <div className="flex items-center gap-3">
                 <span className="flex h-10 w-10 items-center justify-center rounded-md bg-copper/10 text-copper-dark">
                     <Icon className="h-5 w-5" />
                 </span>
                 <div>
-                    <p className="font-dmSans text-caption font-semibold uppercase text-soft-charcoal">
+                    <p className="font-dmSans text-caption font-semibold uppercase text-muted-foreground">
                         {label}
                     </p>
-                    <p className="font-urbanist-bold text-h3 text-cedar">
+                    <p className="font-urbanist-bold text-h3 text-foreground">
                         {value}
                     </p>
                 </div>
@@ -79,10 +79,12 @@ function BreakdownBars({
     const total = rows.reduce((sum, row) => sum + row.count, 0);
 
     return (
-        <div className="rounded-md border border-copper/20 bg-white p-4">
-            <h2 className="font-urbanist-bold text-h4 text-cedar">{title}</h2>
+        <div className="rounded-md border border-copper/20 bg-surface-elevated p-4">
+            <h2 className="font-urbanist-bold text-h4 text-foreground">
+                {title}
+            </h2>
             {rows.length === 0 ? (
-                <p className="mt-3 font-dmSans text-caption text-soft-charcoal">
+                <p className="mt-3 font-dmSans text-caption text-muted-foreground">
                     No data in this window.
                 </p>
             ) : (
@@ -92,15 +94,15 @@ function BreakdownBars({
                         return (
                             <li key={row.key}>
                                 <div className="flex items-baseline justify-between font-dmSans text-caption">
-                                    <span className="font-semibold uppercase text-cedar">
+                                    <span className="font-semibold uppercase text-foreground">
                                         {row.key}
                                     </span>
-                                    <span className="text-soft-charcoal">
+                                    <span className="text-muted-foreground">
                                         {numberFormat.format(row.count)} ·{" "}
                                         {percentFormat.format(share)}
                                     </span>
                                 </div>
-                                <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-coconut-cream">
+                                <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-surface-muted">
                                     <div
                                         className={`h-full rounded-full ${colorFor(row.key)}`}
                                         style={{
@@ -132,23 +134,23 @@ function TopRoutesTable({
     );
 
     return (
-        <div className="overflow-hidden rounded-md border border-copper/20 bg-white">
+        <div className="overflow-hidden rounded-md border border-copper/20 bg-surface-elevated">
             <div className="border-b border-copper/20 px-4 py-3">
-                <h2 className="font-urbanist-bold text-h4 text-cedar">
+                <h2 className="font-urbanist-bold text-h4 text-foreground">
                     Top routes by volume
                 </h2>
-                <p className="mt-1 font-dmSans text-caption text-soft-charcoal">
+                <p className="mt-1 font-dmSans text-caption text-muted-foreground">
                     Select a route to see its trend below.
                 </p>
             </div>
             {routes.length === 0 ? (
-                <p className="px-4 py-6 font-dmSans text-body text-soft-charcoal">
+                <p className="px-4 py-6 font-dmSans text-body text-muted-foreground">
                     No requests recorded in this window.
                 </p>
             ) : (
                 <table className="w-full border-collapse font-dmSans text-body">
                     <thead>
-                        <tr className="bg-coconut-cream/50 text-left font-dmSans text-caption font-semibold uppercase text-soft-charcoal">
+                        <tr className="bg-surface-muted/50 text-left font-dmSans text-caption font-semibold uppercase text-muted-foreground">
                             <th className="px-4 py-2">Route</th>
                             <th className="px-4 py-2 text-right">Requests</th>
                             <th className="px-4 py-2 text-right">Errors</th>
@@ -180,10 +182,10 @@ function TopRoutesTable({
                                             {route.routePattern}
                                         </Link>
                                     </td>
-                                    <td className="px-4 py-2 text-right tabular-nums text-cedar">
+                                    <td className="px-4 py-2 text-right tabular-nums text-foreground">
                                         {numberFormat.format(route.count)}
                                     </td>
-                                    <td className="px-4 py-2 text-right tabular-nums text-soft-charcoal">
+                                    <td className="px-4 py-2 text-right tabular-nums text-muted-foreground">
                                         {route.errorCount > 0
                                             ? numberFormat.format(
                                                   route.errorCount,
@@ -191,7 +193,7 @@ function TopRoutesTable({
                                             : "—"}
                                     </td>
                                     <td className="px-4 py-2">
-                                        <div className="h-2 w-full overflow-hidden rounded-full bg-coconut-cream">
+                                        <div className="h-2 w-full overflow-hidden rounded-full bg-surface-muted">
                                             <div
                                                 className="h-full rounded-full bg-copper"
                                                 style={{
@@ -223,8 +225,8 @@ function RouteTrend({
     );
 
     return (
-        <div className="rounded-md border border-copper/20 bg-white p-4">
-            <h2 className="font-urbanist-bold text-h4 text-cedar">
+        <div className="rounded-md border border-copper/20 bg-surface-elevated p-4">
+            <h2 className="font-urbanist-bold text-h4 text-foreground">
                 Per-route trend
             </h2>
             {selectedRoute ? (
@@ -233,16 +235,14 @@ function RouteTrend({
                 </p>
             ) : null}
             {trend.length === 0 ? (
-                <p className="mt-3 font-dmSans text-body text-soft-charcoal">
+                <p className="mt-3 font-dmSans text-body text-muted-foreground">
                     No trend data for this route in this window.
                 </p>
             ) : (
                 <div className="mt-4 flex h-48 items-end gap-px overflow-x-auto">
                     {trend.map((point) => {
                         const height =
-                            maxCount > 0
-                                ? (point.count / maxCount) * 100
-                                : 0;
+                            maxCount > 0 ? (point.count / maxCount) * 100 : 0;
                         const errorShare =
                             point.count > 0
                                 ? point.errorCount / point.count
@@ -263,11 +263,15 @@ function RouteTrend({
                                     error portion nested at the top in rose. */}
                                 <div
                                     className="flex w-full flex-col overflow-hidden rounded-t-sm bg-copper/70"
-                                    style={{ height: `${Math.max(height, 1)}%` }}
+                                    style={{
+                                        height: `${Math.max(height, 1)}%`,
+                                    }}
                                 >
                                     <div
                                         className="w-full bg-rose-500"
-                                        style={{ height: `${errorShare * 100}%` }}
+                                        style={{
+                                            height: `${errorShare * 100}%`,
+                                        }}
                                     />
                                 </div>
                             </div>
@@ -276,9 +280,11 @@ function RouteTrend({
                 </div>
             )}
             {trend.length > 0 ? (
-                <div className="mt-2 flex justify-between font-dmSans text-caption text-soft-charcoal">
+                <div className="mt-2 flex justify-between font-dmSans text-caption text-muted-foreground">
                     <span>{formatHour(trend[0].hourBucket)}</span>
-                    <span>{formatHour(trend[trend.length - 1].hourBucket)}</span>
+                    <span>
+                        {formatHour(trend[trend.length - 1].hourBucket)}
+                    </span>
                 </div>
             ) : null}
         </div>
@@ -330,7 +336,7 @@ export default async function AdminApiRequestsPage({
                             className={`rounded-md border px-3 py-1.5 font-dmSans text-caption font-semibold transition-colors ${
                                 isActive
                                     ? "border-copper bg-copper text-white"
-                                    : "border-copper/35 bg-white text-cedar hover:bg-copper/10"
+                                    : "border-copper/35 bg-surface-elevated text-foreground hover:bg-copper/10"
                             }`}
                         >
                             {option.label}

@@ -198,15 +198,15 @@ export default function AdminUsersManager({
                 onPageSizeChange={updatePageSize}
             />
 
-            <div className="overflow-hidden rounded-md border border-copper/20 bg-white">
+            <div className="overflow-hidden rounded-md border border-copper/20 bg-surface-elevated">
                 <div className="border-b border-copper/20 bg-cedar px-4 py-3">
-                    <h2 className="font-urbanist-bold text-h3 text-coconut-cream">
+                    <h2 className="font-urbanist-bold text-h3 text-foreground">
                         Users
                     </h2>
                 </div>
 
                 {pagedUsers.length === 0 ? (
-                    <p className="p-4 font-dmSans text-body text-soft-charcoal">
+                    <p className="p-4 font-dmSans text-body text-muted-foreground">
                         No user accounts found.
                     </p>
                 ) : (
@@ -306,10 +306,10 @@ function UserRow({ user }: { user: AdminUserListItem }) {
         <li className="grid gap-5 px-4 py-5 xl:grid-cols-[minmax(260px,0.8fr)_minmax(260px,0.8fr)_minmax(360px,1fr)]">
             <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="break-words font-urbanist-bold text-h3 text-cedar">
+                    <h3 className="break-words font-urbanist-bold text-h3 text-foreground">
                         {currentName ?? "Unnamed user"}
                     </h3>
-                    <span className="rounded-md border border-copper/20 bg-ecru-white px-2 py-1 font-dmSans text-caption font-semibold text-copper-dark">
+                    <span className="rounded-md border border-copper/20 bg-surface-muted px-2 py-1 font-dmSans text-caption font-semibold text-copper-dark">
                         {user.profile?.role ?? "no profile"}
                     </span>
                 </div>
@@ -319,16 +319,16 @@ function UserRow({ user }: { user: AdminUserListItem }) {
                 >
                     {user.email}
                 </a>
-                <dl className="mt-3 grid gap-1 font-dmSans text-caption text-soft-charcoal">
+                <dl className="mt-3 grid gap-1 font-dmSans text-caption text-muted-foreground">
                     <div>
-                        <dt className="inline font-semibold text-cedar">
+                        <dt className="inline font-semibold text-foreground">
                             User ID:
                         </dt>{" "}
                         <dd className="inline break-all">{user.id}</dd>
                     </div>
                     {user.profile && (
                         <div>
-                            <dt className="inline font-semibold text-cedar">
+                            <dt className="inline font-semibold text-foreground">
                                 Profile ID:
                             </dt>{" "}
                             <dd className="inline break-all">
@@ -337,7 +337,7 @@ function UserRow({ user }: { user: AdminUserListItem }) {
                         </div>
                     )}
                     <div>
-                        <dt className="inline font-semibold text-cedar">
+                        <dt className="inline font-semibold text-foreground">
                             Image:
                         </dt>{" "}
                         <dd className="inline break-all">
@@ -347,21 +347,25 @@ function UserRow({ user }: { user: AdminUserListItem }) {
                 </dl>
             </div>
 
-            <dl className="grid content-start gap-2 font-dmSans text-body text-soft-charcoal">
+            <dl className="grid content-start gap-2 font-dmSans text-body text-muted-foreground">
                 <div>
-                    <dt className="font-semibold text-cedar">Created</dt>
+                    <dt className="font-semibold text-foreground">Created</dt>
                     <dd>{formatDateTime(user.createdAt)}</dd>
                 </div>
                 <div>
-                    <dt className="font-semibold text-cedar">Updated</dt>
+                    <dt className="font-semibold text-foreground">Updated</dt>
                     <dd>{formatDateTime(user.updatedAt)}</dd>
                 </div>
                 <div>
-                    <dt className="font-semibold text-cedar">Email verified</dt>
+                    <dt className="font-semibold text-foreground">
+                        Email verified
+                    </dt>
                     <dd>{formatDateTime(user.emailVerifiedAt)}</dd>
                 </div>
                 <div>
-                    <dt className="font-semibold text-cedar">Auth providers</dt>
+                    <dt className="font-semibold text-foreground">
+                        Auth providers
+                    </dt>
                     <dd>
                         {user.accountProviders.length > 0
                             ? user.accountProviders.join(", ")
@@ -369,7 +373,7 @@ function UserRow({ user }: { user: AdminUserListItem }) {
                     </dd>
                 </div>
                 <div>
-                    <dt className="font-semibold text-cedar">
+                    <dt className="font-semibold text-foreground">
                         Account records
                     </dt>
                     <dd>
@@ -381,12 +385,12 @@ function UserRow({ user }: { user: AdminUserListItem }) {
             </dl>
 
             <div className="space-y-3">
-                <div className="rounded-md border border-copper/20 bg-ecru-white p-3">
-                    <h4 className="font-urbanist-bold text-body text-cedar">
+                <div className="rounded-md border border-copper/20 bg-surface-muted p-3">
+                    <h4 className="font-urbanist-bold text-body text-foreground">
                         Edit user
                     </h4>
                     {!hasProfile && (
-                        <p className="mt-1 font-dmSans text-caption text-soft-charcoal">
+                        <p className="mt-1 font-dmSans text-caption text-muted-foreground">
                             Profile fields are unavailable for accounts without
                             a profile.
                         </p>
@@ -558,13 +562,13 @@ function UserRow({ user }: { user: AdminUserListItem }) {
                     </div>
                 </div>
 
-                <details className="rounded-md border border-copper/20 bg-ecru-white p-3">
-                    <summary className="cursor-pointer font-dmSans text-body font-semibold text-cedar">
+                <details className="rounded-md border border-copper/20 bg-surface-muted p-3">
+                    <summary className="cursor-pointer font-dmSans text-body font-semibold text-foreground">
                         Push tokens: {activePushTokenCount} active of{" "}
                         {user.pushTokens.length}
                     </summary>
                     {user.pushTokens.length === 0 ? (
-                        <p className="mt-2 font-dmSans text-caption text-soft-charcoal">
+                        <p className="mt-2 font-dmSans text-caption text-muted-foreground">
                             No device tokens registered.
                         </p>
                     ) : (
@@ -572,10 +576,10 @@ function UserRow({ user }: { user: AdminUserListItem }) {
                             {user.pushTokens.map((token) => (
                                 <dl
                                     key={token.id}
-                                    className="rounded-md border border-copper/20 bg-white p-3 font-dmSans text-caption text-soft-charcoal"
+                                    className="rounded-md border border-copper/20 bg-surface-elevated p-3 font-dmSans text-caption text-muted-foreground"
                                 >
                                     <div>
-                                        <dt className="inline font-semibold text-cedar">
+                                        <dt className="inline font-semibold text-foreground">
                                             Token:
                                         </dt>{" "}
                                         <dd className="inline break-all">
@@ -583,7 +587,7 @@ function UserRow({ user }: { user: AdminUserListItem }) {
                                         </dd>
                                     </div>
                                     <div>
-                                        <dt className="inline font-semibold text-cedar">
+                                        <dt className="inline font-semibold text-foreground">
                                             Status:
                                         </dt>{" "}
                                         <dd className="inline">
@@ -594,7 +598,7 @@ function UserRow({ user }: { user: AdminUserListItem }) {
                                         </dd>
                                     </div>
                                     <div>
-                                        <dt className="inline font-semibold text-cedar">
+                                        <dt className="inline font-semibold text-foreground">
                                             Last refreshed:
                                         </dt>{" "}
                                         <dd className="inline">
@@ -604,7 +608,7 @@ function UserRow({ user }: { user: AdminUserListItem }) {
                                         </dd>
                                     </div>
                                     <div>
-                                        <dt className="inline font-semibold text-cedar">
+                                        <dt className="inline font-semibold text-foreground">
                                             Registered:
                                         </dt>{" "}
                                         <dd className="inline">
@@ -613,7 +617,7 @@ function UserRow({ user }: { user: AdminUserListItem }) {
                                     </div>
                                     {!token.isActive && (
                                         <div>
-                                            <dt className="inline font-semibold text-cedar">
+                                            <dt className="inline font-semibold text-foreground">
                                                 Revoked:
                                             </dt>{" "}
                                             <dd className="inline">
@@ -630,11 +634,11 @@ function UserRow({ user }: { user: AdminUserListItem }) {
                 </details>
 
                 <div>
-                    <h4 className="font-dmSans text-body font-semibold text-cedar">
+                    <h4 className="font-dmSans text-body font-semibold text-foreground">
                         Favorite comedians ({favorites.length})
                     </h4>
                     {favorites.length === 0 ? (
-                        <p className="font-dmSans text-caption text-soft-charcoal">
+                        <p className="font-dmSans text-caption text-muted-foreground">
                             No favorites saved.
                         </p>
                     ) : (
@@ -643,7 +647,7 @@ function UserRow({ user }: { user: AdminUserListItem }) {
                                 <Link
                                     key={comedian.uuid}
                                     href={`/comedian/${encodeURIComponent(comedian.name)}`}
-                                    className="rounded-md border border-copper/20 bg-ecru-white px-2 py-1 font-dmSans text-caption font-semibold text-copper-dark hover:border-copper hover:bg-coconut-cream"
+                                    className="rounded-md border border-copper/20 bg-surface-muted px-2 py-1 font-dmSans text-caption font-semibold text-copper-dark hover:border-copper hover:bg-surface-muted"
                                 >
                                     {comedian.name} ·{" "}
                                     {comedian.totalShows.toLocaleString()} shows
@@ -667,10 +671,12 @@ function FieldLabel({
     error: string | null;
 }) {
     return (
-        <div className="flex items-baseline justify-between gap-2 font-dmSans text-caption font-semibold text-cedar">
+        <div className="flex items-baseline justify-between gap-2 font-dmSans text-caption font-semibold text-foreground">
             <span>{label}</span>
             {saving ? (
-                <span className="font-normal text-soft-charcoal">Saving…</span>
+                <span className="font-normal text-muted-foreground">
+                    Saving…
+                </span>
             ) : error ? (
                 <span className="font-normal text-red-700">{error}</span>
             ) : null}
@@ -732,7 +738,7 @@ function TextField({
                         event.currentTarget.blur();
                     }
                 }}
-                className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body text-cedar outline-none focus:border-copper focus:ring-2 focus:ring-copper/30 disabled:bg-coconut-cream/40 disabled:text-soft-charcoal"
+                className="rounded-md border border-input bg-background px-3 py-2 font-dmSans text-body text-foreground outline-none focus:border-copper focus:ring-2 focus:ring-copper/30 disabled:bg-surface-muted/40 disabled:text-muted-foreground"
             />
         </label>
     );
@@ -762,7 +768,7 @@ function SelectField({
                 value={value}
                 disabled={disabled || saving}
                 onChange={(event) => onChange(event.target.value)}
-                className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body text-cedar outline-none focus:border-copper focus:ring-2 focus:ring-copper/30 disabled:bg-coconut-cream/40 disabled:text-soft-charcoal"
+                className="rounded-md border border-input bg-background px-3 py-2 font-dmSans text-body text-foreground outline-none focus:border-copper focus:ring-2 focus:ring-copper/30 disabled:bg-surface-muted/40 disabled:text-muted-foreground"
             >
                 {options.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -791,17 +797,17 @@ function CheckboxField({
 }) {
     return (
         <div className="grid gap-1">
-            <label className="flex items-center gap-2 font-dmSans text-body text-cedar">
+            <label className="flex items-center gap-2 font-dmSans text-body text-foreground">
                 <input
                     type="checkbox"
                     checked={checked}
                     disabled={disabled || saving}
                     onChange={(event) => onChange(event.target.checked)}
-                    className="h-4 w-4 rounded border-soft-charcoal/40 text-copper-dark focus:ring-copper/30"
+                    className="h-4 w-4 rounded border-strong text-copper-dark focus:ring-copper/30"
                 />
                 <span className="font-semibold">{label}</span>
                 {saving ? (
-                    <span className="font-dmSans text-caption text-soft-charcoal">
+                    <span className="font-dmSans text-caption text-muted-foreground">
                         Saving…
                     </span>
                 ) : null}

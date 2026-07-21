@@ -11,7 +11,7 @@ export function clampAdminPage(page: number, totalPages: number) {
 
 export function AdminToolbar({ children }: { children: React.ReactNode }) {
     return (
-        <div className="grid gap-3 rounded-md border border-copper/20 bg-white p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+        <div className="grid gap-3 rounded-md border border-copper/20 bg-surface-elevated p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
             {children}
         </div>
     );
@@ -29,15 +29,15 @@ export function AdminSearchField({
     onChange: (value: string) => void;
 }) {
     return (
-        <label className="grid gap-1 font-dmSans text-body font-semibold text-cedar">
+        <label className="grid gap-1 font-dmSans text-body font-semibold text-foreground">
             {label}
             <span className="relative">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-soft-charcoal" />
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <input
                     type="search"
                     value={value}
                     onChange={(event) => onChange(event.target.value)}
-                    className="w-full rounded-md border border-soft-charcoal/30 bg-white py-2 pl-10 pr-3 font-dmSans text-body text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                    className="w-full rounded-md border border-input bg-background py-2 pl-10 pr-3 font-dmSans text-body text-foreground outline-none placeholder:text-muted-foreground focus:border-copper focus:ring-2 focus:ring-copper/30"
                     placeholder={placeholder}
                 />
             </span>
@@ -57,12 +57,12 @@ export function AdminSelectField<T extends string>({
     onChange: (value: T) => void;
 }) {
     return (
-        <label className="grid gap-1 font-dmSans text-body font-semibold text-cedar">
+        <label className="grid gap-1 font-dmSans text-body font-semibold text-foreground">
             {label}
             <select
                 value={value}
                 onChange={(event) => onChange(event.target.value as T)}
-                className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body text-cedar outline-none focus:border-copper focus:ring-2 focus:ring-copper/30"
+                className="rounded-md border border-input bg-background px-3 py-2 font-dmSans text-body text-foreground outline-none focus:border-copper focus:ring-2 focus:ring-copper/30"
             >
                 {options.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -87,11 +87,11 @@ export function AdminSegmentedControl<T extends string>({
 }) {
     return (
         <div>
-            <div className="mb-1 font-dmSans text-body font-semibold text-cedar">
+            <div className="mb-1 font-dmSans text-body font-semibold text-foreground">
                 {label}
             </div>
             <div
-                className="inline-flex w-fit overflow-hidden rounded-md border border-soft-charcoal/30"
+                className="inline-flex w-fit overflow-hidden rounded-md border border-strong"
                 aria-label={label}
             >
                 {options.map((option, index) => (
@@ -100,11 +100,11 @@ export function AdminSegmentedControl<T extends string>({
                         type="button"
                         onClick={() => onChange(option.value)}
                         className={`px-3 py-2 font-dmSans text-body font-semibold ${
-                            index > 0 ? "border-l border-soft-charcoal/30" : ""
+                            index > 0 ? "border-l border-strong" : ""
                         } ${
                             value === option.value
                                 ? "bg-copper-dark text-white"
-                                : "bg-white text-cedar hover:bg-ecru-white"
+                                : "bg-surface-elevated text-foreground hover:bg-surface-muted"
                         }`}
                     >
                         {option.label}
@@ -137,7 +137,7 @@ export function AdminPagination({
     const end = Math.min(page * pageSize, totalItems);
 
     return (
-        <div className="flex flex-col gap-3 rounded-md border border-copper/20 bg-white px-3 py-2 font-dmSans text-body text-cedar md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-3 rounded-md border border-copper/20 bg-surface-elevated px-3 py-2 font-dmSans text-body text-foreground md:flex-row md:items-center md:justify-between">
             <div className="font-semibold">
                 {start}-{end} of {totalItems} {label}
             </div>
@@ -149,7 +149,7 @@ export function AdminPagination({
                         onChange={(event) =>
                             onPageSizeChange(Number(event.target.value))
                         }
-                        className="rounded-md border border-soft-charcoal/30 bg-white px-2 py-1 text-cedar outline-none focus:border-copper focus:ring-2 focus:ring-copper/30"
+                        className="rounded-md border border-input bg-background px-2 py-1 text-foreground outline-none focus:border-copper focus:ring-2 focus:ring-copper/30"
                     >
                         {pageSizeOptions.map((option) => (
                             <option key={option} value={option}>
@@ -161,7 +161,7 @@ export function AdminPagination({
                 <Button
                     type="button"
                     variant="outline"
-                    className="border-copper-dark bg-white text-copper-dark disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                    className="border-copper-dark bg-surface-elevated text-copper-dark disabled:border-strong disabled:bg-surface-muted disabled:text-muted-foreground disabled:opacity-100"
                     disabled={page <= 1}
                     onClick={() => onPageChange(page - 1)}
                 >
@@ -173,7 +173,7 @@ export function AdminPagination({
                 <Button
                     type="button"
                     variant="outline"
-                    className="border-copper-dark bg-white text-copper-dark disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                    className="border-copper-dark bg-surface-elevated text-copper-dark disabled:border-strong disabled:bg-surface-muted disabled:text-muted-foreground disabled:opacity-100"
                     disabled={page >= totalPages}
                     onClick={() => onPageChange(page + 1)}
                 >

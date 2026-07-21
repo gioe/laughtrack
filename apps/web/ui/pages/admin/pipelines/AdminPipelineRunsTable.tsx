@@ -38,8 +38,8 @@ function statusClass(status: AdminPipelineRun["status"]): string {
 function DetailItem({ label, value }: { label: string; value: string }) {
     return (
         <div>
-            <dt className="font-semibold text-cedar">{label}</dt>
-            <dd className="break-words text-soft-charcoal">{value}</dd>
+            <dt className="font-semibold text-foreground">{label}</dt>
+            <dd className="break-words text-muted-foreground">{value}</dd>
         </div>
     );
 }
@@ -117,20 +117,20 @@ export default function AdminPipelineRunsTable({
     }
 
     return (
-        <section className="overflow-hidden rounded-md border border-copper/20 bg-white">
+        <section className="overflow-hidden rounded-md border border-copper/20 bg-surface-elevated">
             <div className="border-b border-copper/20 bg-cedar px-4 py-3">
-                <h2 className="font-urbanist-bold text-h3 text-coconut-cream">
+                <h2 className="font-urbanist-bold text-h3 text-foreground">
                     Recent runs
                 </h2>
             </div>
             {groupedRuns.length === 0 ? (
-                <p className="p-4 font-dmSans text-body text-soft-charcoal">
+                <p className="p-4 font-dmSans text-body text-muted-foreground">
                     No recent runs found.
                 </p>
             ) : (
                 <div className="overflow-x-auto">
                     <table className="w-full min-w-[980px] text-left font-dmSans text-body">
-                        <thead className="bg-ecru-white text-caption uppercase text-soft-charcoal">
+                        <thead className="bg-surface-muted text-caption uppercase text-muted-foreground">
                             <tr>
                                 <th className="px-4 py-3">Pipeline</th>
                                 <th className="px-4 py-3">Latest run</th>
@@ -148,11 +148,11 @@ export default function AdminPipelineRunsTable({
                                 );
                                 return (
                                     <Fragment key={group.pipelineKey}>
-                                        <tr className="hover:bg-ecru-white/60">
-                                            <td className="px-4 py-3 font-semibold text-cedar">
+                                        <tr className="hover:bg-surface-muted/60">
+                                            <td className="px-4 py-3 font-semibold text-foreground">
                                                 <button
                                                     type="button"
-                                                    className="flex max-w-[360px] items-start gap-2 text-left text-cedar"
+                                                    className="flex max-w-[360px] items-start gap-2 text-left text-foreground"
                                                     aria-expanded={groupOpen}
                                                     aria-controls={`pipeline-group-${group.pipelineKey}`}
                                                     onClick={() =>
@@ -172,31 +172,31 @@ export default function AdminPipelineRunsTable({
                                                         <span className="block">
                                                             {group.pipelineName}
                                                         </span>
-                                                        <span className="block break-all font-dmSans text-caption font-normal text-soft-charcoal">
+                                                        <span className="block break-all font-dmSans text-caption font-normal text-muted-foreground">
                                                             {group.pipelineKey}
                                                         </span>
                                                     </span>
                                                 </button>
                                             </td>
-                                            <td className="px-4 py-3 text-soft-charcoal">
+                                            <td className="px-4 py-3 text-muted-foreground">
                                                 {formatDateTime(
                                                     latestRun.exportedAt,
                                                 )}
                                             </td>
-                                            <td className="px-4 py-3 text-soft-charcoal">
+                                            <td className="px-4 py-3 text-muted-foreground">
                                                 {formatSeconds(
                                                     latestRun.durationSeconds,
                                                 )}
                                             </td>
-                                            <td className="px-4 py-3 text-soft-charcoal">
+                                            <td className="px-4 py-3 text-muted-foreground">
                                                 {formatPercent(
                                                     latestRun.successRate,
                                                 )}
                                             </td>
-                                            <td className="px-4 py-3 text-soft-charcoal">
+                                            <td className="px-4 py-3 text-muted-foreground">
                                                 {group.runs.length.toLocaleString()}
                                             </td>
-                                            <td className="px-4 py-3 text-soft-charcoal">
+                                            <td className="px-4 py-3 text-muted-foreground">
                                                 {latestRun.errorsTotal.toLocaleString()}
                                             </td>
                                         </tr>
@@ -206,7 +206,7 @@ export default function AdminPipelineRunsTable({
                                             >
                                                 <td
                                                     colSpan={6}
-                                                    className="bg-ecru-white/60 p-0"
+                                                    className="bg-surface-muted/60 p-0"
                                                 >
                                                     <PipelineRunAttempts
                                                         runs={group.runs}
@@ -238,7 +238,7 @@ function PipelineRunAttempts({
 }) {
     return (
         <table className="w-full min-w-[980px] text-left font-dmSans text-body">
-            <thead className="bg-white text-caption uppercase text-soft-charcoal">
+            <thead className="bg-surface-elevated text-caption uppercase text-muted-foreground">
                 <tr>
                     <th className="px-8 py-3">Run</th>
                     <th className="px-4 py-3">Status</th>
@@ -256,11 +256,11 @@ function PipelineRunAttempts({
                     const isGithubRun = isGithubActionsRun(run);
                     return (
                         <Fragment key={run.id}>
-                            <tr className="bg-white/80 hover:bg-white">
-                                <td className="px-8 py-3 font-semibold text-cedar">
+                            <tr className="bg-surface-elevated/80 hover:bg-surface-elevated">
+                                <td className="px-8 py-3 font-semibold text-foreground">
                                     <button
                                         type="button"
-                                        className="flex max-w-[360px] items-start gap-2 text-left text-cedar"
+                                        className="flex max-w-[360px] items-start gap-2 text-left text-foreground"
                                         aria-expanded={isOpen}
                                         aria-controls={`pipeline-run-${run.id}`}
                                         onClick={() => toggleRun(run.id)}
@@ -272,7 +272,7 @@ function PipelineRunAttempts({
                                                 <ChevronRight className="h-4 w-4" />
                                             )}
                                         </span>
-                                        <span className="block break-all font-dmSans text-caption font-normal text-soft-charcoal">
+                                        <span className="block break-all font-dmSans text-caption font-normal text-muted-foreground">
                                             {run.runKey}
                                         </span>
                                     </button>
@@ -284,26 +284,26 @@ function PipelineRunAttempts({
                                         {run.status}
                                     </span>
                                 </td>
-                                <td className="px-4 py-3 text-soft-charcoal">
+                                <td className="px-4 py-3 text-muted-foreground">
                                     {formatDateTime(run.exportedAt)}
                                 </td>
-                                <td className="px-4 py-3 text-soft-charcoal">
+                                <td className="px-4 py-3 text-muted-foreground">
                                     {formatSeconds(run.durationSeconds)}
                                 </td>
-                                <td className="px-4 py-3 text-soft-charcoal">
+                                <td className="px-4 py-3 text-muted-foreground">
                                     {formatPercent(run.successRate)}
                                 </td>
-                                <td className="px-4 py-3 text-soft-charcoal">
+                                <td className="px-4 py-3 text-muted-foreground">
                                     {isGithubRun
                                         ? "N/A"
                                         : `${run.clubsSuccessful}/${run.clubsProcessed} ok`}
                                 </td>
-                                <td className="px-4 py-3 text-soft-charcoal">
+                                <td className="px-4 py-3 text-muted-foreground">
                                     {isGithubRun
                                         ? "N/A"
                                         : `${run.showsSaved.toLocaleString()} saved`}
                                 </td>
-                                <td className="px-4 py-3 text-soft-charcoal">
+                                <td className="px-4 py-3 text-muted-foreground">
                                     {run.errorsTotal.toLocaleString()}
                                 </td>
                             </tr>
@@ -311,7 +311,7 @@ function PipelineRunAttempts({
                                 <tr id={`pipeline-run-${run.id}`}>
                                     <td
                                         colSpan={8}
-                                        className="bg-ecru-white/70 px-8 py-4"
+                                        className="bg-surface-muted/70 px-8 py-4"
                                     >
                                         <PipelineRunDetails run={run} />
                                     </td>
@@ -414,7 +414,9 @@ function PipelineRunDetails({ run }: { run: AdminPipelineRun }) {
             <dl className="grid gap-2">
                 {run.runUrl && (
                     <div>
-                        <dt className="font-semibold text-cedar">Run URL</dt>
+                        <dt className="font-semibold text-foreground">
+                            Run URL
+                        </dt>
                         <dd>
                             <a
                                 href={run.runUrl}

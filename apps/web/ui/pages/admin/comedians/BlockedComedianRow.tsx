@@ -50,20 +50,20 @@ export function BlockedComedianRow({
                 className="flex w-full items-center gap-3 rounded-md px-2 py-2 text-left transition-colors hover:bg-red-50/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-copper/40"
             >
                 {open ? (
-                    <ChevronDown className="h-4 w-4 shrink-0 text-cedar" />
+                    <ChevronDown className="h-4 w-4 shrink-0 text-foreground" />
                 ) : (
-                    <ChevronRight className="h-4 w-4 shrink-0 text-cedar" />
+                    <ChevronRight className="h-4 w-4 shrink-0 text-foreground" />
                 )}
                 <ComedianRowHeadshot row={row} />
                 <span className="min-w-0 flex-1">
                     <span
                         role="heading"
                         aria-level={2}
-                        className="block break-words font-urbanist-bold text-h3 leading-tight text-cedar"
+                        className="block break-words font-urbanist-bold text-h3 leading-tight text-foreground"
                     >
                         {row.name}
                     </span>
-                    <span className="mt-1 block font-dmSans text-caption font-semibold text-soft-charcoal">
+                    <span className="mt-1 block font-dmSans text-caption font-semibold text-muted-foreground">
                         ID {row.id}
                     </span>
                 </span>
@@ -89,7 +89,7 @@ export function BlockedComedianRow({
                             : ""}
                     </div>
                 </div>
-                <label className="inline-flex w-fit items-center gap-2 rounded-md border border-red-800/35 bg-white px-3 py-2 font-dmSans text-body font-semibold text-red-950">
+                <label className="inline-flex w-fit items-center gap-2 rounded-md border border-red-800/35 bg-surface-elevated px-3 py-2 font-dmSans text-body font-semibold text-red-950">
                     <input
                         type="checkbox"
                         checked

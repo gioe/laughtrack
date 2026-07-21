@@ -23,7 +23,7 @@ export function AdminPodcastHostshipReviewGroupFrame({
     const panelId = `podcast-review-group-${groupKey}`;
 
     return (
-        <section className="overflow-hidden rounded-md border border-copper/20 bg-white">
+        <section className="overflow-hidden rounded-md border border-copper/20 bg-surface-elevated">
             <header className="border-b border-copper/20 bg-cedar px-4 py-3 text-white">
                 <button
                     type="button"

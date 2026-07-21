@@ -168,11 +168,11 @@ export default function AdminComedianManager({ comedians }: Props) {
     return (
         <div className="space-y-4">
             {pendingRowIds.size > 0 && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-[1px]">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-canvas/80 backdrop-blur-[1px]">
                     <div
                         role="status"
                         aria-live="polite"
-                        className="flex items-center gap-3 rounded-md border border-copper/25 bg-white px-5 py-4 font-dmSans text-body font-semibold text-cedar shadow-2xl"
+                        className="flex items-center gap-3 rounded-md border border-copper/25 bg-surface-elevated px-5 py-4 font-dmSans text-body font-semibold text-foreground shadow-floating"
                     >
                         <Loader2 className="h-5 w-5 animate-spin text-copper-dark" />
                         Updating comedian
@@ -188,8 +188,8 @@ export default function AdminComedianManager({ comedians }: Props) {
                     <p
                         className={
                             status.kind === "ok"
-                                ? "mx-auto max-w-4xl rounded-md border border-green-700/30 bg-green-50 px-4 py-3 text-center font-dmSans text-body font-semibold text-green-900 shadow-xl"
-                                : "mx-auto max-w-4xl rounded-md border border-red-700/30 bg-red-50 px-4 py-3 text-center font-dmSans text-body font-semibold text-red-900 shadow-xl"
+                                ? "mx-auto max-w-4xl rounded-md border border-green-700/30 bg-green-50 px-4 py-3 text-center font-dmSans text-body font-semibold text-green-900 shadow-floating"
+                                : "mx-auto max-w-4xl rounded-md border border-red-700/30 bg-red-50 px-4 py-3 text-center font-dmSans text-body font-semibold text-red-900 shadow-floating"
                         }
                     >
                         {status.message}
@@ -223,7 +223,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                     ]}
                 />
                 <div className="flex flex-wrap items-center gap-3 self-end">
-                    <label className="inline-flex h-10 items-center gap-2 rounded-md border border-soft-charcoal/30 bg-white px-3 font-dmSans text-body font-semibold text-cedar">
+                    <label className="inline-flex h-10 items-center gap-2 rounded-md border border-strong bg-surface-elevated px-3 font-dmSans text-body font-semibold text-foreground">
                         <input
                             type="checkbox"
                             checked={blockedOnly}
@@ -234,7 +234,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                         />
                         Blocked
                     </label>
-                    <label className="inline-flex h-10 items-center gap-2 rounded-md border border-soft-charcoal/30 bg-white px-3 font-dmSans text-body font-semibold text-cedar">
+                    <label className="inline-flex h-10 items-center gap-2 rounded-md border border-strong bg-surface-elevated px-3 font-dmSans text-body font-semibold text-foreground">
                         <input
                             type="checkbox"
                             checked={parentOnly}
@@ -248,8 +248,8 @@ export default function AdminComedianManager({ comedians }: Props) {
                 </div>
             </AdminToolbar>
             {pagination}
-            <div className="rounded-md border border-copper/20 bg-white">
-                <div className="border-b border-copper/20 bg-cedar px-4 py-3 font-dmSans text-caption font-semibold uppercase tracking-wide text-coconut-cream">
+            <div className="rounded-md border border-copper/20 bg-surface-elevated">
+                <div className="border-b border-copper/20 bg-cedar px-4 py-3 font-dmSans text-caption font-semibold uppercase tracking-wide text-foreground">
                     Comedians
                 </div>
                 <ul className="divide-y divide-copper/15">

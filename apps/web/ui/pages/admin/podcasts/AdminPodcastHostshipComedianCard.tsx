@@ -73,18 +73,18 @@ export function AdminPodcastHostshipComedianCard({
         >
             <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
                 <div>
-                    <h2 className="font-urbanist-bold text-h3 leading-tight text-cedar">
+                    <h2 className="font-urbanist-bold text-h3 leading-tight text-foreground">
                         {group.comedian.name}
                     </h2>
-                    <p className="font-dmSans text-caption text-soft-charcoal">
+                    <p className="font-dmSans text-caption text-muted-foreground">
                         Popularity {formatPopularity(group.popularity)} ·{" "}
                         {hostedPodcastCount} hosted podcast
                         {hostedPodcastCount === 1 ? "" : "s"}
                     </p>
                 </div>
             </div>
-            <div className="grid gap-2 rounded-md border border-gray-300 bg-white p-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
-                <label className="grid gap-1 font-dmSans text-sm font-semibold text-cedar">
+            <div className="grid gap-2 rounded-md border border-strong bg-surface-elevated p-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+                <label className="grid gap-1 font-dmSans text-sm font-semibold text-foreground">
                     Add arbitrary RSS feed
                     <input
                         type="url"
@@ -92,14 +92,14 @@ export function AdminPodcastHostshipComedianCard({
                         onChange={(event) =>
                             onManualFeedUrlChange(event.target.value)
                         }
-                        className="min-w-0 rounded-md border border-gray-300 bg-white px-3 py-2 font-dmSans text-body font-normal text-foreground placeholder:text-soft-charcoal focus:border-copper-dark focus:outline-none focus:ring-2 focus:ring-copper-dark"
+                        className="min-w-0 rounded-md border border-input bg-background px-3 py-2 font-dmSans text-body font-normal text-foreground placeholder:text-muted-foreground focus:border-copper-dark focus:outline-none focus:ring-2 focus:ring-copper-dark"
                         placeholder="https://example.com/rss.xml"
                     />
                 </label>
                 <Button
                     type="button"
                     variant="outline"
-                    className="border-copper-dark bg-white !text-copper-dark hover:bg-copper-dark hover:!text-white disabled:border-gray-300 disabled:bg-gray-100 disabled:!text-soft-charcoal disabled:opacity-100"
+                    className="border-copper-dark bg-surface-elevated !text-copper-dark hover:bg-copper-dark hover:!text-white disabled:border-strong disabled:bg-surface-muted disabled:!text-muted-foreground disabled:opacity-100"
                     disabled={ingestDisabled || !manualFeedUrl.trim()}
                     onClick={() => onIngest(group)}
                 >
@@ -119,11 +119,11 @@ export function AdminPodcastHostshipComedianCard({
                     return (
                         <section
                             key={podcastGroup.key}
-                            className="grid gap-3 rounded-md border border-gray-200 bg-ecru-white p-3 md:grid-cols-[minmax(0,1fr)_auto]"
+                            className="grid gap-3 rounded-md border border-subtle bg-surface-muted p-3 md:grid-cols-[minmax(0,1fr)_auto]"
                         >
                             <div className="min-w-0">
                                 <div className="flex flex-wrap items-center gap-2">
-                                    <h3 className="font-urbanist-bold text-body text-cedar">
+                                    <h3 className="font-urbanist-bold text-body text-foreground">
                                         {podcastGroup.podcast.title}
                                     </h3>
                                     <span
@@ -140,7 +140,7 @@ export function AdminPodcastHostshipComedianCard({
                                               : "No host"}
                                     </span>
                                 </div>
-                                <p className="mt-1 font-dmSans text-caption text-soft-charcoal">
+                                <p className="mt-1 font-dmSans text-caption text-muted-foreground">
                                     {podcastGroup.podcast.authorName
                                         ? `by ${podcastGroup.podcast.authorName}`
                                         : "Author missing"}
@@ -163,7 +163,7 @@ export function AdminPodcastHostshipComedianCard({
                                             />
                                         </a>
                                     ) : (
-                                        <span className="text-soft-charcoal">
+                                        <span className="text-muted-foreground">
                                             RSS feed missing
                                         </span>
                                     )}
@@ -208,7 +208,7 @@ export function AdminPodcastHostshipComedianCard({
                                 <Button
                                     type="button"
                                     variant="outline"
-                                    className="border-copper-dark bg-white !text-copper-dark hover:bg-copper-dark hover:!text-white"
+                                    className="border-copper-dark bg-surface-elevated !text-copper-dark hover:bg-copper-dark hover:!text-white"
                                     onClick={() =>
                                         onSelectHost(
                                             podcastGroup.key,

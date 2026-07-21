@@ -16,8 +16,8 @@ export default async function AdminLayout({
     if (!(await isAdminSession())) notFound();
 
     return (
-        <div className="min-h-screen bg-ecru-white text-cedar">
-            <header className="border-b border-copper/20 bg-coconut-cream/90">
+        <div className="min-h-screen bg-canvas text-foreground">
+            <header className="border-b border-copper/20 bg-surface/90">
                 <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-5 md:px-8">
                     <AdminNavigationMenu />
                     <Link
@@ -33,15 +33,15 @@ export default async function AdminLayout({
                             className="shrink-0"
                         />
                         <div className="min-w-0">
-                            <div className="font-urbanist-bold text-h2 leading-tight text-cedar">
+                            <div className="font-urbanist-bold text-h2 leading-tight text-foreground">
                                 LaughTrack Admin
                             </div>
-                            <div className="font-dmSans text-caption text-soft-charcoal">
+                            <div className="font-dmSans text-caption text-muted-foreground">
                                 Operations for live comedy data
                             </div>
                         </div>
                     </Link>
-                    <div className="flex shrink-0 items-center gap-2 rounded-md border border-copper/20 bg-white/70 px-3 py-2 font-dmSans text-caption text-soft-charcoal">
+                    <div className="flex shrink-0 items-center gap-2 rounded-md border border-copper/20 bg-surface-elevated/70 px-3 py-2 font-dmSans text-caption text-muted-foreground">
                         <BadgeCheck className="h-4 w-4 text-copper-dark" />
                         Admin access
                     </div>
@@ -54,7 +54,7 @@ export default async function AdminLayout({
                 {children}
             </main>
             <AdminCreateButton />
-            <footer className="mx-auto flex max-w-7xl items-center gap-2 px-4 pb-8 font-dmSans text-caption text-soft-charcoal md:px-8">
+            <footer className="mx-auto flex max-w-7xl items-center gap-2 px-4 pb-8 font-dmSans text-caption text-muted-foreground md:px-8">
                 <span>LaughTrack operations</span>
                 <ChevronRight className="h-4 w-4 text-copper-dark" />
                 <Link
