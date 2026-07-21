@@ -33,6 +33,11 @@ PROFILE_ORDER = (
     "android_large_tablet",
     "android_small_tablet",
 )
+FONT_CANDIDATES = (
+    Path("/System/Library/Fonts/Helvetica.ttc"),
+    Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"),
+    Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"),
+)
 
 
 def _canonical_sha(value: Any) -> str:
@@ -189,11 +194,20 @@ def build_comparison(
     }
 
 
-def generate_sheets(comparison: dict[str, Any], output_dir: Path, *, magick: str = "magick") -> None:
+def generate_sheets(
+    comparison: dict[str, Any],
+    output_dir: Path,
+    *,
+    magick: str = "magick",
+    font: Path | None = None,
+) -> None:
+    selected_font = font or next((candidate for candidate in FONT_CANDIDATES if candidate.is_file()), None)
+    if selected_font is None:
+        raise ContractError(["no supported scenario-sheet font found"])
     output_dir.mkdir(parents=True, exist_ok=True)
     for group in comparison["groups"]:
         destination = (output_dir / f"{group['scenario_id']}.png").resolve()
-        command = [magick]
+        command = [magick, "-font", str(selected_font)]
         for image in group["images"]:
             command += ["(", image["path"], "-thumbnail", "300x650", "-background", "#202124", "-gravity", "north", "-splice", "0x42", "-fill", "white", "-pointsize", "18", "-annotate", "+0+10", image["profile_id"], ")"]
         command += ["+append", "-background", "#202124", "-gravity", "north", "-splice", "0x48", "-fill", "white", "-pointsize", "22", "-annotate", "+0+12", group["scenario_id"], str(destination)]

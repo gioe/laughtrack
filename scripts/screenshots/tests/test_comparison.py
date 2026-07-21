@@ -23,9 +23,12 @@ def test_generates_17_scenario_labeled_sheets_in_profile_order(tmp_path: Path, m
         lambda command, check: commands.append(command),
     )
 
-    generate_sheets(comparison, tmp_path / "sheets")
+    font = tmp_path / "font.ttf"
+    font.write_bytes(b"test font placeholder")
+    generate_sheets(comparison, tmp_path / "sheets", font=font)
 
     assert len(commands) == 17
     assert [Path(group["sheet_path"]).stem for group in groups] == list(SCENARIO_IDS)
     assert [value for value in commands[0] if value in PROFILE_ORDER] == list(PROFILE_ORDER)
     assert SCENARIO_IDS[0] in commands[0]
+    assert commands[0][:3] == ["magick", "-font", str(font)]
