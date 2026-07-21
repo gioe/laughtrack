@@ -23,7 +23,8 @@ except ModuleNotFoundError:  # Direct execution: python scripts/screenshots/cach
     from manifest import ContractError, load_catalog  # type: ignore[no-redef]
 
 
-SCHEMA_VERSION = 2
+CACHE_SCHEMA_VERSION = 2
+CAPTURE_PROVENANCE_SCHEMA_VERSION = 1
 PROVENANCE_FILENAME = ".screenshot-cache-provenance.json"
 SHARED_INPUTS = ("screenshots/catalog.json", "scripts/screenshots/fixture_server.py")
 PLATFORM_ROOTS = {"ios": "ios", "android": "android"}
@@ -142,7 +143,7 @@ def profile_cache_key(
 ) -> tuple[str, list[dict[str, Any]]]:
     inputs = render_inputs(repo_root.resolve(), platform)
     payload = {
-        "schema_version": SCHEMA_VERSION,
+        "schema_version": CACHE_SCHEMA_VERSION,
         "platform": platform,
         "profile_id": profile_id,
         "profile_config": profile_config,
@@ -225,13 +226,15 @@ def _replace_tree(staged: Path, destination: Path) -> None:
 def _load_provenance(capture_root: Path) -> dict[str, Any]:
     path = capture_root / PROVENANCE_FILENAME
     if not path.is_file():
-        return {"schema_version": SCHEMA_VERSION, "profiles": {}}
+        return {"schema_version": CAPTURE_PROVENANCE_SCHEMA_VERSION, "profiles": {}}
     try:
         value = json.loads(path.read_text(encoding="utf-8"))
     except (json.JSONDecodeError, OSError):
-        return {"schema_version": SCHEMA_VERSION, "profiles": {}}
-    if value.get("schema_version") != SCHEMA_VERSION or not isinstance(value.get("profiles"), dict):
-        return {"schema_version": SCHEMA_VERSION, "profiles": {}}
+        return {"schema_version": CAPTURE_PROVENANCE_SCHEMA_VERSION, "profiles": {}}
+    if value.get("schema_version") != CAPTURE_PROVENANCE_SCHEMA_VERSION or not isinstance(
+        value.get("profiles"), dict
+    ):
+        return {"schema_version": CAPTURE_PROVENANCE_SCHEMA_VERSION, "profiles": {}}
     return value
 
 
@@ -261,7 +264,7 @@ def _validated_entry(
     try:
         metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
         if (
-            metadata.get("schema_version") != SCHEMA_VERSION
+            metadata.get("schema_version") != CACHE_SCHEMA_VERSION
             or metadata.get("profile_id") != profile_id
             or metadata.get("platform") != PROFILE_LAYOUTS[profile_id]["platform"]
             or metadata.get("cache_key") != entry.name
@@ -389,7 +392,7 @@ def plan_cache(
             reused.append(profile_id)
         profiles.append({"profile_id": profile_id, "key": key, "status": status})
     return {
-        "schema_version": SCHEMA_VERSION,
+        "schema_version": CACHE_SCHEMA_VERSION,
         "platform": platform,
         "force_fresh": force_fresh,
         "reused_profiles": reused,
@@ -465,7 +468,7 @@ def store_profile(
                 ]
             )
         metadata = {
-            "schema_version": SCHEMA_VERSION,
+            "schema_version": CACHE_SCHEMA_VERSION,
             "platform": platform,
             "profile_id": profile_id,
             "cache_key": key,
@@ -509,7 +512,7 @@ def store_profile(
         },
     )
     return {
-        "schema_version": SCHEMA_VERSION,
+        "schema_version": CACHE_SCHEMA_VERSION,
         "platform": platform,
         "profile_id": profile_id,
         "key": key,

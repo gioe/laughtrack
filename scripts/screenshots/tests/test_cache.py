@@ -15,7 +15,7 @@ from scripts.screenshots.cache import (
     profile_cache_key,
     store_profile,
 )
-from scripts.screenshots.export import PROFILE_DIMENSIONS, PROFILE_LAYOUTS
+from scripts.screenshots.export import PROFILE_DIMENSIONS, PROFILE_LAYOUTS, collect_run
 from scripts.screenshots.manifest import ContractError, load_catalog
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -152,6 +152,97 @@ def test_unchanged_profile_is_reused_and_materialized_with_capture_provenance(tm
     assert record["cache_key"] == stored["key"]
     assert record["captured_at"] <= record["materialized_at"]
     assert record["capture_git_dirty"] is False
+
+
+def test_cache_and_capture_provenance_schema_versions_are_decoupled(tmp_path: Path) -> None:
+    repo = _make_repo(tmp_path)
+    capture = tmp_path / "capture"
+    cache = tmp_path / "cache"
+    _make_capture(capture, "ios_phone")
+
+    stored = store_profile(
+        platform="ios",
+        profile_id="ios_phone",
+        capture_root=capture,
+        cache_root=cache,
+        repo_root=repo,
+        catalog_path=CATALOG_PATH,
+        profile_config=_config("ios_phone")["ios_phone"],
+        native_environment=_environment("ios"),
+        expected_key=_expected_key(repo, "ios", "ios_phone"),
+    )
+
+    metadata = json.loads(
+        (Path(stored["cache_entry"]) / "metadata.json").read_text(encoding="utf-8")
+    )
+    provenance = json.loads((capture / PROVENANCE_FILENAME).read_text(encoding="utf-8"))
+
+    assert stored["schema_version"] == 2
+    assert metadata["schema_version"] == 2
+    assert provenance["schema_version"] == 1
+
+
+def test_cache_generated_provenance_collects_manifest_for_capture_and_reuse(
+    tmp_path: Path,
+) -> None:
+    repo = _make_repo(tmp_path)
+    capture = tmp_path / "capture"
+    cache = tmp_path / "cache"
+    _make_capture(capture, "ios_phone")
+    store_profile(
+        platform="ios",
+        profile_id="ios_phone",
+        capture_root=capture,
+        cache_root=cache,
+        repo_root=repo,
+        catalog_path=CATALOG_PATH,
+        profile_config=_config("ios_phone")["ios_phone"],
+        native_environment=_environment("ios"),
+        expected_key=_expected_key(repo, "ios", "ios_phone"),
+    )
+    shutil.rmtree(capture)
+
+    planned = plan_cache(
+        platform="ios",
+        capture_root=capture,
+        cache_root=cache,
+        repo_root=repo,
+        catalog_path=CATALOG_PATH,
+        profile_configs=_config("ios_phone"),
+        native_environment=_environment("ios"),
+    )
+    _make_capture(capture, "ios_large_tablet")
+    store_profile(
+        platform="ios",
+        profile_id="ios_large_tablet",
+        capture_root=capture,
+        cache_root=cache,
+        repo_root=repo,
+        catalog_path=CATALOG_PATH,
+        profile_config=_config("ios_large_tablet")["ios_large_tablet"],
+        native_environment=_environment("ios"),
+        expected_key=_expected_key(repo, "ios", "ios_large_tablet"),
+    )
+
+    manifest_path = collect_run(
+        platform="ios",
+        source_root=capture,
+        run_root=tmp_path / "run",
+        catalog_path=CATALOG_PATH,
+        repo_root=repo,
+        provenance_path=Path(planned["provenance_path"]),
+    )
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    provenance_by_profile = {
+        image["profile_id"]: image["provenance"] for image in manifest["images"]
+    }
+
+    assert planned["reused_profiles"] == ["ios_phone"]
+    assert planned["pending_profiles"] == ["ios_large_tablet"]
+    assert provenance_by_profile == {
+        "ios_phone": "cache",
+        "ios_large_tablet": "capture",
+    }
 
 
 def _profile_paths(root: Path, profile_id: str) -> list[tuple[str, Path]]:
