@@ -133,6 +133,7 @@ STOREFRONT_SELECTIONS: dict[str, dict[str, tuple[str, ...]]] = {
 }
 
 IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg"}
+CAPTURE_PROVENANCE_FILENAME = ".screenshot-cache-provenance.json"
 
 
 def _is_within(path: Path, parent: Path) -> bool:
@@ -270,6 +271,56 @@ def reusable_capture_profiles(
     )
 
 
+def _capture_provenance(
+    *,
+    source_root: Path,
+    profiles: Sequence[Mapping[str, Any]],
+    sources: Sequence[tuple[Mapping[str, Any], str, Path]],
+    revision: str,
+    dirty: bool,
+    provenance_path: Path | None,
+) -> dict[str, dict[str, Any]]:
+    path = provenance_path or source_root / CAPTURE_PROVENANCE_FILENAME
+    if provenance_path is not None and not path.is_file():
+        raise ContractError([f"capture provenance {path} does not exist"])
+    if path.is_file():
+        try:
+            raw = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise ContractError([f"capture provenance {path} is invalid: {exc}"]) from exc
+        if not isinstance(raw, dict) or raw.get("schema_version") != 1:
+            raise ContractError([f"capture provenance {path} must use schema_version 1"])
+        raw_profiles = raw.get("profiles")
+        if not isinstance(raw_profiles, dict):
+            raise ContractError([f"capture provenance {path}.profiles must be an object"])
+        result: dict[str, dict[str, Any]] = {}
+        for profile in profiles:
+            profile_id = profile["id"]
+            value = raw_profiles.get(profile_id)
+            if not isinstance(value, dict):
+                raise ContractError([f"capture provenance is missing profile {profile_id}"])
+            result[profile_id] = value
+        return result
+
+    captured_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+    result = {}
+    for profile in profiles:
+        profile_id = profile["id"]
+        profile_sources = [source for candidate, _, source in sources if candidate["id"] == profile_id]
+        digest = hashlib.sha256()
+        for source in profile_sources:
+            digest.update(source.name.encode())
+            digest.update(source.read_bytes())
+        result[profile_id] = {
+            "cache_key": digest.hexdigest(),
+            "captured_at": captured_at,
+            "capture_git_revision": revision,
+            "capture_git_dirty": dirty,
+            "source": "capture",
+        }
+    return result
+
+
 def collect_run(
     *,
     platform: str,
@@ -277,6 +328,7 @@ def collect_run(
     run_root: Path,
     catalog_path: Path,
     repo_root: Path,
+    provenance_path: Path | None = None,
 ) -> Path:
     """Normalize a complete Fastlane capture into an isolated validated run."""
     source_root = source_root.resolve()
@@ -322,9 +374,18 @@ def collect_run(
     source_hashes = _hash_files([source for _, _, source in sources])
     run_root.parent.mkdir(parents=True, exist_ok=True)
     staged = Path(tempfile.mkdtemp(prefix=f".{run_root.name}-", dir=run_root.parent))
-    now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+    started_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     revision = _git_value(repo_root, "rev-parse", "HEAD")
     dirty = bool(_git_value(repo_root, "status", "--porcelain"))
+    provenance = _capture_provenance(
+        source_root=source_root,
+        profiles=profiles,
+        sources=sources,
+        revision=revision,
+        dirty=dirty,
+        provenance_path=provenance_path,
+    )
+    materialized_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     images = []
     try:
         for profile, scenario_id, source in sources:
@@ -333,6 +394,7 @@ def collect_run(
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source, destination)
             width, height = png_dimensions(destination)
+            profile_provenance = provenance[profile["id"]]
             images.append(
                 {
                     "path": relative_path.as_posix(),
@@ -342,17 +404,22 @@ def collect_run(
                     "form_factor": profile["form_factor"],
                     "width": width,
                     "height": height,
-                    "captured_at": now,
-                    "git_revision": revision,
+                    "captured_at": profile_provenance.get("captured_at"),
+                    "materialized_at": materialized_at,
+                    "capture_git_revision": profile_provenance.get("capture_git_revision"),
+                    "capture_git_dirty": profile_provenance.get("capture_git_dirty"),
+                    "provenance": profile_provenance.get("source"),
+                    "cache_key": profile_provenance.get("cache_key"),
                 }
             )
+        completed_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         manifest = {
-            "schema_version": 1,
+            "schema_version": 2,
             "content_fixture_fingerprint": content_fixture_fingerprint(catalog),
             "status": "completed",
             "run_id": f"{platform}-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}",
-            "started_at": now,
-            "completed_at": now,
+            "started_at": started_at,
+            "completed_at": completed_at,
             "git_revision": revision,
             "git_dirty": dirty,
             "profiles": [profile["id"] for profile in profiles],
@@ -440,6 +507,7 @@ def _build_parser() -> argparse.ArgumentParser:
     collect_parser.add_argument("--source-root", type=Path, required=True)
     collect_parser.add_argument("--run-root", type=Path, required=True)
     collect_parser.add_argument("--repo-root", type=Path, default=Path.cwd())
+    collect_parser.add_argument("--provenance", type=Path)
 
     reusable_parser = subparsers.add_parser("reusable-profiles")
     reusable_parser.add_argument("platform", choices=("ios", "android"))
@@ -467,6 +535,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 run_root=args.run_root,
                 catalog_path=args.catalog,
                 repo_root=args.repo_root,
+                provenance_path=args.provenance,
             )
             print(f"validated run manifest: {manifest}")
         elif args.command == "reusable-profiles":

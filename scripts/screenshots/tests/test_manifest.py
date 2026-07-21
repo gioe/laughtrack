@@ -70,11 +70,15 @@ def completed_run(tmp_path: Path, catalog: dict) -> dict:
                 "width": width,
                 "height": height,
                 "captured_at": "2026-07-14T14:00:05Z",
-                "git_revision": REVISION,
+                "materialized_at": "2026-07-14T14:00:10Z",
+                "capture_git_revision": REVISION,
+                "capture_git_dirty": False,
+                "provenance": "capture",
+                "cache_key": "a" * 64,
             }
         )
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "content_fixture_fingerprint": content_fixture_fingerprint(catalog),
         "status": "completed",
         "run_id": "run-1",
@@ -247,8 +251,51 @@ def test_manifest_path_filename_must_match_scenario(
 def test_manifest_rejects_mismatched_image_revision(
     tmp_path: Path, catalog: dict, completed_run: dict
 ) -> None:
-    completed_run["images"][0]["git_revision"] = "f" * 40
-    with pytest.raises(ContractError, match="does not match the run revision"):
+    completed_run["images"][0]["capture_git_revision"] = "f" * 40
+    with pytest.raises(ContractError, match="capture_git_revision does not match the run revision"):
+        validate_manifest(completed_run, catalog, repo_root=tmp_path)
+
+
+def test_manifest_accepts_cached_capture_that_predates_materialization(
+    tmp_path: Path, catalog: dict, completed_run: dict
+) -> None:
+    for image in completed_run["images"]:
+        image["captured_at"] = "2026-07-01T12:00:00Z"
+        image["capture_git_revision"] = "f" * 40
+        image["capture_git_dirty"] = True
+        image["provenance"] = "cache"
+
+    validate_manifest(completed_run, catalog, repo_root=tmp_path)
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    [
+        ("provenance", "copied", "must be 'capture' or 'cache'"),
+        ("cache_key", "short", "64-character lowercase SHA-256"),
+        ("capture_git_dirty", "false", "must be a boolean"),
+        ("materialized_at", "2026-07-14T13:59:00Z", "precedes manifest.started_at"),
+        ("captured_at", "2026-07-14T14:00:11Z", "follows materialized_at"),
+    ],
+)
+def test_manifest_rejects_invalid_capture_provenance(
+    field: str,
+    value: object,
+    message: str,
+    tmp_path: Path,
+    catalog: dict,
+    completed_run: dict,
+) -> None:
+    completed_run["images"][0][field] = value
+    with pytest.raises(ContractError, match=message):
+        validate_manifest(completed_run, catalog, repo_root=tmp_path)
+
+
+def test_manifest_rejects_inconsistent_profile_provenance(
+    tmp_path: Path, catalog: dict, completed_run: dict
+) -> None:
+    completed_run["images"][0]["cache_key"] = "b" * 64
+    with pytest.raises(ContractError, match="consistent within profile android_phone"):
         validate_manifest(completed_run, catalog, repo_root=tmp_path)
 
 
@@ -275,7 +322,7 @@ def test_manifest_rejects_invalid_run_times(
 def test_manifest_enforces_freshness_boundary(
     tmp_path: Path, catalog: dict, completed_run: dict
 ) -> None:
-    boundary = datetime(2026, 7, 14, 14, 0, 1, tzinfo=timezone.utc)
+    boundary = datetime(2026, 7, 14, 14, 0, 11, tzinfo=timezone.utc)
     with pytest.raises(ContractError, match="freshness boundary"):
         validate_manifest(completed_run, catalog, repo_root=tmp_path, fresh_since=boundary)
 

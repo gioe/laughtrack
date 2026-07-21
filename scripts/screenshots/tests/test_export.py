@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import struct
+import subprocess
 import zlib
 from pathlib import Path
 
@@ -130,6 +131,99 @@ def test_collection_serializes_normalized_validated_manifest(tmp_path: Path) -> 
     assert len(manifest["images"]) == 34
     assert manifest["images"][0]["path"] == "images/ios_phone/01_NearMe.png"
     assert all(Path(image["path"]).name == f"{image['scenario_id']}.png" for image in manifest["images"])
+
+
+def test_collection_preserves_capture_time_separately_from_cache_materialization(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "ios-capture"
+    make_capture(source, "ios")
+    revision = subprocess.check_output(
+        ["git", "-C", str(REPO_ROOT), "rev-parse", "HEAD"], text=True
+    ).strip()
+    provenance_path = source / ".screenshot-cache-provenance.json"
+    provenance_path.write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "profiles": {
+                    "ios_phone": {
+                        "source": "cache",
+                        "cache_key": "a" * 64,
+                        "captured_at": "2026-06-01T12:00:00Z",
+                        "capture_git_revision": "f" * 40,
+                        "capture_git_dirty": False,
+                        "materialized_at": "2026-07-20T12:00:00Z",
+                    },
+                    "ios_large_tablet": {
+                        "source": "capture",
+                        "cache_key": "b" * 64,
+                        "captured_at": "2026-07-20T12:00:00Z",
+                        "capture_git_revision": revision,
+                        "capture_git_dirty": True,
+                        "materialized_at": "2026-07-20T12:00:01Z",
+                    },
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    manifest_path = collect_run(
+        platform="ios",
+        source_root=source,
+        run_root=tmp_path / "ios-run",
+        catalog_path=CATALOG_PATH,
+        repo_root=REPO_ROOT,
+        provenance_path=provenance_path,
+    )
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    phone = next(image for image in manifest["images"] if image["profile_id"] == "ios_phone")
+    tablet = next(
+        image for image in manifest["images"] if image["profile_id"] == "ios_large_tablet"
+    )
+
+    assert phone["captured_at"] == "2026-06-01T12:00:00Z"
+    assert phone["materialized_at"] != phone["captured_at"]
+    assert phone["capture_git_revision"] == "f" * 40
+    assert phone["provenance"] == "cache"
+    assert tablet["capture_git_revision"] == revision
+    assert tablet["provenance"] == "capture"
+
+
+def test_collection_rejects_incomplete_cache_provenance(tmp_path: Path) -> None:
+    source = tmp_path / "ios-capture"
+    make_capture(source, "ios")
+    provenance_path = source / ".screenshot-cache-provenance.json"
+    provenance_path.write_text(
+        json.dumps({"schema_version": 1, "profiles": {"ios_phone": {}}}),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ContractError, match="missing profile ios_large_tablet"):
+        collect_run(
+            platform="ios",
+            source_root=source,
+            run_root=tmp_path / "ios-run",
+            catalog_path=CATALOG_PATH,
+            repo_root=REPO_ROOT,
+            provenance_path=provenance_path,
+        )
+
+
+def test_collection_rejects_explicit_missing_cache_provenance(tmp_path: Path) -> None:
+    source = tmp_path / "ios-capture"
+    make_capture(source, "ios")
+
+    with pytest.raises(ContractError, match="does not exist"):
+        collect_run(
+            platform="ios",
+            source_root=source,
+            run_root=tmp_path / "ios-run",
+            catalog_path=CATALOG_PATH,
+            repo_root=REPO_ROOT,
+            provenance_path=source / ".missing-provenance.json",
+        )
 
 
 def test_completed_profile_is_reusable_while_later_profiles_are_incomplete(tmp_path: Path) -> None:

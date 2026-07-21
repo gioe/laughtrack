@@ -15,7 +15,7 @@ from typing import Any, Iterable, Mapping, Sequence
 
 
 CATALOG_SCHEMA_VERSION = 1
-MANIFEST_SCHEMA_VERSION = 1
+MANIFEST_SCHEMA_VERSION = 2
 SCENARIO_IDS = (
     "01_NearMe",
     "02_SearchShows",
@@ -45,6 +45,7 @@ PROFILE_IDS = (
 PLATFORMS = {"ios", "android"}
 FORM_FACTORS = {"phone", "small_tablet", "large_tablet"}
 GIT_REVISION_RE = re.compile(r"[0-9a-f]{40}\Z")
+SHA256_RE = re.compile(r"[0-9a-f]{64}\Z")
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 FIXTURE_CAPTURE_CONTEXTS: Mapping[str, Mapping[str, Any]] = {
     "05_ClubDetail": {
@@ -254,6 +255,10 @@ def _is_git_revision(value: Any) -> bool:
     return isinstance(value, str) and GIT_REVISION_RE.fullmatch(value) is not None
 
 
+def _is_sha256(value: Any) -> bool:
+    return isinstance(value, str) and SHA256_RE.fullmatch(value) is not None
+
+
 def validate_manifest(
     manifest: Any,
     catalog: Mapping[str, Any],
@@ -338,6 +343,7 @@ def validate_manifest(
     root = Path(repo_root).resolve()
     actual_keys: list[tuple[Any, Any]] = []
     seen_paths: set[str] = set()
+    provenance_by_profile: dict[str, set[tuple[Any, ...]]] = {}
     for index, image in enumerate(images):
         prefix = f"manifest.images[{index}]"
         if not isinstance(image, dict):
@@ -374,18 +380,50 @@ def validate_manifest(
             errors.append(f"{prefix} must record portrait dimensions")
 
         captured_at = _parse_timestamp(image.get("captured_at"), f"{prefix}.captured_at", errors)
-        if captured_at and started_at and captured_at < started_at:
-            errors.append(f"{prefix}.captured_at precedes manifest.started_at")
-        if captured_at and completed_at and captured_at > completed_at:
-            errors.append(f"{prefix}.captured_at follows manifest.completed_at")
-        if captured_at and fresh_since and captured_at < fresh_since:
-            errors.append(f"{prefix}.captured_at predates the required freshness boundary")
+        materialized_at = _parse_timestamp(
+            image.get("materialized_at"), f"{prefix}.materialized_at", errors
+        )
+        if captured_at and materialized_at and captured_at > materialized_at:
+            errors.append(f"{prefix}.captured_at follows materialized_at")
+        if materialized_at and started_at and materialized_at < started_at:
+            errors.append(f"{prefix}.materialized_at precedes manifest.started_at")
+        if materialized_at and completed_at and materialized_at > completed_at:
+            errors.append(f"{prefix}.materialized_at follows manifest.completed_at")
+        if materialized_at and fresh_since and materialized_at < fresh_since:
+            errors.append(f"{prefix}.materialized_at predates the required freshness boundary")
 
-        image_revision = image.get("git_revision")
-        if not _is_git_revision(image_revision):
-            errors.append(f"{prefix}.git_revision must be a 40-character lowercase Git SHA")
-        elif _is_git_revision(revision) and image_revision != revision:
-            errors.append(f"{prefix}.git_revision does not match the run revision")
+        capture_revision = image.get("capture_git_revision")
+        if not _is_git_revision(capture_revision):
+            errors.append(
+                f"{prefix}.capture_git_revision must be a 40-character lowercase Git SHA"
+            )
+        capture_dirty = image.get("capture_git_dirty")
+        if not isinstance(capture_dirty, bool):
+            errors.append(f"{prefix}.capture_git_dirty must be a boolean")
+        provenance = image.get("provenance")
+        if provenance not in {"capture", "cache"}:
+            errors.append(f"{prefix}.provenance must be 'capture' or 'cache'")
+        cache_key = image.get("cache_key")
+        if not _is_sha256(cache_key):
+            errors.append(f"{prefix}.cache_key must be a 64-character lowercase SHA-256")
+        if (
+            provenance == "capture"
+            and _is_git_revision(capture_revision)
+            and _is_git_revision(revision)
+            and capture_revision != revision
+        ):
+            errors.append(f"{prefix}.capture_git_revision does not match the run revision")
+        if profile_id is not None:
+            provenance_by_profile.setdefault(profile_id, set()).add(
+                (
+                    image.get("captured_at"),
+                    image.get("materialized_at"),
+                    capture_revision,
+                    capture_dirty,
+                    provenance,
+                    cache_key,
+                )
+            )
 
         relative_path = image.get("path")
         if not isinstance(relative_path, str) or not relative_path:
@@ -421,6 +459,12 @@ def validate_manifest(
                         f"{prefix} dimensions {width}x{height} do not match PNG "
                         f"{png_width}x{png_height}"
                     )
+
+    for profile_id, records in provenance_by_profile.items():
+        if len(records) > 1:
+            errors.append(
+                f"manifest.images provenance must be consistent within profile {profile_id}"
+            )
 
     if all(profile_id in catalog_profiles for profile_id in selected_profiles):
         expected_keys = expected_capture_keys(catalog, selected_profiles)
