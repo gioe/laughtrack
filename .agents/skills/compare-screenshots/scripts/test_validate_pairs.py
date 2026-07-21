@@ -93,6 +93,8 @@ def test_reviewed_baseline_skips_identical_groups_and_reopens_only_delta(manifes
 
 @pytest.mark.parametrize("mutation", [
     lambda value: value.update(status="draft"),
+    lambda value: value.update(reviewed_by=""),
+    lambda value: value.update(reviewed_at="not-a-timestamp"),
     lambda value: value.update(catalog_sha256="0" * 64),
     lambda value: value["source_provenance"].pop("ios_manifest_sha256"),
     lambda value: value["captures"].pop(),
@@ -114,3 +116,10 @@ def test_partial_comparison_cannot_be_approved(manifests, tmp_path) -> None:
     )
     with pytest.raises(Exception, match="complete canonical scenario set"):
         write_reviewed_baseline(result, tmp_path / "baseline.json", "reviewer")
+
+
+def test_unexpected_capture_fails_validation(manifests) -> None:
+    unexpected = manifests[1].parent / "images" / "android_phone" / "unexpected.png"
+    _png(unexpected, 390, 844)
+    with pytest.raises(Exception, match="unexpected captures"):
+        _build(manifests, decode=lambda path: "1" * 64)

@@ -23,6 +23,7 @@ except ModuleNotFoundError:
     )
 
 BASELINE_SCHEMA_VERSION = 1
+IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg"}
 SHA256_RE = re.compile(r"[0-9a-f]{64}\Z")
 GIT_REVISION_RE = re.compile(r"[0-9a-f]{40}\Z")
 PROFILE_ORDER = (
@@ -65,6 +66,17 @@ def _load_runs(
         path = supplied_path.resolve()
         manifest = load_manifest(path)
         validate_manifest(manifest, catalog, repo_root=path.parent, fresh_since=fresh_since)
+        declared = {image["path"] for image in manifest["images"]}
+        actual = {
+            candidate.relative_to(path.parent).as_posix()
+            for candidate in path.parent.rglob("*")
+            if candidate.is_file() and candidate.suffix.lower() in IMAGE_SUFFIXES
+        }
+        unexpected = sorted(actual - declared)
+        if unexpected:
+            raise ContractError(
+                [f"{platform}: unexpected captures: {', '.join(unexpected)}"]
+            )
         expected = [p["id"] for p in catalog["profiles"] if p["platform"] == platform]
         if manifest["profiles"] != expected:
             raise ContractError([f"{platform}: manifest profiles do not describe a complete run"])
@@ -95,11 +107,24 @@ def _baseline_records(
         baseline = json.loads(baseline_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
         return {}, [f"reviewed baseline is unreadable: {exc}"]
+    if not isinstance(baseline, dict):
+        return {}, ["reviewed baseline root is invalid"]
     reasons: list[str] = []
     if baseline.get("schema_version") != BASELINE_SCHEMA_VERSION:
         reasons.append("baseline schema version is invalid")
     if baseline.get("status") != "reviewed":
         reasons.append("baseline status is not reviewed")
+    reviewed_by = baseline.get("reviewed_by")
+    if not isinstance(reviewed_by, str) or not reviewed_by.strip():
+        reasons.append("baseline reviewer provenance is invalid")
+    try:
+        reviewed_at = datetime.fromisoformat(
+            str(baseline.get("reviewed_at", "")).replace("Z", "+00:00")
+        )
+        if reviewed_at.tzinfo is None or reviewed_at.utcoffset() is None:
+            raise ValueError
+    except ValueError:
+        reasons.append("baseline review timestamp provenance is invalid")
     if baseline.get("catalog_sha256") != catalog_sha:
         reasons.append("baseline catalog provenance does not match")
     if baseline.get("scenario_order") != list(SCENARIO_IDS) or baseline.get("profile_order") != list(PROFILE_ORDER):
