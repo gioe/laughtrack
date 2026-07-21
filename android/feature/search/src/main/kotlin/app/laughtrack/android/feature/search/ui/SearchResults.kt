@@ -14,8 +14,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyGridScope
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -69,14 +70,14 @@ internal data class SearchResultFavorites(
     val onSetFavorite: (SearchFavoriteTarget, Boolean) -> Unit,
 )
 
-internal fun LazyListScope.resultsContent(
+internal fun LazyGridScope.resultsContent(
     pivot: SearchPivot,
     results: PagedList<SearchResult>,
     loadMore: LoadMoreState,
     onOpen: (AppRoute) -> Unit,
     favorites: SearchResultFavorites,
 ) {
-    item {
+    item(span = { GridItemSpan(maxLineSpan) }) {
         Text(
             searchResultSummary(loaded = results.items.size, total = results.total),
             style = MaterialTheme.typography.bodySmall,
@@ -85,23 +86,42 @@ internal fun LazyListScope.resultsContent(
         )
     }
     // route is the row's entity identity (SearchResult has no id field); stringified
-    // because LazyColumn keys must be Bundle-saveable and AppRoute is not Parcelable.
+    // because lazy-layout keys must be Bundle-saveable and AppRoute is not Parcelable.
     items(results.items, key = { it.route.toString() }) { result ->
-        if (pivot == SearchPivot.SHOWS) {
-            ShowResultRow(result = result, onOpen = onOpen)
-        } else {
-            ResultRow(
-                pivot = pivot,
-                result = result,
-                favorites = favorites.snapshot,
-                onOpen = onOpen,
-                onSetFavorite = favorites.onSetFavorite,
-            )
-        }
+        SearchResultItem(
+            pivot = pivot,
+            result = result,
+            favorites = favorites,
+            onOpen = onOpen,
+        )
     }
+    loadMoreContent(loadMore)
+}
+
+@Composable
+private fun SearchResultItem(
+    pivot: SearchPivot,
+    result: SearchResult,
+    favorites: SearchResultFavorites,
+    onOpen: (AppRoute) -> Unit,
+) {
+    if (pivot == SearchPivot.SHOWS) {
+        ShowResultRow(result = result, onOpen = onOpen)
+    } else {
+        ResultRow(
+            pivot = pivot,
+            result = result,
+            favorites = favorites.snapshot,
+            onOpen = onOpen,
+            onSetFavorite = favorites.onSetFavorite,
+        )
+    }
+}
+
+private fun LazyGridScope.loadMoreContent(loadMore: LoadMoreState) {
     when {
         loadMore.error != null ->
-            item {
+            item(span = { GridItemSpan(maxLineSpan) }) {
                 Column(
                     Modifier.fillMaxWidth().padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -112,7 +132,7 @@ internal fun LazyListScope.resultsContent(
                 }
             }
         loadMore.hasMore ->
-            item {
+            item(span = { GridItemSpan(maxLineSpan) }) {
                 OutlinedButton(
                     onClick = loadMore.onLoadMore,
                     enabled = !loadMore.isLoading,

@@ -260,7 +260,7 @@ class SearchViewModel
                         .onSuccess { result ->
                             updatePivot(pivot) {
                                 it.copy(
-                                    // Dedup by route — the results LazyColumn keys rows by route,
+                                    // Dedup by route — the results lazy grid keys rows by route,
                                     // and a duplicate key crashes the list.
                                     results =
                                         it.results.appendPage(

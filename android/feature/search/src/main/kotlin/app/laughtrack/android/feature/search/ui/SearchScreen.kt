@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -20,7 +21,10 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
@@ -61,6 +65,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -78,6 +83,35 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+internal enum class SearchLayoutMode {
+    Compact,
+    Expanded,
+}
+
+internal data class SearchAdaptiveLayoutSpec(
+    val mode: SearchLayoutMode,
+    val resultColumns: Int,
+    val contentMaxWidth: Dp,
+)
+
+private val SEARCH_EXPANDED_BREAKPOINT = 600.dp
+private val SEARCH_EXPANDED_CONTENT_MAX_WIDTH = 1_200.dp
+
+internal fun searchAdaptiveLayoutSpec(availableWidth: Dp): SearchAdaptiveLayoutSpec =
+    if (availableWidth >= SEARCH_EXPANDED_BREAKPOINT) {
+        SearchAdaptiveLayoutSpec(
+            mode = SearchLayoutMode.Expanded,
+            resultColumns = 2,
+            contentMaxWidth = SEARCH_EXPANDED_CONTENT_MAX_WIDTH,
+        )
+    } else {
+        SearchAdaptiveLayoutSpec(
+            mode = SearchLayoutMode.Compact,
+            resultColumns = 1,
+            contentMaxWidth = Dp.Infinity,
+        )
+    }
+
 /**
  * Search tab with the same branded shell as iOS SearchRootView: primitive chips,
  * a rounded search/filter card, and entity result rows.
@@ -93,17 +127,25 @@ fun SearchScreen(
     val favorites by favoritesViewModel.snapshot.collectAsStateWithLifecycle()
     val pivotState = state.current
 
-    Box(
+    BoxWithConstraints(
         modifier =
             modifier
                 .fillMaxSize(),
     ) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().statusBarsPadding(),
+        val layoutSpec = searchAdaptiveLayoutSpec(maxWidth)
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(layoutSpec.resultColumns),
+            modifier =
+                Modifier
+                    .align(Alignment.TopCenter)
+                    .widthIn(max = layoutSpec.contentMaxWidth)
+                    .fillMaxSize()
+                    .statusBarsPadding(),
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 12.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            item {
+            item(span = { GridItemSpan(maxLineSpan) }) {
                 SearchHeader(
                     selectedPivot = state.pivot,
                     onSelectPivot = viewModel::selectPivot,
@@ -111,9 +153,11 @@ fun SearchScreen(
             }
 
             if (!state.pivot.isAvailable) {
-                item { CenteredMessage("Podcast search is coming soon.") }
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    CenteredMessage("Podcast search is coming soon.")
+                }
             } else {
-                item {
+                item(span = { GridItemSpan(maxLineSpan) }) {
                     SearchControls(
                         pivot = state.pivot,
                         query = pivotState.query,
@@ -134,31 +178,41 @@ fun SearchScreen(
 
                 val results = pivotState.results
                 when {
-                    results.isLoading && results.items.isEmpty() -> item { LoadingList() }
+                    results.isLoading && results.items.isEmpty() ->
+                        item(span = { GridItemSpan(maxLineSpan) }) { LoadingList() }
                     results.error != null && results.items.isEmpty() ->
-                        item { CenteredMessage(results.error, onRetry = viewModel::retry) }
-                    results.items.isEmpty() -> item { CenteredMessage("No results yet - try a search.") }
-                    else ->
+                        item(span = { GridItemSpan(maxLineSpan) }) {
+                            CenteredMessage(results.error, onRetry = viewModel::retry)
+                        }
+                    results.items.isEmpty() ->
+                        item(span = { GridItemSpan(maxLineSpan) }) {
+                            CenteredMessage("No results yet - try a search.")
+                        }
+                    else -> {
+                        val loadMore =
+                            LoadMoreState(
+                                isLoading = results.isLoading,
+                                hasMore = results.hasMore,
+                                error = results.error,
+                                onLoadMore = viewModel::loadMore,
+                            )
+                        val onOpen: (AppRoute) -> Unit = { route ->
+                            viewModel.logResultTapped(route)
+                            onOpenEntity(route)
+                        }
+                        val resultFavorites =
+                            SearchResultFavorites(
+                                snapshot = favorites,
+                                onSetFavorite = favoritesViewModel::setFavorite,
+                            )
                         resultsContent(
                             pivot = state.pivot,
                             results = results,
-                            loadMore =
-                                LoadMoreState(
-                                    isLoading = results.isLoading,
-                                    hasMore = results.hasMore,
-                                    error = results.error,
-                                    onLoadMore = viewModel::loadMore,
-                                ),
-                            onOpen = { route ->
-                                viewModel.logResultTapped(route)
-                                onOpenEntity(route)
-                            },
-                            favorites =
-                                SearchResultFavorites(
-                                    snapshot = favorites,
-                                    onSetFavorite = favoritesViewModel::setFavorite,
-                                ),
+                            loadMore = loadMore,
+                            onOpen = onOpen,
+                            favorites = resultFavorites,
                         )
+                    }
                 }
             }
         }

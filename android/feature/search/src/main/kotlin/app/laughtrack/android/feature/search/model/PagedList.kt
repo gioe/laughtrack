@@ -27,8 +27,8 @@ data class PagedList<T>(
      * append.
      *
      * [dedupKey] drops rows whose key was already loaded (first occurrence wins,
-     * so existing rows keep their position). Required when the rendering
-     * LazyColumn keys rows by that same identity: offset pagination can return
+     * so existing rows keep their position). Required when the search lazy grid
+     * keys rows by that same identity: offset pagination can return
      * an entity on two pages when the result set shifts mid-scroll, and a
      * duplicate key crashes the list instead of just re-binding it.
      */
