@@ -46,6 +46,10 @@ load ARGV.fetch(0)
 
 case ARGV.fetch(1)
 when "ios"
+  def ios_screenshot_native_target
+    {environment: {xcode: {}, simulator_runtime: {}}, version: "18.3.1", devices: {}}
+  end
+
   def plan_ios_screenshot_cache(*)
     {"pending_profiles" => [], "reused_profiles" => [], "profile_fingerprints" => {}}
   end
@@ -61,6 +65,10 @@ when "ios"
     $events << "project"
   end
 when "android"
+  def android_screenshot_native_target
+    {environment: {jdk: {}, build_tools: {}, system_image: {}}, adb: "adb", emulator: "emulator", avd: "test"}
+  end
+
   def plan_android_screenshot_cache(*)
     {"pending_profiles" => [], "reused_profiles" => [], "profile_fingerprints" => {}}
   end
