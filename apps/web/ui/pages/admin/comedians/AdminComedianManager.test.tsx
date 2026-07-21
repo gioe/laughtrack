@@ -1719,7 +1719,7 @@ describe("AdminComedianManager", () => {
         expect(screen.queryByText("Alias Comic")).toBeNull();
     });
 
-    it("includes standalone comedians in the canonical filter", () => {
+    it("limits the canonical filter to active comedians without parents", () => {
         render(
             <AdminComedianManager
                 comedians={[
@@ -1733,6 +1733,15 @@ describe("AdminComedianManager", () => {
                         id: 3,
                         uuid: "uuid-3",
                         name: "Solo Comic",
+                    },
+                    {
+                        ...comedians[1],
+                        id: 4,
+                        uuid: "uuid-4",
+                        name: "Blocked Comic",
+                        parent: null,
+                        isBlocked: true,
+                        blockReason: "Not a comedian",
                     },
                 ]}
             />,
@@ -1749,6 +1758,11 @@ describe("AdminComedianManager", () => {
             screen.getByRole("heading", { level: 2, name: "Solo Comic" }),
         ).toBeTruthy();
 
+        fireEvent.click(screen.getByRole("checkbox", { name: "Blocked" }));
+        expect(
+            screen.getByRole("heading", { level: 2, name: "Blocked Comic" }),
+        ).toBeTruthy();
+
         fireEvent.click(screen.getByRole("checkbox", { name: "Canonical" }));
 
         expect(
@@ -1757,5 +1771,30 @@ describe("AdminComedianManager", () => {
         expect(
             screen.getByRole("heading", { level: 2, name: "Solo Comic" }),
         ).toBeTruthy();
+        expect(
+            screen.queryByRole("heading", {
+                level: 2,
+                name: "Blocked Comic",
+            }),
+        ).toBeNull();
+        expect(
+            (
+                screen.getByRole("checkbox", {
+                    name: "Blocked",
+                }) as HTMLInputElement
+            ).checked,
+        ).toBe(false);
+
+        expandAllRows();
+        const parentRow = screen
+            .getByRole("heading", { level: 2, name: "Parent Comic" })
+            .closest("li");
+        expect(parentRow).not.toBeNull();
+        fireEvent.click(
+            within(parentRow!).getByRole("button", {
+                name: /^Relationship/,
+            }),
+        );
+        expect(within(parentRow!).queryByText("Alias Comic")).toBeNull();
     });
 });

@@ -97,10 +97,14 @@ export default function AdminComedianManager({ comedians }: Props) {
         const normalizedQuery = query.trim().toLowerCase();
         return sortRows(
             rows.filter((row) => {
-                if (row.parent !== null || row.isBlocked !== blockedOnly) {
+                if (row.parent !== null) {
                     return false;
                 }
-                if (canonicalOnly && row.parent !== null) {
+                if (
+                    canonicalOnly
+                        ? row.isBlocked
+                        : row.isBlocked !== blockedOnly
+                ) {
                     return false;
                 }
                 if (!normalizedQuery) return true;
@@ -110,9 +114,11 @@ export default function AdminComedianManager({ comedians }: Props) {
                     row.websiteScrapingUrl ?? "",
                     row.blockReason ?? "",
                     row.blockAddedBy ?? "",
-                    ...(childrenByParentId.get(row.id) ?? []).map(
-                        (child) => child.name,
-                    ),
+                    ...(canonicalOnly
+                        ? []
+                        : (childrenByParentId.get(row.id) ?? []).map(
+                              (child) => child.name,
+                          )),
                     ...acceptedPodcastSearchValues(row),
                 ]
                     .join(" ")
@@ -227,9 +233,11 @@ export default function AdminComedianManager({ comedians }: Props) {
                         <input
                             type="checkbox"
                             checked={blockedOnly}
-                            onChange={(event) =>
-                                setBlockedOnly(event.target.checked)
-                            }
+                            onChange={(event) => {
+                                const checked = event.target.checked;
+                                setBlockedOnly(checked);
+                                if (checked) setCanonicalOnly(false);
+                            }}
                             className="h-4 w-4 accent-copper-dark"
                         />
                         Blocked
@@ -238,9 +246,11 @@ export default function AdminComedianManager({ comedians }: Props) {
                         <input
                             type="checkbox"
                             checked={canonicalOnly}
-                            onChange={(event) =>
-                                setCanonicalOnly(event.target.checked)
-                            }
+                            onChange={(event) => {
+                                const checked = event.target.checked;
+                                setCanonicalOnly(checked);
+                                if (checked) setBlockedOnly(false);
+                            }}
                             className="h-4 w-4 accent-copper-dark"
                         />
                         Canonical
@@ -258,7 +268,11 @@ export default function AdminComedianManager({ comedians }: Props) {
                             key={row.id}
                             row={row}
                             allRows={rows}
-                            children={childrenByParentId.get(row.id) ?? []}
+                            children={
+                                canonicalOnly
+                                    ? []
+                                    : (childrenByParentId.get(row.id) ?? [])
+                            }
                             onRowChange={updateCanonicalRow}
                             globallyDisabled={pendingRowIds.size > 0}
                             onPendingChange={updatePendingRow}
