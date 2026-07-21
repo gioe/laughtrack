@@ -101,7 +101,14 @@ def _transform_text(text: str) -> str:
 
 
 def _source_files() -> list[Path]:
-    return sorted(path for path in CLAUDE_SKILLS.rglob("*") if path.is_file())
+    # Running a skill's Python tests creates interpreter caches inside the
+    # canonical skill tree. They are execution artifacts, not skill sources,
+    # and may be binary, so never try to mirror or decode them as UTF-8.
+    return sorted(
+        path
+        for path in CLAUDE_SKILLS.rglob("*")
+        if path.is_file() and "__pycache__" not in path.parts and path.suffix != ".pyc"
+    )
 
 
 def _expected_agent_files() -> dict[Path, str]:
