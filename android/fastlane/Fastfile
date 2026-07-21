@@ -178,7 +178,7 @@ def validate_screenshot_profile!(capture_root, profile)
   UI.user_error!("Invalid #{profile[:name]} screenshot capture: #{detail}")
 end
 
-def export_play_projection(capture_root, run_root)
+def collect_android_screenshot_run(capture_root, run_root)
   sh(
     "python3", SCREENSHOT_EXPORT_PATH,
     "--catalog", SCREENSHOT_CATALOG_PATH,
@@ -188,6 +188,9 @@ def export_play_projection(capture_root, run_root)
     "--repo-root", REPO_ROOT,
     "--provenance", File.join(capture_root, ".screenshot-cache-provenance.json"),
   )
+end
+
+def export_play_projection(run_root)
   sh(
     "python3", SCREENSHOT_EXPORT_PATH,
     "--catalog", SCREENSHOT_CATALOG_PATH,
@@ -525,7 +528,7 @@ platform :android do
     UI.success("Promoted versionCode #{version_code} from internal to production (rollout #{rollout})")
   end
 
-  desc "Capture a complete Android matrix, validate its run manifest, and export the Play projection"
+  desc "Capture a complete Android matrix and validate its run manifest, exporting the Play projection by default"
   lane :screenshots do |options|
     run_root = if options[:run_root]
                  File.expand_path(options[:run_root], REPO_ROOT)
@@ -534,6 +537,7 @@ platform :android do
                end
     capture_root = "#{run_root}-capture"
     force_fresh = options[:force_fresh].to_s == "true"
+    comparison_only = options[:comparison_only].to_s == "true"
     cache_plan = plan_android_screenshot_cache(capture_root, force_fresh: force_fresh)
     pending_ids = cache_plan.fetch("pending_profiles")
     pending_profiles = SCREENSHOT_PROFILES.select { |profile| pending_ids.include?(profile.fetch(:id)) }
@@ -566,7 +570,8 @@ platform :android do
     end
 
     SCREENSHOT_PROFILES.each { |profile| validate_screenshot_profile!(capture_root, profile) }
-    export_play_projection(capture_root, run_root)
+    collect_android_screenshot_run(capture_root, run_root)
+    export_play_projection(run_root) unless comparison_only
     FileUtils.rm_rf(capture_root)
     UI.success("Validated Android screenshot run manifest: #{File.join(run_root, 'manifest.json')}")
   end

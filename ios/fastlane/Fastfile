@@ -166,7 +166,7 @@ def validate_ios_screenshot_collection(screenshot_root)
   )
 end
 
-def export_app_store_projection(capture_root, run_root)
+def collect_ios_screenshot_run(capture_root, run_root)
   sh(
     "python3", SCREENSHOT_EXPORT_PATH,
     "--catalog", SCREENSHOT_CATALOG_PATH,
@@ -176,6 +176,9 @@ def export_app_store_projection(capture_root, run_root)
     "--repo-root", REPO_ROOT,
     "--provenance", File.join(capture_root, ".screenshot-cache-provenance.json"),
   )
+end
+
+def export_app_store_projection(run_root)
   sh(
     "python3", SCREENSHOT_EXPORT_PATH,
     "--catalog", SCREENSHOT_CATALOG_PATH,
@@ -466,12 +469,13 @@ platform :ios do
     )
   end
 
-  desc "Capture a complete iOS matrix, validate its run manifest, and export the App Store projection"
+  desc "Capture a complete iOS matrix and validate its run manifest, exporting the App Store projection by default"
   lane :screenshots do |options|
     Dir.mktmpdir("laughtrack-ios-screenshots") do |tmpdir|
       capture_root = File.join(tmpdir, "capture")
       run_root = options[:run_root] ? File.expand_path(options[:run_root], REPO_ROOT) : File.join(tmpdir, "run")
       force_fresh = options[:force_fresh].to_s == "true"
+      comparison_only = options[:comparison_only].to_s == "true"
       cache_plan = plan_ios_screenshot_cache(capture_root, force_fresh: force_fresh)
       pending_ids = cache_plan.fetch("pending_profiles")
       pending_profiles = IOS_SCREENSHOT_PROFILES.select { |profile| pending_ids.include?(profile.fetch(:id)) }
@@ -525,7 +529,8 @@ platform :ios do
       end
 
       validate_ios_screenshot_collection(capture_root)
-      export_app_store_projection(capture_root, run_root)
+      collect_ios_screenshot_run(capture_root, run_root)
+      export_app_store_projection(run_root) unless comparison_only
       UI.success(format("Screenshot timings: build=%.1fs capture=%.1fs", build_duration, capture_duration))
       UI.success("Validated iOS screenshot run manifest: #{File.join(run_root, 'manifest.json')}")
     end

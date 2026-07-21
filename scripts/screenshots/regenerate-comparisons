@@ -87,8 +87,8 @@ android_run="$output_root/runs/android"
 mkdir -p "$output_root/runs"
 
 echo "Capturing iOS comparison matrix..."
-ios_lane_args=(screenshots "run_root:$ios_run")
-android_lane_args=(screenshots "run_root:$android_run")
+ios_lane_args=(screenshots "run_root:$ios_run" comparison_only:true)
+android_lane_args=(screenshots "run_root:$android_run" comparison_only:true)
 if [[ "$force_fresh" == true ]]; then
   ios_lane_args+=(force_fresh:true)
   android_lane_args+=(force_fresh:true)
