@@ -12,6 +12,7 @@ require "json"
 
 $lanes = {}
 $events = []
+$cold_cache = ARGV.fetch(3) == "cold"
 
 def default_platform(*)
 end
@@ -47,11 +48,39 @@ load ARGV.fetch(0)
 case ARGV.fetch(1)
 when "ios"
   def ios_screenshot_native_target
-    {environment: {xcode: {}, simulator_runtime: {}}, version: "18.3.1", devices: {}}
+    devices = IOS_SCREENSHOT_PROFILES.to_h do |profile|
+      [profile.fetch(:device_name), "test-simulator-udid"]
+    end
+    {environment: {xcode: {}, simulator_runtime: {}}, version: "18.3.1", devices: devices}
   end
 
   def plan_ios_screenshot_cache(*)
-    {"pending_profiles" => [], "reused_profiles" => [], "profile_fingerprints" => {}}
+    pending_profiles = $cold_cache ? ["ios_phone"] : []
+    {
+      "pending_profiles" => pending_profiles,
+      "reused_profiles" => [],
+      "profile_fingerprints" => {"ios_phone" => "cold-cache-fingerprint"},
+    }
+  end
+
+  def with_screenshot_fixture_server
+    yield
+  end
+
+  def boot_screenshot_simulator(*)
+  end
+
+  def patch_snapshot_destination_for_18_3_1
+  end
+
+  def run_tests(**options)
+    $events << {"run_tests" => options}
+  end
+
+  def capture_screenshots(**)
+  end
+
+  def store_ios_screenshot_profile(*)
   end
 
   def validate_ios_screenshot_collection(*)
@@ -126,6 +155,17 @@ def test_default_mode_collects_run_and_projects_storefront(
     platform: str, tmp_path: Path
 ) -> None:
     assert run_screenshot_lane(platform, "export", tmp_path) == ["collect", "project"]
+
+
+def test_ios_cold_cache_bootstraps_only_pinned_package_revisions(tmp_path: Path) -> None:
+    events = run_screenshot_lane("ios", "cold", tmp_path)
+    run_tests_options = next(event["run_tests"] for event in events if isinstance(event, dict))
+
+    assert run_tests_options["build_for_testing"] is True
+    assert run_tests_options["skip_package_dependencies_resolution"] is False
+    assert run_tests_options["disable_package_automatic_updates"] is True
+    assert run_tests_options["skip_package_repository_fetches"] is True
+    assert run_tests_options["derived_data_path"]
 
 
 def test_regenerate_comparisons_requests_comparison_only_capture() -> None:

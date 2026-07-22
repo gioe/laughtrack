@@ -560,7 +560,10 @@ platform :ios do
             skip_slack: true,
             only_testing: ["LaughTrackUITests/AppStoreScreenshotTests/testGenerateAllScreenshots"],
             xcargs: "TARGETED_DEVICE_FAMILY=1,2",
-            skip_package_dependencies_resolution: true,
+            # Run Fastlane's explicit resolve pass so a cold DerivedData can
+            # clone the revisions pinned by Package.resolved. The two guards
+            # below keep that bootstrap from selecting newer revisions.
+            skip_package_dependencies_resolution: false,
             disable_package_automatic_updates: true,
             skip_package_repository_fetches: true,
           )
