@@ -8,6 +8,33 @@ import java.util.Locale
 
 class LibraryPresentationTest {
     @Test
+    fun authenticatedSectionsHaveDistinctOrderedHierarchyAndMetadata() {
+        val presentations = AuthenticatedLibrarySection.entries.map { it.presentation }
+
+        assertEquals(4, presentations.size)
+        assertEquals(
+            listOf("Favorites", "Comedians", "Clubs", "Podcasts"),
+            presentations.map { it.eyebrow },
+        )
+        assertEquals(
+            listOf(
+                "Your favorites are touring",
+                "Saved comedians",
+                "Saved clubs",
+                "Saved podcasts",
+            ),
+            presentations.map { it.title },
+        )
+        assertEquals(4, presentations.map { it.eyebrow }.distinct().size)
+        assertEquals(4, presentations.map { it.title }.distinct().size)
+        presentations.forEach { presentation ->
+            assertFalse(presentation.eyebrow.isBlank())
+            assertFalse(presentation.title.isBlank())
+            assertFalse(presentation.subtitle.isBlank())
+        }
+    }
+
+    @Test
     fun rawIsoTimestampsAreFormatted() {
         val rawDate = "2026-07-18T20:00:00-04:00"
 

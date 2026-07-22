@@ -1,5 +1,6 @@
 package app.laughtrack.android.feature.library
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -8,10 +9,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -34,6 +37,7 @@ import app.laughtrack.android.core.network.generated.model.ComedianSearchItem
 import app.laughtrack.android.core.network.generated.model.FavoriteClubItem
 import app.laughtrack.android.core.network.generated.model.FavoritePodcastItem
 import app.laughtrack.android.core.network.generated.model.Show
+import app.laughtrack.android.core.ui.theme.LaughTrackColors
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.ZoneId
@@ -41,6 +45,45 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
+
+internal data class LibrarySectionPresentation(
+    val eyebrow: String,
+    val title: String,
+    val subtitle: String,
+)
+
+internal enum class AuthenticatedLibrarySection(
+    val presentation: LibrarySectionPresentation,
+) {
+    TOURING(
+        LibrarySectionPresentation(
+            eyebrow = "Favorites",
+            title = "Your favorites are touring",
+            subtitle = "Upcoming shows from comedians you follow.",
+        ),
+    ),
+    COMEDIANS(
+        LibrarySectionPresentation(
+            eyebrow = "Comedians",
+            title = "Saved comedians",
+            subtitle = "We'll keep their nearby dates in one place.",
+        ),
+    ),
+    CLUBS(
+        LibrarySectionPresentation(
+            eyebrow = "Clubs",
+            title = "Saved clubs",
+            subtitle = "Keep favorite venue calendars close.",
+        ),
+    ),
+    PODCASTS(
+        LibrarySectionPresentation(
+            eyebrow = "Podcasts",
+            title = "Saved podcasts",
+            subtitle = "Find new episodes faster.",
+        ),
+    ),
+}
 
 @Composable
 fun LibraryScreen(
@@ -158,7 +201,7 @@ private fun SignedInLibrary(
 
     TouringFavoritesSection(snapshot = snapshot, scopedShowIds = scopedShowIds)
 
-    FavoriteSection(title = "Saved comedians") {
+    FavoriteSection(AuthenticatedLibrarySection.COMEDIANS.presentation) {
         if (snapshot.comedians.isEmpty()) {
             EmptyText("Favorite comedians to build your library.")
         } else {
@@ -173,7 +216,7 @@ private fun SignedInLibrary(
         }
     }
 
-    FavoriteSection(title = "Saved clubs") {
+    FavoriteSection(AuthenticatedLibrarySection.CLUBS.presentation) {
         if (snapshot.clubs.isEmpty()) {
             EmptyText("Favorite clubs to keep their calendars close.")
         } else {
@@ -183,7 +226,7 @@ private fun SignedInLibrary(
         }
     }
 
-    FavoriteSection(title = "Saved podcasts") {
+    FavoriteSection(AuthenticatedLibrarySection.PODCASTS.presentation) {
         if (snapshot.podcasts.isEmpty()) {
             EmptyText("Favorite podcasts to find new episodes faster.")
         } else {
@@ -214,9 +257,11 @@ private fun TouringFavoritesSection(
         }
     val groupedShows = touringShows.groupByFavoriteComedian(snapshot.comedians)
 
-    FavoriteSection(
-        title = if (isScoped) "From your notification" else "Your favorites are touring",
-    ) {
+    val presentation =
+        AuthenticatedLibrarySection.TOURING.presentation.let { touringPresentation ->
+            if (isScoped) touringPresentation.copy(title = "From your notification") else touringPresentation
+        }
+    FavoriteSection(presentation) {
         if (isScoped) {
             TextButton(onClick = { showAll = true }) { Text("Show all favorites") }
         }
@@ -266,10 +311,45 @@ private fun GuestLibraryPreview(onOpenProfile: () -> Unit) {
 private fun FavoriteSection(
     title: String,
     content: @Composable ColumnScope.() -> Unit,
+) = FavoriteSection(
+    presentation = LibrarySectionPresentation(eyebrow = "", title = title, subtitle = ""),
+    content = content,
+)
+
+@Composable
+private fun FavoriteSection(
+    presentation: LibrarySectionPresentation,
+    content: @Composable ColumnScope.() -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(title, style = MaterialTheme.typography.titleLarge)
-        Card(modifier = Modifier.fillMaxWidth()) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            if (presentation.eyebrow.isNotBlank()) {
+                Text(
+                    presentation.eyebrow.uppercase(Locale.US),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = LaughTrackColors.AccentStrong,
+                )
+            }
+            Text(
+                presentation.title,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+            )
+            if (presentation.subtitle.isNotBlank()) {
+                Text(
+                    presentation.subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = LaughTrackColors.SurfaceMuted),
+            border = BorderStroke(1.dp, LaughTrackColors.BorderSubtle),
+        ) {
             Column(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
