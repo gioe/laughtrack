@@ -122,6 +122,65 @@ describe("findComediansWithCount", () => {
             expect(mockQueryRaw).toHaveBeenCalledOnce();
         });
 
+        it("sorts popularity ties by known Instagram followers before activity and name", async () => {
+            mockCount.mockResolvedValue(2);
+            mockFindMany.mockResolvedValue([
+                makeComedianRow(1),
+                makeComedianRow(2),
+            ] as never);
+
+            const helper = makeHelper(SortParamValue.PopularityDesc);
+            helper.getGenericClauses = vi.fn(() => ({
+                orderBy: [
+                    { popularity: "desc" as const },
+                    { name: "asc" as const },
+                ],
+                take: 2,
+                skip: 0,
+            })) as never;
+
+            await findComediansWithCount(helper);
+
+            expect(mockFindMany).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    orderBy: [
+                        { popularity: "desc" },
+                        {
+                            instagramFollowers: {
+                                sort: "desc",
+                                nulls: "last",
+                            },
+                        },
+                        { totalShows: "desc" },
+                        { name: "asc" },
+                    ],
+                }),
+            );
+        });
+
+        it("keeps the existing tiebreaker for non-popularity sorts", async () => {
+            mockCount.mockResolvedValue(2);
+            mockFindMany.mockResolvedValue([
+                makeComedianRow(1),
+                makeComedianRow(2),
+            ] as never);
+
+            const helper = makeHelper(SortParamValue.NameAsc);
+            helper.getGenericClauses = vi.fn(() => ({
+                orderBy: [{ name: "asc" as const }],
+                take: 2,
+                skip: 0,
+            })) as never;
+
+            await findComediansWithCount(helper);
+
+            expect(mockFindMany).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    orderBy: [{ name: "asc" }, { totalShows: "desc" }],
+                }),
+            );
+        });
+
         it("maps showCount from _count.lineupItems", async () => {
             mockCount.mockResolvedValue(1);
             mockFindMany.mockResolvedValue([makeComedianRow(1, 5)] as never);

@@ -440,18 +440,31 @@ export async function findComediansWithCount(
             totalCount,
             sortMap,
         );
-        // Inject totalShows tiebreaker after the primary sort so more-active comedians
-        // surface first among ties — skip when already sorting by totalShows to
-        // avoid a duplicate orderBy entry.
+        // Popularity is intentionally coarse, so use Instagram audience size to
+        // rank equally popular comedians before falling back to activity and name.
+        // Keep missing follower counts below known counts. Other primary sorts
+        // retain the existing totalShows tiebreaker.
         const primaryField = Object.keys(orderBy[0])[0];
         const comedianOrderBy =
             primaryField === "totalShows"
                 ? orderBy
-                : [
-                      orderBy[0],
-                      { totalShows: "desc" as const },
-                      ...orderBy.slice(1),
-                  ];
+                : primaryField === "popularity"
+                  ? [
+                        orderBy[0],
+                        {
+                            instagramFollowers: {
+                                sort: "desc" as const,
+                                nulls: "last" as const,
+                            },
+                        },
+                        { totalShows: "desc" as const },
+                        ...orderBy.slice(1),
+                    ]
+                  : [
+                        orderBy[0],
+                        { totalShows: "desc" as const },
+                        ...orderBy.slice(1),
+                    ];
 
         const filteredComedians = await db.comedian.findMany({
             where: whereClause,
