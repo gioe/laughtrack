@@ -34,9 +34,9 @@ derived_data_path(
   ),
 )
 
-# Package.resolved is authoritative. Avoid Fastlane's redundant resolve pass
-# and remote update checks while allowing xcodebuild to restore missing clones
-# into the persistent DerivedData cache on a genuinely cold run.
+# Package.resolved remains authoritative during this test-without-building phase.
+# The Fastfile's preceding build-for-testing initializes a cold package cache, so
+# snapshot skips redundant resolution and remote update checks here.
 skip_package_dependencies_resolution(true)
 disable_package_automatic_updates(true)
 skip_package_repository_fetches(true)
