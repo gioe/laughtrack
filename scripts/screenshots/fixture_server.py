@@ -133,14 +133,12 @@ def fixture_response(path: str, base_url: str) -> dict | None:
             _show(base_url, 105, "The Original Room", 19),
         ]
         return {"data": shows, "total": 5, "filters": [], "zipCapTriggered": False}
-    if path == f"{API_PREFIX}comedians/search":
+    if path in {f"{API_PREFIX}comedians/search", f"{API_PREFIX}comedians/suggestions"}:
         names = ["Ali Wong", "Taylor Tomlinson", "Andrew Schulz", "Josh Johnson", "Trevor Noah"]
-        return {
-            "data": [_comedian(base_url, index, name) for index, name in enumerate(names)],
-            "total": 5,
-            "filters": [],
-            "homeCityFilters": [],
-        }
+        response = {"data": [_comedian(base_url, index, name) for index, name in enumerate(names)]}
+        if path.endswith("/search"):
+            response.update({"total": 5, "filters": [], "homeCityFilters": []})
+        return response
     if path == f"{API_PREFIX}clubs/search":
         names = ["The Comedy Store", "Comedy Cellar", "The Stand", "Hollywood Improv", "Largo at the Coronet"]
         return {"data": [

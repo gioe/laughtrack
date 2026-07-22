@@ -5,6 +5,7 @@ import android.os.SystemClock
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasSetTextAction
@@ -281,7 +282,7 @@ class AppStoreScreenshotTest {
         composeRule.runOnIdle { showLoginPrompt = false }
 
         navigate(navController, AppRoute.ComedianOnboarding)
-        waitFor(hasText("Pick comedians to follow"), timeoutMs = 30_000)
+        waitForPopulatedOnboarding()
         if (capture("13_Onboarding")) return
 
         composeRule.runOnIdle {
@@ -391,6 +392,33 @@ class AppStoreScreenshotTest {
     private fun assertFixtureResultCount() {
         waitFor(hasText("Showing 5 results"), timeoutMs = 15_000)
     }
+
+    /** Require the initial fixture card and its actions to remain fully rendered before capture. */
+    private fun waitForPopulatedOnboarding() {
+        var readySince = 0L
+        composeRule.waitUntil(timeoutMillis = 30_000) {
+            val now = android.os.SystemClock.uptimeMillis()
+            val ready =
+                isOnboardingScreenshotReady(
+                    fixtureNamePresent = hasNode(hasText("Ali Wong")),
+                    fixtureDetailsPresent = hasNode(hasText("28 upcoming shows")),
+                    passControlPresent = hasNode(hasText("Pass")),
+                    followControlPresent = hasNode(hasText("Follow")),
+                    loadingPresent = hasNode(SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo)),
+                    emptyStatePresent = hasNode(hasText("No more cards in this deal.")),
+                )
+            if (!ready) {
+                readySince = 0L
+                false
+            } else {
+                if (readySince == 0L) readySince = now
+                now - readySince >= 750
+            }
+        }
+    }
+
+    private fun hasNode(matcher: SemanticsMatcher): Boolean =
+        composeRule.onAllNodes(matcher).fetchSemanticsNodes().isNotEmpty()
 
     /** Require a node to remain present across recompositions, not merely flash during navigation. */
     private fun waitForStable(

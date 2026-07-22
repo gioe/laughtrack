@@ -113,6 +113,14 @@ def test_checked_in_catalog_matches_shared_content_fixture(catalog: dict) -> Non
     assert catalog["content_fixture"] == CONTENT_FIXTURE
     assert len(fixture_response("/api/v1/shows/search", "http://fixture")["data"]) == 5
     assert len(fixture_response("/api/v1/comedians/search", "http://fixture")["data"]) == 5
+    suggestions = fixture_response("/api/v1/comedians/suggestions", "http://fixture")
+    assert [comedian["name"] for comedian in suggestions["data"]] == [
+        "Ali Wong",
+        "Taylor Tomlinson",
+        "Andrew Schulz",
+        "Josh Johnson",
+        "Trevor Noah",
+    ]
     assert len(fixture_response("/api/v1/clubs/search", "http://fixture")["data"]) == 5
     assert len(fixture_response("/api/v1/podcasts/search", "http://fixture")["data"]) == 5
     club_shows = fixture_response("/api/v1/clubs/201/shows", "http://fixture")
