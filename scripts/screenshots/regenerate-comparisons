@@ -86,6 +86,13 @@ ios_run="$output_root/runs/ios"
 android_run="$output_root/runs/android"
 mkdir -p "$output_root/runs"
 
+echo "Pruning orphaned iOS screenshot DerivedData caches..."
+prune_args=(prune-derived-data --repo-root "$repo_root")
+if [[ -n "${LAUGHTRACK_SCREENSHOT_DERIVED_DATA_PATH:-}" ]]; then
+  prune_args+=(--preserve-path "$LAUGHTRACK_SCREENSHOT_DERIVED_DATA_PATH")
+fi
+python3 "$repo_root/scripts/screenshots/cache.py" "${prune_args[@]}"
+
 echo "Capturing iOS comparison matrix..."
 ios_lane_args=(screenshots "run_root:$ios_run" comparison_only:true)
 android_lane_args=(screenshots "run_root:$android_run" comparison_only:true)

@@ -7,6 +7,7 @@ from pathlib import Path
 from scripts.screenshots.cache import prune_derived_data_caches
 
 
+REPO_ROOT = Path(__file__).resolve().parents[3]
 CACHE_PREFIX = "LaughTrack-screenshots-wt-"
 
 
@@ -81,3 +82,14 @@ def test_prune_handles_missing_derived_data_root(tmp_path: Path) -> None:
 
     assert result["removed_caches"] == []
     assert result["bytes_reclaimed"] == 0
+
+
+def test_regenerate_comparisons_prunes_orphaned_derived_data() -> None:
+    script = (REPO_ROOT / "scripts" / "screenshots" / "regenerate-comparisons").read_text()
+
+    prune_position = script.index("prune-derived-data")
+    capture_position = script.index('echo "Capturing iOS comparison matrix..."')
+    assert prune_position < capture_position
+    assert 'prune_args=(prune-derived-data --repo-root "$repo_root")' in script
+    assert 'prune_args+=(--preserve-path "$LAUGHTRACK_SCREENSHOT_DERIVED_DATA_PATH")' in script
+    assert 'python3 "$repo_root/scripts/screenshots/cache.py" "${prune_args[@]}"' in script

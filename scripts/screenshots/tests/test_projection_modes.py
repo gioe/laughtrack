@@ -220,6 +220,9 @@ def test_ios_cold_cache_bootstraps_only_pinned_package_revisions(tmp_path: Path)
 def test_regenerate_comparisons_requests_comparison_only_capture() -> None:
     script = (REPO_ROOT / "scripts" / "screenshots" / "regenerate-comparisons").read_text()
 
+    assert script.index("prune-derived-data") < script.index(
+        'echo "Capturing iOS comparison matrix..."'
+    )
     assert 'ios_lane_args=(screenshots "run_root:$ios_run" comparison_only:true)' in script
     assert 'android_lane_args=(screenshots "run_root:$android_run" comparison_only:true)' in script
     assert script.count("--require-complete") == 2
