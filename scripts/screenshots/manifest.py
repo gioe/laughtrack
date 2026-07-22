@@ -207,11 +207,33 @@ def validate_catalog(catalog: Any) -> None:
         raise ContractError(errors)
 
 
+def canonical_subset(
+    values: Sequence[str], canonical_values: Sequence[str], label: str
+) -> tuple[str, ...]:
+    """Validate a nonempty, unique canonical-order subset."""
+    selected = list(values)
+    if not selected:
+        raise ContractError([f"{label} must not be empty"])
+    unknown = [value for value in selected if value not in canonical_values]
+    if unknown:
+        raise ContractError([f"unknown {label}: " + ", ".join(unknown)])
+    canonical_selected = [value for value in canonical_values if value in selected]
+    if selected != canonical_selected:
+        raise ContractError([f"{label} must be unique and follow catalog order"])
+    return tuple(selected)
+
+
 def expected_capture_keys(
-    catalog: Mapping[str, Any], profile_ids: Sequence[str]
+    catalog: Mapping[str, Any],
+    profile_ids: Sequence[str],
+    scenario_ids: Sequence[str] | None = None,
 ) -> tuple[tuple[str, str], ...]:
     """Return the required (profile, scenario) keys in canonical capture order."""
-    scenarios = [scenario["id"] for scenario in catalog["scenarios"]]
+    scenarios = (
+        list(scenario_ids)
+        if scenario_ids is not None
+        else [scenario["id"] for scenario in catalog["scenarios"]]
+    )
     selected = set(profile_ids)
     return tuple(
         (profile["id"], scenario_id)
@@ -266,6 +288,7 @@ def validate_manifest(
     repo_root: Path | str,
     fresh_since: datetime | None = None,
     require_files: bool = True,
+    require_complete: bool = False,
 ) -> None:
     """Validate a completed run, including exact corpus coverage and PNG metadata."""
     validate_catalog(catalog)
@@ -300,6 +323,29 @@ def validate_manifest(
         if started_at and started_at < fresh_since:
             errors.append("manifest.started_at predates the required freshness boundary")
 
+    mode = manifest.get("mode", "complete")
+    if mode not in {"complete", "verification"}:
+        errors.append("manifest.mode must be 'complete' or 'verification'")
+    if require_complete and mode != "complete":
+        errors.append("manifest must describe a complete canonical run")
+
+    scenario_ids = manifest.get("scenarios")
+    if scenario_ids is None and mode == "complete":
+        selected_scenarios = list(SCENARIO_IDS)
+    elif not isinstance(scenario_ids, list) or not scenario_ids:
+        errors.append("manifest.scenarios must be a non-empty array")
+        selected_scenarios = []
+    else:
+        selected_scenarios = [value for value in scenario_ids if isinstance(value, str)]
+        if len(selected_scenarios) != len(scenario_ids):
+            errors.append("manifest.scenarios entries must be strings")
+        try:
+            canonical_subset(selected_scenarios, SCENARIO_IDS, "manifest.scenarios")
+        except ContractError as exc:
+            errors.extend(exc.errors)
+    if (mode == "complete" or require_complete) and selected_scenarios != list(SCENARIO_IDS):
+        errors.append("complete manifests must include every canonical scenario")
+
     profile_ids = manifest.get("profiles")
     catalog_profiles = {profile["id"]: profile for profile in catalog["profiles"]}
     if not isinstance(profile_ids, list) or not profile_ids:
@@ -330,7 +376,11 @@ def validate_manifest(
             for profile in catalog["profiles"]
             if profile["platform"] in selected_platforms
         ]
-        if not unknown and selected_profiles != complete_platform_profiles:
+        if (
+            not unknown
+            and (mode == "complete" or require_complete)
+            and selected_profiles != complete_platform_profiles
+        ):
             errors.append(
                 "manifest.profiles must include every form factor for each selected platform"
             )
@@ -467,7 +517,7 @@ def validate_manifest(
             )
 
     if all(profile_id in catalog_profiles for profile_id in selected_profiles):
-        expected_keys = expected_capture_keys(catalog, selected_profiles)
+        expected_keys = expected_capture_keys(catalog, selected_profiles, selected_scenarios)
         if tuple(actual_keys) != expected_keys:
             expected_set = set(expected_keys)
             actual_set = set(actual_keys)
@@ -485,7 +535,10 @@ def validate_manifest(
                 detail.append(f"duplicates={duplicates}")
             if not detail:
                 detail.append("entries are not in canonical order")
-            errors.append("manifest.images must exactly cover selected profiles: " + "; ".join(detail))
+            errors.append(
+                "manifest.images must exactly cover selected profiles and scenarios: "
+                + "; ".join(detail)
+            )
 
     if errors:
         raise ContractError(errors)
@@ -513,6 +566,7 @@ def _build_parser() -> argparse.ArgumentParser:
     run_parser.add_argument("--catalog", type=Path, default=Path("screenshots/catalog.json"))
     run_parser.add_argument("--repo-root", type=Path, default=Path.cwd())
     run_parser.add_argument("--fresh-since", type=_parse_fresh_since)
+    run_parser.add_argument("--require-complete", action="store_true")
 
     plan_parser = subparsers.add_parser("plan")
     plan_parser.add_argument("--catalog", type=Path, default=Path("screenshots/catalog.json"))
@@ -532,13 +586,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             unknown = [profile for profile in args.profiles if profile not in known_profiles]
             if unknown:
                 raise ContractError(["unknown profiles: " + ", ".join(unknown)])
-            canonical_selected = [
-                profile["id"]
-                for profile in catalog["profiles"]
-                if profile["id"] in args.profiles
-            ]
-            if args.profiles != canonical_selected:
-                raise ContractError(["profiles must be unique and follow catalog order"])
+            canonical_subset(args.profiles, list(catalog_profiles), "profiles")
             selected_platforms = {
                 catalog_profiles[profile_id]["platform"] for profile_id in args.profiles
             }
@@ -563,6 +611,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 catalog,
                 repo_root=args.repo_root,
                 fresh_since=args.fresh_since,
+                require_complete=args.require_complete,
             )
             print(f"valid completed run: {len(manifest['images'])} images")
     except ContractError as exc:

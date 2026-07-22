@@ -42,13 +42,20 @@ def file_hashes(root: Path) -> dict[str, str]:
     }
 
 
-def make_capture(root: Path, platform: str, profile_ids: set[str] | None = None) -> None:
+def make_capture(
+    root: Path,
+    platform: str,
+    profile_ids: set[str] | None = None,
+    scenario_ids: set[str] | None = None,
+) -> None:
     catalog = load_catalog(CATALOG_PATH)
     for profile in catalog["profiles"]:
         if profile["platform"] != platform or (profile_ids is not None and profile["id"] not in profile_ids):
             continue
         layout = PROFILE_LAYOUTS[profile["id"]]
         for scenario in catalog["scenarios"]:
+            if scenario_ids is not None and scenario["id"] not in scenario_ids:
+                continue
             write_png(
                 root / layout["source_directory"] / f"{layout['source_prefix']}{scenario['id']}.png",
                 *PROFILE_DIMENSIONS[profile["id"]],
@@ -127,10 +134,64 @@ def test_collection_serializes_normalized_validated_manifest(tmp_path: Path) -> 
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 
     assert manifest["status"] == "completed"
+    assert manifest["mode"] == "complete"
     assert manifest["profiles"] == ["ios_phone", "ios_large_tablet"]
+    assert manifest["scenarios"] == [scenario["id"] for scenario in load_catalog(CATALOG_PATH)["scenarios"]]
     assert len(manifest["images"]) == 34
     assert manifest["images"][0]["path"] == "images/ios_phone/01_NearMe.png"
     assert all(Path(image["path"]).name == f"{image['scenario_id']}.png" for image in manifest["images"])
+
+
+def test_verification_collection_materializes_only_selected_matrix(tmp_path: Path) -> None:
+    source = tmp_path / "ios-capture"
+    scenarios = ["02_SearchShows", "03_SearchComedians", "04_SearchClubs"]
+    make_capture(source, "ios", {"ios_phone"}, set(scenarios))
+
+    manifest_path = collect_run(
+        platform="ios",
+        source_root=source,
+        run_root=tmp_path / "ios-run",
+        catalog_path=CATALOG_PATH,
+        repo_root=REPO_ROOT,
+        profile_ids=["ios_phone"],
+        scenario_ids=scenarios,
+        mode="verification",
+    )
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+
+    assert manifest["mode"] == "verification"
+    assert manifest["profiles"] == ["ios_phone"]
+    assert manifest["scenarios"] == scenarios
+    assert [image["scenario_id"] for image in manifest["images"]] == scenarios
+    assert [path.name for path in sorted((manifest_path.parent / "images/ios_phone").glob("*.png"))] == [
+        f"{scenario}.png" for scenario in scenarios
+    ]
+
+    with pytest.raises(ContractError, match="complete canonical run"):
+        export_projection(
+            storefront="app-store",
+            manifest_path=manifest_path,
+            output_root=tmp_path / "projection",
+            catalog_path=CATALOG_PATH,
+            repo_root=manifest_path.parent,
+        )
+
+
+def test_verification_collection_rejects_out_of_order_selection(tmp_path: Path) -> None:
+    source = tmp_path / "ios-capture"
+    make_capture(source, "ios", {"ios_phone"}, {"02_SearchShows", "04_SearchClubs"})
+
+    with pytest.raises(ContractError, match="scenarios must be unique and follow catalog order"):
+        collect_run(
+            platform="ios",
+            source_root=source,
+            run_root=tmp_path / "ios-run",
+            catalog_path=CATALOG_PATH,
+            repo_root=REPO_ROOT,
+            profile_ids=["ios_phone"],
+            scenario_ids=["04_SearchClubs", "02_SearchShows"],
+            mode="verification",
+        )
 
 
 def test_collection_preserves_capture_time_separately_from_cache_materialization(

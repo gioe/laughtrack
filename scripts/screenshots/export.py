@@ -18,6 +18,7 @@ from typing import Any, Mapping, Sequence
 try:
     from scripts.screenshots.manifest import (
         ContractError,
+        canonical_subset,
         content_fixture_fingerprint,
         load_catalog,
         load_manifest,
@@ -27,6 +28,7 @@ try:
 except ModuleNotFoundError:  # Direct execution: python scripts/screenshots/export.py
     from manifest import (  # type: ignore[no-redef]
         ContractError,
+        canonical_subset,
         content_fixture_fingerprint,
         load_catalog,
         load_manifest,
@@ -329,19 +331,47 @@ def collect_run(
     catalog_path: Path,
     repo_root: Path,
     provenance_path: Path | None = None,
+    profile_ids: Sequence[str] | None = None,
+    scenario_ids: Sequence[str] | None = None,
+    mode: str = "complete",
 ) -> Path:
-    """Normalize a complete Fastlane capture into an isolated validated run."""
+    """Normalize a complete or targeted Fastlane capture into a validated run."""
     source_root = source_root.resolve()
     run_root = run_root.resolve()
     repo_root = repo_root.resolve()
     _assert_disjoint(source_root, run_root, ("capture source", "run root"))
 
     catalog = load_catalog(catalog_path)
-    profiles = [profile for profile in catalog["profiles"] if profile["platform"] == platform]
-    if not profiles:
+    platform_profiles = [
+        profile for profile in catalog["profiles"] if profile["platform"] == platform
+    ]
+    if not platform_profiles:
         raise ContractError([f"catalog has no profiles for platform {platform!r}"])
 
-    scenarios = [scenario["id"] for scenario in catalog["scenarios"]]
+    canonical_profile_ids = [profile["id"] for profile in platform_profiles]
+    selected_profile_ids = canonical_subset(
+        profile_ids or canonical_profile_ids,
+        canonical_profile_ids,
+        f"{platform} profiles",
+    )
+    canonical_scenario_ids = [scenario["id"] for scenario in catalog["scenarios"]]
+    selected_scenario_ids = canonical_subset(
+        scenario_ids or canonical_scenario_ids,
+        canonical_scenario_ids,
+        "scenarios",
+    )
+    if mode not in {"complete", "verification"}:
+        raise ContractError(["mode must be 'complete' or 'verification'"])
+    if mode == "complete" and (
+        list(selected_profile_ids) != canonical_profile_ids
+        or list(selected_scenario_ids) != canonical_scenario_ids
+    ):
+        raise ContractError(["complete collection requires the full canonical matrix"])
+
+    profiles = [
+        profile for profile in platform_profiles if profile["id"] in selected_profile_ids
+    ]
+    scenarios = list(selected_scenario_ids)
     sources: list[tuple[dict[str, Any], str, Path]] = []
     errors: list[str] = []
     for profile in profiles:
@@ -415,6 +445,7 @@ def collect_run(
         completed_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         manifest = {
             "schema_version": 2,
+            "mode": mode,
             "content_fixture_fingerprint": content_fixture_fingerprint(catalog),
             "status": "completed",
             "run_id": f"{platform}-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}",
@@ -423,9 +454,15 @@ def collect_run(
             "git_revision": revision,
             "git_dirty": dirty,
             "profiles": [profile["id"] for profile in profiles],
+            "scenarios": scenarios,
             "images": images,
         }
-        validate_manifest(manifest, catalog, repo_root=staged)
+        validate_manifest(
+            manifest,
+            catalog,
+            repo_root=staged,
+            require_complete=mode == "complete",
+        )
         (staged / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         if _hash_files([source for _, _, source in sources]) != source_hashes:
             raise ContractError(["capture source changed while collecting the run"])
@@ -452,7 +489,7 @@ def export_projection(
 
     catalog = load_catalog(catalog_path)
     manifest = load_manifest(manifest_path)
-    validate_manifest(manifest, catalog, repo_root=repo_root)
+    validate_manifest(manifest, catalog, repo_root=repo_root, require_complete=True)
 
     selection = STOREFRONT_SELECTIONS[storefront]
     missing_profiles = [profile_id for profile_id in selection if profile_id not in manifest["profiles"]]
@@ -508,6 +545,9 @@ def _build_parser() -> argparse.ArgumentParser:
     collect_parser.add_argument("--run-root", type=Path, required=True)
     collect_parser.add_argument("--repo-root", type=Path, default=Path.cwd())
     collect_parser.add_argument("--provenance", type=Path)
+    collect_parser.add_argument("--profile", action="append", dest="profiles")
+    collect_parser.add_argument("--scenario", action="append", dest="scenarios")
+    collect_parser.add_argument("--mode", choices=("complete", "verification"), default="complete")
 
     reusable_parser = subparsers.add_parser("reusable-profiles")
     reusable_parser.add_argument("platform", choices=("ios", "android"))
@@ -536,6 +576,9 @@ def main(argv: Sequence[str] | None = None) -> int:
                 catalog_path=args.catalog,
                 repo_root=args.repo_root,
                 provenance_path=args.provenance,
+                profile_ids=args.profiles,
+                scenario_ids=args.scenarios,
+                mode=args.mode,
             )
             print(f"validated run manifest: {manifest}")
         elif args.command == "reusable-profiles":

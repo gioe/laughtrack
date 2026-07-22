@@ -79,6 +79,7 @@ def completed_run(tmp_path: Path, catalog: dict) -> dict:
         )
     return {
         "schema_version": 2,
+        "mode": "complete",
         "content_fixture_fingerprint": content_fixture_fingerprint(catalog),
         "status": "completed",
         "run_id": "run-1",
@@ -87,6 +88,7 @@ def completed_run(tmp_path: Path, catalog: dict) -> dict:
         "git_revision": REVISION,
         "git_dirty": False,
         "profiles": profiles,
+        "scenarios": list(SCENARIO_IDS),
         "images": images,
     }
 
@@ -150,6 +152,37 @@ def test_completed_platform_run_records_and_validates_every_image(
 ) -> None:
     validate_manifest(completed_run, catalog, repo_root=tmp_path)
     assert len(completed_run["images"]) == 51
+
+
+def test_verification_manifest_accepts_canonical_profile_and_scenario_subsets(
+    tmp_path: Path, catalog: dict, completed_run: dict
+) -> None:
+    scenarios = ["02_SearchShows", "03_SearchComedians", "04_SearchClubs"]
+    completed_run["mode"] = "verification"
+    completed_run["profiles"] = ["android_phone"]
+    completed_run["scenarios"] = scenarios
+    completed_run["images"] = [
+        image
+        for image in completed_run["images"]
+        if image["profile_id"] == "android_phone" and image["scenario_id"] in scenarios
+    ]
+
+    validate_manifest(completed_run, catalog, repo_root=tmp_path)
+
+    with pytest.raises(ContractError, match="complete canonical run"):
+        validate_manifest(completed_run, catalog, repo_root=tmp_path, require_complete=True)
+
+
+def test_verification_manifest_rejects_out_of_order_scenarios(
+    tmp_path: Path, catalog: dict, completed_run: dict
+) -> None:
+    completed_run["mode"] = "verification"
+    completed_run["profiles"] = ["android_phone"]
+    completed_run["scenarios"] = ["04_SearchClubs", "02_SearchShows"]
+    completed_run["images"] = []
+
+    with pytest.raises(ContractError, match="manifest.scenarios must be unique and follow catalog order"):
+        validate_manifest(completed_run, catalog, repo_root=tmp_path, require_files=False)
 
 
 def test_png_dimensions_reads_ihdr(tmp_path: Path) -> None:
