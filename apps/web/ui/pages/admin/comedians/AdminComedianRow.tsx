@@ -393,9 +393,18 @@ export function AdminComedianRow({
         startTransition(() => router.refresh());
     }
 
-    async function saveComedianRecord(row: AdminComedianListItem) {
+    async function saveComedianRecord(
+        row: AdminComedianListItem,
+        options: { refreshInstagramFollowers?: boolean } = {},
+    ) {
         const name = normalizedAdminName(nameValue(row));
-        if (!name || !isRecordDirty(row)) return;
+        const instagramAccount = normalizedUrl(
+            profileFieldValue(row, "instagramAccount"),
+        );
+        const canRefreshInstagram =
+            Boolean(options.refreshInstagramFollowers) &&
+            Boolean(instagramAccount);
+        if (!name || (!isRecordDirty(row) && !canRefreshInstagram)) return;
 
         setStatus({ kind: "idle" });
         setPendingId(row.id);
@@ -420,9 +429,9 @@ export function AdminComedianRow({
                     websiteScrapingUrl: normalizedUrl(
                         profileFieldValue(row, "websiteScrapingUrl"),
                     ),
-                    instagramAccount: normalizedUrl(
-                        profileFieldValue(row, "instagramAccount"),
-                    ),
+                    instagramAccount,
+                    refreshInstagramFollowers:
+                        options.refreshInstagramFollowers,
                     tiktokAccount: normalizedUrl(
                         profileFieldValue(row, "tiktokAccount"),
                     ),
@@ -1556,13 +1565,22 @@ export function AdminComedianRow({
                                             disabled={
                                                 disabled ||
                                                 pendingId === row.id ||
-                                                !isRecordDirty(row) ||
+                                                (!isRecordDirty(row) &&
+                                                    !normalizedUrl(
+                                                        profileFieldValue(
+                                                            row,
+                                                            "instagramAccount",
+                                                        ),
+                                                    )) ||
                                                 !normalizedAdminName(
                                                     nameValue(row),
                                                 )
                                             }
                                             onClick={() =>
-                                                void saveComedianRecord(row)
+                                                void saveComedianRecord(row, {
+                                                    refreshInstagramFollowers:
+                                                        true,
+                                                })
                                             }
                                         >
                                             <Save className="h-4 w-4" />

@@ -1119,6 +1119,7 @@ describe("AdminComedianManager", () => {
                         website: "https://alias.example.com",
                         websiteScrapingUrl: "https://alias.example.com/tour",
                         instagramAccount: null,
+                        refreshInstagramFollowers: true,
                         tiktokAccount: null,
                         youtubeAccount: null,
                         youtubeChannelId: null,
@@ -1127,6 +1128,118 @@ describe("AdminComedianManager", () => {
                 }),
             );
         });
+    });
+
+    it("uses Update Comedian to refresh an unchanged Instagram handle", async () => {
+        let resolveSave: (value: unknown) => void = () => {};
+        const savePromise = new Promise((resolve) => {
+            resolveSave = resolve;
+        });
+        vi.mocked(global.fetch).mockReturnValueOnce(savePromise as never);
+        render(<AdminComedianManager comedians={comedians} />);
+        expandAllRows();
+        expandAllSocialSections();
+
+        const parentDetails = screen.getByRole("list", {
+            name: "Comedian detail sections for Parent Comic",
+        });
+        const parentUpdate = within(parentDetails).getByRole("button", {
+            name: "Update Comedian",
+        });
+        const aliasDetails = screen.getByRole("list", {
+            name: "Comedian detail sections for Alias Comic",
+        });
+
+        expect((parentUpdate as HTMLButtonElement).disabled).toBe(false);
+        expect(
+            (
+                within(aliasDetails).getByRole("button", {
+                    name: "Update Comedian",
+                }) as HTMLButtonElement
+            ).disabled,
+        ).toBe(true);
+
+        fireEvent.click(parentUpdate);
+
+        expect(screen.getByText("Updating comedian")).toBeTruthy();
+        await waitFor(() => {
+            const [, request] = vi.mocked(global.fetch).mock.calls[0];
+            expect(JSON.parse(String(request?.body))).toEqual(
+                expect.objectContaining({
+                    comedianId: 1,
+                    instagramAccount: "parentcomic",
+                    refreshInstagramFollowers: true,
+                }),
+            );
+        });
+
+        resolveSave({
+            ok: true,
+            json: async () => ({
+                ok: true,
+                comedian: {
+                    ...comedians[0],
+                    instagramFollowers: 200_000,
+                    instagramFollowersRefreshedAt: "2026-07-22T12:00:00.000Z",
+                    popularity: 0.91,
+                },
+                instagramFollowerRefresh: {
+                    status: "resolved",
+                    followerCount: 200_000,
+                },
+            }),
+        });
+
+        await waitFor(() =>
+            expect(screen.queryByText("Updating comedian")).toBeNull(),
+        );
+        expect(
+            screen.getByText(
+                "Parent Comic record saved. Instagram followers: 200,000.",
+            ),
+        ).toBeTruthy();
+        expect(
+            screen.getByLabelText("Instagram followers for Parent Comic")
+                .textContent,
+        ).toContain("200,000");
+    });
+
+    it("preserves displayed followers when proactive refresh fails", async () => {
+        vi.mocked(global.fetch).mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
+                ok: true,
+                comedian: comedians[0],
+                instagramFollowerRefresh: {
+                    status: "failed",
+                    detail: "Instagram request failed",
+                },
+            }),
+        } as never);
+        render(<AdminComedianManager comedians={comedians} />);
+        expandAllRows();
+        expandAllSocialSections();
+
+        const parentDetails = screen.getByRole("list", {
+            name: "Comedian detail sections for Parent Comic",
+        });
+        fireEvent.click(
+            within(parentDetails).getByRole("button", {
+                name: "Update Comedian",
+            }),
+        );
+
+        await waitFor(() =>
+            expect(
+                screen.getByText(
+                    "Parent Comic record saved, but Instagram followers could not be refreshed.",
+                ),
+            ).toBeTruthy(),
+        );
+        expect(
+            screen.getByLabelText("Instagram followers for Parent Comic")
+                .textContent,
+        ).toContain("123,456");
     });
 
     it("shows global save progress and completion for social media updates", async () => {
