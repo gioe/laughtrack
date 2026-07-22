@@ -53,39 +53,50 @@ struct LaughTrackApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView(apiClient: apiClient)
-                .environment(\.appTheme, theme)
-                .environment(\.serviceContainer, container)
-                .navigationCoordinator(coordinator)
-                .environmentObject(authManager)
-                .environmentObject(loginModalPresenter)
-                .environmentObject(clubFavorites)
-                .background(LaughTrackAtmosphereBackground().ignoresSafeArea())
-                .preferredColorScheme(.dark)
-                .onAppear {
-                    remoteNotificationDelegate.routeHandler = { route in
+            if Self.shouldMountProductionContent {
+                ContentView(apiClient: apiClient)
+                    .environment(\.appTheme, theme)
+                    .environment(\.serviceContainer, container)
+                    .navigationCoordinator(coordinator)
+                    .environmentObject(authManager)
+                    .environmentObject(loginModalPresenter)
+                    .environmentObject(clubFavorites)
+                    .background(LaughTrackAtmosphereBackground().ignoresSafeArea())
+                    .preferredColorScheme(.dark)
+                    .onAppear {
+                        remoteNotificationDelegate.routeHandler = { route in
+                            coordinator.push(route)
+                        }
+                    }
+                    .onOpenURL { url in
+                        guard let route = LaughTrackNotificationDeepLink.route(from: url) else { return }
                         coordinator.push(route)
                     }
-                }
-                .onOpenURL { url in
-                    guard let route = LaughTrackNotificationDeepLink.route(from: url) else { return }
-                    coordinator.push(route)
-                }
-                .onChange(of: scenePhase) { newPhase in
-                    // Keep the backend ZIP fresh for the location-based push job.
-                    // Silent + gated (already-geolocated + already-authorized);
-                    // skipped under mock mode so screenshot/UI-test launches
-                    // never reach for the device location.
-                    guard newPhase == .active, !MockModeDetector.isMockMode else { return }
-                    foregroundLocationRefresher.refreshIfEligible()
-                }
-                #if DEBUG
-                .task {
-                    guard let route = DebugLaunchRoute.routeFromEnvironment() else { return }
-                    coordinator.push(route)
-                }
-                #endif
+                    .onChange(of: scenePhase) { newPhase in
+                        // Keep the backend ZIP fresh for the location-based push job.
+                        // Silent + gated (already-geolocated + already-authorized);
+                        // skipped under mock mode so screenshot/UI-test launches
+                        // never reach for the device location.
+                        guard newPhase == .active, !MockModeDetector.isMockMode else { return }
+                        foregroundLocationRefresher.refreshIfEligible()
+                    }
+                    #if DEBUG
+                    .task {
+                        guard let route = DebugLaunchRoute.routeFromEnvironment() else { return }
+                        coordinator.push(route)
+                    }
+                    #endif
+            } else {
+                Color.clear
+            }
         }
+    }
+
+    /// Xcode unit tests run inside the application process. Mounting the real
+    /// root there starts home-feed tasks before the selected suite begins,
+    /// bypassing each test's injected client transport.
+    static var shouldMountProductionContent: Bool {
+        ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil
     }
 
     private static func resetPersistentStateForUITestsIfNeeded() {

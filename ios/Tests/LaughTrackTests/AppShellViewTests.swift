@@ -12,6 +12,11 @@ import LaughTrackCore
 @Suite("App shell")
 @MainActor
 struct AppShellViewTests {
+    @Test("unit test host does not mount production content")
+    func unitTestHostDoesNotMountProductionContent() {
+        #expect(!LaughTrackApp.shouldMountProductionContent)
+    }
+
     @Test("shell renders three top-level tabs and keeps account out of the tab bar")
     func shellRendersTabs() async throws {
         #expect(AppTab.allCases == [.nearMe, .search, .favorites])
@@ -171,9 +176,11 @@ struct AppShellViewTests {
         )
         let coordinator = TypedNavigationCoordinator<AppRoute>()
         let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "shell-favorites-load")
+        let nearbyStore = container.resolve(NearbyPreferenceStore.self)
+        nearbyStore.setManualZip("10012", distanceMiles: 25)
         let recorder = ShellFavoritesRequestRecorder()
         let apiClient = Client(
-            serverURL: URL(string: "https://example.com")!,
+            serverURL: offlineAppShellBaseURL,
             transport: MockShellFavoritesTransport(recorder: recorder)
         )
         let host = HostedView(
@@ -198,6 +205,8 @@ struct AppShellViewTests {
         await host.settle()
 
         #expect(recorder.getFavoritesCalls >= 1)
+        #expect(recorder.getHomeFeedCalls >= 1)
+        #expect(recorder.allRequestsUseOfflineBaseURL)
     }
 
     private func appShellViewSourceURL(filePath: String = #filePath) throws -> URL {
@@ -233,6 +242,13 @@ struct AppShellViewTests {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "shell-mini-player")
         let coordinator = TypedNavigationCoordinator<AppRoute>()
         let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "shell-mini-player")
+        let nearbyStore = container.resolve(NearbyPreferenceStore.self)
+        nearbyStore.setManualZip("94108", distanceMiles: 50)
+        let recorder = ShellFavoritesRequestRecorder()
+        let apiClient = Client(
+            serverURL: offlineAppShellBaseURL,
+            transport: MockShellFavoritesTransport(recorder: recorder)
+        )
         let player = PodcastPlaybackController(audioEngine: ShellRecordingPodcastAudioEngine())
         player.start(PodcastPlaybackItem(
             id: 901,
@@ -248,7 +264,7 @@ struct AppShellViewTests {
 
         let host = HostedView(
             AppShellView(
-                apiClient: LaughTrackHostedViewTestSupport.makeClient(),
+                apiClient: apiClient,
                 favorites: ComedianFavoriteStore(),
                 shellState: AppShellState()
             )
@@ -266,6 +282,9 @@ struct AppShellViewTests {
             )
         )
         await host.settle()
+
+        #expect(recorder.getHomeFeedCalls >= 1)
+        #expect(recorder.allRequestsUseOfflineBaseURL)
 
         // iOS 26.x / 18.6 broke HostedView accessibility-tree wiring, so the
         // mounted mini player can't be asserted via findView (TASK-2535). The
@@ -325,8 +344,29 @@ struct AppShellViewTests {
     }
 }
 
+private let offlineAppShellBaseURL = URL(string: "http://127.0.0.1:1")!
+
 private final class ShellFavoritesRequestRecorder: @unchecked Sendable {
-    var getFavoritesCalls = 0
+    private let lock = NSLock()
+    private var requests: [(operationID: String, baseURL: URL)] = []
+
+    var getFavoritesCalls: Int {
+        lock.withLock { requests.count(where: { $0.operationID == "getFavorites" }) }
+    }
+
+    var getHomeFeedCalls: Int {
+        lock.withLock { requests.count(where: { $0.operationID == "getHomeFeed" }) }
+    }
+
+    var allRequestsUseOfflineBaseURL: Bool {
+        lock.withLock { requests.allSatisfy { $0.baseURL == offlineAppShellBaseURL } }
+    }
+
+    func record(operationID: String, baseURL: URL) {
+        lock.withLock {
+            requests.append((operationID, baseURL))
+        }
+    }
 }
 
 @MainActor
@@ -352,9 +392,7 @@ private struct MockShellFavoritesTransport: ClientTransport {
         baseURL: URL,
         operationID: String
     ) async throws -> (HTTPResponse, HTTPBody?) {
-        if operationID == "getFavorites" {
-            recorder.getFavoritesCalls += 1
-        }
+        recorder.record(operationID: operationID, baseURL: baseURL)
 
         return (
             HTTPResponse(
