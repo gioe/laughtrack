@@ -8,6 +8,7 @@ import {
 } from "@/lib/data/comedian/imageAssets";
 import type { Prisma } from "@prisma/client";
 import { resolveInstagramFollowerCount } from "@/lib/instagram/instagramFollowerResolver";
+import { recalculatePopularityForInstagramFollowers } from "@/lib/popularity/comedianPopularity";
 import { resolveYouTubeChannelId } from "@/lib/youtube/youtubeChannelResolver";
 import crypto from "crypto";
 import { revalidateTag } from "next/cache";
@@ -28,7 +29,9 @@ type ComedianSnapshot = {
     instagramFollowers: number | null;
     instagramFollowersRefreshedAt: Date | null;
     tiktokAccount: string | null;
+    tiktokFollowers: number | null;
     youtubeAccount: string | null;
+    youtubeFollowers: number | null;
     youtubeChannelId: string | null;
     youtubeLiveFeedEnabled?: boolean;
     youtubeLiveNotificationsEnabled?: boolean;
@@ -187,6 +190,7 @@ const putSchema = z
             .nullable()
             .optional(),
         instagramAccount: z.string().trim().max(255).nullable().optional(),
+        refreshInstagramFollowers: z.boolean().optional(),
         tiktokAccount: z.string().trim().max(255).nullable().optional(),
         youtubeAccount: z.string().trim().max(255).nullable().optional(),
         youtubeChannelId: z.string().trim().max(255).nullable().optional(),
@@ -401,7 +405,9 @@ const comedianSnapshotSelect = {
     instagramFollowers: true,
     instagramFollowersRefreshedAt: true,
     tiktokAccount: true,
+    tiktokFollowers: true,
     youtubeAccount: true,
+    youtubeFollowers: true,
     youtubeChannelId: true,
     youtubeLiveFeedEnabled: true,
     youtubeLiveNotificationsEnabled: true,
@@ -1136,7 +1142,8 @@ export const PUT = withRequestMetrics(async function PUT(req: NextRequest) {
         const shouldRefreshInstagram =
             Boolean(currentInstagram) &&
             Boolean(instagramAccount) &&
-            instagramAccount !== currentInstagram?.instagramAccount;
+            (Boolean(parsed.data.refreshInstagramFollowers) ||
+                instagramAccount !== currentInstagram?.instagramAccount);
         const instagramFollowerResolution = shouldRefreshInstagram
             ? await resolveInstagramFollowerCount(instagramAccount)
             : null;
@@ -1185,17 +1192,36 @@ export const PUT = withRequestMetrics(async function PUT(req: NextRequest) {
                 const instagramAccountChanged =
                     instagramAccount !== undefined &&
                     instagramAccount !== before.instagramAccount;
-                const instagramFollowerData = instagramAccountChanged
-                    ? instagramFollowerResolution?.status === "resolved"
-                        ? {
-                              instagramFollowers:
-                                  instagramFollowerResolution.followerCount,
-                              instagramFollowersRefreshedAt: new Date(),
-                          }
-                        : {
-                              instagramFollowers: null,
-                              instagramFollowersRefreshedAt: null,
-                          }
+                const instagramRefreshAttempted =
+                    instagramFollowerResolution !== null;
+                const resolvedInstagramFollowers =
+                    instagramFollowerResolution?.status === "resolved"
+                        ? instagramFollowerResolution.followerCount
+                        : null;
+                const shouldClearInstagramFollowers =
+                    instagramAccountChanged ||
+                    instagramFollowerResolution?.status === "not_found";
+                const shouldWriteInstagramFollowers =
+                    instagramFollowerResolution?.status === "resolved" ||
+                    shouldClearInstagramFollowers;
+                const instagramFollowerData = shouldWriteInstagramFollowers
+                    ? {
+                          instagramFollowers: resolvedInstagramFollowers,
+                          instagramFollowersRefreshedAt:
+                              resolvedInstagramFollowers === null
+                                  ? null
+                                  : new Date(),
+                          popularity:
+                              recalculatePopularityForInstagramFollowers({
+                                  popularity: before.popularity,
+                                  previousInstagramFollowers:
+                                      before.instagramFollowers,
+                                  nextInstagramFollowers:
+                                      resolvedInstagramFollowers,
+                                  tiktokFollowers: before.tiktokFollowers,
+                                  youtubeFollowers: before.youtubeFollowers,
+                              }),
+                      }
                     : {};
 
                 await tx.comedian.update({
@@ -1244,11 +1270,12 @@ export const PUT = withRequestMetrics(async function PUT(req: NextRequest) {
                     comedian: serializeComedian(after, denyListEntry),
                     previousName: before.name,
                     name: after.name,
-                    instagramFollowerRefresh: instagramAccountChanged
-                        ? instagramAccount === null
+                    instagramFollowerRefresh:
+                        instagramAccountChanged && instagramAccount === null
                             ? { status: "cleared" as const }
-                            : instagramFollowerResolution
-                        : null,
+                            : instagramRefreshAttempted
+                              ? instagramFollowerResolution
+                              : null,
                 };
             },
         );

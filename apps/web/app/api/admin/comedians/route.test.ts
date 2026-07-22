@@ -72,7 +72,9 @@ function makeComedian(overrides: Record<string, unknown> = {}) {
         instagramFollowers: null,
         instagramFollowersRefreshedAt: null,
         tiktokAccount: null,
+        tiktokFollowers: null,
         youtubeAccount: null,
+        youtubeFollowers: null,
         youtubeChannelId: null,
         linktree: null,
         hasImage: false,
@@ -596,6 +598,170 @@ describe("PUT /api/admin/comedians", () => {
             status: "resolved",
             followerCount: 123_456,
         });
+    });
+
+    it("proactively refreshes an unchanged Instagram handle and updates popularity", async () => {
+        mockAuth.mockResolvedValue(adminSession as never);
+        mockCurrentComedian.mockResolvedValueOnce({
+            instagramAccount: "aliascomic",
+        } as never);
+        mockResolveInstagramFollowerCount.mockResolvedValueOnce({
+            status: "resolved",
+            followerCount: 5_000_000,
+        });
+        const update = vi.fn();
+        const findUnique = vi
+            .fn()
+            .mockResolvedValueOnce(
+                makeComedian({
+                    instagramAccount: "aliascomic",
+                    popularity: 0.2,
+                }),
+            )
+            .mockResolvedValueOnce(null)
+            .mockResolvedValueOnce(
+                makeComedian({
+                    instagramAccount: "aliascomic",
+                    instagramFollowers: 5_000_000,
+                    instagramFollowersRefreshedAt: new Date(
+                        "2026-07-22T12:00:00.000Z",
+                    ),
+                    popularity: 0.4,
+                }),
+            );
+        mockTransaction.mockImplementation(async (callback) =>
+            callback({
+                comedian: { findUnique, update },
+                $queryRaw: vi.fn().mockResolvedValueOnce([]),
+                adminActionAudit: { create: vi.fn() },
+            } as never),
+        );
+
+        const res = await PUT(
+            makeRequest({
+                comedianId: 2,
+                name: "Alias Comic",
+                instagramAccount: "aliascomic",
+                refreshInstagramFollowers: true,
+            }),
+        );
+        const body = await res.json();
+
+        expect(res.status).toBe(200);
+        expect(mockResolveInstagramFollowerCount).toHaveBeenCalledWith(
+            "aliascomic",
+        );
+        expect(update).toHaveBeenCalledWith({
+            where: { id: 2 },
+            data: expect.objectContaining({
+                instagramAccount: "aliascomic",
+                instagramFollowers: 5_000_000,
+                instagramFollowersRefreshedAt: expect.any(Date),
+                popularity: 0.4,
+            }),
+        });
+        expect(body.comedian.popularity).toBe(0.4);
+        expect(body.instagramFollowerRefresh).toEqual({
+            status: "resolved",
+            followerCount: 5_000_000,
+        });
+    });
+
+    it("preserves follower data and popularity when an unchanged proactive refresh fails", async () => {
+        mockAuth.mockResolvedValue(adminSession as never);
+        mockCurrentComedian.mockResolvedValueOnce({
+            instagramAccount: "aliascomic",
+        } as never);
+        const refreshedAt = new Date("2026-07-20T12:00:00.000Z");
+        const update = vi.fn();
+        const findUnique = vi
+            .fn()
+            .mockResolvedValueOnce(
+                makeComedian({
+                    website: null,
+                    instagramAccount: "aliascomic",
+                    instagramFollowers: 500,
+                    instagramFollowersRefreshedAt: refreshedAt,
+                    popularity: 0.3,
+                }),
+            )
+            .mockResolvedValueOnce(null)
+            .mockResolvedValueOnce(
+                makeComedian({
+                    website: "https://alias.example.com",
+                    instagramAccount: "aliascomic",
+                    instagramFollowers: 500,
+                    instagramFollowersRefreshedAt: refreshedAt,
+                    popularity: 0.3,
+                }),
+            );
+        mockTransaction.mockImplementation(async (callback) =>
+            callback({
+                comedian: { findUnique, update },
+                $queryRaw: vi.fn().mockResolvedValueOnce([]),
+                adminActionAudit: { create: vi.fn() },
+            } as never),
+        );
+
+        const res = await PUT(
+            makeRequest({
+                comedianId: 2,
+                name: "Alias Comic",
+                website: "https://alias.example.com",
+                instagramAccount: "aliascomic",
+                refreshInstagramFollowers: true,
+            }),
+        );
+        const body = await res.json();
+
+        expect(res.status).toBe(200);
+        const updateData = update.mock.calls[0]?.[0]?.data;
+        expect(updateData).toEqual(
+            expect.objectContaining({
+                website: "https://alias.example.com",
+                instagramAccount: "aliascomic",
+            }),
+        );
+        expect(updateData).not.toHaveProperty("instagramFollowers");
+        expect(updateData).not.toHaveProperty("instagramFollowersRefreshedAt");
+        expect(updateData).not.toHaveProperty("popularity");
+        expect(body.comedian.instagramFollowers).toBe(500);
+        expect(body.comedian.popularity).toBe(0.3);
+        expect(body.instagramFollowerRefresh).toEqual({
+            status: "failed",
+            detail: "unavailable",
+        });
+    });
+
+    it("skips proactive refresh when no Instagram handle is present", async () => {
+        mockAuth.mockResolvedValue(adminSession as never);
+        const update = vi.fn();
+        const findUnique = vi
+            .fn()
+            .mockResolvedValueOnce(makeComedian())
+            .mockResolvedValueOnce(null)
+            .mockResolvedValueOnce(makeComedian());
+        mockTransaction.mockImplementation(async (callback) =>
+            callback({
+                comedian: { findUnique, update },
+                $queryRaw: vi.fn().mockResolvedValueOnce([]),
+                adminActionAudit: { create: vi.fn() },
+            } as never),
+        );
+
+        const res = await PUT(
+            makeRequest({
+                comedianId: 2,
+                name: "Alias Comic",
+                instagramAccount: null,
+                refreshInstagramFollowers: true,
+            }),
+        );
+        const body = await res.json();
+
+        expect(res.status).toBe(200);
+        expect(mockResolveInstagramFollowerCount).not.toHaveBeenCalled();
+        expect(body.instagramFollowerRefresh).toBeNull();
     });
 
     it("clears stale Instagram followers when a changed handle cannot be refreshed", async () => {
