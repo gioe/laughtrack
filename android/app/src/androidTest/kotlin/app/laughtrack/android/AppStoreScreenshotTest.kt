@@ -71,10 +71,34 @@ import tools.fastlane.screengrab.locale.LocaleTestRule
 @HiltAndroidTest
 @UninstallModules(ApiClientModule::class)
 class AppStoreScreenshotTest {
+    private val screenshotExecutionOrder =
+        listOf(
+            "01_NearMe",
+            "02_SearchShows",
+            "03_SearchComedians",
+            "04_SearchClubs",
+            "05_ClubDetail",
+            "06_ShowDetail",
+            "07_ComedianDetail",
+            "08_SearchPodcasts",
+            "09_PodcastDetail",
+            "11_Profile",
+            "18_AuthPrompt",
+            "13_Onboarding",
+            "14_NowPlaying",
+            "15_AuthenticatedFavorites",
+            "16_AuthenticatedProfile",
+            "17_AuthenticatedNotifications",
+            "19_FirstEntryAuthChoice",
+        )
     private val selectedScenarioIds: List<String>? by lazy {
         InstrumentationRegistry.getArguments().getString("screenshotScenarios")
             ?.split(",")
             ?.filter(String::isNotBlank)
+    }
+    private val lastSelectedScenarioId: String? by lazy {
+        val selected = selectedScenarioIds ?: return@lazy null
+        screenshotExecutionOrder.lastOrNull { it in selected }
     }
 
     @BindValue
@@ -434,6 +458,6 @@ class AppStoreScreenshotTest {
         android.os.SystemClock.sleep(250)
         settle()
         Screengrab.screenshot(name)
-        return selectedScenarioIds?.lastOrNull() == name
+        return lastSelectedScenarioId == name
     }
 }
