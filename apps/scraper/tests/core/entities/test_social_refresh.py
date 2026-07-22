@@ -500,6 +500,86 @@ class TestFetchInstagramFollowerCount:
             result = handler._fetch_instagram_follower_count(row)
         assert result == _IGFetch("ok", "uuid-8", 500)
 
+    @pytest.mark.parametrize(
+        ("label", "expected"),
+        [
+            ("27K", 27_000),
+            ("3M", 3_000_000),
+            ("20m", 20_000_000),
+            ("1.2B", 1_200_000_000),
+            ("123,456", 123_456),
+        ],
+    )
+    def test_parses_formatted_html_follower_counts(self, label, expected):
+        html = (
+            f'<meta content="{label} Followers, 10 Following" name="description">'
+        )
+        assert (
+            _comedian_handler_mod._parse_instagram_follower_count_from_html(html)
+            == expected
+        )
+
+    def test_taylor_schema_error_uses_html_fallback(self):
+        api_response = MagicMock(status_code=400)
+        api_response.raise_for_status.side_effect = _requests.exceptions.HTTPError(
+            "400 Client Error"
+        )
+        api_response.text = (
+            '{"message":"Asset asset://laser.provider/'
+            "ig_business_category_subvertical has been deleted. "
+            'You cannot use this schema"}'
+        )
+        html_response = MagicMock(status_code=200)
+        html_response.text = (
+            '<meta property="og:description" '
+            'content="3M Followers, 1,481 Following, 2,031 Posts">'
+        )
+
+        with (
+            patch.object(
+                _comedian_handler_mod.cffi_requests,
+                "get",
+                side_effect=[api_response, html_response],
+            ),
+            patch.object(_comedian_handler_mod, "Logger") as logger,
+        ):
+            data = ComedianHandler._instagram_request("taylortomlinson")
+
+        assert data["data"]["user"]["edge_followed_by"]["count"] == 3_000_000
+        assert "rounded HTML follower count 3000000" in logger.warn.call_args[0][0]
+
+    def test_confirmed_404_does_not_use_html_fallback(self):
+        api_response = MagicMock(status_code=404)
+
+        with patch.object(
+            _comedian_handler_mod.cffi_requests, "get", return_value=api_response
+        ) as request:
+            with pytest.raises(_comedian_handler_mod._InstagramAccountGone):
+                ComedianHandler._instagram_request("gone")
+
+        request.assert_called_once()
+
+    def test_html_fallback_failure_returns_skip(self):
+        api_response = MagicMock(status_code=400)
+        api_response.raise_for_status.side_effect = _requests.exceptions.HTTPError(
+            "400 Client Error"
+        )
+        html_response = MagicMock(status_code=200, text="<html></html>")
+        handler = _make_handler()
+        row = {"uuid": "uuid-9", "instagram_account": "@stillblocked"}
+
+        with (
+            patch.object(
+                _comedian_handler_mod.cffi_requests,
+                "get",
+                side_effect=[api_response, html_response],
+            ),
+            patch.object(_comedian_handler_mod, "_INSTAGRAM_MAX_ATTEMPTS", 1),
+        ):
+            result = handler._fetch_instagram_follower_count(row)
+
+        assert result == _IGFetch("skip", "uuid-9", None)
+
 
 # ---------------------------------------------------------------------------
 # refresh_instagram_followers — end-to-end

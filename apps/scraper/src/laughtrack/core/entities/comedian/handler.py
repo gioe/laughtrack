@@ -2,11 +2,13 @@
 
 import atexit
 import concurrent.futures
+import math
 import os
 import re
 import threading
 import time
 from typing import Callable, Dict, List, NamedTuple, Optional, Tuple
+from urllib.parse import quote
 
 import requests
 from curl_cffi import requests as cffi_requests
@@ -23,6 +25,7 @@ from .model import Comedian
 _YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3/channels"
 _CHANNEL_ID_RE = re.compile(r"UC[\w-]{22}")
 _INSTAGRAM_API_URL = "https://i.instagram.com/api/v1/users/web_profile_info/"
+_INSTAGRAM_PROFILE_URL = "https://www.instagram.com"
 _TIKTOK_API_URL = "https://www.tiktok.com/api/user/detail/"
 # Realistic browser UA required by both Instagram and TikTok endpoint fingerprinting
 _BROWSER_UA = (
@@ -76,6 +79,44 @@ class _IGFetch(NamedTuple):
     status: str
     uuid: str
     count: Optional[int]
+
+
+def _parse_instagram_follower_count_from_html(body: str) -> int:
+    """Read the rounded public follower label from profile metadata."""
+    for tag in re.findall(r"<meta\b[^>]*>", body, flags=re.IGNORECASE):
+        attributes = {
+            name.lower(): value
+            for name, _, value in re.findall(
+                r"\b([\w:-]+)\s*=\s*([\"'])(.*?)\2", tag, flags=re.IGNORECASE
+            )
+        }
+        if (
+            attributes.get("property", "").lower() != "og:description"
+            and attributes.get("name", "").lower() != "description"
+        ):
+            continue
+        content = attributes.get("content", "")
+        match = re.match(
+            r"\s*([\d,]+(?:\.\d+)?)\s*([KMB])?\s+Followers\b",
+            content,
+            flags=re.IGNORECASE,
+        )
+        if not match:
+            continue
+        numeric_text = match.group(1).replace(",", "")
+        suffix = (match.group(2) or "").upper()
+        if not suffix and "." in numeric_text:
+            continue
+        value = float(numeric_text)
+        if not math.isfinite(value):
+            continue
+        multiplier = {"K": 1_000, "M": 1_000_000, "B": 1_000_000_000}.get(
+            suffix, 1
+        )
+        count = round(value * multiplier)
+        if count >= 0:
+            return count
+    raise ValueError("Instagram profile HTML did not include a follower count")
 
 
 def _itunes_on_insert_enabled() -> bool:
@@ -1186,8 +1227,34 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
         )
         if resp.status_code == 404:
             raise _InstagramAccountGone(account)
-        resp.raise_for_status()
-        return resp.json()
+
+        try:
+            resp.raise_for_status()
+            data = resp.json()
+            count = data["data"]["user"]["edge_followed_by"]["count"]
+            if not isinstance(count, int) or isinstance(count, bool) or count < 0:
+                raise ValueError("Instagram JSON follower count is invalid")
+            return data
+        except Exception as primary_error:
+            try:
+                profile_resp = cffi_requests.get(
+                    f"{_INSTAGRAM_PROFILE_URL}/{quote(account, safe='')}/",
+                    params={"hl": "en"},
+                    headers={"User-Agent": _BROWSER_UA},
+                    proxies=proxies,
+                    timeout=_INSTAGRAM_TIMEOUT_S,
+                    impersonate="chrome",
+                )
+                profile_resp.raise_for_status()
+                count = _parse_instagram_follower_count_from_html(profile_resp.text)
+            except Exception:
+                raise primary_error
+
+            Logger.warn(
+                f"Instagram JSON profile request failed for @{account}; "
+                f"using rounded HTML follower count {count}"
+            )
+            return {"data": {"user": {"edge_followed_by": {"count": count}}}}
 
     # ------------------------------------------------------------------
     # TikTok follower refresh
