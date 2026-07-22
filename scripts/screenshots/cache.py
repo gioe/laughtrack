@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -40,6 +41,11 @@ FASTLANE_INPUTS = {
     "ios": {"Fastfile", "Snapfile", "SnapshotHelper.swift"},
     "android": {"Fastfile", "Screengrabfile"},
 }
+SCREENSHOT_DERIVED_DATA_PREFIX = "LaughTrack-screenshots-wt-"
+SCREENSHOT_DERIVED_DATA_NAME = re.compile(
+    rf"^{re.escape(SCREENSHOT_DERIVED_DATA_PREFIX)}[0-9a-f]{{12}}$"
+)
+DEFAULT_DERIVED_DATA_ROOT = Path.home() / "Library" / "Developer" / "Xcode" / "DerivedData"
 
 
 def _now() -> str:
@@ -67,6 +73,83 @@ def _git_paths(repo_root: Path, *args: str) -> set[str]:
         ["git", "-C", str(repo_root), "ls-files", "-z", *args], stderr=subprocess.DEVNULL
     )
     return {item.decode("utf-8") for item in output.split(b"\0") if item}
+
+
+def screenshot_derived_data_cache_name(worktree_path: str | os.PathLike[str]) -> str:
+    """Return the cache name used by the iOS Fastfile for a worktree path."""
+    absolute_path = os.path.abspath(os.fspath(worktree_path))
+    digest = hashlib.sha256(os.fsencode(absolute_path)).hexdigest()[:12]
+    return f"{SCREENSHOT_DERIVED_DATA_PREFIX}{digest}"
+
+
+def _registered_worktree_paths(repo_root: Path) -> list[str]:
+    output = subprocess.check_output(
+        ["git", "-C", str(repo_root), "worktree", "list", "--porcelain", "-z"],
+        stderr=subprocess.DEVNULL,
+    )
+    prefix = b"worktree "
+    return [
+        os.fsdecode(field[len(prefix) :])
+        for field in output.split(b"\0")
+        if field.startswith(prefix)
+    ]
+
+
+def _tree_size(path: Path) -> int:
+    total = 0
+    for root, directories, files in os.walk(path, followlinks=False):
+        root_path = Path(root)
+        directories[:] = [
+            directory
+            for directory in directories
+            if not (root_path / directory).is_symlink()
+        ]
+        for filename in files:
+            try:
+                total += (root_path / filename).stat(follow_symlinks=False).st_size
+            except FileNotFoundError:
+                continue
+    return total
+
+
+def prune_derived_data_caches(
+    *,
+    repo_root: Path,
+    derived_data_root: Path = DEFAULT_DERIVED_DATA_ROOT,
+    preserve_paths: Sequence[Path] = (),
+) -> dict[str, Any]:
+    """Remove screenshot DerivedData caches that do not belong to registered worktrees."""
+    repo_root = Path(os.path.abspath(repo_root))
+    derived_data_root = Path(os.path.abspath(derived_data_root))
+    protected_names = {
+        screenshot_derived_data_cache_name(path)
+        for path in _registered_worktree_paths(repo_root)
+    }
+    protected_paths = {
+        os.path.abspath(path)
+        for path in preserve_paths
+    }
+    removed: list[str] = []
+    reclaimed = 0
+    if derived_data_root.is_dir():
+        for candidate in sorted(derived_data_root.iterdir()):
+            if (
+                not SCREENSHOT_DERIVED_DATA_NAME.fullmatch(candidate.name)
+                or candidate.name in protected_names
+                or os.path.abspath(candidate) in protected_paths
+                or candidate.is_symlink()
+                or not candidate.is_dir()
+            ):
+                continue
+            reclaimed += _tree_size(candidate)
+            shutil.rmtree(candidate)
+            removed.append(str(candidate))
+    return {
+        "derived_data_root": str(derived_data_root),
+        "registered_worktrees": len(protected_names),
+        "removed_caches": removed,
+        "bytes_reclaimed": reclaimed,
+    }
 
 
 def _is_render_input(path: str, platform: str) -> bool:
@@ -525,6 +608,14 @@ def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Manage content-addressed native screenshot profile caches.")
     parser.add_argument("--catalog", type=Path, default=Path("screenshots/catalog.json"))
     subparsers = parser.add_subparsers(dest="command", required=True)
+    prune_parser = subparsers.add_parser("prune-derived-data")
+    prune_parser.add_argument("--repo-root", type=Path, default=Path.cwd())
+    prune_parser.add_argument(
+        "--derived-data-root",
+        type=Path,
+        default=DEFAULT_DERIVED_DATA_ROOT,
+    )
+    prune_parser.add_argument("--preserve-path", type=Path, action="append", default=[])
     for command in ("plan", "store-profile"):
         command_parser = subparsers.add_parser(command)
         command_parser.add_argument("platform", choices=tuple(PLATFORM_ROOTS))
@@ -544,10 +635,19 @@ def _build_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
     try:
-        catalog = load_catalog(args.catalog)
-        profile_ids = [p["id"] for p in catalog["profiles"] if p["platform"] == args.platform]
-        configs = _profile_configurations(args.profile_config_json, profile_ids)
-        native_environment = _native_environment(args.native_environment_json)
+        if args.command == "prune-derived-data":
+            result = prune_derived_data_caches(
+                repo_root=args.repo_root,
+                derived_data_root=args.derived_data_root,
+                preserve_paths=args.preserve_path,
+            )
+        else:
+            catalog = load_catalog(args.catalog)
+            profile_ids = [
+                p["id"] for p in catalog["profiles"] if p["platform"] == args.platform
+            ]
+            configs = _profile_configurations(args.profile_config_json, profile_ids)
+            native_environment = _native_environment(args.native_environment_json)
         if args.command == "plan":
             result = plan_cache(
                 platform=args.platform,
@@ -559,7 +659,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 native_environment=native_environment,
                 force_fresh=args.force_fresh,
             )
-        else:
+        elif args.command == "store-profile":
             result = store_profile(
                 platform=args.platform,
                 profile_id=args.profile_id,
