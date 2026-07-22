@@ -90,6 +90,17 @@ end
 ANDROID_SCREENSHOT_COLLECTION = load_android_screenshot_collection
 SCREENSHOT_PROFILES = ANDROID_SCREENSHOT_COLLECTION.fetch(:profiles)
 
+def selected_screenshot_values!(raw_value, canonical_values, label)
+  values = raw_value.to_s.split(",").map(&:strip).reject(&:empty?)
+  UI.user_error!("verify_screenshots requires #{label}:id,id") if values.empty?
+  unknown = values - canonical_values
+  UI.user_error!("Unknown screenshot #{label}: #{unknown.join(', ')}") unless unknown.empty?
+  UI.user_error!("Duplicate screenshot #{label} values are not allowed") unless values.uniq == values
+  expected = canonical_values.select { |value| values.include?(value) }
+  UI.user_error!("Screenshot #{label} must follow canonical order: #{expected.join(',')}") unless values == expected
+  values
+end
+
 def android_screenshot_profile_config
   {
     profiles: SCREENSHOT_PROFILES.to_h do |profile|
@@ -259,29 +270,36 @@ def store_android_screenshot_profile(capture_root, profile_id, expected_key, nat
   )
 end
 
-def validate_screenshot_profile!(capture_root, profile)
-  output, error, status = Open3.capture3(
+def validate_screenshot_profile!(capture_root, profile, scenario_ids = ANDROID_SCREENSHOT_COLLECTION.fetch(:scenario_ids))
+  arguments = [
     "python3", SCREENSHOT_EXPORT_PATH,
     "--catalog", SCREENSHOT_CATALOG_PATH,
     "validate-profile", profile[:id],
     "--source-root", capture_root,
-  )
+  ]
+  scenario_ids.each { |scenario_id| arguments.concat(["--scenario", scenario_id]) }
+  output, error, status = Open3.capture3(*arguments)
   return if status.success?
 
   detail = error.strip.empty? ? output.strip : error.strip
   UI.user_error!("Invalid #{profile[:name]} screenshot capture: #{detail}")
 end
 
-def collect_android_screenshot_run(capture_root, run_root)
-  sh(
+def collect_android_screenshot_run(capture_root, run_root, profiles: SCREENSHOT_PROFILES, scenario_ids: ANDROID_SCREENSHOT_COLLECTION.fetch(:scenario_ids), mode: "complete")
+  arguments = [
     "python3", SCREENSHOT_EXPORT_PATH,
     "--catalog", SCREENSHOT_CATALOG_PATH,
     "collect", "android",
     "--source-root", capture_root,
     "--run-root", run_root,
     "--repo-root", REPO_ROOT,
-    "--provenance", File.join(capture_root, ".screenshot-cache-provenance.json"),
-  )
+  ]
+  provenance = File.join(capture_root, ".screenshot-cache-provenance.json")
+  arguments.concat(["--provenance", provenance]) if File.file?(provenance)
+  profiles.each { |profile| arguments.concat(["--profile", profile.fetch(:id)]) }
+  scenario_ids.each { |scenario_id| arguments.concat(["--scenario", scenario_id]) }
+  arguments.concat(["--mode", mode])
+  sh(*arguments)
 end
 
 def export_play_projection(run_root)
@@ -410,16 +428,18 @@ def configure_screenshot_emulator(adb, serial, profile)
   { size: original_size, density: original_density }
 end
 
-def capture_screenshot_profile(adb, serial, profile, output_directory)
+def capture_screenshot_profile(adb, serial, profile, output_directory, scenario_ids: nil)
   original = configure_screenshot_emulator(adb, serial, profile)
   begin
-    capture_android_screenshots(
+    options = {
       app_apk_path: DEBUG_APK_PATH,
       tests_apk_path: DEBUG_TEST_APK_PATH,
       specific_device: serial,
       device_type: profile[:device_type],
       output_directory: output_directory,
-    )
+    }
+    options[:launch_arguments] = ["screenshotScenarios #{scenario_ids.join(',')}"] if scenario_ids
+    capture_android_screenshots(**options)
   ensure
     restore_screenshot_emulator(adb, serial, original)
   end
@@ -675,6 +695,56 @@ platform :android do
     export_play_projection(run_root) unless comparison_only
     FileUtils.rm_rf(capture_root)
     UI.success("Validated Android screenshot run manifest: #{File.join(run_root, 'manifest.json')}")
+  end
+
+  desc "Capture selected canonical Android profiles/scenarios for local verification"
+  lane :verify_screenshots do |options|
+    profile_ids = selected_screenshot_values!(
+      options[:profiles],
+      SCREENSHOT_PROFILES.map { |profile| profile.fetch(:id) },
+      "profiles",
+    )
+    scenario_ids = selected_screenshot_values!(
+      options[:scenarios],
+      ANDROID_SCREENSHOT_COLLECTION.fetch(:scenario_ids),
+      "scenarios",
+    )
+    profiles = SCREENSHOT_PROFILES.select { |profile| profile_ids.include?(profile.fetch(:id)) }
+    run_root = File.expand_path(options[:run_root] || "android/build/targeted-screenshots/run", REPO_ROOT)
+    capture_root = "#{run_root}-capture"
+    native_target = android_screenshot_native_target
+
+    with_screenshot_fixture_server do
+      adb, serial = boot_screenshot_emulator(native_target)
+      prior_android_serial = ENV["ANDROID_SERIAL"]
+      ENV["ANDROID_SERIAL"] = serial
+      begin
+        gradle(task: ":app:assembleDebug :app:assembleDebugAndroidTest", project_dir: ".")
+        profiles.each do |profile|
+          FileUtils.rm_rf(screenshot_profile_directory(capture_root, profile))
+          capture_screenshot_profile(
+            adb,
+            serial,
+            profile,
+            capture_root,
+            scenario_ids: scenario_ids,
+          )
+          validate_screenshot_profile!(capture_root, profile, scenario_ids)
+        end
+      ensure
+        ENV["ANDROID_SERIAL"] = prior_android_serial
+      end
+    end
+
+    collect_android_screenshot_run(
+      capture_root,
+      run_root,
+      profiles: profiles,
+      scenario_ids: scenario_ids,
+      mode: "verification",
+    )
+    FileUtils.rm_rf(capture_root)
+    UI.success("Validated targeted Android screenshot run manifest: #{File.join(run_root, 'manifest.json')}")
   end
 
   desc "Upload the already-exported store-listing projection to Play (no binary)"

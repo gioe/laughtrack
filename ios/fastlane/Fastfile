@@ -75,6 +75,17 @@ IOS_SCREENSHOT_COLLECTION = load_ios_screenshot_collection
 CANONICAL_IOS_SCREENSHOT_IDS = IOS_SCREENSHOT_COLLECTION.fetch(:scenario_ids)
 IOS_SCREENSHOT_PROFILES = IOS_SCREENSHOT_COLLECTION.fetch(:profiles)
 
+def selected_screenshot_values!(raw_value, canonical_values, label)
+  values = raw_value.to_s.split(",").map(&:strip).reject(&:empty?)
+  UI.user_error!("verify_screenshots requires #{label}:id,id") if values.empty?
+  unknown = values - canonical_values
+  UI.user_error!("Unknown screenshot #{label}: #{unknown.join(', ')}") unless unknown.empty?
+  UI.user_error!("Duplicate screenshot #{label} values are not allowed") unless values.uniq == values
+  expected = canonical_values.select { |value| values.include?(value) }
+  UI.user_error!("Screenshot #{label} must follow canonical order: #{expected.join(',')}") unless values == expected
+  values
+end
+
 def ios_screenshot_profile_config
   {
     profiles: IOS_SCREENSHOT_PROFILES.to_h do |profile|
@@ -210,10 +221,10 @@ ensure
   end
 end
 
-def validate_ios_screenshot_collection(screenshot_root)
+def validate_ios_screenshot_collection(screenshot_root, profiles = IOS_SCREENSHOT_PROFILES, scenario_ids = CANONICAL_IOS_SCREENSHOT_IDS)
   directory = File.join(screenshot_root, "en-US")
-  expected = IOS_SCREENSHOT_PROFILES.flat_map do |profile|
-    CANONICAL_IOS_SCREENSHOT_IDS.map do |scenario_id|
+  expected = profiles.flat_map do |profile|
+    scenario_ids.map do |scenario_id|
       "#{profile.fetch(:device_name)}-#{scenario_id}.png"
     end
   end.sort
@@ -226,16 +237,21 @@ def validate_ios_screenshot_collection(screenshot_root)
   )
 end
 
-def collect_ios_screenshot_run(capture_root, run_root)
-  sh(
+def collect_ios_screenshot_run(capture_root, run_root, profiles: IOS_SCREENSHOT_PROFILES, scenario_ids: CANONICAL_IOS_SCREENSHOT_IDS, mode: "complete")
+  arguments = [
     "python3", SCREENSHOT_EXPORT_PATH,
     "--catalog", SCREENSHOT_CATALOG_PATH,
     "collect", "ios",
     "--source-root", capture_root,
     "--run-root", run_root,
     "--repo-root", REPO_ROOT,
-    "--provenance", File.join(capture_root, ".screenshot-cache-provenance.json"),
-  )
+  ]
+  provenance = File.join(capture_root, ".screenshot-cache-provenance.json")
+  arguments.concat(["--provenance", provenance]) if File.file?(provenance)
+  profiles.each { |profile| arguments.concat(["--profile", profile.fetch(:id)]) }
+  scenario_ids.each { |scenario_id| arguments.concat(["--scenario", scenario_id]) }
+  arguments.concat(["--mode", mode])
+  sh(*arguments)
 end
 
 def export_app_store_projection(run_root)
@@ -596,6 +612,61 @@ platform :ios do
       export_app_store_projection(run_root) unless comparison_only
       UI.success(format("Screenshot timings: build=%.1fs capture=%.1fs", build_duration, capture_duration))
       UI.success("Validated iOS screenshot run manifest: #{File.join(run_root, 'manifest.json')}")
+    end
+  end
+
+  desc "Capture a selected canonical iOS profile/scenario subset for local verification"
+  lane :verify_screenshots do |options|
+    profile_ids = selected_screenshot_values!(
+      options[:profiles],
+      IOS_SCREENSHOT_PROFILES.map { |profile| profile.fetch(:id) },
+      "profiles",
+    )
+    scenario_ids = selected_screenshot_values!(options[:scenarios], CANONICAL_IOS_SCREENSHOT_IDS, "scenarios")
+    profiles = IOS_SCREENSHOT_PROFILES.select { |profile| profile_ids.include?(profile.fetch(:id)) }
+    run_root = File.expand_path(options[:run_root] || "ios/build/targeted-screenshots/run", REPO_ROOT)
+
+    Dir.mktmpdir("laughtrack-ios-targeted-screenshots") do |tmpdir|
+      capture_root = File.join(tmpdir, "capture")
+      native_target = ios_screenshot_native_target
+      with_screenshot_fixture_server do
+        boot_screenshot_simulator(native_target, profiles.first.fetch(:device_name))
+        patch_snapshot_destination_for_18_3_1
+        run_tests(
+          project: "LaughTrack.xcodeproj",
+          scheme: SCHEME,
+          destination: "generic/platform=iOS Simulator",
+          build_for_testing: true,
+          derived_data_path: SCREENSHOT_DERIVED_DATA_PATH,
+          clean: false,
+          code_coverage: false,
+          skip_slack: true,
+          only_testing: ["LaughTrackUITests/AppStoreScreenshotTests/testGenerateAllScreenshots"],
+          xcargs: "TARGETED_DEVICE_FAMILY=1,2",
+          skip_package_dependencies_resolution: false,
+          disable_package_automatic_updates: true,
+          skip_package_repository_fetches: true,
+        )
+        capture_screenshots(
+          output_directory: capture_root,
+          derived_data_path: SCREENSHOT_DERIVED_DATA_PATH,
+          test_without_building: true,
+          devices: profiles.map { |profile| profile.fetch(:device_name) },
+          ios_version: native_target.fetch(:version),
+          clear_previous_screenshots: true,
+          launch_arguments: ["-UITestMockMode -ScreenshotScenarios #{scenario_ids.join(',')}"],
+        )
+      end
+
+      validate_ios_screenshot_collection(capture_root, profiles, scenario_ids)
+      collect_ios_screenshot_run(
+        capture_root,
+        run_root,
+        profiles: profiles,
+        scenario_ids: scenario_ids,
+        mode: "verification",
+      )
+      UI.success("Validated targeted iOS screenshot run manifest: #{File.join(run_root, 'manifest.json')}")
     end
   end
 

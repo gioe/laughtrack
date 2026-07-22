@@ -102,11 +102,13 @@ echo "Validating persistent manifests..."
 python3 "$repo_root/scripts/screenshots/manifest.py" validate-run \
   "$ios_run/manifest.json" \
   --catalog "$repo_root/screenshots/catalog.json" \
-  --repo-root "$ios_run"
+  --repo-root "$ios_run" \
+  --require-complete
 python3 "$repo_root/scripts/screenshots/manifest.py" validate-run \
   "$android_run/manifest.json" \
   --catalog "$repo_root/screenshots/catalog.json" \
-  --repo-root "$android_run"
+  --repo-root "$android_run" \
+  --require-complete
 
 echo "Generating cross-platform scenario sheets and audit metadata..."
 python3 "$repo_root/scripts/screenshots/comparison.py" \

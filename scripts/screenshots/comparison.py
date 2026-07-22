@@ -70,7 +70,13 @@ def _load_runs(
     for platform, supplied_path in (("ios", ios_manifest_path), ("android", android_manifest_path)):
         path = supplied_path.resolve()
         manifest = load_manifest(path)
-        validate_manifest(manifest, catalog, repo_root=path.parent, fresh_since=fresh_since)
+        validate_manifest(
+            manifest,
+            catalog,
+            repo_root=path.parent,
+            fresh_since=fresh_since,
+            require_complete=True,
+        )
         declared = {image["path"] for image in manifest["images"]}
         actual = {
             candidate.relative_to(path.parent).as_posix()

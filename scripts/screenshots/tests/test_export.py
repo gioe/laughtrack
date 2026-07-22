@@ -345,6 +345,27 @@ def test_incomplete_or_wrong_sized_profile_is_not_reusable(tmp_path: Path) -> No
         )
 
 
+def test_selected_profile_validation_accepts_only_requested_canonical_frames(tmp_path: Path) -> None:
+    source = tmp_path / "android-capture"
+    scenarios = ["02_SearchShows", "04_SearchClubs", "08_SearchPodcasts"]
+    make_capture(source, "android", {"android_phone"}, set(scenarios))
+
+    validate_capture_profile(
+        profile_id="android_phone",
+        source_root=source,
+        catalog_path=CATALOG_PATH,
+        scenario_ids=scenarios,
+    )
+
+    with pytest.raises(ContractError, match="catalog order"):
+        validate_capture_profile(
+            profile_id="android_phone",
+            source_root=source,
+            catalog_path=CATALOG_PATH,
+            scenario_ids=list(reversed(scenarios)),
+        )
+
+
 def test_reusable_profiles_cli_emits_only_complete_profiles(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     source = tmp_path / "android-capture"
     make_capture(source, "android", {"android_phone"})

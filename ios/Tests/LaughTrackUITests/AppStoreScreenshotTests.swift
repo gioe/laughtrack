@@ -12,6 +12,12 @@ import XCTest
 /// backend pins every entity, count, date, narrative, and artwork response.
 @MainActor
 final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
+    private enum TargetedCaptureComplete: Error {
+        case done
+    }
+
+    private var selectedScenarioIDs: [String]?
+
     private enum Identifier {
         static let primitiveFilterScroller = "laughtrack.primitive-filter.scroller"
         static let clubDetailScreen = "laughtrack.club-detail.screen"
@@ -22,11 +28,24 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
 
     override func prepareForSnapshot() {
         setupSnapshot(app)
+        if let index = app.launchArguments.firstIndex(of: "-ScreenshotScenarios"),
+           app.launchArguments.indices.contains(index + 1)
+        {
+            selectedScenarioIDs = app.launchArguments[index + 1].split(separator: ",").map(String.init)
+        }
         let port = ProcessInfo.processInfo.environment["LAUGHTRACK_SCREENSHOT_FIXTURE_PORT"] ?? "8765"
         app.launchEnvironment["LAUGHTRACK_API_BASE_URL"] = "http://127.0.0.1:\(port)"
     }
 
     func testGenerateAllScreenshots() throws {
+        do {
+            try generateScreenshots()
+        } catch TargetedCaptureComplete.done {
+            return
+        }
+    }
+
+    private func generateScreenshots() throws {
         try capture(
             "01_NearMe",
             screen: identified("laughtrack.home.screen", as: "Near Me screen"),
@@ -327,6 +346,9 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         screen: SnapshotReadinessCondition,
         content: [SnapshotReadinessCondition]
     ) throws {
+        if let selectedScenarioIDs, !selectedScenarioIDs.contains(name) {
+            return
+        }
         let artwork = SnapshotReadinessCondition(
             description: "required artwork loaded (no visible activity indicators)"
         ) { [unowned self] in
@@ -335,6 +357,9 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
             }
         }
         try snapshot(name, whenReady: [screen] + content + [artwork])
+        if selectedScenarioIDs?.last == name {
+            throw TargetedCaptureComplete.done
+        }
     }
 
     private func identified(_ identifier: String, as description: String) -> SnapshotReadinessCondition {

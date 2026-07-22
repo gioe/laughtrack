@@ -77,7 +77,8 @@ when "ios"
     $events << {"run_tests" => options}
   end
 
-  def capture_screenshots(**)
+  def capture_screenshots(**options)
+    $events << {"capture" => options}
   end
 
   def store_ios_screenshot_profile(*)
@@ -86,8 +87,8 @@ when "ios"
   def validate_ios_screenshot_collection(*)
   end
 
-  def collect_ios_screenshot_run(*)
-    $events << "collect"
+  def collect_ios_screenshot_run(*, **options)
+    $events << {"collect" => options}
   end
 
   def export_app_store_projection(*)
@@ -102,11 +103,26 @@ when "android"
     {"pending_profiles" => [], "reused_profiles" => [], "profile_fingerprints" => {}}
   end
 
+  def boot_screenshot_emulator(native_target)
+    ["adb", "serial"]
+  end
+
+  def with_screenshot_fixture_server
+    yield
+  end
+
+  def gradle(**)
+  end
+
+  def capture_screenshot_profile(*, **options)
+    $events << {"capture" => options}
+  end
+
   def validate_screenshot_profile!(*)
   end
 
-  def collect_android_screenshot_run(*)
-    $events << "collect"
+  def collect_android_screenshot_run(*, **options)
+    $events << {"collect" => options}
   end
 
   def export_play_projection(*)
@@ -118,7 +134,13 @@ end
 
 options = {run_root: ARGV.fetch(2)}
 options[:comparison_only] = true if ARGV.fetch(3) == "comparison"
-$lanes.fetch(:screenshots).call(options)
+if ARGV.fetch(3) == "targeted"
+  options[:profiles] = ARGV.fetch(1) == "ios" ? "ios_phone,ios_large_tablet" : "android_phone"
+  options[:scenarios] = "02_SearchShows,03_SearchComedians,04_SearchClubs,08_SearchPodcasts"
+  $lanes.fetch(:verify_screenshots).call(options)
+else
+  $lanes.fetch(:screenshots).call(options)
+end
 puts JSON.generate($events)
 """
 
@@ -147,14 +169,41 @@ def run_screenshot_lane(platform: str, mode: str, tmp_path: Path) -> list[str]:
 def test_comparison_mode_collects_run_without_projecting_storefront(
     platform: str, tmp_path: Path
 ) -> None:
-    assert run_screenshot_lane(platform, "comparison", tmp_path) == ["collect"]
+    events = run_screenshot_lane(platform, "comparison", tmp_path)
+    assert [next(iter(event)) for event in events] == ["collect"]
 
 
 @pytest.mark.parametrize("platform", ["ios", "android"])
 def test_default_mode_collects_run_and_projects_storefront(
     platform: str, tmp_path: Path
 ) -> None:
-    assert run_screenshot_lane(platform, "export", tmp_path) == ["collect", "project"]
+    events = run_screenshot_lane(platform, "export", tmp_path)
+    assert [next(iter(event)) if isinstance(event, dict) else event for event in events] == ["collect", "project"]
+
+
+@pytest.mark.parametrize("platform", ["ios", "android"])
+def test_targeted_mode_captures_selected_subset_without_projecting_storefront(
+    platform: str, tmp_path: Path
+) -> None:
+    events = run_screenshot_lane(platform, "targeted", tmp_path)
+    assert "project" not in events
+    collect = next(event["collect"] for event in events if "collect" in event)
+    assert collect["mode"] == "verification"
+    assert collect["scenario_ids"] == [
+        "02_SearchShows",
+        "03_SearchComedians",
+        "04_SearchClubs",
+        "08_SearchPodcasts",
+    ]
+    capture = next(event["capture"] for event in events if "capture" in event)
+    if platform == "ios":
+        assert capture["clear_previous_screenshots"] is True
+        assert capture["launch_arguments"] == [
+            "-UITestMockMode -ScreenshotScenarios "
+            "02_SearchShows,03_SearchComedians,04_SearchClubs,08_SearchPodcasts",
+        ]
+    else:
+        assert capture["scenario_ids"] == collect["scenario_ids"]
 
 
 def test_ios_cold_cache_bootstraps_only_pinned_package_revisions(tmp_path: Path) -> None:
@@ -173,3 +222,4 @@ def test_regenerate_comparisons_requests_comparison_only_capture() -> None:
 
     assert 'ios_lane_args=(screenshots "run_root:$ios_run" comparison_only:true)' in script
     assert 'android_lane_args=(screenshots "run_root:$android_run" comparison_only:true)' in script
+    assert script.count("--require-complete") == 2

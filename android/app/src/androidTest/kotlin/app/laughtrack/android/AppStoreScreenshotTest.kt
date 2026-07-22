@@ -71,6 +71,12 @@ import tools.fastlane.screengrab.locale.LocaleTestRule
 @HiltAndroidTest
 @UninstallModules(ApiClientModule::class)
 class AppStoreScreenshotTest {
+    private val selectedScenarioIds: List<String>? by lazy {
+        InstrumentationRegistry.getArguments().getString("screenshotScenarios")
+            ?.split(",")
+            ?.filter(String::isNotBlank)
+    }
+
     @BindValue
     @JvmField
     val screenshotApiClient =
@@ -178,7 +184,7 @@ class AppStoreScreenshotTest {
             hasText("Near Los Angeles", substring = true) or hasText("90028", substring = true),
             timeoutMs = 30_000,
         )
-        capture("01_NearMe")
+        if (capture("01_NearMe")) return
 
         // 02 — Search / Shows (the default pivot). The Search tab's contentDescription
         // lives on the icon, which NavigationBarItem merges under its label Text — so
@@ -188,22 +194,22 @@ class AppStoreScreenshotTest {
         waitFor(hasText("Search nearby comedy"), timeoutMs = 30_000)
         waitForResults()
         assertFixtureResultCount()
-        capture("02_SearchShows")
+        if (capture("02_SearchShows")) return
 
         // 03 — Search / Comedians. Pivot chips render their label uppercased.
         selectPivot("COMEDIANS")
         assertFixtureResultCount()
-        capture("03_SearchComedians")
+        if (capture("03_SearchComedians")) return
 
         // 04 — Search / Clubs.
         selectPivot("CLUBS")
         assertFixtureResultCount()
-        capture("04_SearchClubs")
+        if (capture("04_SearchClubs")) return
 
         // 05 — Open the catalog's fixed club fixture.
         searchFor("The Comedy Store")
         openFirstResult()
-        capture("05_ClubDetail")
+        if (capture("05_ClubDetail")) return
 
         // 06 — Show detail. Match iOS by opening the first upcoming show from
         // the selected club's calendar rather than returning to global Shows.
@@ -211,7 +217,7 @@ class AppStoreScreenshotTest {
         composeRule.onAllNodes(hasTestTag(CLUB_SHOW_ROW_TEST_TAG)).onFirst().performScrollTo().performClick()
         waitFor(hasContentDescription("Home"), timeoutMs = 20_000)
         waitForDetail()
-        capture("06_ShowDetail")
+        if (capture("06_ShowDetail")) return
         goBackToClubDetail()
         goBack()
 
@@ -219,23 +225,23 @@ class AppStoreScreenshotTest {
         selectPivot("COMEDIANS")
         searchFor("Ali Wong")
         openFirstResult()
-        capture("07_ComedianDetail")
+        if (capture("07_ComedianDetail")) return
 
         goBack()
 
         // 08 — Search / Podcasts.
         selectPivot("PODCASTS")
         assertFixtureResultCount()
-        capture("08_SearchPodcasts")
+        if (capture("08_SearchPodcasts")) return
 
         // 09 — Open the catalog's fixed podcast fixture.
         searchFor("The Joe Rogan Experience")
         openFirstResult()
-        capture("09_PodcastDetail")
+        if (capture("09_PodcastDetail")) return
 
         navigate(navController, AppRoute.Profile)
         waitFor(hasText("Guest mode"))
-        capture("11_Profile")
+        if (capture("11_Profile")) return
 
         // Present the protected-action prompt over a neutral app destination instead
         // of making the guest Profile hierarchy compete with the modal. No provider
@@ -247,12 +253,12 @@ class AppStoreScreenshotTest {
         listOf("Continue with Google", "Continue with Apple", "Email me a sign-in link").forEach { option ->
             waitFor(hasText(option))
         }
-        capture("18_AuthPrompt", dismissKeyboard = false)
+        if (capture("18_AuthPrompt", dismissKeyboard = false)) return
         composeRule.runOnIdle { showLoginPrompt = false }
 
         navigate(navController, AppRoute.ComedianOnboarding)
         waitFor(hasText("Pick comedians to follow"), timeoutMs = 30_000)
-        capture("13_Onboarding")
+        if (capture("13_Onboarding")) return
 
         composeRule.runOnIdle {
             playbackController.seedForScreenshot(
@@ -270,7 +276,7 @@ class AppStoreScreenshotTest {
         waitFor(hasText("The LaughTrack Comedy Roundup"))
         // Intentional background override: this immersive media destination is
         // the sole AppShell route that replaces the atmosphere with opaque Canvas.
-        capture("14_NowPlaying")
+        if (capture("14_NowPlaying")) return
 
         // Opt into the credentials-free persona explicitly for the populated
         // authenticated screens, including the only valid Favorites state.
@@ -281,15 +287,15 @@ class AppStoreScreenshotTest {
 
         navigate(navController, AppRoute.Favorites())
         waitFor(hasText("Taylor Tomlinson"))
-        capture("15_AuthenticatedFavorites")
+        if (capture("15_AuthenticatedFavorites")) return
 
         navigate(navController, AppRoute.Profile)
         waitFor(hasText("Jordan Rivera"))
-        capture("16_AuthenticatedProfile")
+        if (capture("16_AuthenticatedProfile")) return
 
         navigate(navController, AppRoute.NotificationCenter)
         waitFor(hasText("Taylor Tomlinson has a show near you"))
-        capture("17_AuthenticatedNotifications")
+        if (capture("17_AuthenticatedNotifications")) return
 
         // Render the production root-level gate, distinct from the protected-action
         // LoginPromptSheet captured above. Provider buttons are asserted but untouched.
@@ -307,7 +313,7 @@ class AppStoreScreenshotTest {
         ).forEach { option -> waitFor(hasText(option)) }
         // Specialized root owner: the first-entry gate lives outside AppShell
         // and renders its own branded atmosphere and authentication treatments.
-        capture("19_FirstEntryAuthChoice", dismissKeyboard = false)
+        if (capture("19_FirstEntryAuthChoice", dismissKeyboard = false)) return
     }
 
     private fun navigate(
@@ -410,7 +416,10 @@ class AppStoreScreenshotTest {
     private fun capture(
         name: String,
         dismissKeyboard: Boolean = true,
-    ) {
+    ): Boolean {
+        if (selectedScenarioIds != null && name !in selectedScenarioIds.orEmpty()) {
+            return false
+        }
         // Search and profile fields can retain focus after route changes. Screengrab
         // captures the whole device, so an IME left open on one screen otherwise
         // contaminates every screenshot that follows it.
@@ -425,5 +434,6 @@ class AppStoreScreenshotTest {
         android.os.SystemClock.sleep(250)
         settle()
         Screengrab.screenshot(name)
+        return selectedScenarioIds?.lastOrNull() == name
     }
 }

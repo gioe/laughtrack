@@ -19,6 +19,29 @@ artwork across both platforms. Its declared contract lives in
 `screenshots/catalog.json`, and every completed run manifest records the
 contract fingerprint so fixture drift is rejected during collection/export.
 
+For focused local verification, use the separate `verify_screenshots` lane with
+non-empty, comma-separated canonical profile and scenario selections:
+
+```bash
+ios/bin/lane verify_screenshots \
+  profiles:ios_phone,ios_large_tablet \
+  scenarios:02_SearchShows,03_SearchComedians,04_SearchClubs,08_SearchPodcasts \
+  run_root:/tmp/laughtrack-ios-search-verification
+
+android/bin/lane verify_screenshots \
+  profiles:android_phone \
+  scenarios:02_SearchShows,03_SearchComedians,04_SearchClubs,08_SearchPodcasts \
+  run_root:/tmp/laughtrack-android-search-verification
+```
+
+Selections must be unique subsequences in catalog order. Targeted runs use the
+same fixture backend and canonical filenames, write manifests with
+`mode: verification`, bypass the complete-profile cache, and never export or
+upload storefront assets. The native flow stops immediately after its final
+selected scenario. The existing `screenshots`, `screenshots_and_upload`, and
+`regenerate-comparisons` commands remain complete-matrix consumers and reject
+verification manifests.
+
 Both native lanes persist successful captures in a content-addressed cache by
 profile. An unchanged run materializes every validated profile without building
 or launching native tests. Cache keys hash the current contents of each

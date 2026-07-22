@@ -233,6 +233,7 @@ def validate_capture_profile(
     profile_id: str,
     source_root: Path,
     catalog_path: Path,
+    scenario_ids: Sequence[str] | None = None,
 ) -> None:
     """Validate one durable Fastlane profile before treating it as resumable."""
     catalog = load_catalog(catalog_path)
@@ -240,11 +241,17 @@ def validate_capture_profile(
     if profile is None:
         raise ContractError([f"unknown profile: {profile_id}"])
     platform_profiles = [item for item in catalog["profiles"] if item["platform"] == profile["platform"]]
+    canonical_scenario_ids = [scenario["id"] for scenario in catalog["scenarios"]]
+    selected_scenario_ids = canonical_subset(
+        scenario_ids if scenario_ids is not None else canonical_scenario_ids,
+        canonical_scenario_ids,
+        "scenarios",
+    )
     errors = _capture_profile_errors(
         source_root=source_root.resolve(),
         profile=profile,
         platform_profiles=platform_profiles,
-        scenario_ids=[scenario["id"] for scenario in catalog["scenarios"]],
+        scenario_ids=selected_scenario_ids,
     )
     if errors:
         raise ContractError(errors)
@@ -350,13 +357,13 @@ def collect_run(
 
     canonical_profile_ids = [profile["id"] for profile in platform_profiles]
     selected_profile_ids = canonical_subset(
-        profile_ids or canonical_profile_ids,
+        profile_ids if profile_ids is not None else canonical_profile_ids,
         canonical_profile_ids,
         f"{platform} profiles",
     )
     canonical_scenario_ids = [scenario["id"] for scenario in catalog["scenarios"]]
     selected_scenario_ids = canonical_subset(
-        scenario_ids or canonical_scenario_ids,
+        scenario_ids if scenario_ids is not None else canonical_scenario_ids,
         canonical_scenario_ids,
         "scenarios",
     )
@@ -556,6 +563,7 @@ def _build_parser() -> argparse.ArgumentParser:
     profile_parser = subparsers.add_parser("validate-profile")
     profile_parser.add_argument("profile_id", choices=tuple(PROFILE_LAYOUTS))
     profile_parser.add_argument("--source-root", type=Path, required=True)
+    profile_parser.add_argument("--scenario", action="append", dest="scenarios")
 
     export_parser = subparsers.add_parser("export")
     export_parser.add_argument("storefront", choices=tuple(STOREFRONT_SELECTIONS))
@@ -593,6 +601,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 profile_id=args.profile_id,
                 source_root=args.source_root,
                 catalog_path=args.catalog,
+                scenario_ids=args.scenarios,
             )
             print(f"valid capture profile: {args.profile_id}")
         else:
