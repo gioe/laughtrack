@@ -162,7 +162,7 @@ struct ShowRow: View {
         let isSoldOut = show.soldOut == true
         let isOpenMic = Self.isOpenMic(show)
         let headliner = Self.artworkComedian(for: show)
-        let supporting = Self.topLineup(for: show, limit: 3, excluding: headliner)
+        let supporting = Self.supportingLineup(for: show, excluding: headliner)
 
         return VStack(alignment: .leading, spacing: theme.spacing.sm) {
             if let headliner {
@@ -344,11 +344,7 @@ struct ShowRow: View {
     private func supportingRow(supporting: [Components.Schemas.ComedianLineup]) -> some View {
         let laughTrack = theme.laughTrackTokens
         let stackedAvatars = Array(supporting.prefix(3))
-        let names = stackedAvatars.map(\.name).joined(separator: ", ")
-        let overflow = max(0, supporting.count - stackedAvatars.count)
-        let label = overflow > 0
-            ? "with \(names) +\(overflow) more"
-            : "with \(names)"
+        let label = Self.supportingLabel(for: supporting)
 
         HStack(spacing: theme.spacing.xs) {
             if !stackedAvatars.isEmpty {
@@ -652,6 +648,25 @@ struct ShowRow: View {
         }
 
         return Array(ordered.prefix(limit))
+    }
+
+    static func supportingLineup(
+        for show: Components.Schemas.Show,
+        excluding headliner: Components.Schemas.ComedianLineup?
+    ) -> [Components.Schemas.ComedianLineup] {
+        topLineup(for: show, limit: .max, excluding: headliner)
+    }
+
+    static func supportingLabel(
+        for supporting: [Components.Schemas.ComedianLineup],
+        visibleLimit: Int = 3
+    ) -> String {
+        let visible = Array(supporting.prefix(visibleLimit))
+        let names = visible.map(\.name).joined(separator: ", ")
+        let overflow = max(0, supporting.count - visible.count)
+        return overflow > 0
+            ? "with \(names) +\(overflow) more"
+            : "with \(names)"
     }
 
     static func effectiveComedian(_ comedian: Components.Schemas.ComedianLineup) -> Components.Schemas.ComedianLineup {

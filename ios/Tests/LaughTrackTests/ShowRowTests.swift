@@ -349,6 +349,39 @@ struct ShowRowTests {
         #expect(ShowRow.topLineup(for: show, excluding: artwork).map(\.name) == ["Feature", "Opener", "Filler"])
     }
 
+    @Test("supporting lineup preserves performers beyond the three-avatar limit")
+    func supportingLineupPreservesOverflowPerformers() {
+        let show = makeShow(lineup: [
+            lineup(name: "Headliner", imageURL: "https://example.com/headliner.jpg", showCount: 50),
+            lineup(name: "Feature", imageURL: "https://example.com/feature.jpg", showCount: 40),
+            lineup(name: "Opener", imageURL: "https://example.com/opener.jpg", showCount: 30),
+            lineup(name: "Guest", imageURL: "https://example.com/guest.jpg", showCount: 20),
+            lineup(name: "Host", imageURL: "https://example.com/host.jpg", showCount: 10),
+        ])
+
+        let headliner = ShowRow.artworkComedian(for: show)
+        let supporting = ShowRow.supportingLineup(for: show, excluding: headliner)
+
+        #expect(supporting.map(\.name) == ["Feature", "Opener", "Guest", "Host"])
+        #expect(ShowRow.supportingLabel(for: supporting) == "with Feature, Opener, Guest +1 more")
+    }
+
+    @Test("supporting lineup preserves performers at the three-avatar limit")
+    func supportingLineupPreservesPerformersAtVisibleLimit() {
+        let show = makeShow(lineup: [
+            lineup(name: "Headliner", imageURL: "https://example.com/headliner.jpg", showCount: 40),
+            lineup(name: "Feature", imageURL: "https://example.com/feature.jpg", showCount: 30),
+            lineup(name: "Opener", imageURL: "https://example.com/opener.jpg", showCount: 20),
+            lineup(name: "Host", imageURL: "https://example.com/host.jpg", showCount: 10),
+        ])
+
+        let headliner = ShowRow.artworkComedian(for: show)
+        let supporting = ShowRow.supportingLineup(for: show, excluding: headliner)
+
+        #expect(supporting.map(\.name) == ["Feature", "Opener", "Host"])
+        #expect(ShowRow.supportingLabel(for: supporting) == "with Feature, Opener, Host")
+    }
+
     @Test("artwork comedian skips a more popular performer without absolute artwork")
     func artworkComedianSkipsFeaturedPerformerWithoutAbsoluteArtwork() {
         let show = makeShow(lineup: [
