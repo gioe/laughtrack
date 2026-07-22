@@ -12,6 +12,106 @@ describe("resolveInstagramFollowerCount", () => {
         vi.unstubAllEnvs();
     });
 
+    it("falls back for Taylor's deleted Instagram schema response", async () => {
+        vi.stubEnv("INSTAGRAM_FETCH_ATTEMPTS", "1");
+        const fetchProfile = vi.fn().mockResolvedValue({
+            status: 400,
+            body: {
+                message:
+                    "Asset asset://laser.provider/ig_business_category_subvertical has been deleted. You cannot use this schema",
+            },
+        });
+        const fetchProfileHtml = vi.fn().mockResolvedValue({
+            status: 200,
+            body: '<meta property="og:description" content="3M Followers, 1,481 Following, 2,031 Posts">',
+        });
+        const warn = vi.fn();
+
+        await expect(
+            resolveInstagramFollowerCount("taylortomlinson", {
+                fetchProfile,
+                fetchProfileHtml,
+                warn,
+            }),
+        ).resolves.toEqual({
+            status: "resolved",
+            followerCount: 3_000_000,
+        });
+
+        expect(fetchProfileHtml).toHaveBeenCalledWith(
+            expect.objectContaining({
+                href: "https://www.instagram.com/taylortomlinson/?hl=en",
+            }),
+            expect.objectContaining({ Accept: "text/html" }),
+        );
+        expect(JSON.parse(warn.mock.calls[0][0])).toEqual(
+            expect.objectContaining({
+                event: "instagram_follower_resolution_fallback",
+                primaryFailure: "http_error",
+            }),
+        );
+    });
+
+    it.each([
+        ["27K", 27_000],
+        ["3M", 3_000_000],
+        ["20m", 20_000_000],
+        ["1.2B", 1_200_000_000],
+        ["123,456", 123_456],
+    ])("parses the HTML follower label %s", async (label, expected) => {
+        vi.stubEnv("INSTAGRAM_FETCH_ATTEMPTS", "1");
+        const fetchProfileHtml = vi.fn().mockResolvedValue({
+            status: 200,
+            body: `<meta content="${label} Followers, 10 Following" name="description">`,
+        });
+
+        await expect(
+            resolveInstagramFollowerCount("formattedcomic", {
+                fetchProfile: vi
+                    .fn()
+                    .mockResolvedValue({ status: 401, body: null }),
+                fetchProfileHtml,
+                warn: vi.fn(),
+            }),
+        ).resolves.toEqual({ status: "resolved", followerCount: expected });
+    });
+
+    it("does not fallback for a confirmed missing account", async () => {
+        const fetchProfileHtml = vi.fn();
+
+        await expect(
+            resolveInstagramFollowerCount("missingcomic", {
+                fetchProfile: vi
+                    .fn()
+                    .mockResolvedValue({ status: 404, body: null }),
+                fetchProfileHtml,
+                sleep: vi.fn().mockResolvedValue(undefined),
+            }),
+        ).resolves.toEqual({ status: "not_found" });
+
+        expect(fetchProfileHtml).not.toHaveBeenCalled();
+    });
+
+    it("retains failure when the HTML fallback is malformed", async () => {
+        vi.stubEnv("INSTAGRAM_FETCH_ATTEMPTS", "1");
+
+        await expect(
+            resolveInstagramFollowerCount("blockedcomic", {
+                fetchProfile: vi
+                    .fn()
+                    .mockResolvedValue({ status: 400, body: null }),
+                fetchProfileHtml: vi.fn().mockResolvedValue({
+                    status: 200,
+                    body: '<meta property="og:description" content="Profile unavailable">',
+                }),
+                warn: vi.fn(),
+            }),
+        ).resolves.toEqual({
+            status: "failed",
+            detail: "Instagram returned status 400",
+        });
+    });
+
     it("uses the Instagram web profile endpoint and reads the follower count", async () => {
         const fetchProfile = vi
             .fn()
