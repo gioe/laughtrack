@@ -1,6 +1,6 @@
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { withSentryConfig } from '@sentry/nextjs';
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -12,26 +12,29 @@ const nextConfig = {
   // Pin workspace root to apps/web/ so Next.js doesn't infer it from a stray
   // lockfile in a parent directory (e.g. ~/package-lock.json).
   outputFileTracingRoot: __dirname,
+  // impit loads a platform-specific native binary at runtime. Keeping the
+  // package external lets Vercel's output tracer include that binary intact.
+  serverExternalPackages: ["impit"],
   async redirects() {
     return [
       {
-        source: '/comedians',
-        destination: '/comedian/search',
+        source: "/comedians",
+        destination: "/comedian/search",
         permanent: true,
       },
       {
-        source: '/shows',
-        destination: '/show/search',
+        source: "/shows",
+        destination: "/show/search",
         permanent: true,
       },
       {
-        source: '/clubs',
-        destination: '/club/search',
+        source: "/clubs",
+        destination: "/club/search",
         permanent: true,
       },
       {
-        source: '/podcasts',
-        destination: '/podcast/search',
+        source: "/podcasts",
+        destination: "/podcast/search",
         permanent: true,
       },
     ];
@@ -40,38 +43,39 @@ const nextConfig = {
     minimumCacheTTL: 0,
     qualities: [75, 90],
     dangerouslyAllowSVG: true,
-    contentDispositionType: 'attachment',
+    contentDispositionType: "attachment",
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
-    remotePatterns: [{
-        protocol: 'https',
-        port: '',
-        pathname: '/assets/**',
-        hostname: 'laughtrack.b-cdn.net',
+    remotePatterns: [
+      {
+        protocol: "https",
+        port: "",
+        pathname: "/assets/**",
+        hostname: "laughtrack.b-cdn.net",
       },
       {
-        protocol: 'https',
-        port: '',
-        pathname: '/comedians/**',
-        hostname: 'laughtrack.b-cdn.net',
+        protocol: "https",
+        port: "",
+        pathname: "/comedians/**",
+        hostname: "laughtrack.b-cdn.net",
       },
       {
-        protocol: 'https',
-        port: '',
-        pathname: '/clubs/**',
-        hostname: 'laughtrack.b-cdn.net',
+        protocol: "https",
+        port: "",
+        pathname: "/clubs/**",
+        hostname: "laughtrack.b-cdn.net",
       },
       {
-        protocol: 'https',
-        port: '',
-        pathname: '/comedian-images/**',
-        hostname: 'laughtrack.b-cdn.net',
+        protocol: "https",
+        port: "",
+        pathname: "/comedian-images/**",
+        hostname: "laughtrack.b-cdn.net",
       },
       {
-        protocol: 'https',
-        hostname: 'lh3.googleusercontent.com',
-        port: '',
-        pathname: '/a/**',
-      }
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+        port: "",
+        pathname: "/a/**",
+      },
     ],
   },
   logging: {
@@ -81,13 +85,13 @@ const nextConfig = {
   },
   experimental: {
     serverActions: {
-      allowedOrigins: ['laughtrack.b-cdn.net'],
+      allowedOrigins: ["laughtrack.b-cdn.net"],
     },
   },
 };
 
 export default withSentryConfig(nextConfig, {
-    silent: true,
-    removeDebugLogging: true,
-    tunnelRoute: '/monitoring',
-})
+  silent: true,
+  removeDebugLogging: true,
+  tunnelRoute: "/monitoring",
+});
