@@ -6,7 +6,8 @@ import { withRequestMetrics } from "@/lib/metrics";
 const RETENTION_MONTHS = 13;
 
 type CleanupResult = {
-    deleted_count: bigint | number | string | null;
+    deleted_ticket_clicks: bigint | number | string | null;
+    deleted_discovery_impressions: bigint | number | string | null;
 };
 
 async function handleTicketPurchaseClickCleanup(req: NextRequest) {
@@ -16,17 +17,26 @@ async function handleTicketPurchaseClickCleanup(req: NextRequest) {
 
     try {
         const rows = await db.$queryRaw<CleanupResult[]>`
-            SELECT cleanup_old_ticket_purchase_click_events() AS deleted_count
+            SELECT
+                cleanup_old_ticket_purchase_click_events() AS deleted_ticket_clicks,
+                cleanup_old_discovery_events() AS deleted_discovery_impressions
         `;
-        const deleted = Number(rows[0]?.deleted_count ?? 0);
+        const deletedTicketClicks = Number(rows[0]?.deleted_ticket_clicks ?? 0);
+        const deletedDiscoveryImpressions = Number(
+            rows[0]?.deleted_discovery_impressions ?? 0,
+        );
 
         console.info(
-            `[cron/cleanup-ticket-purchase-click-events] deleted ${deleted} ` +
-                `ticket purchase click events older than ${RETENTION_MONTHS} months`,
+            "[cron/cleanup-ticket-purchase-click-events] deleted " +
+                `${deletedTicketClicks} ticket clicks and ` +
+                `${deletedDiscoveryImpressions} discovery impressions ` +
+                `older than ${RETENTION_MONTHS} months`,
         );
 
         return NextResponse.json({
-            deleted,
+            deleted: deletedTicketClicks,
+            deletedTicketClicks,
+            deletedDiscoveryImpressions,
             retentionMonths: RETENTION_MONTHS,
         });
     } catch (error) {

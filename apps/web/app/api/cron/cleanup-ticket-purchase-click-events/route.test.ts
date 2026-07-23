@@ -70,7 +70,12 @@ describe("GET /api/cron/cleanup-ticket-purchase-click-events", () => {
     });
 
     it("runs the retention helper and reports the deleted row count", async () => {
-        mockQueryRaw.mockResolvedValue([{ deleted_count: BigInt(7) }]);
+        mockQueryRaw.mockResolvedValue([
+            {
+                deleted_ticket_clicks: BigInt(7),
+                deleted_discovery_impressions: BigInt(11),
+            },
+        ]);
 
         const res = await GET(
             makeRequest({ authorization: "Bearer test-secret-value" }),
@@ -79,6 +84,8 @@ describe("GET /api/cron/cleanup-ticket-purchase-click-events", () => {
         expect(res.status).toBe(200);
         expect(await res.json()).toEqual({
             deleted: 7,
+            deletedTicketClicks: 7,
+            deletedDiscoveryImpressions: 11,
             retentionMonths: 13,
         });
         expect(mockQueryRaw).toHaveBeenCalledOnce();
@@ -100,7 +107,12 @@ describe("GET /api/cron/cleanup-ticket-purchase-click-events", () => {
 
 describe("POST /api/cron/cleanup-ticket-purchase-click-events", () => {
     it("supports manual invocations with the same bearer token", async () => {
-        mockQueryRaw.mockResolvedValue([{ deleted_count: "2" }]);
+        mockQueryRaw.mockResolvedValue([
+            {
+                deleted_ticket_clicks: "2",
+                deleted_discovery_impressions: "3",
+            },
+        ]);
 
         const res = await POST(
             makeRequest(
@@ -111,7 +123,10 @@ describe("POST /api/cron/cleanup-ticket-purchase-click-events", () => {
         );
 
         expect(res.status).toBe(200);
-        expect(await res.json()).toMatchObject({ deleted: 2 });
+        expect(await res.json()).toMatchObject({
+            deleted: 2,
+            deletedDiscoveryImpressions: 3,
+        });
         expect(mockQueryRaw).toHaveBeenCalledOnce();
     });
 });

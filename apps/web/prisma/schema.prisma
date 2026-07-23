@@ -671,6 +671,7 @@ model UserProfile {
   favoriteComedians            FavoriteComedian[]
   favoritePodcasts             FavoritePodcast[]
   pushTokens                   UserPushToken[]
+  discoveryImpressions         DiscoveryImpressionEvent[]
   ticketPurchaseClicks         TicketPurchaseClickEvent[]
   user                         User                       @relation(fields: [userid], references: [id])
 
@@ -864,7 +865,7 @@ model Show {
 }
 
 model TicketPurchaseClickEvent {
-  id                   Int          @id @default(autoincrement())
+  id                         Int          @id @default(autoincrement())
   // Nullable so a show hard-delete (stale-show reconciler, cleanup scripts,
   // bulk future-show purges) sets show_id NULL instead of cascade-deleting the
   // click event. The attribution that matters survives the show: club_id stays
@@ -873,29 +874,71 @@ model TicketPurchaseClickEvent {
   // fallback_reason / source_surface are denormalized onto the row. Show-level
   // click aggregations join on show_id equality, which naturally excludes the
   // orphaned rows; club-level and global revenue/attribution reporting keep them.
-  showId               Int?         @map("show_id")
-  clubId               Int          @map("club_id")
-  profileId            String?      @map("profile_id")
-  anonymousVisitorId   String       @map("anonymous_visitor_id")
-  destinationUrl       String       @map("destination_url")
-  destinationProvider  String?      @map("destination_provider")
-  routedDestinationUrl String?      @map("routed_destination_url")
-  affiliateApplied     Boolean      @default(false) @map("affiliate_applied")
-  fallbackReason       String?      @map("fallback_reason")
-  sourceSurface        String       @map("source_surface")
-  userAgent            String?      @map("user_agent")
-  deviceMetadata       Json         @default("{}") @map("device_metadata")
-  createdAt            DateTime     @default(now()) @map("created_at") @db.Timestamptz
-  show                 Show?        @relation(fields: [showId], references: [id], onDelete: SetNull)
-  club                 Club         @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  profile              UserProfile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
+  showId                     Int?         @map("show_id")
+  clubId                     Int          @map("club_id")
+  profileId                  String?      @map("profile_id")
+  anonymousVisitorId         String       @map("anonymous_visitor_id")
+  destinationUrl             String       @map("destination_url")
+  destinationProvider        String?      @map("destination_provider")
+  routedDestinationUrl       String?      @map("routed_destination_url")
+  affiliateApplied           Boolean      @default(false) @map("affiliate_applied")
+  fallbackReason             String?      @map("fallback_reason")
+  sourceSurface              String       @map("source_surface")
+  discoveryImpressionEventId String?      @map("discovery_impression_event_id") @db.Uuid
+  discoverySurface           String?      @map("discovery_surface")
+  discoveryPolicyVersion     String?      @map("discovery_policy_version")
+  discoveryExperimentVariant String?      @map("discovery_experiment_variant")
+  discoveryRank              Int?         @map("discovery_rank")
+  userAgent                  String?      @map("user_agent")
+  deviceMetadata             Json         @default("{}") @map("device_metadata")
+  createdAt                  DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  show                       Show?        @relation(fields: [showId], references: [id], onDelete: SetNull)
+  club                       Club         @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  profile                    UserProfile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
 
   @@index([createdAt])
   @@index([showId, createdAt])
   @@index([clubId, createdAt])
   @@index([profileId, createdAt])
   @@index([anonymousVisitorId, createdAt])
+  @@index([discoveryImpressionEventId])
   @@map("ticket_purchase_click_events")
+}
+
+model DiscoveryImpressionEvent {
+  eventId            String                     @id @map("event_id") @db.Uuid
+  entityType         String                     @map("entity_type")
+  entityId           Int                        @map("entity_id")
+  surface            String
+  policyVersion      String                     @map("policy_version")
+  experimentVariant  String                     @map("experiment_variant")
+  rank               Int
+  impressedAt        DateTime                   @map("impressed_at") @db.Timestamptz
+  recordedAt         DateTime                   @default(now()) @map("recorded_at") @db.Timestamptz
+  profileId          String?                    @map("profile_id")
+  anonymousVisitorId String                     @map("anonymous_visitor_id")
+  profile            UserProfile?               @relation(fields: [profileId], references: [id], onDelete: SetNull)
+  engagements        DiscoveryEngagementEvent[]
+
+  @@index([surface, experimentVariant, impressedAt])
+  @@index([entityType, entityId, impressedAt])
+  @@index([profileId, impressedAt])
+  @@index([anonymousVisitorId, impressedAt])
+  @@index([recordedAt])
+  @@map("discovery_impression_events")
+}
+
+model DiscoveryEngagementEvent {
+  eventId           String                   @id @map("event_id") @db.Uuid
+  impressionEventId String                   @map("impression_event_id") @db.Uuid
+  engagementType    String                   @map("engagement_type")
+  engagedAt         DateTime                 @map("engaged_at") @db.Timestamptz
+  recordedAt        DateTime                 @default(now()) @map("recorded_at") @db.Timestamptz
+  impression        DiscoveryImpressionEvent @relation(fields: [impressionEventId], references: [eventId], onDelete: Cascade)
+
+  @@index([impressionEventId, engagementType])
+  @@index([recordedAt])
+  @@map("discovery_engagement_events")
 }
 
 model Ticket {
@@ -1003,19 +1046,19 @@ model ProcessedEmail {
 }
 
 model SentNotification {
-  id               Int      @id @default(autoincrement())
-  userId           String   @map("user_id")
-  comedianId       String   @map("comedian_id")
-  showId           Int      @map("show_id")
-  notificationType String   @default("email") @map("notification_type")
-  sentAt           DateTime @default(now()) @map("sent_at")
+  id                  Int      @id @default(autoincrement())
+  userId              String   @map("user_id")
+  comedianId          String   @map("comedian_id")
+  showId              Int      @map("show_id")
+  notificationType    String   @default("email") @map("notification_type")
+  sentAt              DateTime @default(now()) @map("sent_at")
   // Shared per (user, notification run) so the in-app notification center can
   // group the rows back into the single push that was sent. Null for rows
   // written before this column existed (the read model falls back to per-show).
-  notificationGroupId String? @map("notification_group_id")
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  comedian         Comedian @relation(fields: [comedianId], references: [uuid], onDelete: Cascade)
-  show             Show     @relation(fields: [showId], references: [id], onDelete: Cascade)
+  notificationGroupId String?  @map("notification_group_id")
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comedian            Comedian @relation(fields: [comedianId], references: [uuid], onDelete: Cascade)
+  show                Show     @relation(fields: [showId], references: [id], onDelete: Cascade)
 
   @@unique([userId, comedianId, showId, notificationType], name: "sent_notifications_unique_per_channel")
   @@index([userId])
