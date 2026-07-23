@@ -23,6 +23,7 @@ interface ShowTicketCtaProps {
     show: ShowDetailDTO;
     isPast: boolean;
     isOpenMic?: boolean;
+    discoveryImpressionId?: string;
 }
 
 // Picks the best external URL: a live ticket row, else the scraped show page.
@@ -37,6 +38,7 @@ const ShowTicketCta: React.FC<ShowTicketCtaProps> = ({
     show,
     isPast,
     isOpenMic = false,
+    discoveryImpressionId,
 }) => {
     const url = pickTicketUrl(show);
     const tickets = (show.tickets ?? []).map((t) => new Ticket(t));
@@ -61,8 +63,7 @@ const ShowTicketCta: React.FC<ShowTicketCtaProps> = ({
     // would repeat the club-name value rendered directly above this sub-line.
     const room =
         show.room &&
-        show.room.trim().toLowerCase() ===
-            show.clubName?.trim().toLowerCase()
+        show.room.trim().toLowerCase() === show.clubName?.trim().toLowerCase()
             ? null
             : show.room;
     const venueDetail = [room, show.address].filter(Boolean).join(" · ");
@@ -100,6 +101,7 @@ const ShowTicketCta: React.FC<ShowTicketCtaProps> = ({
             clubId: show.clubId,
             destinationUrl: url,
             sourceSurface: "show_detail",
+            impressionId: discoveryImpressionId,
         });
         buyPill = (
             <a

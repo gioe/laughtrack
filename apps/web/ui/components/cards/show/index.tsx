@@ -63,6 +63,10 @@ interface ShowCardProps {
     variant?: "default" | "past";
     /** Standard density only. */
     context?: ShowCardContext;
+    discoveryAttribution?: {
+        impressionId?: string;
+        onShowDetail: () => void;
+    };
 }
 
 // Density dispatch happens across separate internal components so each
@@ -73,9 +77,15 @@ const ShowCard: React.FC<ShowCardProps> = ({
     hideClubName,
     variant = "default",
     context = "default",
+    discoveryAttribution,
 }: ShowCardProps) => {
     if (density === "compact") {
-        return <CompactShowCard show={show} />;
+        return (
+            <CompactShowCard
+                show={show}
+                discoveryAttribution={discoveryAttribution}
+            />
+        );
     }
     return (
         <StandardShowCard
@@ -438,7 +448,10 @@ const ShowCardArtwork = ({ show }: { show: Show }) => {
     );
 };
 
-const CompactShowCard: React.FC<{ show: ShowDTO }> = ({ show }) => {
+const CompactShowCard: React.FC<{
+    show: ShowDTO;
+    discoveryAttribution?: ShowCardProps["discoveryAttribution"];
+}> = ({ show, discoveryAttribution }) => {
     const [imgError, setImgError] = useState(false);
     const parsedShow = new Show(show);
 
@@ -460,7 +473,11 @@ const CompactShowCard: React.FC<{ show: ShowDTO }> = ({ show }) => {
     const displayNames = lineupNames.slice(0, 2).join(", ");
     const extraCount = lineupNames.length - 2;
 
-    const detailHref = `/show/${show.id}`;
+    const detailHref = discoveryAttribution?.impressionId
+        ? `/show/${show.id}?${new URLSearchParams({
+              impressionId: discoveryAttribution.impressionId,
+          }).toString()}`
+        : `/show/${show.id}`;
     const showDescriptor = parsedShow.name
         ? parsedShow.name
         : `show at ${parsedShow.clubName ?? "comedy club"}`;
@@ -474,6 +491,7 @@ const CompactShowCard: React.FC<{ show: ShowDTO }> = ({ show }) => {
               clubId: show.clubId,
               destinationUrl: buyUrl,
               sourceSurface: "compact_show_card",
+              impressionId: discoveryAttribution?.impressionId,
           })
         : "";
     const hasUnknownPrice = hasUnknownAvailableTicketPrice(parsedShow.tickets);
@@ -497,6 +515,7 @@ const CompactShowCard: React.FC<{ show: ShowDTO }> = ({ show }) => {
                 the external ticketing URL in a new tab. */}
             <Link
                 href={detailHref}
+                onClick={discoveryAttribution?.onShowDetail}
                 aria-label={detailLabel}
                 className="absolute inset-0 z-[1] rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper"
             >

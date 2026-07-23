@@ -278,6 +278,40 @@ const compactShow: ShowDTO = {
 };
 
 describe("ShowCard (compact density)", () => {
+    it("retains qualified discovery attribution on detail and ticket links", () => {
+        const onShowDetail = vi.fn();
+        const impressionId = "00000000-0000-4000-8000-000000000001";
+        render(
+            <ShowCard
+                show={compactShow}
+                density="compact"
+                discoveryAttribution={{ impressionId, onShowDetail }}
+            />,
+        );
+
+        const detailLink = screen.getByRole("link", {
+            name: /view details for late show/i,
+        });
+        expect(
+            new URL(
+                detailLink.getAttribute("href") ?? "",
+                "http://localhost",
+            ).searchParams.get("impressionId"),
+        ).toBe(impressionId);
+        fireEvent.click(detailLink);
+        expect(onShowDetail).toHaveBeenCalledOnce();
+
+        const ticketLink = screen.getByRole("link", {
+            name: /get tickets for late show/i,
+        });
+        expect(
+            new URL(
+                ticketLink.getAttribute("href") ?? "",
+                "http://localhost",
+            ).searchParams.get("impressionId"),
+        ).toBe(impressionId);
+    });
+
     it("contains the club thumbnail so wide venue artwork is not cropped", () => {
         const { container } = render(
             <ShowCard show={compactShow} density="compact" />,

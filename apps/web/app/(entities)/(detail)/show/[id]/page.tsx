@@ -22,6 +22,15 @@ function parseShowId(raw: string): number | null {
     return id;
 }
 
+const UUID_PATTERN =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function parseImpressionId(
+    raw: string | string[] | undefined,
+): string | undefined {
+    return typeof raw === "string" && UUID_PATTERN.test(raw) ? raw : undefined;
+}
+
 export async function generateMetadata(props: {
     params: Promise<{ id: string }>;
 }): Promise<Metadata> {
@@ -89,6 +98,7 @@ export async function generateMetadata(props: {
 
 export default async function ShowDetailPage(props: {
     params: Promise<{ id: string }>;
+    searchParams: Promise<{ impressionId?: string | string[] }>;
 }) {
     const { id: rawId } = await props.params;
     const id = parseShowId(rawId);
@@ -123,12 +133,19 @@ export default async function ShowDetailPage(props: {
     // eslint-disable-next-line react-hooks/purity
     const isPast = isShowPast(show.date.toString());
     const isOpenMic = isOpenMicShow(show);
+    const { impressionId: rawImpressionId } = await props.searchParams;
+    const discoveryImpressionId = parseImpressionId(rawImpressionId);
 
     return (
         <>
             <JsonLd data={jsonLdData} />
             <ShowDetailHeader show={show} isAdmin={isAdmin} />
-            <ShowTicketCta show={show} isPast={isPast} isOpenMic={isOpenMic} />
+            <ShowTicketCta
+                show={show}
+                isPast={isPast}
+                isOpenMic={isOpenMic}
+                discoveryImpressionId={discoveryImpressionId}
+            />
             <ShowDescription description={show.description} />
             <ShowDetailTabs
                 lineup={show.lineup ?? []}

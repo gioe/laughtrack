@@ -54,6 +54,27 @@ afterEach(() => {
 });
 
 describe("ShowTicketCta", () => {
+    it("retains the originating discovery impression on detail-page ticket intent", () => {
+        const impressionId = "00000000-0000-4000-8000-000000000001";
+        render(
+            <ShowTicketCta
+                isPast={false}
+                discoveryImpressionId={impressionId}
+                show={baseShow}
+            />,
+        );
+
+        const link = screen.getByRole("link", {
+            name: /buy tickets for late show/i,
+        });
+        expect(
+            new URL(
+                link.getAttribute("href") ?? "",
+                "http://localhost",
+            ).searchParams.get("impressionId"),
+        ).toBe(impressionId);
+    });
+
     it("renders WHEN, VENUE, and TICKETS as rows of one stub card with the price and a venue link", () => {
         render(
             <ShowTicketCta
