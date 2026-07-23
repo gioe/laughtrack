@@ -252,6 +252,108 @@ function parseRssFeed(xml: string, feedUrl: string): ParsedRssFeed {
     return { title, authorName, websiteUrl, imageUrl, description, episodes };
 }
 
+type ManualRssEpisodeWriter = Pick<Prisma.TransactionClient, "$queryRaw">;
+
+async function upsertManualRssEpisode(
+    tx: ManualRssEpisodeWriter,
+    podcastId: number,
+    feedUrl: string,
+    episode: RssEpisode,
+) {
+    const source = "manual_rss";
+    const externalIds = episode.guid ? { rss_guid: episode.guid } : {};
+    const evidence = { provider: source, feedUrl };
+    const rows = await tx.$queryRaw<{ id: number }[]>(Prisma.sql`
+        WITH inserted AS (
+            INSERT INTO podcast_episodes (
+                podcast_id,
+                source,
+                source_episode_id,
+                guid,
+                title,
+                description,
+                release_date,
+                episode_url,
+                audio_url,
+                external_ids,
+                evidence,
+                source_payload
+            )
+            VALUES (
+                ${podcastId},
+                ${source},
+                ${episode.sourceEpisodeId},
+                ${episode.guid},
+                ${episode.title},
+                ${episode.description},
+                ${episode.releaseDate},
+                ${episode.episodeUrl},
+                ${episode.audioUrl},
+                ${JSON.stringify(externalIds)}::jsonb,
+                ${JSON.stringify(evidence)}::jsonb,
+                ${JSON.stringify(episode.sourcePayload)}::jsonb
+            )
+            ON CONFLICT DO NOTHING
+            RETURNING id
+        ),
+        target AS (
+            SELECT
+                id,
+                source = ${source} AS same_source
+            FROM podcast_episodes
+            WHERE NOT EXISTS (SELECT 1 FROM inserted)
+              AND (
+                (source = ${source} AND source_episode_id = ${episode.sourceEpisodeId})
+                OR (
+                    ${episode.releaseDate}::timestamptz IS NOT NULL
+                    AND podcast_id = ${podcastId}
+                    AND release_date = ${episode.releaseDate}
+                    AND LOWER(REGEXP_REPLACE(BTRIM(title), '^\\s*(?:(?:ep(?:isode)?|#)\\s*[0-9]+(?:\\s*[:.\\-\\)\\]]|\\s+)\\s*|[0-9]+\\s*[:.\\-\\)\\]]\\s*)', '', 'i'))
+                        = LOWER(REGEXP_REPLACE(BTRIM(${episode.title}), '^\\s*(?:(?:ep(?:isode)?|#)\\s*[0-9]+(?:\\s*[:.\\-\\)\\]]|\\s+)\\s*|[0-9]+\\s*[:.\\-\\)\\]]\\s*)', '', 'i'))
+                )
+              )
+            ORDER BY
+                CASE
+                    WHEN source = ${source}
+                        AND source_episode_id = ${episode.sourceEpisodeId}
+                    THEN 0
+                    ELSE 1
+                END,
+                id
+            LIMIT 1
+        ),
+        updated AS (
+            UPDATE podcast_episodes
+            SET podcast_id = ${podcastId},
+                guid = COALESCE(${episode.guid}, podcast_episodes.guid),
+                title = ${episode.title},
+                description = ${episode.description},
+                release_date = ${episode.releaseDate},
+                episode_url = ${episode.episodeUrl},
+                audio_url = ${episode.audioUrl},
+                external_ids = ${JSON.stringify(externalIds)}::jsonb,
+                evidence = ${JSON.stringify(evidence)}::jsonb,
+                source_payload = ${JSON.stringify(episode.sourcePayload)}::jsonb,
+                updated_at = NOW()
+            WHERE id = (SELECT id FROM target WHERE same_source)
+            RETURNING id
+        )
+        SELECT id FROM inserted
+        UNION ALL
+        SELECT id FROM updated
+        UNION ALL
+        SELECT id FROM target
+        WHERE NOT EXISTS (SELECT 1 FROM updated)
+        LIMIT 1
+    `);
+
+    if (!rows[0]) {
+        throw new Error(
+            `Manual RSS episode could not be reconciled: ${episode.sourceEpisodeId}`,
+        );
+    }
+}
+
 function revalidatePodcastReviewSurfaces(slug: string | null | undefined) {
     revalidateTag("podcasts-search-page-data-v3");
     revalidateTag("podcast-detail-data-v2");
@@ -733,7 +835,6 @@ export const PUT = withRequestMetrics(async function PUT(req: NextRequest) {
                         channelTitle: parsedFeed.title,
                         fetchedAt: new Date().toISOString(),
                     },
-                    lastSyncedAt: new Date(),
                 },
                 update: {
                     feedUrl,
@@ -752,7 +853,6 @@ export const PUT = withRequestMetrics(async function PUT(req: NextRequest) {
                         channelTitle: parsedFeed.title,
                         fetchedAt: new Date().toISOString(),
                     },
-                    lastSyncedAt: new Date(),
                 },
                 select: {
                     id: true,
@@ -811,53 +911,6 @@ export const PUT = withRequestMetrics(async function PUT(req: NextRequest) {
                 },
             });
 
-            for (const episode of parsedFeed.episodes) {
-                await tx.podcastEpisode.upsert({
-                    where: {
-                        source_sourceEpisodeId: {
-                            source,
-                            sourceEpisodeId: episode.sourceEpisodeId,
-                        },
-                    },
-                    create: {
-                        podcastId: podcast.id,
-                        source,
-                        sourceEpisodeId: episode.sourceEpisodeId,
-                        guid: episode.guid,
-                        title: episode.title,
-                        description: episode.description,
-                        releaseDate: episode.releaseDate,
-                        episodeUrl: episode.episodeUrl,
-                        audioUrl: episode.audioUrl,
-                        externalIds: episode.guid
-                            ? { rss_guid: episode.guid }
-                            : {},
-                        evidence: {
-                            provider: source,
-                            feedUrl,
-                        },
-                        sourcePayload: episode.sourcePayload,
-                    },
-                    update: {
-                        podcastId: podcast.id,
-                        guid: episode.guid,
-                        title: episode.title,
-                        description: episode.description,
-                        releaseDate: episode.releaseDate,
-                        episodeUrl: episode.episodeUrl,
-                        audioUrl: episode.audioUrl,
-                        externalIds: episode.guid
-                            ? { rss_guid: episode.guid }
-                            : {},
-                        evidence: {
-                            provider: source,
-                            feedUrl,
-                        },
-                        sourcePayload: episode.sourcePayload,
-                    },
-                });
-            }
-
             await writeAdminActionAudit(tx, {
                 actorProfileId: profileId,
                 action: "podcast_manual_rss.ingest",
@@ -876,7 +929,6 @@ export const PUT = withRequestMetrics(async function PUT(req: NextRequest) {
             return {
                 podcast,
                 comedian,
-                episodeCount: parsedFeed.episodes.length,
             };
         });
 
@@ -887,8 +939,45 @@ export const PUT = withRequestMetrics(async function PUT(req: NextRequest) {
             );
         }
 
+        let episodeCount = 0;
+        let episodeRefreshFailed = false;
+        try {
+            await db.$transaction(async (tx) => {
+                for (const episode of parsedFeed.episodes) {
+                    await upsertManualRssEpisode(
+                        tx,
+                        result.podcast.id,
+                        feedUrl,
+                        episode,
+                    );
+                }
+                await tx.podcast.update({
+                    where: { id: result.podcast.id },
+                    data: { lastSyncedAt: new Date() },
+                });
+            });
+            episodeCount = parsedFeed.episodes.length;
+        } catch (error) {
+            episodeRefreshFailed = true;
+            console.error(
+                "Manual RSS host association saved, but episode refresh failed:",
+                {
+                    podcastId: result.podcast.id,
+                    comedianId: result.comedian.id,
+                    feedUrl,
+                    error:
+                        error instanceof Error ? error.message : String(error),
+                },
+            );
+        }
+
         revalidatePodcastReviewSurfaces(result.podcast.slug);
-        return NextResponse.json({ ok: true, ...result });
+        return NextResponse.json({
+            ok: true,
+            ...result,
+            episodeCount,
+            episodeRefreshFailed,
+        });
     } catch (error) {
         console.error("Manual RSS podcast ingest failed:", error);
         return NextResponse.json({ error: "Ingest failed" }, { status: 500 });
