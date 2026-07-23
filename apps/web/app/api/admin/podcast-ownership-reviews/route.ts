@@ -264,7 +264,47 @@ async function upsertManualRssEpisode(
     const externalIds = episode.guid ? { rss_guid: episode.guid } : {};
     const evidence = { provider: source, feedUrl };
     const rows = await tx.$queryRaw<{ id: number }[]>(Prisma.sql`
-        WITH inserted AS (
+        WITH existing AS (
+            SELECT
+                id,
+                source = ${source} AS same_source,
+                CASE
+                    WHEN source = ${source}
+                        AND source_episode_id = ${episode.sourceEpisodeId}
+                    THEN 0
+                    WHEN ${episode.guid}::text IS NOT NULL
+                        AND podcast_id = ${podcastId}
+                        AND source = ${source}
+                        AND (
+                            source_episode_id = ${episode.guid}
+                            OR guid = ${episode.guid}
+                        )
+                    THEN 1
+                    ELSE 2
+                END AS priority
+            FROM podcast_episodes
+            WHERE
+                (source = ${source} AND source_episode_id = ${episode.sourceEpisodeId})
+                OR (
+                    ${episode.guid}::text IS NOT NULL
+                    AND podcast_id = ${podcastId}
+                    AND source = ${source}
+                    AND (
+                        source_episode_id = ${episode.guid}
+                        OR guid = ${episode.guid}
+                    )
+                )
+                OR (
+                    ${episode.releaseDate}::timestamptz IS NOT NULL
+                    AND podcast_id = ${podcastId}
+                    AND release_date = ${episode.releaseDate}
+                    AND LOWER(REGEXP_REPLACE(BTRIM(title), '^\\s*(?:(?:ep(?:isode)?|#)\\s*[0-9]+(?:\\s*[:.\\-\\)\\]]|\\s+)\\s*|[0-9]+\\s*[:.\\-\\)\\]]\\s*)', '', 'i'))
+                        = LOWER(REGEXP_REPLACE(BTRIM(${episode.title}), '^\\s*(?:(?:ep(?:isode)?|#)\\s*[0-9]+(?:\\s*[:.\\-\\)\\]]|\\s+)\\s*|[0-9]+\\s*[:.\\-\\)\\]]\\s*)', '', 'i'))
+                )
+            ORDER BY priority, id
+            LIMIT 1
+        ),
+        inserted AS (
             INSERT INTO podcast_episodes (
                 podcast_id,
                 source,
@@ -279,7 +319,7 @@ async function upsertManualRssEpisode(
                 evidence,
                 source_payload
             )
-            VALUES (
+            SELECT
                 ${podcastId},
                 ${source},
                 ${episode.sourceEpisodeId},
@@ -292,18 +332,48 @@ async function upsertManualRssEpisode(
                 ${JSON.stringify(externalIds)}::jsonb,
                 ${JSON.stringify(evidence)}::jsonb,
                 ${JSON.stringify(episode.sourcePayload)}::jsonb
-            )
+            WHERE NOT EXISTS (SELECT 1 FROM existing)
             ON CONFLICT DO NOTHING
             RETURNING id
         ),
         target AS (
             SELECT
                 id,
-                source = ${source} AS same_source
+                same_source,
+                priority
+            FROM existing
+            UNION ALL
+            SELECT
+                id,
+                source = ${source} AS same_source,
+                CASE
+                    WHEN source = ${source}
+                        AND source_episode_id = ${episode.sourceEpisodeId}
+                    THEN 0
+                    WHEN ${episode.guid}::text IS NOT NULL
+                        AND podcast_id = ${podcastId}
+                        AND source = ${source}
+                        AND (
+                            source_episode_id = ${episode.guid}
+                            OR guid = ${episode.guid}
+                        )
+                    THEN 1
+                    ELSE 2
+                END AS priority
             FROM podcast_episodes
-            WHERE NOT EXISTS (SELECT 1 FROM inserted)
+            WHERE NOT EXISTS (SELECT 1 FROM existing)
+              AND NOT EXISTS (SELECT 1 FROM inserted)
               AND (
                 (source = ${source} AND source_episode_id = ${episode.sourceEpisodeId})
+                OR (
+                    ${episode.guid}::text IS NOT NULL
+                    AND podcast_id = ${podcastId}
+                    AND source = ${source}
+                    AND (
+                        source_episode_id = ${episode.guid}
+                        OR guid = ${episode.guid}
+                    )
+                )
                 OR (
                     ${episode.releaseDate}::timestamptz IS NOT NULL
                     AND podcast_id = ${podcastId}
@@ -312,14 +382,7 @@ async function upsertManualRssEpisode(
                         = LOWER(REGEXP_REPLACE(BTRIM(${episode.title}), '^\\s*(?:(?:ep(?:isode)?|#)\\s*[0-9]+(?:\\s*[:.\\-\\)\\]]|\\s+)\\s*|[0-9]+\\s*[:.\\-\\)\\]]\\s*)', '', 'i'))
                 )
               )
-            ORDER BY
-                CASE
-                    WHEN source = ${source}
-                        AND source_episode_id = ${episode.sourceEpisodeId}
-                    THEN 0
-                    ELSE 1
-                END,
-                id
+            ORDER BY priority, id
             LIMIT 1
         ),
         updated AS (
