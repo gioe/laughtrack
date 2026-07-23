@@ -291,9 +291,41 @@ describe("computeDiscoveryFeatures", () => {
             pairedSeries: 1,
             observedSeries: 1,
             growth: 0,
-            confidence: 1,
+            confidence: 0.333333,
         });
         expect(measured.growth).toBe(0.5);
+    });
+
+    it("dampens sparse favorite and social growth toward neutral", () => {
+        const sparseFavorite = computeDiscoveryFeatures(
+            input({
+                favoriteCreatedAt: [new Date("2026-08-28T12:00:00Z")],
+            }),
+        );
+        const sparseSocial = computeDiscoveryFeatures(
+            input({
+                favoriteCoverageStart: undefined,
+                followerObservations: [
+                    {
+                        comedianId: 1,
+                        platform: "instagram",
+                        followerCount: 0,
+                        observedAt: new Date("2026-07-15T00:00:00Z"),
+                    },
+                    {
+                        comedianId: 1,
+                        platform: "instagram",
+                        followerCount: 1_000_000,
+                        observedAt: new Date("2026-08-20T00:00:00Z"),
+                    },
+                ],
+            }),
+        );
+
+        expect(sparseFavorite.evidence.favorites.confidence).toBe(0.2);
+        expect(sparseFavorite.growth).toBe(0.6);
+        expect(sparseSocial.evidence.social.confidence).toBe(0.333333);
+        expect(sparseSocial.growth).toBe(0.666667);
     });
 
     it("caps extreme positive and negative growth deterministically", () => {

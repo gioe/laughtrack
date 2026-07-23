@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 const DAY_MS = 24 * 60 * 60 * 1000;
 const MIN_BEHAVIOR_ACTORS = 20;
 const MIN_FAVORITE_EVENTS = 5;
+const MIN_SOCIAL_SERIES = 3;
 
 export const DISCOVERY_FEATURE_VERSION = "show-features-v1";
 export const DISCOVERY_RECENT_DAYS = 7;
@@ -480,7 +481,14 @@ function computeSocial(
 
     const observedSeries = series.size;
     const pairedSeries = changes.length;
-    const confidence = observedSeries === 0 ? 0 : pairedSeries / observedSeries;
+    const confidence =
+        observedSeries === 0
+            ? 0
+            : clamp(
+                  pairedSeries / Math.max(observedSeries, MIN_SOCIAL_SERIES),
+                  0,
+                  1,
+              );
     const signedGrowth =
         pairedSeries === 0
             ? null
@@ -529,7 +537,10 @@ export function computeDiscoveryFeatures(
         behavior.component,
         favorites.component,
         social.component,
-    ].filter((component): component is GrowthComponent => component !== null);
+    ].filter(
+        (component): component is GrowthComponent =>
+            component !== null && component.confidence > 0,
+    );
     const totalWeight = components.reduce(
         (sum, component) => sum + component.weight,
         0,
@@ -539,7 +550,10 @@ export function computeDiscoveryFeatures(
             ? 0
             : components.reduce(
                   (sum, component) =>
-                      sum + component.signedValue * component.weight,
+                      sum +
+                      component.signedValue *
+                          component.weight *
+                          component.confidence,
                   0,
               ) / totalWeight;
     const growth = 0.5 + signedGrowth / 2;
