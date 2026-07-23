@@ -126,25 +126,6 @@ describe("POST /api/v1/discovery/engagements", () => {
         expect(response.headers.get("set-cookie")).toBeNull();
     });
 
-    it("retries a concurrent impression and adopts its first anonymous visitor", async () => {
-        mockImpressionFindMany.mockResolvedValueOnce([]).mockResolvedValueOnce([
-            {
-                eventId: IMPRESSION_ID,
-                profileId: null,
-                anonymousVisitorId: "anon-from-impression",
-            },
-        ]);
-
-        const response = await POST(makeRequest({ events: [validEvent()] }));
-
-        expect(response.status).toBe(201);
-        expect(mockImpressionFindMany).toHaveBeenCalledTimes(2);
-        expect(response.headers.get("set-cookie")).toContain(
-            "lt_anon_visitor_id=anon-from-impression",
-        );
-        expect(mockEngagementCreateMany).toHaveBeenCalledOnce();
-    });
-
     it("accepts ownership through the authenticated profile", async () => {
         mockResolveAuth.mockResolvedValue({
             profileId: "profile-1",

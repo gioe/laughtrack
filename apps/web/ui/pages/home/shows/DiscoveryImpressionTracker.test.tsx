@@ -199,7 +199,7 @@ describe("DiscoveryImpressionTracker", () => {
         );
     });
 
-    it("starts engagement delivery even while impression persistence is in flight", async () => {
+    it("withholds action attribution until impression persistence succeeds", async () => {
         let resolveImpression: (() => void) | undefined;
         vi.mocked(fetch).mockImplementationOnce(
             () =>
@@ -211,34 +211,20 @@ describe("DiscoveryImpressionTracker", () => {
         setVisibility(0, 1);
         await act(() => vi.advanceTimersByTimeAsync(1050));
 
+        expect(screen.getByTestId("impression-42").textContent).toBe(
+            "unqualified",
+        );
         fireEvent.click(screen.getByRole("button", { name: "View show 42" }));
+        expect(fetch).toHaveBeenCalledTimes(1);
 
+        await act(async () => resolveImpression?.());
+        expect(screen.getByTestId("impression-42").textContent).not.toBe(
+            "unqualified",
+        );
+        fireEvent.click(screen.getByRole("button", { name: "View show 42" }));
         expect(fetch).toHaveBeenCalledTimes(2);
         expect(vi.mocked(fetch).mock.calls[1][0]).toBe(
             "/api/v1/discovery/engagements",
-        );
-        resolveImpression?.();
-        await act(async () => {});
-    });
-
-    it("starts impression delivery synchronously before direct ticket intent", async () => {
-        render(
-            <DiscoveryImpressionTracker showId={42} rank={3} {...presentation}>
-                {({ onTicketIntent }) => (
-                    <button type="button" onClick={onTicketIntent}>
-                        Buy tickets
-                    </button>
-                )}
-            </DiscoveryImpressionTracker>,
-        );
-        setVisibility(0, 1);
-        await act(() => vi.advanceTimersByTimeAsync(1000));
-
-        fireEvent.click(screen.getByRole("button", { name: "Buy tickets" }));
-
-        expect(fetch).toHaveBeenCalledTimes(1);
-        expect(vi.mocked(fetch).mock.calls[0][0]).toBe(
-            "/api/v1/discovery/impressions",
         );
     });
 

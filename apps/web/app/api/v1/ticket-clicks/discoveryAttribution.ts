@@ -28,36 +28,26 @@ export async function resolveDiscoveryTicketAttribution({
     showId,
     profileId,
     anonymousVisitorId,
-    retryMissing = false,
-    adoptAnonymousVisitorId,
 }: {
     impressionId: string;
     showId: number;
     profileId: string | null;
     anonymousVisitorId: string | null;
-    retryMissing?: boolean;
-    adoptAnonymousVisitorId?: (anonymousVisitorId: string) => void;
 }): Promise<DiscoveryTicketAttribution | null> {
-    let impression = null;
-    const attempts = retryMissing ? 4 : 1;
-    for (let attempt = 0; attempt < attempts; attempt += 1) {
-        impression = await db.discoveryImpressionEvent.findUnique({
-            where: { eventId: impressionId },
-            select: {
-                eventId: true,
-                entityType: true,
-                entityId: true,
-                profileId: true,
-                anonymousVisitorId: true,
-                surface: true,
-                policyVersion: true,
-                experimentVariant: true,
-                rank: true,
-            },
-        });
-        if (impression || attempt === attempts - 1) break;
-        await new Promise((resolve) => setTimeout(resolve, 25));
-    }
+    const impression = await db.discoveryImpressionEvent.findUnique({
+        where: { eventId: impressionId },
+        select: {
+            eventId: true,
+            entityType: true,
+            entityId: true,
+            profileId: true,
+            anonymousVisitorId: true,
+            surface: true,
+            policyVersion: true,
+            experimentVariant: true,
+            rank: true,
+        },
+    });
 
     if (
         !impression ||
@@ -72,20 +62,7 @@ export async function resolveDiscoveryTicketAttribution({
     const anonymousVisitorOwnsImpression =
         anonymousVisitorId !== null &&
         impression.anonymousVisitorId === anonymousVisitorId;
-    const canAdoptFirstAnonymousVisitor =
-        profileId === null &&
-        anonymousVisitorId === null &&
-        impression.profileId === null &&
-        impression.anonymousVisitorId !== null &&
-        adoptAnonymousVisitorId !== undefined;
-    if (canAdoptFirstAnonymousVisitor) {
-        adoptAnonymousVisitorId(impression.anonymousVisitorId);
-    }
-    if (
-        !profileOwnsImpression &&
-        !anonymousVisitorOwnsImpression &&
-        !canAdoptFirstAnonymousVisitor
-    ) {
+    if (!profileOwnsImpression && !anonymousVisitorOwnsImpression) {
         return null;
     }
 

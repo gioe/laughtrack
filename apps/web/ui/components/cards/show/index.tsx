@@ -66,7 +66,6 @@ interface ShowCardProps {
     discoveryAttribution?: {
         impressionId?: string;
         onShowDetail: () => void;
-        onTicketIntent: () => void;
     };
 }
 
@@ -594,9 +593,6 @@ const CompactShowCard: React.FC<{
                             <div className="flex flex-wrap items-center gap-2">
                                 <a
                                     href={outboundHref}
-                                    onClick={
-                                        discoveryAttribution?.onTicketIntent
-                                    }
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     aria-label={ticketAriaLabel}

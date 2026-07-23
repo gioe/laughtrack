@@ -9,7 +9,6 @@ import React, {
 } from "react";
 import {
     queueDiscoveryImpression,
-    flushDiscoveryImpressions,
     trackDiscoveryShowDetail,
     type DiscoveryExperimentVariant,
 } from "@/lib/discovery/clientEvents";
@@ -26,7 +25,6 @@ export interface DiscoveryPresentation {
 interface DiscoveryAttribution {
     impressionId?: string;
     onShowDetail: () => void;
-    onTicketIntent: () => void;
 }
 
 interface DiscoveryImpressionTrackerProps extends DiscoveryPresentation {
@@ -56,6 +54,7 @@ export default function DiscoveryImpressionTracker({
     useEffect(() => {
         const element = elementRef.current;
         if (!element || typeof IntersectionObserver === "undefined") return;
+        let active = true;
 
         const cancelDwell = () => {
             if (dwellTimerRef.current) {
@@ -79,8 +78,7 @@ export default function DiscoveryImpressionTracker({
                     dwellTimerRef.current = null;
                     if (qualifiedRef.current) return;
                     qualifiedRef.current = true;
-                    setQualifiedImpressionId(impressionId);
-                    queueDiscoveryImpression({
+                    void queueDiscoveryImpression({
                         eventId: impressionId,
                         entityType: "show",
                         entityId: showId,
@@ -89,6 +87,10 @@ export default function DiscoveryImpressionTracker({
                         experimentVariant,
                         rank,
                         impressedAt: new Date().toISOString(),
+                    }).then((persisted) => {
+                        if (active && persisted) {
+                            setQualifiedImpressionId(impressionId);
+                        }
                     });
                 }, QUALIFIED_DWELL_MS);
             },
@@ -96,6 +98,7 @@ export default function DiscoveryImpressionTracker({
         );
         observer.observe(element);
         return () => {
+            active = false;
             cancelDwell();
             observer.disconnect();
         };
@@ -104,12 +107,6 @@ export default function DiscoveryImpressionTracker({
     const onShowDetail = useCallback(() => {
         if (qualifiedImpressionId) {
             trackDiscoveryShowDetail(qualifiedImpressionId);
-        }
-    }, [qualifiedImpressionId]);
-
-    const onTicketIntent = useCallback(() => {
-        if (qualifiedImpressionId) {
-            void flushDiscoveryImpressions();
         }
     }, [qualifiedImpressionId]);
 
@@ -122,7 +119,6 @@ export default function DiscoveryImpressionTracker({
             {children({
                 impressionId: qualifiedImpressionId,
                 onShowDetail,
-                onTicketIntent,
             })}
         </div>
     );

@@ -280,7 +280,6 @@ const compactShow: ShowDTO = {
 describe("ShowCard (compact density)", () => {
     it("retains qualified discovery attribution on detail and ticket links", () => {
         const onShowDetail = vi.fn();
-        const onTicketIntent = vi.fn();
         const impressionId = "00000000-0000-4000-8000-000000000001";
         render(
             <ShowCard
@@ -289,7 +288,6 @@ describe("ShowCard (compact density)", () => {
                 discoveryAttribution={{
                     impressionId,
                     onShowDetail,
-                    onTicketIntent,
                 }}
             />,
         );
@@ -315,9 +313,6 @@ describe("ShowCard (compact density)", () => {
                 "http://localhost",
             ).searchParams.get("impressionId"),
         ).toBe(impressionId);
-        ticketLink.addEventListener("click", (event) => event.preventDefault());
-        fireEvent.click(ticketLink);
-        expect(onTicketIntent).toHaveBeenCalledOnce();
     });
 
     it("contains the club thumbnail so wide venue artwork is not cropped", () => {
