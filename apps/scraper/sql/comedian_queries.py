@@ -388,11 +388,21 @@ class ComedianQueries:
     '''
 
     UPDATE_COMEDIAN_YOUTUBE_FOLLOWERS = '''
-        UPDATE comedians AS c
-        SET youtube_followers = v.followers::int,
-            youtube_followers_refreshed_at = NOW()
-        FROM (VALUES %s) AS v(uuid, followers)
-        WHERE c.uuid = v.uuid::text
+        WITH updated AS (
+            UPDATE comedians AS c
+            SET youtube_followers = v.followers::int,
+                youtube_followers_refreshed_at = NOW()
+            FROM (VALUES %s) AS v(uuid, followers)
+            WHERE c.uuid = v.uuid::text
+            RETURNING c.id AS comedian_id, v.followers::int AS follower_count
+        )
+        INSERT INTO comedian_follower_observations (
+            comedian_id, platform, follower_count, observed_at
+        )
+        SELECT comedian_id, 'youtube'::"SocialPlatform", follower_count,
+               date_trunc('day', NOW(), 'UTC')
+        FROM updated
+        ON CONFLICT (comedian_id, platform, observed_at) DO NOTHING
     '''
 
     # Only return comedians whose follower count is stale (never refreshed, or
@@ -419,11 +429,21 @@ class ComedianQueries:
     '''
 
     UPDATE_COMEDIAN_INSTAGRAM_FOLLOWERS = '''
-        UPDATE comedians AS c
-        SET instagram_followers = v.followers::int,
-            instagram_followers_refreshed_at = NOW()
-        FROM (VALUES %s) AS v(uuid, followers)
-        WHERE c.uuid = v.uuid::text
+        WITH updated AS (
+            UPDATE comedians AS c
+            SET instagram_followers = v.followers::int,
+                instagram_followers_refreshed_at = NOW()
+            FROM (VALUES %s) AS v(uuid, followers)
+            WHERE c.uuid = v.uuid::text
+            RETURNING c.id AS comedian_id, v.followers::int AS follower_count
+        )
+        INSERT INTO comedian_follower_observations (
+            comedian_id, platform, follower_count, observed_at
+        )
+        SELECT comedian_id, 'instagram'::"SocialPlatform", follower_count,
+               date_trunc('day', NOW(), 'UTC')
+        FROM updated
+        ON CONFLICT (comedian_id, platform, observed_at) DO NOTHING
     '''
 
     # Clear a dead Instagram handle (404 — account gone/renamed). Nulls the
@@ -448,10 +468,20 @@ class ComedianQueries:
     '''
 
     UPDATE_COMEDIAN_TIKTOK_FOLLOWERS = '''
-        UPDATE comedians AS c
-        SET tiktok_followers = v.followers::int
-        FROM (VALUES %s) AS v(uuid, followers)
-        WHERE c.uuid = v.uuid::text
+        WITH updated AS (
+            UPDATE comedians AS c
+            SET tiktok_followers = v.followers::int
+            FROM (VALUES %s) AS v(uuid, followers)
+            WHERE c.uuid = v.uuid::text
+            RETURNING c.id AS comedian_id, v.followers::int AS follower_count
+        )
+        INSERT INTO comedian_follower_observations (
+            comedian_id, platform, follower_count, observed_at
+        )
+        SELECT comedian_id, 'tiktok'::"SocialPlatform", follower_count,
+               date_trunc('day', NOW(), 'UTC')
+        FROM updated
+        ON CONFLICT (comedian_id, platform, observed_at) DO NOTHING
     '''
 
     # Deny-list: insert names of deleted false-positive comedians so ingestion can skip them.

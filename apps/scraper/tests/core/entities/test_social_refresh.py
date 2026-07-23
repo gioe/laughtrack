@@ -117,6 +117,54 @@ class TestYouTubeFollowersSqlContract:
         assert "make_interval(days => %s)" in ComedianQueries.GET_STALE_COMEDIANS_WITH_YOUTUBE_ACCOUNT
 
 
+class TestFollowerHistorySqlContract:
+    @pytest.mark.parametrize(
+        ("query", "platform"),
+        [
+            (ComedianQueries.UPDATE_COMEDIAN_YOUTUBE_FOLLOWERS, "youtube"),
+            (ComedianQueries.UPDATE_COMEDIAN_INSTAGRAM_FOLLOWERS, "instagram"),
+            (ComedianQueries.UPDATE_COMEDIAN_TIKTOK_FOLLOWERS, "tiktok"),
+        ],
+    )
+    def test_each_platform_update_inserts_a_provenanced_observation(
+        self, query, platform
+    ):
+        sql = query.lower()
+        assert "insert into comedian_follower_observations" in sql
+        assert f"'{platform}'::\"socialplatform\"" in sql
+        assert "follower_count" in sql
+        assert "observed_at" in sql
+
+    @pytest.mark.parametrize(
+        "query",
+        [
+            ComedianQueries.UPDATE_COMEDIAN_YOUTUBE_FOLLOWERS,
+            ComedianQueries.UPDATE_COMEDIAN_INSTAGRAM_FOLLOWERS,
+            ComedianQueries.UPDATE_COMEDIAN_TIKTOK_FOLLOWERS,
+        ],
+    )
+    def test_daily_observation_key_makes_retries_idempotent(self, query):
+        sql = " ".join(query.lower().split())
+        assert "date_trunc('day', now(), 'utc')" in sql
+        assert (
+            "on conflict (comedian_id, platform, observed_at) do nothing" in sql
+        )
+
+    @pytest.mark.parametrize(
+        "query",
+        [
+            ComedianQueries.UPDATE_COMEDIAN_YOUTUBE_FOLLOWERS,
+            ComedianQueries.UPDATE_COMEDIAN_INSTAGRAM_FOLLOWERS,
+            ComedianQueries.UPDATE_COMEDIAN_TIKTOK_FOLLOWERS,
+        ],
+    )
+    def test_successful_unchanged_counts_are_not_filtered_out(self, query):
+        sql = query.lower()
+        assert "from updated" in sql
+        assert "is distinct from" not in sql
+        assert "follower_count <>" not in sql
+
+
 # ---------------------------------------------------------------------------
 # _get_comedians_with_youtube_accounts
 # ---------------------------------------------------------------------------
@@ -216,6 +264,17 @@ class TestFetchYouTubeSubscriberCounts:
 
         assert results == []
 
+    def test_measured_zero_subscribers_is_not_treated_as_missing(self):
+        channel_id = "UCabcdefghijklmnopqrstuv"
+        handler = _make_handler()
+        rows = [{"uuid": "uuid-zero", "youtube_account": channel_id}]
+        fake_response = _yt_response([_yt_item(channel_id, 0)])
+
+        with patch.object(ComedianHandler, "_youtube_request", return_value=fake_response):
+            results = handler._fetch_youtube_subscriber_counts("key", rows)
+
+        assert results == [("uuid-zero", 0)]
+
     def test_api_error_for_handle_is_isolated(self):
         """A failed request for one handle does not prevent results from others."""
         handler = _make_handler()
@@ -312,6 +371,26 @@ class TestRefreshYouTubeFollowers:
 
         # 5 rows with batch_size=2 → 3 calls: [0:2], [2:4], [4:5]
         assert handler._fetch_youtube_subscriber_counts.call_count == 3
+
+    def test_first_growth_and_later_unchanged_measurements_all_reach_persistence(self):
+        handler = _make_handler()
+        rows = [{"uuid": "uuid-A", "youtube_account": "@comedianA"}]
+        handler._get_comedians_with_youtube_accounts = MagicMock(return_value=rows)
+        handler._fetch_youtube_subscriber_counts = MagicMock(
+            side_effect=[
+                [("uuid-A", 100)],
+                [("uuid-A", 150)],
+                [("uuid-A", 150)],
+            ]
+        )
+
+        assert [handler.refresh_youtube_followers("key") for _ in range(3)] == [1, 1, 1]
+        persisted = [call.args[1] for call in handler.execute_batch_operation.call_args_list]
+        assert persisted == [
+            [("uuid-A", 100)],
+            [("uuid-A", 150)],
+            [("uuid-A", 150)],
+        ]
 
 
 # ---------------------------------------------------------------------------
