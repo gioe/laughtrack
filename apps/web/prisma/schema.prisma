@@ -43,6 +43,12 @@ enum ScrapingPlatform {
   wix_events
 }
 
+enum SocialPlatform {
+  instagram
+  tiktok
+  youtube
+}
+
 model Chain {
   id                    Int                    @id @default(autoincrement())
   name                  String                 @unique
@@ -356,12 +362,27 @@ model Comedian {
   episodeAppearances                   EpisodeAppearance[]
   episodeAppearanceReviews             EpisodeAppearanceReview[]
   imageAssets                          ComedianImageAsset[]
+  followerObservations                 ComedianFollowerObservation[]
 
   @@index([parentComedianId])
   @@index([homeClubId])
   @@index([youtubeChannelId])
   @@index([visible])
   @@map("comedians")
+}
+
+model ComedianFollowerObservation {
+  id            BigInt         @id @default(autoincrement())
+  comedianId    Int            @map("comedian_id")
+  platform      SocialPlatform
+  followerCount Int            @map("follower_count")
+  observedAt    DateTime       @map("observed_at") @db.Timestamptz
+  createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  comedian      Comedian       @relation(fields: [comedianId], references: [id], onDelete: Cascade)
+
+  @@unique([comedianId, platform, observedAt])
+  @@index([platform, observedAt])
+  @@map("comedian_follower_observations")
 }
 
 model ComedianDenyList {
