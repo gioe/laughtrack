@@ -765,10 +765,12 @@ model FavoriteComedian {
   id         Int         @default(autoincrement())
   comedianId String      @map("comedian_id")
   profileId  String      @map("profile_id")
+  createdAt  DateTime?   @default(now()) @map("created_at") @db.Timestamptz
   comedian   Comedian    @relation(fields: [comedianId], references: [uuid], onDelete: Cascade)
   user       UserProfile @relation(fields: [profileId], references: [id])
 
   @@id([profileId, comedianId])
+  @@index([createdAt, comedianId], map: "favorite_comedians_created_at_comedian_id_idx")
   @@map("favorite_comedians")
 }
 
