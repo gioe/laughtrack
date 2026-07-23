@@ -978,7 +978,7 @@ describe("PUT /api/admin/podcast-hostship-reviews", () => {
         );
     });
 
-    it("reconciles a legacy raw GUID without duplicating the episode", async () => {
+    it("reconciles an undated legacy raw GUID without duplicating the episode", async () => {
         const pg = new PGlite();
         try {
             await pg.exec(`
@@ -1014,16 +1014,14 @@ describe("PUT /api/admin/podcast-hostship-reviews", () => {
                     source,
                     source_episode_id,
                     guid,
-                    title,
-                    release_date
+                    title
                 )
                 VALUES (
                     99,
                     'manual_rss',
                     'shared-episode',
                     'shared-episode',
-                    'Shared Episode',
-                    TIMESTAMPTZ '2026-07-21 16:00:00+00'
+                    'Shared Episode'
                 );
             `);
 
@@ -1033,7 +1031,6 @@ describe("PUT /api/admin/podcast-hostship-reviews", () => {
                     <item>
                         <title>Shared Episode</title>
                         <guid>shared-episode</guid>
-                        <pubDate>Tue, 21 Jul 2026 16:00:00 GMT</pubDate>
                     </item>
                 </channel></rss>`;
             vi.stubGlobal(
