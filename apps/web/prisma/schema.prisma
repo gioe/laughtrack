@@ -380,7 +380,7 @@ model ComedianFollowerObservation {
   createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz
   comedian      Comedian       @relation(fields: [comedianId], references: [id], onDelete: Cascade)
 
-  @@unique([comedianId, platform, observedAt])
+  @@unique([comedianId, platform, observedAt], map: "comedian_follower_observation_identity_key")
   @@index([platform, observedAt])
   @@map("comedian_follower_observations")
 }

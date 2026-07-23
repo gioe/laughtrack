@@ -12,7 +12,7 @@ CREATE TABLE comedian_follower_observations (
     CONSTRAINT comedian_follower_observations_comedian_id_fkey
         FOREIGN KEY (comedian_id) REFERENCES comedians(id)
         ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT comedian_follower_observations_comedian_platform_observed_at_key
+    CONSTRAINT comedian_follower_observation_identity_key
         UNIQUE (comedian_id, platform, observed_at)
 );
 
