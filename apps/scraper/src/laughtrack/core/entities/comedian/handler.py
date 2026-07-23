@@ -1029,7 +1029,10 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
     # ------------------------------------------------------------------
 
     def refresh_instagram_followers(
-        self, limit: Optional[int] = None, stale_days: Optional[int] = None
+        self,
+        limit: Optional[int] = None,
+        stale_days: Optional[int] = None,
+        comedian_ids: Optional[List[int]] = None,
     ) -> int:
         """Fetch current Instagram follower counts and persist them to the DB.
 
@@ -1045,14 +1048,23 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
             stale_days: Skip comedians refreshed within this many days
                 (default ``INSTAGRAM_FOLLOWERS_STALE_DAYS`` = 7). The weekly
                 job relies on this so a re-run in the same week is a near no-op.
+            comedian_ids: If set, refresh exactly these numeric comedian IDs
+                regardless of staleness. Cannot be combined with ``limit`` or
+                ``stale_days``.
 
         Returns:
             Number of comedian rows updated.
         """
-        if stale_days is None:
-            stale_days = _INSTAGRAM_STALE_DAYS
-
-        rows = self._get_comedians_with_instagram_accounts(stale_days)
+        if comedian_ids is not None:
+            if limit is not None or stale_days is not None:
+                raise ValueError(
+                    "comedian_ids cannot be combined with limit or stale_days"
+                )
+            rows = self._get_comedians_with_instagram_accounts_by_ids(comedian_ids)
+        else:
+            if stale_days is None:
+                stale_days = _INSTAGRAM_STALE_DAYS
+            rows = self._get_comedians_with_instagram_accounts(stale_days)
         if not rows:
             Logger.info(
                 f"refresh_instagram_followers: no comedians with Instagram followers "
@@ -1150,6 +1162,53 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
             or []
         )
         return [{"uuid": r["uuid"], "instagram_account": r["instagram_account"]} for r in rows]
+
+    def _get_comedians_with_instagram_accounts_by_ids(
+        self, comedian_ids: List[int]
+    ) -> List[dict]:
+        """Resolve and validate an exact ordered set of numeric comedian IDs."""
+        if not comedian_ids:
+            raise ValueError("comedian_ids cannot be empty")
+        if any(
+            not isinstance(value, int) or isinstance(value, bool) or value <= 0
+            for value in comedian_ids
+        ):
+            raise ValueError("comedian_ids must contain only positive integers")
+
+        unique_ids = list(dict.fromkeys(comedian_ids))
+        rows = (
+            self.execute_with_cursor(
+                ComedianQueries.GET_COMEDIANS_FOR_INSTAGRAM_REFRESH_BY_IDS,
+                params=(unique_ids,),
+                return_results=True,
+            )
+            or []
+        )
+        rows_by_id = {int(row["id"]): row for row in rows}
+        unknown_ids = [
+            comedian_id for comedian_id in unique_ids if comedian_id not in rows_by_id
+        ]
+        missing_accounts = [
+            comedian_id
+            for comedian_id in unique_ids
+            if comedian_id in rows_by_id
+            and not (rows_by_id[comedian_id]["instagram_account"] or "").strip()
+        ]
+        problems = []
+        if unknown_ids:
+            problems.append(f"unknown comedian IDs: {unknown_ids}")
+        if missing_accounts:
+            problems.append(f"comedian IDs without Instagram accounts: {missing_accounts}")
+        if problems:
+            raise ValueError("; ".join(problems))
+
+        return [
+            {
+                "uuid": rows_by_id[comedian_id]["uuid"],
+                "instagram_account": rows_by_id[comedian_id]["instagram_account"],
+            }
+            for comedian_id in unique_ids
+        ]
 
     def _fetch_instagram_follower_count(self, row: dict) -> _IGFetch:
         """Fetch the current Instagram follower count for a single comedian.

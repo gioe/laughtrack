@@ -12,7 +12,7 @@ Covers:
 """
 
 import sys
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch
 
 import pytest
 import requests as _requests
@@ -326,6 +326,11 @@ class TestInstagramFollowersSqlContract:
         assert "youtube_followers" not in sql
         assert "tiktok_followers" not in sql
 
+    def test_targeted_query_selects_numeric_ids_without_staleness_filter(self):
+        sql = ComedianQueries.GET_COMEDIANS_FOR_INSTAGRAM_REFRESH_BY_IDS.lower()
+        assert "id = any(%s)" in sql
+        assert "instagram_followers_refreshed_at" not in sql
+
     def test_update_query_is_a_partial_upsert(self):
         sql = ComedianQueries.UPDATE_COMEDIAN_INSTAGRAM_FOLLOWERS.lower()
         assert "update" in sql
@@ -586,6 +591,78 @@ class TestFetchInstagramFollowerCount:
 # ---------------------------------------------------------------------------
 
 class TestRefreshInstagramFollowers:
+    def test_targeted_refresh_bypasses_staleness_and_preserves_csv_order(self):
+        handler = _make_handler()
+        rows = [
+            {"uuid": "uuid-2", "instagram_account": "@second"},
+            {"uuid": "uuid-1", "instagram_account": "@first"},
+        ]
+        handler._get_comedians_with_instagram_accounts = MagicMock()
+        handler._get_comedians_with_instagram_accounts_by_ids = MagicMock(
+            return_value=rows
+        )
+        handler._fetch_instagram_follower_count = MagicMock(
+            side_effect=[
+                _IGFetch("ok", "uuid-2", 20),
+                _IGFetch("ok", "uuid-1", 10),
+            ]
+        )
+
+        result = handler.refresh_instagram_followers(comedian_ids=[2, 1])
+
+        assert result == 2
+        handler._get_comedians_with_instagram_accounts.assert_not_called()
+        handler._get_comedians_with_instagram_accounts_by_ids.assert_called_once_with(
+            [2, 1]
+        )
+        assert [
+            fetch_call.args[0]["uuid"]
+            for fetch_call in handler._fetch_instagram_follower_count.call_args_list
+        ] == ["uuid-2", "uuid-1"]
+
+    def test_targeted_lookup_reconstructs_deduplicated_input_order(self):
+        handler = _make_handler()
+        handler.execute_with_cursor.return_value = [
+            {"id": 1, "uuid": "uuid-1", "instagram_account": "@first"},
+            {"id": 2, "uuid": "uuid-2", "instagram_account": "@second"},
+        ]
+
+        rows = handler._get_comedians_with_instagram_accounts_by_ids([2, 1, 2])
+
+        assert rows == [
+            {"uuid": "uuid-2", "instagram_account": "@second"},
+            {"uuid": "uuid-1", "instagram_account": "@first"},
+        ]
+        handler.execute_with_cursor.assert_called_once_with(
+            ComedianQueries.GET_COMEDIANS_FOR_INSTAGRAM_REFRESH_BY_IDS,
+            params=([2, 1],),
+            return_results=True,
+        )
+
+    def test_targeted_lookup_rejects_all_problems_before_fetching(self):
+        handler = _make_handler()
+        handler.execute_with_cursor.return_value = [
+            {"id": 1, "uuid": "uuid-1", "instagram_account": ""},
+        ]
+        handler._fetch_instagram_follower_count = MagicMock()
+
+        with pytest.raises(ValueError) as exc_info:
+            handler.refresh_instagram_followers(comedian_ids=[1, 999])
+
+        assert "unknown comedian IDs: [999]" in str(exc_info.value)
+        assert "without Instagram accounts: [1]" in str(exc_info.value)
+        handler._fetch_instagram_follower_count.assert_not_called()
+
+    @pytest.mark.parametrize("kwargs", [{"limit": 1}, {"stale_days": 0}])
+    def test_targeted_refresh_rejects_incompatible_options(self, kwargs):
+        handler = _make_handler()
+        handler._fetch_instagram_follower_count = MagicMock()
+
+        with pytest.raises(ValueError):
+            handler.refresh_instagram_followers(comedian_ids=[1], **kwargs)
+
+        handler._fetch_instagram_follower_count.assert_not_called()
+
     def test_empty_accounts_returns_zero_without_api_call(self):
         handler = _make_handler()
         handler._get_comedians_with_instagram_accounts = MagicMock(return_value=[])

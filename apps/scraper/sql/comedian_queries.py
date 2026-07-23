@@ -412,6 +412,12 @@ class ComedianQueries:
         ORDER BY instagram_followers_refreshed_at ASC NULLS FIRST, name
     '''
 
+    GET_COMEDIANS_FOR_INSTAGRAM_REFRESH_BY_IDS = '''
+        SELECT id, uuid, instagram_account
+        FROM comedians
+        WHERE id = ANY(%s)
+    '''
+
     UPDATE_COMEDIAN_INSTAGRAM_FOLLOWERS = '''
         UPDATE comedians AS c
         SET instagram_followers = v.followers::int,
