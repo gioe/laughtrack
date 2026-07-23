@@ -186,6 +186,11 @@ export default async function HomePage() {
                         subtitle="Upcoming shows at clubs in your area"
                         shows={showsNearYou}
                         seeAllHref={`/show/search?zip=${zipCode}&distance=${DEFAULT_HOME_RADIUS_MILES}`}
+                        discoveryPresentation={{
+                            surface: "near_you",
+                            policyVersion: "near-you-control-v1",
+                            experimentVariant: "control",
+                        }}
                     />
                 </section>
             )}

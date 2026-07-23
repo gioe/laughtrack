@@ -12,6 +12,9 @@ import {
     RAIL_CARD_GAP_PX,
     RAIL_CARD_STANDARD_MIN_VIEWPORT_PX,
 } from "@/util/constants/railCardConstants";
+import DiscoveryImpressionTracker, {
+    type DiscoveryPresentation,
+} from "./DiscoveryImpressionTracker";
 
 interface ShowDiscoverySectionProps {
     // Copper uppercase kicker above the title, mirroring the iOS home-rail
@@ -27,6 +30,7 @@ interface ShowDiscoverySectionProps {
     // baselines (e.g. apps/web/app/page.fixture.tsx) should pass an explicit
     // value so a copy tweak to `title` doesn't silently break the locator.
     testId?: string;
+    discoveryPresentation?: DiscoveryPresentation;
 }
 
 const ShowDiscoverySection = ({
@@ -36,6 +40,7 @@ const ShowDiscoverySection = ({
     shows,
     seeAllHref,
     testId,
+    discoveryPresentation,
 }: ShowDiscoverySectionProps) => {
     const scrollContainerRef = useRef<HTMLDivElement | null>(null);
     const [isClient, setIsClient] = useState(false);
@@ -133,14 +138,34 @@ const ShowDiscoverySection = ({
                 className="flex gap-4 overflow-x-auto scrollbar-hide py-4 px-2 scroll-smooth"
                 style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
-                {shows.map((show) => (
-                    <div
-                        key={show.id}
-                        className="flex-none w-rail-card-compact sm:w-rail-card-standard md:w-rail-card-standard lg:w-rail-card-standard max-w-[calc(100vw-2rem)]"
-                    >
-                        <ShowCard show={show} density="compact" />
-                    </div>
-                ))}
+                {shows.map((show, index) => {
+                    const cardClassName =
+                        "flex-none w-rail-card-compact sm:w-rail-card-standard md:w-rail-card-standard lg:w-rail-card-standard max-w-[calc(100vw-2rem)]";
+                    if (!discoveryPresentation) {
+                        return (
+                            <div key={show.id} className={cardClassName}>
+                                <ShowCard show={show} density="compact" />
+                            </div>
+                        );
+                    }
+                    return (
+                        <DiscoveryImpressionTracker
+                            key={show.id}
+                            showId={show.id}
+                            rank={index + 1}
+                            className={cardClassName}
+                            {...discoveryPresentation}
+                        >
+                            {(attribution) => (
+                                <ShowCard
+                                    show={show}
+                                    density="compact"
+                                    discoveryAttribution={attribution}
+                                />
+                            )}
+                        </DiscoveryImpressionTracker>
+                    );
+                })}
             </div>
         </div>
     );
