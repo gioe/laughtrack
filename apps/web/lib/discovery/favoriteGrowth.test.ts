@@ -191,8 +191,8 @@ describe("favorite growth aggregates", () => {
         mockQueryRaw.mockResolvedValue([
             {
                 comedian_id: "comic-a",
-                recent_count: 3n,
-                baseline_count: 9n,
+                recent_count: BigInt(3),
+                baseline_count: BigInt(9),
             },
         ]);
 
