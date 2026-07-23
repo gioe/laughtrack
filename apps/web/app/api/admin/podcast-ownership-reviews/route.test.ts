@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { PGlite } from "@electric-sql/pglite";
 import { NextRequest } from "next/server";
 
 const mocks = vi.hoisted(() => ({
@@ -794,19 +795,23 @@ describe("PUT /api/admin/podcast-hostship-reviews", () => {
         };
         const auditCreate = vi.fn();
         const podcastUpsert = vi.fn().mockResolvedValue(podcast);
+        const podcastUpdate = vi.fn();
         const comedianFindUnique = vi.fn().mockResolvedValue(comedian);
         const comedianPodcastDeleteMany = vi.fn();
         const comedianPodcastUpsert = vi.fn();
-        const episodeUpsert = vi.fn();
+        const episodeQueryRaw = vi.fn().mockResolvedValue([{ id: 123 }]);
         mockTransaction.mockImplementation(async (callback) =>
             callback({
-                podcast: { upsert: podcastUpsert },
+                podcast: {
+                    upsert: podcastUpsert,
+                    update: podcastUpdate,
+                },
                 comedian: { findUnique: comedianFindUnique },
                 comedianPodcast: {
                     deleteMany: comedianPodcastDeleteMany,
                     upsert: comedianPodcastUpsert,
                 },
-                podcastEpisode: { upsert: episodeUpsert },
+                $queryRaw: episodeQueryRaw,
                 adminActionAudit: { create: auditCreate },
             } as never),
         );
@@ -850,14 +855,21 @@ describe("PUT /api/admin/podcast-hostship-reviews", () => {
                 reviewStatus: "accepted",
             },
         });
-        expect(episodeUpsert).toHaveBeenCalledWith(
-            expect.objectContaining({
-                create: expect.objectContaining({
-                    title: "First Episode",
-                    audioUrl: "https://cdn.example/1.mp3",
-                }),
-            }),
+        expect(episodeQueryRaw).toHaveBeenCalledTimes(1);
+        const episodeQuery = episodeQueryRaw.mock.calls[0]?.[0] as {
+            strings: string[];
+            values: unknown[];
+        };
+        expect(episodeQuery.strings.join(" ")).toContain(
+            "ON CONFLICT DO NOTHING",
         );
+        expect(episodeQuery.strings.join(" ")).toContain("REGEXP_REPLACE");
+        expect(episodeQuery.values).toContain("guid:episode-1");
+        expect(episodeQuery.values).toContain("episode-1");
+        expect(podcastUpdate).toHaveBeenCalledWith({
+            where: { id: 99 },
+            data: { lastSyncedAt: expect.any(Date) },
+        });
         expect(auditCreate).toHaveBeenCalledWith({
             data: expect.objectContaining({
                 action: "podcast_manual_rss.ingest",
@@ -872,6 +884,226 @@ describe("PUT /api/admin/podcast-hostship-reviews", () => {
         expect(mocks.revalidateTag).toHaveBeenCalledWith(
             "manual-jane-feed-manual-rss-abc",
         );
+    });
+
+    it("keeps a second host association when refreshing an existing feed fails", async () => {
+        const rss = `<?xml version="1.0"?>
+            <rss><channel>
+                <title>The Shared Show</title>
+                <item>
+                    <title>Shared Episode</title>
+                    <guid>shared-episode</guid>
+                    <pubDate>Tue, 21 Jul 2026 16:00:00 GMT</pubDate>
+                </item>
+            </channel></rss>`;
+        vi.stubGlobal(
+            "fetch",
+            vi.fn().mockResolvedValue({
+                ok: true,
+                text: async () => rss,
+            }),
+        );
+
+        const comedianPodcastUpsert = vi.fn();
+        const firstTransaction = {
+            podcast: {
+                upsert: vi.fn().mockResolvedValue({
+                    id: 99,
+                    slug: "the-shared-show-manual-rss-abc",
+                    title: "The Shared Show",
+                    feedUrl: "https://feeds.example.com/shared.xml",
+                }),
+            },
+            comedian: {
+                findUnique: vi.fn().mockResolvedValue({
+                    id: 84,
+                    name: "Second Host",
+                    uuid: "second-host-uuid",
+                }),
+            },
+            comedianPodcast: {
+                deleteMany: vi.fn(),
+                upsert: comedianPodcastUpsert,
+            },
+            adminActionAudit: { create: vi.fn() },
+        };
+        mockTransaction
+            .mockImplementationOnce(async (callback) =>
+                callback(firstTransaction as never),
+            )
+            .mockRejectedValueOnce(
+                new Error(
+                    "Unique constraint failed on podcast release and title",
+                ),
+            );
+        const errorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => undefined);
+
+        const res = await PUT(
+            makeRequest({
+                comedianId: 84,
+                feedUrl: "https://feeds.example.com/shared.xml",
+            }),
+        );
+        const body = await res.json();
+
+        expect(res.status).toBe(200);
+        expect(body).toEqual(
+            expect.objectContaining({
+                ok: true,
+                episodeCount: 0,
+                episodeRefreshFailed: true,
+            }),
+        );
+        expect(comedianPodcastUpsert).toHaveBeenCalledWith(
+            expect.objectContaining({
+                create: expect.objectContaining({
+                    comedianId: 84,
+                    podcastId: 99,
+                    reviewStatus: "accepted",
+                }),
+            }),
+        );
+        expect(mockTransaction).toHaveBeenCalledTimes(2);
+        expect(errorSpy).toHaveBeenCalledWith(
+            "Manual RSS host association saved, but episode refresh failed:",
+            expect.objectContaining({
+                podcastId: 99,
+                comedianId: 84,
+            }),
+        );
+        expect(mocks.revalidateTag).toHaveBeenCalledWith(
+            "the-shared-show-manual-rss-abc",
+        );
+    });
+
+    it("reconciles a legacy raw GUID without duplicating the episode", async () => {
+        const pg = new PGlite();
+        try {
+            await pg.exec(`
+                CREATE TABLE podcast_episodes (
+                    id SERIAL PRIMARY KEY,
+                    podcast_id INTEGER NOT NULL,
+                    source TEXT NOT NULL,
+                    source_episode_id TEXT NOT NULL,
+                    guid TEXT,
+                    title TEXT NOT NULL,
+                    description TEXT,
+                    release_date TIMESTAMPTZ,
+                    episode_url TEXT,
+                    audio_url TEXT,
+                    external_ids JSONB NOT NULL DEFAULT '{}',
+                    evidence JSONB NOT NULL DEFAULT '{}',
+                    source_payload JSONB,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+                    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+                );
+                CREATE UNIQUE INDEX podcast_episodes_source_episode_id_key
+                    ON podcast_episodes(source, source_episode_id);
+                CREATE UNIQUE INDEX podcast_episodes_unique_podcast_release_title
+                    ON podcast_episodes (
+                        podcast_id,
+                        release_date,
+                        LOWER(REGEXP_REPLACE(BTRIM(title), '^\\s*(?:(?:ep(?:isode)?|#)\\s*[0-9]+(?:\\s*[:.\\-\\)\\]]|\\s+)\\s*|[0-9]+\\s*[:.\\-\\)\\]]\\s*)', '', 'i'))
+                    )
+                    WHERE release_date IS NOT NULL
+                      AND created_at >= TIMESTAMPTZ '2026-06-08 16:00:00+00';
+                INSERT INTO podcast_episodes (
+                    podcast_id,
+                    source,
+                    source_episode_id,
+                    guid,
+                    title,
+                    release_date
+                )
+                VALUES (
+                    99,
+                    'manual_rss',
+                    'shared-episode',
+                    'shared-episode',
+                    'Shared Episode',
+                    TIMESTAMPTZ '2026-07-21 16:00:00+00'
+                );
+            `);
+
+            const rss = `<?xml version="1.0"?>
+                <rss><channel>
+                    <title>The Shared Show</title>
+                    <item>
+                        <title>Shared Episode</title>
+                        <guid>shared-episode</guid>
+                        <pubDate>Tue, 21 Jul 2026 16:00:00 GMT</pubDate>
+                    </item>
+                </channel></rss>`;
+            vi.stubGlobal(
+                "fetch",
+                vi.fn().mockResolvedValue({
+                    ok: true,
+                    text: async () => rss,
+                }),
+            );
+
+            const firstTransaction = {
+                podcast: {
+                    upsert: vi.fn().mockResolvedValue({
+                        id: 99,
+                        slug: "the-shared-show-manual-rss-abc",
+                        title: "The Shared Show",
+                        feedUrl: "https://feeds.example.com/shared.xml",
+                    }),
+                },
+                comedian: {
+                    findUnique: vi.fn().mockResolvedValue({
+                        id: 84,
+                        name: "Second Host",
+                        uuid: "second-host-uuid",
+                    }),
+                },
+                comedianPodcast: {
+                    deleteMany: vi.fn(),
+                    upsert: vi.fn(),
+                },
+                adminActionAudit: { create: vi.fn() },
+            };
+            const secondTransaction = {
+                $queryRaw: async (query: { text: string; values: unknown[] }) =>
+                    (await pg.query(query.text, query.values)).rows,
+                podcast: { update: vi.fn() },
+            };
+            mockTransaction
+                .mockImplementationOnce(async (callback) =>
+                    callback(firstTransaction as never),
+                )
+                .mockImplementationOnce(async (callback) =>
+                    callback(secondTransaction as never),
+                );
+
+            const res = await PUT(
+                makeRequest({
+                    comedianId: 84,
+                    feedUrl: "https://feeds.example.com/shared.xml",
+                }),
+            );
+            const body = await res.json();
+            const episodes = await pg.query<{
+                source_episode_id: string;
+            }>("SELECT source_episode_id FROM podcast_episodes ORDER BY id");
+
+            expect(res.status).toBe(200);
+            expect(body).toEqual(
+                expect.objectContaining({
+                    ok: true,
+                    episodeCount: 1,
+                    episodeRefreshFailed: false,
+                }),
+            );
+            expect(episodes.rows).toEqual([
+                { source_episode_id: "shared-episode" },
+            ]);
+        } finally {
+            await pg.close();
+        }
     });
 
     it("rejects deny-listed feed URLs before fetching the RSS feed", async () => {
