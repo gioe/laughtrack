@@ -153,7 +153,11 @@ private fun LibraryContent(
                 .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Text("Favorites", style = MaterialTheme.typography.headlineLarge)
+        Text(
+            "Favorites",
+            style = MaterialTheme.typography.headlineLarge,
+            color = LaughTrackColors.Foreground,
+        )
 
         if (message != null) {
             AssistChip(
@@ -279,6 +283,7 @@ private fun TouringFavoritesSection(
                     comedianName,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
+                    color = LaughTrackColors.Foreground,
                 )
                 shows.take(4).forEach { show -> ShowRow(show) }
             }
@@ -335,6 +340,7 @@ private fun FavoriteSection(
                 presentation.title,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
+                color = LaughTrackColors.Foreground,
             )
             if (presentation.subtitle.isNotBlank()) {
                 Text(
@@ -347,7 +353,11 @@ private fun FavoriteSection(
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = LaughTrackColors.SurfaceMuted),
+            colors =
+                CardDefaults.cardColors(
+                    containerColor = LaughTrackColors.SurfaceMuted,
+                    contentColor = LaughTrackColors.Foreground,
+                ),
             border = BorderStroke(1.dp, LaughTrackColors.BorderSubtle),
         ) {
             Column(
