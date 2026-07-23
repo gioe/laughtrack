@@ -134,7 +134,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     const rl = await applyTicketClickRateLimit(req, profileId);
     if (rl instanceof NextResponse) return rl;
 
-    const anonymousVisitor = getAnonymousVisitorId(req);
+    let anonymousVisitor = getAnonymousVisitorId(req);
     let discoveryAttribution:
         | DiscoveryTicketAttribution
         | typeof NO_DISCOVERY_TICKET_ATTRIBUTION =
@@ -148,6 +148,13 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
                     profileId,
                     anonymousVisitorId:
                         req.cookies.get(ANON_COOKIE)?.value ?? null,
+                    retryMissing: true,
+                    adoptAnonymousVisitorId: (anonymousVisitorId) => {
+                        anonymousVisitor = {
+                            id: anonymousVisitorId,
+                            shouldSetCookie: true,
+                        };
+                    },
                 })) ?? NO_DISCOVERY_TICKET_ATTRIBUTION;
         } catch (error) {
             console.error(

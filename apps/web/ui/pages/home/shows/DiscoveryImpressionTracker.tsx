@@ -9,6 +9,7 @@ import React, {
 } from "react";
 import {
     queueDiscoveryImpression,
+    flushDiscoveryImpressions,
     trackDiscoveryShowDetail,
     type DiscoveryExperimentVariant,
 } from "@/lib/discovery/clientEvents";
@@ -25,6 +26,7 @@ export interface DiscoveryPresentation {
 interface DiscoveryAttribution {
     impressionId?: string;
     onShowDetail: () => void;
+    onTicketIntent: () => void;
 }
 
 interface DiscoveryImpressionTrackerProps extends DiscoveryPresentation {
@@ -105,6 +107,12 @@ export default function DiscoveryImpressionTracker({
         }
     }, [qualifiedImpressionId]);
 
+    const onTicketIntent = useCallback(() => {
+        if (qualifiedImpressionId) {
+            void flushDiscoveryImpressions();
+        }
+    }, [qualifiedImpressionId]);
+
     return (
         <div
             ref={elementRef}
@@ -114,6 +122,7 @@ export default function DiscoveryImpressionTracker({
             {children({
                 impressionId: qualifiedImpressionId,
                 onShowDetail,
+                onTicketIntent,
             })}
         </div>
     );

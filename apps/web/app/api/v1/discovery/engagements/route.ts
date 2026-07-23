@@ -71,7 +71,7 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
     const impressionIds = [
         ...new Set(parsedEvents.map((event) => event.impressionEventId)),
     ];
-    const impressions = await db.discoveryImpressionEvent.findMany({
+    let impressions = await db.discoveryImpressionEvent.findMany({
         where: { eventId: { in: impressionIds } },
         select: {
             eventId: true,
@@ -79,13 +79,52 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
             anonymousVisitorId: true,
         },
     });
+    for (
+        let attempt = 1;
+        impressions.length < impressionIds.length && attempt < 4;
+        attempt += 1
+    ) {
+        await new Promise((resolve) => setTimeout(resolve, 25));
+        impressions = await db.discoveryImpressionEvent.findMany({
+            where: { eventId: { in: impressionIds } },
+            select: {
+                eventId: true,
+                profileId: true,
+                anonymousVisitorId: true,
+            },
+        });
+    }
+
+    let effectiveActor = actor;
+    if (
+        !actor.profileId &&
+        actor.shouldSetAnonymousCookie &&
+        impressions.length === impressionIds.length
+    ) {
+        const anonymousIds = new Set(
+            impressions
+                .filter((impression) => impression.profileId === null)
+                .map((impression) => impression.anonymousVisitorId)
+                .filter((id): id is string => id !== null),
+        );
+        if (
+            anonymousIds.size === 1 &&
+            impressions.every((impression) => impression.profileId === null)
+        ) {
+            effectiveActor = {
+                ...actor,
+                anonymousVisitorId: [...anonymousIds][0],
+            };
+        }
+    }
     const ownedImpressionIds = new Set(
         impressions
             .filter(
                 (impression) =>
-                    (!!actor.profileId &&
-                        impression.profileId === actor.profileId) ||
-                    impression.anonymousVisitorId === actor.anonymousVisitorId,
+                    (!!effectiveActor.profileId &&
+                        impression.profileId === effectiveActor.profileId) ||
+                    impression.anonymousVisitorId ===
+                        effectiveActor.anonymousVisitorId,
             )
             .map((impression) => impression.eventId),
     );
@@ -110,6 +149,6 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
         { accepted: parsedEvents.length, inserted: result.count },
         { status: 201, headers: rateLimitHeaders(rateLimit) },
     );
-    setAnonymousVisitorCookie(response, actor);
+    setAnonymousVisitorCookie(response, effectiveActor);
     return response;
 });

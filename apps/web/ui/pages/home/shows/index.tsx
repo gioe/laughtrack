@@ -148,9 +148,16 @@ const ShowDiscoverySection = ({
                             </div>
                         );
                     }
+                    const presentationKey = [
+                        show.id,
+                        index + 1,
+                        discoveryPresentation.surface,
+                        discoveryPresentation.policyVersion,
+                        discoveryPresentation.experimentVariant,
+                    ].join(":");
                     return (
                         <DiscoveryImpressionTracker
-                            key={show.id}
+                            key={presentationKey}
                             showId={show.id}
                             rank={index + 1}
                             className={cardClassName}

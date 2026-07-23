@@ -199,6 +199,94 @@ describe("DiscoveryImpressionTracker", () => {
         );
     });
 
+    it("starts engagement delivery even while impression persistence is in flight", async () => {
+        let resolveImpression: (() => void) | undefined;
+        vi.mocked(fetch).mockImplementationOnce(
+            () =>
+                new Promise<Response>((resolve) => {
+                    resolveImpression = () => resolve(new Response("{}"));
+                }),
+        );
+        renderTracker();
+        setVisibility(0, 1);
+        await act(() => vi.advanceTimersByTimeAsync(1050));
+
+        fireEvent.click(screen.getByRole("button", { name: "View show 42" }));
+
+        expect(fetch).toHaveBeenCalledTimes(2);
+        expect(vi.mocked(fetch).mock.calls[1][0]).toBe(
+            "/api/v1/discovery/engagements",
+        );
+        resolveImpression?.();
+        await act(async () => {});
+    });
+
+    it("starts impression delivery synchronously before direct ticket intent", async () => {
+        render(
+            <DiscoveryImpressionTracker showId={42} rank={3} {...presentation}>
+                {({ onTicketIntent }) => (
+                    <button type="button" onClick={onTicketIntent}>
+                        Buy tickets
+                    </button>
+                )}
+            </DiscoveryImpressionTracker>,
+        );
+        setVisibility(0, 1);
+        await act(() => vi.advanceTimersByTimeAsync(1000));
+
+        fireEvent.click(screen.getByRole("button", { name: "Buy tickets" }));
+
+        expect(fetch).toHaveBeenCalledTimes(1);
+        expect(vi.mocked(fetch).mock.calls[0][0]).toBe(
+            "/api/v1/discovery/impressions",
+        );
+    });
+
+    it("creates a fresh presentation when rank or experiment metadata changes", async () => {
+        const { rerender } = render(
+            <DiscoveryImpressionTracker
+                key="42:1:control"
+                showId={42}
+                rank={1}
+                {...presentation}
+            >
+                {({ impressionId }) => <span>{impressionId}</span>}
+            </DiscoveryImpressionTracker>,
+        );
+        setVisibility(0, 1);
+        await act(() => vi.advanceTimersByTimeAsync(1050));
+        const firstBody = JSON.parse(
+            String(vi.mocked(fetch).mock.calls[0][1]?.body),
+        );
+
+        rerender(
+            <DiscoveryImpressionTracker
+                key="42:2:candidate"
+                showId={42}
+                rank={2}
+                {...presentation}
+                experimentVariant="candidate"
+            >
+                {({ impressionId }) => <span>{impressionId}</span>}
+            </DiscoveryImpressionTracker>,
+        );
+        setVisibility(1, 1);
+        await act(() => vi.advanceTimersByTimeAsync(1050));
+        const secondBody = JSON.parse(
+            String(vi.mocked(fetch).mock.calls[1][1]?.body),
+        );
+
+        expect(secondBody.events[0]).toEqual(
+            expect.objectContaining({
+                rank: 2,
+                experimentVariant: "candidate",
+            }),
+        );
+        expect(secondBody.events[0].eventId).not.toBe(
+            firstBody.events[0].eventId,
+        );
+    });
+
     it("swallows measurement failures so user actions remain safe", async () => {
         vi.mocked(fetch).mockRejectedValue(new Error("offline"));
         renderTracker();

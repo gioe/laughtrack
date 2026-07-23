@@ -152,6 +152,45 @@ describe("/api/v1/tickets/out", () => {
         });
     });
 
+    it("retries concurrent first-anonymous attribution and adopts its visitor cookie", async () => {
+        mockImpressionFindUnique
+            .mockResolvedValueOnce(null)
+            .mockResolvedValueOnce({
+                eventId: IMPRESSION_ID,
+                entityType: "show",
+                entityId: 42,
+                profileId: null,
+                anonymousVisitorId: "anon-from-impression",
+                surface: "near_you",
+                policyVersion: "near-you-control-v1",
+                experimentVariant: "control",
+                rank: 1,
+            });
+
+        const res = await GET(
+            makeGet({
+                showId: "42",
+                clubId: "24",
+                surface: "compact_show_card",
+                url: "https://tickets.example.com/event/99",
+                impressionId: IMPRESSION_ID,
+            }),
+        );
+
+        expect(res.status).toBe(302);
+        expect(mockImpressionFindUnique).toHaveBeenCalledTimes(2);
+        expect(res.headers.get("set-cookie")).toContain(
+            "lt_anon_visitor_id=anon-from-impression",
+        );
+        expect(mockClickCreate).toHaveBeenCalledWith({
+            data: expect.objectContaining({
+                anonymousVisitorId: "anon-from-impression",
+                discoveryImpressionEventId: IMPRESSION_ID,
+                discoveryRank: 1,
+            }),
+        });
+    });
+
     it("redirects and records an unattributed click when supplied attribution is invalid", async () => {
         mockImpressionFindUnique.mockResolvedValue({
             eventId: IMPRESSION_ID,
