@@ -12,6 +12,11 @@ import { Prisma } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { withRequestMetrics } from "@/lib/metrics";
+import {
+    NO_DISCOVERY_TICKET_ATTRIBUTION,
+    parseImpressionId,
+    resolveDiscoveryTicketAttribution,
+} from "./discoveryAttribution";
 
 const ANON_COOKIE = "lt_anon_visitor_id";
 const ANON_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 395;
@@ -86,8 +91,19 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
         SOURCE_SURFACES.has(data.sourceSurface)
             ? data.sourceSurface
             : null;
+    const suppliedImpressionId = data.impressionId;
+    const impressionId =
+        suppliedImpressionId === undefined
+            ? null
+            : parseImpressionId(suppliedImpressionId);
 
-    if (!showId || !clientClubId || !destinationUrl || !sourceSurface) {
+    if (
+        !showId ||
+        !clientClubId ||
+        !destinationUrl ||
+        !sourceSurface ||
+        (suppliedImpressionId !== undefined && !impressionId)
+    ) {
         return NextResponse.json(
             { error: "Invalid ticket click payload" },
             { status: 400 },
@@ -115,6 +131,21 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
     if (rl instanceof NextResponse) return rl;
 
     const anonymousVisitor = getAnonymousVisitorId(req);
+    const discoveryAttribution = impressionId
+        ? await resolveDiscoveryTicketAttribution({
+              impressionId,
+              showId,
+              profileId,
+              anonymousVisitorId: req.cookies.get(ANON_COOKIE)?.value ?? null,
+          })
+        : NO_DISCOVERY_TICKET_ATTRIBUTION;
+    if (impressionId && !discoveryAttribution) {
+        return NextResponse.json(
+            { error: "Invalid discovery impression attribution" },
+            { status: 400, headers: rateLimitHeaders(rl) },
+        );
+    }
+
     await db.ticketPurchaseClickEvent.create({
         data: {
             showId,
@@ -125,6 +156,7 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
             sourceSurface,
             userAgent: req.headers.get("user-agent"),
             deviceMetadata: parseDeviceMetadata(data.deviceMetadata),
+            ...discoveryAttribution,
         },
     });
 

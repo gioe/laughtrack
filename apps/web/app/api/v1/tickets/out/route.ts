@@ -16,6 +16,12 @@ import { Prisma } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { withRequestMetrics } from "@/lib/metrics";
+import {
+    type DiscoveryTicketAttribution,
+    NO_DISCOVERY_TICKET_ATTRIBUTION,
+    parseImpressionId,
+    resolveDiscoveryTicketAttribution,
+} from "../../ticket-clicks/discoveryAttribution";
 
 const ANON_COOKIE = "lt_anon_visitor_id";
 const ANON_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 395;
@@ -65,6 +71,8 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     const showId = parsePositiveInt(searchParams.get("showId"));
     const clubId = parsePositiveInt(searchParams.get("clubId"));
     const sourceSurface = parseSourceSurface(searchParams.get("surface"));
+    const suppliedImpressionId = searchParams.get("impressionId");
+    const impressionId = parseImpressionId(suppliedImpressionId);
     const destination = resolveAffiliateDestination({
         destinationUrl: searchParams.get("url") ?? "",
         rules: affiliateRulesFromEnv(),
@@ -127,6 +135,28 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     if (rl instanceof NextResponse) return rl;
 
     const anonymousVisitor = getAnonymousVisitorId(req);
+    let discoveryAttribution:
+        | DiscoveryTicketAttribution
+        | typeof NO_DISCOVERY_TICKET_ATTRIBUTION =
+        NO_DISCOVERY_TICKET_ATTRIBUTION;
+    if (impressionId) {
+        try {
+            discoveryAttribution =
+                (await resolveDiscoveryTicketAttribution({
+                    impressionId,
+                    showId,
+                    profileId,
+                    anonymousVisitorId:
+                        req.cookies.get(ANON_COOKIE)?.value ?? null,
+                })) ?? NO_DISCOVERY_TICKET_ATTRIBUTION;
+        } catch (error) {
+            console.error(
+                "GET /api/v1/tickets/out discovery attribution lookup failed:",
+                error,
+            );
+        }
+    }
+
     await db.ticketPurchaseClickEvent.create({
         data: {
             showId,
@@ -143,6 +173,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
             deviceMetadata: {
                 outboundRoute: true,
             } satisfies Prisma.JsonObject,
+            ...discoveryAttribution,
         },
     });
 

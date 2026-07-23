@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 vi.mock("@/lib/db", () => ({
     db: {
         show: { findUnique: vi.fn() },
+        discoveryImpressionEvent: { findUnique: vi.fn() },
         ticketPurchaseClickEvent: { create: vi.fn() },
     },
 }));
@@ -34,6 +35,9 @@ import { resolveAuth } from "@/lib/auth/resolveAuth";
 
 const mockResolveAuth = vi.mocked(resolveAuth);
 const mockShowFindUnique = vi.mocked(db.show.findUnique as any);
+const mockImpressionFindUnique = vi.mocked(
+    db.discoveryImpressionEvent.findUnique as any,
+);
 const mockClickCreate = vi.mocked(db.ticketPurchaseClickEvent.create as any);
 
 function makeGet(params: Record<string, string>) {
@@ -43,6 +47,8 @@ function makeGet(params: Record<string, string>) {
     });
 }
 
+const IMPRESSION_ID = "550e8400-e29b-41d4-a716-446655440000";
+
 describe("/api/v1/tickets/out", () => {
     beforeEach(() => {
         vi.clearAllMocks();
@@ -50,9 +56,12 @@ describe("/api/v1/tickets/out", () => {
         mockShowFindUnique.mockResolvedValue({
             id: 42,
             clubId: 24,
-            tickets: [{ purchaseUrl: "https://tickets.example.com/buy?ref=abc" }],
+            tickets: [
+                { purchaseUrl: "https://tickets.example.com/buy?ref=abc" },
+            ],
         });
         mockClickCreate.mockResolvedValue({ id: 1 });
+        mockImpressionFindUnique.mockResolvedValue(null);
     });
 
     it("302s and records the click when the url origin matches a show ticket purchaseUrl", async () => {
@@ -102,6 +111,103 @@ describe("/api/v1/tickets/out", () => {
         expect(res.status).toBe(400);
         expect(res.headers.get("location")).toBeNull();
         expect(mockClickCreate).not.toHaveBeenCalled();
+    });
+
+    it("retains authoritative discovery attribution for an owned impression", async () => {
+        mockResolveAuth.mockResolvedValue({
+            profileId: "profile-1",
+            userId: "user-1",
+        });
+        mockImpressionFindUnique.mockResolvedValue({
+            eventId: IMPRESSION_ID,
+            entityType: "show",
+            entityId: 42,
+            profileId: "profile-1",
+            anonymousVisitorId: null,
+            surface: "near_you",
+            policyVersion: "near-you-v2",
+            experimentVariant: "candidate",
+            rank: 2,
+        });
+
+        const res = await GET(
+            makeGet({
+                showId: "42",
+                clubId: "24",
+                surface: "show_detail",
+                url: "https://tickets.example.com/event/99",
+                impressionId: IMPRESSION_ID,
+            }),
+        );
+
+        expect(res.status).toBe(302);
+        expect(mockClickCreate).toHaveBeenCalledWith({
+            data: expect.objectContaining({
+                discoveryImpressionEventId: IMPRESSION_ID,
+                discoverySurface: "near_you",
+                discoveryPolicyVersion: "near-you-v2",
+                discoveryExperimentVariant: "candidate",
+                discoveryRank: 2,
+            }),
+        });
+    });
+
+    it("redirects and records an unattributed click when supplied attribution is invalid", async () => {
+        mockImpressionFindUnique.mockResolvedValue({
+            eventId: IMPRESSION_ID,
+            entityType: "show",
+            entityId: 999,
+            profileId: null,
+            anonymousVisitorId: "anon-other",
+            surface: "near_you",
+            policyVersion: "near-you-v2",
+            experimentVariant: "candidate",
+            rank: 2,
+        });
+
+        const res = await GET(
+            makeGet({
+                showId: "42",
+                clubId: "24",
+                surface: "show_detail",
+                url: "https://tickets.example.com/event/99",
+                impressionId: IMPRESSION_ID,
+            }),
+        );
+
+        expect(res.status).toBe(302);
+        expect(res.headers.get("location")).toBe(
+            "https://tickets.example.com/event/99",
+        );
+        expect(mockClickCreate).toHaveBeenCalledWith({
+            data: expect.objectContaining({
+                discoveryImpressionEventId: null,
+                discoverySurface: null,
+                discoveryPolicyVersion: null,
+                discoveryExperimentVariant: null,
+                discoveryRank: null,
+            }),
+        });
+    });
+
+    it("does not query a malformed optional impression id and still redirects", async () => {
+        const res = await GET(
+            makeGet({
+                showId: "42",
+                clubId: "24",
+                surface: "show_detail",
+                url: "https://tickets.example.com/event/99",
+                impressionId: "not-a-uuid",
+            }),
+        );
+
+        expect(res.status).toBe(302);
+        expect(mockImpressionFindUnique).not.toHaveBeenCalled();
+        expect(mockClickCreate).toHaveBeenCalledWith({
+            data: expect.objectContaining({
+                discoveryImpressionEventId: null,
+            }),
+        });
     });
 
     it("400s when the show has only null purchaseUrls so no origin can be validated", async () => {

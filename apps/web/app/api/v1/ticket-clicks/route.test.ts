@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 vi.mock("@/lib/db", () => ({
     db: {
         show: { findUnique: vi.fn() },
+        discoveryImpressionEvent: { findUnique: vi.fn() },
         ticketPurchaseClickEvent: { create: vi.fn() },
         $queryRaw: vi.fn(),
     },
@@ -48,6 +49,9 @@ const mockResolveAuth = vi.mocked(resolveAuth);
 const mockCheckRateLimit = vi.mocked(checkRateLimit);
 const mockRequireAdminForApi = vi.mocked(requireAdminForApi);
 const mockShowFindUnique = vi.mocked(db.show.findUnique as any);
+const mockImpressionFindUnique = vi.mocked(
+    db.discoveryImpressionEvent.findUnique as any,
+);
 const mockClickCreate = vi.mocked(db.ticketPurchaseClickEvent.create as any);
 const mockQueryRaw = vi.mocked(db.$queryRaw as any);
 
@@ -63,6 +67,8 @@ function makePost(body: unknown, headers: Record<string, string> = {}) {
     });
 }
 
+const IMPRESSION_ID = "550e8400-e29b-41d4-a716-446655440000";
+
 describe("/api/v1/ticket-clicks", () => {
     beforeEach(() => {
         vi.clearAllMocks();
@@ -71,6 +77,7 @@ describe("/api/v1/ticket-clicks", () => {
         mockClickCreate.mockResolvedValue({
             id: 1,
         });
+        mockImpressionFindUnique.mockResolvedValue(null);
         mockQueryRaw.mockResolvedValue([
             {
                 total_clicks: BigInt(3),
@@ -148,6 +155,163 @@ describe("/api/v1/ticket-clicks", () => {
                 sourceSurface: "show_card",
             }),
         });
+    });
+
+    it("retains authoritative discovery attribution for the owning signed-in profile", async () => {
+        mockResolveAuth.mockResolvedValue({
+            profileId: "profile-1",
+            userId: "user-1",
+        });
+        mockImpressionFindUnique.mockResolvedValue({
+            eventId: IMPRESSION_ID,
+            entityType: "show",
+            entityId: 42,
+            profileId: "profile-1",
+            anonymousVisitorId: null,
+            surface: "near_you",
+            policyVersion: "near-you-v2",
+            experimentVariant: "candidate",
+            rank: 3,
+        });
+
+        const res = await POST(
+            makePost({
+                showId: 42,
+                clubId: 24,
+                destinationUrl: "https://tickets.example.com/buy",
+                sourceSurface: "show_card",
+                impressionId: IMPRESSION_ID,
+            }),
+        );
+
+        expect(res.status).toBe(201);
+        expect(mockImpressionFindUnique).toHaveBeenCalledWith({
+            where: { eventId: IMPRESSION_ID },
+            select: {
+                eventId: true,
+                entityType: true,
+                entityId: true,
+                profileId: true,
+                anonymousVisitorId: true,
+                surface: true,
+                policyVersion: true,
+                experimentVariant: true,
+                rank: true,
+            },
+        });
+        expect(mockClickCreate).toHaveBeenCalledWith({
+            data: expect.objectContaining({
+                discoveryImpressionEventId: IMPRESSION_ID,
+                discoverySurface: "near_you",
+                discoveryPolicyVersion: "near-you-v2",
+                discoveryExperimentVariant: "candidate",
+                discoveryRank: 3,
+            }),
+        });
+    });
+
+    it("accepts attribution owned by the existing anonymous visitor cookie", async () => {
+        mockImpressionFindUnique.mockResolvedValue({
+            eventId: IMPRESSION_ID,
+            entityType: "show",
+            entityId: 42,
+            profileId: null,
+            anonymousVisitorId: "anon-existing",
+            surface: "near_you",
+            policyVersion: "near-you-v2",
+            experimentVariant: "explore",
+            rank: 7,
+        });
+
+        const res = await POST(
+            makePost(
+                {
+                    showId: 42,
+                    clubId: 24,
+                    destinationUrl: "https://tickets.example.com/buy",
+                    sourceSurface: "show_card",
+                    impressionId: IMPRESSION_ID,
+                },
+                { cookie: "lt_anon_visitor_id=anon-existing" },
+            ),
+        );
+
+        expect(res.status).toBe(201);
+        expect(mockClickCreate).toHaveBeenCalledWith({
+            data: expect.objectContaining({
+                discoveryImpressionEventId: IMPRESSION_ID,
+                discoveryExperimentVariant: "explore",
+            }),
+        });
+    });
+
+    it.each([
+        {
+            reason: "belongs to another actor",
+            impression: {
+                eventId: IMPRESSION_ID,
+                entityType: "show",
+                entityId: 42,
+                profileId: "profile-other",
+                anonymousVisitorId: "anon-other",
+                surface: "near_you",
+                policyVersion: "near-you-v2",
+                experimentVariant: "candidate",
+                rank: 3,
+            },
+        },
+        {
+            reason: "belongs to another show",
+            impression: {
+                eventId: IMPRESSION_ID,
+                entityType: "show",
+                entityId: 99,
+                profileId: "profile-1",
+                anonymousVisitorId: null,
+                surface: "near_you",
+                policyVersion: "near-you-v2",
+                experimentVariant: "candidate",
+                rank: 3,
+            },
+        },
+    ])("rejects supplied attribution that $reason", async ({ impression }) => {
+        mockResolveAuth.mockResolvedValue({
+            profileId: "profile-1",
+            userId: "user-1",
+        });
+        mockImpressionFindUnique.mockResolvedValue(impression);
+
+        const res = await POST(
+            makePost({
+                showId: 42,
+                clubId: 24,
+                destinationUrl: "https://tickets.example.com/buy",
+                sourceSurface: "show_card",
+                impressionId: IMPRESSION_ID,
+            }),
+        );
+
+        expect(res.status).toBe(400);
+        expect(await res.json()).toEqual({
+            error: "Invalid discovery impression attribution",
+        });
+        expect(mockClickCreate).not.toHaveBeenCalled();
+    });
+
+    it("rejects a malformed supplied impression id without querying it", async () => {
+        const res = await POST(
+            makePost({
+                showId: 42,
+                clubId: 24,
+                destinationUrl: "https://tickets.example.com/buy",
+                sourceSurface: "show_card",
+                impressionId: "not-a-uuid",
+            }),
+        );
+
+        expect(res.status).toBe(400);
+        expect(mockImpressionFindUnique).not.toHaveBeenCalled();
+        expect(mockClickCreate).not.toHaveBeenCalled();
     });
 
     it("rejects mismatched club ids instead of trusting the client supplied association", async () => {
