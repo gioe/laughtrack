@@ -800,45 +800,46 @@ model FavoriteClub {
 }
 
 model Show {
-  id                   Int                        @id @default(autoincrement())
-  name                 String?
-  date                 DateTime                   @db.Timestamptz(6)
-  showPageUrl          String                     @map("show_page_url")
-  clubId               Int                        @map("club_id")
-  popularity           Float                      @default(0.0)
-  lastScrapedDate      DateTime?                  @map("last_scraped_date") @db.Timestamptz(6)
-  lastScrapedBy        String?                    @map("last_scraped_by")
-  firstDiscoveredAt    DateTime?                  @map("first_discovered_at") @db.Timestamptz(6)
-  description          String?
-  showType             String?                    @map("show_type")
-  room                 String?
-  productionCompanyId  Int?                       @map("production_company_id")
+  id                        Int                            @id @default(autoincrement())
+  name                      String?
+  date                      DateTime                       @db.Timestamptz(6)
+  showPageUrl               String                         @map("show_page_url")
+  clubId                    Int                            @map("club_id")
+  popularity                Float                          @default(0.0)
+  lastScrapedDate           DateTime?                      @map("last_scraped_date") @db.Timestamptz(6)
+  lastScrapedBy             String?                        @map("last_scraped_by")
+  firstDiscoveredAt         DateTime?                      @map("first_discovered_at") @db.Timestamptz(6)
+  description               String?
+  showType                  String?                        @map("show_type")
+  room                      String?
+  productionCompanyId       Int?                           @map("production_company_id")
   // The Eventbrite organizer (production company) whose /o/ feed most recently
   // produced this show, stamped at persist time for organizer-mode scrapes
   // (TASK-2861). Lets the stale-show reconciler scope its DELETE to one
   // organizer so a sibling organizer/source's shows at a shared venue are never
   // deleted, and cancelled shows at multi-organizer venues ARE reconciled.
   // NULL for non-organizer (single-venue / direct) shows.
-  scrapedByOrganizerId Int?                       @map("scraped_by_organizer_id")
+  scrapedByOrganizerId      Int?                           @map("scraped_by_organizer_id")
   // Denormalized cheapest *paid* ticket price (excludes price = 0 / NULL).
   // Maintained by the tickets_trickle_show_min_price_{ins,del,upd} triggers
   // on tickets so the shows search can ORDER BY price without a per-row
   // subquery; NULL means no priced tickets are attached (free RSVP shows,
   // or no tickets yet).
-  minPrice             Decimal?                   @map("min_price") @db.Decimal(7, 2)
+  minPrice                  Decimal?                       @map("min_price") @db.Decimal(7, 2)
   // Denormalized ticket-only sold-out state maintained by tickets triggers.
   // False for shows with no tickets or at least one unsold ticket; true only
   // when every ticket row for the show is sold_out. Title-based sold-out markers
   // are still filtered separately by query code and computed in DTO mapping.
-  ticketsSoldOut       Boolean                    @default(false) @map("tickets_sold_out")
-  lineupItems          LineupItem[]
-  club                 Club                       @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  productionCompany    ProductionCompany?         @relation("ShowProductionCompany", fields: [productionCompanyId], references: [id])
-  scrapedByOrganizer   ProductionCompany?         @relation("ShowScrapedByOrganizer", fields: [scrapedByOrganizerId], references: [id], onDelete: SetNull)
-  taggedShows          TaggedShow[]
-  tickets              Ticket[]
-  sentNotifications    SentNotification[]
-  ticketPurchaseClicks TicketPurchaseClickEvent[]
+  ticketsSoldOut            Boolean                        @default(false) @map("tickets_sold_out")
+  lineupItems               LineupItem[]
+  club                      Club                           @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  productionCompany         ProductionCompany?             @relation("ShowProductionCompany", fields: [productionCompanyId], references: [id])
+  scrapedByOrganizer        ProductionCompany?             @relation("ShowScrapedByOrganizer", fields: [scrapedByOrganizerId], references: [id], onDelete: SetNull)
+  taggedShows               TaggedShow[]
+  tickets                   Ticket[]
+  sentNotifications         SentNotification[]
+  ticketPurchaseClicks      TicketPurchaseClickEvent[]
+  discoveryFeatureSnapshots DiscoveryShowFeatureSnapshot[]
 
   // Dual-index design (intentional):
   // - @@unique([clubId, date, room]) enforces deduplication and is used by the
@@ -862,6 +863,25 @@ model Show {
   @@index([firstDiscoveredAt])
   @@index([showType])
   @@map("shows")
+}
+
+model DiscoveryShowFeatureSnapshot {
+  id             BigInt   @id @default(autoincrement())
+  showId         Int      @map("show_id")
+  featureVersion String   @map("feature_version")
+  asOf           DateTime @map("as_of") @db.Timestamptz
+  prominence     Float
+  momentum       Float
+  growth         Float
+  confidence     Float
+  availability   String
+  evidence       Json
+  computedAt     DateTime @default(now()) @map("computed_at") @db.Timestamptz
+  show           Show     @relation(fields: [showId], references: [id], onDelete: Cascade)
+
+  @@unique([showId, featureVersion, asOf], map: "discovery_show_feature_snapshot_identity_key")
+  @@index([featureVersion, asOf], map: "discovery_show_feature_snapshots_version_as_of_idx")
+  @@map("discovery_show_feature_snapshots")
 }
 
 model TicketPurchaseClickEvent {
