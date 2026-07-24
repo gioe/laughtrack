@@ -12,6 +12,7 @@
         "format": "prettier --write \"./**/*.{ts,tsx}\" --ignore-path .gitignore",
         "gcp-build": "tsc -p .",
         "test": "vitest run",
+        "test:pglite": "vitest run --project=pglite",
         "test:e2e": "playwright test",
         "test:e2e:visual": "playwright test --config=playwright.visual.config.ts",
         "test:e2e:visual:update": "playwright test --config=playwright.visual.config.ts --update-snapshots",
