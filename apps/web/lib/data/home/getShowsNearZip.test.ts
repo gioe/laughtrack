@@ -5,9 +5,7 @@ vi.mock("./findShowsForHome", () => ({
 }));
 vi.mock("@/lib/db", () => ({
     db: {
-        discoveryShowFeatureSnapshot: {
-            findMany: vi.fn(() => Promise.resolve([])),
-        },
+        $queryRaw: vi.fn(() => Promise.resolve([])),
     },
 }));
 vi.mock("zipcodes", () => ({
@@ -21,7 +19,7 @@ import { findShowsForHome } from "./findShowsForHome";
 import { db } from "@/lib/db";
 
 const mockFindShowsForHome = vi.mocked(findShowsForHome);
-const mockFindSnapshots = vi.mocked(db.discoveryShowFeatureSnapshot.findMany);
+const mockFindSnapshots = vi.mocked(db.$queryRaw);
 
 beforeEach(() => {
     vi.clearAllMocks();
@@ -91,14 +89,15 @@ describe("getShowsNearZip", () => {
                 profileId: "profile-1",
             },
         );
-        expect(mockFindSnapshots).toHaveBeenCalledWith(
-            expect.objectContaining({
-                where: expect.objectContaining({
-                    featureVersion: "show-features-v1",
-                }),
-                distinct: ["showId"],
-            }),
+        expect(mockFindSnapshots).toHaveBeenCalledOnce();
+        const query = mockFindSnapshots.mock.calls[0][0] as {
+            strings: readonly string[];
+            values: readonly unknown[];
+        };
+        expect(query.strings.join(" ")).toContain(
+            "SELECT DISTINCT ON (show_id)",
         );
+        expect(query.values).toContain("show-features-v1");
         expect(result).toHaveLength(8);
     });
 
