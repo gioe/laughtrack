@@ -167,26 +167,40 @@
     }
   ],
   "profiles": [
-    { "id": "ios_phone", "platform": "ios", "form_factor": "phone" },
+    {
+      "id": "ios_phone",
+      "platform": "ios",
+      "form_factor": "phone",
+      "comparison_only": false,
+      "shipping": true
+    },
     {
       "id": "ios_large_tablet",
       "platform": "ios",
-      "form_factor": "large_tablet"
+      "form_factor": "large_tablet",
+      "comparison_only": true,
+      "shipping": false
     },
     {
       "id": "android_phone",
       "platform": "android",
-      "form_factor": "phone"
+      "form_factor": "phone",
+      "comparison_only": false,
+      "shipping": true
     },
     {
       "id": "android_small_tablet",
       "platform": "android",
-      "form_factor": "small_tablet"
+      "form_factor": "small_tablet",
+      "comparison_only": false,
+      "shipping": true
     },
     {
       "id": "android_large_tablet",
       "platform": "android",
-      "form_factor": "large_tablet"
+      "form_factor": "large_tablet",
+      "comparison_only": false,
+      "shipping": true
     }
   ]
 }

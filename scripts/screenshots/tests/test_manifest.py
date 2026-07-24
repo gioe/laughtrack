@@ -18,6 +18,7 @@ from scripts.screenshots.manifest import (
     expected_capture_keys,
     load_catalog,
     main,
+    normalized_profile_metadata,
     png_dimensions,
     validate_catalog,
     validate_manifest,
@@ -153,6 +154,56 @@ def test_checked_in_catalog_defines_capture_profiles(catalog: dict) -> None:
         ("android", "small_tablet"),
         ("android", "large_tablet"),
     }
+    profiles = normalized_profile_metadata(catalog)
+    assert [
+        (profile["id"], profile["comparison_only"], profile["shipping"])
+        for profile in profiles
+    ] == [
+        ("ios_phone", False, True),
+        ("ios_large_tablet", True, False),
+        ("android_phone", False, True),
+        ("android_small_tablet", False, True),
+        ("android_large_tablet", False, True),
+    ]
+    ios_tablet = profiles[1]
+    assert "Comparison-only" in ios_tablet["audit_caveat"]
+    assert "iPhone-only" in ios_tablet["audit_caveat"]
+
+
+@pytest.mark.parametrize("field", ["comparison_only", "shipping"])
+def test_catalog_rejects_missing_profile_capability_metadata(
+    field: str, catalog: dict
+) -> None:
+    drifted = deepcopy(catalog)
+    ios_tablet = next(
+        profile for profile in drifted["profiles"] if profile["id"] == "ios_large_tablet"
+    )
+    ios_tablet.pop(field)
+
+    with pytest.raises(ContractError, match=rf"{field} must be a boolean"):
+        validate_catalog(drifted)
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    [
+        ("comparison_only", "true", "comparison_only must be a boolean"),
+        ("shipping", "false", "shipping must be a boolean"),
+        ("comparison_only", False, "comparison_only must be true"),
+        ("shipping", True, "shipping must be false"),
+    ],
+)
+def test_catalog_rejects_invalid_ios_tablet_capability_metadata(
+    field: str, value: object, message: str, catalog: dict
+) -> None:
+    drifted = deepcopy(catalog)
+    ios_tablet = next(
+        profile for profile in drifted["profiles"] if profile["id"] == "ios_large_tablet"
+    )
+    ios_tablet[field] = value
+
+    with pytest.raises(ContractError, match=message):
+        validate_catalog(drifted)
 
 
 def test_completed_platform_run_records_and_validates_every_image(

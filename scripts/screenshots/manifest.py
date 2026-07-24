@@ -42,6 +42,18 @@ PROFILE_IDS = (
     "android_small_tablet",
     "android_large_tablet",
 )
+PROFILE_CAPABILITIES: Mapping[str, tuple[bool, bool]] = {
+    "ios_phone": (False, True),
+    "ios_large_tablet": (True, False),
+    "android_phone": (False, True),
+    "android_small_tablet": (False, True),
+    "android_large_tablet": (False, True),
+}
+PROFILE_AUDIT_CAVEATS: Mapping[str, str] = {
+    "ios_large_tablet": (
+        "Comparison-only native iPad geometry; the shipping iOS target is iPhone-only."
+    ),
+}
 PLATFORMS = {"ios", "android"}
 FORM_FACTORS = {"phone", "small_tablet", "large_tablet"}
 GIT_REVISION_RE = re.compile(r"[0-9a-f]{40}\Z")
@@ -97,6 +109,25 @@ def content_fixture_fingerprint(catalog: Mapping[str, Any]) -> str:
     fixture = catalog.get("content_fixture")
     encoded = json.dumps(fixture, sort_keys=True, separators=(",", ":")).encode()
     return hashlib.sha256(encoded).hexdigest()
+
+
+def normalized_profile_metadata(
+    catalog: Mapping[str, Any],
+    profile_order: Sequence[str] = PROFILE_IDS,
+) -> list[dict[str, Any]]:
+    """Return audit-ready profile metadata in the requested canonical order."""
+    profiles = {profile["id"]: profile for profile in catalog["profiles"]}
+    return [
+        {
+            "id": profile_id,
+            "platform": profiles[profile_id]["platform"],
+            "form_factor": profiles[profile_id]["form_factor"],
+            "comparison_only": profiles[profile_id]["comparison_only"],
+            "shipping": profiles[profile_id]["shipping"],
+            "audit_caveat": PROFILE_AUDIT_CAVEATS.get(profile_id),
+        }
+        for profile_id in profile_order
+    ]
 
 
 class ContractError(ValueError):
@@ -198,6 +229,19 @@ def validate_catalog(catalog: Any) -> None:
                 errors.append(f"{prefix}.platform must be one of {sorted(PLATFORMS)}")
             if form_factor not in FORM_FACTORS:
                 errors.append(f"{prefix}.form_factor must be one of {sorted(FORM_FACTORS)}")
+            profile_id = profile.get("id")
+            expected_capabilities = PROFILE_CAPABILITIES.get(profile_id)
+            for field, expected in zip(
+                ("comparison_only", "shipping"),
+                expected_capabilities or (None, None),
+            ):
+                value = profile.get(field)
+                if type(value) is not bool:
+                    errors.append(f"{prefix}.{field} must be a boolean")
+                elif expected_capabilities is not None and value is not expected:
+                    errors.append(
+                        f"{prefix}.{field} must be {str(expected).lower()} for profile {profile_id}"
+                    )
             pair = (platform, form_factor)
             if pair in seen_pairs:
                 errors.append(f"{prefix} duplicates platform/form_factor {pair}")
