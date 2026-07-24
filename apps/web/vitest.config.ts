@@ -1,5 +1,8 @@
 import { defineConfig } from "vitest/config";
 import path from "path";
+import { PGLITE_TEST_FILES } from "./pglite-test-files";
+
+const DEFAULT_EXCLUDE = ["**/node_modules/**", "**/e2e/**"];
 
 export default defineConfig({
     esbuild: {
@@ -7,7 +10,7 @@ export default defineConfig({
     },
     test: {
         environment: "node",
-        exclude: ["**/node_modules/**", "**/e2e/**"],
+        exclude: DEFAULT_EXCLUDE,
         env: {
             BUNNYCDN_CDN_HOST: "test.b-cdn.net",
         },
@@ -51,6 +54,29 @@ export default defineConfig({
         // fires *before* user beforeEach hooks, so every suite that re-stubs in
         // beforeEach or per-test (all of ours do) is unaffected.
         unstubGlobals: true,
+        // Each PGlite file boots an in-process PostgreSQL WASM runtime. Running
+        // all of them across Vitest's default fork pool causes nonlinear CPU
+        // and memory contention, so keep ordinary tests parallel and run only
+        // the PGlite cohort sequentially after them.
+        projects: [
+            {
+                extends: true,
+                test: {
+                    name: "unit",
+                    exclude: [...DEFAULT_EXCLUDE, ...PGLITE_TEST_FILES],
+                    sequence: { groupOrder: 0 },
+                },
+            },
+            {
+                extends: true,
+                test: {
+                    name: "pglite",
+                    include: [...PGLITE_TEST_FILES],
+                    fileParallelism: false,
+                    sequence: { groupOrder: 1 },
+                },
+            },
+        ],
     },
     resolve: {
         alias: {

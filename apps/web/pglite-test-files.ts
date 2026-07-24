@@ -1,0 +1,15 @@
+export const PGLITE_TEST_FILES = [
+    "app/api/admin/podcast-ownership-reviews/route.test.ts",
+    "lib/data/home/getTrendingComedians.test.ts",
+    "lib/discovery/favoriteGrowth.test.ts",
+    "lib/discovery/features.test.ts",
+    "prisma/adminActionAudit.test.ts",
+    "prisma/discoveryEventsMigration.test.ts",
+    "prisma/podcastEpisodeUniqueRelease.test.ts",
+    "prisma/podcastGraphMigration.test.ts",
+    "prisma/podcastSlugMigration.test.ts",
+    "prisma/schema.youtube-live-notifications.test.ts",
+    "prisma/showMinPriceTrigger.test.ts",
+    "prisma/showTicketsSoldOutTrigger.test.ts",
+    "prisma/ticketPurchaseClickMigration.test.ts",
+] as const;
