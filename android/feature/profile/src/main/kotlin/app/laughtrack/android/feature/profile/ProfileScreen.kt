@@ -2,7 +2,12 @@
 
 package app.laughtrack.android.feature.profile
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
 import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -46,6 +51,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import app.laughtrack.android.core.data.profile.ProfileAccount
 import app.laughtrack.android.core.data.profile.ProfilePreferences
@@ -56,6 +62,10 @@ import app.laughtrack.android.core.ui.components.RemoteImageFallback
 fun ProfileScreen(viewModel: ProfileViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val permissionLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+            viewModel.useCurrentLocation()
+        }
 
     LaunchedEffect(Unit) {
         viewModel.refresh()
@@ -76,6 +86,18 @@ fun ProfileScreen(viewModel: ProfileViewModel = hiltViewModel()) {
                 setZipCodeDraft = viewModel::setZipCodeDraft,
                 setSelectedDistance = viewModel::setSelectedDistance,
                 saveLocation = viewModel::saveLocation,
+                useCurrentLocation = {
+                    if (hasLocationPermission(context)) {
+                        viewModel.useCurrentLocation()
+                    } else {
+                        permissionLauncher.launch(
+                            arrayOf(
+                                Manifest.permission.ACCESS_COARSE_LOCATION,
+                                Manifest.permission.ACCESS_FINE_LOCATION,
+                            ),
+                        )
+                    }
+                },
                 clearLocation = viewModel::clearLocation,
                 setEmailNotifications = viewModel::setEmailNotifications,
                 setPushNotifications = viewModel::setPushNotifications,
@@ -108,6 +130,7 @@ private data class ProfileActions(
     val setZipCodeDraft: (String) -> Unit = {},
     val setSelectedDistance: (Int) -> Unit = {},
     val saveLocation: () -> Unit = {},
+    val useCurrentLocation: () -> Unit = {},
     val clearLocation: () -> Unit = {},
     val setEmailNotifications: (Boolean) -> Unit = {},
     val setPushNotifications: (Boolean) -> Unit = {},
@@ -179,9 +202,11 @@ private fun ProfileContent(
                 zipCodeDraft = state.zipCodeDraft,
                 selectedDistanceMiles = state.selectedDistanceMiles,
                 isMutating = state.isMutating,
+                isResolvingCurrentLocation = state.isResolvingCurrentLocation,
                 onZipChange = actions.setZipCodeDraft,
                 onDistanceChange = actions.setSelectedDistance,
                 onSave = actions.saveLocation,
+                onUseCurrentLocation = actions.useCurrentLocation,
                 onClear = actions.clearLocation,
             )
             NotificationsSection(
@@ -306,9 +331,11 @@ private fun LocationSection(
     zipCodeDraft: String,
     selectedDistanceMiles: Int,
     isMutating: Boolean,
+    isResolvingCurrentLocation: Boolean,
     onZipChange: (String) -> Unit,
     onDistanceChange: (Int) -> Unit,
     onSave: () -> Unit,
+    onUseCurrentLocation: () -> Unit,
     onClear: () -> Unit,
 ) {
     SettingsSection(title = "Location") {
@@ -350,15 +377,30 @@ private fun LocationSection(
         }
         Button(
             onClick = onSave,
-            enabled = !isMutating,
+            enabled = !isMutating && !isResolvingCurrentLocation,
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text("Save profile location")
         }
+        OutlinedButton(
+            onClick = onUseCurrentLocation,
+            enabled = !isMutating && !isResolvingCurrentLocation,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            if (isResolvingCurrentLocation) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(18.dp),
+                    strokeWidth = 2.dp,
+                )
+                Text(" Finding ZIP…")
+            } else {
+                Text("Use current location")
+            }
+        }
         if (preferences.zipCode != null) {
             OutlinedButton(
                 onClick = onClear,
-                enabled = !isMutating,
+                enabled = !isMutating && !isResolvingCurrentLocation,
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text("Clear profile location")
@@ -366,6 +408,16 @@ private fun LocationSection(
         }
     }
 }
+
+private fun hasLocationPermission(context: Context): Boolean =
+    ContextCompat.checkSelfPermission(
+        context,
+        Manifest.permission.ACCESS_COARSE_LOCATION,
+    ) == PackageManager.PERMISSION_GRANTED ||
+        ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+        ) == PackageManager.PERMISSION_GRANTED
 
 @Composable
 private fun NotificationsSection(
