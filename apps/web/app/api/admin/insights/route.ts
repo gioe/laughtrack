@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { withRequestMetrics } from "@/lib/metrics";
+import { getDiscoveryEvaluation } from "@/lib/admin/discoveryInsights";
 
 const executeSchema = z
     .object({
@@ -38,9 +39,29 @@ function invalidPayload(error: z.ZodError) {
     );
 }
 
-export const GET = withRequestMetrics(async function GET() {
+export const GET = withRequestMetrics(async function GET(req?: NextRequest) {
     const gate = await requireAdminForApi();
     if (!gate.ok) return gate.response;
+
+    if (req?.nextUrl.searchParams.get("report") === "discovery") {
+        const parsedDays = z.coerce
+            .number()
+            .int()
+            .min(1)
+            .max(90)
+            .safeParse(req.nextUrl.searchParams.get("days") ?? 14);
+        if (!parsedDays.success) {
+            return NextResponse.json(
+                { error: "days must be an integer between 1 and 90" },
+                { status: 400 },
+            );
+        }
+        return NextResponse.json({
+            discovery: await getDiscoveryEvaluation({
+                days: parsedDays.data,
+            }),
+        });
+    }
 
     return NextResponse.json({ insights: listAdminInsights() });
 });

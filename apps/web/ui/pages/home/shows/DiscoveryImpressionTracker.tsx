@@ -12,6 +12,7 @@ import {
     trackDiscoveryShowDetail,
     type DiscoveryExperimentVariant,
 } from "@/lib/discovery/clientEvents";
+import type { DiscoveryShowImpressionContexts } from "@/lib/discovery/telemetry";
 
 const QUALIFIED_VISIBILITY_RATIO = 0.5;
 const QUALIFIED_DWELL_MS = 1000;
@@ -20,6 +21,7 @@ export interface DiscoveryPresentation {
     surface: "near_you";
     policyVersion: string;
     experimentVariant: DiscoveryExperimentVariant;
+    showContexts: DiscoveryShowImpressionContexts;
 }
 
 interface DiscoveryAttribution {
@@ -40,9 +42,11 @@ export default function DiscoveryImpressionTracker({
     surface,
     policyVersion,
     experimentVariant,
+    showContexts,
     className,
     children,
 }: DiscoveryImpressionTrackerProps) {
+    const impressionContext = showContexts[showId];
     const elementRef = useRef<HTMLDivElement | null>(null);
     const qualifiedRef = useRef(false);
     const dwellTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -72,7 +76,13 @@ export default function DiscoveryImpressionTracker({
                     cancelDwell();
                     return;
                 }
-                if (qualifiedRef.current || dwellTimerRef.current) return;
+                if (
+                    qualifiedRef.current ||
+                    dwellTimerRef.current ||
+                    !impressionContext
+                ) {
+                    return;
+                }
 
                 dwellTimerRef.current = setTimeout(() => {
                     dwellTimerRef.current = null;
@@ -87,6 +97,7 @@ export default function DiscoveryImpressionTracker({
                         experimentVariant,
                         rank,
                         impressedAt: new Date().toISOString(),
+                        ...impressionContext,
                     }).then((persisted) => {
                         if (active && persisted) {
                             setQualifiedImpressionId(impressionId);
@@ -102,7 +113,15 @@ export default function DiscoveryImpressionTracker({
             cancelDwell();
             observer.disconnect();
         };
-    }, [experimentVariant, impressionId, policyVersion, rank, showId, surface]);
+    }, [
+        experimentVariant,
+        impressionId,
+        policyVersion,
+        rank,
+        impressionContext,
+        showId,
+        surface,
+    ]);
 
     const onShowDetail = useCallback(() => {
         if (qualifiedImpressionId) {

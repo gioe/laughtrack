@@ -926,19 +926,26 @@ model TicketPurchaseClickEvent {
 }
 
 model DiscoveryImpressionEvent {
-  eventId            String                     @id @map("event_id") @db.Uuid
-  entityType         String                     @map("entity_type")
-  entityId           Int                        @map("entity_id")
-  surface            String
-  policyVersion      String                     @map("policy_version")
-  experimentVariant  String                     @map("experiment_variant")
-  rank               Int
-  impressedAt        DateTime                   @map("impressed_at") @db.Timestamptz
-  recordedAt         DateTime                   @default(now()) @map("recorded_at") @db.Timestamptz
-  profileId          String?                    @map("profile_id")
-  anonymousVisitorId String                     @map("anonymous_visitor_id")
-  profile            UserProfile?               @relation(fields: [profileId], references: [id], onDelete: SetNull)
-  engagements        DiscoveryEngagementEvent[]
+  eventId                  String                     @id @map("event_id") @db.Uuid
+  entityType               String                     @map("entity_type")
+  entityId                 Int                        @map("entity_id")
+  surface                  String
+  policyVersion            String                     @map("policy_version")
+  experimentVariant        String                     @map("experiment_variant")
+  rank                     Int
+  assignmentEligible       Boolean?                   @map("assignment_eligible")
+  assignmentReason         String?                    @map("assignment_reason")
+  explorationSelected      Boolean?                   @map("exploration_selected")
+  distanceMiles            Float?                     @map("distance_miles")
+  maxDistanceMiles         Float?                     @map("max_distance_miles")
+  availabilityAtImpression String?                    @map("availability_at_impression")
+  featureVersion           String?                    @map("feature_version")
+  impressedAt              DateTime                   @map("impressed_at") @db.Timestamptz
+  recordedAt               DateTime                   @default(now()) @map("recorded_at") @db.Timestamptz
+  profileId                String?                    @map("profile_id")
+  anonymousVisitorId       String                     @map("anonymous_visitor_id")
+  profile                  UserProfile?               @relation(fields: [profileId], references: [id], onDelete: SetNull)
+  engagements              DiscoveryEngagementEvent[]
 
   @@index([surface, experimentVariant, impressedAt])
   @@index([entityType, entityId, impressedAt])

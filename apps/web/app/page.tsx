@@ -9,7 +9,7 @@ import { getClubs } from "@/lib/data/home/getClubs";
 import { getClubsByZip } from "@/lib/data/home/getClubsByZip";
 import { getComediansByZip } from "@/lib/data/home/getComediansByZip";
 import { getShowsTonight } from "@/lib/data/home/getShowsTonight";
-import { getShowsNearZip } from "@/lib/data/home/getShowsNearZip";
+import { getShowsNearZipWithTelemetry } from "@/lib/data/home/getShowsNearZip";
 import { getTrendingShowsThisWeek } from "@/lib/data/home/getTrendingShowsThisWeek";
 import { getHeroContext } from "@/lib/data/home/getHeroContext";
 import { getFavoriteComedianShows } from "@/lib/data/home/getFavoriteComedianShows";
@@ -107,7 +107,7 @@ export default async function HomePage() {
         nearYouComedians,
         nearYouClubs,
         showsTonight,
-        showsNearYou,
+        nearYouResult,
         trendingShowsThisWeek,
         favoriteComedianShows,
     ] = await Promise.all([
@@ -130,21 +130,19 @@ export default async function HomePage() {
               ).catch(() => [])
             : getShowsTonight(timezone).catch(() => []),
         zipCode
-            ? (nearYouDiscoveryPolicy.experimentVariant === "candidate" &&
-              discoveryActorKey
-                  ? getShowsNearZip(zipCode, DEFAULT_HOME_RADIUS_MILES, {
-                        actorKey: discoveryActorKey,
-                        profileId: session?.profile?.id,
-                    })
-                  : getShowsNearZip(zipCode, DEFAULT_HOME_RADIUS_MILES)
-              ).catch(() => [])
-            : Promise.resolve([]),
+            ? getShowsNearZipWithTelemetry(zipCode, DEFAULT_HOME_RADIUS_MILES, {
+                  actorKey: discoveryActorKey,
+                  profileId: session?.profile?.id,
+                  experimentVariant: nearYouDiscoveryPolicy.experimentVariant,
+              }).catch(() => ({ shows: [], impressionContexts: {} }))
+            : Promise.resolve({ shows: [], impressionContexts: {} }),
         getTrendingShowsThisWeek(timezone).catch(() => []),
         session?.profile?.id
             ? getFavoriteComedianShows(session.profile.id).catch(() => [])
             : Promise.resolve([]),
     ]);
 
+    const showsNearYou = nearYouResult.shows;
     const hasLocalShows = showsNearYou.length > 0;
     const heroShows = (
         hasLocalShows ? showsNearYou : trendingShowsThisWeek
@@ -210,6 +208,7 @@ export default async function HomePage() {
                             policyVersion: nearYouDiscoveryPolicy.policyVersion,
                             experimentVariant:
                                 nearYouDiscoveryPolicy.experimentVariant,
+                            showContexts: nearYouResult.impressionContexts,
                         }}
                     />
                 </section>

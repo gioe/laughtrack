@@ -10,7 +10,7 @@ const mocks = vi.hoisted(() => ({
     getClubsByZip: vi.fn(),
     getComediansByZip: vi.fn(),
     getShowsTonight: vi.fn(),
-    getShowsNearZip: vi.fn(),
+    getShowsNearZipWithTelemetry: vi.fn(),
     getTrendingShowsThisWeek: vi.fn(),
     getHeroContext: vi.fn(),
     getFavoriteComedianShows: vi.fn(),
@@ -44,7 +44,7 @@ vi.mock("@/lib/data/home/getShowsTonight", () => ({
     getShowsTonight: mocks.getShowsTonight,
 }));
 vi.mock("@/lib/data/home/getShowsNearZip", () => ({
-    getShowsNearZip: mocks.getShowsNearZip,
+    getShowsNearZipWithTelemetry: mocks.getShowsNearZipWithTelemetry,
 }));
 vi.mock("@/lib/data/home/getTrendingShowsThisWeek", () => ({
     getTrendingShowsThisWeek: mocks.getTrendingShowsThisWeek,
@@ -130,7 +130,10 @@ beforeEach(() => {
     mocks.getClubsByZip.mockResolvedValue([]);
     mocks.getComediansByZip.mockResolvedValue([]);
     mocks.getShowsTonight.mockResolvedValue([]);
-    mocks.getShowsNearZip.mockResolvedValue([]);
+    mocks.getShowsNearZipWithTelemetry.mockResolvedValue({
+        shows: [],
+        impressionContexts: {},
+    });
     mocks.getTrendingShowsThisWeek.mockResolvedValue([]);
     mocks.getHeroContext.mockResolvedValue({
         city: null,
@@ -192,7 +195,11 @@ describe("HomePage favorite comedian rail", () => {
         await renderHomePage();
 
         expect(mocks.getShowsTonight).toHaveBeenCalledWith("UTC", "10801", 25);
-        expect(mocks.getShowsNearZip).toHaveBeenCalledWith("10801", 25);
+        expect(mocks.getShowsNearZipWithTelemetry).toHaveBeenCalledWith(
+            "10801",
+            25,
+            expect.objectContaining({ experimentVariant: "control" }),
+        );
         expect(mocks.getComediansByZip).toHaveBeenCalledWith("10801", 25, {
             sortBy: "upcomingShows",
         });
@@ -207,9 +214,10 @@ describe("HomePage favorite comedian rail", () => {
             state: "NY",
             zipCode: "10801",
         });
-        mocks.getShowsNearZip.mockResolvedValue(
-            Array.from({ length: 8 }, (_, index) => makeShow(index + 1)),
-        );
+        mocks.getShowsNearZipWithTelemetry.mockResolvedValue({
+            shows: Array.from({ length: 8 }, (_, index) => makeShow(index + 1)),
+            impressionContexts: {},
+        });
 
         const markup = await renderHomePage();
 
@@ -232,14 +240,22 @@ describe("HomePage favorite comedian rail", () => {
             state: "NY",
             zipCode: "10801",
         });
-        mocks.getShowsNearZip.mockResolvedValue([makeShow(1)]);
+        mocks.getShowsNearZipWithTelemetry.mockResolvedValue({
+            shows: [makeShow(1)],
+            impressionContexts: {},
+        });
 
         const markup = await renderHomePage();
 
-        expect(mocks.getShowsNearZip).toHaveBeenCalledWith("10801", 25, {
-            actorKey: `profile:${profileId}`,
-            profileId,
-        });
+        expect(mocks.getShowsNearZipWithTelemetry).toHaveBeenCalledWith(
+            "10801",
+            25,
+            {
+                actorKey: `profile:${profileId}`,
+                profileId,
+                experimentVariant: "candidate",
+            },
+        );
         expect(markup).toContain('data-policy-version="near-you-candidate-v1"');
         expect(markup).toContain('data-experiment-variant="candidate"');
     });
@@ -252,11 +268,22 @@ describe("HomePage favorite comedian rail", () => {
             state: "NY",
             zipCode: "10801",
         });
-        mocks.getShowsNearZip.mockResolvedValue([makeShow(1)]);
+        mocks.getShowsNearZipWithTelemetry.mockResolvedValue({
+            shows: [makeShow(1)],
+            impressionContexts: {},
+        });
 
         const markup = await renderHomePage();
 
-        expect(mocks.getShowsNearZip).toHaveBeenCalledWith("10801", 25);
+        expect(mocks.getShowsNearZipWithTelemetry).toHaveBeenCalledWith(
+            "10801",
+            25,
+            {
+                actorKey: null,
+                profileId: undefined,
+                experimentVariant: "control",
+            },
+        );
         expect(markup).toContain('data-policy-version="near-you-control-v1"');
         expect(markup).toContain('data-experiment-variant="control"');
     });

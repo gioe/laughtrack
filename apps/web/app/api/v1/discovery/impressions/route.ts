@@ -11,10 +11,23 @@ import {
     setAnonymousVisitorCookie,
 } from "../shared";
 import { rateLimitHeaders } from "@/lib/rateLimit";
+import type {
+    DiscoveryAssignmentReason,
+    DiscoveryAvailabilityAtImpression,
+} from "@/lib/discovery/telemetry";
 
 const ENTITY_TYPE = "show";
 const SURFACE = "near_you";
 const EXPERIMENT_VARIANTS = new Set(["control", "candidate"]);
+const ASSIGNMENT_REASONS = new Set<DiscoveryAssignmentReason>([
+    "stable_actor_assignment",
+    "cookieless_bootstrap",
+]);
+const AVAILABILITY_STATES = new Set<DiscoveryAvailabilityAtImpression>([
+    "available",
+    "unknown",
+    "unavailable",
+]);
 
 type ImpressionInput = {
     eventId: string;
@@ -25,6 +38,13 @@ type ImpressionInput = {
     experimentVariant: "control" | "candidate";
     rank: number;
     impressedAt: Date;
+    assignmentEligible: boolean;
+    assignmentReason: DiscoveryAssignmentReason;
+    explorationSelected: boolean;
+    distanceMiles: number | null;
+    maxDistanceMiles: number;
+    availabilityAtImpression: DiscoveryAvailabilityAtImpression;
+    featureVersion: string | null;
 };
 
 function parseImpression(value: unknown): ImpressionInput | null {
@@ -35,6 +55,9 @@ function parseImpression(value: unknown): ImpressionInput | null {
     const entityId = data.entityId;
     const rank = data.rank;
     const impressedAt = parseEventTime(data.impressedAt);
+    const distanceMiles = data.distanceMiles;
+    const maxDistanceMiles = data.maxDistanceMiles;
+    const featureVersion = data.featureVersion;
 
     if (
         !isUuid(data.eventId) ||
@@ -50,6 +73,30 @@ function parseImpression(value: unknown): ImpressionInput | null {
         !Number.isSafeInteger(rank) ||
         rank < 1 ||
         rank > 1000 ||
+        typeof data.assignmentEligible !== "boolean" ||
+        typeof data.assignmentReason !== "string" ||
+        !ASSIGNMENT_REASONS.has(
+            data.assignmentReason as DiscoveryAssignmentReason,
+        ) ||
+        data.assignmentEligible !==
+            (data.assignmentReason === "stable_actor_assignment") ||
+        typeof data.explorationSelected !== "boolean" ||
+        (distanceMiles !== null &&
+            (typeof distanceMiles !== "number" ||
+                !Number.isFinite(distanceMiles) ||
+                distanceMiles < 0)) ||
+        typeof maxDistanceMiles !== "number" ||
+        !Number.isFinite(maxDistanceMiles) ||
+        maxDistanceMiles <= 0 ||
+        typeof data.availabilityAtImpression !== "string" ||
+        !AVAILABILITY_STATES.has(
+            data.availabilityAtImpression as DiscoveryAvailabilityAtImpression,
+        ) ||
+        (featureVersion !== null && !isPolicyVersion(featureVersion)) ||
+        (!data.assignmentEligible &&
+            (data.experimentVariant !== "control" ||
+                data.explorationSelected)) ||
+        (data.explorationSelected && data.experimentVariant !== "candidate") ||
         !impressedAt
     ) {
         return null;
@@ -64,6 +111,14 @@ function parseImpression(value: unknown): ImpressionInput | null {
         experimentVariant: data.experimentVariant as "control" | "candidate",
         rank,
         impressedAt,
+        assignmentEligible: data.assignmentEligible,
+        assignmentReason: data.assignmentReason as DiscoveryAssignmentReason,
+        explorationSelected: data.explorationSelected,
+        distanceMiles: distanceMiles as number | null,
+        maxDistanceMiles,
+        availabilityAtImpression:
+            data.availabilityAtImpression as DiscoveryAvailabilityAtImpression,
+        featureVersion: featureVersion as string | null,
     };
 }
 

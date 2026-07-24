@@ -14,6 +14,10 @@ vi.mock("@/lib/db", () => ({
     },
 }));
 
+vi.mock("@/lib/admin/discoveryInsights", () => ({
+    getDiscoveryEvaluation: vi.fn(),
+}));
+
 vi.mock("@prisma/client", () => ({
     Prisma: {
         sql: (strings: TemplateStringsArray, ...values: unknown[]) => ({
@@ -26,10 +30,12 @@ vi.mock("@prisma/client", () => ({
 import { GET, POST } from "./route";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { getDiscoveryEvaluation } from "@/lib/admin/discoveryInsights";
 
 const mockAuth = vi.mocked(auth);
 const mockQueryRaw = vi.mocked(db.$queryRaw);
 const mockFindUserProfile = vi.mocked(db.userProfile.findFirst);
+const mockGetDiscoveryEvaluation = vi.mocked(getDiscoveryEvaluation);
 
 const adminSession = {
     profile: {
@@ -55,6 +61,15 @@ beforeEach(() => {
         userid: "user-1",
         role: "admin",
     } as never);
+    mockGetDiscoveryEvaluation.mockResolvedValue({
+        window: {
+            start: "2026-07-10T12:00:00.000Z",
+            end: "2026-07-24T12:00:00.000Z",
+            days: 14,
+        },
+        variants: [],
+        decision: { status: "insufficient", reasons: [] },
+    } as never);
 });
 
 describe("GET /api/admin/insights", () => {
@@ -64,6 +79,28 @@ describe("GET /api/admin/insights", () => {
         const res = await GET();
 
         expect(res.status).toBe(401);
+    });
+
+    it("returns 422 when the authenticated session has no profile", async () => {
+        mockAuth.mockResolvedValue({} as never);
+
+        const res = await GET();
+
+        expect(res.status).toBe(422);
+        expect(mockGetDiscoveryEvaluation).not.toHaveBeenCalled();
+    });
+
+    it("returns 403 when the persisted profile is not an admin", async () => {
+        mockFindUserProfile.mockResolvedValue({
+            id: "profile-1",
+            userid: "user-1",
+            role: "user",
+        } as never);
+
+        const res = await GET();
+
+        expect(res.status).toBe(403);
+        expect(mockGetDiscoveryEvaluation).not.toHaveBeenCalled();
     });
 
     it("lists curated insight definitions without query text", async () => {
@@ -118,6 +155,35 @@ describe("GET /api/admin/insights", () => {
                 "emailSubscriptions",
             ]),
         );
+    });
+
+    it("returns the authorized discovery evaluation payload", async () => {
+        const req = new NextRequest(
+            "http://localhost/api/admin/insights?report=discovery&days=28",
+        );
+
+        const res = await GET(req);
+        const body = await res.json();
+
+        expect(res.status).toBe(200);
+        expect(mockGetDiscoveryEvaluation).toHaveBeenCalledWith({ days: 28 });
+        expect(body.discovery).toEqual(
+            expect.objectContaining({
+                window: expect.objectContaining({ days: 14 }),
+                decision: { status: "insufficient", reasons: [] },
+            }),
+        );
+    });
+
+    it("rejects an invalid discovery evaluation window", async () => {
+        const req = new NextRequest(
+            "http://localhost/api/admin/insights?report=discovery&days=365",
+        );
+
+        const res = await GET(req);
+
+        expect(res.status).toBe(400);
+        expect(mockGetDiscoveryEvaluation).not.toHaveBeenCalled();
     });
 });
 

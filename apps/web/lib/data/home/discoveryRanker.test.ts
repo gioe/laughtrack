@@ -4,6 +4,7 @@ import { ShowDTO } from "@/objects/class/show/show.interface";
 import {
     isNearYouExplorationActor,
     rankNearYouCandidates,
+    rankNearYouCandidatesWithDiagnostics,
     resolveNearYouDiscoveryPolicy,
     type NearYouFeatureSnapshot,
     type NearYouRankingCandidate,
@@ -284,5 +285,20 @@ describe("Near You candidate ranking", () => {
         expect(first).toEqual(second);
         expect(first).toHaveLength(8);
         expect(first.some(({ id }) => id > 8)).toBe(true);
+
+        const diagnostics = rankNearYouCandidatesWithDiagnostics(
+            inputs,
+            rankingContext(explorationActor),
+        );
+        expect(
+            diagnostics.filter(
+                ({ explorationSelected }) => explorationSelected,
+            ),
+        ).toEqual([
+            expect.objectContaining({
+                show: expect.objectContaining({ id: expect.any(Number) }),
+                snapshot: expect.objectContaining({ prominence: 0.05 }),
+            }),
+        ]);
     });
 });

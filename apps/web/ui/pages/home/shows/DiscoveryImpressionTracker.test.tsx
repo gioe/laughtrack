@@ -36,6 +36,20 @@ const presentation = {
     surface: "near_you" as const,
     policyVersion: "near-you-control-v1",
     experimentVariant: "control" as const,
+    showContexts: Object.fromEntries(
+        [42, 43].map((showId) => [
+            showId,
+            {
+                assignmentEligible: true,
+                assignmentReason: "stable_actor_assignment" as const,
+                explorationSelected: false,
+                distanceMiles: 4.2,
+                maxDistanceMiles: 25,
+                availabilityAtImpression: "available" as const,
+                featureVersion: "show-features-v1",
+            },
+        ]),
+    ),
 };
 
 function setVisibility(observerIndex: number, ratio: number) {
@@ -125,6 +139,13 @@ describe("DiscoveryImpressionTracker", () => {
                 policyVersion: "near-you-control-v1",
                 experimentVariant: "control",
                 rank: 3,
+                assignmentEligible: true,
+                assignmentReason: "stable_actor_assignment",
+                explorationSelected: false,
+                distanceMiles: 4.2,
+                maxDistanceMiles: 25,
+                availabilityAtImpression: "available",
+                featureVersion: "show-features-v1",
             }),
         ]);
         expect(body.events[0]).not.toHaveProperty("profileId");

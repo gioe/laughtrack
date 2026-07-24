@@ -14,7 +14,10 @@ vi.mock("zipcodes", () => ({
     },
 }));
 
-import { getShowsNearZip } from "./getShowsNearZip";
+import {
+    getShowsNearZip,
+    getShowsNearZipWithTelemetry,
+} from "./getShowsNearZip";
 import { findShowsForHome } from "./findShowsForHome";
 import { db } from "@/lib/db";
 
@@ -99,6 +102,45 @@ describe("getShowsNearZip", () => {
         );
         expect(query.values).toContain("show-features-v1");
         expect(result).toHaveLength(8);
+    });
+
+    it("labels cookieless control traffic separately with request-time context", async () => {
+        const shows = [
+            {
+                id: 1,
+                clubId: 1,
+                name: "Bootstrap show",
+                date: new Date("2026-06-01T20:00:00Z"),
+                distanceMiles: 4.2,
+                imageUrl: "",
+                soldOut: false,
+                tickets: [
+                    {
+                        soldOut: false,
+                        purchaseUrl: "https://tickets.example/1",
+                        price: 20,
+                        type: "GA",
+                    },
+                ],
+            },
+        ];
+        mockFindShowsForHome.mockResolvedValue(shows as never);
+
+        const result = await getShowsNearZipWithTelemetry("10801", 25, {
+            actorKey: null,
+            experimentVariant: "control",
+        });
+
+        expect(result.shows).toBe(shows);
+        expect(result.impressionContexts[1]).toEqual({
+            assignmentEligible: false,
+            assignmentReason: "cookieless_bootstrap",
+            explorationSelected: false,
+            distanceMiles: 4.2,
+            maxDistanceMiles: 25,
+            availabilityAtImpression: "available",
+            featureVersion: null,
+        });
     });
 
     describe("tags emission (TASK-2567)", () => {

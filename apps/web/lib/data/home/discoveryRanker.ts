@@ -47,6 +47,15 @@ interface ScoredCandidate {
     candidate: NearYouRankingCandidate;
     score: number;
     prominence: number;
+    snapshot: NearYouFeatureSnapshot;
+    featureVersion: string | null;
+}
+
+export interface RankedNearYouCandidate {
+    show: ShowDTO;
+    snapshot: NearYouFeatureSnapshot;
+    featureVersion: string | null;
+    explorationSelected: boolean;
 }
 
 function clamp(value: number, minimum = 0, maximum = 1): number {
@@ -150,6 +159,9 @@ function scoreCandidate(
         return null;
     }
 
+    const hasUsableSnapshot =
+        candidate.snapshot?.featureVersion === DISCOVERY_FEATURE_VERSION &&
+        candidate.snapshot.asOf.getTime() <= context.now.getTime();
     const snapshot = effectiveSnapshot(candidate.snapshot, context.now);
     if (snapshot.availability === "unavailable") return null;
 
@@ -169,6 +181,8 @@ function scoreCandidate(
     return {
         candidate,
         prominence,
+        snapshot,
+        featureVersion: hasUsableSnapshot ? snapshot.featureVersion : null,
         score:
             geography * 0.28 +
             date * 0.17 +
@@ -194,10 +208,10 @@ function compareScoredCandidates(
     return left.candidate.show.id - right.candidate.show.id;
 }
 
-export function rankNearYouCandidates(
+export function rankNearYouCandidatesWithDiagnostics(
     candidates: readonly NearYouRankingCandidate[],
     context: NearYouRankingContext,
-): ShowDTO[] {
+): RankedNearYouCandidate[] {
     const take = Math.max(0, context.take ?? 8);
     if (take === 0) return [];
 
@@ -206,6 +220,7 @@ export function rankNearYouCandidates(
         .filter((candidate): candidate is ScoredCandidate => candidate !== null)
         .sort(compareScoredCandidates);
     const selected = ranked.slice(0, take);
+    let explorationShowId: number | null = null;
 
     if (
         selected.length === take &&
@@ -237,8 +252,23 @@ export function rankNearYouCandidates(
 
         if (explorationPool[0]) {
             selected[selected.length - 1] = explorationPool[0];
+            explorationShowId = explorationPool[0].candidate.show.id;
         }
     }
 
-    return selected.map(({ candidate }) => candidate.show);
+    return selected.map(({ candidate, snapshot, featureVersion }) => ({
+        show: candidate.show,
+        snapshot,
+        featureVersion,
+        explorationSelected: candidate.show.id === explorationShowId,
+    }));
+}
+
+export function rankNearYouCandidates(
+    candidates: readonly NearYouRankingCandidate[],
+    context: NearYouRankingContext,
+): ShowDTO[] {
+    return rankNearYouCandidatesWithDiagnostics(candidates, context).map(
+        ({ show }) => show,
+    );
 }

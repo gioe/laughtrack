@@ -5,13 +5,30 @@ import { resolveNearbyZips } from "@/util/location/resolveNearbyZips";
 import { Prisma } from "@prisma/client";
 import {
     rankNearYouCandidates,
+    rankNearYouCandidatesWithDiagnostics,
     type NearYouFeatureSnapshot,
 } from "./discoveryRanker";
 import { findShowsForHome } from "./findShowsForHome";
+import {
+    type DiscoveryAssignmentReason,
+    type DiscoveryAvailabilityAtImpression,
+    type DiscoveryShowImpressionContexts,
+} from "@/lib/discovery/telemetry";
 
 export interface NearYouCandidateOptions {
     actorKey: string;
     profileId?: string;
+}
+
+export interface NearYouTelemetryOptions {
+    actorKey?: string | null;
+    profileId?: string;
+    experimentVariant: "control" | "candidate";
+}
+
+export interface NearYouShowsWithTelemetry {
+    shows: ShowDTO[];
+    impressionContexts: DiscoveryShowImpressionContexts;
 }
 
 type NearYouSnapshotRow = NearYouFeatureSnapshot & { showId: number };
@@ -97,4 +114,119 @@ export async function getShowsNearZip(
             take: 8,
         },
     );
+}
+
+function controlAvailability(show: ShowDTO): DiscoveryAvailabilityAtImpression {
+    if (show.soldOut) return "unavailable";
+    return show.tickets?.some(
+        (ticket) => !ticket.soldOut && Boolean(ticket.purchaseUrl),
+    )
+        ? "available"
+        : "unknown";
+}
+
+function assignmentReason(actorKey?: string | null): DiscoveryAssignmentReason {
+    return actorKey ? "stable_actor_assignment" : "cookieless_bootstrap";
+}
+
+export async function getShowsNearZipWithTelemetry(
+    zipCode: string,
+    radius: number,
+    options: NearYouTelemetryOptions,
+): Promise<NearYouShowsWithTelemetry> {
+    if (!zipCode || !/^\d{5}(-\d{4})?$/.test(zipCode)) {
+        return { shows: [], impressionContexts: {} };
+    }
+
+    const now = new Date();
+    const nearbyZips = resolveNearbyZips(zipCode, radius);
+    const where = {
+        date: { gte: now },
+        club: { visible: true, zipCode: { in: nearbyZips } },
+    };
+    const reason = assignmentReason(options.actorKey);
+    const baseContext = {
+        assignmentEligible: Boolean(options.actorKey),
+        assignmentReason: reason,
+        maxDistanceMiles: radius,
+    };
+
+    if (options.experimentVariant === "control" || !options.actorKey) {
+        const shows = await findShowsForHome(
+            where,
+            [{ popularity: "desc" }, { date: "asc" }],
+            8,
+            { zipCode, sortByHomeRelevance: true },
+        );
+        return {
+            shows,
+            impressionContexts: Object.fromEntries(
+                shows.map((show) => [
+                    show.id,
+                    {
+                        ...baseContext,
+                        explorationSelected: false,
+                        distanceMiles: show.distanceMiles ?? null,
+                        availabilityAtImpression: controlAvailability(show),
+                        featureVersion: null,
+                    },
+                ]),
+            ),
+        };
+    }
+
+    const candidates = await findShowsForHome(
+        where,
+        [{ popularity: "desc" }, { date: "asc" }],
+        50,
+        {
+            zipCode,
+            profileId: options.profileId,
+        },
+    );
+    if (candidates.length === 0) {
+        return { shows: [], impressionContexts: {} };
+    }
+    const snapshots = await findLatestSnapshots(
+        candidates.map(({ id }) => id),
+        now,
+    );
+    const snapshotByShowId = new Map(
+        snapshots.map((snapshot) => [snapshot.showId, snapshot]),
+    );
+    const ranked = rankNearYouCandidatesWithDiagnostics(
+        candidates.map((show) => ({
+            show,
+            snapshot: snapshotByShowId.get(show.id),
+            affinity: options.profileId
+                ? show.lineup?.some(({ isFavorite }) => isFavorite)
+                    ? 1
+                    : 0
+                : 0.5,
+        })),
+        {
+            now,
+            maxDistanceMiles: radius,
+            actorKey: options.actorKey,
+            take: 8,
+        },
+    );
+
+    return {
+        shows: ranked.map(({ show }) => show),
+        impressionContexts: Object.fromEntries(
+            ranked.map(
+                ({ show, snapshot, featureVersion, explorationSelected }) => [
+                    show.id,
+                    {
+                        ...baseContext,
+                        explorationSelected,
+                        distanceMiles: show.distanceMiles ?? null,
+                        availabilityAtImpression: snapshot.availability,
+                        featureVersion,
+                    },
+                ],
+            ),
+        ),
+    };
 }

@@ -317,6 +317,41 @@ decision window when any of these occurs:
 After rollback, retain the variant and policy-version labels in historical events,
 record the reason, and require a new policy version before another pilot.
 
+## Operator runbook
+
+The web candidate is controlled by
+`NEAR_YOU_DISCOVERY_RANKER_ENABLED`. The only enabled values are `1` and
+`true`; an unset value, `0`, `false`, or any other value selects the versioned
+control policy. When enabled, actors with a durable profile ID or anonymous
+visitor cookie receive a stable 50/50 control/candidate assignment. Candidate
+actors have a stable 10% exploration allocation.
+
+A cookieless first request cannot be assigned durably. It intentionally receives
+control while the discovery event endpoint establishes the anonymous visitor
+cookie. Its impressions are labeled `cookieless_bootstrap` and are excluded from
+variant comparisons. Historical events recorded before assignment context was
+added are labeled `legacy_unknown` and are also excluded.
+
+To inspect the pilot, make an authenticated admin request:
+
+```text
+GET /api/admin/insights?report=discovery&days=14
+```
+
+`days` accepts 1 through 90. The response separates assignment-eligible,
+bootstrap, and legacy traffic; reports actionable, unavailable, and unknown
+ticket intent independently; shows guardrails, exploration outcomes, feature
+distributions, freshness, and concentration; and ends with an explicit
+`ship`, `tune`, `rollback`, or `insufficient` recommendation. Operators must
+still apply the complete confidence-interval and latency rules in this contract
+before recording the product decision.
+
+For an immediate product rollback, set
+`NEAR_YOU_DISCOVERY_RANKER_ENABLED=false` (or remove it) and restart/redeploy the
+web runtime so every instance receives the setting. The request path then selects
+`near-you-control-v1` without a data migration. Do not delete candidate events or
+feature snapshots; they are required for the incident record and later analysis.
+
 ## Known current limitations
 
 The pilot requires measurement and ranking work that the current system does not
@@ -335,8 +370,9 @@ yet provide:
   actionable-inventory state.
 - Product labels such as **Trending** currently do not guarantee measured velocity.
   They must not be used for the candidate until the growth contract is implemented.
-- The current event model does not yet guarantee viewport-qualified impressions,
-  stable experiment attribution, or all counts needed for the decision thresholds.
+- Events recorded before the ranking-context migration do not contain assignment,
+  exploration, geography, availability, or feature-version context. Monitoring
+  reports those rows as legacy unknown rather than inferring mutable history.
 
 These are prerequisites for implementation tasks, not reasons to weaken the
 definitions or experiment thresholds in this contract.

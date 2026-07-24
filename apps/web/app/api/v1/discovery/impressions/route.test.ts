@@ -59,6 +59,13 @@ function validEvent(overrides: Record<string, unknown> = {}) {
         experimentVariant: "control",
         rank: 1,
         impressedAt: new Date().toISOString(),
+        assignmentEligible: true,
+        assignmentReason: "stable_actor_assignment",
+        explorationSelected: false,
+        distanceMiles: 4.2,
+        maxDistanceMiles: 25,
+        availabilityAtImpression: "available",
+        featureVersion: "show-features-v1",
         ...overrides,
     };
 }
@@ -110,6 +117,13 @@ describe("POST /api/v1/discovery/impressions", () => {
                     policyVersion: "near-you-v1",
                     experimentVariant: "control",
                     rank: 1,
+                    assignmentEligible: true,
+                    assignmentReason: "stable_actor_assignment",
+                    explorationSelected: false,
+                    distanceMiles: 4.2,
+                    maxDistanceMiles: 25,
+                    availabilityAtImpression: "available",
+                    featureVersion: "show-features-v1",
                     profileId: null,
                     anonymousVisitorId: expect.any(String),
                     impressedAt: expect.any(Date),
@@ -193,6 +207,47 @@ describe("POST /api/v1/discovery/impressions", () => {
         ],
         ["invalid rank", { events: [validEvent({ rank: 0 })] }],
         ["rank over 1000", { events: [validEvent({ rank: 1001 })] }],
+        [
+            "assignment mismatch",
+            {
+                events: [
+                    validEvent({
+                        assignmentEligible: false,
+                        assignmentReason: "stable_actor_assignment",
+                    }),
+                ],
+            },
+        ],
+        [
+            "bootstrap candidate",
+            {
+                events: [
+                    validEvent({
+                        assignmentEligible: false,
+                        assignmentReason: "cookieless_bootstrap",
+                        experimentVariant: "candidate",
+                    }),
+                ],
+            },
+        ],
+        [
+            "exploration control",
+            {
+                events: [validEvent({ explorationSelected: true })],
+            },
+        ],
+        [
+            "negative distance",
+            {
+                events: [validEvent({ distanceMiles: -1 })],
+            },
+        ],
+        [
+            "invalid availability",
+            {
+                events: [validEvent({ availabilityAtImpression: "sold_out" })],
+            },
+        ],
         [
             "event older than 24 hours",
             {

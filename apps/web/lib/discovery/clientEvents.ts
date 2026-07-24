@@ -1,5 +1,10 @@
 "use client";
 
+import type {
+    DiscoveryAssignmentReason,
+    DiscoveryAvailabilityAtImpression,
+} from "./telemetry";
+
 export type DiscoveryExperimentVariant = "control" | "candidate";
 
 export interface DiscoveryImpressionEvent {
@@ -11,6 +16,13 @@ export interface DiscoveryImpressionEvent {
     experimentVariant: DiscoveryExperimentVariant;
     rank: number;
     impressedAt: string;
+    assignmentEligible: boolean;
+    assignmentReason: DiscoveryAssignmentReason;
+    explorationSelected: boolean;
+    distanceMiles: number | null;
+    maxDistanceMiles: number;
+    availabilityAtImpression: DiscoveryAvailabilityAtImpression;
+    featureVersion: string | null;
 }
 
 interface DiscoveryEngagementEvent {
