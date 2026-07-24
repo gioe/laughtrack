@@ -346,6 +346,35 @@ distributions, freshness, and concentration; and ends with an explicit
 still apply the complete confidence-interval and latency rules in this contract
 before recording the product decision.
 
+### Feature snapshot schedule
+
+Vercel invokes `GET /api/cron/discovery-feature-snapshots` every day at
+10:00 UTC with its `CRON_SECRET` bearer. The job evaluates visible, available
+shows in the next 30 days, processes at most 200 shows per run, and writes
+`show-features-v1` snapshots at the current UTC-day boundary. Retries within the
+same UTC day update the same logical `(show, feature version, as-of)` snapshot
+instead of creating duplicates.
+
+The response reports `processed`, `succeeded`, `failed`, and `stale`. `stale`
+means the eligible shows that still lack the current UTC day's feature snapshot
+after the run, including unprocessed and failed shows. A partial failure returns
+HTTP 500 after the other shows finish so Vercel surfaces the failed invocation;
+the response and server logs include the failed show IDs. A total load failure
+also returns HTTP 500.
+
+For a manual replay, send an authenticated `GET` or `POST` with an optional
+ISO-8601 `asOf` value:
+
+```text
+POST /api/cron/discovery-feature-snapshots?asOf=2026-09-01T15:30:00Z
+Authorization: Bearer <CRON_SECRET>
+```
+
+The supplied time is canonicalized to its UTC-day boundary. After a failure,
+retry the same `asOf`, confirm `failed` is zero, and check the discovery admin
+report. The report treats feature data older than 48 hours as stale, so two
+consecutive missed daily runs require investigation before a ship decision.
+
 For an immediate product rollback, set
 `NEAR_YOU_DISCOVERY_RANKER_ENABLED=false` (or remove it) and restart/redeploy the
 web runtime so every instance receives the setting. The request path then selects
