@@ -1,6 +1,7 @@
 package app.laughtrack.android.feature.notifications
 
 import java.time.Duration
+import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.ZonedDateTime
 
@@ -13,13 +14,16 @@ fun formatTimeAgo(
     iso: String?,
     now: ZonedDateTime,
 ): String? {
+    val sent = parseNotificationTimestamp(iso)
+    return sent?.let { label(Duration.between(it, now.toInstant()).seconds) }
+}
+
+internal fun parseNotificationTimestamp(iso: String?): Instant? {
     val trimmed = iso?.trim().orEmpty()
     if (trimmed.isEmpty()) return null
-    val sent =
-        runCatching { OffsetDateTime.parse(trimmed).toZonedDateTime() }
-            .recoverCatching { ZonedDateTime.parse(trimmed) }
-            .getOrNull()
-    return sent?.let { label(Duration.between(it, now).seconds) }
+    return runCatching { OffsetDateTime.parse(trimmed).toInstant() }
+        .recoverCatching { ZonedDateTime.parse(trimmed).toInstant() }
+        .getOrNull()
 }
 
 // seconds < MINUTE also covers future timestamps (negative elapsed) → "now".
