@@ -20,7 +20,6 @@ class AppShellChromeTest {
             setOf(
                 AppRoute.Favorites::class,
                 AppRoute.ComedianOnboarding::class,
-                AppRoute.NowPlaying::class,
                 AppRoute.Profile::class,
             ),
             AppShellChrome.topAppBarRoutes,
@@ -44,6 +43,11 @@ class AppShellChromeTest {
         assertFalse(AppRoute.Profile::class in AppShellChrome.bottomBarRoutes)
         assertFalse(AppRoute.NotificationCenter::class in AppShellChrome.bottomBarRoutes)
         assertFalse(AppRoute.ShowDetail::class in AppShellChrome.bottomBarRoutes)
+    }
+
+    @Test
+    fun expanded_now_playing_is_the_only_route_that_hides_the_mini_player() {
+        assertEquals(setOf(AppRoute.NowPlaying::class), AppShellChrome.miniPlayerHiddenRoutes)
     }
 
     @Test

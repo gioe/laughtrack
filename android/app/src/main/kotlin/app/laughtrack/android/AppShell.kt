@@ -262,7 +262,7 @@ fun AppShell(
                     }
                 }
 
-                if (playbackController != null) {
+                if (playbackController != null && AppShellChrome.showsMiniPlayer(currentDestination)) {
                     PodcastMiniPlayer(
                         playbackController = playbackController,
                         onExpand = { navController.openEntity(AppRoute.NowPlaying) },
@@ -376,7 +376,6 @@ internal object AppShellChrome {
         setOf(
             AppRoute.Favorites::class,
             AppRoute.ComedianOnboarding::class,
-            AppRoute.NowPlaying::class,
             AppRoute.Profile::class,
         )
 
@@ -395,14 +394,21 @@ internal object AppShellChrome {
             AppRoute.ComedianDetail::class,
             AppRoute.ClubDetail::class,
             AppRoute.PodcastDetail::class,
+            AppRoute.NowPlaying::class,
             AppRoute.NotificationCenter::class,
         )
+
+    /** Expanded playback owns the whole surface; every other destination keeps the mini-player. */
+    val miniPlayerHiddenRoutes: Set<KClass<out AppRoute>> = setOf(AppRoute.NowPlaying::class)
 
     fun showsTopAppBar(destination: NavDestination?): Boolean =
         destination == null || topAppBarRoutes.any { destination.hasRoute(it) }
 
     fun showsBottomBar(destination: NavDestination?): Boolean =
         destination == null || bottomBarRoutes.any { destination.hasRoute(it) }
+
+    fun showsMiniPlayer(destination: NavDestination?): Boolean =
+        destination == null || miniPlayerHiddenRoutes.none { destination.hasRoute(it) }
 }
 
 internal object AppShellBackgrounds {

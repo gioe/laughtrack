@@ -1,10 +1,15 @@
 package app.laughtrack.android
 
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.test.platform.app.InstrumentationRegistry
+import app.laughtrack.android.core.playback.PodcastPlaybackController
+import app.laughtrack.android.core.playback.PodcastPlaybackItem
 import app.laughtrack.android.core.ui.theme.LaughTrackTheme
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
@@ -76,5 +81,33 @@ class AppShellTest {
         // ungated Search tab renders normally.
         composeRule.onNodeWithText("Search").assertIsDisplayed()
         composeRule.onNodeWithText("Favorites").assertDoesNotExist()
+    }
+
+    @Test
+    fun expanded_now_playing_hides_shell_top_bar_and_mini_player() {
+        hiltRule.inject()
+        val episodeTitle = "Now Playing chrome test"
+        val playbackController =
+            PodcastPlaybackController(InstrumentationRegistry.getInstrumentation().targetContext)
+        playbackController.seedForScreenshot(
+            PodcastPlaybackItem(
+                episodeId = -1,
+                podcastId = -1,
+                podcastTitle = "Test podcast",
+                episodeTitle = episodeTitle,
+                audioUrl = "https://example.invalid/test.mp3",
+                artworkUrl = null,
+            ),
+        )
+        composeRule.setContent {
+            LaughTrackTheme { AppShell(playbackController = playbackController) }
+        }
+
+        composeRule.onNodeWithText(episodeTitle).assertIsDisplayed().performClick()
+        composeRule.onNodeWithContentDescription("Sleep timer").assertIsDisplayed()
+
+        composeRule.onNodeWithContentDescription("Profile menu").assertDoesNotExist()
+        composeRule.onAllNodesWithText(episodeTitle).assertCountEquals(1)
+        composeRule.runOnIdle { playbackController.stop() }
     }
 }
