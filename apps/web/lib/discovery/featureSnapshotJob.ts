@@ -187,7 +187,14 @@ export async function loadDiscoveryFeatureInputBatch({
                     },
                 },
             },
-            orderBy: [{ date: "asc" }, { id: "asc" }],
+            // Prefer shows with fewer historical snapshots so a daily batch
+            // smaller than the eligible set rotates instead of selecting the
+            // same earliest shows forever.
+            orderBy: [
+                { discoveryFeatureSnapshots: { _count: "asc" } },
+                { date: "asc" },
+                { id: "asc" },
+            ],
             take: batchSize,
         }),
     ]);
