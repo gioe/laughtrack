@@ -83,7 +83,12 @@ export default async function HomePage() {
     const timezone = readTimezoneCookie(cookieStore.get("timezone")?.value);
     const heroContext = await getHeroContext(session?.profile?.zipCode ?? null);
     const zipCode = heroContext.zipCode;
-    const anonymousVisitorId = cookieStore.get("lt_anon_visitor_id")?.value;
+    const storedAnonymousVisitorId =
+        cookieStore.get("lt_anon_visitor_id")?.value;
+    const anonymousVisitorId =
+        storedAnonymousVisitorId && storedAnonymousVisitorId.length <= 128
+            ? storedAnonymousVisitorId
+            : null;
     const discoveryActorKey = session?.profile?.id
         ? `profile:${session.profile.id}`
         : anonymousVisitorId

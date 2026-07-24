@@ -141,6 +141,24 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
     const parsedEvents = events as ImpressionInput[];
 
     const actor = await resolveDiscoveryActor(req);
+    const serverAssignmentEligible =
+        actor.profileId !== null || !actor.shouldSetAnonymousCookie;
+    const serverAssignmentReason: DiscoveryAssignmentReason =
+        serverAssignmentEligible
+            ? "stable_actor_assignment"
+            : "cookieless_bootstrap";
+    if (
+        parsedEvents.some(
+            (event) =>
+                event.assignmentEligible !== serverAssignmentEligible ||
+                event.assignmentReason !== serverAssignmentReason,
+        )
+    ) {
+        return NextResponse.json(
+            { error: "Discovery assignment context does not match the actor" },
+            { status: 400 },
+        );
+    }
     const rateLimit = await applyDiscoveryWriteRateLimit(
         req,
         actor,

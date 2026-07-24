@@ -288,6 +288,39 @@ describe("HomePage favorite comedian rail", () => {
         expect(markup).toContain('data-experiment-variant="control"');
     });
 
+    it("treats an invalid oversized visitor cookie as cookieless bootstrap traffic", async () => {
+        process.env.NEAR_YOU_DISCOVERY_RANKER_ENABLED = "1";
+        mocks.auth.mockResolvedValue(null);
+        mocks.cookies.mockResolvedValue({
+            get: vi.fn((name: string) =>
+                name === "lt_anon_visitor_id"
+                    ? { value: "x".repeat(129) }
+                    : undefined,
+            ),
+        });
+        mocks.getHeroContext.mockResolvedValue({
+            city: "New Rochelle",
+            state: "NY",
+            zipCode: "10801",
+        });
+        mocks.getShowsNearZipWithTelemetry.mockResolvedValue({
+            shows: [makeShow(1)],
+            impressionContexts: {},
+        });
+
+        const markup = await renderHomePage();
+
+        expect(mocks.getShowsNearZipWithTelemetry).toHaveBeenCalledWith(
+            "10801",
+            25,
+            expect.objectContaining({
+                actorKey: null,
+                experimentVariant: "control",
+            }),
+        );
+        expect(markup).toContain('data-experiment-variant="control"');
+    });
+
     it("renders the personalized rail above trending comedians for signed-in users with favorite shows", async () => {
         mocks.auth.mockResolvedValue({
             profile: { id: "profile-1", zipCode: null },

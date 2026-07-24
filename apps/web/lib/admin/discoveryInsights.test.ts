@@ -20,25 +20,25 @@ function outcome(
         experimentVariant: "control",
         policyVersion: "near-you-control-v1",
         assignmentBucket: "eligible",
-        impressionActors: 1_200,
-        impressions: 4_800,
+        impressionActors: 10_000,
+        impressions: 40_000,
         distinctShows: 80,
-        detailActors: 360,
+        detailActors: 3_000,
         detailEngagedShows: 40,
-        ticketIntentActors: 65,
-        actionableTicketIntentActors: 60,
+        ticketIntentActors: 600,
+        actionableTicketIntentActors: 550,
         soldOutDemandActors: 3,
         unknownAvailabilityTicketIntentActors: 2,
-        actionableImpressions: 4_320,
+        actionableImpressions: 36_000,
         unavailableImpressions: 20,
-        knownGeoImpressions: 4_600,
-        geographicallyEligibleImpressions: 4_600,
-        newcomerImpressions: 720,
+        knownGeoImpressions: 38_000,
+        geographicallyEligibleImpressions: 38_000,
+        newcomerImpressions: 6_000,
         explorationImpressions: 0,
         explorationActors: 0,
         explorationDetailActors: 0,
         explorationTicketIntentActors: 0,
-        missingFeatureImpressions: 4_800,
+        missingFeatureImpressions: 40_000,
         latestImpressedAt: new Date("2026-07-24T11:00:00.000Z"),
         latestRecordedAt: new Date("2026-07-24T11:00:01.000Z"),
         ...overrides,
@@ -110,10 +110,10 @@ describe("discovery experiment evaluation", () => {
             outcome({
                 experimentVariant: "candidate",
                 policyVersion: "near-you-candidate-v1",
-                actionableTicketIntentActors: 72,
-                ticketIntentActors: 78,
-                detailActors: 384,
-                actionableImpressions: 4_416,
+                actionableTicketIntentActors: 550,
+                ticketIntentActors: 720,
+                detailActors: 3_200,
+                actionableImpressions: 36_800,
                 explorationImpressions: 20,
                 explorationActors: 10,
                 explorationDetailActors: 4,
@@ -173,8 +173,10 @@ describe("discovery experiment evaluation", () => {
         );
 
         expect(mockQueryRaw).toHaveBeenCalledTimes(3);
-        expect(control?.primary.actionableTicketIntent.rate).toBe(0.05);
-        expect(candidate?.primary.actionableTicketIntent.rate).toBe(0.06);
+        expect(control?.primary.actionableTicketIntent.rate).toBe(0.055);
+        expect(candidate?.primary.actionableTicketIntent.rate).toBe(0.055);
+        expect(control?.primary.allTicketIntent.rate).toBe(0.06);
+        expect(candidate?.primary.allTicketIntent.rate).toBe(0.072);
         expect(candidate?.guardrails.showDetail.rate).toBe(0.32);
         expect(candidate?.guardrails.actionableResultCoverageRate).toBe(0.92);
         expect(candidate?.guardrails.geographicEligibilityRate).toBeCloseTo(1);
@@ -186,12 +188,25 @@ describe("discovery experiment evaluation", () => {
             ticketIntentRate: 0.2,
         });
         expect(report.comparison.primaryRelativeDelta).toBeCloseTo(0.2);
+        expect(report.comparison.actionableTicketIntentRelativeDelta).toBe(0);
+        expect(report.comparison.primaryRelativeLiftLower95).toBeGreaterThan(
+            -0.02,
+        );
         expect(report.traffic).toEqual({
-            assignmentEligibleActors: 2_400,
+            assignmentEligibleActors: 20_000,
             bootstrapControlActors: 30,
             legacyUnknownActors: 12,
         });
         expect(report.decision.status).toBe("ship");
+        const featureQuery = mockQueryRaw.mock.calls[2][0] as {
+            strings: readonly string[];
+        };
+        expect(featureQuery.strings.join(" ")).toContain(
+            "i.assignment_eligible IS TRUE",
+        );
+        expect(featureQuery.strings.join(" ")).toContain(
+            "f.show_id = e.show_id",
+        );
     });
 
     it("surfaces feature drift, stale inputs, missing context, and ranking concentration", () => {
@@ -201,7 +216,7 @@ describe("discovery experiment evaluation", () => {
                 outcome({
                     experimentVariant: "candidate",
                     policyVersion: "near-you-candidate-v1",
-                    missingFeatureImpressions: 1_200,
+                    missingFeatureImpressions: 10_000,
                 }),
             ],
             [
@@ -267,6 +282,7 @@ describe("discovery experiment evaluation", () => {
         const report = build([
             outcome({
                 impressionActors: 100,
+                ticketIntentActors: 20,
                 actionableTicketIntentActors: 20,
             }),
             outcome({
@@ -288,5 +304,28 @@ describe("discovery experiment evaluation", () => {
         );
         expect(report.traffic.bootstrapControlActors).toBe(900);
         expect(report.traffic.legacyUnknownActors).toBe(500);
+    });
+
+    it("requires the contract confidence bound before recommending ship", () => {
+        const report = build([
+            outcome({
+                impressionActors: 1_200,
+                ticketIntentActors: 65,
+                actionableTicketIntentActors: 60,
+            }),
+            outcome({
+                experimentVariant: "candidate",
+                policyVersion: "near-you-candidate-v1",
+                impressionActors: 1_200,
+                ticketIntentActors: 78,
+                actionableTicketIntentActors: 72,
+            }),
+        ]);
+
+        expect(report.comparison.primaryRelativeDelta).toBeCloseTo(0.2);
+        expect(report.comparison.primaryRelativeLiftLower95).toBeLessThan(
+            -0.02,
+        );
+        expect(report.decision.status).toBe("tune");
     });
 });

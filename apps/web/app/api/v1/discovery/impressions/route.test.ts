@@ -59,8 +59,8 @@ function validEvent(overrides: Record<string, unknown> = {}) {
         experimentVariant: "control",
         rank: 1,
         impressedAt: new Date().toISOString(),
-        assignmentEligible: true,
-        assignmentReason: "stable_actor_assignment",
+        assignmentEligible: false,
+        assignmentReason: "cookieless_bootstrap",
         explorationSelected: false,
         distanceMiles: 4.2,
         maxDistanceMiles: 25,
@@ -117,8 +117,8 @@ describe("POST /api/v1/discovery/impressions", () => {
                     policyVersion: "near-you-v1",
                     experimentVariant: "control",
                     rank: 1,
-                    assignmentEligible: true,
-                    assignmentReason: "stable_actor_assignment",
+                    assignmentEligible: false,
+                    assignmentReason: "cookieless_bootstrap",
                     explorationSelected: false,
                     distanceMiles: 4.2,
                     maxDistanceMiles: 25,
@@ -149,7 +149,14 @@ describe("POST /api/v1/discovery/impressions", () => {
 
         const response = await POST(
             makeRequest(
-                { events: [validEvent()] },
+                {
+                    events: [
+                        validEvent({
+                            assignmentEligible: true,
+                            assignmentReason: "stable_actor_assignment",
+                        }),
+                    ],
+                },
                 { cookie: "lt_anon_visitor_id=anon-existing" },
             ),
         );
@@ -182,6 +189,53 @@ describe("POST /api/v1/discovery/impressions", () => {
         expect(mockImpressionCreateMany).toHaveBeenCalledWith(
             expect.objectContaining({ skipDuplicates: true }),
         );
+    });
+
+    it("accepts assignment-eligible anonymous traffic only with an existing visitor cookie", async () => {
+        const response = await POST(
+            makeRequest(
+                {
+                    events: [
+                        validEvent({
+                            assignmentEligible: true,
+                            assignmentReason: "stable_actor_assignment",
+                        }),
+                    ],
+                },
+                { cookie: "lt_anon_visitor_id=anon-existing" },
+            ),
+        );
+
+        expect(response.status).toBe(201);
+        expect(mockImpressionCreateMany).toHaveBeenCalledWith({
+            data: [
+                expect.objectContaining({
+                    profileId: null,
+                    anonymousVisitorId: "anon-existing",
+                    assignmentEligible: true,
+                }),
+            ],
+            skipDuplicates: true,
+        });
+    });
+
+    it("rejects client-claimed eligibility when the request has no durable actor", async () => {
+        const response = await POST(
+            makeRequest({
+                events: [
+                    validEvent({
+                        assignmentEligible: true,
+                        assignmentReason: "stable_actor_assignment",
+                    }),
+                ],
+            }),
+        );
+
+        expect(response.status).toBe(400);
+        expect(await response.json()).toEqual({
+            error: "Discovery assignment context does not match the actor",
+        });
+        expect(mockImpressionCreateMany).not.toHaveBeenCalled();
     });
 
     it.each([

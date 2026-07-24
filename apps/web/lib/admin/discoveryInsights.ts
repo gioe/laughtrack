@@ -150,7 +150,7 @@ export interface DiscoveryEvaluation {
         days: number;
     };
     contract: {
-        primaryMetric: "actionable_ticket_intent_actors_per_qualified_impression_actor";
+        primaryMetric: "ticket_intent_actors_per_qualified_impression_actor";
         minimumActorsPerArm: number;
         minimumTicketIntentActorsPerArm: number;
         minimumObservationDays: number;
@@ -167,6 +167,9 @@ export interface DiscoveryEvaluation {
         candidatePolicyVersion: string | null;
         controlPolicyVersion: string | null;
         primaryRelativeDelta: number | null;
+        primaryRelativeLiftLower95: number | null;
+        primaryRelativeLiftUpper95: number | null;
+        actionableTicketIntentRelativeDelta: number | null;
         detailRelativeDelta: number | null;
         actionableCoverageDelta: number | null;
     };
@@ -214,6 +217,36 @@ function difference(
 ): number | null {
     if (candidate === null || control === null) return null;
     return candidate - control;
+}
+
+function relativeLiftConfidence95(
+    candidateActors: number,
+    candidateTotal: number,
+    controlActors: number,
+    controlTotal: number,
+): { lower: number; upper: number } | null {
+    if (
+        candidateActors <= 0 ||
+        controlActors <= 0 ||
+        candidateTotal <= 0 ||
+        controlTotal <= 0
+    ) {
+        return null;
+    }
+    const candidateRate = candidateActors / candidateTotal;
+    const controlRate = controlActors / controlTotal;
+    const logRiskRatio = Math.log(candidateRate / controlRate);
+    const standardError = Math.sqrt(
+        1 / candidateActors -
+            1 / candidateTotal +
+            1 / controlActors -
+            1 / controlTotal,
+    );
+    const margin = 1.96 * standardError;
+    return {
+        lower: Math.exp(logRiskRatio - margin) - 1,
+        upper: Math.exp(logRiskRatio + margin) - 1,
+    };
 }
 
 function concentration(
@@ -395,6 +428,8 @@ function decide(
     control: DiscoveryVariantEvaluation | undefined,
     candidate: DiscoveryVariantEvaluation | undefined,
     primaryDelta: number | null,
+    primaryLiftLower95: number | null,
+    actionableTicketIntentDelta: number | null,
     detailDelta: number | null,
     coverageDelta: number | null,
     stale: boolean,
@@ -441,6 +476,10 @@ function decide(
         !stale &&
         primaryDelta !== null &&
         primaryDelta >= 0.05 &&
+        primaryLiftLower95 !== null &&
+        primaryLiftLower95 > -0.02 &&
+        (actionableTicketIntentDelta === null ||
+            actionableTicketIntentDelta >= 0) &&
         (detailDelta === null || detailDelta >= 0) &&
         (coverageDelta === null || coverageDelta >= -0.02)
     ) {
@@ -472,9 +511,22 @@ export function buildDiscoveryEvaluation(
     const control = latestPolicy(variants, "control");
     const candidate = latestPolicy(variants, "candidate");
     const primaryDelta = relativeDelta(
+        candidate?.primary.allTicketIntent.rate ?? null,
+        control?.primary.allTicketIntent.rate ?? null,
+    );
+    const actionableTicketIntentDelta = relativeDelta(
         candidate?.primary.actionableTicketIntent.rate ?? null,
         control?.primary.actionableTicketIntent.rate ?? null,
     );
+    const primaryLiftConfidence =
+        control && candidate
+            ? relativeLiftConfidence95(
+                  candidate.primary.allTicketIntent.actors,
+                  candidate.qualifiedImpressionActors,
+                  control.primary.allTicketIntent.actors,
+                  control.qualifiedImpressionActors,
+              )
+            : null;
     const detailDelta = relativeDelta(
         candidate?.guardrails.showDetail.rate ?? null,
         control?.guardrails.showDetail.rate ?? null,
@@ -529,7 +581,7 @@ export function buildDiscoveryEvaluation(
         },
         contract: {
             primaryMetric:
-                "actionable_ticket_intent_actors_per_qualified_impression_actor",
+                "ticket_intent_actors_per_qualified_impression_actor",
             minimumActorsPerArm: MINIMUM_ACTORS_PER_ARM,
             minimumTicketIntentActorsPerArm:
                 MINIMUM_TICKET_INTENT_ACTORS_PER_ARM,
@@ -547,6 +599,9 @@ export function buildDiscoveryEvaluation(
             candidatePolicyVersion: candidate?.policyVersion ?? null,
             controlPolicyVersion: control?.policyVersion ?? null,
             primaryRelativeDelta: primaryDelta,
+            primaryRelativeLiftLower95: primaryLiftConfidence?.lower ?? null,
+            primaryRelativeLiftUpper95: primaryLiftConfidence?.upper ?? null,
+            actionableTicketIntentRelativeDelta: actionableTicketIntentDelta,
             detailRelativeDelta: detailDelta,
             actionableCoverageDelta: coverageDelta,
         },
@@ -561,6 +616,8 @@ export function buildDiscoveryEvaluation(
             control,
             candidate,
             primaryDelta,
+            primaryLiftConfidence?.lower ?? null,
+            actionableTicketIntentDelta,
             detailDelta,
             coverageDelta,
             stale,
@@ -699,19 +756,33 @@ function buildFeatureDistributionQuery(start: Date, end: Date): Prisma.Sql {
                 ('current'::text, ${start}::timestamptz, ${end}::timestamptz),
                 ('baseline'::text, ${baselineStart}::timestamptz, ${start}::timestamptz)
         ),
-        latest AS (
-            SELECT
+        exposed AS (
+            SELECT DISTINCT
                 p.period,
                 p.period_end,
+                i.entity_id AS show_id
+            FROM periods p
+            JOIN discovery_impression_events i
+              ON i.impressed_at >= p.period_start
+             AND i.impressed_at < p.period_end
+            WHERE i.surface = 'near_you'
+              AND i.entity_type = 'show'
+              AND i.assignment_eligible IS TRUE
+        ),
+        latest AS (
+            SELECT
+                e.period,
+                e.period_end,
                 f.*,
                 ROW_NUMBER() OVER (
-                    PARTITION BY p.period, f.show_id
+                    PARTITION BY e.period, f.show_id
                     ORDER BY f.as_of DESC, f.computed_at DESC, f.id DESC
                 ) AS snapshot_rank
-            FROM periods p
+            FROM exposed e
             JOIN discovery_show_feature_snapshots f
-              ON f.feature_version = ${DISCOVERY_FEATURE_VERSION}
-             AND f.as_of < p.period_end
+              ON f.show_id = e.show_id
+             AND f.feature_version = ${DISCOVERY_FEATURE_VERSION}
+             AND f.as_of < e.period_end
         )
         SELECT
             period,
