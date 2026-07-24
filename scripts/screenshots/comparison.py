@@ -15,11 +15,13 @@ from typing import Any, Mapping, Sequence
 
 try:
     from scripts.screenshots.manifest import (
-        ContractError, SCENARIO_IDS, load_catalog, load_manifest, png_dimensions, validate_manifest,
+        ContractError, SCENARIO_IDS, load_catalog, load_manifest, normalized_profile_metadata,
+        png_dimensions, validate_manifest,
     )
 except ModuleNotFoundError:
     from manifest import (  # type: ignore[no-redef]
-        ContractError, SCENARIO_IDS, load_catalog, load_manifest, png_dimensions, validate_manifest,
+        ContractError, SCENARIO_IDS, load_catalog, load_manifest, normalized_profile_metadata,
+        png_dimensions, validate_manifest,
     )
 
 BASELINE_SCHEMA_VERSION = 1
@@ -64,6 +66,10 @@ def _load_runs(
     fresh_since: datetime | None,
 ) -> tuple[dict[str, Any], list[dict[str, Any]], dict[str, str]]:
     catalog = load_catalog(catalog_path)
+    profiles = {
+        profile["id"]: profile
+        for profile in normalized_profile_metadata(catalog)
+    }
     captures: dict[tuple[str, str], dict[str, Any]] = {}
     manifests: dict[str, str] = {}
     revisions: set[str] = set()
@@ -94,6 +100,7 @@ def _load_runs(
         manifests[f"{platform}_manifest_sha256"] = hashlib.sha256(path.read_bytes()).hexdigest()
         revisions.add(manifest["git_revision"])
         for image in manifest["images"]:
+            profile = profiles[image["profile_id"]]
             captures[(image["profile_id"], image["scenario_id"])] = {
                 "profile_id": image["profile_id"],
                 "scenario_id": image["scenario_id"],
@@ -102,6 +109,9 @@ def _load_runs(
                 "path": str((path.parent / image["path"]).resolve()),
                 "width": image["width"],
                 "height": image["height"],
+                "comparison_only": profile["comparison_only"],
+                "shipping": profile["shipping"],
+                "audit_caveat": profile["audit_caveat"],
             }
     if len(revisions) != 1:
         raise ContractError(["iOS and Android run manifests must record the same Git revision"])
@@ -195,9 +205,16 @@ def build_comparison(
     return {
         "schema_version": 1, "catalog_sha256": catalog_sha,
         "git_revision": provenance["git_revision"], "source_provenance": provenance,
+        "profiles": normalized_profile_metadata(catalog, PROFILE_ORDER),
         "baseline_usable": not baseline_reasons, "baseline_reasons": baseline_reasons,
         "groups": groups,
     }
+
+
+def _sheet_profile_label(image: Mapping[str, Any]) -> str:
+    if image.get("comparison_only") and not image.get("shipping"):
+        return f"{image['profile_id']}\ncomparison-only / non-shipping"
+    return str(image["profile_id"])
 
 
 def generate_sheets(
@@ -215,7 +232,7 @@ def generate_sheets(
         destination = (output_dir / f"{group['scenario_id']}.png").resolve()
         command = [magick, "-font", str(selected_font)]
         for image in group["images"]:
-            command += ["(", image["path"], "-thumbnail", "300x650", "-background", "#202124", "-gravity", "north", "-splice", "0x42", "-fill", "white", "-pointsize", "18", "-annotate", "+0+10", image["profile_id"], ")"]
+            command += ["(", image["path"], "-thumbnail", "300x650", "-background", "#202124", "-gravity", "north", "-splice", "0x62", "-fill", "white", "-pointsize", "16", "-annotate", "+0+8", _sheet_profile_label(image), ")"]
         command += ["+append", "-background", "#202124", "-gravity", "north", "-splice", "0x48", "-fill", "white", "-pointsize", "22", "-annotate", "+0+12", group["scenario_id"], str(destination)]
         try:
             subprocess.run(command, check=True)

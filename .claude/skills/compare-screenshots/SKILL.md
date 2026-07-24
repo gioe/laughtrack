@@ -62,8 +62,10 @@ manifests are:
 Run the bundled validator with both manifests, the recorded freshness boundary,
 and the persistent reviewed baseline. It hashes ImageMagick-decoded RGBA pixels,
 not encoded PNG bytes, so metadata and compression changes do not create false
-deltas. The canonical order is iOS phone, Android phone, iPad, Android 10-inch,
-then Android 7-inch.
+deltas. The canonical order is iOS phone, Android phone, comparison-only iPad,
+Android 10-inch, then Android 7-inch. The iPad profile renders native geometry
+for comparison but is not a shipping target; the production iOS app is
+iPhone-only.
 
 ```bash
 REVIEWED_BASELINE="apps/screenshot-comparisons/reviewed-baseline.json"
@@ -96,6 +98,11 @@ marks all 17 groups `review_required`; open every scenario sheet at high detail.
 On later audits, open only sheets whose group has `review_required: true`.
 Changed pixels, a missing capture record, or invalid baseline catalog/source/order
 provenance must always require review. Never override those safeguards.
+
+Read the root-level `profiles` metadata before judging device support. Treat any
+profile with `comparison_only: true` and `shipping: false` as a diagnostic
+comparison surface, not as evidence of a production tablet experience. The
+scenario-sheet label repeats this status so it remains visible during review.
 
 Use each sheet as the primary review surface. Open an original image at high or
 original detail only when the sheet exposes a suspected defect that needs closer
@@ -152,5 +159,10 @@ Use severity labels:
 - **Low** — minor polish difference or normal platform variation.
 
 Be specific about visible evidence. Avoid vague statements such as “iOS feels better.” Explain which asset, spacing decision, record selection, hierarchy, or artifact creates the difference.
+
+The caveat section must explicitly state that the iPad images use native iPad
+geometry enabled only for comparison captures and that the shipping iOS target
+is iPhone-only. Do not score or describe those images as production iPad or
+App Store tablet support.
 
 Do not modify app code or create tasks unless the user separately asks for remediation or task creation.
