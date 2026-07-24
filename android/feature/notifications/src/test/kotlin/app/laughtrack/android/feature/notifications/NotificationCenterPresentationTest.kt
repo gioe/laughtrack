@@ -1,7 +1,9 @@
 package app.laughtrack.android.feature.notifications
 
+import app.laughtrack.android.core.navigation.AppRoute
 import app.laughtrack.android.core.network.generated.model.NotificationComedian
 import app.laughtrack.android.core.network.generated.model.NotificationItem
+import app.laughtrack.android.core.network.generated.model.NotificationShow
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -78,12 +80,68 @@ class NotificationCenterPresentationTest {
         assertEquals("5m", presentation.relativeTime)
     }
 
+    @Test
+    fun recentIsTheNewestFirstDefaultWithDeterministicEqualTimestampOrdering() {
+        val items =
+            listOf(
+                item(title = "oldest", sentAt = "2026-07-13T15:00:00-04:00"),
+                item(title = "equal-b", sentAt = "2026-07-15T13:00:00-04:00"),
+                item(title = "equal-a", sentAt = "2026-07-15T13:00:00-04:00"),
+            )
+
+        assertEquals(NotificationSortOrder.RECENT, DEFAULT_NOTIFICATION_SORT_ORDER)
+        assertEquals(
+            listOf("equal-a", "equal-b", "oldest"),
+            DEFAULT_NOTIFICATION_SORT_ORDER.sorted(items).map { it.id },
+        )
+    }
+
+    @Test
+    fun oldestSelectionOrdersOldestFirstWithTheSameDeterministicTiebreaker() {
+        val items =
+            listOf(
+                item(title = "equal-b", sentAt = "2026-07-15T13:00:00-04:00"),
+                item(title = "oldest", sentAt = "2026-07-13T15:00:00-04:00"),
+                item(title = "equal-a", sentAt = "2026-07-15T13:00:00-04:00"),
+            )
+
+        assertEquals(
+            listOf("oldest", "equal-a", "equal-b"),
+            NotificationSortOrder.OLDEST.sorted(items).map { it.id },
+        )
+    }
+
+    @Test
+    fun sortingPreservesUnreadPresentationAndNavigationActions() {
+        val unreadShow =
+            item(
+                title = "unread-show",
+                isUnread = true,
+                sentAt = "2026-07-15T13:00:00-04:00",
+            ).copy(shows = notificationShows(101))
+        val grouped =
+            item(
+                title = "grouped",
+                isUnread = false,
+                sentAt = "2026-07-14T13:00:00-04:00",
+            ).copy(shows = notificationShows(201, 202), route = "favorites")
+        val sorted = NotificationSortOrder.OLDEST.sorted(listOf(unreadShow, grouped))
+
+        assertEquals(listOf("grouped", "unread-show"), sorted.map { it.id })
+        assertTrue(notificationRowPresentation(sorted.last(), now).isUnread)
+        assertFalse(notificationRowPresentation(sorted.first(), now).isUnread)
+        assertEquals(AppRoute.ShowDetail(101), unreadShow.tapRoute())
+        assertEquals(101, unreadShow.analyticsShowId())
+        assertEquals(AppRoute.Favorites(listOf(201, 202)), grouped.tapRoute())
+        assertEquals(0, grouped.analyticsShowId())
+    }
+
     private fun item(
         title: String,
-        body: String,
-        isUnread: Boolean,
-        sentAt: String,
-        comedianNames: List<String>,
+        body: String = "",
+        isUnread: Boolean = false,
+        sentAt: String = "2026-07-15T13:00:00-04:00",
+        comedianNames: List<String> = emptyList(),
     ) = NotificationItem(
         id = title,
         title = title,
@@ -103,4 +161,12 @@ class NotificationCenterPresentationTest {
         sentAt = sentAt,
         isUnread = isUnread,
     )
+
+    private fun notificationShows(vararg showIds: Int) =
+        showIds.map { showId ->
+            NotificationShow(
+                showId = showId,
+                subtitle = "Show $showId",
+            )
+        }
 }
