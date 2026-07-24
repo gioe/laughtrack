@@ -3,6 +3,8 @@ package app.laughtrack.android.feature.profile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.laughtrack.android.core.analytics.AnalyticsManager
+import app.laughtrack.android.core.data.location.CurrentLocationResolver
+import app.laughtrack.android.core.data.location.CurrentLocationResult
 import app.laughtrack.android.core.data.profile.ProfileAccount
 import app.laughtrack.android.core.data.profile.ProfileAuthProvider
 import app.laughtrack.android.core.data.profile.ProfileMutationResult
@@ -27,6 +29,7 @@ data class ProfileUiState(
     val selectedDistanceMiles: Int = ProfilePreferences.DEFAULT_DISTANCE_MILES,
     val isLoading: Boolean = true,
     val isMutating: Boolean = false,
+    val isResolvingCurrentLocation: Boolean = false,
     val message: String? = null,
     val showDeleteConfirmation: Boolean = false,
     val zipCodeDraftTouched: Boolean = false,
@@ -39,6 +42,7 @@ class ProfileViewModel
     constructor(
         private val repository: ProfileRepository,
         private val analytics: AnalyticsManager,
+        private val currentLocationResolver: CurrentLocationResolver,
     ) : ViewModel() {
         private val mutableState = MutableStateFlow(ProfileUiState())
 
@@ -127,6 +131,61 @@ class ProfileViewModel
             }
         }
 
+        fun useCurrentLocation() {
+            viewModelScope.launch {
+                mutableState.update {
+                    it.copy(isResolvingCurrentLocation = true, message = null)
+                }
+                when (val result = currentLocationResolver.resolve()) {
+                    is CurrentLocationResult.Success -> {
+                        val draftState = mutableState.value
+                        val distanceMiles =
+                            if (draftState.distanceTouched) {
+                                draftState.selectedDistanceMiles
+                            } else {
+                                uiState.value.selectedDistanceMiles
+                            }
+                        val saveResult =
+                            repository.saveLocation(
+                                result.zipCode,
+                                distanceMiles,
+                            )
+                        val message =
+                            when (saveResult) {
+                                ProfileMutationResult.Success -> "Current location saved to your profile."
+                                ProfileMutationResult.InvalidZip -> "That location did not provide a valid ZIP code."
+                                ProfileMutationResult.SyncFailed ->
+                                    "LaughTrack could not save your current location. You can still enter a ZIP code."
+                            }
+                        val saved = saveResult == ProfileMutationResult.Success
+                        mutableState.update {
+                            it.copy(
+                                isResolvingCurrentLocation = false,
+                                message = message,
+                                zipCodeDraftTouched = if (saved) false else it.zipCodeDraftTouched,
+                                distanceTouched = if (saved) false else it.distanceTouched,
+                            )
+                        }
+                    }
+                    CurrentLocationResult.PermissionDenied -> {
+                        finishLocationResolution(
+                            "Location permission was denied. You can still enter a ZIP code.",
+                        )
+                    }
+                    CurrentLocationResult.LocationUnavailable -> {
+                        finishLocationResolution(
+                            "Your current location is unavailable. You can still enter a ZIP code.",
+                        )
+                    }
+                    CurrentLocationResult.GeocodingFailed -> {
+                        finishLocationResolution(
+                            "We could not find a ZIP code for your location. Try again or enter one manually.",
+                        )
+                    }
+                }
+            }
+        }
+
         fun clearLocation() {
             mutate(resetLocationDrafts = true) {
                 when (repository.clearLocation()) {
@@ -200,6 +259,15 @@ class ProfileViewModel
 
         fun clearMessage() {
             mutableState.update { it.copy(message = null) }
+        }
+
+        private fun finishLocationResolution(message: String) {
+            mutableState.update {
+                it.copy(
+                    isResolvingCurrentLocation = false,
+                    message = message,
+                )
+            }
         }
 
         private fun mutate(

@@ -30,10 +30,12 @@ dependencies {
 
     // Repositories, favorite stores, offline replay queue, and encrypted token
     // storage land here in later tasks; deps are pre-declared for module wiring.
+    implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.security.crypto)
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.play.services.location)
 
     implementation(libs.hilt.android)
     implementation(libs.hilt.work)

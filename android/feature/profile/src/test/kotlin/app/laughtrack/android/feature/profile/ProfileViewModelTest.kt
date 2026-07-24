@@ -1,6 +1,8 @@
 package app.laughtrack.android.feature.profile
 
 import app.laughtrack.android.core.analytics.AnalyticsManager
+import app.laughtrack.android.core.data.location.CurrentLocationResolver
+import app.laughtrack.android.core.data.location.CurrentLocationResult
 import app.laughtrack.android.core.data.profile.ProfileAccountService
 import app.laughtrack.android.core.data.profile.ProfileAuthProvider
 import app.laughtrack.android.core.data.profile.ProfileLocalPreferences
@@ -166,6 +168,64 @@ class ProfileViewModelTest {
         }
 
     @Test
+    fun current_location_resolution_persists_zip_and_distance() =
+        runTest {
+            val settingsService = FakeProfileSettingsService()
+            val viewModel =
+                viewModel(
+                    settingsService = settingsService,
+                    currentLocationResult = CurrentLocationResult.Success("10001"),
+                )
+            subscribe(viewModel)
+
+            viewModel.setSelectedDistance(50)
+            viewModel.useCurrentLocation()
+            advanceUntilIdle()
+
+            assertEquals(
+                ProfileLocationUpdate(zipCode = "10001", nearbyDistanceMiles = 50),
+                settingsService.locationUpdates.single(),
+            )
+            assertEquals("10001", viewModel.uiState.value.preferences.zipCode)
+            assertEquals("10001", viewModel.uiState.value.zipCodeDraft)
+            assertEquals("Current location saved to your profile.", viewModel.uiState.value.message)
+            assertFalse(viewModel.uiState.value.isResolvingCurrentLocation)
+        }
+
+    @Test
+    fun current_location_failures_preserve_manual_zip_and_surface_recovery_feedback() =
+        runTest {
+            val failures =
+                listOf(
+                    CurrentLocationResult.PermissionDenied to
+                        "Location permission was denied. You can still enter a ZIP code.",
+                    CurrentLocationResult.LocationUnavailable to
+                        "Your current location is unavailable. You can still enter a ZIP code.",
+                    CurrentLocationResult.GeocodingFailed to
+                        "We could not find a ZIP code for your location. Try again or enter one manually.",
+                )
+
+            failures.forEach { (result, expectedMessage) ->
+                val settingsService = FakeProfileSettingsService()
+                val viewModel =
+                    viewModel(
+                        settingsService = settingsService,
+                        currentLocationResult = result,
+                    )
+                subscribe(viewModel)
+                viewModel.setZipCodeDraft("90210")
+
+                viewModel.useCurrentLocation()
+                advanceUntilIdle()
+
+                assertEquals("90210", viewModel.uiState.value.zipCodeDraft)
+                assertEquals(expectedMessage, viewModel.uiState.value.message)
+                assertFalse(viewModel.uiState.value.isResolvingCurrentLocation)
+                assertTrue(settingsService.locationUpdates.isEmpty())
+            }
+        }
+
+    @Test
     fun failed_notification_save_surfaces_the_sync_error() =
         runTest {
             val settingsService = FakeProfileSettingsService(succeeds = false)
@@ -192,6 +252,7 @@ class ProfileViewModelTest {
     private fun viewModel(
         accountService: ProfileAccountService = FakeProfileAccountService(hasSession = false),
         settingsService: ProfileSettingsService = FakeProfileSettingsService(),
+        currentLocationResult: CurrentLocationResult = CurrentLocationResult.LocationUnavailable,
     ): ProfileViewModel =
         ProfileViewModel(
             repository =
@@ -202,6 +263,7 @@ class ProfileViewModelTest {
                     sessionSideEffects = emptySet(),
                 ),
             analytics = AnalyticsManager(emptyList()),
+            currentLocationResolver = FakeCurrentLocationResolver(currentLocationResult),
         )
 
     private fun meData() =
@@ -265,6 +327,12 @@ class ProfileViewModelTest {
             notificationUpdates += update
             return succeeds
         }
+    }
+
+    private class FakeCurrentLocationResolver(
+        private val result: CurrentLocationResult,
+    ) : CurrentLocationResolver {
+        override suspend fun resolve(): CurrentLocationResult = result
     }
 
     private class FakeLocalPreferences : ProfileLocalPreferences {
