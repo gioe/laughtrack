@@ -3,6 +3,13 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 vi.mock("./findShowsForHome", () => ({
     findShowsForHome: vi.fn(() => Promise.resolve([])),
 }));
+vi.mock("@/lib/db", () => ({
+    db: {
+        discoveryShowFeatureSnapshot: {
+            findMany: vi.fn(() => Promise.resolve([])),
+        },
+    },
+}));
 vi.mock("zipcodes", () => ({
     default: {
         radius: vi.fn(() => ["10801", "10802"]),
@@ -11,8 +18,10 @@ vi.mock("zipcodes", () => ({
 
 import { getShowsNearZip } from "./getShowsNearZip";
 import { findShowsForHome } from "./findShowsForHome";
+import { db } from "@/lib/db";
 
 const mockFindShowsForHome = vi.mocked(findShowsForHome);
+const mockFindSnapshots = vi.mocked(db.discoveryShowFeatureSnapshot.findMany);
 
 beforeEach(() => {
     vi.clearAllMocks();
@@ -52,6 +61,45 @@ describe("getShowsNearZip", () => {
             8,
             { zipCode: "10801", sortByHomeRelevance: true },
         );
+    });
+
+    it("loads and ranks the bounded candidate pool only when candidate context is supplied", async () => {
+        const shows = Array.from({ length: 10 }, (_, index) => ({
+            id: index + 1,
+            clubId: index + 1,
+            name: `Show ${index + 1}`,
+            date: new Date("2026-06-01T20:00:00Z"),
+            distanceMiles: 5,
+            imageUrl: "",
+            soldOut: false,
+            lineup: [{ isFavorite: index === 9 }],
+        }));
+        mockFindShowsForHome.mockResolvedValue(shows as never);
+        mockFindSnapshots.mockResolvedValue([] as never);
+
+        const result = await getShowsNearZip("10801", 25, {
+            actorKey: "profile:profile-1",
+            profileId: "profile-1",
+        });
+
+        expect(mockFindShowsForHome).toHaveBeenCalledWith(
+            expect.any(Object),
+            [{ popularity: "desc" }, { date: "asc" }],
+            50,
+            {
+                zipCode: "10801",
+                profileId: "profile-1",
+            },
+        );
+        expect(mockFindSnapshots).toHaveBeenCalledWith(
+            expect.objectContaining({
+                where: expect.objectContaining({
+                    featureVersion: "show-features-v1",
+                }),
+                distinct: ["showId"],
+            }),
+        );
+        expect(result).toHaveLength(8);
     });
 
     describe("tags emission (TASK-2567)", () => {

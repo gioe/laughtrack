@@ -1,6 +1,6 @@
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
     auth: vi.fn(),
@@ -71,16 +71,23 @@ vi.mock("@/ui/pages/home/shows", () => ({
         testId,
         seeAllHref,
         shows,
+        discoveryPresentation,
     }: {
         title: string;
         testId?: string;
         seeAllHref: string;
         shows: unknown[];
+        discoveryPresentation?: {
+            policyVersion: string;
+            experimentVariant: string;
+        };
     }) => (
         <section
             data-testid={testId ?? title}
             data-href={seeAllHref}
             data-count={shows.length}
+            data-policy-version={discoveryPresentation?.policyVersion}
+            data-experiment-variant={discoveryPresentation?.experimentVariant}
         >
             {title}
         </section>
@@ -100,6 +107,7 @@ vi.mock("./page.fixture", () => ({
 }));
 
 import HomePage from "./page";
+import { resolveNearYouDiscoveryPolicy } from "@/lib/data/home/discoveryRanker";
 
 function renderHomePage() {
     return HomePage().then((element) => renderToStaticMarkup(element));
@@ -131,6 +139,25 @@ beforeEach(() => {
     });
     mocks.getFavoriteComedianShows.mockResolvedValue([]);
 });
+
+afterEach(() => {
+    delete process.env.NEAR_YOU_DISCOVERY_RANKER_ENABLED;
+});
+
+function findCandidateProfileId(): string {
+    for (let index = 0; index < 10_000; index += 1) {
+        const profileId = `profile-${index}`;
+        if (
+            resolveNearYouDiscoveryPolicy({
+                enabled: true,
+                actorKey: `profile:${profileId}`,
+            }).experimentVariant === "candidate"
+        ) {
+            return profileId;
+        }
+    }
+    throw new Error("Unable to find candidate profile ID");
+}
 
 describe("HomePage favorite comedian rail", () => {
     it("scopes shows tonight to the resolved profile ZIP", async () => {
@@ -192,6 +219,46 @@ describe("HomePage favorite comedian rail", () => {
             'data-href="/show/search?zip=10801&amp;distance=25"',
         );
         expect(markup).not.toContain("More Near You");
+    });
+
+    it("uses the candidate ranker and matching presentation metadata for an assigned profile", async () => {
+        process.env.NEAR_YOU_DISCOVERY_RANKER_ENABLED = "1";
+        const profileId = findCandidateProfileId();
+        mocks.auth.mockResolvedValue({
+            profile: { id: profileId, zipCode: "10801" },
+        });
+        mocks.getHeroContext.mockResolvedValue({
+            city: "New Rochelle",
+            state: "NY",
+            zipCode: "10801",
+        });
+        mocks.getShowsNearZip.mockResolvedValue([makeShow(1)]);
+
+        const markup = await renderHomePage();
+
+        expect(mocks.getShowsNearZip).toHaveBeenCalledWith("10801", 25, {
+            actorKey: `profile:${profileId}`,
+            profileId,
+        });
+        expect(markup).toContain('data-policy-version="near-you-candidate-v1"');
+        expect(markup).toContain('data-experiment-variant="candidate"');
+    });
+
+    it("keeps cookieless visitors on control until a durable visitor cookie exists", async () => {
+        process.env.NEAR_YOU_DISCOVERY_RANKER_ENABLED = "1";
+        mocks.auth.mockResolvedValue(null);
+        mocks.getHeroContext.mockResolvedValue({
+            city: "New Rochelle",
+            state: "NY",
+            zipCode: "10801",
+        });
+        mocks.getShowsNearZip.mockResolvedValue([makeShow(1)]);
+
+        const markup = await renderHomePage();
+
+        expect(mocks.getShowsNearZip).toHaveBeenCalledWith("10801", 25);
+        expect(markup).toContain('data-policy-version="near-you-control-v1"');
+        expect(markup).toContain('data-experiment-variant="control"');
     });
 
     it("renders the personalized rail above trending comedians for signed-in users with favorite shows", async () => {

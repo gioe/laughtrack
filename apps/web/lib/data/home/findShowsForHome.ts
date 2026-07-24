@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import {
     AVAILABLE_SHOW_WHERE,
     PUBLIC_SHOW_SELECT,
+    buildShowSelect,
     getLineupItemPopularity,
     mapShowRowToDTO,
 } from "@/lib/data/show/showSelect";
@@ -12,6 +13,7 @@ import { ShowDTO } from "@/objects/class/show/show.interface";
 interface HomeShowQueryOptions {
     zipCode?: string;
     sortByHomeRelevance?: boolean;
+    profileId?: string;
 }
 
 const HOME_RELEVANCE_CANDIDATE_TAKE = 50;
@@ -38,9 +40,14 @@ export async function findShowsForHome(
     const queryTake = options.sortByHomeRelevance
         ? Math.max(take, HOME_RELEVANCE_CANDIDATE_TAKE)
         : take;
+    const showSelect = options.profileId
+        ? buildShowSelect({
+              favoriteComediansProfileId: options.profileId,
+          })
+        : PUBLIC_SHOW_SELECT;
     const shows = await db.show.findMany({
         where: { AND: [where, AVAILABLE_SHOW_WHERE] },
-        select: PUBLIC_SHOW_SELECT,
+        select: showSelect,
         orderBy,
         take: queryTake,
         skip,
@@ -51,6 +58,7 @@ export async function findShowsForHome(
         // undefined, and only computes distanceMiles when a zip is supplied
         // (search, by contrast, always computes it). See mapShowRowToDTO.
         const dto = mapShowRowToDTO(show, {
+            userId: options.profileId,
             zipCode: options.zipCode,
             imageSource: "lineup",
             room: "coalesce",

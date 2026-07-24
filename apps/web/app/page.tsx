@@ -13,6 +13,10 @@ import { getShowsNearZip } from "@/lib/data/home/getShowsNearZip";
 import { getTrendingShowsThisWeek } from "@/lib/data/home/getTrendingShowsThisWeek";
 import { getHeroContext } from "@/lib/data/home/getHeroContext";
 import { getFavoriteComedianShows } from "@/lib/data/home/getFavoriteComedianShows";
+import {
+    isNearYouRankerEnabled,
+    resolveNearYouDiscoveryPolicy,
+} from "@/lib/data/home/discoveryRanker";
 import { DEFAULT_HOME_RADIUS_MILES } from "@/util/constants/radiusConstants";
 import { Prisma } from "@prisma/client";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
@@ -79,6 +83,16 @@ export default async function HomePage() {
     const timezone = readTimezoneCookie(cookieStore.get("timezone")?.value);
     const heroContext = await getHeroContext(session?.profile?.zipCode ?? null);
     const zipCode = heroContext.zipCode;
+    const anonymousVisitorId = cookieStore.get("lt_anon_visitor_id")?.value;
+    const discoveryActorKey = session?.profile?.id
+        ? `profile:${session.profile.id}`
+        : anonymousVisitorId
+          ? `anonymous:${anonymousVisitorId}`
+          : null;
+    const nearYouDiscoveryPolicy = resolveNearYouDiscoveryPolicy({
+        enabled: isNearYouRankerEnabled(),
+        actorKey: discoveryActorKey,
+    });
 
     // Anchor on the caller's wallclock date (not UTC) so a West Coast user at
     // 10pm PST links to today's calendar date, not UTC tomorrow.
@@ -116,9 +130,14 @@ export default async function HomePage() {
               ).catch(() => [])
             : getShowsTonight(timezone).catch(() => []),
         zipCode
-            ? getShowsNearZip(zipCode, DEFAULT_HOME_RADIUS_MILES).catch(
-                  () => [],
-              )
+            ? (nearYouDiscoveryPolicy.experimentVariant === "candidate" &&
+              discoveryActorKey
+                  ? getShowsNearZip(zipCode, DEFAULT_HOME_RADIUS_MILES, {
+                        actorKey: discoveryActorKey,
+                        profileId: session?.profile?.id,
+                    })
+                  : getShowsNearZip(zipCode, DEFAULT_HOME_RADIUS_MILES)
+              ).catch(() => [])
             : Promise.resolve([]),
         getTrendingShowsThisWeek(timezone).catch(() => []),
         session?.profile?.id
@@ -188,8 +207,9 @@ export default async function HomePage() {
                         seeAllHref={`/show/search?zip=${zipCode}&distance=${DEFAULT_HOME_RADIUS_MILES}`}
                         discoveryPresentation={{
                             surface: "near_you",
-                            policyVersion: "near-you-control-v1",
-                            experimentVariant: "control",
+                            policyVersion: nearYouDiscoveryPolicy.policyVersion,
+                            experimentVariant:
+                                nearYouDiscoveryPolicy.experimentVariant,
                         }}
                     />
                 </section>
