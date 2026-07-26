@@ -98,6 +98,45 @@ inspect_checkout() {
   if [[ -n "$(git -C "$repo_root" status --porcelain --untracked-files=all)" ]]; then
     dirty=true
   fi
+  checkout_state_sha256="$(
+    python3 - "$repo_root" <<'PY'
+import hashlib
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+digest = hashlib.sha256()
+for args in (
+    ("status", "--porcelain=v1", "-z", "--untracked-files=all"),
+    ("diff", "--binary", "HEAD"),
+    ("diff", "--cached", "--binary", "HEAD"),
+):
+    digest.update(
+        subprocess.run(
+            ["git", "-C", str(root), *args],
+            check=True,
+            capture_output=True,
+        ).stdout
+    )
+untracked = subprocess.run(
+    ["git", "-C", str(root), "ls-files", "--others", "--exclude-standard", "-z"],
+    check=True,
+    capture_output=True,
+).stdout.split(b"\0")
+for relative_bytes in sorted(path for path in untracked if path):
+    relative = os.fsdecode(relative_bytes)
+    path = root / relative
+    digest.update(relative_bytes)
+    digest.update(b"\0")
+    if path.is_symlink():
+        digest.update(os.fsencode(os.readlink(path)))
+    else:
+        digest.update(path.read_bytes())
+print(digest.hexdigest())
+PY
+  )"
 
   origin_main_revision=""
   ahead_by=0
@@ -162,7 +201,7 @@ captured_at="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 python3 - "$checkout_provenance" "$audit_mode" "$audit_label" "$captured_at" \
   "$repo_root" "$revision" "$branch" "$detached" "$dirty" \
   "$origin_main_revision" "$origin_main_refreshed" "$ahead_by" "$behind_by" \
-  "$relationship" <<'PY'
+  "$relationship" "$checkout_state_sha256" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -182,6 +221,7 @@ from pathlib import Path
     ahead_by,
     behind_by,
     relationship,
+    checkout_state_sha256,
 ) = sys.argv[1:]
 value = {
     "schema_version": 1,
@@ -199,6 +239,7 @@ value = {
     "ahead_by": int(ahead_by),
     "behind_by": int(behind_by),
     "relationship": relationship,
+    "checkout_state_sha256": checkout_state_sha256,
 }
 Path(destination).write_text(json.dumps(value, indent=2) + "\n", encoding="utf-8")
 PY
@@ -212,6 +253,7 @@ fi
 initial_revision="$revision"
 initial_branch="$branch"
 initial_dirty="$dirty"
+initial_checkout_state_sha256="$checkout_state_sha256"
 
 command -v xcrun >/dev/null || fail "xcrun is required"
 command -v adb >/dev/null || fail "adb is required"
@@ -274,7 +316,10 @@ if [[ "$open_sheets" == true ]]; then
 fi
 
 inspect_checkout
-if [[ "$revision" != "$initial_revision" || "$branch" != "$initial_branch" || "$dirty" != "$initial_dirty" ]]; then
+if [[ "$revision" != "$initial_revision" ||
+  "$branch" != "$initial_branch" ||
+  "$dirty" != "$initial_dirty" ||
+  "$checkout_state_sha256" != "$initial_checkout_state_sha256" ]]; then
   fail "checkout changed during screenshot capture; discard this audit and rerun from a stable checkout"
 fi
 completed_at="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -17,6 +18,12 @@ from scripts.screenshots.manifest import ContractError, SCENARIO_IDS, load_catal
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 REGENERATE_SCRIPT = REPO_ROOT / "scripts" / "screenshots" / "regenerate-comparisons"
+
+
+def _executable(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+    path.chmod(0o755)
 
 
 def _git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
@@ -43,6 +50,30 @@ def _checkout_fixture(tmp_path: Path) -> tuple[Path, Path]:
     script = repo / "scripts" / "screenshots" / "regenerate-comparisons"
     script.parent.mkdir(parents=True)
     shutil.copy2(REGENERATE_SCRIPT, script)
+    for helper in ("cache.py", "manifest.py"):
+        (script.parent / helper).write_text("", encoding="utf-8")
+    (script.parent / "comparison.py").write_text(
+        'print("{}")\n',
+        encoding="utf-8",
+    )
+    lane = """#!/usr/bin/env bash
+set -euo pipefail
+repo_root="$(cd "$(dirname "$0")/../.." && pwd)"
+for argument in "$@"; do
+  case "$argument" in
+    run_root:*) run_root="${argument#run_root:}" ;;
+  esac
+done
+mkdir -p "$run_root"
+printf '{}\n' > "$run_root/manifest.json"
+if [[ "${LAUGHTRACK_TEST_MUTATE_DURING_CAPTURE:-}" == "true" ]]; then
+  printf 'changed during capture\n' > "$repo_root/capture-change.txt"
+fi
+"""
+    _executable(repo / "ios" / "bin" / "lane", lane)
+    _executable(repo / "android" / "bin" / "lane", lane)
+    for command in ("xcrun", "adb", "magick"):
+        _executable(repo / "test-bin" / command, "#!/usr/bin/env bash\nexit 0\n")
     (repo / "tracked.txt").write_text("base\n", encoding="utf-8")
     _git(repo, "add", ".")
     _git(repo, "commit", "-qm", "base")
@@ -70,6 +101,31 @@ def _run_preflight(
         ],
         capture_output=True,
         text=True,
+    )
+
+
+def _run_capture(
+    repo: Path,
+    output: Path,
+    *,
+    mutate_during_capture: bool = False,
+) -> subprocess.CompletedProcess[str]:
+    environment = os.environ.copy()
+    environment["PATH"] = f"{repo / 'test-bin'}:{environment['PATH']}"
+    if mutate_during_capture:
+        environment["LAUGHTRACK_TEST_MUTATE_DURING_CAPTURE"] = "true"
+    return subprocess.run(
+        [
+            str(repo / "scripts" / "screenshots" / "regenerate-comparisons"),
+            "--audit-mode",
+            "explicit-checkout",
+            "--output-root",
+            str(output),
+            "--no-open",
+        ],
+        capture_output=True,
+        text=True,
+        env=environment,
     )
 
 
@@ -150,6 +206,22 @@ def test_explicit_checkout_preflight_allows_and_labels_dirty_feature_branch(
     assert provenance["dirty"] is True
     assert provenance["origin_main_refreshed"] is False
     assert "not current-main certified" in result.stdout
+
+
+def test_dirty_explicit_checkout_rejects_additional_capture_time_changes(
+    tmp_path: Path,
+) -> None:
+    repo, _ = _checkout_fixture(tmp_path)
+    (repo / "starting-dirty.txt").write_text("dirty before capture\n", encoding="utf-8")
+    output = tmp_path / "output"
+
+    result = _run_capture(repo, output, mutate_during_capture=True)
+
+    assert result.returncode != 0
+    assert "checkout changed during screenshot capture" in result.stderr
+    provenance = json.loads((output / "checkout-provenance.json").read_text())
+    assert provenance["status"] == "preflight_passed"
+    assert "checkout_unchanged" not in provenance
 
 
 def test_generates_17_scenario_labeled_sheets_in_profile_order(tmp_path: Path, monkeypatch) -> None:
