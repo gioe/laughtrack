@@ -38,10 +38,7 @@ struct NowPlayingView: View {
         let laughTrack = theme.laughTrackTokens
 
         ZStack(alignment: .top) {
-            laughTrack.colors.canvas
-                .ignoresSafeArea()
-                .accessibilityElement()
-                .accessibilityIdentifier("laughtrack.now-playing-screen")
+            laughTrack.colors.canvas.ignoresSafeArea()
 
             if horizontalSizeClass == .regular {
                 regularLayout
@@ -135,6 +132,7 @@ struct NowPlayingView: View {
             Text("Now Playing")
                 .font(laughTrack.typography.metadata.weight(.semibold))
                 .foregroundStyle(laughTrack.colors.textSecondary)
+                .accessibilityIdentifier("laughtrack.now-playing-screen")
 
             Spacer(minLength: 0)
 
