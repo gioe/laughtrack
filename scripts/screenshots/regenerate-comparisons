@@ -14,6 +14,8 @@ default_output_root="$repo_root/apps/screenshot-comparisons/$(date +%Y-%m-%d)-cu
 output_root="$default_output_root"
 open_sheets=true
 force_fresh=false
+audit_mode="current-main"
+preflight_only=false
 
 usage() {
   cat <<'EOF'
@@ -27,6 +29,8 @@ Options:
   --output-root PATH  Destination directory (default: dated comparison folder)
   --no-open           Generate contact sheets without opening them
   --force-fresh       Bypass all validated native profile caches
+  --audit-mode MODE   Checkout policy: current-main (default) or explicit-checkout
+  --preflight-only    Validate and record checkout provenance, then exit
   -h, --help          Show this help
 EOF
 }
@@ -51,6 +55,15 @@ while (($#)); do
     force_fresh=true
     shift
     ;;
+  --audit-mode)
+    (($# >= 2)) || fail "--audit-mode requires a value"
+    audit_mode="$2"
+    shift 2
+    ;;
+  --preflight-only)
+    preflight_only=true
+    shift
+    ;;
   -h | --help)
     usage
     exit 0
@@ -61,26 +74,150 @@ while (($#)); do
   esac
 done
 
+case "$audit_mode" in
+current-main | explicit-checkout) ;;
+*) fail "--audit-mode must be current-main or explicit-checkout" ;;
+esac
+
 if [[ "$output_root" != /* ]]; then
   output_root="$repo_root/$output_root"
 fi
 
+command -v git >/dev/null || fail "git is required"
+command -v python3 >/dev/null || fail "python3 is required"
+
+inspect_checkout() {
+  revision="$(git -C "$repo_root" rev-parse HEAD)" ||
+    fail "$repo_root is not a Git checkout"
+  branch="$(git -C "$repo_root" symbolic-ref --quiet --short HEAD || true)"
+  detached=false
+  if [[ -z "$branch" ]]; then
+    detached=true
+  fi
+  dirty=false
+  if [[ -n "$(git -C "$repo_root" status --porcelain --untracked-files=all)" ]]; then
+    dirty=true
+  fi
+
+  origin_main_revision=""
+  ahead_by=0
+  behind_by=0
+  relationship="unavailable"
+  if git -C "$repo_root" show-ref --verify --quiet refs/remotes/origin/main; then
+    origin_main_revision="$(git -C "$repo_root" rev-parse origin/main)"
+    read -r ahead_by behind_by < <(
+      git -C "$repo_root" rev-list --left-right --count HEAD...origin/main
+    )
+    if ((ahead_by == 0 && behind_by == 0)); then
+      relationship="exact"
+    elif ((ahead_by > 0 && behind_by == 0)); then
+      relationship="ahead"
+    elif ((ahead_by == 0 && behind_by > 0)); then
+      relationship="behind"
+    else
+      relationship="diverged"
+    fi
+  fi
+}
+
+origin_main_refreshed=false
+if [[ "$audit_mode" == "current-main" ]]; then
+  echo "Refreshing origin/main for a current-main screenshot audit..."
+  if ! git -C "$repo_root" fetch --quiet origin \
+    +refs/heads/main:refs/remotes/origin/main; then
+    fail "could not refresh origin/main; retry with network access, or use --audit-mode explicit-checkout for a clearly labeled checkout audit"
+  fi
+  origin_main_refreshed=true
+fi
+
+inspect_checkout
+branch_label="${branch:-detached}"
+if [[ "$audit_mode" == "current-main" ]]; then
+  audit_label="CURRENT MAIN"
+else
+  audit_label="EXPLICIT CHECKOUT (not current-main certified)"
+fi
+
+echo "Screenshot audit checkout preflight:"
+echo "  audit: $audit_label"
+echo "  revision: $revision"
+echo "  branch: $branch_label"
+echo "  detached: $detached"
+echo "  dirty: $dirty"
+echo "  origin/main: ${origin_main_revision:-unavailable}"
+echo "  relationship: $relationship (ahead $ahead_by, behind $behind_by)"
+
+if [[ "$audit_mode" == "current-main" ]]; then
+  if [[ "$dirty" == true ]]; then
+    fail "current-main audits require a clean checkout; commit/stash changes or create a clean worktree at origin/main. Use --audit-mode explicit-checkout only when intentionally auditing local changes"
+  fi
+  if [[ "$relationship" != "exact" ]]; then
+    fail "current-main audits require HEAD to equal refreshed origin/main (found $relationship: ahead $ahead_by, behind $behind_by); create a clean worktree at origin/main, or use --audit-mode explicit-checkout for an intentional feature-branch audit"
+  fi
+fi
+
+mkdir -p "$output_root"
+checkout_provenance="$output_root/checkout-provenance.json"
+captured_at="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+python3 - "$checkout_provenance" "$audit_mode" "$audit_label" "$captured_at" \
+  "$repo_root" "$revision" "$branch" "$detached" "$dirty" \
+  "$origin_main_revision" "$origin_main_refreshed" "$ahead_by" "$behind_by" \
+  "$relationship" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+(
+    destination,
+    audit_mode,
+    audit_label,
+    captured_at,
+    repo_root,
+    revision,
+    branch,
+    detached,
+    dirty,
+    origin_main_revision,
+    origin_main_refreshed,
+    ahead_by,
+    behind_by,
+    relationship,
+) = sys.argv[1:]
+value = {
+    "schema_version": 1,
+    "status": "preflight_passed",
+    "audit_mode": audit_mode,
+    "audit_label": audit_label,
+    "captured_at": captured_at,
+    "repository_root": repo_root,
+    "revision": revision,
+    "branch": None if detached == "true" else branch,
+    "detached": detached == "true",
+    "dirty": dirty == "true",
+    "origin_main_revision": origin_main_revision or None,
+    "origin_main_refreshed": origin_main_refreshed == "true",
+    "ahead_by": int(ahead_by),
+    "behind_by": int(behind_by),
+    "relationship": relationship,
+}
+Path(destination).write_text(json.dumps(value, indent=2) + "\n", encoding="utf-8")
+PY
+echo "  provenance: $checkout_provenance"
+
+if [[ "$preflight_only" == true ]]; then
+  echo "Checkout preflight complete."
+  exit 0
+fi
+
+initial_revision="$revision"
+initial_branch="$branch"
+initial_dirty="$dirty"
+
 command -v xcrun >/dev/null || fail "xcrun is required"
 command -v adb >/dev/null || fail "adb is required"
 command -v magick >/dev/null || fail "ImageMagick's magick command is required"
-command -v python3 >/dev/null || fail "python3 is required"
 [[ -x "$repo_root/ios/bin/lane" ]] || fail "ios/bin/lane is not executable"
 [[ -x "$repo_root/android/bin/lane" ]] || fail "android/bin/lane is not executable"
-
-# A stale local main silently captures an obsolete catalog. Feature branches
-# and detached worktrees remain valid because they may intentionally exercise
-# changes that have not landed on origin/main yet.
-branch="$(git -C "$repo_root" branch --show-current)"
-if [[ "$branch" == "main" ]] && git -C "$repo_root" show-ref --verify --quiet refs/remotes/origin/main; then
-  if ! git -C "$repo_root" merge-base --is-ancestor origin/main HEAD; then
-    fail "local main is behind or diverged from origin/main; update it or run from a current worktree"
-  fi
-fi
 
 ios_run="$output_root/runs/ios"
 android_run="$output_root/runs/android"
@@ -135,5 +272,23 @@ if [[ "$open_sheets" == true ]]; then
     echo "warning: 'open' is unavailable; contact sheets were generated but not opened" >&2
   fi
 fi
+
+inspect_checkout
+if [[ "$revision" != "$initial_revision" || "$branch" != "$initial_branch" || "$dirty" != "$initial_dirty" ]]; then
+  fail "checkout changed during screenshot capture; discard this audit and rerun from a stable checkout"
+fi
+completed_at="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+python3 - "$checkout_provenance" "$completed_at" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+value = json.loads(path.read_text(encoding="utf-8"))
+value["status"] = "completed"
+value["completed_at"] = sys.argv[2]
+value["checkout_unchanged"] = True
+path.write_text(json.dumps(value, indent=2) + "\n", encoding="utf-8")
+PY
 
 echo "Complete comparison matrix: $output_root"

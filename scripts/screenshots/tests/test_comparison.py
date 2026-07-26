@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import shutil
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -12,6 +14,142 @@ from scripts.screenshots.comparison import (
     generate_sheets,
 )
 from scripts.screenshots.manifest import ContractError, SCENARIO_IDS, load_catalog
+
+REPO_ROOT = Path(__file__).resolve().parents[3]
+REGENERATE_SCRIPT = REPO_ROOT / "scripts" / "screenshots" / "regenerate-comparisons"
+
+
+def _git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        ["git", "-C", str(repo), *args],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+
+def _checkout_fixture(tmp_path: Path) -> tuple[Path, Path]:
+    remote = tmp_path / "remote.git"
+    subprocess.run(
+        ["git", "init", "--bare", "-q", str(remote)],
+        check=True,
+        capture_output=True,
+    )
+    repo = tmp_path / "checkout"
+    repo.mkdir()
+    _git(repo, "init", "-q")
+    _git(repo, "config", "user.email", "screenshots@example.com")
+    _git(repo, "config", "user.name", "Screenshot Tests")
+    script = repo / "scripts" / "screenshots" / "regenerate-comparisons"
+    script.parent.mkdir(parents=True)
+    shutil.copy2(REGENERATE_SCRIPT, script)
+    (repo / "tracked.txt").write_text("base\n", encoding="utf-8")
+    _git(repo, "add", ".")
+    _git(repo, "commit", "-qm", "base")
+    _git(repo, "branch", "-M", "main")
+    _git(repo, "remote", "add", "origin", str(remote))
+    _git(repo, "push", "-qu", "origin", "main")
+    return repo, remote
+
+
+def _run_preflight(
+    repo: Path,
+    output: Path,
+    *,
+    audit_mode: str = "current-main",
+) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [
+            str(repo / "scripts" / "screenshots" / "regenerate-comparisons"),
+            "--audit-mode",
+            audit_mode,
+            "--output-root",
+            str(output),
+            "--preflight-only",
+            "--no-open",
+        ],
+        capture_output=True,
+        text=True,
+    )
+
+
+def test_current_main_preflight_records_clean_exact_checkout(tmp_path: Path) -> None:
+    repo, _ = _checkout_fixture(tmp_path)
+    output = tmp_path / "output"
+
+    result = _run_preflight(repo, output)
+
+    assert result.returncode == 0, result.stderr
+    provenance = json.loads((output / "checkout-provenance.json").read_text())
+    assert provenance["audit_mode"] == "current-main"
+    assert provenance["audit_label"] == "CURRENT MAIN"
+    assert provenance["branch"] == "main"
+    assert provenance["detached"] is False
+    assert provenance["dirty"] is False
+    assert provenance["origin_main_refreshed"] is True
+    assert provenance["relationship"] == "exact"
+    assert provenance["ahead_by"] == 0
+    assert provenance["behind_by"] == 0
+    assert "revision:" in result.stdout
+    assert "branch: main" in result.stdout
+
+
+def test_current_main_preflight_refuses_dirty_checkout(tmp_path: Path) -> None:
+    repo, _ = _checkout_fixture(tmp_path)
+    (repo / "uncommitted.txt").write_text("dirty\n", encoding="utf-8")
+
+    result = _run_preflight(repo, tmp_path / "output")
+
+    assert result.returncode != 0
+    assert "current-main audits require a clean checkout" in result.stderr
+    assert "--audit-mode explicit-checkout" in result.stderr
+    assert "dirty: true" in result.stdout
+
+
+def test_current_main_preflight_refuses_divergent_checkout(tmp_path: Path) -> None:
+    repo, remote = _checkout_fixture(tmp_path)
+    (repo / "local.txt").write_text("local\n", encoding="utf-8")
+    _git(repo, "add", "local.txt")
+    _git(repo, "commit", "-qm", "local")
+
+    other = tmp_path / "other"
+    subprocess.run(
+        ["git", "clone", "-q", str(remote), str(other)],
+        check=True,
+        capture_output=True,
+    )
+    _git(other, "config", "user.email", "screenshots@example.com")
+    _git(other, "config", "user.name", "Screenshot Tests")
+    (other / "remote.txt").write_text("remote\n", encoding="utf-8")
+    _git(other, "add", "remote.txt")
+    _git(other, "commit", "-qm", "remote")
+    _git(other, "push", "-q", "origin", "main")
+
+    result = _run_preflight(repo, tmp_path / "output")
+
+    assert result.returncode != 0
+    assert "found diverged: ahead 1, behind 1" in result.stderr
+    assert "relationship: diverged (ahead 1, behind 1)" in result.stdout
+
+
+def test_explicit_checkout_preflight_allows_and_labels_dirty_feature_branch(
+    tmp_path: Path,
+) -> None:
+    repo, _ = _checkout_fixture(tmp_path)
+    _git(repo, "switch", "-qc", "feature/audit")
+    (repo / "uncommitted.txt").write_text("dirty\n", encoding="utf-8")
+    output = tmp_path / "output"
+
+    result = _run_preflight(repo, output, audit_mode="explicit-checkout")
+
+    assert result.returncode == 0, result.stderr
+    provenance = json.loads((output / "checkout-provenance.json").read_text())
+    assert provenance["audit_mode"] == "explicit-checkout"
+    assert provenance["audit_label"] == "EXPLICIT CHECKOUT (not current-main certified)"
+    assert provenance["branch"] == "feature/audit"
+    assert provenance["dirty"] is True
+    assert provenance["origin_main_refreshed"] is False
+    assert "not current-main certified" in result.stdout
 
 
 def test_generates_17_scenario_labeled_sheets_in_profile_order(tmp_path: Path, monkeypatch) -> None:

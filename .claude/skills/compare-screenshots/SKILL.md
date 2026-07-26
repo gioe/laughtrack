@@ -33,7 +33,8 @@ CAPTURE_STARTED_AT=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 Keep this directory until the audit is complete. The regeneration command writes
 normalized manifests and their declared images below the corresponding run roots,
 plus 17 labeled cross-platform sheets under `scenario-sheets/` and the
-delta-aware `comparison.json` at the comparison root.
+delta-aware `comparison.json` and `checkout-provenance.json` at the comparison
+root.
 
 ## 2. Regenerate the comparison matrix
 
@@ -47,6 +48,25 @@ scripts/screenshots/regenerate-comparisons \
   --output-root "$SCREENSHOT_RUN_ROOT" \
   --no-open
 ```
+
+The default `current-main` audit refreshes `origin/main` and refuses to capture
+unless `HEAD` exactly matches it and the checkout is clean. Read the printed
+revision, branch/detached state, dirty state, and ahead/behind relationship
+before capture begins. If the preflight fails, follow its clean-worktree
+guidance; do not relabel a dirty or divergent checkout as current main.
+
+To intentionally audit a feature branch, detached revision, or local changes,
+opt in explicitly:
+
+```bash
+scripts/screenshots/regenerate-comparisons \
+  --audit-mode explicit-checkout \
+  --output-root "$SCREENSHOT_RUN_ROOT" \
+  --no-open
+```
+
+This mode is not current-main certified. Preserve that qualification in every
+finding and task created from the audit.
 
 Do not run `screenshots_and_upload`, `upload_screenshots`, `upload_metadata`, `release`, or any other upload/release lane. If either capture lane fails, report its failure and stop before qualitative analysis.
 
@@ -99,6 +119,12 @@ On later audits, open only sheets whose group has `review_required: true`.
 Changed pixels, a missing capture record, or invalid baseline catalog/source/order
 provenance must always require review. Never override those safeguards.
 
+Read `checkout-provenance.json` before inspecting any sheet. Confirm its status
+is `completed` and `checkout_unchanged` is true. Carry its audit label, revision,
+branch or detached state, dirty state, relationship to `origin/main`, and
+whether `origin/main` was refreshed into the final report. Never describe an
+`explicit-checkout` result as an audit of current main.
+
 Read the root-level `profiles` metadata before judging device support. Treat any
 profile with `comparison_only: true` and `shipping: false` as a diagnostic
 comparison surface, not as evidence of a production tablet experience. The
@@ -145,7 +171,7 @@ Never write or refresh the baseline before the visual review is complete.
 
 Lead with an honest overall judgment. Include:
 
-1. a caveat section for data/device differences that affect comparability;
+1. checkout provenance and a caveat section for data/device differences that affect comparability;
 2. one row per inspected scenario with the screen name, meaningful differences, stronger capture, and severity;
 3. systematic findings that recur across multiple screens;
 4. separate qualitative scores for the iOS set, Android set, and—when capture data materially distorts it—the Android UI independent of capture quality;
