@@ -1,5 +1,6 @@
 import CoreGraphics
 import Foundation
+import SwiftUI
 import Testing
 @testable import LaughTrackApp
 
@@ -8,6 +9,13 @@ import Testing
 /// LOGO_ASPECT_THRESHOLD treatment (TASK-2787).
 @Suite("Marquee poster letterbox")
 struct MarqueeHeroLetterboxTests {
+    @Test("detail catalog composition preserves phones and adapts regular widths")
+    func detailCatalogCompositionTracksWidthClass() {
+        #expect(DetailCatalogComposition.resolve(horizontalSizeClass: .compact) == .compactStack)
+        #expect(DetailCatalogComposition.resolve(horizontalSizeClass: .regular) == .regularColumns)
+        #expect(DetailCatalogComposition.resolve(horizontalSizeClass: nil) == .compactStack)
+    }
+
     @Test("wide wordmark logos letterbox (Goodnights 475x125 live repro)")
     func wideWordmarkLetterboxes() {
         #expect(MarqueePosterLayout.shouldLetterbox(imageSize: CGSize(width: 475, height: 125)))
@@ -109,6 +117,7 @@ struct MarqueeHeroLetterboxTests {
             let source = try String(contentsOf: detailViewSourceURL(named: fileName), encoding: .utf8)
 
             #expect(source.contains("ScrollView {"), "\(fileName) should render detail content in a scroll view")
+            #expect(source.contains("AdaptiveDetailCatalogLayout {"), "\(fileName) should use the shared adaptive catalog composition")
             #expect(source.contains(".modifier(DetailAtmosphereScrollContent())"), "\(fileName) should keep scroll content transparent")
             #expect(source.contains(".modifier(DetailAtmosphereRouteBackground())"), "\(fileName) should use the shared route atmosphere")
             #expect(!source.contains(".background(LaughTrackAtmosphereBackground().ignoresSafeArea())"), "\(fileName) should not attach a per-view atmosphere background")

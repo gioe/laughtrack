@@ -40,27 +40,27 @@ struct ClubDetailView: View {
             case .success(let content):
                 let club = content.club
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 0) {
-                    MarqueeHero(
-                        title: club.name,
-                        imageURL: ClubDetailHeroPresentation.imageURL(for: club) ?? "",
-                        thumbnailStyle: .clubMarquee,
-                        actions: clubHeroActions(club: club),
-                        openURL: { url in
-                            openURL(url)
-                        },
-                        fallbackSystemImage: ArtworkFallbackKind.club.systemImage
-                    )
-
-                    VStack(alignment: .leading, spacing: 20) {
-                        PinnedShowsList(
-                            apiClient: apiClient,
-                            nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self),
-                            pinnedClubName: club.name
+                    AdaptiveDetailCatalogLayout {
+                        MarqueeHero(
+                            title: club.name,
+                            imageURL: ClubDetailHeroPresentation.imageURL(for: club) ?? "",
+                            thumbnailStyle: .clubMarquee,
+                            actions: clubHeroActions(club: club),
+                            openURL: { url in
+                                openURL(url)
+                            },
+                            fallbackSystemImage: ArtworkFallbackKind.club.systemImage
                         )
-                    }
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, theme.spacing.lg)
+                    } content: {
+                        VStack(alignment: .leading, spacing: 20) {
+                            PinnedShowsList(
+                                apiClient: apiClient,
+                                nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self),
+                                pinnedClubName: club.name
+                            )
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, theme.spacing.lg)
                     }
                 }
                 .modifier(DetailAtmosphereScrollContent())

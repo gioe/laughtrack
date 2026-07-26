@@ -47,6 +47,56 @@ enum DetailNavigationChrome {
     }
 }
 
+enum DetailCatalogComposition: Equatable {
+    case compactStack
+    case regularColumns
+
+    static func resolve(horizontalSizeClass: UserInterfaceSizeClass?) -> Self {
+        horizontalSizeClass == .regular ? .regularColumns : .compactStack
+    }
+}
+
+/// Keeps the established phone detail stack while giving regular-width
+/// catalog routes an intentional hero/content composition. The bounded
+/// canvas prevents cards from stretching edge to edge on large iPads.
+struct AdaptiveDetailCatalogLayout<Hero: View, Content: View>: View {
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+    private let hero: Hero
+    private let content: Content
+
+    init(
+        @ViewBuilder hero: () -> Hero,
+        @ViewBuilder content: () -> Content
+    ) {
+        self.hero = hero()
+        self.content = content()
+    }
+
+    @ViewBuilder
+    var body: some View {
+        switch DetailCatalogComposition.resolve(horizontalSizeClass: horizontalSizeClass) {
+        case .compactStack:
+            VStack(alignment: .leading, spacing: 0) {
+                hero
+                content
+            }
+        case .regularColumns:
+            HStack(alignment: .top, spacing: 32) {
+                hero
+                    .frame(width: 360)
+
+                content
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, 96)
+            }
+            .padding(.horizontal, 32)
+            .frame(maxWidth: 1_120)
+            .frame(maxWidth: .infinity, alignment: .center)
+        }
+    }
+}
+
 struct DetailFavoriteState {
     let isFavorite: Bool
     let isPending: Bool

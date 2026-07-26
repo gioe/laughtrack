@@ -43,7 +43,7 @@ struct ComedianDetailView: View {
             case .success(let content):
                 let comedian = content.comedian
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 0) {
+                    AdaptiveDetailCatalogLayout {
                         MarqueeHero(
                             title: comedian.name,
                             imageURL: comedian.imageUrl,
@@ -53,7 +53,7 @@ struct ComedianDetailView: View {
                             openURL: { url in openURL(url) },
                             fallbackSystemImage: ArtworkFallbackKind.comedian.systemImage
                         )
-
+                    } content: {
                         VStack(alignment: .leading, spacing: 20) {
                             if ComedianHomeLocationPresentation.isUIEnabled,
                                let homeLocation = comedian.homeLocation,

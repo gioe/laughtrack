@@ -192,7 +192,7 @@ struct PodcastDetailView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             case .success(let response):
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 0) {
+                    AdaptiveDetailCatalogLayout {
                         MarqueeHero(
                             title: response.podcast.title,
                             imageURL: response.podcast.imageUrl ?? "",
@@ -204,7 +204,7 @@ struct PodcastDetailView: View {
                             openComedian: { coordinator.open(.comedian($0)) },
                             fallbackSystemImage: ArtworkFallbackKind.podcast.systemImage
                         )
-
+                    } content: {
                         VStack(alignment: .leading, spacing: 20) {
                             PodcastEpisodeListSection(
                                 podcast: response.podcast,

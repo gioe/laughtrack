@@ -58,7 +58,7 @@ struct ShowDetailView: View {
                 let show = response.data
                 let isOpenMic = ShowDetailPresentation.isOpenMic(show)
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 0) {
+                    AdaptiveDetailCatalogLayout {
                         MarqueeHero(
                             title: ShowTitlePresentation.title(for: show),
                             imageURL: ShowDetailPresentation.heroImageURL(for: show),
@@ -68,52 +68,54 @@ struct ShowDetailView: View {
                             badges: ShowDetailPresentation.heroBadges(for: show),
                             fallbackSystemImage: ArtworkFallbackKind.show.systemImage
                         )
+                    } content: {
+                        VStack(alignment: .leading, spacing: 0) {
+                            if authManager.currentUser?.isAdmin == true {
+                                AdminShowIDBadge(showID: show.id)
+                                    .padding(.horizontal, 8)
+                                    .padding(.top, theme.spacing.sm)
+                            }
 
-                        if authManager.currentUser?.isAdmin == true {
-                            AdminShowIDBadge(showID: show.id)
-                                .padding(.horizontal, 8)
-                                .padding(.top, theme.spacing.sm)
+                            VStack(alignment: .leading, spacing: 20) {
+                                ShowSummarySection(show: show, isOpenMic: isOpenMic, openClub: {
+                                    coordinator.open(.club(show.club.id))
+                                }, openTicketURL: { url in
+                                    Task {
+                                        let recorder = ShowDetailTicketClickRecorder(apiClient: apiClient)
+                                        _ = await recorder.record(
+                                            showID: show.id,
+                                            clubID: show.club.id,
+                                            destinationURL: url
+                                        )
+                                        ExternalLinkRouter.route(url, presentedURL: $safariURL, openURL: openURL)
+                                    }
+                                }, addToCalendar: {
+                                    Task {
+                                        feedbackMessage = await calendarWriter.add(show)
+                                    }
+                                })
+
+                                if
+                                    ShowDetailPresentation.shouldShowEditorNote(for: show),
+                                    let description = show.description,
+                                    !description.isEmpty
+                                {
+                                    DetailTextCard(eyebrow: "Editor’s note", title: "About this show", text: description)
+                                }
+
+                                if !isOpenMic, let lineup = show.lineup, !lineup.isEmpty {
+                                    ShowLineupSection(lineup: lineup) { comedian in
+                                        coordinator.open(.comedian(comedian.id))
+                                    }
+                                }
+
+                                RelatedShowsSection(relatedShows: response.relatedShows) { related in
+                                    coordinator.open(.show(related.id))
+                                }
+                            }
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, theme.spacing.lg)
                         }
-
-                        VStack(alignment: .leading, spacing: 20) {
-                            ShowSummarySection(show: show, isOpenMic: isOpenMic, openClub: {
-                                coordinator.open(.club(show.club.id))
-                            }, openTicketURL: { url in
-                                Task {
-                                    let recorder = ShowDetailTicketClickRecorder(apiClient: apiClient)
-                                    _ = await recorder.record(
-                                        showID: show.id,
-                                        clubID: show.club.id,
-                                        destinationURL: url
-                                    )
-                                    ExternalLinkRouter.route(url, presentedURL: $safariURL, openURL: openURL)
-                                }
-                            }, addToCalendar: {
-                                Task {
-                                    feedbackMessage = await calendarWriter.add(show)
-                                }
-                            })
-
-                            if
-                                ShowDetailPresentation.shouldShowEditorNote(for: show),
-                                let description = show.description,
-                                !description.isEmpty
-                            {
-                                DetailTextCard(eyebrow: "Editor’s note", title: "About this show", text: description)
-                            }
-
-                            if !isOpenMic, let lineup = show.lineup, !lineup.isEmpty {
-                                ShowLineupSection(lineup: lineup) { comedian in
-                                    coordinator.open(.comedian(comedian.id))
-                                }
-                            }
-
-                            RelatedShowsSection(relatedShows: response.relatedShows) { related in
-                                coordinator.open(.show(related.id))
-                            }
-                        }
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, theme.spacing.lg)
                     }
                 }
                 .modifier(DetailAtmosphereScrollContent())
