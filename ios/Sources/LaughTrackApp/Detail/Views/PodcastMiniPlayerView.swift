@@ -1,6 +1,9 @@
 import SwiftUI
 import LaughTrackAPIClient
 import LaughTrackBridge
+#if canImport(UIKit)
+import UIKit
+#endif
 
 struct PodcastMiniPlayerView: View {
     @ObservedObject var player: PodcastPlaybackController
@@ -15,14 +18,36 @@ struct PodcastMiniPlayerView: View {
 
     var body: some View {
         if let item = player.currentItem {
-            content(item: item)
-                .offset(y: dragOffset)
-                .gesture(dismissGesture)
+            presentedContent(item: item)
+        }
+    }
+
+    @ViewBuilder
+    private func presentedContent(item: PodcastPlaybackItem) -> some View {
+        let miniPlayer = content(item: item)
+            .offset(y: dragOffset)
+            .gesture(dismissGesture)
+
+        #if canImport(UIKit)
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            miniPlayer
+                .fullScreenCover(isPresented: $isExpanded) {
+                    NowPlayingView(player: player, apiClient: apiClient)
+                }
+        } else {
+            miniPlayer
                 .sheet(isPresented: $isExpanded) {
                     NowPlayingView(player: player, apiClient: apiClient)
                         .presentationDetents([.large])
                 }
         }
+        #else
+        miniPlayer
+            .sheet(isPresented: $isExpanded) {
+                NowPlayingView(player: player, apiClient: apiClient)
+                    .presentationDetents([.large])
+            }
+        #endif
     }
 
     @ViewBuilder

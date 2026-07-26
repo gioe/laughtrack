@@ -14,6 +14,7 @@ struct NowPlayingView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.appTheme) private var theme
     @Environment(\.serviceContainer) private var serviceContainer
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     @State private var isScrubbing = false
     @State private var scrubValue: Double = 0
@@ -37,26 +38,70 @@ struct NowPlayingView: View {
         let laughTrack = theme.laughTrackTokens
 
         ZStack(alignment: .top) {
-            laughTrack.colors.canvas.ignoresSafeArea()
+            laughTrack.colors.canvas
+                .ignoresSafeArea()
+                .accessibilityElement()
+                .accessibilityIdentifier("laughtrack.now-playing-screen")
 
-            VStack(spacing: theme.spacing.lg) {
-                grabber
-                header
-                artwork
-                titleBlock
-                scrubber
-                transport
-                routeAndSpeed
-                sleepTimer
-                tonightNearYouCard
-                Spacer(minLength: 0)
+            if horizontalSizeClass == .regular {
+                regularLayout
+            } else {
+                compactLayout
             }
-            .padding(.horizontal, theme.spacing.lg)
-            .padding(.top, theme.spacing.sm)
-            .padding(.bottom, theme.spacing.lg)
         }
         .presentationDragIndicator(.hidden)
-        .accessibilityIdentifier("laughtrack.now-playing-screen")
+    }
+
+    private var compactLayout: some View {
+        VStack(spacing: theme.spacing.lg) {
+            grabber
+            header(closeSymbol: "chevron.down", layoutDescription: "Compact layout")
+            artwork
+            titleBlock
+            scrubber
+            transport
+            routeAndSpeed
+            sleepTimer
+            tonightNearYouCard
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, theme.spacing.lg)
+        .padding(.top, theme.spacing.sm)
+        .padding(.bottom, theme.spacing.lg)
+    }
+
+    private var regularLayout: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return VStack(spacing: theme.spacing.xl) {
+            header(closeSymbol: "xmark", layoutDescription: "Regular layout")
+
+            HStack(alignment: .center, spacing: theme.spacing.xl * 2) {
+                artwork
+                    .frame(maxWidth: 460)
+
+                VStack(spacing: theme.spacing.lg) {
+                    titleBlock
+                    scrubber
+                    transport
+                    routeAndSpeed
+                    sleepTimer
+                    tonightNearYouCard
+                }
+                .frame(maxWidth: 440)
+                .padding(theme.spacing.xl)
+                .background(laughTrack.colors.surfaceElevated.opacity(0.72))
+                .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 28, style: .continuous)
+                        .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+                }
+                .shadowStyle(laughTrack.shadows.floating)
+            }
+            .frame(maxWidth: 1040, maxHeight: .infinity)
+        }
+        .padding(.horizontal, theme.spacing.xl)
+        .padding(.vertical, theme.spacing.lg)
     }
 
     private var grabber: some View {
@@ -67,13 +112,13 @@ struct NowPlayingView: View {
             .padding(.top, theme.spacing.xs)
     }
 
-    private var header: some View {
+    private func header(closeSymbol: String, layoutDescription: String) -> some View {
         let laughTrack = theme.laughTrackTokens
         return HStack(spacing: theme.spacing.sm) {
             Button {
                 dismiss()
             } label: {
-                Image(systemName: "chevron.down")
+                Image(systemName: closeSymbol)
                     .font(.system(size: 18, weight: .semibold))
                     .foregroundStyle(laughTrack.colors.textPrimary)
                     .frame(width: 36, height: 36)
@@ -82,6 +127,8 @@ struct NowPlayingView: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Close now playing")
+            .accessibilityValue(layoutDescription)
+            .accessibilityIdentifier("laughtrack.now-playing.close")
 
             Spacer(minLength: 0)
 
@@ -190,6 +237,7 @@ struct NowPlayingView: View {
             )
             .tint(laughTrack.colors.accent)
             .disabled(duration <= 0)
+            .accessibilityIdentifier("laughtrack.now-playing.scrubber")
 
             HStack {
                 Text(formatTime(displayValue))
@@ -269,11 +317,13 @@ struct NowPlayingView: View {
                     .clipShape(Capsule())
             }
             .accessibilityLabel("Playback speed \(formatRate(player.preferredRate))")
+            .accessibilityIdentifier("laughtrack.now-playing.speed")
 
             Spacer(minLength: 0)
 
             routePicker
                 .frame(width: 44, height: 44)
+                .accessibilityIdentifier("laughtrack.now-playing.route-picker")
         }
         .padding(.horizontal, theme.spacing.sm)
     }
@@ -320,6 +370,7 @@ struct NowPlayingView: View {
             .clipShape(Capsule())
         }
         .accessibilityLabel("Sleep timer \(sleepLabel)")
+        .accessibilityIdentifier("laughtrack.now-playing.sleep")
     }
 
     @ViewBuilder

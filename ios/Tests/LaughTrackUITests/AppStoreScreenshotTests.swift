@@ -201,12 +201,33 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         XCTAssertTrue(miniPlayer.waitForExistence(timeout: 10), "Expected seeded podcast mini player")
         miniPlayer.coordinate(withNormalizedOffset: CGVector(dx: 0.35, dy: 0.5)).tap()
         assertExists("laughtrack.now-playing-screen", message: "Expected Now Playing screen")
+        let closeNowPlaying = element("laughtrack.now-playing.close")
+        XCTAssertTrue(closeNowPlaying.waitForExistence(timeout: 15), "Expected Now Playing close control")
+        let expectedLayout = app.windows.firstMatch.frame.width >= 768
+            ? "Regular layout"
+            : "Compact layout"
+        XCTAssertEqual(
+            closeNowPlaying.value as? String,
+            expectedLayout,
+            "Expected adaptive Now Playing layout"
+        )
         // Intentional background override: this immersive media surface uses
         // an opaque semantic canvas instead of the inherited app atmosphere.
         try capture(
             "14_NowPlaying",
             screen: identified("laughtrack.now-playing-screen", as: "Now Playing screen"),
-            content: [text("The LaughTrack Comedy Roundup", as: "seeded episode")]
+            content: [
+                identified("laughtrack.now-playing.close", as: "adaptive Now Playing composition"),
+                identified("laughtrack.now-playing.scrubber", as: "playback scrubber"),
+                identified("laughtrack.now-playing.speed", as: "playback speed control"),
+                identified("laughtrack.now-playing.sleep", as: "sleep timer control"),
+                text("The LaughTrack Comedy Roundup", as: "seeded episode"),
+            ]
+        )
+        closeNowPlaying.tap()
+        XCTAssertTrue(
+            miniPlayer.waitForExistence(timeout: 5),
+            "Expected mini player continuity after dismissing Now Playing"
         )
 
         relaunch(route: "favorites:0", authenticatedPersona: true)
