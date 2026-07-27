@@ -4,39 +4,172 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import struct
+import threading
 import zlib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 
 CONTENT_FIXTURE = {
-    "id": "native-screenshot-v1",
-    "result_count": 5,
-    "featured_entities": {
-        "club": {"id": 201, "name": "The Comedy Store"},
-        "show": {"id": 101, "name": "Taylor Tomlinson & Friends", "headliner": "Taylor Tomlinson"},
-        "comedian": {"id": 301, "name": "Ali Wong"},
-        "podcast": {"id": 401, "name": "The Joe Rogan Experience"},
+    "id": "native-screenshot-v2",
+    "default_mode": "fallback-focused",
+    "profile_modes": {
+        "ios_phone": "fallback-focused",
+        "ios_large_tablet": "asset-rich",
+        "android_phone": "fallback-focused",
+        "android_small_tablet": "asset-rich",
+        "android_large_tablet": "asset-rich",
     },
-    "dates": {
-        "primary_show": "2030-07-18T20:00:00-07:00",
-        "secondary_show": "2030-07-19T21:00:00-07:00",
-    },
-    "artwork": {
-        "required_keys": ["taylor", "comedy-store", "ali-wong", "joe-rogan"],
-        "fallback_policy": "Authenticated screenshot persona omits remote artwork and uses each platform's branded fallback.",
+    "modes": {
+        "fallback-focused": {
+            "id": "native-screenshot-v1",
+            "result_count": 5,
+            "featured_entities": {
+                "club": {"id": 201, "name": "The Comedy Store"},
+                "show": {
+                    "id": 101,
+                    "name": "Taylor Tomlinson & Friends",
+                    "headliner": "Taylor Tomlinson",
+                },
+                "comedian": {"id": 301, "name": "Ali Wong"},
+                "podcast": {"id": 401, "name": "The Joe Rogan Experience"},
+            },
+            "dates": {
+                "primary_show": "2030-07-18T20:00:00-07:00",
+                "secondary_show": "2030-07-19T21:00:00-07:00",
+            },
+            "artwork": {
+                "required_keys": ["taylor", "comedy-store", "ali-wong", "joe-rogan"],
+                "fallback_policy": "Authenticated screenshot persona omits remote artwork and uses each platform's branded fallback.",
+            },
+        },
+        "asset-rich": {
+            "id": "native-screenshot-asset-rich-v1",
+            "result_count": 12,
+            "featured_entities": {
+                "club": {"id": 201, "name": "The Comedy Store"},
+                "show": {
+                    "id": 101,
+                    "name": "Taylor Tomlinson & Friends",
+                    "headliner": "Taylor Tomlinson",
+                },
+                "comedian": {"id": 301, "name": "Ali Wong"},
+                "podcast": {"id": 401, "name": "The Joe Rogan Experience"},
+            },
+            "dates": {
+                "primary_show": "2030-07-18T20:00:00-07:00",
+                "secondary_show": "2030-07-19T21:00:00-07:00",
+            },
+            "artwork": {
+                "required_keys": [
+                    "ali-wong",
+                    "taylor",
+                    "andrew-schulz",
+                    "josh-johnson",
+                    "comedy-store",
+                    "comedy-cellar",
+                    "the-stand",
+                    "hollywood-improv",
+                    "joe-rogan",
+                    "conan",
+                    "jtrain",
+                    "wtf",
+                ],
+                "categories": {
+                    "portraits": ["ali-wong", "taylor", "andrew-schulz", "josh-johnson"],
+                    "club_logos": [
+                        "comedy-store",
+                        "comedy-cellar",
+                        "the-stand",
+                        "hollywood-improv",
+                    ],
+                    "podcast_art": ["joe-rogan", "conan", "jtrain", "wtf"],
+                },
+            },
+        },
     },
 }
 
 API_PREFIX = "/api/v1/"
+DEFAULT_MODE = CONTENT_FIXTURE["default_mode"]
 ARTWORK_COLORS = {
     "taylor": ((118, 48, 91), (221, 103, 47)),
     "comedy-store": ((42, 42, 42), (207, 75, 40)),
     "ali-wong": ((181, 76, 119), (237, 181, 73)),
     "joe-rogan": ((167, 54, 29), (35, 35, 35)),
+    "andrew-schulz": ((24, 87, 116), (111, 204, 184)),
+    "josh-johnson": ((88, 55, 119), (226, 147, 74)),
+    "comedy-cellar": ((67, 38, 29), (207, 169, 91)),
+    "the-stand": ((24, 63, 45), (102, 190, 113)),
+    "hollywood-improv": ((40, 55, 110), (204, 84, 104)),
+    "conan": ((186, 82, 38), (242, 187, 73)),
+    "jtrain": ((43, 92, 108), (126, 195, 181)),
+    "wtf": ((77, 55, 45), (211, 127, 62)),
 }
+
+COMEDIAN_NAMES = [
+    "Ali Wong",
+    "Taylor Tomlinson",
+    "Andrew Schulz",
+    "Josh Johnson",
+    "Trevor Noah",
+    "Sam Jay",
+    "Nate Bargatze",
+    "Nicole Byer",
+    "Hasan Minhaj",
+    "Atsuko Okatsuka",
+    "Roy Wood Jr.",
+    "Michelle Wolf",
+]
+COMEDIAN_ARTWORK = ["ali-wong", "taylor", "andrew-schulz", "josh-johnson"]
+CLUB_NAMES = [
+    "The Comedy Store",
+    "Comedy Cellar",
+    "The Stand",
+    "Hollywood Improv",
+    "Largo at the Coronet",
+    "Gotham Comedy Club",
+    "The Bell House",
+    "Laugh Factory",
+    "Punch Line",
+    "Helium Comedy Club",
+    "Zanies",
+    "Comedy Works",
+]
+CLUB_ARTWORK = ["comedy-store", "comedy-cellar", "the-stand", "hollywood-improv"]
+PODCAST_TITLES = [
+    "The Joe Rogan Experience",
+    "Conan O'Brien Needs a Friend",
+    "The JTrain Podcast",
+    "WTF with Marc Maron",
+    "SmartLess",
+    "Good One",
+    "Blocks",
+    "Fly on the Wall",
+    "We Might Be Drunk",
+    "You Made It Weird",
+    "The HoneyDew",
+    "Working It Out",
+]
+PODCAST_ARTWORK = ["joe-rogan", "conan", "jtrain", "wtf"]
+SHOW_NAMES = [
+    "Taylor Tomlinson & Friends",
+    "Comedy Store Showcase",
+    "Best of Los Angeles",
+    "Late Night at The Store",
+    "The Original Room",
+    "Sam Jay: Goodnight",
+    "Nate Bargatze: New Material",
+    "Nicole Byer & Friends",
+    "Hasan Minhaj Live",
+    "Atsuko Okatsuka: Full Grown",
+    "Roy Wood Jr. Headlines",
+    "Michelle Wolf: Work in Progress",
+]
+SHOW_HOURS = [20, 21, 22, 23, 19]
 
 
 def _png_chunk(kind: bytes, data: bytes) -> bytes:
@@ -62,6 +195,34 @@ def artwork_png(key: str, size: int = 640) -> bytes:
     )
 
 
+def fixture_contract(mode: str = DEFAULT_MODE) -> dict:
+    """Return one immutable fixture-mode contract, rejecting unknown modes."""
+    try:
+        return CONTENT_FIXTURE["modes"][mode]
+    except KeyError as exc:
+        raise ValueError(f"unknown fixture mode: {mode}") from exc
+
+
+def fixture_mode_fingerprint(mode: str = DEFAULT_MODE) -> str:
+    """Return a stable fingerprint for the selected fixture mode."""
+    encoded = json.dumps(
+        fixture_contract(mode),
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode()
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def fixture_mode_summary(mode: str) -> dict:
+    contract = fixture_contract(mode)
+    return {
+        "mode": mode,
+        "result_count": contract["result_count"],
+        "fingerprint": fixture_mode_fingerprint(mode),
+        "required_assets": contract["artwork"]["required_keys"],
+    }
+
+
 def _social(entity_id: int, handle: str) -> dict:
     return {"id": entity_id, "instagramAccount": handle, "website": f"https://example.invalid/{handle}"}
 
@@ -78,9 +239,13 @@ def _lineup(base_url: str) -> dict:
     }
 
 
-def _comedian(base_url: str, index: int, name: str) -> dict:
+def _comedian(base_url: str, index: int, name: str, mode: str = DEFAULT_MODE) -> dict:
     entity_id = 301 + index
-    artwork_key = "ali-wong" if index == 0 else "taylor"
+    artwork_key = (
+        ("ali-wong" if index == 0 else "taylor")
+        if mode == DEFAULT_MODE
+        else COMEDIAN_ARTWORK[index % len(COMEDIAN_ARTWORK)]
+    )
     return {
         "id": entity_id,
         "uuid": f"fixture-{entity_id}",
@@ -92,12 +257,18 @@ def _comedian(base_url: str, index: int, name: str) -> dict:
     }
 
 
-def _show(base_url: str, show_id: int = 101, name: str = "Taylor Tomlinson & Friends", hour: int = 20) -> dict:
+def _show(
+    base_url: str,
+    show_id: int = 101,
+    name: str = "Taylor Tomlinson & Friends",
+    hour: int = 20,
+    artwork_key: str = "taylor",
+) -> dict:
     return {
         "id": show_id,
         "clubId": 201,
         "date": f"2030-07-{18 if show_id == 101 else 19:02d}T{hour:02d}:00:00-07:00",
-        "imageUrl": f"{base_url}/artwork/taylor.png",
+        "imageUrl": f"{base_url}/artwork/{artwork_key}.png",
         "clubName": "The Comedy Store",
         "clubCity": "West Hollywood",
         "clubState": "CA",
@@ -110,59 +281,100 @@ def _show(base_url: str, show_id: int = 101, name: str = "Taylor Tomlinson & Fri
     }
 
 
-def fixture_response(path: str, base_url: str) -> dict | None:
+def fixture_response(path: str, base_url: str, mode: str = DEFAULT_MODE) -> dict | None:
     """Return the canonical payload for an API path, ignoring query parameters."""
+    result_count = fixture_contract(mode)["result_count"]
     if path == f"{API_PREFIX}home/feed":
         primary = _show(base_url)
+        nearby_count = 1 if mode == DEFAULT_MODE else min(result_count - 1, 4)
+        nearby = [
+            _show(
+                base_url,
+                102 + index,
+                SHOW_NAMES[1 + index],
+                SHOW_HOURS[(index + 1) % len(SHOW_HOURS)],
+                COMEDIAN_ARTWORK[(index + 1) % len(COMEDIAN_ARTWORK)],
+            )
+            for index in range(nearby_count)
+        ]
         return {"data": {
             "hero": {"zipCode": "90028", "city": "Los Angeles", "state": "CA", "shows": [primary]},
             "trendingComedians": [{"id": 301, "uuid": "fixture-301", "name": "Ali Wong", "imageUrl": f"{base_url}/artwork/ali-wong.png", "socialData": _social(301, "aliwong"), "showCount": 28}],
             "comediansNearYou": [],
             "showsTonight": [primary],
-            "moreNearYou": [_show(base_url, 102, "Comedy Store Showcase", 21)],
+            "moreNearYou": nearby or [_show(base_url, 102, "Comedy Store Showcase", 21)],
             "trendingThisWeek": [_show(base_url, 103, "Best of Los Angeles", 22)],
             "trendingPodcasts": [{"id": 401, "slug": "joe-rogan-experience", "title": "The Joe Rogan Experience", "episodeCount": 2520, "authorName": "Joe Rogan", "imageUrl": f"{base_url}/artwork/joe-rogan.png"}],
             "popularClubs": [{"id": 201, "address": "8433 Sunset Blvd, West Hollywood, CA", "name": "The Comedy Store", "imageUrl": f"{base_url}/artwork/comedy-store.png", "activeComedianCount": 120, "zipCode": "90069"}],
         }}
     if path == f"{API_PREFIX}shows/search":
         shows = [
-            _show(base_url),
-            _show(base_url, 102, "Comedy Store Showcase", 21),
-            _show(base_url, 103, "Best of Los Angeles", 22),
-            _show(base_url, 104, "Late Night at The Store", 23),
-            _show(base_url, 105, "The Original Room", 19),
+            _show(
+                base_url,
+                101 + index,
+                name,
+                SHOW_HOURS[index % len(SHOW_HOURS)],
+                "taylor" if mode == DEFAULT_MODE else COMEDIAN_ARTWORK[index % len(COMEDIAN_ARTWORK)],
+            )
+            for index, name in enumerate(SHOW_NAMES[:result_count])
         ]
-        return {"data": shows, "total": 5, "filters": [], "zipCapTriggered": False}
+        return {"data": shows, "total": result_count, "filters": [], "zipCapTriggered": False}
     if path in {f"{API_PREFIX}comedians/search", f"{API_PREFIX}comedians/suggestions"}:
-        names = ["Ali Wong", "Taylor Tomlinson", "Andrew Schulz", "Josh Johnson", "Trevor Noah"]
-        response = {"data": [_comedian(base_url, index, name) for index, name in enumerate(names)]}
+        response = {
+            "data": [
+                _comedian(base_url, index, name, mode)
+                for index, name in enumerate(COMEDIAN_NAMES[:result_count])
+            ]
+        }
         if path.endswith("/search"):
-            response.update({"total": 5, "filters": [], "homeCityFilters": []})
+            response.update({"total": result_count, "filters": [], "homeCityFilters": []})
         return response
     if path == f"{API_PREFIX}clubs/search":
-        names = ["The Comedy Store", "Comedy Cellar", "The Stand", "Hollywood Improv", "Largo at the Coronet"]
         return {"data": [
-            {"id": 201 + index, "name": name, "imageUrl": f"{base_url}/artwork/comedy-store.png", "address": "8433 Sunset Blvd", "zipCode": "90069", "showCount": 120 - index * 10, "activeComedianCount": 80 - index, "city": "West Hollywood", "state": "CA", "isFavorite": False}
-            for index, name in enumerate(names)
-        ], "total": 5, "filters": []}
+            {
+                "id": 201 + index,
+                "name": name,
+                "imageUrl": f"{base_url}/artwork/{'comedy-store' if mode == DEFAULT_MODE else CLUB_ARTWORK[index % len(CLUB_ARTWORK)]}.png",
+                "address": "8433 Sunset Blvd",
+                "zipCode": "90069",
+                "showCount": 120 - index * 5,
+                "activeComedianCount": 80 - index,
+                "city": "West Hollywood",
+                "state": "CA",
+                "isFavorite": False,
+            }
+            for index, name in enumerate(CLUB_NAMES[:result_count])
+        ], "total": result_count, "filters": []}
     if path == f"{API_PREFIX}podcasts/search":
-        titles = ["The Joe Rogan Experience", "Conan O'Brien Needs a Friend", "The JTrain Podcast", "WTF with Marc Maron", "SmartLess"]
         return {"data": [
-            {"id": 401 + index, "slug": f"fixture-{401 + index}", "title": title, "episodeCount": 2520 - index * 100, "hosts": [{"id": 301, "uuid": "fixture-301", "name": "Joe Rogan", "imageUrl": f"{base_url}/artwork/joe-rogan.png"}], "authorName": "Comedy Podcast Network", "imageUrl": f"{base_url}/artwork/joe-rogan.png", "description": "Stand-up conversations and new episodes every week.", "isFavorite": False}
-            for index, title in enumerate(titles)
-        ], "total": 5, "filters": []}
+            {
+                "id": 401 + index,
+                "slug": f"fixture-{401 + index}",
+                "title": title,
+                "episodeCount": 2520 - index * 100,
+                "hosts": [{"id": 301, "uuid": "fixture-301", "name": "Joe Rogan", "imageUrl": f"{base_url}/artwork/joe-rogan.png"}],
+                "authorName": "Comedy Podcast Network",
+                "imageUrl": f"{base_url}/artwork/{'joe-rogan' if mode == DEFAULT_MODE else PODCAST_ARTWORK[index % len(PODCAST_ARTWORK)]}.png",
+                "description": "Stand-up conversations and new episodes every week.",
+                "isFavorite": False,
+            }
+            for index, title in enumerate(PODCAST_TITLES[:result_count])
+        ], "total": result_count, "filters": []}
     if path == f"{API_PREFIX}clubs/201":
         return {"data": {"id": 201, "name": "The Comedy Store", "imageUrl": f"{base_url}/artwork/comedy-store.png", "heroImageUrl": f"{base_url}/artwork/comedy-store.png", "website": "https://thecomedystore.com", "address": "8433 Sunset Blvd, West Hollywood, CA", "zipCode": "90069", "phoneNumber": "(323) 650-6268"}}
     if path == f"{API_PREFIX}clubs/201/shows":
         return {
             "data": [
-                _show(base_url),
-                _show(base_url, 102, "Comedy Store Showcase", 21),
-                _show(base_url, 103, "Best of Los Angeles", 22),
-                _show(base_url, 104, "Late Night at The Store", 23),
-                _show(base_url, 105, "The Original Room", 19),
+                _show(
+                    base_url,
+                    101 + index,
+                    name,
+                    SHOW_HOURS[index % len(SHOW_HOURS)],
+                    "taylor" if mode == DEFAULT_MODE else COMEDIAN_ARTWORK[index % len(COMEDIAN_ARTWORK)],
+                )
+                for index, name in enumerate(SHOW_NAMES[:result_count])
             ],
-            "total": CONTENT_FIXTURE["result_count"],
+            "total": result_count,
         }
     if path == f"{API_PREFIX}shows/101":
         return {"data": {**_show(base_url), "showPageUrl": "https://example.invalid/show/101", "club": {"id": 201, "name": "The Comedy Store", "imageUrl": f"{base_url}/artwork/comedy-store.png", "address": "8433 Sunset Blvd, West Hollywood, CA", "timezone": "America/Los_Angeles"}, "cta": {"label": "Buy tickets", "isSoldOut": False, "url": "https://example.invalid/tickets/101"}, "description": "A special night of new material and surprise guests."}, "relatedShows": []}
@@ -177,23 +389,77 @@ def fixture_response(path: str, base_url: str) -> dict | None:
     return None
 
 
+class FixtureState:
+    """Thread-safe mode selection shared by one sequential capture server."""
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self._mode = DEFAULT_MODE
+
+    def current_mode(self) -> str:
+        with self._lock:
+            return self._mode
+
+    def configure(self, mode: str) -> dict:
+        fixture_contract(mode)
+        with self._lock:
+            self._mode = mode
+        return fixture_mode_summary(mode)
+
+
+class FixtureServer(ThreadingHTTPServer):
+    def __init__(self, server_address: tuple[str, int]) -> None:
+        super().__init__(server_address, FixtureHandler)
+        self.fixture_state = FixtureState()
+
+
 class FixtureHandler(BaseHTTPRequestHandler):
     server_version = "LaughTrackScreenshotFixture/1"
 
     def do_GET(self) -> None:  # noqa: N802 - BaseHTTPRequestHandler API
-        path = urlparse(self.path).path
+        parsed = urlparse(self.path)
+        path = parsed.path
         if path == "/health":
             self._write(200, b"ok\n", "text/plain")
+            return
+        if path == "/fixture/status":
+            self._write_json(
+                200,
+                fixture_mode_summary(self.server.fixture_state.current_mode()),
+            )
+            return
+        if path == "/fixture/configure":
+            values = parse_qs(parsed.query).get("mode", [])
+            if len(values) != 1:
+                self._write_json(400, {"error": "fixture mode is required"})
+                return
+            try:
+                summary = self.server.fixture_state.configure(values[0])
+            except ValueError as exc:
+                self._write_json(400, {"error": str(exc)})
+                return
+            self._write_json(200, summary)
             return
         if path.startswith("/artwork/") and path.endswith(".png"):
             self._write(200, artwork_png(path.rsplit("/", 1)[-1][:-4]), "image/png")
             return
         host = self.headers.get("Host", f"127.0.0.1:{self.server.server_port}")
-        payload = fixture_response(path, f"http://{host}")
+        payload = fixture_response(
+            path,
+            f"http://{host}",
+            self.server.fixture_state.current_mode(),
+        )
         if payload is None:
             self._write(404, b'{"error":"fixture not found"}', "application/json")
             return
-        self._write(200, json.dumps(payload, separators=(",", ":")).encode(), "application/json")
+        self._write_json(200, payload)
+
+    def _write_json(self, status: int, payload: dict) -> None:
+        self._write(
+            status,
+            json.dumps(payload, separators=(",", ":")).encode(),
+            "application/json",
+        )
 
     def _write(self, status: int, body: bytes, content_type: str) -> None:
         self.send_response(status)
@@ -211,7 +477,7 @@ def main() -> int:
     parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument("--port", type=int, default=8765)
     args = parser.parse_args()
-    server = ThreadingHTTPServer((args.host, args.port), FixtureHandler)
+    server = FixtureServer((args.host, args.port))
     try:
         server.serve_forever()
     except KeyboardInterrupt:

@@ -109,9 +109,26 @@ def test_checked_in_catalog_defines_cross_platform_fixture_contracts(catalog: di
 
 
 def test_checked_in_catalog_matches_shared_content_fixture(catalog: dict) -> None:
-    from scripts.screenshots.fixture_server import CONTENT_FIXTURE, fixture_response
+    from scripts.screenshots.fixture_server import (
+        CONTENT_FIXTURE,
+        fixture_mode_fingerprint,
+        fixture_response,
+    )
 
     assert catalog["content_fixture"] == CONTENT_FIXTURE
+    assert CONTENT_FIXTURE["default_mode"] == "fallback-focused"
+    assert CONTENT_FIXTURE["profile_modes"] == {
+        "ios_phone": "fallback-focused",
+        "ios_large_tablet": "asset-rich",
+        "android_phone": "fallback-focused",
+        "android_small_tablet": "asset-rich",
+        "android_large_tablet": "asset-rich",
+    }
+    fallback = CONTENT_FIXTURE["modes"]["fallback-focused"]
+    asset_rich = CONTENT_FIXTURE["modes"]["asset-rich"]
+    assert fallback["result_count"] == 5
+    assert asset_rich["result_count"] == 12
+    assert fixture_mode_fingerprint("fallback-focused") != fixture_mode_fingerprint("asset-rich")
     assert len(fixture_response("/api/v1/shows/search", "http://fixture")["data"]) == 5
     assert len(fixture_response("/api/v1/comedians/search", "http://fixture")["data"]) == 5
     suggestions = fixture_response("/api/v1/comedians/suggestions", "http://fixture")
@@ -125,8 +142,18 @@ def test_checked_in_catalog_matches_shared_content_fixture(catalog: dict) -> Non
     assert len(fixture_response("/api/v1/clubs/search", "http://fixture")["data"]) == 5
     assert len(fixture_response("/api/v1/podcasts/search", "http://fixture")["data"]) == 5
     club_shows = fixture_response("/api/v1/clubs/201/shows", "http://fixture")
-    assert len(club_shows["data"]) == CONTENT_FIXTURE["result_count"]
-    assert club_shows["total"] == CONTENT_FIXTURE["result_count"]
+    assert len(club_shows["data"]) == fallback["result_count"]
+    assert club_shows["total"] == fallback["result_count"]
+
+    for path in (
+        "/api/v1/shows/search",
+        "/api/v1/comedians/search",
+        "/api/v1/clubs/search",
+        "/api/v1/podcasts/search",
+    ):
+        response = fixture_response(path, "http://fixture", "asset-rich")
+        assert len(response["data"]) == asset_rich["result_count"]
+        assert response["total"] == asset_rich["result_count"]
 
 
 def test_manifest_rejects_content_fixture_drift(tmp_path: Path, catalog: dict, completed_run: dict) -> None:

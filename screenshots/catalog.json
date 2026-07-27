@@ -1,21 +1,60 @@
 {
   "schema_version": 1,
   "content_fixture": {
-    "id": "native-screenshot-v1",
-    "result_count": 5,
-    "featured_entities": {
-      "club": { "id": 201, "name": "The Comedy Store" },
-      "show": { "id": 101, "name": "Taylor Tomlinson & Friends", "headliner": "Taylor Tomlinson" },
-      "comedian": { "id": 301, "name": "Ali Wong" },
-      "podcast": { "id": 401, "name": "The Joe Rogan Experience" }
+    "id": "native-screenshot-v2",
+    "default_mode": "fallback-focused",
+    "profile_modes": {
+      "ios_phone": "fallback-focused",
+      "ios_large_tablet": "asset-rich",
+      "android_phone": "fallback-focused",
+      "android_small_tablet": "asset-rich",
+      "android_large_tablet": "asset-rich"
     },
-    "dates": {
-      "primary_show": "2030-07-18T20:00:00-07:00",
-      "secondary_show": "2030-07-19T21:00:00-07:00"
-    },
-    "artwork": {
-      "required_keys": ["taylor", "comedy-store", "ali-wong", "joe-rogan"],
-      "fallback_policy": "Authenticated screenshot persona omits remote artwork and uses each platform's branded fallback."
+    "modes": {
+      "fallback-focused": {
+        "id": "native-screenshot-v1",
+        "result_count": 5,
+        "featured_entities": {
+          "club": { "id": 201, "name": "The Comedy Store" },
+          "show": { "id": 101, "name": "Taylor Tomlinson & Friends", "headliner": "Taylor Tomlinson" },
+          "comedian": { "id": 301, "name": "Ali Wong" },
+          "podcast": { "id": 401, "name": "The Joe Rogan Experience" }
+        },
+        "dates": {
+          "primary_show": "2030-07-18T20:00:00-07:00",
+          "secondary_show": "2030-07-19T21:00:00-07:00"
+        },
+        "artwork": {
+          "required_keys": ["taylor", "comedy-store", "ali-wong", "joe-rogan"],
+          "fallback_policy": "Authenticated screenshot persona omits remote artwork and uses each platform's branded fallback."
+        }
+      },
+      "asset-rich": {
+        "id": "native-screenshot-asset-rich-v1",
+        "result_count": 12,
+        "featured_entities": {
+          "club": { "id": 201, "name": "The Comedy Store" },
+          "show": { "id": 101, "name": "Taylor Tomlinson & Friends", "headliner": "Taylor Tomlinson" },
+          "comedian": { "id": 301, "name": "Ali Wong" },
+          "podcast": { "id": 401, "name": "The Joe Rogan Experience" }
+        },
+        "dates": {
+          "primary_show": "2030-07-18T20:00:00-07:00",
+          "secondary_show": "2030-07-19T21:00:00-07:00"
+        },
+        "artwork": {
+          "required_keys": [
+            "ali-wong", "taylor", "andrew-schulz", "josh-johnson",
+            "comedy-store", "comedy-cellar", "the-stand", "hollywood-improv",
+            "joe-rogan", "conan", "jtrain", "wtf"
+          ],
+          "categories": {
+            "portraits": ["ali-wong", "taylor", "andrew-schulz", "josh-johnson"],
+            "club_logos": ["comedy-store", "comedy-cellar", "the-stand", "hollywood-improv"],
+            "podcast_art": ["joe-rogan", "conan", "jtrain", "wtf"]
+          }
+        }
+      }
     }
   },
   "scenarios": [
