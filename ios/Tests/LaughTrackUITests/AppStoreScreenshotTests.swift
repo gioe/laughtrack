@@ -1,4 +1,6 @@
+import Foundation
 import SharedKitTesting
+import UIKit
 import XCTest
 
 /// UI test that captures the complete comparison screenshot set in sequence.
@@ -17,7 +19,6 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
     }
 
     private var selectedScenarioIDs: [String]?
-
     private enum Identifier {
         static let primitiveFilterScroller = "laughtrack.primitive-filter.scroller"
         static let clubDetailScreen = "laughtrack.club-detail.screen"
@@ -34,7 +35,12 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
             selectedScenarioIDs = app.launchArguments[index + 1].split(separator: ",").map(String.init)
         }
         let port = ProcessInfo.processInfo.environment["LAUGHTRACK_SCREENSHOT_FIXTURE_PORT"] ?? "8765"
+        let fixtureMode = UIDevice.current.userInterfaceIdiom == .pad
+            ? "asset-rich"
+            : "fallback-focused"
+        configureFixture(mode: fixtureMode, port: port)
         app.launchEnvironment["LAUGHTRACK_API_BASE_URL"] = "http://127.0.0.1:\(port)"
+        app.launchEnvironment["LAUGHTRACK_SCREENSHOT_FIXTURE_MODE"] = fixtureMode
     }
 
     func testGenerateAllScreenshots() throws {
@@ -360,6 +366,37 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
                 noLoadingLabels(["Loading \(description)s"]),
             ]
         )
+    }
+
+    private func configureFixture(mode: String, port: String) {
+        guard var components = URLComponents(string: "http://127.0.0.1:\(port)/fixture/configure") else {
+            XCTFail("Expected a valid screenshot fixture control URL")
+            return
+        }
+        components.queryItems = [URLQueryItem(name: "mode", value: mode)]
+        guard let url = components.url else {
+            XCTFail("Expected a valid screenshot fixture mode URL")
+            return
+        }
+
+        do {
+            let data = try Data(contentsOf: url)
+            guard
+                let payload = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                payload["mode"] as? String == mode,
+                let resultCount = payload["result_count"] as? Int,
+                resultCount > 0,
+                let fingerprint = payload["fingerprint"] as? String,
+                fingerprint.count == 64,
+                let requiredAssets = payload["required_assets"] as? [String],
+                !requiredAssets.isEmpty
+            else {
+                XCTFail("Screenshot fixture returned an invalid \(mode) contract")
+                return
+            }
+        } catch {
+            XCTFail("Could not configure screenshot fixture mode \(mode): \(error)")
+        }
     }
 
     private func capture(

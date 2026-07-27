@@ -41,6 +41,8 @@ import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import dagger.hilt.android.testing.UninstallModules
 import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.json.JSONObject
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -116,6 +118,8 @@ class AppStoreScreenshotTest {
     val screenshotApiBaseUrl = "http://10.0.2.2:8765/api/v1/"
 
     private val imageTracker = ScreenshotImageTracker()
+    private lateinit var fixtureMode: String
+    private var fixtureResultCount = 5
 
     @get:Rule(order = 0)
     val hiltRule = HiltAndroidRule(this)
@@ -139,6 +143,13 @@ class AppStoreScreenshotTest {
         // test activity). The FakeHomeLocationResolver still short-circuits GPS and
         // returns 90028 — the grant only keeps the in-app permission check happy.
         val instrumentation = InstrumentationRegistry.getInstrumentation()
+        fixtureMode =
+            if (instrumentation.targetContext.resources.configuration.smallestScreenWidthDp >= 600) {
+                "asset-rich"
+            } else {
+                "fallback-focused"
+            }
+        fixtureResultCount = configureFixture(fixtureMode)
         // Screengrab enters demo mode after the fastlane preflight. Reset it once
         // here before applying the canonical chrome: Android 15 otherwise adds a
         // duplicate Wi-Fi slot each time the network demo command is repeated.
@@ -390,7 +401,32 @@ class AppStoreScreenshotTest {
     private fun waitForResults() = waitForStable(hasTestTag(SEARCH_RESULT_ROW_TEST_TAG), timeoutMs = 30_000)
 
     private fun assertFixtureResultCount() {
-        waitFor(hasText("Showing 5 results"), timeoutMs = 15_000)
+        waitFor(hasText("Showing $fixtureResultCount results"), timeoutMs = 15_000)
+    }
+
+    private fun configureFixture(mode: String): Int {
+        val request =
+            Request.Builder()
+                .url("http://10.0.2.2:8765/fixture/configure?mode=$mode")
+                .build()
+        return OkHttpClient().newCall(request).execute().use { response ->
+            check(response.isSuccessful) {
+                "Screenshot fixture mode configuration failed: HTTP ${response.code}"
+            }
+            val payload = JSONObject(checkNotNull(response.body).string())
+            check(payload.getString("mode") == mode) {
+                "Screenshot fixture selected ${payload.getString("mode")} instead of $mode"
+            }
+            check(payload.getString("fingerprint").length == 64) {
+                "Screenshot fixture returned an invalid mode fingerprint"
+            }
+            check(payload.getJSONArray("required_assets").length() > 0) {
+                "Screenshot fixture mode must require representative artwork"
+            }
+            payload.getInt("result_count").also { count ->
+                check(count > 0) { "Screenshot fixture result count must be positive" }
+            }
+        }
     }
 
     /** Require the initial fixture card and its actions to remain fully rendered before capture. */
