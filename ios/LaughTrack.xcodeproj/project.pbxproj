@@ -1737,7 +1737,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.6.2;
+				MARKETING_VERSION = 2.6.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.laughtrack.apiclient;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1761,7 +1761,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.6.2;
+				MARKETING_VERSION = 2.6.3;
 				PRODUCT_BUNDLE_IDENTIFIER = app.laughtrack.ios;
 				PRODUCT_MODULE_NAME = LaughTrackApp;
 				SDKROOT = iphoneos;
@@ -1782,7 +1782,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 2.6.2;
+				MARKETING_VERSION = 2.6.3;
 				PRODUCT_BUNDLE_IDENTIFIER = app.laughtrack.ios.NotificationServiceExtension;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1804,7 +1804,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.6.2;
+				MARKETING_VERSION = 2.6.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.laughtrack.apiclient;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1823,7 +1823,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.6.2;
+				MARKETING_VERSION = 2.6.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.laughtrack.tests;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1841,7 +1841,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.6.2;
+				MARKETING_VERSION = 2.6.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.laughtrack.uitests;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1864,7 +1864,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.6.2;
+				MARKETING_VERSION = 2.6.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.laughtrack.core;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1883,7 +1883,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.6.2;
+				MARKETING_VERSION = 2.6.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.laughtrack.tests;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1906,7 +1906,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.6.2;
+				MARKETING_VERSION = 2.6.3;
 				PRODUCT_BUNDLE_IDENTIFIER = app.laughtrack.ios;
 				PRODUCT_MODULE_NAME = LaughTrackApp;
 				SDKROOT = iphoneos;
@@ -1930,7 +1930,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.6.2;
+				MARKETING_VERSION = 2.6.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.laughtrack.core;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1954,7 +1954,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.6.2;
+				MARKETING_VERSION = 2.6.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.laughtrack.bridge;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1973,7 +1973,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.6.2;
+				MARKETING_VERSION = 2.6.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.laughtrack.uitests;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1996,7 +1996,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.6.2;
+				MARKETING_VERSION = 2.6.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.laughtrack.bridge;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -2073,7 +2073,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 2.6.2;
+				MARKETING_VERSION = 2.6.3;
 				PRODUCT_BUNDLE_IDENTIFIER = app.laughtrack.ios.NotificationServiceExtension;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";

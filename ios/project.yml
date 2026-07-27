@@ -50,7 +50,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.laughtrack.core
         GENERATE_INFOPLIST_FILE: "YES"
-        MARKETING_VERSION: "2.6.2"
+        MARKETING_VERSION: "2.6.3"
   LaughTrackBridge:
     type: framework
     platform: iOS
@@ -63,7 +63,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.laughtrack.bridge
         GENERATE_INFOPLIST_FILE: "YES"
-        MARKETING_VERSION: "2.6.2"
+        MARKETING_VERSION: "2.6.3"
   LaughTrackAPIClient:
     type: framework
     platform: iOS
@@ -83,7 +83,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.laughtrack.apiclient
         GENERATE_INFOPLIST_FILE: "YES"
-        MARKETING_VERSION: "2.6.2"
+        MARKETING_VERSION: "2.6.3"
   LaughTrackNotificationServiceExtension:
     type: app-extension
     platform: iOS
@@ -103,7 +103,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: app.laughtrack.ios.NotificationServiceExtension
         DEVELOPMENT_TEAM: 4HDNC3V5Q6
         GENERATE_INFOPLIST_FILE: "NO"
-        MARKETING_VERSION: "2.6.2"
+        MARKETING_VERSION: "2.6.3"
         CURRENT_PROJECT_VERSION: "34"
   LaughTrack:
     type: application
@@ -183,7 +183,7 @@ targets:
         # on device (didFailToRegister fires; no token is ever delivered), even
         # though the provisioning profile grants it.
         CODE_SIGN_ENTITLEMENTS: Sources/LaughTrackApp/LaughTrack.entitlements
-        MARKETING_VERSION: "2.6.2"
+        MARKETING_VERSION: "2.6.3"
         CURRENT_PROJECT_VERSION: "34"
         SWIFT_EMIT_LOC_STRINGS: "YES"
         # iPhone-only (TARGETED_DEVICE_FAMILY "1"). Without this xcodegen defaults
@@ -225,7 +225,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.laughtrack.tests
         GENERATE_INFOPLIST_FILE: "YES"
-        MARKETING_VERSION: "2.6.2"
+        MARKETING_VERSION: "2.6.3"
   LaughTrackUITests:
     type: bundle.ui-testing
     platform: iOS
@@ -248,5 +248,5 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.laughtrack.uitests
         GENERATE_INFOPLIST_FILE: "YES"
-        MARKETING_VERSION: "2.6.2"
+        MARKETING_VERSION: "2.6.3"
         TEST_TARGET_NAME: LaughTrack
