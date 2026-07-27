@@ -1,7 +1,14 @@
 import SwiftUI
+#if canImport(UIKit)
 import UIKit
+#endif
 import LaughTrackBridge
 import LaughTrackCore
+
+enum LoginModalInterfaceIdiom {
+    case phone
+    case pad
+}
 
 @MainActor
 struct LaughTrackLoginModalView: View {
@@ -12,8 +19,16 @@ struct LaughTrackLoginModalView: View {
     @Environment(\.appTheme) private var theme
     @Environment(\.dismiss) private var dismiss
 
-    static func presentationDetents(for interfaceIdiom: UIUserInterfaceIdiom) -> Set<PresentationDetent> {
+    static func presentationDetents(for interfaceIdiom: LoginModalInterfaceIdiom) -> Set<PresentationDetent> {
         interfaceIdiom == .pad ? [.large] : [.medium, .large]
+    }
+
+    private static var currentInterfaceIdiom: LoginModalInterfaceIdiom {
+        #if canImport(UIKit)
+        UIDevice.current.userInterfaceIdiom == .pad ? .pad : .phone
+        #else
+        .phone
+        #endif
     }
 
     var body: some View {
@@ -79,7 +94,7 @@ struct LaughTrackLoginModalView: View {
             .accessibilityLabel("Close")
             .padding(theme.spacing.lg)
         }
-        .presentationDetents(Self.presentationDetents(for: UIDevice.current.userInterfaceIdiom))
+        .presentationDetents(Self.presentationDetents(for: Self.currentInterfaceIdiom))
         .presentationDragIndicator(.hidden)
     }
 
