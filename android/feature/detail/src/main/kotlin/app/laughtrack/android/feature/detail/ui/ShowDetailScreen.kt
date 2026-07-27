@@ -63,6 +63,7 @@ import app.laughtrack.android.core.ui.components.TicketShowRow
 import app.laughtrack.android.core.ui.components.ticketStubDateParts
 import app.laughtrack.android.core.ui.theme.LaughTrackColors
 import app.laughtrack.android.feature.detail.model.ShowDetailUi
+import app.laughtrack.android.feature.detail.ui.components.AdaptiveDetailCatalogLayout
 import app.laughtrack.android.feature.detail.ui.components.DetailError
 import app.laughtrack.android.feature.detail.ui.components.DetailLoading
 import app.laughtrack.android.feature.detail.util.addEventToCalendar
@@ -118,41 +119,52 @@ private fun ShowDetailBody(
             .verticalScroll(rememberScrollState())
             .padding(bottom = 28.dp),
     ) {
-        ShowMarqueeHero(
-            show = show,
-            onBack = onBack,
-            onHome = onHome,
-        )
-        Column(
-            Modifier.padding(horizontal = 8.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            if (isAdmin) {
-                AdminShowIdBadge(showId = show.id)
-            }
-            ShowTicketSummary(
-                show = show,
-                ticketOutboundUrl = ui.ticketOutboundUrl,
-                onVenue = { onOpenEntity(AppRoute.ClubDetail(show.club.id)) },
-                onCalendar = {
-                    parseShowDateTime(show.date, show.venueTimezone())?.toInstant()?.toEpochMilli()?.let { start ->
-                        context.addEventToCalendar(
-                            title = show.name ?: show.club.name,
-                            startMillis = start,
-                            endMillis = null,
-                            location = listOfNotNull(show.club.name, show.club.address).joinToString(", "),
-                            description = "Added from LaughTrack.",
-                        )
+        AdaptiveDetailCatalogLayout(
+            hero = {
+                ShowMarqueeHero(
+                    show = show,
+                    onBack = onBack,
+                    onHome = onHome,
+                )
+            },
+            content = {
+                Column(
+                    Modifier.padding(horizontal = 8.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    if (isAdmin) {
+                        AdminShowIdBadge(showId = show.id)
                     }
-                },
-                onTickets = { url -> context.openUrl(url) },
-            )
+                    ShowTicketSummary(
+                        show = show,
+                        ticketOutboundUrl = ui.ticketOutboundUrl,
+                        onVenue = { onOpenEntity(AppRoute.ClubDetail(show.club.id)) },
+                        onCalendar = {
+                            parseShowDateTime(show.date, show.venueTimezone())
+                                ?.toInstant()
+                                ?.toEpochMilli()
+                                ?.let { start ->
+                                    context.addEventToCalendar(
+                                        title = show.name ?: show.club.name,
+                                        startMillis = start,
+                                        endMillis = null,
+                                        location =
+                                            listOfNotNull(show.club.name, show.club.address)
+                                                .joinToString(", "),
+                                        description = "Added from LaughTrack.",
+                                    )
+                                }
+                        },
+                        onTickets = { url -> context.openUrl(url) },
+                    )
 
-            if (!showDetailIsOpenMic(show)) {
-                ShowLineupSection(show.lineup.orEmpty(), onOpenEntity)
-            }
-            RelatedShowsSection(ui.relatedShows, onOpenEntity)
-        }
+                    if (!showDetailIsOpenMic(show)) {
+                        ShowLineupSection(show.lineup.orEmpty(), onOpenEntity)
+                    }
+                    RelatedShowsSection(ui.relatedShows, onOpenEntity)
+                }
+            },
+        )
     }
 }
 

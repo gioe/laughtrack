@@ -82,6 +82,7 @@ import app.laughtrack.android.core.ui.components.TicketShowRow
 import app.laughtrack.android.core.ui.components.ticketStubDateParts
 import app.laughtrack.android.core.ui.theme.LaughTrackColors
 import app.laughtrack.android.feature.detail.model.ComedianDetailUi
+import app.laughtrack.android.feature.detail.ui.components.AdaptiveDetailCatalogLayout
 import app.laughtrack.android.feature.detail.ui.components.DetailError
 import app.laughtrack.android.feature.detail.ui.components.DetailLoading
 import app.laughtrack.android.feature.detail.ui.components.EntityAvatar
@@ -140,27 +141,32 @@ private fun ComedianDetailBody(
             .verticalScroll(rememberScrollState())
             .padding(bottom = 28.dp),
     ) {
-        ComedianIdentityBlock(
-            ui = ui,
-            onBack = onBack,
-            isFavorite = isFavorite,
-            isFavoritePending = isFavoritePending,
-            onFavorite = onFavorite,
-            onOpenEntity = onOpenEntity,
+        AdaptiveDetailCatalogLayout(
+            hero = {
+                ComedianIdentityBlock(
+                    ui = ui,
+                    onBack = onBack,
+                    isFavorite = isFavorite,
+                    isFavoritePending = isFavoritePending,
+                    onFavorite = onFavorite,
+                    onOpenEntity = onOpenEntity,
+                )
+            },
+            content = {
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 20.dp),
+                    verticalArrangement = Arrangement.spacedBy(20.dp),
+                ) {
+                    ComedianTabPicker(selectedTab = selectedTab, onSelectTab = { selectedTab = it })
+                    when (selectedTab) {
+                        0 -> ComedianShowsTab(ui, onOpenEntity)
+                        else -> ComedianPodcastsTab(ui.detail.podcastAppearances, onOpenEntity)
+                    }
+                }
+            },
         )
-
-        Column(
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp),
-        ) {
-            ComedianTabPicker(selectedTab = selectedTab, onSelectTab = { selectedTab = it })
-            when (selectedTab) {
-                0 -> ComedianShowsTab(ui, onOpenEntity)
-                else -> ComedianPodcastsTab(ui.detail.podcastAppearances, onOpenEntity)
-            }
-        }
     }
 }
 

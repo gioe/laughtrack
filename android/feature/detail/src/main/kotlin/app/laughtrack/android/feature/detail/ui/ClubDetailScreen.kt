@@ -63,6 +63,7 @@ import app.laughtrack.android.core.ui.components.RemoteImage
 import app.laughtrack.android.core.ui.components.RemoteImageFallback
 import app.laughtrack.android.core.ui.theme.LaughTrackColors
 import app.laughtrack.android.feature.detail.model.ClubDetailUi
+import app.laughtrack.android.feature.detail.ui.components.AdaptiveDetailCatalogLayout
 import app.laughtrack.android.feature.detail.ui.components.DetailError
 import app.laughtrack.android.feature.detail.ui.components.DetailLoading
 import app.laughtrack.android.feature.detail.util.formatTicketPriceLabel
@@ -129,23 +130,34 @@ private fun ClubDetailBody(
             .verticalScroll(rememberScrollState())
             .padding(bottom = 28.dp),
     ) {
-        ClubMarqueeHero(
-            club = ui.detail,
-            isFavorite = isFavorite,
-            isFavoritePending = isFavoritePending,
-            onFavorite = onFavorite,
-            onBack = onBack,
+        AdaptiveDetailCatalogLayout(
+            hero = {
+                ClubMarqueeHero(
+                    club = ui.detail,
+                    isFavorite = isFavorite,
+                    isFavoritePending = isFavoritePending,
+                    onFavorite = onFavorite,
+                    onBack = onBack,
+                )
+            },
+            content = {
+                Column {
+                    ClubCalendarSection(
+                        club = ui.detail,
+                        shows = ui.upcomingShows,
+                        totalShows = ui.totalShows,
+                        canLoadMore = ui.canLoadMore,
+                        isLoadingMore = isLoadingMore,
+                        onLoadMore = onLoadMore,
+                        onOpenEntity = onOpenEntity,
+                    )
+                    ClubRelatedVenuesSection(
+                        venues = ui.detail.relatedVenues.orEmpty(),
+                        onOpenEntity = onOpenEntity,
+                    )
+                }
+            },
         )
-        ClubCalendarSection(
-            club = ui.detail,
-            shows = ui.upcomingShows,
-            totalShows = ui.totalShows,
-            canLoadMore = ui.canLoadMore,
-            isLoadingMore = isLoadingMore,
-            onLoadMore = onLoadMore,
-            onOpenEntity = onOpenEntity,
-        )
-        ClubRelatedVenuesSection(venues = ui.detail.relatedVenues.orEmpty(), onOpenEntity = onOpenEntity)
     }
 }
 

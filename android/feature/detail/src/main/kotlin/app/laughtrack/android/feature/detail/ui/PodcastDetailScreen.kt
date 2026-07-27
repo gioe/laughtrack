@@ -66,6 +66,7 @@ import app.laughtrack.android.core.ui.UiState
 import app.laughtrack.android.core.ui.components.RemoteImage
 import app.laughtrack.android.core.ui.components.RemoteImageFallback
 import app.laughtrack.android.core.ui.theme.LaughTrackColors
+import app.laughtrack.android.feature.detail.ui.components.AdaptiveDetailCatalogLayout
 import app.laughtrack.android.feature.detail.ui.components.DetailError
 import app.laughtrack.android.feature.detail.ui.components.DetailLoading
 import app.laughtrack.android.feature.detail.util.openUrl
@@ -128,31 +129,36 @@ private fun PodcastDetailBody(
             .verticalScroll(rememberScrollState())
             .padding(bottom = 28.dp),
     ) {
-        PodcastMarqueeHero(
-            podcast = data.podcast,
-            isFavorite = isFavorite,
-            isFavoritePending = isFavoritePending,
-            onFavorite = onFavorite,
-            onBack = onBack,
-            onOpenEntity = onOpenEntity,
+        AdaptiveDetailCatalogLayout(
+            hero = {
+                PodcastMarqueeHero(
+                    podcast = data.podcast,
+                    isFavorite = isFavorite,
+                    isFavoritePending = isFavoritePending,
+                    onFavorite = onFavorite,
+                    onBack = onBack,
+                    onOpenEntity = onOpenEntity,
+                )
+            },
+            content = {
+                Column(
+                    Modifier.padding(horizontal = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(20.dp),
+                ) {
+                    PodcastEpisodeSection(
+                        podcast = data.podcast,
+                        episodes = data.episodes,
+                        onOpenEntity = onOpenEntity,
+                        onPlay = onPlay,
+                    )
+
+                    PodcastFrequentGuestsSection(
+                        guests = frequentPodcastGuests(data),
+                        onOpenEntity = onOpenEntity,
+                    )
+                }
+            },
         )
-
-        Column(
-            Modifier.padding(horizontal = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp),
-        ) {
-            PodcastEpisodeSection(
-                podcast = data.podcast,
-                episodes = data.episodes,
-                onOpenEntity = onOpenEntity,
-                onPlay = onPlay,
-            )
-
-            PodcastFrequentGuestsSection(
-                guests = frequentPodcastGuests(data),
-                onOpenEntity = onOpenEntity,
-            )
-        }
     }
 }
 

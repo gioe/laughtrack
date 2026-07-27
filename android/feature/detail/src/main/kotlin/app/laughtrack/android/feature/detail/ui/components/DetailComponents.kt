@@ -2,6 +2,8 @@ package app.laughtrack.android.feature.detail.ui.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -29,10 +32,102 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.laughtrack.android.core.ui.components.RemoteImage
 import app.laughtrack.android.core.ui.components.RemoteImageFallback
 import app.laughtrack.android.core.ui.components.SkeletonLine
+
+internal enum class DetailCatalogLayoutMode {
+    Compact,
+    Expanded,
+}
+
+internal data class DetailAdaptiveLayoutSpec(
+    val mode: DetailCatalogLayoutMode,
+    val contentMaxWidth: Dp,
+    val outerPadding: Dp,
+    val paneGap: Dp,
+    val heroWidth: Dp,
+    val contentTopPadding: Dp,
+)
+
+private val DETAIL_EXPANDED_BREAKPOINT = 600.dp
+private val DETAIL_WIDE_BREAKPOINT = 720.dp
+private val DETAIL_EXPANDED_CONTENT_MAX_WIDTH = 1_200.dp
+
+internal fun detailAdaptiveLayoutSpec(availableWidth: Dp): DetailAdaptiveLayoutSpec {
+    if (availableWidth < DETAIL_EXPANDED_BREAKPOINT) {
+        return DetailAdaptiveLayoutSpec(
+            mode = DetailCatalogLayoutMode.Compact,
+            contentMaxWidth = Dp.Infinity,
+            outerPadding = 0.dp,
+            paneGap = 0.dp,
+            heroWidth = availableWidth,
+            contentTopPadding = 0.dp,
+        )
+    }
+
+    val boundedWidth = minOf(availableWidth, DETAIL_EXPANDED_CONTENT_MAX_WIDTH)
+    val isWide = boundedWidth >= DETAIL_WIDE_BREAKPOINT
+    val outerPadding = if (isWide) 32.dp else 8.dp
+    val paneGap = if (isWide) 32.dp else 12.dp
+    val heroWidth = (boundedWidth * 0.42f).coerceIn(264.dp, 360.dp)
+    return DetailAdaptiveLayoutSpec(
+        mode = DetailCatalogLayoutMode.Expanded,
+        contentMaxWidth = DETAIL_EXPANDED_CONTENT_MAX_WIDTH,
+        outerPadding = outerPadding,
+        paneGap = paneGap,
+        heroWidth = heroWidth,
+        contentTopPadding = 96.dp,
+    )
+}
+
+/**
+ * Preserves the existing edge-to-edge phone stack while using a bounded,
+ * top-aligned two-pane composition on tablets.
+ */
+@Composable
+fun AdaptiveDetailCatalogLayout(
+    modifier: Modifier = Modifier,
+    hero: @Composable () -> Unit,
+    content: @Composable () -> Unit,
+) {
+    BoxWithConstraints(modifier.fillMaxWidth()) {
+        val spec = detailAdaptiveLayoutSpec(maxWidth)
+        when (spec.mode) {
+            DetailCatalogLayoutMode.Compact -> {
+                Column(Modifier.fillMaxWidth()) {
+                    hero()
+                    content()
+                }
+            }
+            DetailCatalogLayoutMode.Expanded -> {
+                Row(
+                    modifier =
+                        Modifier
+                            .align(Alignment.TopCenter)
+                            .widthIn(max = spec.contentMaxWidth)
+                            .fillMaxWidth()
+                            .padding(horizontal = spec.outerPadding),
+                    horizontalArrangement = Arrangement.spacedBy(spec.paneGap),
+                    verticalAlignment = Alignment.Top,
+                ) {
+                    Box(Modifier.width(spec.heroWidth)) {
+                        hero()
+                    }
+                    Box(
+                        Modifier
+                            .weight(1f)
+                            .padding(top = spec.contentTopPadding),
+                    ) {
+                        content()
+                    }
+                }
+            }
+        }
+    }
+}
 
 /**
  * Detail-screen chrome: a top bar with a back affordance and an optional trailing
