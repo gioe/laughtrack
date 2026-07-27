@@ -52,6 +52,8 @@ def test_default_mode_preserves_fallback_focused_contract() -> None:
         payload = fixture_response(path, "http://fixture")
         assert len(payload["data"]) == 5
         assert payload["total"] == 5
+    clubs = fixture_response("/api/v1/clubs/search", "http://fixture")
+    assert [club["showCount"] for club in clubs["data"]] == [120, 110, 100, 90, 80]
 
 
 def test_asset_rich_mode_populates_dense_search_results_with_distinct_artwork() -> None:

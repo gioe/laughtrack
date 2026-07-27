@@ -337,7 +337,7 @@ def fixture_response(path: str, base_url: str, mode: str = DEFAULT_MODE) -> dict
                 "imageUrl": f"{base_url}/artwork/{'comedy-store' if mode == DEFAULT_MODE else CLUB_ARTWORK[index % len(CLUB_ARTWORK)]}.png",
                 "address": "8433 Sunset Blvd",
                 "zipCode": "90069",
-                "showCount": 120 - index * 5,
+                "showCount": 120 - index * (10 if mode == DEFAULT_MODE else 5),
                 "activeComedianCount": 80 - index,
                 "city": "West Hollywood",
                 "state": "CA",
