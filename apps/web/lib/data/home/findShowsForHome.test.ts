@@ -13,6 +13,7 @@ type LineupInput = {
         uuid: string;
         name: string;
         hasImage: boolean;
+        popularity?: number | null;
         _count?: { lineupItems?: number };
     };
 };
@@ -59,6 +60,14 @@ vi.mock("@/util/comedian/comedianUtil", () => ({
                 ? `https://cdn.example.com/${item.comedian.name}.png`
                 : "",
             showCount: item.comedian._count?.lineupItems,
+            ...(typeof item.comedian.popularity === "number"
+                ? {
+                      socialData: {
+                          id: item.comedian.id,
+                          popularity: item.comedian.popularity,
+                      },
+                  }
+                : {}),
             isFavorite: false,
             isAlias: false,
         })),
@@ -93,6 +102,7 @@ function makeLineupItem(
         uuid: string;
         name: string;
         hasImage: boolean;
+        popularity: number | null;
         showCount: number;
     }> = {},
 ) {
@@ -315,19 +325,21 @@ describe("findShowsForHome", () => {
             expect(dto.address).toBe("117 Macdougal St");
         });
 
-        it("uses the most popular lineup comedian image when one is available", async () => {
+        it("prefers lineup social popularity over historical show count for the image", async () => {
             const row = makeShowRow({
                 lineupItems: [
                     makeLineupItem({
                         id: 1,
                         uuid: "opener",
                         name: "Opener Comic",
+                        popularity: 95,
                         showCount: 4,
                     }),
                     makeLineupItem({
                         id: 2,
                         uuid: "headliner",
                         name: "Headliner Comic",
+                        popularity: 12,
                         showCount: 80,
                     }),
                 ],
@@ -337,7 +349,71 @@ describe("findShowsForHome", () => {
             const result = await findShowsForHome({}, { date: "asc" });
 
             expect(result[0].imageUrl).toBe(
-                "https://cdn.example.com/Headliner Comic.png",
+                "https://cdn.example.com/Opener Comic.png",
+            );
+        });
+
+        it("uses show count and then lineup order as deterministic image fallbacks", async () => {
+            const row = makeShowRow({
+                lineupItems: [
+                    makeLineupItem({
+                        id: 1,
+                        uuid: "first",
+                        name: "First Comic",
+                        popularity: 20,
+                        showCount: 8,
+                    }),
+                    makeLineupItem({
+                        id: 2,
+                        uuid: "count-winner",
+                        name: "Count Winner",
+                        popularity: 20,
+                        showCount: 12,
+                    }),
+                    makeLineupItem({
+                        id: 3,
+                        uuid: "exact-tie",
+                        name: "Exact Tie",
+                        popularity: 20,
+                        showCount: 12,
+                    }),
+                ],
+            });
+            mockFindMany.mockResolvedValue([row] as never);
+
+            const result = await findShowsForHome({}, { date: "asc" });
+
+            expect(result[0].imageUrl).toBe(
+                "https://cdn.example.com/Count Winner.png",
+            );
+        });
+
+        it("skips a higher-ranked lineup comedian without an image", async () => {
+            const row = makeShowRow({
+                lineupItems: [
+                    makeLineupItem({
+                        id: 1,
+                        uuid: "no-image",
+                        name: "No Image",
+                        hasImage: false,
+                        popularity: 100,
+                        showCount: 100,
+                    }),
+                    makeLineupItem({
+                        id: 2,
+                        uuid: "with-image",
+                        name: "With Image",
+                        popularity: 10,
+                        showCount: 2,
+                    }),
+                ],
+            });
+            mockFindMany.mockResolvedValue([row] as never);
+
+            const result = await findShowsForHome({}, { date: "asc" });
+
+            expect(result[0].imageUrl).toBe(
+                "https://cdn.example.com/With Image.png",
             );
         });
 

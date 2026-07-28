@@ -285,9 +285,10 @@ function mapShowTags(
 }
 
 /**
- * Pick the image of the most-popular lineup comedian that has one, falling back
- * to null when no lineup member has an image. Popularity is the comedian's
- * showCount (see getLineupItemPopularity).
+ * Pick the image of the highest-ranked lineup comedian that has one, falling
+ * back to null when no lineup member has an image. Ranking mirrors the show
+ * detail contract: social popularity first, historical show count second, and
+ * original lineup order for an exact tie.
  */
 export function getBestLineupImageUrl(
     lineup: ComedianLineupDTO[],
@@ -295,14 +296,26 @@ export function getBestLineupImageUrl(
     let best: ComedianLineupDTO | null = null;
     for (const comedian of lineup) {
         if (!comedian.imageUrl) continue;
-        if (
-            !best ||
-            getLineupItemPopularity(comedian) > getLineupItemPopularity(best)
-        ) {
+        if (!best || isHigherRankedLineupComedian(comedian, best)) {
             best = comedian;
         }
     }
     return best?.imageUrl ?? null;
+}
+
+function isHigherRankedLineupComedian(
+    candidate: ComedianLineupDTO,
+    current: ComedianLineupDTO,
+): boolean {
+    const candidatePopularity = candidate.socialData?.popularity ?? -1;
+    const currentPopularity = current.socialData?.popularity ?? -1;
+    if (candidatePopularity !== currentPopularity) {
+        return candidatePopularity > currentPopularity;
+    }
+
+    return (
+        getLineupItemPopularity(candidate) > getLineupItemPopularity(current)
+    );
 }
 
 export function getLineupItemPopularity(comedian: ComedianLineupDTO): number {
