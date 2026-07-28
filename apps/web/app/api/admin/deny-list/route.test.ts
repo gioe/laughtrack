@@ -379,6 +379,13 @@ describe("DELETE /api/admin/deny-list", () => {
         );
 
         expect(res.status).toBe(200);
+        expect(mockRevalidateTag).toHaveBeenCalledWith(
+            "podcasts-search-page-data-v3",
+        );
+        expect(mockRevalidateTag).toHaveBeenCalledWith(
+            "podcast-detail-data-v2",
+        );
+        expect(mockRevalidateTag).toHaveBeenCalledWith("podcast-metadata");
         expect(auditCreate).toHaveBeenCalledWith({
             data: {
                 actorProfileId: "profile-1",

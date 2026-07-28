@@ -200,6 +200,7 @@ export const DELETE = withRequestMetrics(async function DELETE(
             );
         }
 
+        revalidatePodcastSurfaces();
         return NextResponse.json({ ok: true, entry: removed });
     } catch (error) {
         console.error("Admin deny-list DELETE failed:", error);
