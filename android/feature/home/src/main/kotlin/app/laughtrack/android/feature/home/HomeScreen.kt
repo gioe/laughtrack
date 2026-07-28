@@ -347,131 +347,178 @@ private fun TonightCarousel(
     onOpenEntity: (AppRoute) -> Unit,
 ) {
     val listState = rememberLazyListState()
-    val selectedIndex by remember {
-        derivedStateOf { listState.firstVisibleItemIndex.coerceIn(0, (shows.size - 1).coerceAtLeast(0)) }
+    val selectedIndex by remember(listState, shows.size) {
+        derivedStateOf { tonightSelectedIndex(listState.firstVisibleItemIndex, shows.size) }
     }
 
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        BoxWithConstraints(Modifier.fillMaxWidth()) {
-            val pageWidth = maxWidth
-            LazyRow(
-                state = listState,
-                flingBehavior = rememberSnapFlingBehavior(lazyListState = listState),
+        Surface(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(432.dp),
+            color = LaughTrackColors.Surface,
+            shape = RoundedCornerShape(12.dp),
+        ) {
+            Column(
+                modifier = Modifier.padding(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                items(shows, key = { it.id }) { show ->
-                    TonightHeroCard(
-                        show = show,
-                        width = pageWidth,
-                        onClick = { onOpenEntity(AppRoute.ShowDetail(show.id)) },
-                    )
+                Text(
+                    text = "TONIGHT!",
+                    color = LaughTrackColors.AccentStrong,
+                    fontWeight = FontWeight.Black,
+                    fontSize = 22.sp,
+                    letterSpacing = 2.4.sp,
+                    maxLines = 1,
+                )
+
+                BoxWithConstraints(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                ) {
+                    val pageWidth = maxWidth
+                    MarqueeArtworkBackground()
+                    LazyRow(
+                        modifier = Modifier.fillMaxSize(),
+                        state = listState,
+                        flingBehavior = rememberSnapFlingBehavior(lazyListState = listState),
+                    ) {
+                        items(shows, key = { it.id }) { show ->
+                            TonightHeroPage(
+                                show = show,
+                                modifier =
+                                    Modifier
+                                        .width(pageWidth)
+                                        .fillParentMaxHeight(),
+                                onClick = { onOpenEntity(AppRoute.ShowDetail(show.id)) },
+                            )
+                        }
+                    }
                 }
             }
         }
 
-        if (shows.size > 1) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                shows.forEachIndexed { index, _ ->
-                    Box(
-                        modifier =
-                            Modifier
-                                .size(7.dp)
-                                .clip(CircleShape)
-                                .background(
-                                    if (index == selectedIndex) {
-                                        MaterialTheme.colorScheme.onSurface
-                                    } else {
-                                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f)
-                                    },
-                                ),
-                    )
-                }
+        TonightPageIndicator(itemCount = shows.size, selectedIndex = selectedIndex)
+    }
+}
+
+internal fun tonightSelectedIndex(
+    firstVisibleItemIndex: Int,
+    showCount: Int,
+): Int = firstVisibleItemIndex.coerceIn(0, (showCount - 1).coerceAtLeast(0))
+
+@Composable
+private fun TonightHeroPage(
+    show: Show,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    val price = formatPrice(show.tickets?.mapNotNull { it.price })
+    Column(
+        modifier = modifier.clickable(onClick = onClick),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        MarqueeArtwork(show = show)
+
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+        ) {
+            Text(
+                text = formatShowTime(show) ?: "",
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.Black,
+                fontSize = 30.sp,
+                maxLines = 1,
+            )
+            Text(
+                text = show.name?.uppercase(Locale.US) ?: "SHOW",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Black),
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Text(
+                text = "At ${show.clubName ?: "Unknown club"}".uppercase(Locale.US),
+                style =
+                    MaterialTheme.typography.labelSmall.copy(
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = 2.sp,
+                    ),
+                textAlign = TextAlign.Center,
+                color = LaughTrackColors.AccentStrong,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Spacer(Modifier.weight(1f))
+            PricePill(price = price)
+        }
+    }
+}
+
+@Composable
+private fun TonightPageIndicator(
+    itemCount: Int,
+    selectedIndex: Int,
+) {
+    if (itemCount > 1) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            repeat(itemCount) { index ->
+                Box(
+                    modifier =
+                        Modifier
+                            .size(7.dp)
+                            .clip(CircleShape)
+                            .background(
+                                if (index == selectedIndex) {
+                                    MaterialTheme.colorScheme.onSurface
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f)
+                                },
+                            ),
+                )
             }
         }
     }
 }
 
 @Composable
-private fun TonightHeroCard(
-    show: Show,
-    width: Dp,
-    onClick: () -> Unit,
-) {
-    val price = formatPrice(show.tickets?.mapNotNull { it.price })
-    Surface(
+private fun MarqueeArtworkBackground() {
+    Box(
         modifier =
             Modifier
-                .width(width)
-                .height(432.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .clickable(onClick = onClick),
-        color = LaughTrackColors.Surface,
-        shape = RoundedCornerShape(12.dp),
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Text(
-                text = "TONIGHT!",
-                color = LaughTrackColors.AccentStrong,
-                fontWeight = FontWeight.Black,
-                fontSize = 22.sp,
-                letterSpacing = 2.4.sp,
-                maxLines = 1,
-            )
-
-            MarqueeArtwork(show = show)
-
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-            ) {
-                Text(
-                    text = formatShowTime(show) ?: "",
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.Black,
-                    fontSize = 30.sp,
-                    maxLines = 1,
-                )
-                Text(
-                    text = show.name?.uppercase(Locale.US) ?: "SHOW",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Black),
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Text(
-                    text = "At ${show.clubName ?: "Unknown club"}".uppercase(Locale.US),
-                    style =
-                        MaterialTheme.typography.labelSmall.copy(
-                            fontSize = 9.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            letterSpacing = 2.sp,
-                        ),
-                    textAlign = TextAlign.Center,
-                    color = LaughTrackColors.AccentStrong,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Spacer(Modifier.weight(1f))
-                PricePill(price = price)
-            }
-        }
-    }
+                .fillMaxWidth()
+                .height(198.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(
+                    Brush.radialGradient(
+                        colors =
+                            listOf(
+                                LaughTrackColors.AccentStrong.copy(alpha = 0.24f),
+                                LaughTrackColors.Surface.copy(alpha = 0.96f),
+                            ),
+                    ),
+                ),
+    )
 }
 
 @Composable
@@ -511,17 +558,7 @@ private fun MarqueeArtwork(show: Show) {
         modifier =
             Modifier
                 .fillMaxWidth()
-                .height(198.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(
-                    Brush.radialGradient(
-                        colors =
-                            listOf(
-                                LaughTrackColors.AccentStrong.copy(alpha = 0.24f),
-                                LaughTrackColors.Surface.copy(alpha = 0.96f),
-                            ),
-                    ),
-                ),
+                .height(198.dp),
         contentAlignment = Alignment.Center,
     ) {
         Column(
