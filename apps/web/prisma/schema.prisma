@@ -670,6 +670,7 @@ model UserProfile {
   favoriteClubs                FavoriteClub[]
   favoriteComedians            FavoriteComedian[]
   favoritePodcasts             FavoritePodcast[]
+  savedShows                   SavedShow[]
   pushTokens                   UserPushToken[]
   discoveryImpressions         DiscoveryImpressionEvent[]
   ticketPurchaseClicks         TicketPurchaseClickEvent[]
@@ -799,6 +800,18 @@ model FavoriteClub {
   @@map("favorite_clubs")
 }
 
+model SavedShow {
+  profileId String      @map("profile_id")
+  showId    Int         @map("show_id")
+  createdAt DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  profile   UserProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  show      Show        @relation(fields: [showId], references: [id], onDelete: Cascade)
+
+  @@id([profileId, showId])
+  @@index([showId])
+  @@map("saved_shows")
+}
+
 model Show {
   id                        Int                            @id @default(autoincrement())
   name                      String?
@@ -840,6 +853,7 @@ model Show {
   sentNotifications         SentNotification[]
   ticketPurchaseClicks      TicketPurchaseClickEvent[]
   discoveryFeatureSnapshots DiscoveryShowFeatureSnapshot[]
+  savedShows                SavedShow[]
 
   // Dual-index design (intentional):
   // - @@unique([clubId, date, room]) enforces deduplication and is used by the
