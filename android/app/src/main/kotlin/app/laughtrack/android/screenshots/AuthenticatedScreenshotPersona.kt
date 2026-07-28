@@ -3,6 +3,8 @@ package app.laughtrack.android.screenshots
 import app.laughtrack.android.core.data.favorites.FavoritesSnapshot
 import app.laughtrack.android.core.data.profile.ProfileAccount
 import app.laughtrack.android.core.data.profile.ProfilePreferences
+import app.laughtrack.android.core.data.savedshows.SavedShowsCollection
+import app.laughtrack.android.core.data.savedshows.SavedShowsSnapshot
 import app.laughtrack.android.core.network.generated.model.ComedianLineup
 import app.laughtrack.android.core.network.generated.model.ComedianSearchItem
 import app.laughtrack.android.core.network.generated.model.FavoriteClubItem
@@ -30,6 +32,8 @@ object AuthenticatedScreenshotPersona {
     const val SECOND_COMEDIAN_UUID = "00000000-0000-4000-8000-000000000102"
     const val SHOW_ID = 910_101
     const val SECOND_SHOW_ID = 910_102
+    const val UPCOMING_SAVED_SHOW_ID = 910_103
+    const val PAST_SAVED_SHOW_ID = 910_104
 
     val profileUiState =
         ProfileUiState(
@@ -143,6 +147,55 @@ object AuthenticatedScreenshotPersona {
             comedianValues = mapOf(COMEDIAN_UUID to true, SECOND_COMEDIAN_UUID to true),
             clubValues = mapOf(910_201 to true),
             podcastValues = mapOf(910_301 to true),
+        )
+
+    val savedShowsSnapshot =
+        SavedShowsSnapshot(
+            values =
+                mapOf(
+                    UPCOMING_SAVED_SHOW_ID to true,
+                    PAST_SAVED_SHOW_ID to true,
+                ),
+            upcoming =
+                SavedShowsCollection(
+                    shows =
+                        listOf(
+                            Show(
+                                id = UPCOMING_SAVED_SHOW_ID,
+                                clubId = 910_203,
+                                date = "2026-07-30T20:00:00-04:00",
+                                imageUrl = "",
+                                clubName = "Gotham Comedy Club",
+                                clubCity = "New York",
+                                clubState = "NY",
+                                name = "Thursday Night Stand-Up",
+                                timezone = "America/New_York",
+                            ),
+                        ),
+                    page = 1,
+                    total = 1,
+                    totalPages = 1,
+                ),
+            past =
+                SavedShowsCollection(
+                    shows =
+                        listOf(
+                            Show(
+                                id = PAST_SAVED_SHOW_ID,
+                                clubId = 910_204,
+                                date = "2026-07-12T19:30:00-04:00",
+                                imageUrl = "",
+                                clubName = "Union Hall",
+                                clubCity = "Brooklyn",
+                                clubState = "NY",
+                                name = "Sunday Comedy Showcase",
+                                timezone = "America/New_York",
+                            ),
+                        ),
+                    page = 1,
+                    total = 1,
+                    totalPages = 1,
+                ),
         )
 
     val notificationListResponseData =

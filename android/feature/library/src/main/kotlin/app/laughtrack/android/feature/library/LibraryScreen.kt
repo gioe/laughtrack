@@ -33,11 +33,17 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import app.laughtrack.android.core.data.favorites.FavoritesSnapshot
+import app.laughtrack.android.core.data.savedshows.SavedShowPeriod
+import app.laughtrack.android.core.data.savedshows.SavedShowsCollection
+import app.laughtrack.android.core.data.savedshows.SavedShowsSnapshot
 import app.laughtrack.android.core.network.generated.model.ComedianSearchItem
 import app.laughtrack.android.core.network.generated.model.FavoriteClubItem
 import app.laughtrack.android.core.network.generated.model.FavoritePodcastItem
 import app.laughtrack.android.core.network.generated.model.Show
+import app.laughtrack.android.core.ui.components.TicketShowRow
+import app.laughtrack.android.core.ui.components.ticketStubDateParts
 import app.laughtrack.android.core.ui.theme.LaughTrackColors
+import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.ZoneId
@@ -51,6 +57,54 @@ internal data class LibrarySectionPresentation(
     val title: String,
     val subtitle: String,
 )
+
+internal enum class SavedShowLibrarySection(
+    val period: SavedShowPeriod,
+    val presentation: LibrarySectionPresentation,
+    val emptyMessage: String,
+) {
+    UPCOMING(
+        period = SavedShowPeriod.UPCOMING,
+        presentation =
+            LibrarySectionPresentation(
+                eyebrow = "Saved shows",
+                title = "Upcoming saved shows",
+                subtitle = "Shows you want to catch next.",
+            ),
+        emptyMessage = "Save an upcoming show and it will appear here.",
+    ),
+    PAST(
+        period = SavedShowPeriod.PAST,
+        presentation =
+            LibrarySectionPresentation(
+                eyebrow = "Saved history",
+                title = "Past saved shows",
+                subtitle = "A record of shows you saved.",
+            ),
+        emptyMessage = "Past saved shows will collect here.",
+    ),
+}
+
+internal sealed interface SavedShowCollectionPresentationState {
+    data object Loading : SavedShowCollectionPresentationState
+
+    data class Error(val message: String) : SavedShowCollectionPresentationState
+
+    data object Empty : SavedShowCollectionPresentationState
+
+    data class Content(val shows: List<Show>) : SavedShowCollectionPresentationState
+}
+
+internal fun savedShowCollectionState(collection: SavedShowsCollection): SavedShowCollectionPresentationState =
+    when {
+        collection.isLoading -> SavedShowCollectionPresentationState.Loading
+        collection.errorMessage != null ->
+            SavedShowCollectionPresentationState.Error(collection.errorMessage.orEmpty())
+        collection.shows.isEmpty() -> SavedShowCollectionPresentationState.Empty
+        else -> SavedShowCollectionPresentationState.Content(collection.shows)
+    }
+
+internal fun savedShowNavigationId(show: Show): Int = show.id
 
 internal enum class AuthenticatedLibrarySection(
     val presentation: LibrarySectionPresentation,
@@ -89,10 +143,12 @@ internal enum class AuthenticatedLibrarySection(
 fun LibraryScreen(
     signedIn: Boolean,
     onOpenProfile: () -> Unit,
+    onOpenShow: (Int) -> Unit = {},
     scopedShowIds: List<Int> = emptyList(),
     viewModel: LibraryViewModel = hiltViewModel(),
 ) {
     val snapshot by viewModel.snapshot.collectAsState()
+    val savedShowsSnapshot by viewModel.savedShowsSnapshot.collectAsState()
     val message by viewModel.message.collectAsState()
 
     LaunchedEffect(signedIn) {
@@ -102,9 +158,12 @@ fun LibraryScreen(
     LibraryContent(
         signedIn = signedIn,
         snapshot = snapshot,
+        savedShowsSnapshot = savedShowsSnapshot,
         message = message,
         scopedShowIds = scopedShowIds,
         onOpenProfile = onOpenProfile,
+        onOpenShow = onOpenShow,
+        onRetrySavedShows = viewModel::refreshSavedShows,
         onClearMessage = viewModel::clearMessage,
         onToggleComedian = viewModel::toggleComedian,
         onToggleClub = viewModel::toggleClub,
@@ -118,14 +177,19 @@ fun LibraryScreen(
     signedIn: Boolean,
     onOpenProfile: () -> Unit,
     snapshotOverride: FavoritesSnapshot,
+    savedShowsSnapshotOverride: SavedShowsSnapshot = SavedShowsSnapshot(),
+    onOpenShow: (Int) -> Unit = {},
     scopedShowIds: List<Int> = emptyList(),
 ) {
     LibraryContent(
         signedIn = signedIn,
         snapshot = snapshotOverride,
+        savedShowsSnapshot = savedShowsSnapshotOverride,
         message = null,
         scopedShowIds = scopedShowIds,
         onOpenProfile = onOpenProfile,
+        onOpenShow = onOpenShow,
+        onRetrySavedShows = {},
         onClearMessage = {},
         onToggleComedian = {},
         onToggleClub = {},
@@ -137,9 +201,12 @@ fun LibraryScreen(
 private fun LibraryContent(
     signedIn: Boolean,
     snapshot: FavoritesSnapshot,
+    savedShowsSnapshot: SavedShowsSnapshot,
     message: String?,
     scopedShowIds: List<Int>,
     onOpenProfile: () -> Unit,
+    onOpenShow: (Int) -> Unit,
+    onRetrySavedShows: (SavedShowPeriod) -> Unit,
     onClearMessage: () -> Unit,
     onToggleComedian: (String) -> Unit,
     onToggleClub: (Int) -> Unit,
@@ -175,7 +242,10 @@ private fun LibraryContent(
         if (signedIn) {
             SignedInLibrary(
                 snapshot = snapshot,
+                savedShowsSnapshot = savedShowsSnapshot,
                 scopedShowIds = scopedShowIds,
+                onOpenShow = onOpenShow,
+                onRetrySavedShows = onRetrySavedShows,
                 onToggleComedian = onToggleComedian,
                 onToggleClub = onToggleClub,
                 onTogglePodcast = onTogglePodcast,
@@ -189,7 +259,10 @@ private fun LibraryContent(
 @Composable
 private fun SignedInLibrary(
     snapshot: FavoritesSnapshot,
+    savedShowsSnapshot: SavedShowsSnapshot,
     scopedShowIds: List<Int>,
+    onOpenShow: (Int) -> Unit,
+    onRetrySavedShows: (SavedShowPeriod) -> Unit,
     onToggleComedian: (String) -> Unit,
     onToggleClub: (Int) -> Unit,
     onTogglePodcast: (Int) -> Unit,
@@ -201,6 +274,20 @@ private fun SignedInLibrary(
         ) {
             CircularProgressIndicator()
         }
+    }
+
+    SavedShowLibrarySection.entries.forEach { section ->
+        val collection =
+            when (section.period) {
+                SavedShowPeriod.UPCOMING -> savedShowsSnapshot.upcoming
+                SavedShowPeriod.PAST -> savedShowsSnapshot.past
+            }
+        SavedShowsSection(
+            section = section,
+            collection = collection,
+            onOpenShow = onOpenShow,
+            onRetry = { onRetrySavedShows(section.period) },
+        )
     }
 
     TouringFavoritesSection(snapshot = snapshot, scopedShowIds = scopedShowIds)
@@ -240,6 +327,61 @@ private fun SignedInLibrary(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun SavedShowsSection(
+    section: SavedShowLibrarySection,
+    collection: SavedShowsCollection,
+    onOpenShow: (Int) -> Unit,
+    onRetry: () -> Unit,
+) {
+    FavoriteSection(section.presentation) {
+        when (val state = savedShowCollectionState(collection)) {
+            SavedShowCollectionPresentationState.Loading ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    CircularProgressIndicator()
+                }
+
+            is SavedShowCollectionPresentationState.Error -> {
+                EmptyText(state.message)
+                TextButton(onClick = onRetry) { Text("Retry") }
+            }
+
+            SavedShowCollectionPresentationState.Empty -> EmptyText(section.emptyMessage)
+            is SavedShowCollectionPresentationState.Content ->
+                state.shows.forEach { show ->
+                    SavedShowRow(show = show, onOpenShow = onOpenShow)
+                }
+        }
+    }
+}
+
+@Composable
+private fun SavedShowRow(
+    show: Show,
+    onOpenShow: (Int) -> Unit,
+) {
+    TicketShowRow(
+        title = show.name ?: show.clubName ?: "Comedy show",
+        subtitle = listOfNotNull(show.clubName, show.clubCity).joinToString(" - "),
+        imageUrl = show.imageUrl,
+        dateParts = ticketStubDateParts(show.date, show.timezone),
+        priceLabel = savedShowPriceLabel(show.tickets?.mapNotNull { it.price }),
+        onClick = { onOpenShow(savedShowNavigationId(show)) },
+    )
+}
+
+internal fun savedShowPriceLabel(prices: List<BigDecimal>?): String? {
+    val minimum = prices?.minOrNull() ?: return null
+    return if (minimum.stripTrailingZeros().scale() <= 0) {
+        "\$${minimum.toBigInteger()}"
+    } else {
+        "\$$minimum"
     }
 }
 

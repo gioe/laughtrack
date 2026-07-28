@@ -169,6 +169,9 @@ fun AppShell(
                                 signedIn = signedIn,
                                 scopedShowIds = scopedShowIds,
                                 onOpenProfile = { navController.openEntity(AppRoute.Profile) },
+                                onOpenShow = { showId ->
+                                    navController.openEntity(AppRoute.ShowDetail(showId))
+                                },
                             )
                         } else {
                             LibraryScreen(
@@ -176,6 +179,10 @@ fun AppShell(
                                 scopedShowIds = scopedShowIds,
                                 onOpenProfile = { navController.openEntity(AppRoute.Profile) },
                                 snapshotOverride = screenshotPersona.favoritesSnapshot,
+                                savedShowsSnapshotOverride = screenshotPersona.savedShowsSnapshot,
+                                onOpenShow = { showId ->
+                                    navController.openEntity(AppRoute.ShowDetail(showId))
+                                },
                             )
                         }
                     }
