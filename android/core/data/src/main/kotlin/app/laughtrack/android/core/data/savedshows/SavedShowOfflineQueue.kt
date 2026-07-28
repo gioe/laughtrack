@@ -26,6 +26,8 @@ interface SavedShowQueue {
         isSaved: Boolean,
     )
 
+    fun cancel(showId: Int)
+
     fun cancelAll()
 }
 
@@ -65,6 +67,10 @@ class SavedShowOfflineQueue
 
         override fun cancelAll() {
             workManager.cancelAllWorkByTag(WORK_TAG)
+        }
+
+        override fun cancel(showId: Int) {
+            workManager.cancelUniqueWork(uniqueName(showId))
         }
 
         companion object {
