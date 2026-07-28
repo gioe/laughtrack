@@ -33,12 +33,12 @@ struct ShowRowTests {
         #expect(!source.contains("nearbyRadiusMiles"))
     }
 
-    @Test("show row uses the highest show-count lineup comedian image")
+    @Test("show row prefers lineup popularity over historical show count for artwork")
     func showRowUsesMostPopularLineupComedianImage() {
         let show = makeShow(lineup: [
-            lineup(name: "Opening comic", imageURL: "https://example.com/opening.jpg", showCount: 12),
-            lineup(name: "Headliner", imageURL: "https://example.com/headliner.jpg", showCount: 42),
-            lineup(name: "Feature", imageURL: "https://example.com/feature.jpg", showCount: 20),
+            lineup(name: "Opening comic", imageURL: "https://example.com/opening.jpg", showCount: 120, popularity: 12),
+            lineup(name: "Headliner", imageURL: "https://example.com/headliner.jpg", showCount: 4, popularity: 95),
+            lineup(name: "Feature", imageURL: "https://example.com/feature.jpg", showCount: 20, popularity: 30),
         ])
 
         #expect(ShowRow.artworkImageURL(for: show) == "https://example.com/headliner.jpg")
@@ -200,9 +200,26 @@ struct ShowRowTests {
 
     @Test("show row keeps parent comedian artwork for alias lineup items")
     func showRowUsesParentComedianForAliasArtwork() {
-        let parent = lineup(name: "Parent Headliner", imageURL: "https://example.com/parent.jpg", showCount: 60)
-        let alias = lineup(name: "Alias Name", imageURL: "https://example.com/alias.jpg", showCount: 5, parentComedian: parent)
-        let show = makeShow(lineup: [alias])
+        let parent = lineup(
+            name: "Parent Headliner",
+            imageURL: "https://example.com/parent.jpg",
+            showCount: 5,
+            popularity: 90
+        )
+        let alias = lineup(
+            name: "Alias Name",
+            imageURL: "https://example.com/alias.jpg",
+            showCount: 50,
+            popularity: 1,
+            parentComedian: parent
+        )
+        let other = lineup(
+            name: "Other Comic",
+            imageURL: "https://example.com/other.jpg",
+            showCount: 80,
+            popularity: 40
+        )
+        let show = makeShow(lineup: [alias, other])
 
         #expect(ShowRow.title(for: show) == "Late show")
         #expect(ShowRow.artworkImageURL(for: show) == "https://example.com/parent.jpg")
@@ -321,18 +338,18 @@ struct ShowRowTests {
         #expect(ShowFormatting.isOpenMic(nil) == false)
     }
 
-    @Test("top lineup picks the three highest-show-count comedians")
+    @Test("top lineup ranks by popularity, then show count, then lineup order")
     func topLineupPicksMostPopular() {
         let show = makeShow(lineup: [
-            lineup(name: "Opener", imageURL: "https://example.com/opener.jpg", showCount: 3),
-            lineup(name: "Headliner", imageURL: "https://example.com/headliner.jpg", showCount: 42),
-            lineup(name: "Feature", imageURL: "https://example.com/feature.jpg", showCount: 20),
-            lineup(name: "Filler", imageURL: "https://example.com/filler.jpg", showCount: 1),
+            lineup(name: "Opener", imageURL: "https://example.com/opener.jpg", showCount: 3, popularity: 20),
+            lineup(name: "Headliner", imageURL: "https://example.com/headliner.jpg", showCount: 2, popularity: 90),
+            lineup(name: "Feature", imageURL: "https://example.com/feature.jpg", showCount: 20, popularity: 20),
+            lineup(name: "Filler", imageURL: "https://example.com/filler.jpg", showCount: 20, popularity: 20),
         ])
 
         let top = ShowRow.topLineup(for: show)
 
-        #expect(top.map(\.name) == ["Headliner", "Feature", "Opener"])
+        #expect(top.map(\.name) == ["Headliner", "Feature", "Filler"])
     }
 
     @Test("top lineup excludes the artwork comedian to avoid duplicate avatars")
@@ -385,8 +402,8 @@ struct ShowRowTests {
     @Test("artwork comedian skips a more popular performer without absolute artwork")
     func artworkComedianSkipsFeaturedPerformerWithoutAbsoluteArtwork() {
         let show = makeShow(lineup: [
-            lineup(name: "Headliner", imageURL: "/relative/headliner.jpg", showCount: 50),
-            lineup(name: "Feature", imageURL: "https://example.com/feature.jpg", showCount: 10),
+            lineup(name: "Headliner", imageURL: "/relative/headliner.jpg", showCount: 50, popularity: 100),
+            lineup(name: "Feature", imageURL: "https://example.com/feature.jpg", showCount: 10, popularity: 10),
         ])
 
         #expect(ShowRow.artworkComedian(for: show)?.name == "Feature")
@@ -567,13 +584,16 @@ struct ShowRowTests {
         name: String,
         imageURL: String,
         showCount: Int?,
+        popularity: Double? = nil,
         parentComedian: Components.Schemas.ComedianLineup? = nil
     ) -> Components.Schemas.ComedianLineup {
-        Components.Schemas.ComedianLineup(
+        let id = name.utf8.reduce(0) { $0 + Int($1) }
+        return Components.Schemas.ComedianLineup(
             name: name,
             imageUrl: imageURL,
             uuid: UUID().uuidString,
-            id: name.utf8.reduce(0) { $0 + Int($1) },
+            id: id,
+            socialData: popularity.map { .init(id: id, popularity: $0) },
             showCount: showCount,
             parentComedian: parentComedian
         )

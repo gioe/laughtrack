@@ -572,12 +572,8 @@ struct ShowRow: View {
     }
 
     static func artworkComedian(for show: Components.Schemas.Show) -> Components.Schemas.ComedianLineup? {
-        show.lineup?
-            .map(effectiveComedian)
-            .filter { absoluteArtworkImageURL($0.imageUrl) != nil }
-            .max { lhs, rhs in
-                (lhs.showCount ?? 0) < (rhs.showCount ?? 0)
-            }
+        guard let lineup = show.lineup else { return nil }
+        return rankedLineup(lineup, requiringAbsoluteArtwork: true).first
     }
 
     static func absoluteArtworkImageURL(_ rawValue: String?) -> String? {
@@ -631,23 +627,7 @@ struct ShowRow: View {
         excluding excluded: Components.Schemas.ComedianLineup? = nil
     ) -> [Components.Schemas.ComedianLineup] {
         guard let lineup = show.lineup, !lineup.isEmpty else { return [] }
-
-        let resolved = lineup.map(Self.effectiveComedian)
-        let filtered: [Components.Schemas.ComedianLineup]
-        if let excluded {
-            filtered = resolved.filter { $0.id != excluded.id }
-        } else {
-            filtered = resolved
-        }
-        let counts = filtered.compactMap(\.showCount)
-        let ordered: [Components.Schemas.ComedianLineup]
-        if counts.isEmpty {
-            ordered = filtered
-        } else {
-            ordered = filtered.sorted { ($0.showCount ?? 0) > ($1.showCount ?? 0) }
-        }
-
-        return Array(ordered.prefix(limit))
+        return Array(rankedLineup(lineup, excluding: excluded).prefix(limit))
     }
 
     static func supportingLineup(
@@ -671,6 +651,38 @@ struct ShowRow: View {
 
     static func effectiveComedian(_ comedian: Components.Schemas.ComedianLineup) -> Components.Schemas.ComedianLineup {
         comedian.parentComedian ?? comedian
+    }
+
+    private static func rankedLineup(
+        _ lineup: [Components.Schemas.ComedianLineup],
+        requiringAbsoluteArtwork: Bool = false,
+        excluding excluded: Components.Schemas.ComedianLineup? = nil
+    ) -> [Components.Schemas.ComedianLineup] {
+        lineup.enumerated()
+            .map { (offset: $0.offset, comedian: effectiveComedian($0.element)) }
+            .filter { candidate in
+                if let excluded, candidate.comedian.id == excluded.id {
+                    return false
+                }
+                return !requiringAbsoluteArtwork
+                    || absoluteArtworkImageURL(candidate.comedian.imageUrl) != nil
+            }
+            .sorted { lhs, rhs in
+                let lhsPopularity = lhs.comedian.socialData?.popularity ?? -1
+                let rhsPopularity = rhs.comedian.socialData?.popularity ?? -1
+                if lhsPopularity != rhsPopularity {
+                    return lhsPopularity > rhsPopularity
+                }
+
+                let lhsCount = lhs.comedian.showCount ?? 0
+                let rhsCount = rhs.comedian.showCount ?? 0
+                if lhsCount != rhsCount {
+                    return lhsCount > rhsCount
+                }
+
+                return lhs.offset < rhs.offset
+            }
+            .map(\.comedian)
     }
 
 }
