@@ -14,6 +14,7 @@ struct ShowDetailView: View {
     @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var favorites: ComedianFavoriteStore
+    @EnvironmentObject private var loginModalPresenter: LoginModalPresenter
     @EnvironmentObject private var softPushPromptCoordinator: SoftPushPromptCoordinator
     @Environment(\.appTheme) private var theme
     @Environment(\.openURL) private var openURL
@@ -95,6 +96,13 @@ struct ShowDetailView: View {
                                     }
                                 })
 
+                                ShowSavedAction(
+                                    showID: show.id,
+                                    apiClient: apiClient,
+                                    store: savedShowStore,
+                                    onFeedback: { feedbackMessage = $0 }
+                                )
+
                                 if
                                     ShowDetailPresentation.shouldShowEditorNote(for: show),
                                     let description = show.description,
@@ -136,6 +144,14 @@ struct ShowDetailView: View {
         .task {
             await model.loadIfNeeded(apiClient: apiClient, favorites: favorites, cache: detailCache)
         }
+        .task(id: savedShowLoadKey) {
+            guard authManager.currentUser != nil else { return }
+            await savedShowStore.loadState(
+                showId: showID,
+                apiClient: apiClient,
+                authManager: authManager
+            )
+        }
         .task(id: showID) {
             // Show-detail open counts as an engagement signal for the push
             // permission cadence. Debounced inside SoftPushPromptCoordinator
@@ -157,6 +173,94 @@ struct ShowDetailView: View {
         })
     }
 
+    private var savedShowStore: SavedShowStore {
+        serviceContainer.resolve(SavedShowStore.self)
+    }
+
+    private var savedShowLoadKey: String {
+        "\(showID):\(authManager.currentUser?.userId ?? "signed-out")"
+    }
+}
+
+private struct ShowSavedAction: View {
+    let showID: Int
+    let apiClient: Client
+    @ObservedObject var store: SavedShowStore
+    let onFeedback: (String) -> Void
+
+    @EnvironmentObject private var authManager: AuthManager
+    @EnvironmentObject private var loginModalPresenter: LoginModalPresenter
+    @Environment(\.appTheme) private var theme
+
+    private var isSaved: Bool {
+        store.value(for: showID)
+    }
+
+    private var isPending: Bool {
+        store.isPending(showID)
+    }
+
+    var body: some View {
+        Button {
+            Task {
+                await updateSavedState()
+            }
+        } label: {
+            HStack(spacing: theme.spacing.sm) {
+                if isPending {
+                    ProgressView()
+                        .progressViewStyle(.circular)
+                        .accessibilityHidden(true)
+                } else {
+                    Image(systemName: isSaved ? "bookmark.fill" : "bookmark")
+                        .accessibilityHidden(true)
+                }
+
+                Text(isSaved ? "Saved to Library" : "Save show")
+                    .font(theme.laughTrackTokens.typography.metadata)
+
+                Spacer()
+            }
+            .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
+            .padding(theme.spacing.md)
+            .background(
+                theme.laughTrackTokens.colors.surface.opacity(0.94),
+                in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(theme.laughTrackTokens.colors.borderSubtle, lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+        .disabled(isPending)
+        .accessibilityLabel(isSaved ? "Remove from saved shows" : "Save show")
+        .accessibilityValue(isPending ? "Updating" : (isSaved ? "Saved" : "Not saved"))
+    }
+
+    private func updateSavedState() async {
+        let result = await store.setSaved(
+            showId: showID,
+            isSaved: !isSaved,
+            apiClient: apiClient,
+            authManager: authManager
+        )
+
+        switch result {
+        case .updated(let saved):
+            onFeedback(saved ? "Saved to your Library." : "Removed from your Library.")
+        case .queued(let saved):
+            onFeedback(
+                saved
+                    ? "Saved offline. We’ll sync when you’re connected."
+                    : "Removal saved offline. We’ll sync when you’re connected."
+            )
+        case .signInRequired:
+            loginModalPresenter.present()
+        case .failure(let message):
+            onFeedback(message)
+        }
+    }
 }
 
 struct ShowDetailTicketClickRecorder {
