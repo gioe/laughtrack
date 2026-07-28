@@ -97,6 +97,9 @@ Email verification tokens for NextAuth.
 ### FavoriteComedian
 User's favorited comedians (join table: UserProfile ↔ Comedian).
 
+### SavedShow
+The `saved_shows` table stores a binary saved/unsaved relationship between a UserProfile and one Show. The composite `(profileId, showId)` key allows only one save per profile and show, while `createdAt` records when the show was saved. A row remains after the show's date passes and is deleted only by an explicit unsave or by the cascading deletion of its profile or show. It does not represent reminders, intent status, purchases, attendance, or social activity.
+
 ## Tagging
 
 ### Tag
