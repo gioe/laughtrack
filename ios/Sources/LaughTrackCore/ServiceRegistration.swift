@@ -109,9 +109,9 @@ public enum ServiceRegistration {
             OfflineOperationQueue<LaughTrackOfflineOperation>(
                 storageKey: "laughtrack.offline",
                 executor: { op in
-                    let payload = try JSONDecoder().decode(ToggleFavoritePayload.self, from: op.payload)
                     switch op.type {
                     case .toggleFavorite:
+                        let payload = try JSONDecoder().decode(ToggleFavoritePayload.self, from: op.payload)
                         // 4xx responses (badRequest/unauthorized/notFound/unprocessableContent) are
                         // terminal — retrying will never succeed, so throw OfflineOperationError.terminal
                         // so the queue's fail-fast path routes the op straight to failedOperations
@@ -155,8 +155,79 @@ public enum ServiceRegistration {
                                 throw URLError(.badServerResponse)
                             }
                         }
+                    case .setSavedShow(let showId):
+                        let payload = try JSONDecoder().decode(
+                            SavedShowMutationPayload.self,
+                            from: op.payload
+                        )
+                        guard payload.showId == showId else {
+                            throw OfflineOperationError.terminal(
+                                reason: "Saved-show queue payload did not match its operation identity"
+                            )
+                        }
+
+                        if payload.isSaved {
+                            let response = try await apiClient.saveShow(
+                                path: .init(showId: showId)
+                            )
+                            switch response {
+                            case .ok:
+                                break
+                            case .badRequest:
+                                throw OfflineOperationError.terminal(reason: "saveShow returned 400 Bad Request")
+                            case .unauthorized:
+                                throw OfflineOperationError.terminal(reason: "saveShow returned 401 Unauthorized")
+                            case .notFound:
+                                throw OfflineOperationError.terminal(reason: "saveShow returned 404 Not Found")
+                            case .conflict:
+                                throw OfflineOperationError.terminal(reason: "saveShow returned 409 Conflict")
+                            case .unprocessableContent:
+                                throw OfflineOperationError.terminal(reason: "saveShow returned 422 Unprocessable Content")
+                            case .tooManyRequests, .internalServerError:
+                                throw URLError(.badServerResponse)
+                            case .undocumented(let status, _):
+                                if status == 429 || status >= 500 {
+                                    throw URLError(.badServerResponse)
+                                }
+                                throw OfflineOperationError.terminal(
+                                    reason: "saveShow returned \(status)"
+                                )
+                            }
+                        } else {
+                            let response = try await apiClient.unsaveShow(
+                                path: .init(showId: showId)
+                            )
+                            switch response {
+                            case .ok:
+                                break
+                            case .badRequest:
+                                throw OfflineOperationError.terminal(reason: "unsaveShow returned 400 Bad Request")
+                            case .unauthorized:
+                                throw OfflineOperationError.terminal(reason: "unsaveShow returned 401 Unauthorized")
+                            case .unprocessableContent:
+                                throw OfflineOperationError.terminal(reason: "unsaveShow returned 422 Unprocessable Content")
+                            case .tooManyRequests, .internalServerError:
+                                throw URLError(.badServerResponse)
+                            case .undocumented(let status, _):
+                                if status == 429 || status >= 500 {
+                                    throw URLError(.badServerResponse)
+                                }
+                                throw OfflineOperationError.terminal(
+                                    reason: "unsaveShow returned \(status)"
+                                )
+                            }
+                        }
                     }
                 }
+            )
+        }
+        container.register(SavedShowStore.self, scope: .appLevel) {
+            SavedShowStore(
+                cache: container.resolve(DataCache<LaughTrackCacheKey>.self),
+                persistentCache: container.resolve(PersistentMainPageCache.self),
+                offlineQueue: container.resolve(
+                    OfflineOperationQueue<LaughTrackOfflineOperation>.self
+                )
             )
         }
     }

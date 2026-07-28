@@ -98,12 +98,70 @@ public actor PersistentMainPageCache {
         get(fileName: "favorite-shows-\(fileNameComponent(requestKey))")
     }
 
+    public func setSavedShows(
+        _ response: Components.Schemas.SavedShowListResponse,
+        accountId: String,
+        period: String,
+        page: Int,
+        size: Int,
+        ttl: TimeInterval
+    ) {
+        set(
+            response,
+            fileName: savedShowsFileName(
+                accountId: accountId,
+                period: period,
+                page: page,
+                size: size
+            ),
+            ttl: ttl
+        )
+    }
+
+    public func getSavedShows(
+        accountId: String,
+        period: String,
+        page: Int,
+        size: Int
+    ) -> Components.Schemas.SavedShowListResponse? {
+        get(
+            fileName: savedShowsFileName(
+                accountId: accountId,
+                period: period,
+                page: page,
+                size: size
+            )
+        )?.value
+    }
+
+    public func removeSavedShows(accountId: String) {
+        let prefix = "saved-shows-\(fileNameComponent(accountId))-"
+        guard let contents = try? fileManager.contentsOfDirectory(
+            at: directory,
+            includingPropertiesForKeys: nil,
+            options: [.skipsHiddenFiles]
+        ) else { return }
+
+        for url in contents where url.lastPathComponent.hasPrefix(prefix) {
+            try? fileManager.removeItem(at: url)
+        }
+    }
+
     private func homeFeedFileName(zipCode: String?, distanceMiles: Int?) -> String {
         let zipComponent = zipCode ?? "default"
         guard let distanceMiles else {
             return "home-feed-\(fileNameComponent(zipComponent))"
         }
         return "home-feed-\(fileNameComponent("\(zipComponent)-\(distanceMiles)mi"))"
+    }
+
+    private func savedShowsFileName(
+        accountId: String,
+        period: String,
+        page: Int,
+        size: Int
+    ) -> String {
+        "saved-shows-\(fileNameComponent(accountId))-\(fileNameComponent(period))-p\(page)-s\(size)"
     }
 
     private func set<Value: Codable & Sendable>(_ value: Value, fileName: String, ttl: TimeInterval) {
