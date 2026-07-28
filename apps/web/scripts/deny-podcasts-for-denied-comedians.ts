@@ -35,7 +35,7 @@ function hasFlag(flag: string): boolean {
 export async function listCandidates(
     client: QueryClient,
 ): Promise<CandidateRow[]> {
-    return client.$queryRaw<CandidateRow[]>`
+    const rows = await client.$queryRaw<CandidateRow[]>`
         SELECT
             array_agg(DISTINCT dl.name ORDER BY dl.name) AS comedian_names,
             p.id AS podcast_id,
@@ -69,6 +69,26 @@ export async function listCandidates(
             p.feed_url
         ORDER BY p.title ASC, p.id ASC
     `;
+
+    const candidatesByIdentity = new Map<string, CandidateRow>();
+    for (const row of rows) {
+        const identity =
+            row.feed_url === null
+                ? `podcast:${row.podcast_id}`
+                : `feed:${row.feed_url}`;
+        const existing = candidatesByIdentity.get(identity);
+
+        if (!existing) {
+            candidatesByIdentity.set(identity, row);
+            continue;
+        }
+
+        existing.comedian_names = Array.from(
+            new Set([...existing.comedian_names, ...row.comedian_names]),
+        ).sort((left, right) => left.localeCompare(right));
+    }
+
+    return Array.from(candidatesByIdentity.values());
 }
 
 async function applyCandidate(

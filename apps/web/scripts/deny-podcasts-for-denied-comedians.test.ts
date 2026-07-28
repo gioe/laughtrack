@@ -4,7 +4,7 @@ import {
     runPodcastDenyBackfill,
 } from "./deny-podcasts-for-denied-comedians";
 
-const candidates = [
+const candidateRows = [
     {
         comedian_names: ["Blocked Host", "Other Blocked Host"],
         podcast_id: 11,
@@ -21,11 +21,31 @@ const candidates = [
         source_podcast_id: "second",
         feed_url: null,
     },
+    {
+        comedian_names: ["Shared Feed Host"],
+        podcast_id: 33,
+        title: "Third Podcast",
+        source: "apple",
+        source_podcast_id: "third",
+        feed_url: "https://example.com/first.xml",
+    },
+];
+
+const candidates = [
+    {
+        ...candidateRows[0],
+        comedian_names: [
+            "Blocked Host",
+            "Other Blocked Host",
+            "Shared Feed Host",
+        ],
+    },
+    candidateRows[1],
 ];
 
 describe("deny-podcasts-for-denied-comedians", () => {
     it("returns one candidate per podcast when multiple denied hosts match", async () => {
-        const queryRaw = vi.fn().mockResolvedValue(candidates);
+        const queryRaw = vi.fn().mockResolvedValue(candidateRows);
 
         const result = await listCandidates({
             $queryRaw: queryRaw,
@@ -39,10 +59,21 @@ describe("deny-podcasts-for-denied-comedians", () => {
         expect(sql).toContain("GROUP BY");
     });
 
+    it("returns one candidate when podcast rows share a deny-list feed identity", async () => {
+        const queryRaw = vi.fn().mockResolvedValue(candidateRows);
+
+        const result = await listCandidates({
+            $queryRaw: queryRaw,
+        } as never);
+
+        expect(result).toEqual(candidates);
+        expect(result).toHaveLength(2);
+    });
+
     it("applies exactly the candidates selected in the transaction", async () => {
         const queryRaw = vi
             .fn()
-            .mockResolvedValueOnce(candidates)
+            .mockResolvedValueOnce(candidateRows)
             .mockResolvedValueOnce([{ podcast_id: 11 }])
             .mockResolvedValueOnce([{ podcast_id: 22 }]);
         const transaction = vi.fn(
