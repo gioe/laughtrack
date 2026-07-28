@@ -48,6 +48,7 @@ struct LibraryView: View {
                         selectedPrimitive: selectedPrimitive,
                         scopedShowIDs: scopedShowIDs,
                         searchNavigationBridge: searchNavigationBridge,
+                        savedShows: serviceContainer.resolve(SavedShowStore.self),
                         cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self),
                         persistentCache: serviceContainer.resolve(PersistentMainPageCache.self)
                     )
@@ -78,6 +79,16 @@ private struct AuthenticatedFavoritesSnapshot: View {
     var body: some View {
         let tokens = theme.laughTrackTokens
         VStack(alignment: .leading, spacing: tokens.browseDensity.shelfGap) {
+            screenshotSavedShowsSection(
+                title: "Upcoming saved shows",
+                shows: persona.upcomingSavedShows
+            )
+
+            screenshotSavedShowsSection(
+                title: "Past saved shows",
+                shows: persona.pastSavedShows
+            )
+
             TeaserSection(
                 eyebrow: "Favorites",
                 title: "Your favorites are touring",
@@ -155,6 +166,30 @@ private struct AuthenticatedFavoritesSnapshot: View {
             }
         }
     }
+
+    private func screenshotSavedShowsSection(
+        title: String,
+        shows: [(title: String, detail: String)]
+    ) -> some View {
+        TeaserSection(
+            eyebrow: "Saved shows",
+            title: title,
+            subtitle: "Shows you chose to keep."
+        ) {
+            LaughTrackCard {
+                VStack(alignment: .leading, spacing: theme.laughTrackTokens.spacing.tight) {
+                    ForEach(shows, id: \.title) { show in
+                        TeaserRow(
+                            title: show.title,
+                            subtitle: show.detail,
+                            systemImage: "bookmark.fill",
+                            isPlaceholder: false
+                        )
+                    }
+                }
+            }
+        }
+    }
 }
 
 private struct FavoritePrimitiveSections: View {
@@ -162,9 +197,11 @@ private struct FavoritePrimitiveSections: View {
     let selectedPrimitive: SearchRootModel.Pivot?
     let scopedShowIDs: [Int]
     let searchNavigationBridge: SearchNavigationBridge
+    @ObservedObject var savedShows: SavedShowStore
     let cache: DataCache<LaughTrackCacheKey>
     let persistentCache: PersistentMainPageCache
 
+    @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var favorites: ComedianFavoriteStore
     @StateObject private var favoriteShowsModel = HomeFavoriteShowsModel()
 
@@ -181,6 +218,24 @@ private struct FavoritePrimitiveSections: View {
     var body: some View {
         VStack(alignment: .leading, spacing: themeSpacing) {
             if includes(.shows) {
+                SavedShowsSection(
+                    title: "Upcoming saved shows",
+                    period: .upcoming,
+                    phase: savedShows.upcomingPhase,
+                    shows: savedShows.upcomingPage?.shows ?? [],
+                    apiClient: apiClient,
+                    store: savedShows
+                )
+
+                SavedShowsSection(
+                    title: "Past saved shows",
+                    period: .past,
+                    phase: savedShows.pastPhase,
+                    shows: savedShows.pastPage?.shows ?? [],
+                    apiClient: apiClient,
+                    store: savedShows
+                )
+
                 FavoriteShowsSection(
                     phase: favoriteShowsModel.phase,
                     scopedShowIDs: scopedShowIDs
@@ -200,6 +255,19 @@ private struct FavoritePrimitiveSections: View {
                 persistentCache: persistentCache
             )
         }
+        .task {
+            guard includes(.shows) else { return }
+            await savedShows.loadSavedShows(
+                period: .upcoming,
+                apiClient: apiClient,
+                authManager: authManager
+            )
+            await savedShows.loadSavedShows(
+                period: .past,
+                apiClient: apiClient,
+                authManager: authManager
+            )
+        }
     }
 
     @Environment(\.appTheme) private var theme
@@ -210,6 +278,80 @@ private struct FavoritePrimitiveSections: View {
 
     private func includes(_ primitive: SearchRootModel.Pivot) -> Bool {
         LibraryFavoritesPresentation.includes(primitive, selectedPrimitive: selectedPrimitive)
+    }
+}
+
+private struct SavedShowsSection: View {
+    let title: String
+    let period: SavedShowStore.Period
+    let phase: SavedShowStore.LoadPhase
+    let shows: [Components.Schemas.Show]
+    let apiClient: Client
+    @ObservedObject var store: SavedShowStore
+
+    @EnvironmentObject private var authManager: AuthManager
+    @EnvironmentObject private var coordinator: TypedNavigationCoordinator<AppRoute>
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        LaughTrackRailCard(
+            eyebrow: "Saved shows",
+            title: title,
+            accessibilityIdentifier: "laughtrack.favorites.saved-shows-\(period.rawValue)"
+        ) {
+            switch phase {
+            case .idle, .loading:
+                ShowsListSkeleton(rowCount: 2)
+            case .empty:
+                LaughTrackStateView(
+                    tone: .empty,
+                    title: "No \(period.rawValue) saved shows",
+                    message: emptyMessage
+                )
+            case .failure(let failure):
+                VStack(alignment: .leading, spacing: theme.spacing.sm) {
+                    LaughTrackStateView(
+                        tone: .error,
+                        title: "Couldn’t load \(period.rawValue) saved shows",
+                        message: failure.message
+                    )
+                    LaughTrackButton(
+                        "Retry \(period.rawValue) saved shows",
+                        systemImage: "arrow.clockwise"
+                    ) {
+                        Task {
+                            await store.loadSavedShows(
+                                period: period,
+                                apiClient: apiClient,
+                                authManager: authManager,
+                                force: true
+                            )
+                        }
+                    }
+                }
+            case .loaded:
+                VStack(alignment: .leading, spacing: theme.spacing.sm) {
+                    ForEach(shows, id: \.id) { show in
+                        Button {
+                            coordinator.open(.show(show.id))
+                        } label: {
+                            ShowRow(show: show, presentation: .compactTicket)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Open \(ShowTitlePresentation.title(for: show))")
+                    }
+                }
+            }
+        }
+    }
+
+    private var emptyMessage: String {
+        switch period {
+        case .upcoming:
+            return "Save a future show and it will appear here."
+        case .past:
+            return "Shows you saved will move here after their date."
+        }
     }
 }
 
