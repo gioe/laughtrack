@@ -225,6 +225,93 @@ class SavedShowsRepositoryTest {
         }
 
     @Test
+    fun failed_mutation_rolls_back_only_its_show_without_erasing_another_success() =
+        runTest {
+            val first = CompletableDeferred<Response<SavedShowStateResponse>>()
+            val second = CompletableDeferred<Response<SavedShowStateResponse>>()
+            val api =
+                ProgrammableSavedShowsApi(
+                    saveBehavior = { showId ->
+                        when (showId) {
+                            1 -> first.await()
+                            2 -> second.await()
+                            else -> error("Unexpected show")
+                        }
+                    },
+                )
+            val repository = repository(api, signedIn = true)
+
+            val failed = async { repository.setSaved(showId = 1, isSaved = true) }
+            val succeeded = async { repository.setSaved(showId = 2, isSaved = true) }
+            runCurrent()
+            second.complete(stateResponse(true))
+            assertEquals(SavedShowMutationResult.Updated(true), succeeded.await())
+            first.complete(errorResponse(409))
+            assertTrue(failed.await() is SavedShowMutationResult.Failure)
+
+            assertFalse(repository.snapshot.value.values.containsKey(1))
+            assertEquals(true, repository.snapshot.value.values[2])
+        }
+
+    @Test
+    fun newer_same_show_intent_wins_when_responses_complete_in_reverse_order() =
+        runTest {
+            val save = CompletableDeferred<Response<SavedShowStateResponse>>()
+            val unsave = CompletableDeferred<Response<SavedShowStateResponse>>()
+            val api =
+                ProgrammableSavedShowsApi(
+                    saveBehavior = { save.await() },
+                    unsaveBehavior = { unsave.await() },
+                )
+            val repository = repository(api, signedIn = true)
+
+            val older = async { repository.setSaved(showId = 42, isSaved = true) }
+            runCurrent()
+            val newer = async { repository.setSaved(showId = 42, isSaved = false) }
+            runCurrent()
+            unsave.complete(stateResponse(false))
+            assertEquals(SavedShowMutationResult.Updated(false), newer.await())
+            save.complete(stateResponse(true))
+            older.await()
+
+            assertEquals(false, repository.snapshot.value.values[42])
+            assertTrue(repository.snapshot.value.pending.isEmpty())
+        }
+
+    @Test
+    fun stale_refresh_cannot_readd_a_show_unsaved_while_it_was_in_flight() =
+        runTest {
+            val refresh = CompletableDeferred<Response<SavedShowListResponse>>()
+            var listCall = 0
+            val api =
+                ProgrammableSavedShowsApi(
+                    listBehavior = { _, _, _ ->
+                        listCall += 1
+                        if (listCall == 1) {
+                            listResponse(listOf(show(42)), page = 1, total = 1, totalPages = 1)
+                        } else {
+                            refresh.await()
+                        }
+                    },
+                    unsaveBehavior = { stateResponse(false) },
+                )
+            val repository = repository(api, signedIn = true)
+            assertTrue(repository.refresh(SavedShowPeriod.UPCOMING))
+
+            val staleRefresh = async { repository.refresh(SavedShowPeriod.UPCOMING) }
+            runCurrent()
+            assertEquals(
+                SavedShowMutationResult.Updated(false),
+                repository.setSaved(showId = 42, isSaved = false),
+            )
+            refresh.complete(listResponse(listOf(show(42)), page = 1, total = 1, totalPages = 1))
+            assertTrue(staleRefresh.await())
+
+            assertEquals(false, repository.snapshot.value.values[42])
+            assertTrue(repository.snapshot.value.upcoming.shows.isEmpty())
+        }
+
+    @Test
     fun signed_out_mutation_requests_login_without_state_api_or_queue_writes() =
         runTest {
             val api = ProgrammableSavedShowsApi()
@@ -252,6 +339,7 @@ class SavedShowsRepositoryTest {
     @Test
     fun sign_out_reset_clears_all_account_bound_state() =
         runTest {
+            val queue = RecordingSavedShowQueue()
             val api =
                 ProgrammableSavedShowsApi(
                     stateBehavior = { stateResponse(true) },
@@ -259,13 +347,41 @@ class SavedShowsRepositoryTest {
                         listResponse(listOf(show(42)), page = 1, total = 1, totalPages = 1)
                     },
                 )
-            val repository = repository(api, signedIn = true)
+            val repository = repository(api, signedIn = true, queue = queue)
             repository.loadState(42)
             repository.refresh(SavedShowPeriod.UPCOMING)
 
             repository.resetSignedOut()
 
             assertEquals(SavedShowsSnapshot(), repository.snapshot.value)
+            assertEquals(1, queue.cancelCount)
+        }
+
+    @Test
+    fun sign_out_invalidates_in_flight_responses_and_prevents_replay_enqueue() =
+        runTest {
+            val mutation = CompletableDeferred<Response<SavedShowStateResponse>>()
+            val refresh = CompletableDeferred<Response<SavedShowListResponse>>()
+            val queue = RecordingSavedShowQueue()
+            val api =
+                ProgrammableSavedShowsApi(
+                    listBehavior = { _, _, _ -> refresh.await() },
+                    saveBehavior = { mutation.await() },
+                )
+            val repository = repository(api, signedIn = true, queue = queue)
+
+            val save = async { repository.setSaved(showId = 42, isSaved = true) }
+            val load = async { repository.refresh(SavedShowPeriod.UPCOMING) }
+            runCurrent()
+            repository.resetSignedOut()
+            mutation.completeExceptionally(IOException("offline"))
+            refresh.complete(listResponse(listOf(show(42)), page = 1, total = 1, totalPages = 1))
+            save.await()
+            assertFalse(load.await())
+
+            assertEquals(SavedShowsSnapshot(), repository.snapshot.value)
+            assertTrue(queue.enqueued.isEmpty())
+            assertEquals(1, queue.cancelCount)
         }
 
     private suspend fun repository(
@@ -292,12 +408,17 @@ class SavedShowsRepositoryTest {
 
     private class RecordingSavedShowQueue : SavedShowQueue {
         val enqueued = mutableListOf<Pair<Int, Boolean>>()
+        var cancelCount = 0
 
         override fun enqueue(
             showId: Int,
             isSaved: Boolean,
         ) {
             enqueued += showId to isSaved
+        }
+
+        override fun cancelAll() {
+            cancelCount += 1
         }
     }
 

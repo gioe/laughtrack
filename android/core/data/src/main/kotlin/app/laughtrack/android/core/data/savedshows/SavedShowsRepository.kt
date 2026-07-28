@@ -5,6 +5,7 @@ import app.laughtrack.android.core.data.runCatchingCancellable
 import app.laughtrack.android.core.network.auth.AuthSessionManager
 import app.laughtrack.android.core.network.generated.api.SavedShowsApi
 import app.laughtrack.android.core.network.generated.infrastructure.ApiClient
+import app.laughtrack.android.core.network.generated.model.SavedShowStateResponse
 import app.laughtrack.android.core.network.generated.model.Show
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -72,8 +73,14 @@ class SavedShowsRepository
         private val _snapshot = MutableStateFlow(SavedShowsSnapshot())
         val snapshot: StateFlow<SavedShowsSnapshot> = _snapshot.asStateFlow()
 
+        private val stateLock = Any()
+        private var sessionGeneration = 0L
+        private val mutationGenerations = mutableMapOf<Int, Long>()
+        private val loadGenerations = mutableMapOf<SavedShowPeriod, Long>()
+
         suspend fun loadState(showId: Int): Boolean? {
             if (!authSessionManager.signedIn.value) return null
+            val requestSession = synchronized(stateLock) { sessionGeneration }
 
             val isSaved =
                 savedShowsApi
@@ -81,11 +88,11 @@ class SavedShowsRepository
                     .bodyOrThrow()
                     .data
                     .isSaved
-            _snapshot.value =
-                _snapshot.value.copy(
-                    values = _snapshot.value.values + (showId to isSaved),
-                )
-            return isSaved
+            return synchronized(stateLock) {
+                if (!isCurrentSession(requestSession)) return@synchronized null
+                setValue(showId, isSaved)
+                isSaved
+            }
         }
 
         suspend fun refresh(
@@ -119,12 +126,31 @@ class SavedShowsRepository
                 return SavedShowMutationResult.SignInRequired
             }
 
-            if (_snapshot.value.values[showId] == isSaved) {
-                return SavedShowMutationResult.Updated(isSaved)
-            }
+            val mutation =
+                synchronized(stateLock) {
+                    if (!authSessionManager.signedIn.value) return@synchronized null
+                    if (_snapshot.value.values[showId] == isSaved) {
+                        return@synchronized MutationStart.AlreadyCurrent
+                    }
 
-            val before = _snapshot.value
-            _snapshot.value = optimisticSnapshot(before, showId, isSaved)
+                    val before = _snapshot.value
+                    val generation = (mutationGenerations[showId] ?: 0L) + 1L
+                    mutationGenerations[showId] = generation
+                    _snapshot.value = optimisticSnapshot(before, showId, isSaved)
+                    MutationStart.Started(
+                        session = sessionGeneration,
+                        generation = generation,
+                        beforeValue = before.values[showId],
+                        beforeUpcoming = before.upcoming,
+                        beforePast = before.past,
+                    )
+                }
+            if (mutation == null) {
+                loginPromptController.request()
+                return SavedShowMutationResult.SignInRequired
+            }
+            if (mutation === MutationStart.AlreadyCurrent) return SavedShowMutationResult.Updated(isSaved)
+            mutation as MutationStart.Started
 
             val responseResult =
                 try {
@@ -136,41 +162,77 @@ class SavedShowsRepository
                         }
                     }
                 } catch (error: CancellationException) {
-                    _snapshot.value = before
+                    synchronized(stateLock) {
+                        if (isCurrentMutation(showId, mutation)) {
+                            rollbackMutation(showId, mutation)
+                        }
+                    }
                     throw error
                 }
             val response =
                 responseResult.getOrElse { error ->
-                    if (error !is IOException) {
-                        _snapshot.value = before
-                        return SavedShowMutationResult.Failure(MUTATION_FAILURE_MESSAGE)
-                    }
-                    offlineQueue.enqueue(showId, isSaved)
-                    clearPending(showId)
-                    return SavedShowMutationResult.Queued(isSaved)
+                    return handleMutationError(showId, isSaved, mutation, error)
                 }
 
-            return when {
-                response.isSuccessful && response.body() != null -> {
-                    val serverValue = response.body()!!.data.isSaved
-                    setValue(showId, serverValue)
-                    clearPending(showId)
-                    SavedShowMutationResult.Updated(serverValue)
-                }
-                response.code() >= 500 -> {
-                    offlineQueue.enqueue(showId, isSaved)
-                    clearPending(showId)
-                    SavedShowMutationResult.Queued(isSaved)
-                }
-                else -> {
-                    _snapshot.value = before
-                    SavedShowMutationResult.Failure(MUTATION_FAILURE_MESSAGE)
-                }
-            }
+            return handleMutationResponse(showId, isSaved, mutation, response)
         }
 
+        private fun handleMutationError(
+            showId: Int,
+            isSaved: Boolean,
+            mutation: MutationStart.Started,
+            error: Throwable,
+        ): SavedShowMutationResult =
+            synchronized(stateLock) {
+                if (!isCurrentMutation(showId, mutation)) {
+                    return@synchronized currentMutationResult(showId, isSaved)
+                }
+                if (error !is IOException) {
+                    rollbackMutation(showId, mutation)
+                    return@synchronized SavedShowMutationResult.Failure(MUTATION_FAILURE_MESSAGE)
+                }
+                offlineQueue.enqueue(showId, isSaved)
+                clearPending(showId)
+                SavedShowMutationResult.Queued(isSaved)
+            }
+
+        private fun handleMutationResponse(
+            showId: Int,
+            isSaved: Boolean,
+            mutation: MutationStart.Started,
+            response: Response<SavedShowStateResponse>,
+        ): SavedShowMutationResult =
+            synchronized(stateLock) {
+                if (!isCurrentMutation(showId, mutation)) {
+                    return@synchronized currentMutationResult(showId, isSaved)
+                }
+                when {
+                    response.isSuccessful && response.body() != null -> {
+                        val serverValue = response.body()!!.data.isSaved
+                        applyConfirmedValue(showId, serverValue)
+                        clearPending(showId)
+                        SavedShowMutationResult.Updated(serverValue)
+                    }
+                    response.code() >= 500 -> {
+                        offlineQueue.enqueue(showId, isSaved)
+                        clearPending(showId)
+                        SavedShowMutationResult.Queued(isSaved)
+                    }
+                    else -> {
+                        rollbackMutation(showId, mutation)
+                        SavedShowMutationResult.Failure(MUTATION_FAILURE_MESSAGE)
+                    }
+                }
+            }
+
         fun resetSignedOut() {
-            _snapshot.value = SavedShowsSnapshot()
+            synchronized(stateLock) {
+                sessionGeneration += 1
+                mutationGenerations.clear()
+                loadGenerations.clear()
+                _snapshot.value = SavedShowsSnapshot()
+                offlineQueue.cancelAll()
+            }
         }
 
         private suspend fun loadPage(
@@ -180,7 +242,18 @@ class SavedShowsRepository
             append: Boolean,
         ): Boolean {
             if (!authSessionManager.signedIn.value) return false
-            updateCollection(period) { it.copy(isLoading = true, errorMessage = null) }
+            val request =
+                synchronized(stateLock) {
+                    if (!authSessionManager.signedIn.value) return@synchronized null
+                    val generation = (loadGenerations[period] ?: 0L) + 1L
+                    loadGenerations[period] = generation
+                    updateCollection(period) { it.copy(isLoading = true, errorMessage = null) }
+                    LoadStart(
+                        session = sessionGeneration,
+                        generation = generation,
+                        mutationGenerations = mutationGenerations.toMap(),
+                    )
+                } ?: return false
 
             return runCatchingCancellable {
                 savedShowsApi
@@ -188,38 +261,55 @@ class SavedShowsRepository
                     .bodyOrThrow()
             }.fold(
                 onSuccess = { body ->
-                    val current = collection(period)
-                    val shows =
-                        if (append) {
-                            (current.shows + body.data).distinctBy(Show::id)
-                        } else {
-                            body.data
+                    synchronized(stateLock) {
+                        if (!isCurrentLoad(period, request)) return@synchronized false
+                        val currentSnapshot = _snapshot.value
+                        val effectiveData =
+                            body.data.filterNot { show ->
+                                val changedDuringLoad =
+                                    mutationGenerations[show.id] != request.mutationGenerations[show.id]
+                                val pendingUnsave =
+                                    show.id in currentSnapshot.pending &&
+                                        currentSnapshot.values[show.id] == false
+                                (changedDuringLoad || pendingUnsave) &&
+                                    currentSnapshot.values[show.id] == false
+                            }
+                        val current = collection(period)
+                        val shows =
+                            if (append) {
+                                (current.shows + effectiveData).distinctBy(Show::id)
+                            } else {
+                                effectiveData
+                            }
+                        updateCollection(period) {
+                            SavedShowsCollection(
+                                shows = shows,
+                                page = body.page,
+                                total = (body.total - (body.data.size - effectiveData.size)).coerceAtLeast(shows.size),
+                                totalPages = body.totalPages,
+                                isLoading = false,
+                                errorMessage = null,
+                            )
                         }
-                    updateCollection(period) {
-                        SavedShowsCollection(
-                            shows = shows,
-                            page = body.page,
-                            total = body.total,
-                            totalPages = body.totalPages,
-                            isLoading = false,
-                            errorMessage = null,
-                        )
+                        val pageValues = effectiveData.associate { it.id to true }
+                        _snapshot.value =
+                            _snapshot.value.copy(
+                                values = _snapshot.value.values + pageValues,
+                            )
+                        true
                     }
-                    val pageValues = body.data.associate { it.id to true }
-                    _snapshot.value =
-                        _snapshot.value.copy(
-                            values = _snapshot.value.values + pageValues,
-                        )
-                    true
                 },
                 onFailure = {
-                    updateCollection(period) {
-                        it.copy(
-                            isLoading = false,
-                            errorMessage = COLLECTION_FAILURE_MESSAGE,
-                        )
+                    synchronized(stateLock) {
+                        if (!isCurrentLoad(period, request)) return@synchronized false
+                        updateCollection(period) {
+                            it.copy(
+                                isLoading = false,
+                                errorMessage = COLLECTION_FAILURE_MESSAGE,
+                            )
+                        }
+                        false
                     }
-                    false
                 },
             )
         }
@@ -254,6 +344,77 @@ class SavedShowsRepository
                     values = _snapshot.value.values + (showId to isSaved),
                 )
         }
+
+        private fun applyConfirmedValue(
+            showId: Int,
+            isSaved: Boolean,
+        ) {
+            val current = _snapshot.value
+            _snapshot.value =
+                current.copy(
+                    values = current.values + (showId to isSaved),
+                    upcoming = if (isSaved) current.upcoming else current.upcoming.without(showId),
+                    past = if (isSaved) current.past else current.past.without(showId),
+                )
+        }
+
+        private fun rollbackMutation(
+            showId: Int,
+            mutation: MutationStart.Started,
+        ) {
+            val current = _snapshot.value
+            val values =
+                if (mutation.beforeValue == null) {
+                    current.values - showId
+                } else {
+                    current.values + (showId to mutation.beforeValue)
+                }
+            _snapshot.value =
+                current.copy(
+                    values = values,
+                    upcoming = current.upcoming.restoreShowFrom(mutation.beforeUpcoming, showId),
+                    past = current.past.restoreShowFrom(mutation.beforePast, showId),
+                    pending = current.pending - showId,
+                )
+        }
+
+        private fun SavedShowsCollection.restoreShowFrom(
+            before: SavedShowsCollection,
+            showId: Int,
+        ): SavedShowsCollection {
+            val previousIndex = before.shows.indexOfFirst { it.id == showId }
+            val currentIndex = shows.indexOfFirst { it.id == showId }
+            if (previousIndex < 0 || currentIndex >= 0) return this
+
+            val restored = shows.toMutableList()
+            restored.add(previousIndex.coerceAtMost(restored.size), before.shows[previousIndex])
+            return copy(
+                shows = restored,
+                total = (total + 1).coerceAtLeast(before.total),
+            )
+        }
+
+        private fun isCurrentSession(generation: Long): Boolean =
+            generation == sessionGeneration && authSessionManager.signedIn.value
+
+        private fun isCurrentMutation(
+            showId: Int,
+            mutation: MutationStart.Started,
+        ): Boolean =
+            isCurrentSession(mutation.session) &&
+                mutationGenerations[showId] == mutation.generation
+
+        private fun isCurrentLoad(
+            period: SavedShowPeriod,
+            load: LoadStart,
+        ): Boolean =
+            isCurrentSession(load.session) &&
+                loadGenerations[period] == load.generation
+
+        private fun currentMutationResult(
+            showId: Int,
+            fallback: Boolean,
+        ): SavedShowMutationResult = SavedShowMutationResult.Updated(_snapshot.value.values[showId] ?: fallback)
 
         private fun clearPending(showId: Int) {
             _snapshot.value =
@@ -291,4 +452,22 @@ class SavedShowsRepository
             const val COLLECTION_FAILURE_MESSAGE =
                 "Saved shows are still available offline, but the latest sync did not finish."
         }
+
+        private sealed interface MutationStart {
+            data object AlreadyCurrent : MutationStart
+
+            data class Started(
+                val session: Long,
+                val generation: Long,
+                val beforeValue: Boolean?,
+                val beforeUpcoming: SavedShowsCollection,
+                val beforePast: SavedShowsCollection,
+            ) : MutationStart
+        }
+
+        private data class LoadStart(
+            val session: Long,
+            val generation: Long,
+            val mutationGenerations: Map<Int, Long>,
+        )
     }

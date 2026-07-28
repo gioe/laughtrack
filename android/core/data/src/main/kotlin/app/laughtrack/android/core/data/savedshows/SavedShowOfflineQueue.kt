@@ -25,6 +25,8 @@ interface SavedShowQueue {
         showId: Int,
         isSaved: Boolean,
     )
+
+    fun cancelAll()
 }
 
 @Singleton
@@ -51,6 +53,7 @@ class SavedShowOfflineQueue
                             KEY_IS_SAVED to isSaved,
                         ),
                     )
+                    .addTag(WORK_TAG)
                     .build()
 
             workManager.enqueueUniqueWork(
@@ -60,9 +63,14 @@ class SavedShowOfflineQueue
             )
         }
 
+        override fun cancelAll() {
+            workManager.cancelAllWorkByTag(WORK_TAG)
+        }
+
         companion object {
             const val KEY_SHOW_ID = "showId"
             const val KEY_IS_SAVED = "isSaved"
+            const val WORK_TAG = "saved-show-replay"
 
             fun uniqueName(showId: Int): String = "saved-show-$showId"
         }
