@@ -44,6 +44,8 @@ const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({
         show.name && show.name.trim()
             ? show.name
             : `Comedy at ${show.clubName ?? ""}`;
+    const hasShowStarted =
+        new Date(show.date.toString()).getTime() < now.getTime();
     const countdown = formatShowCountdown(show.date.toString(), now);
     // Prefer the inferred headliner's headshot over the club image, matching
     // the iOS marquee (ShowDetailPresentation.heroImageURL).
@@ -115,7 +117,11 @@ const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({
                     disabled={
                         isLoading ||
                         isPending ||
-                        (isAuthenticated && !isStateKnown)
+                        (isAuthenticated && !isStateKnown) ||
+                        (isAuthenticated &&
+                            isStateKnown &&
+                            !isSaved &&
+                            hasShowStarted)
                     }
                     aria-label={savedShowLabel}
                     aria-pressed={

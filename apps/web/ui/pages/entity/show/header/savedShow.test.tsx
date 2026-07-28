@@ -94,6 +94,54 @@ afterEach(() => {
 });
 
 describe("ShowDetailHeader saved-show action", () => {
+    it("does not offer an enabled save action after the show starts", async () => {
+        const mockFetch = vi
+            .fn()
+            .mockResolvedValueOnce(response({ data: { isSaved: false } }));
+        vi.stubGlobal("fetch", mockFetch);
+        const startedShow = {
+            ...show,
+            date: new Date(Date.now() - 30 * 60 * 1000) as never as Date,
+        };
+
+        render(<ShowDetailHeader show={startedShow} />);
+
+        const saveButton = await screen.findByRole("button", {
+            name: "Save show",
+        });
+        expect(saveButton).toHaveProperty("disabled", true);
+        fireEvent.click(saveButton);
+        expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it("still removes a saved show after it starts without allowing it to be saved again", async () => {
+        const mockFetch = vi
+            .fn()
+            .mockResolvedValueOnce(response({ data: { isSaved: true } }))
+            .mockResolvedValueOnce(response({ data: { isSaved: false } }));
+        vi.stubGlobal("fetch", mockFetch);
+        const startedShow = {
+            ...show,
+            date: new Date(Date.now() - 30 * 60 * 1000) as never as Date,
+        };
+
+        render(<ShowDetailHeader show={startedShow} />);
+
+        const removeButton = await screen.findByRole("button", {
+            name: "Remove saved show",
+        });
+        expect(removeButton).toHaveProperty("disabled", false);
+        fireEvent.click(removeButton);
+
+        const saveButton = await screen.findByRole("button", {
+            name: "Save show",
+        });
+        expect(saveButton).toHaveProperty("disabled", true);
+        expect(mockFetch).toHaveBeenNthCalledWith(2, "/api/v1/saved-shows/42", {
+            method: "DELETE",
+        });
+    });
+
     it("saves and unsaves a show without reloading the page", async () => {
         const mockFetch = vi
             .fn()
