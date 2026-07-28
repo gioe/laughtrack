@@ -1,12 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NotFoundError } from "../../../../objects/NotFoundError";
 
-const { mockFindFirst } = vi.hoisted(() => ({
+const { mockFindFirst, mockQueryRaw } = vi.hoisted(() => ({
     mockFindFirst: vi.fn(),
+    mockQueryRaw: vi.fn(),
 }));
 
 vi.mock("@/lib/db", () => ({
     db: {
+        $queryRaw: mockQueryRaw,
         podcast: {
             findFirst: mockFindFirst,
         },
@@ -21,9 +23,27 @@ import {
 beforeEach(() => {
     vi.clearAllMocks();
     mockFindFirst.mockResolvedValue(null);
+    mockQueryRaw.mockResolvedValue([]);
 });
 
 describe("getPodcastDetailPageData", () => {
+    it("excludes denied comedian hosts", async () => {
+        mockQueryRaw.mockResolvedValue([{ podcast_id: 5328 }]);
+
+        await expect(
+            getPodcastDetailPageData("living-the-dream"),
+        ).rejects.toThrow(NotFoundError);
+
+        expect(mockFindFirst).toHaveBeenCalledWith(
+            expect.objectContaining({
+                where: expect.objectContaining({
+                    slug: "living-the-dream",
+                    AND: [{ id: { notIn: [5328] } }],
+                }),
+            }),
+        );
+    });
+
     it("looks up slug detail pages only for podcasts with accepted host-role attribution", async () => {
         await expect(getPodcastDetailPageData("chrissy-chaos")).rejects.toThrow(
             NotFoundError,

@@ -7,7 +7,7 @@ import { resolveNearbyZips } from "@/util/location/resolveNearbyZips";
 import {
     ACCEPTED_PODCAST_COHOST_WHERE,
     ACCEPTED_PODCAST_HOST_WHERE,
-    PUBLIC_PODCAST_DENY_LIST_WHERE,
+    getPublicPodcastAcceptedAttributionWhere,
 } from "@/lib/data/podcast/publicWhere";
 
 const DEFAULT_LIMIT = 8;
@@ -25,28 +25,10 @@ function plainText(value: string | null): string | null {
 function whereFor(
     zipCode: string | null,
     radius: number,
+    publicPodcastWhere: Prisma.PodcastWhereInput,
 ): Prisma.PodcastWhereInput {
     if (!zipCode) {
-        return {
-            ...PUBLIC_PODCAST_DENY_LIST_WHERE,
-            OR: [
-                { comedianPodcasts: { some: ACCEPTED_PODCAST_HOST_WHERE } },
-                {
-                    AND: [
-                        {
-                            comedianPodcasts: {
-                                none: ACCEPTED_PODCAST_HOST_WHERE,
-                            },
-                        },
-                        {
-                            comedianPodcasts: {
-                                some: ACCEPTED_PODCAST_COHOST_WHERE,
-                            },
-                        },
-                    ],
-                },
-            ],
-        };
+        return publicPodcastWhere;
     }
 
     const now = new Date();
@@ -67,7 +49,7 @@ function whereFor(
     } satisfies Prisma.ComedianWhereInput;
 
     return {
-        ...PUBLIC_PODCAST_DENY_LIST_WHERE,
+        ...publicPodcastWhere,
         OR: [
             {
                 comedianPodcasts: {
@@ -104,8 +86,9 @@ export async function getTrendingPodcasts(
     radius = DEFAULT_HOME_RADIUS_MILES,
 ): Promise<PodcastDTO[]> {
     const safeLimit = Math.min(Math.max(1, limit), MAX_LIMIT);
+    const publicPodcastWhere = await getPublicPodcastAcceptedAttributionWhere();
     const podcasts = await db.podcast.findMany({
-        where: whereFor(zipCode, radius),
+        where: whereFor(zipCode, radius, publicPodcastWhere),
         select: {
             id: true,
             slug: true,

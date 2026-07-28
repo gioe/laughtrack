@@ -1,12 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { mockCount, mockFindMany } = vi.hoisted(() => ({
+const { mockCount, mockFindMany, mockQueryRaw } = vi.hoisted(() => ({
     mockCount: vi.fn(),
     mockFindMany: vi.fn(),
+    mockQueryRaw: vi.fn(),
 }));
 
 vi.mock("@/lib/db", () => ({
     db: {
+        $queryRaw: mockQueryRaw,
         podcast: {
             count: mockCount,
             findMany: mockFindMany,
@@ -67,9 +69,40 @@ beforeEach(() => {
     vi.clearAllMocks();
     mockCount.mockResolvedValue(0);
     mockFindMany.mockResolvedValue([]);
+    mockQueryRaw.mockResolvedValue([]);
 });
 
 describe("getSearchedPodcasts", () => {
+    it("excludes denied comedian hosts", async () => {
+        mockQueryRaw.mockResolvedValue([{ podcast_id: 5328 }]);
+
+        await getSearchedPodcasts({});
+
+        expect(mockCount).toHaveBeenCalledWith({
+            where: {
+                ...publicAttributionWhere,
+                AND: [{ id: { notIn: [5328] } }],
+            },
+        });
+        expect(mockFindMany).toHaveBeenCalledWith(
+            expect.objectContaining({
+                where: {
+                    ...publicAttributionWhere,
+                    AND: [{ id: { notIn: [5328] } }],
+                },
+            }),
+        );
+
+        const sql = mockQueryRaw.mock.calls[0][0] as {
+            strings: readonly string[];
+        };
+        const sqlText = sql.strings.join(" ");
+        expect(sqlText).toContain("comedian_deny_list");
+        expect(sqlText).toContain("cp.review_status = 'accepted'");
+        expect(sqlText).toContain("cp.association_type IN ('host', 'cohost')");
+        expect(sqlText).toContain("regexp_replace");
+    });
+
     it("only counts and returns podcasts with accepted host-role attribution", async () => {
         await getSearchedPodcasts({});
 

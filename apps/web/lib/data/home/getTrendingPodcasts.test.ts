@@ -1,11 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { mockFindMany } = vi.hoisted(() => ({
+const { mockFindMany, mockQueryRaw } = vi.hoisted(() => ({
     mockFindMany: vi.fn(),
+    mockQueryRaw: vi.fn(),
 }));
 
 vi.mock("@/lib/db", () => ({
     db: {
+        $queryRaw: mockQueryRaw,
         podcast: {
             findMany: mockFindMany,
         },
@@ -17,9 +19,24 @@ import { getTrendingPodcasts } from "./getTrendingPodcasts";
 beforeEach(() => {
     vi.clearAllMocks();
     mockFindMany.mockResolvedValue([]);
+    mockQueryRaw.mockResolvedValue([]);
 });
 
 describe("getTrendingPodcasts", () => {
+    it("excludes denied comedian hosts", async () => {
+        mockQueryRaw.mockResolvedValue([{ podcast_id: 5328 }]);
+
+        await getTrendingPodcasts(null);
+
+        expect(mockFindMany).toHaveBeenCalledWith(
+            expect.objectContaining({
+                where: expect.objectContaining({
+                    AND: [{ id: { notIn: [5328] } }],
+                }),
+            }),
+        );
+    });
+
     it("filters to accepted local host-attributed podcasts when a zip is resolved", async () => {
         await getTrendingPodcasts("10001");
 

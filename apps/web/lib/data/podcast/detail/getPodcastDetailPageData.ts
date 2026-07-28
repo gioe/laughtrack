@@ -10,7 +10,7 @@ import { buildPodcastArtworkUrl } from "@/lib/data/podcast/imageUrl";
 import {
     ACCEPTED_PODCAST_COHOST_WHERE,
     ACCEPTED_PODCAST_HOST_WHERE,
-    PUBLIC_PODCAST_ACCEPTED_ATTRIBUTION_WHERE,
+    getPublicPodcastAcceptedAttributionWhere,
 } from "@/lib/data/podcast/publicWhere";
 import { buildComedianImageUrl } from "@/util/imageUtil";
 import { stripHtmlTags } from "@/util/primatives/stringUtil";
@@ -63,10 +63,11 @@ async function getPodcastDetailPageDataByWhere(
     where: { slug: string } | { id: number },
     profileId?: string,
 ): Promise<PodcastDetailResponse> {
+    const publicPodcastWhere = await getPublicPodcastAcceptedAttributionWhere();
     const podcast = await db.podcast.findFirst({
         where: {
             ...where,
-            ...PUBLIC_PODCAST_ACCEPTED_ATTRIBUTION_WHERE,
+            ...publicPodcastWhere,
         },
         select: {
             id: true,
