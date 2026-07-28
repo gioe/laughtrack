@@ -244,6 +244,55 @@ describe("FavoritesTab saved shows", () => {
         });
     });
 
+    it("refetches the last server page when a saved-show page is out of range", async () => {
+        searchParams = new URLSearchParams({
+            upcomingSavedShowsPage: "999",
+        });
+        const fetchMock = vi.fn().mockImplementation((rawUrl: string) => {
+            const url = String(rawUrl);
+            if (
+                url === "/api/v1/saved-shows?period=upcoming&page=999&size=20"
+            ) {
+                return Promise.resolve(
+                    jsonResponse({
+                        data: [],
+                        total: 45,
+                        page: 999,
+                        totalPages: 3,
+                    }),
+                );
+            }
+            if (url === "/api/v1/saved-shows?period=upcoming&page=3&size=20") {
+                return Promise.resolve(
+                    jsonResponse({
+                        data: [show(45, "Last Available Show")],
+                        total: 45,
+                        page: 3,
+                        totalPages: 3,
+                    }),
+                );
+            }
+            if (url.startsWith("/api/v1/saved-shows?period=past")) {
+                return Promise.resolve(jsonResponse({ data: [], total: 0 }));
+            }
+            return Promise.resolve(jsonResponse({ data: [], total: 0 }));
+        });
+        vi.stubGlobal("fetch", fetchMock);
+
+        render(<FavoritesTab />);
+
+        expect(await screen.findByText("Last Available Show")).toBeTruthy();
+        expect(fetchMock).toHaveBeenCalledWith(
+            "/api/v1/saved-shows?period=upcoming&page=3&size=20",
+            { credentials: "same-origin" },
+        );
+        expect(
+            screen
+                .getByTestId("page-upcomingSavedShowsPage")
+                .getAttribute("data-current-page"),
+        ).toBe("3");
+    });
+
     it("renders loading states for both saved-show periods", () => {
         const pending = new Promise<FetchResponse>(() => {});
         installFetch({ upcoming: pending, past: pending });

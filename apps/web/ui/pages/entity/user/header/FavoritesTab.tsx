@@ -83,6 +83,7 @@ const pageFromSearchParams = (
 const useSavedShows = (period: SavedShowPeriod, page: number) => {
     const [shows, setShows] = useState<ShowDTO[]>([]);
     const [total, setTotal] = useState(0);
+    const [currentPage, setCurrentPage] = useState(page);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -90,23 +91,43 @@ const useSavedShows = (period: SavedShowPeriod, page: number) => {
         let cancelled = false;
         setIsLoading(true);
         setError(null);
+        setCurrentPage(page);
 
         const loadSavedShows = async () => {
             try {
-                const response = await fetch(
-                    `/api/v1/saved-shows?period=${period}&page=${page}&size=${SAVED_SHOWS_PAGE_SIZE}`,
-                    { credentials: "same-origin" },
-                );
-                if (!response.ok) {
-                    throw new Error(`Request failed: ${response.status}`);
-                }
-                const body = (await response.json()) as {
-                    data?: ShowDTO[];
-                    total?: number;
+                const fetchPage = async (requestedPage: number) => {
+                    const response = await fetch(
+                        `/api/v1/saved-shows?period=${period}&page=${requestedPage}&size=${SAVED_SHOWS_PAGE_SIZE}`,
+                        { credentials: "same-origin" },
+                    );
+                    if (!response.ok) {
+                        throw new Error(`Request failed: ${response.status}`);
+                    }
+                    return (await response.json()) as {
+                        data?: ShowDTO[];
+                        total?: number;
+                        totalPages?: number;
+                    };
                 };
+
+                let resolvedPage = page;
+                let body = await fetchPage(resolvedPage);
+                const responseTotal = body.total ?? 0;
+                const totalPages = Math.max(
+                    1,
+                    body.totalPages ??
+                        Math.ceil(responseTotal / SAVED_SHOWS_PAGE_SIZE),
+                );
+
+                if (responseTotal > 0 && resolvedPage > totalPages) {
+                    resolvedPage = totalPages;
+                    body = await fetchPage(resolvedPage);
+                }
+
                 if (!cancelled) {
                     setShows(body.data ?? []);
                     setTotal(body.total ?? 0);
+                    setCurrentPage(resolvedPage);
                 }
             } catch {
                 if (!cancelled) {
@@ -126,7 +147,7 @@ const useSavedShows = (period: SavedShowPeriod, page: number) => {
         };
     }, [page, period]);
 
-    return { shows, total, isLoading, error };
+    return { shows, total, currentPage, isLoading, error };
 };
 
 const FavoritesTab = () => {
@@ -368,7 +389,7 @@ const FavoritesTab = () => {
                 headerNote={upcomingSavedShowsHeaderNote}
                 searchScopeLabel="saved shows"
                 serverPageInfo={{
-                    currentPage: upcomingSavedShowsPage,
+                    currentPage: upcomingSavedShows.currentPage,
                     pageSize: SAVED_SHOWS_PAGE_SIZE,
                     totalItems: upcomingSavedShows.total,
                 }}
@@ -389,7 +410,7 @@ const FavoritesTab = () => {
                 headerNote={pastSavedShowsHeaderNote}
                 searchScopeLabel="saved shows"
                 serverPageInfo={{
-                    currentPage: pastSavedShowsPage,
+                    currentPage: pastSavedShows.currentPage,
                     pageSize: SAVED_SHOWS_PAGE_SIZE,
                     totalItems: pastSavedShows.total,
                 }}
