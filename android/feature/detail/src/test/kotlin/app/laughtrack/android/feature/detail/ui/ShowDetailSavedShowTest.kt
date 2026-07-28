@@ -62,7 +62,7 @@ class ShowDetailSavedShowTest {
     @Test
     fun toggle_uses_inverse_snapshot_value_and_publishes_offline_feedback() =
         runTest {
-            val snapshot = MutableStateFlow(SavedShowsSnapshot(values = mapOf(42 to true)))
+            val snapshot = MutableStateFlow(SavedShowsSnapshot(values = mapOf(42 to false)))
             var mutation: Pair<Int, Boolean>? = null
             val viewModel =
                 viewModel(
@@ -76,9 +76,27 @@ class ShowDetailSavedShowTest {
             viewModel.toggleSaved(42)
             advanceUntilIdle()
 
-            assertEquals(42 to false, mutation)
+            assertEquals(42 to true, mutation)
             assertEquals(
                 "Saved offline. LaughTrack will sync this when you're connected.",
+                viewModel.savedShowMessage.value,
+            )
+        }
+
+    @Test
+    fun queued_unsave_uses_removal_feedback() =
+        runTest {
+            val viewModel =
+                viewModel(
+                    snapshot = MutableStateFlow(SavedShowsSnapshot(values = mapOf(42 to true))),
+                    setSaved = { _, isSaved -> SavedShowMutationResult.Queued(isSaved) },
+                )
+
+            viewModel.toggleSaved(42)
+            advanceUntilIdle()
+
+            assertEquals(
+                "Removal queued. LaughTrack will sync this when you're connected.",
                 viewModel.savedShowMessage.value,
             )
         }

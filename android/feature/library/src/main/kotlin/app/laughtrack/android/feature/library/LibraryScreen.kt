@@ -92,16 +92,25 @@ internal sealed interface SavedShowCollectionPresentationState {
 
     data object Empty : SavedShowCollectionPresentationState
 
-    data class Content(val shows: List<Show>) : SavedShowCollectionPresentationState
+    data class Content(
+        val shows: List<Show>,
+        val isRefreshing: Boolean = false,
+        val errorMessage: String? = null,
+    ) : SavedShowCollectionPresentationState
 }
 
 internal fun savedShowCollectionState(collection: SavedShowsCollection): SavedShowCollectionPresentationState =
     when {
+        collection.shows.isNotEmpty() ->
+            SavedShowCollectionPresentationState.Content(
+                shows = collection.shows,
+                isRefreshing = collection.isLoading,
+                errorMessage = collection.errorMessage,
+            )
         collection.isLoading -> SavedShowCollectionPresentationState.Loading
         collection.errorMessage != null ->
             SavedShowCollectionPresentationState.Error(collection.errorMessage.orEmpty())
-        collection.shows.isEmpty() -> SavedShowCollectionPresentationState.Empty
-        else -> SavedShowCollectionPresentationState.Content(collection.shows)
+        else -> SavedShowCollectionPresentationState.Empty
     }
 
 internal fun savedShowNavigationId(show: Show): Int = show.id
@@ -353,10 +362,23 @@ private fun SavedShowsSection(
             }
 
             SavedShowCollectionPresentationState.Empty -> EmptyText(section.emptyMessage)
-            is SavedShowCollectionPresentationState.Content ->
+            is SavedShowCollectionPresentationState.Content -> {
+                if (state.isRefreshing) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+                state.errorMessage?.let { message ->
+                    EmptyText(message)
+                    TextButton(onClick = onRetry) { Text("Retry") }
+                }
                 state.shows.forEach { show ->
                     SavedShowRow(show = show, onOpenShow = onOpenShow)
                 }
+            }
         }
     }
 }

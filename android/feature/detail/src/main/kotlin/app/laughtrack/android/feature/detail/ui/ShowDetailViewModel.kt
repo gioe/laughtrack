@@ -78,7 +78,11 @@ class ShowDetailViewModel(
                 when (val result = setSavedShow(showId, nextValue)) {
                     is SavedShowMutationResult.Updated -> null
                     is SavedShowMutationResult.Queued ->
-                        "Saved offline. LaughTrack will sync this when you're connected."
+                        if (result.isSaved) {
+                            "Saved offline. LaughTrack will sync this when you're connected."
+                        } else {
+                            "Removal queued. LaughTrack will sync this when you're connected."
+                        }
                     is SavedShowMutationResult.Failure -> result.message
                     SavedShowMutationResult.SignInRequired -> null
                 }

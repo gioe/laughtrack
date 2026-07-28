@@ -122,16 +122,35 @@ class LibrarySavedShowsTest {
         )
         assertEquals(
             SavedShowCollectionPresentationState.Error("Try again"),
+            savedShowCollectionState(SavedShowsCollection(errorMessage = "Try again")),
+        )
+        assertEquals(
+            SavedShowCollectionPresentationState.Content(listOf(show)),
+            savedShowCollectionState(SavedShowsCollection(shows = listOf(show))),
+        )
+        assertEquals(
+            SavedShowCollectionPresentationState.Content(
+                shows = listOf(show),
+                isRefreshing = true,
+            ),
+            savedShowCollectionState(
+                SavedShowsCollection(
+                    shows = listOf(show),
+                    isLoading = true,
+                ),
+            ),
+        )
+        assertEquals(
+            SavedShowCollectionPresentationState.Content(
+                shows = listOf(show),
+                errorMessage = "Try again",
+            ),
             savedShowCollectionState(
                 SavedShowsCollection(
                     shows = listOf(show),
                     errorMessage = "Try again",
                 ),
             ),
-        )
-        assertEquals(
-            SavedShowCollectionPresentationState.Content(listOf(show)),
-            savedShowCollectionState(SavedShowsCollection(shows = listOf(show))),
         )
     }
 
