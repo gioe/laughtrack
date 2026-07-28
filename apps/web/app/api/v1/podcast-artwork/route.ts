@@ -7,7 +7,7 @@ import {
 } from "@/lib/rateLimit";
 import { safePodcastImageUrl } from "@/lib/data/podcast/imageUrl";
 import { withRequestMetrics } from "@/lib/metrics";
-import { PUBLIC_PODCAST_ACCEPTED_ATTRIBUTION_WHERE } from "@/lib/data/podcast/publicWhere";
+import { getPublicPodcastAcceptedAttributionWhere } from "@/lib/data/podcast/publicWhere";
 
 const CACHE_CONTROL = "public, max-age=86400, s-maxage=604800";
 
@@ -35,10 +35,11 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     const safeUrl = safePodcastImageUrl(requestedUrl);
     if (!safeUrl) return badRequest(rl);
 
+    const publicPodcastWhere = await getPublicPodcastAcceptedAttributionWhere();
     const matchingPodcast = await db.podcast.findFirst({
         where: {
             imageUrl: safeUrl,
-            ...PUBLIC_PODCAST_ACCEPTED_ATTRIBUTION_WHERE,
+            ...publicPodcastWhere,
         },
         select: { id: true },
     });

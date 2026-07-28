@@ -1,12 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 
-const { mockFindFirst } = vi.hoisted(() => ({
+const { mockFindFirst, mockQueryRaw } = vi.hoisted(() => ({
     mockFindFirst: vi.fn(),
+    mockQueryRaw: vi.fn(),
 }));
 
 vi.mock("@/lib/db", () => ({
     db: {
+        $queryRaw: mockQueryRaw,
         podcast: {
             findFirst: mockFindFirst,
         },
@@ -43,6 +45,7 @@ function makeRequest(url: string): NextRequest {
 beforeEach(() => {
     vi.clearAllMocks();
     mockFindFirst.mockResolvedValue(null);
+    mockQueryRaw.mockResolvedValue([]);
     vi.stubGlobal(
         "fetch",
         vi.fn(() =>
@@ -99,6 +102,21 @@ describe.sequential("GET /api/v1/podcast-artwork", () => {
                 }),
             }),
         );
+    });
+
+    it("excludes denied comedian hosts from artwork authorization", async () => {
+        mockQueryRaw.mockResolvedValue([{ podcast_id: 5328 }]);
+
+        await GET(makeRequest("https://cdn.example.com/art.jpg"));
+
+        expect(mockFindFirst).toHaveBeenCalledWith({
+            where: {
+                imageUrl: "https://cdn.example.com/art.jpg",
+                ...PUBLIC_PODCAST_ACCEPTED_ATTRIBUTION_WHERE,
+                AND: [{ id: { notIn: [5328] } }],
+            },
+            select: { id: true },
+        });
     });
 
     it("rejects DB-owned URLs that do not return image content", async () => {

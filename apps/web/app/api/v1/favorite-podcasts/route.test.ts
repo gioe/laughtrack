@@ -5,8 +5,13 @@ vi.mock("@/lib/auth/resolveAuth", () => ({
     resolveAuth: vi.fn(),
     PROFILE_MISSING: "PROFILE_MISSING",
 }));
+const { mockQueryRaw } = vi.hoisted(() => ({
+    mockQueryRaw: vi.fn(),
+}));
+
 vi.mock("@/lib/db", () => ({
     db: {
+        $queryRaw: mockQueryRaw,
         favoritePodcast: { findMany: vi.fn(), upsert: vi.fn() },
         podcast: { findFirst: vi.fn(), findUnique: vi.fn() },
     },
@@ -47,6 +52,7 @@ function makeRequest(body: unknown = { podcastId: 42 }): NextRequest {
 
 beforeEach(() => {
     vi.clearAllMocks();
+    mockQueryRaw.mockResolvedValue([]);
 });
 
 describe("/api/v1/favorite-podcasts", () => {
@@ -158,6 +164,29 @@ describe("/api/v1/favorite-podcasts", () => {
                 },
             ],
         });
+    });
+
+    it("excludes denied comedian hosts from saved favorites", async () => {
+        mockResolveAuth.mockResolvedValue({
+            profileId: "profile-1",
+            userId: "user-1",
+        });
+        mockQueryRaw.mockResolvedValue([{ podcast_id: 5328 }]);
+        mockFindMany.mockResolvedValue([]);
+
+        await GET(new NextRequest("http://localhost/api/v1/favorite-podcasts"));
+
+        expect(mockFindMany).toHaveBeenCalledWith(
+            expect.objectContaining({
+                where: {
+                    profileId: "profile-1",
+                    podcast: {
+                        ...PUBLIC_PODCAST_ACCEPTED_ATTRIBUTION_WHERE,
+                        AND: [{ id: { notIn: [5328] } }],
+                    },
+                },
+            }),
+        );
     });
 
     it('invokes applyPublicReadRateLimit with the "favorite-podcasts" route prefix for POST', async () => {

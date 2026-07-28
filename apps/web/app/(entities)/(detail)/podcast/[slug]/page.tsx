@@ -10,7 +10,7 @@ import PodcastDetail from "@/ui/pages/entity/podcast";
 import { getPodcastDetailPageData } from "@/lib/data/podcast/detail/getPodcastDetailPageData";
 import { buildPodcastJsonLd } from "@/util/jsonLd";
 import { stripHtmlTags } from "@/util/primatives/stringUtil";
-import { PUBLIC_PODCAST_ACCEPTED_ATTRIBUTION_WHERE } from "@/lib/data/podcast/publicWhere";
+import { getPublicPodcastAcceptedAttributionWhere } from "@/lib/data/podcast/publicWhere";
 import { isPodcastFavorite } from "@/lib/data/detail/personalizedOverlay";
 
 export async function generateMetadata(props: {
@@ -18,11 +18,13 @@ export async function generateMetadata(props: {
 }): Promise<Metadata> {
     const { slug } = await props.params;
     const getPodcastMeta = unstable_cache(
-        () =>
-            db.podcast.findFirst({
+        async () => {
+            const publicPodcastWhere =
+                await getPublicPodcastAcceptedAttributionWhere();
+            return db.podcast.findFirst({
                 where: {
                     slug,
-                    ...PUBLIC_PODCAST_ACCEPTED_ATTRIBUTION_WHERE,
+                    ...publicPodcastWhere,
                 },
                 select: {
                     title: true,
@@ -30,7 +32,8 @@ export async function generateMetadata(props: {
                     description: true,
                     imageUrl: true,
                 },
-            }),
+            });
+        },
         ["podcast-metadata", slug],
         { revalidate: CACHE.detailPage, tags: ["podcast-metadata", slug] },
     );

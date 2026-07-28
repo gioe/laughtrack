@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { db } from "@/lib/db";
-import { PUBLIC_PODCAST_ACCEPTED_ATTRIBUTION_WHERE } from "@/lib/data/podcast/publicWhere";
+import { getPublicPodcastAcceptedAttributionWhere } from "@/lib/data/podcast/publicWhere";
 
 const SITE_URL = "https://www.laugh-track.com";
 
@@ -9,6 +9,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     let comedians: { name: string }[] = [];
     let podcasts: { slug: string }[] = [];
     try {
+        const publicPodcastWhere =
+            await getPublicPodcastAcceptedAttributionWhere();
         [clubs, comedians, podcasts] = await Promise.all([
             db.club.findMany({
                 where: { visible: true },
@@ -21,7 +23,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
                 orderBy: { popularity: "desc" },
             }),
             db.podcast.findMany({
-                where: PUBLIC_PODCAST_ACCEPTED_ATTRIBUTION_WHERE,
+                where: publicPodcastWhere,
                 select: { slug: true },
                 orderBy: { title: "asc" },
             }),

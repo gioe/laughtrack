@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withRequestMetrics } from "@/lib/metrics";
 import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
-import { PUBLIC_PODCAST_ACCEPTED_ATTRIBUTION_WHERE } from "@/lib/data/podcast/publicWhere";
+import { getPublicPodcastAcceptedAttributionWhere } from "@/lib/data/podcast/publicWhere";
 
 const favoritePodcastSelect = {
     id: true,
@@ -42,10 +42,12 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
             );
         }
 
+        const publicPodcastWhere =
+            await getPublicPodcastAcceptedAttributionWhere();
         const favorites = await db.favoritePodcast.findMany({
             where: {
                 profileId: authCtx.profileId,
-                podcast: PUBLIC_PODCAST_ACCEPTED_ATTRIBUTION_WHERE,
+                podcast: publicPodcastWhere,
             },
             orderBy: { podcast: { title: "asc" } },
             select: {
@@ -126,10 +128,12 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
             );
         }
 
+        const publicPodcastWhere =
+            await getPublicPodcastAcceptedAttributionWhere();
         const podcast = await db.podcast.findFirst({
             where: {
                 id: podcastId,
-                ...PUBLIC_PODCAST_ACCEPTED_ATTRIBUTION_WHERE,
+                ...publicPodcastWhere,
             },
             select: { id: true },
         });
